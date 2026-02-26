@@ -6,8 +6,8 @@
 				<th class="teams-people-th-checkbox">
 					<input type="checkbox" class="teams-people-select-all" title="{vtranslate('LBL_ACTIONS','Vtiger')}" />
 				</th>
-				<th>{vtranslate('LBL_NAME','Vtiger')}</th>
-				<th>{vtranslate('LBL_EMAIL','Vtiger')}</th>
+				<th>{vtranslate('LBL_NAME','Teams')}</th>
+				<th>{vtranslate('LBL_EMAIL','Teams')}</th>
 				<th>{vtranslate('LBL_DATE_JOINED_COMPANY','Teams')}</th>
 				<th>{vtranslate('LBL_ASSIGNED_PROJECTS','Teams')}</th>
 				<th>{vtranslate('LBL_LAST_ACTIVE','Teams')}</th>

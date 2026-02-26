@@ -23,7 +23,7 @@
 				{if $CAN_ADD_PERSON}
 					<button type="button" class="btn btn-primary teams-action-btn js-add-person" data-url="index.php?module=Teams&view=People&app=Management&mode=modal">
 						<i class="fa fa-user-plus" aria-hidden="true"></i>
-						{vtranslate('LBL_ADD','Vtiger')} {vtranslate('LBL_PERSON','Vtiger')}
+						{vtranslate('LBL_ADD','Vtiger')} {vtranslate('LBL_PERSON','Teams')}
 					</button>
 				{/if}
 			</div>
