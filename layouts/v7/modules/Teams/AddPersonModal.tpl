@@ -1,7 +1,7 @@
 {strip}
-<div class="teams-modal" style="padding: 20px;">
-	<div class="teams-modal-header" style="margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 15px;">
-		<h3 class="teams-modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">Add person</h3>
+<div class="teams-modal teams-add-person-modal">
+	<div class="teams-modal-header">
+		<h3 class="teams-modal-title">Add person</h3>
 	</div>
 	<form id="EditView" class="js-teams-add-person-form teams-modal-form" method="post" action="index.php">
 		<input type="hidden" name="module" value="Teams" />
@@ -80,11 +80,11 @@
 			<input type="password" name="password" class="form-control" required placeholder="Enter password" />
 		</div>
 
-		<div class="modal-footer" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; text-align: right;">
-			<button type="submit" class="btn btn-success">
-				<strong>Save</strong>
+		<div class="modal-footer teams-modal-footer">
+			<button type="submit" class="btn btn-primary teams-btn-primary">
+				Save
 			</button>
-			<button type="button" class="btn btn-default" data-dismiss="modal">
+			<button type="button" class="btn btn-default teams-btn-secondary" data-dismiss="modal">
 				Cancel
 			</button>
 		</div>

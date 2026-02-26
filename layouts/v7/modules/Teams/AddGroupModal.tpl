@@ -1,5 +1,5 @@
 {strip}
-<div class="teams-modal">
+<div class="teams-modal teams-add-group-modal">
 	<div class="teams-modal-header">
 		<h3 class="teams-modal-title">{if $IS_EDIT}Edit group{else}Add group{/if}</h3>
 	</div>
@@ -46,7 +46,7 @@
 			{* Add mode: Unified checkbox list with preset options *}
 			<div class="form-group">
 				<label class="control-label">Assign Members *</label>
-				<div class="teams-assign-members-container">
+					<div class="teams-assign-members-container">
 					{* Preset options - these are helpers to populate the user list *}
 					<div class="teams-assign-options" style="margin-bottom: 12px;">
 						<label class="radio-inline" style="margin-right: 20px;">
@@ -74,8 +74,8 @@
 
 					{* Unified user checkbox list - always visible *}
 					<div class="teams-users-checkbox-list-container">
-						<div class="teams-users-checkbox-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 12px; background: #fff;">
-							<div class="teams-users-placeholder text-muted" style="padding: 10px; font-style: italic; text-align: center;">
+						<div class="teams-users-checkbox-list">
+							<div class="teams-users-placeholder text-muted">
 								Select an assignment method above to load users...
 							</div>
 						</div>
@@ -84,9 +84,9 @@
 			</div>
 		{/if}
 
-		<div class="form-group text-right">
-			<button type="submit" class="btn btn-primary">{if $IS_EDIT}{vtranslate('LBL_SAVE','Vtiger')}{else}{vtranslate('LBL_ADD','Vtiger')}{/if}</button>
-			<button type="button" class="btn btn-default" data-dismiss="modal">{vtranslate('LBL_CANCEL','Vtiger')}</button>
+		<div class="teams-modal-footer">
+			<button type="submit" class="btn btn-primary teams-btn-primary">{if $IS_EDIT}{vtranslate('LBL_SAVE','Vtiger')}{else}{vtranslate('LBL_ADD','Vtiger')}{/if}</button>
+			<button type="button" class="btn btn-default teams-btn-secondary" data-dismiss="modal">{vtranslate('LBL_CANCEL','Vtiger')}</button>
 		</div>
 	</form>
 </div>
