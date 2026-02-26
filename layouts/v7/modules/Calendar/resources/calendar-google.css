@@ -733,8 +733,9 @@ body:has(.CalendarViewPageDiv) .calendar-mini-wrap {
     display: block !important;
     visibility: visible !important;
     height: auto !important;
-    max-height: 280px !important;
-    overflow: hidden !important;
+    /* Cho phép lịch nhỏ cao hơn nếu có nhiều ngày/nhãn nghỉ, không che chữ */
+    max-height: none !important;
+    overflow: visible !important;
     background: rgba(255,255,255,0.08);
     border-radius: 8px;
     padding: 6px 6px 6px 0;
@@ -753,8 +754,8 @@ body[data-module="Calendar"] #calendar-mini,
 body:has(.CalendarViewPageDiv) #calendar-mini {
     height: auto !important;
     min-height: 0 !important;
-    max-height: 250px !important;
-    overflow: hidden !important;
+    max-height: none !important;
+    overflow: visible !important;
     display: block !important;
     visibility: visible !important;
     margin-left: 0 !important;
