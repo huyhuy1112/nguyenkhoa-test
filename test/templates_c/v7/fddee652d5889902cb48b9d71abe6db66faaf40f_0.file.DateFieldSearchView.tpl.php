@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-29 09:08:25
+/* Smarty version 4.5.4, created on 2026-02-13 08:51:58
   from '/var/www/html/layouts/v7/modules/Vtiger/uitypes/DateFieldSearchView.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697b23892ccf68_44978351',
+  'unifunc' => 'content_698ee62e3c5968_19513849',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697b23892ccf68_44978351 (Smarty_Internal_Template $_smarty_tpl) {
+function content_698ee62e3c5968_19513849 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('FIELD_INFO', Zend_Json::encode($_smarty_tpl->tpl_vars['FIELD_MODEL']->value->getFieldInfo()));
 $_smarty_tpl->_assignInScope('dateFormat', $_smarty_tpl->tpl_vars['USER_MODEL']->value->get('date_format'));?><div class="row-fluid"><input type="text" name="<?php echo $_smarty_tpl->tpl_vars['FIELD_MODEL']->value->get('name');?>
 " class="listSearchContributor inputElement dateField" data-date-format="<?php echo $_smarty_tpl->tpl_vars['dateFormat']->value;?>

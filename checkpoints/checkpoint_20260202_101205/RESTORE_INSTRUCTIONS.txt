@@ -1,0 +1,34 @@
+Checkpoint – Calendar Google (Month/Week/Day lấp khoảng trắng)
+==============================================================
+
+Tạo lúc: 2026-02-02 10:12:05
+Mục đích: Đề phòng khi update feature bị lỗi web, có thể khôi phục về trạng thái ổn định này.
+
+CÁC FILE TRONG CHECKPOINT NÀY:
+------------------------------
+1. layouts/v7/modules/Calendar/resources/calendar-google.css
+   - Giao diện Calendar kiểu Google (nền tối #202124)
+   - Month view: khung tháng to ra, lấp hết khoảng trắng (height calc(100vh - 50px))
+   - Week/Day view: scroller lấp đầy chiều cao, không cuộn ngang lòi ra
+   - Content-area overflow hidden, #page & main-container background #202124 (không còn dải trắng)
+   - Footer ẩn, nav/sidebar absolute
+
+2. layouts/v7/modules/Calendar/resources/Calendar.js
+   - FullCalendar height: viewport - 50px (khung month/week/day lấp khoảng trắng)
+   - fixedWeekCount: false (tháng hiển thị 5–6 tuần, ngày tháng khác xếp chung)
+
+LỆNH KHÔI PHỤC (RESTORE):
+-------------------------
+cd /Users/dangquochuy/Backup
+
+# Khôi phục 2 file Calendar
+cp checkpoints/checkpoint_20260202_101205/layouts/v7/modules/Calendar/resources/calendar-google.css layouts/v7/modules/Calendar/resources/
+cp checkpoints/checkpoint_20260202_101205/layouts/v7/modules/Calendar/resources/Calendar.js layouts/v7/modules/Calendar/resources/
+
+# Xóa cache (nếu sau khi restore vẫn lỗi hiển thị)
+# rm -rf storage/cache/* cache/templates_c/*
+
+GHI CHÚ:
+--------
+- Checkpoint này chỉ lưu 2 file: calendar-google.css và Calendar.js (phần Calendar Google + lấp khoảng trắng).
+- Sau khi update feature khác mà web Calendar bị lỗi (khoảng trắng, layout vỡ, v.v.) thì chạy 2 lệnh cp trên để quay lại trạng thái ổn định.

@@ -1,0 +1,48 @@
+# ============================================================================
+# QUICK PUSH GUIDE - PUSH CODE LÊN GITHUB
+# ============================================================================
+
+## BƯỚC 1: Kiểm tra và chuẩn bị
+
+# Kiểm tra git remote
+git remote -v
+
+# Nếu chưa có supertestcrm remote:
+git remote add supertestcrm https://github.com/huyhuy1112/supertestcrm.git
+
+# Kiểm tra .gitignore đã được cập nhật
+cat .gitignore | grep -E "CONNECTOR_DISPLAY_FIX|test_|\.zip"
+
+## BƯỚC 2: Add files chọn lọc
+
+# Add .gitignore và deploy guides
+git add .gitignore DEPLOY_PRODUCTION.md PUSH_TO_GITHUB.md
+
+# Add vtiger_upload_fix (đã có config production-ready)
+git add vtiger_upload_fix/
+
+# Add source code (sẽ tự động loại bỏ files trong .gitignore)
+git add .
+
+# Kiểm tra lại
+git status
+
+## BƯỚC 3: Commit
+
+git commit -m "Prepare code for production deployment via cPanel
+
+- Updated .gitignore to exclude test files, fix directories, and backups
+- Added vtiger_upload_fix/ with production-ready config.inc.php
+- Added DEPLOY_PRODUCTION.md with deployment instructions
+- Removed Docker-specific configurations
+- Ready for cPanel shared hosting deployment"
+
+## BƯỚC 4: Push
+
+git push supertestcrm main
+
+## HOẶC CHẠY SCRIPT:
+
+./push_to_github.sh
+
+# ============================================================================

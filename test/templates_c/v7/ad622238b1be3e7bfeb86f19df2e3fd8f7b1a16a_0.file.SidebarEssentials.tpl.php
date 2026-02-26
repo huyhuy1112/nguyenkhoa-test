@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-29 09:09:27
+/* Smarty version 4.5.4, created on 2026-02-13 08:51:58
   from '/var/www/html/layouts/v7/modules/Documents/partials/SidebarEssentials.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697b23c705b2a0_97394698',
+  'unifunc' => 'content_698ee62e09f8a8_21239355',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'ad622238b1be3e7bfeb86f19df2e3fd8f7b1a16a' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Documents/partials/SidebarEssentials.tpl',
-      1 => 1768793648,
+      1 => 1770957004,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697b23c705b2a0_97394698 (Smarty_Internal_Template $_smarty_tpl) {
+function content_698ee62e09f8a8_21239355 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class="sidebar-menu sidebar-menu-full">
     <div class="module-filters" id="module-filters">
         <div class="sidebar-container lists-menu-container">
@@ -72,13 +72,13 @@ $_smarty_tpl->tpl_vars['__smarty_foreach_customView']->value['iteration']++;
                                             <li style="font-size:12px;" class='listViewFilter <?php if ($_smarty_tpl->tpl_vars['VIEWID']->value == $_smarty_tpl->tpl_vars['CUSTOM_VIEW']->value->getId() && ($_smarty_tpl->tpl_vars['CURRENT_TAG']->value == '') && !$_smarty_tpl->tpl_vars['FOLDER_VALUE']->value) {?> active<?php }?> <?php if ((isset($_smarty_tpl->tpl_vars['__smarty_foreach_customView']->value['iteration']) ? $_smarty_tpl->tpl_vars['__smarty_foreach_customView']->value['iteration'] : null) > 5) {?> filterHidden hide<?php }?> '>
                                                 <?php ob_start();
 echo vtranslate($_smarty_tpl->tpl_vars['CUSTOM_VIEW']->value->get('viewname'),$_smarty_tpl->tpl_vars['MODULE']->value);
-$_prefixVariable5 = ob_get_clean();
-$_smarty_tpl->_assignInScope('VIEWNAME', $_prefixVariable5);?> 
+$_prefixVariable1 = ob_get_clean();
+$_smarty_tpl->_assignInScope('VIEWNAME', $_prefixVariable1);?> 
                                                 <a class="filterName" href="javascript:;" data-filter-id="<?php echo $_smarty_tpl->tpl_vars['CUSTOM_VIEW']->value->getId();?>
 "><?php ob_start();
 echo strlen((string) $_smarty_tpl->tpl_vars['VIEWNAME']->value);
-$_prefixVariable6 = ob_get_clean();
-if ($_prefixVariable6 > 40) {?> <?php echo htmlspecialchars((string)call_user_func_array($_smarty_tpl->registered_plugins[ 'modifier' ][ 'substr' ][ 0 ], array( $_smarty_tpl->tpl_vars['VIEWNAME']->value,0,40 )), ENT_QUOTES, 'UTF-8', true);?>
+$_prefixVariable2 = ob_get_clean();
+if ($_prefixVariable2 > 40) {?> <?php echo htmlspecialchars((string)call_user_func_array($_smarty_tpl->registered_plugins[ 'modifier' ][ 'substr' ][ 0 ], array( $_smarty_tpl->tpl_vars['VIEWNAME']->value,0,40 )), ENT_QUOTES, 'UTF-8', true);?>
 ..<?php } else {
 echo htmlspecialchars((string)$_smarty_tpl->tpl_vars['VIEWNAME']->value, ENT_QUOTES, 'UTF-8', true);
 }?></a> 
@@ -175,8 +175,8 @@ $_smarty_tpl->tpl_vars['__smarty_foreach_folderView']->value['iteration']++;
 ?>
                          <?php ob_start();
 echo vtranslate($_smarty_tpl->tpl_vars['FOLDER']->value->get('foldername'),$_smarty_tpl->tpl_vars['MODULE']->value);
-$_prefixVariable7 = ob_get_clean();
-$_smarty_tpl->_assignInScope('FOLDERNAME', $_prefixVariable7);?> 
+$_prefixVariable3 = ob_get_clean();
+$_smarty_tpl->_assignInScope('FOLDERNAME', $_prefixVariable3);?> 
                         <li style="font-size:12px;" class='documentFolder <?php if ($_smarty_tpl->tpl_vars['FOLDER_VALUE']->value == $_smarty_tpl->tpl_vars['FOLDER']->value->getName()) {?> active<?php }?> <?php if ((isset($_smarty_tpl->tpl_vars['__smarty_foreach_folderView']->value['iteration']) ? $_smarty_tpl->tpl_vars['__smarty_foreach_folderView']->value['iteration'] : null) > 5) {?> filterHidden hide<?php }?>'>
                             <a class="filterName" href="javascript:void(0);" data-filter-id="<?php echo $_smarty_tpl->tpl_vars['FOLDER']->value->get('folderid');?>
 " data-folder-name="<?php echo $_smarty_tpl->tpl_vars['FOLDER']->value->get('foldername');?>
@@ -185,26 +185,18 @@ $_smarty_tpl->_assignInScope('FOLDERNAME', $_prefixVariable7);?>
                                 <i class="fa <?php if ($_smarty_tpl->tpl_vars['FOLDER_VALUE']->value == $_smarty_tpl->tpl_vars['FOLDER']->value->getName()) {?>fa-folder-open<?php } else { ?>fa-folder<?php }?>"></i> 
                                 <span class="foldername"><?php ob_start();
 echo strlen((string) $_smarty_tpl->tpl_vars['FOLDERNAME']->value);
-$_prefixVariable8 = ob_get_clean();
-if ($_prefixVariable8 > 40) {?> <?php echo htmlspecialchars((string)call_user_func_array($_smarty_tpl->registered_plugins[ 'modifier' ][ 'substr' ][ 0 ], array( $_smarty_tpl->tpl_vars['FOLDERNAME']->value,0,40 )), ENT_QUOTES, 'UTF-8', true);?>
+$_prefixVariable4 = ob_get_clean();
+if ($_prefixVariable4 > 40) {?> <?php echo htmlspecialchars((string)call_user_func_array($_smarty_tpl->registered_plugins[ 'modifier' ][ 'substr' ][ 0 ], array( $_smarty_tpl->tpl_vars['FOLDERNAME']->value,0,40 )), ENT_QUOTES, 'UTF-8', true);?>
 ..<?php } else {
 echo htmlspecialchars((string)$_smarty_tpl->tpl_vars['FOLDERNAME']->value, ENT_QUOTES, 'UTF-8', true);
 }?></span>
                             </a>
                             <?php if ($_smarty_tpl->tpl_vars['FOLDER']->value->getName() != 'Default' && $_smarty_tpl->tpl_vars['FOLDER']->value->getName() != 'Google Drive' && $_smarty_tpl->tpl_vars['FOLDER']->value->getName() != 'Dropbox') {?>
-                                <div class="dropdown pull-right">
-                                    <span class="fa fa-caret-down dropdown-toggle" data-toggle="dropdown" aria-expanded="true"></span>
-                                    <ul class="dropdown-menu dropdown-menu-right vtDropDown" role="menu">
-                                        <li class="editFolder " data-folder-id="<?php echo $_smarty_tpl->tpl_vars['FOLDER']->value->get('folderid');?>
-">
-                                            <a role="menuitem" ><i class="fa fa-pencil-square-o"></i>&nbsp;Edit</a>
-                                        </li>
-                                        <li class="deleteFolder " data-deletable="<?php echo !$_smarty_tpl->tpl_vars['FOLDER']->value->hasDocuments();?>
-" data-folder-id="<?php echo $_smarty_tpl->tpl_vars['FOLDER']->value->get('folderid');?>
-">
-                                            <a role="menuitem" ><i class="fa fa-trash"></i>&nbsp;Delete</a>
-                                        </li>
-                                    </ul>
+                                <div class="pull-right" style="margin-left:4px;">
+                                    <span class="fa fa-pencil-square-o editFolder cursorPointer" data-folder-id="<?php echo $_smarty_tpl->tpl_vars['FOLDER']->value->get('folderid');?>
+" title="Edit" style="margin-right:6px;"></span>
+                                    <span class="fa fa-trash deleteFolder cursorPointer" data-deletable="<?php if (!$_smarty_tpl->tpl_vars['FOLDER']->value->hasDocuments()) {?>1<?php } else { ?>0<?php }?>" data-folder-id="<?php echo $_smarty_tpl->tpl_vars['FOLDER']->value->get('folderid');?>
+" title="Delete"></span>
                                 </div>
                             <?php }?>
                         </li>

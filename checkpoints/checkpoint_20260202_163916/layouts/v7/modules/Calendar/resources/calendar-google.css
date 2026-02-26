@@ -1,0 +1,923 @@
+/**
+ * Calendar – Giao diện kiểu Google Calendar
+ * Chỉ áp dụng khi module=Calendar (Schedule). Dễ kiểm soát: sửa file này, không đụng custom.css.
+ * Scope: body[data-module="Calendar"] hoặc body:has(.CalendarViewPageDiv)
+ */
+
+/* ========== 1. TRANG & SCROLL – NỀN TỐI, KHÔNG KHOẢNG TRẮNG TRẮNG PHÍA DƯỚI ========== */
+body[data-module="Calendar"],
+body:has(.CalendarViewPageDiv) {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    min-height: 100vh !important;
+    height: auto !important;
+    max-height: none !important;
+    background: #202124 !important;
+}
+
+html:has(body[data-module="Calendar"]),
+html:has(.CalendarViewPageDiv) {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
+    min-height: 100% !important;
+}
+
+body[data-module="Calendar"] .navbar-fixed-top,
+body[data-module="Calendar"] nav.app-fixed-navbar,
+body[data-module="Calendar"] .app-fixed-navbar,
+body:has(.CalendarViewPageDiv) .navbar-fixed-top,
+body:has(.CalendarViewPageDiv) nav.app-fixed-navbar {
+    position: relative !important;
+    top: auto !important;
+}
+
+body[data-module="Calendar"] #page,
+body:has(.CalendarViewPageDiv) #page {
+    padding-top: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    background: #202124 !important;
+}
+
+body[data-module="Calendar"] #content-wrapper,
+body[data-module="Calendar"] #sidebar-wrapper,
+body:has(.CalendarViewPageDiv) #content-wrapper,
+body:has(.CalendarViewPageDiv) #sidebar-wrapper {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+}
+
+/* ========== 2. LAYOUT: BẬT MENU SCHEDULE (app-nav Schedule bar hiện) → Topbar + Schedule bar rồi Nav | Sidebar | Full calendar ========== */
+body[data-module="Calendar"] .main-container,
+body:has(.CalendarViewPageDiv) .main-container {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: calc(100vh - 50px) !important;
+    padding: 0 !important;
+    margin-top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    background: #202124 !important;
+}
+
+/* Nav + Sidebar: position absolute, z-index CAO hơn calendar để KHÔNG bị full calendar đè → mini calendar + Activity hiện ra */
+body[data-module="Calendar"] .main-container .calendar-navigator.module-nav,
+body[data-module="Calendar"] .main-container #modnavigator.calendar-navigator,
+body:has(.CalendarViewPageDiv) .main-container .calendar-navigator.module-nav,
+body:has(.CalendarViewPageDiv) .main-container #modnavigator.calendar-navigator {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 56px !important;
+    max-width: 56px !important;
+    z-index: 10 !important;
+    overflow: hidden !important;
+}
+body[data-module="Calendar"] #sidebar-essentials.sidebar-essentials,
+body:has(.CalendarViewPageDiv) #sidebar-essentials.sidebar-essentials {
+    position: absolute !important;
+    left: 56px !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    min-height: 0 !important;
+    z-index: 10 !important;
+}
+/* mCustomScrollbar trong nav không được tràn ra ngoài (tránh chặn click lịch) */
+body[data-module="Calendar"] #modnavigator .modules-menu.mCustomScrollbar,
+body[data-module="Calendar"] #modnavigator .mCustomScrollBox,
+body:has(.CalendarViewPageDiv) #modnavigator .modules-menu.mCustomScrollbar,
+body:has(.CalendarViewPageDiv) #modnavigator .mCustomScrollBox {
+    max-width: 56px !important;
+    overflow: hidden !important;
+}
+body[data-module="Calendar"] #sidebar-essentials.sidebar-essentials,
+body:has(.CalendarViewPageDiv) #sidebar-essentials.sidebar-essentials {
+    z-index: 10 !important;
+    width: 260px !important;
+    min-width: 260px;
+    max-width: 260px;
+    overflow-x: hidden !important;
+}
+body[data-module="Calendar"] .CalendarViewPageDiv.content-area,
+body[data-module="Calendar"] #mycalendar,
+body:has(.CalendarViewPageDiv) .CalendarViewPageDiv.content-area,
+body:has(.CalendarViewPageDiv) #mycalendar {
+    position: relative !important;
+    z-index: 1 !important; /* Thấp hơn nav (10) và sidebar (10) để không đè lên mini calendar + Activity */
+    pointer-events: auto !important;
+}
+body[data-module="Calendar"] #mycalendar .fc,
+body:has(.CalendarViewPageDiv) #mycalendar .fc {
+    pointer-events: auto !important;
+}
+body[data-module="Calendar"] #mycalendar .fc-view-container,
+body[data-module="Calendar"] #mycalendar .fc-scroller,
+body[data-module="Calendar"] #mycalendar .fc-time-grid,
+body[data-module="Calendar"] #mycalendar .fc-day-grid,
+body:has(.CalendarViewPageDiv) #mycalendar .fc-view-container,
+body:has(.CalendarViewPageDiv) #mycalendar .fc-scroller,
+body:has(.CalendarViewPageDiv) #mycalendar .fc-time-grid,
+body:has(.CalendarViewPageDiv) #mycalendar .fc-day-grid {
+    pointer-events: auto !important;
+}
+/* Trang Calendar: luôn hiện sidebar (mini calendar + Activity Types) bên trái full calendar */
+body[data-module="Calendar"] #sidebar-essentials.sidebar-essentials.hide,
+body:has(.CalendarViewPageDiv) #sidebar-essentials.sidebar-essentials.hide {
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-left: 1px solid #3c4043 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+}
+body[data-module="Calendar"] .main-container #sidebar-essentials.sidebar-essentials.hide + .CalendarViewPageDiv,
+body[data-module="Calendar"] .main-container #sidebar-essentials.sidebar-essentials + .CalendarViewPageDiv,
+body:has(.CalendarViewPageDiv) .main-container #sidebar-essentials.sidebar-essentials.hide + .CalendarViewPageDiv,
+body:has(.CalendarViewPageDiv) .main-container #sidebar-essentials.sidebar-essentials + .CalendarViewPageDiv {
+    padding-left: 316px !important; /* 56px nav + 260px sidebar: luôn chừa chỗ cho mini calendar + Activity */
+}
+
+body[data-module="Calendar"] .viewContent,
+body:has(.CalendarViewPageDiv) .viewContent {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+}
+
+body[data-module="Calendar"] .content-area,
+body[data-module="Calendar"] .CalendarViewPageDiv,
+body:has(.CalendarViewPageDiv) .content-area,
+body:has(.CalendarViewPageDiv) .CalendarViewPageDiv {
+    overflow: hidden !important;
+    height: calc(100vh - 50px) !important;
+    min-height: 0 !important;
+    max-height: none !important;
+}
+
+body[data-module="Calendar"] .CalendarViewPageDiv,
+body:has(.CalendarViewPageDiv) .CalendarViewPageDiv,
+body[data-module="Calendar"] .CalendarViewPageDiv.full-width,
+body:has(.CalendarViewPageDiv) .CalendarViewPageDiv.full-width {
+    padding-left: 316px !important; /* 56px nav + 260px sidebar: luôn chừa chỗ cho mini calendar + Activity */
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+    overflow-x: hidden !important;
+}
+
+/* Ẩn footer trên trang Calendar → hết khoảng trắng phía dưới */
+body[data-module="Calendar"] .app-footer,
+body:has(.CalendarViewPageDiv) .app-footer {
+    display: none !important;
+}
+
+body[data-module="Calendar"] .bodyContents,
+body:has(.CalendarViewPageDiv) .bodyContents {
+    padding-top: 0 !important;
+}
+
+body[data-module="Calendar"] .viewContent .content-area,
+body:has(.CalendarViewPageDiv) .viewContent .content-area {
+    padding-top: 0 !important;
+}
+
+body[data-module="Calendar"] #mycalendar,
+body:has(.CalendarViewPageDiv) #mycalendar {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    max-width: 100% !important;
+    height: 100% !important;
+}
+body[data-module="Calendar"] .CalendarViewPageDiv .col-lg-12,
+body:has(.CalendarViewPageDiv) .CalendarViewPageDiv .col-lg-12 {
+    padding: 0 !important;
+}
+
+/* ========== 3. HEADER BAR – GỌN, GHÉP SÁT LỊCH BÊN DƯỚI ========== */
+body[data-module="Calendar"] .app-nav.app-nav-Schedule,
+body:has(.CalendarViewPageDiv) .app-nav.app-nav-Schedule,
+body[data-module="Calendar"] .container-fluid.app-nav,
+body:has(.CalendarViewPageDiv) .container-fluid.app-nav {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    margin-bottom: 0 !important;
+    min-height: 0 !important;
+    background: #202124 !important;
+    border-bottom: 1px solid #3c4043;
+}
+/* Không khoảng trống giữa header và main-container → lịch ghép sát lên trên */
+body[data-module="Calendar"] .app-nav.app-nav-Schedule + #overlayPageContent,
+body[data-module="Calendar"] .app-nav.app-nav-Schedule ~ .main-container,
+body:has(.CalendarViewPageDiv) .app-nav ~ .main-container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+body[data-module="Calendar"] .main-container,
+body:has(.CalendarViewPageDiv) .main-container {
+    margin-top: 0 !important;
+}
+body[data-module="Calendar"] .app-nav .module-action-bar,
+body:has(.CalendarViewPageDiv) .app-nav .module-action-bar {
+    min-height: 0 !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+}
+
+body[data-module="Calendar"] .app-nav .module-action-bar,
+body[data-module="Calendar"] .app-nav .module-action-content,
+body:has(.CalendarViewPageDiv) .app-nav .module-action-bar,
+body:has(.CalendarViewPageDiv) .app-nav .module-action-content {
+    background: #202124 !important;
+    border: none !important;
+}
+
+body[data-module="Calendar"] .app-nav .module-title,
+body:has(.CalendarViewPageDiv) .app-nav .module-title {
+    color: #e8eaed !important;
+}
+
+body[data-module="Calendar"] .app-nav .btn-default.module-buttons,
+body:has(.CalendarViewPageDiv) .app-nav .btn-default.module-buttons {
+    background: rgba(255,255,255,0.08) !important;
+    color: #e8eaed !important;
+    border: 1px solid #3c4043 !important;
+}
+
+body[data-module="Calendar"] .app-nav .btn-default.module-buttons:hover,
+body:has(.CalendarViewPageDiv) .app-nav .btn-default.module-buttons:hover {
+    background: rgba(255,255,255,0.12) !important;
+    color: #fff !important;
+}
+
+body[data-module="Calendar"] .app-nav .addButton,
+body:has(.CalendarViewPageDiv) .app-nav .addButton {
+    background: #1a73e8 !important;
+    color: #fff !important;
+    border-color: #1a73e8 !important;
+}
+
+body[data-module="Calendar"] .app-nav .addButton:hover,
+body:has(.CalendarViewPageDiv) .app-nav .addButton:hover {
+    background: #1765cc !important;
+    color: #fff !important;
+}
+
+body[data-module="Calendar"] .app-nav .row,
+body:has(.CalendarViewPageDiv) .app-nav .row {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+}
+body[data-module="Calendar"] .container-fluid.app-nav .row,
+body:has(.CalendarViewPageDiv) .container-fluid.app-nav .row {
+    margin-bottom: 0 !important;
+}
+/* Toolbar FullCalendar đã chuyển lên header → lưới lịch kế bên mini calendar */
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap {
+    margin: 0 !important;
+    padding: 2px 12px 4px !important;
+    background: #202124 !important;
+    border-bottom: 1px solid #3c4043 !important;
+}
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap .fc-toolbar,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap .fc-toolbar h2,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar h2 {
+    color: #e8eaed;
+    font-size: 18px;
+}
+body[data-module="Calendar"] .CalendarViewPageDiv.content-area,
+body:has(.CalendarViewPageDiv) .CalendarViewPageDiv.content-area {
+    padding-top: 0 !important;
+}
+
+/* Xóa hết khoảng trắng: không cho wrapper nào thêm padding/margin phía trên lịch */
+body[data-module="Calendar"] .main-container .row,
+body:has(.CalendarViewPageDiv) .main-container .row {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+body[data-module="Calendar"] .CalendarViewPageDiv .row,
+body:has(.CalendarViewPageDiv) .CalendarViewPageDiv .row {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+body[data-module="Calendar"] #mycalendar,
+body:has(.CalendarViewPageDiv) #mycalendar {
+    position: relative !important;
+    z-index: 1 !important;
+    min-height: 0 !important;
+}
+body[data-module="Calendar"] .fc,
+body:has(.CalendarViewPageDiv) .fc {
+    position: relative !important;
+    z-index: 0 !important;
+}
+body[data-module="Calendar"] .module-action-content .row,
+body:has(.CalendarViewPageDiv) .module-action-content .row {
+    margin: 0 !important;
+}
+
+/* ========== 4. VÙNG LỊCH CHÍNH – NỀN TỐI, FULLCALENDAR ========== */
+body[data-module="Calendar"] .CalendarViewPageDiv.content-area,
+body:has(.CalendarViewPageDiv) .CalendarViewPageDiv.content-area,
+body[data-module="Calendar"] #mycalendar,
+body:has(.CalendarViewPageDiv) #mycalendar,
+body[data-module="Calendar"] .calendarview,
+body:has(.CalendarViewPageDiv) .calendarview {
+    background: #202124 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    visibility: visible !important;
+}
+
+body[data-module="Calendar"] .fc,
+body:has(.CalendarViewPageDiv) .fc {
+    min-height: 400px;
+    background: #202124 !important;
+    color: #e8eaed;
+}
+
+body[data-module="Calendar"] #mycalendar .fc,
+body:has(.CalendarViewPageDiv) #mycalendar .fc {
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    max-width: 100% !important;
+}
+body[data-module="Calendar"] #mycalendar .fc > .fc-view-container,
+body:has(.CalendarViewPageDiv) #mycalendar .fc > .fc-view-container {
+    margin-top: 0 !important;
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+body[data-module="Calendar"] .fc-toolbar,
+body:has(.CalendarViewPageDiv) .fc-toolbar {
+    color: #e8eaed;
+    margin-top: 0 !important;
+    margin-bottom: 2px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+}
+body[data-module="Calendar"] .fc-toolbar h2,
+body:has(.CalendarViewPageDiv) .fc-toolbar h2 {
+    color: #e8eaed;
+    font-size: 22px;
+}
+
+body[data-module="Calendar"] .fc-toolbar .fc-button,
+body:has(.CalendarViewPageDiv) .fc-toolbar .fc-button {
+    background: transparent !important;
+    color: #e8eaed !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    border-radius: 4px;
+}
+
+body[data-module="Calendar"] .fc-toolbar .fc-button:hover,
+body:has(.CalendarViewPageDiv) .fc-toolbar .fc-button:hover {
+    background: rgba(255,255,255,0.08) !important;
+}
+
+body[data-module="Calendar"] .fc-toolbar .fc-button.fc-state-active,
+body:has(.CalendarViewPageDiv) .fc-toolbar .fc-button.fc-state-active {
+    background: rgba(26,115,232,0.3) !important;
+    border-color: #1a73e8 !important;
+}
+
+body[data-module="Calendar"] .fc-head,
+body[data-module="Calendar"] .fc-day-header,
+body:has(.CalendarViewPageDiv) .fc-day-header {
+    background: #202124 !important;
+    color: #9aa0a6 !important;
+    border-color: #3c4043 !important;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+body[data-module="Calendar"] .fc-body .fc-widget-content,
+body[data-module="Calendar"] .fc-day-grid .fc-day,
+body[data-module="Calendar"] .fc-time-grid .fc-day,
+body:has(.CalendarViewPageDiv) .fc-body .fc-widget-content,
+body:has(.CalendarViewPageDiv) .fc-day-grid .fc-day,
+body:has(.CalendarViewPageDiv) .fc-time-grid .fc-day {
+    background: #202124 !important;
+    border-color: #3c4043 !important;
+}
+body[data-module="Calendar"] .fc-body,
+body:has(.CalendarViewPageDiv) .fc-body,
+body[data-module="Calendar"] #mycalendar .fc-time-grid,
+body:has(.CalendarViewPageDiv) #mycalendar .fc-time-grid {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+body[data-module="Calendar"] .fc-day-number,
+body:has(.CalendarViewPageDiv) .fc-day-number {
+    color: #9aa0a6;
+}
+
+body[data-module="Calendar"] .fc-event,
+body:has(.CalendarViewPageDiv) .fc-event {
+    border: none !important;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12px;
+}
+
+/* Bỏ nền trắng mặc định của FullCalendar (.fc-bg) để event hiện đúng màu Activity Type đã set */
+body[data-module="Calendar"] .fc-event .fc-bg,
+body:has(.CalendarViewPageDiv) .fc-event .fc-bg {
+    opacity: 1;
+    background: transparent !important;
+}
+
+body[data-module="Calendar"] .fc-time-grid-event.fc-short,
+body[data-module="Calendar"] .fc-day-grid-event.fc-short,
+body:has(.CalendarViewPageDiv) .fc-time-grid-event,
+body:has(.CalendarViewPageDiv) .fc-day-grid-event {
+    border-radius: 4px !important;
+}
+
+body[data-module="Calendar"] .fc-unthemed .fc-divider,
+body[data-module="Calendar"] .fc-unthemed .fc-popover,
+body[data-module="Calendar"] .fc-unthemed .fc-row,
+body:has(.CalendarViewPageDiv) .fc-unthemed .fc-divider,
+body:has(.CalendarViewPageDiv) .fc-unthemed .fc-popover,
+body:has(.CalendarViewPageDiv) .fc-unthemed .fc-row {
+    border-color: #3c4043 !important;
+}
+
+body[data-module="Calendar"] .fc-time,
+body:has(.CalendarViewPageDiv) .fc-time {
+    color: #9aa0a6;
+}
+
+body[data-module="Calendar"] #mycalendar .fc-view-container,
+body:has(.CalendarViewPageDiv) #mycalendar .fc-view-container {
+    flex: 1 !important;
+    min-height: 0 !important;
+    margin-top: 0 !important;
+    overflow: hidden !important;
+}
+/* Week/Day: view lấp đầy chiều cao để scroller không còn khoảng trắng phía dưới */
+body[data-module="Calendar"] #mycalendar .fc-agenda-view,
+body:has(.CalendarViewPageDiv) #mycalendar .fc-agenda-view {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+/* Month: view lấp đầy chiều cao, không còn khoảng trắng phía dưới, không lòi gì */
+body[data-module="Calendar"] #mycalendar .fc-month-view,
+body:has(.CalendarViewPageDiv) #mycalendar .fc-month-view {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+body[data-module="Calendar"] .fc .fc-toolbar > * > *,
+body:has(.CalendarViewPageDiv) .fc .fc-toolbar > * > * {
+    margin-left: .5em !important;
+}
+body[data-module="Calendar"] .fc .fc-toolbar > * > :first-child,
+body:has(.CalendarViewPageDiv) .fc .fc-toolbar > * > :first-child {
+    margin-left: 0 !important;
+}
+
+/* Month view: như Google Calendar – các ngày tháng khác xếp chung (fixedWeekCount: false), thu nhỏ ô để nhìn hết 1 tháng trong 1 khung, không cuộn dọc */
+body[data-module="Calendar"] .fc-month-view,
+body[data-module="Calendar"] .fc-month-view .fc-day-grid,
+body[data-module="Calendar"] .fc-month-view .fc-scroller,
+body:has(.CalendarViewPageDiv) .fc-month-view,
+body:has(.CalendarViewPageDiv) .fc-month-view .fc-day-grid,
+body:has(.CalendarViewPageDiv) .fc-month-view .fc-scroller {
+    background: #202124 !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+}
+body[data-module="Calendar"] .fc-month-view .fc-scroller,
+body:has(.CalendarViewPageDiv) .fc-month-view .fc-scroller {
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    height: 100% !important;
+    min-height: 0 !important;
+}
+body[data-module="Calendar"] .fc-month-view .fc-day-grid-container,
+body:has(.CalendarViewPageDiv) .fc-month-view .fc-day-grid-container {
+    overflow: hidden !important;
+    height: 100% !important;
+    min-height: 0 !important;
+}
+body[data-module="Calendar"] .fc-month-view .fc-day-grid,
+body:has(.CalendarViewPageDiv) .fc-month-view .fc-day-grid {
+    min-height: 100% !important;
+}
+body[data-module="Calendar"].modal-open,
+body:has(.CalendarViewPageDiv).modal-open {
+    background: #202124 !important;
+}
+body[data-module="Calendar"].modal-open #page,
+body:has(.CalendarViewPageDiv).modal-open #page,
+body[data-module="Calendar"].modal-open .main-container,
+body:has(.CalendarViewPageDiv).modal-open .main-container {
+    background: #202124 !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+body[data-module="Calendar"].modal-open .app-footer,
+body:has(.CalendarViewPageDiv).modal-open .app-footer {
+    background: #202124 !important;
+    border-top-color: #3c4043 !important;
+}
+
+/* Week/Day: lấp đầy chiều cao (không còn khoảng trắng), cuộn dọc bên trong, không lòi thanh cuộn ngang */
+body[data-module="Calendar"] .fc-agenda-view .fc-scroller,
+body[data-module="Calendar"] .fc-agenda-view .fc-time-grid-container,
+body:has(.CalendarViewPageDiv) .fc-agenda-view .fc-scroller,
+body:has(.CalendarViewPageDiv) .fc-agenda-view .fc-time-grid-container {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    height: 100% !important;
+    max-height: none !important;
+    min-height: 0 !important;
+}
+body[data-module="Calendar"] .fc-agenda-view .fc-scroller,
+body:has(.CalendarViewPageDiv) .fc-agenda-view .fc-scroller,
+body[data-module="Calendar"] .fc-time-grid-container .fc-scroller,
+body:has(.CalendarViewPageDiv) .fc-time-grid-container .fc-scroller {
+    overflow-x: hidden !important;
+}
+/* Các scroller khác (month...) giữ overflow ẩn */
+body[data-module="Calendar"] .fc-scroller,
+body:has(.CalendarViewPageDiv) .fc-scroller {
+    overflow-x: hidden !important;
+}
+
+body[data-module="Calendar"] .fc-scroller::-webkit-scrollbar,
+body[data-module="Calendar"] .fc-time-grid-container::-webkit-scrollbar,
+body:has(.CalendarViewPageDiv) .fc-scroller::-webkit-scrollbar,
+body:has(.CalendarViewPageDiv) .fc-time-grid-container::-webkit-scrollbar {
+    width: 10px;
+}
+
+body[data-module="Calendar"] .fc-scroller::-webkit-scrollbar-track,
+body:has(.CalendarViewPageDiv) .fc-scroller::-webkit-scrollbar-track,
+body:has(.CalendarViewPageDiv) .fc-time-grid-container::-webkit-scrollbar-track {
+    background: #3c4043;
+}
+
+body[data-module="Calendar"] .fc-scroller::-webkit-scrollbar-thumb,
+body:has(.CalendarViewPageDiv) .fc-scroller::-webkit-scrollbar-thumb,
+body:has(.CalendarViewPageDiv) .fc-time-grid-container::-webkit-scrollbar-thumb {
+    background: #5f6368;
+    border-radius: 5px;
+}
+
+body[data-module="Calendar"] .fc-scroller::-webkit-scrollbar-thumb:hover,
+body:has(.CalendarViewPageDiv) .fc-scroller::-webkit-scrollbar-thumb:hover,
+body:has(.CalendarViewPageDiv) .fc-time-grid-container::-webkit-scrollbar-thumb:hover {
+    background: #80868b;
+}
+
+body[data-module="Calendar"] #mycalendar .essentials-toggle,
+body:has(.CalendarViewPageDiv) #mycalendar .essentials-toggle {
+    color: #9aa0a6;
+    background: transparent;
+}
+
+body[data-module="Calendar"] #mycalendar .essentials-toggle:hover,
+body:has(.CalendarViewPageDiv) #mycalendar .essentials-toggle:hover {
+    color: #e8eaed;
+}
+
+/* ========== 5. SIDEBAR TRÁI – NAV CHỈ ICON ========== */
+body[data-module="Calendar"] .calendar-navigator .mod-switcher-container,
+body[data-module="Calendar"] .main-container .calendar-navigator.module-nav {
+    width: 56px !important;
+}
+
+body[data-module="Calendar"] .mod-switcher-container {
+    background: #2c3e50 !important;
+}
+
+body[data-module="Calendar"] .calendar-navigator .modules-menu ul li a span {
+    display: none !important;
+}
+
+body[data-module="Calendar"] .calendar-navigator .modules-menu ul li a {
+    border-left: none !important;
+    text-align: center;
+    padding: 10px;
+    font-size: 11px;
+}
+
+body[data-module="Calendar"] .calendar-navigator .modules-menu ul li a:hover {
+    background: rgba(255,255,255,0.08) !important;
+}
+
+body[data-module="Calendar"] .calendar-navigator .modules-menu ul li.active a {
+    background: rgba(255,255,255,0.1) !important;
+    font-weight: normal !important;
+}
+
+/* ========== 6. SIDEBAR ESSENTIALS – GOOGLE STYLE (+ CREATE, MINI CALENDAR, MY CALENDARS) ========== */
+body[data-module="Calendar"] #sidebar-essentials.sidebar-essentials,
+body:has(.CalendarViewPageDiv) #sidebar-essentials.sidebar-essentials {
+    flex-shrink: 0 !important;
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    visibility: visible !important;
+    background: #2d2e30 !important;
+    border-left: 1px solid #3c4043;
+    overflow-y: auto !important;
+}
+/* Khối Create + mini calendar luôn trên, không bị Activity Types đẩy mất */
+body[data-module="Calendar"] #sidebar-essentials .calendar-sidebar-google,
+body:has(.CalendarViewPageDiv) #sidebar-essentials .calendar-sidebar-google {
+    flex-shrink: 0 !important;
+}
+
+body[data-module="Calendar"] .calendar-sidebar-google,
+body:has(.CalendarViewPageDiv) .calendar-sidebar-google {
+    display: block !important;
+    visibility: visible !important;
+    padding: 8px 10px 4px 6px; /* trái 6px cho đều với Activity Types */
+    margin-bottom: 0 !important;
+    min-height: 280px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Nút + Create */
+body[data-module="Calendar"] .calendar-google-create,
+body:has(.CalendarViewPageDiv) .calendar-google-create {
+    margin-bottom: 8px !important;
+}
+
+body[data-module="Calendar"] .calendar-create-btn,
+body:has(.CalendarViewPageDiv) .calendar-create-btn {
+    width: 100%;
+    text-align: left;
+    background: rgba(255,255,255,0.12) !important;
+    color: #e8eaed !important;
+    border: none !important;
+    border-radius: 24px;
+    padding: 10px 16px !important;
+    font-size: 14px;
+}
+
+body[data-module="Calendar"] .calendar-create-btn:hover,
+body:has(.CalendarViewPageDiv) .calendar-create-btn:hover {
+    background: rgba(255,255,255,0.18) !important;
+    color: #fff !important;
+}
+
+body[data-module="Calendar"] .calendar-create-btn .fa-chevron-down,
+body:has(.CalendarViewPageDiv) .calendar-create-btn .fa-chevron-down {
+    font-size: 10px;
+    margin-left: 4px;
+}
+
+body[data-module="Calendar"] .calendar-google-create .dropdown-menu,
+body:has(.CalendarViewPageDiv) .calendar-google-create .dropdown-menu {
+    background: #2d2e30;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+}
+
+body[data-module="Calendar"] .calendar-google-create .dropdown-menu a,
+body:has(.CalendarViewPageDiv) .calendar-google-create .dropdown-menu a {
+    color: #e8eaed;
+}
+
+body[data-module="Calendar"] .calendar-google-create .dropdown-menu a:hover,
+body:has(.CalendarViewPageDiv) .calendar-google-create .dropdown-menu a:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+}
+
+/* Mini calendar – vừa 1 tháng, không cuộn (thấy hết các ngày 1 lần) */
+body[data-module="Calendar"] .calendar-mini-wrap,
+body:has(.CalendarViewPageDiv) .calendar-mini-wrap {
+    display: block !important;
+    visibility: visible !important;
+    height: auto !important;
+    max-height: 280px !important;
+    overflow: hidden !important;
+    background: rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 6px 6px 6px 0;
+    margin-bottom: 6px !important;
+}
+body[data-module="Calendar"] .calendar-mini-wrap .calendar-mini-label,
+body:has(.CalendarViewPageDiv) .calendar-mini-wrap .calendar-mini-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e8eaed;
+    margin-bottom: 6px;
+    margin-left: 0;
+    padding: 0 2px 0 0;
+}
+body[data-module="Calendar"] #calendar-mini,
+body:has(.CalendarViewPageDiv) #calendar-mini {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 250px !important;
+    overflow: hidden !important;
+    display: block !important;
+    visibility: visible !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+body[data-module="Calendar"] #calendar-mini .fc-view-container,
+body:has(.CalendarViewPageDiv) #calendar-mini .fc-view-container {
+    overflow: hidden !important;
+}
+
+body[data-module="Calendar"] #calendar-mini .fc-toolbar,
+body:has(.CalendarViewPageDiv) #calendar-mini .fc-toolbar {
+    margin-bottom: 6px !important;
+    color: #e8eaed;
+}
+
+body[data-module="Calendar"] #calendar-mini .fc-toolbar h2,
+body:has(.CalendarViewPageDiv) #calendar-mini .fc-toolbar h2 {
+    font-size: 14px !important;
+    color: #e8eaed;
+}
+
+body[data-module="Calendar"] #calendar-mini .fc-toolbar .fc-button,
+body:has(.CalendarViewPageDiv) #calendar-mini .fc-toolbar .fc-button {
+    background: transparent !important;
+    color: #e8eaed !important;
+    border: none !important;
+}
+
+body[data-module="Calendar"] #calendar-mini .fc-day-header,
+body:has(.CalendarViewPageDiv) #calendar-mini .fc-day-header {
+    font-size: 10px;
+    padding: 2px 0;
+    color: #9aa0a6;
+}
+
+body[data-module="Calendar"] #calendar-mini .fc-day-number,
+body:has(.CalendarViewPageDiv) #calendar-mini .fc-day-number {
+    font-size: 11px;
+    padding: 2px;
+    color: #e8eaed;
+}
+
+body[data-module="Calendar"] #calendar-mini .fc-day.fc-today,
+body:has(.CalendarViewPageDiv) #calendar-mini .fc-day.fc-today {
+    background: transparent !important;
+}
+
+body[data-module="Calendar"] #calendar-mini .fc-day.fc-today .fc-day-number,
+body:has(.CalendarViewPageDiv) #calendar-mini .fc-day.fc-today .fc-day-number {
+    background: #1a73e8 !important;
+    color: #fff !important;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    line-height: 20px;
+    text-align: center;
+    display: inline-block;
+}
+
+body[data-module="Calendar"] #calendar-mini .fc-day:hover,
+body:has(.CalendarViewPageDiv) #calendar-mini .fc-day:hover {
+    background: rgba(255,255,255,0.08);
+    cursor: pointer;
+}
+body[data-module="Calendar"] #calendar-mini .fc-day,
+body:has(.CalendarViewPageDiv) #calendar-mini .fc-day {
+    cursor: pointer;
+}
+
+body[data-module="Calendar"] #sidebar-essentials .calendar-sidebar-google + .sidebar-menu,
+body:has(.CalendarViewPageDiv) #sidebar-essentials .calendar-sidebar-google + .sidebar-menu {
+    display: block !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Sidebar: xóa hết khoảng trống giữa Activity Types và danh sách; padding trái 6px cho đều với mini calendar */
+body[data-module="Calendar"] .calendar-sidebar-mycalendars,
+body:has(.CalendarViewPageDiv) .calendar-sidebar-mycalendars {
+    margin: 0 !important;
+    padding: 0 8px 8px 6px !important;
+}
+body[data-module="Calendar"] .calendar-sidebar-mycalendars .module-filters,
+body[data-module="Calendar"] .calendar-sidebar-mycalendars .sidebar-container,
+body[data-module="Calendar"] .calendar-sidebar-mycalendars .lists-menu-container,
+body:has(.CalendarViewPageDiv) .calendar-sidebar-mycalendars .module-filters,
+body:has(.CalendarViewPageDiv) .calendar-sidebar-mycalendars .sidebar-container,
+body:has(.CalendarViewPageDiv) .calendar-sidebar-mycalendars .lists-menu-container {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+body[data-module="Calendar"] .calendar-sidebar-tab,
+body:has(.CalendarViewPageDiv) .calendar-sidebar-tab {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+body[data-module="Calendar"] .calendar-sidebar-tab .list-menu-content,
+body:has(.CalendarViewPageDiv) .calendar-sidebar-tab .list-menu-content {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+body[data-module="Calendar"] .sidebar-widget-body.activitytypes,
+body:has(.CalendarViewPageDiv) .sidebar-widget-body.activitytypes {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+}
+
+/* My calendars (Activity Types) – header canh trái đều với mini calendar */
+body[data-module="Calendar"] .calendar-sidebar-mycalendars .calendar-sidebar-tab .sidebar-widget-header,
+body[data-module="Calendar"] .calendar-sidebar-mycalendars .sidebar-widget-header,
+body[data-module="Calendar"] .calendar-sidebar-tab .sidebar-widget-header,
+body[data-module="Calendar"] .sidebar-widget-header {
+    background: transparent !important;
+    color: #9aa0a6 !important;
+    border-radius: 0;
+    margin: 0 0 4px 0 !important;
+    padding: 4px 0 !important;
+    padding-left: 0 !important;
+    font-size: 13px;
+    font-weight: 500;
+    border: none !important;
+}
+body[data-module="Calendar"] .calendar-sidebar-mycalendars .sidebar-header,
+body:has(.CalendarViewPageDiv) .calendar-sidebar-mycalendars .sidebar-header {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+body[data-module="Calendar"] .calendar-sidebar-mycalendars .sidebar-widget-body .activitytypes,
+body:has(.CalendarViewPageDiv) .sidebar-widget-body .activitytypes {
+    color: #e8eaed;
+}
+
+body[data-module="Calendar"] .calendar-sidebar-mycalendars .sidebar-widget-header + hr,
+body:has(.CalendarViewPageDiv) .calendar-sidebar-tab hr {
+    display: none !important;
+}
+
+/* ========== Quick Create Task – form kiểu Google Tasks ========== */
+.google-task-form .google-task-row .input-group,
+.google-task-form .google-task-row .dateField,
+.google-task-form .google-task-row input.form-control {
+    max-width: 100% !important;
+}
+.google-task-form .google-task-row .input-group-addon {
+    cursor: pointer;
+}
+.google-task-title-wrap input[name="subject"] {
+    font-size: 16px !important;
+    border: none !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+    border-radius: 0 !important;
+    padding: 8px 0 !important;
+}
+.google-task-form textarea[name="description"] {
+    border: none !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+    border-radius: 0 !important;
+    resize: vertical;
+}
+
+/* Form đơn nghỉ phép: mũi tên giữa hai ô ngày */
+#leaveRequestCreateModal .leave-date-arrow {
+    display: inline-block;
+    margin: 0 6px;
+    color: #666;
+    font-weight: bold;
+}

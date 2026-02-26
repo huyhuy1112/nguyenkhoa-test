@@ -1,0 +1,73 @@
+📋 HƯỚNG DẪN FIX GIT CONFLICT TRÊN HOSTING
+==========================================
+
+Lỗi: "Your local changes to the following files would be overwritten by merge: config.inc.php"
+
+CÓ 3 CÁCH FIX:
+
+─────────────────────────────────────────────────────────
+CÁCH 1: SỬ DỤNG SCRIPT PHP (KHUYẾN NGHỊ)
+─────────────────────────────────────────────────────────
+
+1. Upload file: fix_git_conflict_on_hosting.php lên hosting
+2. Chạy: php fix_git_conflict_on_hosting.php
+3. Script sẽ tự động:
+   - Backup config.inc.php hiện tại
+   - Stash thay đổi local
+   - Pull code mới từ GitHub
+   - Hướng dẫn restore config production nếu cần
+
+─────────────────────────────────────────────────────────
+CÁCH 2: SỬ DỤNG SCRIPT BASH
+─────────────────────────────────────────────────────────
+
+1. Upload file: fix_git_conflict_manual.sh lên hosting
+2. Chạy: bash fix_git_conflict_manual.sh
+3. Hoặc chạy từng lệnh thủ công:
+
+   # Backup
+   cp config.inc.php config.inc.php.backup
+   
+   # Stash changes
+   git stash
+   
+   # Pull code
+   git pull origin main
+   
+   # Nếu cần restore config production
+   cp config.inc.php.backup config.inc.php
+   # Sau đó chỉnh sửa database credentials trong file
+
+─────────────────────────────────────────────────────────
+CÁCH 3: THỦ CÔNG (Nếu không có terminal)
+─────────────────────────────────────────────────────────
+
+1. Backup config.inc.php hiện tại qua File Manager
+2. Xóa hoặc đổi tên config.inc.php
+3. Pull code từ GitHub qua cPanel Git
+4. Restore config.inc.php từ backup
+5. Cập nhật database credentials trong config.inc.php
+
+─────────────────────────────────────────────────────────
+SAU KHI FIX
+─────────────────────────────────────────────────────────
+
+1. Kiểm tra config.inc.php có đúng database production:
+   - db_username: nhtdbus8_testcrm
+   - db_password: 987456321852huy
+   - db_name: nhtdbus8_testcrm
+   - db_server: localhost
+
+2. Test ứng dụng hoạt động bình thường
+
+3. Nếu có lỗi, restore từ backup và kiểm tra lại
+
+─────────────────────────────────────────────────────────
+LƯU Ý
+─────────────────────────────────────────────────────────
+
+- Luôn backup config.inc.php trước khi pull
+- Không nên commit config.inc.php với production credentials
+- Nên dùng config.inc.php.example làm template
+- Cập nhật config.inc.php sau mỗi lần pull nếu cần
+

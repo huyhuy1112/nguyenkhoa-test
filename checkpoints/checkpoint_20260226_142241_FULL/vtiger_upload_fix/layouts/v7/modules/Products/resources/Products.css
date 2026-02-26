@@ -1,0 +1,71 @@
+/* Products Module - Center numeric values for better visualization */
+
+/* DetailView - Center specific fields */
+#Products_detailView_fieldValue_commissionrate,
+#Products_detailView_fieldValue_qtyinstock,
+#Products_detailView_fieldValue_qty_per_unit {
+    text-align: center !important;
+}
+
+#Products_detailView_fieldValue_commissionrate .value,
+#Products_detailView_fieldValue_qtyinstock .value,
+#Products_detailView_fieldValue_qty_per_unit .value {
+    display: block;
+    text-align: center;
+}
+
+/* ListView - Center specific fields */
+.listViewEntryValue[data-name="commissionrate"],
+.listViewEntryValue[data-name="qtyinstock"],
+.listViewEntryValue[data-name="qty_per_unit"] {
+    text-align: center !important;
+}
+
+.listViewEntryValue[data-name="commissionrate"] .value,
+.listViewEntryValue[data-name="qtyinstock"] .value,
+.listViewEntryValue[data-name="qty_per_unit"] .value {
+    display: block;
+    text-align: center;
+}
+
+/* Also center other numeric fields in Products module */
+#Products_detailView_fieldValue_unit_price,
+#Products_detailView_fieldValue_reorderlevel,
+#Products_detailView_fieldValue_qtyindemand {
+    text-align: center !important;
+}
+
+#Products_detailView_fieldValue_unit_price .value,
+#Products_detailView_fieldValue_reorderlevel .value,
+#Products_detailView_fieldValue_qtyindemand .value {
+    display: block;
+    text-align: center;
+}
+
+.listViewEntryValue[data-name="unit_price"],
+.listViewEntryValue[data-name="reorderlevel"],
+.listViewEntryValue[data-name="qtyindemand"] {
+    text-align: center !important;
+}
+
+.listViewEntryValue[data-name="unit_price"] .value,
+.listViewEntryValue[data-name="reorderlevel"] .value,
+.listViewEntryValue[data-name="qtyindemand"] .value {
+    display: block;
+    text-align: center;
+}
+
+/* Center numeric field values in DetailView for Products module */
+.module-Products .detailview-table td.fieldValue[data-field-type="double"],
+.module-Products .detailview-table td.fieldValue[data-field-type="integer"],
+.module-Products .detailview-table td.fieldValue[data-field-type="number"] {
+    text-align: center;
+}
+
+.module-Products .detailview-table td.fieldValue[data-field-type="double"] .value,
+.module-Products .detailview-table td.fieldValue[data-field-type="integer"] .value,
+.module-Products .detailview-table td.fieldValue[data-field-type="number"] .value {
+    display: block;
+    text-align: center;
+}
+

@@ -1,0 +1,231 @@
+<?php
+/*+**********************************************************************************
+ * The contents of this file are subject to the vtiger CRM Public License Version 1.0
+ * ("License"); You may not use this file except in compliance with the License
+ * The Original Code is:  vtiger CRM Open Source
+ * The Initial Developer of the Original Code is vtiger.
+ * Portions created by vtiger are Copyright (C) vtiger.
+ * All Rights Reserved.
+ *************************************************************************************/
+
+require_once('include/utils/utils.php');
+require_once('include/logging.php');
+require_once("config.php");
+
+global $adb, $log, $current_user;
+$log = Logger::getLogger('DeadlineReminder');
+$log->debug("DeadlineReminder cron job started");
+
+$current_user = Users::getActiveAdminUser();
+
+// Calculate date range: today to 7 days from now
+$today = date('Y-m-d');
+$sevenDaysLater = date('Y-m-d', strtotime('+7 days'));
+
+$log->debug("Checking deadlines between $today and $sevenDaysLater");
+
+// 1. PROJECT: Check targetenddate and actualenddate
+$projectQuery = "SELECT p.projectid, p.projectname, p.targetenddate, p.actualenddate, 
+                        ce.smownerid, ce.deleted
+                 FROM vtiger_project p
+                 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.projectid
+                 WHERE ce.deleted = 0
+                 AND (
+                     (p.targetenddate IS NOT NULL AND p.targetenddate BETWEEN ? AND ?)
+                     OR (p.actualenddate IS NOT NULL AND p.actualenddate BETWEEN ? AND ?)
+                 )";
+$projectResult = $adb->pquery($projectQuery, array($today, $sevenDaysLater, $today, $sevenDaysLater));
+
+while ($row = $adb->fetchByAssoc($projectResult)) {
+    $recordId = $row['projectid'];
+    $projectName = $row['projectname'];
+    $ownerId = $row['smownerid'];
+    $targetEndDate = $row['targetenddate'];
+    $actualEndDate = $row['actualenddate'];
+    
+    // Use targetenddate if available, otherwise actualenddate
+    $endDate = !empty($targetEndDate) ? $targetEndDate : $actualEndDate;
+    
+    if (empty($endDate)) {
+        continue;
+    }
+    
+    // Check if owner is USER (not GROUP)
+    $userCheck = $adb->pquery("SELECT id FROM vtiger_users WHERE id = ?", array($ownerId));
+    if ($adb->num_rows($userCheck) == 0) {
+        continue; // Skip GROUP owners
+    }
+    
+    // Check if reminder already sent in the last 7 days for this record
+    $reminderCheck = $adb->pquery(
+        "SELECT id FROM vtiger_notifications 
+         WHERE userid = ? AND module = 'Project' AND recordid = ? 
+         AND message LIKE '%sắp đến hạn%' 
+         AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)",
+        array($ownerId, $recordId)
+    );
+    
+    if ($adb->num_rows($reminderCheck) > 0) {
+        continue; // Reminder already sent
+    }
+    
+    // Calculate days until deadline
+    $daysUntilDeadline = (strtotime($endDate) - strtotime($today)) / 86400;
+    $daysUntilDeadline = ceil($daysUntilDeadline);
+    
+    // Send reminder notification
+    $message = "Project \"$projectName\" sắp đến hạn trong $daysUntilDeadline ngày (Deadline: $endDate)";
+    $insertSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'Project', ?, ?, NOW())";
+    $adb->pquery($insertSql, array($ownerId, $recordId, $message));
+    
+    $log->debug("Deadline reminder sent for Project $recordId to user $ownerId");
+}
+
+// 2. PROJECT TASK: Check enddate
+$projectTaskQuery = "SELECT pt.projecttaskid, pt.projecttaskname, pt.enddate, 
+                            ce.smownerid, ce.deleted
+                     FROM vtiger_projecttask pt
+                     INNER JOIN vtiger_crmentity ce ON ce.crmid = pt.projecttaskid
+                     WHERE ce.deleted = 0
+                     AND pt.enddate IS NOT NULL 
+                     AND pt.enddate BETWEEN ? AND ?";
+$projectTaskResult = $adb->pquery($projectTaskQuery, array($today, $sevenDaysLater));
+
+while ($row = $adb->fetchByAssoc($projectTaskResult)) {
+    $recordId = $row['projecttaskid'];
+    $taskName = $row['projecttaskname'];
+    $ownerId = $row['smownerid'];
+    $endDate = $row['enddate'];
+    
+    // Check if owner is USER (not GROUP)
+    $userCheck = $adb->pquery("SELECT id FROM vtiger_users WHERE id = ?", array($ownerId));
+    if ($adb->num_rows($userCheck) == 0) {
+        continue; // Skip GROUP owners
+    }
+    
+    // Check if reminder already sent in the last 7 days for this record
+    $reminderCheck = $adb->pquery(
+        "SELECT id FROM vtiger_notifications 
+         WHERE userid = ? AND module = 'ProjectTask' AND recordid = ? 
+         AND message LIKE '%sắp đến hạn%' 
+         AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)",
+        array($ownerId, $recordId)
+    );
+    
+    if ($adb->num_rows($reminderCheck) > 0) {
+        continue; // Reminder already sent
+    }
+    
+    // Calculate days until deadline
+    $daysUntilDeadline = (strtotime($endDate) - strtotime($today)) / 86400;
+    $daysUntilDeadline = ceil($daysUntilDeadline);
+    
+    // Send reminder notification
+    $message = "Project Task \"$taskName\" sắp đến hạn trong $daysUntilDeadline ngày (Deadline: $endDate)";
+    $insertSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'ProjectTask', ?, ?, NOW())";
+    $adb->pquery($insertSql, array($ownerId, $recordId, $message));
+    
+    $log->debug("Deadline reminder sent for ProjectTask $recordId to user $ownerId");
+}
+
+// 3. CALENDAR (Tasks & Events): Check due_date
+$calendarQuery = "SELECT a.activityid, a.subject, a.due_date, a.activitytype,
+                          ce.smownerid, ce.deleted
+                   FROM vtiger_activity a
+                   INNER JOIN vtiger_crmentity ce ON ce.crmid = a.activityid
+                   WHERE ce.deleted = 0
+                   AND a.due_date IS NOT NULL 
+                   AND a.due_date BETWEEN ? AND ?
+                   AND a.activitytype IN ('Task', 'Call', 'Meeting')";
+$calendarResult = $adb->pquery($calendarQuery, array($today, $sevenDaysLater));
+
+while ($row = $adb->fetchByAssoc($calendarResult)) {
+    $recordId = $row['activityid'];
+    $subject = $row['subject'];
+    $ownerId = $row['smownerid'];
+    $dueDate = $row['due_date'];
+    $activityType = $row['activitytype'];
+    
+    // Check if owner is USER (not GROUP)
+    $userCheck = $adb->pquery("SELECT id FROM vtiger_users WHERE id = ?", array($ownerId));
+    if ($adb->num_rows($userCheck) == 0) {
+        continue; // Skip GROUP owners
+    }
+    
+    // Check if reminder already sent in the last 7 days for this record
+    $reminderCheck = $adb->pquery(
+        "SELECT id FROM vtiger_notifications 
+         WHERE userid = ? AND module = 'Calendar' AND recordid = ? 
+         AND message LIKE '%sắp đến hạn%' 
+         AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)",
+        array($ownerId, $recordId)
+    );
+    
+    if ($adb->num_rows($reminderCheck) > 0) {
+        continue; // Reminder already sent
+    }
+    
+    // Calculate days until deadline
+    $daysUntilDeadline = (strtotime($dueDate) - strtotime($today)) / 86400;
+    $daysUntilDeadline = ceil($daysUntilDeadline);
+    
+    // Determine activity type label
+    $activityLabel = ($activityType === 'Task') ? 'Task' : 'Event';
+    
+    // Send reminder notification
+    $message = "$activityLabel \"$subject\" sắp đến hạn trong $daysUntilDeadline ngày (Deadline: $dueDate)";
+    $insertSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'Calendar', ?, ?, NOW())";
+    $adb->pquery($insertSql, array($ownerId, $recordId, $message));
+    
+    $log->debug("Deadline reminder sent for Calendar $recordId to user $ownerId");
+}
+
+// 4. POTENTIALS: Check closingdate
+$potentialsQuery = "SELECT p.potentialid, p.potentialname, p.closingdate, 
+                           ce.smownerid, ce.deleted
+                    FROM vtiger_potential p
+                    INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid
+                    WHERE ce.deleted = 0
+                    AND p.closingdate IS NOT NULL 
+                    AND p.closingdate BETWEEN ? AND ?";
+$potentialsResult = $adb->pquery($potentialsQuery, array($today, $sevenDaysLater));
+
+while ($row = $adb->fetchByAssoc($potentialsResult)) {
+    $recordId = $row['potentialid'];
+    $potentialName = $row['potentialname'];
+    $ownerId = $row['smownerid'];
+    $closingDate = $row['closingdate'];
+    
+    // Check if owner is USER (not GROUP)
+    $userCheck = $adb->pquery("SELECT id FROM vtiger_users WHERE id = ?", array($ownerId));
+    if ($adb->num_rows($userCheck) == 0) {
+        continue; // Skip GROUP owners
+    }
+    
+    // Check if reminder already sent in the last 7 days for this record
+    $reminderCheck = $adb->pquery(
+        "SELECT id FROM vtiger_notifications 
+         WHERE userid = ? AND module = 'Potentials' AND recordid = ? 
+         AND message LIKE '%sắp đến hạn%' 
+         AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)",
+        array($ownerId, $recordId)
+    );
+    
+    if ($adb->num_rows($reminderCheck) > 0) {
+        continue; // Reminder already sent
+    }
+    
+    // Calculate days until deadline
+    $daysUntilDeadline = (strtotime($closingDate) - strtotime($today)) / 86400;
+    $daysUntilDeadline = ceil($daysUntilDeadline);
+    
+    // Send reminder notification
+    $message = "Opportunity \"$potentialName\" sắp đến hạn trong $daysUntilDeadline ngày (Deadline: $closingDate)";
+    $insertSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'Potentials', ?, ?, NOW())";
+    $adb->pquery($insertSql, array($ownerId, $recordId, $message));
+    
+    $log->debug("Deadline reminder sent for Potentials $recordId to user $ownerId");
+}
+
+$log->debug("DeadlineReminder cron job completed");
+

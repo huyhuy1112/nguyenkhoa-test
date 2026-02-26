@@ -1,0 +1,140 @@
+# Vtiger CRM .gitignore
+
+# Configuration files with sensitive data
+# config.inc.php - IGNORED (each environment has its own)
+config.inc.php
+# config.inc.php.example - ALLOWED (template file)
+# config.php - ALLOWED for production
+# config.inc.php.backup
+# config.db.php
+.env
+.env.local
+.env.*.local
+
+# Cache directories
+# NOTE: Allowing cache structure for production (empty directories)
+# cache/ - ALLOWED (structure only, not content)
+# storage/cache/ - ALLOWED (structure only)
+# templates_c/ - ALLOWED (structure only)
+parent_tabdata.php
+
+# Log files
+*.log
+logs/
+*.log.*
+
+# Runtime/generated files
+storage/202*/
+storage/vtiger.txt
+test/
+
+# Docker runtime (if any)
+docker-compose.override.yml
+.docker/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+.project
+.classpath
+.settings/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+
+# Database dumps (if large)
+*.sql.gz
+*.sql.zip
+backup/db/*.sql
+!backup/db/.gitkeep
+
+# Production package (if generated)
+vtiger-prod/
+vtiger-prod.zip
+vtiger-prod.tar.gz
+vtiger_upload_fix.zip
+
+# Fix directories (reference only, not for production)
+CONNECTOR_DISPLAY_FIX/
+NOTIFICATION_JSON_FIX/
+CACHE_CONNECTOR_FIX/
+CACHE_HTMLPURIFIER_FIX/
+PROJECT_SAVE_JSON_FIX/
+
+# Test and development files
+test_*.php
+*_test.php
+verify_*.php
+check_*.php
+audit_*.php
+fix_*.php
+setup_*.php
+register_*.php
+migrate_*.php
+restore_*.php
+export_*.php
+backup_*.php
+*.sh
+
+# Allow WHITE_SCREEN_FIX tools
+!WHITE_SCREEN_FIX/*.php
+!WHITE_SCREEN_FIX/*.sh
+!WHITE_SCREEN_FIX/*.txt
+!WHITE_SCREEN_FIX/*.md
+# Allow HTMLPURIFIER_FIX tools
+!HTMLPURIFIER_FIX/*.php
+!HTMLPURIFIER_FIX/*.md
+# Allow MISSING_FILES_FIX tools
+!MISSING_FILES_FIX/*.php
+!MISSING_FILES_FIX/*.md
+*.sql
+
+# Documentation files (keep deployment guides, ignore others)
+*.md
+!README.md
+!DEPLOY_PRODUCTION.md
+!PUSH_TO_GITHUB.md
+!QUICK_PUSH_GUIDE.txt
+!WHITE_SCREEN_FIX/*.md
+
+# Node modules (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Composer (if used)
+# vendor/ - Commented out to allow pushing vendor directory
+# composer.lock - Commented out to allow pushing composer.lock
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# User uploads (if large)
+storage/202*/*.jpg
+storage/202*/*.png
+storage/202*/*.pdf
+storage/202*/*.doc
+storage/202*/*.docx
+
+# Compiled templates
+templates_c/**/*.php

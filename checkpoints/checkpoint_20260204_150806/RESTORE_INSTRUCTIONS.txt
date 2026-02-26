@@ -1,0 +1,30 @@
+Checkpoint – Main Page (ô bằng nhau, Agenda lấp đầy, nút Mở lịch, khoảng cách chữ)
+====================================================================================
+
+Tạo lúc: 2026-02-04 15:08:06
+Tương ứng commit: 601cbf3 (Main Page: ô bằng nhau, Agenda lấp đầy, nút Mở lịch to hơn, khoảng cách chữ với thanh màu)
+Mục đích: Khôi phục trạng thái Main Page đã push lên huy-dev / testcrm / mainpage-dev (TDB). Dùng khi cần rollback CSS Main Page.
+
+CÁC FILE TRONG CHECKPOINT NÀY:
+------------------------------
+1. layouts/v7/resources/custom.css
+   - Main page grid: 6 ô cùng chiều cao (grid-template-rows: 1fr 1fr 1fr)
+   - Card flex + card-body scroll
+   - Agenda: panel/list lấp đầy ô, nút "Mở lịch" font 15px, agenda-item padding-left 14px (chữ không dính thanh màu)
+   - Toàn bộ style nav, sidebar, list view, calendar, v.v. như trước
+
+LỆNH KHÔI PHỤC (RESTORE):
+-------------------------
+cd /path/to/Backup   # hoặc cd /Users/dangquochuy/Backup
+
+CP=checkpoints/checkpoint_20260204_150806
+
+cp "$CP/layouts/v7/resources/custom.css" layouts/v7/resources/
+
+# (Tùy chọn) Xóa cache nếu sau khi restore vẫn lỗi hiển thị
+# rm -rf storage/cache/* test/templates_c/*
+
+GHI CHÚ:
+--------
+- Checkpoint này lưu custom.css tại thời điểm Main Page đã chỉnh xong (ô bằng nhau, Agenda đẹp, nút Mở lịch to, chữ không dính thanh màu).
+- Đã push lên: origin (Backup), testcrm, mainpage-dev (tdb-vtiger).

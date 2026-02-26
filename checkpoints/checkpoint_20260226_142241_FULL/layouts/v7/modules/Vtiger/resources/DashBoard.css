@@ -1,0 +1,128 @@
+/* Dashboard Widget Font Size Override - Force larger fonts for charts ONLY */
+
+/* IMPORTANT: Only apply to .widgetChartContainer to avoid affecting text widgets */
+
+/* RESET: Ensure text widgets (dropdowns, lists) keep normal font size */
+/* Target select2 dropdowns specifically */
+.dashboardWidgetContent .select2-container,
+.dashboardWidgetContent .select2-container .select2-selection,
+.dashboardWidgetContent .select2-container .select2-selection__rendered,
+.dashboardWidgetContent .select2-container .select2-selection__choice,
+.dashboardWidgetContent .select2-dropdown,
+.dashboardWidgetContent .select2-results,
+.dashboardWidgetContent .select2-results__option,
+.dashboardWidgetContent .select2-results__option--highlighted {
+    font-size: 14px !important;
+    font-weight: normal !important;
+}
+
+/* Reset for user list dropdowns */
+.dashboardWidgetContent .userList,
+.dashboardWidgetContent .userList *,
+.dashboardWidgetContent .filterContainer,
+.dashboardWidgetContent .filterContainer * {
+    font-size: 14px !important;
+    font-weight: normal !important;
+}
+
+/* Reset for activity lists and other text widgets */
+.dashboardWidgetContent .activityList,
+.dashboardWidgetContent .activityList *,
+.dashboardWidgetContent .entryIcon + span,
+.dashboardWidgetContent .entryIcon + div,
+.dashboardWidgetContent ul:not(.jqplot-legend) li,
+.dashboardWidgetContent .widgetContentList,
+.dashboardWidgetContent .widgetContentList * {
+    font-size: 14px !important;
+    font-weight: normal !important;
+}
+
+/* CRITICAL: Override any inline styles on dropdowns and text elements */
+.dashboardWidgetContent .select2-selection__rendered,
+.dashboardWidgetContent .select2-results__option,
+.dashboardWidgetContent .userList .select2-selection__choice,
+.dashboardWidgetContent .filterContainer .select2-results__option {
+    font-size: 14px !important;
+    font-weight: normal !important;
+}
+
+/* Force reset for text widgets - be very specific to avoid affecting charts */
+.dashboardWidgetContent .select2-container .select2-selection__rendered,
+.dashboardWidgetContent .select2-dropdown .select2-results__option,
+.dashboardWidgetContent .userList .select2-container *,
+.dashboardWidgetContent .filterContainer .select2-container * {
+    font-size: 14px !important;
+    font-weight: normal !important;
+}
+
+/* Axis labels (like "Value" on Y-axis) - ONLY in chart containers - MUCH LARGER SIZE */
+.widgetChartContainer .jqplot-axis-label,
+.widgetChartContainer .jqplot-yaxis-label,
+.widgetChartContainer .jqplot-xaxis-label,
+.widgetChartContainer .jqplot-yaxis-label-text,
+.widgetChartContainer .jqplot-xaxis-label-text,
+.widgetChartContainer div[class*="axis"],
+.widgetChartContainer span[class*="axis"],
+.widgetChartContainer .jqplot-yaxis,
+.widgetChartContainer .jqplot-yaxis-label,
+.widgetChartContainer div.jqplot-yaxis-label,
+.widgetChartContainer span.jqplot-yaxis-label {
+    font-size: 28px !important;
+    font-weight: bold !important;
+    line-height: 1.2 !important;
+}
+
+/* Tick labels (numbers on axes) - ONLY in chart containers */
+.widgetChartContainer .jqplot-axis-tick,
+.widgetChartContainer .jqplot-tick-label,
+.widgetChartContainer .jqplot-yaxis-tick-label,
+.widgetChartContainer div[class*="tick"]:not([class*="xaxis"]),
+.widgetChartContainer span[class*="tick"]:not([class*="xaxis"]) {
+    font-size: 15px !important;
+}
+
+/* Y-axis tick labels (category labels in horizontal bar charts) - REDUCED SIZE to maximize chart area */
+.widgetChartContainer .jqplot-yaxis-tick text,
+.widgetChartContainer .jqplot-yaxis-tick svg text,
+.widgetChartContainer .jqplot-yaxis-tick-label:not(:has(text:only-child)) {
+    font-size: 10px !important;
+    font-weight: normal !important;
+    color: #777 !important;
+    fill: #777 !important;
+}
+
+/* Numbers on bars (data labels) - MOST IMPORTANT - ONLY in chart containers */
+.widgetChartContainer .jqplot-point-label,
+.widgetChartContainer .jqplot-data-label,
+.widgetChartContainer .jqplot-bar-label,
+.widgetChartContainer .jqplot-series-label {
+    font-size: 22px !important;
+    font-weight: bold !important;
+    text-align: center !important;
+}
+
+/* Legend text - ONLY in chart containers */
+.widgetChartContainer .jqplot-legend-label,
+.widgetChartContainer .jqplot-legend-label-text,
+.widgetChartContainer .jqplot-legend-swatch-label,
+.widgetChartContainer div[class*="legend"],
+.widgetChartContainer span[class*="legend"] {
+    font-size: 16px !important;
+}
+
+/* SVG text elements - ONLY in chart containers */
+.widgetChartContainer svg text,
+.widgetChartContainer svg tspan {
+    font-size: 22px !important;
+    font-weight: bold !important;
+}
+
+/* Numbers in chart containers - be more specific to avoid affecting other widgets */
+.widgetChartContainer div.jqplot-point-label,
+.widgetChartContainer span.jqplot-point-label,
+.widgetChartContainer div.jqplot-data-label,
+.widgetChartContainer span.jqplot-data-label {
+    font-size: 22px !important;
+    font-weight: bold !important;
+}
+

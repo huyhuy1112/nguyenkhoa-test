@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-30 07:49:23
+/* Smarty version 4.5.4, created on 2026-02-13 08:51:33
   from '/var/www/html/layouts/v7/modules/Vtiger/JSResources.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697c62832aa635_54424461',
+  'unifunc' => 'content_698ee61560cf62_54761579',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '7df29d98e5b07c5fbda807d194ed20d7fe62e14b' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Vtiger/JSResources.tpl',
-      1 => 1769759073,
+      1 => 1770003383,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697c62832aa635_54424461 (Smarty_Internal_Template $_smarty_tpl) {
+function content_698ee61560cf62_54761579 (Smarty_Internal_Template $_smarty_tpl) {
 echo '<script'; ?>
  type="text/javascript" src="<?php echo vresource_url('layouts/v7/lib/jquery/purl.js');?>
 "><?php echo '</script'; ?>
@@ -194,7 +194,17 @@ echo '<script'; ?>
 					window._PAGELOADREQSENT = true;
 				}
 			}
-		});<?php echo '</script'; ?>
+		});
+		// Online = đăng nhập: cập nhật last_seen mọi trang (không cần vào Teams) để hiển thị Online
+		(function() {
+			if (typeof _USERMETA !== 'undefined' && _USERMETA && _USERMETA.id) {
+				function pingHeartbeat() {
+					jQuery.ajax({ url: 'index.php', data: { module: 'Users', action: 'Heartbeat' }, type: 'GET', global: false });
+				}
+				pingHeartbeat();
+				setInterval(pingHeartbeat, 60000);
+			}
+		})();<?php echo '</script'; ?>
 >
 <?php }
 }

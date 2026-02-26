@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-30 07:49:22
+/* Smarty version 4.5.4, created on 2026-02-13 08:51:33
   from '/var/www/html/layouts/v7/modules/Vtiger/Header.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697c6282d8a992_68236655',
+  'unifunc' => 'content_698ee615362ef8_96662879',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'a355056cb56f9b87c73c7bc9f698c5b7fe085dc5' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Vtiger/Header.tpl',
-      1 => 1769759073,
+      1 => 1770624440,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697c6282d8a992_68236655 (Smarty_Internal_Template $_smarty_tpl) {
+function content_698ee615362ef8_96662879 (Smarty_Internal_Template $_smarty_tpl) {
 ?><!DOCTYPE html><html><head><title><?php echo vtranslate($_smarty_tpl->tpl_vars['PAGETITLE']->value,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </title><link rel="SHORTCUT ICON" href="layouts/v7/skins/images/favicon.ico"><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link type='text/css' rel='stylesheet' href='<?php echo vresource_url("libraries/bootstrap-legacy/css/bootstrap-responsive.min.css");?>
 '> <link type='text/css' rel='stylesheet' href='<?php echo vresource_url("layouts/v7/lib/todc/css/bootstrap.min.css");?>

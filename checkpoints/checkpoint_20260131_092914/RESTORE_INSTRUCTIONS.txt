@@ -1,0 +1,54 @@
+Checkpoint – Toàn bộ thay đổi Calendar & Quick Create
+======================================================
+
+Tạo lúc: 2026-01-31 09:29:14
+Trạng thái: Đã lưu trạng thái hiện tại
+
+CÁC FILE TRONG CHECKPOINT NÀY:
+------------------------------
+1. layouts/v7/modules/Calendar/QuickCreate.tpl
+   - Form Task kiểu Google Tasks (Add title, ngày, All day, Does not repeat, Add deadline, Add description)
+   - Form Event riêng (ngày + giờ, All day, Repeat, Optional Details)
+   - Tách rõ Task vs Event
+
+2. layouts/v7/modules/Calendar/resources/calendar-google.css
+   - Nav + Sidebar position absolute (full calendar không bị đẩy xuống)
+   - Sidebar luôn hiện (mini calendar + Activity Types), z-index cao hơn calendar
+   - Form Task Google style (CSS .google-task-form)
+
+3. layouts/v7/modules/Calendar/CalendarViewPreProcess.tpl
+   - Cấu trúc trang Calendar (app-nav, main-container, modnavigator, sidebar-essentials, CalendarViewPageDiv)
+
+4. modules/Calendar/views/QuickCreateAjax.php
+   - Load ScheduleQuickCreate.js cho Calendar/Events
+
+5. modules/Calendar/models/Record.php
+   - Task: map task_deadline → due_date, clear time_start/time_end
+
+6. languages/en_us/Calendar.php
+   - LBL_DEADLINE, LBL_START_DATE, LBL_END_DATE, LBL_TO
+   - LBL_ADD_TITLE, LBL_ADD_DESCRIPTION, LBL_DOES_NOT_REPEAT
+
+7. languages/vi_vn/Calendar.php
+   - Cùng các key trên (bản tiếng Việt)
+
+LỆNH KHÔI PHỤC (RESTORE):
+-------------------------
+cd /Users/dangquochuy/Backup
+
+# Khôi phục file
+cp checkpoints/checkpoint_20260131_092914/layouts/v7/modules/Calendar/QuickCreate.tpl layouts/v7/modules/Calendar/
+cp checkpoints/checkpoint_20260131_092914/layouts/v7/modules/Calendar/resources/calendar-google.css layouts/v7/modules/Calendar/resources/
+cp checkpoints/checkpoint_20260131_092914/layouts/v7/modules/Calendar/CalendarViewPreProcess.tpl layouts/v7/modules/Calendar/
+cp checkpoints/checkpoint_20260131_092914/modules/Calendar/views/QuickCreateAjax.php modules/Calendar/views/
+cp checkpoints/checkpoint_20260131_092914/modules/Calendar/models/Record.php modules/Calendar/models/
+cp checkpoints/checkpoint_20260131_092914/languages/en_us/Calendar.php languages/en_us/
+cp checkpoints/checkpoint_20260131_092914/languages/vi_vn/Calendar.php languages/vi_vn/
+
+# Xóa cache (tùy chọn)
+# rm -rf cache/templates_c/* cache/js/* storage/cache/*
+
+GHI CHÚ:
+--------
+- Checkpoint này lưu toàn bộ thay đổi Calendar/Quick Create đã làm trong phiên trước.
+- Sau khi làm chức năng khác, muốn quay lại trạng thái này thì chạy các lệnh RESTORE trên.

@@ -1,0 +1,324 @@
+/* ============================================
+   Modern Notifications – Giao diện đẹp, hiện đại
+   ============================================ */
+
+/* ----- Panel dropdown ----- */
+.dropdown-menu.modern-notifications-dropdown {
+    min-width: 360px !important;
+    max-width: 420px;
+    max-height: 480px;
+    padding: 0;
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    background: #fff;
+}
+
+/* ----- Header ----- */
+.modern-notifications-dropdown .dropdown-header {
+    padding: 16px 18px 0 !important;
+    margin: 0;
+    border-bottom: none;
+    background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+}
+
+.modern-notifications-dropdown .dropdown-header > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px !important;
+}
+
+.modern-notifications-dropdown .dropdown-header strong {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    letter-spacing: -0.02em;
+}
+
+#modern-notifications-actions {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+#modern-notifications-mark-all-read,
+#modern-notifications-delete-selected,
+#modern-notifications-delete-all {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+#modern-notifications-mark-all-read {
+    color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.08);
+}
+
+#modern-notifications-mark-all-read:hover {
+    background: rgba(37, 99, 235, 0.15);
+    color: #1d4ed8 !important;
+}
+
+#modern-notifications-delete-selected,
+#modern-notifications-delete-all {
+    color: #dc2626 !important;
+    background: rgba(220, 38, 38, 0.06);
+}
+
+#modern-notifications-delete-selected:hover,
+#modern-notifications-delete-all:hover {
+    background: rgba(220, 38, 38, 0.12);
+    color: #b91c1c !important;
+}
+
+/* ----- Tabs ----- */
+.modern-notifications-dropdown .nav-tabs {
+    border-bottom: 1px solid #e2e8f0 !important;
+    margin: 0 -18px 0 -18px !important;
+    padding: 0 18px !important;
+}
+
+.modern-notifications-dropdown .nav-tabs li {
+    margin-bottom: -1px;
+}
+
+.modern-notifications-dropdown .nav-tabs li a {
+    padding: 12px 16px !important;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    border: none !important;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.modern-notifications-dropdown .nav-tabs li a:hover {
+    color: #334155;
+}
+
+.modern-notifications-dropdown .nav-tabs li.active a {
+    color: #2563eb;
+    border-bottom-color: #2563eb !important;
+}
+
+/* ----- Divider ----- */
+.modern-notifications-dropdown .divider {
+    margin: 0;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+/* ----- Danh sách thông báo ----- */
+#modern-notifications-items {
+    padding: 8px !important;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+#modern-notifications-items::-webkit-scrollbar {
+    width: 6px;
+}
+
+#modern-notifications-items::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+#modern-notifications-items::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+#modern-notifications-items::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ----- Từng item thông báo ----- */
+.modern-notification-item {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #334155;
+    padding: 12px 14px 12px 44px !important;
+    margin-bottom: 6px !important;
+    border: none !important;
+    border-radius: 10px;
+    background: #f8fafc;
+    border-left: 3px solid transparent;
+    position: relative !important;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    list-style: none;
+    border-bottom: none !important;
+}
+
+.modern-notification-item:last-child {
+    margin-bottom: 0 !important;
+}
+
+.modern-notification-item:hover {
+    background: #f1f5f9;
+}
+
+.modern-notification-item a {
+    font-family: inherit;
+    color: inherit;
+    text-decoration: none !important;
+    display: block;
+    transition: color 0.2s ease;
+}
+
+.modern-notification-item a:hover {
+    color: #2563eb;
+}
+
+.modern-notification-item div {
+    font-family: inherit;
+}
+
+.modern-notification-item .notification-keyword {
+    display: inline;
+    font-weight: 600;
+    padding: 0 2px;
+    border-radius: 2px;
+    transition: opacity 0.2s ease;
+}
+
+.modern-notification-item .notification-keyword:hover {
+    opacity: 0.9;
+}
+
+.modern-notification-item .notification-keyword[style*="#e67e22"] { color: #ea580c !important; }
+.modern-notification-item .notification-keyword[style*="#3498db"] { color: #2563eb !important; }
+.modern-notification-item .notification-keyword[style*="#e74c3c"] { color: #dc2626 !important; }
+.modern-notification-item .notification-keyword[style*="#9b59b6"] { color: #7c3aed !important; }
+.modern-notification-item .notification-keyword[style*="#f39c12"] { color: #d97706 !important; }
+.modern-notification-item .notification-keyword[style*="#1abc9c"] { color: #0d9488 !important; }
+.modern-notification-item .notification-keyword[style*="#8e44ad"] { color: #6d28d9 !important; }
+.modern-notification-item .notification-keyword[style*="#27ae60"] { color: #059669 !important; }
+
+/* Thời gian */
+.modern-notification-item div[style*="font-size: 11px"],
+.modern-notification-item a div:last-child {
+    font-size: 12px !important;
+    color: #94a3b8 !important;
+    margin-top: 4px;
+}
+
+/* ----- Checkbox ----- */
+.modern-notification-checkbox {
+    position: absolute !important;
+    left: 14px !important;
+    top: 50% !important;
+    transform: translateY(-50%);
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    border: 2px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    accent-color: #2563eb;
+    -webkit-appearance: checkbox !important;
+    appearance: checkbox !important;
+}
+
+.modern-notification-checkbox:checked {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+}
+
+.modern-notification-item .modern-notification-checkbox {
+    cursor: pointer;
+}
+
+/* Content wrapper: cách checkbox một chút */
+.modern-notification-item > div {
+    margin-left: 28px !important;
+}
+
+.modern-notification-item.deadline-notification > div {
+    margin-left: 52px !important;
+}
+
+/* ----- Thông báo đã đọc ----- */
+.modern-notification-item.read-notification {
+    opacity: 0.75 !important;
+    background: #f8fafc !important;
+}
+
+.modern-notification-item.read-notification a {
+    color: #64748b !important;
+}
+
+.modern-notification-item.read-notification div {
+    color: #64748b !important;
+}
+
+.modern-notification-item:not(.read-notification) {
+    opacity: 1 !important;
+    border-left-color: #2563eb;
+}
+
+/* ----- Thông báo deadline (sắp đến hạn) ----- */
+.modern-notification-item.deadline-notification {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe4e4 100%) !important;
+    border-left: 4px solid #dc2626 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
+}
+
+.modern-notification-item.deadline-notification::before {
+    content: "⚠";
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #dc2626;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.modern-notification-item.deadline-notification .modern-notification-checkbox {
+    left: 38px !important;
+}
+
+.modern-notification-item.deadline-notification a {
+    color: #b91c1c !important;
+}
+
+.modern-notification-item.deadline-notification a:hover {
+    color: #991b1b !important;
+}
+
+.modern-notification-item.deadline-notification .notification-keyword {
+    color: #dc2626 !important;
+}
+
+/* ----- Empty state ----- */
+#modern-notifications-empty-unread,
+#modern-notifications-empty-read {
+    padding: 32px 24px !important;
+    text-align: center;
+    color: #94a3b8 !important;
+    font-size: 14px;
+}
+
+/* ----- Bell shake khi có thông báo mới ----- */
+.bell-shake {
+    animation: bellShake 0.5s ease-in-out;
+}
+
+@keyframes bellShake {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-3px) rotate(-5deg); }
+    20%, 40%, 60%, 80% { transform: translateX(3px) rotate(5deg); }
+}

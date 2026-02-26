@@ -1,0 +1,11 @@
+<?xml version='1.0'?>
+<module>
+    <name>Schedule</name>
+    <label>Schedule</label>
+    <parent>SUPPORT</parent>
+    <type>extension</type>
+    <version>1.0</version>
+    <dependencies>
+        <vtiger_version>8.0.0</vtiger_version>
+    </dependencies>
+</module>

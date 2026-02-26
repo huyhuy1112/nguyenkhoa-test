@@ -1,0 +1,1991 @@
+
+@font-face {
+    font-family: 'Oswald-bold';
+    font-style: normal;
+    font-weight: normal;
+    src: url('../fonts/Oswald/Oswald-Bold.ttf') format('truetype');
+    text-rendering: optimizeLegibility;
+}
+
+@font-face {
+    font-family: 'Open-sans';
+    font-style: normal;
+    font-weight: normal;
+    src: url('../fonts/OpenSans/OpenSans-Regular-webfont.ttf') format('truetype');
+    text-rendering: optimizeLegibility;
+}
+@font-face {
+    font-family: 'Lato';
+    font-style: normal;
+    font-weight: normal;
+    src: url('../fonts/Lato/Lato-Regular.ttf') format('truetype');
+    text-rendering: optimizeLegibility;
+}
+
+
+/**********************************/
+/************ Layout **************/
+/**********************************/
+
+/* Full viewport: bỏ mảng trắng trên, dưới, bên phải */
+html {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: 100% !important;
+    box-sizing: border-box;
+}
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+body {
+    font-family: 'Lato', 'Open-sans', sans-serif;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-height: 100vh !important;
+}
+#page {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+.main-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+/* Container fluid full width (Bootstrap) */
+#page .container-fluid,
+.main-container .container-fluid {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Tránh scroll ngang toàn trang (bớt cảm giác vướng) - không áp dụng Calendar */
+body:not([data-module="Calendar"]) {
+    overflow-x: hidden !important;
+}
+html:not(:has(body[data-module="Calendar"])) {
+    overflow-x: hidden !important;
+}
+
+/* Calendar (Schedule): toàn bộ style nằm trong layouts/v7/modules/Calendar/resources/calendar-google.css */
+
+/* ========== Nav hiện đại, thiết kế đẹp ========== */
+.app-fixed-navbar {
+    background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    margin-bottom: 0;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 4px 12px rgba(0,0,0,0.04);
+    min-height: 64px;
+}
+.global-nav {
+    position: relative;
+    padding-left: 0;
+    padding-right: 0;
+}
+/* App-nav: thanh dưới topbar (icon app + module title + nút hành động) */
+@keyframes appNavEnter {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes appNavRowItem {
+    from { opacity: 0; transform: translateX(-6px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+/* Hàng 2 của layout 2 hàng: icon + title + nút trên 1 dòng */
+.app-nav {
+    position: relative;
+    margin-top: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    min-height: 50px;
+    background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: box-shadow 0.3s ease, background 0.3s ease;
+    animation: appNavEnter 0.4s ease-out;
+}
+.app-nav .container-fluid {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+.app-nav:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+/* Chuẩn 2 hàng: Hàng 1 = topbar, Hàng 2 = app-nav (icon + DASHBOARD + nút) – ép 1 dòng */
+.app-nav .row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.app-nav .row > .app-indicator-icon-container,
+.app-nav .row > .col-sm-1 {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: none !important;
+}
+.app-nav .row > .module-action-bar,
+.app-nav .row > .col-sm-11,
+.app-nav .row > [class*="col-"]:last-child {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+}
+.app-nav .module-action-bar .module-action-content {
+    flex-wrap: nowrap !important;
+}
+.app-nav .module-action-bar .module-action-content .module-breadcrumb {
+    flex-wrap: nowrap !important;
+    min-width: 0;
+}
+/* Stagger hiệu ứng cho từng phần tử trong nav */
+.app-nav .row > .app-indicator-icon-container {
+    animation: appNavRowItem 0.35s ease-out 0.05s both;
+}
+.app-nav .row > .col-sm-11 .module-action-bar,
+.app-nav .row > [class*="col-"]:last-child .module-action-bar {
+    animation: appNavRowItem 0.35s ease-out 0.12s both;
+}
+.app-nav .row > .app-switcher-container {
+    animation: appNavRowItem 0.35s ease-out 0.08s both;
+}
+.main-container {
+    position: relative;
+}
+/* Từ 576px: topbar luôn 1 hàng – ghi đè Bootstrap grid tránh tách trên/dưới */
+@media (min-width: 576px) {
+    .app-fixed-navbar .global-nav .global-nav-row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        min-height: 56px;
+        padding: 0 12px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    .app-fixed-navbar .global-nav .global-nav-row > .global-nav-left,
+    .app-fixed-navbar .global-nav .global-nav-row > .navbar-header,
+    .app-fixed-navbar .global-nav .global-nav-row > .global-nav-center,
+    .app-fixed-navbar .global-nav .global-nav-row > .global-nav-right,
+    .app-fixed-navbar .global-nav .global-nav-row > #navbar {
+        width: auto !important;
+        max-width: none !important;
+        flex: 0 0 auto;
+    }
+    .app-fixed-navbar .global-nav .global-nav-row > .global-nav-center {
+        flex: 1 1 auto;
+        min-width: 80px;
+    }
+    .app-fixed-navbar .global-nav #navbar.collapse.navbar-collapse {
+        display: flex !important;
+        visibility: visible;
+        height: auto !important;
+    }
+    .app-fixed-navbar .global-nav .global-nav-left .row,
+    .app-fixed-navbar .global-nav .global-nav-left .app-navigator-container .row,
+    .app-fixed-navbar .global-nav .global-nav-left .logo-container .row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    .app-fixed-navbar .global-nav .global-nav-left .app-navigator-container [class*="col-"],
+    .app-fixed-navbar .global-nav .global-nav-left .logo-container[class*="col-"] {
+        width: auto !important;
+        max-width: none !important;
+    }
+}
+/* Từ 768px: giữ 1 hàng, thêm khoảng thoáng */
+@media (min-width: 768px) {
+    .app-fixed-navbar .global-nav #navbar.collapse.navbar-collapse {
+        display: flex !important;
+        visibility: visible;
+        height: auto !important;
+    }
+    /* Tất cả topbar luôn 1 hàng: hamburger, logo, search, icon – không xuống dòng */
+    .app-fixed-navbar .global-nav .global-nav-row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-height: 64px;
+        padding: 0 16px;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .app-fixed-navbar .global-nav .global-nav-left,
+    .app-fixed-navbar .global-nav .navbar-header,
+    .app-fixed-navbar .global-nav .global-nav-right {
+        flex-shrink: 0;
+    }
+    /* Logo + search ngang hàng, căn giữa theo chiều dọc */
+    .app-fixed-navbar .global-nav .global-nav-left {
+        order: 1;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+    }
+    .app-fixed-navbar .global-nav .global-nav-left .row,
+    .app-fixed-navbar .global-nav .global-nav-left .app-navigator-container .row,
+    .app-fixed-navbar .global-nav .global-nav-left .logo-container .row {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        margin: 0;
+        min-height: 44px;
+    }
+    .app-fixed-navbar .global-nav .global-nav-left .company-logo {
+        max-height: 40px;
+    }
+    .app-fixed-navbar .global-nav .navbar-header {
+        order: 2;
+        flex: 0 0 auto;
+    }
+    .app-fixed-navbar .global-nav .global-nav-center {
+        order: 3;
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        max-width: 480px;
+    }
+    .app-fixed-navbar .global-nav .global-nav-center .search-links-container {
+        width: 100%;
+    }
+    .app-fixed-navbar .global-nav .search-link {
+        height: 44px;
+    }
+    .app-fixed-navbar .global-nav .global-nav-right {
+        order: 4;
+        margin-left: auto;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        min-width: 0;
+        margin-right: 0;
+        padding-right: 0;
+    }
+}
+@media (min-width: 992px) {
+    .app-fixed-navbar .global-nav .global-nav-row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-height: 64px;
+        padding: 0 28px;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .app-fixed-navbar .global-nav .global-nav-left {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+    }
+    .app-fixed-navbar .global-nav .global-nav-left .app-navigator-container .row {
+        margin: 0;
+        padding: 0;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .app-fixed-navbar .global-nav .global-nav-left .logo-container {
+        display: flex;
+        align-items: center;
+        width: auto;
+        min-width: 120px;
+        max-width: 180px;
+        z-index: 2;
+        border-bottom: none;
+        padding-left: 0;
+    }
+    .app-fixed-navbar .global-nav .global-nav-center {
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        max-width: 480px;
+        margin: 0 28px;
+    }
+    .app-fixed-navbar .global-nav .global-nav-center .search-links-container {
+        width: 100%;
+        max-width: 100%;
+    }
+    .app-fixed-navbar .global-nav .search-links-container {
+        position: static !important;
+        width: 100% !important;
+        max-width: 100%;
+        padding-left: 0 !important;
+        float: none;
+    }
+    /* Ô chứa 6 icon: sát phải nav – bỏ padding/margin phải */
+    .app-fixed-navbar .global-nav .global-nav-right {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        min-width: 0;
+        margin-left: auto;
+        margin-right: 0;
+        padding-right: 0;
+    }
+    /* #navbar: flex để đẩy ul (icon) sát phải */
+    .app-fixed-navbar .global-nav #navbar {
+        display: flex !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        float: right !important;
+        position: relative;
+        align-items: center;
+        justify-content: flex-end;
+        box-sizing: inherit;
+        font-size: 12px;
+        color: #333;
+        margin-right: 0;
+        padding-right: 0;
+    }
+    /* 6 icon (plus, calendar, chart, task, bell, user) luôn 1 hàng với hamburger + logo + search */
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav {
+        margin-left: auto;
+        margin-right: 0;
+        padding-right: 0;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        margin: 0;
+    }
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li {
+        flex-shrink: 0;
+    }
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li {
+        margin: 0;
+        float: none;
+    }
+    /* Khớp cấu trúc HTML: li > div.dropdown hoặc div > a / .dropdown-toggle */
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div,
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > .dropdown.pull-left {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        float: none;
+    }
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > a,
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > .dropdown-toggle {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border-radius: 12px;
+        color: #5f6368;
+        background: transparent;
+        transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    }
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > a:hover,
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > .dropdown-toggle:hover {
+        background-color: rgba(0,0,0,0.05);
+        color: #1a1a1a;
+    }
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > a:active,
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > .dropdown-toggle:active {
+        transform: scale(0.96);
+    }
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > a .fa,
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > .dropdown-toggle .fa {
+        font-size: 19px;
+    }
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > a.qc-button {
+        width: 44px;
+        height: 44px;
+        margin: 0;
+        padding: 0;
+        border-radius: 12px;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+    .app-fixed-navbar .global-nav #navbar .modern-notifications-badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        font-size: 11px;
+        line-height: 18px;
+        border-radius: 9px;
+        background: #2563eb;
+        color: #fff;
+        border: 2px solid #fff;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .app-fixed-navbar .global-nav #appnavigator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        color: #5f6368;
+        background: transparent;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    }
+    .app-fixed-navbar .global-nav #appnavigator:hover {
+        background: rgba(0,0,0,0.05);
+        color: #1a1a1a;
+    }
+    .app-fixed-navbar .global-nav #appnavigator:active {
+        transform: scale(0.96);
+    }
+    .app-fixed-navbar .global-nav #appnavigator .app-icon {
+        font-size: 19px;
+    }
+    /* Khớp cấu trúc #navbar: li > div(.dropdown) > a / .dropdown-toggle; vùng bấm 44x44, icon nhỏ gọn 18px */
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > a,
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > .dropdown-toggle {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    /* Icon trong #navbar: font 18px (nhỏ gọn); link giữ 44x44, span/i bên trong box 18x18 */
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav .fa,
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav .vicon,
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav [class^="vicon-"],
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav [class*=" vicon-"] {
+        font-size: 18px !important;
+        line-height: 18px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        box-sizing: content-box !important;
+    }
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > a .fa,
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > .dropdown-toggle .fa,
+    .app-fixed-navbar .global-nav #navbar .nav.navbar-nav .dropdown-toggle .vicon {
+        width: 18px !important;
+        height: 18px !important;
+    }
+    .global-nav .search-links-container {
+        position: static;
+        width: 100%;
+        padding-left: 0;
+        float: none;
+    }
+    .module-action-bar{
+        width: 100%;
+        float:left;
+    }
+    .app-nav .module-action-bar .module-action-content{
+        border-bottom: 1px solid rgba(0,0,0,0.08);
+        background: linear-gradient(180deg, #fbfbfb 0%, #fff 100%);
+        transition: background 0.25s ease, box-shadow 0.2s ease;
+    }
+    .app-nav .module-action-bar .module-action-content .navbar-right{
+        margin-right: 10px;
+    }
+    .main-container .module-nav{
+        display: inline-block;
+        width: 180px;
+        z-index: 2;
+        height:2px;
+        position: absolute;
+    }
+    .main-container .content-area{
+        width: 100%;
+        float:left;
+    }
+}
+
+/**********************************/
+/******** Navigation styles *******/
+/**********************************/
+
+.company-logo {
+    height: 42px;
+    max-height: 42px;
+    width: auto;
+    max-width: 150px;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 0;
+    transition: opacity 0.2s ease;
+}
+.company-logo:hover {
+    opacity: 0.88;
+}
+.company-logo img {
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+.navbar .glyphicon{
+    font-size: 18px;
+}
+.global-nav .logo-container{
+    border-bottom: none;
+}
+.global-nav .search-links-container{
+    border-bottom: none;
+}
+.global-nav .navbar-nav>li>a{
+    padding-top: 0;
+    padding-bottom: 0;
+}
+.global-nav>ul{
+    margin-right: 0;
+}
+.global-nav .search-links-container{
+    padding-right: 0;
+    padding-left: 0;
+}
+.link-text-xs-only{
+    padding: 0 15px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+/* Ô tìm kiếm nav: thiết kế đẹp, mềm mại */
+.search-link {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 16px;
+    background: rgba(0,0,0,0.04);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: #6b7280;
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.search-link:hover {
+    background: rgba(0,0,0,0.06);
+    color: #374151;
+}
+.search-link:focus-within {
+    background: #fff;
+    border-color: rgba(59, 130, 246, 0.35);
+    color: #374151;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.search-link .fa-search {
+    font-size: 15px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+.search-link .keyword-input {
+    border: 0;
+    background: transparent;
+    height: 40px;
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    color: #111827;
+}
+.search-link .keyword-input::placeholder {
+    color: #9ca3af;
+}
+.search-link .keyword-input:focus {
+    outline: none;
+}
+.search-link #adv-search {
+    margin-left: 8px;
+    font-size: 12px;
+    opacity: 0.7;
+}
+@media (max-width: 768px) { 
+    .module-action-bar .navbar-right{
+        float: right;
+    }
+    .module-action-bar .navbar-right .nav>li{
+        display: inline-block;
+    }
+    .module-action-bar .navbar-right .nav>li a{
+        padding: 0 10px;
+    }
+    .global-nav .logo-container{
+        border-bottom: 0;
+    }
+}
+@media (max-width: 991px) {
+    .global-nav .logo-container{
+        border-bottom: 0;
+    }
+
+
+} 
+@media (min-width: 991px) {
+    .nav>li>a.qc-button{
+        padding: 2px 3px;
+        margin-top: 13px;
+        margin-right: 15px;
+        background: #3cb878;
+        color: #fff;
+        border-radius: 20px;
+    }
+    .nav>li>a.qc-button span{
+        vertical-align: top;
+    }
+}
+@media (max-width: 1200px) {
+    .app-menu{
+        max-height: 100%;
+        overflow-y: auto;
+    }
+}
+/** App Nav Styles – hiệu ứng và giao diện */
+
+.active-app-title{
+    white-space: nowrap;
+    font-family: Oswald-bold,"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+/* Icon app (Dashboard, Schedule, …) bên trái nav */
+.app-nav .app-indicator-icon-container {
+    transition: transform 0.2s ease, opacity 0.2s ease, background 0.25s ease, border-radius 0.25s ease;
+    border-radius: 10px;
+    padding: 4px 8px;
+}
+.app-nav .app-indicator-icon-container:hover {
+    transform: scale(1.05);
+    opacity: 0.95;
+    background: rgba(0,0,0,0.04);
+}
+.app-nav .app-indicator-icon {
+    transition: transform 0.25s ease;
+}
+.app-nav .app-indicator-icon-container:hover .app-indicator-icon {
+    transform: rotate(-5deg);
+}
+.app-nav .app-indicator-icon-container .row {
+    transition: background 0.2s ease, border-radius 0.2s ease;
+}
+
+.app-nav .app-switcher-container{
+    display: inline-block;
+    width: 300px;
+    z-index: 2;
+    height: 42px;
+}
+.app-nav .app-switcher-container .app-navigator,
+.app-nav .app-switcher-container .app-icon {
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.app-nav .app-switcher-container:hover .app-navigator,
+.app-nav .app-switcher-container:hover .app-icon {
+    transform: scale(1.02);
+}
+
+/* Module action bar (title + breadcrumb + nút) */
+.app-nav .module-action-bar {
+    transition: border-color 0.25s ease, background 0.2s ease;
+}
+.module-action-bar .module-title{
+    font-family: Oswald-bold,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #596875;
+    margin: 8px 15px;
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+.module-action-bar .module-title a,
+.module-action-bar .module-breadcrumb a {
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+.module-action-bar .module-title a:hover,
+.module-action-bar .module-breadcrumb a:hover {
+    color: #1a73e8;
+    opacity: 0.9;
+}
+.app-nav .module-action-bar .module-action-content{
+    transition: background 0.25s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.app-nav .module-action-bar .module-action-content .module-breadcrumb{
+    flex: 0 0 auto;
+}
+.app-nav .module-action-bar .module-action-content .navbar-right,
+.app-nav .module-action-bar .module-action-content > .pull-right,
+.app-nav .module-action-bar .module-action-content > [class*="col-lg-5"],
+.app-nav .module-action-bar .module-action-content > [class*="col-md-6"].pull-right{
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 0;
+}
+.app-nav .module-action-bar .module-action-content .navbar-right .nav{
+    margin-right: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 4px;
+}
+.app-nav .module-action-bar .module-action-content:hover {
+    background: #fafbfc;
+}
+/* Gạch dưới nhẹ khi hover toàn bộ nav (tùy chọn) */
+.app-nav .module-action-bar {
+    position: relative;
+}
+.app-nav .module-action-bar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(26, 115, 232, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.app-nav:hover .module-action-bar::after {
+    opacity: 1;
+}
+.app-nav .btn-default.module-buttons,
+.app-nav .addButton {
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border-radius: 8px;
+}
+.app-nav .btn-default.module-buttons:hover,
+.app-nav .addButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.app-nav .btn-default.module-buttons:active,
+.app-nav .addButton:active {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.1s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.app-nav .module-action-bar .navbar-right .glyphicon{
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+.app-nav .module-action-bar .navbar-right .nav > li:hover .glyphicon{
+    transform: scale(1.08);
+}
+/* Link và nút trong nav bar – hover mượt */
+.app-nav .module-action-bar .navbar-right .nav > li > a {
+    transition: color 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+.app-nav .module-action-bar .navbar-right .nav > li > a:hover {
+    background: rgba(0,0,0,0.05);
+    opacity: 0.95;
+}
+.app-nav .module-action-bar .navbar-right .nav > li > a:active {
+    background: rgba(0,0,0,0.08);
+}
+
+/* Đồng bộ kích thước icon trên app-nav (thanh dưới topbar): 24px */
+.app-nav .module-action-bar .fa,
+.app-nav .module-action-bar .glyphicon,
+.app-nav .module-action-bar .vicon,
+.app-nav .module-action-bar [class*="vicon-"],
+.app-nav .addButton .fa,
+.app-nav .addButton .glyphicon,
+.app-nav .btn-default.module-buttons .fa,
+.app-nav .btn-default.module-buttons .glyphicon {
+    font-size: 24px !important;
+    line-height: 24px !important;
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 24px !important;
+    height: 24px !important;
+    box-sizing: content-box !important;
+}
+
+.app-CONTACT{
+    background: #3498db !important;
+}
+
+.app-MARKETING_AND_SALES{
+    background: #f1c40f !important;
+}
+
+.app-SUPPORT {
+    background: #8e44ad !important;
+}
+
+.app-INVENTORY{
+    background: #d35400 !important;
+}
+
+.app-TOOLS {
+    background: #2ecc71 !important;
+}
+
+/* App MANAGEMENT */
+.app-MANAGEMENT{
+    background: #1a73e8 !important;
+}
+
+.module-nav .mod-switcher-container{
+    display: inline-block;
+    width: 56px !important;
+    max-width: 56px;
+    z-index: 2;
+    background: #2c3e50;
+}
+
+.module-action-bar{
+    height: 42px;
+    border-top:1px solid #ddd;
+    border-bottom:1px solid #ddd
+}
+
+.app-switcher-container .navbar-toggle{
+    margin: 5px 0;
+    padding: 5px;
+}
+.app-switcher-container .navbar-toggle .icon-bar{
+    background: #fff;
+}
+.app-nav .module-action-bar .navbar-right .glyphicon{
+    font-size: 14px;
+    vertical-align: middle;
+}
+/* Menu hamburger: giao diện và vị trí giống nhau trên mọi trang (Dashboard, Teams, Mail Manager, ...) */
+.app-menu,
+#page .app-menu {
+    width: 280px !important;
+    max-width: 300px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100vh - 90px) !important;
+    padding: 12px 0 12px 0 !important;
+    padding-bottom: 12px !important;
+    color: #fff;
+    position: fixed !important;
+    left: 0 !important;
+    border: 0;
+    box-shadow: 6px 12px 28px rgba(0,0,0,0.3);
+    background: linear-gradient(180deg, #2d3e50 0%, #1a252f 100%);
+    overflow-y: auto;
+    z-index: 10001;
+    border-radius: 0 10px 10px 0;
+    border-left: 4px solid #3498db;
+    transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+.app-menu:hover,
+#page .app-menu:hover {
+    box-shadow: 8px 16px 32px rgba(0,0,0,0.35);
+}
+.app-menu hr{
+    border: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(52,152,219,0.4), transparent);
+    margin: 8px 12px;
+}
+.app-menu .container-fluid,
+.app-menu .app-list {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+.app-menu .app-list-divider {
+    margin-bottom: 4px !important;
+}
+
+.menu-item{
+    padding: 12px 10px;
+    margin: 5px 8px;
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.22s ease;
+}
+.app-item{
+    padding: 14px 12px;
+    font-size: 1.05em;
+    color: #ecf0f1;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+    border-radius: 6px;
+    transition: all 0.22s ease;
+}
+.app-item:hover{
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    transform: translateX(3px);
+}
+.app-item div{
+    transition: all 0.22s ease;
+}
+.app-item:hover div{
+    transform: translateX(4px);
+}
+.app-item .fa, .app-item .app-icon-list{
+    font-size: 1.25em;
+    margin-right: 10px;
+    transition: transform 0.22s ease;
+}
+.app-item:hover .fa, .app-item:hover .app-icon-list{
+    transform: scale(1.15);
+}
+
+/* Màu từng nhóm app menu */
+.app-item-color-MARKETING{ border-left-color: #3498db !important; }
+.app-item-color-MARKETING:hover{ background: rgba(52,152,219,0.2) !important; }
+.app-item-color-SALES{ border-left-color: #e74c3c !important; }
+.app-item-color-SALES:hover{ background: rgba(231,76,60,0.2) !important; }
+.app-item-color-INVENTORY{ border-left-color: #e67e22 !important; }
+.app-item-color-INVENTORY:hover{ background: rgba(230,126,34,0.2) !important; }
+.app-item-color-SUPPORT{ border-left-color: #9b59b6 !important; }
+.app-item-color-SUPPORT:hover{ background: rgba(155,89,182,0.2) !important; }
+.app-item-color-MANAGEMENT{ border-left-color: #1abc9c !important; }
+.app-item-color-MANAGEMENT:hover{ background: rgba(26,188,156,0.2) !important; }
+.app-item-color-TOOLS{ border-left-color: #2ecc71 !important; }
+.app-item-color-TOOLS:hover{ background: rgba(46,204,113,0.2) !important; }
+.app-item-misc{ border-left-color: #95a5a6 !important; }
+.app-item-misc:hover{ background: rgba(149,165,166,0.2) !important; }
+.app-list > .menu-item.app-item:first-child{ border-left: 4px solid #f39c12 !important; }
+.app-list > .menu-item.app-item:first-child:hover{ background: rgba(243,156,18,0.2) !important; }
+
+/* Menu con MANAGEMENT và các app: chỉ cần hiện ra khi hover/click */
+.app-menu .app-modules-dropdown-container {
+    position: static;
+}
+/* Ghi đè Bootstrap .dropdown-menu { display: none } - bắt buộc hiện khi .open hoặc :hover */
+.app-menu .app-modules-dropdown-container.open > .app-modules-dropdown,
+.app-menu .app-modules-dropdown-container:hover > .app-modules-dropdown,
+.app-menu .app-modules-dropdown-container.open .app-modules-dropdown,
+.app-menu .app-modules-dropdown-container:hover .app-modules-dropdown {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 10002 !important;
+    position: fixed !important;
+    left: 280px !important;
+    top: 95px !important;
+}
+.app-menu ul.dropdown-menu.app-modules-dropdown {
+    display: none;
+}
+.app-menu .app-modules-dropdown-container.open ul.app-modules-dropdown,
+.app-menu .app-modules-dropdown-container:hover ul.app-modules-dropdown {
+    display: block !important;
+}
+/* Menu con: nội dung hiện rõ, không chỉ thanh scroll */
+.app-menu .app-modules-dropdown {
+    pointer-events: auto !important;
+    min-width: 260px !important;
+    width: 260px !important;
+    height: auto !important;
+    max-height: calc(100vh - 120px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 8px 0 !important;
+    list-style: none;
+    background: #2C3B49 !important;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 4px 8px 20px rgba(0,0,0,0.25);
+}
+.app-menu .app-modules-dropdown li {
+    display: block !important;
+}
+.app-menu .app-modules-dropdown li a {
+    display: block !important;
+    padding: 10px 16px !important;
+    font-size: 1em !important;
+    color: #fff !important;
+}
+.app-menu {
+    overflow-x: visible !important;
+}
+
+.menu-toggle{
+    width: 20px;
+    padding-top: 9px;
+    margin:0 15px 0 0;
+    display: inline-block;
+    float: left;
+}
+.menu-toggle:focus{
+    outline: none;
+}
+.menu-toggle .icon-bar{
+    display: block;
+    width: 100%;
+    height: 3px;
+    background: #fff;
+    margin: 3px 0;
+}
+.app-trigger{
+    padding-top: 8px;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: inline-block;
+    width: 85%;
+}
+.app-trigger .active-app-title{
+    overflow: hidden;
+    display: inline-block;
+    width: 85%;
+    text-overflow: ellipsis;
+}
+
+.app-trigger .arrow-down{
+    margin-top: 6px;
+    float: right;
+    color: #fff;
+    font-size: 12px;
+    -webkit-transition: all 0.2s ease;
+    -moz-transition: all 0.2s ease;
+    -o-transition: all 0.2s ease;
+    transition: all 0.2s ease;
+}
+.app-trigger:hover .arrow-down{
+    font-size: 16px;
+    -webkit-transition: all 0.2s ease;
+    -moz-transition: all 0.2s ease;
+    -o-transition: all 0.2s ease;
+    transition: all 0.2s ease;
+    background: #2c3b49;
+    padding: 6px;
+    border-radius: 20px;
+    margin-top: -2px;
+}
+#sidebar-wrapper, #content-wrapper{
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+    overflow-y: auto;
+}
+
+/* Sidebar: chỉ icon, không màu mè - rộng vừa icon (56px) */
+#sidebar{
+    width: 56px;
+    min-width: 56px;
+}
+.main-container .module-nav,
+.main-container .mod-switcher-container {
+    width: 56px !important;
+    max-width: 56px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+/* Tránh mục cuối (Project...) bị chặn: padding đáy + cho phép scroll */
+.module-nav .mod-switcher-container,
+#modnavigator .mod-switcher-container {
+    padding-bottom: 20px !important;
+    min-height: 0 !important;
+}
+.main-container .sidebar-essentials {
+    left: 56px !important;
+}
+.main-container .content-area {
+    padding-left: 296px !important;
+    position: relative !important;
+    z-index: 2 !important;
+    min-height: 200px !important;
+}
+.main-container .settingsPageDiv {
+    padding-left: 296px !important;
+}
+/* Tránh trang bị chặn: nội dung luôn trên, không bị đè bởi sidebar/footer */
+.viewContent .content-area,
+.listViewPageDiv.content-area,
+.detailViewContent .content-area {
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+/* Edit view: tất cả module (Management – Contacts, Leads, Accounts, …) nav không che form */
+.main-container .editViewPageDiv .content-area {
+    padding-left: 296px !important;
+    padding-top: 24px !important;
+    padding-bottom: 32px !important;
+    min-width: 0;
+}
+.main-container .editViewPageDiv .editViewContents {
+    padding: 20px 20px 32px;
+}
+/* Khi ẩn sidebar-essentials: edit view chỉ cần 72px (sau module-nav 56px) */
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials.sidebar-essentials.hide + .editViewPageDiv .content-area,
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container .editViewPageDiv .content-area.full-width {
+    padding-left: 72px !important;
+}
+/* Project & ProjectTask: giữ padding đủ rộng, thêm chút khoảng */
+body[data-module="Project"] .main-container .editViewPageDiv .content-area,
+body[data-module="ProjectTask"] .main-container .editViewPageDiv .content-area {
+    padding-left: 300px !important;
+    padding-top: 28px !important;
+    padding-bottom: 40px !important;
+    min-width: 0;
+}
+body[data-module="Project"] .main-container .editViewPageDiv .editViewContents,
+body[data-module="ProjectTask"] .main-container .editViewPageDiv .editViewContents {
+    padding: 24px 24px 40px;
+}
+
+/* Sidebar (Management, Project, Teams...): luôn hiện, không mất */
+#sidebar,
+#sidebar .module-nav,
+#modnavigator,
+.main-container .module-nav,
+.main-container #modnavigator,
+.main-container .mod-switcher-container {
+    display: block !important;
+    visibility: visible !important;
+}
+#sidebar .module-nav {
+    display: block !important;
+    background: #2c3e50;
+    width: 56px !important;
+    min-width: 56px !important;
+    z-index: 2;
+    position: relative;
+}
+/* Sidebar: scrollbar mỏng, bớt khúc dư */
+#sidebar::-webkit-scrollbar,
+.module-nav::-webkit-scrollbar { width: 6px; }
+#sidebar::-webkit-scrollbar-track,
+.module-nav::-webkit-scrollbar-track { background: transparent; }
+#sidebar::-webkit-scrollbar-thumb,
+.module-nav::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+
+.module-nav .toggled{
+    width : 0px;
+    overflow : hidden;
+}
+
+/* User Logout */
+.logout-content{
+    padding: 10px;
+    width: 350px;
+}
+.profile-img-container{
+    width: 85px;
+    height: 100px;
+    background: darkgreen;
+    text-align: center;
+    margin: 1px;
+}
+.profile-img-container .change-link{
+    position: absolute;
+    height: auto;
+    background: #ddd;
+    padding: 3px;
+    bottom: 2px;
+    font-size: 10px;
+    width: 85px;
+    text-align: center;
+    opacity: 0.5;
+}
+.profile-img-container .change-link:hover{
+    opacity: 1;
+    cursor: pointer;
+}
+.profile-img-container .default-img{
+    font-size: 5em;
+    margin: 0;
+    color: #fff;
+}
+.profile-container{
+    display: inline-block;
+    margin-right: 1px;
+    padding-right: 1px;
+    width: 180px;
+}
+.logout-footer hr{
+    margin: 10px 0;   
+}
+
+
+/**********************************/
+/**** Side vertical Nav styles ****/
+/**********************************/
+/*ul.app-menu{
+    background: #fff;
+    list-style: none;
+    margin: 0;
+    border: 1px solid;
+    display: none;
+}*/
+.module-nav{
+    background: #fff; 
+}
+/* Sidebar Management (Schedule, Teams, Report, Project...): luôn hiện, chỉ icon */
+.module-nav .modules-menu,
+#modnavigator .modules-menu,
+#modules-menu {
+    display: block !important;
+    visibility: visible !important;
+    width: 100%;
+    float: left;
+    background: #2c3e50;
+    padding-bottom: 24px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+.modules-menu ul{
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+}
+.modules-menu ul li a{
+    color: #ecf0f1;
+    padding: 12px 10px;
+    text-align: center;
+    display: block;
+    z-index: 1;
+    border-left: none !important;
+    transition: background 0.15s ease;
+}
+.modules-menu ul li a span{
+    display: none !important;
+}
+.modules-menu ul li a:hover{
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+}
+.modules-menu ul li:hover, 
+.modules-menu ul li.active{
+    background: rgba(255,255,255,0.06);
+}
+.modules-menu ul li.active a{
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-weight: normal;
+}
+.module-nav .module-filters{
+    display: inline-block;
+    width: 68%;
+    float:left;
+    background: linear-gradient(180deg, #3d5a80 0%, #293241 100%);
+    border-left: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Trang Teams: sidebar chỉ icon, không che nút */
+body[data-module="Teams"] .main-container .module-nav,
+body[data-module="Teams"] .main-container #modnavigator,
+body[data-module="Teams"] .main-container .mod-switcher-container {
+    width: 56px !important;
+    max-width: 56px !important;
+}
+body[data-module="Teams"] .main-container #sidebar-essentials.sidebar-essentials {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+}
+body[data-module="Teams"] .main-container .listViewPageDiv.content-area,
+body[data-module="Teams"] .main-container .content-area,
+body[data-module="Teams"] #listViewContent.listViewPageDiv {
+    padding-left: 72px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    min-width: 0 !important;
+}
+body[data-module="Teams"] .teams-page-container {
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    box-sizing: border-box !important;
+}
+body[data-module="Teams"] .teams-modern-header,
+body[data-module="Teams"] .teams-header-content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    max-width: 100% !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+body[data-module="Teams"] .teams-header-right {
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+}
+body[data-module="Teams"] .teams-action-btn {
+    position: relative !important;
+    z-index: 3 !important;
+}
+
+/* ========== Sidebar Essentials: các trang khác (Leads, Contacts, Project, Reports, ...) ========== */
+/* Trừ Calendar và Teams đã có sidebar riêng */
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials.sidebar-essentials {
+    display: inline-block !important;
+    width: 240px !important;
+    min-width: 240px !important;
+    position: absolute !important;
+    left: 56px !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    min-height: 100% !important;
+    background: linear-gradient(180deg, #3d4f5c 0%, #2c3e50 100%) !important;
+    border-right: 1px solid rgba(255,255,255,0.06) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    z-index: 1 !important;
+    padding: 0 !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .sidebar-menu {
+    display: block !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 10px 0 24px !important;
+    min-height: 100% !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .sidebar-header,
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .lists-header,
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials h5.sidebar-header {
+    color: rgba(255,255,255,0.85) !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    margin: 12px 12px 6px !important;
+    padding: 0 !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .sidebar-container,
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .module-filters .sidebar-container {
+    padding: 0 12px 12px !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials hr {
+    border: 0 !important;
+    height: 1px !important;
+    background: rgba(255,255,255,0.1) !important;
+    margin: 6px 12px 10px !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .sidebar-btn {
+    background: rgba(255,255,255,0.15) !important;
+    border: none !important;
+    color: #fff !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .sidebar-btn:hover {
+    background: rgba(255,255,255,0.25) !important;
+    color: #fff !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .search-list {
+    background: rgba(0,0,0,0.2) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: #ecf0f1 !important;
+    border-radius: 6px !important;
+    margin: 6px 12px 10px !important;
+    padding: 8px 10px !important;
+    width: calc(100% - 24px) !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .search-list::placeholder {
+    color: rgba(255,255,255,0.4) !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .lists-menu > li {
+    margin: 0 !important;
+    padding: 6px 10px !important;
+    border-radius: 4px !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .lists-menu > li > a {
+    color: rgba(255,255,255,0.9) !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .lists-menu > li:hover,
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .lists-menu > li.active {
+    background: rgba(255,255,255,0.08) !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .toggleFilterSize {
+    color: rgba(255,255,255,0.7) !important;
+    font-size: 11px !important;
+    padding: 4px 12px !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .listViewTagContainer .tag,
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials .multiLevelTagList .tag {
+    background: rgba(255,255,255,0.15) !important;
+    color: #ecf0f1 !important;
+    border: none !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials::-webkit-scrollbar {
+    width: 6px !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2) !important;
+    border-radius: 3px !important;
+}
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+/* Khi ẩn sidebar (nút thu gọn): content full-width */
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials.sidebar-essentials.hide + .listViewPageDiv.content-area,
+body:not([data-module="Calendar"]):not([data-module="Teams"]) .main-container #sidebar-essentials.sidebar-essentials.hide + .content-area {
+    padding-left: 72px !important;
+}
+
+/* ========== Project & ProjectTask: list + edit + app-nav không bị sidebar che ========== */
+/* Thanh module (icon + PROJECTS > All + nút): đẩy nội dung sang phải để không bị sidebar đè */
+body[data-module="Project"] .app-nav,
+body[data-module="ProjectTask"] .app-nav {
+    padding-left: 300px !important;
+    box-sizing: border-box;
+}
+body[data-module="Project"] .main-container .content-area,
+body[data-module="ProjectTask"] .main-container .content-area {
+    padding-left: 300px !important;
+    min-width: 0;
+    z-index: 2 !important;
+}
+/* ========== List view Project/ProjectTask: không bị sidebar che + giao diện mới ========== */
+/* Dùng margin-left để cả khối list (kể cả floatThead) dịch sang phải, không còn bị đè */
+body[data-module="Project"] .main-container .listViewPageDiv.content-area,
+body[data-module="Project"] .main-container #listViewContent.listViewPageDiv,
+body[data-module="ProjectTask"] .main-container .listViewPageDiv.content-area,
+body[data-module="ProjectTask"] .main-container #listViewContent.listViewPageDiv,
+.main-container #listViewContent.list-view-sidebar-offset {
+    margin-left: 296px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+    min-width: 0;
+    box-sizing: border-box;
+    max-width: none;
+}
+/* Khi thu gọn sidebar: list view Project/ProjectTask */
+.main-container #listViewContent.list-view-sidebar-offset.full-width {
+    margin-left: 56px !important;
+    padding-left: 0 !important;
+}
+
+/* ========== List view mới: card + bảng đẹp (Project/ProjectTask và list-view-sidebar-offset) ========== */
+#listViewContent.list-view-sidebar-offset {
+    padding: 28px 8px 32px 8px !important;
+    padding-top: 32px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-right: 0 !important;
+    margin-top: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+#listViewContent.list-view-sidebar-offset .col-sm-12.col-xs-12 {
+    padding: 0;
+    max-width: 100%;
+}
+#listViewContent.list-view-sidebar-offset .essentials-toggle {
+    top: 16px;
+    left: 8px;
+}
+#listViewContent.list-view-sidebar-offset .listview-actions-container {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+#listViewContent.list-view-sidebar-offset .table-container {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    padding-top: 12px;
+}
+/* Tránh header nổi (floatThead) đè lên hàng header thật */
+#listViewContent.list-view-sidebar-offset .floatThead-wrapper {
+    padding-top: 0;
+}
+#listViewContent.list-view-sidebar-offset .floatThead-floatContainer {
+    top: 12px !important;
+    z-index: 10;
+}
+#listViewContent.list-view-sidebar-offset .listview-table {
+    margin-bottom: 0;
+    border: none;
+    min-width: 2430px;
+}
+#listViewContent.list-view-sidebar-offset .listview-table > thead > tr.listViewContentHeader > th {
+    background: #f8fafc;
+    color: #374151;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 14px 16px;
+    border-bottom: 2px solid #e5e7eb;
+    line-height: 1.3;
+    vertical-align: middle;
+}
+#listViewContent.list-view-sidebar-offset .listview-table > tbody > tr.listViewEntries {
+    transition: background 0.15s ease;
+}
+#listViewContent.list-view-sidebar-offset .listview-table > tbody > tr.listViewEntries:hover {
+    background: #f8fafc;
+}
+#listViewContent.list-view-sidebar-offset .listview-table > tbody > tr > td {
+    padding: 12px 16px;
+    color: #374151;
+    font-size: 13px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+#listViewContent.list-view-sidebar-offset .listview-table .table-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    width: auto;
+    min-width: 140px;
+}
+#listViewContent.list-view-sidebar-offset .listview-table .table-actions .input.checkbox,
+#listViewContent.list-view-sidebar-offset .listview-table .table-actions input[type="checkbox"] {
+    margin: 0;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+#listViewContent.list-view-sidebar-offset .listview-table .table-actions span a,
+#listViewContent.list-view-sidebar-offset .listview-table .table-actions .action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: #6b7280;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+#listViewContent.list-view-sidebar-offset .listview-table .table-actions span a:hover,
+#listViewContent.list-view-sidebar-offset .listview-table .table-actions .action:hover {
+    background: #f1f5f9;
+    color: #1e40af;
+}
+#listViewContent.list-view-sidebar-offset .listview-table .listViewContentHeaderValues {
+    color: #374151;
+    font-weight: 600;
+}
+#listViewContent.list-view-sidebar-offset .listview-table .listViewContentHeaderValues:hover {
+    color: #1e40af;
+}
+#listViewContent.list-view-sidebar-offset .listview-table td .fieldValue .value a {
+    color: #2563eb;
+    font-weight: 500;
+}
+#listViewContent.list-view-sidebar-offset .listview-table td .fieldValue .value a:hover {
+    text-decoration: underline;
+}
+/* FloatThead clone: đồng bộ style header */
+#listViewContent.list-view-sidebar-offset .floatThead-table.listview-table > thead > tr > th {
+    background: #f8fafc;
+    padding: 12px 16px;
+    border-bottom: 2px solid #e5e7eb;
+}
+#listViewContent.list-view-sidebar-offset .listview-pagination,
+#listViewContent.list-view-sidebar-offset .listViewActions {
+    margin: 0;
+}
+#listViewContent.list-view-sidebar-offset .bottom-fixed-scroll {
+    border: none;
+    margin-top: 0;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+}
+#listViewContent.list-view-sidebar-offset .listview-table tr.searchRow th {
+    background: #fafbfc;
+    padding: 10px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+body[data-module="Project"] .main-container .editViewPageDiv .content-area,
+body[data-module="ProjectTask"] .main-container .editViewPageDiv .content-area {
+    padding-left: 300px !important;
+    padding-top: 28px !important;
+    padding-bottom: 40px !important;
+}
+body[data-module="Project"] .main-container .editViewPageDiv .editViewContents,
+body[data-module="ProjectTask"] .main-container .editViewPageDiv .editViewContents {
+    padding: 24px 24px 40px;
+    min-width: 0;
+}
+body[data-module="Project"] .main-container #sidebar-essentials.hide + .editViewPageDiv .content-area,
+body[data-module="ProjectTask"] .main-container #sidebar-essentials.hide + .editViewPageDiv .content-area,
+body[data-module="Project"] .main-container .editViewPageDiv.content-area.full-width,
+body[data-module="ProjectTask"] .main-container .editViewPageDiv.content-area.full-width {
+    padding-left: 72px !important;
+}
+
+
+/** Lists Menu in Side bar */
+.module-filters .sidebar-container{
+    padding:0 12px;
+}
+.module-filters > hr{
+    margin: 20px 12px; 
+}
+.lists-menu-container .lists-header{
+    color: #fff;
+    margin-top: 15px;
+} 
+.lists-menu-container hr{
+    margin: 5px 0;
+}
+.lists-menu-container .menu-scroller{
+}
+/* mScrollbar customization for lists widget */
+.lists-menu-container .menu-scroller .mCSB_scrollTools{
+    width: 13px;
+}
+.lists-menu-container .menu-scroller .mCSB_inside > .mCSB_container {
+    margin-right: 10px;
+}
+/* Customization ends */
+.lists-menu-container .list-menu-content{
+    padding-bottom: 120px;
+}
+.lists-menu-container .list-menu-content .more-less-link{
+    color: #fff;
+    /*text-decoration: none;*/
+}
+
+.lists-menu-container .list-menu-content .sub-header{
+    color: #ddd;
+    font-weight: bold;
+    margin: 20px 0 5px;
+}
+
+.lists-menu-container .menu-scroller .lists-menu{
+    list-style: none;
+    padding:0;
+    font-size: 13px;
+}
+.lists-menu > li{
+    margin: 1px 0;
+    padding: 5px;
+    color: #fff;
+}
+
+.lists-menu > li ul.dropdown-menu{
+    position: relative;
+    width: 100%;
+    border-radius: 1px;
+}
+.lists-menu > li ul.dropdown-menu li a:hover{
+    width: 100%;
+}
+.lists-menu > li:hover, .lists-menu > li.active{
+    background: #2c3b49;
+}
+.lists-menu > li > a{
+    color: #fff;
+    padding: 3px 5px 5px 0;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 78%;
+    display: inline-block;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.lists-menu > li .fa{
+    visibility:hidden;
+}
+.lists-menu > li .fa.fa-chevron-circle-down{
+    margin: 6px 2px 0 0;
+    cursor: pointer;
+}
+.lists-menu > li .fa.fa-plus-square-o{
+    vertical-align: middle;
+    cursor: move;
+}
+.lists-menu > li.active .fa, .lists-menu > li:hover .fa{
+    visibility:visible;
+}
+.search-list{
+    width: 100%;
+    background-color: #2c3b49;
+    border: 0;
+    margin:5px 0 10px;
+    color: #ccc;
+    padding: 5px 10px;
+}
+.search-list:focus{
+    color: #fff;
+    outline: none;
+}
+
+.integrations-container > div,
+.common-links-container > div{
+    padding: 8px 5px;
+}
+.integrations-container > div:hover,
+.common-links-container > div:hover{
+    background: #2c3b49;
+}
+.integrations-container > div a,
+.common-links-container > div a{
+    color: #fff;
+
+}
+/*Search Container styles */
+.search-container{
+    min-height: 300px;
+    position: absolute;
+    z-index: 1030;
+    width: 100%;
+    top: 0;
+    background: #fbfbfb;
+    margin-left: -15px;
+    margin-top: 51px;
+    display: none;
+    opacity: 0.96;
+}
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 30px;
+    background-color: #f5f5f5;
+}
+.footer p{
+    margin: 5px 0;
+}
+
+/*** Utilities ***/
+.showElement{
+    display: block !important;
+    height: 100%;
+    -webkit-transition: all 3s ease;
+    -moz-transition: all 3s ease;
+    -o-transition: all 3s ease;
+    transition: all 3s ease;
+}
+.full-width{
+    padding-left: 15px !important;
+    width:100% !important;
+}
+.marginboth10px{
+
+}
+
+
+/***********************************
+**********Button Styles**********
+***********************************/
+.btn{
+    font-family: open-sans;
+    border-radius: 1px;
+}
+.module-buttons{
+    margin: 4px 3px;
+    border-radius: 2px;
+    border: 1px solid #ddd;
+    box-shadow: 0px 1px 1px #ddd;
+    text-transform: uppercase;
+    color: #666;
+}
+.module-buttons:hover, 
+.module-buttons:focus, 
+.module-buttons.focus, 
+.module-buttons:active, 
+.module-buttonst.active {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+}
+.help-link{
+    font-size: 22px;
+    margin: 10px;
+}
+
+.btn{
+    text-shadow:0px 1px 0px #fff;
+}
+
+/***********************************
+**********List View Styles**********
+***********************************/
+
+.module-buttons-container{
+    float: right;
+    margin-right: 10px;
+}
+
+.current-filter-name{
+    margin-top: 10px;
+    float: left;
+    font-size: 16px;
+}
+
+.listViewContentHeaderValues .customsort{
+    opacity:0.5;
+}
+
+#listviewheader {
+    margin-top : 5px;
+    margin-left:-15px
+}
+
+.listViewPageDiv a{
+    text-decoration: none;
+    color:inherit;
+}
+
+.listViewContentHeaderValues:hover{
+    text-decoration: none;
+    color: #333;
+}
+
+.listview-actions-container {
+    position: relative;
+    background: #fff;
+    padding-top:10px;
+}
+/*
+.listview-pagination{ 
+    position: fixed;
+    right: 12px;
+    top: 103px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}*/
+
+.listview-pagination i{
+    font-size: 20px;
+}
+
+.listview-pagination .disabled{
+    color: rgba(0, 0, 0, 0.2);
+}
+
+.listview-pagination .disabled:hover{
+    cursor : default;
+}
+
+.listview-pagination p{
+    display: inline-block;
+    float: left;
+    margin: 5px;
+}
+
+.input-prepend .add-on,
+.input-append .add-on{
+    border :1px solid #ccc;
+    padding : 3px;
+}
+
+
+.table-container{
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #ddd;
+    margin-top: 10px;
+    overflow-y: auto;
+    padding-top:5px;
+}
+
+.listview-table{
+    margin-bottom: 0;
+    border-top: 0;
+    min-width: 2430px; 
+    table-layout: fixed;
+}
+.listview-table  tr td, .listview-table tr th{
+    /*border-right:1px solid #ccc;*/
+    color:#999;
+}
+.listview-table > thead > tr > th,
+.listview-table > tbody > tr > th,
+.listview-table > tfoot > tr > th{
+    padding: 5px;
+}
+.listview-table > thead > tr:first-child > th,
+.listview-table > tbody > tr:first-child > th{
+    padding: 10px 5px;
+}
+.listview-table > thead > tr > td,
+.listview-table > tbody > tr > td,
+.listview-table > tfoot > tr > td{
+    padding: 5px;
+}
+.floatThead-table{
+    background: #fff;
+}
+.inline-search-btn button{
+    text-align: center;
+    width: 100%;
+    text-shadow: none;
+    padding: 3px
+}
+.listview-table .table-actions{
+    width: 135px;
+}
+.listview-table .table-actions span{
+    padding: 0 5px;
+}
+.listview-table .table-actions span:hover{
+    color: #333;
+    cursor: pointer;
+}
+.listview-table .table-actions span.caret{
+    padding: 0;
+}
+.listview-table .input .checkbox{
+    height:16px;
+    width:16px;
+    float:left;	
+    margin-top: 2px;
+}
+.listview-table tr td .input .checkbox{
+    margin-right: 10px;
+}
+.listview-table .fa-star-o{
+    font-size:16px;
+}
+.floatThead-wrapper .table-container{
+    z-index: 0 !important;
+}
+/* List view bottom fixed scroll */
+
+.bottom-fixed-scroll{
+    border-top: 1px solid #ddd;
+    height: 18px;
+    position: relative;
+    top: -19px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+}
+.scroller-div{
+    height: 1px;
+}
+

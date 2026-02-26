@@ -1,0 +1,59 @@
+Checkpoint – Layout & List View (nav không che, Project list, validation, calendar)
+====================================================================================
+
+Tạo lúc: 2026-02-02 16:39:16
+Tương ứng commit: 9cbd6bf (Layout & list view: nav không che form, list Project sít trái, validation toast, calendar height)
+Mục đích: Khôi phục về trạng thái sau khi đã push lên huy-dev (testcrm), dùng khi cần rollback.
+
+CÁC FILE TRONG CHECKPOINT NÀY:
+------------------------------
+1. languages/en_us/Vtiger.php, languages/vi_vn/Vtiger.php
+   - Ngôn ngữ (nếu có thay đổi)
+
+2. layouts/v7/modules/Calendar/resources/calendar-google.css
+   - Giao diện Calendar (Schedule), month/week/day view
+
+3. layouts/v7/modules/Vtiger/ListViewPreProcess.tpl
+   - Template list view: class list-view-sidebar-offset cho Project/ProjectTask
+
+4. layouts/v7/modules/Vtiger/resources/ModernNotifications.css
+   - Style notification
+
+5. layouts/v7/modules/Vtiger/resources/Vtiger.js
+   - App menu vị trí, logic Vtiger
+
+6. layouts/v7/modules/Vtiger/resources/validation.js
+   - Validation form: toast "Vui lòng điền đầy đủ các trường bắt buộc (*) trước khi lưu."
+
+7. layouts/v7/resources/custom.css
+   - Nav, sidebar, content-area padding/margin
+   - Edit view: padding-left 296px cho tất cả module (Management)
+   - List view Project/ProjectTask: margin-left 296px, card layout, table style
+   - App-nav padding (Project/ProjectTask), floatThead top
+
+8. layouts/v7/skins/project/style.css
+   - Skin Project: .main-container .content-area padding-left 300px
+
+LỆNH KHÔI PHỤC (RESTORE):
+-------------------------
+cd /path/to/Backup   # hoặc cd /Users/dangquochuy/Backup
+
+CP=checkpoints/checkpoint_20260202_163916
+
+cp "$CP/languages/en_us/Vtiger.php" languages/en_us/
+cp "$CP/languages/vi_vn/Vtiger.php" languages/vi_vn/
+cp "$CP/layouts/v7/modules/Calendar/resources/calendar-google.css" layouts/v7/modules/Calendar/resources/
+cp "$CP/layouts/v7/modules/Vtiger/ListViewPreProcess.tpl" layouts/v7/modules/Vtiger/
+cp "$CP/layouts/v7/modules/Vtiger/resources/ModernNotifications.css" layouts/v7/modules/Vtiger/resources/
+cp "$CP/layouts/v7/modules/Vtiger/resources/Vtiger.js" layouts/v7/modules/Vtiger/resources/
+cp "$CP/layouts/v7/modules/Vtiger/resources/validation.js" layouts/v7/modules/Vtiger/resources/
+cp "$CP/layouts/v7/resources/custom.css" layouts/v7/resources/
+cp "$CP/layouts/v7/skins/project/style.css" layouts/v7/skins/project/
+
+# (Tùy chọn) Xóa cache nếu sau khi restore vẫn lỗi hiển thị
+# rm -rf storage/cache/* test/templates_c/*
+
+GHI CHÚ:
+--------
+- Checkpoint này lưu toàn bộ thay đổi đã push lên branch huy-dev (github.com/huyhuy1112/testcrm).
+- Dùng khi cần rollback layout/list view/validation/calendar về trạng thái ổn định này.

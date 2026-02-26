@@ -1,0 +1,73 @@
+# Checkpoint File List - All Modified Files
+# Date: 2026-02-11 12:49:29
+# Use this list to restore files if needed
+
+## CHECKPOINT 2026-02-11 12:49 – Comment Upload Ảnh (Project Task, Project Board, ModComments)
+# Thư mục: checkpoints/checkpoint_20260211_124929/
+# File: RESTORE_INSTRUCTIONS.txt (lệnh khôi phục chi tiết)
+# Mục đích: Fix Add comment, hình mới hiện, ModComments chấp nhận mọi ảnh, lightbox phóng to
+# File lưu: data/CRMEntity.php, layouts/v7/modules/ProjectTask/resources/List.js,
+#   layouts/v7/modules/Project/TaskBoard.tpl, layouts/v7/resources/custom.css
+
+## CHECKPOINT 2026-02-04 15:08 – Main Page (ô bằng nhau, Agenda, nút Mở lịch)
+# Thư mục: checkpoints/checkpoint_20260204_150806/
+# File: RESTORE_INSTRUCTIONS.txt (lệnh khôi phục chi tiết)
+# Commit: 601cbf3 – Main Page: ô bằng nhau, Agenda lấp đầy, nút Mở lịch to, khoảng cách chữ với thanh màu
+# File lưu: layouts/v7/resources/custom.css
+
+## CHECKPOINT 2026-02-02 16:39 – Layout & List View (huy-dev push)
+# Thư mục: checkpoints/checkpoint_20260202_163916/
+# File: RESTORE_INSTRUCTIONS.txt (lệnh khôi phục chi tiết)
+# Commit: 9cbd6bf – nav không che form, list Project sít trái, validation toast, calendar height
+# File lưu: languages (en_us, vi_vn Vtiger.php), calendar-google.css, ListViewPreProcess.tpl,
+#   ModernNotifications.css, Vtiger.js, validation.js, custom.css, project/style.css
+
+## CHECKPOINT 2026-02-02 – Calendar Google (lấp khoảng trắng Month/Week/Day)
+# Thư mục: checkpoints/checkpoint_20260202_101205/
+# File: RESTORE_INSTRUCTIONS.txt (lệnh khôi phục chi tiết)
+# File lưu: layouts/v7/modules/Calendar/resources/calendar-google.css, Calendar.js
+
+## TEAMS MODULE - PHP FILES
+modules/Teams/actions/DeleteGroup.php
+modules/Teams/actions/SaveGroup.php
+modules/Teams/actions/SavePerson.php
+modules/Teams/actions/DeletePerson.php
+modules/Teams/actions/DeleteUser.php
+modules/Teams/views/EditGroup.php
+modules/Teams/views/List.php
+
+## TEAMS MODULE - TEMPLATE FILES
+layouts/v7/modules/Teams/partials/Groups.tpl
+layouts/v7/modules/Teams/partials/People.tpl
+layouts/v7/modules/Teams/AddPersonModal.tpl
+layouts/v7/modules/Teams/EditGroup.tpl
+
+## TEAMS MODULE - JAVASCRIPT FILES
+layouts/v7/modules/Teams/resources/Group.js
+layouts/v7/modules/Teams/resources/Person.js
+layouts/v7/modules/Teams/resources/TeamsModal.js
+
+## CALENDAR CSS
+layouts/v7/resources/custom.css
+
+## MODERNNOTIFICATIONS FIX (if exists)
+layouts/v7/modules/Vtiger/resources/ModernNotifications.js
+
+---
+Total files modified: 14
+---
+
+## Quick Restore Commands (if using git):
+
+# Restore all Teams module files
+git checkout modules/Teams/actions/DeleteGroup.php
+git checkout modules/Teams/actions/SaveGroup.php
+git checkout modules/Teams/actions/SavePerson.php
+git checkout modules/Teams/views/EditGroup.php
+git checkout layouts/v7/modules/Teams/partials/Groups.tpl
+git checkout layouts/v7/modules/Teams/partials/People.tpl
+git checkout layouts/v7/modules/Teams/AddPersonModal.tpl
+git checkout layouts/v7/modules/Teams/resources/Group.js
+git checkout layouts/v7/modules/Teams/resources/Person.js
+git checkout layouts/v7/modules/Teams/resources/TeamsModal.js
+git checkout layouts/v7/resources/custom.css

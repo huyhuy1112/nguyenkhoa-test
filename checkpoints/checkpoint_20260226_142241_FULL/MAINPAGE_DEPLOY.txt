@@ -1,0 +1,34 @@
+========================================
+DEPLOY TRANG MAIN PAGE (Menu MANAGEMENT)
+========================================
+
+Sau khi pull/update code từ branch huy-dev, làm các bước sau để thấy trang Main Page và module Home trong menu MANAGEMENT:
+
+1. THÊM HOME VÀO MENU MANAGEMENT (bắt buộc)
+   - Chạy script:  php fix_management_menu_display.php
+   - Script sẽ: chuẩn hóa appname MANAGEMENT, và đảm bảo module Home có trong menu MANAGEMENT (thêm nếu chưa có).
+
+2. XÓA CACHE
+   - Vào Settings → Configuration → Clear Cache
+   - Hoặc xóa thư mục cache (vtiger_cache, test/templates_c nếu dùng).
+
+3. ĐĂNG XUẤT VÀ ĐĂNG NHẬP LẠI
+   - Logout, login lại để menu và quyền cập nhật.
+
+4. MỞ TRANG MAIN PAGE
+   - Bấm icon menu (hamburger) → chọn MANAGEMENT
+   - Trong menu con sẽ có "Home" (hoặc "Dashboard") → bấm vào sẽ mở trang Main Page.
+   - Hoặc truy cập trực tiếp: index.php?module=Home&view=MainPage&app=MANAGEMENT
+
+CÁC FILE LIÊN QUAN MAIN PAGE (đã có trong repo):
+- modules/Home/views/MainPage.php
+- modules/Home/models/Module.php (getDefaultViewName = MainPage)
+- modules/Home/actions/*.php (Announcement)
+- layouts/v7/modules/Home/MainPageViewPreProcess.tpl, MainPagePostProcess.tpl, MainPage.tpl
+- layouts/v7/modules/Home/partials/SidebarHeader.tpl, IndexViewPreProcess.tpl
+- layouts/v7/modules/Vtiger/MainPage.tpl
+- layouts/v7/resources/application.js (Home MainPage → Vtiger_Index_Js)
+- layouts/v7/resources/custom.css (mainpage layout)
+- fix_management_menu_display.php (thêm Home vào MANAGEMENT)
+
+Nếu vẫn không thấy module Home trong menu: kiểm tra vtiger_app2tab có bản ghi appname='MANAGEMENT', tabid=(tabid của Home) không. Có thể chạy lại php fix_management_menu_display.php.

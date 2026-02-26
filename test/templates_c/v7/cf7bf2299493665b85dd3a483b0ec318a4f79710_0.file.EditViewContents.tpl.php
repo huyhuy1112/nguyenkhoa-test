@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-30 06:46:16
+/* Smarty version 4.5.4, created on 2026-02-23 08:47:02
   from '/var/www/html/layouts/v7/modules/Vtiger/partials/EditViewContents.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697c53b872ddd0_38791936',
+  'unifunc' => 'content_699c14069480d4_59524649',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'cf7bf2299493665b85dd3a483b0ec318a4f79710' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Vtiger/partials/EditViewContents.tpl',
-      1 => 1768793648,
+      1 => 1770083192,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697c53b872ddd0_38791936 (Smarty_Internal_Template $_smarty_tpl) {
+function content_699c14069480d4_59524649 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_checkPlugins(array(0=>array('file'=>'/var/www/html/vendor/smarty/smarty/libs/plugins/modifier.count.php','function'=>'smarty_modifier_count',),));
 if (!empty($_smarty_tpl->tpl_vars['PICKIST_DEPENDENCY_DATASOURCE']->value)) {?><input type="hidden" name="picklistDependency" value='<?php echo Vtiger_Util_Helper::toSafeHTML($_smarty_tpl->tpl_vars['PICKIST_DEPENDENCY_DATASOURCE']->value);?>
 ' /><?php }?><div name='editContent'><?php if ((isset($_smarty_tpl->tpl_vars['DUPLICATE_RECORDS']->value)) && $_smarty_tpl->tpl_vars['DUPLICATE_RECORDS']->value) {?><div class="fieldBlockContainer duplicationMessageContainer"><div class="duplicationMessageHeader"><b><?php echo vtranslate('LBL_DUPLICATES_DETECTED',$_smarty_tpl->tpl_vars['MODULE']->value);?>
@@ -118,5 +118,19 @@ $_smarty_tpl->_assignInScope('related_to', $_smarty_tpl->tpl_vars['RECORD']->val
     <?php echo '</script'; ?>
 >
     <?php }
+if (($_smarty_tpl->tpl_vars['MODULE']->value == 'Project' || $_smarty_tpl->tpl_vars['MODULE']->value == 'ProjectTask') && (isset($_smarty_tpl->tpl_vars['ASSIGNABLE_USERS']->value))) {?><div class="fieldBlockContainer" data-block="LBL_ASSIGNEE"><h4 class="fieldBlockHeader"><?php echo vtranslate('LBL_ADDITIONAL_ASSIGNEES',$_smarty_tpl->tpl_vars['MODULE']->value);?>
+</h4><hr><table class="table table-borderless"><tr><td class="fieldLabel alignMiddle"><?php echo vtranslate('LBL_ADDITIONAL_ASSIGNEES',$_smarty_tpl->tpl_vars['MODULE']->value);?>
+</td><td class="fieldValue"><select class="inputElement select2" name="additional_assignees[]" multiple data-placeholder="<?php echo vtranslate('LBL_SELECT_USERS',$_smarty_tpl->tpl_vars['MODULE']->value);?>
+" style="min-width: 220px;"><?php
+$_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['ASSIGNABLE_USERS']->value, 'UNAME', false, 'UID');
+$_smarty_tpl->tpl_vars['UNAME']->do_else = true;
+if ($_from !== null) foreach ($_from as $_smarty_tpl->tpl_vars['UID']->value => $_smarty_tpl->tpl_vars['UNAME']->value) {
+$_smarty_tpl->tpl_vars['UNAME']->do_else = false;
+?><option value="<?php echo $_smarty_tpl->tpl_vars['UID']->value;?>
+" <?php if ((isset($_smarty_tpl->tpl_vars['ADDITIONAL_ASSIGNEES']->value)) && in_array($_smarty_tpl->tpl_vars['UID']->value,$_smarty_tpl->tpl_vars['ADDITIONAL_ASSIGNEES']->value)) {?> selected <?php }?>><?php echo $_smarty_tpl->tpl_vars['UNAME']->value;?>
+</option><?php
+}
+$_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?></select><span class="muted"><?php echo vtranslate('LBL_ADDITIONAL_ASSIGNEES_HELP',$_smarty_tpl->tpl_vars['MODULE']->value);?>
+</span></td></tr></table></div><?php }
 }
 }

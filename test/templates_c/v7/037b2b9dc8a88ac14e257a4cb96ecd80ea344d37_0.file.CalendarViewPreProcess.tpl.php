@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-30 07:49:22
+/* Smarty version 4.5.4, created on 2026-02-23 09:08:42
   from '/var/www/html/layouts/v7/modules/Calendar/CalendarViewPreProcess.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697c6282ce5a50_89295891',
+  'unifunc' => 'content_699c191a83da35_44533711',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '037b2b9dc8a88ac14e257a4cb96ecd80ea344d37' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Calendar/CalendarViewPreProcess.tpl',
-      1 => 1769759073,
+      1 => 1769825975,
       2 => 'file',
     ),
   ),
@@ -23,7 +23,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
     'file:modules/Calendar/partials/Sidebar.tpl' => 1,
   ),
 ),false)) {
-function content_697c6282ce5a50_89295891 (Smarty_Internal_Template $_smarty_tpl) {
+function content_699c191a83da35_44533711 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_subTemplateRender("file:modules/Vtiger/partials/Topbar.tpl", $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, false);
 ?>
 <div class="container-fluid app-nav app-nav-<?php echo $_smarty_tpl->tpl_vars['SELECTED_MENU_CATEGORY']->value;?>

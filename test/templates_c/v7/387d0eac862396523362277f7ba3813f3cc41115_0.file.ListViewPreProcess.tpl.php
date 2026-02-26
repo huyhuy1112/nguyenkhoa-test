@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-30 08:25:14
+/* Smarty version 4.5.4, created on 2026-02-13 08:51:57
   from '/var/www/html/layouts/v7/modules/Vtiger/ListViewPreProcess.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697c6aead54894_11848403',
+  'unifunc' => 'content_698ee62de52561_69065334',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '387d0eac862396523362277f7ba3813f3cc41115' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Vtiger/ListViewPreProcess.tpl',
-      1 => 1769761233,
+      1 => 1770954611,
       2 => 'file',
     ),
   ),
@@ -21,7 +21,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
     'file:modules/Vtiger/partials/Topbar.tpl' => 1,
   ),
 ),false)) {
-function content_697c6aead54894_11848403 (Smarty_Internal_Template $_smarty_tpl) {
+function content_698ee62de52561_69065334 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_subTemplateRender("file:modules/Vtiger/partials/Topbar.tpl", $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, false);
 ?>
 
@@ -54,7 +54,8 @@ $_smarty_tpl->_subTemplateRender("file:modules/Vtiger/partials/Topbar.tpl", $_sm
 			<?php $_smarty_tpl->_subTemplateRender(call_user_func_array($_smarty_tpl->registered_plugins[ 'modifier' ][ 'vtemplate_path' ][ 0 ], array( "partials/SidebarEssentials.tpl",$_smarty_tpl->tpl_vars['MODULE']->value )), $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, true);
 ?>
 		</div>
-		<div class="listViewPageDiv content-area <?php if ($_smarty_tpl->tpl_vars['LEFTPANELHIDE']->value == '1') {?> full-width <?php }?>" id="listViewContent">
+		<div class="listViewPageDiv content-area <?php if ($_smarty_tpl->tpl_vars['LEFTPANELHIDE']->value == '1') {?> full-width <?php }
+if ($_smarty_tpl->tpl_vars['MODULE']->value == 'Project' || $_smarty_tpl->tpl_vars['MODULE']->value == 'ProjectTask' || $_smarty_tpl->tpl_vars['MODULE']->value == 'Documents') {?> list-view-sidebar-offset <?php }?>" id="listViewContent">
 
 <?php }
 }

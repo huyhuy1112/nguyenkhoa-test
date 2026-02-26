@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-30 07:49:23
+/* Smarty version 4.5.4, created on 2026-02-25 08:09:55
   from '/var/www/html/layouts/v7/modules/Vtiger/partials/SidebarAppMenu.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697c6283044634_32437364',
+  'unifunc' => 'content_699eae53e358f9_04924219',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '649f8bf33efeeac7a2981ac9b730165a8eab29f5' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Vtiger/partials/SidebarAppMenu.tpl',
-      1 => 1769759073,
+      1 => 1772006175,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697c6283044634_32437364 (Smarty_Internal_Template $_smarty_tpl) {
+function content_699eae53e358f9_04924219 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="app-menu hide" id="app-menu">
 	<div class="container-fluid">
@@ -73,7 +73,7 @@ $_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?>
 												<div class="menu-item app-item dropdown-toggle app-item-color-<?php echo $_smarty_tpl->tpl_vars['APP_NAME']->value;?>
 " data-app-name="<?php echo $_smarty_tpl->tpl_vars['APP_NAME']->value;?>
 " id="<?php echo $_smarty_tpl->tpl_vars['APP_NAME']->value;?>
-_modules_dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" data-default-url="#">
+_modules_dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-default-url="#">
 							<div class="menu-items-wrapper app-menu-items-wrapper">
 								<span class="app-icon-list fa <?php echo $_smarty_tpl->tpl_vars['APP_IMAGE_MAP']->value[$_smarty_tpl->tpl_vars['APP_NAME']->value];?>
 "></span>
@@ -84,6 +84,14 @@ _modules_dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded
 						</div>
 						<ul class="dropdown-menu app-modules-dropdown" aria-labelledby="<?php echo $_smarty_tpl->tpl_vars['APP_NAME']->value;?>
 _modules_dropdownMenu">
+														<?php if ($_smarty_tpl->tpl_vars['APP_NAME']->value == 'MANAGEMENT') {?>
+								<li>
+									<a href="index.php?module=Home&view=MainPage&app=MANAGEMENT" title="Main Page">
+										<span class="module-icon module-icon-lg fa fa-home"></span>
+										<span class="module-name textOverflowEllipsis"> Main Page</span>
+									</a>
+								</li>
+							<?php }?>
 							<?php
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['APP_GROUPED_MENU']->value[$_smarty_tpl->tpl_vars['APP_NAME']->value], 'moduleModel', false, 'moduleName');
 $_smarty_tpl->tpl_vars['moduleModel']->do_else = true;
@@ -97,15 +105,28 @@ $_smarty_tpl->tpl_vars['moduleModel']->do_else = false;
 									<?php $_smarty_tpl->_assignInScope('translatedModuleLabel', vtranslate('LBL_ACTIVITIES','Calendar'));?>
 								<?php }?>
 								<li>
-									<a href="<?php echo $_smarty_tpl->tpl_vars['moduleModel']->value->getDefaultUrl();?>
+									<?php if ($_smarty_tpl->tpl_vars['moduleName']->value == 'Reports' && $_smarty_tpl->tpl_vars['APP_NAME']->value == 'MANAGEMENT') {?>
+										<a href="index.php?module=Reports&view=Management&app=MANAGEMENT" title="<?php echo $_smarty_tpl->tpl_vars['translatedModuleLabel']->value;?>
+">
+											<span class="module-icon module-icon-lg fa fa-bar-chart"></span>
+											<span class="module-name textOverflowEllipsis"> <?php echo $_smarty_tpl->tpl_vars['translatedModuleLabel']->value;?>
+</span>
+										</a>
+									<?php } else { ?>
+										<a href="<?php echo $_smarty_tpl->tpl_vars['moduleModel']->value->getDefaultUrl();?>
 &app=<?php echo $_smarty_tpl->tpl_vars['APP_NAME']->value;?>
 " title="<?php echo $_smarty_tpl->tpl_vars['translatedModuleLabel']->value;?>
 ">
-										<span class="module-icon"><?php echo $_smarty_tpl->tpl_vars['moduleModel']->value->getModuleIcon();?>
+											<?php if ($_smarty_tpl->tpl_vars['moduleName']->value == 'Teams') {?>
+												<span class="module-icon module-icon-lg fa fa-users"></span>
+											<?php } else { ?>
+												<span class="module-icon"><?php echo $_smarty_tpl->tpl_vars['moduleModel']->value->getModuleIcon();?>
 </span>
-										<span class="module-name textOverflowEllipsis"> <?php echo $_smarty_tpl->tpl_vars['translatedModuleLabel']->value;?>
+											<?php }?>
+											<span class="module-name textOverflowEllipsis"> <?php echo $_smarty_tpl->tpl_vars['translatedModuleLabel']->value;?>
 </span>
-									</a>
+										</a>
+									<?php }?>
 								</li>
 							<?php
 }

@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-29 07:35:26
+/* Smarty version 4.5.4, created on 2026-02-23 09:08:45
   from '/var/www/html/layouts/v7/modules/Calendar/CalendarViewTypes.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697b0dbe8c04c2_71368422',
+  'unifunc' => 'content_699c191dbd0b71_16729964',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697b0dbe8c04c2_71368422 (Smarty_Internal_Template $_smarty_tpl) {
+function content_699c191dbd0b71_16729964 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class="sidebar-widget-contents" name='calendarViewTypes'><div id="calendarview-feeds"><ul class="list-group feedslist"><li class="activitytype-indicator calendar-feed-indicator mass-edit-option" style="background-color:#2c3b49; color:#FFFFFF;"><span><?php echo vtranslate('LBL_MASS_SELECT');?>
 </span><span class="activitytype-actions pull-right"><input class="mass-select" type="checkbox"></span></li><?php
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['VIEWTYPES']->value['visible'], 'VIEWINFO', false, NULL, 'calendarview', array (

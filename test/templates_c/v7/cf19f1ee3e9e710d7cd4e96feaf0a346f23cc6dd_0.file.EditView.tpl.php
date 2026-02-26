@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-30 06:46:16
+/* Smarty version 4.5.4, created on 2026-02-23 08:47:02
   from '/var/www/html/layouts/v7/modules/Vtiger/EditView.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697c53b86799e9_52150849',
+  'unifunc' => 'content_699c14068bf964_81249963',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'cf19f1ee3e9e710d7cd4e96feaf0a346f23cc6dd' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Vtiger/EditView.tpl',
-      1 => 1769755271,
+      1 => 1770954615,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697c53b86799e9_52150849 (Smarty_Internal_Template $_smarty_tpl) {
+function content_699c14068bf964_81249963 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="main-container clearfix"><div id="modnavigator" class="module-nav editViewModNavigator"><div class="mod-switcher-container"><?php $_smarty_tpl->_subTemplateRender(call_user_func_array($_smarty_tpl->registered_plugins[ 'modifier' ][ 'vtemplate_path' ][ 0 ], array( "partials/Menubar.tpl",$_smarty_tpl->tpl_vars['MODULE']->value )), $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, true);
 ?></div></div><div class="editViewPageDiv viewContent"><div class="col-sm-12 col-xs-12 content-area <?php if ($_smarty_tpl->tpl_vars['LEFTPANELHIDE']->value == '1') {?> full-width <?php }?>"><form class="form-horizontal recordEditView" id="EditView" name="edit" method="post" action="index.php" enctype="multipart/form-data"><div class="editViewHeader"><div class='row'><div class="col-lg-12 col-md-12 col-lg-pull-0"><?php $_smarty_tpl->_assignInScope('SINGLE_MODULE_NAME', ('SINGLE_').($_smarty_tpl->tpl_vars['MODULE']->value));
@@ -43,7 +43,8 @@ $_smarty_tpl->_assignInScope('SPLITTED_MODULE', call_user_func_array($_smarty_tp
 " /><input type="hidden" name="parent" value="<?php echo $_smarty_tpl->tpl_vars['SPLITTED_MODULE']->value[0];?>
 " /><?php } else { ?><input type="hidden" name="module" value="<?php echo $_smarty_tpl->tpl_vars['MODULE']->value;?>
 " /><?php }?><input type="hidden" name="action" value="Save" /><input type="hidden" name="record" value="<?php echo $_smarty_tpl->tpl_vars['RECORD_ID']->value;?>
-" /><input type="hidden" name="defaultCallDuration" value="<?php echo $_smarty_tpl->tpl_vars['USER_MODEL']->value->get('callduration');?>
+" /><?php if ($_smarty_tpl->tpl_vars['MODULE']->value == 'Documents' && (isset($_smarty_tpl->tpl_vars['DOCUMENTS_FOLDER_ID']->value)) && $_smarty_tpl->tpl_vars['DOCUMENTS_FOLDER_ID']->value !== '') {?><input type="hidden" name="folder_id" value="<?php echo $_smarty_tpl->tpl_vars['DOCUMENTS_FOLDER_ID']->value;?>
+" /><?php }?><input type="hidden" name="defaultCallDuration" value="<?php echo $_smarty_tpl->tpl_vars['USER_MODEL']->value->get('callduration');?>
 " /><input type="hidden" name="defaultOtherEventDuration" value="<?php echo $_smarty_tpl->tpl_vars['USER_MODEL']->value->get('othereventduration');?>
 " /><input type="hidden" name="appName" value="&app=<?php echo $_smarty_tpl->tpl_vars['SELECTED_MENU_CATEGORY']->value;?>
 " /><?php if ($_smarty_tpl->tpl_vars['IS_RELATION_OPERATION']->value) {?><input type="hidden" name="sourceModule" value="<?php echo $_smarty_tpl->tpl_vars['SOURCE_MODULE']->value;?>

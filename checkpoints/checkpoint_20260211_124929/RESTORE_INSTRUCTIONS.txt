@@ -1,0 +1,42 @@
+Checkpoint – Comment Upload Ảnh (Project Task List, Project Board, ModComments)
+================================================================================
+
+Tạo lúc: 2026-02-11 12:49:29
+Mục đích: Khôi phục trạng thái upload ảnh trong comment – Project Task List (Add button fix), Project Board (hình mới hiện), ModComments (chấp nhận mọi định dạng/kích thước ảnh), Lightbox phóng to.
+
+CÁC FILE TRONG CHECKPOINT NÀY:
+------------------------------
+1. data/CRMEntity.php
+   - ModComments: validation thư giãn – chấp nhận mọi định dạng ảnh, không giới hạn kích thước ở app level
+   - Chỉ kiểm tra: file tồn tại, không chứa PHP/shell
+
+2. layouts/v7/modules/ProjectTask/resources/List.js
+   - Add comment: dùng thisInstance.addCommentFromPanel() thay vì getInstance()
+   - Reload comments sau khi gửi ảnh (800ms delay)
+   - Mở rộng định dạng ảnh: tiff, tif, svg, ico, heic, heif
+
+3. layouts/v7/modules/Project/TaskBoard.tpl
+   - loadTaskComments(taskId, forceRefresh) – cache bust khi reload sau gửi ảnh
+   - Mở rộng định dạng ảnh hiển thị
+
+4. layouts/v7/resources/custom.css
+   - Lightbox: max 90vw x 85vh, object-fit: contain
+
+LỆNH KHÔI PHỤC (RESTORE):
+-------------------------
+cd /Users/dangquochuy/Backup   # hoặc cd /path/to/Backup
+
+CP=checkpoints/checkpoint_20260211_124929
+
+cp "$CP/data/CRMEntity.php" data/
+cp "$CP/layouts/v7/modules/ProjectTask/resources/List.js" layouts/v7/modules/ProjectTask/resources/
+cp "$CP/layouts/v7/modules/Project/TaskBoard.tpl" layouts/v7/modules/Project/
+cp "$CP/layouts/v7/resources/custom.css" layouts/v7/resources/
+
+# (Tùy chọn) Xóa cache nếu sau khi restore vẫn lỗi
+# rm -rf storage/cache/* test/templates_c/*
+
+GHI CHÚ:
+--------
+- Thumbnail ảnh có thể mờ – bấm vào ảnh để mở lightbox xem rõ hơn.
+- Upload file lớn: kiểm tra upload_max_filesize, post_max_size trong php.ini.

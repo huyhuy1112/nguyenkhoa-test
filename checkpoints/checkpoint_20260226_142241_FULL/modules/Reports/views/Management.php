@@ -1,0 +1,507 @@
+<?php
+
+class Reports_Management_View extends Vtiger_Index_View {
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		parent::preProcess($request, false);
+		$viewer = $this->getViewer($request);
+
+		// Đảm bảo đang ở app MANAGEMENT (sidebar)
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'MANAGEMENT');
+		$viewer->assign('SELECTED_MENU_CATEGORY_LABEL', vtranslate('LBL_MANAGEMENT', 'Vtiger'));
+		$menuGroupedByParent = Settings_MenuEditor_Module_Model::getAllVisibleModules();
+		if (isset($menuGroupedByParent['MANAGEMENT'])) {
+			$viewer->assign('SELECTED_CATEGORY_MENU_LIST', $menuGroupedByParent['MANAGEMENT']);
+		}
+
+		if ($display) {
+			$this->preProcessDisplay($request);
+		}
+	}
+
+	protected function preProcessTplName(Vtiger_Request $request) {
+		return 'IndexViewPreProcess.tpl';
+	}
+
+	public function process(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$currentUser = Users_Record_Model::getCurrentUserModel();
+
+		$filters = array(
+			'date_from'   => $request->get('date_from'),
+			'date_to'     => $request->get('date_to'),
+			'owner_id'    => $request->get('owner_id'),
+			'report_type' => $request->get('report_type') ?: 'all', // all, project, task, mkt, kpi
+			'export_fmt'  => $request->get('export_format'),
+		);
+
+		$doExport = $request->get('do_export');
+
+		// Bảo đảm bảng lưu cấu hình tồn tại + load danh sách cấu hình đã lưu theo user
+		$this->ensureConfigTable();
+		$savedConfigs = $this->getReportConfigs($currentUser->getId());
+
+		// Nếu user bấm "Lưu cấu hình"
+		$saveFlag = $request->get('save_config');
+		$saveName = trim((string) $request->get('save_config_name'));
+		if ($saveFlag && $saveName !== '') {
+			$this->saveReportConfig($currentUser->getId(), $saveName, $filters);
+			// Reload lại danh sách sau khi lưu
+			$savedConfigs = $this->getReportConfigs($currentUser->getId());
+		}
+
+		// Nếu có yêu cầu export -> xuất file rồi kết thúc
+		if ($doExport && !empty($filters['export_fmt'])) {
+			$this->exportManagementReport($request, $filters);
+			return;
+		}
+
+		// Nếu không export, luôn reset export_fmt về rỗng để lần lọc sau không dính giá trị cũ
+		$filters['export_fmt'] = '';
+
+		$owners = $currentUser->getAccessibleUsers();
+		if (!is_array($owners)) {
+			$owners = array();
+		}
+
+		// Load dữ liệu cho từng loại báo cáo dựa trên report_type (mặc định: all)
+		$projectRows = array();
+		$taskRows = array();
+		if ($filters['report_type'] === 'all' || $filters['report_type'] === 'project') {
+			$projectRows = $this->getProjectRows($filters);
+		}
+		if ($filters['report_type'] === 'all' || $filters['report_type'] === 'task') {
+			$taskRows = $this->getTaskRows($filters);
+		}
+		$mktRows = array(); // placeholder – sẽ gắn dữ liệu marketing / sales sau
+		$kpiRows = array(); // placeholder – sẽ gắn dữ liệu KPI sau
+
+		$viewer->assign('CURRENT_USER', $currentUser);
+		$viewer->assign('REPORT_FILTERS', $filters);
+		$viewer->assign('REPORT_OWNERS', $owners);
+		$viewer->assign('REPORT_PROJECT_ROWS', $projectRows);
+		$viewer->assign('REPORT_TASK_ROWS', $taskRows);
+		$viewer->assign('REPORT_MKT_ROWS', $mktRows);
+		$viewer->assign('REPORT_KPI_ROWS', $kpiRows);
+		$viewer->assign('REPORT_SAVED_CONFIGS', $savedConfigs);
+
+		$viewer->view('Management.tpl', 'Reports');
+	}
+
+	public function getHeaderScripts(Vtiger_Request $request) {
+		$headerScriptInstances = parent::getHeaderScripts($request);
+		$jsFileNames = array(
+			"modules.ProjectTask.resources.List", // dùng lại modal Task của ProjectTask
+		);
+		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+		return array_merge($headerScriptInstances, $jsScriptInstances);
+	}
+
+	/**
+	 * Export management report to CSV / Excel (CSV) – dùng chung filters + dữ liệu từ getProjectRows/getTaskRows.
+	 */
+	protected function exportManagementReport(Vtiger_Request $request, array $filters) {
+		$format = strtolower($filters['export_fmt']);
+		if (!in_array($format, array('csv', 'excel', 'pdf'), true)) {
+			$format = 'csv';
+		}
+
+		$reportType = $filters['report_type'];
+		if (!$reportType) {
+			$reportType = 'all';
+		}
+
+		// Các id cụ thể được tick trên UI (nếu có) – dạng "1,2,3"
+		$selectedProjectIds = array();
+		$selectedTaskIds = array();
+		$projectIdsParam = trim((string) $request->get('export_project_ids'));
+		if ($projectIdsParam !== '') {
+			foreach (explode(',', $projectIdsParam) as $id) {
+				$id = trim($id);
+				if ($id !== '') {
+					$selectedProjectIds[] = $id;
+				}
+			}
+		}
+		$taskIdsParam = trim((string) $request->get('export_task_ids'));
+		if ($taskIdsParam !== '') {
+			foreach (explode(',', $taskIdsParam) as $id) {
+				$id = trim($id);
+				if ($id !== '') {
+					$selectedTaskIds[] = $id;
+				}
+			}
+		}
+
+		$projectRows = array();
+		$taskRows = array();
+		if ($reportType === 'all' || $reportType === 'project') {
+			$projectRows = $this->getProjectRows($filters);
+		}
+		if ($reportType === 'all' || $reportType === 'task') {
+			$taskRows = $this->getTaskRows($filters);
+		}
+
+		// Nếu người dùng tick cụ thể dòng nào thì chỉ export các dòng đó
+		if (!empty($selectedProjectIds)) {
+			$projectRows = array_values(array_filter($projectRows, function($row) use ($selectedProjectIds) {
+				return in_array($row['id'], $selectedProjectIds);
+			}));
+		}
+		if (!empty($selectedTaskIds)) {
+			$taskRows = array_values(array_filter($taskRows, function($row) use ($selectedTaskIds) {
+				return in_array($row['id'], $selectedTaskIds);
+			}));
+		}
+
+		$filenameSuffix = date('Ymd_His');
+		if ($format === 'pdf') {
+			$filename = "management_report_{$filenameSuffix}.pdf";
+
+			require_once 'libraries/tcpdf/tcpdf.php';
+			$pdf = new TCPDF();
+			$pdf->SetCreator('vtiger');
+			$pdf->SetAuthor('vtiger');
+			$pdf->SetTitle('Management Report');
+			$pdf->SetMargins(10, 15, 10);
+			$pdf->AddPage();
+			$pdf->SetFont('dejavusans', '', 9);
+
+			$html = '<h2>Management Report</h2>';
+			$html .= '<p><strong>Generated at:</strong> ' . date('Y-m-d H:i:s') . '</p>';
+			$html .= '<p><strong>Date From:</strong> ' . htmlspecialchars($filters['date_from']) .
+				' &nbsp; <strong>Date To:</strong> ' . htmlspecialchars($filters['date_to']) .
+				' &nbsp; <strong>Owner:</strong> ' . htmlspecialchars($filters['owner_id']) . '</p>';
+
+			if (!empty($projectRows)) {
+				$html .= '<h3>Project Report</h3>';
+				$html .= '<table border="1" cellspacing="0" cellpadding="3">
+					<tr style="background-color:#f1f5f9;">
+						<th>Project</th><th>Start</th><th>End</th><th>Assigned To</th>
+						<th>Tasks</th><th>Done</th><th>In Progress</th><th>Status</th>
+					</tr>';
+				foreach ($projectRows as $row) {
+					$html .= '<tr>
+						<td>' . htmlspecialchars($row['title']) . '</td>
+						<td>' . htmlspecialchars($row['start']) . '</td>
+						<td>' . htmlspecialchars($row['end']) . '</td>
+						<td>' . htmlspecialchars(strip_tags($row['owner'])) . '</td>
+						<td align="right">' . (int) $row['task_count'] . '</td>
+						<td align="right">' . (int) $row['task_done'] . '</td>
+						<td align="right">' . (int) $row['task_in_progress'] . '</td>
+						<td>' . htmlspecialchars($row['status']) . '</td>
+					</tr>';
+				}
+				$html .= '</table><br/>';
+			}
+
+			if (!empty($taskRows)) {
+				$html .= '<h3>Task Report</h3>';
+				$html .= '<table border="1" cellspacing="0" cellpadding="3">
+					<tr style="background-color:#f1f5f9;">
+						<th>Task</th><th>Due date</th><th>Assigned To</th><th>Status</th>
+					</tr>';
+				foreach ($taskRows as $row) {
+					$html .= '<tr>
+						<td>' . htmlspecialchars($row['title']) . '</td>
+						<td>' . htmlspecialchars($row['due']) . '</td>
+						<td>' . htmlspecialchars(strip_tags($row['owner'])) . '</td>
+						<td>' . htmlspecialchars($row['status']) . '</td>
+					</tr>';
+				}
+				$html .= '</table>';
+			}
+
+			$pdf->writeHTML($html, true, false, true, false, '');
+			$pdf->Output($filename, 'D');
+			exit;
+		} else {
+			$extension = $format === 'excel' ? 'xls' : 'csv';
+			$filename = "management_report_{$filenameSuffix}.{$extension}";
+
+			header('Content-Type: text/csv; charset=UTF-8');
+			header('Content-Disposition: attachment; filename="' . $filename . '"');
+			header('Pragma: no-cache');
+			header('Expires: 0');
+
+			// BOM để Excel hiểu UTF‑8
+			echo "\xEF\xBB\xBF";
+
+			$out = fopen('php://output', 'w');
+
+			// Ghi filters lên đầu file
+			fputcsv($out, array('Management Report', 'Generated at', date('Y-m-d H:i:s')));
+			fputcsv($out, array('Date From', $filters['date_from'], 'Date To', $filters['date_to'], 'Owner', $filters['owner_id']));
+			fputcsv($out, array()); // dòng trống
+
+			if (!empty($projectRows)) {
+				fputcsv($out, array('Project Report'));
+				// Project: Tên, ngày bắt đầu/kết thúc, Assigned To, số task (total/done/in progress), trạng thái
+				fputcsv($out, array('Project', 'Start', 'End', 'Assigned To', 'Tasks', 'Done', 'In Progress', 'Status'));
+				foreach ($projectRows as $row) {
+					fputcsv($out, array(
+						$row['title'],
+						$row['start'],
+						$row['end'],
+						strip_tags($row['owner']),
+						$row['task_count'],
+						$row['task_done'],
+						$row['task_in_progress'],
+						$row['status'],
+					));
+				}
+				fputcsv($out, array()); // dòng trống giữa 2 section
+			}
+
+			if (!empty($taskRows)) {
+				fputcsv($out, array('Task Report'));
+				// Task: Tên, ngày kết thúc, Assigned To, % hoàn thành
+				fputcsv($out, array('Task', 'Due date', 'Assigned To', 'Status (%)'));
+				foreach ($taskRows as $row) {
+					fputcsv($out, array(
+						$row['title'],
+						$row['due'],
+						strip_tags($row['owner']),
+						$row['status'],
+					));
+				}
+			}
+
+			fclose($out);
+			exit;
+		}
+	}
+
+	/**
+	 * Tạo bảng lưu cấu hình nếu chưa có.
+	 */
+	protected function ensureConfigTable() {
+		$db = PearDatabase::getInstance();
+		$db->pquery("
+			CREATE TABLE IF NOT EXISTS mgmt_report_configs (
+				id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				userid INT NOT NULL,
+				name VARCHAR(255) NOT NULL,
+				filters TEXT NOT NULL,
+				createdtime DATETIME NOT NULL,
+				INDEX idx_userid (userid)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8
+		", array());
+	}
+
+	/**
+	 * Lưu cấu hình bộ lọc theo user.
+	 */
+	protected function saveReportConfig($userId, $name, array $filters) {
+		$db = PearDatabase::getInstance();
+		// Không lưu export_fmt
+		unset($filters['export_fmt']);
+		$json = json_encode($filters);
+		$db->pquery(
+			"INSERT INTO mgmt_report_configs (userid, name, filters, createdtime) VALUES (?, ?, ?, NOW())",
+			array($userId, $name, $json)
+		);
+	}
+
+	/**
+	 * Lấy các cấu hình đã lưu cho user.
+	 * @return array[]
+	 */
+	protected function getReportConfigs($userId) {
+		$db = PearDatabase::getInstance();
+		$result = $db->pquery(
+			"SELECT id, name, filters FROM mgmt_report_configs WHERE userid = ? ORDER BY createdtime DESC",
+			array($userId)
+		);
+		$configs = array();
+		if ($result && $db->num_rows($result)) {
+			while ($row = $db->fetch_array($result)) {
+				$configs[] = array(
+					'id' => (int) $row['id'],
+					'name' => $row['name'],
+					'filters_json' => $row['filters'],
+				);
+			}
+		}
+		return $configs;
+	}
+
+	protected function getProjectRows(array $filters) {
+		$rows = array();
+		if (!Users_Privileges_Model::isPermitted('Project', 'DetailView')) {
+			return $rows;
+		}
+		$dateFrom = !empty($filters['date_from']) ? $filters['date_from'] : null;
+		$dateTo   = !empty($filters['date_to']) ? $filters['date_to'] : null;
+		$ownerIdFilter = !empty($filters['owner_id']) ? $filters['owner_id'] : null;
+		try {
+			$listViewModel = Vtiger_ListView_Model::getInstance('Project', '0', array());
+			$pagingModel = new Vtiger_Paging_Model();
+			$pagingModel->set('page', 1);
+			$pagingModel->set('limit', 100);
+			$entries = $listViewModel->getListViewEntries($pagingModel);
+			$projectIds = array();
+			foreach ($entries as $recordId => $recordModel) {
+				if (!($recordModel instanceof Vtiger_Record_Model)) {
+					continue;
+				}
+				$projectIds[] = $recordId;
+			}
+			$taskCounts = $this->getTaskCountsByProject($projectIds);
+			foreach ($entries as $recordId => $recordModel) {
+				if (!($recordModel instanceof Vtiger_Record_Model)) {
+					continue;
+				}
+				// Assigned To: luôn lấy từ owner chuẩn (smownerid) để đảm bảo có tên user/group
+				$raw = method_exists($recordModel, 'getRawData') ? $recordModel->getRawData() : array();
+				$ownerId = null;
+				if (is_array($raw) && isset($raw['smownerid']) && $raw['smownerid'] !== '') {
+					$ownerId = $raw['smownerid'];
+				} else {
+					$ownerId = $recordModel->get('smownerid');
+				}
+				// Lọc theo owner nếu có filter
+				if ($ownerIdFilter !== null && (string)$ownerId !== (string)$ownerIdFilter) {
+					continue;
+				}
+
+				// Lọc theo khoảng ngày (dùng startdate/enddate dạng YYYY-mm-dd)
+				$startRaw = is_array($raw) && isset($raw['startdate']) ? $raw['startdate'] : $recordModel->get('startdate');
+				$endRaw   = is_array($raw) && isset($raw['enddate']) ? $raw['enddate'] : $recordModel->get('enddate');
+				if ($dateFrom || $dateTo) {
+					$start = $startRaw ?: null;
+					$end   = $endRaw ?: $start;
+					$include = true;
+					if ($dateFrom && $end && $end < $dateFrom) {
+						$include = false;
+					}
+					if ($dateTo && $start && $start > $dateTo) {
+						$include = false;
+					}
+					if (!$include) {
+						continue;
+					}
+				}
+
+				$ownerName = $ownerId ? getOwnerName($ownerId) : '';
+				$title = $recordModel->get('projectname');
+				if ($title === null || $title === '') {
+					$title = $recordModel->getDisplayValue('projectname') ?: ('Project #' . $recordId);
+				}
+				$counts = isset($taskCounts[$recordId]) ? $taskCounts[$recordId] : array('total' => 0, 'done' => 0, 'in_progress' => 0);
+				$rows[] = array(
+					'id' => $recordId,
+					'title' => $title,
+					'status' => $recordModel->getDisplayValue('projectstatus'),
+					'start' => $recordModel->getDisplayValue('startdate'),
+					'end' => $recordModel->getDisplayValue('enddate'),
+					'owner' => $ownerName,
+					'url' => $recordModel->getDetailViewUrl(),
+					'task_count' => (int) $counts['total'],
+					'task_done' => (int) $counts['done'],
+					'task_in_progress' => (int) $counts['in_progress'],
+				);
+			}
+		} catch (Exception $e) {
+			// ignore
+		}
+		return $rows;
+	}
+
+	/**
+	 * Task counts per project: total, done (progress >= 100), in_progress (0 <= progress < 100).
+	 * @param int[] $projectIds
+	 * @return array [ projectId => ['total'=>n, 'done'=>n, 'in_progress'=>n], ... ]
+	 */
+	protected function getTaskCountsByProject(array $projectIds) {
+		$out = array();
+		if (empty($projectIds)) {
+			return $out;
+		}
+		$db = PearDatabase::getInstance();
+		$placeholders = implode(',', array_fill(0, count($projectIds), '?'));
+		$sql = "SELECT projectid,
+			COUNT(*) AS total,
+			SUM(CASE WHEN (COALESCE(projecttaskprogress, 0) + 0) >= 100 THEN 1 ELSE 0 END) AS done,
+			SUM(CASE WHEN (COALESCE(projecttaskprogress, 0) + 0) < 100 AND (COALESCE(projecttaskprogress, -1) + 0) >= 0 THEN 1 ELSE 0 END) AS in_progress
+			FROM vtiger_projecttask
+			INNER JOIN vtiger_crmentity ON vtiger_crmentity.crmid = vtiger_projecttask.projecttaskid AND vtiger_crmentity.deleted = 0
+			WHERE projectid IN ({$placeholders})
+			GROUP BY projectid";
+		$res = $db->pquery($sql, $projectIds);
+		while ($row = $db->fetchByAssoc($res)) {
+			$pid = $row['projectid'];
+			$out[$pid] = array(
+				'total' => (int) $row['total'],
+				'done' => (int) $row['done'],
+				'in_progress' => (int) $row['in_progress'],
+			);
+		}
+		return $out;
+	}
+
+	protected function getTaskRows(array $filters) {
+		$rows = array();
+		if (!Users_Privileges_Model::isPermitted('ProjectTask', 'DetailView')) {
+			return $rows;
+		}
+		$dateFrom = !empty($filters['date_from']) ? $filters['date_from'] : null;
+		$dateTo   = !empty($filters['date_to']) ? $filters['date_to'] : null;
+		$ownerIdFilter = !empty($filters['owner_id']) ? $filters['owner_id'] : null;
+		try {
+			$listViewModel = Vtiger_ListView_Model::getInstance('ProjectTask', '0', array());
+			$pagingModel = new Vtiger_Paging_Model();
+			$pagingModel->set('page', 1);
+			$pagingModel->set('limit', 100);
+			$entries = $listViewModel->getListViewEntries($pagingModel);
+			foreach ($entries as $recordId => $recordModel) {
+				if (!($recordModel instanceof Vtiger_Record_Model)) {
+					continue;
+				}
+				// Assigned To: dùng owner chuẩn (smownerid) để luôn có tên
+				$raw = method_exists($recordModel, 'getRawData') ? $recordModel->getRawData() : array();
+				$ownerId = null;
+				if (is_array($raw) && isset($raw['smownerid']) && $raw['smownerid'] !== '') {
+					$ownerId = $raw['smownerid'];
+				} else {
+					$ownerId = $recordModel->get('smownerid');
+				}
+				// Lọc owner nếu có filter
+				if ($ownerIdFilter !== null && (string)$ownerId !== (string)$ownerIdFilter) {
+					continue;
+				}
+
+				// Lọc theo ngày (ưu tiên enddate, fallback startdate)
+				$startRaw = is_array($raw) && isset($raw['startdate']) ? $raw['startdate'] : $recordModel->get('startdate');
+				$endRaw   = is_array($raw) && isset($raw['enddate']) ? $raw['enddate'] : $recordModel->get('enddate');
+				if ($dateFrom || $dateTo) {
+					$due = $endRaw ?: $startRaw;
+					if ($dateFrom && $due && $due < $dateFrom) {
+						continue;
+					}
+					if ($dateTo && $due && $due > $dateTo) {
+						continue;
+					}
+				}
+
+				$ownerName = $ownerId ? getOwnerName($ownerId) : '';
+				$title = $recordModel->get('projecttaskname');
+				if ($title === null || $title === '') {
+					$title = $recordModel->getDisplayValue('projecttaskname') ?: ('Task #' . $recordId);
+				}
+				$rows[] = array(
+					'id' => $recordId,
+					'title' => $title,
+					'status' => $recordModel->getDisplayValue('projecttaskprogress'),
+					'due' => $recordModel->getDisplayValue('enddate') ?: $recordModel->getDisplayValue('startdate'),
+					'owner' => $ownerName,
+					'url' => $recordModel->getDetailViewUrl(),
+				);
+			}
+		} catch (Exception $e) {
+			// ignore
+		}
+		return $rows;
+	}
+}
+

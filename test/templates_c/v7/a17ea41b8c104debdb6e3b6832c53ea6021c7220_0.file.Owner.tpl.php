@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-30 06:46:16
+/* Smarty version 4.5.4, created on 2026-02-23 08:47:02
   from '/var/www/html/layouts/v7/modules/Vtiger/uitypes/Owner.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697c53b8d64094_62622383',
+  'unifunc' => 'content_699c1406a76837_21318944',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'a17ea41b8c104debdb6e3b6832c53ea6021c7220' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Vtiger/uitypes/Owner.tpl',
-      1 => 1769747982,
+      1 => 1769759073,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697c53b8d64094_62622383 (Smarty_Internal_Template $_smarty_tpl) {
+function content_699c1406a76837_21318944 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('SPECIAL_VALIDATOR', $_smarty_tpl->tpl_vars['FIELD_MODEL']->value->getValidator());
 $_smarty_tpl->_assignInScope('FIELD_INFO', $_smarty_tpl->tpl_vars['FIELD_MODEL']->value->getFieldInfo());
 if ($_smarty_tpl->tpl_vars['FIELD_MODEL']->value->get('uitype') == '53') {

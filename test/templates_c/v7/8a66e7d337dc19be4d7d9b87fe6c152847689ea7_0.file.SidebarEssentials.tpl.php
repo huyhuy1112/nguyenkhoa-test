@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-29 07:35:04
+/* Smarty version 4.5.4, created on 2026-02-26 04:24:10
   from '/var/www/html/layouts/v7/modules/Vtiger/partials/SidebarEssentials.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697b0da8f026b5_36130708',
+  'unifunc' => 'content_699fcaeaea3177_45765498',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '8a66e7d337dc19be4d7d9b87fe6c152847689ea7' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Vtiger/partials/SidebarEssentials.tpl',
-      1 => 1768793648,
+      1 => 1772006175,
       2 => 'file',
     ),
   ),
@@ -20,10 +20,16 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697b0da8f026b5_36130708 (Smarty_Internal_Template $_smarty_tpl) {
+function content_699fcaeaea3177_45765498 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_checkPlugins(array(0=>array('file'=>'/var/www/html/vendor/smarty/smarty/libs/plugins/modifier.count.php','function'=>'smarty_modifier_count',),));
 ?>
 <div class="sidebar-menu">
+    <?php if (!(isset($_smarty_tpl->tpl_vars['CUSTOM_VIEWS']->value))) {
+$_smarty_tpl->_assignInScope('CUSTOM_VIEWS', array());
+}?>
+    <?php if (!(isset($_smarty_tpl->tpl_vars['CUSTOM_VIEWS_NAMES']->value))) {
+$_smarty_tpl->_assignInScope('CUSTOM_VIEWS_NAMES', array());
+}?>
     <div class="module-filters" id="module-filters">
         <div class="sidebar-container lists-menu-container">
             <div class="sidebar-header clearfix">
@@ -64,8 +70,10 @@ $_smarty_tpl->tpl_vars['GROUP_CUSTOM_VIEWS']->do_else = false;
 
                                     <?php }?>
                                 </h6>
-                                <input type="hidden" name="allCvId" value="<?php echo CustomView_Record_Model::getAllFilterByModule($_smarty_tpl->tpl_vars['MODULE']->value)->get('cvid');?>
-" />
+                                <?php $_smarty_tpl->_assignInScope('ALL_CV', CustomView_Record_Model::getAllFilterByModule($_smarty_tpl->tpl_vars['MODULE']->value));?>
+                                <input type="hidden" name="allCvId" value="<?php if ($_smarty_tpl->tpl_vars['ALL_CV']->value) {
+echo $_smarty_tpl->tpl_vars['ALL_CV']->value->get('cvid');
+}?>" />
                                 <ul class="lists-menu">
 								<?php $_smarty_tpl->_assignInScope('shown_count', 0);?>
 								<?php $_smarty_tpl->_assignInScope('hidden_count', 0);?>

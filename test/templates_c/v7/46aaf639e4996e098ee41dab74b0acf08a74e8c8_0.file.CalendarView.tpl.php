@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-01-29 07:35:25
+/* Smarty version 4.5.4, created on 2026-02-23 09:08:42
   from '/var/www/html/layouts/v7/modules/Calendar/CalendarView.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_697b0dbd04fd64_45328787',
+  'unifunc' => 'content_699c191ac01c26_61414780',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_697b0dbd04fd64_45328787 (Smarty_Internal_Template $_smarty_tpl) {
+function content_699c191ac01c26_61414780 (Smarty_Internal_Template $_smarty_tpl) {
 ?><input type="hidden" id="currentView" value="<?php echo $_smarty_tpl->tpl_vars['REQ']->value->get('view');?>
 " /><input type="hidden" id="start_day" value="<?php echo $_smarty_tpl->tpl_vars['CURRENT_USER']->value->get('dayoftheweek');?>
 " /><input type="hidden" id="activity_view" value="<?php echo $_smarty_tpl->tpl_vars['CURRENT_USER']->value->get('activity_view');?>

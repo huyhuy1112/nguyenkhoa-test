@@ -1,0 +1,570 @@
+/* ====================================
+   Teams Module - Native Vtiger Polish
+   Scoped to Teams module only
+   ==================================== */
+
+/* Content spacing */
+body[data-module="Teams"] .bodyContents {
+  padding-top: 72px;
+}
+
+body[data-module="Teams"] .main-container,
+body[data-module="Teams"] .content-area {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+body[data-module="Teams"] .teams-content {
+  padding: 20px 15px;
+}
+
+/* Header - clean spacing */
+body[data-module="Teams"] .teams-header {
+  padding: 16px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+body[data-module="Teams"] .teams-title {
+  margin: 0 0 6px 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.2;
+}
+
+body[data-module="Teams"] .teams-header .text-muted {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+body[data-module="Teams"] .teams-actions .btn {
+  margin-left: 8px;
+}
+
+/* Tabs - native style */
+body[data-module="Teams"] .teams-tabs {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+body[data-module="Teams"] .teams-tabs > li > a {
+  padding: 10px 16px;
+  margin-right: 4px;
+}
+
+body[data-module="Teams"] .teams-tabs > li.active > a {
+  border-bottom: 2px solid #337ab7;
+  font-weight: 500;
+}
+
+/* ====================================
+   People List - Table Polish
+   ==================================== */
+
+body[data-module="Teams"] .listViewEntriesTable {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+body[data-module="Teams"] .listViewEntriesTable thead th {
+  background: #f9f9f9;
+  font-weight: 600;
+  font-size: 13px;
+  color: #333;
+  padding: 12px 15px;
+  border-bottom: 2px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+body[data-module="Teams"] .listViewEntriesTable thead th:last-child {
+  border-right: none;
+}
+
+body[data-module="Teams"] .listViewEntriesTable tbody td {
+  padding: 14px 15px;
+  border-bottom: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+body[data-module="Teams"] .listViewEntriesTable tbody td:last-child {
+  border-right: none;
+}
+
+body[data-module="Teams"] .listViewEntriesTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+body[data-module="Teams"] .listViewEntriesTable tbody tr:hover {
+  background: #f8f9fa;
+}
+
+/* Name column - clean alignment */
+body[data-module="Teams"] .listViewEntriesTable tbody td:first-child {
+  font-weight: 500;
+}
+
+body[data-module="Teams"] .listViewEntriesTable tbody td strong {
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 2px;
+}
+
+body[data-module="Teams"] .listViewEntriesTable tbody td .text-muted {
+  font-size: 12px;
+  color: #999;
+}
+
+/* Email column */
+body[data-module="Teams"] .listViewEntriesTable tbody td:nth-child(2) {
+  color: #666;
+}
+
+/* Groups column */
+body[data-module="Teams"] .listViewEntriesTable tbody td:nth-child(3) {
+  color: #666;
+}
+
+/* Projects column */
+body[data-module="Teams"] .listViewEntriesTable tbody td:nth-child(4) {
+  color: #666;
+  text-align: center;
+}
+
+/* Status column */
+body[data-module="Teams"] .listViewEntriesTable tbody td:nth-child(5) {
+  color: #666;
+}
+
+body[data-module="Teams"] .listViewEntriesTable .label {
+  font-weight: 500;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+/* Actions column */
+body[data-module="Teams"] .listViewEntriesTable th.actions,
+body[data-module="Teams"] .listViewEntriesTable td.actions {
+  width: 60px;
+  text-align: center;
+}
+
+body[data-module="Teams"] .listViewEntriesTable td.actions .btn-group {
+  display: inline-block;
+}
+
+/* Action button with ellipsis icon */
+body[data-module="Teams"] .teams-action-btn {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #666;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  min-width: 32px;
+}
+
+body[data-module="Teams"] .teams-action-btn:hover {
+  background: #f5f5f5;
+  border-color: #bbb;
+  color: #333;
+}
+
+body[data-module="Teams"] .teams-action-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.2);
+}
+
+body[data-module="Teams"] .teams-action-btn .fa-ellipsis-v {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Empty state */
+body[data-module="Teams"] .listViewEntriesTable tbody tr td.text-center {
+  padding: 40px 20px;
+  color: #999;
+  font-style: italic;
+}
+
+/* Online status dot */
+body[data-module="Teams"] .dot-online {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5cb85c;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* Dropdown menu polish */
+body[data-module="Teams"] .dropdown-menu {
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid #ddd;
+  padding: 4px 0;
+}
+
+body[data-module="Teams"] .dropdown-menu > li > a {
+  padding: 8px 16px;
+  color: #333;
+  transition: background-color 0.15s ease;
+}
+
+body[data-module="Teams"] .dropdown-menu > li > a:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* ====================================
+   Select2 User Selector Styling
+   ==================================== */
+
+body[data-module="Teams"] .teams-user-selector {
+  width: 100%;
+}
+
+/* Select2 container */
+body[data-module="Teams"] .select2-container {
+  width: 100%;
+}
+
+body[data-module="Teams"] .select2-container .select2-choice,
+body[data-module="Teams"] .select2-container .select2-choices {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-height: 34px;
+  background: #fff;
+}
+
+body[data-module="Teams"] .select2-container.select2-container-multi .select2-choices {
+  padding: 2px 5px;
+}
+
+body[data-module="Teams"] .select2-container.select2-container-multi .select2-choices .select2-search-choice {
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 3px 5px 3px 18px;
+  margin: 3px 0 3px 5px;
+  color: #333;
+  font-size: 13px;
+}
+
+body[data-module="Teams"] .select2-container.select2-container-multi .select2-choices .select2-search-choice .select2-search-choice-close {
+  left: 3px;
+  top: 4px;
+}
+
+body[data-module="Teams"] .select2-container.select2-container-multi .select2-choices .select2-search-field input {
+  padding: 5px;
+  font-size: 13px;
+}
+
+/* Select2 dropdown */
+body[data-module="Teams"] .select2-drop {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+body[data-module="Teams"] .select2-results {
+  padding: 0;
+}
+
+body[data-module="Teams"] .select2-results .select2-result-label {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #333;
+}
+
+body[data-module="Teams"] .select2-results .select2-highlighted {
+  background: #337ab7;
+  color: #fff;
+}
+
+body[data-module="Teams"] .select2-search input {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 13px;
+}
+
+/* Select2 in modal - ensure proper z-index */
+body[data-module="Teams"] .teams-modal-container .select2-drop {
+  z-index: 10001;
+}
+
+body[data-module="Teams"] .teams-modal-container .select2-container.select2-container-active .select2-choice,
+body[data-module="Teams"] .teams-modal-container .select2-container.select2-container-active .select2-choices {
+  border-color: #337ab7;
+}
+
+/* ====================================
+   ProofHub style: sidebar + main (People tab)
+   ==================================== */
+
+body[data-module="Teams"] .teams-people-layout {
+  display: flex;
+  min-height: 400px;
+  width: 100%;
+}
+
+body[data-module="Teams"] .teams-people-sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: #f8f9fa;
+  border-right: 1px solid #e9ecef;
+  padding: 20px 0;
+}
+
+body[data-module="Teams"] .teams-people-sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 16px 16px;
+  padding: 0;
+}
+
+body[data-module="Teams"] .teams-people-groups-section {
+  margin-top: 8px;
+}
+
+body[data-module="Teams"] .teams-people-groups-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 8px;
+}
+
+body[data-module="Teams"] .teams-people-groups-label {
+  font-size: 14px;
+  color: #555;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body[data-module="Teams"] .teams-sidebar-icon {
+  color: #666;
+  padding: 4px;
+  margin-left: 4px;
+  text-decoration: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+body[data-module="Teams"] .teams-sidebar-icon:hover {
+  color: #333;
+}
+
+body[data-module="Teams"] .teams-people-groups-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+body[data-module="Teams"] .teams-people-groups-list li a {
+  display: block;
+  padding: 10px 16px;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  border-left: 3px solid transparent;
+}
+
+body[data-module="Teams"] .teams-people-groups-list li a:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+body[data-module="Teams"] .teams-people-groups-list li.active a {
+  background: #e7f1ff;
+  color: #2861b8;
+  border-left-color: #2861b8;
+  font-weight: 500;
+}
+
+body[data-module="Teams"] .teams-group-count {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
+body[data-module="Teams"] .teams-people-groups-list li.active a .teams-group-count {
+  color: #2861b8;
+}
+
+body[data-module="Teams"] .teams-people-main {
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  padding: 0 24px 24px;
+}
+
+body[data-module="Teams"] .teams-people-main-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 16px;
+}
+
+body[data-module="Teams"] .teams-people-current-view {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body[data-module="Teams"] .teams-people-add-wrap {
+  margin-left: auto;
+}
+
+/* ProofHub: nút Add tím */
+body[data-module="Teams"] .teams-people-add-btn {
+  background: #8a2be2 !important;
+  border-color: #7b28c7 !important;
+  color: #fff !important;
+  padding: 8px 16px;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+body[data-module="Teams"] .teams-people-add-btn:hover {
+  background: #7b28c7 !important;
+  border-color: #6a22ad !important;
+  color: #fff !important;
+}
+
+body[data-module="Teams"] .teams-people-search {
+  max-width: 220px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  font-size: 14px;
+}
+
+body[data-module="Teams"] .teams-people-filter-icon,
+body[data-module="Teams"] .teams-people-more-icon {
+  color: #666;
+  padding: 8px;
+  cursor: pointer;
+}
+
+body[data-module="Teams"] .teams-people-filter-dropdown {
+  display: inline-block;
+  vertical-align: middle;
+}
+body[data-module="Teams"] .teams-people-filter-dropdown .teams-people-filter-icon {
+  display: inline-block;
+}
+body[data-module="Teams"] .teams-people-filter-menu .teams-tenure-option.active {
+  font-weight: 600;
+  background-color: #f0f0f0;
+}
+body[data-module="Teams"] .teams-people-filter-menu .teams-filter-section {
+  font-weight: 600;
+  color: #333;
+}
+
+/* ProofHub: bảng People - checkbox, role groups, avatar */
+body[data-module="Teams"] .teams-people-th-checkbox,
+body[data-module="Teams"] .teams-people-checkbox-cell {
+  width: 40px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+body[data-module="Teams"] .teams-people-role-header {
+  background: #f5f5f5;
+  cursor: pointer;
+  border-bottom: 1px solid #e9ecef;
+}
+
+body[data-module="Teams"] .teams-people-role-th {
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  border: none;
+}
+
+body[data-module="Teams"] .teams-role-chevron {
+  margin-right: 8px;
+  color: #666;
+}
+
+body[data-module="Teams"] .teams-role-row.teams-role-collapsed {
+  display: none;
+}
+
+body[data-module="Teams"] .teams-people-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+body[data-module="Teams"] .teams-people-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #6c757d;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+body[data-module="Teams"] .teams-people-avatar.teams-avatar-initial-n { background: #c62828 !important; }
+body[data-module="Teams"] .teams-people-avatar.teams-avatar-initial-c { background: #795548 !important; }
+body[data-module="Teams"] .teams-people-avatar.teams-avatar-initial-a,
+body[data-module="Teams"] .teams-people-avatar.teams-avatar-initial-h { background: #c62828 !important; }
+
+body[data-module="Teams"] .teams-people-name-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+body[data-module="Teams"] .teams-people-name-link {
+  font-weight: 500;
+  color: #333;
+  text-decoration: none;
+}
+
+body[data-module="Teams"] .teams-people-name-link:hover {
+  color: #8a2be2;
+  text-decoration: underline;
+}
+
+body[data-module="Teams"] .teams-people-email-inline {
+  font-size: 12px;
+  color: #888;
+  display: none;
+}
+
+body[data-module="Teams"] .teams-status-online {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+}

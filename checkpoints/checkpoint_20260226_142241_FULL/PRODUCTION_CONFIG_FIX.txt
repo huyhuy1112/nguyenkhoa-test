@@ -1,0 +1,67 @@
+================================================================================
+  HƯỚNG DẪN SỬA config.inc.php TRÊN PRODUCTION (cPanel)
+  – Tránh lỗi "Sorry! Attempt to access restricted file."
+================================================================================
+
+Áp dụng trên: testcrm.tdbsolution.com (cPanel File Manager)
+File cần sửa: config.inc.php (nằm ở thư mục gốc của app, cùng cấp với index.php)
+
+--------------------------------------------------------------------------------
+BƯỚC 1: Vào cPanel → File Manager → mở thư mục chứa code (repo) → mở file config.inc.php → Edit
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+BƯỚC 2: Sửa 2 dòng sau (tìm theo nội dung, thay bằng dòng tương ứng bên dưới)
+--------------------------------------------------------------------------------
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. root_directory (bắt buộc – hết lỗi "Attempt to access restricted file")  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  TÌM (dòng khoảng 87):
+      $root_directory = '/var/www/html/';
+
+  THAY BẰNG:
+      $root_directory = dirname(__FILE__) . '/';
+
+  → Giải thích: Đường dẫn gốc app tự lấy theo thư mục chứa config.inc.php,
+    đúng trên mọi server (cPanel, local…) nên không còn bị chặn file.
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. site_URL (nên sửa – link, redirect, email dùng đúng domain production)   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  TÌM (dòng khoảng 82):
+      $site_URL = 'http://localhost:8080/';
+
+  THAY BẰNG (chọn một, đúng với site của bạn):
+      $site_URL = 'https://testcrm.tdbsolution.com/';
+  hoặc (nếu không dùng SSL):
+      $site_URL = 'http://testcrm.tdbsolution.com/';
+
+  → Nhớ có dấu / ở cuối. Đổi testcrm.tdbsolution.com nếu domain khác.
+
+--------------------------------------------------------------------------------
+BƯỚC 3: Save file. Các mục khác (DB, email, upload, …) giữ nguyên.
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+TÓM TẮT NHANH
+--------------------------------------------------------------------------------
+
+  | Biến             | Trước (sai trên production)   | Sau (đúng production)              |
+  |------------------|--------------------------------|-------------------------------------|
+  | $root_directory  | '/var/www/html/'              | dirname(__FILE__) . '/'             |
+  | $site_URL        | 'http://localhost:8080/'      | 'https://testcrm.tdbsolution.com/'  |
+
+--------------------------------------------------------------------------------
+SAU KHI SỬA
+--------------------------------------------------------------------------------
+
+  - Reload trang (vd: Calendar, Dashboard). Lỗi "Attempt to access restricted file" sẽ hết.
+  - Mỗi lần bấm "Update from Remote" (Git) trên cPanel, file config.inc.php có thể bị ghi đè.
+    → Nhớ backup config.inc.php trước khi Update, rồi khôi phục lại sau (xem CPANEL_DEPLOY.md).
+
+================================================================================
+  Ghi lại ngày: 2026-02-02 – Lưu file này để tham chiếu khi deploy / sửa production.
+================================================================================

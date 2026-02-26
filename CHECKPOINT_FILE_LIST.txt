@@ -71,3 +71,4 @@ git checkout layouts/v7/modules/Teams/resources/Group.js
 git checkout layouts/v7/modules/Teams/resources/Person.js
 git checkout layouts/v7/modules/Teams/resources/TeamsModal.js
 git checkout layouts/v7/resources/custom.css
+# Thư mục: checkpoints/checkpoint_20260226_142241_FULL/
