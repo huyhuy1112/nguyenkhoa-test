@@ -1461,8 +1461,8 @@ Vtiger.Class(
       }
       this.choiceDialogOpen = true;
       var message =
-        app.vtranslate("JS_SELECT_TASK_OR_EVENT") ||
-        "Bạn muốn tạo Task hay Event?";
+        app.vtranslate("JS_SELECT_TASK_OR_EVENT", "Calendar") ||
+        "Chọn Công việc hoặc Sự kiện?";
       var buttons = {
         task: {
           label: app.vtranslate("LBL_ADD_TASK", "Calendar"),
@@ -1492,7 +1492,7 @@ Vtiger.Class(
           },
         },
         cancel: {
-          label: app.vtranslate("LBL_CANCEL") || "Hủy",
+          label: app.vtranslate("LBL_CANCEL", "Calendar") || "Hủy",
           className: "btn-default",
           callback: function () {
             thisInstance.choiceDialogOpen = false;
@@ -1501,7 +1501,7 @@ Vtiger.Class(
         },
       };
       var dlg = bootbox.dialog({
-        title: app.vtranslate("LBL_SELECT_TYPE") || "Chọn loại",
+        title: app.vtranslate("LBL_SELECT_TYPE", "Calendar") || "Chọn loại",
         message: message,
         closeButton: true,
         buttons: buttons,
