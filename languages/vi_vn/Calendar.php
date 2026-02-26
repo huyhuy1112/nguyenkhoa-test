@@ -178,6 +178,8 @@ $jsLanguageStrings = array(
     'JS_RECORD_DELETED' => 'Công việc đã được xóa thành công.', 
     'JS_TODO_MARKED_AS_COMPLETED' => 'Thao tác đã được thực hiện',
 	'JS_CONFIRM_MARK_AS_HELD' => 'Bạn có chắc chắn chuyển trạng thái công việc này sang Hoàn thành?',
+	'JS_SELECT_TASK_OR_EVENT' => 'Chọn Công việc hoặc Sự kiện',
+	'LBL_SELECT_TYPE' => 'Chọn loại',
 
 	'LBL_ADD_EVENT_TASK' => 'Thêm Công việc',
 	'LBL_ALL_DAY' => 'Cả ngày',

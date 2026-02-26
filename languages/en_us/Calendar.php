@@ -117,6 +117,7 @@ $languageStrings = array(
 	'LBL_LEAVE_DAYS' => 'day(s)',
 	'LBL_DESCRIPTION_PLACEHOLDER' => 'Add description...',
 	'LBL_CANCEL' => 'Cancel',
+	'LBL_SELECT_TYPE' => 'Select type',
 
 	'LBL_RECORDS_LIST' => 'List View',
 	'LBL_CALENDAR_VIEW' => 'My Calendar',

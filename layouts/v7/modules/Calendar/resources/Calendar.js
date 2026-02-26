@@ -1460,12 +1460,28 @@ Vtiger.Class(
         return;
       }
       this.choiceDialogOpen = true;
-      var message =
-        app.vtranslate("JS_SELECT_TASK_OR_EVENT", "Calendar") ||
-        "Chọn Công việc hoặc Sự kiện?";
+      // Helper: dịch và tự động bỏ tiền tố LBL_/JS_ nếu vẫn còn, để không hiện chữ LBL_ trên giao diện
+      var translateClean = function (key, fallback) {
+        var txt = app.vtranslate(key, "Calendar") || "";
+        if (!txt && fallback) {
+          return fallback;
+        }
+        if (/^(LBL_|JS_)/.test(txt)) {
+          txt = txt.replace(/^(LBL_|JS_)/, "").replace(/_/g, " ");
+          if (!txt && fallback) {
+            txt = fallback;
+          }
+        }
+        return txt || fallback || key;
+      };
+
+      var message = translateClean(
+        "JS_SELECT_TASK_OR_EVENT",
+        "Chọn Công việc hoặc Sự kiện?"
+      );
       var buttons = {
         task: {
-          label: app.vtranslate("LBL_ADD_TASK", "Calendar"),
+          label: translateClean("LBL_ADD_TASK", "Thêm Việc cần làm"),
           className: "btn-default",
           callback: function () {
             thisInstance.choiceDialogOpen = false;
@@ -1474,7 +1490,7 @@ Vtiger.Class(
           },
         },
         event: {
-          label: app.vtranslate("LBL_ADD_EVENT", "Calendar"),
+          label: translateClean("LBL_ADD_EVENT", "Thêm Sự kiện"),
           className: "btn-primary",
           callback: function () {
             thisInstance.choiceDialogOpen = false;
@@ -1483,7 +1499,7 @@ Vtiger.Class(
           },
         },
         leave: {
-          label: app.vtranslate("LBL_LEAVE_REQUEST", "Calendar") || "Ngày nghỉ",
+          label: translateClean("LBL_LEAVE_REQUEST", "Nghỉ phép"),
           className: "btn-default",
           callback: function () {
             thisInstance.choiceDialogOpen = false;
@@ -1492,7 +1508,7 @@ Vtiger.Class(
           },
         },
         cancel: {
-          label: app.vtranslate("LBL_CANCEL", "Calendar") || "Hủy",
+          label: translateClean("LBL_CANCEL", "Huỷ"),
           className: "btn-default",
           callback: function () {
             thisInstance.choiceDialogOpen = false;
@@ -1501,7 +1517,7 @@ Vtiger.Class(
         },
       };
       var dlg = bootbox.dialog({
-        title: app.vtranslate("LBL_SELECT_TYPE", "Calendar") || "Chọn loại",
+        title: translateClean("LBL_SELECT_TYPE", "Chọn loại"),
         message: message,
         closeButton: true,
         buttons: buttons,
@@ -2856,8 +2872,17 @@ Vtiger.Class(
     },
     showLeaveRequestCreateModal: function (clickedDate) {
       var thisInstance = this;
-      var L = function (key) {
-        return app.vtranslate(key, "Calendar") || key;
+      // Helper cho modal nghỉ phép: dịch key và tự động bỏ tiền tố LBL_/JS_ nếu chưa có bản dịch,
+      // để giao diện không bao giờ hiện thô "LBL_LEAVE_REQUEST"...
+      var L = function (key, fallback) {
+        var txt = app.vtranslate(key, "Calendar") || "";
+        if (!txt && fallback) {
+          return fallback;
+        }
+        if (/^(LBL_|JS_)/.test(txt)) {
+          txt = txt.replace(/^(LBL_|JS_)/, "").replace(/_/g, " ");
+        }
+        return txt || fallback || key;
       };
       // Form giống ảnh: Loại ngày nghỉ, Ngày (start–end), Nửa ngày, Đã đề nghị (ngày/giờ)?, Mô tả
       var requesterName =
