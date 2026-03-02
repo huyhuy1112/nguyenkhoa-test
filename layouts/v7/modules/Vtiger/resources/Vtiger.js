@@ -659,10 +659,22 @@ Vtiger.Class('Vtiger_Index_Js', {
 	},
 
 	registerAppTriggerEvent : function() {
+		// Đảm bảo luôn có wrapper #app-menu (khi fragment/PJAX chỉ có .container-fluid + .app-list không có wrapper)
+		var ensureAppMenuWrapper = function() {
+			if (jQuery('#app-menu').length) return;
+			var container = jQuery('.container-fluid').filter(function() { return jQuery(this).find('.app-switcher-container').length; }).first();
+			var appList = container.length ? container.next('.app-list.row') : jQuery();
+			if (!appList.length) return;
+			var wrap = jQuery('<div class="app-menu hide" id="app-menu"></div>');
+			wrap.insertBefore(container).append(container).append(appList);
+		};
+		ensureAppMenuWrapper();
+
 		// Không bỏ .hide lúc load — menu chỉ hiện khi user click; tránh menu/submenu (vd MANAGEMENT) lộ ở góc
 		// Không mở submenu (MANAGEMENT, ...) khi load/ reload/ chuyển trang — chỉ mở khi user click
 		jQuery('.app-modules-dropdown-container').removeClass('open');
 		var toggleAppMenu = function(type) {
+			ensureAppMenuWrapper();
 			var appMenu = jQuery('.app-menu');
 			var appNav = jQuery('.app-nav');
 			var navbar = jQuery('.app-fixed-navbar');

@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-02-25 08:09:55
+/* Smarty version 4.5.4, created on 2026-03-02 04:17:50
   from '/var/www/html/layouts/v7/modules/Vtiger/partials/SidebarAppMenu.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_699eae53e358f9_04924219',
+  'unifunc' => 'content_69a50f6e9a17e3_44523841',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '649f8bf33efeeac7a2981ac9b730165a8eab29f5' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Vtiger/partials/SidebarAppMenu.tpl',
-      1 => 1772006175,
+      1 => 1772424181,
       2 => 'file',
     ),
   ),
@@ -20,9 +20,8 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_699eae53e358f9_04924219 (Smarty_Internal_Template $_smarty_tpl) {
-?>
-<div class="app-menu hide" id="app-menu">
+function content_69a50f6e9a17e3_44523841 (Smarty_Internal_Template $_smarty_tpl) {
+?><div class="app-menu hide" id="app-menu">
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-sm-2 col-xs-2 cursorPointer app-switcher-container">

@@ -13,10 +13,6 @@ $languageStrings = array(
 	'LBL_PROJECT_TASK_INFORMATION' => 'Chi tiết dự án',
 	'LBL_RECORDS_LIST' => 'Danh sách nhiệm vụ dự án',
 	'LBL_TASKS_LIST' => 'Danh sách nhiệm vụ',
-	'LBL_TEAM_GROUPS' => 'Nhóm (Teams)',
-	'LBL_ADDITIONAL_ASSIGNEES' => 'Người phụ trách thêm',
-	'LBL_ADDITIONAL_ASSIGNEES_HELP' => 'Chọn một hoặc nhiều người để gán cùng chủ sở hữu chính. Họ cũng sẽ thấy bản ghi này.',
-	'LBL_SELECT_USERS' => 'Chọn người dùng',
 	'SINGLE_ProjectTask' => 'Nhiệm vụ dự án',
     'LBL_MILESTONES_LIST' => 'Danh sách Mốc',
 	'Project Task' => 'Nhiệm vụ dự án',
@@ -38,15 +34,4 @@ $languageStrings = array(
 	'administrative' => 'Hành chính',
 	'operative' => 'Hoạt động',
 	'other' => 'Khác',
-
-	// Subtasks
-	'LBL_SUBTASKS' => 'Công việc con',
-	'LBL_SUBTASK_TITLE_PLACEHOLDER' => 'Thêm công việc và nhấn Enter',
-	'LBL_NO_SUBTASKS' => 'Chưa có công việc con',
-
-	// Subtask detail form
-	'LBL_ADD_FIELD' => 'Thêm trường',
-	'LBL_MANAGE_FIELDS' => 'Quản lý trường',
-	'LBL_ADD_LOGGED_TIME' => 'Thêm thời gian đã ghi',
-	'LBL_ADD_ESTIMATED_TIME' => 'Thêm thời gian ước tính',
 );

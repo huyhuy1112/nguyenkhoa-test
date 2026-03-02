@@ -175,6 +175,9 @@ abstract class Vtiger_View_Controller extends Vtiger_Action_Controller {
 			// Defaults to avoid warning
 			// General
 			$viewer->assign('V7_THEME_PATH', '');
+			// Cache-bust custom.css so menu/UI overrides apply after nav or refresh (avoid stale cache)
+			$customCssPath = Vtiger_Loader::resolveNameToPath('~layouts/v7/resources/custom.css', 'css');
+			$viewer->assign('CUSTOM_CSS_VERSION', (is_string($customCssPath) && file_exists($customCssPath)) ? filemtime($customCssPath) : time());
 			$viewer->assign('MODULE_NAME', '');
 			$viewer->assign('MODULE', '');
 			$viewer->assign('QUALIFIED_MODULE', '');

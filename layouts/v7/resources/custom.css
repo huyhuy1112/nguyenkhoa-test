@@ -894,6 +894,171 @@ nav.app-fixed-navbar.navbar-inverse,
     box-sizing: content-box !important;
 }
 
+/* Calendar: ADD EVENT, ADD TASK, CUSTOMIZE – kích thước chữ & icon cân đối, đẹp hơn */
+body[data-module="Calendar"] .app-nav .btn-default.module-buttons,
+body[data-module="Calendar"] .app-nav .addButton.module-buttons,
+body:has(.CalendarViewPageDiv) .app-nav .btn-default.module-buttons,
+body:has(.CalendarViewPageDiv) .app-nav .addButton.module-buttons {
+    padding: 9px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    border-radius: 10px !important;
+    min-height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    line-height: 1.2 !important;
+}
+body[data-module="Calendar"] .app-nav .btn-default.module-buttons .fa,
+body[data-module="Calendar"] .app-nav .addButton.module-buttons .fa,
+body[data-module="Calendar"] .app-nav .btn-default.module-buttons .fa-wrench,
+body:has(.CalendarViewPageDiv) .app-nav .btn-default.module-buttons .fa,
+body:has(.CalendarViewPageDiv) .app-nav .addButton.module-buttons .fa,
+body:has(.CalendarViewPageDiv) .app-nav .btn-default.module-buttons .fa-wrench {
+    font-size: 15px !important;
+    width: 15px !important;
+    height: 15px !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+body[data-module="Calendar"] .app-nav .btn-default.module-buttons .caret,
+body:has(.CalendarViewPageDiv) .app-nav .btn-default.module-buttons .caret {
+    margin-left: 4px !important;
+    font-size: 11px !important;
+}
+
+/* Calendar: khoảng cách trên và dưới thanh nút (Add Event, Add Task, Customize) bằng nhau */
+body[data-module="Calendar"] .app-nav .module-action-bar,
+body[data-module="Calendar"] .app-nav .module-action-bar,
+body:has(.CalendarViewPageDiv) .app-nav .module-action-bar,
+body[data-module="Calendar"] .app-nav .module-action-content,
+body:has(.CalendarViewPageDiv) .app-nav .module-action-content {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+/* Calendar: icon lịch, chữ MY CALENDAR và 3 nút cùng một hàng ngang (căn giữa dọc) */
+body[data-module="Calendar"] .app-nav .row,
+body:has(.CalendarViewPageDiv) .app-nav .row {
+    align-items: center !important;
+}
+body[data-module="Calendar"] .app-nav .app-indicator-icon-container,
+body:has(.CalendarViewPageDiv) .app-nav .app-indicator-icon-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+body[data-module="Calendar"] .app-nav .app-indicator-icon-container .row,
+body:has(.CalendarViewPageDiv) .app-nav .app-indicator-icon-container .row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+}
+body[data-module="Calendar"] .app-nav .module-action-bar,
+body:has(.CalendarViewPageDiv) .app-nav .module-action-bar {
+    display: flex !important;
+    align-items: center !important;
+}
+body[data-module="Calendar"] .app-nav .module-action-content,
+body:has(.CalendarViewPageDiv) .app-nav .module-action-content {
+    align-items: center !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+body[data-module="Calendar"] .app-nav .module-action-content > .col-lg-5,
+body[data-module="Calendar"] .app-nav .module-action-content > .col-md-5,
+body:has(.CalendarViewPageDiv) .app-nav .module-action-content > .col-lg-5,
+body:has(.CalendarViewPageDiv) .app-nav .module-action-content > .col-md-5 {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+body[data-module="Calendar"] .app-nav .module-title,
+body:has(.CalendarViewPageDiv) .app-nav .module-title {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+}
+body[data-module="Calendar"] .app-nav .module-action-content .navbar-right,
+body:has(.CalendarViewPageDiv) .app-nav .module-action-content .navbar-right {
+    align-items: center !important;
+}
+body[data-module="Calendar"] .container-fluid.app-nav,
+body:has(.CalendarViewPageDiv) .container-fluid.app-nav {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+}
+
+/* Calendar: kéo thanh toolbar (date, Today, nút) lên cho giữa hàng với Month/Week/Day/Agenda */
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap .fc-toolbar,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    min-height: 36px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap .fc-toolbar .fc-left,
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap .fc-toolbar .fc-center,
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap .fc-toolbar .fc-right,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-left,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-center,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-right {
+    float: none !important;
+    display: flex !important;
+    align-items: center !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap .fc-toolbar .fc-right,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-right {
+    flex: 0 0 auto !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    align-self: center !important;
+}
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap .fc-toolbar .fc-right > *,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-right > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    vertical-align: middle !important;
+}
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap .fc-toolbar h2,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar h2 {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+body[data-module="Calendar"] .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-group,
+body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-group {
+    display: inline-flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+}
+
 .app-CONTACT{
     background: #3498db !important;
 }
@@ -954,16 +1119,17 @@ nav.app-fixed-navbar.navbar-inverse,
     max-height: calc(100vh - 90px) !important;
     padding: 12px 0 12px 0 !important;
     padding-bottom: 12px !important;
-    color: #fff;
+    color: #fff !important;
     position: fixed !important;
+    top: 50px !important;
     left: 0 !important;
-    border: 0;
-    box-shadow: 6px 12px 28px rgba(0,0,0,0.3);
-    background: linear-gradient(180deg, #2d3e50 0%, #1a252f 100%);
-    overflow-y: auto;
-    z-index: 10001;
-    border-radius: 0 10px 10px 0;
-    border-left: 4px solid #3498db;
+    border: 0 !important;
+    box-shadow: 6px 12px 28px rgba(0,0,0,0.3) !important;
+    background: linear-gradient(180deg, #2d3e50 0%, #1a252f 100%) !important;
+    overflow-y: auto !important;
+    z-index: 10001 !important;
+    border-radius: 0 10px 10px 0 !important;
+    border-left: 4px solid #3498db !important;
     transition: box-shadow 0.25s ease, transform 0.2s ease;
 }
 .app-menu:hover,
@@ -1013,13 +1179,116 @@ nav.app-fixed-navbar.navbar-inverse,
 .app-item:hover div{
     transform: translateX(4px);
 }
-.app-item .fa, .app-item .app-icon-list{
+.app-item .fa,
+.app-item .app-icon-list{
     font-size: 1.25em;
     margin-right: 10px;
     transition: transform 0.22s ease;
 }
-.app-item:hover .fa, .app-item:hover .app-icon-list{
+.app-item:hover .fa,
+.app-item:hover .app-icon-list{
     transform: scale(1.15);
+}
+
+/* App overlay menu: căn icon + chữ thẳng hàng, to đều giữa các app (MARKETING, SALES, MANAGEMENT, …) */
+.app-menu .menu-item.app-item .app-menu-items-wrapper,
+.app-menu .menu-item.app-item .menu-items-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+.app-menu .menu-item.app-item .app-icon-list{
+    flex: 0 0 auto;
+    width: 24px;
+    text-align: center;
+}
+.app-menu .menu-item.app-item .app-name{
+    flex: 1 1 auto;
+    display: inline-block;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.app-menu .menu-item.app-item .fa-chevron-right{
+    flex: 0 0 auto;
+    margin-left: 6px;
+    opacity: 0.85;
+    text-shadow: none !important;
+    color: rgba(255,255,255,0.95) !important;
+}
+/* Xóa vết đen trên icon dropdown (theme có text-shadow: 0 0 1px #000) và ẩn caret Bootstrap */
+.app-menu .menu-item.app-item.dropdown-toggle::after{
+    display: none !important;
+}
+.app-menu .app-modules-dropdown li a{
+    text-shadow: none !important;
+}
+
+/* App menu: selector #app-menu.app-menu – ghi đè mạnh, áp dụng cho cấu trúc .container-fluid.app-nav + #app-menu (đồng bộ với inline style trong HTML) */
+#app-menu.app-menu:not(.hide) {
+    z-index: 99999 !important;
+    display: block !important;
+    visibility: visible !important;
+}
+#app-menu.app-menu .menu-item.app-item .app-menu-items-wrapper,
+#app-menu.app-menu .menu-item.app-item .menu-items-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+#app-menu.app-menu .menu-item.app-item .app-icon-list {
+    flex: 0 0 auto !important;
+    width: 24px !important;
+    text-align: center !important;
+}
+#app-menu.app-menu .menu-item.app-item .app-name {
+    flex: 1 1 auto !important;
+    display: inline-block !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+}
+#app-menu.app-menu .menu-item.app-item .fa-chevron-right {
+    flex: 0 0 auto !important;
+    margin-left: 6px !important;
+    opacity: 0.85 !important;
+    text-shadow: none !important;
+    color: rgba(255,255,255,0.95) !important;
+}
+#app-menu.app-menu .menu-item.app-item.dropdown-toggle::after {
+    display: none !important;
+}
+#app-menu.app-menu .app-modules-dropdown li a {
+    text-shadow: none !important;
+}
+/* Fallback: .app-list.row (khi menu load qua fragment/PJAX thiếu #app-menu) */
+.app-list.row .menu-item.app-item .app-menu-items-wrapper,
+.app-list.row .menu-item.app-item .menu-items-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+.app-list.row .menu-item.app-item .app-icon-list {
+    flex: 0 0 auto !important;
+    width: 24px !important;
+    text-align: center !important;
+}
+.app-list.row .menu-item.app-item .app-name {
+    flex: 1 1 auto !important;
+    display: inline-block !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+}
+.app-list.row .menu-item.app-item .fa-chevron-right {
+    flex: 0 0 auto !important;
+    margin-left: 6px !important;
+    opacity: 0.85 !important;
+    text-shadow: none !important;
+    color: rgba(255,255,255,0.95) !important;
+}
+.app-list.row .menu-item.app-item.dropdown-toggle::after {
+    display: none !important;
+}
+.app-menu .app-modules-dropdown li a {
+    text-shadow: none !important;
 }
 
 /* Màu từng nhóm app menu */
@@ -1066,20 +1335,25 @@ nav.app-fixed-navbar.navbar-inverse,
 .app-menu:not(.hide) .app-modules-dropdown-container.open ul.app-modules-dropdown {
     display: block !important;
 }
-/* Menu con: nội dung hiện rõ, không chỉ thanh scroll */
+/* Menu con: hiển thị full nội dung, không scroll trong ô – để cuộn bằng trang */
 .app-menu .app-modules-dropdown {
     pointer-events: auto !important;
     min-width: 260px !important;
     width: 260px !important;
     height: auto !important;
-    max-height: calc(100vh - 120px) !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    max-height: none !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
     padding: 8px 0 !important;
     list-style: none;
-    background: #2C3B49 !important;
-    border-radius: 0 8px 8px 0;
-    box-shadow: 4px 8px 20px rgba(0,0,0,0.25);
+    background: radial-gradient(circle at top left, #1f2937 0%, #020617 50%, #020617 100%) !important;
+    border-radius: 0 14px 14px 0;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85);
+}
+.app-menu .mCustomScrollBox,
+.app-menu .mCSB_container {
+    max-height: none !important;
+    overflow: visible !important;
 }
 .app-menu .app-modules-dropdown li {
     display: block !important;
@@ -1110,6 +1384,7 @@ nav.app-fixed-navbar.navbar-inverse,
     overflow-x: visible !important;
 }
 /* Khi menu đang mở (không .hide) luôn nổi trên cùng */
+#app-menu.app-menu:not(.hide),
 .app-menu:not(.hide) {
     z-index: 99999 !important;
     display: block !important;
@@ -1149,25 +1424,7 @@ nav.app-fixed-navbar.navbar-inverse,
 }
 
 .app-trigger .arrow-down{
-    margin-top: 6px;
-    float: right;
-    color: #fff;
-    font-size: 12px;
-    -webkit-transition: all 0.2s ease;
-    -moz-transition: all 0.2s ease;
-    -o-transition: all 0.2s ease;
-    transition: all 0.2s ease;
-}
-.app-trigger:hover .arrow-down{
-    font-size: 16px;
-    -webkit-transition: all 0.2s ease;
-    -moz-transition: all 0.2s ease;
-    -o-transition: all 0.2s ease;
-    transition: all 0.2s ease;
-    background: #2c3b49;
-    padding: 6px;
-    border-radius: 20px;
-    margin-top: -2px;
+    display: none !important;
 }
 #sidebar-wrapper, #content-wrapper{
     -webkit-transition: all 0.5s ease;
@@ -1213,6 +1470,17 @@ nav.app-fixed-navbar.navbar-inverse,
 .detailViewContent .content-area {
     position: relative !important;
     z-index: 2 !important;
+}
+
+/* Dashboard: ẩn dropdown "More" (reArrangeTabs) trên tab DASHBOARD như bạn yêu cầu */
+body[data-module="Dashboard"] .dashBoardDropDown,
+body[data-module="Dashboard"] .moreSettings .updateSequence {
+    display: none !important;
+}
+
+/* Dashboard: xoá luôn thanh tab/menu đầu trang (chỉ giữ lại nội dung widget bên dưới) */
+body[data-module="Dashboard"] .dashBoardContainer .tabContainer > ul.nav.nav-tabs {
+    display: none !important;
 }
 
 /* Edit view: tất cả module (Management – Contacts, Leads, Accounts, …) nav không che form */
@@ -1425,6 +1693,31 @@ body[data-module="Teams"] .teams-header-content {
     position: relative !important;
     z-index: 2 !important;
 }
+/* Center header block (icon + Teams + subtitle) */
+body[data-module="Teams"] .teams-modern-header {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+body[data-module="Teams"] .teams-header-content {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+}
+body[data-module="Teams"] .teams-header-left {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+body[data-module="Teams"] .teams-main-title {
+    margin: 0 !important;
+}
+body[data-module="Teams"] .teams-subtitle {
+    margin-top: 6px !important;
+    margin-bottom: 0 !important;
+}
 body[data-module="Teams"] .teams-header-right {
     margin-left: auto !important;
     flex-shrink: 0 !important;
@@ -1432,6 +1725,34 @@ body[data-module="Teams"] .teams-header-right {
 body[data-module="Teams"] .teams-action-btn {
     position: relative !important;
     z-index: 3 !important;
+}
+
+/* Teams: ẩn 2 nút Add Group và Add Person trên header */
+body[data-module="Teams"] .teams-modern-header .teams-header-right .js-add-group,
+body[data-module="Teams"] .teams-modern-header .teams-header-right .js-add-person {
+    display: none !important;
+}
+
+/* Teams: bớt khoảng trắng – kéo nội dung lên, đừng để trống quá */
+body[data-module="Teams"] .bodyContents {
+    padding-top: 0 !important;
+}
+body[data-module="Teams"] .main-container .listViewPageDiv.content-area,
+body[data-module="Teams"] .main-container .content-area {
+    padding-top: 4px !important;
+}
+body[data-module="Teams"] .teams-page-container {
+    padding-top: 0 !important;
+    padding-bottom: 12px !important;
+    margin-top: 0 !important;
+}
+body[data-module="Teams"] .teams-modern-header {
+    margin-bottom: 8px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+}
+body[data-module="Teams"] .teams-modern-tabs {
+    margin-bottom: 8px !important;
 }
 
 /* ========== Sidebar Essentials: các trang khác (Leads, Contacts, Project, Reports, ...) ========== */
@@ -1838,14 +2159,30 @@ body[data-module="Project"] .app-nav .addButton.module-buttons,
 body[data-module="Project"] .app-nav .btn-default.module-buttons,
 body[data-module="ProjectTask"] .app-nav .addButton.module-buttons,
 body[data-module="ProjectTask"] .app-nav .btn-default.module-buttons {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
+    padding: 9px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    border-radius: 10px !important;
+    min-height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    line-height: 1.2 !important;
 }
 body[data-module="Project"] .app-nav .addButton.module-buttons .fa,
 body[data-module="Project"] .app-nav .btn-default.module-buttons .fa,
 body[data-module="ProjectTask"] .app-nav .addButton.module-buttons .fa,
 body[data-module="ProjectTask"] .app-nav .btn-default.module-buttons .fa {
-    font-size: 14px !important;
+    font-size: 15px !important;
+    width: 15px !important;
+    height: 15px !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 body[data-module="Project"] .app-nav .module-action-bar .module-action-content .module-breadcrumb,
 body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content .module-breadcrumb {
@@ -1864,6 +2201,44 @@ body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-conte
 body[data-module="Project"] .app-nav .module-action-bar .module-action-content .navbar-right .nav > li,
 body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content .navbar-right .nav > li {
     margin: 0 2px;
+}
+
+/* RecycleBin: breadcrumb (Recycle Bin > List > Opportunities) thẳng hàng 1 dòng */
+body[data-module="RecycleBin"] .app-nav .module-action-bar .module-action-content .module-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-width: 0;
+    max-width: 60%;
+}
+body[data-module="RecycleBin"] .app-nav .module-action-bar .module-action-content .module-breadcrumb > span {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+body[data-module="RecycleBin"] .app-nav .module-breadcrumb .pull-left {
+    float: none !important;
+}
+body[data-module="RecycleBin"] .app-nav .module-breadcrumb .module-title {
+    margin: 0 6px 0 0;
+    line-height: 24px;
+}
+body[data-module="RecycleBin"] .app-nav .module-breadcrumb .current-filter-name {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    line-height: 24px;
+    white-space: nowrap;
+    min-width: 0;
+}
+body[data-module="RecycleBin"] .app-nav .module-breadcrumb .fa-angle-right {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
 }
 body[data-module="Project"] .app-nav .btn-default.module-buttons.dropdown-toggle,
 body[data-module="ProjectTask"] .app-nav .btn-default.module-buttons.dropdown-toggle {
@@ -1943,15 +2318,15 @@ body[data-module="ProjectTask"] .main-container #listViewContent.listViewPageDiv
     padding: 0;
     max-width: 100%;
 }
-/* Project: kéo col-sm-12 xuống – không bị menu che */
+/* Project: kéo list sát header Projects (không để khoảng trắng) */
 body[data-module="Project"] #listViewContent.list-view-sidebar-offset .col-sm-12.col-xs-12 {
-    margin-top: 72px !important;
-    padding-top: 40px !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
-/* ProjectTask: compact – fit 1 màn hình */
+/* ProjectTask: tương tự Project */
 body[data-module="ProjectTask"] #listViewContent.list-view-sidebar-offset .col-sm-12.col-xs-12 {
-    margin-top: 72px !important;
-    padding-top: 40px !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 #listViewContent.list-view-sidebar-offset .essentials-toggle {
     top: 16px;
@@ -2111,26 +2486,33 @@ body[data-module="Documents"] #listViewContent.list-view-sidebar-offset {
     border-radius: 16px;
     border: 1px solid rgba(129, 140, 248, 0.3);
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
-    padding: 14px 14px 20px;
-    margin-top: 18px;
+    padding: 4px 14px 20px;
+    margin-top: 10px;
     margin-bottom: 14px;
 }
 body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listview-actions-container {
-    background: transparent;
-    padding-top: 0;
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    display: none !important;
 }
 body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listview-table {
     background: #ffffff;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+    border-collapse: separate;
+    border-spacing: 0;
 }
 body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listview-table > thead > tr.listViewContentHeader > th {
     background: linear-gradient(90deg, #eff6ff, #e0f2fe);
     color: #0f172a;
     border-color: #dbeafe;
+    border-top-width: 0;
+}
+/* Bo tròn góc trên để không lộ nền trắng thừa */
+body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listview-table > thead > tr.listViewContentHeader > th:first-child {
+    border-top-left-radius: 12px;
+}
+body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listview-table > thead > tr.listViewContentHeader > th:last-child {
+    border-top-right-radius: 12px;
 }
 body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listview-table tr.searchRow th {
     background: rgba(15, 23, 42, 0.02);
@@ -2227,20 +2609,25 @@ body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listvie
     background: rgba(239, 68, 68, 0.12);
     color: #dc2626;
 }
-/* Nút gập/hiện left panel – nhỏ, gọn, dễ nhìn */
+/* Documents: thanh gập/hiện left panel (essentials-toggle) – xanh/trắng hiện đại */
 body[data-module="Documents"] #listViewContent .essentials-toggle {
     border-radius: 999px;
-    background: rgba(15, 23, 42, 0.06);
-    padding: 4px 8px;
-    margin-bottom: 6px;
+    padding: 4px 10px;
+    background: linear-gradient(90deg, #dbeafe 0%, #eff6ff 40%, #ffffff 100%);
+    border: 1px solid #bfdbfe;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+    margin-bottom: 0 !important;
 }
 body[data-module="Documents"] #listViewContent .essentials-toggle-marker {
-    color: #4b5563;
+    color: #1d4ed8;
+}
+body[data-module="Documents"] #listViewContent .essentials-toggle:hover {
+    background: linear-gradient(90deg, #bfdbfe 0%, #e0f2fe 40%, #ffffff 100%);
+    border-color: #60a5fa;
 }
 body[data-module="Documents"] #listViewContent .essentials-toggle:hover .essentials-toggle-marker {
-    color: #111827;
+    color: #1e3a8a;
 }
-
 /* FloatThead (sticky header) của Documents: tránh bị “chèn/đè” do size-row và rule top global */
 body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listview-table > thead > tr.size-row {
     display: none !important;
@@ -2250,6 +2637,11 @@ body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listvie
     padding: 0 !important;
     border: 0 !important;
     height: 0 !important;
+}
+/* Documents: sát thanh gập (>) với list – bỏ đệm trên của container */
+body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .table-container {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
 }
 /* Tắt sticky header (floatThead) riêng cho Documents để không bị nhảy layout sau 1–2s */
 body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .floatThead-floatContainer {
@@ -2261,23 +2653,20 @@ body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listvie
     visibility: visible !important;
 }
 
-/* ========== Project List View – Sát trái, thu gọn, scroll được, header căn thẳng ========== */
-/* Cho phép scroll xuống khi nội dung dài – không bị che */
+/* ========== Project List View – full, không card riêng, header căn thẳng ========== */
 body[data-module="Project"] .main-container:has(#listViewContent.list-view-sidebar-offset) {
-    overflow-y: visible !important;
+    overflow-y: auto !important;
     overflow-x: hidden !important;
     min-height: 100vh !important;
 }
 body[data-module="Project"] #listViewContent.list-view-sidebar-offset {
-    background: linear-gradient(145deg, #f0f9ff 0%, #fff 25%, #f8fafc 75%, #e0f2fe 100%);
-    box-shadow: 0 4px 24px rgba(14, 165, 233, 0.08), 0 12px 48px rgba(0,0,0,0.06);
-    border-radius: 16px;
-    padding: 8px 10px 12px;
-    padding-top: 24px !important;
-    padding-bottom: 40px !important;
-    margin-top: 24px !important;
-    margin-bottom: 16px !important;
-    border: 1px solid rgba(14, 165, 233, 0.2);
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 16px 24px !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    border: 0 !important;
     overflow: visible !important;
 }
 /* Breadcrumb */
@@ -2300,6 +2689,488 @@ body[data-module="Project"] .module-breadcrumb .filter-name a {
 body[data-module="Project"] .module-breadcrumb .fa-angle-right {
     color: #a5b4fc;
     margin-right: 6px;
+}
+/* Project & ProjectTask: canh header + không scroll dọc + bỏ hết khung/viền trong thanh nav */
+body[data-module="Project"] .container-fluid.app-nav,
+body[data-module="ProjectTask"] .container-fluid.app-nav {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    overflow-y: hidden !important;
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+body[data-module="Project"] .app-nav .module-action-bar,
+body[data-module="ProjectTask"] .app-nav .module-action-bar {
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+body[data-module="Project"] .app-nav .module-action-bar.coloredBorderTop,
+body[data-module="ProjectTask"] .app-nav .module-action-bar.coloredBorderTop {
+    border-top: none !important;
+}
+body[data-module="Project"] .app-nav .module-action-bar::after,
+body[data-module="ProjectTask"] .app-nav .module-action-bar::after {
+    display: none !important;
+}
+body[data-module="Project"] .app-nav .btn-default.module-buttons,
+body[data-module="ProjectTask"] .app-nav .btn-default.module-buttons,
+body[data-module="Project"] .app-nav .addButton.module-buttons,
+body[data-module="ProjectTask"] .app-nav .addButton.module-buttons {
+    border: none !important;
+    box-shadow: none !important;
+}
+body[data-module="Project"] .app-nav .module-action-content,
+body[data-module="ProjectTask"] .app-nav .module-action-content {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* ========== Project & ProjectTask: thiết kế tương lai – màu sắc + hiệu ứng ========== */
+/* Thanh nav: nền gradient nhẹ, glassmorphism, gợn sáng – full chiều ngang (che luôn mảng xám 2 bên) */
+body[data-module="Project"] .container-fluid.app-nav.app-nav-MANAGEMENT,
+body[data-module="ProjectTask"] .container-fluid.app-nav.app-nav-MANAGEMENT {
+    position: relative;
+    background: transparent !important; /* nền thật để trống, dùng ::before phủ full màn hình */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none !important;
+}
+body[data-module="Project"] .container-fluid.app-nav.app-nav-MANAGEMENT::before,
+body[data-module="ProjectTask"] .container-fluid.app-nav.app-nav-MANAGEMENT::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;              /* phủ full chiều ngang viewport */
+    height: 100%;
+    background: linear-gradient(135deg, rgba(248,250,252,0.97) 0%, rgba(241,245,249,0.98) 50%, rgba(226,232,240,0.95) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06), 0 1px 0 rgba(255,255,255,0.8) inset;
+    z-index: -1;               /* nằm dưới nội dung header */
+}
+body[data-module="Project"] .container-fluid.app-nav.app-nav-MANAGEMENT:hover::before,
+body[data-module="ProjectTask"] .container-fluid.app-nav.app-nav-MANAGEMENT:hover::before {
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
+}
+/* Icon app (sitemap): viền sáng nhẹ, hover phát sáng */
+body[data-module="Project"] .app-nav .app-indicator-icon-container,
+body[data-module="ProjectTask"] .app-nav .app-indicator-icon-container {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+body[data-module="Project"] .app-nav .app-indicator-icon-container:hover,
+body[data-module="ProjectTask"] .app-nav .app-indicator-icon-container:hover {
+    transform: scale(1.04);
+    filter: drop-shadow(0 4px 12px rgba(14, 165, 233, 0.4));
+}
+body[data-module="Project"] .app-nav .app-indicator-icon-container .app-indicator-icon,
+body[data-module="ProjectTask"] .app-nav .app-indicator-icon-container .app-indicator-icon {
+    transition: transform 0.3s ease;
+}
+body[data-module="Project"] .app-nav .app-indicator-icon-container:hover .app-indicator-icon,
+body[data-module="ProjectTask"] .app-nav .app-indicator-icon-container:hover .app-indicator-icon {
+    transform: rotate(-5deg) scale(1.05);
+}
+/* Breadcrumb: màu tương lai, hover mượt */
+body[data-module="Project"] .app-nav .module-breadcrumb .module-title,
+body[data-module="ProjectTask"] .app-nav .module-breadcrumb .module-title {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+body[data-module="Project"] .app-nav .module-breadcrumb .module-title::before,
+body[data-module="ProjectTask"] .app-nav .module-breadcrumb .module-title::before {
+    transition: color 0.25s ease, transform 0.25s ease;
+}
+body[data-module="Project"] .app-nav .module-breadcrumb a:hover .module-title,
+body[data-module="ProjectTask"] .app-nav .module-breadcrumb a:hover .module-title {
+    color: #0369a1 !important;
+}
+body[data-module="Project"] .app-nav .module-breadcrumb .filter-name a,
+body[data-module="ProjectTask"] .app-nav .module-breadcrumb .filter-name a {
+    transition: color 0.25s ease, transform 0.2s ease;
+}
+body[data-module="Project"] .app-nav .module-breadcrumb .filter-name a:hover,
+body[data-module="ProjectTask"] .app-nav .module-breadcrumb .filter-name a:hover {
+    color: #0ea5e9 !important;
+}
+body[data-module="ProjectTask"] .app-nav .module-breadcrumb .filter-name a:hover {
+    color: #16a34a !important;
+}
+/* Nút Add / Import: gradient tương lai + glow + hiệu ứng hover */
+body[data-module="Project"] .app-nav .addButton.module-buttons {
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #0284c7 100%) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 9px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35), 0 0 0 1px rgba(255,255,255,0.2) inset !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body[data-module="Project"] .app-nav .addButton.module-buttons:hover {
+    background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 50%, #0284c7 100%) !important;
+    box-shadow: 0 8px 24px rgba(14, 165, 233, 0.5), 0 0 0 1px rgba(255,255,255,0.3) inset !important;
+    transform: translateY(-2px) scale(1.02);
+}
+body[data-module="Project"] .app-nav .addButton.module-buttons:active {
+    transform: translateY(0) scale(0.98);
+}
+body[data-module="ProjectTask"] .app-nav .addButton.module-buttons {
+    background: linear-gradient(135deg, #22c55e 0%, #10b981 50%, #16a34a 100%) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 9px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35), 0 0 0 1px rgba(255,255,255,0.2) inset !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body[data-module="ProjectTask"] .app-nav .addButton.module-buttons:hover {
+    background: linear-gradient(135deg, #10b981 0%, #22c55e 50%, #16a34a 100%) !important;
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.5), 0 0 0 1px rgba(255,255,255,0.3) inset !important;
+    transform: translateY(-2px) scale(1.02);
+}
+body[data-module="ProjectTask"] .app-nav .addButton.module-buttons:active {
+    transform: translateY(0) scale(0.98);
+}
+/* Nút Customize: style tương lai – xám sang, hover nổi */
+body[data-module="Project"] .app-nav .btn-default.module-buttons.dropdown-toggle,
+body[data-module="ProjectTask"] .app-nav .btn-default.module-buttons.dropdown-toggle {
+    background: linear-gradient(135deg, rgba(248,250,252,0.95) 0%, rgba(241,245,249,0.98) 100%) !important;
+    color: #475569 !important;
+    border-radius: 10px !important;
+    padding: 9px 14px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(148, 163, 184, 0.25) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body[data-module="Project"] .app-nav .btn-default.module-buttons.dropdown-toggle:hover,
+body[data-module="ProjectTask"] .app-nav .btn-default.module-buttons.dropdown-toggle:hover {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+    color: #0f172a !important;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(100, 116, 139, 0.35) !important;
+    transform: translateY(-2px) scale(1.02);
+}
+body[data-module="Project"] .app-nav .btn-default.module-buttons .fa,
+body[data-module="ProjectTask"] .app-nav .btn-default.module-buttons .fa {
+    transition: transform 0.25s ease;
+}
+body[data-module="Project"] .app-nav .btn-default.module-buttons:hover .fa,
+body[data-module="ProjectTask"] .app-nav .btn-default.module-buttons:hover .fa {
+    transform: rotate(-15deg);
+}
+
+/* Project & ProjectTask: row + icon theo báo cáo AI – gap, căn giữa, đồng bộ chiều cao */
+body[data-module="Project"] .app-nav .row,
+body[data-module="ProjectTask"] .app-nav .row {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+body[data-module="Project"] .app-nav .row > .col-sm-1.app-indicator-icon-container,
+body[data-module="ProjectTask"] .app-nav .row > .col-sm-1.app-indicator-icon-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 !important;
+    min-height: 42px !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
+body[data-module="Project"] .app-nav .row > .col-sm-1,
+body[data-module="ProjectTask"] .app-nav .row > .col-sm-1 {
+    padding-right: 4px !important;
+}
+body[data-module="Project"] .app-nav .row > .col-sm-11.padding0,
+body[data-module="ProjectTask"] .app-nav .row > .col-sm-11.padding0 {
+    padding-left: 4px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+body[data-module="Project"] .app-nav .module-action-bar.padding0,
+body[data-module="ProjectTask"] .app-nav .module-action-bar.padding0 {
+    padding-left: 0 !important;
+    width: 100% !important;
+}
+/* Thanh nội dung: full rộng, breadcrumb trái / nút phải, có khoảng giữa */
+body[data-module="Project"] .app-nav .module-action-content,
+body[data-module="Project"] .app-nav .Project-module-action-content,
+body[data-module="ProjectTask"] .app-nav .module-action-content,
+body[data-module="ProjectTask"] .app-nav .ProjectTask-module-action-content {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 24px !important;
+}
+/* Nhóm nút: giữ vị trí ở cuối – sát phải */
+body[data-module="Project"] .app-nav .module-action-content > .pull-right,
+body[data-module="ProjectTask"] .app-nav .module-action-content > .pull-right {
+    margin-left: auto !important;
+    flex: 0 0 auto !important;
+    order: 2 !important;
+}
+body[data-module="Project"] .app-nav .module-action-content .navbar-right,
+body[data-module="ProjectTask"] .app-nav .module-action-content .navbar-right {
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+}
+body[data-module="Project"] .app-nav .module-action-content .nav.navbar-nav,
+body[data-module="ProjectTask"] .app-nav .module-action-content .nav.navbar-nav {
+    justify-content: flex-end !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Project & ProjectTask: appnavcontent theo report AI */
+body[data-module="Project"] .app-nav #appnav nav.navbar .container-fluid,
+body[data-module="ProjectTask"] .app-nav #appnav nav.navbar .container-fluid {
+    display: flex !important;
+    align-items: center !important;
+}
+body[data-module="Project"] .app-nav #appnavcontent,
+body[data-module="ProjectTask"] .app-nav #appnavcontent {
+    margin-left: auto !important;
+    border: none !important;
+}
+
+/* Nav trong app-nav Project/ProjectTask: nền trong suốt, không viền, không mảng xám bên phải */
+body[data-module="Project"] .app-nav #appnav nav.navbar.navbar-inverse.border0.margin0,
+body[data-module="ProjectTask"] .app-nav #appnav nav.navbar.navbar-inverse.border0.margin0 {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Ẩn nút ba chấm (navbar-toggle) cạnh Add Project / Import trong app-nav Project & ProjectTask */
+body[data-module="Project"] .app-nav #appnav .navbar-header .navbar-toggle,
+body[data-module="ProjectTask"] .app-nav #appnav .navbar-header .navbar-toggle {
+    display: none !important;
+}
+
+/* Xóa nền/viền phần chứa nút (navbar-collapse) để không còn mảng xám bên phải */
+body[data-module="Project"] .app-nav #appnav .navbar-collapse,
+body[data-module="ProjectTask"] .app-nav #appnav .navbar-collapse,
+body[data-module="Project"] .app-nav #appnav #appnavcontent,
+body[data-module="ProjectTask"] .app-nav #appnav #appnavcontent {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Cột nút bên phải cũng trong suốt hoàn toàn */
+body[data-module="Project"] .app-nav .col-lg-5.col-md-6.col-sm-7.col-xs-1.padding0.pull-right,
+body[data-module="ProjectTask"] .app-nav .col-lg-5.col-md-6.col-sm-7.col-xs-1.padding0.pull-right {
+    background: transparent !important;
+}
+
+/* Không cần header riêng trong nav (tránh ô nhỏ màu khác) */
+body[data-module="Project"] .app-nav #appnav .navbar-header,
+body[data-module="ProjectTask"] .app-nav #appnav .navbar-header {
+    background: transparent !important;
+    border: none !important;
+}
+/* Cột breadcrumb: rộng đúng nội dung, dính đầu hàng */
+body[data-module="Project"] .app-nav .module-action-content > .col-lg-7.padding0,
+body[data-module="Project"] .app-nav .module-action-content > .col-md-6.padding0,
+body[data-module="Project"] .app-nav .module-action-content > .col-sm-5.padding0,
+body[data-module="ProjectTask"] .app-nav .module-action-content > .col-lg-7.padding0,
+body[data-module="ProjectTask"] .app-nav .module-action-content > .col-md-6.padding0,
+body[data-module="ProjectTask"] .app-nav .module-action-content > .col-sm-5.padding0 {
+    flex: 0 0 auto !important;
+    max-width: none !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 12px !important;
+    order: 1 !important;
+}
+/* Project & ProjectTask – List view breadcrumb (Projects > All): quay về nhẹ nhàng, không ép flex quá nhiều */
+body[data-module="Project"] .app-nav .module-breadcrumb.module-breadcrumb-List,
+body[data-module="ProjectTask"] .app-nav .module-breadcrumb.module-breadcrumb-List {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+}
+/* bỏ float để flex cha căn chuẩn, nhưng giữ layout gần gốc */
+body[data-module="Project"] .app-nav .module-breadcrumb.module-breadcrumb-List .pull-left,
+body[data-module="ProjectTask"] .app-nav .module-breadcrumb.module-breadcrumb-List .pull-left {
+    float: none !important;
+}
+body[data-module="Project"] .app-nav .module-breadcrumb.module-breadcrumb-List a[title],
+body[data-module="ProjectTask"] .app-nav .module-breadcrumb.module-breadcrumb-List a[title],
+body[data-module="Project"] .app-nav .module-breadcrumb.module-breadcrumb-List .current-filter-name.filter-name,
+body[data-module="ProjectTask"] .app-nav .module-breadcrumb.module-breadcrumb-List .current-filter-name.filter-name {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+/* Detail view: breadcrumb Project(s) > RecordName – theo report AI */
+body[data-module="Project"] .app-nav .module-action-content .module-breadcrumb.module-breadcrumb-Detail,
+body[data-module="ProjectTask"] .app-nav .module-action-content .module-breadcrumb.module-breadcrumb-Detail {
+    align-self: flex-start !important;
+}
+
+/* ========== Cùng style app-nav cho cấu trúc .container-fluid.app-nav + #app-menu + module-breadcrumb (Users, v.v.) ========== */
+body[data-module="Users"] .container-fluid.app-nav,
+body[data-module="Users"] .container-fluid.app-nav.app-nav-MANAGEMENT {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    overflow-y: hidden !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: linear-gradient(135deg, rgba(248,250,252,0.97) 0%, rgba(241,245,249,0.98) 50%, rgba(226,232,240,0.95) 100%) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+body[data-module="Users"] .app-nav .module-action-bar,
+body[data-module="Users"] .app-nav .module-action-bar.coloredBorderTop {
+    border: none !important;
+    box-shadow: none !important;
+}
+body[data-module="Users"] .app-nav .module-action-bar::after {
+    display: none !important;
+}
+body[data-module="Users"] .app-nav .module-action-content,
+body[data-module="Users"] .app-nav .module-action-content .module-breadcrumb {
+    border: none !important;
+    box-shadow: none !important;
+}
+body[data-module="Users"] .app-nav .module-action-content {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 24px !important;
+}
+body[data-module="Users"] .app-nav .btn-default.module-buttons,
+body[data-module="Users"] .app-nav .addButton.module-buttons {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 10px !important;
+    padding: 9px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
+body[data-module="Users"] .app-nav .module-breadcrumb.module-breadcrumb-List {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+}
+body[data-module="Users"] .app-nav .module-breadcrumb.module-breadcrumb-List .pull-left {
+    float: none !important;
+}
+body[data-module="Users"] .app-nav .module-breadcrumb.module-breadcrumb-List a[title],
+body[data-module="Users"] .app-nav .module-breadcrumb.module-breadcrumb-List .current-filter-name.filter-name {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+body[data-module="Users"] .app-nav .row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+body[data-module="Users"] .app-nav .app-indicator-icon-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+body[data-module="Users"] .app-nav .module-action-content > .pull-right,
+body[data-module="Users"] .app-nav .module-action-content .navbar-right {
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+}
+
+/* Project: canh header giống lúc 3 nút thẳng hàng với icon Project */
+body[data-module="Project"] .app-nav .module-action-bar .module-action-content {
+    align-items: center !important;
+}
+body[data-module="Project"] .app-nav .row {
+    align-items: center !important;
+}
+body[data-module="Project"] .app-nav .module-action-bar .module-action-content > .col-lg-7,
+body[data-module="Project"] .app-nav .module-action-bar .module-action-content > .col-md-6,
+body[data-module="Project"] .app-nav .module-action-bar .module-action-content > .col-sm-5 {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+body[data-module="Project"] .app-nav .module-action-bar .module-action-content > .col-lg-5,
+body[data-module="Project"] .app-nav .module-action-bar .module-action-content > .col-md-6,
+body[data-module="Project"] .app-nav .module-action-bar .module-action-content > .col-sm-7 {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    margin: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+/* ProjectTask: cùng kiểu canh hàng và overflow-y hidden cho thanh nav */
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content {
+    align-items: center !important;
+}
+body[data-module="ProjectTask"] .app-nav .row {
+    align-items: center !important;
+}
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-lg-7,
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-md-6,
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-sm-5,
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-lg-5,
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-md-6,
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-sm-7 {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-lg-5,
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-md-6,
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-sm-7 {
+    justify-content: flex-end !important;
+}
+body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content .navbar-right {
+    display: flex !important;
+    align-items: center !important;
+    overflow-y: hidden !important;
+}
+/* Project: ẩn thanh scroll dọc mặc định của trang (vẫn cuộn được bằng chuột/trackpad) */
+body[data-module="Project"] {
+    scrollbar-width: none; /* Firefox */
+}
+body[data-module="Project"]::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Project: nhóm nút bên phải gọn, không có khung riêng */
+body[data-module="Project"] .app-nav .module-action-bar .module-action-content .navbar-right {
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+}
+body[data-module="Project"] .app-nav .module-action-bar .module-action-content .navbar-right .nav {
+    gap: 6px !important;
 }
 /* Action bar – hiện đại, glassmorphism nhẹ */
 body[data-module="Project"] #listViewContent.list-view-sidebar-offset .listview-actions-container {
@@ -4230,8 +5101,8 @@ body.mainpage {
     min-height: 100vh;
 }
 .mainpage-wrap {
-    padding: 20px 24px 24px;
-    margin-top: 32px;
+    padding: 12px 24px 24px;
+    margin-top: 0;
 }
 @keyframes mainpage-card-in {
     from { opacity: 0; transform: translateY(12px); }
@@ -4285,7 +5156,7 @@ body.mainpage {
 }
 .main-container .content-area[data-view="MainPage"],
 body[data-module="Home"][data-view="MainPage"] .content-area {
-    padding-top: 80px !important;
+    padding-top: 12px !important;
     padding-left: 16px !important;
     padding-right: 16px !important;
 }
@@ -4442,6 +5313,7 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
 .mainpage-global-filter-inner {
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
     gap: 8px 14px;
     padding: 10px 14px;
@@ -4476,12 +5348,17 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
 .mainpage-global-filter-date {
     min-width: 140px;
     max-width: 210px;
+    height: 28px;
     border-radius: 999px;
     border: 1px solid rgba(203, 213, 225, 0.9);
-    padding: 4px 12px;
+    padding: 0 12px;
     font-size: 12px;
+    line-height: 26px;
     background: #ffffff;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    text-align: center;
+    vertical-align: middle;
+    box-sizing: border-box;
 }
 
 .mainpage-global-filter-date {
@@ -7327,7 +8204,7 @@ body[data-module="Documents"] .doc-management-view {
 .doc-management-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 16px;
     margin-bottom: 14px;
 }
@@ -7361,6 +8238,34 @@ body[data-module="Documents"] .doc-management-view {
         0 0 0 1px rgba(56, 189, 248, 0.85),
         0 0 30px rgba(56, 189, 248, 0.9);
     background: linear-gradient(135deg, rgba(59, 130, 246, 1) 0%, rgba(56, 189, 248, 1) 40%, rgba(244, 244, 245, 1) 100%) !important;
+}
+
+/* Documents: History button – sát phải, màu nổi hơn, to hơn một chút */
+.doc-management-toolbar .doc-btn-history {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, #e0f2fe 0%, #c7d2fe 40%, #bfdbfe 100%);
+    color: #111827;
+    border: 1px solid rgba(129, 140, 248, 0.95);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+    transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+.doc-management-toolbar .doc-btn-history i {
+    font-size: 14px;
+}
+.doc-management-toolbar .doc-btn-history:hover {
+    background: linear-gradient(135deg, #bfdbfe 0%, #a5b4fc 40%, #93c5fd 100%);
+    color: #0f172a;
+    border-color: rgba(79, 70, 229, 0.95);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.28);
+    transform: translateY(-1px);
 }
 .doc-management-toolbar .doc-current-folder-hint {
     padding: 6px 10px;
@@ -10463,4 +11368,117 @@ body[data-module="Reports"] .projecttask-list-task-overlay .project-task-board .
     border-radius: 10px;
     background: #ffffff;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+/* ========== Project & ProjectTask – căn giữa header + nút trong app-nav (theo AI) ========== */
+
+/* Breadcrumb Project(s) > All – đồng bộ chiều cao với khối nút bên phải */
+body[data-module="Project"] .app-nav .col-lg-7.col-md-6.col-sm-5.col-xs-11.padding0.module-breadcrumb.module-breadcrumb-List.transitionsAllHalfSecond,
+body[data-module="ProjectTask"] .app-nav .col-lg-7.col-md-6.col-sm-5.col-xs-11.padding0.module-breadcrumb.module-breadcrumb-List.transitionsAllHalfSecond {
+    height: 62px;
+}
+
+/* Khối module-action-bar (bọc breadcrumb + nút) thành flex để căn giữa dọc */
+body[data-module="Project"] .app-nav .col-sm-11.col-xs-10.padding0.module-action-bar.clearfix.coloredBorderTop,
+body[data-module="ProjectTask"] .app-nav .col-sm-11.col-xs-10.padding0.module-action-bar.clearfix.coloredBorderTop {
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Nội dung bên trong (breadcrumb + nhóm nút) – flex, căn 2 đầu, có gap */
+body[data-module="Project"] .app-nav .module-action-content.clearfix.Project-module-action-content,
+body[data-module="ProjectTask"] .app-nav .module-action-content.clearfix.Project-module-action-content {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    --doc-primary: #2563eb;
+    --doc-primary-dark: #1d4ed8;
+    --doc-primary-light: #3b82f6;
+    --doc-accent: #0ea5e9;
+    --doc-bg-sidebar: #fafbfc;
+    --doc-bg-main: #ffffff;
+    --doc-shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --doc-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    --doc-shadow-hover: 0 8px 24px rgba(0,0,0,0.08);
+    --doc-radius: 12px;
+    --doc-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 13px;
+    line-height: 1.4;
+    color: #333;
+    font-family: "Times New Roman", Times, serif !important;
+    box-sizing: inherit;
+    background: linear-gradient(180deg, #fbfbfb 0%, #ffffff 100%);
+    transition: background 0.25s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+    border: none !important;
+    box-shadow: none !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 24px !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    align-self: center;
+}
+
+/* Cột bên phải (chứa #appnav + nút) – tự căn giữa trong hàng + các con căn giữa dọc */
+body[data-module="Project"] .app-nav .col-lg-5.col-md-6.col-sm-7.col-xs-1.padding0.pull-right,
+body[data-module="ProjectTask"] .app-nav .col-lg-5.col-md-6.col-sm-7.col-xs-1.padding0.pull-right {
+    align-items: center;
+    align-self: center;
+}
+
+/* Khối #appnav – đảm bảo item bên trong căn giữa dọc */
+body[data-module="Project"] .app-nav div#appnav,
+body[data-module="ProjectTask"] .app-nav div#appnav {
+    align-items: center;
+}
+
+/* Nav bên trong #appnav – bỏ margin dư, tự căn giữa */
+body[data-module="Project"] .app-nav div#appnav > nav.navbar.navbar-inverse.border0.margin0,
+body[data-module="ProjectTask"] .app-nav div#appnav > nav.navbar.navbar-inverse.border0.margin0 {
+    margin-bottom: 0px;
+    align-self: center;
+}
+
+/* Nút trong #appnav: icon + text căn giữa dọc/ngang */
+body[data-module="Project"] .app-nav div#appnav button,
+body[data-module="Project"] .app-nav div#appnav a[class*="btn"],
+body[data-module="Project"] .app-nav div#appnav div[role="button"],
+body[data-module="Project"] .app-nav div#appnav div.btn,
+body[data-module="ProjectTask"] .app-nav div#appnav button,
+body[data-module="ProjectTask"] .app-nav div#appnav a[class*="btn"],
+body[data-module="ProjectTask"] .app-nav div#appnav div[role="button"],
+body[data-module="ProjectTask"] .app-nav div#appnav div.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+/* Icon trong nút – tinh chỉnh lệch 1px cho đẹp mắt */
+body[data-module="Project"] .app-nav div#appnav button i,
+body[data-module="Project"] .app-nav div#appnav button span[class*="fa"],
+body[data-module="Project"] .app-nav div#appnav button svg,
+body[data-module="Project"] .app-nav div#appnav a[class*="btn"] i,
+body[data-module="Project"] .app-nav div#appnav a[class*="btn"] span[class*="fa"],
+body[data-module="Project"] .app-nav div#appnav a[class*="btn"] svg,
+body[data-module="Project"] .app-nav div#appnav div[role="button"] i,
+body[data-module="Project"] .app-nav div#appnav div[role="button"] span[class*="fa"],
+body[data-module="Project"] .app-nav div#appnav div[role="button"] svg,
+body[data-module="Project"] .app-nav div#appnav div.btn i,
+body[data-module="Project"] .app-nav div#appnav div.btn span[class*="fa"],
+body[data-module="Project"] .app-nav div#appnav div.btn svg,
+body[data-module="ProjectTask"] .app-nav div#appnav button i,
+body[data-module="ProjectTask"] .app-nav div#appnav button span[class*="fa"],
+body[data-module="ProjectTask"] .app-nav div#appnav button svg,
+body[data-module="ProjectTask"] .app-nav div#appnav a[class*="btn"] i,
+body[data-module="ProjectTask"] .app-nav div#appnav a[class*="btn"] span[class*="fa"],
+body[data-module="ProjectTask"] .app-nav div#appnav a[class*="btn"] svg,
+body[data-module="ProjectTask"] .app-nav div#appnav div[role="button"] i,
+body[data-module="ProjectTask"] .app-nav div#appnav div[role="button"] span[class*="fa"],
+body[data-module="ProjectTask"] .app-nav div#appnav div[role="button"] svg,
+body[data-module="ProjectTask"] .app-nav div#appnav div.btn i,
+body[data-module="ProjectTask"] .app-nav div#appnav div.btn span[class*="fa"],
+body[data-module="ProjectTask"] .app-nav div#appnav div.btn svg {
+    vertical-align: middle;
+    transform: translateY(1px);
 }

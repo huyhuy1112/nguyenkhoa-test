@@ -6,7 +6,7 @@
 * Portions created by vtiger are Copyright (C) vtiger.
 * All Rights Reserved.
 ************************************************************************************}
-
+{* App menu CSS: đã chuyển vào layouts/v7/resources/custom.css (#app-menu.app-menu) *}
 <div class="app-menu hide" id="app-menu">
 	<div class="container-fluid">
 		<div class="row">

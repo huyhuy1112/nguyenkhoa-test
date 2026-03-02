@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.4, created on 2026-02-13 08:51:33
+/* Smarty version 4.5.4, created on 2026-03-02 04:17:50
   from '/var/www/html/layouts/v7/modules/Vtiger/Header.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.4',
-  'unifunc' => 'content_698ee615362ef8_96662879',
+  'unifunc' => 'content_69a50f6e92bbe1_39481735',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'a355056cb56f9b87c73c7bc9f698c5b7fe085dc5' => 
     array (
       0 => '/var/www/html/layouts/v7/modules/Vtiger/Header.tpl',
-      1 => 1770624440,
+      1 => 1772424199,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_698ee615362ef8_96662879 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69a50f6e92bbe1_39481735 (Smarty_Internal_Template $_smarty_tpl) {
 ?><!DOCTYPE html><html><head><title><?php echo vtranslate($_smarty_tpl->tpl_vars['PAGETITLE']->value,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </title><link rel="SHORTCUT ICON" href="layouts/v7/skins/images/favicon.ico"><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link type='text/css' rel='stylesheet' href='<?php echo vresource_url("libraries/bootstrap-legacy/css/bootstrap-responsive.min.css");?>
 '> <link type='text/css' rel='stylesheet' href='<?php echo vresource_url("layouts/v7/lib/todc/css/bootstrap.min.css");?>
@@ -37,12 +37,18 @@ function content_698ee615362ef8_96662879 (Smarty_Internal_Template $_smarty_tpl)
 '><link type='text/css' rel='stylesheet' href='<?php echo vresource_url("layouts/v7/lib/jquery/jquery.qtip.custom/jquery.qtip.css");?>
 '><link type='text/css' rel='stylesheet' href='<?php echo vresource_url("layouts/v7/lib/jquery/daterangepicker/daterangepicker.css");?>
 '><input type="hidden" id="inventoryModules" value=<?php echo ZEND_JSON::encode($_smarty_tpl->tpl_vars['INVENTORY_MODULES']->value);?>
-><?php if ((isset($_smarty_tpl->tpl_vars['SELECTED_MENU_CATEGORY']->value))) {
+><?php if ((isset($_smarty_tpl->tpl_vars['PAGE_THEME_PATH']->value)) && $_smarty_tpl->tpl_vars['PAGE_THEME_PATH']->value != '') {
+$_smarty_tpl->_assignInScope('V7_THEME_PATH', $_smarty_tpl->tpl_vars['PAGE_THEME_PATH']->value);
+} elseif ((isset($_smarty_tpl->tpl_vars['PAGE_THEME_APP']->value)) && $_smarty_tpl->tpl_vars['PAGE_THEME_APP']->value != '') {
+$_smarty_tpl->_assignInScope('V7_THEME_PATH', Vtiger_Theme::getv7AppStylePath($_smarty_tpl->tpl_vars['PAGE_THEME_APP']->value));
+} elseif ((isset($_smarty_tpl->tpl_vars['SELECTED_MENU_CATEGORY']->value))) {
 $_smarty_tpl->_assignInScope('V7_THEME_PATH', Vtiger_Theme::getv7AppStylePath($_smarty_tpl->tpl_vars['SELECTED_MENU_CATEGORY']->value));
 }
+if ($_smarty_tpl->tpl_vars['V7_THEME_PATH']->value && $_smarty_tpl->tpl_vars['V7_THEME_PATH']->value != '') {
 if (strpos($_smarty_tpl->tpl_vars['V7_THEME_PATH']->value,".less") !== false) {?><link type="text/css" rel="stylesheet/less" href="<?php echo vresource_url($_smarty_tpl->tpl_vars['V7_THEME_PATH']->value);?>
 " media="screen" /><?php } else { ?><link type="text/css" rel="stylesheet" href="<?php echo vresource_url($_smarty_tpl->tpl_vars['V7_THEME_PATH']->value);?>
 " media="screen" /><?php }
+}
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['STYLES']->value, 'cssModel', false, 'index');
 $_smarty_tpl->tpl_vars['cssModel']->do_else = true;
 if ($_from !== null) foreach ($_from as $_smarty_tpl->tpl_vars['index']->value => $_smarty_tpl->tpl_vars['cssModel']->value) {
@@ -56,6 +62,7 @@ $_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?><link type="text
 " media="screen" /><link type="text/css" rel="stylesheet" href="<?php echo vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css');?>
 " media="screen" /><?php if ($_smarty_tpl->tpl_vars['MODULE_NAME']->value == 'Products') {?><link type="text/css" rel="stylesheet" href="<?php echo vresource_url('layouts/v7/modules/Products/resources/Products.css');?>
 " media="screen" /><?php }?><link type="text/css" rel="stylesheet" href="<?php echo vresource_url('layouts/v7/resources/custom.css');?>
+&amp;cv=<?php echo (($tmp = $_smarty_tpl->tpl_vars['CUSTOM_CSS_VERSION']->value ?? null)===null||$tmp==='' ? time() ?? null : $tmp);?>
 " media="screen" /><style type="text/css">@media print {.noprint { display:none; }}</style><?php echo '<script'; ?>
  type="text/javascript">var __pageCreationTime = (new Date()).getTime();<?php echo '</script'; ?>
 ><?php echo '<script'; ?>

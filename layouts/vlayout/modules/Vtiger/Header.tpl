@@ -37,6 +37,8 @@
 		{foreach key=index item=cssModel from=$STYLES}
                     <link rel="{$cssModel->getRel()}" href="{vresource_url($cssModel->getHref())}" type="{$cssModel->getType()}" media="{$cssModel->getMedia()}" />
 		{/foreach}
+		{* Custom global overrides (v7 custom.css); cv=cache-bust để menu/custom CSS luôn mới *}
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/custom.css')}&amp;cv={$CUSTOM_CSS_VERSION|default:$smarty.now}" media="screen" />
 
 		{* For making pages - print friendly *}
 		<style type="text/css">

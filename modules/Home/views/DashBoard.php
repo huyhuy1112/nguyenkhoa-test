@@ -9,4 +9,28 @@
  *************************************************************************************/
 
 class Home_DashBoard_View extends Vtiger_DashBoard_View {
+
+	/**
+	 * Menu = Main Page (MANAGEMENT, đẹp), CSS trang = theme gốc (PAGE_THEME_APP) để giữ giao diện cũ.
+	 */
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		parent::preProcess($request, false);
+		$viewer = $this->getViewer($request);
+		// Giữ CSS cũ: theme mà parent vừa set (trước khi đổi sang MANAGEMENT)
+		$pageThemeApp = $viewer->getTemplateVars('SELECTED_MENU_CATEGORY');
+		if ($pageThemeApp === null || $pageThemeApp === '' || $pageThemeApp === false) {
+			$pageThemeApp = 'MARKETING';
+		}
+		$viewer->assign('PAGE_THEME_APP', $pageThemeApp);
+		// Menu = Main Page (MANAGEMENT)
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'MANAGEMENT');
+		$viewer->assign('SELECTED_MENU_CATEGORY_LABEL', vtranslate('LBL_MANAGEMENT', 'Vtiger'));
+		$menuGroupedByParent = Settings_MenuEditor_Module_Model::getAllVisibleModules();
+		if (isset($menuGroupedByParent['MANAGEMENT'])) {
+			$viewer->assign('SELECTED_CATEGORY_MENU_LIST', $menuGroupedByParent['MANAGEMENT']);
+		}
+		if ($display) {
+			$this->preProcessDisplay($request);
+		}
+	}
 }

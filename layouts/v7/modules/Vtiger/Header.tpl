@@ -31,13 +31,20 @@
         <link type='text/css' rel='stylesheet' href='{vresource_url("layouts/v7/lib/jquery/daterangepicker/daterangepicker.css")}'>
         
         <input type="hidden" id="inventoryModules" value={ZEND_JSON::encode($INVENTORY_MODULES)}>
-        {if isset($SELECTED_MENU_CATEGORY)}
+        {* Dashboard: menu Main Page (MANAGEMENT) nhưng CSS = theme gốc (PAGE_THEME_PATH set từ PHP) *}
+        {if isset($PAGE_THEME_PATH) && $PAGE_THEME_PATH != ''}
+        {assign var=V7_THEME_PATH value=$PAGE_THEME_PATH}
+        {elseif isset($PAGE_THEME_APP) && $PAGE_THEME_APP != ''}
+        {assign var=V7_THEME_PATH value=Vtiger_Theme::getv7AppStylePath($PAGE_THEME_APP)}
+        {elseif isset($SELECTED_MENU_CATEGORY)}
         {assign var=V7_THEME_PATH value=Vtiger_Theme::getv7AppStylePath($SELECTED_MENU_CATEGORY)}
         {/if}
+        {if $V7_THEME_PATH && $V7_THEME_PATH != ''}
         {if strpos($V7_THEME_PATH,".less")!== false}
             <link type="text/css" rel="stylesheet/less" href="{vresource_url($V7_THEME_PATH)}" media="screen" />
         {else}
             <link type="text/css" rel="stylesheet" href="{vresource_url($V7_THEME_PATH)}" media="screen" />
+        {/if}
         {/if}
         
 		{foreach key=index item=cssModel from=$STYLES}
@@ -48,7 +55,8 @@
 		{if $MODULE_NAME eq 'Products'}
 			<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Products/resources/Products.css')}" media="screen" />
 		{/if}
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/custom.css')}" media="screen" />
+		{* cv = cache-bust: dùng filemtime hoặc thời điểm hiện tại để menu/custom CSS luôn mới sau chuyển trang hoặc refresh *}
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/custom.css')}&amp;cv={$CUSTOM_CSS_VERSION|default:$smarty.now}" media="screen" />
 
 		{* For making pages - print friendly *}
 		<style type="text/css">
@@ -56,6 +64,7 @@
             .noprint { display:none; }
 		}
 		</style>
+		{* App menu CSS: đã chuyển vào layouts/v7/resources/custom.css (#app-menu.app-menu + .app-list.row fallback) *}
 		<script type="text/javascript">var __pageCreationTime = (new Date()).getTime();</script>
 		<script src="{vresource_url('layouts/v7/lib/jquery/jquery.min.js')}"></script>
 		<script src="{vresource_url('layouts/v7/lib/jquery/jquery-migrate-1.4.1.js')}"></script>
