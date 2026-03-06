@@ -60,7 +60,8 @@ class Calendar_Calendar_View extends Vtiger_Index_View {
 			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/lib/jquery/fullcalendar/fullcalendar-bootstrap.css',
 			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/lib/jquery/webui-popover/dist/jquery.webui-popover.css',
 			'~/libraries/jquery/colorpicker/css/colorpicker.css',
-			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/modules/Calendar/resources/calendar-google.css'
+			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/modules/Calendar/resources/calendar-google.css',
+			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/modules/Calendar/resources/Calendar.css'
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 		$headerCssInstances = array_merge($headerCssInstances, $cssInstances);

@@ -2021,6 +2021,11 @@ Vtiger.Class(
     performPreEventRenderActions: function (event, element) {
       var calendarView =
         this.getCalendarViewContainer().fullCalendar("getView");
+      var tooltip =
+        (event.extendedProps && event.extendedProps.tooltip) || event.tooltip;
+      if (tooltip) {
+        element.attr("title", tooltip);
+      }
       try {
         var bg = event.backgroundColor || event.color;
         var fg = event.textColor || "#ffffff";
@@ -2264,6 +2269,16 @@ Vtiger.Class(
         },
         eventRender: function (event, element) {
           thisInstance.performPreEventRenderActions(event, element);
+        },
+        eventDidMount: function (info) {
+          if (
+            info &&
+            info.event &&
+            info.event.extendedProps &&
+            info.event.extendedProps.tooltip
+          ) {
+            jQuery(info.el).attr("title", info.event.extendedProps.tooltip);
+          }
         },
         eventMouseover: function (event, jsEvent, view) {
           thisInstance.performMouseOverActions(event, jsEvent, view);

@@ -82,6 +82,7 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 											} else {
 												$this->pullDetails($start, $end, $result, $type, $fieldName, $color, $textColor, $conditions);
 											}
+											$this->pullAnniversaryActivities($start, $end, $result);
 											break;
 				case 'Calendar'			:	if($fieldName == 'date_start,due_date') {
 												$this->pullTasks($start, $end, $result,$color,$textColor);
@@ -107,6 +108,35 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 		$start = DateTimeField::convertToDBFormat($start);
 		$end = DateTimeField::convertToDBFormat($end);
 		//-angelo
+		// Custom tickets feed: hook into HelpDesk feed and read from custom `tickets` table.
+		// Keep this isolated and return early to avoid affecting generic providers.
+		if ($type === 'HelpDesk') {
+			$db = PearDatabase::getInstance();
+			$startDateTime = $start . ' 00:00:00';
+			$endDateTime = $end . ' 23:59:59';
+			$query = "SELECT id, ticket_code, subject, created_at,
+							 COALESCE(sla_due_at, DATE_ADD(created_at, INTERVAL 1 DAY)) AS event_end
+					  FROM tickets
+					  WHERE created_at <= ? AND COALESCE(sla_due_at, DATE_ADD(created_at, INTERVAL 1 DAY)) >= ?
+					  ORDER BY created_at ASC";
+			$queryResult = $db->pquery($query, array($endDateTime, $startDateTime));
+			while ($queryResult && ($row = $db->fetchByAssoc($queryResult))) {
+				$item = array();
+				$item['id'] = $row['id'];
+				$item['title'] = decode_html(trim($row['ticket_code'] . ' - ' . $row['subject']));
+				$item['start'] = $row['created_at'];
+				$item['end'] = $row['event_end'];
+				$item['allDay'] = true;
+				$item['color'] = '#D35400';
+				$item['textColor'] = '#ffffff';
+				$item['module'] = 'Tickets';
+				$item['sourceModule'] = 'Tickets';
+				$item['fieldName'] = $fieldName;
+				$item['conditions'] = '';
+				$result[] = $item;
+			}
+			return;
+		}
 		$moduleModel = Vtiger_Module_Model::getInstance($type);
 		$nameFields = $moduleModel->getNameFields();
 		foreach($nameFields as $i => $nameField) {
@@ -488,6 +518,44 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 			$item['module'] = $moduleModel->getName();
 			$item['fieldName'] = 'date_start,due_date';
 			$item['conditions'] = '';
+			$result[] = $item;
+		}
+	}
+
+	/**
+	 * Pull Anniversary activities from custom vtiger_activities table and append
+	 * as native FullCalendar events.
+	 */
+	protected function pullAnniversaryActivities($start, $end, &$result) {
+		$db = PearDatabase::getInstance();
+		$startDate = DateTimeField::convertToDBFormat($start) . ' 00:00:00';
+		$endDate = DateTimeField::convertToDBFormat($end) . ' 23:59:59';
+		$query = "SELECT activityid, title, activity_date
+		          FROM vtiger_activities
+		          WHERE activity_type = 'Anniversary'
+		            AND activity_date BETWEEN ? AND ?
+		          ORDER BY activity_date ASC";
+		$queryResult = $db->pquery($query, array($startDate, $endDate));
+		while ($queryResult && ($row = $db->fetchByAssoc($queryResult))) {
+			$title = trim((string)$row['title']);
+			$item = array(
+				'id' => 'anniversary_' . $row['activityid'],
+				'title' => '🎂 ' . decode_html($title),
+				'start' => $row['activity_date'],
+				'allDay' => true,
+				'url' => 'index.php?module=Activities&view=Detail&record=' . $row['activityid'],
+				'className' => 'fc-event-anniversary',
+				'backgroundColor' => '#f1c40f',
+				'borderColor' => '#f1c40f',
+				'textColor' => '#000000',
+				'module' => 'Activities',
+				'sourceModule' => 'Activities',
+				'extendedProps' => array(
+					'type' => 'anniversary',
+					'tooltip' => decode_html($title),
+				),
+				'tooltip' => decode_html($title),
+			);
 			$result[] = $item;
 		}
 	}
