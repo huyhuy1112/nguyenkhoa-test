@@ -325,11 +325,19 @@ jQuery(document).ready(function ($) {
                 JSON.stringify(data)
               );
 
+              // Detect explicit owner value in this request (inline edit or full form)
+              var explicitAssignedValue = null;
+              if (data.field === "assigned_user_id" && data.value !== undefined) {
+                explicitAssignedValue = parseInt(data.value, 10);
+              } else if (data.assigned_user_id !== undefined) {
+                explicitAssignedValue = parseInt(data.assigned_user_id, 10);
+              }
+
               // PRIORITY 1: Check if _team_group_id is already in form (hidden field)
               var $hiddenField = $('input[name="_team_group_id"]');
               if ($hiddenField.length > 0) {
                 var hiddenValue = $hiddenField.val();
-                if (hiddenValue) {
+                if (hiddenValue && (explicitAssignedValue === null || explicitAssignedValue < 0)) {
                   data._team_group_id = hiddenValue;
                   console.log(
                     "[ProjectTeamGroup] ✅ Added _team_group_id from hidden field:",
@@ -411,6 +419,19 @@ jQuery(document).ready(function ($) {
                     teamGroupId
                   );
                 }
+              }
+
+              // FINAL GUARD: if explicit owner is a normal user/group id (>= 0),
+              // force remove stale _team_group_id to avoid locking Assigned To.
+              if (explicitAssignedValue !== null && explicitAssignedValue >= 0) {
+                if (data._team_group_id) {
+                  console.log(
+                    "[ProjectTeamGroup] 🧹 Removing stale _team_group_id because assigned_user_id is non-negative:",
+                    explicitAssignedValue
+                  );
+                }
+                delete data._team_group_id;
+                $('input[name="_team_group_id"]').remove();
               }
 
               console.log(

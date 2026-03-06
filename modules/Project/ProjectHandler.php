@@ -200,7 +200,7 @@ class ProjectHandler extends VTEventHandler {
 		$projectId = (int) $projectId;
 		if ($projectId <= 0) return;
 
-		$teamGroupId = isset($_REQUEST['_team_group_id']) ? (int) $_REQUEST['_team_group_id'] : 0;
+		$teamGroupId = $this->resolveTeamGroupIdFromRequest();
 		$adb->pquery("DELETE FROM vtiger_project_team_groups WHERE projectid = ?", array($projectId));
 		if ($teamGroupId > 0) {
 			$adb->pquery("INSERT INTO vtiger_project_team_groups (projectid, team_groupid) VALUES (?, ?)",
@@ -217,6 +217,27 @@ class ProjectHandler extends VTEventHandler {
 					array($projectId, $uid));
 			}
 		}
+	}
+
+	/**
+	 * Resolve team group id safely from $_REQUEST.
+	 * Nếu owner hiện tại là user/group thường (>=0) thì luôn clear team group mapping.
+	 */
+	protected function resolveTeamGroupIdFromRequest() {
+		$rawOwner = isset($_REQUEST['assigned_user_id']) ? $_REQUEST['assigned_user_id'] : null;
+		if (($rawOwner === null || $rawOwner === '') && isset($_REQUEST['field']) && $_REQUEST['field'] === 'assigned_user_id') {
+			$rawOwner = isset($_REQUEST['value']) ? $_REQUEST['value'] : null;
+		}
+
+		if ($rawOwner !== null && $rawOwner !== '') {
+			$ownerId = (int)$rawOwner;
+			if ($ownerId < 0) {
+				return abs($ownerId);
+			}
+			return 0;
+		}
+
+		return isset($_REQUEST['_team_group_id']) ? (int)$_REQUEST['_team_group_id'] : 0;
 	}
 }
 

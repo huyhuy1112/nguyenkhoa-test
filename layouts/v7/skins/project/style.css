@@ -937,7 +937,6 @@ input[type="password"].inputElement {
   transition: 0s width;
 }
 .module-nav:hover {
-  /*z-index: 1001;*/
 }
 .modules-menu ul {
   list-style: none;
@@ -7027,7 +7026,6 @@ a.btnReport:hover {
   position: relative;
   margin-bottom: 10px;
   padding: 0;
-  *zoom: 1;
 }
 .bx-wrapper img {
   max-width: 100%;
@@ -7066,8 +7064,6 @@ a.btnReport:hover {
 }
 .bx-wrapper .bx-pager .bx-pager-item {
   display: inline-block;
-  *zoom: 1;
-  *display: inline;
 }
 .bx-wrapper .bx-pager.bx-default-pager a {
   background: #666;

@@ -1,19 +1,20 @@
 <?php
 /*+**********************************************************************************
- * The contents of this file are subject to the vtiger CRM Public License Version 1.0
- * ("License"); You may not use this file except in compliance with the License
- * The Original Code is:  vtiger CRM Open Source
- * The Initial Developer of the Original Code is vtiger.
- * Portions created by vtiger are Copyright (C) vtiger.
- * All Rights Reserved.
+ * Rules_List_View
+ *
+ * Module "Rules" chỉ dùng làm menu entry trong app SUPPORT.
+ * Khi người dùng bấm SUPPORT → Rules (module=Rules&view=List),
+ * ta redirect sang trang Rules Engine mới nằm trong HelpDesk:
+ *
+ *   module=HelpDesk&view=Rules&app=SUPPORT
+ *
  ************************************************************************************/
 
-/**
- * Placeholder module List View
- * Minimal implementation for UI rendering only
- */
-class Rules_List_View extends Vtiger_List_View {
-    
-    // Use parent implementation - no custom logic needed
+class Rules_List_View extends Vtiger_Index_View {
+
+	public function process(Vtiger_Request $request) {
+		// Redirect vĩnh viễn sang HelpDesk Rules
+		header('Location: index.php?module=HelpDesk&view=Rules&app=SUPPORT');
+		exit;
+	}
 }
-?>

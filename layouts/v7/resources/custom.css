@@ -1223,11 +1223,46 @@ body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-
     text-shadow: none !important;
 }
 
-/* App menu: selector #app-menu.app-menu – ghi đè mạnh, áp dụng cho cấu trúc .container-fluid.app-nav + #app-menu (đồng bộ với inline style trong HTML) */
-#app-menu.app-menu:not(.hide) {
+/* App menu: giữ kiểu mặc định, không ép hiển thị (tránh trùng menu ngang) */
+#app-menu.app-menu {
+    position: fixed !important;
+    top: 134px !important;
+    left: 0 !important;
+    width: 280px !important;
+    max-width: 300px !important;
+    height: auto !important;
+    max-height: calc(100vh - 150px) !important;
+    padding: 12px 0 !important;
     z-index: 99999 !important;
     display: block !important;
     visibility: visible !important;
+    background: linear-gradient(180deg, #1c2333 0%, #0f1627 100%) !important;
+    box-shadow: 6px 12px 28px rgba(0,0,0,0.35) !important;
+    border-radius: 0 12px 12px 0 !important;
+    overflow-y: auto !important;
+}
+#app-menu.app-menu.hide {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+/* Đặt submenu lệch phải 280px để sát mép menu chính */
+.app-menu .app-modules-dropdown {
+    left: 280px !important;
+}
+
+/* Giữ thanh nav chính cố định và hiển thị trên các trang SUPPORT */
+body[data-app="SUPPORT"] .container-fluid.app-nav,
+body[data-module="HelpDesk"] .container-fluid.app-nav,
+body[data-module="Rules"] .container-fluid.app-nav,
+body[data-module="Activities"] .container-fluid.app-nav {
+    position: fixed !important;
+    top: 78px !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 99998 !important;
+    background: linear-gradient(90deg, rgba(26,188,156,0.92), rgba(99,102,241,0.9)) !important;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.25) !important;
 }
 #app-menu.app-menu .menu-item.app-item .app-menu-items-wrapper,
 #app-menu.app-menu .menu-item.app-item .menu-items-wrapper {
@@ -1298,8 +1333,9 @@ body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-
 .app-item-color-SALES:hover{ background: rgba(231,76,60,0.2) !important; }
 .app-item-color-INVENTORY{ border-left-color: #e67e22 !important; }
 .app-item-color-INVENTORY:hover{ background: rgba(230,126,34,0.2) !important; }
-.app-item-color-SUPPORT{ border-left-color: #9b59b6 !important; }
-.app-item-color-SUPPORT:hover{ background: rgba(155,89,182,0.2) !important; }
+/* SUPPORT: dùng chung tông màu với MANAGEMENT để menu sáng hơn và đều hơn */
+.app-item-color-SUPPORT{ border-left-color: #1abc9c !important; }
+.app-item-color-SUPPORT:hover{ background: rgba(26,188,156,0.2) !important; }
 .app-item-color-MANAGEMENT{ border-left-color: #1abc9c !important; }
 .app-item-color-MANAGEMENT:hover{ background: rgba(26,188,156,0.2) !important; }
 .app-item-color-TOOLS{ border-left-color: #2ecc71 !important; }
@@ -1309,33 +1345,10 @@ body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-
 .app-list > .menu-item.app-item:first-child{ border-left: 4px solid #f39c12 !important; }
 .app-list > .menu-item.app-item:first-child:hover{ background: rgba(243,156,18,0.2) !important; }
 
-/* Menu con MANAGEMENT và các app: chỉ cần hiện ra khi click; khi app-menu ẩn (.hide) thì không hiện submenu ở góc */
-.app-menu.hide .app-modules-dropdown,
+/* Menu con: cho phép hiện khi hover/click; ẩn khi menu ở trạng thái .hide */
 .app-menu .app-modules-dropdown-container {
-    position: static;
+    position: relative !important;
 }
-.app-menu.hide .app-modules-dropdown {
-    display: none !important;
-    visibility: hidden !important;
-}
-/* Ghi đè Bootstrap .dropdown-menu { display: none } - chỉ hiện khi .open (click), không mở khi :hover để tránh menu tự mở khi reload */
-.app-menu:not(.hide) .app-modules-dropdown-container.open > .app-modules-dropdown,
-.app-menu:not(.hide) .app-modules-dropdown-container.open .app-modules-dropdown {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    z-index: 10002 !important;
-    position: fixed !important;
-    left: 280px !important;
-    top: 95px !important;
-}
-.app-menu ul.dropdown-menu.app-modules-dropdown {
-    display: none;
-}
-.app-menu:not(.hide) .app-modules-dropdown-container.open ul.app-modules-dropdown {
-    display: block !important;
-}
-/* Menu con: hiển thị full nội dung, không scroll trong ô – để cuộn bằng trang */
 .app-menu .app-modules-dropdown {
     pointer-events: auto !important;
     min-width: 260px !important;
@@ -1349,6 +1362,29 @@ body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-
     background: radial-gradient(circle at top left, #1f2937 0%, #020617 50%, #020617 100%) !important;
     border-radius: 0 14px 14px 0;
     box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85);
+    position: absolute !important;
+    left: 260px !important;
+    top: 0 !important;
+    display: none;
+    visibility: hidden;
+    opacity: 0;
+}
+.app-menu .app-modules-dropdown-container:hover > .app-modules-dropdown {
+    /* Không mở bằng hover */
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+.app-menu .app-modules-dropdown-container.open > .app-modules-dropdown {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 10002 !important;
+}
+.app-menu.hide .app-modules-dropdown {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
 }
 .app-menu .mCustomScrollBox,
 .app-menu .mCSB_container {
@@ -1383,12 +1419,32 @@ body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-
 .app-menu {
     overflow-x: visible !important;
 }
+
+/* Fallback: bảo đảm submenu luôn lòi ra (kể cả khi có CSS khác che) */
+#app-menu.app-menu {
+    overflow: visible !important;
+}
+#app-menu.app-menu .app-modules-dropdown {
+    z-index: 100000 !important;
+}
+#app-menu.app-menu .app-modules-dropdown-container:hover > .app-modules-dropdown {
+    /* Không mở bằng hover – tránh giữ 2 menu chồng nhau */
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+#app-menu.app-menu .app-modules-dropdown-container.open > .app-modules-dropdown {
+    /* Chỉ mở khi click (Bootstrap thêm class .open) */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
 /* Khi menu đang mở (không .hide) luôn nổi trên cùng */
 #app-menu.app-menu:not(.hide),
 .app-menu:not(.hide) {
     z-index: 99999 !important;
-    display: block !important;
-    visibility: visible !important;
 }
 
 .menu-toggle{
@@ -3140,6 +3196,166 @@ body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-conte
     margin: 0 !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
+}
+
+/* ========== SUPPORT / Tickets (HelpDesk) – header giống MANAGEMENT ========== */
+/* Thanh nav: nền gradient giống MANAGEMENT nhưng tông SUPPORT (tím) */
+body[data-module="HelpDesk"] .container-fluid.app-nav,
+body[data-module="HelpDesk"] .container-fluid.app-nav.app-nav-SUPPORT {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    overflow-y: hidden !important;
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+body[data-module="HelpDesk"] .container-fluid.app-nav.app-nav-SUPPORT {
+    position: relative;
+    background: transparent !important;
+}
+body[data-module="HelpDesk"] .container-fluid.app-nav.app-nav-SUPPORT::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(250,250,252,0.98) 0%, rgba(243,232,255,0.98) 40%, rgba(221,214,254,0.98) 100%);
+    box-shadow: 0 4px 24px rgba(88, 28, 135, 0.10), 0 1px 0 rgba(255,255,255,0.9) inset;
+    z-index: -1;
+}
+
+/* Khung action bar: bỏ viền, height auto để flex đẹp */
+body[data-module="HelpDesk"] .app-nav .module-action-bar {
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    height: auto !important;
+}
+body[data-module="HelpDesk"] .app-nav .module-action-bar.coloredBorderTop {
+    border-top: none !important;
+}
+body[data-module="HelpDesk"] .app-nav .module-action-bar::after {
+    display: none !important;
+}
+
+/* Hàng app-nav: icon + breadcrumb + nút cùng một hàng, căn giữa dọc */
+body[data-module="HelpDesk"] .app-nav .row {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+body[data-module="HelpDesk"] .app-nav .row > .col-sm-1.app-indicator-icon-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 !important;
+    min-height: 42px !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
+body[data-module="HelpDesk"] .app-nav .row > .col-sm-11.padding0 {
+    padding-left: 4px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+/* Nội dung bên trong: breadcrumb trái, nút phải, full rộng */
+body[data-module="HelpDesk"] .app-nav .module-action-bar.padding0 {
+    padding-left: 0 !important;
+    width: 100% !important;
+}
+body[data-module="HelpDesk"] .app-nav .module-action-content {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 24px !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+body[data-module="HelpDesk"] .app-nav .module-action-content > .pull-right {
+    margin-left: auto !important;
+    flex: 0 0 auto !important;
+    order: 2 !important;
+}
+body[data-module="HelpDesk"] .app-nav .module-action-content .navbar-right,
+body[data-module="HelpDesk"] .app-nav .module-action-content .nav.navbar-nav {
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+}
+
+/* appnav / nhóm nút: căn giữa dọc, bỏ nền xám */
+body[data-module="HelpDesk"] .app-nav #appnav nav.navbar .container-fluid {
+    display: flex !important;
+    align-items: center !important;
+}
+body[data-module="HelpDesk"] .app-nav #appnavcontent {
+    margin-left: auto !important;
+    border: none !important;
+}
+body[data-module="HelpDesk"] .app-nav #appnav nav.navbar.navbar-inverse.border0.margin0 {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+body[data-module="HelpDesk"] .app-nav #appnav .navbar-collapse,
+body[data-module="HelpDesk"] .app-nav #appnav #appnavcontent {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+body[data-module="HelpDesk"] .app-nav #appnav .navbar-header {
+    background: transparent !important;
+    border: none !important;
+}
+body[data-module="HelpDesk"] .app-nav #appnav .navbar-header .navbar-toggle {
+    display: none !important;
+}
+
+/* Nút Tickets (Add Ticket, Customize, ...) – style tương tự Project nhưng tông SUPPORT */
+body[data-module="HelpDesk"] .app-nav .addButton.module-buttons {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 9px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    box-shadow: 0 4px 14px rgba(129, 140, 248, 0.45), 0 0 0 1px rgba(255,255,255,0.25) inset !important;
+    border: none !important;
+}
+body[data-module="HelpDesk"] .app-nav .addButton.module-buttons:hover {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #4f46e5 100%) !important;
+    box-shadow: 0 8px 24px rgba(129, 140, 248, 0.60), 0 0 0 1px rgba(255,255,255,0.35) inset !important;
+    transform: translateY(-2px) scale(1.02);
+}
+body[data-module="HelpDesk"] .app-nav .addButton.module-buttons:active {
+    transform: translateY(0) scale(0.98);
+}
+body[data-module="HelpDesk"] .app-nav .btn-default.module-buttons.dropdown-toggle {
+    background: linear-gradient(135deg, rgba(248,250,252,0.96) 0%, rgba(237,233,254,0.98) 100%) !important;
+    color: #4b5563 !important;
+    border-radius: 10px !important;
+    padding: 9px 14px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em !important;
+    box-shadow: 0 2px 8px rgba(55, 65, 81, 0.15), 0 0 0 1px rgba(156, 163, 175, 0.35) !important;
+    border: none !important;
+}
+body[data-module="HelpDesk"] .app-nav .btn-default.module-buttons.dropdown-toggle:hover {
+    background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%) !important;
+    color: #111827 !important;
+    box-shadow: 0 6px 18px rgba(55, 65, 81, 0.20), 0 0 0 1px rgba(107, 114, 128, 0.45) !important;
+    transform: translateY(-2px) scale(1.02);
 }
 body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-lg-5,
 body[data-module="ProjectTask"] .app-nav .module-action-bar .module-action-content > .col-md-6,
@@ -11370,6 +11586,543 @@ body[data-module="Reports"] .projecttask-list-task-overlay .project-task-board .
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
+/* ========== HelpDesk / Tickets – modern futuristic UI ========== */
+
+/* List + Detail wrapper background */
+body[data-module="HelpDesk"] .tickets-modern-wrapper,
+body[data-module="HelpDesk"] .tickets-detail-wrapper {
+    background: radial-gradient(circle at top left, #f9fafb 0%, #e5e7eb 40%, #eef2ff 100%);
+    margin-top: 76px;
+    padding-top: 8px;
+    padding-bottom: 16px;
+}
+
+/* Filter sidebar card */
+body[data-module="HelpDesk"] .tickets-filter-card {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.20);
+    background: linear-gradient(145deg, rgba(15,23,42,0.96), rgba(30,64,175,0.98));
+    color: #e5e7eb;
+}
+body[data-module="HelpDesk"] .tickets-filter-card .panel-heading {
+    background: transparent;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+}
+body[data-module="HelpDesk"] .tickets-filter-card .panel-title {
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: #bfdbfe;
+}
+body[data-module="HelpDesk"] .tickets-filter-card label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #cbd5f5;
+}
+body[data-module="HelpDesk"] .tickets-filter-card .form-control {
+    border-radius: 999px;
+    border-color: rgba(148, 163, 184, 0.6);
+    background: rgba(15,23,42,0.9);
+    color: #e5e7eb;
+}
+body[data-module="HelpDesk"] .tickets-filter-card .btn-primary {
+    border-radius: 999px;
+    background: linear-gradient(135deg, #6366f1, #22c55e);
+    border: none;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+}
+body[data-module="HelpDesk"] .tickets-filter-card .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.55);
+}
+
+/* Stat cards */
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-card {
+    border-radius: 16px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.88);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-card .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.22);
+}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-priority .value .prio {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    margin-right: 4px;
+}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-priority .prio-critical { background:#fee2e2;color:#b91c1c;}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-priority .prio-high { background:#ffedd5;color:#c2410c;}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-priority .prio-medium { background:#e0f2fe;color:#075985;}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-priority .prio-low { background:#dcfce7;color:#166534;}
+
+/* Tickets table */
+body[data-module="HelpDesk"] .tickets-table-panel {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+body[data-module="HelpDesk"] .tickets-table-panel .panel-heading {
+    background: linear-gradient(135deg, #111827, #1f2937);
+    color: #e5e7eb;
+}
+body[data-module="HelpDesk"] .tickets-table-panel .panel-title {
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+body[data-module="HelpDesk"] .tickets-table-panel .btn-success {
+    border-radius: 999px;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    border: none;
+    font-weight: 600;
+}
+body[data-module="HelpDesk"] .tickets-table-panel .btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(34,197,94,0.55);
+}
+body[data-module="HelpDesk"] .tickets-table tbody tr:hover {
+    background: rgba(239, 246, 255, 0.8);
+}
+body[data-module="HelpDesk"] .tickets-table .ticket-code-link {
+    font-weight: 600;
+    color: #1d4ed8;
+}
+body[data-module="HelpDesk"] .tickets-table .ticket-code-link:hover {
+    text-decoration: underline;
+}
+
+/* Priority & Status badges */
+body[data-module="HelpDesk"] .badge-priority {
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 10px;
+}
+body[data-module="HelpDesk"] .badge-priority-critical { background:#fee2e2;color:#b91c1c;}
+body[data-module="HelpDesk"] .badge-priority-high { background:#ffedd5;color:#c2410c;}
+body[data-module="HelpDesk"] .badge-priority-medium { background:#e0f2fe;color:#0369a1;}
+body[data-module="HelpDesk"] .badge-priority-low { background:#dcfce7;color:#166534;}
+
+body[data-module="HelpDesk"] .badge-status {
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 10px;
+}
+body[data-module="HelpDesk"] .badge-status-open { background:#eef2ff;color:#3730a3;}
+body[data-module="HelpDesk"] .badge-status-in_progress { background:#fef3c7;color:#92400e;}
+body[data-module="HelpDesk"] .badge-status-resolved { background:#dcfce7;color:#166534;}
+body[data-module="HelpDesk"] .badge-status-closed { background:#e5e7eb;color:#111827;}
+
+/* SLA badge pulse when overdue */
+body[data-module="HelpDesk"] .sla-badge {
+    display:inline-block;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius:999px;
+    background:#e0f2fe;
+    color:#075985;
+}
+body[data-module="HelpDesk"] .sla-badge.sla-overdue {
+    background:#fee2e2;
+    color:#b91c1c;
+    box-shadow:0 0 0 0 rgba(248,113,113,0.7);
+    animation:sla-pulse 1.2s infinite;
+}
+@keyframes sla-pulse {
+    0% { box-shadow:0 0 0 0 rgba(248,113,113,0.7);}
+    70%{ box-shadow:0 0 0 8px rgba(248,113,113,0);}
+    100%{ box-shadow:0 0 0 0 rgba(248,113,113,0);}
+}
+
+/* ========== HelpDesk Tickets – Detail view (futuristic style) ========== */
+
+/* Nền tổng cho khu detail */
+body[data-module="HelpDesk"] .tickets-detail-wrapper {
+  background:
+    radial-gradient(circle at top left, rgba(129,140,248,0.16) 0, transparent 55%),
+    radial-gradient(circle at bottom right, rgba(45,212,191,0.18) 0, transparent 60%),
+    linear-gradient(180deg,#f9fafb 0,#e5e7eb 40%,#eef2ff 100%);
+  padding: 140px 18px 22px;
+}
+
+/* MAIN COLUMN */
+body[data-module="HelpDesk"] .tickets-detail-main {
+  padding-right: 10px;
+}
+
+/* HEADER: CODE + SUBJECT + META + BADGES – FUTURISTIC GLASS CARD */
+body[data-module="HelpDesk"] .tickets-detail-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:24px;
+  padding:18px 24px;
+  margin-bottom:20px;
+  border-radius:24px;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(94,234,212,0.25) 0, transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(129,140,248,0.30) 0, transparent 55%),
+    linear-gradient(135deg, rgba(15,23,42,0.96), rgba(30,64,175,0.96));
+  box-shadow:
+    0 24px 55px rgba(15,23,42,0.75),
+    0 0 0 1px rgba(148,163,184,0.55);
+  color:#e5e7eb;
+  backdrop-filter:blur(20px);
+}
+body[data-module="HelpDesk"] .tickets-detail-header::before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(248,250,252,0.40) 0, transparent 45%),
+    radial-gradient(circle at 100% 80%, rgba(56,189,248,0.30) 0, transparent 45%);
+  opacity:0.9;
+}
+body[data-module="HelpDesk"] .tickets-detail-header > .left-block,
+body[data-module="HelpDesk"] .tickets-detail-header > .right-block{
+  position:relative;
+  z-index:1;
+}
+body[data-module="HelpDesk"] .tickets-detail-header .ticket-code{
+  display:inline-flex;
+  align-items:center;
+  padding:4px 12px;
+  border-radius:999px;
+  font-size:11px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:#e5e7eb;
+  background:linear-gradient(135deg,rgba(15,23,42,0.9),rgba(79,70,229,1));
+  box-shadow:0 8px 18px rgba(15,23,42,0.75);
+}
+body[data-module="HelpDesk"] .tickets-detail-header .ticket-subject{
+  margin-top:10px;
+  font-size:26px;
+  font-weight:700;
+  letter-spacing:.01em;
+  color:#f9fafb;
+  text-shadow:0 10px 25px rgba(15,23,42,0.7);
+}
+body[data-module="HelpDesk"] .tickets-detail-header .ticket-meta{
+  margin-top:8px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 18px;
+}
+body[data-module="HelpDesk"] .tickets-detail-header .ticket-meta .meta-item{
+  font-size:11px;
+  color:#e5e7eb;
+  opacity:.95;
+}
+body[data-module="HelpDesk"] .tickets-detail-header .ticket-meta .label{
+  text-transform:uppercase;
+  letter-spacing:.09em;
+  color:#c7d2fe;
+  opacity:.9;
+  margin-right:4px;
+}
+body[data-module="HelpDesk"] .tickets-detail-header .badge{
+  position:relative;
+  z-index:1;
+}
+body[data-module="HelpDesk"] .tickets-detail-header .right-block{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:10px;
+}
+body[data-module="HelpDesk"] .tickets-detail-header .right-block .badge{
+  border-radius:999px;
+  padding:6px 14px;
+  font-size:11px;
+  box-shadow:0 10px 24px rgba(15,23,42,0.7);
+}
+
+/* TABS – Overview / Activity / Files / Time Logs (simple, flat – no heavy effects) */
+body[data-module="HelpDesk"] .tickets-detail-tabs{
+  margin-top:16px;
+  border-bottom:1px solid rgba(148,163,184,0.35);
+  display:flex;
+  gap:0;
+  padding:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+body[data-module="HelpDesk"] .tickets-detail-tabs>li{
+  float:none;
+  margin:0 !important;
+}
+body[data-module="HelpDesk"] .tickets-detail-tabs>li>a{
+  position:relative;
+  border:none !important;
+  border-radius:0;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.10em;
+  padding:10px 18px;
+  height:auto;
+  line-height:1;
+  white-space:nowrap;
+  font-weight:600;
+  color:#6b7280;
+  background:transparent;
+  box-shadow:none;
+  transition:none;
+}
+body[data-module="HelpDesk"] .tickets-detail-tabs>li>a::after{
+  content:"";
+  position:absolute;
+  left:12px;
+  right:12px;
+  bottom:-1px;
+  height:2px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#6366f1,#22c55e);
+  opacity:0;
+}
+body[data-module="HelpDesk"] .tickets-detail-tabs>li>a:hover{
+  color:#111827;
+  background:transparent;
+}
+body[data-module="HelpDesk"] .tickets-detail-tabs>li.active>a,
+body[data-module="HelpDesk"] .tickets-detail-tabs>li.active>a:focus,
+body[data-module="HelpDesk"] .tickets-detail-tabs>li.active>a:hover{
+  color:#111827;
+  background:transparent;
+}
+body[data-module="HelpDesk"] .tickets-detail-tabs>li.active>a::after{
+  opacity:1;
+}
+
+body[data-module="HelpDesk"] .tickets-detail-tab-content{
+  margin-top:16px;
+}
+
+/* OVERVIEW / FILES / TIME CARDS – glass panels */
+body[data-module="HelpDesk"] #ticket-overview .panel,
+body[data-module="HelpDesk"] #ticket-files .panel,
+body[data-module="HelpDesk"] #ticket-time .panel{
+  border-radius:18px;
+  border:1px solid rgba(148,163,184,.55);
+  box-shadow:0 18px 40px rgba(15,23,42,.32);
+  background:
+    radial-gradient(circle at 0% 0%,rgba(248,250,252,0.95) 0,rgba(239,246,255,0.98) 40%,rgba(224,231,255,0.98) 100%);
+}
+body[data-module="HelpDesk"] #ticket-overview .panel-heading,
+body[data-module="HelpDesk"] #ticket-files .panel-heading,
+body[data-module="HelpDesk"] #ticket-time .panel-heading{
+  border-bottom:1px solid rgba(148,163,184,.55);
+  background:linear-gradient(135deg,#eff6ff,#e0f2fe);
+}
+body[data-module="HelpDesk"] #ticket-overview .panel-title,
+body[data-module="HelpDesk"] #ticket-files .panel-title,
+body[data-module="HelpDesk"] #ticket-time .panel-title{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.09em;
+  color:#475569;
+}
+
+/* ACTIVITY TIMELINE as CARDS – futuristic chips */
+body[data-module="HelpDesk"] .tickets-activity-timeline{
+  margin:0;
+  padding:0;
+}
+body[data-module="HelpDesk"] .tickets-activity-timeline .timeline-item{
+  position:relative;
+  padding:8px 12px 8px 24px;
+  margin-bottom:10px;
+  border-radius:16px;
+  background:rgba(255,255,255,.98);
+  box-shadow:0 14px 32px rgba(15,23,42,.26);
+  overflow:hidden;
+  transition:transform .12s ease, box-shadow .18s ease, background .18s ease;
+}
+body[data-module="HelpDesk"] .tickets-activity-timeline .timeline-item::before{
+  content:"";
+  position:absolute;
+  left:10px;
+  top:10px;
+  width:3px;
+  height:72%;
+  background:linear-gradient(180deg,#6366f1,#22c55e);
+  opacity:.9;
+}
+body[data-module="HelpDesk"] .tickets-activity-timeline .timeline-item:hover{
+  background:rgba(248,250,252,1);
+  box-shadow:0 18px 40px rgba(15,23,42,.32);
+  transform:translateY(-1px);
+}
+body[data-module="HelpDesk"] .tickets-activity-timeline .timeline-item .time{
+  font-size:11px;
+  color:#6b7280;
+}
+body[data-module="HelpDesk"] .tickets-activity-timeline .timeline-item .main .user{
+  font-weight:600;
+  color:#111827;
+  margin-right:6px;
+}
+body[data-module="HelpDesk"] .tickets-activity-timeline .timeline-item .main .action{
+  font-size:11px;
+  padding:2px 8px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#4338ca;
+}
+body[data-module="HelpDesk"] .tickets-activity-timeline .timeline-item .values{
+  margin-top:3px;
+  font-size:11px;
+  color:#4b5563;
+  word-break:break-all;
+}
+
+/* ========== SUPPORT RULES – LIST & EDIT PAGES ========== */
+
+body[data-module="HelpDesk"] .support-rules-wrapper {
+  padding:18px 20px;
+}
+body[data-module="HelpDesk"] .support-rules-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+}
+body[data-module="HelpDesk"] .support-rules-header .title{
+  font-size:18px;
+  font-weight:700;
+  color:#0f172a;
+}
+body[data-module="HelpDesk"] .support-rules-header .subtitle{
+  font-size:12px;
+  color:#6b7280;
+  margin-top:4px;
+}
+body[data-module="HelpDesk"] .support-rules-panel{
+  border-radius:16px;
+  border:1px solid rgba(148,163,184,.45);
+  box-shadow:0 12px 30px rgba(15,23,42,.18);
+}
+body[data-module="HelpDesk"] .support-rules-panel>.panel-heading{
+  border-bottom:1px solid rgba(148,163,184,.35);
+  background:linear-gradient(135deg,#eff6ff,#e0f2fe);
+}
+body[data-module="HelpDesk"] .support-rules-panel .panel-title{
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#475569;
+}
+body[data-module="HelpDesk"] .support-rules-table th{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#64748b;
+  border-bottom:none;
+}
+body[data-module="HelpDesk"] .support-rules-table td{
+  font-size:12px;
+  vertical-align:middle !important;
+}
+body[data-module="HelpDesk"] .support-rules-table tbody tr:hover{
+  background:rgba(129,140,248,0.04);
+}
+body[data-module="HelpDesk"] .support-rules-table .badge-rule-type{
+  background:#e0f2fe;
+  color:#075985;
+  border-radius:999px;
+  font-size:10px;
+  padding:3px 8px;
+}
+
+/* FILES / TIME TABLES */
+body[data-module="HelpDesk"] #ticket-files table,
+body[data-module="HelpDesk"] #ticket-time table{
+  margin-bottom:0;
+}
+body[data-module="HelpDesk"] #ticket-files thead tr,
+body[data-module="HelpDesk"] #ticket-time thead tr{
+  background:linear-gradient(135deg,#0f172a,#1f2937);
+  color:#e5e7eb;
+}
+body[data-module="HelpDesk"] #ticket-files th,
+body[data-module="HelpDesk"] #ticket-time th{
+  border:none !important;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+body[data-module="HelpDesk"] #ticket-files tbody tr:hover,
+body[data-module="HelpDesk"] #ticket-time tbody tr:hover{
+  background:rgba(129,140,248,0.06);
+}
+
+/* ------------------------------------------------------------
+ * APP MENU – giữ vị trí nhưng không ép hiển thị (tránh trùng menu ngang)
+ * ------------------------------------------------------------ */
+body[data-module="HelpDesk"] #app-menu {
+  left: 0 !important;
+  top: 134px !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+}
+
+/* Khoảng hở để nội dung không bị che bởi thanh nav/menu */
+body[data-app="SUPPORT"] .main-container,
+body[data-module="HelpDesk"] .main-container,
+body[data-module="Rules"] .main-container {
+  padding-top: 170px !important;
+}
+
+/* Rule page wrapper spacing */
+body[data-module="HelpDesk"] .support-rules-wrapper {
+  padding-top: 16px;
+}
+
+/* RIGHT SIDE CARDS: Assignments / SLA / Status & Time */
+body[data-module="HelpDesk"] .tickets-detail-side .panel{
+  border-radius:16px;
+  border:1px solid rgba(148,163,184,.5);
+  box-shadow:0 12px 30px rgba(15,23,42,.20);
+}
+body[data-module="HelpDesk"] .tickets-detail-side .panel-heading{
+  background:linear-gradient(135deg,#eff6ff,#ede9fe);
+  border-bottom:1px solid rgba(148,163,184,.4);
+}
+body[data-module="HelpDesk"] .tickets-detail-side .panel-title{
+  font-size:12px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#475569;
+}
+
+
 /* ========== Project & ProjectTask – căn giữa header + nút trong app-nav (theo AI) ========== */
 
 /* Breadcrumb Project(s) > All – đồng bộ chiều cao với khối nút bên phải */
@@ -11481,4 +12234,328 @@ body[data-module="ProjectTask"] .app-nav div#appnav div.btn span[class*="fa"],
 body[data-module="ProjectTask"] .app-nav div#appnav div.btn svg {
     vertical-align: middle;
     transform: translateY(1px);
+}
+
+/* ========== HelpDesk / Tickets – modern futuristic UI ========== */
+
+/* List + Detail wrapper background */
+body[data-module="HelpDesk"] .tickets-modern-wrapper,
+body[data-module="HelpDesk"] .tickets-detail-wrapper {
+    background: radial-gradient(circle at top left, #f9fafb 0%, #e5e7eb 40%, #eef2ff 100%);
+    padding-top: 8px;
+    padding-bottom: 16px;
+}
+
+/* Filter sidebar card */
+body[data-module="HelpDesk"] .tickets-filter-card {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.20);
+    background: linear-gradient(145deg, rgba(15,23,42,0.96), rgba(30,64,175,0.98));
+    color: #e5e7eb;
+}
+body[data-module="HelpDesk"] .tickets-filter-card .panel-heading {
+    background: transparent;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+}
+body[data-module="HelpDesk"] .tickets-filter-card .panel-title {
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: #bfdbfe;
+}
+body[data-module="HelpDesk"] .tickets-filter-card label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #cbd5f5;
+}
+body[data-module="HelpDesk"] .tickets-filter-card .form-control {
+    border-radius: 999px;
+    border-color: rgba(148, 163, 184, 0.6);
+    background: rgba(15,23,42,0.9);
+    color: #e5e7eb;
+}
+body[data-module="HelpDesk"] .tickets-filter-card .btn-primary {
+    border-radius: 999px;
+    background: linear-gradient(135deg, #6366f1, #22c55e);
+    border: none;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+}
+body[data-module="HelpDesk"] .tickets-filter-card .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.55);
+}
+
+/* Stat cards */
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-card {
+    border-radius: 16px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.88);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-card .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.22);
+}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-priority .value .prio {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    margin-right: 4px;
+}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-priority .prio-critical { background:#fee2e2;color:#b91c1c;}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-priority .prio-high { background:#ffedd5;color:#c2410c;}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-priority .prio-medium { background:#e0f2fe;color:#075985;}
+body[data-module="HelpDesk"] .tickets-stats-row .tickets-stat-priority .prio-low { background:#dcfce7;color:#166534;}
+
+/* Tickets table */
+body[data-module="HelpDesk"] .tickets-table-panel {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+body[data-module="HelpDesk"] .tickets-table-panel .panel-heading {
+    background: linear-gradient(135deg, #111827, #1f2937);
+    color: #e5e7eb;
+}
+body[data-module="HelpDesk"] .tickets-table-panel .panel-title {
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+body[data-module="HelpDesk"] .tickets-table-panel .btn-success {
+    border-radius: 999px;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    border: none;
+    font-weight: 600;
+}
+body[data-module="HelpDesk"] .tickets-table-panel .btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(34,197,94,0.55);
+}
+body[data-module="HelpDesk"] .tickets-table tbody tr:hover {
+    background: rgba(239, 246, 255, 0.8);
+}
+body[data-module="HelpDesk"] .tickets-table .ticket-code-link {
+    font-weight: 600;
+    color: #1d4ed8;
+}
+body[data-module="HelpDesk"] .tickets-table .ticket-code-link:hover {
+    text-decoration: underline;
+}
+
+/* Priority & Status badges */
+body[data-module="HelpDesk"] .badge-priority {
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 10px;
+}
+body[data-module="HelpDesk"] .badge-priority-critical { background:#fee2e2;color:#b91c1c;}
+body[data-module="HelpDesk"] .badge-priority-high { background:#ffedd5;color:#c2410c;}
+body[data-module="HelpDesk"] .badge-priority-medium { background:#e0f2fe;color:#0369a1;}
+body[data-module="HelpDesk"] .badge-priority-low { background:#dcfce7;color:#166534;}
+
+body[data-module="HelpDesk"] .badge-status {
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 10px;
+}
+body[data-module="HelpDesk"] .badge-status-open { background:#eef2ff;color:#3730a3;}
+body[data-module="HelpDesk"] .badge-status-in_progress { background:#fef3c7;color:#92400e;}
+body[data-module="HelpDesk"] .badge-status-resolved { background:#dcfce7;color:#166534;}
+body[data-module="HelpDesk"] .badge-status-closed { background:#e5e7eb;color:#111827;}
+
+/* SLA badge pulse when overdue */
+body[data-module="HelpDesk"] .sla-badge {
+    display:inline-block;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius:999px;
+    background:#e0f2fe;
+    color:#075985;
+}
+body[data-module="HelpDesk"] .sla-badge.sla-overdue {
+    background:#fee2e2;
+    color:#b91c1c;
+    box-shadow:0 0 0 0 rgba(248,113,113,0.7);
+    animation:sla-pulse 1.2s infinite;
+}
+@keyframes sla-pulse {
+    0% { box-shadow:0 0 0 0 rgba(248,113,113,0.7);}
+    70%{ box-shadow:0 0 0 8px rgba(248,113,113,0);}
+    100%{ box-shadow:0 0 0 0 rgba(248,113,113,0);}
+}
+
+/* Detail header and tabs */
+/* (old simple header styles for HelpDesk detail header were here – replaced by futuristic card above) */
+
+/* ========== ACTIVITIES (placeholder) – ép hiện menu + thanh nav ========= */
+body[data-module="Activities"] #app-menu,
+body[data-module="Activities"] .app-menu {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 99999 !important;
+    top: 157px !important;
+    left: 0 !important;
+}
+body[data-module="Activities"] .container-fluid.app-nav {
+    position: fixed;
+    top: 118px;
+    left: 0;
+    width: 100%;
+    z-index: 99998;
+    padding: 8px 14px !important;
+    margin: 0 !important;
+    background: linear-gradient(135deg, rgba(248,250,252,0.96), rgba(226,232,240,0.96));
+    border: none !important;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.10);
+}
+body[data-module="Activities"] .app-nav .module-action-bar {
+    border: none !important;
+    box-shadow: none !important;
+    height: auto !important;
+}
+body[data-module="Activities"] .app-nav .row {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+body[data-module="Activities"] .app-nav .module-action-content {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 16px !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+body[data-module="Activities"] .app-nav .module-action-content > .pull-right {
+    margin-left: auto !important;
+}
+
+/* ========= ACTIVITIES FUTURISTIC UI ========= */
+body[data-module="Activities"] .activities-page {
+    padding-top: 16px !important;
+}
+body[data-module="Activities"] .activities-card {
+    border: 1px solid rgba(99, 102, 241, 0.25) !important;
+    background: linear-gradient(135deg, rgba(15,23,42,0.92), rgba(30,41,59,0.92)) !important;
+    box-shadow: 0 18px 35px rgba(2,6,23,0.45), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+    border-radius: 16px !important;
+    overflow: hidden;
+}
+body[data-module="Activities"] .activities-card .panel-heading {
+    background: linear-gradient(90deg, rgba(59,130,246,0.25), rgba(168,85,247,0.22)) !important;
+    border-bottom: 1px solid rgba(148,163,184,0.22) !important;
+}
+body[data-module="Activities"] .activities-card .panel-title {
+    color: #eef2ff !important;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+body[data-module="Activities"] .activities-card .panel-body {
+    color: #e2e8f0;
+}
+body[data-module="Activities"] .activities-filter-form .form-group {
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+body[data-module="Activities"] .activities-filter-form label {
+    color: #cbd5e1;
+    font-size: 11px;
+    margin-right: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+body[data-module="Activities"] .activities-filter-form .form-control {
+    background: rgba(15,23,42,0.7);
+    border: 1px solid rgba(99,102,241,0.35);
+    color: #e2e8f0;
+    border-radius: 10px;
+}
+body[data-module="Activities"] .activities-filter-form .btn-primary,
+body[data-module="Activities"] .activities-edit-wrapper .btn-primary,
+body[data-module="Activities"] .activities-detail-wrapper .btn-primary {
+    border: none !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+    box-shadow: 0 10px 24px rgba(59,130,246,0.35);
+}
+body[data-module="Activities"] .activities-filter-form .btn-default,
+body[data-module="Activities"] .activities-detail-wrapper .btn-default {
+    border-radius: 999px !important;
+    border: 1px solid rgba(148,163,184,0.35) !important;
+    background: rgba(15,23,42,0.45) !important;
+    color: #e2e8f0 !important;
+}
+body[data-module="Activities"] .activities-filter-form .btn-link {
+    color: #93c5fd !important;
+}
+body[data-module="Activities"] .activities-table thead th {
+    background: linear-gradient(90deg, rgba(30,41,59,0.95), rgba(17,24,39,0.95)) !important;
+    color: #c7d2fe !important;
+    border-color: rgba(71,85,105,0.6) !important;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+body[data-module="Activities"] .activities-table tbody td {
+    border-color: rgba(71,85,105,0.45) !important;
+    background: rgba(15,23,42,0.35);
+}
+body[data-module="Activities"] .activities-table tbody tr:hover td {
+    background: rgba(30,41,59,0.72) !important;
+}
+body[data-module="Activities"] .activities-table a {
+    color: #93c5fd;
+}
+body[data-module="Activities"] .activities-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+body[data-module="Activities"] .activities-status-scheduled {
+    background: rgba(59,130,246,0.18);
+    color: #93c5fd;
+    box-shadow: inset 0 0 0 1px rgba(59,130,246,0.45);
+}
+body[data-module="Activities"] .activities-status-ready {
+    background: rgba(250,204,21,0.2);
+    color: #fcd34d;
+    box-shadow: inset 0 0 0 1px rgba(250,204,21,0.45);
+}
+body[data-module="Activities"] .activities-status-completed {
+    background: rgba(16,185,129,0.2);
+    color: #6ee7b7;
+    box-shadow: inset 0 0 0 1px rgba(16,185,129,0.45);
+}
+body[data-module="Activities"] .activities-status-skipped {
+    background: rgba(244,63,94,0.18);
+    color: #fda4af;
+    box-shadow: inset 0 0 0 1px rgba(244,63,94,0.45);
 }
