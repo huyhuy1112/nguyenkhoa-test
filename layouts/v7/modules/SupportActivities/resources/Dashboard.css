@@ -1,0 +1,154 @@
+.listViewPageDiv.support-activities-page {
+  margin-top: 65px;
+  padding: 20px;
+  background: #f3f6ff;
+  border-radius: 14px;
+  border: 1px solid #dce4f5;
+}
+
+.listViewPageDiv.support-activities-page .module-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 5px;
+  color: #1f2937;
+  text-shadow: none;
+}
+
+.listViewPageDiv.support-activities-page .muted {
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Statistic cards */
+.listViewPageDiv.support-activities-page .well.well-small {
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #dbe3f5;
+  padding: 12px;
+  box-shadow: 0 8px 18px rgba(31, 41, 55, 0.08);
+  margin-bottom: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.listViewPageDiv.support-activities-page .well.well-small:hover {
+  transform: translateY(-2px);
+  border-color: #93c5fd;
+  box-shadow: 0 12px 22px rgba(31, 41, 55, 0.12);
+}
+
+.listViewPageDiv.support-activities-page .well.well-small .muted {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.listViewPageDiv.support-activities-page .well.well-small > div:last-child {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  text-shadow: none;
+}
+
+/* Table shell */
+.listViewPageDiv.support-activities-page .table-container {
+  margin-top: 15px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #dbe3f5;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(31, 41, 55, 0.08);
+}
+
+.listViewPageDiv.support-activities-page .listViewEntriesTable {
+  margin-bottom: 0;
+  color: #1f2937;
+  font-size: 13px;
+}
+
+.listViewPageDiv.support-activities-page .listViewEntriesTable thead {
+  background: #eef2ff;
+}
+
+.listViewPageDiv.support-activities-page .listViewEntriesTable th {
+  font-weight: 600;
+  padding: 10px;
+  border-bottom: 1px solid #d5def3;
+  color: #1f2937;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-size: 12px;
+}
+
+.listViewPageDiv.support-activities-page .listViewEntriesTable td {
+  padding: 10px;
+  vertical-align: middle;
+  border-top: 1px solid #e6ecfa;
+  color: #1f2937;
+}
+
+.listViewPageDiv.support-activities-page .listViewEntriesTable tbody tr:hover {
+  background: #f5f7fa;
+}
+
+.listViewPageDiv.support-activities-page .listViewEntriesTable a {
+  font-weight: 500;
+  color: #1d4ed8;
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+.listViewPageDiv.support-activities-page .listViewEntriesTable a:hover {
+  color: #1e40af;
+  text-shadow: none;
+}
+
+/* Activity tags */
+.listViewPageDiv.support-activities-page .sa-tag {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.listViewPageDiv.support-activities-page .activity-tag-task {
+  background: rgba(0, 212, 255, 0.16);
+  color: #84f2ff;
+  border-color: rgba(0, 212, 255, 0.45);
+}
+
+.listViewPageDiv.support-activities-page .activity-tag-meeting {
+  background: rgba(57, 255, 164, 0.14);
+  color: #75ffbd;
+  border-color: rgba(57, 255, 164, 0.4);
+}
+
+.listViewPageDiv.support-activities-page .activity-tag-call {
+  background: rgba(187, 134, 252, 0.16);
+  color: #dab9ff;
+  border-color: rgba(187, 134, 252, 0.42);
+}
+
+.listViewPageDiv.support-activities-page .activity-tag-anniversary {
+  background: rgba(255, 208, 73, 0.16);
+  color: #ffd773;
+  border-color: rgba(255, 208, 73, 0.5);
+}
+
+.listViewPageDiv.support-activities-page .activity-tag-default {
+  background: rgba(149, 165, 166, 0.16);
+  color: #d3dee2;
+  border-color: rgba(149, 165, 166, 0.4);
+}
+
+/* Optional decorative mode from devtools experiment */
+.listViewPageDiv.support-activities-page.ai-style-change-3 .contentsDiv > * {
+  background-color: #f3e5f5;
+  border: 1px solid #ce93d8;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
+

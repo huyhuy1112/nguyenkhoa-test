@@ -1,56 +1,39 @@
 <?php
 /*+***********************************************************************************
- * Activities_Detail_View – show one activity.
- * URL: index.php?module=Activities&view=Detail&record=ID
+ * Support_Activities_View
+ * Dedicated Support activities dashboard.
  ************************************************************************************/
 
-class Activities_Detail_View extends Vtiger_Detail_View {
-	public function requiresPermission(Vtiger_Request $request) {
-		return [];
-	}
+require_once 'modules/Support/models/Activities.php';
 
-	public function checkPermission(Vtiger_Request $request) {
-		return true;
-	}
+class Support_Activities_View extends Vtiger_Index_View {
 
 	public function process(Vtiger_Request $request) {
-		$recordId = (int)$request->get('record');
-		$adb = PearDatabase::getInstance();
-		$row = null;
-
-		if ($recordId > 0) {
-			$res = $adb->pquery(
-				"SELECT a.*, ce.smownerid, ce.createdtime,
-				        u.first_name, u.last_name,
-				        org.accountname AS org_name,
-				        pr.projectname AS project_name
-				   FROM vtiger_activities a
-				   JOIN vtiger_crmentity ce ON ce.crmid = a.activityid AND ce.deleted = 0
-				   LEFT JOIN vtiger_users u ON u.id = ce.smownerid
-				   LEFT JOIN vtiger_account org ON org.accountid = a.organizationid
-				   LEFT JOIN vtiger_project pr ON pr.projectid = a.projectid
-				  WHERE a.activityid = ?",
-				[$recordId]
-			);
-			if ($res && $adb->num_rows($res) > 0) {
-				$row = $adb->fetchByAssoc($res);
-			}
-		}
-
-		if ($row === null) {
-			header('Location: index.php?module=Activities&view=List&app=SUPPORT');
-			exit;
-		}
-
 		$viewer = $this->getViewer($request);
-		$viewer->assign('MODULE', 'Activities');
-		$viewer->assign('RECORD', $row);
-		$viewer->view('Detail.tpl', 'Activities');
+		$fromDate = trim((string)$request->get('from_date'));
+		$fromDate = $fromDate !== '' ? $fromDate : null;
+		$data = Support_Activities_Model::getUpcomingData($fromDate, 0);
+
+		$viewer->assign('MODULE', $request->getModule());
+		$viewer->assign('SUPPORT_ACTIVITIES_DATA', $data);
+		$viewer->assign('SUPPORT_ACTIVITIES_FROM_DATE', $fromDate);
+		$viewer->view('Activities.tpl', 'Support');
+	}
+
+	public function getHeaderScripts(Vtiger_Request $request) {
+		$headerScriptInstances = parent::getHeaderScripts($request);
+		$jsFileNames = array(
+			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/Support/resources/Activities.js',
+		);
+		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+		return array_merge($headerScriptInstances, $jsScriptInstances);
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {
 		$headerCssInstances = parent::getHeaderCss($request);
 		$cssFileNames = $this->getActivitiesCoreCssFiles();
+		$cssFileNames[] = '~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/SupportActivities/resources/Dashboard.css';
+		$cssFileNames[] = '~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/Support/resources/Activities.css';
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 		return array_merge($headerCssInstances, $cssInstances);
 	}
@@ -86,3 +69,4 @@ class Activities_Detail_View extends Vtiger_Detail_View {
 		return array_values(array_unique($cssFileNames));
 	}
 }
+
