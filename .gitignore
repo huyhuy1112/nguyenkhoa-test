@@ -24,6 +24,11 @@ logs/
 *.log.*
 
 # Runtime/generated files
+user_privileges/*
+!user_privileges/index.html
+cache/*
+storage/*
+test/*
 storage/202*/
 storage/vtiger.txt
 test/
