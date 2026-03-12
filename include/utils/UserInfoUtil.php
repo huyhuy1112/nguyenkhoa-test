@@ -298,6 +298,59 @@ function isPermitted($module,$actionname,$record_id='')
 	$actionid=getActionid($actionname);
 	$checkModule = $module;
 
+	// === Custom Sale-tag visibility rule (Contacts only) ===========================
+	// Hide Contacts tagged with "Sale" from non-Sale users, but do NOT affect popups.
+	if ($module === 'Contacts' && !empty($record_id)) {
+		// Detect popup / reference lookup requests and skip custom restriction there
+		$requestView = strtolower(isset($_REQUEST['view']) ? $_REQUEST['view'] : '');
+		$requestMode = strtolower(isset($_REQUEST['mode']) ? $_REQUEST['mode'] : '');
+		$requestActionReq = strtolower(isset($_REQUEST['action']) ? $_REQUEST['action'] : '');
+		$isPopupLookup = (
+			$requestView === 'popup' ||
+			$requestMode === 'popup' ||
+			$requestActionReq === 'basicajax' ||
+			$requestMode === 'basicajax'
+		);
+
+		if (!$isPopupLookup && empty($is_admin)) {
+			// Only apply to real record access actions
+			$restrictedActionsForSale = array('DetailView','EditView','Save','SaveAjax');
+			$actionNameResolved = getActionname($actionid);
+
+			if (in_array($actionNameResolved, $restrictedActionsForSale)) {
+				// Determine if current user is in a Sales role (role name contains "Sale")
+				$isSaleUser = false;
+				if (isset($current_user_roles)) {
+					$roleName = getRoleName($current_user_roles);
+					if (!empty($roleName) && stripos($roleName, 'sale') !== false) {
+						$isSaleUser = true;
+					}
+				}
+
+				if (!$isSaleUser) {
+					// Check if this Contact has tag "Sale"
+					$saleTagExists = false;
+					$saleTagCheck = $adb->pquery(
+						"SELECT 1
+						   FROM vtiger_freetagged_objects o
+						   INNER JOIN vtiger_freetags t ON t.id = o.tag_id
+						  WHERE o.object_id = ? AND o.module = ? AND t.tag = ?",
+						array($record_id, 'Contacts', 'Sale')
+					);
+					if ($saleTagCheck && $adb->num_rows($saleTagCheck) > 0) {
+						$saleTagExists = true;
+					}
+
+					if ($saleTagExists) {
+						$log->debug('isPermitted: denying access to Contacts record '.$record_id.' due to Sale tag visibility rules');
+						return 'no';
+					}
+				}
+			}
+		}
+	}
+	// =====================================================================
+
 	if($checkModule == 'Events'){
 		$checkModule = 'Calendar';
 	}
