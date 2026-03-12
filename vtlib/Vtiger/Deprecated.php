@@ -423,8 +423,6 @@ class Vtiger_Deprecated {
 			$use_root_directory = realpath(dirname(__FILE__) . '/../../.');
 		}
 
-		$unsafeDirectories = array('storage', 'cache', 'test');
-
 		$realfilepath = realpath($filepath);
 
 		/** Replace all \\ with \ first */
@@ -435,10 +433,7 @@ class Vtiger_Deprecated {
 		$realfilepath = str_replace('\\', '/', $realfilepath);
 		$rootdirpath = str_replace('\\', '/', $rootdirpath);
 
-		$relativeFilePath = str_replace($rootdirpath, '', $realfilepath);
-		$filePathParts = explode('/', $relativeFilePath);
-
-		if (stripos($realfilepath, $rootdirpath) !== 0 || in_array($filePathParts[0], $unsafeDirectories)) {
+		if (stripos($realfilepath, $rootdirpath) !== 0) {
 			$a = debug_backtrace();
                         $backtrace = 'Traced on '.date('Y-m-d H:i:s')."\n";
                         $backtrace .= "FileAccessForInclusion - \n";
