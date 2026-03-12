@@ -116,6 +116,28 @@ chmod -R 755 cache/
 
 ## 🔧 FIX CÁC LỖI THƯỜNG GẶP
 
+### Lỗi: `Your local changes ... would be overwritten by merge` (cPanel git pull)
+
+**Nguyên nhân:** Vtiger tự sinh các file trong `user_privileges/` (vd: `user_privileges_5.php`). Trên production các file này có thể bị Git “track” từ các bản deploy cũ, nên khi `git pull` sẽ bị chặn nếu file đã bị thay đổi cục bộ.
+
+**Fix nhanh (khuyến nghị):**
+
+```bash
+# Chạy script dọn file sinh tự động trước khi pull
+bash production_cleanup_before_pull.sh
+
+# Sau đó pull lại branch bạn deploy
+git pull origin huy-dev
+```
+
+**Nếu không dùng script, chạy lệnh thủ công:**
+
+```bash
+git checkout -- user_privileges/*.php
+rm -f user_privileges/user_privileges_*.php user_privileges/sharing_privileges_*.php user_privileges/menu_*.php
+git pull origin huy-dev
+```
+
 ### Lỗi 1: HTTP 500 Internal Server Error
 
 **Nguyên nhân:** Config sai hoặc permissions sai

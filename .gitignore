@@ -97,6 +97,7 @@ restore_*.php
 export_*.php
 backup_*.php
 *.sh
+!production_cleanup_before_pull.sh
 
 # Allow WHITE_SCREEN_FIX tools
 !WHITE_SCREEN_FIX/*.php
