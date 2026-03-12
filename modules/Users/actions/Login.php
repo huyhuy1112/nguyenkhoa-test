@@ -22,6 +22,13 @@ class Users_Login_Action extends Vtiger_Action_Controller {
 		$username = $request->get('username');
 		$password = $request->getRaw('password');
 
+		// Ensure we don't reuse an existing authenticated session
+		// (prevents UI showing previous account after logging in as another user).
+		if (Vtiger_Session::get('AUTHUSERID')) {
+			Vtiger_Session::destroy();
+			Vtiger_Session::init();
+		}
+
 		$user = CRMEntity::getInstance('Users');
 		$user->column_fields['user_name'] = $username;
 

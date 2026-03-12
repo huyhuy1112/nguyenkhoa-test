@@ -25,6 +25,14 @@ class Users_Logout_Action extends Vtiger_Action_Controller {
 		session_regenerate_id(true);
 		Vtiger_Session::destroy();
 
+		// Also clear session cookie in browser to avoid stale session reuse
+		if (function_exists('session_name')) {
+			$cookieName = session_name();
+			if (!empty($cookieName) && isset($_COOKIE[$cookieName])) {
+				setcookie($cookieName, '', time() - 3600, '/');
+			}
+		}
+
 		if(!empty($logoutURL)) {
 			header('Location: '.$logoutURL);
 			exit();
