@@ -1,0 +1,21 @@
+# node_modules
+# node_modules
+vendor
+cache
+templates_c
+storage
+logs
+.git
+.idea
+.vscode
+Docker
+docker
+checkpoints
+backup
+test/templates_c
+user_privileges/menu_*.php
+user_privileges/user_privileges_*.php
+user_privileges/sharing_privileges_*.php
+vtiger_upload_fix
+*.log
+*.sql
