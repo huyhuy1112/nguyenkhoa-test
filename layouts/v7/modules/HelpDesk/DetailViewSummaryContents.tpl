@@ -40,6 +40,14 @@
                        href="index.php?module=Activities&view=List&app=SUPPORT">
                         Activities
                     </a>
+                    {if !empty($DETAILVIEWBASIC_LINKS)}
+                        {foreach from=$DETAILVIEWBASIC_LINKS item=L}
+                            <a class="btn btn-default btn-sm" style="margin-right:8px;"
+                               href="{$L.url}">
+                                {$L.label|escape}
+                            </a>
+                        {/foreach}
+                    {/if}
                     <span class="badge badge-priority badge-priority-{$TICKET.priority|lower}">
                         {$TICKET.priority}
                     </span>

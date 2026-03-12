@@ -238,6 +238,29 @@ class HelpDesk_TicketDetail_View extends Vtiger_Index_View {
 		$viewer->assign('RELATED_ACTIVITIES', $relatedActivities);
 		$viewer->assign('ACTIVITY_STATUS_OPTIONS', ['Scheduled','Ready','Completed','Skipped']);
 
+		// Render DETAILVIEWBASIC buttons via vtiger_links for this custom TicketDetail page
+		$basicLinks = [];
+		$tabId = getTabid('HelpDesk');
+		$linkRes = $db->pquery(
+			"SELECT linklabel, linkurl
+			   FROM vtiger_links
+			  WHERE tabid = ? AND linktype = 'DETAILVIEWBASIC'
+			  ORDER BY sequence, linkid",
+			[$tabId]
+		);
+		if ($linkRes && $db->num_rows($linkRes) > 0) {
+			while ($row = $db->fetchByAssoc($linkRes)) {
+				$url = (string)$row['linkurl'];
+				$url = str_replace('$RECORD$', (string)$recordId, $url);
+				$url = str_replace('$MODULE$', 'HelpDesk', $url);
+				$basicLinks[] = [
+					'label' => (string)$row['linklabel'],
+					'url' => $url,
+				];
+			}
+		}
+		$viewer->assign('DETAILVIEWBASIC_LINKS', $basicLinks);
+
 		$viewer->view('DetailViewSummaryContents.tpl', $request->getModule());
 	}
 }
