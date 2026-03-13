@@ -460,7 +460,12 @@ function isPermitted($module,$actionname,$record_id='')
 			$recOwnId=$id;
 		}
 		//Retreiving the default Organisation sharing Access
-		$others_permission_id = $defaultOrgSharingPermission[$tabid];
+		// In some environments custom modules (e.g. tabid 61 for SupportFAQ) might
+		// not have an entry in $defaultOrgSharingPermission yet. Avoid PHP warnings
+		// and treat missing key as most-open (0) by default.
+		$others_permission_id = isset($defaultOrgSharingPermission[$tabid])
+			? $defaultOrgSharingPermission[$tabid]
+			: 0;
 
 		if($recOwnType == 'Users')
 		{
