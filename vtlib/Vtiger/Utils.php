@@ -370,8 +370,14 @@ class Vtiger_Utils {
      */
     public static function writeLogFile($logFileName, $log) {
         if ($logFileName && $log) {
-            $logFilePath = self::$logFolder . '/' . $logFileName;
-            file_put_contents($logFilePath, print_r($log, true).PHP_EOL, FILE_APPEND);
+            $logDir = self::$logFolder ?: 'logs';
+            // Ensure logs directory exists to avoid warnings on shared hosting
+            if (!is_dir($logDir)) {
+                @mkdir($logDir, 0755, true);
+            }
+            $logFilePath = rtrim($logDir, '/'). '/' . $logFileName;
+            // Suppress warning if filesystem is read-only; logging should never break the app
+            @file_put_contents($logFilePath, print_r($log, true).PHP_EOL, FILE_APPEND);
         }
     }
 }
