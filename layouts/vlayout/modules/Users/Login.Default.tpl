@@ -39,7 +39,7 @@
 		<div class="container-fluid login-container">
 			<div class="row-fluid">
 				<div class="span3">
-					<div class="logo"><img src="layouts/vlayout/skins/images/logo.png">
+					<div class="logo"><img src="layouts/v7/resources/Images/bace-login-logo.png">
 					<br />
 					<a target="_blank" href="http://{$COMPANY_DETAILSCOMPANY_DETAILS.website}">{$COMPANY_DETAILS.name}</a>
 					</div>
