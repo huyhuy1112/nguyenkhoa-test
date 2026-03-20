@@ -42,14 +42,14 @@
 					<style>
 						/* Login page (vlayout) logo sizing - UI only */
 						.bace-login-logo{
-							max-height: 64px;
+							max-height: 86px;
 							height: auto;
 							width: auto;
 							display: block;
 							margin: 0 auto;
 						}
 					</style>
-					<div class="logo"><img class="bace-login-logo" src="layouts/v7/resources/Images/bace-login-logo.png">
+					<div class="logo"><img class="bace-login-logo" src="layouts/v7/skins/images/bace-login-logo.png">
 					<br />
 					<a target="_blank" href="http://{$COMPANY_DETAILSCOMPANY_DETAILS.website}">{$COMPANY_DETAILS.name}</a>
 					</div>

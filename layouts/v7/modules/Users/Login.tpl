@@ -90,9 +90,10 @@
 			margin-left: 20px;
 		}
 		.user-logo {
-			height: 120px;
+			max-height: 86px;
+			height: auto;
 			margin: 0 auto;
-			padding-top: 36px;
+			padding-top: 30px;
 			padding-bottom: 20px;
 		}
 		.blockLink {
@@ -213,7 +214,7 @@
 	<div class="container-fluid loginPageContainer">
 		<div class="col-lg-5 col-md-12 col-sm-12 col-xs-12">
 			<div class="loginDiv widgetHeight">
-				<img class="img-responsive user-logo" src="layouts/v7/resources/Images/bace-login-logo.png">
+				<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo.png">
 				<div>
 					<span class="{if !$ERROR}hide{/if} failureMessage" id="validationMessage">{$MESSAGE}</span>
 					<span class="{if !$MAIL_STATUS}hide{/if} successMessage">{$MESSAGE}</span>
