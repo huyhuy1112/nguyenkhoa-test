@@ -11,8 +11,7 @@
 {strip}
 	<style>
 		body {
-			background: #ffffff !important;
-			background-image: none !important;
+			background: url(layouts/v7/resources/Images/login-background.jpg);
 			background-position: center;
 			background-size: cover;
 			width: 100%;
@@ -93,9 +92,18 @@
 		.user-logo {
 			max-height: 96px;
 			height: auto;
+			width: auto;
 			margin: 0 auto;
+			padding: 0;
+			display: block;
+		}
+		/* Ensure background behind logo stays white (UI only) */
+		.mk-login-logo-wrap {
+			background: #ffffff;
+			border-radius: 12px;
 			padding-top: 26px;
-			padding-bottom: 20px;
+			padding-bottom: 16px;
+		}
 		}
 		.blockLink {
 			border: 1px solid #303030;
@@ -215,7 +223,9 @@
 	<div class="container-fluid loginPageContainer">
 		<div class="col-lg-5 col-md-12 col-sm-12 col-xs-12">
 			<div class="loginDiv widgetHeight">
-				<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo.png">
+				<div class="mk-login-logo-wrap">
+					<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo.png">
+				</div>
 				<div>
 					<span class="{if !$ERROR}hide{/if} failureMessage" id="validationMessage">{$MESSAGE}</span>
 					<span class="{if !$MAIL_STATUS}hide{/if} successMessage">{$MESSAGE}</span>
