@@ -90,9 +90,9 @@
 			margin-left: 20px;
 		}
 		.user-logo {
-			height: 110px;
+			height: 120px;
 			margin: 0 auto;
-			padding-top: 40px;
+			padding-top: 36px;
 			padding-bottom: 20px;
 		}
 		.blockLink {
