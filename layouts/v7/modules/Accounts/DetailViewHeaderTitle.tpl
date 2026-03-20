@@ -10,6 +10,9 @@
 ********************************************************************************/
 -->*}
 {strip}
+	{if $SELECTED_MENU_CATEGORY eq 'MARKETING'}
+		<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Plans/resources/MarketingTheme.v2.css')}" />
+	{/if}
 	<div class="col-sm-6">
 		<div class="clearfix record-header ">
 			<div class="recordImage bgAccounts app-{$SELECTED_MENU_CATEGORY}">

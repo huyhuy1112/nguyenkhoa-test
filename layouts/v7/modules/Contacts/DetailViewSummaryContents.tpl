@@ -8,8 +8,11 @@
 *************************************************************************************}
 
 {strip}
+{if $smarty.get.app eq 'MARKETING'}
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Plans/resources/MarketingTheme.v2.css')}" />
+{/if}
 	<form id="detailView" class="clearfix" method="POST" style="position: relative">
-		<div class="col-lg-12 resizable-summary-view">
+		<div class="col-lg-12 resizable-summary-view {if $smarty.get.app eq 'MARKETING'}mk mk-page{/if}">
 			{include file='SummaryViewWidgets.tpl'|vtemplate_path:$MODULE_NAME}
 		</div>
 	</form>

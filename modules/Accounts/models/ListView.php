@@ -73,4 +73,68 @@ class Accounts_ListView_Model extends Vtiger_ListView_Model {
 		}
 		return $links;
 	}
+
+	/**
+	 * Enforce tag-based visibility in Accounts/Organizations ListView (highest priority).
+	 * Non-privileged users can only see records tagged with their role name.
+	 */
+	function getQuery() {
+		$listQuery = parent::getQuery();
+
+		$currentUser = Users_Record_Model::getCurrentUserModel();
+		require_once 'modules/Contacts/models/TagAccessHelper.php';
+
+		if (TagAccessHelper::isPrivilegedUser($currentUser)) {
+			error_log('[TagACL][Accounts] getQuery() privileged userId=' . $currentUser->getId() .
+				' isAdmin=' . ($currentUser->isAdminUser() ? '1' : '0') .
+				' role=' . $currentUser->getUserRoleName());
+			return $listQuery;
+		}
+
+		$tags = TagAccessHelper::getUserAccessTags($currentUser);
+		$isPriv = TagAccessHelper::isPrivilegedUser($currentUser);
+		$isAdmin = $currentUser->isAdminUser() ? '1' : '0';
+		$roleName = $currentUser->getUserRoleName();
+
+		if (empty($tags)) {
+			error_log('[TagACL][Accounts] getQuery() userId=' . $currentUser->getId() .
+				' role=' . $roleName . ' isAdmin=' . $isAdmin . ' isPrivileged=' . ($isPriv ? '1' : '0') .
+				' mappedTags=[] => DENY_ALL');
+			$pos = stripos($listQuery, ' where ');
+			$listQuery .= ($pos !== false) ? ' AND 1=0' : ' WHERE 1=0';
+			return $listQuery;
+		}
+
+		$tagLiterals = array();
+		foreach ($tags as $t) {
+			$t = Vtiger_Util_Helper::escapeSqlString((string)$t);
+			$tagLiterals[] = "'" . $t . "'";
+		}
+		$inList = implode(',', $tagLiterals);
+
+		$exists = " EXISTS (
+			SELECT 1
+			FROM vtiger_freetagged_objects fto
+			INNER JOIN vtiger_freetags ft ON ft.id = fto.tag_id
+			WHERE fto.object_id = vtiger_account.accountid
+			  AND fto.module = 'Accounts'
+			  AND ft.tag IN ({$inList})
+		) ";
+
+		$pos = stripos($listQuery, ' where ');
+		if ($pos !== false) {
+			$listQuery .= " AND {$exists}";
+		} else {
+			$listQuery .= " WHERE {$exists}";
+		}
+
+		error_log('[TagACL][Accounts] getQuery() userId=' . $currentUser->getId() .
+			' role=' . $roleName .
+			' mappedTags=' . json_encode($tags, JSON_UNESCAPED_UNICODE) .
+			' isAdmin=' . $isAdmin .
+			' isPrivileged=' . ($isPriv ? '1' : '0') .
+			' sql=' . $listQuery);
+
+		return $listQuery;
+	}
 }

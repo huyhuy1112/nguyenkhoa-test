@@ -6,7 +6,8 @@
 * Portions created by vtiger are Copyright (C) vtiger.
 * All Rights Reserved.
 ************************************************************************************}
-{* App menu CSS: đã chuyển vào layouts/v7/resources/custom.css (#app-menu.app-menu) *}
+{* App menu CSS: đã chuyển vào layouts/v7/resources/custom.css (#app-menu.app-menu)
+   MK sidebar icons: Font Awesome mapping (UI only; no logic/permission changes) *}
 <div class="app-menu hide" id="app-menu">
 	<div class="container-fluid">
 		<div class="row">
@@ -23,7 +24,7 @@
 			{if $USER_PRIVILEGES_MODEL->hasModulePermission($DASHBOARD_MODULE_MODEL->getId())}
 				<div class="menu-item app-item dropdown-toggle" data-default-url="{$HOME_MODULE_MODEL->getDefaultUrl()}">
 					<div class="menu-items-wrapper">
-						<span class="app-icon-list fa fa-dashboard"></span>
+						<span class="mk-icon app-icon-list"><i class="fa fa-tachometer"></i></span>
 						<span class="app-name textOverflowEllipsis"> {vtranslate('LBL_DASHBOARD',$MODULE)}</span>
 					</div>
 				</div>
@@ -43,7 +44,20 @@
 						{* Fix for Responsive Layout Menu - Changed data-default-url to # *}
 						<div class="menu-item app-item dropdown-toggle app-item-color-{$APP_NAME}" data-app-name="{$APP_NAME}" id="{$APP_NAME}_modules_dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-default-url="#">
 							<div class="menu-items-wrapper app-menu-items-wrapper">
-								<span class="app-icon-list fa {$APP_IMAGE_MAP.$APP_NAME}"></span>
+								{assign var=MK_APP_FA value=''}
+								{if $APP_NAME eq 'MARKETING'}{assign var=MK_APP_FA value='fa-bullhorn'}
+								{elseif $APP_NAME eq 'SALES'}{assign var=MK_APP_FA value='fa-dollar'}
+								{elseif $APP_NAME eq 'INVENTORY'}{assign var=MK_APP_FA value='fa-cubes'}
+								{elseif $APP_NAME eq 'SUPPORT'}{assign var=MK_APP_FA value='fa-ticket'}
+								{elseif $APP_NAME eq 'MANAGEMENT'}{assign var=MK_APP_FA value='fa-sitemap'}
+								{elseif $APP_NAME eq 'PROJECT'}{assign var=MK_APP_FA value='fa-briefcase'}
+								{elseif $APP_NAME eq 'TOOLS'}{assign var=MK_APP_FA value='fa-wrench'}
+								{/if}
+								{if $MK_APP_FA ne ''}
+									<span class="mk-icon app-icon-list"><i class="fa {$MK_APP_FA}"></i></span>
+								{else}
+									<span class="app-icon-list fa {$APP_IMAGE_MAP.$APP_NAME}"></span>
+								{/if}
 								<span class="app-name textOverflowEllipsis"> {vtranslate("LBL_$APP_NAME")}</span>
 								<span class="fa fa-chevron-right pull-right"></span>
 							</div>
@@ -53,12 +67,14 @@
 							{if $APP_NAME eq 'MANAGEMENT'}
 								<li>
 									<a href="index.php?module=Home&view=MainPage&app=MANAGEMENT" title="Main Page">
-										<span class="module-icon module-icon-lg fa fa-home"></span>
+										<span class="mk-icon module-icon module-icon-lg"><i class="fa fa-home"></i></span>
 										<span class="module-name textOverflowEllipsis"> Main Page</span>
 									</a>
 								</li>
 							{/if}
 							{foreach item=moduleModel key=moduleName from=$APP_GROUPED_MENU[$APP_NAME]}
+								{* UI cleanup: hide separate Products/Services from sidebar submenu *}
+								{if $moduleName eq 'Products' || $moduleName eq 'Services'}{continue}{/if}
 								{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}
 								{* Calendar: MANAGEMENT = Schedule, SUPPORT = Activities *}
 								{if $moduleName eq 'Calendar' && $APP_NAME eq 'MANAGEMENT'}
@@ -69,15 +85,38 @@
 								<li>
 									{if $moduleName eq 'Reports' && $APP_NAME eq 'MANAGEMENT'}
 										<a href="index.php?module=Reports&view=Management&app=MANAGEMENT" title="{$translatedModuleLabel}">
-											<span class="module-icon module-icon-lg fa fa-bar-chart"></span>
+											<span class="mk-icon module-icon module-icon-lg"><i class="fa fa-bar-chart"></i></span>
 											<span class="module-name textOverflowEllipsis"> {$translatedModuleLabel}</span>
 										</a>
 									{else}
 										<a href="{$moduleModel->getDefaultUrl()}&app={$APP_NAME}" title="{$translatedModuleLabel}">
-											{if $moduleName eq 'Teams'}
-												<span class="module-icon module-icon-lg fa fa-users"></span>
+											{assign var=MK_MOD_FA value=''}
+											{if $moduleName eq 'Campaigns'}{assign var=MK_MOD_FA value='fa-bullhorn'}
+											{elseif $moduleName eq 'Leads'}{assign var=MK_MOD_FA value='fa-user-plus'}
+											{elseif $moduleName eq 'Plans'}{assign var=MK_MOD_FA value='fa-calendar-o'}
+											{elseif $moduleName eq 'Potentials'}{assign var=MK_MOD_FA value='fa-dollar'}
+											{elseif $moduleName eq 'Quotes'}{assign var=MK_MOD_FA value='fa-file-text-o'}
+											{elseif $moduleName eq 'SalesOrder'}{assign var=MK_MOD_FA value='fa-shopping-cart'}
+											{elseif $moduleName eq 'ProductsServices'}{assign var=MK_MOD_FA value='fa-cubes'}
+											{elseif $moduleName eq 'Contacts'}{assign var=MK_MOD_FA value='fa-user'}
+											{elseif $moduleName eq 'Accounts'}{assign var=MK_MOD_FA value='fa-building'}
+											{elseif $moduleName eq 'HelpDesk'}{assign var=MK_MOD_FA value='fa-ticket'}
+											{elseif $moduleName eq 'GoodsReceipt'}{assign var=MK_MOD_FA value='fa-arrow-down'}
+											{elseif $moduleName eq 'Warehouse'}{assign var=MK_MOD_FA value='fa-archive'}
+											{elseif $moduleName eq 'GoodsIssue'}{assign var=MK_MOD_FA value='fa-arrow-up'}
+											{elseif $moduleName eq 'Calendar' && $APP_NAME eq 'MANAGEMENT'}{assign var=MK_MOD_FA value='fa-calendar-o'}
+											{elseif $moduleName eq 'Calendar' && $APP_NAME eq 'SUPPORT'}{assign var=MK_MOD_FA value='fa-tasks'}
+											{elseif $moduleName eq 'Activities'}{assign var=MK_MOD_FA value='fa-tasks'}
+											{elseif $moduleName eq 'Schedule'}{assign var=MK_MOD_FA value='fa-calendar-o'}
+											{elseif $moduleName eq 'Rules'}{assign var=MK_MOD_FA value='fa-gavel'}
+											{elseif $moduleName eq 'SupportFAQ'}{assign var=MK_MOD_FA value='fa-question-circle'}
+											{elseif $moduleName eq 'Faq'}{assign var=MK_MOD_FA value='fa-question-circle'}
+											{elseif $moduleName eq 'Teams'}{assign var=MK_MOD_FA value='fa-users'}
+											{/if}
+											{if $MK_MOD_FA ne ''}
+												<span class="mk-icon module-icon module-icon-lg"><i class="fa {$MK_MOD_FA}"></i></span>
 											{else}
-												<span class="module-icon">{$moduleModel->getModuleIcon()}</span>
+												<span class="mk-icon module-icon module-icon-lg">{$moduleModel->getModuleIcon()}</span>
 											{/if}
 											<span class="module-name textOverflowEllipsis"> {$translatedModuleLabel}</span>
 										</a>
@@ -93,7 +132,7 @@
 			{if $USER_PRIVILEGES_MODEL->hasModulePermission($MAILMANAGER_MODULE_MODEL->getId())}
 				<div class="menu-item app-item app-item-misc" data-default-url="index.php?module=MailManager&view=List">
 					<div class="menu-items-wrapper">
-						<span class="app-icon-list fa">{$MAILMANAGER_MODULE_MODEL->getModuleIcon()}</span>
+						<span class="mk-icon app-icon-list">{$MAILMANAGER_MODULE_MODEL->getModuleIcon()}</span>
 						<span class="app-name textOverflowEllipsis"> {vtranslate('MailManager')}</span>
 					</div>
 				</div>
@@ -102,7 +141,7 @@
 			{if $USER_PRIVILEGES_MODEL->hasModulePermission($DOCUMENTS_MODULE_MODEL->getId())}
 				<div class="menu-item app-item app-item-misc" data-default-url="index.php?module=Documents&view=List">
 					<div class="menu-items-wrapper">
-						<span class="app-icon-list fa">{$DOCUMENTS_MODULE_MODEL->getModuleIcon()}</span>
+						<span class="mk-icon app-icon-list">{$DOCUMENTS_MODULE_MODEL->getModuleIcon()}</span>
 						<span class="app-name textOverflowEllipsis"> {vtranslate('Documents')}</span>
 					</div>
 				</div>
@@ -121,7 +160,7 @@
 				<div class="dropdown app-modules-dropdown-container dropdown-compact">
 					<div class="menu-item app-item dropdown-toggle app-item-misc" data-app-name="TOOLS" id="TOOLS_modules_dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" data-default-url="#">
 						<div class="menu-items-wrapper app-menu-items-wrapper">
-							<span class="app-icon-list fa fa-cog"></span>
+							<span class="mk-icon app-icon-list"><i class="fa fa-cog"></i></span>
 							<span class="app-name textOverflowEllipsis"> {vtranslate('LBL_SETTINGS', 'Settings:Vtiger')}</span>
 							{if $USER_MODEL->isAdminUser()}
 								<span class="fa fa-chevron-right pull-right"></span>
@@ -131,13 +170,13 @@
 					<ul class="dropdown-menu app-modules-dropdown dropdown-modules-compact" aria-labelledby="{$APP_NAME}_modules_dropdownMenu" data-height="0.27">
 						<li>
 							<a href="?module=Vtiger&parent=Settings&view=Index">
-								<span class="fa fa-cog module-icon"></span>
+								<span class="mk-icon module-icon module-icon-lg"><i class="fa fa-cog"></i></span>
 								<span class="module-name textOverflowEllipsis"> {vtranslate('LBL_CRM_SETTINGS','Vtiger')}</span>
 							</a>
 						</li>
 						<li>
 							<a href="?module=Users&parent=Settings&view=List">
-								<span class="fa fa-user module-icon"></span>
+								<span class="mk-icon module-icon module-icon-lg"><i class="fa fa-user"></i></span>
 								<span class="module-name textOverflowEllipsis"> {vtranslate('LBL_MANAGE_USERS','Vtiger')}</span>
 							</a>
 						</li>

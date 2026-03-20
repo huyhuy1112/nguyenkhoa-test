@@ -16,6 +16,12 @@
 class Evaluate extends CRMEntity {
     var $db, $log;
     var $column_fields = Array();
+	// Prevent Webservices meta from fatal-ing if it is ever invoked for this module.
+	// Evaluate is a non-entity dashboard module, so these are dummy-safe defaults.
+	var $table_name = 'vtiger_crmentity';
+	var $table_index = 'crmid';
+	var $tab_name = array('vtiger_crmentity');
+	var $tab_name_index = array('vtiger_crmentity' => 'crmid');
     
     /** Indicator if this is a custom module */
     var $IsCustomModule = true;

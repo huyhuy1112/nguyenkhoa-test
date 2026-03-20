@@ -17,6 +17,7 @@ $languageStrings = array(
 	// Blocks
 	'LBL_CAMPAIGN_INFORMATION' => 'Campaign Details',
 	'LBL_EXPECTATIONS_AND_ACTUALS' => 'Expectations & Actuals',
+	'LBL_CAMPAIGN_PHASES' => 'Campaign Phases',
 
 	//Field Labels
 	'Campaign Name' => 'Campaign Name',

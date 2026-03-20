@@ -1395,7 +1395,9 @@ body[data-module="Activities"] .container-fluid.app-nav {
     display: block !important;
 }
 .app-menu .app-modules-dropdown li a {
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
     padding: 10px 16px !important;
     font-size: 1em !important;
     color: #fff !important;
@@ -1409,6 +1411,28 @@ body[data-module="Activities"] .container-fluid.app-nav {
     display: inline-block;
     min-width: 1.2em;
     text-align: center;
+}
+/* Font Awesome sidebar icons: consistent box + alignment (SidebarAppMenu.mk-icon) */
+.app-menu .mk-icon.app-icon-list,
+.app-menu .app-icon-list.mk-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.app-menu .mk-icon i.fa {
+    font-size: 1.05em;
+    line-height: 1;
+}
+.app-menu .app-modules-dropdown .mk-icon.module-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.35em;
+    vertical-align: middle;
+}
+.app-menu .app-modules-dropdown .mk-icon.module-icon i.fa {
+    font-size: 1.15em;
+    line-height: 1;
 }
 /* Hover menu con: chỉ tô đậm (nền tối hơn), không dùng nền trắng để chữ vẫn đọc được */
 .app-menu .app-modules-dropdown li:hover,
@@ -1676,6 +1700,15 @@ body[data-module="ProjectTask"] .main-container .editViewPageDiv .editViewConten
     list-style: none;
     margin-left: 0;
     padding-left: 0;
+}
+.modules-menu ul li a .mk-icon.menubar-module-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.modules-menu ul li a .mk-icon.menubar-module-icon i.fa {
+    font-size: 1.2em;
+    line-height: 1;
 }
 .modules-menu ul li a{
     color: #ecf0f1;

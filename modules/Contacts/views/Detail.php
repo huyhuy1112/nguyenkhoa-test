@@ -15,6 +15,11 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 		parent::__construct();
 	}
 
+	public function process(Vtiger_Request $request) {
+		// ACL is enforced in Accounts_Detail_View::process() (inherited).
+		return parent::process($request);
+	}
+
 	public function showModuleDetailView(Vtiger_Request $request) {
 		$recordId = $request->get('record');
 		$moduleName = $request->getModule();
