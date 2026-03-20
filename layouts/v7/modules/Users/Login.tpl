@@ -213,7 +213,7 @@
 	<div class="container-fluid loginPageContainer">
 		<div class="col-lg-5 col-md-12 col-sm-12 col-xs-12">
 			<div class="loginDiv widgetHeight">
-				<img class="img-responsive user-logo" src="layouts/v7/resources/Images/vtiger.png">
+				<img class="img-responsive user-logo" src="layouts/v7/resources/Images/bace-login-logo.png">
 				<div>
 					<span class="{if !$ERROR}hide{/if} failureMessage" id="validationMessage">{$MESSAGE}</span>
 					<span class="{if !$MAIL_STATUS}hide{/if} successMessage">{$MESSAGE}</span>
