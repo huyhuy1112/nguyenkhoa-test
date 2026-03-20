@@ -11,7 +11,8 @@
 {strip}
 	<style>
 		body {
-			background: url(layouts/v7/resources/Images/login-background.jpg);
+			background: #ffffff !important;
+			background-image: none !important;
 			background-position: center;
 			background-size: cover;
 			width: 100%;
@@ -90,10 +91,10 @@
 			margin-left: 20px;
 		}
 		.user-logo {
-			max-height: 86px;
+			max-height: 96px;
 			height: auto;
 			margin: 0 auto;
-			padding-top: 30px;
+			padding-top: 26px;
 			padding-bottom: 20px;
 		}
 		.blockLink {
