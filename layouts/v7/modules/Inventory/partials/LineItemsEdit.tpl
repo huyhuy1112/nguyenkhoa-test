@@ -200,15 +200,21 @@
 		<br>
 		<div>
 			<div>
-				{if $PRODUCT_ACTIVE eq 'true' && $SERVICE_ACTIVE eq 'true'}
+				{if $MODULE eq 'SalesOrder' && ($PRODUCT_ACTIVE eq 'true' || $SERVICE_ACTIVE eq 'true')}
 					<div class="btn-toolbar">
 						<span class="btn-group">
-							<button type="button" class="btn btn-default" id="addProduct" data-module-name="Products" >
+							<button type="button" class="btn btn-default" id="addProductsServices" data-module-name="ProductsServices" >
+								<i class="fa fa-plus"></i>&nbsp;&nbsp;<strong>Add Products &amp; Services</strong>
+							</button>
+						</span>
+						{* Keep the legacy buttons in DOM for the existing insert logic, but hide them from the user. *}
+						<span class="btn-group" style="display:none;">
+							<button type="button" class="btn btn-default" id="addProduct" data-module-name="Products" style="display:none;">
 								<i class="fa fa-plus"></i>&nbsp;&nbsp;<strong>{vtranslate('LBL_ADD_PRODUCT',$MODULE)}</strong>
 							</button>
 						</span>
-						<span class="btn-group">
-							<button type="button" class="btn btn-default" id="addService" data-module-name="Services" >
+						<span class="btn-group" style="display:none;">
+							<button type="button" class="btn btn-default" id="addService" data-module-name="Services" style="display:none;">
 								<i class="fa fa-plus"></i>&nbsp;&nbsp;<strong>{vtranslate('LBL_ADD_SERVICE',$MODULE)}</strong>
 							</button>
 						</span>

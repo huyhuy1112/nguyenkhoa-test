@@ -914,8 +914,13 @@ Vtiger_Edit_Js("Inventory_Edit_Js", {
 		if(individualTax){
 			newRow.find('.individualTaxContainer').removeClass('hide');
 		}
-        newRow.find('.lineItemPopup').filter(':not([data-module-name="'+ itemType +'"])').remove();
-        newRow.find('.lineItemType').val(itemType);
+        // SalesOrder uses a unified selector icon for Products & Services.
+        // Do not filter icons by itemType in this context.
+        if(this.getModuleName() !== 'SalesOrder') {
+            newRow.find('.lineItemPopup').filter(':not([data-module-name="'+ itemType +'"])').remove();
+        }
+        // Keep lineItemType empty until the user selects a specific Product/Service in the row.
+        newRow.find('.lineItemType').val(itemType === 'ProductsServices' ? '' : itemType);
         var newRowNum = this.getLineItemNextRowNumber();
         this.updateRowNumberForRow(newRow, newRowNum);
         this.initializeLineItemRowCustomFields(newRow, newRowNum);        
@@ -1604,9 +1609,32 @@ Vtiger_Edit_Js("Inventory_Edit_Js", {
                     jQuery('#addProduct').trigger('click', selectedLineItemsData[index]);
                 } else if(lineItemSelectedModuleName == 'Services') {
 					jQuery('#addService').trigger('click', selectedLineItemsData[index]);
+                } else if(lineItemSelectedModuleName == 'ProductsServices') {
+					// Unified multi-select add for SalesOrder.
+                    jQuery('#addProductsServices').trigger('click', selectedLineItemsData[index]);
                 }
             }else{
-                itemRow.find('.lineItemType').val(lineItemSelectedModuleName);
+				if(lineItemSelectedModuleName == 'ProductsServices') {
+					// Map ProductsServices item_type -> underlying line item type.
+					var recordData;
+					for(var id in selectedLineItemsData[index]) {
+						recordData = selectedLineItemsData[index][id];
+						break;
+					}
+					var itemType = recordData ? recordData.item_type : null;
+					var underlyingType = 'Products';
+					if(itemType) {
+						var itemTypeLower = itemType.toLowerCase();
+						if(itemTypeLower === 'product' || itemTypeLower === 'products') {
+							underlyingType = 'Products';
+						} else if(itemTypeLower === 'service' || itemTypeLower === 'services') {
+							underlyingType = 'Services';
+						}
+					}
+					itemRow.find('.lineItemType').val(underlyingType);
+				} else {
+                	itemRow.find('.lineItemType').val(lineItemSelectedModuleName);
+				}
                 this.mapResultsToFields(itemRow, selectedLineItemsData[index]);
             }
         }
@@ -1622,8 +1650,19 @@ Vtiger_Edit_Js("Inventory_Edit_Js", {
         var lineItemProductOrServiceElement = lineItemRow.find('input.productName').closest('td');
         var params = {};
 		params.module = 'PriceBooks';
-		params.src_module = lineItemProductOrServiceElement.find('i.lineItemPopup').data('moduleName');
-		params.src_field = lineItemProductOrServiceElement.find('i.lineItemPopup').data('fieldName');
+		var lineItemType = lineItemRow.find('.lineItemType').val();
+		var lineItemPopupElement = lineItemProductOrServiceElement.find('.lineItemPopup').first();
+		var srcModule = lineItemPopupElement.data('moduleName');
+		var srcField = lineItemPopupElement.data('fieldName');
+		if(lineItemType === 'Products') {
+			srcModule = 'Products';
+			srcField = 'productid';
+		} else if(lineItemType === 'Services') {
+			srcModule = 'Services';
+			srcField = 'serviceid';
+		}
+		params.src_module = srcModule;
+		params.src_field = srcField;
 		params.src_record = lineItemProductOrServiceElement.find('input.selectedModuleId').val();
 		params.get_url = 'getProductListPriceURL';
 		params.currency_id = jQuery('#currency_id option:selected').val();

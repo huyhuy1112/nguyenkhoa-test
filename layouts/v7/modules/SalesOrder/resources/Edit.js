@@ -164,6 +164,49 @@ Inventory_Edit_Js("SalesOrder_Edit_Js",{},{
             this.registerEventForEnablingRecurrence();
             this.registerForTogglingBillingandShippingAddress();
             this.registerEventForCopyAddress();
+            this.registerAddProductsServicesButton();
+        },
+
+        /**
+         * Unified entry button for adding a new line-item row that contains
+         * BOTH Products & Services selectors (SalesOrder only).
+         */
+        registerAddProductsServicesButton : function() {
+            var self = this;
+            jQuery('#addProductsServices').on('click', function(e, data){
+                var currentTarget = jQuery(e.currentTarget);
+                var params = {'currentTarget' : currentTarget};
+                var newLineItem = self.getNewLineItem(params);
+                newLineItem = newLineItem.appendTo(self.lineItemsHolder);
+                newLineItem.find('input.productName').addClass('autoComplete');
+                newLineItem.find('.ignore-ui-registration').removeClass('ignore-ui-registration');
+                vtUtils.applyFieldElementsView(newLineItem);
+                app.event.trigger('post.lineItem.New', newLineItem);
+                self.checkLineItemRow();
+                self.registerLineItemAutoComplete(newLineItem);
+
+                // When this row is created due to multi-select popup selection,
+                // map selected ProductsServices record into the line item row.
+                if(typeof data !== "undefined") {
+                    var recordData;
+                    for(var id in data) {
+                        recordData = data[id];
+                        break;
+                    }
+                    var itemType = recordData ? recordData.item_type : null;
+					var underlyingType = 'Products';
+					if(itemType) {
+						var itemTypeLower = itemType.toLowerCase();
+						if(itemTypeLower === 'product' || itemTypeLower === 'products') {
+							underlyingType = 'Products';
+						} else if(itemTypeLower === 'service' || itemTypeLower === 'services') {
+							underlyingType = 'Services';
+						}
+					}
+                    newLineItem.find('.lineItemType').val(underlyingType);
+                    self.mapResultsToFields(newLineItem, data);
+                }
+            });
         },
     
 });

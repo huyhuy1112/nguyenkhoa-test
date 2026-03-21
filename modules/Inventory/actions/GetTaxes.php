@@ -30,7 +30,7 @@ class Inventory_GetTaxes_Action extends Vtiger_Action_Controller {
 
 		$response = new Vtiger_Response();
 		$namesList = $purchaseCostsList = $taxesList = $listPricesList = $listPriceValuesList = array();
-		$descriptionsList = $quantitiesList = $imageSourcesList = $productIdsList = $baseCurrencyIdsList = array();
+		$descriptionsList = $quantitiesList = $imageSourcesList = $productIdsList = $baseCurrencyIdsList = $itemTypesList = array();
 
 		foreach($idList as $id) {
 			$recordModel = Vtiger_Record_Model::getInstanceById($id);
@@ -62,6 +62,7 @@ class Inventory_GetTaxes_Action extends Vtiger_Action_Controller {
 			}
 			$purchaseCostsList[$id] = round((float)$recordModel->get('purchase_cost') * (float)$conversionRateForPurchaseCost, $decimalPlace);
 			$baseCurrencyIdsList[$id] = getProductBaseCurrency($id, $recordModel->getModuleName());
+			$itemTypesList[$id] = $recordModel->get('item_type');
 
 			if ($recordModel->getModuleName() == 'Products') {
 				$productIdsList[] = $id;
@@ -86,6 +87,7 @@ class Inventory_GetTaxes_Action extends Vtiger_Action_Controller {
 								'description'			=> $descriptionsList[$id],
 								'baseCurrencyId'		=> $baseCurrencyIdsList[$id],
 								'quantityInStock'		=> $quantitiesList[$id],
+								'item_type'				=> $itemTypesList[$id],
 								'imageSource'			=> isset($imageSourcesList[$id]) ? $imageSourcesList[$id] : ""
 					);
 
