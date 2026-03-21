@@ -253,6 +253,17 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 			$item['sourceModule'] = $moduleModel->getName();
 			$item['fieldName'] = $fieldName;
 			$item['conditions'] = '';
+			if ($type === 'ProjectTask') {
+				$projectTaskInfo = $this->getProjectTaskCalendarInfo($crmid);
+				if (!empty($projectTaskInfo)) {
+					$item['projectTaskInfo'] = $projectTaskInfo;
+					$item['extendedProps'] = array(
+						'projectTaskInfo' => $projectTaskInfo,
+						'tooltip' => $projectTaskInfo['tooltip']
+					);
+					$item['tooltip'] = $projectTaskInfo['tooltip'];
+				}
+			}
 			$item['end'] = date('Y-m-d', strtotime((isset($item['end']) ? $item['end']: $item['start']).' +1day'));
                         if(!empty($conditions)) {
                             $item['conditions'] = Zend_Json::encode(Zend_Json::encode($conditions));
@@ -557,6 +568,54 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 				'tooltip' => decode_html($title),
 			);
 			$result[] = $item;
+		}
+	}
+
+	/**
+	 * Build rich ProjectTask popup info for Calendar entry.
+	 * Returns labels only for non-empty values to keep popup compact.
+	 */
+	protected function getProjectTaskCalendarInfo($recordId) {
+		$infoRows = array();
+		$tooltipParts = array();
+		try {
+			$recordModel = Vtiger_Record_Model::getInstanceById($recordId, 'ProjectTask');
+			$fieldOrder = array(
+				'projecttaskname' => 'LBL_PROJECT_TASK_NAME',
+				'opportunity_id' => 'Opportunity',
+				'projecttaskstatus' => 'Status',
+				'projecttaskpriority' => 'Priority',
+				'assigned_user_id' => 'Assigned To',
+				'startdate' => 'Start Date',
+				'enddate' => 'End Date',
+				'projecttaskprogress' => 'Progress',
+				'projectid' => 'Related to',
+			);
+
+			foreach ($fieldOrder as $fieldName => $label) {
+				$rawValue = $recordModel->get($fieldName);
+				if ($rawValue === null || $rawValue === '') {
+					continue;
+				}
+				$displayValue = $recordModel->getDisplayValue($fieldName);
+				if ($displayValue === null || trim((string)$displayValue) === '') {
+					continue;
+				}
+				$labelText = vtranslate($label, 'ProjectTask');
+				$isHtml = (strpos((string)$displayValue, '<a ') !== false);
+				$infoRows[] = array('label' => $labelText, 'value' => $displayValue, 'isHtml' => $isHtml);
+				$tooltipParts[] = $labelText . ': ' . trim(strip_tags(decode_html((string)$displayValue)));
+			}
+
+			$detailUrl = 'index.php?module=ProjectTask&view=Detail&record=' . $recordId;
+			return array(
+				'rows' => $infoRows,
+				'detailUrl' => $detailUrl,
+				'detailLabel' => vtranslate('SINGLE_ProjectTask', 'ProjectTask'),
+				'tooltip' => implode("\n", $tooltipParts),
+			);
+		} catch (Exception $e) {
+			return array();
 		}
 	}
 

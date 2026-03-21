@@ -12626,3 +12626,13 @@ body[data-module="Activities"] .activities-status-skipped {
     border-bottom: 1px solid #e2e8f0;
     font-size: 13px;
 }
+
+/* Calendar: compact ProjectTask popover details */
+.calendar-projecttask-popover {
+    margin-top: 6px;
+    max-width: 320px;
+}
+.calendar-projecttask-popover .calendar-projecttask-row {
+    margin: 2px 0;
+    line-height: 1.35;
+}

@@ -2002,8 +2002,63 @@ Vtiger.Class(
               "</span>";
           }
         }
+        if (sourceModule === "ProjectTask") {
+          var projectTaskInfo =
+            (eventObj.extendedProps && eventObj.extendedProps.projectTaskInfo) ||
+            eventObj.projectTaskInfo ||
+            null;
+          if (projectTaskInfo && projectTaskInfo.rows && projectTaskInfo.rows.length) {
+            var escapeHtml = function (str) {
+              return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+            };
+            popOverHTML += '<div class="calendar-projecttask-popover">';
+            jQuery.each(projectTaskInfo.rows, function (_, row) {
+              if (!row || !row.value) {
+                return;
+              }
+              var valueHtml = row.isHtml ? String(row.value) : escapeHtml(row.value);
+              popOverHTML +=
+                '<div class="calendar-projecttask-row">' +
+                '<span class="text-muted">' +
+                escapeHtml(row.label) +
+                ':</span> ' +
+                '<span>' +
+                valueHtml +
+                "</span></div>";
+            });
+            if (projectTaskInfo.detailUrl) {
+              popOverHTML +=
+                '<div class="calendar-projecttask-row" style="margin-top:6px;">' +
+                '<a href="' +
+                escapeHtml(projectTaskInfo.detailUrl) +
+                '" target="_blank">' +
+                "Open Project Task" +
+                "</a></div>";
+            }
+            popOverHTML += "</div>";
+          }
+        }
         return popOverHTML;
       };
+
+      var eventSourceModule = event.sourceModule || event.module;
+      if (eventSourceModule === "ProjectTask") {
+        // Prevent native/browser or bootstrap tooltip overlap with custom popover.
+        element
+          .removeAttr("title")
+          .removeAttr("data-original-title")
+          .removeAttr("aria-describedby");
+        if (typeof element.tooltip === "function") {
+          try {
+            element.tooltip("destroy");
+          } catch (e) {}
+        }
+      }
 
       var params = {
         title: event.title,
@@ -2021,10 +2076,16 @@ Vtiger.Class(
     performPreEventRenderActions: function (event, element) {
       var calendarView =
         this.getCalendarViewContainer().fullCalendar("getView");
+      var sourceModule = event.sourceModule || event.module;
       var tooltip =
         (event.extendedProps && event.extendedProps.tooltip) || event.tooltip;
-      if (tooltip) {
+      if (tooltip && sourceModule !== "ProjectTask") {
         element.attr("title", tooltip);
+      } else if (sourceModule === "ProjectTask") {
+        element
+          .removeAttr("title")
+          .removeAttr("data-original-title")
+          .removeAttr("aria-describedby");
       }
       try {
         var bg = event.backgroundColor || event.color;
@@ -2277,7 +2338,15 @@ Vtiger.Class(
             info.event.extendedProps &&
             info.event.extendedProps.tooltip
           ) {
-            jQuery(info.el).attr("title", info.event.extendedProps.tooltip);
+            var sourceModule = info.event.sourceModule || info.event.module;
+            if (sourceModule !== "ProjectTask") {
+              jQuery(info.el).attr("title", info.event.extendedProps.tooltip);
+            } else {
+              jQuery(info.el)
+                .removeAttr("title")
+                .removeAttr("data-original-title")
+                .removeAttr("aria-describedby");
+            }
           }
         },
         eventMouseover: function (event, jsEvent, view) {
