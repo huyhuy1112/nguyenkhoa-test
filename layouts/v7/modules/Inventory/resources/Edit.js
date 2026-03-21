@@ -914,9 +914,9 @@ Vtiger_Edit_Js("Inventory_Edit_Js", {
 		if(individualTax){
 			newRow.find('.individualTaxContainer').removeClass('hide');
 		}
-        // SalesOrder uses a unified selector icon for Products & Services.
+        // SalesOrder and Invoice use a unified selector icon for Products & Services.
         // Do not filter icons by itemType in this context.
-        if(this.getModuleName() !== 'SalesOrder') {
+        if(this.getModuleName() !== 'SalesOrder' && this.getModuleName() !== 'Invoice') {
             newRow.find('.lineItemPopup').filter(':not([data-module-name="'+ itemType +'"])').remove();
         }
         // Keep lineItemType empty until the user selects a specific Product/Service in the row.

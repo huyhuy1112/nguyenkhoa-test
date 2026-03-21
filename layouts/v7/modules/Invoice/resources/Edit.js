@@ -89,7 +89,7 @@ Inventory_Edit_Js("Invoice_Edit_Js",{},{
 		}
         
         // Added for overlay edit as the module is different
-        if(params.search_module == 'Products' || params.search_module == 'Services') {
+        if(params.search_module == 'Products' || params.search_module == 'Services' || params.search_module == 'ProductsServices') {
             params.module = 'Invoice';
         }
         
@@ -109,8 +109,47 @@ Inventory_Edit_Js("Invoice_Edit_Js",{},{
         registerBasicEvents: function(container){
             this._super(container);
             this.registerForTogglingBillingandShippingAddress();
-            this.registerEventForCopyAddress();  
+            this.registerEventForCopyAddress();
+            this.registerAddProductsServicesButton();
+        },
+
+        /**
+         * Unified "Add Products & Services" row + ProductsServices popup (same pattern as SalesOrder).
+         */
+        registerAddProductsServicesButton : function() {
+            var self = this;
+            jQuery('#addProductsServices').on('click', function(e, data){
+                var currentTarget = jQuery(e.currentTarget);
+                var params = {'currentTarget' : currentTarget};
+                var newLineItem = self.getNewLineItem(params);
+                newLineItem = newLineItem.appendTo(self.lineItemsHolder);
+                newLineItem.find('input.productName').addClass('autoComplete');
+                newLineItem.find('.ignore-ui-registration').removeClass('ignore-ui-registration');
+                vtUtils.applyFieldElementsView(newLineItem);
+                app.event.trigger('post.lineItem.New', newLineItem);
+                self.checkLineItemRow();
+                self.registerLineItemAutoComplete(newLineItem);
+
+                if(typeof data !== "undefined") {
+                    var recordData;
+                    for(var id in data) {
+                        recordData = data[id];
+                        break;
+                    }
+                    var itemType = recordData ? recordData.item_type : null;
+					var underlyingType = 'Products';
+					if(itemType) {
+						var itemTypeLower = itemType.toLowerCase();
+						if(itemTypeLower === 'product' || itemTypeLower === 'products') {
+							underlyingType = 'Products';
+						} else if(itemTypeLower === 'service' || itemTypeLower === 'services') {
+							underlyingType = 'Services';
+						}
+					}
+                    newLineItem.find('.lineItemType').val(underlyingType);
+                    self.mapResultsToFields(newLineItem, data);
+                }
+            });
         },
 });
     
-

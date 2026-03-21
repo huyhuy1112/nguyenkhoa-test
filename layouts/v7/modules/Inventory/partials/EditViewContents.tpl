@@ -13,6 +13,15 @@
 {if !empty($PICKIST_DEPENDENCY_DATASOURCE)}
     <input type="hidden" name="picklistDependency" value='{Vtiger_Util_Helper::toSafeHTML($PICKIST_DEPENDENCY_DATASOURCE)}' />
 {/if}
+{if $MODULE eq 'Invoice'}
+	{if $DUPLICATE_RECORDS}
+		<div class="fieldBlockContainer duplicationMessageContainer">
+			<div class="duplicationMessageHeader"><b>{vtranslate('LBL_DUPLICATES_DETECTED', $MODULE)}</b></div>
+			<div>{getDuplicatesPreventionMessage($MODULE, $DUPLICATE_RECORDS)}</div>
+		</div>
+	{/if}
+	{include file="partials/InvoiceVAT_EditViewContents.tpl"|@vtemplate_path:'Inventory'}
+{else}
 <div name='editContent'>
 	{if $DUPLICATE_RECORDS}
 		<div class="fieldBlockContainer duplicationMessageContainer">
@@ -161,4 +170,5 @@
          {/if}
      {/foreach}
 </div>
+{/if}
 {include file="partials/LineItemsEdit.tpl"|@vtemplate_path:'Inventory'}

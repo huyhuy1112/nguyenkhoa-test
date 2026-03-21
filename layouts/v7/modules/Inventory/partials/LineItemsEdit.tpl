@@ -76,12 +76,19 @@
 	{assign var=BLOCK_FIELDS value=$RECORD_STRUCTURE.$LINE_ITEM_BLOCK_LABEL}
 	{assign var=BLOCK_LABEL value=$LINE_ITEM_BLOCK_LABEL}
 	{if $BLOCK_FIELDS|@count gt 0}
+		{if $MODULE eq 'Invoice'}
+		<div class="panel panel-default invoice-vat-goods-services-panel">
+			<div class="panel-heading"><strong>{vtranslate('LBL_GOODS_SERVICES',$MODULE)}</strong></div>
+			<div class="panel-body">
+		{/if}
 		<div class='fieldBlockContainer'>
 			<div class="row">
 				<div class="col-sm-3">
+					{if $MODULE neq 'Invoice'}
 					<h4 class='fieldBlockHeader' style="margin-top:5px;">{vtranslate($BLOCK_LABEL, $MODULE)}</h4>
+					{/if}
 				</div>
-				<div class="col-sm-9 well">
+				<div class="col-sm-{if $MODULE eq 'Invoice'}12{else}9{/if} well">
 					<div class="row">
 						<div class="col-sm-4">
 							{if $LINEITEM_FIELDS['region_id'] && $LINEITEM_FIELDS['region_id']->isEditable()}
@@ -99,6 +106,7 @@
 										</span>
 							{/if}
 						</div>
+						{if $MODULE neq 'Invoice'}
 						<div class="col-sm-4">
 							<div class="pull-right">
 								<i class="fa fa-info-circle"></i>&nbsp;
@@ -143,6 +151,7 @@
 								</select>
 							</div>
 						</div>
+						{/if}
 					</div>
 				</div>
 			</div>
@@ -200,11 +209,11 @@
 		<br>
 		<div>
 			<div>
-				{if $MODULE eq 'SalesOrder' && ($PRODUCT_ACTIVE eq 'true' || $SERVICE_ACTIVE eq 'true')}
+				{if ($MODULE eq 'SalesOrder' || $MODULE eq 'Invoice') && ($PRODUCT_ACTIVE eq 'true' || $SERVICE_ACTIVE eq 'true')}
 					<div class="btn-toolbar">
 						<span class="btn-group">
 							<button type="button" class="btn btn-default" id="addProductsServices" data-module-name="ProductsServices" >
-								<i class="fa fa-plus"></i>&nbsp;&nbsp;<strong>Add Products &amp; Services</strong>
+								<i class="fa fa-plus"></i>&nbsp;&nbsp;<strong>{vtranslate('LBL_ADD_PRODUCTS_AND_SERVICES',$MODULE)}</strong>
 							</button>
 						</span>
 						{* Keep the legacy buttons in DOM for the existing insert logic, but hide them from the user. *}
@@ -234,9 +243,21 @@
 				{/if}
 			</div>
 		</div>
+		{if $MODULE eq 'Invoice'}
+			</div>
+		</div>
+		{/if}
 		<br>
+		{if $MODULE eq 'Invoice'}
+		<div class="panel panel-default invoice-vat-summary-panel">
+			<div class="panel-heading"><strong>{vtranslate('LBL_INVOICE_SUMMARY',$MODULE)}</strong></div>
+			<div class="panel-body">
+		{/if}
 		<div class="fieldBlockContainer">
 			<table class="table table-bordered blockContainer lineItemTable" id="lineItemResult">
+				{if $MODULE eq 'Invoice'}
+				{include file="partials/InvoiceLineItemsTotalsTable.tpl"|@vtemplate_path:'Inventory'}
+				{else}
 				<tr>
 					<td width="83%">
 						<div class="pull-right"><strong>{vtranslate('LBL_ITEMS_TOTAL',$MODULE)}</strong></div>
@@ -515,7 +536,12 @@
 						</td>
 					</tr>
 				{/if}
+				{/if}
 			</table>
 		</div>
+		{if $MODULE eq 'Invoice'}
+			</div>
+		</div>
+		{/if}
 	{/if}
 </div>

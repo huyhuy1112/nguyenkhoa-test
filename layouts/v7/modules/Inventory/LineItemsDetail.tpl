@@ -162,7 +162,7 @@
                                     </div>
                                 {/if}
                                 <div>
-                                    {$LINE_ITEM_DETAIL["subprod_names$INDEX"]}
+                                    {if isset($LINE_ITEM_DETAIL["subprod_names$INDEX"])}{$LINE_ITEM_DETAIL["subprod_names$INDEX"]}{/if}
                                 </div>
                                 {if $COMMENT_VIEWABLE && !empty($LINE_ITEM_DETAIL["productName$INDEX"])}
                                     <div>

@@ -17,6 +17,7 @@ $languageStrings = array(
 "Frequency" => "Tần suất",
 "Invoice Status" => "Trạng thái hóa đơn",
 "LBL_ADD_RECORD" => "Thêm Hợp đồng",
+"LBL_ADD_PRODUCTS_AND_SERVICES" => "Thêm sản phẩm & dịch vụ",
 "LBL_EXPORT_TO_PDF" => "Xuất ra PDF",
 "LBL_IS_DELETED_FROM_THE_SYSTEM_PLEASE_REMOVE_OR_REPLACE_THIS_ITEM" => "đã được xóa bởi hệ thống. Vui lòng loại bỏ hoặc thay thế mục này",
 "LBL_RECORDS_LIST" => "Danh sách Hợp đồng",

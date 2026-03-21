@@ -16,6 +16,7 @@ $languageStrings = array(
 
 	//Basic strings
 	'LBL_ADD_RECORD' => 'Add Sales Order',
+	'LBL_ADD_PRODUCTS_AND_SERVICES' => 'Add Products & Services',
 	'LBL_RECORDS_LIST' => 'Sales Order List',
 
 	// Blocks

@@ -46,6 +46,36 @@ $languageStrings = array(
 	'LBL_NOT_A_BUNDLE' => 'Not a Bundle',
 	'LBL_SUB_PRODUCTS'	=> 'Sub Products',
 	'LBL_ACTION'	=> 'Action',
+
+	// VAT-style edit layout (UI labels only)
+	'LBL_INVOICE_HEADER_VAT' => 'Invoice header',
+	'LBL_SELLER_INFORMATION' => 'Seller information',
+	'LBL_BUYER_INFORMATION' => 'Buyer information',
+	'LBL_BUYER_BILLING_SECTION' => 'Buyer billing address',
+	'LBL_BUYER_BILLING_COLUMN' => 'Buyer — billing',
+	'LBL_SELLER_SHIPPING_COLUMN' => 'Copy to seller / shipping fields',
+	'LBL_ADDITIONAL_DETAILS' => 'Additional details',
+	'LBL_GOODS_SERVICES' => 'Goods / services',
+	'LBL_INVOICE_SUMMARY' => 'Invoice summary',
+	'LBL_ADD_PRODUCTS_AND_SERVICES' => 'Add Products & Services',
+
+	// Seller block: editable ship_* fields (standard Invoice storage); labels for VAT layout only
+	'LBL_INVOICE_SELLER_ADDRESS' => 'Seller address',
+	'LBL_INVOICE_SELLER_POBOX' => 'Seller P.O. box',
+	'LBL_INVOICE_SELLER_CITY' => 'Seller city',
+	'LBL_INVOICE_SELLER_STATE' => 'Seller state / province',
+	'LBL_INVOICE_SELLER_POSTAL' => 'Seller postal code',
+	'LBL_INVOICE_SELLER_COUNTRY' => 'Seller country',
+	'LBL_INVOICE_SELLER_PHASE1_NOTE' => 'Seller company name, tax ID, phone, fax, and website are not standard fields on Invoice. Use Invoice custom fields (Settings -> Module Layouts) if you need them; this form saves seller address using the fields below.',
+	'LBL_BUYER_ADDRESS_SOURCE' => 'Buyer address source',
+	'LBL_SELLER_ADDRESS_SOURCE' => 'Seller address source',
+	'LBL_FROM_ACCOUNT' => 'From account',
+	'LBL_FROM_CONTACT' => 'From contact',
+	'LBL_COPY_FROM_BUYER_ADDRESS' => 'Copy from buyer address',
+	'LBL_COPY_FROM_SELLER_ADDRESS' => 'Copy from seller address',
+	'LBL_SIGNATURE_NOTES' => 'Signature / Notes',
+	'LBL_INVOICE_NOTES' => 'Invoice notes',
+	'LBL_SIGNATURE' => 'Signature',
 );
 
 $jsLanguageStrings = array(

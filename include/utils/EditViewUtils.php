@@ -111,17 +111,37 @@ function getAssociatedProducts($module, $focus, $seid = '', $refModuleName = fal
 	if (in_array($module, $inventoryModules))
 	{
 		$query="SELECT
-					case when vtiger_products.productid != '' then vtiger_products.productname else vtiger_service.servicename end as productname,
-					case when vtiger_products.productid != '' then vtiger_products.product_no else vtiger_service.service_no end as productcode,
-					case when vtiger_products.productid != '' then vtiger_products.unit_price else vtiger_service.unit_price end as unit_price,
+					case
+						when vtiger_products.productid != '' then vtiger_products.productname
+						when vtiger_service.serviceid != '' then vtiger_service.servicename
+						when vtiger_productsservices.productsservicesid != '' then vtiger_productsservices.productsservicesname
+						else ''
+					end as productname,
+					case
+						when vtiger_products.productid != '' then vtiger_products.product_no
+						when vtiger_service.serviceid != '' then vtiger_service.service_no
+						else ''
+					end as productcode,
+					case
+						when vtiger_products.productid != '' then vtiger_products.unit_price
+						when vtiger_service.serviceid != '' then vtiger_service.unit_price
+						when vtiger_productsservices.productsservicesid != '' then vtiger_productsservices.price
+						else 0
+					end as unit_price,
 					case when vtiger_products.productid != '' then vtiger_products.qtyinstock else 'NA' end as qtyinstock,
-					case when vtiger_products.productid != '' then 'Products' else 'Services' end as entitytype,
+					case
+						when vtiger_products.productid != '' then 'Products'
+						when vtiger_service.serviceid != '' then 'Services'
+						when vtiger_productsservices.productsservicesid != '' then 'ProductsServices'
+						else 'Services'
+					end as entitytype,
 					vtiger_inventoryproductrel.listprice, vtiger_products.is_subproducts_viewable, 
 					vtiger_inventoryproductrel.description AS product_description, vtiger_inventoryproductrel.*,
 					vtiger_crmentity.deleted FROM vtiger_inventoryproductrel
 					LEFT JOIN vtiger_crmentity ON vtiger_crmentity.crmid=vtiger_inventoryproductrel.productid
 					LEFT JOIN vtiger_products ON vtiger_products.productid=vtiger_inventoryproductrel.productid
 					LEFT JOIN vtiger_service ON vtiger_service.serviceid=vtiger_inventoryproductrel.productid
+					LEFT JOIN vtiger_productsservices ON vtiger_productsservices.productsservicesid=vtiger_inventoryproductrel.productid
 					WHERE id=? ORDER BY sequence_no";
 			$params = array($focus->id);
 	}
@@ -300,6 +320,10 @@ function getAssociatedProducts($module, $focus, $seid = '', $refModuleName = fal
 		if ($isSubProductsViewable) {
 			$product_Detail[$i]['subprod_qty_list'.$i] = $subProductQtyList;
 			$product_Detail[$i]['subprod_names'.$i]=$subprodname_str;
+		} else {
+			// Services / ProductsServices / products with subproducts hidden: detail/PDF templates expect keys to exist
+			$product_Detail[$i]['subprod_qty_list'.$i] = array();
+			$product_Detail[$i]['subprod_names'.$i] = '';
 		}
 		$discount_percent = decimalFormat($adb->query_result($result,$i-1,'discount_percent'));
 		$discount_amount = $adb->query_result($result,$i-1,'discount_amount');
