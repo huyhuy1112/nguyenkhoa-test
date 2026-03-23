@@ -12636,3 +12636,236 @@ body[data-module="Activities"] .activities-status-skipped {
     margin: 2px 0;
     line-height: 1.35;
 }
+
+/* ===========================
+   Tools > History (Orders)
+   Premium audit-log UI
+   =========================== */
+.history-dashboard {
+    padding: 10px 0;
+}
+
+.history-header,
+.history-controls,
+.history-table-wrap {
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.06);
+    overflow: hidden;
+}
+
+.history-header-inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 18px 14px 18px;
+}
+
+.history-eyebrow {
+    color: rgba(2, 6, 23, 0.55);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.history-title {
+    margin: 6px 0 6px 0 !important;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+}
+
+.history-subtitle {
+    font-size: 14px;
+    color: rgba(2, 6, 23, 0.65);
+    line-height: 1.35;
+}
+
+.history-summary {
+    min-width: 320px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.history-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.history-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: #ffffff;
+    color: rgba(2, 6, 23, 0.78);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    box-shadow: 0 6px 16px rgba(2, 6, 23, 0.05);
+    user-select: none;
+}
+
+.history-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+}
+
+.history-chip--total { }
+.history-chip--created { background: rgba(59, 130, 246, 0.10); border-color: rgba(59, 130, 246, 0.18); color: #2563eb; }
+.history-chip--approved { background: rgba(16, 185, 129, 0.10); border-color: rgba(16, 185, 129, 0.18); color: #059669; }
+.history-chip--rejected { background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.20); color: #ea580c; }
+.history-chip--edited { background: rgba(99, 102, 241, 0.12); border-color: rgba(99, 102, 241, 0.20); color: #4f46e5; }
+
+.history-controls-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 14px 18px;
+}
+
+.history-control {
+    min-width: 220px;
+    flex: 1 1 220px;
+}
+
+.history-control--date {
+    flex: 1 1 320px;
+}
+
+.history-control-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: rgba(2, 6, 23, 0.62);
+    letter-spacing: 0.02em;
+    margin-bottom: 8px;
+}
+
+.history-input {
+    border-radius: 12px !important;
+    border: 1px solid rgba(15, 23, 42, 0.10) !important;
+    box-shadow: none !important;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.history-input:focus {
+    border-color: rgba(37, 99, 235, 0.35) !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12) !important;
+    outline: none !important;
+}
+
+.history-date-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.history-date-sep {
+    color: rgba(2, 6, 23, 0.55);
+    font-weight: 700;
+}
+
+.history-table-wrap {
+    margin-top: 12px;
+}
+
+.history-table-inner {
+    padding: 14px 10px 6px 10px;
+}
+
+.history-audit-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 14px;
+}
+
+.history-audit-table thead th {
+    background: linear-gradient(180deg, rgba(248, 250, 252, 1) 0%, rgba(241, 245, 249, 1) 100%);
+    color: rgba(2, 6, 23, 0.70);
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    padding: 12px 14px;
+}
+
+.history-audit-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    vertical-align: top;
+}
+
+.history-audit-table tbody tr:nth-child(odd) td {
+    background: rgba(248, 250, 252, 0.55);
+}
+
+.history-audit-table tbody tr.history-row:hover td {
+    background: rgba(59, 130, 246, 0.06) !important;
+}
+
+.history-cell--action { width: 120px; }
+
+.history-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.history-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.10);
+}
+
+.history-badge--created { background: rgba(37, 99, 235, 0.12); color: #1d4ed8; border-color: rgba(37, 99, 235, 0.22); }
+.history-badge--approved { background: rgba(16, 185, 129, 0.12); color: #059669; border-color: rgba(16, 185, 129, 0.22); }
+.history-badge--rejected { background: rgba(249, 115, 22, 0.14); color: #ea580c; border-color: rgba(249, 115, 22, 0.25); }
+.history-badge--edited { background: rgba(99, 102, 241, 0.14); color: #4f46e5; border-color: rgba(99, 102, 241, 0.25); }
+.history-badge--deleted { background: rgba(239, 68, 68, 0.12); color: #dc2626; border-color: rgba(239, 68, 68, 0.25); }
+.history-badge--restored { background: rgba(45, 212, 191, 0.12); color: #14b8a6; border-color: rgba(45, 212, 191, 0.25); }
+.history-badge--status-changed { background: rgba(245, 158, 11, 0.14); color: #d97706; border-color: rgba(245, 158, 11, 0.25); }
+
+.history-order-link {
+    color: #1d4ed8;
+    font-weight: 800;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.history-order-link:hover {
+    color: #1e40af;
+    text-decoration: underline;
+    text-decoration-color: rgba(30, 64, 175, 0.75);
+    box-shadow: 0 10px 26px rgba(29, 78, 216, 0.14);
+}
+
+.history-changes {
+    max-width: 740px;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.45;
+    color: rgba(2, 6, 23, 0.74);
+    padding: 2px 0;
+}
+
+.history-empty {
+    margin: 10px 0;
+    border-radius: 14px;
+}
