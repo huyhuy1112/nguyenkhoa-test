@@ -28,6 +28,8 @@ $languageStrings = array(
 "Paid" => "Đã thanh toán",
 "Payment Duration" => "Thời hạn thanh toán",
 "Pending" => "Đang chờ xử lý",
+"Approved" => "Đã duyệt",
+"Rejected" => "Từ chối",
 "Purchase Order" => "Mua đặt hàng",
 "Quote Name" => "Tên báo giá",
 "Requisition No" => "Mã số trưng dụng",
@@ -58,6 +60,17 @@ $languageStrings = array(
 "LINE_DETAILS" => "Chi tiết",
 "Dịch vụ thuê ngoài" => "Thực hiện Thực tế",
 "Description" => "Remaining Amount",
+"Team Group" => "Nhóm",
+"Purpose" => "Mục đích",
+"Cost" => "Chi phí",
+"Needed Time" => "Thời điểm cần",
+"Ordered By" => "Người đặt",
+"Approved By" => "Người duyệt",
+"Approval Note" => "Ghi chú duyệt",
+"Sale" => "Kinh doanh",
+"Support" => "Hỗ trợ",
+"Other" => "Khác",
+"Order Name" => "Tên đơn",
 );
 
 $jsLanguageStrings = array(

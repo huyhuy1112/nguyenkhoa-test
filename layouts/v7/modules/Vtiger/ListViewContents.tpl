@@ -108,7 +108,12 @@
 									<i class="fa fa-sort customsort"></i>
 								{/if}
 							{/if}
-							&nbsp;{vtranslate($LISTVIEW_HEADER->get('label'), $LISTVIEW_HEADER->getModuleName())}&nbsp;
+							{assign var=LIST_HEADER_NAME value=$LISTVIEW_HEADER->get('name')}
+							{assign var=HEADER_TRANSLATED_LABEL value=vtranslate($LISTVIEW_HEADER->get('label'), $LISTVIEW_HEADER->getModuleName())}
+							{if isset($LISTVIEW_HEADER_LABEL_OVERRIDES[$LIST_HEADER_NAME])}
+								{assign var=HEADER_TRANSLATED_LABEL value=$LISTVIEW_HEADER_LABEL_OVERRIDES[$LIST_HEADER_NAME]}
+							{/if}
+							&nbsp;{$HEADER_TRANSLATED_LABEL}&nbsp;
 						</a>
 						{if isset($COLUMN_NAME) && $COLUMN_NAME eq $LISTVIEW_HEADER->get('name')}
 							<a href="#" class="removeSorting"><i class="fa fa-remove"></i></a>
@@ -240,7 +245,8 @@
 						<td colspan="{$COLSPAN_WIDTH}">
 							<div class="emptyRecordsContent">
 								{assign var=SINGLE_MODULE value="SINGLE_$MODULE"}
-								{vtranslate('LBL_NO')} {vtranslate($MODULE, $MODULE)} {vtranslate('LBL_FOUND')}.
+								{assign var=EMPTY_ENTITY_LABEL value=(isset($LISTVIEW_EMPTY_ENTITY_LABEL) && $LISTVIEW_EMPTY_ENTITY_LABEL neq '') ? $LISTVIEW_EMPTY_ENTITY_LABEL : vtranslate($MODULE, $MODULE)}
+								{vtranslate('LBL_NO')} {$EMPTY_ENTITY_LABEL} {vtranslate('LBL_FOUND')}.
 								{if $IS_CREATE_PERMITTED}
 									<a style="color:blue" href="{$MODULE_MODEL->getCreateRecordUrl()}"> {vtranslate('LBL_CREATE')}</a>
 									{if Users_Privileges_Model::isPermitted($MODULE, 'Import') && $LIST_VIEW_MODEL->isImportEnabled()}

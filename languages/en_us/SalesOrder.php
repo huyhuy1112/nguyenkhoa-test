@@ -38,6 +38,19 @@ $languageStrings = array(
 	'End Period' => 'End Period',
 	'Payment Duration' => 'Payment Duration',
 	'Invoice Status' => 'Invoice Status',
+	'Team Group' => 'Team Group',
+	'Purpose' => 'Purpose',
+	'Cost' => 'Cost',
+	'Needed Time' => 'Needed Time',
+	'Ordered By' => 'Ordered By',
+	'Approved By' => 'Approved By',
+	'Approval Note' => 'Approval Note',
+	'Approved' => 'Approved',
+	'Rejected' => 'Rejected',
+	'Sale' => 'Sale',
+	'Support' => 'Support',
+	'Other' => 'Other',
+	'Order Name' => 'Order Name',
 
 	//Added for existing Picklist Entries
 

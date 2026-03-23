@@ -23,7 +23,8 @@
 						{assign var=DEFAULT_FILTER_URL value=$MODULE_MODEL->getListViewUrlWithAllFilter()}
 					{/if}
 				{/if}
-				<a title="{vtranslate($MODULE, $MODULE)}" href='{$DEFAULT_FILTER_URL}&app={$SELECTED_MENU_CATEGORY}'><h4 class="module-title pull-left text-uppercase"> {vtranslate($MODULE, $MODULE)} </h4>&nbsp;&nbsp;</a>
+				{assign var=MODULE_TITLE_TEXT value=(isset($LISTVIEW_MODULE_TITLE) && $LISTVIEW_MODULE_TITLE neq '') ? $LISTVIEW_MODULE_TITLE : vtranslate($MODULE, $MODULE)}
+				<a title="{$MODULE_TITLE_TEXT}" href='{$DEFAULT_FILTER_URL}&app={$SELECTED_MENU_CATEGORY}'><h4 class="module-title pull-left text-uppercase"> {$MODULE_TITLE_TEXT} </h4>&nbsp;&nbsp;</a>
                                 {if isset($smarty.session.lvs) && isset($smarty.session.lvs.$MODULE) && isset($smarty.session.lvs.$MODULE.viewname)}
 					{assign var=VIEWID value=$smarty.session.lvs.$MODULE.viewname}
 				{/if}
@@ -71,7 +72,11 @@
 													onclick="Vtiger_Import_Js.triggerImportAction('{$BASIC_ACTION->getUrl()}')"
 														{/if}>
 													<div class="fa {$BASIC_ACTION->getIcon()}" aria-hidden="true"></div>&nbsp;&nbsp;
-													{vtranslate($BASIC_ACTION->getLabel(), $MODULE)}
+													{if $BASIC_ACTION->getLabel() eq 'LBL_ADD_RECORD' && isset($LISTVIEW_ADD_RECORD_LABEL) && $LISTVIEW_ADD_RECORD_LABEL neq ''}
+														{$LISTVIEW_ADD_RECORD_LABEL}
+													{else}
+														{vtranslate($BASIC_ACTION->getLabel(), $MODULE)}
+													{/if}
 												</button>
 											</li>
 										{else}

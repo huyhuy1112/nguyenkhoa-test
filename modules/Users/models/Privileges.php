@@ -83,8 +83,13 @@ class Users_Privileges_Model extends Users_Record_Model {
 		$actionId = $action->getId();
 		$profileTabsPermissions = $this->get('profile_action_permission');
 		$moduleModel = Vtiger_Module_Model::getInstance($tabId);
-		return (($this->isAdminUser() || $profileTabsPermissions[$tabId][$actionId] === Settings_Profiles_Module_Model::IS_PERMITTED_VALUE)
-				 && $moduleModel->isActive());
+		$isPermitted = false;
+		if ($this->isAdminUser()) {
+			$isPermitted = true;
+		} else if (isset($profileTabsPermissions[$tabId]) && isset($profileTabsPermissions[$tabId][$actionId])) {
+			$isPermitted = ($profileTabsPermissions[$tabId][$actionId] === Settings_Profiles_Module_Model::IS_PERMITTED_VALUE);
+		}
+		return ($isPermitted && $moduleModel->isActive());
 	}
 
 	/**

@@ -38,6 +38,44 @@ Inventory_Edit_Js("SalesOrder_Edit_Js",{},{
         }
         return params;
     },
+
+	/**
+	 * Override submit behavior for Tools > Orders context.
+	 * In TOOLS app we allow saving without inventory line items.
+	 */
+	registerSubmitEvent : function () {
+		var self = this;
+		var editViewForm = this.getForm();
+		editViewForm.submit(function(e){
+			var appNameValue = (editViewForm.find('[name="appName"]').val() || '').toUpperCase();
+			var isToolsContext = appNameValue.indexOf('TOOLS') !== -1;
+
+			if (!isToolsContext) {
+				var deletedItemInfo = jQuery('.deletedItem', editViewForm);
+				if (deletedItemInfo.length > 0) {
+					e.preventDefault();
+					var msg = app.vtranslate('JS_PLEASE_REMOVE_LINE_ITEM_THAT_IS_DELETED');
+					app.helper.showErrorNotification({"message" : msg});
+					editViewForm.removeData('submit');
+					return false;
+				} else if (jQuery('.lineItemRow').length <= 0) {
+					e.preventDefault();
+					msg = app.vtranslate('JS_NO_LINE_ITEM');
+					app.helper.showErrorNotification({"message" : msg});
+					editViewForm.removeData('submit');
+					return false;
+				}
+
+				self.updateLineItemElementByOrder();
+				self.saveProductCount();
+				self.saveSubTotalValue();
+				self.saveTotalValue();
+				self.savePreTaxTotalValue();
+			}
+
+			return true;
+		});
+	},
     
     /**
 	 * Function to register event for enabling recurrence
