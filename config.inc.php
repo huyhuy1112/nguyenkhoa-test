@@ -1,10 +1,4 @@
-
 <?php
-
-
-// BẬT debug local
-//ini_set('display_errors','on');
-//error_reporting(E_ALL);
 /*********************************************************************************
  * The contents of this file are subject to the SugarCRM Public License Version 1.1.2
  * ("License"); You may not use this file except in compliance with the 
@@ -20,11 +14,9 @@
 ********************************************************************************/
 
 // Adjust error_reporting favourable to deployment.
-// Adjust error_reporting favourable to deployment.
-version_compare(PHP_VERSION, '5.5.0') <= 0
-	? error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED & E_ERROR)
-	: error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED  & E_ERROR & ~E_STRICT); // PRODUCTION
-//ini_set('display_errors','on'); error_reporting(E_ALL); // DEBUG LOCAL
+version_compare(PHP_VERSION, '5.5.0') <= 0 ? error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED & E_ERROR) : error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED  & E_ERROR & ~E_STRICT); // PRODUCTION
+//ini_set('display_errors','on'); version_compare(PHP_VERSION, '5.5.0') <= 0 ? error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED) : error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT);   // DEBUGGING
+//ini_set('display_errors','on'); error_reporting(E_ALL); // STRICT DEVELOPMENT
 
 
 include('vtigerversion.php');
@@ -52,11 +44,11 @@ $HELPDESK_SUPPORT_EMAIL_REPLY_ID = $HELPDESK_SUPPORT_EMAIL_ID;
       db_name
 */
 
-$dbconfig['db_server'] = 'localhost';
+$dbconfig['db_server'] = 'db';
 $dbconfig['db_port'] = ':3306';
-$dbconfig['db_username'] = 'nhtdbus8_b-ace';
-$dbconfig['db_password'] = '987456321852huy';
-$dbconfig['db_name'] = 'nhtdbus8_b-ace';
+$dbconfig['db_username'] = 'root';
+$dbconfig['db_password'] = '132120';
+$dbconfig['db_name'] = 'TDB1';
 $dbconfig['db_type'] = 'mysqli';
 $dbconfig['db_status'] = 'true';
 
@@ -87,12 +79,12 @@ $dbconfigoption['ssl'] = false;
 
 $host_name = $dbconfig['db_hostname'];
 
- $site_URL = 'https://b-ace.tdbsolution.com/';
+$site_URL = 'http://localhost:8080/';
 
 // url for customer portal (Example: http://vtiger.com/portal)
 $PORTAL_URL = $site_URL.'/customerportal';
 // root directory path
- $root_directory = dirname(__FILE__) . '/';
+$root_directory = '/var/www/html/';
 
 // cache direcory path
 $cache_dir = 'cache/';
