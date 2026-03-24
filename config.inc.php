@@ -1,4 +1,5 @@
 <?php
+
 /*********************************************************************************
  * The contents of this file are subject to the SugarCRM Public License Version 1.1.2
  * ("License"); You may not use this file except in compliance with the 
@@ -14,10 +15,10 @@
 ********************************************************************************/
 
 // Adjust error_reporting favourable to deployment.
-version_compare(PHP_VERSION, '5.5.0') <= 0 ? error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED & E_ERROR) : error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED  & E_ERROR & ~E_STRICT); // PRODUCTION
-//ini_set('display_errors','on'); version_compare(PHP_VERSION, '5.5.0') <= 0 ? error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED) : error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT);   // DEBUGGING
-//ini_set('display_errors','on'); error_reporting(E_ALL); // STRICT DEVELOPMENT
-
+//version_compare(PHP_VERSION, '5.5.0') <= 0
+//	? error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED & E_ERROR)
+//	: error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED  & E_ERROR & ~E_STRICT); // PRODUCTION
+ini_set('display_errors','on'); error_reporting(E_ALL); // DEBUG LOCAL
 
 include('vtigerversion.php');
 
@@ -165,7 +166,7 @@ $listview_max_textlength = 40;
 $php_max_execution_time = 0;
 
 // Set the default timezone as per your preference
-$default_timezone = 'UTC';
+$default_timezone = 'Asia/Ho_Chi_Minh';
 
 /** If timezone is configured, try to set it */
 if(isset($default_timezone) && function_exists('date_default_timezone_set')) {

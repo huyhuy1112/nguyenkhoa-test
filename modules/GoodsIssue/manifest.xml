@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <module>
     <name>GoodsIssue</name>
-    <label>Xuất kho</label>
+    <label>Outbound</label>
     <parent>INVENTORY</parent>
     <type>extension</type>
     <version>1.0</version>

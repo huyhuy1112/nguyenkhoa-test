@@ -112,6 +112,7 @@
 											{elseif $moduleName eq 'SupportFAQ'}{assign var=MK_MOD_FA value='fa-question-circle'}
 											{elseif $moduleName eq 'Faq'}{assign var=MK_MOD_FA value='fa-question-circle'}
 											{elseif $moduleName eq 'Teams'}{assign var=MK_MOD_FA value='fa-users'}
+											{elseif $moduleName eq 'DocumentTemplate'}{assign var=MK_MOD_FA value='fa-file-text-o'}
 											{/if}
 											{if $MK_MOD_FA ne ''}
 												<span class="mk-icon module-icon module-icon-lg"><i class="fa {$MK_MOD_FA}"></i></span>

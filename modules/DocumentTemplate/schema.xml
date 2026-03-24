@@ -1,0 +1,27 @@
+<?xml version='1.0'?>
+<schema>
+	<tables>
+		<table>
+			<name>vtiger_documenttemplates</name>
+			<sql><![CDATA[
+                CREATE TABLE `vtiger_documenttemplates` (
+                    `templateid` int(19) NOT NULL AUTO_INCREMENT,
+                    `templatename` varchar(255) DEFAULT NULL,
+                    `feature` varchar(50) DEFAULT NULL,
+                    `description` text,
+                    `content` longtext,
+                    `version` int(10) NOT NULL DEFAULT '1',
+                    `isdefault` int(1) NOT NULL DEFAULT '0',
+                    `createdby` int(19) DEFAULT NULL,
+                    `updatedby` int(19) DEFAULT NULL,
+                    `createdtime` datetime DEFAULT NULL,
+                    `updatedtime` datetime DEFAULT NULL,
+                    `deleted` int(1) NOT NULL DEFAULT '0',
+                    PRIMARY KEY (`templateid`),
+                    KEY `documenttemplates_feature_updatedtime_idx` (`feature`,`updatedtime`),
+                    KEY `documenttemplates_temlatename_idx` (`templatename`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+            ]]></sql>
+		</table>
+	</tables>
+</schema>

@@ -15,7 +15,7 @@ class Project_Save_Action extends Vtiger_Save_Action {
 	 * - owner < 0  => lưu team_groupid = abs(owner)
 	 * - owner >= 0 => xóa mapping nhóm cũ
 	 */
-	public function saveRecord(Vtiger_Request $request) {
+	public function saveRecord($request) {
 		$recordModel = parent::saveRecord($request);
 		$projectId = (int)$recordModel->getId();
 		if ($projectId <= 0) {

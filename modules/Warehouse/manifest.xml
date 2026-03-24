@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <module>
     <name>Warehouse</name>
-    <label>Lưu kho</label>
+    <label>Storage</label>
     <parent>INVENTORY</parent>
     <type>extension</type>
     <version>1.0</version>

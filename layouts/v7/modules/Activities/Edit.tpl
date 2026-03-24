@@ -1,6 +1,6 @@
 {strip}
-<div class="container-fluid activities-page activities-edit-wrapper" style="padding:18px;">
-    <div class="panel panel-default activities-card" style="border-radius:12px; box-shadow:0 12px 30px rgba(15,23,42,0.12);">
+<div class="container-fluid" style="padding:18px;">
+    <div class="panel panel-default" style="border-radius:12px; box-shadow:0 12px 30px rgba(15,23,42,0.12);">
         <div class="panel-heading">
             <h4 class="panel-title">
                 {if $RECORD.activityid}Edit Activity #{ $RECORD.activityid }{else}New Activity{/if}
@@ -12,7 +12,7 @@
                 <input type="hidden" name="action" value="Save" />
                 <input type="hidden" name="record" value="{$RECORD.activityid}" />
                 <input type="hidden" name="app" value="SUPPORT" />
-                <input type="hidden" name="ticketid" value="{$RECORD.ticketid|default:''}" />
+                <input type="hidden" name="ticket_id" value="{$RECORD.ticket_id|default:''}" />
                 <input type="hidden" name="from_ticket" value="{$FROM_TICKET|default:0}" />
 
                 <div class="row">
@@ -110,8 +110,8 @@
                 </div>
 
                 <div class="text-right">
-                    {if $FROM_TICKET gt 0 && $RECORD.ticketid gt 0}
-                        <a href="index.php?module=HelpDesk&view=TicketDetail&record={$RECORD.ticketid}&app=SUPPORT" class="btn btn-default">Cancel</a>
+                    {if $FROM_TICKET gt 0 && $RECORD.ticket_id gt 0}
+                        <a href="index.php?module=HelpDesk&view=TicketDetail&record={$RECORD.ticket_id}&app=SUPPORT" class="btn btn-default">Cancel</a>
                     {else}
                         <a href="index.php?module=Activities&view=List&app=SUPPORT" class="btn btn-default">Cancel</a>
                     {/if}

@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <module>
     <name>GoodsReceipt</name>
-    <label>Nhập kho</label>
+    <label>Inbound</label>
     <parent>INVENTORY</parent>
     <type>extension</type>
     <version>1.0</version>
