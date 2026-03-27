@@ -16,7 +16,10 @@ class Warehouse extends CRMEntity {
     }
     
     function vtlib_handler($modulename, $event_type) {
-        // Placeholder module - no special handling needed
+        if (in_array($event_type, array('module.postinstall', 'module.postupdate', 'module.enabled'))) {
+            require_once 'modules/GoodsReceipt/helpers/WorkflowSetup.php';
+            GoodsReceipt_WorkflowSetup_Helper::runAll();
+        }
     }
 }
 ?>

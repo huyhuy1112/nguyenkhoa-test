@@ -1,7 +1,7 @@
 <?php
 class GoodsReceipt_List_View extends Vtiger_Index_View {
 	protected function preProcessTplName(Vtiger_Request $request) {
-		return 'ListViewPreProcess.tpl';
+		return 'IndexViewPreProcess.tpl';
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
@@ -10,7 +10,7 @@ class GoodsReceipt_List_View extends Vtiger_Index_View {
 
 	public function postProcess(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
-		$viewer->view('ListViewPostProcess.tpl', $request->getModule());
+		$viewer->view('IndexPostProcess.tpl', $request->getModule());
 		Vtiger_Basic_View::postProcess($request);
 	}
 
@@ -56,7 +56,7 @@ class GoodsReceipt_List_View extends Vtiger_Index_View {
 		}
 
 		$sql = "SELECT
-					r.receiptid, r.subject, r.source_name, r.received_date, r.storage_location,
+					r.receiptid, r.code, r.subject, r.source_name, r.received_date, r.storage_location,
 					r.updatedtime, r.note,
 					COALESCE(SUM(i.quantity), 0) AS total_qty,
 					COALESCE(SUM(i.quantity * i.unit_price), 0) AS total_value
@@ -70,6 +70,7 @@ class GoodsReceipt_List_View extends Vtiger_Index_View {
 		while ($row = $db->fetchByAssoc($result)) {
 			$rows[] = array(
 				'receiptid' => (int) $row['receiptid'],
+				'code' => (string) $row['code'],
 				'subject' => (string) $row['subject'],
 				'source_name' => (string) $row['source_name'],
 				'received_date' => (string) $row['received_date'],
@@ -78,6 +79,8 @@ class GoodsReceipt_List_View extends Vtiger_Index_View {
 				'note' => (string) $row['note'],
 				'total_qty' => (string) $row['total_qty'],
 				'total_value' => (string) $row['total_value'],
+				'total_qty_display' => number_format((float) $row['total_qty'], 2, '.', ','),
+				'total_value_display' => number_format((float) $row['total_value'], 0, '.', ','),
 			);
 		}
 
