@@ -209,7 +209,7 @@
 		<br>
 		<div>
 			<div>
-				{if ($MODULE eq 'SalesOrder' || $MODULE eq 'Invoice') && ($PRODUCT_ACTIVE eq 'true' || $SERVICE_ACTIVE eq 'true')}
+				{if ($MODULE eq 'SalesOrder' || $MODULE eq 'Invoice' || $MODULE eq 'Quotes') && ($PRODUCT_ACTIVE eq 'true' || $SERVICE_ACTIVE eq 'true')}
 					<div class="btn-toolbar">
 						<span class="btn-group">
 							<button type="button" class="btn btn-default" id="addProductsServices" data-module-name="ProductsServices" >

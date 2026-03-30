@@ -84,7 +84,7 @@
 						</div>
 					</div>
 					<div class="col-lg-2">
-						{if $MODULE eq 'SalesOrder' || $MODULE eq 'Invoice'}
+						{if $MODULE eq 'SalesOrder' || $MODULE eq 'Invoice' || $MODULE eq 'Quotes'}
 							{if $PRODUCT_ACTIVE eq 'true' || $SERVICE_ACTIVE eq 'true'}
 								<span class="lineItemPopup cursorPointer" data-popup="ProductsServicesPopup" title="{vtranslate('ProductsServices',$MODULE)}" data-module-name="ProductsServices" data-field-name="productsservicesid">
 									{Vtiger_Module_Model::getModuleIconPath('ProductsServices')}

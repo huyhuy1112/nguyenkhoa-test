@@ -17,10 +17,17 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 	 *                   array('linktype'=>list of link models);
 	 */
 	public function getDetailViewLinks($linkParams) {
+		require_once 'modules/Quotes/helpers/QuoteItemTypeHelper.php';
+
 		$currentUserModel = Users_Privileges_Model::getCurrentUserPrivilegesModel();
 
 		$linkModelList = parent::getDetailViewLinks($linkParams);
 		$recordModel = $this->getRecord();
+
+		// Filter Quote exports based on saved line-item types (Product vs Service).
+		// This is evaluated at detail-time and does not touch totals/tax math.
+		$quoteId = (int) $recordModel->getId();
+		$itemTypeClassification = Quotes_QuoteItemTypeHelper::classifyQuoteByLineItems($quoteId);
 
 		$invoiceModuleModel = Vtiger_Module_Model::getInstance('Invoice');
 		if($currentUserModel->hasModuleActionPermission($invoiceModuleModel->getId(), 'CreateView')) {
@@ -53,6 +60,35 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 				'linkicon' => ''
 			);
 			$linkModelList['DETAILVIEW'][] = Vtiger_Link_Model::getInstanceFromValues($basicActionLink);
+		}
+
+		// Remove / keep the two Excel export actions depending on classification.
+		if (!empty($linkModelList['DETAILVIEW'])) {
+			$filteredLinks = array();
+			foreach ($linkModelList['DETAILVIEW'] as $linkModel) {
+				$linkUrl = '';
+				if (is_object($linkModel) && method_exists($linkModel, 'get')) {
+					$linkUrl = (string) $linkModel->get('linkurl');
+				} elseif (is_object($linkModel) && isset($linkModel->linkurl)) {
+					$linkUrl = (string) $linkModel->linkurl;
+				}
+
+				$isSaleExport = (strpos($linkUrl, 'action=ExportExcelForSale') !== false);
+				$isProjectExport = (strpos($linkUrl, 'action=ExportExcelForProject') !== false);
+
+				if ($itemTypeClassification === 'product_only') {
+					if ($isProjectExport) continue;
+				} elseif ($itemTypeClassification === 'service_only') {
+					if ($isSaleExport) continue;
+				} elseif ($itemTypeClassification === 'empty') {
+					if ($isSaleExport || $isProjectExport) continue;
+				}
+
+				// mixed => keep both export actions.
+				$filteredLinks[] = $linkModel;
+			}
+
+			$linkModelList['DETAILVIEW'] = $filteredLinks;
 		}
 
 		return $linkModelList;

@@ -19,11 +19,24 @@ class Quotes_ExportExcelForProject_Action extends Vtiger_Action_Controller {
     }
 
     public function process(Vtiger_Request $request) {
-        $moduleName = $request->getModule();
+        // Always load the target record as a Quotes record (avoid request module-context mismatches).
+        $moduleName = 'Quotes';
+        $recordId = (int) $request->get('record');
+        if ($recordId <= 0) {
+            throw new AppException('Missing Quotes record id for ExportExcelForProject.');
+        }
 
-        $recordId = $request->get('record');
+        // Validate record exists first.
+        $quoteRecordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+        if (!$quoteRecordModel || (int) $quoteRecordModel->getId() <= 0) {
+            throw new AppException('Quotes record not found for ExportExcelForProject.');
+        }
+
         $focus = CRMEntity::getInstance($moduleName);
-        $focus->retrieve_entity_info($recordId, $moduleName);
+        $retrieved = $focus->retrieve_entity_info($recordId, $moduleName);
+        if ($retrieved === false) {
+            throw new AppException('Quotes record not found for ExportExcelForProject.');
+        }
         $focus->apply_field_security();
         $focus->id = $recordId;
 
