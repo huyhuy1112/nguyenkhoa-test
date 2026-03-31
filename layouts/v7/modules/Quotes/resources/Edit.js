@@ -20,6 +20,9 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
 
       // Auto Subject from Opportunity (potential_id)
       this.registerAutoSubjectFromOpportunity();
+
+      // Auto-fill Organization + Contact from Opportunity (potential_id)
+      this.registerAutoOrgContactFromOpportunity();
     },
 
     /**
@@ -112,6 +115,88 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
         // Also hook vtiger reference selection event
         form.on(Vtiger_Edit_Js.referenceSelectionEvent, '[name="potential_id"]', function() {
             apply();
+        });
+    },
+
+    /**
+     * When selecting Opportunity (potential_id), auto-fill Organization (account_id)
+     * and Contact (contact_id) from Opportunity fields (related_to/contact_id) if present.
+     *
+     * If Opportunity doesn't have these values, we do not overwrite existing selections.
+     */
+    registerAutoOrgContactFromOpportunity : function() {
+        var self = this;
+        var form = this.getForm();
+        if (!form || !form.length) return;
+
+        var accountIdEl = form.find('[name="account_id"]');
+        var accountDisplayEl = form.find('[name="account_id_display"]');
+        var contactIdEl = form.find('[name="contact_id"]');
+        var contactDisplayEl = form.find('[name="contact_id_display"]');
+
+        var setAccount = function(accountId) {
+            accountId = parseInt(accountId, 10) || 0;
+            if (!accountId) return;
+            if (accountIdEl && accountIdEl.length && parseInt(accountIdEl.val(), 10)) return; // don't overwrite
+
+            self.getRecordDetails({record: accountId, source_module: 'Accounts'}).then(function(data) {
+                var row = data && data.data ? data.data : null;
+                if (!row) return;
+                var name = row.accountname || '';
+                if (accountIdEl && accountIdEl.length) accountIdEl.val(accountId);
+                if (accountDisplayEl && accountDisplayEl.length) accountDisplayEl.val(name);
+                if (accountDisplayEl && accountDisplayEl.length) {
+                    accountDisplayEl.trigger('change');
+                    accountDisplayEl.trigger(Vtiger_Edit_Js.postReferenceSelectionEvent);
+                }
+            });
+        };
+
+        var setContact = function(contactId) {
+            contactId = parseInt(contactId, 10) || 0;
+            if (!contactId) return;
+            if (contactIdEl && contactIdEl.length && parseInt(contactIdEl.val(), 10)) return; // don't overwrite
+
+            self.getRecordDetails({record: contactId, source_module: 'Contacts'}).then(function(data) {
+                var row = data && data.data ? data.data : null;
+                if (!row) return;
+                var name = ((row.firstname || '') + ' ' + (row.lastname || '')).trim();
+                if (!name) name = row.label || '';
+                if (contactIdEl && contactIdEl.length) contactIdEl.val(contactId);
+                if (contactDisplayEl && contactDisplayEl.length) contactDisplayEl.val(name);
+                if (contactDisplayEl && contactDisplayEl.length) {
+                    contactDisplayEl.trigger('change');
+                    contactDisplayEl.trigger(Vtiger_Edit_Js.postReferenceSelectionEvent);
+                }
+            });
+        };
+
+        var applyFromPotentialId = function(potentialId) {
+            potentialId = parseInt(potentialId, 10) || 0;
+            if (!potentialId) return;
+
+            self.getRecordDetails({record: potentialId, source_module: 'Potentials'}).then(function(data) {
+                var row = data && data.data ? data.data : null;
+                if (!row) return;
+
+                // Potentials: related_to => Account, contact_id => Contact
+                if (row.related_to) {
+                    setAccount(row.related_to);
+                }
+                if (row.contact_id) {
+                    setContact(row.contact_id);
+                }
+            });
+        };
+
+        // On reference selection event (popup selection)
+        form.on(Vtiger_Edit_Js.referenceSelectionEvent, '[name="potential_id"]', function() {
+            applyFromPotentialId(form.find('[name="potential_id"]').val());
+        });
+
+        // Also on change (in case of programmatic updates)
+        form.on('change', '[name="potential_id"]', function() {
+            applyFromPotentialId(jQuery(this).val());
         });
     },
     
