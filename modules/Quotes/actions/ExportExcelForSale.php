@@ -17,6 +17,10 @@ class Quotes_ExportExcelForSale_Action extends Vtiger_Action_Controller {
     }
 
     public function process(Vtiger_Request $request) {
+        // Prevent PHP warnings/notices from corrupting the XLSX stream on some production setups.
+        @ini_set('display_errors', '0');
+        @ini_set('zlib.output_compression', '0');
+
         $moduleName = $request->getModule();
         $recordId = $request->get('record');
         $focus = CRMEntity::getInstance($moduleName);
@@ -29,6 +33,9 @@ class Quotes_ExportExcelForSale_Action extends Vtiger_Action_Controller {
             
             // Load template file
             $templatePath = 'templates/TDB-Quote-Sale.xlsx';
+            if (!is_readable($templatePath)) {
+                throw new AppException('Excel template not found: '.$templatePath);
+            }
             $objReader = PHPExcel_IOFactory::createReader('Excel2007');
             $objPHPExcel = $objReader->load($templatePath);
             // Set default font to a Unicode-safe font to avoid Vietnamese font issues
@@ -151,10 +158,14 @@ class Quotes_ExportExcelForSale_Action extends Vtiger_Action_Controller {
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             header('Content-Disposition: attachment;filename="' . $fileBase . '.xlsx"');
             header('Cache-Control: max-age=0');
+            header('Pragma: public');
 
             // Save file to browser
+            // Ensure no previous output corrupts the Excel file.
+            while (ob_get_level() > 0) { @ob_end_clean(); }
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
             $objWriter->save('php://output');
+            exit;
             
         } catch (Exception $e) {
             throw new AppException($e->getMessage());
