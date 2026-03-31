@@ -25,7 +25,6 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 		$recordModel = $this->getRecord();
 
 		// Filter Quote exports based on saved line-item types (Product vs Service).
-		// This is evaluated at detail-time and does not touch totals/tax math.
 		$quoteId = (int) $recordModel->getId();
 		$itemTypeClassification = Quotes_QuoteItemTypeHelper::classifyQuoteByLineItems($quoteId);
 
@@ -87,7 +86,6 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 				// mixed => keep both export actions.
 				$filteredLinks[] = $linkModel;
 			}
-
 			$linkModelList['DETAILVIEW'] = $filteredLinks;
 		}
 

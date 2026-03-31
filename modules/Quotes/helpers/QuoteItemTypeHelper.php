@@ -18,17 +18,13 @@ class Quotes_QuoteItemTypeHelper {
 	 */
 	public static function classifyQuoteByLineItems($quoteId) {
 		$quoteId = (int) $quoteId;
-		if ($quoteId <= 0) {
-			return 'empty';
-		}
+		if ($quoteId <= 0) return 'empty';
 
 		global $adb;
 		if (!$adb) {
 			$adb = PearDatabase::getInstance();
 		}
 
-		// We intentionally avoid using any export/total math here.
-		// Classification is derived solely from how inventory line items reference Products / Services / ProductsServices.
 		$result = $adb->pquery(
 			"SELECT
 				vtiger_inventoryproductrel.productid,
@@ -52,9 +48,7 @@ class Quotes_QuoteItemTypeHelper {
 		);
 
 		$numRows = $adb->num_rows($result);
-		if ($numRows <= 0) {
-			return 'empty';
-		}
+		if ($numRows <= 0) return 'empty';
 
 		$productSeen = false;
 		$serviceSeen = false;
@@ -67,13 +61,10 @@ class Quotes_QuoteItemTypeHelper {
 				$productSeen = true;
 				continue;
 			}
-
 			if ($entityType === 'services') {
 				$serviceSeen = true;
 				continue;
 			}
-
-			// ProductsServices: map its item_type (picklist: Product/Service)
 			if ($entityType === 'productsservices') {
 				$itemType = strtolower(trim((string) $adb->query_result($result, $i, 'productsservices_item_type')));
 				if ($itemType === 'product' || $itemType === 'products') {
@@ -91,21 +82,10 @@ class Quotes_QuoteItemTypeHelper {
 			}
 		}
 
-		if ($productSeen && $serviceSeen) {
-			return 'mixed';
-		}
-		if ($productSeen) {
-			return 'product_only';
-		}
-		if ($serviceSeen) {
-			return 'service_only';
-		}
-
-		// If we have line items but can't determine types reliably, treat as mixed for safety.
-		if ($unknownSeen) {
-			return 'mixed';
-		}
-
+		if ($productSeen && $serviceSeen) return 'mixed';
+		if ($productSeen) return 'product_only';
+		if ($serviceSeen) return 'service_only';
+		if ($unknownSeen) return 'mixed';
 		return 'empty';
 	}
 }

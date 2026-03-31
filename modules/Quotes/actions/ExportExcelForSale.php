@@ -17,24 +17,10 @@ class Quotes_ExportExcelForSale_Action extends Vtiger_Action_Controller {
     }
 
     public function process(Vtiger_Request $request) {
-        // Always load the target record as a Quotes record (avoid request module-context mismatches).
-        $moduleName = 'Quotes';
-        $recordId = (int) $request->get('record');
-        if ($recordId <= 0) {
-            throw new AppException('Missing Quotes record id for ExportExcelForSale.');
-        }
-
-        // Validate record exists first.
-        $quoteRecordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
-        if (!$quoteRecordModel || (int) $quoteRecordModel->getId() <= 0) {
-            throw new AppException('Quotes record not found for ExportExcelForSale.');
-        }
-
+        $moduleName = $request->getModule();
+        $recordId = $request->get('record');
         $focus = CRMEntity::getInstance($moduleName);
-        $retrieved = $focus->retrieve_entity_info($recordId, $moduleName);
-        if ($retrieved === false) {
-            throw new AppException('Quotes record not found for ExportExcelForSale.');
-        }
+        $focus->retrieve_entity_info($recordId, $moduleName);
         $focus->apply_field_security();
         $focus->id = $recordId;
 
@@ -134,8 +120,36 @@ class Quotes_ExportExcelForSale_Action extends Vtiger_Action_Controller {
 
 
             // Set headers for download
+            // Use Opportunity name as filename (fallback to quote id if missing).
+            $fileBase = '';
+            $potentialId = isset($focus->column_fields['potential_id']) ? (int) $focus->column_fields['potential_id'] : 0;
+            if ($potentialId > 0) {
+                try {
+                    $pot = Vtiger_Record_Model::getInstanceById($potentialId, 'Potentials');
+                    if ($pot) {
+                        $fileBase = (string) $pot->get('potentialname');
+                        if ($fileBase === '') $fileBase = (string) $pot->getName();
+                    }
+                } catch (Exception $e) {}
+            }
+            $fileBase = trim(decode_html($fileBase));
+            if ($fileBase === '') $fileBase = 'Quote_'.$recordId;
+            // Align with Quote subject naming: strip leading date prefix and prefix with "TDB Quo-".
+            $fileBase = preg_replace('/^\d{6}-/', '', $fileBase);
+            $fileBase = trim($fileBase);
+            if ($fileBase !== '' && !preg_match('/^TDB Quo-/i', $fileBase)) {
+                $fileBase = 'TDB Quo-' . $fileBase;
+            }
+            // Sanitize for filesystem/header safety (keep Unicode letters/numbers).
+            $fileBase = preg_replace('/[^\p{L}\p{N}\s\-\_\.]/u', '_', $fileBase);
+            $fileBase = preg_replace('/\s+/', ' ', $fileBase);
+            $fileBase = trim($fileBase);
+            if (mb_strlen($fileBase, 'UTF-8') > 80) {
+                $fileBase = mb_substr($fileBase, 0, 80, 'UTF-8');
+            }
+
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            header('Content-Disposition: attachment;filename="BaoGia_BanHang_' . $recordId . '_' . date('YmdHis') . '.xlsx"');
+            header('Content-Disposition: attachment;filename="' . $fileBase . '.xlsx"');
             header('Cache-Control: max-age=0');
 
             // Save file to browser

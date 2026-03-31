@@ -18,86 +18,102 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
       this.accountsReferenceField = form.find('[name="account_id"]');
       this.contactsReferenceField = form.find('[name="contact_id"]');
 
-	  // Document Template selector (runtime injection).
-	  this.initDocumentTemplateSelector('Quotes');
+      // Auto Subject from Opportunity (potential_id)
+      this.registerAutoSubjectFromOpportunity();
     },
 
-	initDocumentTemplateSelector : function(targetModuleName) {
-		var form = this.getForm();
-		if (!form || !form.length) return;
-		if (form.find('[name="document_template_id"]').length) return; // already injected
-		var container = form.find('.editViewContents');
-		if (!container || !container.length) return;
+    /**
+     * Unified "Add Products & Services" row behavior (match Invoice).
+     * Creates a new line-item row compatible with ProductsServices popup selection.
+     */
+    registerAddProductsServicesButton : function() {
+        var self = this;
+        jQuery('#addProductsServices').on('click', function(e, data){
+            var currentTarget = jQuery(e.currentTarget);
+            var params = {'currentTarget' : currentTarget};
+            var newLineItem = self.getNewLineItem(params);
+            newLineItem = newLineItem.appendTo(self.lineItemsHolder);
+            newLineItem.find('input.productName').addClass('autoComplete');
+            newLineItem.find('.ignore-ui-registration').removeClass('ignore-ui-registration');
+            vtUtils.applyFieldElementsView(newLineItem);
+            app.event.trigger('post.lineItem.New', newLineItem);
+            self.checkLineItemRow();
+            self.registerLineItemAutoComplete(newLineItem);
 
-		var recordId = (typeof app !== 'undefined' && app.getRecordId) ? app.getRecordId() : 0;
-		recordId = parseInt(recordId, 10) || 0;
+            // If invoked from multi-select popup flow, map the selected record into the row.
+            if(typeof data !== "undefined") {
+                var recordData;
+                for(var id in data) {
+                    recordData = data[id];
+                    break;
+                }
+                var itemType = recordData ? recordData.item_type : null;
+                var underlyingType = 'Products';
+                if(itemType) {
+                    var itemTypeLower = itemType.toLowerCase();
+                    if(itemTypeLower === 'product' || itemTypeLower === 'products') {
+                        underlyingType = 'Products';
+                    } else if(itemTypeLower === 'service' || itemTypeLower === 'services') {
+                        underlyingType = 'Services';
+                    }
+                }
+                newLineItem.find('.lineItemType').val(underlyingType);
+                self.mapResultsToFields(newLineItem, data);
+            }
+        });
+    },
 
-		var dbg = jQuery('<div/>', {
-			'class': 'dt-selector-debug',
-			'html': '<strong>DOCUMENT TEMPLATE UI LOADED</strong><br/>Module: ' + targetModuleName + '<br/>Record id: ' + recordId
-		}).css({
-			'margin': '10px 0 0 0',
-			'padding': '10px',
-			'background': '#fffae6',
-			'border': '1px solid #f0c36d',
-			'border-radius': '6px',
-			'font-size': '13px'
-		});
-		container.prepend(dbg);
+    /**
+     * Subject is auto-filled from Opportunity name (potential_id) and is not required.
+     */
+    registerAutoSubjectFromOpportunity : function() {
+        var form = this.getForm();
+        if (!form || !form.length) return;
 
-		var params = {
-			module: 'DocumentTemplate',
-			action: 'GetSelectorData',
-			targetModule: targetModuleName,
-			targetRecord: recordId
-		};
+        var normalizeOppName = function(name) {
+            var s = (name || '').toString().trim();
+            // remove leading YYMMDD- (e.g. 260313-)
+            s = s.replace(/^\d{6}-/, '');
+            if (!s.length) return '';
+            if (!/^TDB Quo-/i.test(s)) {
+                s = 'TDB Quo-' + s;
+            }
+            return s;
+        };
 
-		if (typeof app === 'undefined' || !app.request || !app.request.get) {
-			dbg.append('<br/>Error: app.request.get not found.');
-			return;
-		}
+        var subjectEl = form.find('[name="subject"]');
+        if (subjectEl && subjectEl.length) {
+            // Remove required validation (UI only). Backend will still set if empty.
+            subjectEl.removeAttr('data-rule-required');
+            subjectEl.removeClass('required');
+            // Lock subject: keep it submitted (readonly), but prevent user edits.
+            subjectEl.prop('readonly', true);
+        }
 
-		app.request.get({data: params}).then(
-			function(error, data) {
-				if (error) {
-					dbg.append('<br/>Error loading template options.');
-					return;
-				}
-				var options = (data && data.options) ? data.options : [];
-				var selectedId = (data && data.selectedId) ? parseInt(data.selectedId, 10) : 0;
-				dbg.append('<br/>Option count: ' + options.length);
-				dbg.remove();
+        var potentialNameEl = form.find('[name="potential_id_display"]');
+        var apply = function() {
+            if (!subjectEl || !subjectEl.length) return;
+            if (potentialNameEl && potentialNameEl.length) {
+                var oppName = potentialNameEl.val();
+                if (oppName && oppName.trim().length) {
+                    subjectEl.val(normalizeOppName(oppName));
+                }
+            }
+        };
 
-				var wrap = jQuery('<div/>').addClass('well').css({'margin-top': '12px'});
-				var row = jQuery('<div/>').addClass('row');
-				var left = jQuery('<div/>').addClass('col-sm-4').append(jQuery('<label/>').text('Document Template'));
-				var right = jQuery('<div/>').addClass('col-sm-8');
+        // Apply on load (e.g. preselected opportunity)
+        apply();
 
-				var select = jQuery('<select/>', {'class': 'inputElement', 'name': 'document_template_id'});
-				if (!options.length) {
-					select.append(jQuery('<option/>', {value: ''}).text('-- No matching template available --'));
-				} else {
-					select.append(jQuery('<option/>', {value: ''}).text('-- Select ' + targetModuleName + ' template --'));
-					options.forEach(function(o) {
-						var txt = o.templatename + ' (v' + o.version + ')';
-						if (parseInt(o.isdefault, 10) === 1) txt += ' [Default]';
-						var opt = jQuery('<option/>', {value: o.templateid}).text(txt);
-						if (parseInt(o.templateid, 10) === selectedId) opt.prop('selected', true);
-						select.append(opt);
-					});
-				}
+        // Apply whenever opportunity changes (via popup selection or manual clear/reselect)
+        form.on('change', '[name="potential_id"], [name="potential_id_display"]', function() {
+            apply();
+        });
 
-				right.append(select);
-				right.append(jQuery('<div/>', {'class': 'text-muted small'}).css({'margin-top': '6px'}).text('Templates are filtered by feature.'));
-				row.append(left).append(right);
-				wrap.append(row);
-				container.prepend(wrap);
-			},
-			function(error) {
-				dbg.append('<br/>Request failed.');
-			}
-		);
-	},
+        // Also hook vtiger reference selection event
+        form.on(Vtiger_Edit_Js.referenceSelectionEvent, '[name="potential_id"]', function() {
+            apply();
+        });
+    },
     
     /**
 	 * Function to get popup params
@@ -203,45 +219,6 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
 		)
 		return aDeferred.promise();
 	},
-    
-    /**
-     * Unified "Add Products & Services" row + ProductsServices popup (same pattern as Invoice).
-     */
-    registerAddProductsServicesButton : function() {
-        var self = this;
-        jQuery('#addProductsServices').on('click', function(e, data){
-            var currentTarget = jQuery(e.currentTarget);
-            var params = {'currentTarget' : currentTarget};
-            var newLineItem = self.getNewLineItem(params);
-            newLineItem = newLineItem.appendTo(self.lineItemsHolder);
-            newLineItem.find('input.productName').addClass('autoComplete');
-            newLineItem.find('.ignore-ui-registration').removeClass('ignore-ui-registration');
-            vtUtils.applyFieldElementsView(newLineItem);
-            app.event.trigger('post.lineItem.New', newLineItem);
-            self.checkLineItemRow();
-            self.registerLineItemAutoComplete(newLineItem);
-
-            if(typeof data !== "undefined") {
-                var recordData;
-                for(var id in data) {
-                    recordData = data[id];
-                    break;
-                }
-                var itemType = recordData ? recordData.item_type : null;
-                var underlyingType = 'Products';
-                if(itemType) {
-                    var itemTypeLower = itemType.toLowerCase();
-                    if(itemTypeLower === 'product' || itemTypeLower === 'products') {
-                        underlyingType = 'Products';
-                    } else if(itemTypeLower === 'service' || itemTypeLower === 'services') {
-                        underlyingType = 'Services';
-                    }
-                }
-                newLineItem.find('.lineItemType').val(underlyingType);
-                self.mapResultsToFields(newLineItem, data);
-            }
-        });
-    },
         registerBasicEvents: function(container){
             this._super(container);
             this.registerForTogglingBillingandShippingAddress();
