@@ -69,13 +69,24 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 		);
 		$items = array();
 		while ($row = $db->fetchByAssoc($rs)) {
+			$qty = isset($row['quantity']) ? (float) $row['quantity'] : 0.0;
+			$unit = isset($row['unit_price']) ? (float) $row['unit_price'] : 0.0;
+			$discount = isset($row['discount_percent']) ? (float) $row['discount_percent'] : 0.0;
+			if ($discount < 0) $discount = 0.0;
+			if ($discount > 100) $discount = 100.0;
+			$lineTotal = $qty * $unit * (1.0 - ($discount / 100.0));
+
+			$sn = isset($row['serial_number']) ? trim($this->decodeText($row['serial_number'])) : '';
 			$items[] = array(
 				'productid' => !empty($row['productid']) ? (int) $row['productid'] : 0,
 				'product_name' => (string) $row['product_name'],
 				'product_type' => (string) $row['product_type'],
-				'quantity' => (float) $row['quantity'],
-				'unit_price' => (float) $row['unit_price'],
+				'quantity' => $qty,
+				'unit_price' => $unit,
+				'discount_percent' => $discount,
+				'serial_number' => $sn,
 				'line_note' => (string) $row['line_note'],
+				'line_total' => $lineTotal,
 			);
 		}
 		return $items;
@@ -132,6 +143,7 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 		foreach ($items as &$it) {
 			$it['quantity_display'] = $this->formatNumber($it['quantity'], 2);
 			$it['unit_price_display'] = $this->formatNumber($it['unit_price'], 0);
+			$it['line_total_display'] = $this->formatNumber($it['line_total'], 0);
 		}
 		unset($it);
 

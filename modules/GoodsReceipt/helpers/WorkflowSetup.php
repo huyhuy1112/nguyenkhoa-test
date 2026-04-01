@@ -112,6 +112,9 @@ class GoodsReceipt_WorkflowSetup_Helper {
 		if (empty($have['product_type'])) {
 			$db->pquery("ALTER TABLE `{$table}` ADD COLUMN `product_type` VARCHAR(50) DEFAULT NULL", array());
 		}
+		if (empty($have['serial_number'])) {
+			$db->pquery("ALTER TABLE `{$table}` ADD COLUMN `serial_number` VARCHAR(255) DEFAULT NULL", array());
+		}
 	}
 
 	public static function ensureGoodsReceiptExtendedColumns(PearDatabase $db) {

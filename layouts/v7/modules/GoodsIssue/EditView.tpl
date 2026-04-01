@@ -2,7 +2,7 @@
 <div class="main-container clearfix">
 	<link rel="stylesheet" href="layouts/v7/modules/Inventory/resources/FlowModern.css?v=20260326" />
 	<div class="editViewPageDiv viewContent content-area full-width inv-modern-page" style="margin-left:0;">
-		<div class="inv-modern-card">
+		<div class="inv-modern-card outbound-section">
 		<div class="container-fluid">
 			<div class="inv-topnav">
 				<a href="index.php?module=GoodsReceipt&view=List&app=INVENTORY">Inbound</a>
@@ -70,6 +70,34 @@
 				#GoodsIssueItemsTable tr.is-legacy .product-input {
 					border-color: #f0ad4e;
 					box-shadow: 0 0 0 2px rgba(240, 173, 78, 0.15);
+				}
+				.outbound-section {
+					background: linear-gradient(135deg, #eef6ff, #ffffff);
+					border: 1px solid #cfe3ff;
+					border-radius: 12px;
+					box-shadow: 0 4px 12px rgba(0, 123, 255, 0.08);
+					padding: 16px 8px 20px;
+				}
+				.outbound-section .inv-suite-head h3 { color: #0b3d6d; font-weight: 700; }
+				.outbound-section .panel.inv-panel {
+					background: #fff;
+					border-color: #cfe3ff;
+					box-shadow: 0 2px 8px rgba(0, 86, 179, 0.06);
+				}
+				.outbound-section .panel-heading {
+					background: #007bff;
+					color: #fff;
+					font-weight: 600;
+					border-radius: 4px 4px 0 0;
+					border: none;
+				}
+				.line-items-table tbody tr:hover {
+					background: #f2f8ff;
+				}
+				.serial-select {
+					border: 1px solid #007bff !important;
+					background: #f8fbff;
+					border-radius: 8px;
 				}
 			</style>
 			<div class="inv-suite-head">
@@ -188,38 +216,29 @@
 				<div class="panel panel-default inv-panel" style="margin-top:12px;">
 					<div class="panel-heading"><strong>Line items</strong></div>
 					<div class="panel-body">
-						<datalist id="products_list">
-							{foreach from=$PRODUCT_OPTIONS item=PO}
-								<option value="{$PO.name|escape:'html'}"
-									data-stockid="{$PO.stockid|escape:'html'}"
-									data-product-key="{$PO.product_key|escape:'html'}"
-									data-productid="{$PO.productid|escape:'html'}"
-									data-identity="{$PO.identity_type|escape:'html'}"
-									data-type="{$PO.type|escape:'html'}"
-									data-available="{$PO.available_qty|escape:'html'}"
-									data-location="{$PO.stock_location|escape:'html'}"
-									data-unit-price="{$PO.unit_price|escape:'html'}"></option>
-							{/foreach}
-						</datalist>
+						<datalist id="products_list"></datalist>
 
 						<div class="table-responsive">
-							<table class="table table-bordered table-hover inv-modern-table" id="GoodsIssueItemsTable">
+							<table class="table table-bordered table-hover inv-modern-table line-items-table" id="GoodsIssueItemsTable">
 								<thead>
 									<tr>
-										<th style="width:32%;">Product</th>
-										<th style="width:12%;">Type</th>
-										<th style="width:10%;" class="text-right">Qty</th>
-										<th style="width:12%;" class="text-right">Unit price</th>
+										<th style="width:26%;">Product</th>
+										<th style="width:10%;">Type</th>
+										<th style="width:14%;">SERIAL</th>
+										<th style="width:8%;" class="text-right">Qty</th>
+										<th style="width:10%;" class="text-right">Unit price</th>
+										<th style="width:8%;" class="text-right">Disc. %</th>
+										<th style="width:12%;" class="text-right">Line total</th>
 										<th>Line note</th>
 										<th style="width:70px;"></th>
 									</tr>
 								</thead>
 								<tbody>
 									{foreach from=$ITEMS item=IT name=itloop}
-										<tr class="row-item {if empty($IT.is_stock_linked)}is-legacy{/if}">
+										<tr class="row-item {if empty($IT.is_stock_linked)}is-legacy{/if}" data-gi-product-key="{if isset($IT.product_key_hint)}{$IT.product_key_hint|escape:'html'}{/if}" data-gi-product-name="{$IT.product_name|escape:'html'}">
 											<td>
 												<input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" />
-												<input type="text" name="item_product_name[]" value="{$IT.product_name|escape:'html'}" class="form-control product-input" list="products_list" placeholder="Start typing product..." />
+												<input type="text" name="item_product_name[]" value="{$IT.product_name|escape:'html'}" class="form-control product-input" list="products_list" placeholder="Click for storage list, or type to filter by name…" autocomplete="off" />
 												{if !empty($IT.is_stock_linked)}
 													<span class="stock-badge catalog">✓ Catalog</span>
 												{else}
@@ -242,6 +261,11 @@
 												</select>
 											</td>
 											<td>
+												<select name="serial_number[]" class="form-control serial-select gi-serial-select" data-initial-serial="{$IT.serial_number|escape:'html'}">
+													<option value="">Select serial</option>
+												</select>
+											</td>
+											<td>
 												<input type="number" step="0.0001" min="0" name="item_quantity[]" value="{$IT.quantity|escape:'html'}" class="form-control text-right qty-input" data-available="{$IT.available_qty|escape:'html'}" />
 												<div style="margin-top:4px;">
 													<span class="available-badge text-muted small">
@@ -254,7 +278,11 @@
 												</div>
 												<small class="text-danger qty-warn" style="display:none;">Qty exceeds available</small>
 											</td>
-											<td><input type="text" name="item_unit_price[]" value="{$IT.unit_price|escape:'html'}" class="form-control text-right" /></td>
+											<td><input type="number" step="0.0001" min="0" name="item_unit_price[]" value="{$IT.unit_price|escape:'html'}" class="form-control text-right gi-unit-price" /></td>
+											<td><input type="number" step="0.0001" min="0" max="100" name="item_discount[]" value="{$IT.discount_percent|default:0|escape:'html'}" class="form-control text-right gi-discount" /></td>
+											<td class="text-right gi-line-total-cell">
+												<span class="gi-line-total">0</span>
+											</td>
 											<td><input type="text" name="item_line_note[]" value="{$IT.line_note|escape:'html'}" class="form-control" /></td>
 											<td class="text-nowrap">
 												<button type="button" class="btn btn-xs btn-danger js-gi-remove">Remove</button>
@@ -295,6 +323,66 @@
 							}
 						});
 					}
+
+					// Prefix search for product name (server: LIKE 'term%'); shared datalist updated via AJAX.
+					var giProductSearchTimer = null;
+					var giProductSearchDelayMs = 300;
+
+					function goodsIssueBuildDatalistFromOptions(options) {
+						var list = document.getElementById('products_list');
+						if (!list) return;
+						list.innerHTML = '';
+						if (!options || !options.length) return;
+						for (var i = 0; i < options.length; i++) {
+							var o = options[i];
+							var el = document.createElement('option');
+							el.value = (o.name !== undefined && o.name !== null) ? String(o.name) : '';
+							el.setAttribute('data-stockid', o.stockid !== undefined ? String(o.stockid) : '');
+							el.setAttribute('data-product-key', o.product_key ? String(o.product_key) : '');
+							el.setAttribute('data-productid', o.productid !== undefined ? String(o.productid) : '');
+							el.setAttribute('data-identity', o.identity_type ? String(o.identity_type) : '');
+							el.setAttribute('data-type', o.type ? String(o.type) : '');
+							el.setAttribute('data-available', o.available_qty !== undefined ? String(o.available_qty) : '');
+							el.setAttribute('data-location', o.stock_location ? String(o.stock_location) : '');
+							el.setAttribute('data-unit-price', o.unit_price !== undefined ? String(o.unit_price) : '');
+							list.appendChild(el);
+						}
+					}
+
+					function goodsIssueRunProductSearch(term) {
+						var xhr = new XMLHttpRequest();
+						xhr.open('GET', 'index.php?module=GoodsIssue&action=SearchProducts&q=' + encodeURIComponent(term), true);
+						xhr.onreadystatechange = function() {
+							if (xhr.readyState !== 4 || xhr.status !== 200) return;
+							try {
+								var data = JSON.parse(xhr.responseText);
+								var opts = (data && data.result && data.result.options) ? data.result.options : [];
+								goodsIssueBuildDatalistFromOptions(opts);
+							} catch (ex) {}
+						};
+						xhr.send(null);
+					}
+
+					document.addEventListener('focus', function(e) {
+						if (!e.target || !e.target.classList || !e.target.classList.contains('product-input')) return;
+						var term = (e.target.value || '').trim();
+						if (term.length < 1) return;
+						goodsIssueRunProductSearch(term);
+					}, true);
+
+					document.addEventListener('input', function(e) {
+						if (!e.target || !e.target.classList || !e.target.classList.contains('product-input')) return;
+						var term = (e.target.value || '').trim();
+						if (giProductSearchTimer) clearTimeout(giProductSearchTimer);
+						if (term.length < 1) {
+							var listEl = document.getElementById('products_list');
+							if (listEl) listEl.innerHTML = '';
+							return;
+						}
+						giProductSearchTimer = setTimeout(function() {
+							goodsIssueRunProductSearch(term);
+						}, giProductSearchDelayMs);
+					});
 
 					document.addEventListener('change', function(e) {
 						if (!e.target || !e.target.classList || !e.target.classList.contains('product-input')) return;
@@ -381,6 +469,14 @@
 							row.classList.add('is-legacy');
 						}
 
+						if (found) {
+							row.dataset.giProductKey = (found.getAttribute('data-product-key') || found.dataset.productKey || '').trim();
+						} else {
+							row.dataset.giProductKey = val ? ('N:' + val.trim().toLowerCase()) : '';
+						}
+						row.dataset.giProductName = val;
+						loadSerials(row);
+
 						// Visual qty warning
 						const av = parseFloat(qtyEl.dataset.available || '');
 						const qty = parseFloat(qtyEl.value || '0');
@@ -453,7 +549,7 @@
 							tr.innerHTML = '' +
 								'<td>' +
 								'  <input type="hidden" name="item_productid[]" value="" />' +
-								'  <input type="text" name="item_product_name[]" value="" class="form-control product-input" list="products_list" placeholder="Start typing product..." />' +
+								'  <input type="text" name="item_product_name[]" value="" class="form-control product-input" list="products_list" placeholder="Click for storage list, or type to filter by name…" autocomplete="off" />' +
 								'  <span class="stock-badge legacy">⚠ Legacy</span>' +
 								'  <div class="stock-meta small text-muted gi-stock-meta">' +
 								'    <span class="available-text">Available: —</span>' +
@@ -471,19 +567,159 @@
 								'  </select>' +
 								'</td>' +
 								'<td>' +
+								'  <select name="serial_number[]" class="form-control serial-select gi-serial-select">' +
+								'    <option value="">Select serial</option>' +
+								'  </select>' +
+								'</td>' +
+								'<td>' +
 								'  <input type="number" step="0.0001" min="0" name="item_quantity[]" value="1" class="form-control text-right qty-input" data-available="" />' +
 								'  <div style="margin-top:4px;">' +
 								'    <span class="available-badge text-muted small">Available: — (legacy)</span>' +
 								'  </div>' +
 								'  <small class="text-danger qty-warn" style="display:none;">Qty exceeds available</small>' +
 								'</td>' +
-								'<td><input type="text" name="item_unit_price[]" value="0" class="form-control text-right" /></td>' +
+								'<td><input type="number" step="0.0001" min="0" name="item_unit_price[]" value="0" class="form-control text-right gi-unit-price" /></td>' +
+								'<td><input type="number" step="0.0001" min="0" max="100" name="item_discount[]" value="0" class="form-control text-right gi-discount" /></td>' +
+								'<td class="text-right gi-line-total-cell"><span class="gi-line-total">0</span></td>' +
 								'<td><input type="text" name="item_line_note[]" value="" class="form-control" /></td>' +
 								'<td class="text-nowrap"><button type="button" class="btn btn-xs btn-danger js-gi-remove">Remove</button></td>';
 							tr.className = 'row-item is-legacy';
+							tr.dataset.giProductKey = '';
+							tr.dataset.giProductName = '';
 							tbody.appendChild(tr);
+							// Initialize line total for new row
+							if (typeof window.GoodsIssueRecalcRow === 'function') {
+								window.GoodsIssueRecalcRow(tr);
+							}
 						});
 					}
+					
+					// Discount & line total calculation
+					window.GoodsIssueRecalcRow = function(row) {
+						if (!row) return;
+						var qtyEl = row.querySelector('.qty-input');
+						var priceEl = row.querySelector('.gi-unit-price');
+						var discEl = row.querySelector('.gi-discount');
+						var totalSpan = row.querySelector('.gi-line-total');
+						if (!qtyEl || !priceEl || !discEl || !totalSpan) return;
+						var qty = parseFloat(qtyEl.value || '0');
+						var price = parseFloat(priceEl.value || '0');
+						var disc = parseFloat(discEl.value || '0');
+						if (isNaN(qty)) qty = 0;
+						if (isNaN(price)) price = 0;
+						if (isNaN(disc)) disc = 0;
+						if (disc < 0) disc = 0;
+						if (disc > 100) disc = 100;
+						discEl.value = disc.toFixed(2).replace(/\.00$/, '');
+						var lineTotal = qty * price * (1 - (disc / 100));
+						if (lineTotal < 0) lineTotal = 0;
+						totalSpan.textContent = lineTotal.toFixed(0);
+					};
+
+					document.addEventListener('input', function(e) {
+						if (!e.target) return;
+						if (e.target.classList.contains('qty-input') ||
+							e.target.classList.contains('gi-unit-price') ||
+							e.target.classList.contains('gi-discount')) {
+							var row = e.target.closest('tr');
+							if (row && typeof window.GoodsIssueRecalcRow === 'function') {
+								window.GoodsIssueRecalcRow(row);
+							}
+						}
+					});
+
+					// Initialize totals on page load
+					document.querySelectorAll('#GoodsIssueItemsTable tbody tr').forEach(function(row) {
+						if (typeof window.GoodsIssueRecalcRow === 'function') {
+							window.GoodsIssueRecalcRow(row);
+						}
+					});
+
+					function goodsIssueApplySerialOptions(select, data, initial) {
+						var list = [];
+						if (data && Array.isArray(data.result)) {
+							list = data.result;
+						} else if (data && data.serials && Array.isArray(data.serials)) {
+							data.serials.forEach(function(s) { list.push({ serial: s }); });
+						}
+						select.innerHTML = '<option value="">Select serial</option>';
+						list.forEach(function(item) {
+							var s = (item && typeof item === 'object' && item.serial !== undefined) ? String(item.serial) : String(item);
+							if (!s) return;
+							var opt = document.createElement('option');
+							opt.value = s;
+							opt.textContent = s;
+							select.appendChild(opt);
+						});
+						if (initial) {
+							select.value = initial;
+							if (select.value !== initial) {
+								var opt2 = document.createElement('option');
+								opt2.value = initial;
+								opt2.textContent = initial;
+								select.appendChild(opt2);
+								select.value = initial;
+							}
+							select.removeAttribute('data-initial-serial');
+						}
+					}
+
+					function loadSerials(row) {
+						var select = row.querySelector('.serial-select');
+						if (!select) return;
+						var pidEl = row.querySelector('[name="item_productid[]"]');
+						var nameEl = row.querySelector('[name="item_product_name[]"]');
+						var typeEl = row.querySelector('[name="item_product_type[]"]');
+						var pid = pidEl ? parseInt(pidEl.value || '0', 10) : 0;
+						if (isNaN(pid)) pid = 0;
+						var productName = (nameEl && nameEl.value) ? nameEl.value.trim() : '';
+						var productKey = (row.dataset.giProductKey || '').trim();
+						var productType = (typeEl && typeEl.value) ? typeEl.value.trim() : '';
+						if (pid <= 0 && !productName && !productKey) {
+							select.innerHTML = '<option value="">Select serial</option>';
+							return;
+						}
+						var initial = (select.getAttribute('data-initial-serial') || '').trim();
+						var parts = ['module=GoodsIssue', 'action=GetSerials'];
+						if (pid > 0) parts.push('productid=' + encodeURIComponent(String(pid)));
+						if (productName) parts.push('product_name=' + encodeURIComponent(productName));
+						if (productKey) parts.push('product_key=' + encodeURIComponent(productKey));
+						if (productType) parts.push('product_type=' + encodeURIComponent(productType));
+						var url = 'index.php?' + parts.join('&');
+						if (typeof fetch === 'function') {
+							fetch(url)
+								.then(function(res) { return res.json(); })
+								.then(function(data) { goodsIssueApplySerialOptions(select, data, initial); })
+								.catch(function() { select.innerHTML = '<option value="">Select serial</option>'; });
+						} else {
+							var xhr = new XMLHttpRequest();
+							xhr.open('GET', url, true);
+							xhr.onreadystatechange = function() {
+								if (xhr.readyState !== 4) return;
+								if (xhr.status !== 200) {
+									select.innerHTML = '<option value="">Select serial</option>';
+									return;
+								}
+								try {
+									goodsIssueApplySerialOptions(select, JSON.parse(xhr.responseText), initial);
+								} catch (e) {
+									select.innerHTML = '<option value="">Select serial</option>';
+								}
+							};
+							xhr.send(null);
+						}
+					}
+
+					document.addEventListener('change', function(e) {
+						if (!e.target || e.target.name !== 'item_product_type[]') return;
+						var row = e.target.closest('tr');
+						if (!row || !row.closest('#GoodsIssueItemsTable')) return;
+						loadSerials(row);
+					});
+
+					document.querySelectorAll('#GoodsIssueItemsTable tbody tr').forEach(function(row) {
+						loadSerials(row);
+					});
 				})();
 			</script>
 			{/literal}

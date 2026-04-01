@@ -33,7 +33,6 @@ class GoodsReceipt_Edit_View extends Vtiger_Index_View {
 		);
 		$items = array();
 		$attachments = array();
-		$productOptions = array();
 
 		if ($recordId > 0) {
 			$rs = $db->pquery("SELECT * FROM vtiger_goodsreceipt WHERE receiptid = ? AND deleted = 0", array($recordId));
@@ -63,34 +62,9 @@ class GoodsReceipt_Edit_View extends Vtiger_Index_View {
 			$items[] = array('productid' => '', 'product_name' => '', 'product_type' => 'Other', 'quantity' => '1', 'unit_price' => '0', 'line_note' => '');
 		}
 
-		$rp = $db->pquery(
-			"SELECT productsservicesid, productsservicesname, item_type
-			 FROM vtiger_productsservices
-			 ORDER BY productsservicesname ASC",
-			array()
-		);
-		while ($p = $db->fetchByAssoc($rp)) {
-			$type = isset($p['item_type']) ? strtolower(trim((string) $p['item_type'])) : '';
-			if ($type === 'product' || $type === 'products') {
-				$type = 'Hardware';
-			} elseif ($type === 'service' || $type === 'services') {
-				$type = 'Service';
-			} elseif ($type === 'software') {
-				$type = 'Software';
-			} else {
-				$type = 'Other';
-			}
-			$productOptions[] = array(
-				'id' => (int) $p['productsservicesid'],
-				'name' => (string) $p['productsservicesname'],
-				'type' => $type,
-			);
-		}
-
 		$viewer->assign('MODE', $mode);
 		$viewer->assign('RECORD', $record);
 		$viewer->assign('ITEMS', $items);
-		$viewer->assign('PRODUCT_OPTIONS', $productOptions);
 		$viewer->assign('ATTACHMENTS', $attachments);
 		$viewer->view('EditView.tpl', $request->getModule());
 	}

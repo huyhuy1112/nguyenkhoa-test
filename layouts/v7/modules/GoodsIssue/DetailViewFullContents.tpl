@@ -1,7 +1,29 @@
 {strip}
 <div class="main-container clearfix">
 	<link rel="stylesheet" href="layouts/v7/modules/Inventory/resources/FlowModern.css?v=20260326" />
-	<div class="detailViewPageDiv content-area full-width inv-modern-page" style="margin-left:0;">
+	<style>
+		/* GoodsIssue detail only: stronger contrast for top meta chips (layout unchanged) */
+		.inv-modern-page.goodsissue-detail-page .goodsissue-detail-meta .inv-chip {
+			background: rgba(0, 86, 179, 0.14);
+			color: #0c3766;
+			border: 1px solid rgba(0, 86, 179, 0.38);
+		}
+		.inv-modern-page.goodsissue-detail-page .goodsissue-detail-meta .inv-badge-muted {
+			background: rgba(255, 255, 255, 0.96);
+			color: #1a3a52;
+			border: 1px solid rgba(46, 108, 180, 0.42);
+			text-transform: none;
+			font-weight: 600;
+		}
+		.inv-modern-page.goodsissue-detail-page .goodsissue-detail-meta .inv-badge-strong {
+			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+		}
+		.inv-modern-page.goodsissue-detail-page .goodsissue-detail-meta .inv-badge-other {
+			color: #0d2137;
+			border-color: rgba(100, 116, 139, 0.55);
+		}
+	</style>
+	<div class="detailViewPageDiv content-area full-width inv-modern-page goodsissue-detail-page" style="margin-left:0;">
 		<div class="inv-modern-card">
 		<div class="container-fluid">
 			<div class="inv-topnav">
@@ -20,7 +42,7 @@
 				<div class="col-sm-8">
 					<h3 style="margin-top:0;">{$RECORD_DATA.subject|escape:'html'}</h3>
 					<p class="text-muted" style="margin-bottom:8px;">Outbound (stock deduction)</p>
-					<div class="inv-header-badges">
+					<div class="inv-header-badges goodsissue-detail-meta">
 						<span class="inv-badge inv-badge-strong inv-badge-other">Outbound</span>
 						{if $RECORD_DATA.code}<span class="inv-chip">{$RECORD_DATA.code|escape:'html'}</span>{/if}
 						{if $RECORD_DATA.destination}<span class="inv-badge inv-badge-muted">{$RECORD_DATA.destination|escape:'html'}</span>{/if}
@@ -64,8 +86,11 @@
 								<tr>
 									<th>Product</th>
 									<th>Type</th>
+									<th>Serial</th>
 									<th class="text-right">Qty</th>
 									<th class="text-right">Unit price</th>
+									<th class="text-right">Disc. %</th>
+									<th class="text-right">Line total</th>
 									<th>Line note</th>
 								</tr>
 							</thead>
@@ -77,12 +102,17 @@
 											{if $IT.productid > 0}<span class="inv-badge inv-badge-catalog">P:{$IT.productid|escape:'html'}</span>{/if}
 										</td>
 										<td><span class="inv-chip">{$IT.product_type|escape:'html'}</span></td>
+										<td>{if $IT.serial_number ne ''}{$IT.serial_number|escape:'html'}{else}<span class="text-muted">-</span>{/if}</td>
 										<td class="text-right metric-strong">{$IT.quantity_display|escape:'html'}</td>
 										<td class="text-right">{$IT.unit_price_display|escape:'html'}</td>
+										<td class="text-right">{if isset($IT.discount_percent)}{$IT.discount_percent|number_format:2:'.':','}{else}0{/if}</td>
+										<td class="text-right metric-strong">
+											{if isset($IT.line_total_display)}{$IT.line_total_display|escape:'html'}{else}0{/if}
+										</td>
 										<td>{if $IT.line_note}{$IT.line_note|escape:'html'}{else}<span class="text-muted">—</span>{/if}</td>
 									</tr>
 								{foreachelse}
-									<tr><td colspan="5" class="text-muted text-center">No line items.</td></tr>
+									<tr><td colspan="8" class="text-muted text-center">No line items.</td></tr>
 								{/foreach}
 							</tbody>
 						</table>

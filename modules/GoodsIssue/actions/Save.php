@@ -50,6 +50,24 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 		$prices = $request->get('item_unit_price');
 		$notes = $request->get('item_line_note');
 		$types = $request->get('item_product_type');
+		$discounts = $request->get('item_discount');
+		// Prefer raw POST array: multipart Save must capture serial_number[] reliably (Request::get can miss array shape).
+		$serials = null;
+		if (isset($_POST['serial_number']) && is_array($_POST['serial_number'])) {
+			$serials = $_POST['serial_number'];
+		} else {
+			$serials = $request->get('serial_number');
+			if (!is_array($serials)) {
+				$serials = $request->get('item_serial');
+			}
+		}
+		if (is_array($serials)) {
+			foreach ($serials as $si => $sv) {
+				if (is_string($sv)) {
+					$serials[$si] = trim(vtlib_purify($sv));
+				}
+			}
+		}
 
 		if (!is_array($names) && !is_array($ids)) {
 			return array();
@@ -61,6 +79,10 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 			$qty = (float) (is_array($qtys) && isset($qtys[$i]) ? $qtys[$i] : 0);
 			$price = (float) (is_array($prices) && isset($prices[$i]) ? $prices[$i] : 0);
 			$note = (string) (is_array($notes) && isset($notes[$i]) ? $notes[$i] : '');
+			$discount = (float) (is_array($discounts) && isset($discounts[$i]) ? $discounts[$i] : 0);
+			if ($discount < 0) $discount = 0;
+			if ($discount > 100) $discount = 100;
+			$serial = (string) (is_array($serials) && isset($serials[$i]) ? $serials[$i] : '');
 			$rawType = (string) (is_array($types) && isset($types[$i]) ? $types[$i] : '');
 
 			// Ignore invalid lines
@@ -73,6 +95,8 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 				'product_type' => $this->resolveProductType($productId, $rawType),
 				'quantity' => $qty,
 				'unit_price' => $price,
+				'discount_percent' => $discount,
+				'serial_number' => $serial,
 				'line_note' => $note,
 			);
 		}
@@ -119,6 +143,8 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 				'product_type' => (string) $row['product_type'],
 				'quantity' => (float) $row['quantity'],
 				'unit_price' => (float) $row['unit_price'],
+				'discount_percent' => isset($row['discount_percent']) ? (float) $row['discount_percent'] : 0.0,
+				'serial_number' => isset($row['serial_number']) ? (string) $row['serial_number'] : '',
 				'line_note' => (string) $row['line_note'],
 			);
 		}
@@ -307,8 +333,8 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 			foreach ($newItems as $it) {
 				$itemId = (int) $db->getUniqueID('vtiger_goodsissue_items');
 				$db->pquery(
-					"INSERT INTO vtiger_goodsissue_items(itemid, issueid, productid, product_name, product_type, quantity, unit_price, line_note)
-					 VALUES(?,?,?,?,?,?,?,?)",
+					"INSERT INTO vtiger_goodsissue_items(itemid, issueid, productid, product_name, product_type, quantity, unit_price, discount_percent, serial_number, line_note)
+					 VALUES(?,?,?,?,?,?,?,?,?,?)",
 					array(
 						$itemId,
 						$issueId,
@@ -317,6 +343,8 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 						(string) $it['product_type'],
 						(float) $it['quantity'],
 						(float) $it['unit_price'],
+						isset($it['discount_percent']) ? (float) $it['discount_percent'] : 0.0,
+						isset($it['serial_number']) ? (string) $it['serial_number'] : '',
 						(string) $it['line_note'],
 					)
 				);

@@ -55,6 +55,7 @@
 								<tr>
 									<th>Code</th>
 									<th>Product</th>
+									<th>SERIAL</th>
 									<th>Identity</th>
 									<th>Type</th>
 									<th class="text-right">Qty</th>
@@ -73,6 +74,9 @@
 										<td>
 											<a href="index.php?module=Warehouse&view=Detail&amp;record={$R.stockid}&amp;app=INVENTORY">{$R.product_name_display|escape:'html'}</a>
 											{if $R.has_shrinkage}<span class="inv-status-dot" title="Shrinkage recorded"></span>{/if}
+										</td>
+										<td class="serial-cell" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+											{if $R.serial_full ne ''}<span title="{$R.serial_full|escape:'html'}">{$R.serial_display|escape:'html'}</span>{else}{$R.serial_display|escape:'html'}{/if}
 										</td>
 										<td>
 											{if $R.is_legacy_identity}
@@ -94,7 +98,7 @@
 										</td>
 									</tr>
 								{foreachelse}
-									<tr><td colspan="11" class="inv-empty">No stock rows match your filters.</td></tr>
+									<tr><td colspan="12" class="inv-empty">No stock rows match your filters.</td></tr>
 								{/foreach}
 							</tbody>
 						</table>

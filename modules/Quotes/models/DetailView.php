@@ -75,7 +75,11 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 				$isSaleExport = (strpos($linkUrl, 'action=ExportExcelForSale') !== false);
 				$isProjectExport = (strpos($linkUrl, 'action=ExportExcelForProject') !== false);
 
-				if ($itemTypeClassification === 'product_only') {
+				// Business rule:
+				// - If ANY Product exists in the quote (product_only or mixed) => keep only Sale export.
+				// - If ALL items are Service (service_only) => keep only Project export.
+				// - If there are no classified items (empty) => hide both Excel exports.
+				if ($itemTypeClassification === 'product_only' || $itemTypeClassification === 'mixed') {
 					if ($isProjectExport) continue;
 				} elseif ($itemTypeClassification === 'service_only') {
 					if ($isSaleExport) continue;
@@ -83,7 +87,6 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 					if ($isSaleExport || $isProjectExport) continue;
 				}
 
-				// mixed => keep both export actions.
 				$filteredLinks[] = $linkModel;
 			}
 			$linkModelList['DETAILVIEW'] = $filteredLinks;

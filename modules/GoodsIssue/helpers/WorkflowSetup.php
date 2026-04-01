@@ -62,6 +62,8 @@ class GoodsIssue_WorkflowSetup_Helper {
 		self::ensureColumn($db, 'vtiger_goodsissue', 'storage_location', "`storage_location` VARCHAR(255) DEFAULT NULL");
 		self::ensureColumn($db, 'vtiger_goodsissue_items', 'unit_price', "`unit_price` DECIMAL(25,8) NOT NULL DEFAULT 0");
 		self::ensureColumn($db, 'vtiger_goodsissue_items', 'line_note', "`line_note` TEXT");
+		self::ensureColumn($db, 'vtiger_goodsissue_items', 'discount_percent', "`discount_percent` DECIMAL(10,4) NOT NULL DEFAULT 0");
+		self::ensureColumn($db, 'vtiger_goodsissue_items', 'serial_number', "`serial_number` VARCHAR(255) DEFAULT NULL");
 
 		// Outbound attachments (additive, does not affect stock logic).
 		$db->pquery(

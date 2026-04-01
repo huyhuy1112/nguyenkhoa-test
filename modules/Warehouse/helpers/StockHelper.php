@@ -134,4 +134,136 @@ class Warehouse_Stock_Helper {
 		}
 		return (string) $itemType;
 	}
+
+	/**
+	 * Bulk-load inbound serials (non-deleted receipts) indexed for Storage list/detail.
+	 * One query; map in PHP — avoids N+1.
+	 *
+	 * @return array{by_pid: array<int,array<int,string>>, by_name: array<string,array<int,string>>, by_name_type: array<string,array<int,string>>}
+	 */
+	public static function fetchInboundSerialIndexes(PearDatabase $db) {
+		$sql = "SELECT gri.productid, gri.product_name, gri.product_type, gri.serial_number
+			FROM vtiger_goodsreceipt_items gri
+			INNER JOIN vtiger_goodsreceipt gr ON gr.receiptid = gri.receiptid AND gr.deleted = 0
+			WHERE gri.serial_number IS NOT NULL AND TRIM(gri.serial_number) <> ''";
+		$rs = $db->pquery($sql, array());
+		$byPid = array();
+		$byName = array();
+		$byNameType = array();
+		if ($rs) {
+			while ($row = $db->fetchByAssoc($rs)) {
+				$sn = trim((string) $row['serial_number']);
+				if ($sn === '') {
+					continue;
+				}
+				$pid = (int) $row['productid'];
+				if ($pid > 0) {
+					if (!isset($byPid[$pid])) {
+						$byPid[$pid] = array();
+					}
+					$byPid[$pid][$sn] = true;
+				}
+				$nn = mb_strtolower(trim((string) $row['product_name']));
+				if ($nn !== '') {
+					if (!isset($byName[$nn])) {
+						$byName[$nn] = array();
+					}
+					$byName[$nn][$sn] = true;
+				}
+				$nt = mb_strtolower(trim((string) (isset($row['product_type']) ? $row['product_type'] : '')));
+				if ($nn !== '' && $nt !== '') {
+					$k = $nn . "\0" . $nt;
+					if (!isset($byNameType[$k])) {
+						$byNameType[$k] = array();
+					}
+					$byNameType[$k][$sn] = true;
+				}
+			}
+		}
+		$sortKeys = function (array $set) {
+			$list = array_keys($set);
+			sort($list);
+			return $list;
+		};
+		foreach ($byPid as $p => $set) {
+			$byPid[$p] = $sortKeys($set);
+		}
+		foreach ($byName as $n => $set) {
+			$byName[$n] = $sortKeys($set);
+		}
+		foreach ($byNameType as $k => $set) {
+			$byNameType[$k] = $sortKeys($set);
+		}
+		return array(
+			'by_pid' => $byPid,
+			'by_name' => $byName,
+			'by_name_type' => $byNameType,
+		);
+	}
+
+	/**
+	 * Resolve serial list for a vtiger_warehouse_stock row (catalog first, then name/type, then N: key).
+	 *
+	 * @param array $stockRow Must include productid, product_name, product_key, raw_item_type (as on list/detail).
+	 * @param array $indexes From fetchInboundSerialIndexes()
+	 * @return array list of serial strings sorted unique
+	 */
+	public static function resolveInboundSerialsForStockRow(array $stockRow, array $indexes) {
+		$byPid = isset($indexes['by_pid']) ? $indexes['by_pid'] : array();
+		$byName = isset($indexes['by_name']) ? $indexes['by_name'] : array();
+		$byNameType = isset($indexes['by_name_type']) ? $indexes['by_name_type'] : array();
+
+		$pid = !empty($stockRow['productid']) ? (int) $stockRow['productid'] : 0;
+		if ($pid > 0 && !empty($byPid[$pid])) {
+			return $byPid[$pid];
+		}
+
+		$merged = array();
+		$nn = mb_strtolower(trim((string) (isset($stockRow['product_name']) ? $stockRow['product_name'] : '')));
+		$nt = mb_strtolower(trim((string) (isset($stockRow['raw_item_type']) ? $stockRow['raw_item_type'] : '')));
+		if ($nn !== '' && $nt !== '' && !empty($byNameType[$nn . "\0" . $nt])) {
+			foreach ($byNameType[$nn . "\0" . $nt] as $s) {
+				$merged[$s] = true;
+			}
+		} elseif ($nn !== '' && !empty($byName[$nn])) {
+			foreach ($byName[$nn] as $s) {
+				$merged[$s] = true;
+			}
+		}
+
+		$key = isset($stockRow['product_key']) ? trim((string) $stockRow['product_key']) : '';
+		if (empty($merged) && strpos($key, 'N:') === 0) {
+			$nk = trim(substr($key, 2));
+			if ($nk !== '' && !empty($byName[$nk])) {
+				foreach ($byName[$nk] as $s) {
+					$merged[$s] = true;
+				}
+			}
+		}
+
+		$list = array_keys($merged);
+		sort($list);
+		return $list;
+	}
+
+	/**
+	 * @param array $serials
+	 * @return array array(display_string, full_string_for_title)
+	 */
+	public static function formatSerialDisplayList(array $serials) {
+		$serials = array_values(array_filter($serials, function ($s) {
+			return $s !== null && trim((string) $s) !== '';
+		}));
+		$n = count($serials);
+		if ($n === 0) {
+			return array('', '');
+		}
+		$full = implode(', ', $serials);
+		if ($n <= 3) {
+			return array($full, $full);
+		}
+		$first = array_slice($serials, 0, 3);
+		$more = $n - 3;
+		return array(implode(', ', $first) . ' (+' . $more . ' more)', $full);
+	}
 }

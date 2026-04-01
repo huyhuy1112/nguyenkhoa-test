@@ -14,6 +14,7 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 		$prices = $request->get('item_unit_price');
 		$notes = $request->get('item_line_note');
 		$types = $request->get('item_product_type');
+		$serials = $request->get('item_serial');
 
 		if (!is_array($names)) {
 			return array();
@@ -26,6 +27,7 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 			$productId = (int) (isset($ids[$i]) ? $ids[$i] : 0);
 			$note = isset($notes[$i]) ? (string) $notes[$i] : '';
 			$rawType = is_array($types) && isset($types[$i]) ? (string) $types[$i] : '';
+			$serial = is_array($serials) && isset($serials[$i]) ? (string) $serials[$i] : '';
 			if ($name === '' || $qty <= 0) {
 				continue;
 			}
@@ -36,6 +38,7 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 				'quantity' => $qty,
 				'unit_price' => $price,
 				'line_note' => $note,
+				'serial_number' => $serial,
 			);
 		}
 		return $items;
@@ -344,9 +347,19 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 		foreach ($items as $item) {
 			$itemId = (int) $db->getUniqueID('vtiger_goodsreceipt_items');
 			$db->pquery(
-				"INSERT INTO vtiger_goodsreceipt_items(itemid, receiptid, productid, product_name, product_type, quantity, unit_price, line_note)
-				 VALUES(?,?,?,?,?,?,?,?)",
-				array($itemId, $recordId, $item['productid'], $item['product_name'], $item['product_type'], $item['quantity'], $item['unit_price'], $item['line_note'])
+				"INSERT INTO vtiger_goodsreceipt_items(itemid, receiptid, productid, product_name, product_type, quantity, unit_price, line_note, serial_number)
+				 VALUES(?,?,?,?,?,?,?,?,?)",
+				array(
+					$itemId,
+					$recordId,
+					$item['productid'],
+					$item['product_name'],
+					$item['product_type'],
+					$item['quantity'],
+					$item['unit_price'],
+					$item['line_note'],
+					isset($item['serial_number']) ? $item['serial_number'] : ''
+				)
 			);
 		}
 

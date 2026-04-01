@@ -68,11 +68,17 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 		$row = $this->stockRow;
 		$recordModel = $this->recordModel;
 
+		$serialIndexes = Warehouse_Stock_Helper::fetchInboundSerialIndexes($db);
+		$stockSerialList = Warehouse_Stock_Helper::resolveInboundSerialsForStockRow($row, $serialIndexes);
+		list($stockSerialDisp, $stockSerialFull) = Warehouse_Stock_Helper::formatSerialDisplayList($stockSerialList);
+		$row['serial_display'] = ($stockSerialDisp !== '') ? $stockSerialDisp : '—';
+		$row['serial_full'] = $stockSerialFull;
+
 		$params = array();
 		$match = Warehouse_Stock_Helper::inboundItemsMatchWhere($row, $params);
 		$histSql = "SELECT gr.receiptid, gr.code, gr.subject, gr.received_date, gr.storage_location, gr.note,
 				gr.createdtime AS receipt_createdtime, gr.updatedtime AS receipt_updatedtime,
-				gri.quantity, gri.unit_price, gri.product_name, gri.product_type, gri.itemid
+				gri.quantity, gri.unit_price, gri.product_name, gri.product_type, gri.itemid, gri.serial_number
 			FROM vtiger_goodsreceipt_items gri
 			INNER JOIN vtiger_goodsreceipt gr ON gr.receiptid = gri.receiptid AND gr.deleted = 0
 			WHERE {$match}
@@ -88,6 +94,11 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 			$h['quantity_display'] = Warehouse_Stock_Helper::formatNumber($h['quantity'], 2);
 			$h['unit_price_display'] = Warehouse_Stock_Helper::formatNumber($h['unit_price'], 0);
 			$h['received_date_display'] = Warehouse_Stock_Helper::formatDateTimeDisplay($h['received_date']);
+			$snIn = '';
+			if (isset($h['serial_number'])) {
+				$snIn = trim(html_entity_decode((string) $h['serial_number'], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+			}
+			$h['serial_display'] = $snIn;
 			$inboundHistory[] = $h;
 		}
 
@@ -95,7 +106,7 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 		$outMatch = Warehouse_Stock_Helper::outboundItemsMatchWhere($row, $outParams);
 		$outSql = "SELECT gi.issueid, gi.code, gi.subject, gi.issued_date, gi.destination, gi.storage_location,
 				gi.createdtime AS issue_createdtime, gi.updatedtime AS issue_updatedtime,
-				gii.quantity, gii.unit_price, gii.product_name, gii.product_type, gii.itemid
+				gii.quantity, gii.unit_price, gii.product_name, gii.product_type, gii.itemid, gii.serial_number
 			FROM vtiger_goodsissue_items gii
 			INNER JOIN vtiger_goodsissue gi ON gi.issueid = gii.issueid AND gi.deleted = 0
 			WHERE {$outMatch}
@@ -111,6 +122,12 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 			$o['quantity_display'] = Warehouse_Stock_Helper::formatNumber($o['quantity'], 2);
 			$o['unit_price_display'] = Warehouse_Stock_Helper::formatNumber($o['unit_price'], 0);
 			$o['issued_date_display'] = Warehouse_Stock_Helper::formatDateTimeDisplay($o['issued_date']);
+			$sn = '';
+			if (isset($o['serial_number'])) {
+				$sn = trim(html_entity_decode((string) $o['serial_number'], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+			}
+			$o['serial_display'] = ($sn !== '') ? $sn : '';
+			$o['serial_full'] = $sn;
 			$outboundHistory[] = $o;
 		}
 

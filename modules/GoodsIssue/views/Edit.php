@@ -56,13 +56,19 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 		);
 		$items = array();
 		while ($row = $db->fetchByAssoc($rs)) {
+			$pid = !empty($row['productid']) ? (int) $row['productid'] : 0;
+			$pname = trim((string) $row['product_name']);
+			$keyHint = $pid > 0 ? ('P:' . $pid) : ($pname !== '' ? ('N:' . mb_strtolower($pname)) : '');
 			$items[] = array(
-				'productid' => !empty($row['productid']) ? (int) $row['productid'] : 0,
+				'productid' => $pid,
 				'product_name' => (string) $row['product_name'],
 				'product_type' => $this->normalizeTypeLabel($row['product_type']),
 				'quantity' => (float) $row['quantity'],
 				'unit_price' => (float) $row['unit_price'],
+				'discount_percent' => isset($row['discount_percent']) ? (float) $row['discount_percent'] : 0.0,
+				'serial_number' => isset($row['serial_number']) ? (string) $row['serial_number'] : '',
 				'line_note' => (string) $row['line_note'],
+				'product_key_hint' => $keyHint,
 			);
 		}
 		return $items;
@@ -156,7 +162,7 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 			$items = $this->loadItems($db, $issueId);
 			if (empty($items)) {
 				$items = array(
-					array('productid' => 0, 'product_name' => '', 'product_type' => 'Other', 'quantity' => 1, 'unit_price' => 0, 'line_note' => ''),
+					array('productid' => 0, 'product_name' => '', 'product_type' => 'Other', 'quantity' => 1, 'unit_price' => 0, 'line_note' => '', 'product_key_hint' => ''),
 				);
 			}
 		}
@@ -166,33 +172,7 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 			$attachments = $this->loadAttachments($db, $issueId);
 		}
 
-		// Product options for datalist: source of truth is vtiger_warehouse_stock (available > 0).
-		$options = array();
-		$rsStock = $db->pquery(
-			"SELECT stockid, product_key, productid, product_name, product_type, quantity, shrinkage_qty, storage_location, last_price
-			 FROM vtiger_warehouse_stock
-			 WHERE (quantity - COALESCE(shrinkage_qty, 0)) > 0
-			 ORDER BY product_name ASC",
-			array()
-		);
-		while ($s = $db->fetchByAssoc($rsStock)) {
-			$quantity = (float) $s['quantity'];
-			$shrink = isset($s['shrinkage_qty']) ? (float) $s['shrinkage_qty'] : 0.0;
-			$available = $quantity - $shrink;
-			if ($available <= 0) continue;
-
-			$options[] = array(
-				'stockid' => (int) $s['stockid'],
-				'product_key' => (string) $s['product_key'],
-				'productid' => !empty($s['productid']) ? (int) $s['productid'] : 0,
-				'name' => (string) $s['product_name'],
-				'type' => $this->normalizeTypeLabel($s['product_type']),
-				'available_qty' => (float) $available,
-				'stock_location' => isset($s['storage_location']) ? (string) $s['storage_location'] : '',
-				'unit_price' => isset($s['last_price']) ? (float) $s['last_price'] : 0.0,
-				'identity_type' => !empty($s['productid']) ? 'catalog' : 'legacy',
-			);
-		}
+		// Product picker options load via AJAX (GoodsIssue_SearchProducts_Action) using name/code prefix match.
 
 		// Enrich existing line items with available/location/type hints (UI only).
 		$keys = array();
@@ -234,7 +214,6 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 		$viewer->assign('MODE', $mode);
 		$viewer->assign('ISSUE', $issue);
 		$viewer->assign('ITEMS', $items);
-		$viewer->assign('PRODUCT_OPTIONS', $options);
 		$viewer->assign('ATTACHMENTS', $attachments);
 
 		$viewer->assign('SHOW_VALIDATION', (string) $request->get('validation') === '1');

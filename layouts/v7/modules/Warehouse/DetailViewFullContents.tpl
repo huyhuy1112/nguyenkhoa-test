@@ -75,6 +75,12 @@
 						<div class="col-sm-4"><strong>Product type</strong><div>{if $TYPE_LABEL}<span class="inv-chip">{$TYPE_LABEL|escape:'html'}</span>{else}<span class="text-muted">—</span>{/if}</div></div>
 						<div class="col-sm-4"><strong>Last updated</strong><div>{$STOCK.updatedtime_display|escape:'html'}</div></div>
 					</div>
+					<div class="row" style="margin-top:10px;">
+						<div class="col-sm-12">
+							<strong>Serial numbers</strong> <span class="text-muted small">(from inbound receipts)</span>
+							<div>{if $STOCK.serial_full ne ''}<span class="inv-field-block" title="{$STOCK.serial_full|escape:'html'}">{$STOCK.serial_display|escape:'html'}</span>{else}<span class="text-muted">—</span>{/if}</div>
+						</div>
+					</div>
 					<details class="inv-tech-details" style="margin-top:12px;">
 						<summary>Technical reference</summary>
 						<div class="text-muted small" style="margin-top:8px;">Internal key <code>{$PRODUCT_KEY_DISPLAY|escape:'html'}</code> — used for aggregation; prefer catalog-linked rows for stable inventory.</div>
@@ -173,6 +179,7 @@
 									<th>Location</th>
 									<th class="text-right">Qty</th>
 									<th class="text-right">Unit price</th>
+									<th>Serial</th>
 									<th>Line product</th>
 								</tr>
 							</thead>
@@ -186,10 +193,11 @@
 										<td>{if $H.storage_location}{$H.storage_location|escape:'html'}{else}<span class="text-muted">—</span>{/if}</td>
 										<td class="text-right metric-strong">{$H.quantity_display|escape:'html'}</td>
 										<td class="text-right">{$H.unit_price_display|escape:'html'}</td>
+										<td>{if $H.serial_display ne ''}<span title="{$H.serial_display|escape:'html'}">{$H.serial_display|escape:'html'}</span>{else}<span class="text-muted">—</span>{/if}</td>
 										<td>{$H.product_name_display|escape:'html'}</td>
 									</tr>
 								{foreachelse}
-									<tr><td colspan="8" class="text-muted text-center">No inbound lines matched this stock identity yet.</td></tr>
+									<tr><td colspan="9" class="text-muted text-center">No inbound lines matched this stock identity yet.</td></tr>
 								{/foreach}
 							</tbody>
 						</table>
@@ -212,6 +220,7 @@
 									<th>Type</th>
 									<th class="text-right">Qty</th>
 									<th class="text-right">Unit price</th>
+									<th>Serial</th>
 									<th>Line product</th>
 								</tr>
 							</thead>
@@ -226,10 +235,11 @@
 										<td><span class="inv-chip">{$O.product_type|escape:'html'}</span></td>
 										<td class="text-right metric-strong">{$O.quantity_display|escape:'html'}</td>
 										<td class="text-right">{$O.unit_price_display|escape:'html'}</td>
+										<td>{if $O.serial_display ne ''}<span title="{$O.serial_full|escape:'html'}">{$O.serial_display|escape:'html'}</span>{else}<span class="text-muted">—</span>{/if}</td>
 										<td>{$O.product_name_display|escape:'html'}</td>
 									</tr>
 								{foreachelse}
-									<tr><td colspan="9" class="text-muted text-center">No outbound movements matched this stock identity yet.</td></tr>
+									<tr><td colspan="10" class="text-muted text-center">No outbound movements matched this stock identity yet.</td></tr>
 								{/foreach}
 							</tbody>
 						</table>

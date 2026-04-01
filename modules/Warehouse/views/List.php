@@ -123,6 +123,17 @@ class Warehouse_List_View extends Vtiger_Index_View {
 			$rows[] = $row;
 		}
 
+		$serialIndexes = Warehouse_Stock_Helper::fetchInboundSerialIndexes($db);
+		foreach ($rows as &$r) {
+			$r['serial_display'] = '—';
+			$r['serial_full'] = '';
+			$list = Warehouse_Stock_Helper::resolveInboundSerialsForStockRow($r, $serialIndexes);
+			if (!empty($list)) {
+				list($r['serial_display'], $r['serial_full']) = Warehouse_Stock_Helper::formatSerialDisplayList($list);
+			}
+		}
+		unset($r);
+
 		$viewer->assign('ROWS', $rows);
 		$viewer->assign('SEARCH', $search);
 		$viewer->assign('QTY_MIN', $qtyMin);

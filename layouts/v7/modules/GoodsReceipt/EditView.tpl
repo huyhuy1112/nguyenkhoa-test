@@ -48,20 +48,15 @@
 				<div class="panel panel-default inv-panel" style="margin-top:12px;">
 					<div class="panel-heading"><strong>Line items</strong></div>
 					<div class="panel-body">
-						<p class="text-muted">Tip: choose product names from suggestions to bind stable product ID and avoid duplicate stock identities.</p>
-						<datalist id="GoodsReceiptProductOptions">
-							{foreach from=$PRODUCT_OPTIONS item=P}
-								<option value="{$P.name|escape:'html'}" data-product-id="{$P.id}" data-product-type="{$P.type|escape:'html'}"></option>
-							{/foreach}
-						</datalist>
+						<p class="text-muted">Enter product name and line details manually. Inbound does not use storage-based autocomplete (that is for Outbound only).</p>
 						<table class="table table-bordered inv-modern-table" id="inboundItemsTable">
-							<thead><tr><th>Product Name</th><th>Type</th><th>Qty</th><th>Price</th><th>Line Note</th><th></th></tr></thead>
+							<thead><tr><th>Product Name</th><th>Type</th><th>Serial Number</th><th>Qty</th><th>Price</th><th>Line Note</th><th></th></tr></thead>
 							<tbody>
 								{foreach from=$ITEMS item=IT}
 								<tr>
 									<td>
 										<input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" />
-										<input type="text" name="item_product_name[]" list="GoodsReceiptProductOptions" class="form-control js-product-name" value="{$IT.product_name|escape:'html'}" required />
+										<input type="text" name="item_product_name[]" class="form-control" value="{$IT.product_name|escape:'html'}" placeholder="Product name" autocomplete="off" required />
 									</td>
 									<td>
 										<select name="item_product_type[]" class="form-control js-product-type">
@@ -72,6 +67,7 @@
 											<option value="Other" {if $ITYPE eq 'Other' || $ITYPE eq ''}selected="selected"{/if}>Other</option>
 										</select>
 									</td>
+									<td><input type="text" name="item_serial[]" class="form-control" value="{$IT.serial_number|escape:'html'}" /></td>
 									<td><input type="number" step="0.0001" min="0" name="item_quantity[]" class="form-control" value="{$IT.quantity|escape:'html'}" required /></td>
 									<td><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="form-control" value="{$IT.unit_price|escape:'html'}" /></td>
 									<td><input type="text" name="item_line_note[]" class="form-control" value="{$IT.line_note|escape:'html'}" /></td>
@@ -126,47 +122,27 @@
 {literal}
 <script>
 (function(){
-  var tbody=document.querySelector('#inboundItemsTable tbody');
-  var options = Array.prototype.slice.call(document.querySelectorAll('#GoodsReceiptProductOptions option'));
-  function normalizeName(v){ return (v||'').trim().toLowerCase(); }
-  function fillRowIdentity(tr){
-    if(!tr) return;
-    var nameInput = tr.querySelector('.js-product-name');
-    var idInput = tr.querySelector('input[name="item_productid[]"]');
-    var typeSelect = tr.querySelector('.js-product-type');
-    if(!nameInput || !idInput || !typeSelect) return;
-    var key = normalizeName(nameInput.value);
-    var matched = null;
-    for(var i=0;i<options.length;i++){
-      if(normalizeName(options[i].value) === key){ matched = options[i]; break; }
-    }
-    if(matched){
-      idInput.value = matched.getAttribute('data-product-id') || '';
-      var t = matched.getAttribute('data-product-type') || '';
-      if(t){ typeSelect.value = t; }
-      tr.classList.remove('identity-warning');
-    } else {
-      idInput.value = '';
-      tr.classList.add('identity-warning');
-    }
+  var tbody = document.querySelector('#inboundItemsTable tbody');
+  if (!tbody) return;
+  var addBtn = document.getElementById('addInboundRow');
+  if (addBtn) {
+    addBtn.addEventListener('click', function() {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td><input type="hidden" name="item_productid[]" value="" /><input type="text" name="item_product_name[]" class="form-control" placeholder="Product name" autocomplete="off" required /></td>' +
+        '<td><select name="item_product_type[]" class="form-control"><option value="Hardware">Hardware</option><option value="Software">Software</option><option value="Service">Service</option><option value="Other" selected="selected">Other</option></select></td>' +
+        '<td><input type="text" name="item_serial[]" class="form-control" /></td>' +
+        '<td><input type="number" step="0.0001" min="0" name="item_quantity[]" class="form-control" value="1" required /></td>' +
+        '<td><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="form-control" value="0" /></td>' +
+        '<td><input type="text" name="item_line_note[]" class="form-control" /></td>' +
+        '<td><button type="button" class="btn btn-xs btn-danger js-remove-row">x</button></td>';
+      tbody.appendChild(tr);
+    });
   }
-  function bindRow(tr){
-    var nameInput = tr.querySelector('.js-product-name');
-    if(nameInput){
-      nameInput.addEventListener('change', function(){ fillRowIdentity(tr); });
-      nameInput.addEventListener('blur', function(){ fillRowIdentity(tr); });
-      fillRowIdentity(tr);
+  tbody.addEventListener('click', function(e) {
+    if (e.target && e.target.classList && e.target.classList.contains('js-remove-row')) {
+      var tr = e.target.closest('tr');
+      if (tr) tr.remove();
     }
-  }
-  Array.prototype.forEach.call(tbody.querySelectorAll('tr'), bindRow);
-  document.getElementById('addInboundRow').addEventListener('click', function(){
-    var tr=document.createElement('tr');
-    tr.innerHTML='<td><input type="hidden" name="item_productid[]" value="" /><input type="text" name="item_product_name[]" list="GoodsReceiptProductOptions" class="form-control js-product-name" required /></td><td><select name="item_product_type[]" class="form-control js-product-type"><option value="Hardware">Hardware</option><option value="Software">Software</option><option value="Service">Service</option><option value="Other" selected="selected">Other</option></select></td><td><input type="number" step="0.0001" min="0" name="item_quantity[]" class="form-control" value="1" required /></td><td><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="form-control" value="0" /></td><td><input type="text" name="item_line_note[]" class="form-control" /></td><td><button type="button" class="btn btn-xs btn-danger js-remove-row">x</button></td>';
-    tbody.appendChild(tr);
-    bindRow(tr);
-  });
-  tbody.addEventListener('click', function(e){
-    if(e.target && e.target.classList.contains('js-remove-row')){ e.target.closest('tr').remove(); }
   });
 })();
 </script>
