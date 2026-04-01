@@ -76,6 +76,21 @@ class ProductsServices_Record_Model extends Products_Record_Model {
 	}
 
 	/**
+	 * Detail navigation must stay on ProductsServices module.
+	 *
+	 * Inventory/tax logic needs getModuleName() to resolve to Products/Services, but
+	 * UI navigation for ProductsServices records must not route to Products/Services,
+	 * otherwise users can hit Permission denied on the wrong module.
+	 */
+	public function getDetailViewUrl() {
+		return 'index.php?module=ProductsServices&view=Detail&record=' . $this->getId();
+	}
+
+	public function getEditViewUrl() {
+		return 'index.php?module=ProductsServices&view=Edit&record=' . $this->getId();
+	}
+
+	/**
 	 * Provide Inventory_GetTaxes_Action compatible fields by delegating to
 	 * the underlying Products/Services record.
 	 *
