@@ -16,6 +16,29 @@ class Calendar_TaskManagement_View extends Vtiger_Index_View {
 		$this->exposeMethod('getContentsOfPriority');
 	}
 
+	/**
+	 * TaskManagement data modes return JSON or HTML fragments; they must not be wrapped in Header/Footer
+	 * (otherwise AJAX receives HTML + payload and JSON.parse fails with "Unexpected token '<'").
+	 */
+	protected function isTaskManagementDataMode(Vtiger_Request $request) {
+		$mode = $request->getMode();
+		return in_array($mode, array('getAllContents', 'getContentsOfPriority'), true);
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		if ($this->isTaskManagementDataMode($request)) {
+			return;
+		}
+		parent::preProcess($request, $display);
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		if ($this->isTaskManagementDataMode($request)) {
+			return;
+		}
+		parent::postProcess($request);
+	}
+
 	public function process(Vtiger_Request $request) {
 		$mode = $request->getMode();
 		if (!empty($mode) && $this->isMethodExposed($mode)) {
@@ -48,6 +71,24 @@ class Calendar_TaskManagement_View extends Vtiger_Index_View {
 		$viewer->assign('PAGE', $page);
 		$viewer->assign('PRIORITIES', array_keys($priorities));
 		$viewer->assign('COLORS', $this->generateColors($request));
+		// Overlay load (legacy) passes overlay=1; full-page Task Board does not.
+		$viewer->assign('TASK_MGMT_EMBED_OVERLAY', $request->get('overlay') === '1' || $request->get('overlay') === 1);
+
+		// Optional return_url: used by full-page Task Board close button to go back to origin.
+		$returnUrl = $request->get('return_url');
+		$taskReturnUrl = null;
+		if (!empty($returnUrl)) {
+			// Basic safety: allow only internal relative URLs (no scheme/host, no protocol-relative).
+			// Accept 'index.php?...' or '?...' (we prefix index.php).
+			if (strpos($returnUrl, '://') === false && strpos($returnUrl, '//') !== 0) {
+				if ($returnUrl[0] === '?') {
+					$taskReturnUrl = 'index.php' . $returnUrl;
+				} elseif (strpos($returnUrl, 'index.php') === 0) {
+					$taskReturnUrl = $returnUrl;
+				}
+			}
+		}
+		$viewer->assign('TASK_RETURN_URL', $taskReturnUrl);
 		$viewer->view('TaskManagement.tpl', $moduleName);
 	}
 

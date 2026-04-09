@@ -8,11 +8,24 @@
 ************************************************************************************}
 
 {strip}
-	<div id="taskManagementContainer" class='fc-overlay-modal modal-content' style="height:100%;">
+	<div id="taskManagementContainer" class="{if !empty($TASK_MGMT_EMBED_OVERLAY)}fc-overlay-modal modal-content{else}task-management-page panel panel-default{/if}" style="{if !empty($TASK_MGMT_EMBED_OVERLAY)}height:100%;{else}height:auto;min-height:420px;{/if}">
 		<input type="hidden" name="colors" value='{json_encode($COLORS)}'>
 		<div class="overlayHeader">
 			{assign var=HEADER_TITLE value="TASK MANAGEMENT"}
-			{include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$HEADER_TITLE}
+			{if !empty($TASK_MGMT_EMBED_OVERLAY)}
+				{include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$HEADER_TITLE}
+			{else}
+				<div class="modal-header task-mgmt-fullpage-header">
+					<div class="clearfix">
+						<div class="pull-right">
+							<a href="{if !empty($TASK_RETURN_URL)}{$TASK_RETURN_URL|escape:'html'}{else}index.php?module=Home&amp;view=MainPage&amp;app={$SELECTED_MENU_CATEGORY|default:'MANAGEMENT'}{/if}" class="close task-mgmt-fullpage-close" title="{vtranslate('LBL_CLOSE', $MODULE)}" aria-label="Close">
+								<span aria-hidden="true" class="fa fa-close"></span>
+							</a>
+						</div>
+						<h4 class="pull-left">{$HEADER_TITLE}</h4>
+					</div>
+				</div>
+			{/if}
 		</div>
 		<hr style="margin:0px;">
 		<div class='modal-body overflowYAuto'>
@@ -29,7 +42,7 @@
 						</button>
 					</div>
 
-					<div id="taskManagementOtherFilters" class="otherFilters pull-right" style="width:550px;">
+					<div id="taskManagementOtherFilters" class="otherFilters pull-right task-mgmt-filters">
 						<div class='field pull-left' style="width:250px;padding-right: 5px;">
 							{include file="modules/Calendar/uitypes/OwnerFieldTaskSearchView.tpl" FIELD_MODEL=$OWNER_FIELD}
 						</div>
@@ -74,7 +87,7 @@
 									</div>
 								{/if}
 								<br>
-								<div class='{strtolower($PRIORITY)}-entries container-fluid scrollable dataEntries padding20' style="height:400px;overflow:auto;width:400px;padding-left: 0px;padding-right: 0px;">
+								<div class='{strtolower($PRIORITY)}-entries container-fluid scrollable dataEntries padding20 task-mgmt-column-scroll' style="height:400px;overflow:auto;">
 
 								</div>
 							</div>

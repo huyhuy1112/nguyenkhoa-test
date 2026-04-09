@@ -150,6 +150,10 @@ nav.app-fixed-navbar.navbar-inverse,
 .app-fixed-navbar .global-nav .global-nav-left .app-switcher-container {
     flex: 0 0 auto !important;
 }
+/* Space between hamburger and company logo (structure unchanged; spacing only) */
+.app-fixed-navbar .global-nav .global-nav-left #appnavigator {
+    margin-right: 12px !important;
+}
 .app-fixed-navbar .global-nav .global-nav-left .logo-container {
     flex: 0 1 auto !important;
     min-width: 0;
@@ -515,19 +519,46 @@ nav.app-fixed-navbar.navbar-inverse,
         width: 44px;
         height: 44px;
         border-radius: 12px;
-        color: #5f6368;
-        background: transparent;
-        transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+        color: #202124;
+        background: rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .app-fixed-navbar .global-nav #appnavigator:hover {
-        background: rgba(0,0,0,0.05);
-        color: #1a1a1a;
+        background: rgba(0,0,0,0.08);
+        color: #111827;
+        border-color: rgba(0, 0, 0, 0.14);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     }
     .app-fixed-navbar .global-nav #appnavigator:active {
         transform: scale(0.96);
     }
     .app-fixed-navbar .global-nav #appnavigator .app-icon {
         font-size: 19px;
+    }
+    /* Skin (e.g. project) targets `.app-navigator .app-icon` for dark bar: white @ 0.8 opacity.
+       On light topbar that reads as faint; force readable icon on fixed navbar only. */
+    .app-fixed-navbar .global-nav #appnavigator .app-icon {
+        color: #202124 !important;
+        opacity: 1 !important;
+    }
+    .app-fixed-navbar .global-nav #appnavigator:hover .app-icon {
+        color: #111827 !important;
+        opacity: 1 !important;
+    }
+
+    /* Fix: remove unwanted dark block behind top-left hamburger.
+       Some skins apply dark background on `.app-switcher-container .app-navigator`. */
+    .app-fixed-navbar .global-nav #appnavigator .app-navigator {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    .app-fixed-navbar .global-nav #appnavigator .app-navigator::before,
+    .app-fixed-navbar .global-nav #appnavigator .app-navigator::after {
+        background: transparent !important;
+        box-shadow: none !important;
+        filter: none !important;
+        opacity: 1 !important;
     }
     /* Khớp cấu trúc #navbar: li > div(.dropdown) > a / .dropdown-toggle; vùng bấm 44x44, icon nhỏ gọn 18px */
     .app-fixed-navbar .global-nav #navbar .nav.navbar-nav > li > div > a,
@@ -1151,43 +1182,60 @@ body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-
     margin-bottom: 4px !important;
 }
 
-.menu-item{
-    padding: 12px 10px;
-    margin: 5px 8px;
-    border-radius: 8px;
+/* Remove duplicate hamburger inside opened overlay menu (keep header hamburger only) */
+.app-menu #menu-toggle-action {
+    display: none !important;
+}
+/* Remove the empty top row that only contains the duplicate toggle */
+.app-menu > .container-fluid > .row:first-child {
+    display: none !important;
+}
+
+/* App overlay sidebar: shared card shell; per-app identity = left accent only (see .app-item-color-* below) */
+.app-menu .menu-item.app-item,
+#app-menu.app-menu .menu-item.app-item {
+    padding: 10px 12px !important;
+    margin: 0 10px 6px 10px !important;
+    border-radius: 10px !important;
     text-align: left;
     cursor: pointer;
-    transition: all 0.22s ease;
-}
-.app-item{
-    padding: 14px 12px;
     font-size: 1.05em;
-    color: #ecf0f1;
-    cursor: pointer;
-    border-left: 4px solid transparent;
-    border-radius: 6px;
-    transition: all 0.22s ease;
+    color: #ecf0f1 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-left: 3px solid transparent !important;
+    box-shadow: none !important;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
-.app-item:hover{
-    background: rgba(255,255,255,0.1);
-    color: #fff;
-    transform: translateX(3px);
+.app-menu .menu-item.app-item:hover,
+#app-menu.app-menu .menu-item.app-item:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+    transform: none !important;
 }
-.app-item div{
-    transition: all 0.22s ease;
+.app-menu .menu-item.app-item .menu-items-wrapper,
+.app-menu .menu-item.app-item .app-menu-items-wrapper,
+#app-menu.app-menu .menu-item.app-item .menu-items-wrapper,
+#app-menu.app-menu .menu-item.app-item .app-menu-items-wrapper {
+    transition: none !important;
 }
-.app-item:hover div{
-    transform: translateX(4px);
+.app-menu .menu-item.app-item:hover .menu-items-wrapper,
+.app-menu .menu-item.app-item:hover .app-menu-items-wrapper {
+    transform: none !important;
 }
-.app-item .fa,
-.app-item .app-icon-list{
+.app-menu .menu-item.app-item .fa,
+.app-menu .menu-item.app-item .app-icon-list,
+#app-menu.app-menu .menu-item.app-item .fa,
+#app-menu.app-menu .menu-item.app-item .app-icon-list {
     font-size: 1.25em;
     margin-right: 10px;
-    transition: transform 0.22s ease;
+    transition: opacity 0.2s ease, color 0.2s ease !important;
 }
-.app-item:hover .fa,
-.app-item:hover .app-icon-list{
-    transform: scale(1.15);
+.app-menu .menu-item.app-item:hover .fa,
+.app-menu .menu-item.app-item:hover .app-icon-list,
+#app-menu.app-menu .menu-item.app-item:hover .fa,
+#app-menu.app-menu .menu-item.app-item:hover .app-icon-list {
+    transform: none !important;
 }
 
 /* App overlay menu: căn icon + chữ thẳng hàng, to đều giữa các app (MARKETING, SALES, MANAGEMENT, …) */
@@ -1326,24 +1374,134 @@ body[data-module="Activities"] .container-fluid.app-nav {
     text-shadow: none !important;
 }
 
-/* Màu từng nhóm app menu */
-.app-item-color-MARKETING{ border-left-color: #3498db !important; }
-.app-item-color-MARKETING:hover{ background: rgba(52,152,219,0.2) !important; }
-.app-item-color-SALES{ border-left-color: #e74c3c !important; }
-.app-item-color-SALES:hover{ background: rgba(231,76,60,0.2) !important; }
-.app-item-color-INVENTORY{ border-left-color: #e67e22 !important; }
-.app-item-color-INVENTORY:hover{ background: rgba(230,126,34,0.2) !important; }
-/* SUPPORT: dùng chung tông màu với MANAGEMENT để menu sáng hơn và đều hơn */
-.app-item-color-SUPPORT{ border-left-color: #1abc9c !important; }
-.app-item-color-SUPPORT:hover{ background: rgba(26,188,156,0.2) !important; }
-.app-item-color-MANAGEMENT{ border-left-color: #1abc9c !important; }
-.app-item-color-MANAGEMENT:hover{ background: rgba(26,188,156,0.2) !important; }
-.app-item-color-TOOLS{ border-left-color: #2ecc71 !important; }
-.app-item-color-TOOLS:hover{ background: rgba(46,204,113,0.2) !important; }
-.app-item-misc{ border-left-color: #95a5a6 !important; }
-.app-item-misc:hover{ background: rgba(149,165,166,0.2) !important; }
-.app-list > .menu-item.app-item:first-child{ border-left: 4px solid #f39c12 !important; }
-.app-list > .menu-item.app-item:first-child:hover{ background: rgba(243,156,18,0.2) !important; }
+/* Per-app subtle accent: left edge + soft tint (same card metrics; hover lift stays unified). */
+.app-menu .app-item-color-MARKETING,
+#app-menu.app-menu .app-item-color-MARKETING {
+    border-left-color: rgba(52, 152, 219, 0.55) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 3px 0 0 rgba(52, 152, 219, 0.22) !important;
+}
+.app-menu .app-item-color-MARKETING:hover,
+#app-menu.app-menu .app-item-color-MARKETING:hover {
+    border-left-color: rgba(52, 152, 219, 0.75) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(52, 152, 219, 0.28) !important;
+}
+
+.app-menu .app-item-color-SALES,
+#app-menu.app-menu .app-item-color-SALES {
+    border-left-color: rgba(231, 76, 60, 0.55) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 3px 0 0 rgba(231, 76, 60, 0.22) !important;
+}
+.app-menu .app-item-color-SALES:hover,
+#app-menu.app-menu .app-item-color-SALES:hover {
+    border-left-color: rgba(231, 76, 60, 0.75) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(231, 76, 60, 0.28) !important;
+}
+
+.app-menu .app-item-color-INVENTORY,
+#app-menu.app-menu .app-item-color-INVENTORY {
+    border-left-color: rgba(230, 126, 34, 0.55) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 3px 0 0 rgba(230, 126, 34, 0.22) !important;
+}
+.app-menu .app-item-color-INVENTORY:hover,
+#app-menu.app-menu .app-item-color-INVENTORY:hover {
+    border-left-color: rgba(230, 126, 34, 0.75) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(230, 126, 34, 0.28) !important;
+}
+
+.app-menu .app-item-color-SUPPORT,
+#app-menu.app-menu .app-item-color-SUPPORT {
+    border-left-color: rgba(26, 188, 156, 0.55) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 3px 0 0 rgba(26, 188, 156, 0.22) !important;
+}
+.app-menu .app-item-color-SUPPORT:hover,
+#app-menu.app-menu .app-item-color-SUPPORT:hover {
+    border-left-color: rgba(26, 188, 156, 0.75) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(26, 188, 156, 0.28) !important;
+}
+
+.app-menu .app-item-color-MANAGEMENT,
+#app-menu.app-menu .app-item-color-MANAGEMENT {
+    border-left-color: rgba(46, 204, 113, 0.55) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 3px 0 0 rgba(46, 204, 113, 0.22) !important;
+}
+.app-menu .app-item-color-MANAGEMENT:hover,
+#app-menu.app-menu .app-item-color-MANAGEMENT:hover {
+    border-left-color: rgba(46, 204, 113, 0.75) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(46, 204, 113, 0.28) !important;
+}
+
+.app-menu .app-item-color-TOOLS,
+#app-menu.app-menu .app-item-color-TOOLS {
+    border-left-color: rgba(39, 174, 96, 0.55) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 3px 0 0 rgba(39, 174, 96, 0.22) !important;
+}
+.app-menu .app-item-color-TOOLS:hover,
+#app-menu.app-menu .app-item-color-TOOLS:hover {
+    border-left-color: rgba(39, 174, 96, 0.75) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(39, 174, 96, 0.28) !important;
+}
+
+.app-menu .app-item-color-PROJECT,
+#app-menu.app-menu .app-item-color-PROJECT {
+    border-left-color: rgba(155, 89, 182, 0.5) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 3px 0 0 rgba(155, 89, 182, 0.2) !important;
+}
+.app-menu .app-item-color-PROJECT:hover,
+#app-menu.app-menu .app-item-color-PROJECT:hover {
+    border-left-color: rgba(155, 89, 182, 0.72) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(155, 89, 182, 0.26) !important;
+}
+
+.app-menu .app-item-misc,
+#app-menu.app-menu .app-item-misc {
+    border-left-color: rgba(149, 165, 166, 0.5) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 3px 0 0 rgba(149, 165, 166, 0.18) !important;
+}
+.app-menu .app-item-misc:hover,
+#app-menu.app-menu .app-item-misc:hover {
+    border-left-color: rgba(149, 165, 166, 0.68) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(149, 165, 166, 0.22) !important;
+}
+
+/* Dashboard row (first app-list child): warm accent */
+.app-menu .app-list > .menu-item.app-item:first-child,
+#app-menu.app-menu .app-list > .menu-item.app-item:first-child {
+    border-left-color: rgba(52, 152, 219, 0.55) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 3px 0 0 rgba(52, 152, 219, 0.22) !important;
+}
+.app-menu .app-list > .menu-item.app-item:first-child:hover,
+#app-menu.app-menu .app-list > .menu-item.app-item:first-child:hover {
+    border-left-color: rgba(52, 152, 219, 0.78) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(52, 152, 219, 0.28) !important;
+}
+
+/* Subtle icon tint per app (keeps hover/background unified) */
+.app-menu .app-item-color-MARKETING .app-icon-list i { color: rgba(52, 152, 219, 0.95) !important; }
+.app-menu .app-item-color-SALES .app-icon-list i { color: rgba(231, 76, 60, 0.95) !important; }
+.app-menu .app-item-color-INVENTORY .app-icon-list i { color: rgba(230, 126, 34, 0.95) !important; }
+.app-menu .app-item-color-SUPPORT .app-icon-list i { color: rgba(26, 188, 156, 0.95) !important; }
+.app-menu .app-item-color-MANAGEMENT .app-icon-list i { color: rgba(46, 204, 113, 0.95) !important; }
+.app-menu .app-item-color-TOOLS .app-icon-list i { color: rgba(39, 174, 96, 0.95) !important; }
+.app-menu .app-item-color-PROJECT .app-icon-list i { color: rgba(155, 89, 182, 0.95) !important; }
+.app-menu .app-item-misc .app-icon-list i { color: rgba(149, 165, 166, 0.9) !important; }
 
 /* Menu con: cho phép hiện khi hover/click; ẩn khi menu ở trạng thái .hide */
 .app-menu .app-modules-dropdown-container {
@@ -1381,6 +1539,53 @@ body[data-module="Activities"] .container-fluid.app-nav {
     opacity: 1 !important;
     z-index: 10002 !important;
 }
+
+/* Submenu accent system: keep dark panel, add subtle parent-app identity */
+.app-menu .app-modules-dropdown {
+    border-left: 3px solid rgba(148, 163, 184, 0.22);
+    box-shadow:
+        0 18px 45px rgba(15, 23, 42, 0.85),
+        inset 3px 0 0 rgba(148, 163, 184, 0.10);
+}
+
+/* Map parent app color -> submenu panel + submenu hover tint */
+.app-menu .app-modules-dropdown-container.open > .app-item-color-MARKETING + .app-modules-dropdown {
+    border-left-color: rgba(52, 152, 219, 0.55) !important;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85), inset 3px 0 0 rgba(52, 152, 219, 0.18) !important;
+}
+.app-menu .app-modules-dropdown-container.open > .app-item-color-SALES + .app-modules-dropdown {
+    border-left-color: rgba(231, 76, 60, 0.55) !important;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85), inset 3px 0 0 rgba(231, 76, 60, 0.18) !important;
+}
+.app-menu .app-modules-dropdown-container.open > .app-item-color-INVENTORY + .app-modules-dropdown {
+    border-left-color: rgba(230, 126, 34, 0.55) !important;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85), inset 3px 0 0 rgba(230, 126, 34, 0.18) !important;
+}
+.app-menu .app-modules-dropdown-container.open > .app-item-color-SUPPORT + .app-modules-dropdown {
+    border-left-color: rgba(26, 188, 156, 0.55) !important;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85), inset 3px 0 0 rgba(26, 188, 156, 0.18) !important;
+}
+.app-menu .app-modules-dropdown-container.open > .app-item-color-MANAGEMENT + .app-modules-dropdown {
+    border-left-color: rgba(46, 204, 113, 0.55) !important;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85), inset 3px 0 0 rgba(46, 204, 113, 0.18) !important;
+}
+.app-menu .app-modules-dropdown-container.open > .app-item-color-TOOLS + .app-modules-dropdown {
+    border-left-color: rgba(39, 174, 96, 0.55) !important;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85), inset 3px 0 0 rgba(39, 174, 96, 0.18) !important;
+}
+.app-menu .app-modules-dropdown-container.open > .app-item-color-PROJECT + .app-modules-dropdown {
+    border-left-color: rgba(155, 89, 182, 0.5) !important;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85), inset 3px 0 0 rgba(155, 89, 182, 0.16) !important;
+}
+
+/* Submenu items: unified hover, but tinted by parent app */
+.app-menu .app-modules-dropdown-container.open > .app-item-color-MARKETING + .app-modules-dropdown li a:hover { background: rgba(52,152,219,0.14) !important; }
+.app-menu .app-modules-dropdown-container.open > .app-item-color-SALES + .app-modules-dropdown li a:hover { background: rgba(231,76,60,0.14) !important; }
+.app-menu .app-modules-dropdown-container.open > .app-item-color-INVENTORY + .app-modules-dropdown li a:hover { background: rgba(230,126,34,0.14) !important; }
+.app-menu .app-modules-dropdown-container.open > .app-item-color-SUPPORT + .app-modules-dropdown li a:hover { background: rgba(26,188,156,0.14) !important; }
+.app-menu .app-modules-dropdown-container.open > .app-item-color-MANAGEMENT + .app-modules-dropdown li a:hover { background: rgba(46,204,113,0.14) !important; }
+.app-menu .app-modules-dropdown-container.open > .app-item-color-TOOLS + .app-modules-dropdown li a:hover { background: rgba(39,174,96,0.14) !important; }
+.app-menu .app-modules-dropdown-container.open > .app-item-color-PROJECT + .app-modules-dropdown li a:hover { background: rgba(155,89,182,0.14) !important; }
 .app-menu.hide .app-modules-dropdown {
     display: none !important;
     visibility: hidden !important;
@@ -5349,6 +5554,214 @@ body.mainpage {
     background-attachment: fixed;
     min-height: 100vh;
 }
+
+/* MANAGEMENT app: ensure TaskManagement overlay (#overlayPage) is above any page layers */
+body[data-app="MANAGEMENT"] #overlayPageContent {
+    z-index: 100000 !important;
+}
+body[data-app="MANAGEMENT"] #overlayPage {
+    z-index: 100010 !important;
+}
+
+/* Calendar Task Management — full page (MANAGEMENT direct route): not overlay modal */
+.task-management-page.panel {
+    max-width: 1280px;
+    margin: 14px auto 28px;
+    border-radius: 14px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, #ffffff 28%);
+}
+.task-management-page .overlayHeader {
+    padding: 12px 16px 8px;
+}
+.task-management-page .modal-body.overflowYAuto {
+    padding: 0 12px 18px;
+    max-width: 100%;
+}
+
+/* Header / toolbar cohesion */
+.task-management-page .task-mgmt-fullpage-header {
+    border-bottom: 0;
+    padding: 10px 4px 8px;
+}
+.task-management-page .task-mgmt-fullpage-header h4 {
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    color: #0f172a;
+}
+.task-management-page .task-mgmt-fullpage-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.06);
+    border: 1px solid rgba(148, 163, 184, 0.40);
+    opacity: 1;
+}
+.task-management-page .task-mgmt-fullpage-close:hover {
+    background: rgba(15, 23, 42, 0.10);
+}
+
+/* Toolbar card */
+.task-management-page .data-header {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 14px;
+    padding: 10px 12px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+.task-management-page .data-header .btn-group.dateFilters .btn {
+    border-radius: 999px !important;
+    border-color: rgba(148, 163, 184, 0.45);
+}
+.task-management-page .data-header .btn-group.dateFilters .btn.active {
+    background: rgba(37, 99, 235, 0.10);
+    border-color: rgba(37, 99, 235, 0.35);
+    color: #1d4ed8;
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.15);
+}
+.task-management-page .data-header .otherFilters .btn-success.search {
+    border-radius: 10px;
+    height: 34px;
+    padding: 6px 10px;
+}
+.task-management-page .task-mgmt-filters {
+    width: auto !important;
+    max-width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 8px;
+}
+@media (max-width: 1199px) {
+    .task-management-page .task-mgmt-filters {
+        float: none !important;
+        width: 100% !important;
+        margin-top: 12px;
+    }
+    .task-management-page .data-header .dateFilters {
+        float: none !important;
+    }
+}
+.task-management-page .task-mgmt-column-scroll {
+    width: 100% !important;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Board layout */
+.task-management-page .data-body.row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 14px;
+    margin: 14px 0 0;
+}
+.task-management-page .data-body.row > .contentsBlock {
+    float: none;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0;
+}
+@media (max-width: 1199px) {
+    .task-management-page .data-body.row {
+        flex-wrap: wrap;
+    }
+    .task-management-page .data-body.row > .contentsBlock {
+        flex: 1 1 320px;
+    }
+}
+
+/* Lane (priority column) styling */
+.task-management-page .contentsBlock .title {
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+}
+.task-management-page .contentsBlock .content {
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(148, 163, 184, 0.30);
+    border-radius: 14px;
+    padding: 10px 10px 12px;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.07);
+}
+.task-management-page .contentsBlock .input-group .form-control {
+    height: 36px;
+    border-radius: 12px;
+    border-color: rgba(148, 163, 184, 0.45);
+}
+.task-management-page .contentsBlock .input-group .input-group-addon {
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.04);
+    border-color: rgba(148, 163, 184, 0.45);
+}
+
+/* Task cards */
+.task-management-page .task-card-wrap {
+    margin: 8px 0;
+}
+.task-management-page .task-card {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+    padding: 10px 10px 8px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.task-management-page .task-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+    border-color: rgba(100, 116, 139, 0.45);
+}
+.task-management-page .task-card .taskSubject {
+    font-weight: 700;
+    color: #0f172a;
+}
+.task-management-page .task-card .taskSubject a {
+    color: inherit;
+}
+.task-management-page .task-card .taskStatus {
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 12px;
+    line-height: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+}
+.task-management-page .task-card .other-details {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(148, 163, 184, 0.35);
+}
+.task-management-page .task-card .task-details {
+    font-size: 12.5px;
+    color: rgba(15, 23, 42, 0.78);
+}
+.task-management-page .task-card .task-actions a {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+}
+.task-management-page .task-card .task-actions a:hover {
+    background: rgba(15, 23, 42, 0.08);
+}
+
+/* Make scroll area feel like a lane */
+.task-management-page .task-mgmt-column-scroll.scrollable {
+    border-radius: 12px;
+    padding: 6px;
+    background: rgba(241, 245, 249, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
 .mainpage-wrap {
     padding: 12px 24px 24px;
     margin-top: 0;

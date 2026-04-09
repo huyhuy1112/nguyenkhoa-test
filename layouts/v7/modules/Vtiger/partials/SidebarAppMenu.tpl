@@ -63,12 +63,18 @@
 							</div>
 						</div>
 						<ul class="dropdown-menu app-modules-dropdown" aria-labelledby="{$APP_NAME}_modules_dropdownMenu">
-							{* Custom: Main Page shortcut on Management *}
+							{* Custom: Management shortcuts (Main Page + Task Board) *}
 							{if $APP_NAME eq 'MANAGEMENT'}
 								<li>
 									<a href="index.php?module=Home&view=MainPage&app=MANAGEMENT" title="Main Page">
 										<span class="mk-icon module-icon module-icon-lg"><i class="fa fa-home"></i></span>
 										<span class="module-name textOverflowEllipsis"> Main Page</span>
+									</a>
+								</li>
+								<li>
+									<a href="index.php?module=Calendar&view=TaskManagement&mode=showManagementView&app=MANAGEMENT" title="Task Board">
+										<span class="mk-icon module-icon module-icon-lg"><i class="fa fa-columns"></i></span>
+										<span class="module-name textOverflowEllipsis"> Task Board</span>
 									</a>
 								</li>
 							{/if}

@@ -11,6 +11,7 @@
 	{assign var=MODULE_MODEL value= Vtiger_Module_Model::getInstance($MODULE)}
 	{assign var=SELECTED_PICKLIST_FIELDMODEL value= Vtiger_Field_Model::getInstance('taskstatus', $MODULE_MODEL)}
 	{assign var=PICKLIST_COLOR_MAP value= Settings_Picklist_Module_Model::getPicklistColorMap($SELECTED_PICKLIST_FIELDMODEL->getName())}
+	{* NOTE: keep picklist color rules global (used by both overlay & full-page). *}
 	<style type="text/css">
 		{foreach item=PICKLIST_COLOR key=PICKLIST_KEY_ID from=$PICKLIST_COLOR_MAP}
 			{assign var=PICKLIST_TEXT_COLOR value= Settings_Picklist_Module_Model::getTextColor($PICKLIST_COLOR)}
@@ -21,9 +22,9 @@
 		{/foreach}
 	</style>
 	{foreach key=RECORDID item=RECORD_MODEL from=$TASKS}
-		<div class="entries ui-draggable">
+		<div class="entries ui-draggable task-card-wrap">
 			{assign var=RECORD_BASIC_INFO value = $RECORD_MODEL->get('basicInfo')}
-			<div class="task clearfix" data-recordid="{$RECORD_MODEL->get('id')}" data-priority="{$PRIORITY}" data-basicinfo='{json_encode($RECORD_BASIC_INFO)}' style="border-left:4px solid {$COLORS[$PRIORITY]}">
+			<div class="task clearfix task-card" data-recordid="{$RECORD_MODEL->get('id')}" data-priority="{$PRIORITY}" data-basicinfo='{json_encode($RECORD_BASIC_INFO)}' style="border-left:4px solid {$COLORS[$PRIORITY]}">
 				{assign var=STATUS value=$RECORD_MODEL->get('status')}
 				<div class="task-status pull-left">
 					<input class='statusCheckbox' type="checkbox" name="taskstatus" {if $STATUS eq "Completed"} checked disabled {/if}/>

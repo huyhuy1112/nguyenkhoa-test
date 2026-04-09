@@ -25,6 +25,53 @@ Vtiger_Index_Js("Vtiger_TaskManagement_Js",{},{
 	  return jQuery('input[name="colors"]').val();  
 	},
 
+	/**
+	 * Compute readable text color (black/white) based on background color luminance.
+	 * Accepts hex (#rrggbb) or rgb()/rgba() strings.
+	 */
+	getContrastColor : function(color) {
+		if (!color) {
+			return '#000000';
+		}
+
+		var r, g, b;
+
+		// rgb or rgba format: rgb(255, 255, 255) / rgba(255,255,255,1)
+		if (typeof color === 'string' && color.indexOf('rgb') === 0) {
+			var parts = color.match(/\d+/g) || [];
+			r = parseInt(parts[0] || '0', 10);
+			g = parseInt(parts[1] || '0', 10);
+			b = parseInt(parts[2] || '0', 10);
+		} else {
+			// hex format: #rrggbb or rrggbb
+			var hex = String(color).replace('#', '');
+			if (hex.length === 3) {
+				hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+			}
+			r = parseInt(hex.substring(0, 2), 16);
+			g = parseInt(hex.substring(2, 4), 16);
+			b = parseInt(hex.substring(4, 6), 16);
+		}
+
+		var luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+		return luminance > 186 ? '#000000' : '#ffffff';
+	},
+
+	/**
+	 * Ensure priority header labels (High/Medium/Low) have readable text color
+	 * against their dynamic background.
+	 */
+	applyHeaderContrast : function() {
+		var thisInstance = this;
+		var container = this.getOverlayContainer();
+		container.find('.contentsBlock .title').each(function() {
+			var $title = jQuery(this);
+			var bg = $title.css('background-color');
+			var textColor = thisInstance.getContrastColor(bg);
+			$title.css('color', textColor);
+		});
+	},
+
 	saveFieldValue : function(recordId, fieldNameValueMap){
 		var aDeferred = jQuery.Deferred();
 
@@ -472,6 +519,7 @@ Vtiger_Index_Js("Vtiger_TaskManagement_Js",{},{
 			blockElement.find(".dataEntries").html(data);
 			blockElement.attr("data-page",1).data("page",1);
 			app.event.trigger("post.filter.load");
+			thisInstance.applyHeaderContrast();
 		});
 	},
 
@@ -489,6 +537,7 @@ Vtiger_Index_Js("Vtiger_TaskManagement_Js",{},{
 				blockElement.attr("data-page",1).data("page",1);
 			});
 			app.event.trigger("post.filter.load");
+			thisInstance.applyHeaderContrast();
 		});
 	},
 
@@ -578,6 +627,9 @@ Vtiger_Index_Js("Vtiger_TaskManagement_Js",{},{
 
 	registerEvents : function(){
 		var thisInstance = this;
+		// Full-page Task Management must run Vtiger_Index_Js.registerEvents first so Quick Create
+		// (#quickCreateModules handlers) is wired; otherwise "+" does nothing (trigger("click") is inert).
+		this._super();
 //		this.loadContents();
 		this.registerMoreButtonClickEvent();
 		this.registerStatusCheckboxEvent();
