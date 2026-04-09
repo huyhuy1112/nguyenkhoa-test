@@ -331,8 +331,8 @@
 				{else}
 					<div class="inActiveImgDiv">
 						<div>
-							<h4>Get more out of Vtiger with extensions from</h4>
-							<h4>Vtiger Marketplace</h4>
+							<h4>Get more out of B-ACE with extensions from</h4>
+							<h4>B-ACE Marketplace</h4>
 						</div>
 						<a href="https://marketplace.vtiger.com/app/listings" target="_blank" style="margin-right: 25px;"><img src="layouts/v7/resources/Images/extensionstore.png" style="width: 85%; height: 100%; margin-top: 25px;"/></a>
 					</div>
