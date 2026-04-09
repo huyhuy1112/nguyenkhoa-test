@@ -25,6 +25,12 @@ class DocumentTemplate_List_View extends Vtiger_Index_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		// Ensure header/menu templates have required module context.
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
 		parent::preProcess($request, $display);
 	}
 
@@ -41,13 +47,29 @@ class DocumentTemplate_List_View extends Vtiger_Index_View {
 			return;
 		}
 
+		$errorMessage = '';
+		try {
+			require_once 'modules/DocumentTemplate/helpers/TemplateSetup.php';
+			if (class_exists('DocumentTemplate_TemplateSetup_Helper')) {
+				DocumentTemplate_TemplateSetup_Helper::runAll();
+			}
+		} catch (Throwable $e) {
+			$errorMessage = $e->getMessage();
+		}
+
 		$viewer->assign('LISTVIEW_MODULE_TITLE', 'Document Templates');
-		$templates = $this->getTemplates($request);
+		$templates = array('groups' => array(), 'presentFeatures' => array(), 'features' => array('Invoice', 'Quote', 'Contract', 'Other'));
+		try {
+			$templates = $this->getTemplates($request);
+		} catch (Throwable $e) {
+			$errorMessage = $errorMessage ?: $e->getMessage();
+		}
 		$viewer->assign('GROUPS', $templates['groups']);
 		$viewer->assign('PRESENT_FEATURES', $templates['presentFeatures']);
 		$viewer->assign('FEATURES', $templates['features']);
 		$viewer->assign('FILTER_FEATURE', $request->get('feature'));
 		$viewer->assign('FILTER_SEARCH', (string) $request->get('search'));
+		$viewer->assign('DT_ERROR_MESSAGE', $errorMessage);
 		$viewer->view('ListViewContents.tpl', $request->getModule());
 	}
 

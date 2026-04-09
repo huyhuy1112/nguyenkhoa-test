@@ -19,6 +19,9 @@ class DocumentTemplate_Save_Action extends Vtiger_Save_Action {
 
 	public function process(Vtiger_Request $request) {
 		try {
+			require_once 'modules/DocumentTemplate/helpers/TemplateSetup.php';
+			DocumentTemplate_TemplateSetup_Helper::runAll();
+
 			$db = PearDatabase::getInstance();
 			$userId = (int) Users_Record_Model::getCurrentUserModel()->getId();
 			$now = date('Y-m-d H:i:s');
@@ -30,7 +33,8 @@ class DocumentTemplate_Save_Action extends Vtiger_Save_Action {
 			$feature = (string) $request->get('feature');
 			$description = (string) $request->get('description');
 			$content = (string) $request->getRaw('content');
-			$isdefault = ((string) $request->get('isdefault') === '1') ? 1 : 0;
+			// BA: default templates are system-seeded and protected; user cannot set isdefault via UI.
+			$isdefault = 0;
 
 			$this->logDebug('Save request received', array(
 				'record' => $recordId,
@@ -55,6 +59,12 @@ class DocumentTemplate_Save_Action extends Vtiger_Save_Action {
 			}
 
 			$savedId = 0;
+			// BA: copy-first workflow. Block direct create without copyFrom.
+			if ($recordId <= 0 && $copyFromId <= 0) {
+				header('Location: index.php?module=DocumentTemplate&view=List&app=TOOLS&copyFirst=1');
+				exit;
+			}
+
 			if ($copyFromId > 0 || $recordId <= 0) {
 				$mode = ($copyFromId > 0) ? 'copy' : 'create';
 				$version = 1;
@@ -68,7 +78,27 @@ class DocumentTemplate_Save_Action extends Vtiger_Save_Action {
 				));
 				$savedId = $newId;
 				$this->logDebug('Insert success', array('mode' => $mode, 'templateid' => $savedId));
+				DocumentTemplate_TemplateSetup_Helper::recordHistory($db, $savedId, 1, $userId, $now, $mode, array(
+					'templatename' => $templatename,
+					'description' => $description,
+					'content' => $content,
+				));
 			} else {
+				// BA: block edit of protected default templates.
+				$defaultCheck = $db->pquery(
+					"SELECT isdefault, version FROM vtiger_documenttemplates WHERE templateid = ? AND deleted = 0",
+					array($recordId)
+				);
+				if ($db->num_rows($defaultCheck) <= 0) {
+					header("Location: index.php?module=DocumentTemplate&view=List&app=TOOLS");
+					exit;
+				}
+				$isdefaultExisting = (int) $db->query_result($defaultCheck, 0, 'isdefault');
+				if ($isdefaultExisting === 1) {
+					header('Location: index.php?module=DocumentTemplate&view=Detail&record='.$recordId.'&app=TOOLS&readonlyDefault=1');
+					exit;
+				}
+
 				$current = $db->pquery(
 					"SELECT version FROM vtiger_documenttemplates WHERE templateid = ? AND deleted = 0",
 					array($recordId)
@@ -82,23 +112,20 @@ class DocumentTemplate_Save_Action extends Vtiger_Save_Action {
 				$newVersion = ((int) $curRow['version']) + 1;
 				$db->pquery(
 					"UPDATE vtiger_documenttemplates
-						SET templatename = ?, feature = ?, description = ?, content = ?, version = ?, isdefault = ?, updatedby = ?, updatedtime = ?
+						SET templatename = ?, feature = ?, description = ?, content = ?, version = ?, isdefault = 0, updatedby = ?, updatedtime = ?
 					  WHERE templateid = ? AND deleted = 0",
-					array($templatename, $feature, $description, $content, $newVersion, $isdefault, $userId, $now, $recordId)
+					array($templatename, $feature, $description, $content, $newVersion, $userId, $now, $recordId)
 				);
 				$savedId = $recordId;
 				$this->logDebug('Update success', array('templateid' => $savedId, 'version' => $newVersion));
+				DocumentTemplate_TemplateSetup_Helper::recordHistory($db, $savedId, $newVersion, $userId, $now, 'edit', array(
+					'templatename' => $templatename,
+					'description' => $description,
+					'content' => $content,
+				));
 			}
 
-			if ($isdefault === 1 && $savedId > 0) {
-				$db->pquery(
-					"UPDATE vtiger_documenttemplates SET isdefault = 0 WHERE feature = ? AND templateid <> ? AND deleted = 0",
-					array($feature, $savedId)
-				);
-			}
-
-			// Keep post-save stable: list view is guaranteed to exist and avoids white-screen on broken detail routes.
-			$loadUrl = 'index.php?module=DocumentTemplate&view=List&app=TOOLS&saved=1';
+			$loadUrl = 'index.php?module=DocumentTemplate&view=Detail&record=' . (int) $savedId . '&app=TOOLS&saved=1';
 			$this->logDebug('Redirect after save', array('templateid' => $savedId, 'url' => $loadUrl));
 			header("Location: $loadUrl");
 			exit;

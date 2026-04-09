@@ -21,6 +21,13 @@ class DocumentTemplate_Detail_View extends Vtiger_Index_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		// Ensure header/menu templates have required module context.
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+
 		if ($this->isToolsContext($request)) {
 			$recordId = (int) $request->get('record');
 			if ($recordId > 0) {
@@ -28,7 +35,6 @@ class DocumentTemplate_Detail_View extends Vtiger_Index_View {
 				if ($record) {
 					$this->detailRecordData = $record;
 					$this->detailRecordModel = $this->buildRecordModel($request->getModule(), $recordId, $record);
-					$viewer = $this->getViewer($request);
 					// Must be present before ListViewPreProcess/ModuleHeader renders.
 					$viewer->assign('RECORD', $this->detailRecordModel);
 					$viewer->assign('RECORD_MODEL', $this->detailRecordModel);
@@ -52,8 +58,21 @@ class DocumentTemplate_Detail_View extends Vtiger_Index_View {
 			return;
 		}
 
+		$errorMessage = '';
+		try {
+			require_once 'modules/DocumentTemplate/helpers/TemplateSetup.php';
+			DocumentTemplate_TemplateSetup_Helper::runAll();
+		} catch (Exception $e) {
+			$errorMessage = $e->getMessage();
+		}
+
 		$recordId = (int) $request->get('record');
-		$record = $this->detailRecordData ?: $this->getTemplateById($recordId);
+		$record = null;
+		try {
+			$record = $this->detailRecordData ?: $this->getTemplateById($recordId);
+		} catch (Exception $e) {
+			$errorMessage = $errorMessage ?: $e->getMessage();
+		}
 		if (!$record) {
 			header("Location: index.php?module=DocumentTemplate&view=List&app=TOOLS");
 			exit;
@@ -65,12 +84,22 @@ class DocumentTemplate_Detail_View extends Vtiger_Index_View {
 		$viewer->assign('RECORD_DATA', $record);
 		$viewer->assign('RECORD_MODEL', $recordModel);
 		$viewer->assign('DELETE_BLOCKED', (string) $request->get('deleteBlocked') === '1');
+		$viewer->assign('READONLY_DEFAULT', (string) $request->get('readonlyDefault') === '1');
+		$viewer->assign('DT_ERROR_MESSAGE', $errorMessage);
+		try {
+			$viewer->assign('HISTORY', DocumentTemplate_TemplateSetup_Helper::getHistoryByTemplateId(PearDatabase::getInstance(), $recordId));
+		} catch (Exception $e) {
+			$viewer->assign('HISTORY', array());
+			$viewer->assign('DT_ERROR_MESSAGE', $errorMessage ?: $e->getMessage());
+		}
 		$viewer->view('DetailViewFullContents.tpl', $request->getModule());
 	}
 
 	protected function buildRecordModel($moduleName, $recordId, array $record) {
 		$recordModel = new Vtiger_Record_Model();
-		$recordModel->setModule($moduleName);
+		// Vtiger core here expects module name string (not Vtiger_Module_Model),
+		// otherwise cacheKey('module', <object>) will fatal.
+		$recordModel->setModule((string) $moduleName);
 		$recordModel->setId($recordId);
 		$recordModel->set('label', (string) $record['templatename']);
 		$recordModel->setData($record);

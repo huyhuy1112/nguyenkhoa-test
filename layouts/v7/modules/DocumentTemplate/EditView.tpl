@@ -44,8 +44,7 @@
 						<div class="checkbox" style="margin-top:10px;">
 							<label>
 								<input type="hidden" name="isdefault" value="0" />
-								<input type="checkbox" name="isdefault" value="1" {if $RECORD.isdefault eq 1}checked{/if} />
-								Is Default Template
+								{* BA: default templates are system-seeded and protected. Users cannot set default via UI. *}
 							</label>
 						</div>
 					</div>

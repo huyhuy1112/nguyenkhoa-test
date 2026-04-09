@@ -20,6 +20,12 @@ class DocumentTemplate_Edit_View extends Vtiger_Index_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		// Ensure header/menu templates have required module context.
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
 		parent::preProcess($request, $display);
 	}
 
@@ -46,6 +52,9 @@ class DocumentTemplate_Edit_View extends Vtiger_Index_View {
 			return;
 		}
 
+		require_once 'modules/DocumentTemplate/helpers/TemplateSetup.php';
+		DocumentTemplate_TemplateSetup_Helper::runAll();
+
 		$viewer = $this->getViewer($request);
 		$viewer->assign('FEATURES', $this->features);
 
@@ -63,6 +72,12 @@ class DocumentTemplate_Edit_View extends Vtiger_Index_View {
 			'isdefault' => 0,
 		);
 		$copyFrom = 0;
+
+		// BA: copy-first workflow. Block direct new template creation (must copy from an existing template).
+		if (empty($recordId) && empty($copyFromId)) {
+			header('Location: index.php?module=DocumentTemplate&view=List&app=TOOLS&copyFirst=1');
+			exit;
+		}
 
 		if (!empty($copyFromId)) {
 			$copyFrom = (int) $copyFromId;
@@ -93,6 +108,12 @@ class DocumentTemplate_Edit_View extends Vtiger_Index_View {
 					'isdefault' => 0,
 				);
 			}
+		}
+
+		// BA: default templates are protected (no edit). Encourage copy.
+		if ($mode === 'edit' && isset($record['isdefault']) && (int) $record['isdefault'] === 1) {
+			header('Location: index.php?module=DocumentTemplate&view=Detail&record='.(int)$recordId.'&app=TOOLS&readonlyDefault=1');
+			exit;
 		}
 
 		$viewer->assign('MODE', $mode);

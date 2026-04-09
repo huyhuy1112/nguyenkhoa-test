@@ -13,6 +13,11 @@
 					</div>
 
 					<div class="panel-body">
+						{if $DT_ERROR_MESSAGE}
+							<div class="alert alert-danger">
+								<strong>DocumentTemplate error:</strong> {$DT_ERROR_MESSAGE|escape:'html'}
+							</div>
+						{/if}
 						<form class="form-inline" method="get" action="index.php">
 							<input type="hidden" name="module" value="DocumentTemplate" />
 							<input type="hidden" name="view" value="List" />
@@ -35,11 +40,7 @@
 							<a class="btn btn-default" style="margin-left:10px;" href="index.php?module=DocumentTemplate&view=List&app=TOOLS">Reset</a>
 						</form>
 
-						<div style="margin-top:15px;">
-							<a class="btn btn-success" href="index.php?module=DocumentTemplate&view=Edit&app=TOOLS">
-								<i class="fa fa-plus"></i>&nbsp; New Template
-							</a>
-						</div>
+						{* BA: copy-first workflow. Do not allow direct "New Template". *}
 
 						<hr style="margin:15px 0;"/>
 
@@ -76,13 +77,24 @@
 														<a class="btn btn-default btn-sm" title="Copy" href="index.php?module=DocumentTemplate&view=Edit&copyFrom={$ROW.templateid}&app=TOOLS">
 															<i class="fa fa-copy"></i>
 														</a>
-														<a class="btn btn-default btn-sm" title="Edit" href="index.php?module=DocumentTemplate&view=Edit&record={$ROW.templateid}&app=TOOLS">
-															<i class="fa fa-edit"></i>
-														</a>
-														<a class="btn btn-danger btn-sm" title="Delete" href="index.php?module=DocumentTemplate&action=Delete&record={$ROW.templateid}&app=TOOLS"
-															onclick="return confirm('Delete template \"{$ROW.templatename|escape:'html'}\"? This will be blocked for protected default templates.');">
-															<i class="fa fa-trash"></i>
-														</a>
+														{if $ROW.isdefault neq 1}
+															<a class="btn btn-default btn-sm" title="Edit" href="index.php?module=DocumentTemplate&view=Edit&record={$ROW.templateid}&app=TOOLS">
+																<i class="fa fa-edit"></i>
+															</a>
+															<form method="post" action="index.php" style="display:inline;" class="dt-delete-form">
+																<input type="hidden" name="module" value="DocumentTemplate" />
+																<input type="hidden" name="action" value="Delete" />
+																<input type="hidden" name="record" value="{$ROW.templateid}" />
+																<input type="hidden" name="app" value="TOOLS" />
+																<button type="submit" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm('Delete template \"{$ROW.templatename|escape:'html'}\"?');">
+																	<i class="fa fa-trash"></i>
+																</button>
+															</form>
+														{else}
+															<button type="button" class="btn btn-default btn-sm" title="Default template is protected" disabled>
+																<i class="fa fa-lock"></i>
+															</button>
+														{/if}
 													</div>
 												</td>
 											</tr>
