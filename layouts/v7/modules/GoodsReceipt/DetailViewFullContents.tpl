@@ -49,7 +49,7 @@
 				<div class="panel-body">
 					<div class="table-responsive">
 						<table class="table table-bordered table-hover">
-							<thead><tr><th>Product</th><th>Type</th><th>Serial Number</th><th class="text-right">Qty</th><th class="text-right">Price</th><th class="text-right">Line Total</th><th>Note</th></tr></thead>
+							<thead><tr><th>Product</th><th>Type</th><th>Serial Number</th><th class="text-right">Qty</th><th class="text-right">Price</th><th class="text-right">Line Total</th><th>Description</th><th>Note</th></tr></thead>
 							<tbody>
 							{foreach from=$ITEMS item=IT}
 								<tr>
@@ -59,10 +59,11 @@
 									<td class="text-right metric-strong">{$IT.quantity_display|escape:'html'}</td>
 									<td class="text-right">{$IT.unit_price_display|escape:'html'}</td>
 									<td class="text-right metric-strong">{$IT.line_total_display|escape:'html'}</td>
+									<td>{$IT.description|escape:'html'}</td>
 									<td>{$IT.line_note|escape:'html'}</td>
 								</tr>
 							{foreachelse}
-								<tr><td colspan="7" class="text-center text-muted">No line items.</td></tr>
+								<tr><td colspan="8" class="text-center text-muted">No line items.</td></tr>
 							{/foreach}
 							</tbody>
 						</table>

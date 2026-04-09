@@ -78,7 +78,7 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 		$match = Warehouse_Stock_Helper::inboundItemsMatchWhere($row, $params);
 		$histSql = "SELECT gr.receiptid, gr.code, gr.subject, gr.received_date, gr.storage_location, gr.note,
 				gr.createdtime AS receipt_createdtime, gr.updatedtime AS receipt_updatedtime,
-				gri.quantity, gri.unit_price, gri.product_name, gri.product_type, gri.itemid, gri.serial_number
+				gri.quantity, gri.unit_price, gri.product_name, gri.product_type, gri.itemid, gri.serial_number, gri.description
 			FROM vtiger_goodsreceipt_items gri
 			INNER JOIN vtiger_goodsreceipt gr ON gr.receiptid = gri.receiptid AND gr.deleted = 0
 			WHERE {$match}
@@ -99,6 +99,9 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 				$snIn = trim(html_entity_decode((string) $h['serial_number'], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
 			}
 			$h['serial_display'] = $snIn;
+			$h['description'] = isset($h['description'])
+				? trim(html_entity_decode((string) $h['description'], ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+				: '';
 			$inboundHistory[] = $h;
 		}
 
@@ -106,7 +109,38 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 		$outMatch = Warehouse_Stock_Helper::outboundItemsMatchWhere($row, $outParams);
 		$outSql = "SELECT gi.issueid, gi.code, gi.subject, gi.issued_date, gi.destination, gi.storage_location,
 				gi.createdtime AS issue_createdtime, gi.updatedtime AS issue_updatedtime,
-				gii.quantity, gii.unit_price, gii.product_name, gii.product_type, gii.itemid, gii.serial_number
+				gii.productid, gii.quantity, gii.unit_price, gii.product_name, gii.product_type, gii.itemid, gii.serial_number, gii.description,
+				(
+					SELECT gri.description
+					FROM vtiger_goodsreceipt_items gri
+					INNER JOIN vtiger_goodsreceipt gr ON gr.receiptid = gri.receiptid AND gr.deleted = 0
+					WHERE
+						(
+							TRIM(gii.serial_number) <> ''
+							AND TRIM(gri.serial_number) <> ''
+							AND gri.serial_number = gii.serial_number
+							AND (
+								(gii.productid IS NOT NULL AND gii.productid > 0 AND gri.productid = gii.productid)
+								OR
+								((gii.productid IS NULL OR gii.productid = 0) AND LOWER(TRIM(gri.product_name)) = LOWER(TRIM(gii.product_name)))
+							)
+						)
+						OR
+						(
+							(TRIM(gii.serial_number) = '' OR gii.serial_number IS NULL)
+							AND gii.productid IS NOT NULL AND gii.productid > 0
+							AND gri.productid = gii.productid
+						)
+						OR
+						(
+							(TRIM(gii.serial_number) = '' OR gii.serial_number IS NULL)
+							AND (gii.productid IS NULL OR gii.productid = 0)
+							AND LOWER(TRIM(gri.product_name)) = LOWER(TRIM(gii.product_name))
+							AND LOWER(TRIM(COALESCE(gri.product_type,''))) = LOWER(TRIM(COALESCE(gii.product_type,'')))
+						)
+					ORDER BY gri.itemid DESC
+					LIMIT 1
+				) AS source_description
 			FROM vtiger_goodsissue_items gii
 			INNER JOIN vtiger_goodsissue gi ON gi.issueid = gii.issueid AND gi.deleted = 0
 			WHERE {$outMatch}
@@ -128,6 +162,15 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 			}
 			$o['serial_display'] = ($sn !== '') ? $sn : '';
 			$o['serial_full'] = $sn;
+			$o['description'] = isset($o['description'])
+				? trim(html_entity_decode((string) $o['description'], ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+				: '';
+			if ($o['description'] === '' && isset($o['source_description'])) {
+				$o['description'] = trim(html_entity_decode((string) $o['source_description'], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+			}
+			if ($o['description'] === '0') {
+				$o['description'] = '';
+			}
 			$outboundHistory[] = $o;
 		}
 

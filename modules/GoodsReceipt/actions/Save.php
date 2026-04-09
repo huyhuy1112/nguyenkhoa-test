@@ -13,6 +13,7 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 		$qtys = $request->get('item_quantity');
 		$prices = $request->get('item_unit_price');
 		$notes = $request->get('item_line_note');
+		$descs = $request->get('description');
 		$types = $request->get('item_product_type');
 		$serials = $request->get('item_serial');
 
@@ -26,17 +27,21 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 			$price = (float) (isset($prices[$i]) ? $prices[$i] : 0);
 			$productId = (int) (isset($ids[$i]) ? $ids[$i] : 0);
 			$note = isset($notes[$i]) ? (string) $notes[$i] : '';
+			$desc = is_array($descs) && isset($descs[$i]) ? (string) $descs[$i] : '';
 			$rawType = is_array($types) && isset($types[$i]) ? (string) $types[$i] : '';
 			$serial = is_array($serials) && isset($serials[$i]) ? (string) $serials[$i] : '';
 			if ($name === '' || $qty <= 0) {
 				continue;
 			}
+			$note = vtlib_purify($note);
+			$desc = vtlib_purify($desc);
 			$items[] = array(
 				'productid' => $productId > 0 ? $productId : null,
 				'product_name' => $name,
 				'product_type' => $this->resolveProductType($productId, $rawType),
 				'quantity' => $qty,
 				'unit_price' => $price,
+				'description' => $desc,
 				'line_note' => $note,
 				'serial_number' => $serial,
 			);
@@ -347,8 +352,8 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 		foreach ($items as $item) {
 			$itemId = (int) $db->getUniqueID('vtiger_goodsreceipt_items');
 			$db->pquery(
-				"INSERT INTO vtiger_goodsreceipt_items(itemid, receiptid, productid, product_name, product_type, quantity, unit_price, line_note, serial_number)
-				 VALUES(?,?,?,?,?,?,?,?,?)",
+				"INSERT INTO vtiger_goodsreceipt_items(itemid, receiptid, productid, product_name, product_type, quantity, unit_price, description, line_note, serial_number)
+				 VALUES(?,?,?,?,?,?,?,?,?,?)",
 				array(
 					$itemId,
 					$recordId,
@@ -357,6 +362,7 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 					$item['product_type'],
 					$item['quantity'],
 					$item['unit_price'],
+					isset($item['description']) ? $item['description'] : '',
 					$item['line_note'],
 					isset($item['serial_number']) ? $item['serial_number'] : ''
 				)

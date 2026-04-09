@@ -51,6 +51,15 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 		$notes = $request->get('item_line_note');
 		$types = $request->get('item_product_type');
 		$discounts = $request->get('item_discount');
+		$descriptions = null;
+		if (isset($_POST['description']) && is_array($_POST['description'])) {
+			$descriptions = $_POST['description'];
+		} else {
+			$descriptions = $request->get('description');
+		}
+		if (!is_array($descriptions)) {
+			$descriptions = array();
+		}
 		// Prefer raw POST array: multipart Save must capture serial_number[] reliably (Request::get can miss array shape).
 		$serials = null;
 		if (isset($_POST['serial_number']) && is_array($_POST['serial_number'])) {
@@ -79,6 +88,7 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 			$qty = (float) (is_array($qtys) && isset($qtys[$i]) ? $qtys[$i] : 0);
 			$price = (float) (is_array($prices) && isset($prices[$i]) ? $prices[$i] : 0);
 			$note = (string) (is_array($notes) && isset($notes[$i]) ? $notes[$i] : '');
+			$lineDesc = (string) (isset($descriptions[$i]) ? $descriptions[$i] : '');
 			$discount = (float) (is_array($discounts) && isset($discounts[$i]) ? $discounts[$i] : 0);
 			if ($discount < 0) $discount = 0;
 			if ($discount > 100) $discount = 100;
@@ -89,6 +99,8 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 			if ($qty <= 0) continue;
 			if ($productId <= 0 && $name === '') continue;
 
+			$note = vtlib_purify($note);
+			$lineDesc = vtlib_purify($lineDesc);
 			$items[] = array(
 				'productid' => $productId > 0 ? $productId : null,
 				'product_name' => $name,
@@ -97,6 +109,7 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 				'unit_price' => $price,
 				'discount_percent' => $discount,
 				'serial_number' => $serial,
+				'description' => $lineDesc,
 				'line_note' => $note,
 			);
 		}
@@ -130,7 +143,7 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 
 	protected function loadOldItems(PearDatabase $db, $issueId) {
 		$rs = $db->pquery(
-			"SELECT productid, product_name, product_type, quantity, unit_price, line_note
+			"SELECT productid, product_name, product_type, quantity, unit_price, line_note, description
 			 FROM vtiger_goodsissue_items
 			 WHERE issueid = ?",
 			array($issueId)
@@ -145,6 +158,7 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 				'unit_price' => (float) $row['unit_price'],
 				'discount_percent' => isset($row['discount_percent']) ? (float) $row['discount_percent'] : 0.0,
 				'serial_number' => isset($row['serial_number']) ? (string) $row['serial_number'] : '',
+				'description' => isset($row['description']) ? (string) $row['description'] : '',
 				'line_note' => (string) $row['line_note'],
 			);
 		}
@@ -192,7 +206,14 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 		if ($issuedDate === '') {
 			$issuedDate = date('Y-m-d');
 		}
-		$issuedBy = trim((string) $request->get('issued_by'));
+		// System-controlled issuer: never trust request payload.
+		$issuedBy = '';
+		try {
+			$issuedBy = (string) Users_Record_Model::getCurrentUserModel()->get('user_name');
+		} catch (Throwable $e) {
+			$issuedBy = '';
+		}
+		$issuedBy = trim($issuedBy);
 		$destination = trim((string) $request->get('destination'));
 		$storageLocation = trim((string) $request->get('storage_location'));
 		$note = (string) $request->get('note');
@@ -333,8 +354,8 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 			foreach ($newItems as $it) {
 				$itemId = (int) $db->getUniqueID('vtiger_goodsissue_items');
 				$db->pquery(
-					"INSERT INTO vtiger_goodsissue_items(itemid, issueid, productid, product_name, product_type, quantity, unit_price, discount_percent, serial_number, line_note)
-					 VALUES(?,?,?,?,?,?,?,?,?,?)",
+					"INSERT INTO vtiger_goodsissue_items(itemid, issueid, productid, product_name, product_type, quantity, unit_price, discount_percent, serial_number, description, line_note)
+					 VALUES(?,?,?,?,?,?,?,?,?,?,?)",
 					array(
 						$itemId,
 						$issueId,
@@ -345,6 +366,7 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 						(float) $it['unit_price'],
 						isset($it['discount_percent']) ? (float) $it['discount_percent'] : 0.0,
 						isset($it['serial_number']) ? (string) $it['serial_number'] : '',
+						isset($it['description']) ? (string) $it['description'] : '',
 						(string) $it['line_note'],
 					)
 				);

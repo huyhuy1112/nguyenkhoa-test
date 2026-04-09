@@ -162,7 +162,9 @@
 						<div class="form-group">
 							<label class="col-sm-3 control-label">Issuer / người xuất</label>
 							<div class="col-sm-9">
-								<input type="text" name="issued_by" class="form-control" value="{$ISSUE.issued_by|escape:'html'}" />
+								<input type="text" class="form-control" value="{$ISSUE.issued_by|escape:'html'}" readonly="readonly" />
+								<input type="hidden" name="issued_by" value="{$ISSUE.issued_by|escape:'html'}" />
+								<p class="text-muted small" style="margin-top:6px;">System-controlled (current logged-in user).</p>
 							</div>
 						</div>
 						<div class="form-group">
@@ -229,6 +231,7 @@
 										<th style="width:10%;" class="text-right">Unit price</th>
 										<th style="width:8%;" class="text-right">Disc. %</th>
 										<th style="width:12%;" class="text-right">Line total</th>
+										<th style="width:16%;">Description</th>
 										<th>Line note</th>
 										<th style="width:70px;"></th>
 									</tr>
@@ -282,6 +285,9 @@
 											<td><input type="number" step="0.0001" min="0" max="100" name="item_discount[]" value="{$IT.discount_percent|default:0|escape:'html'}" class="form-control text-right gi-discount" /></td>
 											<td class="text-right gi-line-total-cell">
 												<span class="gi-line-total">0</span>
+											</td>
+											<td>
+												<textarea name="description[]" class="form-control gi-line-description" rows="2" placeholder="Inbound hint fills on product pick">{$IT.description|escape:'html'}</textarea>
 											</td>
 											<td><input type="text" name="item_line_note[]" value="{$IT.line_note|escape:'html'}" class="form-control" /></td>
 											<td class="text-nowrap">
@@ -345,6 +351,7 @@
 							el.setAttribute('data-available', o.available_qty !== undefined ? String(o.available_qty) : '');
 							el.setAttribute('data-location', o.stock_location ? String(o.stock_location) : '');
 							el.setAttribute('data-unit-price', o.unit_price !== undefined ? String(o.unit_price) : '');
+							el.setAttribute('data-description', o.description !== undefined && o.description !== null ? String(o.description) : '');
 							list.appendChild(el);
 						}
 					}
@@ -408,6 +415,7 @@
 						const pidEl = row.querySelector('[name="item_productid[]"]');
 						const typeEl = row.querySelector('[name="item_product_type[]"]');
 						const priceEl = row.querySelector('[name="item_unit_price[]"]');
+						const descEl = row.querySelector('[name="description[]"]');
 						const qtyEl = row.querySelector('.qty-input');
 						const badge = row.querySelector('.available-badge');
 						const meta = row.querySelector('.gi-stock-meta');
@@ -424,6 +432,11 @@
 							pidEl.value = isCatalog ? rawPid : '';
 							typeEl.value = found.dataset.type || typeEl.value;
 							priceEl.value = found.dataset.unitPrice || priceEl.value;
+							if (descEl) {
+								var d = found.getAttribute('data-description');
+								if (d === null || d === undefined) d = found.dataset.description;
+								descEl.value = (d !== undefined && d !== null) ? String(d) : '';
+							}
 
 							let available = found.dataset.available || '0';
 							qtyEl.dataset.available = available;
@@ -581,6 +594,7 @@
 								'<td><input type="number" step="0.0001" min="0" name="item_unit_price[]" value="0" class="form-control text-right gi-unit-price" /></td>' +
 								'<td><input type="number" step="0.0001" min="0" max="100" name="item_discount[]" value="0" class="form-control text-right gi-discount" /></td>' +
 								'<td class="text-right gi-line-total-cell"><span class="gi-line-total">0</span></td>' +
+								'<td><textarea name="description[]" class="form-control gi-line-description" rows="2" placeholder="Inbound hint fills on product pick"></textarea></td>' +
 								'<td><input type="text" name="item_line_note[]" value="" class="form-control" /></td>' +
 								'<td class="text-nowrap"><button type="button" class="btn btn-xs btn-danger js-gi-remove">Remove</button></td>';
 							tr.className = 'row-item is-legacy';

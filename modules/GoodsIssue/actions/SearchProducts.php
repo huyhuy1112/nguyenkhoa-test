@@ -59,6 +59,7 @@ class GoodsIssue_SearchProducts_Action extends Vtiger_Action_Controller {
 			'available_qty' => (float) $available,
 			'stock_location' => isset($row['storage_location']) ? (string) $row['storage_location'] : '',
 			'unit_price' => isset($row['last_price']) ? (float) $row['last_price'] : 0.0,
+			'description' => isset($row['last_inbound_description']) ? html_entity_decode((string) $row['last_inbound_description'], ENT_QUOTES | ENT_HTML5, 'UTF-8') : '',
 			'identity_type' => !empty($row['productid']) ? 'catalog' : 'legacy',
 		);
 	}
@@ -73,8 +74,21 @@ class GoodsIssue_SearchProducts_Action extends Vtiger_Action_Controller {
 
 		$options = array();
 
+		// Include latest inbound line-item description for this identity (optional hint for outbound).
 		$baseSelect = "SELECT ws.stockid, ws.product_key, ws.productid, ws.product_name, ws.product_type,
-				ws.quantity, ws.shrinkage_qty, ws.storage_location, ws.last_price, ws.code";
+				ws.quantity, ws.shrinkage_qty, ws.storage_location, ws.last_price, ws.code,
+				(
+					SELECT gri.description
+					FROM vtiger_goodsreceipt_items gri
+					INNER JOIN vtiger_goodsreceipt gr ON gr.receiptid = gri.receiptid AND gr.deleted = 0
+					WHERE (
+						(ws.productid IS NOT NULL AND ws.productid > 0 AND gri.productid = ws.productid)
+						OR
+						((ws.productid IS NULL OR ws.productid = 0) AND LOWER(TRIM(gri.product_name)) = LOWER(TRIM(ws.product_name)))
+					)
+					ORDER BY gri.itemid DESC
+					LIMIT 1
+				) AS last_inbound_description";
 
 		if ($q === '') {
 			// Default: show available storage rows (lightweight; not serial search).

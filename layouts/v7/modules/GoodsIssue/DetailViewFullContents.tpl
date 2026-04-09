@@ -91,6 +91,7 @@
 									<th class="text-right">Unit price</th>
 									<th class="text-right">Disc. %</th>
 									<th class="text-right">Line total</th>
+									<th>Description</th>
 									<th>Line note</th>
 								</tr>
 							</thead>
@@ -109,10 +110,11 @@
 										<td class="text-right metric-strong">
 											{if isset($IT.line_total_display)}{$IT.line_total_display|escape:'html'}{else}0{/if}
 										</td>
+										<td>{$IT.description|escape:'html'}</td>
 										<td>{if $IT.line_note}{$IT.line_note|escape:'html'}{else}<span class="text-muted">—</span>{/if}</td>
 									</tr>
 								{foreachelse}
-									<tr><td colspan="8" class="text-muted text-center">No line items.</td></tr>
+									<tr><td colspan="9" class="text-muted text-center">No line items.</td></tr>
 								{/foreach}
 							</tbody>
 						</table>

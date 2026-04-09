@@ -180,6 +180,7 @@
 									<th class="text-right">Qty</th>
 									<th class="text-right">Unit price</th>
 									<th>Serial</th>
+									<th>Description</th>
 									<th>Line product</th>
 								</tr>
 							</thead>
@@ -194,10 +195,11 @@
 										<td class="text-right metric-strong">{$H.quantity_display|escape:'html'}</td>
 										<td class="text-right">{$H.unit_price_display|escape:'html'}</td>
 										<td>{if $H.serial_display ne ''}<span title="{$H.serial_display|escape:'html'}">{$H.serial_display|escape:'html'}</span>{else}<span class="text-muted">—</span>{/if}</td>
+										<td>{if $H.description ne ''}{$H.description|escape:'html'}{else}<span class="text-muted">-</span>{/if}</td>
 										<td>{$H.product_name_display|escape:'html'}</td>
 									</tr>
 								{foreachelse}
-									<tr><td colspan="9" class="text-muted text-center">No inbound lines matched this stock identity yet.</td></tr>
+									<tr><td colspan="10" class="text-muted text-center">No inbound lines matched this stock identity yet.</td></tr>
 								{/foreach}
 							</tbody>
 						</table>
@@ -221,6 +223,7 @@
 									<th class="text-right">Qty</th>
 									<th class="text-right">Unit price</th>
 									<th>Serial</th>
+									<th>Description</th>
 									<th>Line product</th>
 								</tr>
 							</thead>
@@ -236,10 +239,11 @@
 										<td class="text-right metric-strong">{$O.quantity_display|escape:'html'}</td>
 										<td class="text-right">{$O.unit_price_display|escape:'html'}</td>
 										<td>{if $O.serial_display ne ''}<span title="{$O.serial_full|escape:'html'}">{$O.serial_display|escape:'html'}</span>{else}<span class="text-muted">—</span>{/if}</td>
+										<td>{if $O.description ne ''}{$O.description|escape:'html'}{else}<span class="text-muted">-</span>{/if}</td>
 										<td>{$O.product_name_display|escape:'html'}</td>
 									</tr>
 								{foreachelse}
-									<tr><td colspan="10" class="text-muted text-center">No outbound movements matched this stock identity yet.</td></tr>
+									<tr><td colspan="11" class="text-muted text-center">No outbound movements matched this stock identity yet.</td></tr>
 								{/foreach}
 							</tbody>
 						</table>

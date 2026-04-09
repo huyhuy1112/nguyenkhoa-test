@@ -67,6 +67,7 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 				'unit_price' => (float) $row['unit_price'],
 				'discount_percent' => isset($row['discount_percent']) ? (float) $row['discount_percent'] : 0.0,
 				'serial_number' => isset($row['serial_number']) ? (string) $row['serial_number'] : '',
+				'description' => isset($row['description']) ? (string) $row['description'] : '',
 				'line_note' => (string) $row['line_note'],
 				'product_key_hint' => $keyHint,
 			);
@@ -140,7 +141,7 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 			'note' => '',
 		);
 		$items = array(
-			array('productid' => 0, 'product_name' => '', 'product_type' => 'Other', 'quantity' => 1, 'unit_price' => 0, 'line_note' => ''),
+			array('productid' => 0, 'product_name' => '', 'product_type' => 'Other', 'quantity' => 1, 'unit_price' => 0, 'description' => '', 'line_note' => ''),
 		);
 
 		if ($issueId > 0) {
@@ -162,7 +163,7 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 			$items = $this->loadItems($db, $issueId);
 			if (empty($items)) {
 				$items = array(
-					array('productid' => 0, 'product_name' => '', 'product_type' => 'Other', 'quantity' => 1, 'unit_price' => 0, 'line_note' => '', 'product_key_hint' => ''),
+					array('productid' => 0, 'product_name' => '', 'product_type' => 'Other', 'quantity' => 1, 'unit_price' => 0, 'description' => '', 'line_note' => '', 'product_key_hint' => ''),
 				);
 			}
 		}

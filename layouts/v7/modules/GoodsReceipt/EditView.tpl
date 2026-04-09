@@ -50,7 +50,7 @@
 					<div class="panel-body">
 						<p class="text-muted">Enter product name and line details manually. Inbound does not use storage-based autocomplete (that is for Outbound only).</p>
 						<table class="table table-bordered inv-modern-table" id="inboundItemsTable">
-							<thead><tr><th>Product Name</th><th>Type</th><th>Serial Number</th><th>Qty</th><th>Price</th><th>Line Note</th><th></th></tr></thead>
+							<thead><tr><th>Product Name</th><th>Type</th><th>Serial Number</th><th>Qty</th><th>Price</th><th>Description</th><th>Line Note</th><th></th></tr></thead>
 							<tbody>
 								{foreach from=$ITEMS item=IT}
 								<tr>
@@ -70,6 +70,7 @@
 									<td><input type="text" name="item_serial[]" class="form-control" value="{$IT.serial_number|escape:'html'}" /></td>
 									<td><input type="number" step="0.0001" min="0" name="item_quantity[]" class="form-control" value="{$IT.quantity|escape:'html'}" required /></td>
 									<td><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="form-control" value="{$IT.unit_price|escape:'html'}" /></td>
+									<td><input type="text" name="description[]" class="form-control" value="{$IT.description|escape:'html'}" /></td>
 									<td><input type="text" name="item_line_note[]" class="form-control" value="{$IT.line_note|escape:'html'}" /></td>
 									<td><button type="button" class="btn btn-xs btn-danger js-remove-row">x</button></td>
 								</tr>
@@ -133,6 +134,7 @@
         '<td><input type="text" name="item_serial[]" class="form-control" /></td>' +
         '<td><input type="number" step="0.0001" min="0" name="item_quantity[]" class="form-control" value="1" required /></td>' +
         '<td><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="form-control" value="0" /></td>' +
+        '<td><input type="text" name="description[]" class="form-control" /></td>' +
         '<td><input type="text" name="item_line_note[]" class="form-control" /></td>' +
         '<td><button type="button" class="btn btn-xs btn-danger js-remove-row">x</button></td>';
       tbody.appendChild(tr);

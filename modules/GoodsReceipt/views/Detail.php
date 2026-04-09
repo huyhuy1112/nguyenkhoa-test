@@ -47,7 +47,13 @@ class GoodsReceipt_Detail_View extends Vtiger_Detail_View {
 		}
 		$recordModel = $this->detailRecordModel ?: $this->buildRecordModel($recordId, $record);
 
-		$ri = $db->pquery("SELECT * FROM vtiger_goodsreceipt_items WHERE receiptid = ? ORDER BY itemid ASC", array($recordId));
+		$ri = $db->pquery(
+			"SELECT itemid, receiptid, productid, product_name, product_type, quantity, unit_price, description, line_note, serial_number
+			 FROM vtiger_goodsreceipt_items
+			 WHERE receiptid = ?
+			 ORDER BY itemid ASC",
+			array($recordId)
+		);
 		$items = array();
 		while ($row = $db->fetchByAssoc($ri)) {
 			$row['line_total'] = (float) $row['quantity'] * (float) $row['unit_price'];
@@ -56,6 +62,7 @@ class GoodsReceipt_Detail_View extends Vtiger_Detail_View {
 			if (!isset($row['product_type']) || $row['product_type'] === '') {
 				$row['product_type'] = 'Other';
 			}
+			$row['description'] = $this->decodeText(isset($row['description']) ? $row['description'] : '');
 			$row['line_note'] = $this->decodeText($row['line_note']);
 			$row['quantity_display'] = number_format((float) $row['quantity'], 2, '.', ',');
 			$row['unit_price_display'] = number_format((float) $row['unit_price'], 0, '.', ',');

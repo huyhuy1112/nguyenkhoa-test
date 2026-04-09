@@ -63,8 +63,44 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 	}
 
 	protected function loadItems(PearDatabase $db, $issueId) {
+		// Keep Outbound detail consistent with Storage outbound history:
+		// prefer saved outbound description, otherwise resolve from inbound/source.
 		$rs = $db->pquery(
-			"SELECT * FROM vtiger_goodsissue_items WHERE issueid = ? ORDER BY itemid ASC",
+			"SELECT gii.*,
+				(
+					SELECT gri.description
+					FROM vtiger_goodsreceipt_items gri
+					INNER JOIN vtiger_goodsreceipt gr ON gr.receiptid = gri.receiptid AND gr.deleted = 0
+					WHERE
+						(
+							TRIM(gii.serial_number) <> ''
+							AND TRIM(gri.serial_number) <> ''
+							AND gri.serial_number = gii.serial_number
+							AND (
+								(gii.productid IS NOT NULL AND gii.productid > 0 AND gri.productid = gii.productid)
+								OR
+								((gii.productid IS NULL OR gii.productid = 0) AND LOWER(TRIM(gri.product_name)) = LOWER(TRIM(gii.product_name)))
+							)
+						)
+						OR
+						(
+							(TRIM(gii.serial_number) = '' OR gii.serial_number IS NULL)
+							AND gii.productid IS NOT NULL AND gii.productid > 0
+							AND gri.productid = gii.productid
+						)
+						OR
+						(
+							(TRIM(gii.serial_number) = '' OR gii.serial_number IS NULL)
+							AND (gii.productid IS NULL OR gii.productid = 0)
+							AND LOWER(TRIM(gri.product_name)) = LOWER(TRIM(gii.product_name))
+							AND LOWER(TRIM(COALESCE(gri.product_type,''))) = LOWER(TRIM(COALESCE(gii.product_type,'')))
+						)
+					ORDER BY gri.itemid DESC
+					LIMIT 1
+				) AS source_description
+			 FROM vtiger_goodsissue_items gii
+			 WHERE gii.issueid = ?
+			 ORDER BY gii.itemid ASC",
 			array($issueId)
 		);
 		$items = array();
@@ -77,6 +113,19 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 			$lineTotal = $qty * $unit * (1.0 - ($discount / 100.0));
 
 			$sn = isset($row['serial_number']) ? trim($this->decodeText($row['serial_number'])) : '';
+			$desc = '';
+			if (isset($row['description']) && $row['description'] !== null) {
+				$desc = trim($this->decodeText($row['description']));
+			}
+			if ($desc === '' && isset($row['source_description']) && $row['source_description'] !== null) {
+				$desc = trim($this->decodeText($row['source_description']));
+			}
+			if ($desc === '0') {
+				$desc = '';
+			}
+			if ($desc === '') {
+				$desc = '-';
+			}
 			$items[] = array(
 				'productid' => !empty($row['productid']) ? (int) $row['productid'] : 0,
 				'product_name' => (string) $row['product_name'],
@@ -85,6 +134,7 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 				'unit_price' => $unit,
 				'discount_percent' => $discount,
 				'serial_number' => $sn,
+				'description' => $desc,
 				'line_note' => (string) $row['line_note'],
 				'line_total' => $lineTotal,
 			);
