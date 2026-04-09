@@ -138,19 +138,61 @@ class Evaluate_List_View extends Vtiger_Index_View {
 			$totalCost += $cost;
 			$totalRevenue += $revenue;
 
+			$profit = $revenue - $cost;
 			$rows[] = array(
 				'campaignid' => (int)$row['campaignid'],
 				'campaignname' => (string)$row['campaignname'],
 				'campaignstatus' => (string)$row['campaignstatus'],
 				'cost' => $cost,
 				'revenue' => $revenue,
+				'profit' => $profit,
 				'roi' => $roi,
 				'createdtime' => $row['createdtime'],
 				'link' => 'index.php?module=Campaigns&view=Detail&record=' . (int)$row['campaignid'],
 			);
 		}
 
-		error_log('[Evaluate] Campaign rows fetched: ' . count($rows));
+		// Insight summaries (same filtered dataset)
+		$insights = array(
+			'best_roi' => null,
+			'worst_roi' => null,
+			'highest_revenue' => null,
+			'highest_cost' => null,
+		);
+		$withCost = array();
+		foreach ($rows as $r) {
+			if ($r['cost'] > 0.0000001) {
+				$withCost[] = $r;
+			}
+		}
+		if (!empty($withCost)) {
+			usort($withCost, function ($a, $b) {
+				return ($a['roi'] <=> $b['roi']);
+			});
+			$insights['worst_roi'] = $withCost[0];
+			$insights['best_roi'] = $withCost[count($withCost) - 1];
+		}
+		$byRev = $rows;
+		usort($byRev, function ($a, $b) {
+			return ($b['revenue'] <=> $a['revenue']);
+		});
+		if (!empty($byRev)) {
+			$insights['highest_revenue'] = $byRev[0];
+		}
+		$byCost = $rows;
+		usort($byCost, function ($a, $b) {
+			return ($b['cost'] <=> $a['cost']);
+		});
+		if (!empty($byCost)) {
+			$insights['highest_cost'] = $byCost[0];
+		}
+
+		// Horizontal ROI ranking chart: sort by ROI desc, cap labels for readability
+		$rankingForChart = $rows;
+		usort($rankingForChart, function ($a, $b) {
+			return ($b['roi'] <=> $a['roi']);
+		});
+		$rankingForChart = array_slice($rankingForChart, 0, 20);
 
 		// -------------------------
 		// 2) KPI query (SQL aggregate)
@@ -205,11 +247,6 @@ class Evaluate_List_View extends Vtiger_Index_View {
 			);
 		}
 
-		// Debug if empty
-		if (count($topCampaigns) === 0) {
-			error_log('[Evaluate] TOP_CAMPAIGNS empty. SQL=' . $topSql . ' params=' . print_r($params, true));
-		}
-
 		// -------------------------
 		// 4) Monthly summary (GROUP BY month)
 		// -------------------------
@@ -259,20 +296,29 @@ class Evaluate_List_View extends Vtiger_Index_View {
 		$viewer->assign('KPI', $kpi);
 		$viewer->assign('TOP_CAMPAIGNS', $topCampaigns);
 		$viewer->assign('MONTHLY_SUMMARY', $monthlySummary);
+		$viewer->assign('INSIGHTS', $insights);
 
 		// Table data (detail list)
 		$viewer->assign('CAMPAIGNS', $rows);
 
-		// JSON for charts
+		// JSON for charts (no monthly line chart — replaced by ROI ranking in JS)
+		$rankingLabels = array();
+		$rankingRois = array();
+		foreach ($rankingForChart as $rc) {
+			$name = (string)$rc['campaignname'];
+			if (strlen($name) > 36) {
+				$name = substr($name, 0, 33) . '…';
+			}
+			$rankingLabels[] = $name;
+			$rankingRois[] = (float)$rc['roi'];
+		}
 		$dashboardPayload = array(
 			'campaigns' => $campaignNames,
 			'costs' => $costs,
 			'revenues' => $revenues,
 			'rois' => $rois,
-			// Better monthly trend (by month)
-			'months' => array_map(function ($x) { return $x['month']; }, $monthlySummary),
-			'monthlyCosts' => array_map(function ($x) { return (float)$x['total_cost']; }, $monthlySummary),
-			'monthlyRevenues' => array_map(function ($x) { return (float)$x['total_revenue']; }, $monthlySummary),
+			'rankingLabels' => $rankingLabels,
+			'rankingRois' => $rankingRois,
 		);
 		$viewer->assign('EVALUATE_DATA', json_encode($dashboardPayload, JSON_UNESCAPED_UNICODE));
 

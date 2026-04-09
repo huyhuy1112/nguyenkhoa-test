@@ -3,6 +3,8 @@
  * Plans Detail View - Plan info + linked campaigns + schedule list view.
  *************************************************************************************/
 
+require_once dirname(__FILE__) . '/../helpers/PlanCampaignHelper.php';
+
 class Plans_Detail_View extends Vtiger_Detail_View {
 
 	protected function debugSummaryFieldMetadata($moduleName) {
@@ -39,58 +41,10 @@ class Plans_Detail_View extends Vtiger_Detail_View {
 		}
 	}
 
-	protected function getCampaignTableName() {
-		global $adb;
-		// Match GetSchedule behavior: use vtiger_campaign if it exists; otherwise vtiger_campaigns
-		$primary = 'vtiger_campaign';
-		$t1 = $adb->pquery("SHOW TABLES LIKE ?", array($primary));
-		if ($t1 && $adb->num_rows($t1) > 0) {
-			return $primary;
-		}
-		return 'vtiger_campaigns';
-	}
-
 	protected function getPlanCampaignRows($planId) {
 		global $adb;
-		$campaignTable = $this->getCampaignTableName();
-
-		$res = $adb->pquery(
-			"SELECT
-				pc.id,
-				pc.campaign_id,
-				pc.start_date,
-				pc.end_date,
-				pc.status,
-				pc.createdtime,
-				c.campaignname,
-				ce.description AS description
-			 FROM vtiger_plan_campaigns pc
-			 INNER JOIN {$campaignTable} c ON c.campaignid = pc.campaign_id
-			 INNER JOIN vtiger_crmentity ce ON ce.crmid = c.campaignid
-			 WHERE ce.deleted = 0 AND pc.plan_id = ?
-			 ORDER BY pc.start_date ASC, pc.id ASC",
-			array((int)$planId)
-		);
-
-		$rows = array();
-		if ($res) {
-			for ($i = 0; $i < $adb->num_rows($res); $i++) {
-				$row = $adb->fetchByAssoc($res, $i);
-				$start = trim((string)$row['start_date']);
-				$end = trim((string)$row['end_date']);
-				$rows[] = array(
-					'id' => (int)$row['id'],
-					'campaign_id' => (int)$row['campaign_id'],
-					'campaignname' => (string)$row['campaignname'],
-					'start_date' => $start,
-					'end_date' => $end,
-					'status' => (string)$row['status'],
-					'description' => (string)$row['description'],
-					'link' => 'index.php?module=Campaigns&view=Detail&record=' . (int)$row['campaign_id'],
-				);
-			}
-		}
-		return $rows;
+		$rows = PlanCampaignHelper::fetchPlanCampaignRows($adb, $planId);
+		return is_array($rows) ? $rows : array();
 	}
 
 	/**

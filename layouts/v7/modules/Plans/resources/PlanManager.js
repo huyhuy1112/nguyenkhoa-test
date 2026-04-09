@@ -45,6 +45,99 @@
 		});
 	}
 
+	function num(v) {
+		if (v === null || typeof v === 'undefined') return 0;
+		var n = parseFloat(String(v).replace(/,/g, ''));
+		return isNaN(n) ? 0 : n;
+	}
+
+	function formatMoney(v) {
+		var n = num(v);
+		return Math.round(n).toLocaleString();
+	}
+
+	function formatRoi(v) {
+		var n = num(v);
+		return (Math.round(n * 100) / 100).toFixed(2);
+	}
+
+	function parseDateLoose(s) {
+		if (!s || String(s).trim() === '' || String(s).trim().toLowerCase() === 'no date') {
+			return null;
+		}
+		var t = Date.parse(s);
+		if (!isNaN(t)) return new Date(t);
+		return null;
+	}
+
+	function formatShortDate(d) {
+		if (!d) return '—';
+		try {
+			return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+		} catch (e) {
+			return '—';
+		}
+	}
+
+	function computePlanStats(rows) {
+		var total = rows.length;
+		var completed = 0;
+		var planning = 0;
+		var inProgress = 0;
+		var totalCost = 0;
+		rows.forEach(function (r) {
+			var st = String(r.status || '').toLowerCase();
+			if (st.indexOf('complete') !== -1) {
+				completed++;
+			} else if (st.indexOf('planning') !== -1) {
+				planning++;
+			} else if (st.indexOf('progress') !== -1 || st.indexOf('running') !== -1 || st.indexOf('active') !== -1) {
+				inProgress++;
+			}
+			totalCost += num(r.cost);
+		});
+		var rate = total > 0 ? (100 * completed) / total : 0;
+		return {
+			total: total,
+			completed: completed,
+			planning: planning,
+			inProgress: inProgress,
+			rate: rate,
+			totalCost: totalCost
+		};
+	}
+
+	function computeInsights(rows) {
+		var earliest = null;
+		var latest = null;
+		var longest = { days: -1, name: '' };
+		var completed = 0;
+
+		rows.forEach(function (r) {
+			var st = String(r.status || '').toLowerCase();
+			if (st.indexOf('complete') !== -1) completed++;
+
+			var sd = parseDateLoose(r.start_date);
+			var ed = parseDateLoose(r.end_date);
+			if (sd && (!earliest || sd.getTime() < earliest.getTime())) earliest = sd;
+			if (ed && (!latest || ed.getTime() > latest.getTime())) latest = ed;
+			if (sd && ed && ed.getTime() >= sd.getTime()) {
+				var days = Math.round((ed.getTime() - sd.getTime()) / 86400000);
+				if (days > longest.days) {
+					longest.days = days;
+					longest.name = r.campaignname || '';
+				}
+			}
+		});
+
+		return {
+			earliest: earliest,
+			latest: latest,
+			longest: longest,
+			completed: completed
+		};
+	}
+
 	function parseInitialRows() {
 		var el = document.getElementById('PlanCampaignData');
 		if (!el) return [];
@@ -58,17 +151,11 @@
 	}
 
 	function parseSelectedCampaignIds(resultJson) {
-		// vtiger Popup callback can return:
-		// - JSON string: {"123":"Campaign A"}
-		// - object: {123: "..."}
-		// - array: [{id:"123", name:"..."}, ...]
-		// - string list: "123,124"
 		var payload = resultJson;
 		if (typeof payload === 'string') {
 			try {
 				payload = JSON.parse(payload);
 			} catch (e) {
-				// maybe CSV
 				return payload.split(',').map(function (x) { return parseInt(String(x).trim(), 10); }).filter(Boolean);
 			}
 		}
@@ -86,7 +173,6 @@
 	function groupByDate(rows) {
 		var map = {};
 		rows.forEach(function (r) {
-			// Requirement: group by start_date; if missing show "No date"
 			var d = (r.start_date && String(r.start_date).trim()) ? String(r.start_date).trim() : 'No date';
 			if (!map[d]) map[d] = [];
 			map[d].push(r);
@@ -115,6 +201,13 @@
 		return 'mk-badge';
 	}
 
+	function rowRoiClass(roi) {
+		var r = num(roi);
+		if (r > 0.0001) return 'pm-row--pos';
+		if (r < -0.0001) return 'pm-row--neg';
+		return '';
+	}
+
 	function ensureModal() {
 		var existing = document.getElementById('pmCampaignModal');
 		if (existing) return existing;
@@ -141,15 +234,12 @@
 		var modal = wrapper.firstChild;
 		document.body.appendChild(modal);
 
-		// Defensive cleanup: avoid stacked backdrops
 		if (window.jQuery) {
 			jQuery(modal).on('shown.bs.modal', function () {
-				console.log('[Plans] modal shown');
 				var $b = jQuery('.modal-backdrop');
 				if ($b.length > 1) $b.not(':last').remove();
 			});
 			jQuery(modal).on('hidden.bs.modal', function () {
-				console.log('[Plans] modal hidden');
 				jQuery('.modal-backdrop').remove();
 				jQuery('body').removeClass('modal-open').css('padding-right', '');
 			});
@@ -159,7 +249,6 @@
 	}
 
 	function showCampaignModal(row) {
-		console.log('[Plans] campaign clicked:', row);
 		var modal = ensureModal();
 		var titleEl = document.getElementById('pmCampaignModalTitle');
 		var bodyEl = document.getElementById('pmCampaignModalBody');
@@ -170,13 +259,21 @@
 		linkEl.setAttribute('href', row.link || '#');
 
 		var desc = (row.description || '').trim();
+		var cost = num(row.cost);
+		var revenue = num(row.revenue);
+		var roi = num(row.roi);
+		var finBlock =
+			'<div class="pm-modal-kv"><div class="pm-k"><strong>Cost</strong></div><div class="pm-v">' + esc(formatMoney(cost)) + '</div></div>' +
+			'<div class="pm-modal-kv"><div class="pm-k"><strong>Revenue</strong></div><div class="pm-v">' + esc(formatMoney(revenue)) + '</div></div>' +
+			'<div class="pm-modal-kv"><div class="pm-k"><strong>ROI</strong></div><div class="pm-v">' + esc(formatRoi(roi)) + '%</div></div>';
+
 		bodyEl.innerHTML = '' +
 			'<div class="pm-modal-kv"><div class="pm-k"><strong>Status</strong></div><div class="pm-v">' + esc(row.status || '-') + '</div></div>' +
 			'<div class="pm-modal-kv"><div class="pm-k"><strong>Start</strong></div><div class="pm-v">' + esc(row.start_date || 'No date') + '</div></div>' +
 			'<div class="pm-modal-kv"><div class="pm-k"><strong>End</strong></div><div class="pm-v">' + esc(row.end_date || 'No date') + '</div></div>' +
+			finBlock +
 			(desc ? ('<hr style="margin:12px 0;"/><div><strong>Description</strong><div style="margin-top:6px;white-space:pre-wrap;">' + esc(desc) + '</div></div>') : '');
 
-		// Ensure modal appears above backdrop (some vtiger skins tweak z-index)
 		modal.style.zIndex = '1060';
 		var backdrops = document.querySelectorAll('.modal-backdrop');
 		backdrops.forEach(function (b) { b.style.zIndex = '1050'; });
@@ -202,6 +299,53 @@
 		this.$addBtn = document.getElementById('pmAddCampaignBtn');
 	}
 
+	PlanManager.prototype.renderKpis = function () {
+		var st = computePlanStats(this.rows);
+		var elTotal = document.getElementById('pmKpiTotal');
+		var elDone = document.getElementById('pmKpiCompleted');
+		var elRate = document.getElementById('pmKpiRate');
+		var elCost = document.getElementById('pmKpiCost');
+		var elHint = document.getElementById('pmKpiCostHint');
+		if (elTotal) elTotal.textContent = st.total ? String(st.total) : '0';
+		if (elDone) elDone.textContent = st.total ? String(st.completed) : '0';
+		if (elRate) elRate.textContent = st.total ? (Math.round(st.rate * 10) / 10).toFixed(1) + '%' : '0%';
+		if (elCost) {
+			if (st.totalCost > 0.0001) {
+				elCost.textContent = formatMoney(st.totalCost);
+				if (elHint) elHint.textContent = 'Sum of effective campaign costs';
+			} else {
+				elCost.textContent = '—';
+				if (elHint) elHint.textContent = 'No cost data on linked campaigns';
+			}
+		}
+	};
+
+	PlanManager.prototype.renderInsights = function () {
+		var rows = this.rows;
+		var ins = computeInsights(rows);
+		var elE = document.getElementById('pmInEarliest');
+		var elL = document.getElementById('pmInLatest');
+		var elLong = document.getElementById('pmInLongest');
+		var elMix = document.getElementById('pmInMix');
+		if (elE) elE.textContent = ins.earliest ? formatShortDate(ins.earliest) : '—';
+		if (elL) elL.textContent = ins.latest ? formatShortDate(ins.latest) : '—';
+		if (elLong) {
+			if (ins.longest.days >= 0 && ins.longest.name) {
+				elLong.textContent = ins.longest.days + ' d · ' + shortText(ins.longest.name, 40);
+			} else {
+				elLong.textContent = '—';
+			}
+		}
+		if (elMix) {
+			var st = computePlanStats(rows);
+			if (!rows.length) {
+				elMix.textContent = '—';
+			} else {
+				elMix.textContent = st.completed + ' done · ' + st.planning + ' planning · ' + st.inProgress + ' active';
+			}
+		}
+	};
+
 	PlanManager.prototype.loadSchedule = function () {
 		var self = this;
 		return withProgress(app.request.post({
@@ -209,20 +353,15 @@
 		})).then(function (pair) {
 			var err = pair[0], res = pair[1];
 			if (err) {
-				console.error('GetSchedule error', err);
 				notifyError('Cannot load schedule. Check console for details.');
 				return;
 			}
-			try { console.log('[Plans] GetSchedule response full:', JSON.stringify(res)); } catch (e) {}
 			var payload = (res && res.result) ? res.result : res;
-			console.log('[Plans] rows array:', payload ? payload.rows : null);
 			if (payload && payload.success === false) {
-				console.error('[Plans] GetSchedule failed:', res);
 				notifyError(payload.error || 'Cannot load schedule.');
 				return;
 			}
 			self.rows = (payload && payload.rows) ? payload.rows : [];
-			console.log('[Plans] GetSchedule rows:', self.rows.length, payload);
 			self.renderTable();
 			self.renderSchedule();
 		});
@@ -231,9 +370,13 @@
 	PlanManager.prototype.renderTable = function () {
 		var self = this;
 		if (!self.$tableBody) return;
+
+		self.renderKpis();
+		self.renderInsights();
+
 		if (!self.rows.length) {
 			self.$tableBody.innerHTML =
-				'<tr><td colspan="5" class="mk-empty">' +
+				'<tr><td colspan="8" class="mk-empty">' +
 				'<div class="mk-empty__title">No campaigns added to this plan yet.</div>' +
 				'<div class="mk-empty__subtitle">Click Add Campaign to include existing campaigns.</div>' +
 				'</td></tr>';
@@ -241,18 +384,24 @@
 		}
 
 		self.$tableBody.innerHTML = self.rows.map(function (r) {
+			var roi = num(r.roi);
+			var rowClass = rowRoiClass(roi);
+			var cost = num(r.cost);
+			var revenue = num(r.revenue);
 			return '' +
-				'<tr data-id="' + esc(r.id) + '" data-cid="' + esc(r.campaign_id) + '">' +
+				'<tr class="' + esc(rowClass) + '" data-id="' + esc(r.id) + '" data-cid="' + esc(r.campaign_id) + '">' +
 				'<td><span class="pm-link pm-open-modal" role="button" tabindex="0">' + esc(r.campaignname) + '</span>' +
 				' <a href="' + esc(r.link) + '" target="_blank" rel="noopener" class="pm-ext-link" title="Open in new tab">↗</a></td>' +
 				'<td>' + esc(r.start_date || 'No date') + '</td>' +
 				'<td>' + esc(r.end_date || 'No date') + '</td>' +
 				'<td><span class="' + statusBadgeClass(r.status) + '">' + esc(r.status || '-') + '</span></td>' +
-				'<td><button type="button" class="btn btn-xs mk-btn-danger pm-remove">Remove</button></td>' +
+				'<td class="pm-num">' + esc(formatMoney(cost)) + '</td>' +
+				'<td class="pm-num">' + esc(formatMoney(revenue)) + '</td>' +
+				'<td class="pm-num">' + esc(formatRoi(roi)) + '</td>' +
+				'<td class="pm-actions"><button type="button" class="btn btn-xs mk-btn-danger pm-remove">Remove</button></td>' +
 				'</tr>';
 		}).join('');
 
-		// Remove handler
 		self.$tableBody.querySelectorAll('.pm-remove').forEach(function (btn) {
 			btn.addEventListener('click', function (e) {
 				var tr = e.currentTarget.closest('tr');
@@ -262,11 +411,9 @@
 			});
 		});
 
-		// Row/modal handler
 		self.$tableBody.querySelectorAll('tr').forEach(function (tr) {
 			tr.addEventListener('click', function (e) {
 				var t = e.target;
-				// Don't hijack clicks on Remove button or external link
 				if (t && (t.classList.contains('pm-remove') || t.classList.contains('pm-ext-link'))) return;
 				var id = parseInt(tr.getAttribute('data-id') || '0', 10);
 				var row = self.rows.find(function (x) { return x.id === id; });
@@ -290,25 +437,29 @@
 		var g = groupByDate(self.rows);
 		self.$schedule.innerHTML = g.dates.map(function (d) {
 			var items = g.map[d].map(function (r) {
-				var desc = shortText(r.description, 120);
+				var desc = shortText(r.description, 140);
 				return '' +
-					'<div class="pm-item" data-id="' + esc(r.id) + '">' +
+					'<article class="pm-tl-card" data-id="' + esc(r.id) + '">' +
 					'<div class="pm-item-name">' + esc(r.campaignname) + '</div>' +
-					'<div class="pm-item-meta"><span class="' + statusBadgeClass(r.status) + '">' + esc(r.status || '') + '</span><span>' +
-					esc((r.start_date || 'No date') + ' → ' + (r.end_date || 'No date')) +
-					'</span></div>' +
-					(desc ? '<div class="pm-item-desc" style="font-size:12px;color:#64748b;margin-top:4px;">' + esc(desc) + '</div>' : '') +
-					'</div>';
+					'<div class="pm-item-meta">' +
+					'<span class="' + statusBadgeClass(r.status) + '">' + esc(r.status || '') + '</span>' +
+					'<span>' + esc((r.start_date || 'No date') + ' → ' + (r.end_date || 'No date')) + '</span>' +
+					'</div>' +
+					(desc ? '<div class="pm-item-desc">' + esc(desc) + '</div>' : '') +
+					'</article>';
 			}).join('');
 
 			return '' +
-				'<div class="pm-day mk-panel mk-panel--tight" style="margin-bottom:12px;">' +
-				'<div class="pm-day-title"><span>' + esc(d) + '</span><span class="text-muted">' + g.map[d].length + '</span></div>' +
-				items +
-				'</div>';
+				'<section class="pm-tg">' +
+				'<header class="pm-tg__header">' +
+				'<span class="pm-tg__date-badge">' + esc(d) + '</span>' +
+				'<span class="pm-tg__count">' + g.map[d].length + ' campaign' + (g.map[d].length === 1 ? '' : 's') + '</span>' +
+				'</header>' +
+				'<div class="pm-tg__list">' + items + '</div>' +
+				'</section>';
 		}).join('');
 
-		self.$schedule.querySelectorAll('.pm-item').forEach(function (el) {
+		self.$schedule.querySelectorAll('.pm-tl-card').forEach(function (el) {
 			el.addEventListener('click', function (e) {
 				var id = parseInt(e.currentTarget.getAttribute('data-id') || '0', 10);
 				var row = self.rows.find(function (x) { return x.id === id; });
@@ -325,7 +476,6 @@
 
 		var onSelect = function (resultJson) {
 			var ids = parseSelectedCampaignIds(resultJson);
-			console.log('[Plans] popup selected campaign ids:', ids, 'raw:', resultJson);
 			if (!ids.length) {
 				notifyError('No campaign selected.');
 				return;
@@ -344,14 +494,10 @@
 		})).then(function (pair) {
 			var err = pair[0], res = pair[1];
 			if (err) {
-				console.error('AddCampaign error', err);
 				notifyError('Add campaign failed. Check console for details.');
 				return;
 			}
-			console.log('[Plans] AddCampaign response:', res);
-			try { console.log('[Plans] AddCampaign response full:', JSON.stringify(res)); } catch (e) {}
 			if (res && res.result && res.result.success === false) {
-				console.error('[Plans] AddCampaign failed:', res);
 				notifyError(res.result.error || 'Add campaign failed.');
 				return;
 			}
@@ -374,12 +520,10 @@
 		})).then(function (pair) {
 			var err = pair[0], res = pair[1];
 			if (err) {
-				console.error('DeleteCampaign error', err);
 				notifyError('Remove failed. Check console for details.');
 				return;
 			}
 			if (res && res.result && res.result.success === false) {
-				console.error('[Plans] DeleteCampaign failed:', res);
 				notifyError(res.result.error || 'Remove failed.');
 				return;
 			}
@@ -402,39 +546,32 @@
 		var root = scope.querySelector ? scope.querySelector('#PlanManagerRoot') : document.getElementById('PlanManagerRoot');
 		if (!root || !window.app || !app.request) return;
 
-		// allow re-init after AJAX tab switch; prevent duplicate init per injected DOM
 		if (root.getAttribute('data-pm-initialized') === '1') return;
 
 		var mgr = new PlanManager(root);
 		if (!mgr.planId) {
-			console.warn('[Plans] PlanManager: missing planId, abort init');
 			return;
 		}
 
 		root.setAttribute('data-pm-initialized', '1');
-		console.log('[Plans] PlanManager init planId=', mgr.planId, 'ajax=', !!container);
 		mgr.registerEvents();
 		mgr.renderTable();
 		mgr.renderSchedule();
 		mgr.loadSchedule();
 	}
 
-	// Expose for AJAX re-init
 	window.Plans_PlanManager = window.Plans_PlanManager || {};
 	window.Plans_PlanManager.init = init;
 
 	function boot() {
 		init(document);
 
-		// Re-init after Vtiger AJAX tab content load (Summary/Details are loaded via loadContents)
 		if (window.app && app.event && typeof app.event.on === 'function') {
-			app.event.on('post.relatedListLoad.click', function (e, container) {
-				try { console.log('[Plans] post.relatedListLoad.click -> reinit'); } catch (ex) {}
+			app.event.on('post.relatedListLoad.click', function () {
 				window.setTimeout(function () { init(document); }, 0);
 			});
 		}
 
-		// Fallback: any AJAX completion might replace tab content
 		if (window.jQuery) {
 			var t = null;
 			jQuery(document).ajaxComplete(function () {
@@ -447,4 +584,3 @@
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 	else boot();
 })();
-
