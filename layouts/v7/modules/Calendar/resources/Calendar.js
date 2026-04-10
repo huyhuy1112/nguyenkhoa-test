@@ -1900,6 +1900,14 @@ Vtiger.Class(
       }
 
       var generatePopoverContentHTML = function (eventObj) {
+        var escapeHtml = function (str) {
+          return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        };
         var timeString = "";
         if (eventObj.module === "LeaveRequest") {
           if (eventObj._start) timeString = eventObj._start.format(dateFormat);
@@ -1927,19 +1935,57 @@ Vtiger.Class(
         if (!sourceModule) {
           sourceModule = "Calendar";
         }
-        var popOverHTML = "" + "<span>" + timeString + "</span>";
+        var titleText = eventObj.title || "";
+        var statusText = eventObj.status || eventObj.eventstatus || "";
+        var statusLabel = statusText ? app.vtranslate(statusText, "Calendar") : "";
+        var moduleLabel =
+          sourceModule === "Events"
+            ? (app.vtranslate("LBL_EVENT", "Calendar") || "Event")
+            : sourceModule === "Calendar"
+              ? (app.vtranslate("LBL_TASK", "Calendar") || "Task")
+              : sourceModule;
+
+        var popOverHTML = '<div class="bace-cal-popover-card">';
+        popOverHTML += '<div class="bace-cal-popover-header">';
+        popOverHTML += '<div class="bace-cal-title-wrap">';
+        popOverHTML +=
+          '<div class="bace-cal-title" title="' +
+          escapeHtml(titleText) +
+          '">' +
+          escapeHtml(titleText) +
+          "</div>";
+        popOverHTML += '<div class="bace-cal-submeta">';
+        popOverHTML +=
+          '<span class="bace-cal-chip bace-cal-chip--time"><i class="fa fa-clock-o"></i> ' +
+          escapeHtml(timeString) +
+          "</span>";
+        popOverHTML +=
+          '<span class="bace-cal-chip bace-cal-chip--type">' +
+          escapeHtml(moduleLabel) +
+          "</span>";
+        if (statusLabel) {
+          popOverHTML +=
+            '<span class="bace-cal-chip bace-cal-chip--status">' +
+            escapeHtml(statusLabel) +
+            "</span>";
+        }
+        popOverHTML += "</div>";
+        popOverHTML += "</div>";
+        popOverHTML += '<div class="bace-cal-actions">';
 
         if (sourceModule === "LeaveRequest") {
+          popOverHTML += "</div></div>";
+          popOverHTML += '<div class="bace-cal-section bace-cal-section--note">';
           popOverHTML +=
-            ' <span class="text-muted">(' +
-            (app.vtranslate("LBL_LEAVE_REQUEST", "Calendar") || "Nghỉ phép") +
-            ")</span>";
+            '<span class="text-muted">' +
+            escapeHtml(app.vtranslate("LBL_LEAVE_REQUEST", "Calendar") || "Leave") +
+            "</span>";
+          popOverHTML += "</div></div>";
           return popOverHTML;
         }
         if (sourceModule === "Calendar" || sourceModule == "Events") {
           popOverHTML +=
-            "" +
-            '<span class="pull-right cursorPointer" ' +
+            '<a class="bace-cal-action" href="javascript:void(0)" ' +
             "onClick=\"Calendar_Calendar_Js.deleteCalendarEvent('" +
             eventObj.id +
             "','" +
@@ -1948,81 +1994,69 @@ Vtiger.Class(
             eventObj.recurringcheck +
             ');" title="' +
             app.vtranslate("JS_DELETE") +
-            '">' +
-            '&nbsp;&nbsp;<i class="fa fa-trash"></i>' +
-            "</span> &nbsp;&nbsp;";
+            '"><i class="fa fa-trash"></i></a>';
 
           if (sourceModule === "Events") {
             popOverHTML +=
               "" +
-              '<span class="pull-right cursorPointer" ' +
+              '<a class="bace-cal-action" href="javascript:void(0)" ' +
               "onClick=\"Calendar_Calendar_Js.editCalendarEvent('" +
               eventObj.id +
               "'," +
               eventObj.recurringcheck +
               ');" title="' +
               app.vtranslate("JS_EDIT") +
-              '">' +
-              '&nbsp;&nbsp;<i class="fa fa-pencil"></i>' +
-              "</span>";
+              '"><i class="fa fa-pencil"></i></a>';
           } else if (sourceModule === "Calendar") {
             popOverHTML +=
               "" +
-              '<span class="pull-right cursorPointer" ' +
+              '<a class="bace-cal-action" href="javascript:void(0)" ' +
               "onClick=\"Calendar_Calendar_Js.editCalendarTask('" +
               eventObj.id +
               '\');" title="' +
               app.vtranslate("JS_EDIT") +
-              '">' +
-              '&nbsp;&nbsp;<i class="fa fa-pencil"></i>' +
-              "</span>";
+              '"><i class="fa fa-pencil"></i></a>';
           }
 
           if (eventObj.status !== "Held" && eventObj.status !== "Completed") {
             popOverHTML +=
               "" +
-              '<span class="pull-right cursorPointer"' +
+              '<a class="bace-cal-action" href="javascript:void(0)" ' +
               "onClick=\"Calendar_Calendar_Js.markAsHeld('" +
               eventObj.id +
               '\');" title="' +
               app.vtranslate("JS_MARK_AS_HELD") +
-              '">' +
-              '<i class="fa fa-check"></i>' +
-              "</span>";
+              '"><i class="fa fa-check"></i></a>';
           } else if (eventObj.status === "Held") {
             popOverHTML +=
               "" +
-              '<span class="pull-right cursorPointer" ' +
+              '<a class="bace-cal-action" href="javascript:void(0)" ' +
               "onClick=\"Calendar_Calendar_Js.holdFollowUp('" +
               eventObj.id +
               '\');" title="' +
               app.vtranslate("JS_CREATE_FOLLOW_UP") +
-              '">' +
-              '<i class="fa fa-flag"></i>' +
-              "</span>";
+              '"><i class="fa fa-flag"></i></a>';
           }
         }
+        popOverHTML += "</div></div>";
+
+        // Detail rows
+        var detailsHTML = "";
         if (sourceModule === "ProjectTask") {
           var projectTaskInfo =
             (eventObj.extendedProps && eventObj.extendedProps.projectTaskInfo) ||
             eventObj.projectTaskInfo ||
             null;
           if (projectTaskInfo && projectTaskInfo.rows && projectTaskInfo.rows.length) {
-            var escapeHtml = function (str) {
-              return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#39;");
-            };
-            popOverHTML += '<div class="calendar-projecttask-popover">';
+            detailsHTML += '<div class="bace-cal-section bace-cal-section--details">';
+            detailsHTML += '<div class="bace-cal-section-title">Details</div>';
+            detailsHTML += '<div class="calendar-projecttask-popover">';
             jQuery.each(projectTaskInfo.rows, function (_, row) {
               if (!row || !row.value) {
                 return;
               }
               var valueHtml = row.isHtml ? String(row.value) : escapeHtml(row.value);
-              popOverHTML +=
+              detailsHTML +=
                 '<div class="calendar-projecttask-row">' +
                 '<span class="text-muted">' +
                 escapeHtml(row.label) +
@@ -2032,7 +2066,7 @@ Vtiger.Class(
                 "</span></div>";
             });
             if (projectTaskInfo.detailUrl) {
-              popOverHTML +=
+              detailsHTML +=
                 '<div class="calendar-projecttask-row" style="margin-top:6px;">' +
                 '<a href="' +
                 escapeHtml(projectTaskInfo.detailUrl) +
@@ -2040,7 +2074,7 @@ Vtiger.Class(
                 "Open Project Task" +
                 "</a></div>";
             }
-            popOverHTML += "</div>";
+            detailsHTML += "</div></div>";
           }
         }
 
@@ -2051,19 +2085,13 @@ Vtiger.Class(
             eventObj.detailRows ||
             null;
           if (detailRows && detailRows.length) {
-            var escapeHtml = function (str) {
-              return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#39;");
-            };
-            popOverHTML += '<div class="calendar-activity-popover">';
+            detailsHTML += '<div class="bace-cal-section bace-cal-section--details">';
+            detailsHTML += '<div class="bace-cal-section-title">Details</div>';
+            detailsHTML += '<div class="calendar-activity-popover">';
             jQuery.each(detailRows, function (_, row) {
               if (!row || !row.value) return;
               var valueHtml = row.isHtml ? String(row.value) : escapeHtml(row.value);
-              popOverHTML +=
+              detailsHTML +=
                 '<div class="calendar-activity-row">' +
                 '<span class="text-muted">' +
                 escapeHtml(row.label) +
@@ -2072,9 +2100,25 @@ Vtiger.Class(
                 valueHtml +
                 "</span></div>";
             });
-            popOverHTML += "</div>";
+            detailsHTML += "</div></div>";
           }
         }
+
+        if (detailsHTML) {
+          popOverHTML += detailsHTML;
+        }
+
+        // Footer: open detail link if available
+        if (eventObj.url) {
+          popOverHTML += '<div class="bace-cal-footer">';
+          popOverHTML +=
+            '<a class="bace-cal-open" href="' +
+            escapeHtml(eventObj.url) +
+            '" target="_blank"><i class="fa fa-external-link"></i> Open detail</a>';
+          popOverHTML += "</div>";
+        }
+
+        popOverHTML += "</div>";
         return popOverHTML;
       };
 
@@ -2113,7 +2157,7 @@ Vtiger.Class(
       };
 
       var params = {
-        title: event.title,
+        title: "",
         content: generatePopoverContentHTML(event),
         trigger: "hover",
         closeable: true,
