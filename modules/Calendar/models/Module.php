@@ -545,6 +545,9 @@ class Calendar_Module_Model extends Vtiger_Module_Model {
 			$activityTypes = $db->query_result_rowdata($result, $i);
 			$moduleInstance = Vtiger_Module_Model::getInstance($activityTypes['module']);
 			//If there is no module view permission, should not show in calendar view
+			if($moduleInstance === false) {
+				continue;
+			}
 			if(!$moduleInstance->isPermitted('Detail')) {
 				continue;
 			}
