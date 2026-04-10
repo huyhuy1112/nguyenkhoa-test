@@ -2043,6 +2043,38 @@ Vtiger.Class(
             popOverHTML += "</div>";
           }
         }
+
+        // Rich detail rows for Calendar/Events (provided by Calendar_Feed_Action as extendedProps.detailRows).
+        if (sourceModule === "Calendar" || sourceModule === "Events") {
+          var detailRows =
+            (eventObj.extendedProps && eventObj.extendedProps.detailRows) ||
+            eventObj.detailRows ||
+            null;
+          if (detailRows && detailRows.length) {
+            var escapeHtml = function (str) {
+              return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+            };
+            popOverHTML += '<div class="calendar-activity-popover">';
+            jQuery.each(detailRows, function (_, row) {
+              if (!row || !row.value) return;
+              var valueHtml = row.isHtml ? String(row.value) : escapeHtml(row.value);
+              popOverHTML +=
+                '<div class="calendar-activity-row">' +
+                '<span class="text-muted">' +
+                escapeHtml(row.label) +
+                ':</span> ' +
+                '<span>' +
+                valueHtml +
+                "</span></div>";
+            });
+            popOverHTML += "</div>";
+          }
+        }
         return popOverHTML;
       };
 
@@ -2060,18 +2092,78 @@ Vtiger.Class(
         }
       }
 
+      // Google Calendar–style: side panel only (right preferred, else left). Never use placement "auto"
+      // (it picks bottom/top). webuiPopover supports placement as function(popoverEl, triggerEl).
+      var placementSideOnly = function (popEl, triggerEl) {
+        var margin = 16;
+        var vw =
+          window.innerWidth || document.documentElement.clientWidth || 0;
+        var rect = triggerEl.getBoundingClientRect();
+        var popW =
+          popEl && popEl.offsetWidth ? popEl.offsetWidth : 400;
+        var spaceRight = vw - rect.right - margin;
+        var spaceLeft = rect.left - margin;
+        if (spaceRight >= popW) {
+          return "right";
+        }
+        if (spaceLeft >= popW) {
+          return "left";
+        }
+        return spaceRight >= spaceLeft ? "right" : "left";
+      };
+
       var params = {
         title: event.title,
         content: generatePopoverContentHTML(event),
         trigger: "hover",
         closeable: true,
-        placement: "auto",
+        placement: placementSideOnly,
         animation: "fade",
+        width: 400,
+        style: "bace-calendar-side",
       };
-      if (calendarView.name === "agendaDay") {
-        params.constrains = "vertical";
-      }
       element.webuiPopover(params);
+
+      var clampCalendarPopoverInViewport = function ($trigger) {
+        var tid = $trigger.attr("data-target");
+        if (!tid) {
+          return;
+        }
+        var $pop = jQuery("#" + tid.replace(/#/g, ""));
+        if (!$pop.length) {
+          return;
+        }
+        window.requestAnimationFrame(function () {
+          if (!$pop.hasClass("in")) {
+            return;
+          }
+          var node = $pop[0];
+          var r = node.getBoundingClientRect();
+          var vh =
+            window.innerHeight || document.documentElement.clientHeight || 0;
+          var margin = 10;
+          var delta = 0;
+          if (r.bottom > vh - margin) {
+            delta += vh - margin - r.bottom;
+          }
+          if (r.top + delta < margin) {
+            delta = margin - r.top;
+          }
+          if (delta !== 0) {
+            var curTop = parseFloat($pop.css("top")) || 0;
+            $pop.css("top", curTop + delta + "px");
+          }
+        });
+      };
+
+      element
+        .off("shown.webui.popover.baceSide")
+        .on("shown.webui.popover.baceSide", function () {
+          clampCalendarPopoverInViewport(element);
+          window.setTimeout(function () {
+            clampCalendarPopoverInViewport(element);
+          }, 50);
+        });
     },
     performPreEventRenderActions: function (event, element) {
       var calendarView =

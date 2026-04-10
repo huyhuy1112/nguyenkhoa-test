@@ -77,7 +77,7 @@ html:not(:has(body[data-module="Calendar"])) {
     overflow-x: hidden !important;
 }
 
-/* Calendar (Schedule): toàn bộ style nằm trong layouts/v7/modules/Calendar/resources/calendar-google.css */
+/* Calendar (Schedule): scroll/layout — calendar-google.css (tránh trùng rule gây 2 scrollbar) */
 
 /* ========== Nav hiện đại, thiết kế đẹp ========== */
 /* Ghi đè Bootstrap navbar-inverse: topbar sáng, không tối */
@@ -5594,6 +5594,56 @@ body[data-app="MANAGEMENT"] #overlayPageContent {
 }
 body[data-app="MANAGEMENT"] #overlayPage {
     z-index: 100010 !important;
+}
+
+/* Calendar: event detail side panel (placement = right|left only in Calendar.js) */
+body[data-module="Calendar"] .webui-popover.webui-popover-bace-calendar-side,
+body:has(.CalendarViewPageDiv) .webui-popover.webui-popover-bace-calendar-side {
+    z-index: 100050 !important;
+    border-radius: 12px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    background: #fff;
+    max-width: min(420px, calc(100vw - 24px));
+}
+body[data-module="Calendar"] .webui-popover.webui-popover-bace-calendar-side .webui-popover-inner,
+body:has(.CalendarViewPageDiv) .webui-popover.webui-popover-bace-calendar-side .webui-popover-inner {
+    padding: 10px 12px 12px;
+}
+body[data-module="Calendar"] .webui-popover.webui-popover-bace-calendar-side .webui-popover-title,
+body:has(.CalendarViewPageDiv) .webui-popover.webui-popover-bace-calendar-side .webui-popover-title {
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0 0 8px;
+    padding-right: 22px;
+}
+/* Single internal scroll: content only (full detail HTML preserved) */
+body[data-module="Calendar"] .webui-popover.webui-popover-bace-calendar-side .webui-popover-content,
+body:has(.CalendarViewPageDiv) .webui-popover.webui-popover-bace-calendar-side .webui-popover-content {
+    max-height: min(72vh, 680px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+body[data-module="Calendar"] .webui-popover.webui-popover-bace-calendar-side .calendar-activity-popover,
+body:has(.CalendarViewPageDiv) .webui-popover.webui-popover-bace-calendar-side .calendar-activity-popover {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(15, 23, 42, 0.10);
+}
+body[data-module="Calendar"] .webui-popover.webui-popover-bace-calendar-side .calendar-activity-row,
+body:has(.CalendarViewPageDiv) .webui-popover.webui-popover-bace-calendar-side .calendar-activity-row {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    margin: 4px 0;
+    line-height: 1.35;
+}
+body[data-module="Calendar"] .webui-popover.webui-popover-bace-calendar-side .calendar-activity-row .text-muted,
+body:has(.CalendarViewPageDiv) .webui-popover.webui-popover-bace-calendar-side .calendar-activity-row .text-muted {
+    flex: 0 0 auto;
+    min-width: 92px;
+    font-weight: 600;
+    color: rgba(15, 23, 42, 0.60);
 }
 
 /* ========== B-ACE: Users Preference Detail (User Management > Users > Detail) ========== */

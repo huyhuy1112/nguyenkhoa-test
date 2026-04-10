@@ -337,7 +337,23 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 			$queryGenerator = new QueryGenerator($moduleModel->get('name'), $currentUser);
 		}
 
-		$queryGenerator->setFields(array('subject', 'eventstatus', 'visibility','date_start','time_start','due_date','time_end','assigned_user_id','id','activitytype','recurringtype'));
+		$queryGenerator->setFields(array(
+			'subject',
+			'eventstatus',
+			'visibility',
+			'date_start',
+			'time_start',
+			'due_date',
+			'time_end',
+			'assigned_user_id',
+			'parent_id',
+			'contact_id',
+			'priority',
+			'location',
+			'id',
+			'activitytype',
+			'recurringtype'
+		));
 		$query = $queryGenerator->getQuery();
 
 		$query.= " AND vtiger_activity.activitytype NOT IN ('Emails','Task') AND ";
@@ -373,6 +389,11 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 			$item['visibility'] = $visibility;
 			$item['activitytype'] = $activitytype;
 			$item['status'] = $status;
+			$item['assigned_user_id'] = $record['assigned_user_id'];
+			$item['parent_id'] = $record['parent_id'];
+			$item['contact_id'] = $record['contact_id'];
+			$item['priority'] = $record['priority'];
+			$item['location'] = $record['location'];
 			$recordBusy = true;
 			if(in_array($ownerId, $groupsIds)) {
 				$recordBusy = false;
@@ -392,6 +413,9 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 				$item['title'] = decode_html($record['subject']).' - ('.decode_html(vtranslate($record['eventstatus'],'Calendar')).')';
 				$item['url']   = sprintf('index.php?module=Calendar&view=Detail&record=%s', $crmid);
 			}
+			// Rich popover rows (compact, only key fields; rendered by Calendar.js if present)
+			$item['extendedProps'] = isset($item['extendedProps']) && is_array($item['extendedProps']) ? $item['extendedProps'] : array();
+			$item['extendedProps']['detailRows'] = $this->buildCalendarActivityDetailRows($crmid, 'Events', $item);
 
 			// All-day: giống Task — time_start 00:00, time_end 23:59 → allDay true, start/end date-only
 			$timeStart = isset($record['time_start']) ? trim($record['time_start']) : '';
@@ -460,7 +484,22 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 		$userAndGroupIds = array_merge(array($user->getId()),$this->getGroupsIdsForUsers($user->getId()));
 		$queryGenerator = new QueryGenerator($moduleModel->get('name'), $user);
 
-		$queryGenerator->setFields(array('activityid','subject', 'taskstatus','activitytype', 'date_start','time_start','due_date','time_end','id'));
+		$queryGenerator->setFields(array(
+			'activityid',
+			'subject',
+			'taskstatus',
+			'status',
+			'activitytype',
+			'date_start',
+			'time_start',
+			'due_date',
+			'time_end',
+			'assigned_user_id',
+			'parent_id',
+			'contact_id',
+			'taskpriority',
+			'id'
+		));
 		$query = $queryGenerator->getQuery();
 
 		$currentUser = Users_Record_Model::getCurrentUserModel();
@@ -490,6 +529,10 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 			$item['status'] = $taskStatus;
 			$item['activitytype'] = $record['activitytype'];
 			$item['id'] = $crmid;
+			$item['assigned_user_id'] = $record['assigned_user_id'];
+			$item['parent_id'] = $record['parent_id'];
+			$item['contact_id'] = $record['contact_id'];
+			$item['taskpriority'] = isset($record['taskpriority']) ? $record['taskpriority'] : '';
 			// Dùng currentUser để timezone/giờ hiển thị khớp form và màu vẽ trên lịch
 			$timeStart = isset($record['time_start']) ? trim($record['time_start']) : '';
 			$timeEnd = isset($record['time_end']) ? trim($record['time_end']) : '';
@@ -529,6 +572,8 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 			$item['module'] = $moduleModel->getName();
 			$item['fieldName'] = 'date_start,due_date';
 			$item['conditions'] = '';
+			$item['extendedProps'] = isset($item['extendedProps']) && is_array($item['extendedProps']) ? $item['extendedProps'] : array();
+			$item['extendedProps']['detailRows'] = $this->buildCalendarActivityDetailRows($crmid, 'Calendar', $item);
 			$result[] = $item;
 		}
 	}
@@ -614,6 +659,84 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 				'detailLabel' => vtranslate('SINGLE_ProjectTask', 'ProjectTask'),
 				'tooltip' => implode("\n", $tooltipParts),
 			);
+		} catch (Exception $e) {
+			return array();
+		}
+	}
+
+	/**
+	 * Build compact detail rows for Calendar/Events popover.
+	 * Uses only fields that are already available (and safe) for the record.
+	 */
+	protected function buildCalendarActivityDetailRows($recordId, $moduleName, $seedItem = array()) {
+		$rows = array();
+		try {
+			$currentUser = Users_Record_Model::getCurrentUserModel();
+			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+			$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+
+			$pushRow = function ($label, $value, $isHtml = false) use (&$rows) {
+				$value = (string)$value;
+				if (trim($value) === '') return;
+				$rows[] = array('label' => (string)$label, 'value' => $value, 'isHtml' => (bool)$isHtml);
+			};
+
+			// Assigned To
+			$assignedId = $recordModel->get('assigned_user_id');
+			if ($assignedId) {
+				$pushRow(vtranslate('Assigned To'), getUserFullName($assignedId));
+			}
+
+			// Dates
+			$dateStart = $recordModel->get('date_start');
+			$timeStart = $recordModel->get('time_start');
+			if ($dateStart) {
+				$dt = trim($dateStart . ' ' . $timeStart);
+				$pushRow(vtranslate('Start Date', $moduleName), DateTimeField::convertToUserFormat($dateStart) . ($timeStart ? (' ' . Vtiger_Time_UIType::getDisplayTimeValue($timeStart)) : ''));
+			}
+			$dueDate = $recordModel->get('due_date');
+			$timeEnd = $recordModel->get('time_end');
+			if ($dueDate) {
+				$pushRow(vtranslate('Due Date', $moduleName), DateTimeField::convertToUserFormat($dueDate) . ($timeEnd ? (' ' . Vtiger_Time_UIType::getDisplayTimeValue($timeEnd)) : ''));
+			}
+
+			// Status
+			$status = $recordModel->get('taskstatus');
+			if (!$status) $status = $recordModel->get('eventstatus');
+			if (!$status) $status = $recordModel->get('status');
+			if ($status) {
+				$pushRow(vtranslate('Status', $moduleName), vtranslate($status, 'Calendar'));
+			}
+
+			// Priority / Location
+			if ($moduleName === 'Events' && $recordModel->get('priority')) {
+				$pushRow(vtranslate('Priority', $moduleName), $recordModel->get('priority'));
+			}
+			if ($moduleName === 'Events' && $recordModel->get('location')) {
+				$pushRow(vtranslate('Location', $moduleName), $recordModel->get('location'));
+			}
+			if ($moduleName === 'Calendar' && $recordModel->get('taskpriority')) {
+				$pushRow(vtranslate('Priority', $moduleName), vtranslate($recordModel->get('taskpriority'), $moduleName));
+			}
+
+			// Contact / Related To (Opportunity if Potentials)
+			$contactId = $recordModel->get('contact_id');
+			if ($contactId) {
+				$field = Vtiger_Field_Model::getInstance('contact_id', $moduleModel);
+				if ($field) {
+					$pushRow(vtranslate($field->get('label'), $moduleName), $field->getDisplayValue($contactId), (strpos((string)$field->getDisplayValue($contactId), '<a ') !== false));
+				}
+			}
+			$parentId = $recordModel->get('parent_id');
+			if ($parentId) {
+				$parentType = Vtiger_Functions::getCRMRecordType($parentId);
+				$label = ($parentType === 'Potentials') ? 'Opportunity' : 'Related To';
+				$field = Vtiger_Field_Model::getInstance('parent_id', $moduleModel);
+				$display = $field ? $field->getDisplayValue($parentId) : Vtiger_Functions::getCRMRecordLabel($parentId);
+				$pushRow(vtranslate($label, $moduleName), $display, (strpos((string)$display, '<a ') !== false));
+			}
+
+			return $rows;
 		} catch (Exception $e) {
 			return array();
 		}
