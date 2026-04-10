@@ -713,8 +713,9 @@ Vtiger.Class('Vtiger_Index_Js', {
 
 		var appMenuEl = jQuery('.app-menu');
 		/* Không mở menu con tự động khi hover - chỉ mở khi user click */
-		// Fix cho menu overlay (app-menu): chỉ chặn click trên app-menu, KHÔNG can thiệp sidebar bên trái
-		jQuery('.app-menu .app-item').on('click', function(e) {
+		// Fix cho menu overlay (app-menu): chỉ chặn click trên app-menu khi item là dropdown-toggle.
+		// Các item điều hướng (vd: Dashboard) cần click để navigate theo data-default-url.
+		jQuery('.app-menu .app-item.dropdown-toggle').on('click', function(e) {
 			e.preventDefault();
 			e.stopPropagation();
 			var container = jQuery(this).closest('.app-modules-dropdown-container');
@@ -726,6 +727,12 @@ Vtiger.Class('Vtiger_Index_Js', {
 					var menuWidth = appMenuEl.length ? appMenuEl.outerWidth() : 280;
 					appModulesDropdown.css('left', menuWidth + 'px');
 					container.addClass('open').find('.app-item').addClass('active-app-item');
+				}
+			} else {
+				// Non-dropdown item inside app-menu: navigate if it has data-default-url
+				var url = jQuery(this).data('defaultUrl') || jQuery(this).attr('data-default-url');
+				if (url) {
+					window.location.href = String(url);
 				}
 			}
 		});

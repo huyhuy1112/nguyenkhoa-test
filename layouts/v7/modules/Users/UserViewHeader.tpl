@@ -10,7 +10,7 @@
 
 {* START YOUR IMPLEMENTATION FROM BELOW. Use {debug} for information *}
 {strip}
-<div class="detailViewContainer">
+<div class="detailViewContainer bace-users-settings-detail">
     <div class="col-sm-12 col-xs-12">
         <div class="detailViewTitle" id="userPageHeader">
             <div class = "row">

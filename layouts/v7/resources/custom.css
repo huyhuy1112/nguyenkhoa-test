@@ -1194,6 +1194,7 @@ body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-
 /* App overlay sidebar: shared card shell; per-app identity = left accent only (see .app-item-color-* below) */
 .app-menu .menu-item.app-item,
 #app-menu.app-menu .menu-item.app-item {
+    display: block !important;
     padding: 10px 12px !important;
     margin: 0 10px 6px 10px !important;
     border-radius: 10px !important;
@@ -1206,6 +1207,10 @@ body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-
     border-left: 3px solid transparent !important;
     box-shadow: none !important;
     transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.app-menu a.menu-item.app-item,
+#app-menu.app-menu a.menu-item.app-item {
+    text-decoration: none !important;
 }
 .app-menu .menu-item.app-item:hover,
 #app-menu.app-menu .menu-item.app-item:hover {
@@ -1244,6 +1249,13 @@ body:has(.CalendarViewPageDiv) .calendar-fc-toolbar-wrap .fc-toolbar .fc-button-
     display: flex !important;
     align-items: center !important;
     gap: 6px !important;
+}
+/* Use flex gap, not FA margins (fix Dashboard/icon misalignment) */
+.app-menu .menu-item.app-item .app-menu-items-wrapper .fa,
+.app-menu .menu-item.app-item .menu-items-wrapper .fa,
+#app-menu.app-menu .menu-item.app-item .app-menu-items-wrapper .fa,
+#app-menu.app-menu .menu-item.app-item .menu-items-wrapper .fa {
+    margin-right: 0 !important;
 }
 .app-menu .menu-item.app-item .app-icon-list{
     flex: 0 0 auto;
@@ -1479,18 +1491,40 @@ body[data-module="Activities"] .container-fluid.app-nav {
     box-shadow: inset 3px 0 0 rgba(149, 165, 166, 0.22) !important;
 }
 
-/* Dashboard row (first app-list child): warm accent */
-.app-menu .app-list > .menu-item.app-item:first-child,
-#app-menu.app-menu .app-list > .menu-item.app-item:first-child {
+/* Dashboard row (explicit class) */
+.app-menu .app-item-dashboard,
+#app-menu.app-menu .app-item-dashboard {
     border-left-color: rgba(52, 152, 219, 0.55) !important;
     background: rgba(255, 255, 255, 0.04) !important;
     box-shadow: inset 3px 0 0 rgba(52, 152, 219, 0.22) !important;
 }
-.app-menu .app-list > .menu-item.app-item:first-child:hover,
-#app-menu.app-menu .app-list > .menu-item.app-item:first-child:hover {
+.app-menu .app-item-dashboard:hover,
+#app-menu.app-menu .app-item-dashboard:hover {
     border-left-color: rgba(52, 152, 219, 0.78) !important;
     background: rgba(255, 255, 255, 0.08) !important;
     box-shadow: inset 3px 0 0 rgba(52, 152, 219, 0.28) !important;
+}
+.app-menu .app-item-dashboard-chevron,
+#app-menu.app-menu .app-item-dashboard-chevron {
+    opacity: 0;
+}
+.app-menu .app-item-dashboard .app-name,
+#app-menu.app-menu .app-item-dashboard .app-name {
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+}
+
+/* Active app highlighting by current app context (prevents Dashboard looking "active") */
+body[data-app="MARKETING"] #app-menu .app-item-color-MARKETING,
+body[data-app="SALES"] #app-menu .app-item-color-SALES,
+body[data-app="INVENTORY"] #app-menu .app-item-color-INVENTORY,
+body[data-app="SUPPORT"] #app-menu .app-item-color-SUPPORT,
+body[data-app="MANAGEMENT"] #app-menu .app-item-color-MANAGEMENT,
+body[data-app="TOOLS"] #app-menu .app-item-color-TOOLS,
+body[data-app="PROJECT"] #app-menu .app-item-color-PROJECT {
+    background: rgba(255, 255, 255, 0.10) !important;
+    border-left-color: rgba(255, 255, 255, 0.55) !important;
+    box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.35) !important;
 }
 
 /* Subtle icon tint per app (keeps hover/background unified) */
@@ -1680,7 +1714,6 @@ body[data-module="Activities"] .container-fluid.app-nav {
     width: 20px;
     padding-top: 9px;
     margin:0 15px 0 0;
-    display: inline-block;
     float: left;
 }
 .menu-toggle:focus{
@@ -1941,7 +1974,6 @@ body[data-module="ProjectTask"] .main-container .editViewPageDiv .editViewConten
     font-weight: normal;
 }
 .module-nav .module-filters{
-    display: inline-block;
     width: 68%;
     float:left;
     background: linear-gradient(180deg, #3d5a80 0%, #293241 100%);
@@ -4569,6 +4601,8 @@ body[data-module="ProjectTask"] .editViewPageDiv .duplicationMessageContainer {
     margin: 5px 0;
 }
 .lists-menu-container .menu-scroller{
+    /* keep non-empty to satisfy linter; no visual change intended */
+    position: relative;
 }
 /* mScrollbar customization for lists widget */
 .lists-menu-container .menu-scroller .mCSB_scrollTools{
@@ -4703,7 +4737,7 @@ body[data-module="ProjectTask"] .editViewPageDiv .duplicationMessageContainer {
     width:100% !important;
 }
 .marginboth10px{
-
+    margin: 10px !important;
 }
 
 
@@ -4801,7 +4835,6 @@ body[data-module="ProjectTask"] .editViewPageDiv .duplicationMessageContainer {
 }
 
 .listview-pagination p{
-    display: inline-block;
     float: left;
     margin: 5px;
 }
@@ -5561,6 +5594,215 @@ body[data-app="MANAGEMENT"] #overlayPageContent {
 }
 body[data-app="MANAGEMENT"] #overlayPage {
     z-index: 100010 !important;
+}
+
+/* ========== B-ACE: Users Preference Detail (User Management > Users > Detail) ========== */
+.bace-users-pref-detail #prefPageHeader {
+    margin: 12px 0 18px;
+}
+.bace-users-pref-detail #prefPageHeader > .col-lg-12 {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    padding: 14px 14px 10px;
+}
+.bace-users-pref-detail #prefPageHeader .logo.col-xs-2 {
+    width: 86px;
+    height: 86px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.bace-users-pref-detail #prefPageHeader .logo.col-xs-2 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.bace-users-pref-detail #myPrefHeading h3 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #0f172a;
+}
+.bace-users-pref-detail #prefPageHeader .col-xs-9 > span {
+    display: block;
+    color: #475569;
+    font-size: 12.5px;
+}
+.bace-users-pref-detail #prefPageHeader .detailViewButtoncontainer .btn {
+    border-radius: 10px;
+    border-color: rgba(148, 163, 184, 0.45);
+    background: rgba(255, 255, 255, 0.9);
+}
+.bace-users-pref-detail #prefPageHeader .detailViewButtoncontainer .btn:hover {
+    background: rgba(15, 23, 42, 0.04);
+}
+.bace-users-pref-detail .detailViewInfo.userPreferences {
+    margin-top: 12px;
+}
+
+/* Section cards (blocks) */
+.bace-users-pref-detail .detailViewInfo.userPreferences .details {
+    padding: 0;
+}
+.bace-users-pref-detail .detailViewInfo.userPreferences .block {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.30);
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    margin: 12px 0;
+    overflow: hidden;
+}
+.bace-users-pref-detail .detailViewInfo.userPreferences .blockHeader {
+    background: rgba(248, 250, 252, 0.85);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.30);
+    padding: 12px 14px;
+    font-weight: 800;
+    color: #0f172a;
+}
+.bace-users-pref-detail .detailViewInfo.userPreferences table {
+    margin: 0;
+}
+
+/* Field grid readability */
+.bace-users-pref-detail td.fieldLabel {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: top;
+    padding-top: 10px !important;
+}
+.bace-users-pref-detail td.fieldValue {
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 600;
+    padding-top: 10px !important;
+}
+.bace-users-pref-detail tr {
+    border-bottom: 1px dashed rgba(148, 163, 184, 0.25);
+}
+.bace-users-pref-detail tr:last-child {
+    border-bottom: 0;
+}
+
+/* ========== B-ACE: Settings Users Detail (Settings > User Management > Users > Detail) ========== */
+.bace-users-settings-detail #userPageHeader {
+    margin: 12px 0 16px;
+}
+.bace-users-settings-detail #userPageHeader {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    padding: 12px 14px;
+}
+.bace-users-settings-detail #userPageHeader .recordImage {
+    width: 86px !important;
+    height: 86px !important;
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+}
+.bace-users-settings-detail #userPageHeader .recordImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.bace-users-settings-detail #userPageHeader .recordImage .name {
+    width: 100%;
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 102, 241, 0.10);
+    color: #4f46e5;
+    border-radius: 18px;
+}
+.bace-users-settings-detail #userPageHeader .font-x-x-large {
+    margin: 0 0 0 10px !important;
+    font-size: 20px !important;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #0f172a;
+    display: inline-block;
+    vertical-align: middle;
+    max-width: calc(100% - 110px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bace-users-settings-detail #userPageHeader .detailViewButtoncontainer .btn {
+    border-radius: 10px;
+    border-color: rgba(148, 163, 184, 0.45);
+    background: rgba(255, 255, 255, 0.9);
+}
+.bace-users-settings-detail #userPageHeader .detailViewButtoncontainer .btn:hover {
+    background: rgba(15, 23, 42, 0.04);
+}
+
+/* Section cards + field grid (same language as Task Board / B-ACE) */
+.bace-users-settings-detail .detailview-content.userPreferences {
+    padding-left: 0;
+    padding-right: 0;
+}
+.bace-users-settings-detail .detailview-content.userPreferences .details {
+    padding: 0;
+}
+.bace-users-settings-detail .detailview-content.userPreferences .block {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.30);
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    margin: 12px 0;
+    overflow: hidden;
+}
+.bace-users-settings-detail .detailview-content.userPreferences .block > div > h4 {
+    margin: 0;
+    padding: 12px 14px;
+    background: rgba(248, 250, 252, 0.85);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.30);
+    font-weight: 800;
+    color: #0f172a;
+    font-size: 14px;
+}
+.bace-users-settings-detail .detailview-content.userPreferences .block > hr {
+    display: none;
+}
+.bace-users-settings-detail .detailview-content.userPreferences .blockData {
+    padding: 8px 14px 12px;
+}
+.bace-users-settings-detail .detailview-content.userPreferences table {
+    margin: 0;
+}
+.bace-users-settings-detail td.fieldLabel {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: top;
+    padding-top: 10px !important;
+}
+.bace-users-settings-detail td.fieldValue {
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 600;
+    padding-top: 10px !important;
+}
+.bace-users-settings-detail .detailview-content.userPreferences tr {
+    border-bottom: 1px dashed rgba(148, 163, 184, 0.25);
+}
+.bace-users-settings-detail .detailview-content.userPreferences tr:last-child {
+    border-bottom: 0;
 }
 
 /* Calendar Task Management — full page (MANAGEMENT direct route): not overlay modal */
@@ -13133,7 +13375,7 @@ body[data-module="Activities"] .activities-status-skipped {
     box-shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
 }
 
-.history-chip--total { }
+.history-chip--total { background: rgba(15, 23, 42, 0.04); border-color: rgba(15, 23, 42, 0.10); color: rgba(2, 6, 23, 0.82); }
 .history-chip--created { background: rgba(59, 130, 246, 0.10); border-color: rgba(59, 130, 246, 0.18); color: #2563eb; }
 .history-chip--approved { background: rgba(16, 185, 129, 0.10); border-color: rgba(16, 185, 129, 0.18); color: #059669; }
 .history-chip--rejected { background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.20); color: #ea580c; }

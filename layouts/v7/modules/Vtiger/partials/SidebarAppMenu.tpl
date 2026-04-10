@@ -22,12 +22,13 @@
 		{assign var=DASHBOARD_MODULE_MODEL value=Vtiger_Module_Model::getInstance('Dashboard')}
 		<div class="app-list row">
 			{if $USER_PRIVILEGES_MODEL->hasModulePermission($DASHBOARD_MODULE_MODEL->getId())}
-				<div class="menu-item app-item dropdown-toggle" data-default-url="{$HOME_MODULE_MODEL->getDefaultUrl()}">
-					<div class="menu-items-wrapper">
+				<a class="menu-item app-item app-item-dashboard" href="index.php" title="Dashboard" data-app-name="DASHBOARD">
+					<div class="menu-items-wrapper app-menu-items-wrapper">
 						<span class="mk-icon app-icon-list"><i class="fa fa-tachometer"></i></span>
 						<span class="app-name textOverflowEllipsis"> {vtranslate('LBL_DASHBOARD',$MODULE)}</span>
+						<span class="fa fa-chevron-right pull-right app-item-dashboard-chevron"></span>
 					</div>
-				</div>
+				</a>
 			{/if}
 			{assign var=APP_GROUPED_MENU value=Settings_MenuEditor_Module_Model::getAllVisibleModules()}
 			{assign var=APP_LIST value=Vtiger_MenuStructure_Model::getAppMenuList()}
@@ -69,12 +70,6 @@
 									<a href="index.php?module=Home&view=MainPage&app=MANAGEMENT" title="Main Page">
 										<span class="mk-icon module-icon module-icon-lg"><i class="fa fa-home"></i></span>
 										<span class="module-name textOverflowEllipsis"> Main Page</span>
-									</a>
-								</li>
-								<li>
-									<a href="index.php?module=Calendar&view=TaskManagement&mode=showManagementView&app=MANAGEMENT" title="Task Board">
-										<span class="mk-icon module-icon module-icon-lg"><i class="fa fa-columns"></i></span>
-										<span class="module-name textOverflowEllipsis"> Task Board</span>
 									</a>
 								</li>
 							{/if}

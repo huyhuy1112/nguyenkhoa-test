@@ -12,7 +12,7 @@
 {strip}
 	{assign var="MODULE_NAME" value=$MODULE_MODEL->get('name')}
 	<input id="recordId" type="hidden" value="{$RECORD->getId()}" />
-	<div class="detailViewContainer">
+	<div class="detailViewContainer bace-users-pref-detail">
 		<div class="detailViewTitle" id="prefPageHeader">
 			<div class="col-lg-12 col-sm-12 col-xs-12">
 				<div class="col-xs-8">

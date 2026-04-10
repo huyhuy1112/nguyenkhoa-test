@@ -303,6 +303,7 @@ body{
 /* Unified card shell + 3px left rail (transparent until accent class) */
 .app-menu .menu-item.app-item,
 #app-menu.app-menu .menu-item.app-item {
+    display: block !important;
     padding: 10px 12px !important;
     margin: 0 10px 6px 10px !important;
     border-radius: 10px !important;
@@ -316,6 +317,10 @@ body{
     box-shadow: none !important;
     text-shadow: none;
     transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+#app-menu.app-menu a.menu-item.app-item,
+.app-menu a.menu-item.app-item {
+    text-decoration: none !important;
 }
 .app-menu .menu-item.app-item:hover,
 #app-menu.app-menu .menu-item.app-item:hover {
@@ -345,6 +350,12 @@ body{
     display: flex;
     align-items: center;
     gap: 6px;
+}
+.app-menu .menu-item.app-item .app-menu-items-wrapper .fa,
+.app-menu .menu-item.app-item .menu-items-wrapper .fa,
+#app-menu.app-menu .menu-item.app-item .app-menu-items-wrapper .fa,
+#app-menu.app-menu .menu-item.app-item .menu-items-wrapper .fa {
+    margin-right: 0 !important;
 }
 .app-menu .menu-item.app-item .app-icon-list{
     flex: 0 0 auto;
@@ -460,17 +471,38 @@ body{
     background: rgba(255, 255, 255, 0.08) !important;
     box-shadow: inset 3px 0 0 rgba(149, 165, 166, 0.22) !important;
 }
-.app-menu .app-list > .menu-item.app-item:first-child,
-#app-menu.app-menu .app-list > .menu-item.app-item:first-child {
+.app-menu .app-item-dashboard,
+#app-menu.app-menu .app-item-dashboard {
     border-left-color: rgba(52, 152, 219, 0.55) !important;
     background: rgba(255, 255, 255, 0.04) !important;
     box-shadow: inset 3px 0 0 rgba(52, 152, 219, 0.22) !important;
 }
-.app-menu .app-list > .menu-item.app-item:first-child:hover,
-#app-menu.app-menu .app-list > .menu-item.app-item:first-child:hover {
+.app-menu .app-item-dashboard:hover,
+#app-menu.app-menu .app-item-dashboard:hover {
     border-left-color: rgba(52, 152, 219, 0.78) !important;
     background: rgba(255, 255, 255, 0.08) !important;
     box-shadow: inset 3px 0 0 rgba(52, 152, 219, 0.28) !important;
+}
+#app-menu.app-menu .app-item-dashboard-chevron,
+.app-menu .app-item-dashboard-chevron {
+    opacity: 0;
+}
+.app-menu .app-item-dashboard .app-name,
+#app-menu.app-menu .app-item-dashboard .app-name {
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+}
+
+body[data-app="MARKETING"] #app-menu .app-item-color-MARKETING,
+body[data-app="SALES"] #app-menu .app-item-color-SALES,
+body[data-app="INVENTORY"] #app-menu .app-item-color-INVENTORY,
+body[data-app="SUPPORT"] #app-menu .app-item-color-SUPPORT,
+body[data-app="MANAGEMENT"] #app-menu .app-item-color-MANAGEMENT,
+body[data-app="TOOLS"] #app-menu .app-item-color-TOOLS,
+body[data-app="PROJECT"] #app-menu .app-item-color-PROJECT {
+    background: rgba(255, 255, 255, 0.10) !important;
+    border-left-color: rgba(255, 255, 255, 0.55) !important;
+    box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.35) !important;
 }
 
 /* Subtle icon tint per app (keeps hover/background unified) */
