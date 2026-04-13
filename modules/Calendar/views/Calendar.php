@@ -42,7 +42,8 @@ class Calendar_Calendar_View extends Vtiger_Index_View {
 			"~layouts/".Vtiger_Viewer::getDefaultLayoutName()."/lib/jquery/fullcalendar/lib/moment.min.js",
 			"~layouts/".Vtiger_Viewer::getDefaultLayoutName()."/lib/jquery/fullcalendar/fullcalendar.js",
 			"~layouts/".Vtiger_Viewer::getDefaultLayoutName()."/lib/jquery/webui-popover/dist/jquery.webui-popover.js",
-			"modules.Calendar.resources.CalendarView",
+			// Logic lịch nằm ở layouts/.../Calendar.js (nạp qua Index: modules.Calendar.resources.Calendar).
+			// modules.Calendar.resources.CalendarView không tồn tại trên v7 → trước đây script này bị bỏ qua im lặng.
 			"~/libraries/jquery/colorpicker/js/colorpicker.js",
 			"layouts.v7.modules.Calendar.resources.CalendarQuickCreate"
 		);

@@ -77,19 +77,20 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 			$conditions = $request['conditions'];
 			$result = array();
 			switch ($type) {
-				case 'Events'			:	if($fieldName == 'date_start,due_date' || $userid) {
+				// Empty fieldname happens for some feed checkboxes (e.g. shared "Mine"); must still use activity SQL feeds.
+				case 'Events'			:	if($fieldName == 'date_start,due_date' || $userid || $fieldName === '' || $fieldName === null) {
 												$this->pullEvents($start, $end, $result,$userid,$color,$textColor,$isGroupId,$conditions);
 											} else {
 												$this->pullDetails($start, $end, $result, $type, $fieldName, $color, $textColor, $conditions);
 											}
 											$this->pullAnniversaryActivities($start, $end, $result);
 											break;
-				case 'Calendar'			:	if($fieldName == 'date_start,due_date') {
+				case 'Calendar'			:	if($fieldName == 'date_start,due_date' || $fieldName === '' || $fieldName === null) {
 												$this->pullTasks($start, $end, $result,$color,$textColor);
 											} else {
 												$this->pullDetails($start, $end, $result, $type, $fieldName, $color, $textColor);
 											}
-											break;
+												break;
 				case 'MultipleEvents'	:	$this->pullMultipleEvents($start,$end, $result,$mapping);break;
 				case $type				:	$this->pullDetails($start, $end, $result, $type, $fieldName, $color, $textColor);break;
 			}
@@ -264,6 +265,13 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 					$item['tooltip'] = $projectTaskInfo['tooltip'];
 				}
 			}
+			if (php7_count($fieldsList) == 2 && $fieldName != 'birthday') {
+				$startRaw = isset($item['start']) ? trim((string)$item['start']) : '';
+				$endRaw = isset($item['end']) ? trim((string)$item['end']) : '';
+				if ($startRaw !== '' && $endRaw === '') {
+					$item['end'] = $startRaw;
+				}
+			}
 			$item['end'] = date('Y-m-d', strtotime((isset($item['end']) ? $item['end']: $item['start']).' +1day'));
                         if(!empty($conditions)) {
                             $item['conditions'] = Zend_Json::encode(Zend_Json::encode($conditions));
@@ -422,28 +430,30 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 			$timeEnd = isset($record['time_end']) ? trim($record['time_end']) : '';
 			$isAllDay = (empty($timeStart) || $timeStart === '00:00:00' || $timeStart === '00:00') && (empty($timeEnd) || $timeEnd === '23:59:59' || $timeEnd === '23:59:00' || $timeEnd === '23:59');
 
-			$dateTimeFieldInstance = new DateTimeField($record['date_start'].' '.$record['time_start']);
-			$userDateTimeString = $dateTimeFieldInstance->getDisplayDateTimeValue($currentUser);
-			$dateTimeComponents = explode(' ',$userDateTimeString);
-			$dateComponent = isset($dateTimeComponents[0]) ? $dateTimeComponents[0] : '';
-			$startDateYmd = DateTimeField::__convertToDBFormat($dateComponent, $currentUser->get('date_format'));
-			$startTimePart = isset($dateTimeComponents[1]) ? $dateTimeComponents[1] : '';
+			// Timed events need timezone conversion; all-day must stay date-only (avoid shifting 23:59 into next day in user TZ).
+			if (!$isAllDay) {
+				$dateTimeFieldInstance = new DateTimeField($record['date_start'].' '.$record['time_start']);
+				$userDateTimeString = $dateTimeFieldInstance->getDisplayDateTimeValue($currentUser);
+				$dateTimeComponents = explode(' ',$userDateTimeString);
+				$dateComponent = isset($dateTimeComponents[0]) ? $dateTimeComponents[0] : '';
+				$startDateYmd = DateTimeField::__convertToDBFormat($dateComponent, $currentUser->get('date_format'));
+				$startTimePart = isset($dateTimeComponents[1]) ? $dateTimeComponents[1] : '';
 
-			$dateTimeFieldInstanceEnd = new DateTimeField($record['due_date'].' '.$record['time_end']);
-			$userDateTimeStringEnd = $dateTimeFieldInstanceEnd->getDisplayDateTimeValue($currentUser);
-			$dateTimeComponentsEnd = explode(' ',$userDateTimeStringEnd);
-			$dateComponentEnd = isset($dateTimeComponentsEnd[0]) ? $dateTimeComponentsEnd[0] : $record['due_date'];
-			$endDateYmd = DateTimeField::__convertToDBFormat($dateComponentEnd, $currentUser->get('date_format'));
-			$endTimePart = isset($dateTimeComponentsEnd[1]) ? $dateTimeComponentsEnd[1] : '';
+				$dateTimeFieldInstanceEnd = new DateTimeField($record['due_date'].' '.$record['time_end']);
+				$userDateTimeStringEnd = $dateTimeFieldInstanceEnd->getDisplayDateTimeValue($currentUser);
+				$dateTimeComponentsEnd = explode(' ',$userDateTimeStringEnd);
+				$dateComponentEnd = isset($dateTimeComponentsEnd[0]) ? $dateTimeComponentsEnd[0] : $record['due_date'];
+				$endDateYmd = DateTimeField::__convertToDBFormat($dateComponentEnd, $currentUser->get('date_format'));
+				$endTimePart = isset($dateTimeComponentsEnd[1]) ? $dateTimeComponentsEnd[1] : '';
 
-			if (!$isAllDay && $startTimePart !== '' && $endTimePart !== '') {
 				$item['start'] = $startDateYmd . ' ' . $startTimePart;
 				$item['end'] = $endDateYmd . ' ' . $endTimePart;
 				$item['allDay'] = false;
 			} else {
-				// All-day: gửi end inclusive (due_date) để tránh client hiển thị thêm 1 ngày
+				$startDateYmd = $record['date_start'];
+				$endDateYmd = $record['due_date'];
 				$item['start'] = $startDateYmd;
-				$item['end'] = $endDateYmd;
+				$item['end'] = date('Y-m-d', strtotime($endDateYmd . ' +1 day'));
 				$item['allDay'] = true;
 			}
 
@@ -538,31 +548,33 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 			$timeEnd = isset($record['time_end']) ? trim($record['time_end']) : '';
 			$isAllDay = (empty($timeStart) || $timeStart === '00:00:00' || $timeStart === '00:00') && (empty($timeEnd) || $timeEnd === '23:59:59' || $timeEnd === '23:59:00' || $timeEnd === '23:59');
 
-			$dateTimeFieldInstance = new DateTimeField($record['date_start'].' '.$record['time_start']);
-			$userDateTimeString = $dateTimeFieldInstance->getDisplayDateTimeValue($currentUser);
-			$dateTimeComponents = explode(' ', $userDateTimeString);
-			$dateComponent = isset($dateTimeComponents[0]) ? $dateTimeComponents[0] : '';
-			$startDateYmd = DateTimeField::__convertToDBFormat($dateComponent, $currentUser->get('date_format'));
-			$startTimePart = isset($dateTimeComponents[1]) ? $dateTimeComponents[1] : '';
-
 			$dueDate = isset($record['due_date']) ? $record['due_date'] : $record['date_start'];
 			$timeEndVal = isset($record['time_end']) ? $record['time_end'] : $record['time_start'];
-			$dateTimeFieldInstanceEnd = new DateTimeField($dueDate.' '.$timeEndVal);
-			$userDateTimeStringEnd = $dateTimeFieldInstanceEnd->getDisplayDateTimeValue($currentUser);
-			$dateTimeComponentsEnd = explode(' ', $userDateTimeStringEnd);
-			$dateComponentEnd = isset($dateTimeComponentsEnd[0]) ? $dateTimeComponentsEnd[0] : $dueDate;
-			$endDateYmd = DateTimeField::__convertToDBFormat($dateComponentEnd, $currentUser->get('date_format'));
-			$endTimePart = isset($dateTimeComponentsEnd[1]) ? $dateTimeComponentsEnd[1] : '';
 
-			if (!$isAllDay && $startTimePart !== '' && $endTimePart !== '') {
-				// Task có giờ bắt đầu/kết thúc → hiển thị trên lưới giờ (allDay: false)
+			// Timed tasks need timezone conversion; all-day must stay date-only (avoid shifting 23:59 into next day in user TZ).
+			if (!$isAllDay) {
+				$dateTimeFieldInstance = new DateTimeField($record['date_start'].' '.$record['time_start']);
+				$userDateTimeString = $dateTimeFieldInstance->getDisplayDateTimeValue($currentUser);
+				$dateTimeComponents = explode(' ', $userDateTimeString);
+				$dateComponent = isset($dateTimeComponents[0]) ? $dateTimeComponents[0] : '';
+				$startDateYmd = DateTimeField::__convertToDBFormat($dateComponent, $currentUser->get('date_format'));
+				$startTimePart = isset($dateTimeComponents[1]) ? $dateTimeComponents[1] : '';
+
+				$dateTimeFieldInstanceEnd = new DateTimeField($dueDate.' '.$timeEndVal);
+				$userDateTimeStringEnd = $dateTimeFieldInstanceEnd->getDisplayDateTimeValue($currentUser);
+				$dateTimeComponentsEnd = explode(' ', $userDateTimeStringEnd);
+				$dateComponentEnd = isset($dateTimeComponentsEnd[0]) ? $dateTimeComponentsEnd[0] : $dueDate;
+				$endDateYmd = DateTimeField::__convertToDBFormat($dateComponentEnd, $currentUser->get('date_format'));
+				$endTimePart = isset($dateTimeComponentsEnd[1]) ? $dateTimeComponentsEnd[1] : '';
+
 				$item['start'] = $startDateYmd . ' ' . $startTimePart;
 				$item['end'] = $endDateYmd . ' ' . $endTimePart;
 				$item['allDay'] = false;
 			} else {
-				// Task all-day: gửi end inclusive (due_date), client sẽ +1 ngày cho FullCalendar (exclusive)
+				$startDateYmd = $record['date_start'];
+				$endDateYmd = $dueDate;
 				$item['start'] = $startDateYmd;
-				$item['end'] = $endDateYmd;
+				$item['end'] = date('Y-m-d', strtotime($endDateYmd . ' +1 day'));
 				$item['allDay'] = true;
 			}
 

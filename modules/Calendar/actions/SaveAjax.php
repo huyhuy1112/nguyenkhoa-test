@@ -135,91 +135,58 @@ class Calendar_SaveAjax_Action extends Vtiger_SaveAjax_Action {
 		$recordModel = parent::getRecordModelFromRequest($request);
 		$currentUser = Users_Record_Model::getCurrentUserModel();
 
-		$allday = $request->get('allday');
-		$isAllDay = ($allday == '1' || $allday === true);
+		$startDate = $request->get('date_start');
+		if(!empty($startDate)) {
+			//Start Date and Time values
+			$startTime = Vtiger_Time_UIType::getTimeValueWithSeconds($request->get('time_start'));
+			$startDateTime = Vtiger_Datetime_UIType::getDBDateTimeValue($startDate." ".$startTime);
+			list($startDate, $startTime) = explode(' ', $startDateTime);
 
-		if ($isAllDay) {
-			// All-day: chỉ chuyển đổi ngày (format), không dùng getDBDateTimeValue để tránh timezone làm lùi 1 ngày
-			// Lấy phần ngày (bỏ giờ/timezone) rồi convert theo format của user để tránh lệch ngày
-			$userDateFormat = $currentUser->get('date_format');
-			$startDate = $request->get('date_start');
-			if (!empty($startDate)) {
-				$startDateOnly = trim(explode(' ', $startDate)[0]);
-				$startDateOnly = trim(explode('T', $startDateOnly)[0]);
-				$recordModel->set('date_start', DateTimeField::__convertToDBFormat($startDateOnly, $userDateFormat));
-				$recordModel->set('time_start', '00:00:00');
-			}
-			$endDateReq = $request->get('due_date');
-			if (!empty($endDateReq)) {
-				$endDateOnly = trim(explode(' ', $endDateReq)[0]);
-				$endDateOnly = trim(explode('T', $endDateOnly)[0]);
-				$recordModel->set('due_date', DateTimeField::__convertToDBFormat($endDateOnly, $userDateFormat));
-				$recordModel->set('time_end', '23:59:59');
-			} else {
-				$activityType = $request->get('activitytype');
-				$isTask = (empty($activityType) && $recordModel->get('activitytype') === 'Task') || $activityType === 'Task';
-				if ($isTask && $recordModel->getModuleName() === 'Calendar') {
-					$recordModel->set('due_date', $recordModel->get('date_start'));
-					$recordModel->set('time_end', '23:59:59');
-				} else {
-					$recordModel->set('due_date', $recordModel->get('date_start'));
-					$recordModel->set('time_end', '23:59:59');
-				}
-			}
+			$recordModel->set('date_start', $startDate);
+			$recordModel->set('time_start', $startTime);
 		} else {
-			$startDate = $request->get('date_start');
-			if(!empty($startDate)) {
-				//Start Date and Time values
-				$startTime = Vtiger_Time_UIType::getTimeValueWithSeconds($request->get('time_start'));
-				$startDateTime = Vtiger_Datetime_UIType::getDBDateTimeValue($startDate." ".$startTime);
-				list($startDate, $startTime) = explode(' ', $startDateTime);
+			// Start Date from UserFormat to DBFormat.
+			$startDate = DateTimeField::__convertToDBFormat($recordModel->get('date_start'), $currentUser->get('date_format'));
+			$recordModel->set('date_start', $startDate);
+		}
 
-				$recordModel->set('date_start', $startDate);
-				$recordModel->set('time_start', $startTime);
+		$endDate = $request->get('due_date');
+		if(!empty($endDate)) {
+			//End Date and Time values
+			$endTime = $request->get('time_end');
+			$endDate = Vtiger_Date_UIType::getDBInsertedValue($request->get('due_date'));
+
+			if ($endTime) {
+				$endTime = Vtiger_Time_UIType::getTimeValueWithSeconds($endTime);
+				$endDateTime = Vtiger_Datetime_UIType::getDBDateTimeValue($request->get('due_date')." ".$endTime);
+				list($endDate, $endTime) = explode(' ', $endDateTime);
 			} else {
-				// Start Date from UserFormat to DBFormat.
-				$startDate = DateTimeField::__convertToDBFormat($recordModel->get('date_start'), $currentUser->get('date_format'));
-				$recordModel->set('date_start', $startDate);
+				// Task: deadline có ngày nhưng không có giờ → mặc định 23:59
+				$endTime = '23:59:00';
 			}
 
-			$endDate = $request->get('due_date');
-			if(!empty($endDate)) {
+			$recordModel->set('time_end', $endTime);
+			$recordModel->set('due_date', $endDate);
+		} else {
+			// Task: deadline optional - khi để trống thì dùng date_start và time_start
+			$activityType = $request->get('activitytype');
+			$isTask = (empty($activityType) && $recordModel->get('activitytype') === 'Task') || $activityType === 'Task';
+			if ($isTask && $recordModel->getModuleName() === 'Calendar') {
+				$recordModel->set('due_date', $recordModel->get('date_start'));
+				$recordModel->set('time_end', $recordModel->get('time_start'));
+			} else {
 				//End Date and Time values
-				$endTime = $request->get('time_end');
-				$endDate = Vtiger_Date_UIType::getDBInsertedValue($request->get('due_date'));
+				$endTime = $recordModel->get('time_end');
+				$endDate = Vtiger_Date_UIType::getDBInsertedValue($recordModel->get('due_date'));
 
 				if ($endTime) {
 					$endTime = Vtiger_Time_UIType::getTimeValueWithSeconds($endTime);
-					$endDateTime = Vtiger_Datetime_UIType::getDBDateTimeValue($request->get('due_date')." ".$endTime);
+					$endDateTime = Vtiger_Datetime_UIType::getDBDateTimeValue($recordModel->get('due_date')." ".$endTime);
 					list($endDate, $endTime) = explode(' ', $endDateTime);
-				} else {
-					// Task: deadline có ngày nhưng không có giờ → mặc định 23:59
-					$endTime = '23:59:00';
 				}
 
 				$recordModel->set('time_end', $endTime);
 				$recordModel->set('due_date', $endDate);
-			} else {
-				// Task: deadline optional - khi để trống thì dùng date_start và time_start
-				$activityType = $request->get('activitytype');
-				$isTask = (empty($activityType) && $recordModel->get('activitytype') === 'Task') || $activityType === 'Task';
-				if ($isTask && $recordModel->getModuleName() === 'Calendar') {
-					$recordModel->set('due_date', $recordModel->get('date_start'));
-					$recordModel->set('time_end', $recordModel->get('time_start'));
-				} else {
-					//End Date and Time values
-					$endTime = $recordModel->get('time_end');
-					$endDate = Vtiger_Date_UIType::getDBInsertedValue($recordModel->get('due_date'));
-
-					if ($endTime) {
-						$endTime = Vtiger_Time_UIType::getTimeValueWithSeconds($endTime);
-						$endDateTime = Vtiger_Datetime_UIType::getDBDateTimeValue($recordModel->get('due_date')." ".$endTime);
-						list($endDate, $endTime) = explode(' ', $endDateTime);
-					}
-
-					$recordModel->set('time_end', $endTime);
-					$recordModel->set('due_date', $endDate);
-				}
 			}
 		}
 
@@ -246,6 +213,24 @@ class Calendar_SaveAjax_Action extends Vtiger_SaveAjax_Action {
 			$_REQUEST['set_reminder'] = 'Yes';
 		} else {
 			$_REQUEST['set_reminder'] = 'No';
+		}
+
+		// All day: re-apply date_start / due_date from request using date-only conversion (same as Events SaveAjax).
+		// Avoids due_date shifting +1 day when the earlier path used getDBDateTimeValue(due_date + time_end).
+		$allday = $request->get('allday');
+		if ($allday == '1' || $allday === true) {
+			$recordModel->set('time_start', '00:00:00');
+			$recordModel->set('time_end', '23:59:59');
+			$ds = $request->get('date_start');
+			$dd = $request->get('due_date');
+			if (!empty($ds)) {
+				$recordModel->set('date_start', Vtiger_Date_UIType::getDBInsertedValue($ds));
+			}
+			if (!empty($dd)) {
+				$recordModel->set('due_date', Vtiger_Date_UIType::getDBInsertedValue($dd));
+			} elseif (!empty($ds)) {
+				$recordModel->set('due_date', Vtiger_Date_UIType::getDBInsertedValue($ds));
+			}
 		}
 
 		// Handle optional fields (if custom fields exist, they will be saved automatically)

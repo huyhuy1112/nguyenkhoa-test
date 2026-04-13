@@ -281,11 +281,16 @@ Vtiger.Class(
       var endDate = end.format(dateFormat);
       var color = feedCheckbox.data("calendarFeedColor");
       var textColor = feedCheckbox.data("calendarFeedTextcolor");
+      var feedType = feedCheckbox.data("calendarFeed");
+      var fieldname = feedCheckbox.data("calendarFieldname");
+      if (!fieldname && (feedType === "Events" || feedType === "Calendar")) {
+        fieldname = "date_start,due_date";
+      }
       return {
         start: startDate,
         end: endDate,
-        type: feedCheckbox.data("calendarFeed"),
-        fieldname: feedCheckbox.data("calendarFieldname"),
+        type: feedType,
+        fieldname: fieldname,
         color: color,
         textColor: textColor,
         conditions: feedCheckbox.data("calendarFeedConditions"),
@@ -1357,7 +1362,7 @@ Vtiger.Class(
       }
       if (endDateElement.length) endDateElement.trigger("change");
     },
-    showCreateModal: function (moduleName, startDateTime, endDateTime) {
+    showCreateModal: function (moduleName, startDateTime, endDateTime, createContext) {
       var isAllowed = jQuery("#is_record_creation_allowed").val();
       if (isAllowed) {
         var thisInstance = this;
@@ -1375,16 +1380,104 @@ Vtiger.Class(
         app.event.one("post.QuickCreateForm.show", function (e, form) {
           thisInstance.performingDayClickOperation = false;
           var modalContainer = form.closest(".modal");
-          if (typeof startDateTime !== "undefined" && startDateTime) {
-            thisInstance.setStartDateTime(modalContainer, startDateTime);
+          var applyAllDayCreateIfNeeded = function () {
+            try {
+              if (!createContext || !createContext.isAllDayCreate) return;
+              // Only auto-apply on selection from FullCalendar all-day row (no time component).
+              // Must trigger change so ScheduleQuickCreate.js runs the same logic as manual checking.
+              var $qc = modalContainer.find("#QuickCreate");
+              if (!$qc.length) $qc = modalContainer;
+              var $allDay = $qc.find('input[name="allday"], #calendar_allday').first();
+              if (!$allDay.length) return;
+              if (!$allDay.is(":checked")) {
+                $allDay.prop("checked", true).trigger("change");
+              } else {
+                // Ensure downstream handlers run even if already checked by defaults.
+                $allDay.trigger("change");
+              }
+            } catch (ex) {}
+          };
+          var appliedEndForResync = null;
+          if (typeof window !== "undefined") {
+            window.__VtCalendarQcShowHandlerAt = Date.now();
+            window.__VtCalendarQcShowHandlerModule = moduleName;
           }
-          if (
-            typeof endDateTime !== "undefined" &&
-            endDateTime &&
-            (moduleName === "Events" || moduleName === "Calendar")
-          ) {
-            // Dùng end trực tiếp: FullCalendar/view trả end inclusive (kéo 3+4 → end=4, kéo 3+4+5 → end=5)
-            thisInstance.setEndDateTime(modalContainer, endDateTime);
+          try {
+            window.__vtCalendarQuickCreateRange = true;
+            if (typeof startDateTime !== "undefined" && startDateTime) {
+              thisInstance.setStartDateTime(modalContainer, startDateTime);
+            }
+            if (
+              typeof endDateTime !== "undefined" &&
+              endDateTime &&
+              (moduleName === "Events" || moduleName === "Calendar")
+            ) {
+              // FullCalendar v3 all-day select: `end` is exclusive (first day after the range).
+              // vtiger `due_date` is inclusive end date. Convert using FC's all-day markers, not local midnight:
+              // stripTime() ranges have hasTime() === false; local hours can still be non-zero in edge TZ cases.
+              // dayClick uses endOf('day') → hasTime() true → no subtract here.
+              var endForModal = endDateTime;
+              var qcIsAllDayRange = null;
+              var qcEDayAfterSDay = null;
+              if (
+                startDateTime &&
+                endDateTime &&
+                typeof endDateTime.clone === "function" &&
+                typeof startDateTime.clone === "function"
+              ) {
+                var sDay = startDateTime.clone().startOf("day");
+                var eDay = endDateTime.clone().startOf("day");
+                qcIsAllDayRange =
+                  typeof startDateTime.hasTime === "function" &&
+                  typeof endDateTime.hasTime === "function" &&
+                  !startDateTime.hasTime() &&
+                  !endDateTime.hasTime();
+                qcEDayAfterSDay = eDay.isAfter(sDay, "day");
+                if (qcIsAllDayRange && qcEDayAfterSDay) {
+                  endForModal = endDateTime.clone().subtract(1, "day");
+                }
+              }
+              if (typeof window !== "undefined") {
+                try {
+                  window.__VtCalendarQcPrefill = {
+                    build: "20260411-qcpatch-v3",
+                    at: Date.now(),
+                    module: moduleName,
+                    startYmd:
+                      startDateTime && startDateTime.format
+                        ? startDateTime.format("YYYY-MM-DD")
+                        : null,
+                    endExclusiveYmd:
+                      endDateTime && endDateTime.format
+                        ? endDateTime.format("YYYY-MM-DD")
+                        : null,
+                    endInclusiveYmd:
+                      endForModal && endForModal.format
+                        ? endForModal.format("YYYY-MM-DD")
+                        : null,
+                    isAllDayRange: qcIsAllDayRange,
+                    eDayAfterSDay: qcEDayAfterSDay,
+                  };
+                } catch (probeEx) {}
+              }
+              thisInstance.setEndDateTime(modalContainer, endForModal);
+              appliedEndForResync = endForModal;
+            }
+          } finally {
+            window.__vtCalendarQuickCreateRange = false;
+          }
+          // Defer so QuickCreate scripts (e.g. ScheduleQuickCreate.js) have registered their handlers.
+          setTimeout(applyAllDayCreateIfNeeded, 0);
+          if (appliedEndForResync) {
+            setTimeout(function () {
+              if (
+                !modalContainer.length ||
+                !jQuery.contains(document.body, modalContainer[0])
+              ) {
+                return;
+              }
+              thisInstance.setEndDateTime(modalContainer, appliedEndForResync);
+            }, 0);
           }
           if (moduleName === "Events") {
             thisInstance.registerCreateEventModalEvents(form.closest(".modal"));
@@ -1454,7 +1547,7 @@ Vtiger.Class(
       this.showCreateModal("Events", startDateTime, endDateTime);
     },
     choiceDialogOpen: false,
-    showCreateTaskOrEventChoice: function (start, end) {
+    showCreateTaskOrEventChoice: function (start, end, createContext) {
       var thisInstance = this;
       if (this.choiceDialogOpen) {
         return;
@@ -1486,7 +1579,7 @@ Vtiger.Class(
           callback: function () {
             thisInstance.choiceDialogOpen = false;
             thisInstance.performingDayClickOperation = false;
-            thisInstance.showCreateModal("Calendar", start, end);
+            thisInstance.showCreateModal("Calendar", start, end, createContext);
           },
         },
         event: {
@@ -1495,7 +1588,7 @@ Vtiger.Class(
           callback: function () {
             thisInstance.choiceDialogOpen = false;
             thisInstance.performingDayClickOperation = false;
-            thisInstance.showCreateModal("Events", start, end);
+            thisInstance.showCreateModal("Events", start, end, createContext);
           },
         },
         leave: {
@@ -1563,7 +1656,7 @@ Vtiger.Class(
         var end = date.hasTime()
           ? date.clone().add(1, "hour")
           : date.clone().endOf("day");
-        this.showCreateTaskOrEventChoice(start, end);
+        this.showCreateTaskOrEventChoice(start, end, null);
       }
     },
     daysOfWeek: {
@@ -1641,26 +1734,33 @@ Vtiger.Class(
         mode: "updateDeltaOnResize",
         id: event.id,
         activitytype: event.activitytype,
-        view: view.name,
+        view: view && view.name ? view.name : "",
         userid: event.userid,
       };
 
-      // All-day Task: gửi ngày mới từ event (FullCalendar dùng end exclusive → due_date = end - 1 ngày) để tránh lỗi "kéo 25-26 chỉ còn 25"
-      if (
+      // Timed: gửi start/end tuyệt đối (FC v3 có thể chỉ có event._end). All-day Task: giữ hành vi cũ (end exclusive − 1 ngày).
+      var endM =
+        event.end ||
+        (event._end && event._end.clone ? event._end.clone() : null);
+      if (!event.allDay && event.start && endM) {
+        postData.new_date_start = event.start.format("YYYY-MM-DD");
+        postData.new_time_start = event.start.format("HH:mm:ss");
+        postData.new_due_date = endM.format("YYYY-MM-DD");
+        postData.new_time_end = endM.format("HH:mm:ss");
+      } else if (
         event.allDay &&
         event.activitytype === "Task" &&
         event.start &&
         event.end
       ) {
         postData.new_date_start = event.start.format("YYYY-MM-DD");
-        // end trong FullCalendar all-day là exclusive (ngày sau ngày cuối) → due_date = end - 1 ngày
         postData.new_due_date = event.end
           .clone()
           .subtract(1, "day")
           .format("YYYY-MM-DD");
         postData.new_time_start = "00:00:00";
         postData.new_time_end = "23:59:59";
-      } else {
+      } else if (delta && typeof delta.asSeconds === "function") {
         postData.secondsDelta = delta.asSeconds();
       }
 
@@ -1688,12 +1788,19 @@ Vtiger.Class(
         mode: "updateDeltaOnDrop",
         id: event.id,
         activitytype: event.activitytype,
-        view: view.name,
+        view: view && view.name ? view.name : "",
         userid: event.userid,
       };
 
-      // All-day Task: gửi ngày mới từ event để tránh lệch khi kéo (due_date = end exclusive - 1 ngày)
-      if (
+      var endDrop =
+        event.end ||
+        (event._end && event._end.clone ? event._end.clone() : null);
+      if (!event.allDay && event.start && endDrop) {
+        postData.new_date_start = event.start.format("YYYY-MM-DD");
+        postData.new_time_start = event.start.format("HH:mm:ss");
+        postData.new_due_date = endDrop.format("YYYY-MM-DD");
+        postData.new_time_end = endDrop.format("HH:mm:ss");
+      } else if (
         event.allDay &&
         event.activitytype === "Task" &&
         event.start &&
@@ -1706,7 +1813,7 @@ Vtiger.Class(
           .format("YYYY-MM-DD");
         postData.new_time_start = "00:00:00";
         postData.new_time_end = "23:59:59";
-      } else {
+      } else if (delta && typeof delta.asSeconds === "function") {
         postData.secondsDelta = delta.asSeconds();
       }
 
@@ -2351,8 +2458,6 @@ Vtiger.Class(
             if (m.isValid()) {
               if (event.allDay && /^\d{4}-\d{2}-\d{2}$/.test(event.end)) {
                 event.end = moment(event.end, "YYYY-MM-DD");
-                // Feed gửi end inclusive (due_date). FullCalendar cần end exclusive → +1 ngày để vẽ đúng số ngày
-                event.end = event.end.clone().add(1, "day");
               } else {
                 event.end = m;
               }
@@ -2426,7 +2531,15 @@ Vtiger.Class(
         select: function (start, end, jsEvent, view) {
           thisInstance.getCalendarViewContainer().fullCalendar("unselect");
           thisInstance.performingDayClickOperation = true;
-          thisInstance.showCreateTaskOrEventChoice(start, end);
+          var isAllDayCreate =
+            start &&
+            end &&
+            typeof start.hasTime === "function" &&
+            typeof end.hasTime === "function" &&
+            !start.hasTime() &&
+            !end.hasTime();
+          var createContext = { isAllDayCreate: !!isAllDayCreate };
+          thisInstance.showCreateTaskOrEventChoice(start, end, createContext);
         },
         eventClick: function (calEvent, jsEvent, view) {
           if (
@@ -3343,3 +3456,5 @@ Vtiger.Class(
     },
   }
 );
+/** Quick-create range patch id: search Network/Sources for this string to confirm this file is loaded */
+window.__VtCalendarJsBuild = "20260411-qcpatch-v3";

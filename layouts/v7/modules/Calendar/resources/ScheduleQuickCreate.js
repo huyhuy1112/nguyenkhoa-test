@@ -1,6 +1,6 @@
 /*+**********************************************************************************
  * Calendar Quick Create Enhancements
- * Safe client-side enhancements only - no form submission changes
+ * Client-side Quick Create helpers (all-day aligns end date with start when appropriate)
  * Google Calendar-like UX with 15-minute intervals, All Day toggle, duration calculation
  *************************************************************************************/
 
@@ -146,8 +146,36 @@
 		},
 
 		/**
+		 * Single-day all-day: due_date/deadline must match date_start unless calendar prefill was a multi-day range
+		 * or the user explicitly changed due_date (calendarUserTouchedDue on Edit.js).
+		 */
+		applyAllDaySingleDayEndDate: function($container) {
+			var $ds = $container.find('input[name="date_start"]');
+			var $dd = $container.find('input[name="due_date"]');
+			if (!$ds.length || !$dd.length || !$ds.val()) {
+				return;
+			}
+			if ($dd.data('calendarUserTouchedDue')) {
+				return;
+			}
+			var qp = typeof window !== 'undefined' ? window.__VtCalendarQcPrefill : null;
+			if (qp && qp.at && Date.now() - qp.at > 10 * 60 * 1000) {
+				qp = null;
+			}
+			if (qp && qp.startYmd && qp.endInclusiveYmd && qp.startYmd !== qp.endInclusiveYmd) {
+				return;
+			}
+			var formEl = $container.closest('form').length ? $container.closest('form') : $container;
+			formEl.data('calendarIgnoreDueChangeTracking', true);
+			$dd.val($ds.val());
+			formEl.removeData('calendarIgnoreDueChangeTracking');
+			if (typeof vtUtils !== 'undefined' && typeof vtUtils.registerEventForDateFields === 'function') {
+				vtUtils.registerEventForDateFields($dd);
+			}
+		},
+
+		/**
 		 * Setup All Day event toggle
-		 * SAFE: Only hides/shows time inputs, does not remove from DOM
 		 */
 		setupAllDayToggle: function() {
 			var $container = $('#QuickCreate');
@@ -182,6 +210,9 @@
 					// Store previous values
 					$timeStart.data('calendar-previous-value', $timeStart.val());
 					$timeEnd.data('calendar-previous-value', $timeEnd.val());
+
+					// Fix +1 day on due_date from default duration / changeTime (Events + Tasks).
+					CalendarQuickCreate.applyAllDaySingleDayEndDate($container);
 				} else {
 					// Show time fields
 					$timeStartContainer.show();
@@ -516,11 +547,17 @@
 		}
 	};
 
-	// Initialize when QuickCreate form is shown
-	jQuery(document).on('post.QuickCreateForm.show', function(e, form) {
-		setTimeout(function() {
-			CalendarQuickCreate.init();
-		}, 100);
+	// Initialize when QuickCreate form is shown (must use app.event — same bus as Vtiger.js trigger).
+	// Namespaced + off: this script can be injected again on each QuickCreate AJAX load.
+	jQuery(function () {
+		if (typeof app !== 'undefined' && app.event) {
+			app.event.off('post.QuickCreateForm.show.calendarQcEnhance');
+			app.event.on('post.QuickCreateForm.show.calendarQcEnhance', function (e, form) {
+				setTimeout(function () {
+					CalendarQuickCreate.init();
+				}, 100);
+			});
+		}
 	});
 
 	// Reset on modal close
@@ -540,5 +577,6 @@
 
 	// Expose globally (optional, for debugging)
 	window.CalendarQuickCreate = CalendarQuickCreate;
+	window.__VtCalendarScheduleQcJsBuild = "20260411-app-event";
 
 })(jQuery);

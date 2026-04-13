@@ -16,10 +16,16 @@ Calendar_Calendar_Js('Calendar_SharedCalendar_Js', {
 		var dateFormat = userFormat;
 		var startDate = start.format(dateFormat);
 		var endDate = end.format(dateFormat);
+		var feedType = feedCheckbox.data('calendarFeed');
+		var fieldname = feedCheckbox.data('calendarFieldname');
+		if (!fieldname && feedType === 'Events') {
+			fieldname = 'date_start,due_date';
+		}
 		return {
 			'start' : startDate,
 			'end' : endDate,
-			'type' : feedCheckbox.data('calendarFeed'),
+			'type' : feedType,
+			'fieldname' : fieldname,
 			'userid' : feedCheckbox.data('calendarUserid'),
 			'group' : feedCheckbox.data('calendarGroup'),
 			'color' : feedCheckbox.data('calendarFeedColor'),

@@ -253,11 +253,35 @@ function vtemplate_path($templateName, $moduleName='') {
  * Generated cache friendly resource URL linked with version of Vtiger
  */
 function vresource_url($url) {
-    global $vtiger_current_version;
-    if (stripos($url, '://') === false) {
-        $url = $url .'?v='.$vtiger_current_version;
-    }
-    return $url;
+	global $vtiger_current_version, $root_directory;
+	if (stripos($url, '://') !== false) {
+		return $url;
+	}
+	$ver = $vtiger_current_version;
+	$pathOnly = $url;
+	if (($q = strpos($pathOnly, '?')) !== false) {
+		$pathOnly = substr($pathOnly, 0, $q);
+	}
+	if ($pathOnly !== '') {
+		$m = false;
+		if (!empty($root_directory)) {
+			$abs = rtrim(str_replace('\\', '/', $root_directory), '/') . '/' . ltrim(str_replace('\\', '/', $pathOnly), '/');
+			if (@is_file($abs)) {
+				$m = @filemtime($abs);
+			}
+		}
+		if ($m === false) {
+			$crmRoot = dirname(dirname(dirname(__FILE__)));
+			$abs2 = $crmRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, ltrim(str_replace('\\', '/', $pathOnly), '/'));
+			if (@is_file($abs2)) {
+				$m = @filemtime($abs2);
+			}
+		}
+		if ($m) {
+			$ver .= '.' . $m;
+		}
+	}
+	return $url . '?v=' . $ver;
 }
 
 function getPurifiedSmartyParameters($param){

@@ -48,18 +48,18 @@ class Calendar_DragDropAjax_Action extends Calendar_SaveAjax_Action {
 				$record = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
 				$record->set('mode','edit');
 
-				// All-day Task: client gửi ngày mới trực tiếp (tránh lỗi kéo 25-26 chỉ còn 25)
+				// Client gửi ngày/giờ mới trực tiếp sau khi FullCalendar mutate (tránh strtotime(secondsDelta) và lệch timezone).
 				if (!empty($newDateStart) && !empty($newDueDate)) {
 					$record->set('date_start', $newDateStart);
 					$record->set('due_date', $newDueDate);
 					if ($newTimeStart !== null && $newTimeStart !== '') {
-						$record->set('time_start', $newTimeStart);
+						$record->set('time_start', Vtiger_Time_UIType::getTimeValueWithSeconds($newTimeStart));
 					}
 					if ($newTimeEnd !== null && $newTimeEnd !== '') {
-						$record->set('time_end', $newTimeEnd);
+						$record->set('time_end', Vtiger_Time_UIType::getTimeValueWithSeconds($newTimeEnd));
 					}
-					$startDateTime = new DateTime($newDateStart . ' ' . ($newTimeStart ?: '00:00:00'));
-					$endDateTime = new DateTime($newDueDate . ' ' . ($newTimeEnd ?: '23:59:59'));
+					$startDateTime = new DateTime(trim($newDateStart) . ' ' . trim((string)$record->get('time_start')));
+					$endDateTime = new DateTime(trim($newDueDate) . ' ' . trim((string)$record->get('time_end')));
 					if ($startDateTime <= $endDateTime) {
 						$this->setRecurrenceInfo($record);
 						$record->save();
@@ -147,12 +147,12 @@ class Calendar_DragDropAjax_Action extends Calendar_SaveAjax_Action {
 	function setRecurrenceInfo($recordModel) {
 		//Activity.php insertIntoRecurringTable api depends on $_REQUEST mode edit
 		$_REQUEST['mode'] = 'edit';
-		$startDateTime = DateTimeField::convertToUserTimeZone($recordModel->get('date_start') . ' ' . $recordModel->get('time_start'));
-		$endDateTime = DateTimeField::convertToUserTimeZone($recordModel->get('due_date') . ' ' . $recordModel->get('time_end'));
-		$_REQUEST['date_start'] = $startDateTime->format('Y-m-d');
-		$_REQUEST['time_start'] = $startDateTime->format('H:i');
-		$_REQUEST['due_date'] = $endDateTime->format('Y-m-d');
-		$_REQUEST['time_end'] = $endDateTime->format('H:i');
+		// Luôn đẩy đúng giá trị đang trên record (định dạng DB). convertToUserTimeZone() coi chuỗi
+		// "Y-m-d H:i:s" theo timezone DB/PHP — sau kéo thả từ FullCalendar dễ bị lệch −1 ngày / sai giờ.
+		$_REQUEST['date_start'] = $recordModel->get('date_start');
+		$_REQUEST['due_date'] = $recordModel->get('due_date');
+		$_REQUEST['time_start'] = substr((string)$recordModel->get('time_start'), 0, 5);
+		$_REQUEST['time_end'] = substr((string)$recordModel->get('time_end'), 0, 5);
 
 		$recurringInfo = $recordModel->getRecurrenceInformation();
 		$_REQUEST['recurringcheck'] = $recurringInfo['recurringcheck'];
@@ -210,14 +210,20 @@ class Calendar_DragDropAjax_Action extends Calendar_SaveAjax_Action {
 					$record->set('date_start', $newDateStart);
 					$record->set('due_date', $newDueDate);
 					if ($newTimeStart !== null && $newTimeStart !== '') {
-						$record->set('time_start', $newTimeStart);
+						$record->set('time_start', Vtiger_Time_UIType::getTimeValueWithSeconds($newTimeStart));
 					}
 					if ($newTimeEnd !== null && $newTimeEnd !== '') {
-						$record->set('time_end', $newTimeEnd);
+						$record->set('time_end', Vtiger_Time_UIType::getTimeValueWithSeconds($newTimeEnd));
 					}
-					$this->setRecurrenceInfo($record);
-					$record->save();
-					$result['recurringRecords'] = false;
+					$startDT = new DateTime(trim($newDateStart) . ' ' . trim((string)$record->get('time_start')));
+					$endDT = new DateTime(trim($newDueDate) . ' ' . trim((string)$record->get('time_end')));
+					if ($startDT <= $endDT) {
+						$this->setRecurrenceInfo($record);
+						$record->save();
+						$result['recurringRecords'] = false;
+					} else {
+						$result['error'] = true;
+					}
 				} else {
 					$oldStartDateTime = $this->getFormattedDateTime($record->get('date_start'), $record->get('time_start'));
 					$resultDateTime = $this->changeDateTime($oldStartDateTime, $dayDelta, $minuteDelta, $secondsDelta);

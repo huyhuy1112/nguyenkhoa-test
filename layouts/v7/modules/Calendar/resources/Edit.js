@@ -319,6 +319,10 @@ Vtiger_Edit_Js("Calendar_Edit_Js",{
 
 	registerTimeStartChangeEvent : function(container) {
 		container.on('changeTime', 'input[name="time_start"]', function() {
+			// All-day: end date must not follow default duration (often pushes due_date +1 calendar day).
+			if (container.find('input[name="allday"], #calendar_allday').first().is(':checked')) {
+				return;
+			}
 			var startDateElement = container.find('input[name="date_start"]');
 			var startTimeElement = container.find('input[name="time_start"]');
 			var endDateElement = container.find('input[name="due_date"]');
@@ -477,6 +481,30 @@ Vtiger_Edit_Js("Calendar_Edit_Js",{
 
 	registerDateStartChangeEvent : function(container) {
 		container.find('[name="date_start"]').on('change',function() {
+			// Calendar quick-create prefill sets start then inclusive end; skip auto end=duration sync during that pass
+			// (Calendar.js sets window.__vtCalendarQuickCreateRange around setStartDateTime/setEndDateTime).
+			if (typeof window !== 'undefined' && window.__vtCalendarQuickCreateRange) {
+				return;
+			}
+			// All-day single segment: keep deadline/end date aligned with start (unless multi-day from calendar or user edited due_date).
+			if (container.find('input[name="allday"], #calendar_allday').first().is(':checked')) {
+				var qp = typeof window !== 'undefined' ? window.__VtCalendarQcPrefill : null;
+				if (qp && qp.at && Date.now() - qp.at > 10 * 60 * 1000) {
+					qp = null;
+				}
+				var multiDayFromCalendar = qp && qp.startYmd && qp.endInclusiveYmd && qp.startYmd !== qp.endInclusiveYmd;
+				var $dd = container.find('[name="due_date"]');
+				if (!multiDayFromCalendar && $dd.length && !$dd.data('calendarUserTouchedDue')) {
+					var $ds = container.find('[name="date_start"]');
+					container.data('calendarIgnoreDueChangeTracking', true);
+					$dd.val($ds.val());
+					container.removeData('calendarIgnoreDueChangeTracking');
+					if (typeof vtUtils !== 'undefined' && typeof vtUtils.registerEventForDateFields === 'function') {
+						vtUtils.registerEventForDateFields($dd);
+					}
+				}
+				return;
+			}
 			var timeStartElement = container.find('[name="time_start"]');
 			timeStartElement.trigger('changeTime');
 		});
@@ -505,7 +533,12 @@ Vtiger_Edit_Js("Calendar_Edit_Js",{
 	},
 
 	registerDateEndChangeEvent : function(container) {
-		container.find('[name="due_date"]').on('change', function() {});
+		container.find('[name="due_date"]').on('change', function() {
+			if (container.data('calendarIgnoreDueChangeTracking')) {
+				return;
+			}
+			jQuery(this).data('calendarUserTouchedDue', true);
+		});
 	},
 
 	registerActivityTypeChangeEvent : function(container) {
@@ -564,6 +597,87 @@ Vtiger_Edit_Js("Calendar_Edit_Js",{
 		}
 	},
 
+	/**
+	 * Quick Create: last sync before serialize(). Vtiger_Index_Js.quickCreateSave never fires Pre.Record.Save,
+	 * so changeTime / datepicker can leave due_date +1 day until this runs.
+	 */
+	syncQuickCreateAllDayPayload : function(form) {
+		var $form = jQuery(form);
+		if (!$form.length || $form.attr('name') !== 'QuickCreate') {
+			return;
+		}
+		var moduleName = $form.find('[name="module"]').val();
+		if (moduleName !== 'Calendar' && moduleName !== 'Events') {
+			return;
+		}
+		var $ad = $form.find('input[name="allday"], #calendar_allday').filter(':checkbox');
+		if (!$ad.length || !$ad.is(':checked')) {
+			return;
+		}
+		var $ds = $form.find('input[name="date_start"]').first();
+		var $dd = $form.find('input[name="due_date"]').first();
+		if (!$ds.length || !$dd.length) {
+			return;
+		}
+		var qp = typeof window !== 'undefined' ? window.__VtCalendarQcPrefill : null;
+		if (qp && qp.at && Date.now() - qp.at > 10 * 60 * 1000) {
+			qp = null;
+		}
+		if (qp && qp.startYmd && qp.endInclusiveYmd && qp.startYmd !== qp.endInclusiveYmd) {
+			return;
+		}
+		if ($dd.data('calendarUserTouchedDue')) {
+			return;
+		}
+		var startVal = $ds.val();
+		if (!startVal) {
+			return;
+		}
+		$form.data('calendarIgnoreDueChangeTracking', true);
+		$dd.val(startVal);
+		$form.removeData('calendarIgnoreDueChangeTracking');
+	},
+
+	/**
+	 * Override Vtiger_Index_Js.quickCreateSave so all-day payload is corrected immediately before jQuery.serialize().
+	 */
+	quickCreateSave : function(form, invokeParams) {
+		if (typeof invokeParams === 'undefined') {
+			invokeParams = {};
+		}
+		if (typeof invokeParams.callbackFunction === 'undefined') {
+			invokeParams.callbackFunction = function () {};
+		}
+		var thisInstance = this;
+		var params = {
+			submitHandler : function (formEl) {
+				jQuery("button[name='saveButton']").attr("disabled","disabled");
+				if (this.numberOfInvalids() > 0) {
+					return false;
+				}
+				thisInstance.syncQuickCreateAllDayPayload(formEl);
+				var formData = jQuery(formEl).serialize();
+				app.request.post({data:formData}).then(function(err,data){
+					app.helper.hideProgress();
+					if(err === null) {
+						jQuery('.vt-notification').remove();
+						app.event.trigger("post.QuickCreateForm.save",data,jQuery(formEl).serializeFormData());
+						app.helper.hideModal();
+						var message = typeof formData.record !== 'undefined' ? app.vtranslate('JS_RECORD_UPDATED'):app.vtranslate('JS_RECORD_CREATED');
+						app.helper.showSuccessNotification({"message":message},{delay:4000});
+						invokeParams.callbackFunction(data, err);
+						window.onbeforeunload = null;
+					}else{
+						app.event.trigger('post.save.failed', err);
+						jQuery("button[name='saveButton']").removeAttr('disabled');
+					}
+				});
+			},
+			validationMeta : quickcreate_uimeta
+		};
+		jQuery(form).vtValidate(params);
+	},
+
 	registerToggleReminderEvent : function(container) {
 		container.find('input[name="set_reminder"]').on('change', function(e) {
 			var element = jQuery(e.currentTarget);
@@ -617,3 +731,4 @@ Vtiger_Edit_Js("Calendar_Edit_Js",{
 		this.registerRelatedContactSpecificEvents(container);
 	}
 });
+window.__VtCalendarEditJsBuild = "20260411-qcpatch-guard";
