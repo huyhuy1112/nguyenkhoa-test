@@ -9,6 +9,35 @@
 class Potentials_List_View extends Vtiger_List_View {
 
     /**
+     * Remove deprecated Project/Internal toggle injector.
+     * The toggle is injected client-side by OrderCategoryFilter.js which may be registered
+     * as a HEADERSCRIPT link in DB. We explicitly filter it out here so it never loads.
+     */
+    public function getHeaderScripts(Vtiger_Request $request) {
+        $headerScriptInstances = parent::getHeaderScripts($request);
+
+        foreach ($headerScriptInstances as $key => $scriptModel) {
+            try {
+                $src = null;
+                if (is_object($scriptModel) && method_exists($scriptModel, 'get')) {
+                    $src = $scriptModel->get('src');
+                    if (!$src) {
+                        $src = $scriptModel->get('linkurl');
+                    }
+                }
+                $src = (string)$src;
+                if ($src !== '' && stripos($src, 'layouts/v7/modules/Potentials/resources/OrderCategoryFilter.js') !== false) {
+                    unset($headerScriptInstances[$key]);
+                }
+            } catch (Exception $e) {
+                // ignore filtering errors
+            }
+        }
+
+        return $headerScriptInstances;
+    }
+
+    /**
      * Check before rendering list.
      */
     public function preProcess(Vtiger_Request $request, $display = true) {
