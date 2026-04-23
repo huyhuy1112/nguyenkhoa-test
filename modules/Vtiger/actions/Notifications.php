@@ -24,30 +24,47 @@ class Vtiger_Notifications_Action extends Vtiger_Action_Controller {
 		try {
 			$userid = $current_user->id;
 			$type = $request->get('type');
-			
-			if (empty($type) || $type !== 'read') {
+			if (empty($type)) {
+				$type = 'unread';
+			}
+			if ($type !== 'read' && $type !== 'unread' && $type !== 'all') {
 				$type = 'unread';
 			}
 
-			$isRead = ($type === 'read') ? 1 : 0;
+			$params = array($userid);
+			$where = "userid = ?";
+			if ($type === 'read') {
+				$where .= " AND is_read = 1";
+			} elseif ($type === 'unread') {
+				$where .= " AND is_read = 0";
+			}
 
-			$sql = "SELECT id, module, recordid, message, created_at
+			$sql = "SELECT id, module, recordid, message, created_at, is_read
 					FROM vtiger_notifications
-					WHERE userid = ? AND is_read = ?
+					WHERE $where
 					ORDER BY created_at DESC
 					LIMIT 20";
 
-			$result = $adb->pquery($sql, array($userid, $isRead));
+			$result = $adb->pquery($sql, $params);
 
 			$list = array();
 			while ($row = $adb->fetchByAssoc($result)) {
 				$list[] = $row;
 			}
 
+			// Always compute unread count for badge consistency
+			$countSql = "SELECT COUNT(*) as unread_count FROM vtiger_notifications WHERE userid = ? AND is_read = 0";
+			$countResult = $adb->pquery($countSql, array($userid));
+			$unreadCount = 0;
+			if ($adb->num_rows($countResult) > 0) {
+				$unreadCount = (int)$adb->query_result($countResult, 0, 'unread_count');
+			}
+
 			$response = array(
 				'success' => true,
 				'type' => $type,
 				'count' => count($list),
+				'unreadCount' => $unreadCount,
 				'list' => $list
 			);
 

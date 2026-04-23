@@ -7,8 +7,8 @@
     intervalId: null,
     sound: null,
     initialized: false,
-    currentTab: "unread",
     isFirstLoad: true, // Track first load to prevent sound on page reload
+    selectedIds: {},
 
     init: function () {
       if (this.initialized) {
@@ -18,29 +18,26 @@
       // Initialize sound with proper path
       this.initSound();
 
-      // Ensure we start on unread tab
-      this.currentTab = "unread";
-      this.loadUnreadNotifications();
+      // Combined list: load both unread/read together
+      this.loadAllNotifications();
 
       // Poll for new unread notifications every 3 seconds
       this.intervalId = setInterval(function () {
-        // Always update badge count, but only render if on unread tab
-        if (ModernNotifications.currentTab === "unread") {
-          ModernNotifications.loadUnreadNotifications();
-        } else {
-          // Still check for new notifications to update badge
-          ModernNotifications.checkUnreadCountOnly();
-        }
+        // Always render combined list; badge is driven by unreadCount
+        ModernNotifications.loadAllNotifications();
       }, 3000);
 
-      this.setupTabHandlers();
+      // Hide legacy tabs UI (single list only)
+      jQuery("#modern-notifications-tab-unread, #modern-notifications-tab-read")
+        .closest(".nav-tabs")
+        .hide();
 
       this.initialized = true;
     },
 
     checkUnreadCountOnly: function () {
       var self = this;
-      var url = "index.php?module=Vtiger&action=Notifications&type=unread";
+      var url = "index.php?module=Vtiger&action=Notifications&type=all";
 
       jQuery.ajax({
         url: url,
@@ -52,12 +49,16 @@
         },
         success: function (response) {
           if (response && response.success) {
-            // Only update badge, don't render list
-            self.updateNotificationBadge(response.count || 0);
+            self.updateNotificationBadge(response.unreadCount || 0);
             // Check for new notifications to play sound and shake bell
             // Only after first load to prevent sound on page reload
             if (!self.isFirstLoad && response.list && response.list.length > 0) {
-              self.checkForNewNotifications(response.list);
+              // Only consider unread notifications for "new" detection
+              self.checkForNewNotifications(
+                response.list.filter(function (n) {
+                  return String(n.is_read) === "0";
+                })
+              );
             } else if (self.isFirstLoad && response.list && response.list.length > 0) {
               // On first load, initialize previousIds without playing sound
               for (var i = 0; i < response.list.length; i++) {
@@ -317,83 +318,9 @@
       }
     },
 
-    setupTabHandlers: function () {
+    loadAllNotifications: function () {
       var self = this;
-      jQuery("#modern-notifications-tab-unread-link").on("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        self.switchTab("unread");
-      });
-
-      jQuery("#modern-notifications-tab-read-link").on("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        self.switchTab("read");
-      });
-    },
-
-    switchTab: function (tab) {
-      if (this.currentTab === tab) {
-        return;
-      }
-
-      // CRITICAL: Set currentTab BEFORE any async operations
-      this.currentTab = tab;
-
-      var unreadTab = jQuery("#modern-notifications-tab-unread");
-      var readTab = jQuery("#modern-notifications-tab-read");
-      var unreadEmpty = jQuery("#modern-notifications-empty-unread");
-      var readEmpty = jQuery("#modern-notifications-empty-read");
-      var itemsContainer = jQuery("#modern-notifications-items");
-      var actionsContainer = jQuery("#modern-notifications-actions");
-
-      // Always clear items container first
-      itemsContainer.empty();
-      itemsContainer.hide();
-      actionsContainer.hide();
-
-      if (tab === "unread") {
-        unreadTab.addClass("active");
-        readTab.removeClass("active");
-        // Hide read empty, show unread empty (will be hidden if we have data)
-        readEmpty.hide();
-        unreadEmpty.show();
-        // CRITICAL: Load unread notifications AFTER setting currentTab
-        var self = this;
-        // Use setTimeout to ensure currentTab is set before AJAX callback
-        setTimeout(function () {
-          // Double-check we're still on unread tab before loading
-          if (self.currentTab === "unread") {
-            self.loadUnreadNotifications();
-          }
-        }, 0);
-      } else {
-        readTab.addClass("active");
-        unreadTab.removeClass("active");
-        // Hide unread empty, show read empty (will be hidden if we have data)
-        unreadEmpty.hide();
-        readEmpty.show();
-        // CRITICAL: Load read notifications AFTER setting currentTab
-        var self = this;
-        // Use setTimeout to ensure currentTab is set before AJAX callback
-        setTimeout(function () {
-          // Double-check we're still on read tab before loading
-          if (self.currentTab === "read") {
-            self.loadReadNotifications();
-          }
-        }, 0);
-      }
-    },
-
-    loadUnreadNotifications: function () {
-      var self = this;
-      var url = "index.php?module=Vtiger&action=Notifications&type=unread";
-
-      // CRITICAL: Double-check we're still on unread tab before making request
-      if (this.currentTab !== "unread") {
-        return;
-      }
-
+      var url = "index.php?module=Vtiger&action=Notifications&type=all";
       jQuery.ajax({
         url: url,
         type: "GET",
@@ -404,22 +331,19 @@
         },
         success: function (response) {
           if (response && response.success) {
-            // CRITICAL: Check again after AJAX completes
-            if (self.currentTab === "unread") {
-              self.updateUnreadUI(response);
-              // Only check for new notifications after first load
-              if (!self.isFirstLoad) {
-              self.checkForNewNotifications(response.list);
-              } else {
-                // On first load, initialize previousIds with current notifications
-                // This prevents sound from playing for existing notifications
-                if (response.list && response.list.length > 0) {
-                  for (var i = 0; i < response.list.length; i++) {
-                    self.previousIds.push(response.list[i].id);
-                  }
+            self.updateAllUI(response);
+            var unreadList = (response.list || []).filter(function (n) {
+              return String(n.is_read) === "0";
+            });
+            if (!self.isFirstLoad) {
+              self.checkForNewNotifications(unreadList);
+            } else {
+              if (unreadList.length > 0) {
+                for (var i = 0; i < unreadList.length; i++) {
+                  self.previousIds.push(unreadList[i].id);
                 }
-                self.isFirstLoad = false;
               }
+              self.isFirstLoad = false;
             }
           }
         },
@@ -427,43 +351,6 @@
           // Log error for debugging
           console.warn(
             "[ModernNotifications] Error loading unread notifications:",
-            status,
-            error,
-            xhr.status
-          );
-        },
-      });
-    },
-
-    loadReadNotifications: function () {
-      var self = this;
-      var url = "index.php?module=Vtiger&action=Notifications&type=read";
-
-      // CRITICAL: Double-check we're still on read tab before making request
-      if (this.currentTab !== "read") {
-        return;
-      }
-
-      jQuery.ajax({
-        url: url,
-        type: "GET",
-        dataType: "json",
-        cache: false, // Prevent Chrome cache issues
-        xhrFields: {
-          withCredentials: true, // Ensure cookies are sent (required for Chrome)
-        },
-        success: function (response) {
-          if (response && response.success) {
-            // CRITICAL: Check again after AJAX completes
-            if (self.currentTab === "read") {
-              self.updateReadUI(response);
-            }
-          }
-        },
-        error: function (xhr, status, error) {
-          // Log error for debugging
-          console.warn(
-            "[ModernNotifications] Error loading read notifications:",
             status,
             error,
             xhr.status
@@ -496,92 +383,31 @@
       }
     },
 
-    updateUnreadUI: function (response) {
-      // CRITICAL: Only update UI if we're on the unread tab
-      if (this.currentTab !== "unread") {
-        // Just update badge count, don't render list
-        this.updateNotificationBadge(response.count || 0);
-        return;
-      }
-
-      var count = response.count || 0;
+    updateAllUI: function (response) {
       var list = response.list || [];
+      var itemsContainer = jQuery("#modern-notifications-items");
       var emptyMsg = jQuery("#modern-notifications-empty-unread");
       var readEmpty = jQuery("#modern-notifications-empty-read");
-      var itemsContainer = jQuery("#modern-notifications-items");
       var actionsContainer = jQuery("#modern-notifications-actions");
 
-      this.updateNotificationBadge(count);
+      // single list: use unread empty as the only empty state
+      readEmpty.hide();
+      this.updateNotificationBadge(response.unreadCount || 0);
 
-      // CRITICAL: Ensure empty messages are shown/hidden correctly for unread tab
-      readEmpty.hide(); // Always hide read empty when on unread tab
-
-      // CRITICAL: Always clear items container first to remove any old data
       itemsContainer.empty();
-
-      if (list.length === 0) {
-        emptyMsg.show();
-        itemsContainer.hide();
-        actionsContainer.hide();
-        this.lastRenderedNotificationId = 0;
-        return;
-      }
-
-      // We have unread notifications - hide empty message and show items
-      emptyMsg.hide();
-      itemsContainer.show();
-      actionsContainer.show();
-
-      // CRITICAL: Always clear and re-render all unread notifications
-      // (already cleared above, but ensure it's empty)
-      itemsContainer.empty();
-      var maxId = 0;
-      for (var j = 0; j < list.length; j++) {
-        // CRITICAL: Always render as unread (false) for unread tab
-        this.renderNotificationItem(list[j], itemsContainer[0], false);
-        var notifId = parseInt(list[j].id) || 0;
-        if (notifId > maxId) {
-          maxId = notifId;
-        }
-      }
-      this.lastRenderedNotificationId = maxId;
-    },
-
-    updateReadUI: function (response) {
-      // CRITICAL: Only update UI if we're on the read tab
-      if (this.currentTab !== "read") {
-        return;
-      }
-
-      var list = response.list || [];
-      var emptyMsg = jQuery("#modern-notifications-empty-read");
-      var unreadEmpty = jQuery("#modern-notifications-empty-unread");
-      var itemsContainer = jQuery("#modern-notifications-items");
-      var actionsContainer = jQuery("#modern-notifications-actions");
-
-      // CRITICAL: Ensure empty messages are shown/hidden correctly for read tab
-      unreadEmpty.hide(); // Always hide unread empty when on read tab
-
-      // CRITICAL: Always clear items container first to remove any old data
-      itemsContainer.empty();
-
       if (list.length === 0) {
         emptyMsg.show();
         itemsContainer.hide();
         actionsContainer.hide();
         return;
       }
-
-      // We have read notifications - hide empty message and show items
       emptyMsg.hide();
       itemsContainer.show();
       actionsContainer.show();
 
-      // CRITICAL: Always clear and re-render all read notifications
-      // (already cleared above, but ensure it's empty)
-      itemsContainer.empty();
       for (var i = 0; i < list.length; i++) {
-        this.renderNotificationItem(list[i], itemsContainer[0], true);
+        var isRead = String(list[i].is_read) === "1";
+        this.renderNotificationItem(list[i], itemsContainer[0], isRead);
       }
     },
 
@@ -656,9 +482,6 @@
       if (isRead) {
         li.classList.add("read-notification");
       }
-      li.style.padding = "10px";
-      li.style.borderBottom = "1px solid #eee";
-      li.style.position = "relative";
       li.setAttribute("data-notification-id", notificationId);
 
       // Check if this is a deadline reminder notification
@@ -669,32 +492,26 @@
         li.classList.add("deadline-notification");
       }
 
-      // Add checkbox - make it bolder and more visible
+      // Checkbox is ONLY for delete-selection (NOT read-state)
       var checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.className = "modern-notification-checkbox";
       checkbox.value = notificationId;
-      checkbox.style.position = "absolute";
-      // Move checkbox to the right if it's a deadline notification (to avoid warning icon)
-      checkbox.style.left = isDeadlineReminder ? "35px" : "10px";
-      checkbox.style.top = "15px";
-      checkbox.style.cursor = "pointer";
-      // Make checkbox bolder and more visible
-      checkbox.style.width = "18px";
-      checkbox.style.height = "18px";
-      checkbox.style.border = "2px solid #333";
-      checkbox.style.borderRadius = "3px";
-      checkbox.style.accentColor = "#4CAF50";
+      // Always default to unchecked unless user selected it (persist across polling)
+      checkbox.checked = !!self.selectedIds[String(notificationId)];
       checkbox.addEventListener("click", function (e) {
         e.stopPropagation();
+        if (checkbox.checked) {
+          self.selectedIds[String(notificationId)] = true;
+        } else {
+          delete self.selectedIds[String(notificationId)];
+        }
         self.updateDeleteButtonState();
       });
       li.appendChild(checkbox);
 
       // Content wrapper with left margin for checkbox and warning icon
       var contentWrapper = document.createElement("div");
-      // Adjust margin based on whether it's a deadline notification
-      contentWrapper.style.marginLeft = isDeadlineReminder ? "60px" : "25px";
 
       // Create link first if needed
       var link = null;
@@ -706,33 +523,15 @@
         link.style.display = "block";
       }
 
-      if (isRead) {
-        // Make read notifications more faded
-        li.style.opacity = "0.5";
-        li.style.cursor = "default";
-        li.style.backgroundColor = "#f9f9f9";
-        // Make text lighter
-        if (link) {
-          link.style.color = "#999";
+      // Clicking the item marks as read (if unread) - checkbox click is ignored above
+      li.addEventListener("click", function (e) {
+        if (e.target && (e.target.tagName === "INPUT" || e.target.closest("input"))) {
+          return;
         }
-      } else {
-        // Unread notifications - full opacity, bold, clickable
-        li.style.opacity = "1";
-        li.style.cursor = "pointer";
-        li.style.backgroundColor = "";
-        if (link) {
-          link.style.color = "#333";
+        if (!isRead) {
+          self.markAsRead(notificationId, li, checkbox);
         }
-        li.addEventListener("click", function (e) {
-          if (
-            e.target.tagName !== "INPUT" &&
-            e.target.tagName !== "A" &&
-            e.target.closest("a") === null
-          ) {
-            self.markAsRead(notificationId, li);
-          }
-        });
-      }
+      });
 
       if (link) {
         var messageDiv = document.createElement("div");
@@ -790,12 +589,12 @@
       container.appendChild(li);
     },
 
-    markAsRead: function (notificationId, element) {
+    markAsRead: function (notificationId, element, checkboxEl) {
       var self = this;
       var url = "index.php?module=Vtiger&action=MarkNotificationRead";
 
       if (element) {
-        element.style.opacity = "0.5";
+        element.classList.add("read-notification");
       }
 
       jQuery.ajax({
@@ -815,22 +614,11 @@
             response.success &&
             typeof response.unreadCount !== "undefined"
           ) {
-            if (element && element.parentNode) {
-              element.parentNode.removeChild(element);
-            }
-
             var unreadCount = Number(response.unreadCount) || 0;
             self.updateNotificationBadge(unreadCount);
-
-            var itemsContainer = jQuery("#modern-notifications-items");
-            var emptyMsg = jQuery("#modern-notifications-empty-unread");
-
-            if (unreadCount > 0) {
-              itemsContainer.show();
-              emptyMsg.hide();
-            } else {
-              itemsContainer.hide();
-              emptyMsg.show();
+            if (checkboxEl) {
+              checkboxEl.checked = true;
+              checkboxEl.disabled = true;
             }
 
             var index = self.previousIds.indexOf(parseInt(notificationId));
@@ -839,7 +627,7 @@
             }
           } else {
             if (element) {
-              element.style.opacity = "1";
+              element.classList.remove("read-notification");
             }
           }
         },
@@ -852,7 +640,7 @@
             xhr.status
           );
           if (element) {
-            element.style.opacity = "1";
+            element.classList.remove("read-notification");
           }
         },
       });
@@ -883,20 +671,11 @@
             response.success &&
             typeof response.unreadCount !== "undefined"
           ) {
-            // Clear unread list
-            itemsContainer.empty();
-            itemsContainer.hide();
-
             var unreadCount = Number(response.unreadCount) || 0;
             self.updateNotificationBadge(unreadCount);
 
-            // Show empty message for unread tab
-            var emptyMsgUnread = jQuery("#modern-notifications-empty-unread");
-            emptyMsgUnread.show();
-
-            // Switch to "Đã đọc" tab and load read notifications
-            self.switchTab("read");
-            self.loadReadNotifications();
+            // Reload combined list to reflect new read-state
+            self.loadAllNotifications();
 
             self.previousIds = [];
             self.lastRenderedNotificationId = 0;
@@ -1161,12 +940,12 @@
         },
         success: function (response) {
           if (response && response.success) {
-            // Reload current tab
-            if (self.currentTab === "unread") {
-              self.loadUnreadNotifications();
-            } else {
-              self.loadReadNotifications();
+            // Clear selected cache for deleted IDs
+            for (var i = 0; i < notificationIds.length; i++) {
+              delete self.selectedIds[String(notificationIds[i])];
             }
+            // Reload combined list
+            self.loadAllNotifications();
             self.updateDeleteButtonState();
           }
         },
@@ -1202,12 +981,9 @@
         },
         success: function (response) {
           if (response && response.success) {
-            // Reload current tab
-            if (self.currentTab === "unread") {
-              self.loadUnreadNotifications();
-            } else {
-              self.loadReadNotifications();
-            }
+            self.selectedIds = {};
+            // Reload combined list
+            self.loadAllNotifications();
             self.updateDeleteButtonState();
           }
         },
@@ -1231,7 +1007,7 @@
       this.initialized = false;
       this.lastRenderedNotificationId = 0;
       this.previousIds = [];
-      this.currentTab = "unread";
+      this.selectedIds = {};
       this.isFirstLoad = true;
     },
   };
