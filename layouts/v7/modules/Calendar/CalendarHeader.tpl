@@ -37,33 +37,17 @@
 									<div class="fa fa-plus" aria-hidden="true"></div>&nbsp;&nbsp;
 									{vtranslate('LBL_ADD_TASK', $MODULE)}
 								</button>
+								<a class="btn btn-default module-buttons" href="index.php?module=Calendar&view=Year{if $smarty.get.app neq ''}&app={$smarty.get.app}{/if}">
+									<div class="fa fa-calendar" aria-hidden="true"></div>&nbsp;&nbsp;
+									{vtranslate('LBL_YEAR','Calendar')|default:'Year'}
+								</a>
 							</li>
 						{/if}
 						<li>
 							<div class="settingsIcon">
-								<button type="button" class="btn btn-default module-buttons dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-									<span class="fa fa-wrench" aria-hidden="true" title="{vtranslate('LBL_SETTINGS', $MODULE)}"></span>&nbsp;&nbsp;{vtranslate('LBL_CUSTOMIZE', 'Reports')}&nbsp; <span class="caret"></span>
+								<button type="button" class="btn btn-default module-buttons" onclick='Calendar_Calendar_Js.showCalendarSettings();'>
+									<span class="fa fa-wrench" aria-hidden="true" title="{vtranslate('LBL_SETTINGS', $MODULE)}"></span>&nbsp;&nbsp;{vtranslate('LBL_CALENDAR_SETTINGS', 'Calendar')}
 								</button>
-								<ul class="detailViewSetting dropdown-menu">
-									{foreach item=SETTING from=$MODULE_SETTING_ACTIONS}
-										{if $SETTING->getLabel() eq 'LBL_EDIT_FIELDS'}
-											<li id="{$MODULE_NAME}_listview_advancedAction_{$SETTING->getLabel()}_Events"><a href="{$SETTING->getUrl()}&sourceModule=Events">{vtranslate($SETTING->getLabel(), $MODULE_NAME,vtranslate('LBL_EVENTS',$MODULE_NAME))}</a></li>
-											<li id="{$MODULE_NAME}_listview_advancedAction_{$SETTING->getLabel()}_Calendar"><a href="{$SETTING->getUrl()}&sourceModule=Calendar">{vtranslate($SETTING->getLabel(), $MODULE_NAME,vtranslate('LBL_TASKS','Calendar'))}</a></li>
-										{else if $SETTING->getLabel() eq 'LBL_EDIT_WORKFLOWS'} 
-											<li id="{$MODULE_NAME}_listview_advancedAction_{$SETTING->getLabel()}_WORKFLOWS"><a href="{$SETTING->getUrl()}&sourceModule=Events">{vtranslate('LBL_EVENTS', $MODULE_NAME)} {vtranslate('LBL_WORKFLOWS',$MODULE_NAME)}</a></li>	
-											<li id="{$MODULE_NAME}_listview_advancedAction_{$SETTING->getLabel()}_WORKFLOWS"><a href="{$SETTING->getUrl()}&sourceModule=Calendar">{vtranslate('LBL_TASKS', 'Calendar')} {vtranslate('LBL_WORKFLOWS',$MODULE_NAME)}</a></li>
-										{else}
-											<li id="{$MODULE_NAME}_listview_advancedAction_{$SETTING->getLabel()}"><a href={$SETTING->getUrl()}>{vtranslate($SETTING->getLabel(), $MODULE_NAME, vtranslate($MODULE_NAME, $MODULE_NAME))}</a></li>
-										{/if}
-									{/foreach}
-									<li>
-										<a>
-											<span id="calendarview_basicaction_calendarsetting" onclick='Calendar_Calendar_Js.showCalendarSettings();' class="cursorPointer">
-												{vtranslate('LBL_CALENDAR_SETTINGS', 'Calendar')}
-											</span>
-										</a>
-									</li>
-								</ul>
 							</div>
 						</li>
 					</ul>

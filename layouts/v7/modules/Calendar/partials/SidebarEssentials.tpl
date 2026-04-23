@@ -7,29 +7,66 @@
 * All Rights Reserved.
 ************************************************************************************}
 
-{if $smarty.get.view eq 'Calendar' OR $smarty.get.view eq 'SharedCalendar'}
+{if $smarty.get.view eq 'Calendar' OR $smarty.get.view eq 'SharedCalendar' OR $smarty.get.view eq 'Year'}
 {* Giao diện Google Calendar: + Create, minimap (mini calendar), My calendars (Activity Types). Không có Lists/Extensions. *}
 <div class="calendar-sidebar-google">
-	{if $IS_CREATE_PERMITTED}
-	<div class="calendar-google-create">
-		<div class="dropdown">
-			<button type="button" class="btn calendar-create-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-				<span class="fa fa-plus"></span> {vtranslate('LBL_CREATE','Calendar')} <span class="fa fa-chevron-down"></span>
-			</button>
-			<ul class="dropdown-menu dropdown-menu-right">
-				<li><a href="javascript:void(0);" onclick="Calendar_Calendar_Js.showCreateEventModal();"><span class="fa fa-calendar-plus-o"></span> {vtranslate('LBL_ADD_EVENT', $MODULE)}</a></li>
-				<li><a href="javascript:void(0);" onclick="Calendar_Calendar_Js.showCreateTaskModal();"><span class="fa fa-tasks"></span> {vtranslate('LBL_ADD_TASK', $MODULE)}</a></li>
-				{if $SHOW_LEAVE_REQUEST}
-				<li><a href="javascript:void(0);" onclick="Calendar_Calendar_Js.showLeaveRequestCreateModal();"><span class="fa fa-calendar-minus-o"></span> {vtranslate('LBL_LEAVE_REQUEST', $MODULE)}</a></li>
-				{/if}
-			</ul>
-		</div>
-	</div>
-	{/if}
+	{* BA: remove the left blue Create section for both app contexts *}
 	{if $SHOW_MINI_CALENDAR_LEAVE}
 	<div class="calendar-mini-wrap" id="calendar-mini-wrap" title="{vtranslate('LBL_MINI_CALENDAR','Calendar')}">
-		<div class="calendar-mini-label">{vtranslate('LBL_MINI_CALENDAR_LEAVE','Calendar')}</div>
+		<div class="calendar-mini-label">{vtranslate('LBL_MINI_CALENDAR','Calendar')}</div>
 		<div id="calendar-mini"></div>
+	</div>
+	{/if}
+
+	{* Year view: premium sidebar blocks (static, no Calendar.js dependency) *}
+	{if $smarty.get.view eq 'Year'}
+	<div class="cyv-sidebar-block">
+		<div class="cyv-sidebar-title">Legend</div>
+		<div class="cyv-legend">
+			<div class="cyv-legend-row" data-cyv-filter="events">
+				<span class="cyv-legend-dot is-event"></span>
+				<span class="cyv-legend-text">Events</span>
+				<span class="cyv-legend-chip">Blue</span>
+			</div>
+			<div class="cyv-legend-row" data-cyv-filter="tasks">
+				<span class="cyv-legend-dot is-task"></span>
+				<span class="cyv-legend-text">Tasks</span>
+				<span class="cyv-legend-chip">Green</span>
+			</div>
+		</div>
+	</div>
+
+	<div class="cyv-sidebar-block">
+		<div class="cyv-sidebar-title">My Calendars</div>
+		<div class="cyv-menu">
+			<a class="cyv-menu-item is-active" href="javascript:void(0)" data-cyv-view="all">
+				<span class="cyv-menu-ico fa fa-th-large"></span>
+				<span class="cyv-menu-label">All</span>
+				<span class="cyv-menu-badge">12</span>
+			</a>
+			<a class="cyv-menu-item" href="javascript:void(0)" data-cyv-view="events">
+				<span class="cyv-menu-ico fa fa-calendar"></span>
+				<span class="cyv-menu-label">Events</span>
+			</a>
+			<a class="cyv-menu-item" href="javascript:void(0)" data-cyv-view="tasks">
+				<span class="cyv-menu-ico fa fa-check-square-o"></span>
+				<span class="cyv-menu-label">Tasks</span>
+			</a>
+		</div>
+	</div>
+
+	<div class="cyv-sidebar-block">
+		<div class="cyv-sidebar-title">Other Calendars</div>
+		<div class="cyv-menu">
+			<a class="cyv-menu-item" href="index.php?module=Calendar&view=SharedCalendar{if $smarty.get.app neq ''}&app={$smarty.get.app}{/if}">
+				<span class="cyv-menu-ico fa fa-users"></span>
+				<span class="cyv-menu-label">Shared</span>
+			</a>
+			<a class="cyv-menu-item" href="index.php?module=Calendar&view=Calendar{if $smarty.get.app neq ''}&app={$smarty.get.app}{/if}">
+				<span class="cyv-menu-ico fa fa-calendar-o"></span>
+				<span class="cyv-menu-label">Month / Week</span>
+			</a>
+		</div>
 	</div>
 	{/if}
 </div>

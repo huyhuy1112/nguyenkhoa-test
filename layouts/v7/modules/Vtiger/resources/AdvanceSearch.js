@@ -100,6 +100,7 @@ Vtiger_BasicSearch_Js("Vtiger_AdvanceSearch_Js",{
 				aDeferred.resolve(data);
 			},
 			function(error,err){
+				app.helper.hideProgress();
 				aDeferred.reject(error);
 			}
 		);
@@ -108,16 +109,75 @@ Vtiger_BasicSearch_Js("Vtiger_AdvanceSearch_Js",{
     
     showAdvanceSearch : function (data) {
         var aDeferred = jQuery.Deferred();
+        var isNonManagement = (jQuery('body').data('app') !== 'MANAGEMENT');
+        var forceShowHolder = function(){
+            try {
+                var holder = jQuery('#advanceSearchHolder');
+                if (!holder.length) return false;
+                // Force a reflow before toggling to avoid first-open "blank shell" (max-height stays 0)
+                holder.removeClass('slideDown');
+                holder[0].offsetHeight; // reflow
+                holder.addClass('slideDown');
+                return true;
+            } catch (e) {
+                return false;
+            }
+        };
+
         if(jQuery('#advanceSearchHolder').length >0) {
-            jQuery('#advanceSearchHolder').removeClass('slideDown');
-            data = jQuery(data).find('#advanceSearchHolder').html();
-            jQuery('#advanceSearchHolder').html(data).addClass('slideDown');
-        }else{
-            app.helper.loadPageOverlay(data).then(function(container){
-                jQuery('#advanceSearchHolder').addClass('slideDown');
-            });
+            try {
+                jQuery('#advanceSearchHolder').removeClass('slideDown');
+                data = jQuery(data).find('#advanceSearchHolder').html();
+                jQuery('#advanceSearchHolder').html(data).addClass('slideDown');
+                if (isNonManagement) {
+                    // Re-assert visible state on next tick (some skins/layouts apply max-height after paint)
+                    setTimeout(function(){ forceShowHolder(); }, 0);
+                }
+                aDeferred.resolve();
+            } catch (e) {
+                aDeferred.reject(e);
+            }
+            return aDeferred.promise();
         }
-        aDeferred.resolve();
+
+        var cleanupOverlay = function(){
+            try { app.helper.hidePageOverlay(); } catch (e) {}
+            try {
+                jQuery('.modal-backdrop').remove();
+                jQuery('body').removeClass('modal-open');
+            } catch (e2) {}
+        };
+
+        try {
+            app.helper.loadPageOverlay(data).then(function(container){
+                try {
+                    jQuery('#advanceSearchHolder').addClass('slideDown');
+                    if (isNonManagement) {
+                        // Ensure first click fully opens (do not rely on later toggle click)
+                        var tries = 0;
+                        (function ensureOpen(){
+                            tries++;
+                            if (forceShowHolder() || tries >= 8) {
+                                aDeferred.resolve();
+                                return;
+                            }
+                            setTimeout(ensureOpen, 30);
+                        })();
+                        return;
+                    }
+                    aDeferred.resolve();
+                } catch (ex) {
+                    cleanupOverlay();
+                    aDeferred.reject(ex);
+                }
+            }, function(err){
+                cleanupOverlay();
+                aDeferred.reject(err);
+            });
+        } catch (e) {
+            cleanupOverlay();
+            aDeferred.reject(e);
+        }
         return aDeferred.promise();
     },
 
@@ -344,16 +404,42 @@ Vtiger_BasicSearch_Js("Vtiger_AdvanceSearch_Js",{
     
     advanceSearchTriggerIntiatorHandler  : function () {
         var self = this;
+        var isNonManagement = (jQuery('body').data('app') !== 'MANAGEMENT');
+        var isInitialized = function() {
+            // "Initialized" means the holder exists AND the real form container exists with filter UI inside.
+            var holder = jQuery('#advanceSearchHolder');
+            if (!holder.length) return false;
+            var c = jQuery('#advanceSearchContainer');
+            if (!c.length) return false;
+            // filterContainer comes from AdvanceFilter.tpl; if missing, UI isn't ready yet.
+            return (c.find('.filterContainer').length > 0 || c.find('.filterConditionContainer').length > 0);
+        };
+
         if(this.isSearchShown()){
             this.hideSearch();
             return;
         }
+
+        // Non-MANAGEMENT: avoid the broken "blank shell" toggle by not treating
+        // "holder exists but not initialized" as a simple hidden state.
+        if (isNonManagement && this.isSearchHidden() && !isInitialized()) {
+            this.initiateSearch().then(function() {
+                self.selectBasicSearchValue();
+                self.showSearch();
+            });
+            return;
+        }
+
         if(this.isSearchHidden()) {
             this.showSearch();
             return;
         }
+
         this.initiateSearch().then(function() {
             self.selectBasicSearchValue();
+            if (isNonManagement) {
+                self.showSearch();
+            }
         });
     },
     

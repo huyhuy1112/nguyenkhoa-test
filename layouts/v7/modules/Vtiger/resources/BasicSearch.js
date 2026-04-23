@@ -81,6 +81,7 @@ Vtiger.Class('Vtiger_BasicSearch_Js',{},{
 			},
 
 			function(error,err){
+				app.helper.hideProgress();
 				aDeferred.reject(error);
 			}
 		);
@@ -132,14 +133,44 @@ Vtiger.Class('Vtiger_BasicSearch_Js',{},{
 		jQuery('.search-link .keyword-input').on('VT_SEARCH_INTIATED',function(e,args){
 			var val = args.searchValue;
 			var url = '?module=Vtiger&view=ListAjax&mode=searchAll&value='+encodeURIComponent(val);
+			var cleanupOverlay = function(){
+				try { app.helper.hidePageOverlay(); } catch (e) {}
+				try {
+					// Safety: if a modal/backdrop gets stuck due to JS exception, clean it up.
+					jQuery('.modal-backdrop').remove();
+					jQuery('body').removeClass('modal-open');
+				} catch (e2) {}
+			};
 			app.helper.showProgress();
 			app.request.get({'url': url}).then(function (error, data) {
-				if (error == null) {
-					app.helper.hideProgress();
+				// Always clear progress to avoid stuck dim overlay (some apps/views can trigger ajax errors)
+				app.helper.hideProgress();
+				if (error != null) {
+					try {
+						app.helper.showErrorNotification({message: app.vtranslate('JS_OPERATION_FAILED')});
+					} catch (e) {}
+					cleanupOverlay();
+					return;
+				}
+				try {
 					app.helper.loadPageOverlay(data).then(function (modal) {
-						modal.find('.keyword-input').val(jQuery('.keyword-input').val());
-						Vtiger_SearchList_Js.intializeListInstances(modal);
+						try {
+							modal.find('.keyword-input').val(jQuery('.keyword-input').val());
+							Vtiger_SearchList_Js.intializeListInstances(modal);
+						} catch (ex) {
+							cleanupOverlay();
+						}
+					}, function(){
+						try {
+							app.helper.showErrorNotification({message: app.vtranslate('JS_OPERATION_FAILED')});
+						} catch (e) {}
+						cleanupOverlay();
 					});
+				} catch (e) {
+					try {
+						app.helper.showErrorNotification({message: app.vtranslate('JS_OPERATION_FAILED')});
+					} catch (e2) {}
+					cleanupOverlay();
 				}
 			});
 		});

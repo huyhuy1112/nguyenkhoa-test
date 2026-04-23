@@ -19,12 +19,9 @@ class Calendar_Calendar_View extends Vtiger_Index_View {
 		$viewer->assign('IS_MODULE_EDITABLE', $moduleModel->isPermitted('EditView'));
 		$viewer->assign('IS_MODULE_DELETABLE', $moduleModel->isPermitted('Delete'));
 
-		// Mini calendar: mọi role đều thấy để đăng kí ngày nghỉ
+		// BA: mini calendar must remain visible; Leave Request UI removed separately
 		$viewer->assign('SHOW_MINI_CALENDAR_LEAVE', true);
-		// Đơn nghỉ phép (menu + duyệt): chỉ Admin/CEO thấy
-		$currentUser = Users_Record_Model::getCurrentUserModel();
-		$showLeaveRequest = $currentUser && ($currentUser->isAdminUser() || $this->isUserCEO($currentUser));
-		$viewer->assign('SHOW_LEAVE_REQUEST', $showLeaveRequest);
+		$viewer->assign('SHOW_LEAVE_REQUEST', false);
 
 		parent::preProcess($request, false);
 		if($display) {

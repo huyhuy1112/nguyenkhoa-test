@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="container-fluid modal-body">
-            <div id="advanceSearchHolder">
+            <div id="advanceSearchHolder" class="slideDown">
                 <div id="advanceSearchContainer">
                         <div class="searchModuleComponent">
 {*                            <div class="col-lg-12 col-md-12">*}

@@ -11,7 +11,7 @@
 	<p>B-ACE developed by TDB SOLUTION 2025</p>
 </footer>
 </div>
-<div id='overlayPage'>
+<div id='overlayPage' class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 	<!-- arrow is added to point arrow to the clicked element (Ex:- TaskManagement), 
 	any one can use this by adding "show" class to it -->
 	<div class='arrow'></div>

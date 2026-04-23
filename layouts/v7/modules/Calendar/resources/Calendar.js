@@ -1370,8 +1370,38 @@ Vtiger.Class(
           '[data-name="' + moduleName + '"]'
         );
         if (quickCreateNode.length <= 0) {
-          app.helper.showAlertNotification({
-            message: app.vtranslate("JS_NO_CREATE_OR_NOT_QUICK_CREATE_ENABLED"),
+          // Regression fix: Topbar Quick Create list may not include Events/Calendar.
+          // Fallback to module QuickCreateAjax directly (still respects permissions server-side).
+          var params = { module: moduleName, view: "QuickCreateAjax" };
+          app.helper.showProgress();
+          app.request.get({ data: params }).then(function (err, data) {
+            app.helper.hideProgress();
+            if (err) {
+              app.helper.showAlertNotification({
+                message: app.vtranslate("JS_NO_CREATE_OR_NOT_QUICK_CREATE_ENABLED"),
+              });
+              return;
+            }
+            app.helper.showModal(data, {
+              cb: function (container) {
+                var form = container.find('form[name="QuickCreate"]').length
+                  ? container.find('form[name="QuickCreate"]')
+                  : jQuery('form[name="QuickCreate"]');
+                app.event.trigger("post.QuickCreateForm.show", form);
+                var modalContainer = form.closest(".modal");
+                thisInstance.performingDayClickOperation = false;
+                // Prefill start/end if available
+                if (startDateTime) thisInstance.setStartDateTime(modalContainer, startDateTime);
+                if (endDateTime && (moduleName === "Events" || moduleName === "Calendar")) {
+                  thisInstance.setEndDateTime(modalContainer, endDateTime);
+                }
+                if (moduleName === "Events") {
+                  thisInstance.registerCreateEventModalEvents(modalContainer);
+                }
+              },
+              backdrop: "static",
+              keyboard: false,
+            });
           });
         } else {
           quickCreateNode.trigger("click");
@@ -1589,23 +1619,6 @@ Vtiger.Class(
             thisInstance.choiceDialogOpen = false;
             thisInstance.performingDayClickOperation = false;
             thisInstance.showCreateModal("Events", start, end, createContext);
-          },
-        },
-        leave: {
-          label: translateClean("LBL_LEAVE_REQUEST", "Nghỉ phép"),
-          className: "btn-default",
-          callback: function () {
-            thisInstance.choiceDialogOpen = false;
-            thisInstance.performingDayClickOperation = false;
-            Calendar_Calendar_Js.showLeaveRequestCreateModal(start);
-          },
-        },
-        cancel: {
-          label: translateClean("LBL_CANCEL", "Huỷ"),
-          className: "btn-default",
-          callback: function () {
-            thisInstance.choiceDialogOpen = false;
-            thisInstance.performingDayClickOperation = false;
           },
         },
       };
@@ -2365,7 +2378,8 @@ Vtiger.Class(
     getDefaultCalendarView: function () {
       var userDefaultActivityView = this.getUserPrefered("activity_view");
       if (userDefaultActivityView === "Today") {
-        userDefaultActivityView = "agendaDay";
+        // BA: default view must not be Day
+        userDefaultActivityView = "agendaWeek";
       } else if (userDefaultActivityView === "This Week") {
         userDefaultActivityView = "agendaWeek";
       } else if (userDefaultActivityView === "Agenda") {
@@ -2541,19 +2555,7 @@ Vtiger.Class(
           var createContext = { isAllDayCreate: !!isAllDayCreate };
           thisInstance.showCreateTaskOrEventChoice(start, end, createContext);
         },
-        eventClick: function (calEvent, jsEvent, view) {
-          if (
-            calEvent.module === "LeaveRequest" ||
-            (calEvent.url && calEvent.url.indexOf("LeaveRequestDetail") !== -1)
-          ) {
-            var recordId = calEvent.id
-              ? String(calEvent.id).replace("leaverequest_", "")
-              : "";
-            thisInstance.showLeaveRequestDetailModal(recordId);
-            jsEvent.preventDefault();
-            return false;
-          }
-        },
+        eventClick: function (calEvent, jsEvent, view) {},
         dayClick: function (date, jsEvent, view) {
           thisInstance.performDayClickAction(date, jsEvent, view);
         },
