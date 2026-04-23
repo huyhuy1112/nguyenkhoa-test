@@ -24,7 +24,12 @@
 					{/if}
 				{/if}
 				{assign var=MODULE_TITLE_TEXT value=(isset($LISTVIEW_MODULE_TITLE) && $LISTVIEW_MODULE_TITLE neq '') ? $LISTVIEW_MODULE_TITLE : vtranslate($MODULE, $MODULE)}
-				<a title="{$MODULE_TITLE_TEXT}" href='{$DEFAULT_FILTER_URL}&app={$SELECTED_MENU_CATEGORY}'><h4 class="module-title pull-left text-uppercase"> {$MODULE_TITLE_TEXT} </h4>&nbsp;&nbsp;</a>
+				{assign var=IS_HOME_DASHBOARD value=($MODULE eq 'Home' && ($REQ->get('view') eq 'DashBoard' || $VIEW eq 'DashBoard'))}
+				{if $IS_HOME_DASHBOARD}
+					<h4 class="module-title pull-left text-uppercase" title="{$MODULE_TITLE_TEXT}"> {$MODULE_TITLE_TEXT} </h4>&nbsp;&nbsp;
+				{else}
+					<a title="{$MODULE_TITLE_TEXT}" href='{$DEFAULT_FILTER_URL}&app={$SELECTED_MENU_CATEGORY}'><h4 class="module-title pull-left text-uppercase"> {$MODULE_TITLE_TEXT} </h4>&nbsp;&nbsp;</a>
+				{/if}
                                 {if isset($smarty.session.lvs) && isset($smarty.session.lvs.$MODULE) && isset($smarty.session.lvs.$MODULE.viewname)}
 					{assign var=VIEWID value=$smarty.session.lvs.$MODULE.viewname}
 				{/if}

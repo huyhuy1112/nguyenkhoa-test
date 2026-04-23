@@ -66,7 +66,8 @@ class Users_Login_Action extends Vtiger_Action_Controller {
 				$return_params = $_SESSION['return_params'];
 			}
 
-			header ('Location: index.php?module=Home&view=MainPage&app=MANAGEMENT');
+			// Post-login landing: go to the existing runtime Dashboard page.
+			header ('Location: index.php?module=Home&view=DashBoard&app=MANAGEMENT');
 			exit();
 		} else {
 			header ('Location: index.php?module=Users&parent=Settings&view=Login&error=login');

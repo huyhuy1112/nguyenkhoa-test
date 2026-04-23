@@ -10,6 +10,14 @@
     
 {strip}
 <div class="dashBoardContainer clearfix">
+	<div class="mainpage-banner" style="margin: 10px 15px 0 15px;">
+		<div class="mainpage-banner-inner">
+			<span class="mainpage-banner-logo">TDB</span>
+			<div class="mainpage-banner-text">
+				<div class="mainpage-banner-title">TDB SOLUTION Dashboard</div>
+			</div>
+		</div>
+	</div>
         <div class="tabContainer">
             <ul class="nav nav-tabs tabs sortable container-fluid">
                 {foreach key=index item=TAB_DATA from=$DASHBOARD_TABS}

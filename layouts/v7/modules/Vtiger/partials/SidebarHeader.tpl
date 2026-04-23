@@ -19,7 +19,8 @@
 {elseif $SELECTED_MENU_CATEGORY eq 'TOOLS'}{assign var=MK_INDICATOR_FA value='fa-wrench'}
 {/if}
 
-<div class="col-sm-1 col-xs-2 app-indicator-icon-container app-{$SELECTED_MENU_CATEGORY} app-trigger cursorPointer" title="{if $MODULE eq 'Home' || !$MODULE} {vtranslate('LBL_DASHBOARD')} {else}{vtranslate("LBL_$SELECTED_MENU_CATEGORY")}{/if} (click để mở menu)">
+{assign var=IS_DASHBOARD_VIEW value=($MODULE eq 'Home' && ($VIEW eq 'DashBoard' || $REQ->get('view') eq 'DashBoard'))}
+<div class="col-sm-1 col-xs-2 app-indicator-icon-container app-{$SELECTED_MENU_CATEGORY}{if !$IS_DASHBOARD_VIEW} app-trigger cursorPointer{/if}" title="{if $MODULE eq 'Home' || !$MODULE} {vtranslate('LBL_DASHBOARD')} {else}{vtranslate("LBL_$SELECTED_MENU_CATEGORY")}{/if}{if !$IS_DASHBOARD_VIEW} (click để mở menu){/if}">
 	<div class="row">
 		<span class="app-indicator-icon fa {if $MK_INDICATOR_FA ne ''}{$MK_INDICATOR_FA}{else}{$APP_IMAGE_MAP[$SELECTED_MENU_CATEGORY]}{/if}"></span>
 	</div>
