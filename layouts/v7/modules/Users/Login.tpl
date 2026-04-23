@@ -217,6 +217,56 @@
 				opacity: 0;
 			}
 		}
+
+		/* TDB Solution - login slogan (animated) */
+		.tdb-slogan {
+			margin: 0;
+			padding: 10px 12px;
+			border-radius: 10px;
+			background: rgba(53, 170, 71, 0.06);
+			border: 1px solid rgba(53, 170, 71, 0.18);
+			color: #1f2937;
+		}
+		/* When shown on the right panel, make it breathe */
+		.tdb-slogan.tdb-slogan--panel {
+			width: 100%;
+			box-sizing: border-box;
+			padding: 18px 18px;
+			margin-top: 24px;
+			background: transparent;
+			backdrop-filter: none;
+			border: 1px solid rgba(255,255,255,0.35);
+			box-shadow: none;
+			text-align: center;
+		}
+		.tdb-slogan.tdb-slogan--panel .tdb-line:nth-child(1) {
+			font-size: 20px;
+			line-height: 1.35;
+		}
+		.tdb-slogan.tdb-slogan--panel .tdb-line:nth-child(n+2) {
+			font-size: 15px;
+			line-height: 1.4;
+		}
+		.tdb-slogan .tdb-key {
+			font-weight: 800;
+			font-size: 16.5px;
+			letter-spacing: 0.01em;
+			color: #facc15; /* yellow */
+		}
+		.tdb-slogan .tdb-line {
+			opacity: 0;
+			transform: translateY(6px);
+			animation: tdbFadeUp 600ms ease forwards;
+		}
+		.tdb-slogan .tdb-line:nth-child(1) { animation-delay: 120ms; font-weight: 600; }
+		.tdb-slogan .tdb-line:nth-child(2) { animation-delay: 340ms; color: #0f172a; }
+		.tdb-slogan .tdb-line:nth-child(3) { animation-delay: 520ms; color: #0f172a; }
+		.tdb-slogan .tdb-line:nth-child(4) { animation-delay: 700ms; color: #0f172a; }
+		.tdb-slogan .tdb-line + .tdb-line { margin-top: 6px; }
+		@keyframes tdbFadeUp {
+			from { opacity: 0; transform: translateY(6px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
 	</style>
 
 	<span class="app-nav"></span>
@@ -288,55 +338,14 @@
 			<div class="separatorDiv"></div>
 		</div>
 
+		{* Replace removed marketing/news panel with TDB slogan panel *}
 		<div class="col-lg-5 hidden-xs hidden-sm hidden-md">
-			<div class="marketingDiv widgetHeight">
-				{if $JSON_DATA}
-					<div class="scrollContainer">
-						{assign var=ALL_BLOCKS_COUNT value=0}
-						{foreach key=BLOCK_NAME item=BLOCKS_DATA from=$JSON_DATA}
-							{if $BLOCKS_DATA}
-								<div>
-									<h4>{$BLOCKS_DATA[0].heading}</h4>
-									<ul class="bxslider">
-										{foreach item=BLOCK_DATA from=$BLOCKS_DATA}
-											<li class="slide">
-												{assign var=ALL_BLOCKS_COUNT value=$ALL_BLOCKS_COUNT+1}
-												{if $BLOCK_DATA.image}
-													<div class="col-lg-3" style="min-height: 100px;"><img src="{$BLOCK_DATA.image}" style="width: 100%;height: 100%;margin-top: 10px;"/></div>
-													<div class="col-lg-9">
-												{else}
-													<div class="col-lg-12">
-												{/if}
-												<div title="{$BLOCK_DATA.summary}">
-													<h3><b>{$BLOCK_DATA.displayTitle}</b></h3>
-													{$BLOCK_DATA.displaySummary}<br><br>
-													<a href="{$BLOCK_DATA.url}" target="_blank"><u>{$BLOCK_DATA.urlalt}</u></a>
-												</div>
-												{if $BLOCK_DATA.image}
-													</div>
-												{else}
-													</div>
-												{/if}
-											</li>
-										{/foreach}
-									</ul>
-								</div>
-								{if $ALL_BLOCKS_COUNT neq $DATA_COUNT}
-									<br>
-									<hr>
-								{/if}
-							{/if}
-						{/foreach}
-					</div>
-				{else}
-					<div class="inActiveImgDiv">
-						<div>
-							<h4>Get more out of B-ACE with extensions from</h4>
-							<h4>B-ACE Marketplace</h4>
-						</div>
-						<a href="https://marketplace.vtiger.com/app/listings" target="_blank" style="margin-right: 25px;"><img src="layouts/v7/resources/Images/extensionstore.png" style="width: 85%; height: 100%; margin-top: 25px;"/></a>
-					</div>
-				{/if}
+			<div class="marketingDiv widgetHeight" style="background: transparent;">
+				<div class="tdb-slogan tdb-slogan--panel" aria-label="TDB Solution Slogan">
+					<div class="tdb-line">TDB Solution sáng tạo và đổi mới, chúng tôi mang đến khách hàng sự hài lòng nhờ đồng hành và cung cấp dịch vụ chất lượng cao.</div>
+					<div class="tdb-line"><span class="tdb-key">Tận tâm</span> phục vụ - <span class="tdb-key">Tiên phong</span> công nghệ</div>
+					<div class="tdb-line"><span class="tdb-key">Đồng hành</span> bền vững - <span class="tdb-key">Đổi mới</span> không ngừng</div>
+					<div class="tdb-line"><span class="tdb-key">Bền vững</span> chiến lược - <span class="tdb-key">Bản lĩnh</span> hành động</div>
 				</div>
 			</div>
 		</div>
@@ -423,27 +432,7 @@
 				});
 				loginFormDiv.find('#username').focus();
 
-				var slider = jQuery('.bxslider').bxSlider({
-					auto: true,
-					pause: 4000,
-					nextText: "",
-					prevText: "",
-					autoHover: true
-				});
-				jQuery('.bx-prev, .bx-next, .bx-pager-item').live('click',function(){ slider.startAuto(); });
-				jQuery('.bx-wrapper .bx-viewport').css('background-color', 'transparent');
-				jQuery('.bx-wrapper .bxslider li').css('text-align', 'left');
-				jQuery('.bx-wrapper .bx-pager').css('bottom', '-40px');
-
-				var params = {
-					theme		: 'dark-thick',
-					setHeight	: '100%',
-					advanced	:	{
-										autoExpandHorizontalScroll:true,
-										setTop: 0
-									}
-				};
-				jQuery('.scrollContainer').mCustomScrollbar(params);
+				// Login page: marketing/news panel removed, so no slider/scroll init.
 			});
 		</script>
 		</div>
