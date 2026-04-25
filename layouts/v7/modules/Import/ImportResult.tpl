@@ -17,6 +17,57 @@
     <div class='modal-body' style="margin-bottom:100%">
         <div class="summaryWidgetContainer">
             <input type="hidden" name="module" value="{$FOR_MODULE}" />
+			{if $FOR_MODULE eq 'Campaigns'}
+				<div class="alert alert-success" style="margin-top: 10px;">
+					<strong>Campaign import completed successfully.</strong>
+				</div>
+				{literal}
+				<script type="text/javascript">
+					(function () {
+						try { window.sessionStorage && sessionStorage.setItem('vtiger.CampaignsImport.success', '1'); } catch (e) {}
+						try {
+							if (window.app && app.helper && app.helper.showSuccessNotification) {
+								app.helper.showSuccessNotification({message: 'Campaign import completed successfully.'});
+							}
+						} catch (e2) {}
+					})();
+				</script>
+				{/literal}
+			{/if}
+			{if $FOR_MODULE eq 'Plans'}
+				<div class="alert alert-success" style="margin-top: 10px;">
+					<strong>Plans import completed successfully.</strong>
+				</div>
+				{literal}
+				<script type="text/javascript">
+					(function () {
+						try { window.sessionStorage && sessionStorage.setItem('vtiger.PlansImport.success', '1'); } catch (e) {}
+						try {
+							if (window.app && app.helper && app.helper.showSuccessNotification) {
+								app.helper.showSuccessNotification({message: 'Plans import completed successfully.'});
+							}
+						} catch (e2) {}
+					})();
+				</script>
+				{/literal}
+			{/if}
+			{if $FOR_MODULE eq 'Contacts'}
+				<div class="alert alert-success" style="margin-top: 10px;">
+					<strong>Contacts import completed successfully.</strong>
+				</div>
+				{literal}
+				<script type="text/javascript">
+					(function () {
+						try { window.sessionStorage && sessionStorage.setItem('vtiger.ContactsImport.success', '1'); } catch (e) {}
+						try {
+							if (window.app && app.helper && app.helper.showSuccessNotification) {
+								app.helper.showSuccessNotification({message: 'Contacts import completed successfully.'});
+							}
+						} catch (e2) {}
+					})();
+				</script>
+				{/literal}
+			{/if}
             <h4>{'LBL_TOTAL_RECORDS_SCANNED'|@vtranslate:$MODULE}&nbsp;&nbsp;:&nbsp;&nbsp;{$IMPORT_RESULT.TOTAL}</h4>
             {if isset($ERROR_MESSAGE) && $ERROR_MESSAGE neq ''}<span>{$ERROR_MESSAGE}</span>{/if}
             <hr>

@@ -22,6 +22,30 @@
 			{/if}
         </span>
         <hr>
+		{if $FORMAT eq 'csv' && isset($FOR_MODULE) && $FOR_MODULE eq 'Campaigns'}
+			<tr id="campaigns_import_success_banner_row" class="hide">
+				<td colspan="2">
+					<div id="campaigns_import_success_banner" class="alert alert-success alert-dismissible" style="margin: 0 0 10px 0;">
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<strong>Campaign import completed successfully.</strong>
+					</div>
+				</td>
+			</tr>
+		{/if}
+		{if $FORMAT eq 'csv' && isset($FOR_MODULE) && $FOR_MODULE eq 'Plans'}
+			<tr id="plans_import_success_banner_row" class="hide">
+				<td colspan="2">
+					<div id="plans_import_success_banner" class="alert alert-success alert-dismissible" style="margin: 0 0 10px 0;">
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<strong>Plans import completed successfully.</strong>
+					</div>
+				</td>
+			</tr>
+		{/if}
         <tr id="file_type_container" style="height:50px">
 			{if $FORMAT eq 'vcf'}
 				<td>{'LBL_SELECT_VCF_FILE'|@vtranslate:$MODULE}</td>
@@ -42,6 +66,47 @@
                 </div>
             </td>
         </tr>
+		{if $FORMAT eq 'csv' && isset($FOR_MODULE) && $FOR_MODULE eq 'Campaigns'}
+			<tr id="campaigns_sample_file_container" style="height:50px">
+				<td>{vtranslate('Reference file', $MODULE)}</td>
+				<td>
+					<a class="btn btn-default" href="index.php?module=Campaigns&action=DownloadImportSample">
+						<i class="fa fa-download"></i>&nbsp;{vtranslate('Download Sample CSV', $MODULE)}
+					</a>
+					<div class="text-muted" style="margin-top:6px;">
+						{vtranslate('Use this file format as a reference for Campaigns import.', $MODULE)}
+						<span id="campaigns_import_status_values_hint" style="margin-left:6px;"></span>
+					</div>
+				</td>
+			</tr>
+		{/if}
+		{if $FORMAT eq 'csv' && isset($FOR_MODULE) && $FOR_MODULE eq 'Plans'}
+			<tr id="plans_sample_file_container" style="height:50px">
+				<td>{vtranslate('Reference file', $MODULE)}</td>
+				<td>
+					<a class="btn btn-default" href="index.php?module=Plans&action=DownloadImportSample">
+						<i class="fa fa-download"></i>&nbsp;{vtranslate('Download Sample CSV', $MODULE)}
+					</a>
+					<div class="text-muted" style="margin-top:6px;">
+						{vtranslate('Use this file format as a reference for Plans import.', $MODULE)}
+						<span id="plans_import_status_values_hint" style="margin-left:6px;"></span>
+					</div>
+				</td>
+			</tr>
+		{/if}
+		{if $FORMAT eq 'csv' && isset($FOR_MODULE) && $FOR_MODULE eq 'Contacts'}
+			<tr id="contacts_sample_file_container" style="height:50px">
+				<td>{vtranslate('Reference file', $MODULE)}</td>
+				<td>
+					<a class="btn btn-default" href="index.php?module=Contacts&action=DownloadImportSample">
+						<i class="fa fa-download"></i>&nbsp;{vtranslate('Download Sample CSV', $MODULE)}
+					</a>
+					<div class="text-muted" style="margin-top:6px;">
+						{vtranslate('Use this file format as a reference for Contacts import.', $MODULE)}
+					</div>
+				</td>
+			</tr>
+		{/if}
         {if $FORMAT eq 'csv'}
             <tr id="has_header_container" style="height:50px">
                 <td>{'LBL_HAS_HEADER'|@vtranslate:$MODULE}</td>

@@ -4931,6 +4931,165 @@ body[data-module="ProjectTask"] .editViewPageDiv .duplicationMessageContainer {
     height: 1px;
 }
 
+/* Campaigns (MARKETING) list: fix broken horizontal scroller placement/overlap */
+body[data-module="Campaigns"] #listViewContent #scroller_wrapper.bottom-fixed-scroll {
+    top: 0 !important;
+    margin-top: 8px;
+    height: 16px;
+}
+body[data-module="Campaigns"] #listViewContent #table-content.table-container {
+    padding-bottom: 14px;
+}
+
+/* Campaigns list: tighter, more reasonable table spacing */
+body[data-module="Campaigns"] #listview-table th,
+body[data-module="Campaigns"] #listview-table td {
+    padding: 6px 8px !important;
+}
+body[data-module="Campaigns"] #listview-table {
+    table-layout: fixed;
+}
+body[data-module="Campaigns"] #listview-table td.listViewEntryValue .value {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Campaigns (MARKETING) list: ensure sidebar toggle arrow sits on sidebar edge */
+body[data-module="Campaigns"] #listViewContent .essentials-toggle {
+    left: 296px !important; /* 56 (module-nav) + 240 (sidebar-essentials) */
+    top: 87px !important;
+    z-index: 5 !important;
+    border-radius: 0 6px 6px 0;
+}
+body[data-module="Campaigns"] .content-area.full-width #listViewContent .essentials-toggle {
+    left: 72px !important; /* sidebar hidden: keep near module-nav */
+}
+body[data-module="Campaigns"] #listViewContent .essentials-toggle .essentials-toggle-marker {
+    background: none !important;
+    width: 14px;
+    text-align: center;
+    display: inline-block;
+}
+
+/* Plans list: apply same Campaigns list usability fixes */
+body[data-module="Plans"] #listViewContent #scroller_wrapper.bottom-fixed-scroll {
+    top: 0 !important;
+    margin-top: 8px;
+    height: 16px;
+}
+body[data-module="Plans"] #listViewContent #table-content.table-container {
+    padding-bottom: 14px;
+}
+body[data-module="Plans"] #listview-table th,
+body[data-module="Plans"] #listview-table td {
+    padding: 6px 8px !important;
+}
+body[data-module="Plans"] #listview-table {
+    table-layout: fixed;
+}
+body[data-module="Plans"] #listview-table td.listViewEntryValue .value {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+body[data-module="Plans"] #listViewContent .essentials-toggle {
+    left: 296px !important; /* 56 (module-nav) + 240 (sidebar-essentials) */
+    top: 87px !important;
+    z-index: 5 !important;
+    border-radius: 0 6px 6px 0;
+}
+body[data-module="Plans"] .content-area.full-width #listViewContent .essentials-toggle {
+    left: 72px !important; /* sidebar hidden: keep near module-nav */
+}
+body[data-module="Plans"] #listViewContent .essentials-toggle .essentials-toggle-marker {
+    background: none !important;
+    width: 14px;
+    text-align: center;
+    display: inline-block;
+}
+
+/* Plans list: permanently keep sidebar open (no toggle) */
+body[data-module="Plans"] #listViewContent .essentials-toggle {
+    display: none !important;
+}
+body[data-module="Plans"] .main-container #sidebar-essentials.sidebar-essentials {
+    display: inline-block !important;
+    width: 240px !important;
+    min-width: 240px !important;
+    max-width: 240px !important;
+}
+body[data-module="Plans"] .main-container .content-area,
+body[data-module="Plans"] .main-container .listViewPageDiv.content-area,
+body[data-module="Plans"] .main-container #listViewContent.listViewPageDiv.content-area {
+    padding-left: 296px !important; /* 56 (module-nav) + 240 (sidebar-essentials) */
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    min-width: 0 !important;
+}
+
+/* Contacts list: fix broken horizontal scroller placement/overlap + compact table spacing */
+body[data-module="Contacts"] #listViewContent #scroller_wrapper.bottom-fixed-scroll {
+    top: 0 !important;
+    margin-top: 8px;
+    height: 16px;
+}
+body[data-module="Contacts"] #listViewContent #table-content.table-container {
+    padding-bottom: 14px;
+}
+body[data-module="Contacts"] #listview-table th,
+body[data-module="Contacts"] #listview-table td {
+    padding: 6px 8px !important;
+}
+body[data-module="Contacts"] #listview-table {
+    table-layout: fixed;
+}
+body[data-module="Contacts"] #listview-table td.listViewEntryValue .value {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/* Contacts list: ensure sidebar toggle arrow sits on sidebar edge */
+body[data-module="Contacts"] #listViewContent .essentials-toggle {
+    left: 296px !important; /* 56 (module-nav) + 240 (sidebar-essentials) */
+    top: 87px !important;
+    z-index: 5 !important;
+    border-radius: 0 6px 6px 0;
+}
+body[data-module="Contacts"] .content-area.full-width #listViewContent .essentials-toggle {
+    left: 72px !important;
+}
+body[data-module="Contacts"] #listViewContent .essentials-toggle .essentials-toggle-marker {
+    background: none !important;
+    width: 14px;
+    text-align: center;
+    display: inline-block;
+}
+
+/* Plans list: horizontal scrollbar should not overlap content */
+body[data-module="Plans"] #listViewContent #table-content.table-container,
+.main-container-Plans #listViewContent #table-content.table-container {
+    padding-bottom: 28px !important;
+}
+body[data-module="Plans"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+body[data-module="Plans"] #listViewContent .bottom-fixed-scroll {
+    top: 0 !important;
+    margin-top: 10px !important;
+    height: 18px !important;
+    position: relative !important;
+}
+/* Some templates place scroller outside #listViewContent; force-disable negative offset for Plans */
+body[data-module="Plans"] #scroller_wrapper.bottom-fixed-scroll,
+body[data-module="Plans"] .bottom-fixed-scroll,
+.main-container-Plans #scroller_wrapper.bottom-fixed-scroll,
+.main-container-Plans .bottom-fixed-scroll {
+    top: 0 !important;
+    position: relative !important;
+}
+
 /* ========== Detail view refresh (Project/ProjectTask) ========== */
 body[data-module="Project"],
 body[data-module="ProjectTask"] {

@@ -105,6 +105,10 @@ class Import_FileReader_Reader {
 		$tableName = Import_Utils_Helper::getDbTableName($this->user);
 		$fieldMapping = $this->request->get('field_mapping');
 
+		// Ensure repeated imports for same user work without manual clearing.
+		// The import table is per-user; recreate it fresh for every upload/parse run.
+		$db->pquery('DROP TABLE IF EXISTS '.$tableName, array());
+
 		$moduleFields = $this->moduleModel->getFields();
 		$moduleImportableFields = $this->moduleModel->getAdditionalImportFields();
 		$moduleFields = array_merge($moduleFields, $moduleImportableFields);

@@ -186,6 +186,12 @@ class Import_Utils_Helper {
 		$importDirectory = self::getImportDirectory();
 		$temporaryFileName = self::getImportFilePath($current_user);
 
+		// Make repeated imports resilient: ensure import directory exists and stale temp file is removed.
+		if (!file_exists($importDirectory)) {
+			@mkdir($importDirectory, 0777, true);
+		}
+		@unlink($temporaryFileName);
+
 		if($_FILES['import_file']['error']) {
 			$request->set('error_message', self::fileUploadErrorMessage($_FILES['import_file']['error']));
 			return false;
@@ -200,7 +206,7 @@ class Import_Utils_Helper {
 			return false;
 		}
 		if(!is_writable($importDirectory)) {
-			$request->set('error_message', vtranslate('LBL_IMPORT_DIRECTORY_NOT_WRITABLE', 'Import'));
+			$request->set('error_message', vtranslate('LBL_IMPORT_DIRECTORY_NOT_WRITABLE', 'Import').' ('.$importDirectory.')');
 			return false;
 		}
 

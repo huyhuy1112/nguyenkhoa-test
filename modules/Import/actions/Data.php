@@ -126,11 +126,111 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		if ($this->user->is_admin == 'off') {
 			Vtiger_Field_Model::preFetchModuleFieldPermission($moduleModel->getId());
 		}
+
+		// Campaigns: enforce mandatory Campaign Status before creating any records.
+		$preflight = $this->validateCampaignsImportPreflight();
+		if ($preflight !== true) {
+			Import_Utils_Helper::showErrorPage($preflight);
+			exit;
+		}
+
 		if (method_exists($focus, 'createRecords')) {
 			$focus->createRecords($this);
 		} else {
 			$this->createRecords();
 		}
+	}
+
+	protected function validateCampaignsImportPreflight() {
+		if ($this->module !== 'Campaigns') {
+			return true;
+		}
+
+		// 1) Ensure Campaign Status is mapped OR provided as default value.
+		$fieldMapping = $this->fieldMapping;
+		$defaultValues = $this->defaultValues;
+		if (!is_array($fieldMapping)) {
+			try { $fieldMapping = Zend_Json::decode($fieldMapping); } catch (Exception $e) {}
+		}
+		if (!is_array($defaultValues) && !empty($defaultValues)) {
+			try { $defaultValues = Zend_Json::decode($defaultValues); } catch (Exception $e2) {}
+		}
+		$hasMapped = (is_array($fieldMapping) && array_key_exists('campaignstatus', $fieldMapping));
+		$hasDefault = (is_array($defaultValues) && array_key_exists('campaignstatus', $defaultValues) && trim((string)$defaultValues['campaignstatus']) !== '');
+		if (!$hasMapped && !$hasDefault) {
+			return 'Campaign Status is required. Please map/provide Campaign Status before importing.';
+		}
+
+		// 2) Validate per-row Campaign Status value is present (and valid picklist if mapped).
+		if ($hasMapped) {
+			$allowed = array();
+			try {
+				$moduleModel = Vtiger_Module_Model::getInstance('Campaigns');
+				$fieldModel = Vtiger_Field_Model::getInstance('campaignstatus', $moduleModel);
+				if ($fieldModel) {
+					$map = $fieldModel->getPicklistValues();
+					if (is_array($map)) $allowed = array_keys($map);
+				}
+			} catch (Exception $e3) {
+			}
+
+			$adb = PearDatabase::getInstance();
+			$tableName = Import_Utils_Helper::getDbTableName($this->user);
+
+			// Missing status (empty)
+			$r = $adb->pquery("SELECT id FROM $tableName WHERE status = ? AND (campaignstatus IS NULL OR TRIM(campaignstatus) = '') LIMIT 1",
+				array(Import_Data_Action::$IMPORT_RECORD_NONE));
+			if ($r && $adb->num_rows($r) > 0) {
+				$badId = $adb->query_result($r, 0, 'id');
+				return 'Campaign Status is required. Empty value found at row ' . $badId . '. Please fix your CSV and import again.';
+			}
+
+			// Invalid picklist value
+			if (is_array($allowed) && count($allowed) > 0) {
+				$placeholders = implode(',', array_fill(0, count($allowed), '?'));
+				$params = array_merge(array(Import_Data_Action::$IMPORT_RECORD_NONE), $allowed);
+				$r2 = $adb->pquery("SELECT id, campaignstatus FROM $tableName WHERE status = ? AND TRIM(campaignstatus) <> '' AND campaignstatus NOT IN ($placeholders) LIMIT 1", $params);
+				if ($r2 && $adb->num_rows($r2) > 0) {
+					$badId = $adb->query_result($r2, 0, 'id');
+					$badVal = $adb->query_result($r2, 0, 'campaignstatus');
+
+					// Better diagnostics when mapping is wrong (e.g. "Administrator" or "Sample Campaign 1").
+					// IMPORTANT: Do not assume field_mapping direction/index here; just dump shape for debugging.
+					try {
+						@file_put_contents('/tmp/campaign_import_debug.log', json_encode(array(
+							'ts' => date('c'),
+							'module' => 'Campaigns',
+							'event' => 'invalid_campaignstatus',
+							'row' => $badId,
+							'value' => $badVal,
+							'field_mapping_type' => gettype($fieldMapping),
+							'field_mapping' => $fieldMapping,
+							'field_mapping_keys' => (is_array($fieldMapping) ? array_keys($fieldMapping) : null),
+							'field_mapping_values' => (is_array($fieldMapping) ? array_values($fieldMapping) : null),
+							'field_mapping_json' => (is_array($fieldMapping) ? Zend_Json::encode($fieldMapping) : null),
+						), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND);
+					} catch (Exception $ignoredLog) {}
+
+					return 'Invalid Campaign Status value at row ' . $badId . ': ' . $badVal . '. Please map Campaign Status to the Campaign Status column (not Campaign Name / Assigned To).';
+				}
+			}
+		}
+
+		return true;
+	}
+
+	protected function validateCampaignsRequiredFields(array $fieldData) {
+		if ($this->module !== 'Campaigns') {
+			return true;
+		}
+		$status = '';
+		if (isset($fieldData['campaignstatus'])) {
+			$status = trim((string)$fieldData['campaignstatus']);
+		}
+		if ($status === '') {
+			return 'Campaign Status is required. Please map/provide Campaign Status before importing.';
+		}
+		return true;
 	}
 
 	public function initializeImport() {
@@ -151,6 +251,14 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 	public function finishImport() {
 		Import_Lock_Action::unLock($this->user, $this->module);
 		Import_Queue_Action::remove($this->id);
+
+		// Make repeated imports work without manual clear: drop per-user import table after completion.
+		try {
+			$adb = PearDatabase::getInstance();
+			$tableName = Import_Utils_Helper::getDbTableName($this->user);
+			$adb->pquery('DROP TABLE IF EXISTS '.$tableName, array());
+		} catch (Exception $e) {
+		}
 	}
 
 	public function updateModuleSequenceNumber() {
@@ -248,6 +356,16 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			$fieldData = array();
 			foreach ($fieldMapping as $fieldName => $index) {
 				$fieldData[$fieldName] = trim($row[$fieldName]);
+			}
+
+			$campaignsValidation = $this->validateCampaignsRequiredFields($fieldData);
+			if ($campaignsValidation !== true) {
+				$entityInfo = array(
+					'status' => Import_Data_Action::$IMPORT_RECORD_FAILED,
+					'error_message' => $campaignsValidation,
+				);
+				$this->updateImportStatus($rowId, $entityInfo);
+				continue;
 			}
 
 			$mergeType = $this->mergeType;

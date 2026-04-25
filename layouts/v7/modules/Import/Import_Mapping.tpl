@@ -28,6 +28,34 @@
 		<tbody>
 			{foreach key=_HEADER_NAME item=_FIELD_VALUE from=$ROW_1_DATA name="headerIterator"}
 				{assign var="_COUNTER" value=$smarty.foreach.headerIterator.iteration}
+				{assign var="_HEADER_RAW" value=decode_html($_HEADER_NAME)}
+				{assign var="_HEADER_NORM" value=strtolower(trim($_HEADER_RAW|replace:"\xEF\xBB\xBF":"")|regex_replace:"/\\s+/":" ")}
+				{assign var="_SELECTED_FIELD_NAME" value=""}
+
+				{* Campaigns: deterministic English-header auto-map (no multi-selected options) *}
+				{if $FOR_MODULE eq 'Campaigns'}
+					{if $_HEADER_NORM eq 'campaign name'}{assign var="_SELECTED_FIELD_NAME" value="campaignname"}
+					{elseif $_HEADER_NORM eq 'campaign status'}{assign var="_SELECTED_FIELD_NAME" value="campaignstatus"}
+					{elseif $_HEADER_NORM eq 'campaign type'}{assign var="_SELECTED_FIELD_NAME" value="campaigntype"}
+					{elseif $_HEADER_NORM eq 'start date'}{assign var="_SELECTED_FIELD_NAME" value="start_date"}
+					{elseif $_HEADER_NORM eq 'expected close date'}{assign var="_SELECTED_FIELD_NAME" value="closingdate"}
+					{elseif $_HEADER_NORM eq 'expected revenue'}{assign var="_SELECTED_FIELD_NAME" value="expectedrevenue"}
+					{elseif $_HEADER_NORM eq 'assigned to'}{assign var="_SELECTED_FIELD_NAME" value="assigned_user_id"}
+					{elseif $_HEADER_NORM eq 'description'}{assign var="_SELECTED_FIELD_NAME" value="description"}
+					{/if}
+				{/if}
+
+				{* Contacts: deterministic English-header auto-map (safe common fields) *}
+				{if $FOR_MODULE eq 'Contacts'}
+					{if $_HEADER_NORM eq 'first name' || $_HEADER_NORM eq 'firstname'}{assign var="_SELECTED_FIELD_NAME" value="firstname"}
+					{elseif $_HEADER_NORM eq 'last name' || $_HEADER_NORM eq 'lastname'}{assign var="_SELECTED_FIELD_NAME" value="lastname"}
+					{elseif $_HEADER_NORM eq 'organization name' || $_HEADER_NORM eq 'account name' || $_HEADER_NORM eq 'organization'}{assign var="_SELECTED_FIELD_NAME" value="account_id"}
+					{elseif $_HEADER_NORM eq 'email' || $_HEADER_NORM eq 'email address'}{assign var="_SELECTED_FIELD_NAME" value="email"}
+					{elseif $_HEADER_NORM eq 'mobile phone' || $_HEADER_NORM eq 'mobile'}{assign var="_SELECTED_FIELD_NAME" value="mobile"}
+					{elseif $_HEADER_NORM eq 'assigned to' || $_HEADER_NORM eq 'assigned_user_id'}{assign var="_SELECTED_FIELD_NAME" value="assigned_user_id"}
+					{/if}
+				{/if}
+
 				<tr class="fieldIdentifier" id="fieldIdentifier{$_COUNTER}">
 					{if $HAS_HEADER eq true}
 						<td>
@@ -44,8 +72,12 @@
 							{foreach key=_FIELD_NAME item=_FIELD_INFO from=$AVAILABLE_FIELDS}
 								{assign var="_TRANSLATED_FIELD_LABEL" value=$_FIELD_INFO->getFieldLabelKey()|@vtranslate:$FOR_MODULE}
 								{assign var="EVENTS_TRANSLATED_FIELD_LABEL" value=$_FIELD_INFO->getFieldLabelKey()|@vtranslate:Events}
-								<option value="{$_FIELD_NAME}" {if strtolower(decode_html($_HEADER_NAME)) eq strtolower($_TRANSLATED_FIELD_LABEL)} selected {/if} 
-										{if $_FIELD_NAME eq 'due_date' && strtolower(decode_html($_HEADER_NAME)) eq strtolower($EVENTS_TRANSLATED_FIELD_LABEL)} selected {/if} 
+								{assign var="_FALLBACK_SELECTED" value=($_HEADER_NORM eq strtolower($_TRANSLATED_FIELD_LABEL))}
+								<option value="{$_FIELD_NAME}"
+										{if $_FIELD_NAME eq $_SELECTED_FIELD_NAME} selected
+										{elseif $_SELECTED_FIELD_NAME eq '' && $_FALLBACK_SELECTED} selected
+										{elseif $_FIELD_NAME eq 'due_date' && $_HEADER_NORM eq strtolower($EVENTS_TRANSLATED_FIELD_LABEL)} selected
+										{/if}
 										data-label="{$_TRANSLATED_FIELD_LABEL}">{$_TRANSLATED_FIELD_LABEL}{if $_FIELD_INFO->isMandatory() eq 'true' || $_FIELD_NAME eq 'activitytype'}&nbsp; (*){/if}</option>
 							{/foreach}
 						</select>

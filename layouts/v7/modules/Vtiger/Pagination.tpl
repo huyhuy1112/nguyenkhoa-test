@@ -44,6 +44,10 @@
             {if $RECORD_COUNT}{$PAGING_MODEL->getRecordStartRange()} {vtranslate('LBL_to', $MODULE)} {$PAGING_MODEL->getRecordEndRange()}{else}
             {/if}
         </span>
-        &nbsp;<span class="totalNumberOfRecords cursorPointer{if !$RECORD_COUNT} hide{/if}" title="{vtranslate('LBL_SHOW_TOTAL_NUMBER_OF_RECORDS', $MODULE)}">{vtranslate('LBL_OF', $MODULE)} <i class="fa fa-question showTotalCountIcon"></i></span>&nbsp;&nbsp;
+        {if $MODULE eq 'Campaigns' || $MODULE eq 'Plans' || $MODULE eq 'Contacts'}
+            &nbsp;<span class="totalNumberOfRecords{if !$RECORD_COUNT} hide{/if}">{vtranslate('LBL_OF', $MODULE)} <strong>{$LISTVIEW_COUNT}</strong></span>&nbsp;&nbsp;
+        {else}
+            &nbsp;<span class="totalNumberOfRecords cursorPointer{if !$RECORD_COUNT} hide{/if}" title="{vtranslate('LBL_SHOW_TOTAL_NUMBER_OF_RECORDS', $MODULE)}">{vtranslate('LBL_OF', $MODULE)} <i class="fa fa-question showTotalCountIcon"></i></span>&nbsp;&nbsp;
+        {/if}
     </span>
 </div>
