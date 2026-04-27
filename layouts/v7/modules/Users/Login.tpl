@@ -10,272 +10,500 @@
 
 {strip}
 	<style>
+		/* Login page only (template-scoped inline styles) */
+		html, body {
+			height: 100%;
+			overflow: hidden; /* fixed-screen: no page scroll */
+		}
 		body {
-			background: url(layouts/v7/resources/Images/login-background.jpg);
-			background-position: center;
-			background-size: cover;
-			width: 100%;
-			background-repeat: no-repeat;
+			margin: 0;
+			min-height: 100vh;
+			background: url(layouts/v7/resources/Images/login-bace-tech-bg.png) center/cover no-repeat fixed;
 		}
-		hr {
-			margin-top: 15px;
-			background-color: #7C7C7C;
-			height: 2px;
-			border-width: 0;
-		}
-		h3, h4 {
-			margin-top: 0px;
-		}
-		hgroup {
-			text-align:center;
-			margin-top: 4em;
-		}
-		input {
-			font-size: 16px;
-			padding: 10px 10px 10px 0px;
-			-webkit-appearance: none;
-			display: block;
-			color: #636363;
-			width: 100%;
-			border: none;
-			border-radius: 0;
-			border-bottom: 1px solid #757575;
-		}
-		input:focus {
-			outline: none;
-		}
-		label {
-			font-size: 16px;
-			font-weight: normal;
-			position: absolute;
+		body::before {
+			content: "";
+			position: fixed;
+			inset: 0;
+			background:
+				radial-gradient(900px 600px at 28% 25%, rgba(34,211,238,0.20), transparent 60%),
+				radial-gradient(800px 500px at 72% 28%, rgba(250,204,21,0.12), transparent 55%),
+				linear-gradient(135deg, rgba(2,6,23,0.28) 0%, rgba(2,6,23,0.38) 100%);
 			pointer-events: none;
-			left: 0px;
-			top: 10px;
-			transition: all 0.2s ease;
+			z-index: 0;
+			animation: baceBgDrift 16s ease-in-out infinite alternate;
 		}
-		input:focus ~ label, input.used ~ label {
-			top: -20px;
-			transform: scale(.75);
-			left: -12px;
-			font-size: 18px;
+		@keyframes baceBgDrift {
+			from { filter: saturate(1.06) contrast(1.03); }
+			to { filter: saturate(1.18) contrast(1.05); }
 		}
-		input:focus ~ .bar:before, input:focus ~ .bar:after {
-			width: 50%;
-		}
-		select {
-			font-size: 16px;
-		}
-		#page {
-			padding-top: 86px;
-		}
-		.widgetHeight {
-			height: 460px;
-			margin-top: 20px !important;
-		}
-		.loginDiv {
-			max-width: 380px;
-			margin: 0 auto;
-			border-radius: 4px;
-			box-shadow: 0 0 10px gray;
-			background-color: #FFFFFF;
-		}
-		.marketingDiv {
-			color: #303030;
-                        height: 510px !important;
-		}
-		.separatorDiv {
-			background-color: #7C7C7C;
-			width: 2px;
-			height: 460px;
-			margin-left: 20px;
-		}
-		.user-logo {
-			max-height: 96px;
-			height: auto;
-			width: auto;
-			margin: 0 auto;
-			padding: 0;
-			display: block;
-		}
-		/* Ensure background behind logo stays white (UI only) */
-		.mk-login-logo-wrap {
-			background: #ffffff;
-			border-radius: 12px;
-			padding-top: 26px;
-			padding-bottom: 16px;
-		}
-		}
-		.blockLink {
-			border: 1px solid #303030;
-			padding: 3px 5px;
-		}
-		.group {
+
+		.loginPageContainer {
 			position: relative;
-			margin: 20px 20px 40px;
+			z-index: 1;
+			height: 100vh;
+			display: flex;
+			align-items: flex-start; /* move cards upward (less skyline overlap) */
+			justify-content: center;
+			padding: 0 18px;
+			padding-top: clamp(44px, 8vh, 92px);
+			padding-bottom: 28px;
 		}
-		.failureMessage {
-			color: red;
-			display: block;
-			text-align: center;
-			padding: 0px 0px 10px;
+
+		/* Hide footer on login only to prevent scroll */
+		.app-footer, .footer { display: none !important; }
+
+		/* Subtle aurora glow behind cards */
+		.loginPageContainer::before,
+		.loginPageContainer::after {
+			content: "";
+			position: fixed;
+			inset: -120px;
+			pointer-events: none;
+			z-index: 0;
+			opacity: 0.9;
+			filter: blur(40px);
+			mix-blend-mode: screen;
+			animation: baceAurora 18s ease-in-out infinite alternate;
 		}
-		.successMessage {
-			color: green;
-			display: block;
-			text-align: center;
-			padding: 0px 0px 10px;
+		.loginPageContainer::before {
+			background: radial-gradient(860px 520px at 34% 42%, rgba(34,211,238,0.34), transparent 64%);
 		}
-		.inActiveImgDiv {
-			padding: 5px;
-			text-align: center;
-			margin: 30px 0px;
+		.loginPageContainer::after {
+			background: radial-gradient(860px 520px at 70% 44%, rgba(250,204,21,0.22), transparent 66%);
+			animation-delay: 0.6s;
+			opacity: 0.75;
 		}
-		.app-footer p {
-			margin-top: 0px;
+
+		/* Floating light accents (very lightweight) */
+		body::after {
+			content: "";
+			position: fixed;
+			inset: 0;
+			pointer-events: none;
+			z-index: 0;
+			background:
+				radial-gradient(10px 10px at 18% 22%, rgba(34,211,238,0.55), transparent 70%),
+				radial-gradient(12px 12px at 82% 28%, rgba(250,204,21,0.45), transparent 72%),
+				radial-gradient(9px 9px at 66% 78%, rgba(59,130,246,0.40), transparent 72%),
+				linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.06) 48%, transparent 58%);
+			opacity: 0.55;
+			filter: blur(0.2px);
+			animation: baceFloat 22s ease-in-out infinite alternate;
 		}
-		.footer {
-			background-color: #fbfbfb;
-			height:26px;
+		@keyframes baceFloat {
+			from { transform: translate3d(0,0,0); }
+			to { transform: translate3d(18px,-14px,0); }
 		}
-		.bar {
-			position: relative;
-			display: block;
-			width: 100%;
+		@keyframes baceAurora {
+			from { transform: translate3d(0,0,0) scale(1); }
+			to { transform: translate3d(20px,-10px,0) scale(1.02); }
 		}
-		.bar:before, .bar:after {
-			content: '';
-			width: 0;
-			bottom: 1px;
+
+		.bace-shell {
+			width: 1160px;
+			max-width: 100%;
+			display: grid;
+			grid-template-columns: 420px minmax(0, 620px);
+			gap: 12px;
+			align-items: start;
+			max-height: calc(100vh - 56px);
+			transform: translateY(-28px);
+			transform-origin: top center;
+		}
+		@media (max-width: 980px) {
+			.bace-shell {
+				grid-template-columns: 1fr;
+				gap: 12px;
+				max-height: none;
+				transform: translateY(-18px);
+			}
+		}
+
+		/* Optional premium "float" micro-motion */
+		@media (prefers-reduced-motion: no-preference) {
+			.bace-shell { animation: baceFloatShell 8s ease-in-out infinite; }
+			@keyframes baceFloatShell {
+				0%, 100% { transform: translateY(-28px); }
+				50% { transform: translateY(-34px); }
+			}
+			@media (max-width: 980px) {
+				@keyframes baceFloatShell {
+					0%, 100% { transform: translateY(-18px); }
+					50% { transform: translateY(-24px); }
+				}
+			}
+		}
+
+		/* Glass cards */
+		.bace-card {
+			border-radius: 24px;
+			background: rgba(255, 255, 255, 0.14);
+			border: 1px solid rgba(255, 255, 255, 0.22);
+			box-shadow: 0 26px 80px rgba(0, 0, 0, 0.45);
+			backdrop-filter: blur(12px);
+			-webkit-backdrop-filter: blur(12px);
+			overflow: hidden;
+			animation: baceFadeUp 520ms ease both;
+		}
+		.bace-card--login {
+			padding: 20px 20px 16px 20px;
+			background: rgba(255, 255, 255, 0.22); /* brighter for readability */
+		}
+
+		/* Floating info slider (center-right, compact, avoids laptop overlap) */
+		.bace-info-slider {
 			position: absolute;
-			height: 1px;
-			background: #35aa47;
-			transition: all 0.2s ease;
+			top: 55px;
+			left: 620px;
+			transform: none;
+			width: 320px;
+			height: 170px;
+			z-index: 3;
+			display: flex;
+			align-items: center;
+			padding: 20px;
+			border-radius: 18px;
+			background: rgba(255,255,255,0.08);
+			border: 1px solid rgba(255,255,255,0.15);
+			backdrop-filter: blur(16px);
+			-webkit-backdrop-filter: blur(16px);
+			box-shadow: 0 12px 40px rgba(0,0,0,0.30);
+			overflow: hidden;
 		}
-		.bar:before {
-			left: 50%;
+		@media (max-width: 1200px) {
+			.bace-info-slider {
+				left: 560px;
+				top: 45px;
+				width: 300px;
+			}
 		}
-		.bar:after {
-			right: 50%;
+		.bace-slide {
+			position: absolute;
+			left: 20px;
+			right: 20px;
+			top: 20px;
+			bottom: 34px; /* leave room for dots */
+			opacity: 0;
+			transform: translateY(10px);
+			transition: all 0.4s ease;
 		}
-		.button {
-			position: relative;
-			display: inline-block;
-			padding: 9px;
-			margin: .3em 0 1em 0;
-			width: 100%;
-			vertical-align: middle;
-			color: #fff;
+		.bace-slide.active {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		.bace-info-slider h3 {
+			margin: 0 0 6px 0;
 			font-size: 16px;
-			line-height: 20px;
-			-webkit-font-smoothing: antialiased;
-			text-align: center;
-			letter-spacing: 1px;
+			font-weight: 950;
+			letter-spacing: -0.03em;
+			color: #facc15;
+		}
+		.bace-info-slider p {
+			margin: 0;
+			font-size: 13px;
+			line-height: 1.5;
+			color: rgba(226,232,240,0.86);
+		}
+		.bace-info-dots {
+			position: absolute;
+			left: 20px;
+			right: 20px;
+			bottom: 12px;
+			display: flex;
+			gap: 6px;
+			justify-content: center;
+		}
+		.bace-info-dot {
+			width: 6px;
+			height: 6px;
+			border-radius: 999px;
+			background: rgba(255,255,255,0.22);
+		}
+		.bace-info-dot.is-active { background: rgba(34,211,238,0.75); box-shadow: 0 0 0 3px rgba(34,211,238,0.18); }
+
+		@keyframes baceFadeUp {
+			from { opacity: 0; transform: translateY(10px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+
+		/* Logo tile */
+		.bace-logo-tile {
+			display: grid;
+			place-items: center;
 			background: transparent;
 			border: 0;
-			cursor: pointer;
-			transition: all 0.15s ease;
-		}
-		.button:focus {
-			outline: 0;
-		}
-		.buttonBlue {
-			background-image: linear-gradient(to bottom, #35aa47 0px, #35aa47 100%)
-		}
-		.ripples {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			overflow: hidden;
-			background: transparent;
-		}
-                .mCSB_container{
-                    height: inherit;
-                }
-
-		//Animations
-		@keyframes inputHighlighter {
-			from {
-				background: #4a89dc;
-			}
-			to 	{
-				width: 0;
-				background: transparent;
-			}
-		}
-		@keyframes ripples {
-			0% {
-				opacity: 0;
-			}
-			25% {
-				opacity: 1;
-			}
-			100% {
-				width: 200%;
-				padding-bottom: 200%;
-				opacity: 0;
-			}
-		}
-
-		/* TDB Solution - login slogan (animated) */
-		.tdb-slogan {
-			margin: 0;
-			padding: 10px 12px;
-			border-radius: 10px;
-			background: rgba(53, 170, 71, 0.06);
-			border: 1px solid rgba(53, 170, 71, 0.18);
-			color: #1f2937;
-		}
-		/* When shown on the right panel, make it breathe */
-		.tdb-slogan.tdb-slogan--panel {
-			width: 100%;
-			box-sizing: border-box;
-			padding: 18px 18px;
-			margin-top: 24px;
-			background: transparent;
-			backdrop-filter: none;
-			border: 1px solid rgba(255,255,255,0.35);
 			box-shadow: none;
-			text-align: center;
+			padding: 6px 0 10px 0;
 		}
-		.tdb-slogan.tdb-slogan--panel .tdb-line:nth-child(1) {
-			font-size: 20px;
-			line-height: 1.35;
+		.user-logo {
+			width: min(220px, 72%);
+			max-width: 220px;
+			height: auto;
+			height: auto;
+			display: block;
 		}
-		.tdb-slogan.tdb-slogan--panel .tdb-line:nth-child(n+2) {
-			font-size: 15px;
-			line-height: 1.4;
+
+		/* Subtle middle accents to reduce empty feel (no laptop cover) */
+		.bace-mid-accent {
+			position: fixed;
+			left: clamp(520px, 47vw, 720px);
+			top: clamp(120px, 24vh, 220px);
+			width: 2px;
+			height: clamp(220px, 32vh, 340px);
+			border-radius: 99px;
+			background: linear-gradient(180deg, rgba(34,211,238,0.00), rgba(34,211,238,0.55), rgba(250,204,21,0.25), rgba(34,211,238,0.00));
+			box-shadow: 0 0 0 6px rgba(34,211,238,0.06);
+			opacity: 0.7;
+			pointer-events: none;
+			z-index: 1;
 		}
-		.tdb-slogan .tdb-key {
+
+		.bace-h1 {
+			margin: 14px 0 6px 0;
+			font-size: 23px;
+			font-weight: 900;
+			letter-spacing: -0.03em;
+			color: rgba(255, 255, 255, 0.95);
+		}
+		.bace-sub {
+			margin: 0 0 16px 0;
+			color: rgba(226, 232, 240, 0.80);
+			font-size: 13px;
+			line-height: 1.45;
+		}
+
+		/* Messages */
+		.failureMessage, .successMessage {
+			display: block;
+			text-align: left;
+			padding: 10px 12px;
+			margin: 12px 0 0 0;
+			border-radius: 14px;
+			font-weight: 700;
+		}
+		.failureMessage { color: #fecaca; background: rgba(239, 68, 68, 0.10); border: 1px solid rgba(239, 68, 68, 0.22); }
+		.successMessage { color: #bbf7d0; background: rgba(34, 197, 94, 0.10); border: 1px solid rgba(34, 197, 94, 0.22); }
+
+		/* Inputs */
+		.group { position: relative; margin: 14px 0 12px 0; }
+		.bace-field {
+			display: grid;
+			grid-template-columns: 40px 1fr;
+			align-items: center;
+			gap: 10px;
+			padding: 11px 12px;
+			border-radius: 16px;
+			border: 1px solid rgba(255, 255, 255, 0.18);
+			background: rgba(2, 6, 23, 0.22);
+			transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+		}
+		.bace-field:focus-within {
+			border-color: rgba(34, 211, 238, 0.45);
+			box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.12);
+			background: rgba(2, 6, 23, 0.28);
+		}
+		.bace-ico {
+			width: 32px;
+			height: 32px;
+			border-radius: 12px;
+			display: grid;
+			place-items: center;
+			background: rgba(255, 255, 255, 0.10);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			color: rgba(226, 232, 240, 0.92);
+		}
+		input, select {
+			width: 100%;
+			border: 0;
+			outline: 0;
+			background: transparent;
+			color: rgba(248, 250, 252, 0.98);
+			font-size: 14px;
+			padding: 0;
+			margin: 0;
+			-webkit-appearance: none;
+		}
+		input::placeholder { color: rgba(226, 232, 240, 0.55); }
+		/* Keep old label markup but hide (we use placeholders + icons) */
+		.group label, .bar { display: none !important; }
+
+		/* Skin select */
+		.bace-skin { margin-top: 6px; }
+		.bace-skin select {
+			padding: 10px 12px;
+			border-radius: 14px;
+			border: 1px solid rgba(255, 255, 255, 0.16);
+			background: rgba(2, 6, 23, 0.22);
+		}
+
+		/* Button */
+		.button {
+			width: 100%;
+			border: 0;
+			border-radius: 16px;
+			padding: 12px 14px;
+			font-size: 14px;
+			font-weight: 900;
+			letter-spacing: 0.02em;
+			color: #0b1220;
+			cursor: pointer;
+			background: linear-gradient(135deg, #facc15 0%, #22d3ee 100%);
+			box-shadow: 0 18px 45px rgba(34, 211, 238, 0.18), 0 14px 40px rgba(250, 204, 21, 0.14);
+			transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+			overflow: hidden;
+		}
+		.button::before {
+			content: "";
+			position: absolute;
+			inset: 0;
+			transform: translateX(-120%);
+			background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.35) 35%, transparent 70%);
+			transition: transform 520ms ease;
+			pointer-events: none;
+		}
+		.button:hover {
+			transform: translateY(-1px);
+			filter: brightness(1.02);
+			box-shadow: 0 22px 60px rgba(34, 211, 238, 0.22), 0 18px 55px rgba(250, 204, 21, 0.16);
+		}
+		.button:hover::before { transform: translateX(120%); }
+		.button:active { transform: translateY(0); }
+
+		.buttonBlue {
+			animation: baceBtnGlow 2.8s ease-in-out infinite;
+		}
+		@keyframes baceBtnGlow {
+			0%, 100% { box-shadow: 0 18px 45px rgba(34, 211, 238, 0.22), 0 14px 40px rgba(250, 204, 21, 0.18); }
+			50% { box-shadow: 0 22px 60px rgba(34, 211, 238, 0.30), 0 18px 55px rgba(250, 204, 21, 0.22); }
+		}
+
+		/* Links */
+		.bace-links {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-top: 10px;
+			font-size: 13px;
+		}
+		.forgotPasswordLink {
+			color: rgba(226, 232, 240, 0.85) !important;
+			text-decoration: none !important;
+			cursor: pointer;
+		}
+		.forgotPasswordLink:hover { color: #ffffff !important; text-decoration: underline !important; }
+
+		/* Brand panel */
+		.bace-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 6px 10px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.08);
+			border: 1px solid rgba(255, 255, 255, 0.14);
+			color: rgba(226, 232, 240, 0.92);
 			font-weight: 800;
-			font-size: 16.5px;
-			letter-spacing: 0.01em;
-			color: #facc15; /* yellow */
+			font-size: 12px;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
 		}
-		.tdb-slogan .tdb-line {
-			opacity: 0;
-			transform: translateY(6px);
-			animation: tdbFadeUp 600ms ease forwards;
+		.bace-brand-title {
+			margin: 14px 0 10px 0;
+			font-size: 30px;
+			line-height: 1.12;
+			letter-spacing: -0.04em;
+			font-weight: 950;
+			color: rgba(255, 255, 255, 0.96);
 		}
-		.tdb-slogan .tdb-line:nth-child(1) { animation-delay: 120ms; font-weight: 600; }
-		.tdb-slogan .tdb-line:nth-child(2) { animation-delay: 340ms; color: #0f172a; }
-		.tdb-slogan .tdb-line:nth-child(3) { animation-delay: 520ms; color: #0f172a; }
-		.tdb-slogan .tdb-line:nth-child(4) { animation-delay: 700ms; color: #0f172a; }
-		.tdb-slogan .tdb-line + .tdb-line { margin-top: 6px; }
-		@keyframes tdbFadeUp {
-			from { opacity: 0; transform: translateY(6px); }
-			to { opacity: 1; transform: translateY(0); }
+		.bace-brand-title .is-gold { color: #facc15; }
+		.bace-brand-title .is-cyan { color: #22d3ee; }
+		.bace-brand-sub {
+			margin: 0 0 16px 0;
+			color: rgba(226, 232, 240, 0.80);
+			font-size: 14px;
+			line-height: 1.55;
+			max-width: 56ch;
+		}
+		.bace-values {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 12px;
+			margin-top: 18px;
+		}
+		@media (max-width: 980px) {
+			.loginPageContainer { justify-content: center; }
+			.bace-info-slider { display: none; }
+			.bace-mid-accent { display: none; }
+		}
+		.bace-value {
+			border-radius: 18px;
+			padding: 14px 14px;
+			background: rgba(255, 255, 255, 0.09);
+			border: 1px solid rgba(255, 255, 255, 0.16);
+			transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+		}
+		.bace-value:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+			background: rgba(255,255,255,0.11);
+		}
+		.bace-value h4 {
+			margin: 0 0 6px 0;
+			font-size: 14px;
+			font-weight: 950;
+			letter-spacing: -0.02em;
+			color: #facc15;
+		}
+		.bace-value p {
+			margin: 0;
+			font-size: 12.5px;
+			line-height: 1.45;
+			color: rgba(226, 232, 240, 0.78);
+		}
+		/* Ultra-short screens: allow internal scroll within login card only */
+		@media (max-height: 640px) {
+			html, body { overflow: hidden; }
+			.loginPageContainer { align-items: flex-start; padding-top: 14px; }
+			.bace-card--login { max-height: calc(100vh - 28px); overflow: auto; }
 		}
 	</style>
 
 	<span class="app-nav"></span>
 	<div class="container-fluid loginPageContainer">
-		<div class="col-lg-5 col-md-12 col-sm-12 col-xs-12">
-			<div class="loginDiv widgetHeight">
-				<div class="mk-login-logo-wrap">
-					<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo.png">
+		<div class="bace-mid-accent" aria-hidden="true"></div>
+		<div class="bace-info-slider" aria-label="B-ACE info slider">
+			<div class="bace-slide active">
+				<h3>TDB Solution</h3>
+				<p>TDB Solution sáng tạo và đổi mới, chúng tôi mang đến khách hàng sự hài lòng nhờ đồng hành và cung cấp dịch vụ chất lượng cao.</p>
+			</div>
+			<div class="bace-slide">
+				<h3>Tận tâm</h3>
+				<p>Luôn đặt trải nghiệm và sự hài lòng của khách hàng lên hàng đầu.</p>
+			</div>
+			<div class="bace-slide">
+				<h3>Tiên phong</h3>
+				<p>Đổi mới liên tục, chuẩn hóa quy trình, nâng hiệu suất vận hành.</p>
+			</div>
+			<div class="bace-slide">
+				<h3>Đồng hành</h3>
+				<p>Phát triển bền vững cùng doanh nghiệp bằng giải pháp thực tế.</p>
+			</div>
+			<div class="bace-info-dots" aria-hidden="true">
+				<span class="bace-info-dot is-active"></span>
+				<span class="bace-info-dot"></span>
+				<span class="bace-info-dot"></span>
+				<span class="bace-info-dot"></span>
+			</div>
+		</div>
+		<div class="bace-shell">
+			<div class="bace-card bace-card--login">
+				<div class="bace-logo-tile">
+					<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo.png" alt="B-ACE / TDB Solution">
 				</div>
+
+				<div class="bace-h1">Welcome back</div>
+				<div class="bace-sub">Sign in to continue to <strong>B-ACE CRM</strong>.</div>
+
 				<div>
 					<span class="{if !$ERROR}hide{/if} failureMessage" id="validationMessage">{$MESSAGE}</span>
 					<span class="{if !$MAIL_STATUS}hide{/if} successMessage">{$MESSAGE}</span>
@@ -285,20 +513,29 @@
 					<form class="form-horizontal" method="POST" action="index.php">
 						<input type="hidden" name="module" value="Users"/>
 						<input type="hidden" name="action" value="Login"/>
+
 						<div class="group">
-							<input id="username" type="text" name="username" placeholder="Username">
+							<div class="bace-field">
+								<span class="bace-ico"><i class="fa fa-user" aria-hidden="true"></i></span>
+								<input id="username" type="text" name="username" placeholder="Username" autocomplete="username">
+							</div>
 							<span class="bar"></span>
 							<label>Username</label>
 						</div>
+
 						<div class="group">
-							<input id="password" type="password" name="password" placeholder="Password">
+							<div class="bace-field">
+								<span class="bace-ico"><i class="fa fa-lock" aria-hidden="true"></i></span>
+								<input id="password" type="password" name="password" placeholder="Password" autocomplete="current-password">
+							</div>
 							<span class="bar"></span>
 							<label>Password</label>
 						</div>
+
 						{assign var="CUSTOM_SKINS" value=Vtiger_Theme::getAllSkins()}
 						{if !empty($CUSTOM_SKINS)}
-						<div class="group" style="margin-bottom: 10px;">
-							<select id="skin" name="skin" placeholder="Skin" style="text-transform: capitalize; width:100%;height:30px;">
+						<div class="bace-skin">
+							<select id="skin" name="skin" placeholder="Skin" style="text-transform: capitalize;">
 								<option value="">Default Skin</option>
 								{foreach item=CUSTOM_SKIN from=$CUSTOM_SKINS}
 								<option value="{$CUSTOM_SKIN}">{$CUSTOM_SKIN}</option>
@@ -306,9 +543,13 @@
 							</select>
 						</div>
 						{/if}
-					<div class="group">
-							<button type="submit" class="button buttonBlue">Sign in</button><br>
-							<a class="forgotPasswordLink" style="color: #15c;">forgot password?</a>
+
+						<div class="group" style="margin-top: 14px;">
+							<button type="submit" class="button buttonBlue">Sign in</button>
+							<div class="bace-links">
+								<a class="forgotPasswordLink">Forgot password?</a>
+								<span style="color: rgba(226, 232, 240, 0.55); font-size: 12px;">B-ACE • TDB Solution</span>
+							</div>
 						</div>
 					</form>
 				</div>
@@ -316,38 +557,34 @@
 				<div id="forgotPasswordDiv" class="hide">
 					<form class="form-horizontal" action="forgotPassword.php" method="POST">
 						<div class="group">
-							<input id="fusername" type="text" name="username" placeholder="Username" >
+							<div class="bace-field">
+								<span class="bace-ico"><i class="fa fa-user" aria-hidden="true"></i></span>
+								<input id="fusername" type="text" name="username" placeholder="Username" autocomplete="username">
+							</div>
 							<span class="bar"></span>
 							<label>Username</label>
 						</div>
+
 						<div class="group">
-							<input id="email" type="email" name="emailId" placeholder="Email" >
+							<div class="bace-field">
+								<span class="bace-ico"><i class="fa fa-envelope" aria-hidden="true"></i></span>
+								<input id="email" type="email" name="emailId" placeholder="Email" autocomplete="email">
+							</div>
 							<span class="bar"></span>
 							<label>Email</label>
 						</div>
-						<div class="group">
-							<button type="submit" class="button buttonBlue forgot-submit-btn">Submit</button><br>
-							<span>Please enter details and submit<a class="forgotPasswordLink pull-right" style="color: #15c;">Back</a></span>
+
+						<div class="group" style="margin-top: 14px;">
+							<button type="submit" class="button buttonBlue forgot-submit-btn">Submit</button>
+							<div class="bace-links">
+								<span style="color: rgba(226, 232, 240, 0.75); font-size: 12.5px;">Please enter details and submit</span>
+								<a class="forgotPasswordLink pull-right">Back</a>
+							</div>
 						</div>
 					</form>
 				</div>
 			</div>
-		</div>
 
-		<div class="col-lg-1 hidden-xs hidden-sm hidden-md">
-			<div class="separatorDiv"></div>
-		</div>
-
-		{* Replace removed marketing/news panel with TDB slogan panel *}
-		<div class="col-lg-5 hidden-xs hidden-sm hidden-md">
-			<div class="marketingDiv widgetHeight" style="background: transparent;">
-				<div class="tdb-slogan tdb-slogan--panel" aria-label="TDB Solution Slogan">
-					<div class="tdb-line">TDB Solution sáng tạo và đổi mới, chúng tôi mang đến khách hàng sự hài lòng nhờ đồng hành và cung cấp dịch vụ chất lượng cao.</div>
-					<div class="tdb-line"><span class="tdb-key">Tận tâm</span> phục vụ - <span class="tdb-key">Tiên phong</span> công nghệ</div>
-					<div class="tdb-line"><span class="tdb-key">Đồng hành</span> bền vững - <span class="tdb-key">Đổi mới</span> không ngừng</div>
-					<div class="tdb-line"><span class="tdb-key">Bền vững</span> chiến lược - <span class="tdb-key">Bản lĩnh</span> hành động</div>
-				</div>
-			</div>
 		</div>
 
 		<script>
@@ -358,13 +595,38 @@
 				var loginFormDiv = jQuery('#loginFormDiv');
 				loginFormDiv.find('#password').focus();
 
-				loginFormDiv.find('a').click(function () {
+				// Top-right info slider (UI-only)
+				try {
+					var $slider = jQuery('.bace-info-slider');
+					var $slides = $slider.find('.bace-slide');
+					var $dots = $slider.find('.bace-info-dot');
+					var idx = 0;
+					var tickMs = 2500;
+					var timer = null;
+
+					var show = function (i) {
+						idx = i;
+						$slides.removeClass('active').eq(idx).addClass('active');
+						$dots.removeClass('is-active').eq(idx).addClass('is-active');
+					};
+					var next = function () {
+						if (!$slides.length) return;
+						show((idx + 1) % $slides.length);
+					};
+					if ($slides.length > 1) {
+						timer = setInterval(next, tickMs);
+						$slider.on('mouseenter', function(){ if (timer) { clearInterval(timer); timer = null; } });
+						$slider.on('mouseleave', function(){ if (!timer) timer = setInterval(next, tickMs); });
+					}
+				} catch (eSlider) {}
+
+				loginFormDiv.find('a.forgotPasswordLink').click(function () {
 					loginFormDiv.toggleClass('hide');
 					forgotPasswordDiv.toggleClass('hide');
 					validationMessage.addClass('hide');
 				});
 
-				forgotPasswordDiv.find('a').click(function () {
+				forgotPasswordDiv.find('a.forgotPasswordLink').click(function () {
 					loginFormDiv.toggleClass('hide');
 					forgotPasswordDiv.toggleClass('hide');
 					validationMessage.addClass('hide');

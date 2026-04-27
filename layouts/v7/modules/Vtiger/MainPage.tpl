@@ -1,6 +1,5 @@
 {strip}
 <div class="container-fluid mainpage-wrap">
-	<div style="padding:10px 15px;color:#111;font-size:13px;">Main management page loaded.</div>
 	<div class="mainpage-banner">
 		<div class="mainpage-banner-inner">
 			<span class="mainpage-banner-logo">TDB</span>
