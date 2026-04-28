@@ -130,24 +130,6 @@
 				{/if}
 			{/foreach}
 			<div class="app-list-divider"></div>
-			{assign var=MAILMANAGER_MODULE_MODEL value=Vtiger_Module_Model::getInstance('MailManager')}
-			{if $USER_PRIVILEGES_MODEL->hasModulePermission($MAILMANAGER_MODULE_MODEL->getId())}
-				<div class="menu-item app-item app-item-misc" data-default-url="index.php?module=MailManager&view=List">
-					<div class="menu-items-wrapper">
-						<span class="mk-icon app-icon-list">{$MAILMANAGER_MODULE_MODEL->getModuleIcon()}</span>
-						<span class="app-name textOverflowEllipsis"> {vtranslate('MailManager')}</span>
-					</div>
-				</div>
-			{/if}
-			{assign var=DOCUMENTS_MODULE_MODEL value=Vtiger_Module_Model::getInstance('Documents')}
-			{if $USER_PRIVILEGES_MODEL->hasModulePermission($DOCUMENTS_MODULE_MODEL->getId())}
-				<div class="menu-item app-item app-item-misc" data-default-url="index.php?module=Documents&view=List">
-					<div class="menu-items-wrapper">
-						<span class="mk-icon app-icon-list">{$DOCUMENTS_MODULE_MODEL->getModuleIcon()}</span>
-						<span class="app-name textOverflowEllipsis"> {vtranslate('Documents')}</span>
-					</div>
-				</div>
-			{/if}
 			{if $USER_MODEL->isAdminUser()}
 				{if vtlib_isModuleActive('ExtensionStore')}
 					<div class="menu-item app-item app-item-misc" data-default-url="index.php?module=ExtensionStore&parent=Settings&view=ExtensionStore">
