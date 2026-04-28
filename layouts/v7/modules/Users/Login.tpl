@@ -42,11 +42,11 @@
 			z-index: 1;
 			height: 100vh;
 			display: flex;
-			align-items: flex-start; /* restore previous vertical placement */
-			justify-content: center;
-			padding: 0 1.125rem;
-			padding-top: clamp(2.75rem, 8vh, 5.75rem);
-			padding-bottom: 1.75rem;
+			align-items: center;
+			justify-content: flex-start;
+			padding-left: clamp(5rem, 9vw, 10rem);
+			padding-right: clamp(2rem, 5vw, 5rem);
+			overflow: hidden;
 		}
 
 		/* Hide footer on login only to prevent scroll */
@@ -100,33 +100,34 @@
 		}
 
 		.bace-shell {
+			position: relative;
 			display: grid;
-			grid-template-columns: minmax(380px, 460px) minmax(300px, 420px);
-			gap: clamp(20px, 4vw, 70px);
-			align-items: center;
-			justify-content: center;
-			width: min(1180px, 88vw);
-			margin-left: clamp(40px, 7vw, 120px);
-			margin-right: auto;
+			grid-template-columns: 31rem 36rem;
+			column-gap: 2.25rem;
+			width: 69.25rem;
+			max-width: 90vw;
+			margin: 0;
+			align-items: start;
+			justify-content: start;
 			max-height: calc(100vh - 3.5rem);
-			transform: translateX(-2.5rem);
+			transform: translate(19rem, -10rem);
 		}
 		@media (max-width: 1100px) {
+			.loginPageContainer {
+				justify-content: center;
+				padding: 1rem;
+			}
 			.bace-shell {
 				grid-template-columns: 1fr;
-				gap: 0.875rem;
-				width: min(520px, 92vw);
-				margin-left: auto;
-				margin-right: auto;
+				width: min(30rem, 92vw);
+				max-width: 92vw;
+				margin: 0 auto;
 				transform: none;
 				max-height: none;
 			}
-		}
-		@media (max-width: 1100px) {
-			.bace-login-card,
-			.bace-info-slider {
-				transform: none;
-			}
+			.bace-card--login { width: 100%; }
+			.bace-info-slider,
+			.bace-mid-accent { display: none; }
 		}
 
 		/* NOTE: avoid animating transforms on layout containers */
@@ -143,14 +144,13 @@
 			animation: baceFadeUp 520ms ease both;
 		}
 		.bace-card--login {
-			padding: 1.25rem 1.25rem 1rem 1.25rem;
+			width: 31rem;
+			padding: 1.6rem 1.6rem 1.25rem 1.6rem;
 			background: rgba(255, 255, 255, 0.22); /* brighter for readability */
 		}
 		.bace-login-card {
-			transform: translate(
-				clamp(-1.75rem, -3vw, -3rem),
-				clamp(5.5rem, 10vh, 7.5rem)
-			);
+			align-self: start;
+			margin-top: 0 !important;
 		}
 
 		/* Info slider: positioned via grid (no fixed left/top) */
@@ -158,16 +158,13 @@
 			position: relative;
 			z-index: 1;
 			align-self: start;
-			margin-top: clamp(3rem, 8vh, 6rem);
-			width: clamp(30rem, 40vw, 42rem);
-			height: clamp(11rem, 17vh, 13rem);
-			transform: translate(
-				clamp(7rem, 10vw, 13rem),
-				clamp(2.5rem, 5vh, 3.5rem)
-			);
+			width: 36rem;
+			height: 13rem;
+			margin-top: 0 !important;
 			display: flex;
 			align-items: center;
-			padding: clamp(1.75rem, 2.6vw, 2.75rem);
+			padding: 1.85rem;
+			transform: translateY(-0.75rem) !important;
 			border-radius: 1.125rem;
 			background: rgba(255,255,255,0.14); /* less muddy */
 			border: 1px solid rgba(255,255,255,0.20);
@@ -176,15 +173,19 @@
 			box-shadow: 0 0.75rem 2.5rem rgba(0,0,0,0.30);
 			overflow: hidden;
 		}
-		@media (min-width: 1600px) {
-			.bace-info-slider { margin-top: 3.875rem; }
+
+		.bace-login-card,
+		.bace-info-slider {
+			margin-top: 0 !important;
+			transform: none !important;
+			align-self: start;
 		}
 		.bace-slide {
 			position: absolute;
-			left: 1.25rem;
-			right: 1.25rem;
-			top: 1.25rem;
-			bottom: 2.125rem; /* leave room for dots */
+			left: clamp(1.25rem, 1.8vw, 2rem);
+			right: clamp(1.25rem, 1.8vw, 2rem);
+			top: clamp(1.25rem, 1.8vw, 2rem);
+			bottom: 2.25rem; /* leave room for dots */
 			opacity: 0;
 			transform: translateY(0.625rem);
 			transition: all 0.4s ease;
@@ -195,8 +196,8 @@
 		}
 		.bace-slide h3 {
 			margin: 0 0 6px 0;
-			font-size: clamp(1.25rem, 1.35vw, 1.55rem);
-			line-height: 1.2;
+			font-size: 1.85rem;
+			line-height: 1.15;
 			font-weight: 950;
 			letter-spacing: -0.03em;
 			color: #ffd54a;
@@ -204,8 +205,9 @@
 		}
 		.bace-slide p {
 			margin: 0;
-			font-size: clamp(1rem, 1.05vw, 1.18rem);
+			font-size: 1.25rem;
 			line-height: 1.55;
+			max-width: 32rem;
 			color: rgba(255,255,255,0.92);
 			text-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.32);
 		}
@@ -241,31 +243,36 @@
 			padding: 6px 0 10px 0;
 		}
 		.user-logo {
-			width: min(220px, 72%);
-			max-width: 220px;
-			height: auto;
+			width: min(15rem, 78%);
+			max-width: 15rem;
 			height: auto;
 			display: block;
 		}
 
 		/* Subtle middle accents to reduce empty feel (no laptop cover) */
 		.bace-mid-accent {
-			position: fixed;
-			left: clamp(520px, 47vw, 720px);
-			top: clamp(120px, 24vh, 220px);
-			width: 2px;
-			height: clamp(220px, 32vh, 340px);
-			border-radius: 99px;
-			background: linear-gradient(180deg, rgba(34,211,238,0.00), rgba(34,211,238,0.55), rgba(250,204,21,0.25), rgba(34,211,238,0.00));
-			box-shadow: 0 0 0 6px rgba(34,211,238,0.06);
-			opacity: 0.7;
+			position: absolute;
+			left: calc(31rem + 1.125rem);
+			top: 1.25rem;
+			width: 0.125rem;
+			height: 16rem;
+			border-radius: 99rem;
+			background: linear-gradient(
+				180deg,
+				rgba(34,211,238,0),
+				rgba(34,211,238,0.60),
+				rgba(250,204,21,0.22),
+				rgba(34,211,238,0)
+			);
+			box-shadow: 0 0 0.75rem rgba(34,211,238,0.25);
+			opacity: 0.75;
 			pointer-events: none;
-			z-index: 1;
+			z-index: 3;
 		}
 
 		.bace-h1 {
 			margin: 14px 0 6px 0;
-			font-size: 23px;
+			font-size: 1.75rem;
 			font-weight: 900;
 			letter-spacing: -0.03em;
 			color: rgba(255, 255, 255, 0.95);
@@ -273,7 +280,7 @@
 		.bace-sub {
 			margin: 0 0 16px 0;
 			color: rgba(226, 232, 240, 0.80);
-			font-size: 13px;
+			font-size: 1rem;
 			line-height: 1.45;
 		}
 
@@ -293,11 +300,11 @@
 		.group { position: relative; margin: 14px 0 12px 0; }
 		.bace-field {
 			display: grid;
-			grid-template-columns: 40px 1fr;
+			grid-template-columns: 3rem 1fr;
 			align-items: center;
 			gap: 10px;
-			padding: 11px 12px;
-			border-radius: 16px;
+			padding: 0.95rem 1rem;
+			border-radius: 1.125rem;
 			border: 1px solid rgba(255, 255, 255, 0.18);
 			background: rgba(2, 6, 23, 0.22);
 			transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
@@ -308,8 +315,8 @@
 			background: rgba(2, 6, 23, 0.28);
 		}
 		.bace-ico {
-			width: 32px;
-			height: 32px;
+			width: 2.35rem;
+			height: 2.35rem;
 			border-radius: 12px;
 			display: grid;
 			place-items: center;
@@ -323,7 +330,7 @@
 			outline: 0;
 			background: transparent !important;
 			color: #ffffff !important;
-			font-size: 14px;
+			font-size: 1rem;
 			padding: 0;
 			margin: 0;
 			-webkit-appearance: none;
@@ -356,8 +363,8 @@
 			width: 100%;
 			border: 0;
 			border-radius: 16px;
-			padding: 12px 14px;
-			font-size: 14px;
+			padding: 0.95rem 1rem;
+			font-size: 1rem;
 			font-weight: 900;
 			letter-spacing: 0.02em;
 			color: #0b1220;
@@ -447,6 +454,7 @@
 		}
 		@media (max-width: 1100px) {
 			.loginPageContainer { justify-content: center; }
+			.bace-login-card { margin-top: 0; }
 			.bace-info-slider { display: none; }
 			.bace-mid-accent { display: none; }
 		}
@@ -490,9 +498,9 @@
 
 	<span class="app-nav"></span>
 	<div class="container-fluid loginPageContainer">
-		<div class="bace-mid-accent" aria-hidden="true"></div>
 		{* bace-info-slider moved inside .bace-shell for responsive layout *}
 		<div class="bace-shell">
+			<div class="bace-mid-accent" aria-hidden="true"></div>
 			<div class="bace-card bace-card--login bace-login-card">
 				<div class="bace-logo-tile">
 					<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo.png" alt="B-ACE / TDB Solution">
