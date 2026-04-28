@@ -42,11 +42,11 @@
 			z-index: 1;
 			height: 100vh;
 			display: flex;
-			align-items: flex-start; /* move cards upward (less skyline overlap) */
+			align-items: flex-start; /* restore previous vertical placement */
 			justify-content: center;
-			padding: 0 18px;
-			padding-top: clamp(44px, 8vh, 92px);
-			padding-bottom: 28px;
+			padding: 0 1.125rem;
+			padding-top: clamp(2.75rem, 8vh, 5.75rem);
+			padding-bottom: 1.75rem;
 		}
 
 		/* Hide footer on login only to prevent scroll */
@@ -57,11 +57,11 @@
 		.loginPageContainer::after {
 			content: "";
 			position: fixed;
-			inset: -120px;
+			inset: -7.5rem;
 			pointer-events: none;
 			z-index: 0;
 			opacity: 0.9;
-			filter: blur(40px);
+			filter: blur(2.5rem);
 			mix-blend-mode: screen;
 			animation: baceAurora 18s ease-in-out infinite alternate;
 		}
@@ -82,9 +82,9 @@
 			pointer-events: none;
 			z-index: 0;
 			background:
-				radial-gradient(10px 10px at 18% 22%, rgba(34,211,238,0.55), transparent 70%),
-				radial-gradient(12px 12px at 82% 28%, rgba(250,204,21,0.45), transparent 72%),
-				radial-gradient(9px 9px at 66% 78%, rgba(59,130,246,0.40), transparent 72%),
+				radial-gradient(0.625rem 0.625rem at 18% 22%, rgba(34,211,238,0.55), transparent 70%),
+				radial-gradient(0.75rem 0.75rem at 82% 28%, rgba(250,204,21,0.45), transparent 72%),
+				radial-gradient(0.5625rem 0.5625rem at 66% 78%, rgba(59,130,246,0.40), transparent 72%),
 				linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.06) 48%, transparent 58%);
 			opacity: 0.55;
 			filter: blur(0.2px);
@@ -92,138 +92,143 @@
 		}
 		@keyframes baceFloat {
 			from { transform: translate3d(0,0,0); }
-			to { transform: translate3d(18px,-14px,0); }
+			to { transform: translate3d(1.125rem,-0.875rem,0); }
 		}
 		@keyframes baceAurora {
 			from { transform: translate3d(0,0,0) scale(1); }
-			to { transform: translate3d(20px,-10px,0) scale(1.02); }
+			to { transform: translate3d(1.25rem,-0.625rem,0) scale(1.02); }
 		}
 
 		.bace-shell {
-			width: 1160px;
-			max-width: 100%;
 			display: grid;
-			grid-template-columns: 420px minmax(0, 620px);
-			gap: 12px;
-			align-items: start;
-			max-height: calc(100vh - 56px);
-			transform: translateY(-28px);
-			transform-origin: top center;
+			grid-template-columns: minmax(380px, 460px) minmax(300px, 420px);
+			gap: clamp(20px, 4vw, 70px);
+			align-items: center;
+			justify-content: center;
+			width: min(1180px, 88vw);
+			margin-left: clamp(40px, 7vw, 120px);
+			margin-right: auto;
+			max-height: calc(100vh - 3.5rem);
+			transform: translateX(-2.5rem);
 		}
-		@media (max-width: 980px) {
+		@media (max-width: 1100px) {
 			.bace-shell {
 				grid-template-columns: 1fr;
-				gap: 12px;
+				gap: 0.875rem;
+				width: min(520px, 92vw);
+				margin-left: auto;
+				margin-right: auto;
+				transform: none;
 				max-height: none;
-				transform: translateY(-18px);
+			}
+		}
+		@media (max-width: 1100px) {
+			.bace-login-card,
+			.bace-info-slider {
+				transform: none;
 			}
 		}
 
-		/* Optional premium "float" micro-motion */
-		@media (prefers-reduced-motion: no-preference) {
-			.bace-shell { animation: baceFloatShell 8s ease-in-out infinite; }
-			@keyframes baceFloatShell {
-				0%, 100% { transform: translateY(-28px); }
-				50% { transform: translateY(-34px); }
-			}
-			@media (max-width: 980px) {
-				@keyframes baceFloatShell {
-					0%, 100% { transform: translateY(-18px); }
-					50% { transform: translateY(-24px); }
-				}
-			}
-		}
+		/* NOTE: avoid animating transforms on layout containers */
 
 		/* Glass cards */
 		.bace-card {
-			border-radius: 24px;
+			border-radius: 1.5rem;
 			background: rgba(255, 255, 255, 0.14);
 			border: 1px solid rgba(255, 255, 255, 0.22);
-			box-shadow: 0 26px 80px rgba(0, 0, 0, 0.45);
-			backdrop-filter: blur(12px);
-			-webkit-backdrop-filter: blur(12px);
+			box-shadow: 0 1.625rem 5rem rgba(0, 0, 0, 0.45);
+			backdrop-filter: blur(0.75rem);
+			-webkit-backdrop-filter: blur(0.75rem);
 			overflow: hidden;
 			animation: baceFadeUp 520ms ease both;
 		}
 		.bace-card--login {
-			padding: 20px 20px 16px 20px;
+			padding: 1.25rem 1.25rem 1rem 1.25rem;
 			background: rgba(255, 255, 255, 0.22); /* brighter for readability */
 		}
+		.bace-login-card {
+			transform: translate(
+				clamp(-1.75rem, -3vw, -3rem),
+				clamp(5.5rem, 10vh, 7.5rem)
+			);
+		}
 
-		/* Floating info slider (center-right, compact, avoids laptop overlap) */
+		/* Info slider: positioned via grid (no fixed left/top) */
 		.bace-info-slider {
-			position: absolute;
-			top: 55px;
-			left: 620px;
-			transform: none;
-			width: 320px;
-			height: 170px;
-			z-index: 3;
+			position: relative;
+			z-index: 1;
+			align-self: start;
+			margin-top: clamp(3rem, 8vh, 6rem);
+			width: clamp(30rem, 40vw, 42rem);
+			height: clamp(11rem, 17vh, 13rem);
+			transform: translate(
+				clamp(7rem, 10vw, 13rem),
+				clamp(2.5rem, 5vh, 3.5rem)
+			);
 			display: flex;
 			align-items: center;
-			padding: 20px;
-			border-radius: 18px;
-			background: rgba(255,255,255,0.08);
-			border: 1px solid rgba(255,255,255,0.15);
-			backdrop-filter: blur(16px);
-			-webkit-backdrop-filter: blur(16px);
-			box-shadow: 0 12px 40px rgba(0,0,0,0.30);
+			padding: clamp(1.75rem, 2.6vw, 2.75rem);
+			border-radius: 1.125rem;
+			background: rgba(255,255,255,0.14); /* less muddy */
+			border: 1px solid rgba(255,255,255,0.20);
+			backdrop-filter: blur(0.75rem);
+			-webkit-backdrop-filter: blur(0.75rem);
+			box-shadow: 0 0.75rem 2.5rem rgba(0,0,0,0.30);
 			overflow: hidden;
 		}
-		@media (max-width: 1200px) {
-			.bace-info-slider {
-				left: 560px;
-				top: 45px;
-				width: 300px;
-			}
+		@media (min-width: 1600px) {
+			.bace-info-slider { margin-top: 3.875rem; }
 		}
 		.bace-slide {
 			position: absolute;
-			left: 20px;
-			right: 20px;
-			top: 20px;
-			bottom: 34px; /* leave room for dots */
+			left: 1.25rem;
+			right: 1.25rem;
+			top: 1.25rem;
+			bottom: 2.125rem; /* leave room for dots */
 			opacity: 0;
-			transform: translateY(10px);
+			transform: translateY(0.625rem);
 			transition: all 0.4s ease;
 		}
 		.bace-slide.active {
 			opacity: 1;
 			transform: translateY(0);
 		}
-		.bace-info-slider h3 {
+		.bace-slide h3 {
 			margin: 0 0 6px 0;
-			font-size: 16px;
+			font-size: clamp(1.25rem, 1.35vw, 1.55rem);
+			line-height: 1.2;
 			font-weight: 950;
 			letter-spacing: -0.03em;
-			color: #facc15;
+			color: #ffd54a;
+			text-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.35);
 		}
-		.bace-info-slider p {
+		.bace-slide p {
 			margin: 0;
-			font-size: 13px;
-			line-height: 1.5;
-			color: rgba(226,232,240,0.86);
+			font-size: clamp(1rem, 1.05vw, 1.18rem);
+			line-height: 1.55;
+			color: rgba(255,255,255,0.92);
+			text-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.32);
 		}
 		.bace-info-dots {
 			position: absolute;
-			left: 20px;
-			right: 20px;
-			bottom: 12px;
+			left: 1.25rem;
+			right: 1.25rem;
+			bottom: 0.75rem;
 			display: flex;
-			gap: 6px;
+			gap: 0.375rem;
 			justify-content: center;
 		}
 		.bace-info-dot {
-			width: 6px;
-			height: 6px;
+			width: 0.375rem;
+			height: 0.375rem;
 			border-radius: 999px;
 			background: rgba(255,255,255,0.22);
 		}
-		.bace-info-dot.is-active { background: rgba(34,211,238,0.75); box-shadow: 0 0 0 3px rgba(34,211,238,0.18); }
+		.bace-info-dot.is-active { background: rgba(34,211,238,0.75); box-shadow: 0 0 0 0.1875rem rgba(34,211,238,0.18); }
 
 		@keyframes baceFadeUp {
-			from { opacity: 0; transform: translateY(10px); }
-			to { opacity: 1; transform: translateY(0); }
+			from { opacity: 0; filter: blur(0.25rem); }
+			to { opacity: 1; filter: blur(0); }
 		}
 
 		/* Logo tile */
@@ -316,12 +321,22 @@
 			width: 100%;
 			border: 0;
 			outline: 0;
-			background: transparent;
-			color: rgba(248, 250, 252, 0.98);
+			background: transparent !important;
+			color: #ffffff !important;
 			font-size: 14px;
 			padding: 0;
 			margin: 0;
 			-webkit-appearance: none;
+		}
+		/* Chrome autofill: remove white bars inside glass fields */
+		.bace-field input:-webkit-autofill,
+		.bace-field input:-webkit-autofill:hover,
+		.bace-field input:-webkit-autofill:focus,
+		.bace-field input:-webkit-autofill:active {
+			-webkit-box-shadow: 0 0 0 1000px rgba(28, 48, 68, 0.95) inset !important;
+			-webkit-text-fill-color: #ffffff !important;
+			caret-color: #ffffff !important;
+			transition: background-color 9999s ease-in-out 0s !important;
 		}
 		input::placeholder { color: rgba(226, 232, 240, 0.55); }
 		/* Keep old label markup but hide (we use placeholders + icons) */
@@ -430,7 +445,7 @@
 			gap: 12px;
 			margin-top: 18px;
 		}
-		@media (max-width: 980px) {
+		@media (max-width: 1100px) {
 			.loginPageContainer { justify-content: center; }
 			.bace-info-slider { display: none; }
 			.bace-mid-accent { display: none; }
@@ -463,40 +478,22 @@
 		/* Ultra-short screens: allow internal scroll within login card only */
 		@media (max-height: 640px) {
 			html, body { overflow: hidden; }
-			.loginPageContainer { align-items: flex-start; padding-top: 14px; }
+			.loginPageContainer { align-items: flex-start; padding-top: 0.875rem; }
 			.bace-card--login { max-height: calc(100vh - 28px); overflow: auto; }
 		}
+
+		/* Optional visual proof (enable temporarily if needed)
+		.bace-login-card { outline: 0.125rem solid rgba(250,204,21,0.8); }
+		.bace-info-slider { outline: 0.125rem solid rgba(34,211,238,0.8); }
+		*/
 	</style>
 
 	<span class="app-nav"></span>
 	<div class="container-fluid loginPageContainer">
 		<div class="bace-mid-accent" aria-hidden="true"></div>
-		<div class="bace-info-slider" aria-label="B-ACE info slider">
-			<div class="bace-slide active">
-				<h3>TDB Solution</h3>
-				<p>TDB Solution sáng tạo và đổi mới, chúng tôi mang đến khách hàng sự hài lòng nhờ đồng hành và cung cấp dịch vụ chất lượng cao.</p>
-			</div>
-			<div class="bace-slide">
-				<h3>Tận tâm</h3>
-				<p>Luôn đặt trải nghiệm và sự hài lòng của khách hàng lên hàng đầu.</p>
-			</div>
-			<div class="bace-slide">
-				<h3>Tiên phong</h3>
-				<p>Đổi mới liên tục, chuẩn hóa quy trình, nâng hiệu suất vận hành.</p>
-			</div>
-			<div class="bace-slide">
-				<h3>Đồng hành</h3>
-				<p>Phát triển bền vững cùng doanh nghiệp bằng giải pháp thực tế.</p>
-			</div>
-			<div class="bace-info-dots" aria-hidden="true">
-				<span class="bace-info-dot is-active"></span>
-				<span class="bace-info-dot"></span>
-				<span class="bace-info-dot"></span>
-				<span class="bace-info-dot"></span>
-			</div>
-		</div>
+		{* bace-info-slider moved inside .bace-shell for responsive layout *}
 		<div class="bace-shell">
-			<div class="bace-card bace-card--login">
+			<div class="bace-card bace-card--login bace-login-card">
 				<div class="bace-logo-tile">
 					<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo.png" alt="B-ACE / TDB Solution">
 				</div>
@@ -582,6 +579,32 @@
 							</div>
 						</div>
 					</form>
+				</div>
+			</div>
+
+			{* Grid column 2: info slider (moved from absolute top-level for responsive layout) *}
+			<div class="bace-info-slider" aria-label="B-ACE info slider">
+				<div class="bace-slide active">
+					<h3>TDB Solution</h3>
+					<p>TDB Solution sáng tạo và đổi mới, chúng tôi mang đến khách hàng sự hài lòng nhờ đồng hành và cung cấp dịch vụ chất lượng cao.</p>
+				</div>
+				<div class="bace-slide">
+					<h3>Tận tâm</h3>
+					<p>Luôn đặt trải nghiệm và sự hài lòng của khách hàng lên hàng đầu.</p>
+				</div>
+				<div class="bace-slide">
+					<h3>Tiên phong</h3>
+					<p>Đổi mới liên tục, chuẩn hóa quy trình, nâng hiệu suất vận hành.</p>
+				</div>
+				<div class="bace-slide">
+					<h3>Đồng hành</h3>
+					<p>Phát triển bền vững cùng doanh nghiệp bằng giải pháp thực tế.</p>
+				</div>
+				<div class="bace-info-dots" aria-hidden="true">
+					<span class="bace-info-dot is-active"></span>
+					<span class="bace-info-dot"></span>
+					<span class="bace-info-dot"></span>
+					<span class="bace-info-dot"></span>
 				</div>
 			</div>
 
