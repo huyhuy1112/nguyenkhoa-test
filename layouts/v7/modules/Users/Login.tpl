@@ -272,16 +272,17 @@
 
 		.bace-h1 {
 			margin: 14px 0 6px 0;
-			font-size: 1.75rem;
+			font-size: 1.65rem;
 			font-weight: 900;
 			letter-spacing: -0.03em;
-			color: rgba(255, 255, 255, 0.95);
+			color: rgba(255, 255, 255, 0.97);
 		}
 		.bace-sub {
 			margin: 0 0 16px 0;
-			color: rgba(226, 232, 240, 0.80);
-			font-size: 1rem;
-			line-height: 1.45;
+			color: rgba(226, 232, 240, 0.84);
+			font-size: 1.15rem;
+			font-weight: 600;
+			line-height: 1.5;
 		}
 
 		/* Messages */
@@ -300,13 +301,15 @@
 		.group { position: relative; margin: 14px 0 12px 0; }
 		.bace-field {
 			display: grid;
-			grid-template-columns: 3rem 1fr;
+			grid-template-columns: 4.1rem 1fr !important;
 			align-items: center;
-			gap: 10px;
-			padding: 0.95rem 1rem;
-			border-radius: 1.125rem;
+			gap: 0.85rem !important;
+			padding: 1.55rem 1.5rem !important;
+			min-height: 5.4rem !important;
+			border-radius: 1.55rem !important;
 			border: 1px solid rgba(255, 255, 255, 0.18);
-			background: rgba(2, 6, 23, 0.22);
+			background: rgba(2, 6, 23, 0.22) !important;
+			overflow: hidden;
 			transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 		}
 		.bace-field:focus-within {
@@ -315,9 +318,10 @@
 			background: rgba(2, 6, 23, 0.28);
 		}
 		.bace-ico {
-			width: 2.35rem;
-			height: 2.35rem;
-			border-radius: 12px;
+			width: 3.25rem !important;
+			height: 3.25rem !important;
+			border-radius: 1.1rem !important;
+			font-size: 1.25rem !important;
 			display: grid;
 			place-items: center;
 			background: rgba(255, 255, 255, 0.10);
@@ -330,19 +334,45 @@
 			outline: 0;
 			background: transparent !important;
 			color: #ffffff !important;
-			font-size: 1rem;
+			font-size: 1.08rem;
+			line-height: 1.4;
+			min-height: 1.6rem;
 			padding: 0;
 			margin: 0;
 			-webkit-appearance: none;
 		}
-		/* Chrome autofill: remove white bars inside glass fields */
+		.bace-field input {
+			height: 2.55rem !important;
+			min-height: 2.55rem !important;
+			font-size: 1.38rem !important;
+			line-height: 2.55rem !important;
+			color: #ffffff !important;
+			background: transparent !important;
+			padding: 0 !important;
+		}
+		.bace-field input::placeholder {
+			font-size: 1.25rem !important;
+			color: rgba(226, 232, 240, 0.72) !important;
+		}
+
+		.bace-field input,
+		.bace-field input:focus,
+		.bace-field input:active {
+			background: transparent !important;
+			color: #ffffff !important;
+			box-shadow: none !important;
+			-webkit-box-shadow: none !important;
+			caret-color: #ffffff !important;
+		}
 		.bace-field input:-webkit-autofill,
 		.bace-field input:-webkit-autofill:hover,
 		.bace-field input:-webkit-autofill:focus,
 		.bace-field input:-webkit-autofill:active {
-			-webkit-box-shadow: 0 0 0 1000px rgba(28, 48, 68, 0.95) inset !important;
 			-webkit-text-fill-color: #ffffff !important;
 			caret-color: #ffffff !important;
+			background: transparent !important;
+			box-shadow: 0 0 0 100rem rgba(42, 79, 104, 0.96) inset !important;
+			-webkit-box-shadow: 0 0 0 100rem rgba(42, 79, 104, 0.96) inset !important;
 			transition: background-color 9999s ease-in-out 0s !important;
 		}
 		input::placeholder { color: rgba(226, 232, 240, 0.55); }
@@ -362,9 +392,9 @@
 		.button {
 			width: 100%;
 			border: 0;
-			border-radius: 16px;
-			padding: 0.95rem 1rem;
-			font-size: 1rem;
+			border-radius: 1.5rem !important;
+			padding: 1.35rem 1.3rem !important;
+			font-size: 1.25rem !important;
 			font-weight: 900;
 			letter-spacing: 0.02em;
 			color: #0b1220;
