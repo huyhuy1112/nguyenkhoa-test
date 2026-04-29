@@ -533,11 +533,11 @@
 			<div class="bace-mid-accent" aria-hidden="true"></div>
 			<div class="bace-card bace-card--login bace-login-card">
 				<div class="bace-logo-tile">
-					<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo.png" alt="B-ACE / TDB Solution">
+					<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo-transparent.png?v=20260429-2" alt="B-ACE / TDB Solution">
 				</div>
 
 				<div class="bace-h1">Welcome back</div>
-				<div class="bace-sub">Sign in to continue to <strong>B-ACE CRM</strong>.</div>
+				<div class="bace-sub">Sign in to <strong>B-ACE</strong>.</div>
 
 				<div>
 					<span class="{if !$ERROR}hide{/if} failureMessage" id="validationMessage">{$MESSAGE}</span>
