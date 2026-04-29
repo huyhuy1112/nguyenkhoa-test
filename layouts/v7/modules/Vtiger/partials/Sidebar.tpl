@@ -70,7 +70,7 @@
 							{/foreach}
 							<div class="menu-item app-item app-{$APP_NAME}" data-app-name="{$APP_NAME}"  data-default-url="{$FIRST_MENU_MODEL->getDefaultUrl()}">
 								<span class="fa {$APP_IMAGE_MAP.$APP_NAME}"></span>
-								<div>{vtranslate("LBL_$APP_NAME")}</div>
+								<div>{vtranslate("LBL_$APP_NAME")|upper}</div>
 							</div>
 						</div>
 					{/foreach}
