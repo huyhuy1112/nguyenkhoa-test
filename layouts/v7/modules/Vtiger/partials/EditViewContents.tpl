@@ -33,7 +33,7 @@
                                                                 {assign var=FIELD_INFO value=$FIELD_MODEL->getFieldInfo()}
 								{assign var="refrenceList" value=$FIELD_MODEL->getReferenceList()}
 								{assign var="refrenceListCount" value=php7_count($refrenceList)}
-								{if !($MODULE eq 'Campaigns' && $FIELD_NAME eq 'product') && $FIELD_MODEL->isEditable() eq true}
+								{if $FIELD_MODEL->isEditable() eq true}
 									{if $FIELD_MODEL->get('uitype') eq "19"}
 										{if $COUNTER eq '1'}
 											<td></td><td></td></tr><tr>
