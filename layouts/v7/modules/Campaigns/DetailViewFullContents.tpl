@@ -78,7 +78,7 @@
 /* Phases */
 #CampaignPhaseDashboard .cpd-phase-grid {
 	display: grid;
-	grid-template-columns: repeat(5, minmax(0, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 	gap: 12px;
 }
 #CampaignPhaseDashboard .cpd-card {
@@ -170,6 +170,21 @@
 	padding-bottom: 8px;
 }
 
+.mk-campaign-description-files {
+	border: 1px solid rgba(226,232,240,0.95);
+	border-radius: 16px;
+	background: #fff;
+	padding: 14px 16px;
+	margin-bottom: 12px;
+	box-shadow: 0 12px 34px rgba(15,23,42,0.04);
+}
+.mk-campaign-description-files h4 {
+	margin: 0 0 10px 0;
+	font-size: 13px;
+	font-weight: 900;
+	color: #0f172a;
+}
+
 @media (max-width: 1100px) {
 	#CampaignPhaseDashboard .cpd-grid { grid-template-columns: 1fr; }
 	#CampaignPhaseDashboard .cpd-phase-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -218,17 +233,22 @@
 		</div>
 	</div>
 
+	{if !empty($CAMPAIGN_PHASE_INDICES)}
 	<div class="mk-panel" style="margin-bottom:12px;">
 		<div class="mk-cp-glow mk-cp-glow--phase"></div>
-		<div class="mk-section-title">Campaign Phases</div>
+		<div class="mk-section-title">{vtranslate('LBL_CAMPAIGN_PHASES', $MODULE_NAME)}</div>
 		<div class="cpd-phase-grid">
-			{for $i=1 to 5}
+			{foreach from=$CAMPAIGN_PHASE_INDICES item=i}
 				{assign var=expField value="phase`$i`_expected"}
 				{assign var=actField value="phase`$i`_actual"}
 				{assign var=comField value="phase`$i`_comment"}
+				{assign var=sdField value="phase`$i`_start_date"}
+				{assign var=edField value="phase`$i`_end_date"}
 				{assign var=expVal value=$RECORD->get($expField)}
 				{assign var=actVal value=$RECORD->get($actField)}
 				{assign var=comVal value=$RECORD->get($comField)}
+				{assign var=sdVal value=$RECORD->get($sdField)}
+				{assign var=edVal value=$RECORD->get($edField)}
 				<div class="cpd-card js-phase-card"
 					 data-expected="{$expVal|escape:'html'}"
 					 data-actual="{$actVal|escape:'html'}">
@@ -238,25 +258,48 @@
 					</div>
 					<div class="cpd-meta">
 						<div class="cp-meta-item">
-							<div class="cp-meta-label">Expected</div>
+							<div class="cp-meta-label">{vtranslate('LBL_PHASE_KPI_EXPECTED', $MODULE_NAME)}</div>
 							<div class="cp-meta-value">{$expVal|default:'0'|escape:'html'}</div>
 						</div>
 						<div class="cp-meta-item">
-							<div class="cp-meta-label">Actual</div>
+							<div class="cp-meta-label">{vtranslate('LBL_PHASE_KPI_ACTUAL', $MODULE_NAME)}</div>
 							<div class="cp-meta-value">{$actVal|default:'0'|escape:'html'}</div>
 						</div>
 					</div>
+					{if $sdVal || $edVal}
+						<div class="cpd-meta" style="margin-top:8px;">
+							<div class="cp-meta-item">
+								<div class="cp-meta-label">{vtranslate('LBL_PHASE_START', $MODULE_NAME)}</div>
+								<div class="cp-meta-value">{$sdVal|escape:'html'}</div>
+							</div>
+							<div class="cp-meta-item">
+								<div class="cp-meta-label">{vtranslate('LBL_PHASE_END', $MODULE_NAME)}</div>
+								<div class="cp-meta-value">{$edVal|escape:'html'}</div>
+							</div>
+						</div>
+					{/if}
 					{if $comVal}
 						<div class="cpd-comment">
 							{$comVal|escape:'html'}
 						</div>
 					{/if}
 				</div>
-			{/for}
+			{/foreach}
 		</div>
 	</div>
+	{/if}
 
 	<form id="detailView" method="POST">
+		{if !empty($CAMPAIGN_DOCUMENTS_SECTION.enabled) && $CAMPAIGN_DOCUMENTS_SECTION.enabled}
+		<div class="mk-campaign-description-files">
+			<h4>{vtranslate('LBL_CAMPAIGN_RESULT_FILES', $MODULE_NAME)}</h4>
+			<p class="text-muted small" style="margin-bottom:10px;">{vtranslate('LBL_CAMPAIGN_RESULT_FILES_HELP', $MODULE_NAME)}</p>
+			<a class="btn btn-default btn-sm" href="{$CAMPAIGN_DOCUMENTS_SECTION.related_list_url}{if isset($SELECTED_MENU_CATEGORY)}&app={$SELECTED_MENU_CATEGORY}{/if}">{vtranslate('LBL_VIEW_RELATED_DOCUMENTS', $MODULE_NAME)}</a>
+			{if !empty($CAMPAIGN_DOCUMENTS_SECTION.can_add) && $CAMPAIGN_DOCUMENTS_SECTION.can_add}
+				<a class="btn btn-primary btn-sm" href="{$CAMPAIGN_DOCUMENTS_SECTION.add_url}{if isset($SELECTED_MENU_CATEGORY)}&app={$SELECTED_MENU_CATEGORY}{/if}">{vtranslate('LBL_ADD_DOCUMENT', $MODULE_NAME)}</a>
+			{/if}
+		</div>
+		{/if}
 		<div class="mk-campaign-detail-blocks">
 			{include file='DetailViewBlockView.tpl'|@vtemplate_path:$MODULE_NAME RECORD_STRUCTURE=$RECORD_STRUCTURE MODULE_NAME=$MODULE_NAME}
 		</div>

@@ -133,6 +133,21 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('MAX_UPLOAD_LIMIT_MB', Vtiger_Util_Helper::getMaxUploadSize());
 		$viewer->assign('MAX_UPLOAD_LIMIT_BYTES', Vtiger_Util_Helper::getMaxUploadSizeInBytes());
 
+		if ($moduleName === 'Campaigns') {
+			$pc = $recordModel->get('campaign_phase_count');
+			if ($pc === '' || $pc === null) {
+				$pc = 2;
+			}
+			$pc = (int) $pc;
+			if ($pc < 2) {
+				$pc = 2;
+			}
+			if ($pc > 5) {
+				$pc = 5;
+			}
+			$viewer->assign('CAMPAIGN_INITIAL_PHASE_COUNT', $pc);
+		}
+
 		if($request->get('displayMode')=='overlay'){
 			$viewer->assign('SCRIPTS',$this->getOverlayHeaderScripts($request));
 			$viewer->view('OverlayEditView.tpl', $moduleName);
