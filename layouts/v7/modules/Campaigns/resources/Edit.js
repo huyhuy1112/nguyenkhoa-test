@@ -208,10 +208,29 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 	},
 
 	_normalizeCommentLabels: function () {
-		jQuery('label').each(function () {
-			var t = jQuery(this).text().replace(/\s+/g, ' ').trim();
-			if (/^Phase\s+\d+\s+Comment$/i.test(t)) {
-				jQuery(this).text(app.vtranslate('LBL_COMMENT_SHORT', 'Campaigns'));
+		var short = app.vtranslate('LBL_COMMENT_SHORT', 'Campaigns');
+		jQuery('textarea[name^="phase"][name$="_comment"]').each(function () {
+			var name = jQuery(this).attr('name') || '';
+			if (!/^phase[1-5]_comment$/.test(name)) {
+				return;
+			}
+			var $row = jQuery(this).closest('tr');
+			if (!$row.length) {
+				$row = jQuery(this).closest('.fieldRow');
+			}
+			if (!$row.length) {
+				return;
+			}
+			var $fl = $row.find('td.fieldLabel').first();
+			if ($fl.length) {
+				var $star = $fl.find('.redColor');
+				$fl.empty().append(document.createTextNode(short));
+				if ($star.length) {
+					$fl.append(document.createTextNode(' '));
+					$fl.append($star);
+				}
+			} else {
+				$row.find('label').first().text(short);
 			}
 		});
 	},
@@ -252,9 +271,13 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		}
 
 		function updateHint(c) {
-			jQuery('.js-campaign-phase-hint').text(
-				app.vtranslate('LBL_CAMPAIGN_PHASES_HINT', 'Campaigns').replace('%s', c)
-			);
+			var t = app.vtranslate('LBL_CAMPAIGN_PHASES_HINT', 'Campaigns');
+			var n = String(c);
+			if (t && t.indexOf('%s') !== -1) {
+				jQuery('.js-campaign-phase-hint').text(t.split('%s').join(n));
+			} else {
+				jQuery('.js-campaign-phase-hint').text('Active phases: ' + n + ' (max 5)');
+			}
 		}
 		updateHint(count);
 
@@ -269,6 +292,54 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 			self._applyPhaseRowsVisibility(c);
 			updateHint(c);
 		});
+	},
+
+	/**
+	 * Description is plain text; files (image / Office) go through Documents relation.
+	 */
+	registerDescriptionDocuments: function () {
+		var $ta = jQuery('textarea[name="description"]').first();
+		if (!$ta.length || $ta.data('campaignsDescFiles')) {
+			return;
+		}
+		var recordId = jQuery('input[name="record"]').val();
+		var appParam = (typeof app !== 'undefined' && app.getAppName) ? app.getAppName() : '';
+		var appQs = appParam ? ('&app=' + encodeURIComponent(appParam)) : '';
+
+		var help = app.vtranslate('LBL_CAMPAIGN_EDIT_DESC_FILES_HELP', 'Campaigns');
+		var $box = jQuery('<div class="campaigns-edit-desc-files small" style="margin-top:10px;"/>');
+		$box.append(jQuery('<p class="text-muted" style="margin-bottom:6px;"/>').text(help));
+
+		if (recordId) {
+			var addUrl = 'index.php?module=Documents&view=Edit&relationOperation=true&sourceModule=Campaigns&sourceRecord=' +
+				encodeURIComponent(recordId) + appQs;
+			var listUrl = 'index.php?module=Campaigns&view=Detail&record=' + encodeURIComponent(recordId) +
+				'&relatedModule=Documents&mode=showRelatedList' + appQs;
+			$box.append(
+				jQuery('<a class="btn btn-default btn-sm" style="margin-right:6px;"/>')
+					.attr('href', addUrl)
+					.text(app.vtranslate('LBL_ADD_DOCUMENT', 'Campaigns'))
+			);
+			$box.append(
+				jQuery('<a class="btn btn-default btn-sm"/>')
+					.attr('href', listUrl)
+					.text(app.vtranslate('LBL_VIEW_RELATED_DOCUMENTS', 'Campaigns'))
+			);
+		} else {
+			$box.append(
+				jQuery('<span class="text-muted"/>').text(
+					app.vtranslate('LBL_CAMPAIGN_EDIT_DESC_FILES_SAVE_FIRST', 'Campaigns')
+				)
+			);
+		}
+
+		var $cell = $ta.closest('td');
+		if ($cell.length) {
+			$cell.append($box);
+		} else {
+			$ta.after($box);
+		}
+		$ta.data('campaignsDescFiles', true);
 	},
 
 	adjustPhaseLayout: function () {
@@ -296,8 +367,17 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		this.registerRoiAutoCalc();
 		this.registerPhaseSlots();
 		var self = this;
+		self.registerDescriptionDocuments();
 		self.adjustPhaseLayout();
-		setTimeout(function () { self.adjustPhaseLayout(); }, 200);
-		setTimeout(function () { self.adjustPhaseLayout(); }, 800);
+		setTimeout(function () {
+			self._normalizeCommentLabels();
+			self.registerDescriptionDocuments();
+			self.adjustPhaseLayout();
+		}, 200);
+		setTimeout(function () {
+			self._normalizeCommentLabels();
+			self.registerDescriptionDocuments();
+			self.adjustPhaseLayout();
+		}, 800);
 	}
 });
