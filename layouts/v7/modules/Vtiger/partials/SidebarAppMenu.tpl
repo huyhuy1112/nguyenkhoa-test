@@ -59,7 +59,7 @@
 								{else}
 									<span class="app-icon-list fa {$APP_IMAGE_MAP.$APP_NAME}"></span>
 								{/if}
-								<span class="app-name textOverflowEllipsis"> {vtranslate("LBL_$APP_NAME")}</span>
+								<span class="app-name textOverflowEllipsis"> {vtranslate("LBL_$APP_NAME")|upper}</span>
 								<span class="fa fa-chevron-right pull-right"></span>
 							</div>
 						</div>
