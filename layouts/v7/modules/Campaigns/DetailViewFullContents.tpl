@@ -192,6 +192,9 @@
 </style>
 
 <div class="mk">
+<!-- CAMPAIGN_DETAIL_RENDER_PATH={$CAMPAIGN_DETAIL_RENDER_PATH|default:'unset'} -->
+<!-- CAMPAIGN_FILES_COUNT={if isset($CAMPAIGN_FILES)}{$CAMPAIGN_FILES|@count}{else}0{/if} -->
+<!-- CAMPAIGN_PHASE_INDICES={$CAMPAIGN_PHASE_INDICES_JSON|default:'[]'|escape:'html'} -->
 <div class="cpd-wrap mk-page" id="CampaignPhaseDashboard"
 	 data-start-date="{$RECORD->get('start_date')|escape:'html'}"
 	 data-closing-date="{$RECORD->get('closingdate')|escape:'html'}">
@@ -223,90 +226,86 @@
 			<div class="cpd-meta" style="margin-top:10px;">
 				<div class="cp-meta-item">
 					<div class="cp-meta-label">Total Expected</div>
-					<div class="cp-meta-value"><span class="text-muted">sum(phase expected)</span></div>
+					<div class="cp-meta-value"><span class="js-campaign-phase-sum-expected">{$CAMPAIGN_PHASE_SUMS.expected_fmt|escape:'html'}</span></div>
 				</div>
 				<div class="cp-meta-item">
 					<div class="cp-meta-label">Total Actual</div>
-					<div class="cp-meta-value"><span class="text-muted">sum(phase actual)</span></div>
+					<div class="cp-meta-value"><span class="js-campaign-phase-sum-actual">{$CAMPAIGN_PHASE_SUMS.actual_fmt|escape:'html'}</span></div>
 				</div>
 			</div>
 		</div>
 	</div>
 
-	{if !empty($CAMPAIGN_PHASE_INDICES)}
-	<div class="mk-panel" style="margin-bottom:12px;">
-		<div class="mk-cp-glow mk-cp-glow--phase"></div>
-		<div class="mk-section-title">{vtranslate('LBL_CAMPAIGN_PHASES', $MODULE_NAME)}</div>
-		<div class="cpd-phase-grid">
-			{foreach from=$CAMPAIGN_PHASE_INDICES item=i}
-				{assign var=expField value="phase`$i`_expected"}
-				{assign var=actField value="phase`$i`_actual"}
-				{assign var=comField value="phase`$i`_comment"}
-				{assign var=sdField value="phase`$i`_start_date"}
-				{assign var=edField value="phase`$i`_end_date"}
-				{assign var=expVal value=$RECORD->get($expField)}
-				{assign var=actVal value=$RECORD->get($actField)}
-				{assign var=comVal value=$RECORD->get($comField)}
-				{assign var=sdVal value=$RECORD->get($sdField)}
-				{assign var=edVal value=$RECORD->get($edField)}
-				<div class="cpd-card js-phase-card"
-					 data-expected="{$expVal|escape:'html'}"
-					 data-actual="{$actVal|escape:'html'}">
-					<h5>Phase {$i}</h5>
-					<div class="cpd-progress" style="margin-bottom:8px;">
-						<div class="bar js-phase-progress" style="width:0%;" aria-valuenow="0">0%</div>
-					</div>
-					<div class="cpd-meta">
-						<div class="cp-meta-item">
-							<div class="cp-meta-label">{vtranslate('LBL_PHASE_KPI_EXPECTED', $MODULE_NAME)}</div>
-							<div class="cp-meta-value">{$expVal|default:'0'|escape:'html'}</div>
-						</div>
-						<div class="cp-meta-item">
-							<div class="cp-meta-label">{vtranslate('LBL_PHASE_KPI_ACTUAL', $MODULE_NAME)}</div>
-							<div class="cp-meta-value">{$actVal|default:'0'|escape:'html'}</div>
-						</div>
-					</div>
-					{if $sdVal || $edVal}
-						<div class="cpd-meta" style="margin-top:8px;">
-							<div class="cp-meta-item">
-								<div class="cp-meta-label">{vtranslate('LBL_PHASE_START', $MODULE_NAME)}</div>
-								<div class="cp-meta-value">{$sdVal|escape:'html'}</div>
-							</div>
-							<div class="cp-meta-item">
-								<div class="cp-meta-label">{vtranslate('LBL_PHASE_END', $MODULE_NAME)}</div>
-								<div class="cp-meta-value">{$edVal|escape:'html'}</div>
-							</div>
-						</div>
-					{/if}
-					{if $comVal}
-						<div class="cpd-comment">
-							{$comVal|escape:'html'}
-						</div>
-					{/if}
-				</div>
-			{/foreach}
-		</div>
-	</div>
-	{/if}
-
 	<form id="detailView" method="POST">
-		{if !empty($CAMPAIGN_DOCUMENTS_SECTION.enabled) && $CAMPAIGN_DOCUMENTS_SECTION.enabled}
-		<div class="mk-campaign-description-files">
-			<h4>{vtranslate('LBL_CAMPAIGN_RESULT_FILES', $MODULE_NAME)}</h4>
-			<p class="text-muted small" style="margin-bottom:10px;">{vtranslate('LBL_CAMPAIGN_RESULT_FILES_HELP', $MODULE_NAME)}</p>
-			<a class="btn btn-default btn-sm" href="{$CAMPAIGN_DOCUMENTS_SECTION.related_list_url}{if isset($SELECTED_MENU_CATEGORY)}&app={$SELECTED_MENU_CATEGORY}{/if}">{vtranslate('LBL_VIEW_RELATED_DOCUMENTS', $MODULE_NAME)}</a>
-			{if !empty($CAMPAIGN_DOCUMENTS_SECTION.can_add) && $CAMPAIGN_DOCUMENTS_SECTION.can_add}
-				<a class="btn btn-primary btn-sm" href="{$CAMPAIGN_DOCUMENTS_SECTION.add_url}{if isset($SELECTED_MENU_CATEGORY)}&app={$SELECTED_MENU_CATEGORY}{/if}">{vtranslate('LBL_ADD_DOCUMENT', $MODULE_NAME)}</a>
-			{/if}
-		</div>
-		{/if}
 		<div class="mk-campaign-detail-blocks">
 			{include file='DetailViewBlockView.tpl'|@vtemplate_path:$MODULE_NAME RECORD_STRUCTURE=$RECORD_STRUCTURE MODULE_NAME=$MODULE_NAME}
 		</div>
+
+		{if isset($CAMPAIGN_PHASE_INDICES) && $CAMPAIGN_PHASE_INDICES|@count gt 0}
+		<div class="mk-panel" style="margin-bottom:12px;">
+			<div class="mk-cp-glow mk-cp-glow--phase"></div>
+			<div class="mk-section-title">{vtranslate('LBL_CAMPAIGN_PHASES', $MODULE_NAME)}</div>
+			<div class="cpd-phase-grid">
+				{foreach from=$CAMPAIGN_PHASE_INDICES item=i}
+					{assign var=expField value="phase`$i`_expected"}
+					{assign var=actField value="phase`$i`_actual"}
+					{assign var=comField value="phase`$i`_comment"}
+					{assign var=sdField value="phase`$i`_start_date"}
+					{assign var=edField value="phase`$i`_end_date"}
+					{assign var=expVal value=$RECORD->get($expField)}
+					{assign var=actVal value=$RECORD->get($actField)}
+					{assign var=comVal value=$RECORD->get($comField)}
+					{assign var=sdVal value=$RECORD->get($sdField)}
+					{assign var=edVal value=$RECORD->get($edField)}
+					<div class="cpd-card js-phase-card"
+						 data-expected="{$expVal|escape:'html'}"
+						 data-actual="{$actVal|escape:'html'}">
+						<h5>Phase {$i}</h5>
+						<div class="cpd-progress" style="margin-bottom:8px;">
+							<div class="bar js-phase-progress" style="width:0%;" aria-valuenow="0">0%</div>
+						</div>
+						<div class="cpd-meta">
+							<div class="cp-meta-item">
+								<div class="cp-meta-label">{vtranslate('LBL_PHASE_KPI_EXPECTED', $MODULE_NAME)}</div>
+								<div class="cp-meta-value">{$expVal|default:'0'|escape:'html'}</div>
+							</div>
+							<div class="cp-meta-item">
+								<div class="cp-meta-label">{vtranslate('LBL_PHASE_KPI_ACTUAL', $MODULE_NAME)}</div>
+								<div class="cp-meta-value">{$actVal|default:'0'|escape:'html'}</div>
+							</div>
+						</div>
+						{if $sdVal || $edVal}
+							<div class="cpd-meta" style="margin-top:8px;">
+								<div class="cp-meta-item">
+									<div class="cp-meta-label">{vtranslate('LBL_PHASE_START', $MODULE_NAME)}</div>
+									<div class="cp-meta-value">{$sdVal|escape:'html'}</div>
+								</div>
+								<div class="cp-meta-item">
+									<div class="cp-meta-label">{vtranslate('LBL_PHASE_END', $MODULE_NAME)}</div>
+									<div class="cp-meta-value">{$edVal|escape:'html'}</div>
+								</div>
+							</div>
+						{/if}
+						{if $comVal}
+							<div class="cpd-comment">
+								{$comVal|escape:'html'}
+							</div>
+						{/if}
+					</div>
+				{/foreach}
+			</div>
+		</div>
+		{/if}
+
+		{if isset($CAMPAIGN_RENDER_FILES_FALLBACK) && $CAMPAIGN_RENDER_FILES_FALLBACK}
+			{include file='CampaignResultFilesBlock.tpl'|@vtemplate_path:$MODULE_NAME MODULE_NAME=$MODULE_NAME RECORD=$RECORD CAMPAIGN_FILES=$CAMPAIGN_FILES CAMPAIGN_DETAIL_DESC_FILES=$CAMPAIGN_DETAIL_DESC_FILES}
+		{/if}
 	</form>
 </div>
 </div>
 
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Campaigns/resources/PhaseProgress.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Campaigns/resources/CampaignFilesDetail.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Campaigns/resources/DetailRoiInfo.js')}"></script>
 {/strip}
 

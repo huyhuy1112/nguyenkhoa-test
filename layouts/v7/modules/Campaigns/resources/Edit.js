@@ -1,4 +1,4 @@
-/* Campaigns Edit: ROI help + auto-calc (with manual override) + phase slots 2–5 */
+/* Campaigns Edit: ROI + phase slots + description file attachments (no Documents module) */
 
 Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 
@@ -26,14 +26,6 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		return roi.toFixed(2);
 	},
 
-	_isManual: function ($roi) {
-		return $roi.data('campaignsRoiManual') === true;
-	},
-
-	_setManual: function ($roi, flag) {
-		$roi.data('campaignsRoiManual', flag);
-	},
-
 	registerRoiUi: function () {
 		var self = this;
 
@@ -52,6 +44,7 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 				'</span>'
 			);
 			$wrap.append($btn);
+			$roi.prop('readonly', true).addClass('campaigns-roi-readonly');
 		}
 
 		injectControls(jQuery('[name="expectedroi"]'), 'expected');
@@ -60,14 +53,6 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		jQuery(document).on('click', '.campaigns-roi-info', function (e) {
 			e.preventDefault();
 			self._openRoiModal();
-		});
-
-		jQuery(document).on('focus', '[name="expectedroi"], [name="actualroi"]', function () {
-			/* allow manual edit — no readonly */
-		});
-
-		jQuery(document).on('input change', '[name="expectedroi"], [name="actualroi"]', function () {
-			self._setManual(jQuery(this), true);
 		});
 	},
 
@@ -90,10 +75,10 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 			'        <pre style="background:#f8fafc;padding:10px;border-radius:8px;">ROI = (Revenue - Cost) / Cost x 100 (%)</pre>' +
 			'        <p class="text-muted small">' + tr('LBL_CAMPAIGN_ROI_EXPECTED_FIELDS') + '</p>' +
 			'        <p class="text-muted small">' + tr('LBL_CAMPAIGN_ROI_ACTUAL_HINT') + '</p>' +
+			'        <p class="text-muted small">' + tr('LBL_CAMPAIGN_ROI_FIELDS_READONLY') + '</p>' +
 			'      </div>' +
 			'      <div class="modal-footer">' +
 			'        <button type="button" class="btn btn-default" data-dismiss="modal">' + app.vtranslate('LBL_CLOSE', 'Vtiger') + '</button>' +
-			'        <button type="button" class="btn btn-primary campaigns-roi-recalc">' + tr('LBL_CAMPAIGN_ROI_RECALC') + '</button>' +
 			'      </div>' +
 			'    </div>' +
 			'  </div>' +
@@ -104,13 +89,7 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		$m.on('hidden.bs.modal', function () {
 			$m.remove();
 		});
-
-		$m.find('.campaigns-roi-recalc').on('click', function () {
-			self._setManual(jQuery('[name="expectedroi"]'), false);
-			self._setManual(jQuery('[name="actualroi"]'), false);
-			self._runRoiAutoCalc();
-			$m.modal('hide');
-		});
+		self._runRoiAutoCalc();
 	},
 
 	_runRoiAutoCalc: function () {
@@ -121,31 +100,27 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		var $arev = this._getActualRevenueField();
 		var $fcost = jQuery('[name="actualcost"]');
 
-		if (!$expRoi.length || !this._isManual($expRoi)) {
-			if ($rev.length && $bcost.length && $expRoi.length) {
-				var ev = this._calcRoi($rev.val(), $bcost.val());
-				if (ev !== '') {
-					$expRoi.val(ev);
-				}
+		if ($rev.length && $bcost.length && $expRoi.length) {
+			var ev = this._calcRoi($rev.val(), $bcost.val());
+			if (ev !== '') {
+				$expRoi.val(ev);
 			}
 		}
 
-		if (!$actRoi.length || !this._isManual($actRoi)) {
-			if (!$fcost.length || !$actRoi.length) {
-				return;
-			}
-			var revenueVal;
-			if ($arev.length && String($arev.val()).trim() !== '') {
-				revenueVal = $arev.val();
-			} else if ($rev.length) {
-				revenueVal = $rev.val();
-			} else {
-				return;
-			}
-			var av = this._calcRoi(revenueVal, $fcost.val());
-			if (av !== '') {
-				$actRoi.val(av);
-			}
+		if (!$fcost.length || !$actRoi.length) {
+			return;
+		}
+		var revenueVal;
+		if ($arev.length && String($arev.val()).trim() !== '') {
+			revenueVal = $arev.val();
+		} else if ($rev.length) {
+			revenueVal = $rev.val();
+		} else {
+			return;
+		}
+		var av = this._calcRoi(revenueVal, $fcost.val());
+		if (av !== '') {
+			$actRoi.val(av);
 		}
 	},
 
@@ -154,11 +129,9 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		self.registerRoiUi();
 
 		jQuery(document).on('keyup change', '[name="expectedrevenue"], [name="budgetcost"]', function () {
-			self._setManual(jQuery('[name="expectedroi"]'), false);
 			self._runRoiAutoCalc();
 		});
 		jQuery(document).on('keyup change', '[name="actualrevenue"], [name="actual_revenue"], [name="expectedrevenue"], [name="actualcost"]', function () {
-			self._setManual(jQuery('[name="actualroi"]'), false);
 			self._runRoiAutoCalc();
 		});
 
@@ -187,6 +160,111 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 			v = 5;
 		}
 		return v;
+	},
+
+	_numericMeaningful: function (val) {
+		if (val === undefined || val === null) {
+			return false;
+		}
+		var s = String(val).trim();
+		if (s === '') {
+			return false;
+		}
+		var n = parseFloat(s);
+		if (isNaN(n)) {
+			return false;
+		}
+		return Math.abs(n) > 0.0000001;
+	},
+
+	_textMeaningful: function (val) {
+		if (val === undefined || val === null) {
+			return false;
+		}
+		return String(val).trim() !== '';
+	},
+
+	_dateMeaningful: function (val) {
+		if (val === undefined || val === null) {
+			return false;
+		}
+		var s = String(val).trim();
+		if (s === '') {
+			return false;
+		}
+		if (/^0000-00-00/.test(s)) {
+			return false;
+		}
+		return true;
+	},
+
+	_phaseMeaningfulFromDom: function (p) {
+		var $exp = jQuery('[name="phase' + p + '_expected"]');
+		var $act = jQuery('[name="phase' + p + '_actual"]');
+		if (this._numericMeaningful($exp.val()) || this._numericMeaningful($act.val())) {
+			return true;
+		}
+		if (this._textMeaningful(jQuery('[name="phase' + p + '_comment"]').val())) {
+			return true;
+		}
+		if (this._dateMeaningful(jQuery('[name="phase' + p + '_start_date"]').val())) {
+			return true;
+		}
+		if (this._dateMeaningful(jQuery('[name="phase' + p + '_end_date"]').val())) {
+			return true;
+		}
+		return false;
+	},
+
+	_highestMeaningfulPhaseFromDom: function () {
+		var h = 0;
+		var p;
+		for (p = 1; p <= 5; p++) {
+			if (this._phaseMeaningfulFromDom(p)) {
+				h = p;
+			}
+		}
+		return h;
+	},
+
+	_effectivePhaseCountFromDom: function () {
+		var $cf = this._getPhaseCountInput();
+		var s = parseInt($cf.val(), 10);
+		if (isNaN(s) || s < 2) {
+			s = this._getInitialPhaseCount();
+		}
+		if (s < 2) {
+			s = 2;
+		}
+		if (s > 5) {
+			s = 5;
+		}
+		var h = this._highestMeaningfulPhaseFromDom();
+		var N = Math.max(2, s, h);
+		if (N > 5) {
+			N = 5;
+		}
+		while (N > 2 && !this._phaseMeaningfulFromDom(N) && N > h) {
+			N--;
+		}
+		return N;
+	},
+
+	_clearPhaseFields: function (p) {
+		var suffixes = ['expected', 'actual', 'comment', 'start_date', 'end_date'];
+		var i;
+		for (i = 0; i < suffixes.length; i++) {
+			var sel = '[name="phase' + p + '_' + suffixes[i] + '"]';
+			var $el = jQuery(sel);
+			if ($el.length) {
+				$el.val('');
+			}
+		}
+	},
+
+	_updatePhaseToolbarButtons: function (count) {
+		jQuery('.js-campaign-add-phase').prop('disabled', count >= 5);
+		jQuery('.js-campaign-remove-phase').prop('disabled', count <= 2);
 	},
 
 	_applyPhaseRowsVisibility: function (count) {
@@ -238,17 +316,7 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 	registerPhaseSlots: function () {
 		var self = this;
 		var $countField = self._getPhaseCountInput();
-		var initial = self._getInitialPhaseCount();
-		if (!$countField.val() || parseInt($countField.val(), 10) < 2) {
-			$countField.val(String(initial));
-		}
-		var count = parseInt($countField.val(), 10);
-		if (isNaN(count) || count < 2) {
-			count = 2;
-		}
-		if (count > 5) {
-			count = 5;
-		}
+		var count = self._effectivePhaseCountFromDom();
 		$countField.val(String(count));
 
 		self._applyPhaseRowsVisibility(count);
@@ -263,6 +331,9 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 				'<div class="js-campaign-phase-toolbar clearfix" style="margin:12px 0;">' +
 					'<button type="button" class="btn btn-default btn-sm pull-left js-campaign-add-phase">' +
 						app.vtranslate('LBL_CAMPAIGN_ADD_PHASE', 'Campaigns') +
+					'</button>' +
+					'<button type="button" class="btn btn-default btn-sm pull-left js-campaign-remove-phase" style="margin-left:8px;">' +
+						app.vtranslate('LBL_CAMPAIGN_REMOVE_LAST_PHASE', 'Campaigns') +
 					'</button>' +
 					'<span class="small text-muted pull-left js-campaign-phase-hint" style="margin-left:10px;line-height:30px;"></span>' +
 				'</div>'
@@ -280,6 +351,7 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 			}
 		}
 		updateHint(count);
+		self._updatePhaseToolbarButtons(count);
 
 		jQuery(document).on('click', '.js-campaign-add-phase', function (e) {
 			e.preventDefault();
@@ -291,55 +363,105 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 			$countField.val(String(c));
 			self._applyPhaseRowsVisibility(c);
 			updateHint(c);
+			self._updatePhaseToolbarButtons(c);
+		});
+
+		jQuery(document).on('click', '.js-campaign-remove-phase', function (e) {
+			e.preventDefault();
+			var c = parseInt($countField.val(), 10) || 2;
+			if (c <= 2) {
+				return;
+			}
+			self._clearPhaseFields(c);
+			c -= 1;
+			$countField.val(String(c));
+			self._applyPhaseRowsVisibility(c);
+			updateHint(c);
+			self._updatePhaseToolbarButtons(c);
 		});
 	},
 
+	_parseExistingCampaignFilesJson: function () {
+		var $raw = jQuery('#campaign-files-json');
+		if (!$raw.length) {
+			return [];
+		}
+		var text = jQuery.trim($raw.text());
+		if (!text) {
+			return [];
+		}
+		try {
+			return JSON.parse(text) || [];
+		} catch (ignore) {
+			return [];
+		}
+	},
+
 	/**
-	 * Description is plain text; files (image / Office) go through Documents relation.
+	 * Plain file input (multipart save). Allowed types: jpg/png/docx/xlsx.
 	 */
-	registerDescriptionDocuments: function () {
-		var $ta = jQuery('textarea[name="description"]').first();
-		if (!$ta.length || $ta.data('campaignsDescFiles')) {
+	registerCampaignDescriptionFiles: function () {
+		var self = this;
+		if (jQuery('#campaign-files-edit-box').length) {
 			return;
 		}
-		var recordId = jQuery('input[name="record"]').val();
-		var appParam = (typeof app !== 'undefined' && app.getAppName) ? app.getAppName() : '';
-		var appQs = appParam ? ('&app=' + encodeURIComponent(appParam)) : '';
-
-		var help = app.vtranslate('LBL_CAMPAIGN_EDIT_DESC_FILES_HELP', 'Campaigns');
-		var $box = jQuery('<div class="campaigns-edit-desc-files small" style="margin-top:10px;"/>');
-		$box.append(jQuery('<p class="text-muted" style="margin-bottom:6px;"/>').text(help));
-
-		if (recordId) {
-			var addUrl = 'index.php?module=Documents&view=Edit&relationOperation=true&sourceModule=Campaigns&sourceRecord=' +
-				encodeURIComponent(recordId) + appQs;
-			var listUrl = 'index.php?module=Campaigns&view=Detail&record=' + encodeURIComponent(recordId) +
-				'&relatedModule=Documents&mode=showRelatedList' + appQs;
-			$box.append(
-				jQuery('<a class="btn btn-default btn-sm" style="margin-right:6px;"/>')
-					.attr('href', addUrl)
-					.text(app.vtranslate('LBL_ADD_DOCUMENT', 'Campaigns'))
-			);
-			$box.append(
-				jQuery('<a class="btn btn-default btn-sm"/>')
-					.attr('href', listUrl)
-					.text(app.vtranslate('LBL_VIEW_RELATED_DOCUMENTS', 'Campaigns'))
-			);
-		} else {
-			$box.append(
-				jQuery('<span class="text-muted"/>').text(
-					app.vtranslate('LBL_CAMPAIGN_EDIT_DESC_FILES_SAVE_FIRST', 'Campaigns')
-				)
-			);
+		var $str = jQuery('#campaign-files-edit-strings');
+		if (!$str.length) {
+			return;
 		}
 
-		var $cell = $ta.closest('td');
-		if ($cell.length) {
-			$cell.append($box);
-		} else {
-			$ta.after($box);
+		var $ta = jQuery('textarea[name="description"]').first();
+		var anchorIsTextarea = $ta.length > 0;
+		var $anchor = anchorIsTextarea ? $ta : $str;
+		if (!$anchor.length || $anchor.data('campaignFilesEditInit')) {
+			return;
 		}
-		$ta.data('campaignsDescFiles', true);
+
+		var help = $str.data('help') || '';
+		var $box = jQuery('<div id="campaign-files-edit-box" class="campaign-edit-files small" style="margin-top:10px;"/>');
+		if (help) {
+			$box.append(jQuery('<p class="text-muted" style="margin-bottom:6px;"/>').text(help));
+		}
+
+		var existing = self._parseExistingCampaignFilesJson();
+		if (existing.length) {
+			var lbl = app.vtranslate('LBL_CAMPAIGN_FILES_EXISTING', 'Campaigns');
+			var $ul0 = jQuery('<ul class="list-unstyled" style="margin-bottom:8px;"/>');
+			var ei;
+			for (ei = 0; ei < existing.length; ei++) {
+				var ex = existing[ei];
+				if (!ex || !ex.download_url) {
+					continue;
+				}
+				var $a = jQuery('<a target="_blank" rel="noopener noreferrer"/>')
+					.attr('href', ex.download_url)
+					.text(ex.original_name || ex.download_url);
+				$ul0.append(jQuery('<li/>').append($a));
+			}
+			$box.append(jQuery('<p class="text-muted small" style="margin-bottom:4px;"/>').text(lbl));
+			$box.append($ul0);
+		}
+
+		var $input = jQuery(
+			'<input type="file" name="campaign_files[]" multiple="multiple" ' +
+				'accept=".jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,image/jpeg,image/png,' +
+				'application/msword,application/vnd.ms-excel,' +
+				'application/vnd.openxmlformats-officedocument.wordprocessingml.document,' +
+				'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />'
+		);
+		$box.append($input);
+
+		if (anchorIsTextarea) {
+			var $cell = $ta.closest('td');
+			if ($cell.length) {
+				$cell.append($box);
+			} else {
+				$ta.after($box);
+			}
+		} else {
+			$str.after($box);
+		}
+		$anchor.data('campaignFilesEditInit', true);
 	},
 
 	adjustPhaseLayout: function () {
@@ -367,16 +489,16 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		this.registerRoiAutoCalc();
 		this.registerPhaseSlots();
 		var self = this;
-		self.registerDescriptionDocuments();
+		self.registerCampaignDescriptionFiles();
 		self.adjustPhaseLayout();
 		setTimeout(function () {
 			self._normalizeCommentLabels();
-			self.registerDescriptionDocuments();
+			self.registerCampaignDescriptionFiles();
 			self.adjustPhaseLayout();
 		}, 200);
 		setTimeout(function () {
 			self._normalizeCommentLabels();
-			self.registerDescriptionDocuments();
+			self.registerCampaignDescriptionFiles();
 			self.adjustPhaseLayout();
 		}, 800);
 	}

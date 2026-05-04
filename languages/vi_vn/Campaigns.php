@@ -40,9 +40,17 @@ $languageStrings = array(
 	'LBL_EXPECTATIONS_AND_ACTUALS' => 'Kỳ vọng & Thực tế',
 	'LBL_CAMPAIGN_PHASES' => 'Giai đoạn chiến dịch',
 	'LBL_CAMPAIGN_RESULT_FILES' => 'Tệp kết quả chiến dịch',
-	'LBL_CAMPAIGN_RESULT_FILES_HELP' => 'Không upload ngay trên form: dùng quan hệ Documents chuẩn của Vtiger để gắn ảnh, Word, Excel… và mở/xem từ danh sách Documents.',
-	'LBL_CAMPAIGN_EDIT_DESC_FILES_HELP' => 'Mô tả chỉ là chữ; không dán file vào đây. Thêm ảnh / Word / Excel qua module Documents — file gắn với chiến dịch và mở bằng trình xem tài liệu.',
-	'LBL_CAMPAIGN_EDIT_DESC_FILES_SAVE_FIRST' => 'Hãy Lưu chiến dịch trước, sau đó thêm tài liệu qua Documents.',
+	'LBL_CAMPAIGN_RESULT_FILES_SECTION' => 'Tệp kết quả chiến dịch',
+	'LBL_CAMPAIGN_RESULT_FILES_HELP' => 'Tệp đã gắn với chiến dịch. Upload thêm ở màn Sửa, phần Mô tả.',
+	'LBL_CAMPAIGN_DETAIL_RESULT_FILES_HELP' => 'Tệp gắn với chiến dịch. Upload ảnh, Word hoặc Excel tại đây; mỗi tệp mở trong Documents.',
+	'LBL_CAMPAIGN_DETAIL_UPLOAD_NO_EDIT' => 'Bạn không có quyền upload tệp cho chiến dịch này (cần quyền Sửa chiến dịch hoặc tạo Documents).',
+	'LBL_CAMPAIGN_EDIT_DESC_FILES_HELP' => 'Không dán file nhị phân vào Mô tả. Dùng ô upload bên dưới cho ảnh, Word hoặc Excel; mỗi tệp được lưu và gắn với chiến dịch (bấm liên kết để mở).',
+	'LBL_CAMPAIGN_EDIT_DESC_FILES_SAVE_FIRST' => 'Hãy Lưu chiến dịch trước, sau đó upload tệp bên dưới.',
+	'LBL_CAMPAIGN_DESC_UPLOADING' => 'Đang tải lên…',
+	'LBL_CAMPAIGN_DESC_UPLOAD_DONE' => 'Tải lên xong.',
+	'LBL_CAMPAIGN_DESC_UPLOAD_FAILED' => 'Tải lên thất bại. Chỉ chấp nhận ảnh, Word, Excel.',
+	'LBL_CAMPAIGN_DESC_UPLOAD_NO_FILE' => 'Không nhận được tệp.',
+	'LBL_CAMPAIGN_DESC_UPLOAD_PENDING_HINT' => 'Các tệp đã chọn sẽ được tải lên ngay sau khi bạn Lưu chiến dịch mới.',
 	'LBL_VIEW_RELATED_DOCUMENTS' => 'Xem tài liệu',
 	'LBL_ADD_DOCUMENT' => 'Thêm tài liệu',
 	'LBL_PHASE_KPI_EXPECTED' => 'Kỳ vọng',
@@ -67,7 +75,16 @@ $languageStrings = array(
          //Patch provided by http://trac.vtiger.com/cgi-bin/trac.cgi/ticket/7884
          //campaignstatus picklist values 
         'Planning'=>'Kế hoạch', 
-        'Active'=>'Hoạt động'
+        'Active'=>'Hoạt động',
+
+	'LBL_CAMPAIGN_FILES_SECTION' => 'Tệp đính kèm chiến dịch',
+	'LBL_CAMPAIGN_FILES_DETAIL_HELP' => 'Tệp đã lưu cùng chiến dịch (JPG, PNG, DOCX, XLSX). Ảnh xem Preview; mọi loại tải bằng Download.',
+	'LBL_CAMPAIGN_FILES_NONE' => 'Chưa có tệp. Thêm ở màn Sửa (dưới phần Mô tả), rồi Lưu.',
+	'LBL_CAMPAIGN_FILES_EDIT_HELP' => 'Đính kèm tệp (JPG, PNG, DOCX, XLSX). Bấm Lưu để ghi. Cho phép nhiều tệp.',
+	'LBL_CAMPAIGN_FILES_EXISTING' => 'Tệp hiện tại:',
+	'LBL_CAMPAIGN_FILE_PREVIEW' => 'Xem ảnh',
+	'LBL_CAMPAIGN_FILE_DOWNLOAD' => 'Tải xuống',
+	'LBL_CAMPAIGN_REMOVE_LAST_PHASE' => 'Xóa giai đoạn cuối',
 );
 
 $jsLanguageStrings = array(
@@ -76,7 +93,13 @@ $jsLanguageStrings = array(
 	'LBL_CAMPAIGN_ROI_EXPECTED_FIELDS' => 'ROI kỳ vọng dùng Doanh thu kỳ vọng và Ngân sách.',
 	'LBL_CAMPAIGN_ROI_ACTUAL_HINT' => 'ROI thực tế dùng Chi phí thực; doanh thu lấy Doanh thu thực nếu có, không thì Doanh thu kỳ vọng.',
 	'LBL_CAMPAIGN_ROI_RECALC' => 'Tính lại ngay',
+	'LBL_CAMPAIGN_ROI_FIELDS_READONLY' => 'ROI kỳ vọng và ROI thực tế trên form chỉ đọc; hệ thống tự điền theo công thức ở trên (bạn vẫn sửa các ô doanh thu và chi phí).',
 	'LBL_COMMENT_SHORT' => 'Ghi chú',
 	'LBL_CAMPAIGN_ADD_PHASE' => 'Thêm giai đoạn',
+	'LBL_CAMPAIGN_REMOVE_LAST_PHASE' => 'Xóa giai đoạn cuối',
 	'LBL_CAMPAIGN_PHASES_HINT' => 'Số giai đoạn đang bật: %s (tối đa 5)',
+	'LBL_CAMPAIGN_DESC_SAVE_FOR_UPLOAD_FAILED' => 'Chưa lưu được chiến dịch; tệp chưa được tải lên. Kiểm tra lỗi trên form và thử lại.',
+	'LBL_CAMPAIGN_FILES_EXISTING' => 'Tệp hiện tại:',
+	'LBL_CAMPAIGN_FILE_PREVIEW' => 'Xem ảnh',
+	'LBL_CAMPAIGN_FILE_DOWNLOAD' => 'Tải xuống',
 );

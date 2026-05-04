@@ -1,7 +1,7 @@
 <?php
 /*
  * Campaigns Edit view override
- * UI-only: remove legacy field "product" from record structure before rendering.
+ * UI-only: hide legacy single "Product" (field product_id) on Edit/Create; keep "Products & Services".
  */
 
 class Campaigns_Edit_View extends Vtiger_Edit_View {
@@ -78,6 +78,12 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 			}
 		}
 
+		if ($moduleName === 'Campaigns') {
+			require_once 'modules/Campaigns/models/CampaignPhaseHelper.php';
+			$eff = Campaigns_CampaignPhase_Helper::effectivePhaseCount($recordModel->getData());
+			$recordModel->set('campaign_phase_count', $eff);
+		}
+
 		$recordStructureInstance = Vtiger_RecordStructure_Model::getInstanceFromRecordModel(
 			$recordModel,
 			Vtiger_RecordStructure_Model::RECORD_STRUCTURE_MODE_EDIT
@@ -100,7 +106,9 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 							$fieldModelName = $fieldModel->get('name');
 						}
 					}
-					if ($fieldName === 'product' || $fieldModelName === 'product') {
+					/* Core vtiger "Product" is product_id (reference). Keep "Products & Services" and other fields. */
+					$hideNames = array('product', 'product_id');
+					if (in_array($fieldName, $hideNames, true) || ($fieldModelName !== null && in_array($fieldModelName, $hideNames, true))) {
 						unset($blockFields[$fieldName]);
 					}
 				}
@@ -134,18 +142,24 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('MAX_UPLOAD_LIMIT_BYTES', Vtiger_Util_Helper::getMaxUploadSizeInBytes());
 
 		if ($moduleName === 'Campaigns') {
-			$pc = $recordModel->get('campaign_phase_count');
-			if ($pc === '' || $pc === null) {
-				$pc = 2;
+			$viewer->assign('CAMPAIGN_INITIAL_PHASE_COUNT', (int) $recordModel->get('campaign_phase_count'));
+
+			require_once 'modules/Campaigns/models/CampaignFilesHelper.php';
+			$campaignFiles = array();
+			if (!empty($record)) {
+				$rec = (int) $record;
+				foreach (Campaigns_CampaignFiles_Helper::getFilesForCampaign($rec) as $f) {
+					$campaignFiles[] = array(
+						'id' => $f['id'],
+						'original_name' => $f['original_name'],
+						'download_url' => 'index.php?module=Campaigns&action=DownloadCampaignFile&record=' . $rec . '&fileid=' . (int) $f['id'],
+					);
+				}
 			}
-			$pc = (int) $pc;
-			if ($pc < 2) {
-				$pc = 2;
-			}
-			if ($pc > 5) {
-				$pc = 5;
-			}
-			$viewer->assign('CAMPAIGN_INITIAL_PHASE_COUNT', $pc);
+			$viewer->assign(
+				'CAMPAIGN_FILES_JSON',
+				json_encode($campaignFiles, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE)
+			);
 		}
 
 		if($request->get('displayMode')=='overlay'){
@@ -156,5 +170,6 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 			$viewer->view('EditView.tpl', $moduleName);
 		}
 	}
+
 }
 

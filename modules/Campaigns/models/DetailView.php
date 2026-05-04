@@ -1,6 +1,7 @@
 <?php
 /*+***********************************************************************************
- * Campaigns: Detail actions — Duplicate + Delete as primary; drop Edit from header row.
+ * Campaigns: Detail header — only Duplicate + Delete; no Edit / More (DETAILVIEW empty).
+ * Related-module icon tabs hidden via getDetailViewRelatedLinks().
  *************************************************************************************/
 
 class Campaigns_DetailView_Model extends Vtiger_DetailView_Model {
@@ -33,42 +34,20 @@ class Campaigns_DetailView_Model extends Vtiger_DetailView_Model {
 		}
 
 		$linkModelList['DETAILVIEWBASIC'] = $newBasic;
-
-		$filtered = array();
-		if (!empty($linkModelList['DETAILVIEW'])) {
-			foreach ($linkModelList['DETAILVIEW'] as $lm) {
-				$url = $lm->getUrl();
-				$lbl = $lm->getLabel();
-				if ($lbl === 'LBL_EDIT') {
-					continue;
-				}
-				if ($lbl === 'LBL_DUPLICATE') {
-					continue;
-				}
-				if (stripos($url, 'deleteRecord') !== false) {
-					continue;
-				}
-				if ($lbl === sprintf('%s %s', getTranslatedString('LBL_DELETE', $moduleName), vtranslate('SINGLE_' . $moduleName, $moduleName))) {
-					continue;
-				}
-				$filtered[] = $lm;
-			}
-		}
-
-		if (Users_Privileges_Model::isPermitted($moduleName, 'EditView', $recordId)) {
-			array_unshift(
-				$filtered,
-				Vtiger_Link_Model::getInstanceFromValues(array(
-					'linktype' => 'DETAILVIEW',
-					'linklabel' => 'LBL_EDIT',
-					'linkurl' => $recordModel->getEditViewUrl(),
-					'linkicon' => '',
-				))
-			);
-		}
-
-		$linkModelList['DETAILVIEW'] = $filtered;
+		$linkModelList['DETAILVIEW'] = array();
 
 		return $linkModelList;
+	}
+
+	public function getDetailViewRelatedLinks() {
+		$links = parent::getDetailViewRelatedLinks();
+		$out = array();
+		foreach ($links as $link) {
+			if (!empty($link['linktype']) && $link['linktype'] === 'DETAILVIEWRELATED') {
+				continue;
+			}
+			$out[] = $link;
+		}
+		return $out;
 	}
 }

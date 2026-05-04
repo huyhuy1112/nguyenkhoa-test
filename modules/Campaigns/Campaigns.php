@@ -82,6 +82,21 @@ class Campaigns extends CRMEntity {
 	*/
 	function save_module($module)
 	{
+		if ($module === 'Campaigns' && is_array($this->column_fields)) {
+			require_once 'modules/Campaigns/models/CampaignPhaseHelper.php';
+			$eff = Campaigns_CampaignPhase_Helper::effectivePhaseCount($this->column_fields);
+			$this->column_fields['campaign_phase_count'] = $eff;
+			if (!empty($this->id)) {
+				$this->db->pquery(
+					'UPDATE vtiger_campaign SET campaign_phase_count=? WHERE campaignid=?',
+					array($eff, $this->id)
+				);
+			}
+		}
+		if ($module === 'Campaigns' && !empty($this->id)) {
+			require_once 'modules/Campaigns/models/CampaignFilesHelper.php';
+			Campaigns_CampaignFiles_Helper::processUploads((int) $this->id);
+		}
 	}
 
 	// Mike Crowe Mod --------------------------------------------------------Default ordering for us
