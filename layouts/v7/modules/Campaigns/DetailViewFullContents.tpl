@@ -288,7 +288,7 @@
 						{/if}
 						{if $comVal}
 							<div class="cpd-comment">
-								{$comVal|escape:'html'}
+								{$comVal|html_entity_decode|escape:'html'}
 							</div>
 						{/if}
 					</div>

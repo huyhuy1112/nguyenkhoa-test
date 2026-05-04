@@ -83,6 +83,16 @@ class Campaigns extends CRMEntity {
 	function save_module($module)
 	{
 		if ($module === 'Campaigns' && is_array($this->column_fields)) {
+			for ($i = 1; $i <= 5; $i++) {
+				$k = 'phase' . $i . '_comment';
+				if (isset($this->column_fields[$k]) && is_string($this->column_fields[$k])) {
+					$this->column_fields[$k] = html_entity_decode(
+						$this->column_fields[$k],
+						ENT_QUOTES | ENT_HTML5,
+						'UTF-8'
+					);
+				}
+			}
 			require_once 'modules/Campaigns/models/CampaignPhaseHelper.php';
 			$eff = Campaigns_CampaignPhase_Helper::effectivePhaseCount($this->column_fields);
 			$this->column_fields['campaign_phase_count'] = $eff;
