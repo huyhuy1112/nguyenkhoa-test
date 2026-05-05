@@ -15,7 +15,7 @@
 			{assign var=DOCUMENT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 		{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'LBL_RELATED_CONTACTS')}
 			{assign var=CONTACT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
-		{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'LBL_RELATED_PRODUCTS')}
+		{elseif ($DETAIL_VIEW_WIDGET->get('linkName') eq 'ProductsServices')}
 			{assign var=PRODUCT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 		{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'ModComments')}
 			{assign var=COMMENTS_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
@@ -116,7 +116,7 @@
 
 						{if $PRODUCT_WIDGET_MODEL->get('action')}
 							<div class="pull-right">
-								<button class="btn addButton btn-sm btn-default createRecord" type="button" data-url="{$PRODUCT_WIDGET_MODEL->get('actionURL')}">
+								<button class="btn addButton btn-sm btn-default potentialsSummaryProductsServicesAdd" type="button">
 									<i class="fa fa-plus"></i>&nbsp;&nbsp;{vtranslate('LBL_ADD',$MODULE_NAME)}
 								</button>
 							</div>

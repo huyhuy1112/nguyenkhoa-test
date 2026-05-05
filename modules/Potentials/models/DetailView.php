@@ -140,17 +140,16 @@ class Potentials_DetailView_Model extends Vtiger_DetailView_Model {
 			);
 		}
 
-		$productsInstance = Vtiger_Module_Model::getInstance('Products');
-		if($userPrivilegesModel->hasModuleActionPermission($productsInstance->getId(), 'DetailView')) {
-			$createPermission = $userPrivilegesModel->hasModuleActionPermission($productsInstance->getId(), 'CreateView');
+		$productsServicesInstance = Vtiger_Module_Model::getInstance('ProductsServices');
+		if($productsServicesInstance && $userPrivilegesModel->hasModuleActionPermission($productsServicesInstance->getId(), 'DetailView')) {
 			$widgets[] = array(
 					'linktype' => 'DETAILVIEWWIDGET',
-					'linklabel' => 'LBL_RELATED_PRODUCTS',
-					'linkName'	=> $productsInstance->getName(),
+					'linklabel' => 'LBL_RELATED_PRODUCTS_AND_SERVICES',
+					'linkName'	=> $productsServicesInstance->getName(),
 					'linkurl' => 'module='.$this->getModuleName().'&view=Detail&record='.$this->getRecord()->getId().
-							'&relatedModule=Products&mode=showRelatedRecords&page=1&limit=5',
-					'action'	=>	($createPermission == true) ? array('Add') : array(),
-					'actionURL' =>	$productsInstance->getQuickCreateUrl()
+							'&relatedModule=ProductsServices&mode=showRelatedRecords&page=1&limit=5',
+					'action'	=> array('Add'),
+					'actionURL' => ''
 			);
 		}
 

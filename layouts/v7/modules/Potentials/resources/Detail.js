@@ -250,6 +250,8 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 		var detailContentsHolder = this.getContentHolder();
 		var thisInstance = this;
 
+		this.registerPotentialsSummaryProductsServicesPopup();
+
 		detailContentsHolder.on('click','.moreRecentContacts', function(){ 
 			var recentContactsTab = thisInstance.getTabByLabel(thisInstance.detailViewRecentContactsLabel); 
 			recentContactsTab.trigger('click'); 
@@ -258,6 +260,63 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 		detailContentsHolder.on('click','.moreRecentProducts', function(){ 
 			var recentProductsTab = thisInstance.getTabByLabel(thisInstance.detailViewRecentProductsTabLabel); 
 			recentProductsTab.trigger('click'); 
+		});
+	},
+
+	/**
+	 * Summary widget: select existing ProductsServices records (popup) and relate to this Opportunity.
+	 */
+	registerPotentialsSummaryProductsServicesPopup : function() {
+		var self = this;
+		var eventName = 'post.RecordList.click.PotentialsSummaryProductsServices';
+		app.event.off(eventName);
+		app.event.on(eventName, function(event, data) {
+			var responseData = JSON.parse(data);
+			var idList = [];
+			for (var id in responseData) {
+				if (responseData.hasOwnProperty(id)) {
+					idList.push(id);
+				}
+			}
+			app.helper.hideModal();
+			if (!idList.length) {
+				return;
+			}
+			app.helper.showProgress();
+			app.request.post({
+				data: {
+					mode: 'addRelation',
+					module: app.getModuleName(),
+					action: 'RelationAjax',
+					related_module: 'ProductsServices',
+					src_record: self.getRecordId(),
+					related_record_list: JSON.stringify(idList)
+				}
+			}).then(function(err) {
+				app.helper.hideProgress();
+				if (err !== null) {
+					app.event.trigger('post.save.failed', err);
+					return;
+				}
+				var widgetContainer = jQuery('.widgetContainer_products');
+				if (widgetContainer.length) {
+					self.loadWidget(widgetContainer);
+				}
+			});
+		});
+
+		this.getContentHolder().on('click', '.potentialsSummaryProductsServicesAdd', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var popupParams = {
+				module: 'ProductsServices',
+				src_module: app.getModuleName(),
+				src_record: self.getRecordId(),
+				multi_select: 1,
+				view: 'Popup'
+			};
+			var popupInstance = Vtiger_Popup_Js.getInstance('ProductsServices');
+			popupInstance.showPopup(popupParams, eventName);
 		});
 	}
 })
