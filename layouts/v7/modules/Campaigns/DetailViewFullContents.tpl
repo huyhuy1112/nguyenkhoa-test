@@ -80,6 +80,7 @@
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 	gap: 12px;
+	align-items: stretch;
 }
 #CampaignPhaseDashboard .cpd-card {
 	border: 1px solid rgba(226,232,240,0.95);
@@ -89,6 +90,9 @@
 	background: #ffffff;
 	box-shadow: 0 10px 26px rgba(15,23,42,0.04);
 	transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 #CampaignPhaseDashboard .cpd-card:hover {
 	transform: translateY(-3px);
@@ -134,6 +138,7 @@
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
+	word-break: break-word;
 }
 
 /* Campaign detail blocks: render as clean white cards */
@@ -195,7 +200,7 @@
 <!-- CAMPAIGN_DETAIL_RENDER_PATH={$CAMPAIGN_DETAIL_RENDER_PATH|default:'unset'} -->
 <!-- CAMPAIGN_FILES_COUNT={if isset($CAMPAIGN_FILES)}{$CAMPAIGN_FILES|@count}{else}0{/if} -->
 <!-- CAMPAIGN_PHASE_INDICES={$CAMPAIGN_PHASE_INDICES_JSON|default:'[]'|escape:'html'} -->
-<div class="cpd-wrap mk-page" id="CampaignPhaseDashboard"
+<div class="cpd-wrap mk-page campaign-detail-modern" id="CampaignPhaseDashboard"
 	 data-start-date="{$RECORD->get('start_date')|escape:'html'}"
 	 data-closing-date="{$RECORD->get('closingdate')|escape:'html'}">
 
@@ -242,9 +247,9 @@
 		</div>
 
 		{if isset($CAMPAIGN_PHASE_INDICES) && $CAMPAIGN_PHASE_INDICES|@count gt 0}
-		<div class="mk-panel" style="margin-bottom:12px;">
+		<div class="mk-panel mk-panel--phases" style="margin-bottom:12px;">
 			<div class="mk-cp-glow mk-cp-glow--phase"></div>
-			<div class="mk-section-title">{vtranslate('LBL_CAMPAIGN_PHASES', $MODULE_NAME)}</div>
+			<div class="mk-section-title mk-section-title--block">{vtranslate('LBL_CAMPAIGN_PHASES', $MODULE_NAME)}</div>
 			<div class="cpd-phase-grid">
 				{foreach from=$CAMPAIGN_PHASE_INDICES item=i}
 					{assign var=expField value="phase`$i`_expected"}
@@ -258,10 +263,11 @@
 					{assign var=sdVal value=$RECORD->get($sdField)}
 					{assign var=edVal value=$RECORD->get($edField)}
 					<div class="cpd-card js-phase-card"
+						 data-phase="{$i|escape:'html'}"
 						 data-expected="{$expVal|escape:'html'}"
 						 data-actual="{$actVal|escape:'html'}">
 						<h5>Phase {$i}</h5>
-						<div class="cpd-progress" style="margin-bottom:8px;">
+						<div class="cpd-progress">
 							<div class="bar js-phase-progress" style="width:0%;" aria-valuenow="0">0%</div>
 						</div>
 						<div class="cpd-meta">

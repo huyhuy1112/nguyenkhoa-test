@@ -1,4 +1,5 @@
 {* Campaigns Edit: ROI + phase slots + description files (multipart → vtiger_attachments) *}
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Campaigns/resources/CampaignDetail.css')}" />
 {if isset($CAMPAIGN_INITIAL_PHASE_COUNT)}
 <input type="hidden" id="campaigns-phase-count-initial" value="{$CAMPAIGN_INITIAL_PHASE_COUNT}" />
 {/if}

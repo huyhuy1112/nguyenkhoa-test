@@ -58,6 +58,32 @@
 				</a>
 			</li>
 		</ul>
+	{foreachelse}
+		{if $MODULE eq 'Campaigns'}
+			{assign var=_CampMenuMod value=Vtiger_Module_Model::getInstance('Campaigns')}
+			<ul title="{vtranslate('Campaigns','Campaigns')}" class="module-qtip mk-campaigns-menubar-fallback">
+				<li class="active">
+					<a href="{$_CampMenuMod->getDefaultUrl()}&app={if $SELECTED_MENU_CATEGORY}{$SELECTED_MENU_CATEGORY}{else}MARKETING{/if}"
+					   title="{vtranslate('LBL_MARKETING','Vtiger')} — {vtranslate('Campaigns','Campaigns')}">
+						<span class="mk-icon menubar-module-icon"><i class="fa fa-bullhorn"></i></span>
+						<span>Campaigns</span>
+					</a>
+				</li>
+			</ul>
+		{/if}
 	{/foreach}
 </div>
+{elseif $MODULE eq 'Campaigns'}
+	{assign var=_CampMenuMod value=Vtiger_Module_Model::getInstance('Campaigns')}
+	<div id="modules-menu" class="modules-menu mk-campaigns-menubar-fallback">
+		<ul title="{vtranslate('Campaigns','Campaigns')}" class="module-qtip">
+			<li class="active">
+				<a href="{$_CampMenuMod->getDefaultUrl()}&app={if $SELECTED_MENU_CATEGORY}{$SELECTED_MENU_CATEGORY}{else}MARKETING{/if}"
+				   title="{vtranslate('LBL_MARKETING','Vtiger')} — {vtranslate('Campaigns','Campaigns')}">
+					<span class="mk-icon menubar-module-icon"><i class="fa fa-bullhorn"></i></span>
+					<span>Campaigns</span>
+				</a>
+			</li>
+		</ul>
+	</div>
 {/if}

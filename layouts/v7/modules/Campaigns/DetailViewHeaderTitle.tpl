@@ -3,6 +3,7 @@
 *************************************************************************************}
 
 {strip}
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Campaigns/resources/CampaignDetail.css')}" />
 <style>
 	.mk-campaign-record-header{
 		border: 1px solid rgba(226,232,240,0.95);
@@ -38,8 +39,8 @@
 			{/if}
 			<div class="recordImage bg_{$MODULE} app-{(isset($SELECTED_MENU_CATEGORY)) ? $SELECTED_MENU_CATEGORY : ''}">
 				<div class="name">
-					<span>
-						<strong>{$MODULE_MODEL->getModuleIcon()}</strong>
+					<span class="mk-campaign-header-icon-wrap">
+						<strong><i class="fa fa-bullhorn mk-campaign-header-icon" aria-hidden="true"></i></strong>
 					</span>
 				</div>
 			</div>
