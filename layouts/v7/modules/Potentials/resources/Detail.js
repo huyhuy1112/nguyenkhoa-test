@@ -251,6 +251,8 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 		var thisInstance = this;
 
 		this.registerPotentialsSummaryProductsServicesPopup();
+		this.registerPotentialsContactsOrganizationFilterUi();
+		this.registerPotentialsActivitiesSingleDateFiltersUi();
 
 		detailContentsHolder.on('click','.moreRecentContacts', function(){ 
 			var recentContactsTab = thisInstance.getTabByLabel(thisInstance.detailViewRecentContactsLabel); 
@@ -261,6 +263,381 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			var recentProductsTab = thisInstance.getTabByLabel(thisInstance.detailViewRecentProductsTabLabel); 
 			recentProductsTab.trigger('click'); 
 		});
+	},
+
+	/**
+	 * Restore Organization filter input in Potentials → Contacts related list
+	 * without overriding RelatedList.tpl (avoids duplicated tables/rows).
+	 *
+	 * Backend filtering is handled in modules/Potentials/models/RelationListView.php (account_id -> accountname).
+	 */
+	registerPotentialsContactsOrganizationFilterUi : function() {
+		var STORAGE_KEY = function() {
+			var rid = (typeof app !== 'undefined' && typeof app.getRecordId === 'function') ? app.getRecordId() : '';
+			return 'Potentials.Contacts.OrgFilter.' + rid;
+		};
+
+		var sanitizeOrgValue = function(v) {
+			v = (v === null || v === undefined) ? '' : (v + '').trim();
+			// Never treat placeholder/label-like strings as actual search values
+			if (v.toLowerCase() === 'organization name' || v.toLowerCase() === 'organization') return '';
+			if (v.toLowerCase() === 'organisation name' || v.toLowerCase() === 'organisation') return '';
+			return v;
+		};
+
+		var clearIfLabelValue = function(input) {
+			if (!input || !input.length) return;
+			var cur = (input.val() || '').toString().trim();
+			var lc = cur.toLowerCase();
+			if (
+				lc === 'organization' ||
+				lc === 'organization name' ||
+				lc === 'organisation' ||
+				lc === 'organisation name'
+			) {
+				input.val('');
+			}
+		};
+
+		var enforceOrgFilterValueAfterRender = function(container) {
+			container = container ? jQuery(container) : jQuery('div.details');
+			var relatedContainer = container.find('.relatedContainer:visible').first();
+			if (!relatedContainer.length) return;
+			if (relatedContainer.find('input.relatedModuleName').val() !== 'Contacts') return;
+
+			var headerRow = relatedContainer.find('.listViewHeaders');
+			var searchRow = relatedContainer.find('.searchRow');
+			if (!headerRow.length || !searchRow.length) return;
+
+			// Find Organization column by data-fieldname=account_id, fallback by header text.
+			var headerAnchor = headerRow.find('a.listViewContentHeaderValues[data-fieldname="account_id"]').first();
+			var headerTh = headerAnchor.length ? headerAnchor.closest('th') : headerRow.find('th').filter(function() {
+				var t = (jQuery(this).text() || '').toString().toLowerCase();
+				return (t.indexOf('organisation') > -1 || t.indexOf('organization') > -1) && t.indexOf('name') > -1;
+			}).first();
+			if (!headerTh.length) return;
+
+			var idx = headerTh.index();
+			if (idx < 0) return;
+
+			var cell = searchRow.find('th').eq(idx);
+			if (!cell.length) return;
+
+			var input = cell.find('input.listSearchContributor[name="account_id"]').first();
+			if (!input.length) return;
+
+			input.attr('placeholder', 'Organization Name');
+			clearIfLabelValue(input);
+		};
+
+		var getPrefill = function(relatedContainer) {
+			// 1) Prefer currentSearchParams (after search)
+			try {
+				var csp = relatedContainer.find('#currentSearchParams').val();
+				if (csp) {
+					var parsed = JSON.parse(csp);
+					// Sometimes stored as array of objects, sometimes as object keyed by fieldName
+					if (Array.isArray(parsed)) {
+						for (var i = 0; i < parsed.length; i++) {
+							if (parsed[i] && parsed[i].fieldName === 'account_id') {
+								return { value: sanitizeOrgValue(parsed[i].searchValue || ''), comparator: parsed[i].comparator || '' };
+							}
+						}
+					} else if (parsed && parsed['account_id']) {
+						return {
+							value: sanitizeOrgValue(parsed['account_id']['searchValue'] || ''),
+							comparator: parsed['account_id']['comparator'] || ''
+						};
+					}
+				}
+			} catch (e) {}
+
+			// 2) Fall back to last typed value in storage
+			try {
+				if (typeof app !== 'undefined' && app.storage && typeof app.storage.get === 'function') {
+					var v = app.storage.get(STORAGE_KEY());
+					v = sanitizeOrgValue(v);
+					if (v) return { value: v, comparator: '' };
+				}
+			} catch (e2) {}
+			return { value: '', comparator: '' };
+		};
+
+		var apply = function(container) {
+			container = container ? jQuery(container) : jQuery('div.details');
+			var relatedContainer = container.find('.relatedContainer:visible').first();
+			if (!relatedContainer.length) return;
+
+			var relatedModuleName = relatedContainer.find('input.relatedModuleName').val();
+			if (relatedModuleName !== 'Contacts') return;
+
+			var headerRow = relatedContainer.find('.listViewHeaders');
+			var searchRow = relatedContainer.find('.searchRow');
+			if (!headerRow.length || !searchRow.length) return;
+
+			// Find Organization column by data-fieldname=account_id, fallback by header text.
+			var headerAnchor = headerRow.find('a.listViewContentHeaderValues[data-fieldname="account_id"]').first();
+			var headerTh = headerAnchor.length ? headerAnchor.closest('th') : headerRow.find('th').filter(function() {
+				var t = (jQuery(this).text() || '').toString().toLowerCase();
+				return (t.indexOf('organisation') > -1 || t.indexOf('organization') > -1) && t.indexOf('name') > -1;
+			}).first();
+			if (!headerTh.length) return;
+
+			var idx = headerTh.index();
+			if (idx < 0) return;
+
+			var cell = searchRow.find('th').eq(idx);
+			if (!cell.length) return;
+
+			var prefill = getPrefill(relatedContainer);
+
+			// If already has an input (some configs may render it), do nothing.
+			var existing = cell.find('input[name="account_id"].listSearchContributor');
+			if (existing.length) {
+				// Keep empty unless a real filter value exists
+				existing.val(prefill.value || '');
+				var exOp = existing.closest('th').find('.operatorValue');
+				if (exOp.length) exOp.val(prefill.comparator || '');
+				// Vtiger sometimes forces label text into value after reload; clear it.
+				clearIfLabelValue(existing);
+				return;
+			}
+
+			cell.empty().append(
+				'<input type="text" name="account_id" class="listSearchContributor inputElement potentials-org-filter" placeholder="Organization Name" autocomplete="off" />' +
+				'<input type="hidden" class="operatorValue" value="" />'
+			);
+			var input = cell.find('input[name="account_id"].listSearchContributor');
+			input.val(prefill.value || '');
+			cell.find('.operatorValue').val(prefill.comparator || '');
+			clearIfLabelValue(input);
+
+			// Persist user typing so value doesn't revert to placeholder on next reload.
+			input.off('input.potentialsOrgFilter change.potentialsOrgFilter')
+				.on('input.potentialsOrgFilter change.potentialsOrgFilter', function() {
+					try {
+						if (typeof app !== 'undefined' && app.storage && typeof app.storage.set === 'function') {
+							app.storage.set(STORAGE_KEY(), sanitizeOrgValue(jQuery(this).val()));
+						}
+					} catch (e3) {}
+				});
+		};
+
+		// After any related list load.
+		app.event.off('post.relatedListLoad.click.PotentialsContactsOrgFilterUi');
+		app.event.on('post.relatedListLoad.click.PotentialsContactsOrgFilterUi', function(event, container) {
+			setTimeout(function() { apply(container); }, 0);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(container); }, 0);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(container); }, 100);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(container); }, 300);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(container); }, 700);
+		});
+
+		// Fallback: when tab is clicked / ajax completes, re-apply if Contacts is visible.
+		jQuery(document).off('ajaxComplete.PotentialsContactsOrgFilterUi');
+		jQuery(document).on('ajaxComplete.PotentialsContactsOrgFilterUi', function() {
+			setTimeout(function() { apply(jQuery('div.details')); }, 0);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 0);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 100);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 300);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 700);
+		});
+
+		// Direct URL / initial render.
+		jQuery(function() {
+			setTimeout(function() { apply(jQuery('div.details')); }, 0);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 0);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 100);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 300);
+			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 700);
+		});
+	},
+
+	/**
+	 * Restore Activities Start/Due date filters to single-date UI (Potentials → Calendar related list).
+	 * Start Date: same-day range (d,d) + bw before search (Vtiger QueryGenerator).
+	 * Due Date: single display date only; Potentials_RelationListView_Model applies DATE(vtiger_activity.due_date) server-side.
+	 */
+	registerPotentialsActivitiesSingleDateFiltersUi : function() {
+
+		var isCalendarRelated = function(container) {
+			var relatedContainer = container.find('.relatedContainer:visible').first();
+			if (!relatedContainer.length) return false;
+			return relatedContainer.find('input.relatedModuleName').val() === 'Calendar';
+		};
+
+		var normalizeValue = function(input) {
+			if (!input || !input.length) return;
+			var v = (input.val() || '').toString();
+			if (v.indexOf(',') > -1) input.val(v.split(',')[0].trim());
+		};
+
+		var getSearchCellIndexByField = function(relatedContainer, fieldName) {
+			var headerRow = relatedContainer.find('.listViewHeaders');
+			var searchRow = relatedContainer.find('.searchRow');
+			if (!headerRow.length || !searchRow.length) return -1;
+			var a = headerRow.find('a.listViewContentHeaderValues[data-fieldname="' + fieldName + '"]').first();
+			if (!a.length) return -1;
+			return a.closest('th').index();
+		};
+
+		var syncStartDateForSearch = function(el) {
+			if (!el || !el.length) return;
+			var v = (el.val() || '').toString().trim();
+			var op = el.closest('th').find('.operatorValue').first();
+			if (!v) {
+				if (op.length) op.val('');
+				return;
+			}
+			var single = v.indexOf(',') > -1 ? v.split(',')[0].trim() : v;
+			el.val(single + ',' + single);
+			if (op.length) op.val('bw');
+		};
+
+		var syncDueDateOperatorOnly = function(el) {
+			if (!el || !el.length) return;
+			var v = (el.val() || '').toString().trim();
+			var op = el.closest('th').find('.operatorValue').first();
+			if (!v) {
+				if (op.length) op.val('');
+				return;
+			}
+			if (op.length) op.val('bw');
+		};
+
+		/**
+		 * @param {string} fieldRole 'date_start' | 'due_date'
+		 */
+		var forceSingleDateInput = function(input, placeholder, fieldRole) {
+			if (!input || !input.length) return;
+			if (jQuery('.datepicker-dropdown:visible').length) return;
+			var looksRange = (input.attr('data-calendar-type') === 'range' || input.data('dateRangePicker') || input.hasClass('dateRange') || input.hasClass('daterange'));
+			if (input.data('potentialsSingleDateApplied') === true && !looksRange) return;
+
+			var v = (input.val() || '').toString().trim();
+			if (v.indexOf(',') > -1) v = v.split(',')[0].trim();
+
+			var clone = input.clone(false);
+			clone.val(v);
+			clone.attr('placeholder', placeholder);
+			clone.removeAttr('data-calendar-type');
+			clone.removeAttr('data-field-type');
+			clone.removeClass('dateRange daterange dateRangePicker');
+			if (!clone.hasClass('listSearchContributor')) {
+				clone.addClass('listSearchContributor');
+			}
+			clone.data('potentialsSingleDateApplied', true);
+			input.replaceWith(clone);
+
+			if (!clone.closest('.input-group.potentials-single-date-group').length) {
+				clone.wrap('<div class="input-group potentials-single-date-group"></div>');
+				clone.before('<span class="input-group-addon"><i class="fa fa-calendar"></i></span>');
+			}
+
+			jQuery('.date-picker-wrapper:visible').remove();
+
+			try {
+				var fmt = (typeof app !== 'undefined' && typeof app.getDateFormat === 'function') ? app.getDateFormat() : 'mm-dd-yyyy';
+				fmt = (fmt || 'mm-dd-yyyy').toString().toLowerCase();
+				if (typeof jQuery.fn.datepicker === 'function') {
+					clone.datepicker('remove');
+					clone.datepicker({ autoclose: true, todayHighlight: true, format: fmt, clearBtn: true });
+					if (fieldRole === 'date_start') {
+						clone.on('changeDate.potentialsCalStart', function() {
+							try { clone.datepicker('hide'); } catch(e) {}
+							syncStartDateForSearch(clone);
+						});
+						clone.on('change.potentialsCalStart blur.potentialsCalStart', function() {
+							syncStartDateForSearch(clone);
+						});
+					} else if (fieldRole === 'due_date') {
+						clone.on('changeDate.potentialsCalDue', function() {
+							try { clone.datepicker('hide'); } catch(e) {}
+							syncDueDateOperatorOnly(clone);
+						});
+						clone.on('change.potentialsCalDue blur.potentialsCalDue', function() {
+							syncDueDateOperatorOnly(clone);
+						});
+					} else {
+						clone.on('changeDate', function() { try { clone.datepicker('hide'); } catch(e) {} });
+					}
+				}
+			} catch (e) {}
+
+			clone.on('focus click', function() {
+				setTimeout(function() { jQuery('.date-picker-wrapper:visible').remove(); }, 0);
+			});
+		};
+
+		var apply = function(container) {
+			container = container ? jQuery(container) : jQuery('div.details');
+			if (!isCalendarRelated(container)) return;
+			var relatedContainer = container.find('.relatedContainer:visible').first();
+			var searchRow = relatedContainer.find('.searchRow');
+			if (!searchRow.length) return;
+
+			var startIdx = getSearchCellIndexByField(relatedContainer, 'date_start');
+			var dueIdx = getSearchCellIndexByField(relatedContainer, 'due_date');
+
+			var startInput = (startIdx >= 0) ? searchRow.find('th').eq(startIdx).find('input[name="date_start"]').first() : searchRow.find('input[name="date_start"]').first();
+			var dueInput = (dueIdx >= 0) ? searchRow.find('th').eq(dueIdx).find('input[name="due_date"]').first() : searchRow.find('input[name="due_date"]').first();
+
+			normalizeValue(startInput);
+			normalizeValue(dueInput);
+			forceSingleDateInput(startInput, 'Select start date', 'date_start');
+			forceSingleDateInput(dueInput, 'Select due date', 'due_date');
+		};
+
+		app.event.off('post.relatedListLoad.click.PotentialsActivitiesSingleDate');
+		app.event.on('post.relatedListLoad.click.PotentialsActivitiesSingleDate', function(event, container) {
+			setTimeout(function() { apply(container); }, 0);
+			setTimeout(function() { apply(container); }, 150);
+			setTimeout(function() { apply(container); }, 400);
+			setTimeout(function() { apply(container); }, 800);
+		});
+
+		jQuery(document).off('ajaxComplete.PotentialsActivitiesSingleDate');
+		jQuery(document).on('ajaxComplete.PotentialsActivitiesSingleDate', function() {
+			setTimeout(function() { apply(jQuery('div.details')); }, 0);
+		});
+
+		/* mousedown runs before click so DOM is ready for getRelatedListSearchParams(); core handler still runs loadRelatedList. */
+		var detailViewContainer = this.getDetailViewContainer ? this.getDetailViewContainer() : jQuery('.detailViewContainer');
+		detailViewContainer.off('mousedown.potentialsActivitiesSearchPrep', '[data-trigger="relatedListSearch"]');
+		detailViewContainer.on('mousedown.potentialsActivitiesSearchPrep', '[data-trigger="relatedListSearch"]', function() {
+			var relatedContainer = jQuery(this).closest('.relatedContainer');
+			if (!relatedContainer.length) return;
+			if (relatedContainer.find('input.relatedModuleName').val() !== 'Calendar') return;
+			if (typeof app === 'undefined' || app.getModuleName() !== 'Potentials') return;
+			var searchRow = relatedContainer.find('.searchRow').first();
+			if (!searchRow.length) return;
+			var startInput = searchRow.find('input[name="date_start"].listSearchContributor').first();
+			if (!startInput.length) startInput = searchRow.find('input[name="date_start"]').first();
+			if (startInput.length) {
+				var sv = (startInput.val() || '').toString().trim();
+				var opS = startInput.closest('th').find('.operatorValue').first();
+				if (!sv) {
+					if (opS.length) opS.val('');
+				} else {
+					var sub = sv.indexOf(',') === -1 ? sv + ',' + sv : sv;
+					startInput.val(sub);
+					if (opS.length) opS.val('bw');
+				}
+			}
+			var dueInput = searchRow.find('input[name="due_date"].listSearchContributor').first();
+			if (!dueInput.length) dueInput = searchRow.find('input[name="due_date"]').first();
+			if (dueInput.length) {
+				var dv = (dueInput.val() || '').toString().trim();
+				var opD = dueInput.closest('th').find('.operatorValue').first();
+				if (!dv) {
+					if (opD.length) opD.val('');
+				} else {
+					if (opD.length) opD.val('bw');
+				}
+			}
+		});
+
+		jQuery(function() { setTimeout(function() { apply(jQuery('div.details')); }, 0); });
 	},
 
 	/**

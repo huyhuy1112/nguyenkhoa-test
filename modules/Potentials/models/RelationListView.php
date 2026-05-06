@@ -24,6 +24,108 @@ class Potentials_RelationListView_Model extends Vtiger_RelationListView_Model {
 	}
 
 	/**
+	 * Append AND condition into the SQL main predicate, before GROUP BY / ORDER BY if present.
+	 * Avoids appending after GROUP BY/ORDER BY (invalid SQL).
+	 *
+	 * @param string $query
+	 * @param string $conditionSql SQL fragment without leading AND (e.g. "DATE(vtiger_activity.due_date) = ?")
+	 * @return string
+	 */
+	private function appendConditionBeforeGroupOrder($query, $conditionSql) {
+		$conditionSql = trim((string) $conditionSql);
+		if ($conditionSql === '') {
+			return $query;
+		}
+		$snippet = ' AND ' . $conditionSql;
+		$bestPos = null;
+		if (preg_match('/\bGROUP BY\b/i', $query, $m, PREG_OFFSET_CAPTURE)) {
+			$bestPos = $m[0][1];
+		}
+		if (preg_match('/\bORDER BY\b/i', $query, $m, PREG_OFFSET_CAPTURE)) {
+			$p = $m[0][1];
+			if ($bestPos === null || $p < $bestPos) {
+				$bestPos = $p;
+			}
+		}
+		if ($bestPos !== null) {
+			return substr($query, 0, $bestPos) . $snippet . substr($query, $bestPos);
+		}
+		return $query . $snippet;
+	}
+
+	/**
+	 * Non-empty fragment after WHERE from EnhancedQueryGenerator::getWhereClause(), or ''.
+	 *
+	 * @param object $queryGenerator EnhancedQueryGenerator instance
+	 * @return string
+	 */
+	private function extractQueryGeneratorWhereFragment($queryGenerator) {
+		$full = $queryGenerator->getWhereClause();
+		if ($full === '' || stripos($full, 'WHERE') === false) {
+			return '';
+		}
+		$parts = explode('WHERE', $full, 2);
+		if (!isset($parts[1])) {
+			return '';
+		}
+		return trim($parts[1]);
+	}
+
+	/**
+	 * Normalize Calendar related-list date_start / due_date filter value to YYYY-MM-DD.
+	 * Accepts user date_format (e.g. MM-DD-YYYY), YYYY-MM-DD, comma ranges (first day), datetime prefixes.
+	 *
+	 * @param string $rawValue
+	 * @return string|null YYYY-MM-DD, or null if value cannot be parsed
+	 */
+	private function potentialsNormalizeCalendarDateFilterToYmd($rawValue) {
+		$rawValue = trim((string) $rawValue);
+		if ($rawValue === '') {
+			return null;
+		}
+		$first = $rawValue;
+		if (strpos($first, ',') !== false) {
+			$first = trim(explode(',', $first, 2)[0]);
+		}
+		if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $first, $m)) {
+			return $m[1];
+		}
+		$user = Users_Record_Model::getCurrentUserModel();
+		$vf = strtolower((string) $user->get('date_format'));
+		if ($vf === '') {
+			$vf = 'dd-mm-yyyy';
+		}
+		$phpFmt = str_replace(array('yyyy', 'yy', 'mm', 'dd'), array('Y', 'y', 'm', 'd'), $vf);
+		$dt = DateTime::createFromFormat($phpFmt, $first);
+		if ($dt instanceof DateTime) {
+			$errors = DateTime::getLastErrors();
+			if ($errors === false || (empty($errors['warning_count']) && empty($errors['error_count']))) {
+				return $dt->format('Y-m-d');
+			}
+		}
+		$ts = strtotime($first);
+		if ($ts !== false) {
+			return date('Y-m-d', $ts);
+		}
+		return null;
+	}
+
+	/**
+	 * Run parent getEntries with a temporary whereCondition (restores after).
+	 *
+	 * @param Vtiger_Paging_Model $pagingModel
+	 * @param array $whereCondition
+	 * @return array
+	 */
+	private function getEntriesWithTemporaryWhereCondition($pagingModel, $whereCondition) {
+		$saved = $this->get('whereCondition');
+		$this->set('whereCondition', $whereCondition);
+		$result = parent::getEntries($pagingModel);
+		$this->set('whereCondition', $saved);
+		return $result;
+	}
+
+	/**
 	 * Potentials → Contacts related list:
 	 * ensure "Organisation/Organization Name" (Contacts.account_id) inline filter searches by
 	 * Accounts.accountname (display name), not by raw account id.
@@ -35,6 +137,30 @@ class Potentials_RelationListView_Model extends Vtiger_RelationListView_Model {
 		$relationModuleName = $relationModule->get('name');
 
 		$whereCondition = $this->get('whereCondition');
+
+		// Potentials → Calendar: normalize due_date to core QueryGenerator-friendly same-day range (no custom SQL path).
+		if ($relationModuleName === 'Calendar' && is_array($whereCondition) && isset($whereCondition['due_date']) && is_array($whereCondition['due_date'])) {
+			$wc = $whereCondition;
+			$raw = isset($wc['due_date'][2]) ? $wc['due_date'][2] : '';
+			$raw = is_string($raw) ? trim($raw) : '';
+			if ($raw === '') {
+				unset($wc['due_date']);
+				return $this->getEntriesWithTemporaryWhereCondition($pagingModel, $wc);
+			}
+			$ymd = $this->potentialsNormalizeCalendarDateFilterToYmd($raw);
+			if ($ymd === null || $ymd === '') {
+				unset($wc['due_date']);
+				return $this->getEntriesWithTemporaryWhereCondition($pagingModel, $wc);
+			}
+			$wc['due_date'][1] = 'bw';
+			$dueType = isset($wc['due_date'][3]) ? $wc['due_date'][3] : '';
+			if ($dueType === 'datetime') {
+				$wc['due_date'][2] = $ymd . ' 00:00:00,' . $ymd . ' 23:59:59';
+			} else {
+				$wc['due_date'][2] = $ymd . ',' . $ymd;
+			}
+			return $this->getEntriesWithTemporaryWhereCondition($pagingModel, $wc);
+		}
 
 		if ($relationModuleName !== 'Contacts' || !is_array($whereCondition) || empty($whereCondition)) {
 			return parent::getEntries($pagingModel);
@@ -80,34 +206,40 @@ class Potentials_RelationListView_Model extends Vtiger_RelationListView_Model {
 			$query = $fromPart . ' WHERE ' . $wherePart;
 		}
 
-		$currentUser = Users_Record_Model::getCurrentUserModel();
-		$queryGenerator = new EnhancedQueryGenerator($relationModuleName, $currentUser);
-		$queryGenerator->setFields(array_values($relatedColumnFields));
+		$params = array();
 
-		foreach ($remainingWhereCondition as $fieldName => $fieldValue) {
-			if (!is_array($fieldValue)) continue;
-			$comparator = $fieldValue[1];
-			$searchValue = $fieldValue[2];
-			$type = isset($fieldValue[3]) ? $fieldValue[3] : '';
-			if ($type === 'time') {
-				$searchValue = Vtiger_Time_UIType::getTimeValueWithSeconds($searchValue);
+		if (!empty($remainingWhereCondition)) {
+			$currentUser = Users_Record_Model::getCurrentUserModel();
+			$queryGenerator = new EnhancedQueryGenerator($relationModuleName, $currentUser);
+			$queryGenerator->setFields(array_values($relatedColumnFields));
+
+			foreach ($remainingWhereCondition as $fieldName => $fieldValue) {
+				if (!is_array($fieldValue)) {
+					continue;
+				}
+				$comparator = $fieldValue[1];
+				$searchValue = $fieldValue[2];
+				$type = isset($fieldValue[3]) ? $fieldValue[3] : '';
+				if ($type === 'time') {
+					$searchValue = Vtiger_Time_UIType::getTimeValueWithSeconds($searchValue);
+				}
+
+				$queryGenerator->addCondition($fieldName, $searchValue, $comparator, "AND");
 			}
 
-			$queryGenerator->addCondition($fieldName, $searchValue, $comparator, "AND");
+			$fragment = $this->extractQueryGeneratorWhereFragment($queryGenerator);
+			if ($fragment !== '') {
+				$query = $this->appendConditionBeforeGroupOrder($query, $fragment);
+			}
 		}
 
-		$whereQuerySplit = explode("WHERE", $queryGenerator->getWhereClause());
-		$query .= " AND " . $whereQuerySplit[1];
-
-		// Apply Organization Name filter directly on Accounts.accountname.
-		// Comparator 'c' (contains) should behave as LIKE %value%.
-		$params = array();
+		// Organization Name filter on Accounts.accountname (not raw account_id).
 		$accountComparator = $accountComparator ? strtolower($accountComparator) : 'c';
 		if ($accountComparator === 'e') {
-			$query .= ' AND vtiger_account.accountname = ?';
+			$query = $this->appendConditionBeforeGroupOrder($query, 'vtiger_account.accountname = ?');
 			$params[] = $accountSearchValue;
 		} else {
-			$query .= ' AND vtiger_account.accountname LIKE ?';
+			$query = $this->appendConditionBeforeGroupOrder($query, 'vtiger_account.accountname LIKE ?');
 			$params[] = '%' . $accountSearchValue . '%';
 		}
 
@@ -164,7 +296,7 @@ class Potentials_RelationListView_Model extends Vtiger_RelationListView_Model {
 
 		$pagingModel->calculatePageRange($relatedRecordList);
 		$nextLimitQuery = $query . ' LIMIT ' . ($startIndex + $pageLimit) . ' , 1';
-		$nextPageLimitResult = $db->pquery($nextLimitQuery, array());
+		$nextPageLimitResult = $db->pquery($nextLimitQuery, $params);
 		$pagingModel->set('nextPageExists', ($db->num_rows($nextPageLimitResult) > 0));
 		$pagingModel->set('_relatedlistcount', php7_count($relatedRecordList));
 
