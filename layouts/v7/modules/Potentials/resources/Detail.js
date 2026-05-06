@@ -252,6 +252,7 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 
 		this.registerPotentialsSummaryProductsServicesPopup();
 		this.registerPotentialsContactsOrganizationFilterUi();
+		this.registerPotentialsQuotesReferenceFiltersUi();
 		this.registerPotentialsActivitiesSingleDateFiltersUi();
 
 		detailContentsHolder.on('click','.moreRecentContacts', function(){ 
@@ -326,7 +327,7 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			var input = cell.find('input.listSearchContributor[name="account_id"]').first();
 			if (!input.length) return;
 
-			input.attr('placeholder', 'Organization Name');
+			input.attr('placeholder', '');
 			clearIfLabelValue(input);
 		};
 
@@ -396,6 +397,7 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			if (existing.length) {
 				// Keep empty unless a real filter value exists
 				existing.val(prefill.value || '');
+				existing.attr('placeholder', '');
 				var exOp = existing.closest('th').find('.operatorValue');
 				if (exOp.length) exOp.val(prefill.comparator || '');
 				// Vtiger sometimes forces label text into value after reload; clear it.
@@ -404,11 +406,12 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			}
 
 			cell.empty().append(
-				'<input type="text" name="account_id" class="listSearchContributor inputElement potentials-org-filter" placeholder="Organization Name" autocomplete="off" />' +
+				'<input type="text" name="account_id" class="listSearchContributor inputElement potentials-org-filter" placeholder="" autocomplete="off" />' +
 				'<input type="hidden" class="operatorValue" value="" />'
 			);
 			var input = cell.find('input[name="account_id"].listSearchContributor');
 			input.val(prefill.value || '');
+			input.attr('placeholder', '');
 			cell.find('.operatorValue').val(prefill.comparator || '');
 			clearIfLabelValue(input);
 
@@ -428,9 +431,6 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 		app.event.on('post.relatedListLoad.click.PotentialsContactsOrgFilterUi', function(event, container) {
 			setTimeout(function() { apply(container); }, 0);
 			setTimeout(function() { enforceOrgFilterValueAfterRender(container); }, 0);
-			setTimeout(function() { enforceOrgFilterValueAfterRender(container); }, 100);
-			setTimeout(function() { enforceOrgFilterValueAfterRender(container); }, 300);
-			setTimeout(function() { enforceOrgFilterValueAfterRender(container); }, 700);
 		});
 
 		// Fallback: when tab is clicked / ajax completes, re-apply if Contacts is visible.
@@ -438,18 +438,227 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 		jQuery(document).on('ajaxComplete.PotentialsContactsOrgFilterUi', function() {
 			setTimeout(function() { apply(jQuery('div.details')); }, 0);
 			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 0);
-			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 100);
-			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 300);
-			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 700);
 		});
 
 		// Direct URL / initial render.
 		jQuery(function() {
 			setTimeout(function() { apply(jQuery('div.details')); }, 0);
 			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 0);
-			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 100);
-			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 300);
-			setTimeout(function() { enforceOrgFilterValueAfterRender(jQuery('div.details')); }, 700);
+		});
+	},
+
+	/**
+	 * Quotes related list: inject missing reference-field filters.
+	 *
+	 * Vtiger skips generating search inputs for fields with datatype "reference".
+	 * We inject text inputs for:
+	 * - Contact Name (contact_id)
+	 * - Organisation/Organization Name (account_id)
+	 * - Opportunity Name (potential_id)
+	 *
+	 * Backend filtering is handled by core QueryGenerator with reference-field label search.
+	 */
+	registerPotentialsQuotesReferenceFiltersUi : function() {
+		var normalize = function(v) {
+			return (v === null || v === undefined) ? '' : (v + '').trim();
+		};
+
+		var isLabelLike = function(v) {
+			var val = normalize(v).toLowerCase();
+			if (!val) return false;
+			var labels = [
+				'contact',
+				'contact name',
+				'organization',
+				'organisation',
+				'organization name',
+				'organisation name',
+				'opportunity',
+				'opportunity name'
+			];
+			return labels.indexOf(val) !== -1;
+		};
+
+		var rid = (typeof app !== 'undefined' && typeof app.getRecordId === 'function') ? app.getRecordId() : '';
+		var storageKey = function(fieldName) {
+			return 'Potentials.Quotes.Filter.' + rid + '.' + fieldName;
+		};
+		var readStored = function(fieldName) {
+			try {
+				if (typeof app !== 'undefined' && app.storage && typeof app.storage.get === 'function') {
+					return normalize(app.storage.get(storageKey(fieldName)));
+				}
+			} catch (e) {}
+			return '';
+		};
+		var writeStored = function(fieldName, value) {
+			try {
+				if (typeof app !== 'undefined' && app.storage && typeof app.storage.set === 'function') {
+					var v = normalize(value);
+					// Never store label-like values; only store real user search terms.
+					if (isLabelLike(v)) v = '';
+					app.storage.set(storageKey(fieldName), v);
+				}
+			} catch (e) {}
+		};
+
+		var getHeaderIndexByVariants = function(headerRow, variants) {
+			var idx = -1;
+			headerRow.find('th').each(function(i) {
+				var t = normalize(jQuery(this).text()).toLowerCase();
+				for (var j = 0; j < variants.length; j++) {
+					if (t.indexOf(variants[j]) !== -1) {
+						idx = i;
+						return false;
+					}
+				}
+			});
+			return idx;
+		};
+
+		var getCellInput = function(searchRow, idx, fieldName) {
+			if (idx < 0) return jQuery();
+			var cell = searchRow.find('th').eq(idx);
+			if (!cell.length) return jQuery();
+			return cell.find('input.listSearchContributor[name="' + fieldName + '"]').first();
+		};
+
+		var ensureInputInCell = function(cell, fieldName, placeholder, initialValue) {
+			if (!cell || !cell.length) return;
+			var input = cell.find('input.listSearchContributor[name="' + fieldName + '"]').first();
+			if (!input.length) {
+				cell.empty().append(
+					'<input type="text" class="inputElement listSearchContributor" name="' + fieldName + '" placeholder="" autocomplete="off" />' +
+					'<input type="hidden" class="operatorValue" value="c" />'
+				);
+				input = cell.find('input.listSearchContributor[name="' + fieldName + '"]').first();
+			} else {
+				// Ensure hidden operator exists
+				if (!cell.find('input.operatorValue').length) {
+					cell.append('<input type="hidden" class="operatorValue" value="c" />');
+				}
+			}
+
+			// Preserve user-typed value if it looks like a real value (avoid overwriting after reload).
+			var curValue = normalize(input.val());
+			var finalValue = normalize(initialValue);
+			if (isLabelLike(finalValue)) finalValue = '';
+
+			if (curValue && !isLabelLike(curValue)) {
+				// User has a real value already; don't override.
+				input.attr('placeholder', '');
+				cell.find('input.operatorValue').val('c');
+				return;
+			}
+
+			input.attr('placeholder', '');
+			input.val(finalValue);
+			cell.find('input.operatorValue').val('c');
+		};
+
+		// Store values just before core related-list Search builds search_params.
+		// This avoids relying on #currentSearchParams which may not exist for related lists.
+		var detailViewContainer = this.getDetailViewContainer ? this.getDetailViewContainer() : jQuery('.detailViewContainer');
+		if (typeof Potentials_Detail_Js._quotesFilterStoreBound === 'undefined') {
+			Potentials_Detail_Js._quotesFilterStoreBound = true;
+			detailViewContainer.off('mousedown.PotentialsQuotesFilterStore click.PotentialsQuotesFilterStore', '[data-trigger="relatedListSearch"]');
+			detailViewContainer.on('mousedown.PotentialsQuotesFilterStore click.PotentialsQuotesFilterStore', '[data-trigger="relatedListSearch"]', function() {
+				var relatedContainer = jQuery(this).closest('.relatedContainer');
+				if (!relatedContainer.length) return;
+				if (normalize(relatedContainer.find('input.relatedModuleName').val()) !== 'Quotes') return;
+
+				var headerRow = relatedContainer.find('.listViewHeaders');
+				var searchRow = relatedContainer.find('.searchRow');
+				if (!headerRow.length || !searchRow.length) return;
+
+				var contactIdx = getHeaderIndexByVariants(headerRow, ['contact name', 'contact']);
+				var orgIdx = getHeaderIndexByVariants(headerRow, ['organization name', 'organisation name', 'organization', 'organisation']);
+				var oppIdx = getHeaderIndexByVariants(headerRow, ['opportunity name', 'opportunity']);
+
+				var cInput = getCellInput(searchRow, contactIdx, 'contact_id');
+				var aInput = getCellInput(searchRow, orgIdx, 'account_id');
+				var pInput = getCellInput(searchRow, oppIdx, 'potential_id');
+
+				// Save only real values (label-like is ignored in writeStored).
+				if (cInput.length) writeStored('contact_id', cInput.val());
+				if (aInput.length) writeStored('account_id', aInput.val());
+				if (pInput.length) writeStored('potential_id', pInput.val());
+			});
+		}
+
+		var apply = function(container) {
+			container = container ? jQuery(container) : jQuery('div.details');
+			var relatedContainer = container.find('.relatedContainer:visible').first();
+			if (!relatedContainer.length) return;
+
+			var relatedModuleName = normalize(relatedContainer.find('input.relatedModuleName').val());
+			var headerRow = relatedContainer.find('.listViewHeaders');
+			var searchRow = relatedContainer.find('.searchRow');
+			if (!headerRow.length || !searchRow.length) return;
+
+			// Detect Quotes table by URL+headers OR by relatedModuleName.
+			var url = (typeof window !== 'undefined' && window.location) ? (window.location.search || '') : '';
+			var urlLooksQuotes = (url.indexOf('relatedModule=Quotes') > -1 || url.indexOf('tab_label=Quotes') > -1);
+
+			var headerText = normalize(headerRow.text()).toLowerCase();
+			var domLooksQuotes = headerText.indexOf('quote stage') !== -1 && (headerText.indexOf('total') !== -1 || headerText.indexOf('quote no') !== -1 || headerText.indexOf('quote number') !== -1);
+
+			if (!(relatedModuleName === 'Quotes' || urlLooksQuotes || domLooksQuotes)) return;
+
+			var contactIdx = getHeaderIndexByVariants(headerRow, ['contact name', 'contact']);
+			var orgIdx = getHeaderIndexByVariants(headerRow, ['organization name', 'organisation name', 'organization', 'organisation']);
+			var oppIdx = getHeaderIndexByVariants(headerRow, ['opportunity name', 'opportunity']);
+
+			// Restore last typed values after reload (from storage).
+			var contactVal = readStored('contact_id');
+			var accountVal = readStored('account_id');
+			var potentialVal = readStored('potential_id');
+
+			if (contactIdx > -1) {
+				ensureInputInCell(searchRow.find('th').eq(contactIdx), 'contact_id', '', contactVal);
+				var ci = getCellInput(searchRow, contactIdx, 'contact_id');
+				if (ci.length) {
+					ci.attr('placeholder', '');
+					var cv = normalize(ci.val());
+					if (isLabelLike(cv)) ci.val('');
+					// If we have a stored real value and the current value is empty/label-like, restore it.
+					if (contactVal && (!normalize(ci.val()) || isLabelLike(normalize(ci.val())))) ci.val(contactVal);
+				}
+			}
+			if (orgIdx > -1) {
+				ensureInputInCell(searchRow.find('th').eq(orgIdx), 'account_id', '', accountVal);
+				var ai = getCellInput(searchRow, orgIdx, 'account_id');
+				if (ai.length) {
+					ai.attr('placeholder', '');
+					var av = normalize(ai.val());
+					if (isLabelLike(av)) ai.val('');
+					if (accountVal && (!normalize(ai.val()) || isLabelLike(normalize(ai.val())))) ai.val(accountVal);
+				}
+			}
+			if (oppIdx > -1) {
+				ensureInputInCell(searchRow.find('th').eq(oppIdx), 'potential_id', '', potentialVal);
+				var pi = getCellInput(searchRow, oppIdx, 'potential_id');
+				if (pi.length) {
+					pi.attr('placeholder', '');
+					var pv = normalize(pi.val());
+					if (isLabelLike(pv)) pi.val('');
+					if (potentialVal && (!normalize(pi.val()) || isLabelLike(normalize(pi.val())))) pi.val(potentialVal);
+				}
+			}
+		};
+
+		app.event.off('post.relatedListLoad.click.PotentialsQuotesReferenceFiltersUi');
+		app.event.on('post.relatedListLoad.click.PotentialsQuotesReferenceFiltersUi', function(event, container) {
+			setTimeout(function() { apply(container); }, 0);
+		});
+
+		jQuery(document).off('ajaxComplete.PotentialsQuotesReferenceFiltersUi');
+		jQuery(document).on('ajaxComplete.PotentialsQuotesReferenceFiltersUi', function() {
+			setTimeout(function() { apply(jQuery('div.details')); }, 0);
+		});
+
+		jQuery(function() {
+			setTimeout(function() { apply(jQuery('div.details')); }, 0);
 		});
 	},
 

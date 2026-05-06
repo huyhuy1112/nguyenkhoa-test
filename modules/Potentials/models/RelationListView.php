@@ -162,6 +162,191 @@ class Potentials_RelationListView_Model extends Vtiger_RelationListView_Model {
 			return $this->getEntriesWithTemporaryWhereCondition($pagingModel, $wc);
 		}
 
+		// Potentials → Quotes related list:
+		// Reference-display filters:
+		// - contact_id: match by quote_contact firstname/lastname (LIKE)
+		// - account_id: match by vtiger_account.accountname (LIKE)
+		// - potential_id: match by vtiger_potential.potentialname (LIKE)
+		// We remove those keys from normal QueryGenerator conditions to avoid conflicting reference behavior.
+		if ($relationModuleName === 'Quotes' && is_array($whereCondition) && !empty($whereCondition)) {
+			$customKeys = array('contact_id', 'account_id', 'potential_id');
+			$remainingWhereCondition = $whereCondition;
+
+			$contactSearch = '';
+			$accountSearch = '';
+			$potentialSearch = '';
+
+			if (isset($whereCondition['contact_id']) && is_array($whereCondition['contact_id'])) {
+				$contactSearch = isset($whereCondition['contact_id'][2]) ? trim((string)$whereCondition['contact_id'][2]) : '';
+				unset($remainingWhereCondition['contact_id']);
+			}
+			if (isset($whereCondition['account_id']) && is_array($whereCondition['account_id'])) {
+				$accountSearch = isset($whereCondition['account_id'][2]) ? trim((string)$whereCondition['account_id'][2]) : '';
+				unset($remainingWhereCondition['account_id']);
+			}
+			if (isset($whereCondition['potential_id']) && is_array($whereCondition['potential_id'])) {
+				$potentialSearch = isset($whereCondition['potential_id'][2]) ? trim((string)$whereCondition['potential_id'][2]) : '';
+				unset($remainingWhereCondition['potential_id']);
+			}
+
+			$hasAnyValue = ($contactSearch !== '' || $accountSearch !== '' || $potentialSearch !== '');
+			if (!$hasAnyValue) {
+				// If no real search value, don't apply custom SQL; keep default parent behavior for other filters.
+				return $this->getEntriesWithTemporaryWhereCondition($pagingModel, $remainingWhereCondition);
+			}
+
+			$db = PearDatabase::getInstance();
+			$relatedColumnFields = $relationModule->getConfigureRelatedListFields();
+			if (php7_count($relatedColumnFields) <= 0) {
+				$relatedColumnFields = $relationModule->getRelatedListFields();
+			}
+
+			$query = $this->getRelationQuery();
+			$params = array();
+
+			// Helper: inject LEFT JOIN before first WHERE.
+			$injectJoinBeforeWhere = function($query, $joinSql, $needle) {
+				$needle = (string)$needle;
+				if ($needle !== '' && stripos($query, $needle) !== false) {
+					return $query;
+				}
+				$pos = stripos($query, ' WHERE ');
+				if ($pos !== false) {
+					return substr($query, 0, $pos) . ' ' . $joinSql . ' ' . substr($query, $pos);
+				}
+				return $query . ' ' . $joinSql;
+			};
+
+			// Inject joins + WHERE predicates for reference display-name filters.
+			if ($contactSearch !== '') {
+				$query = $injectJoinBeforeWhere(
+					$query,
+					'LEFT JOIN vtiger_contactdetails AS quote_contact ON vtiger_quotes.contactid = quote_contact.contactid',
+					'quote_contact'
+				);
+				$likeVal = '%' . $contactSearch . '%';
+				$conditionSql = "(quote_contact.firstname LIKE ? OR quote_contact.lastname LIKE ? OR CONCAT(TRIM(quote_contact.firstname), ' ', TRIM(quote_contact.lastname)) LIKE ?)";
+				$query = $this->appendConditionBeforeGroupOrder($query, $conditionSql);
+				$params[] = $likeVal;
+				$params[] = $likeVal;
+				$params[] = $likeVal;
+			}
+			if ($accountSearch !== '') {
+				$query = $injectJoinBeforeWhere(
+					$query,
+					'LEFT JOIN vtiger_account AS quote_account ON vtiger_quotes.accountid = quote_account.accountid',
+					'quote_account'
+				);
+				$likeVal = '%' . $accountSearch . '%';
+				$conditionSql = "quote_account.accountname LIKE ?";
+				$query = $this->appendConditionBeforeGroupOrder($query, $conditionSql);
+				$params[] = $likeVal;
+			}
+			if ($potentialSearch !== '') {
+				$query = $injectJoinBeforeWhere(
+					$query,
+					'LEFT JOIN vtiger_potential AS quote_potential ON vtiger_quotes.potentialid = quote_potential.potentialid',
+					'quote_potential'
+				);
+				$likeVal = '%' . $potentialSearch . '%';
+				$conditionSql = "quote_potential.potentialname LIKE ?";
+				$query = $this->appendConditionBeforeGroupOrder($query, $conditionSql);
+				$params[] = $likeVal;
+			}
+
+			// Add remaining normal filters using QueryGenerator (excluding custom keys).
+			if (!empty($remainingWhereCondition)) {
+				$currentUser = Users_Record_Model::getCurrentUserModel();
+				$queryGenerator = new EnhancedQueryGenerator($relationModuleName, $currentUser);
+				$queryGenerator->setFields(array_values($relatedColumnFields));
+				foreach ($remainingWhereCondition as $fieldName => $fieldValue) {
+					if (!is_array($fieldValue)) continue;
+					$comparator = $fieldValue[1];
+					$searchValue = $fieldValue[2];
+					$type = isset($fieldValue[3]) ? $fieldValue[3] : '';
+					if ($type === 'time') {
+						$searchValue = Vtiger_Time_UIType::getTimeValueWithSeconds($searchValue);
+					}
+					$queryGenerator->addCondition($fieldName, $searchValue, $comparator, "AND");
+				}
+				$fragment = $this->extractQueryGeneratorWhereFragment($queryGenerator);
+				if ($fragment !== '') {
+					$query = $this->appendConditionBeforeGroupOrder($query, $fragment);
+				}
+			}
+
+			// Order/paging (keep same structure as parent).
+			$startIndex = $pagingModel->getStartIndex();
+			$pageLimit = $pagingModel->getPageLimit();
+			$orderBy = $this->getForSql('orderby');
+			$sortOrder = $this->getForSql('sortorder');
+
+			if ($orderBy) {
+				$orderByFieldModuleModel = $relationModule->getFieldByColumn($orderBy);
+				if ($orderByFieldModuleModel && $orderByFieldModuleModel->isReferenceField()) {
+					$queryComponents = preg_split('/ where /i', $query);
+					$selectAndFromClause = $queryComponents[0];
+					$whereConditionSql = $queryComponents[1];
+					$qualifiedOrderBy = 'vtiger_crmentity' . $orderByFieldModuleModel->get('column');
+					$selectAndFromClause .= ' LEFT JOIN vtiger_crmentity AS ' . $qualifiedOrderBy . ' ON ' .
+						$orderByFieldModuleModel->get('table') . '.' . $orderByFieldModuleModel->get('column') . ' = ' .
+						$qualifiedOrderBy . '.crmid ';
+					$query = $selectAndFromClause . ' WHERE ' . $whereConditionSql;
+					$query .= ' ORDER BY ' . $qualifiedOrderBy . '.label ' . $sortOrder;
+				} elseif ($orderByFieldModuleModel && $orderByFieldModuleModel->isOwnerField()) {
+					$query .= ' ORDER BY COALESCE(vtiger_users.userlabel,vtiger_groups.groupname) ' . $sortOrder;
+				} else {
+					$qualifiedOrderBy = $orderBy;
+					$orderByField = $relationModule->getFieldByColumn($orderBy);
+					if ($orderByField) {
+						$qualifiedOrderBy = $relationModule->getOrderBySql($qualifiedOrderBy);
+					}
+					$query = "$query ORDER BY $qualifiedOrderBy $sortOrder";
+				}
+			} elseif (empty($orderBy) && empty($sortOrder) && $relationModuleName != "Users") {
+				$query .= ' ORDER BY vtiger_crmentity.modifiedtime DESC';
+			}
+
+			$limitQuery = $query . ' LIMIT ' . $startIndex . ',' . $pageLimit;
+			try {
+				$result = $db->pquery($limitQuery, $params);
+			} catch (Exception $e) {
+				// Never blank the related list: fallback to parent query if our custom SQL fails.
+				return parent::getEntries($pagingModel);
+			}
+			if ($result === false || $result === null) {
+				return parent::getEntries($pagingModel);
+			}
+
+			$relatedRecordList = array();
+			for ($i = 0; $i < $db->num_rows($result); $i++) {
+				$row = $db->fetch_row($result, $i);
+				$newRow = array();
+				foreach ($row as $col => $val) {
+					if (array_key_exists($col, $relatedColumnFields)) {
+						$newRow[$relatedColumnFields[$col]] = $val;
+					}
+				}
+				$record = Vtiger_Record_Model::getCleanInstance($relationModule->get('name'));
+				$record->setData($newRow)->setModuleFromInstance($relationModule)->setRawData($row);
+				$record->setId($row['crmid']);
+				$relatedRecordList[$row['crmid']] = $record;
+			}
+
+			$pagingModel->calculatePageRange($relatedRecordList);
+
+			$nextLimitQuery = $query . ' LIMIT ' . ($startIndex + $pageLimit) . ' , 1';
+			$nextPageLimitResult = $db->pquery($nextLimitQuery, $params);
+			if ($db->num_rows($nextPageLimitResult) > 0) {
+				$pagingModel->set('nextPageExists', true);
+			} else {
+				$pagingModel->set('nextPageExists', false);
+			}
+			$pagingModel->set('_relatedlistcount', php7_count($relatedRecordList));
+
+			return $relatedRecordList;
+		}
+
 		if ($relationModuleName !== 'Contacts' || !is_array($whereCondition) || empty($whereCondition)) {
 			return parent::getEntries($pagingModel);
 		}
