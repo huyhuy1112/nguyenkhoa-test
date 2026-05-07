@@ -18,7 +18,7 @@ class ModComments_InlineFile_Action extends Vtiger_Action_Controller {
 		$attachmentId = $request->get('fileid');
 		$attachments = $recordModel->getFileDetails($attachmentId);
 		if (empty($attachments)) {
-			header("HTTP/1.0 404 Not Found");
+			header('HTTP/1.0 404 Not Found');
 			return;
 		}
 		$fileDetails = is_array($attachments[0]) ? $attachments[0] : $attachments;
@@ -27,24 +27,61 @@ class ModComments_InlineFile_Action extends Vtiger_Action_Controller {
 		$storedFileName = $fileDetails['storedname'];
 		$fileType = $fileDetails['type'];
 		$fileName = html_entity_decode($fileName, ENT_QUOTES, vglobal('default_charset'));
-		$savedFile = !empty($storedFileName) ? $fileDetails['attachmentsid'] . "_" . $storedFileName : $fileDetails['attachmentsid'] . "_" . $fileName;
-		$fullPath = $filePath . $savedFile;
-		if (!file_exists($fullPath) || !is_readable($fullPath)) {
-			header("HTTP/1.0 404 Not Found");
+
+		$attachmentsId = $fileDetails['attachmentsid'];
+		$rootDir = rtrim(vglobal('root_directory'), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+		$basePath = realpath($rootDir . $filePath);
+		if ($basePath === false) {
+			header('HTTP/1.0 404 Not Found');
 			return;
 		}
-		$content = @file_get_contents($fullPath);
-		if ($content === false) {
-			header("HTTP/1.0 500 Internal Server Error");
+
+		$fullPath = $basePath . DIRECTORY_SEPARATOR . $attachmentsId . '_' . $storedFileName;
+		if (empty($storedFileName) || !file_exists($fullPath) || @filesize($fullPath) === 0) {
+			$fullPath = $basePath . DIRECTORY_SEPARATOR . $attachmentsId . '_' . $fileName;
+		}
+
+		if (!file_exists($fullPath)) {
+			header('HTTP/1.0 404 Not Found');
 			return;
 		}
-		$fileSize = strlen($content);
+		if (!is_readable($fullPath)) {
+			header('HTTP/1.0 403 Forbidden');
+			return;
+		}
+
+		$size = @filesize($fullPath);
+		if ($size === false || $size === 0) {
+			header('HTTP/1.0 500 Internal Server Error');
+			return;
+		}
+
+		// Disable compression and clear all output buffers to avoid corrupting binary output.
+		if (function_exists('ini_set')) {
+			@ini_set('zlib.output_compression', 'Off');
+		}
+		while (ob_get_level() > 0) {
+			@ob_end_clean();
+		}
+
 		$imageTypes = array('image/gif', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/bmp');
 		$disposition = in_array(strtolower($fileType), $imageTypes) ? 'inline' : 'attachment';
-		header("Content-Type: " . $fileType);
-		header("Content-Disposition: " . $disposition . "; filename=\"" . $fileName . "\"");
-		header("Content-Length: " . $fileSize);
-		header("Cache-Control: private");
-		echo $content;
+
+		header('Content-Description: File Transfer');
+		header('Content-Type: ' . $fileType);
+		header('Content-Disposition: ' . $disposition . '; filename="' . $fileName . '"');
+		header('Content-Transfer-Encoding: binary');
+		header('Content-Length: ' . $size);
+		header('Cache-Control: private');
+		header('Pragma: public');
+
+		$fp = @fopen($fullPath, 'rb');
+		if ($fp === false) {
+			header('HTTP/1.0 500 Internal Server Error');
+			return;
+		}
+		@fpassthru($fp);
+		@fclose($fp);
+		exit;
 	}
 }
