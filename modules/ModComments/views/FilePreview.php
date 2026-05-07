@@ -20,8 +20,8 @@ class ModComments_FilePreview_View extends Vtiger_IndexAjax_View {
 
 	public function process(Vtiger_Request $request) {
 		$moduleName = $request->getModule();
-		$recordId = $request->get('record');
-		$attachmentId = $request->get('attachmentid');
+		$recordId = (int) $request->get('record');
+		$attachmentId = (int) $request->get('attachmentid');
 		$basicFileTypes = array('txt', 'csv', 'ics');
 		$imageFileTypes = array('image/gif', 'image/png', 'image/jpeg');
 		//supported by video js
@@ -54,7 +54,11 @@ class ModComments_FilePreview_View extends Vtiger_IndexAjax_View {
 		$parts = explode('.', $filename);
 		if ($recordModel->get('filename')) {
                     $fileDetails = $recordModel->getFileNameAndDownloadURL($recordId, $attachmentId);
-                    $downloadUrl =  $recordModel->getDownloadFileURL($attachmentId);
+					// Preview modal must use InlineFile (download link elsewhere stays DownloadFile).
+					$downloadUrl = 'index.php?module=ModComments&action=InlineFile'
+						. '&record=' . $recordId
+						. '&fileid=' . $attachmentId
+						. '&name=' . rawurlencode((string) $filename);
                     $trimmedFileName = $fileDetails[0]['trimmedFileName'];
                 }
 
