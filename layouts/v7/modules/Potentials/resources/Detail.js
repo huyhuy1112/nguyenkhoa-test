@@ -254,6 +254,12 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 		this.registerPotentialsContactsOrganizationFilterUi();
 		this.registerPotentialsQuotesReferenceFiltersUi();
 		this.registerPotentialsActivitiesSingleDateFiltersUi();
+		this.hideEmptyRelatedTabsMoreDropdown();
+
+		// Related tabs can update via AJAX; keep this lightweight and Potentials-scoped.
+		jQuery(document).off('ajaxComplete.potentialsHideEmptyMore').on('ajaxComplete.potentialsHideEmptyMore', function() {
+			thisInstance.hideEmptyRelatedTabsMoreDropdown();
+		});
 
 		detailContentsHolder.on('click','.moreRecentContacts', function(){ 
 			var recentContactsTab = thisInstance.getTabByLabel(thisInstance.detailViewRecentContactsLabel); 
@@ -264,6 +270,23 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			var recentProductsTab = thisInstance.getTabByLabel(thisInstance.detailViewRecentProductsTabLabel); 
 			recentProductsTab.trigger('click'); 
 		});
+	},
+
+	/**
+	 * Hide the "More" related tabs dropdown when empty.
+	 * This is Potentials-only polish; it does not change global templates.
+	 */
+	hideEmptyRelatedTabsMoreDropdown: function() {
+		var container = jQuery('.related-tabs');
+		if (!container.length) return;
+		var more = container.find('li.related-tab-more-element');
+		if (!more.length) return;
+		var menu = more.find('#relatedmenuList');
+		if (!menu.length) return;
+		var hasItems = menu.find('li:visible').length > 0;
+		if (!hasItems) {
+			more.hide();
+		}
 	},
 
 	/**

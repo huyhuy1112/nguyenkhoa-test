@@ -140,23 +140,40 @@ class Potentials_DetailView_Model extends Vtiger_DetailView_Model {
 			);
 		}
 
-		$productsServicesInstance = Vtiger_Module_Model::getInstance('ProductsServices');
-		if($productsServicesInstance && $userPrivilegesModel->hasModuleActionPermission($productsServicesInstance->getId(), 'DetailView')) {
-			$widgets[] = array(
-					'linktype' => 'DETAILVIEWWIDGET',
-					'linklabel' => 'LBL_RELATED_PRODUCTS_AND_SERVICES',
-					'linkName'	=> $productsServicesInstance->getName(),
-					'linkurl' => 'module='.$this->getModuleName().'&view=Detail&record='.$this->getRecord()->getId().
-							'&relatedModule=ProductsServices&mode=showRelatedRecords&page=1&limit=5',
-					'action'	=> array('Add'),
-					'actionURL' => ''
-			);
-		}
+		// Skip ProductsServices Summary widget for Potentials:
+		// It requires a template like "ProductsServicesSummaryWidgetContents.tpl" which isn't present
+		// and causes "Unable to load template ..." on the Summary page.
 
 		foreach ($widgets as $widgetDetails) {
 			$widgetLinks[] = Vtiger_Link_Model::getInstanceFromValues($widgetDetails);
 		}
 
 		return $widgetLinks;
+	}
+
+	/**
+	 * Potentials-only: replace Products related tab with ProductsServices ("Product And Service").
+	 * Keeps the rest of related tabs intact and avoids touching global templates.
+	 */
+	public function getDetailViewRelatedLinks() {
+		$links = parent::getDetailViewRelatedLinks();
+		$result = array();
+		foreach ($links as $link) {
+			$relatedModule = isset($link['relatedModuleName']) ? $link['relatedModuleName'] : null;
+			// Remove legacy Products related tab for Opportunities.
+			if ($relatedModule === 'Products') {
+				continue;
+			}
+			// Hide Services tab for Opportunities.
+			if ($relatedModule === 'Services') {
+				continue;
+			}
+			// Rename ProductsServices tab label for BA clarity.
+			if ($relatedModule === 'ProductsServices') {
+				$link['linklabel'] = 'Product And Service';
+			}
+			$result[] = $link;
+		}
+		return $result;
 	}
 }
