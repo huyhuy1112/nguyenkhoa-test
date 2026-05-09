@@ -6,6 +6,12 @@
 
 class Home_MainPage_View extends Vtiger_Index_View {
 
+	public function __construct() {
+		parent::__construct();
+		// Plain-text display decode helpers (names/titles/labels)
+		require_once 'include/utils/TdbDisplayUtils.php';
+	}
+
 	public function requiresPermission(\Vtiger_Request $request) {
 		return array();
 	}
@@ -59,7 +65,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$rows[] = array(
 						'id' => $id,
 						'url' => $rec ? $rec->getDetailViewUrl() : ('index.php?module=Project&view=Detail&record=' . $id),
-						'title' => $row['projectname'] ?: ('#' . $id),
+						'title' => tdb_decode_display_text($row['projectname']) ?: ('#' . $id),
 						'startdate' => $rec ? $rec->getDisplayValue('startdate') : $row['startdate'],
 						'enddate' => $rec ? $rec->getDisplayValue('enddate') : $row['enddate'],
 						'status' => $rec ? $rec->getDisplayValue('projectstatus') : $row['projectstatus'],
@@ -78,7 +84,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$rows[] = array(
 						'id' => $id,
 						'url' => $rec ? $rec->getDetailViewUrl() : ('index.php?module=ProjectTask&view=Detail&record=' . $id),
-						'title' => $row['projecttaskname'] ?: ('Task #' . $id),
+						'title' => tdb_decode_display_text($row['projecttaskname']) ?: ('Task #' . $id),
 						'duedate' => $rec ? ($rec->getDisplayValue('enddate') ?: $rec->getDisplayValue('startdate')) : $row['enddate'],
 						'status' => $rec ? $rec->getDisplayValue('projecttaskprogress') : $row['projecttaskprogress'],
 						'status_raw' => $row['projecttaskprogress'],
@@ -163,7 +169,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$rows[] = array(
 						'id' => $recordId,
 						'url' => $url,
-						'title' => $recordModel->get('projectname') ?: ('#' . $recordId),
+						'title' => tdb_decode_display_text($recordModel->get('projectname')) ?: ('#' . $recordId),
 						'startdate' => $recordModel->getDisplayValue('startdate'),
 						'enddate' => $recordModel->getDisplayValue('enddate'),
 						'status' => $recordModel->getDisplayValue('projectstatus'),
@@ -173,7 +179,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$rows[] = array(
 						'id' => $recordId,
 						'url' => $url,
-						'title' => $recordModel->get('projecttaskname') ?: ('Task #' . $recordId),
+						'title' => tdb_decode_display_text($recordModel->get('projecttaskname')) ?: ('Task #' . $recordId),
 						'duedate' => $recordModel->getDisplayValue('enddate') ?: $recordModel->getDisplayValue('startdate'),
 						'status' => $recordModel->getDisplayValue('projecttaskprogress') ?: '-',
 						'status_raw' => $recordModel->get('projecttaskprogress'),
@@ -517,7 +523,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 				while ($row = $db->fetchByAssoc($r)) {
 					$name = trim($row['first_name'] . ' ' . $row['last_name']);
 					if (empty($name)) $name = $row['user_name'];
-					$out['users'][] = array('id' => (int)$row['id'], 'name' => $name);
+					$out['users'][] = array('id' => (int)$row['id'], 'name' => tdb_decode_display_text($name));
 				}
 			}
 			$r2 = $db->pquery("SELECT DISTINCT department FROM vtiger_users WHERE status = 'Active' AND department IS NOT NULL AND TRIM(department) != '' ORDER BY department", array());
@@ -566,6 +572,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 				if (empty($name)) {
 					$name = $row['user_name'];
 				}
+				$name = tdb_decode_display_text($name);
 				$initial = mb_strtoupper(mb_substr($name, 0, 1));
 				if (empty($initial)) {
 					$initial = mb_strtoupper(mb_substr($row['user_name'], 0, 1));
