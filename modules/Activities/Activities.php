@@ -6,13 +6,14 @@ class Activities extends CRMEntity {
 	public $table_name = 'vtiger_activities';
 	public $table_index = 'activityid';
 
-	public $customFieldTable = ['vtiger_activitiescf', 'activityid'];
+	// Custom fields table uses activitiesid (not activityid)
+	public $customFieldTable = ['vtiger_activitiescf', 'activitiesid'];
 
 	public $tab_name = ['vtiger_crmentity', 'vtiger_activities', 'vtiger_activitiescf'];
 	public $tab_name_index = [
 		'vtiger_crmentity'   => 'crmid',
 		'vtiger_activities'  => 'activityid',
-		'vtiger_activitiescf'=> 'activityid',
+		'vtiger_activitiescf'=> 'activitiesid',
 	];
 
 	// Field mapping for list/detail
