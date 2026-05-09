@@ -362,10 +362,17 @@
                                             </span>
                                         {/if}
                                     {elseif $S.status eq 'overdue'}
-                                        <span class="sla-badge sla-overdue">Overdue</span>
+                                        {assign var=overMins value=0}
+                                        {if $S.deadline_at}
+                                            {assign var=overMins value=((time()-strtotime($S.deadline_at))/60)|ceil}
+                                            {if $overMins lt 0}{assign var=overMins value=0}{/if}
+                                        {/if}
+                                        <span class="sla-badge sla-overdue">
+                                            Overdue{if $overMins gt 0}: {$overMins} min{/if}
+                                        </span>
                                     {elseif $S.status eq 'completed'}
                                         <span class="sla-badge" style="background:#dcfce7;color:#166534;">
-                                            Completed
+                                            Completed{if $S.completed_at} ({$S.completed_at}){/if}
                                         </span>
                                     {/if}
                                 </li>

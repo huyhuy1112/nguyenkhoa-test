@@ -200,6 +200,12 @@ class HelpDesk_TicketService {
 		// Recalculate SLA / overdue + total time if closed
 		$this->recalculateSlaAndOverdue($ticketId);
 
+		// Support Rules Engine SLA lifecycle: complete all SLA entries on Resolved/Closed
+		if (in_array($newStatus, ['Resolved', 'Closed'], true) && class_exists('HelpDesk_SupportRulesService')) {
+			$rulesService = HelpDesk_SupportRulesService::getInstance();
+			$rulesService->completeSlaForTicket($ticketId);
+		}
+
 		if ($newStatus === 'Closed') {
 			$this->recalculateTotalTime($ticketId);
 		}
