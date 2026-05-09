@@ -10,7 +10,20 @@ require_once 'modules/HelpDesk/models/TicketService.php';
 
 class HelpDesk_TicketDetail_View extends Vtiger_Index_View {
 
+	public function getHeaderScripts(Vtiger_Request $request) {
+		$headerScriptInstances = parent::getHeaderScripts($request);
+		$jsFileNames = array(
+			'modules.HelpDesk.resources.TicketDetail',
+		);
+		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+		return array_merge($headerScriptInstances, $jsScriptInstances);
+	}
+
 	public function process(Vtiger_Request $request) {
+		// Ensure standard Vtiger chrome (topbar + app menu) is rendered for this custom view.
+		// TicketDetail previously rendered only the inner contents template, which skipped SidebarHeader/SidebarAppMenu.
+		$this->preProcess($request);
+
 		$recordId = (int)$request->get('record');
 		if ($recordId <= 0) {
 			header('Location: index.php?module=HelpDesk&view=List');
@@ -262,6 +275,7 @@ class HelpDesk_TicketDetail_View extends Vtiger_Index_View {
 		$viewer->assign('DETAILVIEWBASIC_LINKS', $basicLinks);
 
 		$viewer->view('DetailViewSummaryContents.tpl', $request->getModule());
+		$this->postProcess($request);
 	}
 }
 

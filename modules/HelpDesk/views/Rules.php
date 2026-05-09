@@ -8,6 +8,15 @@ require_once 'modules/HelpDesk/models/SupportRulesService.php';
 
 class HelpDesk_Rules_View extends Vtiger_Index_View {
 
+	public function getHeaderScripts(Vtiger_Request $request) {
+		$headerScriptInstances = parent::getHeaderScripts($request);
+		$jsFileNames = array(
+			'modules.HelpDesk.resources.Rules',
+		);
+		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+		return array_merge($headerScriptInstances, $jsScriptInstances);
+	}
+
 	public function process(Vtiger_Request $request) {
 		$moduleName = $request->getModule();
 		$viewer     = $this->getViewer($request);

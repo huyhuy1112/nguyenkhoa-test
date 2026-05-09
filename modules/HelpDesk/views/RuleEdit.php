@@ -8,7 +8,19 @@ require_once 'modules/HelpDesk/models/SupportRulesService.php';
 
 class HelpDesk_RuleEdit_View extends Vtiger_Index_View {
 
+	public function getHeaderScripts(Vtiger_Request $request) {
+		$headerScriptInstances = parent::getHeaderScripts($request);
+		$jsFileNames = array(
+			'modules.HelpDesk.resources.RuleEdit',
+		);
+		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+		return array_merge($headerScriptInstances, $jsScriptInstances);
+	}
+
 	public function process(Vtiger_Request $request) {
+		// WebUI already calls preProcess() before process() and postProcess() after.
+		// Do not call them here — duplicate postProcess renders the footer twice.
+
 		$moduleName = $request->getModule();
 		$viewer     = $this->getViewer($request);
 		$service    = HelpDesk_SupportRulesService::getInstance();

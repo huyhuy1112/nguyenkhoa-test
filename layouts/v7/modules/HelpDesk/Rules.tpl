@@ -1,5 +1,7 @@
 {strip}
 
+<div class="helpdesk-rules-page">
+
 <div class="support-rules-wrapper container-fluid">
     <div class="row">
         <div class="col-md-12">
@@ -100,6 +102,8 @@
             </div>
         </div>
     </div>
+</div>
+
 </div>
 
 {/strip}
