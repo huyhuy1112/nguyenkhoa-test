@@ -338,12 +338,6 @@
                     <h5 class="panel-title">SLA</h5>
                 </div>
                 <div class="panel-body">
-                    <p><strong>Legacy SLA Due:</strong> {$TICKET.sla_due_at|default:'-'}</p>
-                    <p><strong>Overdue:</strong> {if $TICKET.is_overdue}Yes{else}No{/if}</p>
-                    <p><strong>Closed At:</strong> {$TICKET.closed_at|default:'-'}</p>
-
-                    <hr />
-
                     {if $SLA_ENTRIES|@count gt 0}
                         <p><strong>Support Rules SLA:</strong></p>
                         <ul class="list-unstyled">
@@ -379,6 +373,11 @@
                             {/foreach}
                         </ul>
                     {else}
+                        <p><strong>Legacy SLA Due:</strong> {$TICKET.sla_due_at|default:'-'}</p>
+                        <p><strong>Overdue:</strong> {if $TICKET.is_overdue}Yes{else}No{/if}</p>
+                        <p><strong>Closed At:</strong> {$TICKET.closed_at|default:'-'}</p>
+
+                        <hr />
                         <p class="text-muted small">No SLA rules applied yet.</p>
                     {/if}
                 </div>
