@@ -25,6 +25,9 @@ class ProjectTask_Edit_View extends Vtiger_Edit_View {
 		$currentUser = Users_Record_Model::getCurrentUserModel();
 		$db = PearDatabase::getInstance();
 
+		$sourceModule = $request->get('sourceModule');
+		$sourceRecord = (int) $request->get('sourceRecord');
+
 		if (!empty($recordId) && $request->get('isDuplicate') == true) {
 			$recordModel = $this->record ? $this->record : Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
 			$this->record = $recordModel;
@@ -44,6 +47,42 @@ class ProjectTask_Edit_View extends Vtiger_Edit_View {
 		} else {
 			$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
 			$this->record = $recordModel;
+
+			// Prefill when creating ProjectTask from a Project related-list / context.
+			// Applies ONLY for create (no record id) and ONLY for sourceModule=Project.
+			if ($sourceModule === 'Project' && $sourceRecord > 0) {
+				// IMPORTANT: parent::process() in Vtiger_Edit_View does NOT use $this->record in create mode.
+				// It creates a new clean record model and only applies values coming from $request.
+				// Therefore we must inject defaults into the request so the reference UI renders selected values.
+				if ($request->get('projectid') === '' || $request->get('projectid') === null) {
+					$request->set('projectid', $sourceRecord);
+				}
+
+				// Opportunity field on ProjectTask is custom uitype 10 to Potentials: opportunity_id
+				// Prefill from source Project if it has any reference field pointing to Potentials.
+				if ($request->get('opportunity_id') === '' || $request->get('opportunity_id') === null) {
+					try {
+						$projectRecordModel = Vtiger_Record_Model::getInstanceById($sourceRecord, 'Project');
+						$projectModuleModel = Vtiger_Module_Model::getInstance('Project');
+						if ($projectRecordModel && $projectModuleModel) {
+							$referenceFields = $projectModuleModel->getFieldsByType('reference');
+							foreach ($referenceFields as $refFieldModel) {
+								if (!$refFieldModel) continue;
+								$refModules = $refFieldModel->getReferenceList();
+								if (!is_array($refModules) || !in_array('Potentials', $refModules)) continue;
+								$fname = $refFieldModel->getFieldName();
+								$pid = (int) $projectRecordModel->get($fname);
+								if ($pid > 0) {
+									$request->set('opportunity_id', $pid);
+									break;
+								}
+							}
+						}
+					} catch (Exception $e) {
+						// best-effort only; ignore if Project cannot be loaded
+					}
+				}
+			}
 		}
 
 		$additionalAssignees = array();

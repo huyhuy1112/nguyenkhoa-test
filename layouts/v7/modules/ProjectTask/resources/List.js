@@ -14,6 +14,25 @@ Vtiger_List_Js(
       var thisInstance = this;
       var listViewContentDiv = this.getListViewContainer();
 
+      // In ProjectTask List, clicking the related Project should navigate to full Project Detail,
+      // not trigger reference quick preview overlay (which is broken for Project in Management app).
+      listViewContentDiv.on("click", "a.js-reference-display-value", function (e) {
+        var link = jQuery(e.currentTarget);
+        var href = link.attr("href") || "";
+        // Normalize to data params; core reference preview uses this too.
+        var data = app.convertUrlToDataParams(href);
+        if (data && data.module === "Project" && data.record) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          e.stopPropagation();
+          window.location.href =
+            "index.php?module=Project&view=Detail&record=" +
+            encodeURIComponent(data.record) +
+            "&app=MANAGEMENT";
+          return false;
+        }
+      });
+
       listViewContentDiv.on("click", ".listViewEntries a", function (e) {
         var target = jQuery(e.target);
         if (target.hasClass("js-reference-display-value")) return;

@@ -419,10 +419,12 @@ class Project extends CRMEntity {
 				$adb->pquery("INSERT INTO vtiger_modentity_num values(?,?,?,?,?,?)", array($adb->getUniqueId("vtiger_modentity_num"), $modulename, 'PROJ', 1, 1, 1));
 			}
 
+			self::registerProjectCascadeDeleteHandler();
+
 		} else if($event_type == 'module.disabled') {
 			// TODO Handle actions when this module is disabled.
 		} else if($event_type == 'module.enabled') {
-			// TODO Handle actions when this module is enabled.
+			self::registerProjectCascadeDeleteHandler();
 		} else if($event_type == 'module.preuninstall') {
 			// TODO Handle actions when this module is about to be deleted.
 		} else if($event_type == 'module.preupdate') {
@@ -454,6 +456,86 @@ class Project extends CRMEntity {
 				//Initialize module sequence for the module
 				$adb->pquery("INSERT INTO vtiger_modentity_num values(?,?,?,?,?,?)", array($adb->getUniqueId("vtiger_modentity_num"), $modulename, 'PROJ', 1, 1, 1));
 			}
+
+			self::registerProjectCascadeDeleteHandler();
+		}
+	}
+
+	/**
+	 * Register event handler: soft-delete ProjectTasks when a Project is deleted.
+	 * Safe to call repeatedly (vtiger_eventhandlers duplicate check).
+	 */
+	public static function registerProjectCascadeDeleteHandler() {
+		global $adb;
+		require_once 'include/events/include.inc';
+		if (empty($adb)) {
+			$adb = PearDatabase::getInstance();
+		}
+		$em = new VTEventsManager($adb);
+		$em->registerHandler(
+			'vtiger.entity.afterdelete',
+			'modules/Project/handlers/ProjectCascadeDeleteHandler.php',
+			'ProjectCascadeDeleteHandler'
+		);
+	}
+
+	/**
+	 * Soft-delete all ProjectTask rows whose vtiger_projecttask.projectid matches this project.
+	 * Used after Project trash() and by the optional vtiger.entity.afterdelete handler.
+	 *
+	 * @param int $projectId vtiger_project.projectid (same as Project crmid)
+	 */
+	public static function cascadeSoftDeleteProjectTasks($projectId) {
+		global $adb, $current_user;
+
+		$projectId = (int) $projectId;
+		if ($projectId <= 0) {
+			return;
+		}
+		if (empty($adb)) {
+			$adb = PearDatabase::getInstance();
+		}
+
+		$modifiedBy = (isset($current_user) && !empty($current_user->id)) ? (int) $current_user->id : 0;
+		$dateVar = date('Y-m-d H:i:s');
+		$modifiedTime = $adb->formatDate($dateVar, true);
+
+		$result = $adb->pquery(
+			'SELECT pt.projecttaskid FROM vtiger_projecttask pt
+				INNER JOIN vtiger_crmentity tce ON tce.crmid = pt.projecttaskid AND tce.deleted = 0
+				WHERE pt.projectid = ?',
+			array($projectId)
+		);
+		if (!$result || $adb->num_rows($result) === 0) {
+			return;
+		}
+
+		$ids = array();
+		$rows = $adb->num_rows($result);
+		for ($i = 0; $i < $rows; $i++) {
+			$ids[] = (int) $adb->query_result($result, $i, 'projecttaskid');
+		}
+
+		$chunks = array_chunk($ids, 500);
+		foreach ($chunks as $chunk) {
+			$placeholders = implode(',', array_fill(0, php7_count($chunk), '?'));
+			$params = array_merge(array($modifiedTime, $modifiedBy), $chunk);
+			$adb->pquery(
+				"UPDATE vtiger_crmentity SET deleted = 1, modifiedtime = ?, modifiedby = ?
+					WHERE crmid IN ($placeholders) AND setype = 'ProjectTask' AND deleted = 0",
+				$params
+			);
+		}
+	}
+
+	/**
+	 * Ensure child tasks are soft-deleted whenever a Project is deleted (list/detail/mass).
+	 * Does not rely on vtiger_eventhandlers registration; CRMEntity::trash() may skip afterdelete when $em is unset (e.g. bulk mode).
+	 */
+	function trash($module, $id) {
+		parent::trash($module, $id);
+		if ($module === 'Project' && !empty($id)) {
+			self::cascadeSoftDeleteProjectTasks((int) $id);
 		}
 	}
 
