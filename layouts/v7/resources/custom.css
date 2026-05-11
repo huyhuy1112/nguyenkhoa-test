@@ -2926,9 +2926,7 @@ body[data-module="Documents"] #listViewContent.list-view-sidebar-offset {
     margin-top: 10px;
     margin-bottom: 14px;
 }
-body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listview-actions-container {
-    display: none !important;
-}
+/* Mass actions + pagination: keep native #listview-actions visible (was display:none, which hid bulk delete/move). */
 body[data-module="Documents"] #listViewContent.list-view-sidebar-offset .listview-table {
     background: #ffffff;
     border-radius: 12px;
