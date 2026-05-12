@@ -1,6 +1,19 @@
 <?php
 
+require_once 'include/utils/TdbDisplayUtils.php';
+
 class Reports_Management_View extends Vtiger_Index_View {
+
+	/**
+	 * Decode HTML entities in plain-text labels for Management UI/export only.
+	 * Same pattern as Home/MainPage (tdb_decode_display_text).
+	 *
+	 * @param mixed $value
+	 * @return string
+	 */
+	protected function managementDecodeDisplayPlain($value) {
+		return tdb_decode_display_text((string) $value);
+	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		parent::preProcess($request, false);
@@ -63,6 +76,10 @@ class Reports_Management_View extends Vtiger_Index_View {
 		if (!is_array($owners)) {
 			$owners = array();
 		}
+		$ownersForDisplay = array();
+		foreach ($owners as $oid => $oname) {
+			$ownersForDisplay[$oid] = $this->managementDecodeDisplayPlain($oname);
+		}
 
 		// Load dữ liệu cho từng loại báo cáo dựa trên report_type (mặc định: all)
 		$projectRows = array();
@@ -78,7 +95,7 @@ class Reports_Management_View extends Vtiger_Index_View {
 
 		$viewer->assign('CURRENT_USER', $currentUser);
 		$viewer->assign('REPORT_FILTERS', $filters);
-		$viewer->assign('REPORT_OWNERS', $owners);
+		$viewer->assign('REPORT_OWNERS', $ownersForDisplay);
 		$viewer->assign('REPORT_PROJECT_ROWS', $projectRows);
 		$viewer->assign('REPORT_TASK_ROWS', $taskRows);
 		$viewer->assign('REPORT_MKT_ROWS', $mktRows);
@@ -384,10 +401,12 @@ class Reports_Management_View extends Vtiger_Index_View {
 				}
 
 				$ownerName = $ownerId ? getOwnerName($ownerId) : '';
+				$ownerName = $this->managementDecodeDisplayPlain($ownerName);
 				$title = $recordModel->get('projectname');
 				if ($title === null || $title === '') {
 					$title = $recordModel->getDisplayValue('projectname') ?: ('Project #' . $recordId);
 				}
+				$title = $this->managementDecodeDisplayPlain($title);
 				$counts = isset($taskCounts[$recordId]) ? $taskCounts[$recordId] : array('total' => 0, 'done' => 0, 'in_progress' => 0);
 				$rows[] = array(
 					'id' => $recordId,
@@ -485,10 +504,12 @@ class Reports_Management_View extends Vtiger_Index_View {
 				}
 
 				$ownerName = $ownerId ? getOwnerName($ownerId) : '';
+				$ownerName = $this->managementDecodeDisplayPlain($ownerName);
 				$title = $recordModel->get('projecttaskname');
 				if ($title === null || $title === '') {
 					$title = $recordModel->getDisplayValue('projecttaskname') ?: ('Task #' . $recordId);
 				}
+				$title = $this->managementDecodeDisplayPlain($title);
 				$rows[] = array(
 					'id' => $recordId,
 					'title' => $title,
