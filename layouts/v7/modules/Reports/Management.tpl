@@ -1,5 +1,78 @@
 {strip}
 <div class="container-fluid management-report-wrap">
+	<style>
+		/* Scoped only to Reports Management page */
+		.management-report-wrap .mgmt-top-grid{
+			display:grid;
+			grid-template-columns: 1.2fr 1.1fr 0.7fr;
+			gap:12px;
+			margin-bottom:14px;
+		}
+		@media (max-width: 1200px){
+			.management-report-wrap .mgmt-top-grid{ grid-template-columns: 1fr; }
+		}
+		.management-report-wrap .mgmt-card{
+			background:#fff;
+			border:1px solid #e5e7eb;
+			border-radius:14px;
+			box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+			padding:12px 14px;
+		}
+		.management-report-wrap .mgmt-card-title{
+			display:flex;
+			align-items:center;
+			gap:8px;
+			margin:0 0 2px 0;
+			font-weight:700;
+			color:#0f172a;
+			font-size:13px;
+			letter-spacing:0.02em;
+		}
+		.management-report-wrap .mgmt-card-title .fa{ color:#2563eb; }
+		.management-report-wrap .mgmt-card-subtitle{
+			margin:0 0 10px 0;
+			color:#64748b;
+			font-size:12px;
+		}
+		.management-report-wrap .mgmt-form-grid{
+			display:grid;
+			grid-template-columns: repeat(2, minmax(180px, 1fr));
+			gap:10px 12px;
+			align-items:end;
+		}
+		@media (max-width: 768px){
+			.management-report-wrap .mgmt-form-grid{ grid-template-columns: 1fr; }
+		}
+		.management-report-wrap .mgmt-field label{
+			display:block;
+			font-size:12px;
+			color:#334155;
+			margin:0 0 4px 0;
+			font-weight:600;
+		}
+		.management-report-wrap .mgmt-actions{
+			display:flex;
+			gap:8px;
+			flex-wrap:wrap;
+			align-items:center;
+		}
+		.management-report-wrap .mgmt-actions .btn{
+			border-radius:10px;
+			min-height:34px;
+			line-height:20px;
+		}
+		.management-report-wrap .mgmt-actions .btn i{ margin-right:6px; }
+		.management-report-wrap .mgmt-export-right{
+			display:flex;
+			flex-direction:column;
+			height:100%;
+			justify-content:space-between;
+		}
+		.management-report-wrap .mgmt-export-right .btn{
+			border-radius:12px;
+			min-height:38px;
+		}
+	</style>
 	<div class="mgmt-report-header">
 		<h2 class="mgmt-report-title">Reports overview</h2>
 	</div>
@@ -11,60 +84,98 @@
 			<input type="hidden" name="app" value="MANAGEMENT" />
 			<input type="hidden" name="export_format" value="" />
 			<input type="hidden" name="save_config" value="0" />
+			<input type="hidden" name="update_config" value="0" />
+			<input type="hidden" name="delete_config" value="0" />
+			<input type="hidden" name="config_id" value="" />
+			<input type="hidden" name="selected_config_id" value="{$ACTIVE_CONFIG_ID|escape:'html'}" />
 			<input type="hidden" name="do_export" value="0" />
 			<input type="hidden" name="export_project_ids" value="" />
 			<input type="hidden" name="export_task_ids" value="" />
 			<input type="hidden" name="export_project_ids" value="" />
 			<input type="hidden" name="export_task_ids" value="" />
 
-			<div class="filter-group">
-				<label>Từ ngày</label>
-				<input type="date" name="date_from" value="{$REPORT_FILTERS.date_from|escape:'html'}" class="form-control input-sm" />
-			</div>
-			<div class="filter-group">
-				<label>Đến ngày</label>
-				<input type="date" name="date_to" value="{$REPORT_FILTERS.date_to|escape:'html'}" class="form-control input-sm" />
-			</div>
+			<div class="mgmt-top-grid">
+				{* A) Bộ lọc báo cáo *}
+				<section class="mgmt-card">
+					<h3 class="mgmt-card-title"><i class="fa fa-sliders"></i> Bộ lọc báo cáo</h3>
+					<p class="mgmt-card-subtitle">Chọn phạm vi thời gian, người phụ trách và loại báo cáo để xem dữ liệu phù hợp.</p>
+					<div class="mgmt-form-grid">
+						<div class="mgmt-field">
+							<label>Từ ngày</label>
+							<input type="date" name="date_from" value="{$REPORT_FILTERS.date_from|escape:'html'}" class="form-control input-sm" />
+						</div>
+						<div class="mgmt-field">
+							<label>Đến ngày</label>
+							<input type="date" name="date_to" value="{$REPORT_FILTERS.date_to|escape:'html'}" class="form-control input-sm" />
+						</div>
+						<div class="mgmt-field">
+							<label>Người phụ trách</label>
+							<select name="owner_id" class="form-control input-sm">
+								<option value="">— Tất cả —</option>
+								{foreach from=$REPORT_OWNERS key=OID item=ONAME}
+									<option value="{$OID|escape:'html'}"{if $REPORT_FILTERS.owner_id eq $OID} selected="selected"{/if}>{$ONAME|escape:'html'}</option>
+								{/foreach}
+							</select>
+						</div>
+						<div class="mgmt-field">
+							<label>Loại báo cáo</label>
+							<select name="report_type" class="form-control input-sm">
+								<option value="all"{if $REPORT_FILTERS.report_type eq 'all'} selected="selected"{/if}>Tất cả</option>
+								<option value="project"{if $REPORT_FILTERS.report_type eq 'project'} selected="selected"{/if}>Project</option>
+								<option value="task"{if $REPORT_FILTERS.report_type eq 'task'} selected="selected"{/if}>Task</option>
+							</select>
+						</div>
+						<div class="mgmt-actions" style="grid-column: 1 / -1;">
+							<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-filter"></i> Lọc</button>
+							<a href="index.php?module=Reports&view=Management&app=MANAGEMENT" class="btn btn-default btn-sm"><i class="fa fa-refresh"></i> Reset</a>
+						</div>
+					</div>
+				</section>
 
-			<div class="filter-group">
-				<label>Người phụ trách</label>
-				<select name="owner_id" class="form-control input-sm">
-					<option value="">— Tất cả —</option>
-					{foreach from=$REPORT_OWNERS key=OID item=ONAME}
-						<option value="{$OID|escape:'html'}"{if $REPORT_FILTERS.owner_id eq $OID} selected="selected"{/if}>{$ONAME|escape:'html'}</option>
-					{/foreach}
-				</select>
-			</div>
+				{* B) Cấu hình đã lưu *}
+				<section class="mgmt-card">
+					<h3 class="mgmt-card-title"><i class="fa fa-bookmark"></i> Cấu hình đã lưu</h3>
+					<p class="mgmt-card-subtitle">Lưu bộ lọc để dùng lại nhanh. Bạn có thể cập nhật hoặc xóa cấu hình hiện tại.</p>
+					<div class="mgmt-form-grid" style="grid-template-columns: 1fr 1fr;">
+						<div class="mgmt-field" style="grid-column: 1 / -1;">
+							<label>Cấu hình đã lưu</label>
+							<select class="form-control input-sm" id="mgmt-saved-config-select">
+								<option value="">— Chọn cấu hình —</option>
+								{foreach from=$REPORT_SAVED_CONFIGS item=CFG}
+									<option value="{$CFG.id}"
+											data-filters="{$CFG.filters_json|escape:'html'}"
+											data-name="{$CFG.name|escape:'html'}"
+											{if $ACTIVE_CONFIG_ID eq $CFG.id}selected="selected"{/if}>
+										{$CFG.name|escape:'html'}
+									</option>
+								{/foreach}
+							</select>
+						</div>
+						<div class="mgmt-field" style="grid-column: 1 / -1;">
+							<label>Tên cấu hình</label>
+							<input type="text" name="save_config_name" value="" class="form-control input-sm" placeholder="Tên cấu hình..." />
+						</div>
+						<div class="mgmt-actions" style="grid-column: 1 / -1;">
+							{* keep JS selectors stable *}
+							<button type="button" class="btn btn-default btn-sm js-mgmt-save-config"><i class="fa fa-save"></i> Lưu mới</button>
+							<button type="button" class="btn btn-primary btn-sm js-mgmt-update-config"><i class="fa fa-pencil"></i> Cập nhật</button>
+							<button type="button" class="btn btn-danger btn-sm js-mgmt-delete-config"><i class="fa fa-trash"></i> Xóa</button>
+						</div>
+					</div>
+				</section>
 
-			<div class="filter-group">
-				<label>Cấu hình đã lưu</label>
-				<select class="form-control input-sm" id="mgmt-saved-config-select">
-					<option value="">— Chọn cấu hình —</option>
-					{foreach from=$REPORT_SAVED_CONFIGS item=CFG}
-						<option value="{$CFG.id}" data-filters="{$CFG.filters_json|escape:'html'}">{$CFG.name|escape:'html'}</option>
-					{/foreach}
-				</select>
-			</div>
-
-			<div class="filter-group">
-				<label>Loại báo cáo</label>
-				<select name="report_type" class="form-control input-sm">
-					<option value="all"{if $REPORT_FILTERS.report_type eq 'all'} selected="selected"{/if}>Tất cả</option>
-					<option value="project"{if $REPORT_FILTERS.report_type eq 'project'} selected="selected"{/if}>Project</option>
-					<option value="task"{if $REPORT_FILTERS.report_type eq 'task'} selected="selected"{/if}>Task</option>
-				</select>
-			</div>
-
-			<div class="filter-group">
-				<label>Lưu cấu hình mới</label>
-				<input type="text" name="save_config_name" value="" class="form-control input-sm" placeholder="Tên cấu hình..." />
-			</div>
-
-			<div class="filter-group filter-actions">
-				<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-filter"></i> Lọc</button>
-				<a href="index.php?module=Reports&view=Management&app=MANAGEMENT" class="btn btn-default btn-sm"><i class="fa fa-refresh"></i> Reset</a>
-				<button type="button" class="btn btn-default btn-sm js-mgmt-save-config"><i class="fa fa-save"></i> Lưu cấu hình</button>
-				<button type="button" class="btn btn-success btn-sm js-mgmt-open-export"><i class="fa fa-download"></i> Export…</button>
+				{* C) Xuất báo cáo *}
+				<section class="mgmt-card">
+					<div class="mgmt-export-right">
+						<div>
+							<h3 class="mgmt-card-title"><i class="fa fa-download"></i> Xuất báo cáo</h3>
+							<p class="mgmt-card-subtitle">Xuất dữ liệu theo bộ lọc hiện tại.</p>
+						</div>
+						<div class="mgmt-actions" style="justify-content:flex-end;">
+							<button type="button" class="btn btn-success btn-sm js-mgmt-open-export"><i class="fa fa-download"></i> Export…</button>
+						</div>
+					</div>
+				</section>
 			</div>
 		</form>
 	</div>
@@ -201,7 +312,7 @@ jQuery(function() {
 		jQuery('#mgmtExportModal').modal('show');
 	});
 
-	// Lưu cấu hình
+	// Lưu cấu hình (lưu mới)
 	jQuery(document).on('click', '.js-mgmt-save-config', function(e) {
 		e.preventDefault();
 		var form = jQuery('#mgmt-report-filter-form');
@@ -211,6 +322,48 @@ jQuery(function() {
 			return;
 		}
 		form.find('input[name="save_config"]').val('1');
+		form.find('input[name="update_config"]').val('0');
+		form.find('input[name="delete_config"]').val('0');
+		form.find('input[name="config_id"]').val('');
+		form.find('input[name="selected_config_id"]').val('');
+		form.submit();
+	});
+
+	// Cập nhật cấu hình đang chọn
+	jQuery(document).on('click', '.js-mgmt-update-config', function(e) {
+		e.preventDefault();
+		var form = jQuery('#mgmt-report-filter-form');
+		var selectedId = (form.find('input[name="selected_config_id"]').val() || '').trim();
+		var nameInput = form.find('input[name="save_config_name"]');
+		if (!selectedId) {
+			alert('Vui lòng chọn một cấu hình đã lưu để cập nhật.');
+			return;
+		}
+		if (!jQuery.trim(nameInput.val())) {
+			alert('Vui lòng nhập tên cấu hình báo cáo.');
+			return;
+		}
+		form.find('input[name="save_config"]').val('0');
+		form.find('input[name="update_config"]').val('1');
+		form.find('input[name="delete_config"]').val('0');
+		form.find('input[name="config_id"]').val(selectedId);
+		form.submit();
+	});
+
+	// Xóa cấu hình đang chọn
+	jQuery(document).on('click', '.js-mgmt-delete-config', function(e) {
+		e.preventDefault();
+		var form = jQuery('#mgmt-report-filter-form');
+		var selectedId = (form.find('input[name="selected_config_id"]').val() || '').trim();
+		if (!selectedId) {
+			alert('Vui lòng chọn một cấu hình đã lưu để xóa.');
+			return;
+		}
+		if (!confirm('Bạn có chắc muốn xóa cấu hình này?')) return;
+		form.find('input[name="save_config"]').val('0');
+		form.find('input[name="update_config"]').val('0');
+		form.find('input[name="delete_config"]').val('1');
+		form.find('input[name="config_id"]').val(selectedId);
 		form.submit();
 	});
 
@@ -218,19 +371,26 @@ jQuery(function() {
 	jQuery('#mgmt-saved-config-select').on('change', function() {
 		var opt = jQuery(this).find('option:selected');
 		var json = opt.data('filters') || '';
+		var cfgId = opt.val() || '';
+		var cfgName = opt.data('name') || opt.text() || '';
+		var form = jQuery('#mgmt-report-filter-form');
+		form.find('input[name="selected_config_id"]').val(cfgId);
+		form.find('input[name="config_id"]').val(cfgId);
+		form.find('input[name="save_config_name"]').val(cfgName);
 		if (!json) return;
 		try {
 			var f = JSON.parse(json);
 		} catch (e) {
 			return;
 		}
-		var form = jQuery('#mgmt-report-filter-form');
 		if (f.date_from !== undefined) form.find('[name="date_from"]').val(f.date_from || '');
 		if (f.date_to !== undefined) form.find('[name="date_to"]').val(f.date_to || '');
 		if (f.owner_id !== undefined) form.find('[name="owner_id"]').val(f.owner_id || '');
 		if (f.report_type !== undefined) form.find('[name="report_type"]').val(f.report_type || 'all');
 		form.find('input[name="export_format"]').val('');
 		form.find('input[name="save_config"]').val('0');
+		form.find('input[name="update_config"]').val('0');
+		form.find('input[name="delete_config"]').val('0');
 		form.find('input[name="do_export"]').val('0');
 		form.find('input[name="export_project_ids"]').val('');
 		form.find('input[name="export_task_ids"]').val('');

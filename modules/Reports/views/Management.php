@@ -49,18 +49,35 @@ class Reports_Management_View extends Vtiger_Index_View {
 		);
 
 		$doExport = $request->get('do_export');
+		$activeConfigId = (int) $request->get('selected_config_id');
 
 		// Bảo đảm bảng lưu cấu hình tồn tại + load danh sách cấu hình đã lưu theo user
 		$this->ensureConfigTable();
 		$savedConfigs = $this->getReportConfigs($currentUser->getId());
 
-		// Nếu user bấm "Lưu cấu hình"
+		// Save / update / delete saved configurations (user-specific)
 		$saveFlag = $request->get('save_config');
-		$saveName = trim((string) $request->get('save_config_name'));
-		if ($saveFlag && $saveName !== '') {
-			$this->saveReportConfig($currentUser->getId(), $saveName, $filters);
-			// Reload lại danh sách sau khi lưu
-			$savedConfigs = $this->getReportConfigs($currentUser->getId());
+		$updateFlag = $request->get('update_config');
+		$deleteFlag = $request->get('delete_config');
+		$configId = (int) $request->get('config_id');
+		$configName = trim((string) $request->get('save_config_name'));
+
+		if ($deleteFlag && $configId > 0) {
+			$this->deleteReportConfig($currentUser->getId(), $configId);
+			$this->redirectToManagement($filters, 0);
+			return;
+		}
+
+		if ($updateFlag && $configId > 0) {
+			$this->updateReportConfig($currentUser->getId(), $configId, $configName, $filters);
+			$this->redirectToManagement($filters, $configId);
+			return;
+		}
+
+		if ($saveFlag && $configName !== '') {
+			$newId = $this->saveReportConfig($currentUser->getId(), $configName, $filters);
+			$this->redirectToManagement($filters, $newId ?: 0);
+			return;
 		}
 
 		// Nếu có yêu cầu export -> xuất file rồi kết thúc
@@ -101,6 +118,7 @@ class Reports_Management_View extends Vtiger_Index_View {
 		$viewer->assign('REPORT_MKT_ROWS', $mktRows);
 		$viewer->assign('REPORT_KPI_ROWS', $kpiRows);
 		$viewer->assign('REPORT_SAVED_CONFIGS', $savedConfigs);
+		$viewer->assign('ACTIVE_CONFIG_ID', $activeConfigId);
 
 		$viewer->view('Management.tpl', 'Reports');
 	}
@@ -304,6 +322,12 @@ class Reports_Management_View extends Vtiger_Index_View {
 				INDEX idx_userid (userid)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8
 		", array());
+
+		// Optional: add modifiedtime column (idempotent)
+		$col = $db->pquery("SHOW COLUMNS FROM mgmt_report_configs LIKE 'modifiedtime'", array());
+		if ($col && $db->num_rows($col) === 0) {
+			$db->pquery("ALTER TABLE mgmt_report_configs ADD COLUMN modifiedtime DATETIME NULL", array());
+		}
 	}
 
 	/**
@@ -315,9 +339,63 @@ class Reports_Management_View extends Vtiger_Index_View {
 		unset($filters['export_fmt']);
 		$json = json_encode($filters);
 		$db->pquery(
-			"INSERT INTO mgmt_report_configs (userid, name, filters, createdtime) VALUES (?, ?, ?, NOW())",
-			array($userId, $name, $json)
+			"INSERT INTO mgmt_report_configs (userid, name, filters, createdtime, modifiedtime) VALUES (?, ?, ?, NOW(), NOW())",
+			array((int) $userId, $name, $json)
 		);
+		return (int) $db->getLastInsertID();
+	}
+
+	/**
+	 * Update an existing config for current user only.
+	 */
+	protected function updateReportConfig($userId, $configId, $name, array $filters) {
+		$db = PearDatabase::getInstance();
+		unset($filters['export_fmt']);
+		$json = json_encode($filters);
+
+		// If name empty, keep existing name.
+		if ($name !== '') {
+			$db->pquery(
+				"UPDATE mgmt_report_configs SET name = ?, filters = ?, modifiedtime = NOW() WHERE id = ? AND userid = ?",
+				array($name, $json, (int) $configId, (int) $userId)
+			);
+		} else {
+			$db->pquery(
+				"UPDATE mgmt_report_configs SET filters = ?, modifiedtime = NOW() WHERE id = ? AND userid = ?",
+				array($json, (int) $configId, (int) $userId)
+			);
+		}
+	}
+
+	/**
+	 * Delete an existing config for current user only.
+	 */
+	protected function deleteReportConfig($userId, $configId) {
+		$db = PearDatabase::getInstance();
+		$db->pquery(
+			"DELETE FROM mgmt_report_configs WHERE id = ? AND userid = ?",
+			array((int) $configId, (int) $userId)
+		);
+	}
+
+	/**
+	 * Post/Redirect/Get helper to avoid form resubmission.
+	 */
+	protected function redirectToManagement(array $filters, $activeConfigId) {
+		$params = array(
+			'module' => 'Reports',
+			'view' => 'Management',
+			'app' => 'MANAGEMENT',
+			'date_from' => $filters['date_from'],
+			'date_to' => $filters['date_to'],
+			'owner_id' => $filters['owner_id'],
+			'report_type' => $filters['report_type'] ?: 'all',
+			'selected_config_id' => (int) $activeConfigId,
+		);
+		// Ensure we don't carry action flags forward
+		$url = 'index.php?' . http_build_query($params);
+		header('Location: ' . $url);
+		exit;
 	}
 
 	/**
