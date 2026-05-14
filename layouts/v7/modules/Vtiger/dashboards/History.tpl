@@ -9,35 +9,37 @@
   *
  ********************************************************************************/
 -->*}
-<div class="dashboardWidgetHeader clearfix">
-    <div class="title">
-        <div class="dashboardTitle" title="{vtranslate($WIDGET->getTitle(), $MODULE_NAME)}"><b>&nbsp;&nbsp;{vtranslate($WIDGET->getTitle())}</b></div>
-    </div>
-    <div class="userList">
-        {assign var=CURRENT_USER_ID value=$CURRENT_USER->getId()}
-        {if $ACCESSIBLE_USERS|@count gt 1}
-            <select class="select2 widgetFilter col-lg-3 reloadOnChange" name="type">
-                <option value="all"  selected>{vtranslate('All', $MODULE_NAME)}</option>
-                {foreach key=USER_ID from=$ACCESSIBLE_USERS item=USER_NAME}
-                    <option value="{$USER_ID}">
-                    {if $USER_ID eq $CURRENT_USER_ID} 
-                        {vtranslate('LBL_MINE',$MODULE_NAME)}
-                    {else}
-                        {$USER_NAME}
-                    {/if}
-                    </option>
-                {/foreach}
-            </select>
+<div class="dashboardWidgetHeader clearfix mk-history-widget-header">
+    <div class="mk-history-header-row clearfix">
+        <div class="title mk-history-title-cell">
+            <div class="dashboardTitle" title="{vtranslate($WIDGET->getTitle(), $MODULE_NAME)}"><b>{vtranslate($WIDGET->getTitle())}</b></div>
+        </div>
+        <div class="userList mk-history-filter-cell">
+            {assign var=CURRENT_USER_ID value=$CURRENT_USER->getId()}
+            {if $ACCESSIBLE_USERS|@count gt 1}
+                <select class="select2 widgetFilter col-lg-3 reloadOnChange mk-history-userSelect" name="type">
+                    <option value="all" selected>{vtranslate('All', $MODULE_NAME)}</option>
+                    {foreach key=USER_ID from=$ACCESSIBLE_USERS item=USER_NAME}
+                        <option value="{$USER_ID}">
+                        {if $USER_ID eq $CURRENT_USER_ID}
+                            {vtranslate('LBL_MINE',$MODULE_NAME)}
+                        {else}
+                            {$USER_NAME}
+                        {/if}
+                        </option>
+                    {/foreach}
+                </select>
             {else}
-                <center>{vtranslate('LBL_MY',$MODULE_NAME)} {vtranslate('History',$MODULE_NAME)}</center>
-        {/if}
+                <span class="mk-history-single-user-label">{vtranslate('LBL_MY',$MODULE_NAME)} {vtranslate('History',$MODULE_NAME)}</span>
+            {/if}
+        </div>
     </div>
 </div>
-<div class="dashboardWidgetContent" style="padding-top:15px;">
+<div class="dashboardWidgetContent mk-history-widget-body">
 	{include file="dashboards/HistoryContents.tpl"|@vtemplate_path:$MODULE_NAME}
 </div>
 
-<div class="widgeticons dashBoardWidgetFooter">
+<div class="widgeticons dashBoardWidgetFooter mk-widget-footer">
     <div class="filterContainer boxSizingBorderBox">
         <div class="row" style="margin-bottom: 10px;">
             <div class="col-sm-12">
@@ -77,7 +79,7 @@
             </div>
         </div>
     </div>
-    <div class="footerIcons pull-right">
+    <div class="footerIcons pull-right mk-widget-footer-icons">
         {include file="dashboards/DashboardFooterIcons.tpl"|@vtemplate_path:$MODULE_NAME SETTING_EXIST=true}
     </div>
 </div>

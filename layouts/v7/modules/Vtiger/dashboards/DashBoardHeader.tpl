@@ -10,12 +10,12 @@
 ********************************************************************************/
 -->*}
 
-<div class='dashboardHeading container-fluid'>
-	<div class="buttonGroups pull-right">
+<div class='dashboardHeading mk-dashboard-heading mk-dashboard-heading--inline mk-dashboard-heading--figma pull-right'>
+	<div class="buttonGroups mk-dashboard-heading-actions">
 		<div class="btn-group">
 			{if $SELECTABLE_WIDGETS|count gt 0}
-				<button class='btn btn-default addButton dropdown-toggle' data-toggle='dropdown'>
-					{vtranslate('LBL_ADD_WIDGET')}&nbsp;&nbsp;<i class="caret"></i>
+				<button class='btn btn-default addButton dropdown-toggle mk-dash-figma-btn' data-toggle='dropdown' type="button">
+					Add Widgets&nbsp;&nbsp;<i class="caret"></i>
 				</button>
 
 				<ul class="dropdown-menu dropdown-menu-right widgetsList pull-right" style="min-width:100%;text-align:left;">
@@ -50,7 +50,7 @@
 
 				</ul>
 			{else if $MODULE_PERMISSION}
-				<button class='btn btn-default addButton dropdown-toggle' disabled="disabled" data-toggle='dropdown'>
+				<button class='btn btn-default addButton dropdown-toggle mk-dash-figma-btn' disabled="disabled" data-toggle='dropdown'>
 					<strong>{vtranslate('LBL_ADD_WIDGET')}</strong> &nbsp;&nbsp;
 					<i class="caret"></i>
 				</button>

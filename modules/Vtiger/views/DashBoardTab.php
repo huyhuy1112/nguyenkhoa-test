@@ -64,6 +64,11 @@ class Vtiger_DashboardTab_View extends Vtiger_Index_View {
 		$viewer->assign('TABID',$tabId);
 
 		$viewer->assign('CURRENT_USER', Users_Record_Model::getCurrentUserModel());
+		$moduleModel = Vtiger_Module_Model::getInstance('Dashboard');
+		$userPrivilegesModel = Users_Privileges_Model::getCurrentUserPrivilegesModel();
+		$viewer->assign('MODULE_PERMISSION', $userPrivilegesModel->hasModulePermission($moduleModel->getId()));
+		$viewer->assign('DASHBOARD_TABS', $dashBoardModel->getActiveTabs());
+		$viewer->assign('DASHBOARD_TABS_LIMIT', $dashBoardModel->dashboardTabLimit);
 		echo $viewer->view('dashboards/DashBoardTabContents.tpl', $moduleName,true);
     }
     
