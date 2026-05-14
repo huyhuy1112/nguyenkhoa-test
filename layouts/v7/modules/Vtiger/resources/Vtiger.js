@@ -368,6 +368,7 @@ Vtiger.Class('Vtiger_Index_Js', {
 		this.registerListEssentialsToggleEvent();
 		this.registerAdvanceSeachIntiator();
 		this.registerQuickCreateEvent();
+		this.registerModernQuickCreateLauncher();
 		this.registerQuickCreateSubMenus();
 		this.registerPostQuickCreateEvent();
 		this.registerEventForTaskManagement();
@@ -455,12 +456,39 @@ Vtiger.Class('Vtiger_Index_Js', {
 	},
 
 	/**
+	 * Close button + ESC for the modern Quick Create launcher dropdown only.
+	 */
+	registerModernQuickCreateLauncher : function() {
+		jQuery(document).on('click.modernQuickCreate', '#menubar_quickCreate_close', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $dropdown = jQuery(this).closest('.dropdown');
+			$dropdown.removeClass('open');
+			$dropdown.find('.dropdown-toggle').attr('aria-expanded', 'false');
+		});
+		jQuery(document).on('keydown.modernQuickCreate', function(e) {
+			if (e.keyCode !== 27) {
+				return;
+			}
+			var $open = jQuery('.dropdown.open').filter(function() {
+				return jQuery(this).find('.modern-quick-create').length > 0;
+			});
+			if (!$open.length) {
+				return;
+			}
+			$open.removeClass('open').find('.dropdown-toggle').attr('aria-expanded', 'false');
+		});
+	},
+
+	/**
 	 * Function to register Quick Create Event
 	 * @returns {undefined}
 	 */
 	registerQuickCreateEvent : function (){
 		var thisInstance = this;
 		jQuery("#quickCreateModules").on("click",".quickCreateModule",function(e,params){
+			jQuery(e.currentTarget).closest('.dropdown').removeClass('open')
+				.find('.dropdown-toggle').attr('aria-expanded', 'false');
 			var quickCreateElem = jQuery(e.currentTarget);
 			var quickCreateUrl = quickCreateElem.data('url');
 			var quickCreateModuleName = quickCreateElem.data('name');

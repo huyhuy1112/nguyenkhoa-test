@@ -1,0 +1,220 @@
+/**
+ * Scoped styles for the navbar Quick Create launcher only.
+ * Selectors anchored under .modern-quick-create — avoid changing global modals.
+ */
+
+.global-actions .dropdown.pull-left.open > ul.dropdown-menu.modern-quick-create {
+	position: fixed;
+	top: 56px;
+	left: 50%;
+	right: auto;
+	float: none;
+	transform: translateX(-50%);
+	margin: 0;
+	width: min(800px, calc(100vw - 24px));
+	max-width: 800px;
+	min-width: 0;
+	padding: 0;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+	background: #ffffff;
+	overflow: hidden;
+	z-index: 1051;
+	max-height: none;
+}
+
+.modern-quick-create > li {
+	list-style: none;
+}
+
+.modern-quick-create > li.modern-quick-create-header-item,
+.modern-quick-create > li.modern-quick-create-modules-li,
+.modern-quick-create > li.modern-quick-create-footer-item {
+	padding: 0;
+	margin: 0;
+}
+
+.modern-quick-create-header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 16px 24px;
+	background: #f2f4f6;
+	border-bottom: 1px solid #d4c4ad;
+}
+
+.modern-quick-create-header .modern-quick-create-lightning {
+	flex-shrink: 0;
+	font-size: 22px;
+	line-height: 1;
+	color: #f59e0b;
+}
+
+.modern-quick-create-title {
+	flex: 1;
+	margin: 0;
+	font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+	font-size: 26px;
+	font-weight: 700;
+	line-height: 1.25;
+	color: #191c1e;
+	letter-spacing: -0.02em;
+}
+
+.modern-quick-create-close {
+	flex-shrink: 0;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	border-radius: 8px;
+	transition: background-color 180ms ease;
+}
+
+.modern-quick-create-close:hover,
+.modern-quick-create-close:focus {
+	background: rgba(80, 69, 51, 0.08);
+	outline: none;
+}
+
+.modern-quick-create-close-icon {
+	display: block;
+	font-size: 22px;
+	line-height: 36px;
+	color: #504533;
+	font-weight: 300;
+}
+
+/* Grid of module cards */
+#quickCreateModules.modern-quick-create-modules-li {
+	background: #ffffff;
+}
+
+.modern-quick-create #quickCreateModules .modern-quick-create-grid {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: stretch;
+	gap: 16px 18px;
+	padding: 24px 20px 20px;
+	box-sizing: border-box;
+	max-height: calc(100vh - 200px);
+	overflow-x: hidden;
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+.modern-quick-create #quickCreateModules a.modern-quick-create-card.quickCreateModule {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	box-sizing: border-box;
+	width: 128px;
+	min-height: 112px;
+	padding: 16px 10px 14px;
+	margin: 0;
+	border: 1px solid #d4c4ad;
+	border-radius: 8px;
+	background: #f7f9fb;
+	text-decoration: none;
+	cursor: pointer;
+	transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.modern-quick-create #quickCreateModules a.modern-quick-create-card.quickCreateModule:hover,
+.modern-quick-create #quickCreateModules a.modern-quick-create-card.quickCreateModule:focus {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+	border-color: #b8a68f;
+	background: #fbfcfd;
+	outline: none;
+}
+
+.modern-quick-create-icon-wrap {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 48px;
+	height: 48px;
+	margin-bottom: 12px;
+	border-radius: 12px;
+	background: #bbdeff;
+	flex-shrink: 0;
+}
+
+.modern-quick-create #quickCreateModules .modern-quick-create-icon-wrap [class^="vicon-"],
+.modern-quick-create #quickCreateModules .modern-quick-create-icon-wrap [class*=" vicon-"] {
+	font-size: 22px;
+	color: #41627f;
+	line-height: 1;
+}
+
+.modern-quick-create #quickCreateModules .quick-create-module.modern-quick-create-label {
+	display: block;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	text-align: center;
+	font-family: "Space Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.25;
+	letter-spacing: 0.06em;
+	color: #191c1e;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	vertical-align: baseline;
+}
+
+/* Footer */
+.modern-quick-create-footer-item {
+	border-top: 1px solid #d4c4ad;
+	background: #e6e8ea;
+}
+
+.modern-quick-create-footer-inner {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 10px 20px 12px;
+	box-sizing: border-box;
+}
+
+.modern-quick-create-footer-icon {
+	color: #504533;
+	font-size: 14px;
+	flex-shrink: 0;
+}
+
+.modern-quick-create-footer-text {
+	font-family: "Space Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.35;
+	letter-spacing: 0.06em;
+	color: #504533;
+	text-align: center;
+}
+
+@media (max-width: 600px) {
+	.modern-quick-create #quickCreateModules .modern-quick-create-grid {
+		gap: 12px;
+		padding: 16px 12px;
+	}
+
+	.modern-quick-create-title {
+		font-size: 22px;
+	}
+
+	.modern-quick-create-footer-text {
+		font-size: 12px;
+	}
+}
