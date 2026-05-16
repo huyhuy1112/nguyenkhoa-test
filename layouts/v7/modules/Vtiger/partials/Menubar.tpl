@@ -13,8 +13,8 @@
 
 <div id="modules-menu" class="modules-menu">
 	{foreach key=moduleName item=moduleModel from=$SELECTED_CATEGORY_MENU_LIST}
-		{* UI cleanup: hide separate Products/Services from sidebar module strip *}
-		{if $moduleName eq 'Products' || $moduleName eq 'Services'}{continue}{/if}
+		{* SALES: keep ProductsServices; hide legacy Products/Services in module strip *}
+		{if $SELECTED_MENU_CATEGORY eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
 		{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}
 		{* Calendar: MANAGEMENT = Schedule, SUPPORT = Activities *}
 		{if $moduleName eq 'Calendar' && $SELECTED_MENU_CATEGORY eq 'MANAGEMENT'}
@@ -85,5 +85,5 @@
 				</a>
 			</li>
 		</ul>
-	</div>
+</div>
 {/if}

@@ -67,6 +67,8 @@
 					<div class="mk-dash-app-panel" id="mk-dash-app-panel-{$APP_NAME}" role="region" aria-labelledby="mk-dash-app-btn-{$APP_NAME}">
 						{foreach item=moduleModel key=moduleName from=$APP_GROUPED_MENU[$APP_NAME]}
 							{if $moduleName eq 'ExtensionStore'}{continue}{/if}
+							{* SALES: keep ProductsServices; hide legacy Products/Services entries *}
+							{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
 							{if $moduleModel}
 								<a class="mk-dash-mod-link{if $MENU_SELECTED_MODULENAME eq $moduleName} mk-dash-mod-link--active{/if}" href="{$moduleModel->getDefaultUrl()}&app={$APP_NAME}">
 									<span class="mk-dash-mod-label">{vtranslate($moduleName, $moduleName)}</span>

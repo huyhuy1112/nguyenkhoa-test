@@ -74,8 +74,8 @@
 								</li>
 							{/if}
 							{foreach item=moduleModel key=moduleName from=$APP_GROUPED_MENU[$APP_NAME]}
-								{* UI cleanup: hide separate Products/Services from sidebar submenu *}
-								{if $moduleName eq 'Products' || $moduleName eq 'Services'}{continue}{/if}
+								{* SALES: keep ProductsServices; hide legacy Products/Services *}
+								{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
 								{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}
 								{* Calendar: MANAGEMENT = Schedule, SUPPORT = Activities *}
 								{if $moduleName eq 'Calendar' && $APP_NAME eq 'MANAGEMENT'}

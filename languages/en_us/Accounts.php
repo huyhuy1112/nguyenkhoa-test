@@ -13,6 +13,13 @@ $languageStrings = array(
 	'SINGLE_Accounts' => 'Organization',
 	'LBL_ADD_RECORD' => 'Add Organization',
 	'LBL_RECORDS_LIST' => 'Organization List',
+	'LBL_ACCOUNTS_LIST_SUBTITLE' => 'View and manage organizations in the Sales workspace.',
+	'LBL_ORG_LIST_PAGE_TITLE' => 'All Organizations',
+	'LBL_ORG_LIST_PAGE_SUBTITLE' => 'Manage organizations information',
+	'LBL_ORG_LIST_SHOWING' => 'Showing ',
+	'LBL_ORG_LIST_ORGS_SUFFIX' => ' organizations',
+	'LBL_ORG_GRID_VIEW' => 'Grid view',
+	'LBL_ORG_SORT_COLUMN' => 'Sort using column headers',
 
 	// Blocks
 	'LBL_ACCOUNT_INFORMATION' => 'Organization Details',
@@ -54,6 +61,9 @@ $languageStrings = array(
 	'LBL_COPY_BILLING_ADDRESS' => 'Copy Billing Address',
 	'LBL_IMAGE_INFORMATION' => 'Profile Picture',
 	'Organization Image' => 'Organization Image',
+	'LBL_ACC_DETAIL_HEALTH_TITLE' => 'Health overview',
+	'LBL_ACC_DETAIL_HEALTH_PROJECT' => 'Project compliance',
+	'LBL_ACC_DETAIL_HEALTH_ASSET' => 'Asset utilization',
 );
 
 $jsLanguageStrings = array(

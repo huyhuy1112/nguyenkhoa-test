@@ -2033,7 +2033,7 @@ Vtiger.Class("Vtiger_List_Js", {
 				currentEle.addClass('hide');
 				totalNumberOfRecords = data.numberOfRecords;
 				totalRecordsElement.val(totalNumberOfRecords);
-				listViewContainer.find('ul#listViewPageJumpDropDown #totalPageCount').text(data.page);
+				listViewContainer.find('#totalPageCount').first().text(data.page);
 				thisInstance.showPagingInfo();
 				thisInstance.totalNumOfRecords_performingAsyncAction = false;
 			});

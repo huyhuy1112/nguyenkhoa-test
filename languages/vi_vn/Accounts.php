@@ -27,6 +27,13 @@ $languageStrings = array(
 "LBL_DUPLICATES_EXIST" => "Tên tổ chức đã tồn tại",
 "LBL_END_DATE" => "Ngày hạn",
 "LBL_RECORDS_LIST" => "Danh sách tổ chức",
+"LBL_ACCOUNTS_LIST_SUBTITLE" => "Xem và quản lý tổ chức trong ứng dụng Sales.",
+"LBL_ORG_LIST_PAGE_TITLE" => "Tất cả tổ chức",
+"LBL_ORG_LIST_PAGE_SUBTITLE" => "Quản lý thông tin tổ chức",
+"LBL_ORG_LIST_SHOWING" => "Hiển thị ",
+"LBL_ORG_LIST_ORGS_SUFFIX" => " tổ chức",
+"LBL_ORG_GRID_VIEW" => "Dạng lưới",
+"LBL_ORG_SORT_COLUMN" => "Sắp xếp bằng tiêu đề cột",
 "LBL_SHOW_ACCOUNT_HIERARCHY" => "Phân cấp tổ chức",
 "LBL_START_DATE" => "Ngày bắt đầu",
 "Member Of" => "Thành viên của",
@@ -43,6 +50,9 @@ $languageStrings = array(
 "Email Opt Out" => "Không nhận Email",
 "Website" => "Trang web",
 "Annual Revenue" => "Doanh thu",
+"LBL_ACC_DETAIL_HEALTH_TITLE" => "Tổng quan sức khỏe",
+"LBL_ACC_DETAIL_HEALTH_PROJECT" => "Tuân thủ dự án",
+"LBL_ACC_DETAIL_HEALTH_ASSET" => "Sử dụng tài sản",
 );
 
 $jsLanguageStrings = array(

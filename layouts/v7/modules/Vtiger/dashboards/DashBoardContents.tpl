@@ -7,7 +7,7 @@
 * All Rights Reserved.
 ************************************************************************************}
 {* modules/Vtiger/views/DashBoard.php *}
-
+    
 {strip}
 {assign var=MK_DASH_HEADER_TITLE value='My Dashboard'}
 {foreach from=$DASHBOARD_TABS item=TAB_DATA}
@@ -47,41 +47,41 @@
 				</header>
 				<div class="tabContainer mk-dashboard-tab-container">
 					<ul class="nav nav-tabs tabs sortable container-fluid mk-dashboard-tabs mk-dashboard-tabs--figma" role="tablist" aria-label="{vtranslate('LBL_DASHBOARD',$MODULE)} tabs">
-						{foreach key=index item=TAB_DATA from=$DASHBOARD_TABS}
-							<li class="{if $TAB_DATA["id"] eq $SELECTED_TAB}active{/if} dashboardTab" data-tabid="{$TAB_DATA["id"]}" data-tabname="{$TAB_DATA["tabname"]}">
-								<a data-toggle="tab" href="#tab_{$TAB_DATA["id"]}">
-									<div>
-										<span class="name textOverflowEllipsis" value="{$TAB_DATA["tabname"]}" style="width:10%">
-											<strong>{$TAB_DATA["tabname"]}</strong>
-										</span>
-										<span class="editTabName hide">
-											<input type="text" name="tabName"/>
-										</span>
-										{if $TAB_DATA["isdefault"] eq 0}
-											<i class="fa fa-close deleteTab"></i>
-										{/if}
-										<i class="fa fa-bars moveTab hide"></i>
-									</div>
-								</a>
-							</li>
-						{/foreach}
+                {foreach key=index item=TAB_DATA from=$DASHBOARD_TABS}
+                    <li class="{if $TAB_DATA["id"] eq $SELECTED_TAB}active{/if} dashboardTab" data-tabid="{$TAB_DATA["id"]}" data-tabname="{$TAB_DATA["tabname"]}">
+                        <a data-toggle="tab" href="#tab_{$TAB_DATA["id"]}">
+                            <div>
+                                <span class="name textOverflowEllipsis" value="{$TAB_DATA["tabname"]}" style="width:10%">
+                                    <strong>{$TAB_DATA["tabname"]}</strong>
+                                </span>
+                                <span class="editTabName hide">
+                                    <input type="text" name="tabName"/>
+                                </span>
+                                {if $TAB_DATA["isdefault"] eq 0}
+                                    <i class="fa fa-close deleteTab"></i>
+                                {/if}
+                                <i class="fa fa-bars moveTab hide"></i>
+                            </div>
+                        </a>
+                    </li>
+                {/foreach}
 						<li class="mk-dashboard-tab-insert-anchor hide" aria-hidden="true"></li>
-					</ul>
-					<div class="tab-content">
-						{foreach key=index item=TAB_DATA from=$DASHBOARD_TABS}
-							<div id="tab_{$TAB_DATA["id"]}" data-tabid="{$TAB_DATA["id"]}" data-tabname="{$TAB_DATA["tabname"]}" class="tab-pane fade {if $TAB_DATA["id"] eq $SELECTED_TAB}in active{/if}">
-								{if $TAB_DATA["id"] eq $SELECTED_TAB}
-									{include file="dashboards/DashBoardTabContents.tpl"|vtemplate_path:$MODULE TABID=$TABID}
-								{/if}
-							</div>
-						{/foreach}
-					</div>
+            </ul>
+            <div class="tab-content">
+                {foreach key=index item=TAB_DATA from=$DASHBOARD_TABS}
+                    <div id="tab_{$TAB_DATA["id"]}" data-tabid="{$TAB_DATA["id"]}" data-tabname="{$TAB_DATA["tabname"]}" class="tab-pane fade {if $TAB_DATA["id"] eq $SELECTED_TAB}in active{/if}">
+                        {if $TAB_DATA["id"] eq $SELECTED_TAB}
+                            {include file="dashboards/DashBoardTabContents.tpl"|vtemplate_path:$MODULE TABID=$TABID}
+                        {/if}
+                    </div>
+                {/foreach}
+            </div>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
 </main>
-</div>
+        </div>
 </div>
 {/strip}

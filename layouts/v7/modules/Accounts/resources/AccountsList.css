@@ -1,0 +1,616 @@
+/**
+ * Accounts → Organizations list (Sales app only).
+ * Scope: body[data-module="Accounts"][data-view="List"][data-app="SALES"]
+ * Neutralizes layouts/v7/resources/custom.css list shell; Figma tokens for inner list.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&family=Space+Grotesk:wght@500&display=swap');
+
+/* ---- Main shell: Figma 24px padding under topbar ---- */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-accounts-list-main {
+	box-sizing: border-box;
+}
+
+/* ---- Legacy LISTS column + module strip: remove from layout ---- */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .main-container.mk-accounts-list-page #modnavigator.module-nav,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .main-container.mk-accounts-list-page #modnavigator.module-nav.mk-accounts-list-hide-legacy {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	top: 0 !important;
+	pointer-events: none !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .main-container.mk-accounts-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .main-container.mk-accounts-list-page #sidebar-essentials.sidebar-essentials .sidebar-menu,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .main-container.mk-accounts-list-page #sidebar-essentials .lists-menu-container {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	top: 0 !important;
+	pointer-events: none !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .essentials-toggle {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-accounts-list-hide-legacy {
+	display: none !important;
+}
+
+/* ---- Main column: full width ---- */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .main-container.mk-accounts-list-page {
+	position: relative !important;
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	min-height: 0 !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .main-container.mk-accounts-list-page .listViewPageDiv.content-area,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .main-container.mk-accounts-list-page #listViewContent.listViewPageDiv,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .main-container.mk-accounts-list-page #listViewContent.listViewPageDiv.content-area {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	left: auto !important;
+	position: relative !important;
+	z-index: auto !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-page,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-list-sales-root {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	position: relative !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-page > .col-sm-12,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-list-sales-root > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	float: none !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-page .contentsDiv,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-page .contents,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-page .listViewEntriesDiv,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-list-sales-root .contentsDiv,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-list-sales-root .contents,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-list-sales-root .listViewEntriesDiv {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	position: relative !important;
+	left: auto !important;
+}
+
+/* ---- Action header (Figma) ---- */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-action-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px 24px;
+	margin: 0 0 20px;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-action-header__title {
+	margin: 0;
+	font-size: 28px;
+	font-weight: 600;
+	line-height: 1.2;
+	color: #191c1e;
+	letter-spacing: -0.02em;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-action-header__subtitle {
+	margin: 8px 0 0;
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 1.45;
+	color: #504533;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-action-header__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 40px;
+	padding: 0 18px;
+	font-size: 14px;
+	font-weight: 600;
+	border-radius: 10px;
+	cursor: pointer;
+	border: 1px solid transparent;
+	box-sizing: border-box;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--primary {
+	background: #fdbb2c;
+	border-color: #e5a820;
+	color: #191c1e;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--primary:hover {
+	background: #ffc85c;
+	border-color: #fdbb2c;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--outline {
+	background: #ffffff;
+	border-color: #d4c4ad;
+	color: #191c1e;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--outline:hover {
+	background: #faf8f5;
+	border-color: #c4b49a;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--icononly {
+	min-width: 40px;
+	padding: 0 12px;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--primary .mk-org-btn__ic {
+	color: #191c1e;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn .mk-dash-topbar-svg {
+	width: 20px;
+	height: 20px;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-settings-wrap {
+	position: relative;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-settings-menu {
+	min-width: 220px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	box-shadow: 0 8px 24px rgba(25, 28, 30, 0.08);
+}
+
+/* ---- Table card: single shell (no double card). No overflow:hidden — it clipped scrollbars / PS rails. ---- */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-table-card {
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-table-card > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+}
+
+/* ---- Filter row ---- */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-actions.listview-actions-container.mk-org-filter-row {
+	background: #eceef0 !important;
+	border: none !important;
+	border-bottom: 1px solid #d4c4ad !important;
+	border-radius: 0 !important;
+	min-height: 73px;
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	box-sizing: border-box !important;
+	position: relative !important;
+	left: auto !important;
+	display: flex;
+	flex-direction: column;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-filter-row__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 10px 14px;
+	min-height: 73px;
+	padding: 0 14px 0 12px;
+	box-sizing: border-box;
+	flex: 1 1 auto;
+}
+
+/* Start: list/grid toggles + “Showing …” only (no stock pagination here) */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-filter-row__start {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px 18px;
+	flex: 1 1 220px;
+	min-width: 0;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-toolbar-toggles {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-toolbar-count {
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-mass-actions {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	flex: 0 1 auto;
+	margin-left: 8px;
+	padding-left: 12px;
+	border-left: 1px solid #d4c4ad;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-filter-row__right {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-left: auto;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-ajax-empty-hint--toolbar {
+	padding: 6px 14px 0;
+	font-size: 13px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-page-numbers {
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 500;
+	color: #504533;
+	line-height: 1.4;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-page-numbers .pageNumbersText {
+	font-weight: 600;
+	color: #191c1e;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-page-numbers .totalNumberOfRecords {
+	font-weight: 500;
+	color: #40627e;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-icon-btn {
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	background: #ffffff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-sizing: border-box;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-icon-btn:hover:not(:disabled) {
+	background: #f2f4f6;
+	border-color: #c4b49a;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-icon-btn:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-icon-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-mass-btn {
+	min-width: 40px;
+	height: 40px;
+	padding: 0 10px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	opacity: 0.92;
+	box-shadow: none;
+	font-weight: 500;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-mass-more {
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+}
+
+/* ---- Pagination footer (centered, below table after JS relocate; also works if still inside #listview-actions) ---- */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent .mk-org-filter-row__footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 65px;
+	padding: 10px 16px;
+	border-top: 1px solid #d4c4ad;
+	background: #eceef0;
+	box-sizing: border-box;
+	pointer-events: auto;
+	border-radius: 0 0 11px 11px;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-pagination {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-pagination .btn-group {
+	box-shadow: none;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-pagination .mk-org-page-btn {
+	min-width: 40px;
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	color: #191c1e;
+	margin: 0 2px;
+	font-weight: 600;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-pagination .mk-org-page-btn:hover:not(:disabled),
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-pagination .mk-org-page-btn:focus:not(:disabled) {
+	background: #fdbb2c !important;
+	border-color: #e5a820 !important;
+	color: #191c1e !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-pagination #PageJump.mk-org-page-btn {
+	min-width: 48px;
+	box-shadow: inset 0 -3px 0 #fdbb2c;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-pagination .mk-org-page-btn:disabled {
+	opacity: 0.45;
+}
+
+/* ---- Table block: ONE native horizontal scroll on #table-content (see AccountsList.js removes perfectScrollbar) ---- */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container {
+	margin-top: 0 !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: #ffffff !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	position: relative !important;
+	left: auto !important;
+	box-sizing: border-box !important;
+	height: auto !important;
+	max-height: calc(100vh - 260px) !important;
+	overflow-x: auto !important;
+	overflow-y: auto !important;
+	-webkit-overflow-scrolling: touch;
+	pointer-events: auto !important;
+}
+
+/* ---- Native table layout: full-width table inside scrollport; no max-content (breaks floatThead / cols) ---- */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-org-table,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table {
+	margin-bottom: 0;
+	width: 100%;
+	min-width: 1230px;
+	box-sizing: border-box;
+	border-collapse: collapse;
+	border-spacing: 0;
+	table-layout: auto;
+	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader {
+	background: #f2f4f6 !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th {
+	box-sizing: border-box;
+	height: 48px;
+	padding: 0 10px;
+	vertical-align: middle;
+	border-bottom: 1px solid #d4c4ad;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 14px;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #40627e !important;
+	white-space: nowrap;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
+	color: #40627e !important;
+	font-weight: 500;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td {
+	box-sizing: border-box;
+	height: 58px;
+	padding: 0 10px;
+	vertical-align: middle;
+	border-bottom: 1px solid #eceef0;
+	font-size: 15px;
+	font-weight: 400;
+	line-height: 1.35;
+	color: #191c1e;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
+	background: #faf8f5;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th {
+	height: auto !important;
+	min-height: 0 !important;
+	padding: 8px 10px !important;
+	font-size: 13px;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+	white-space: normal;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="phone"],
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="double"] {
+	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-size: 14px;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent .mk-org-sort-hint {
+	opacity: 0.45;
+	cursor: default;
+}
+
+/* Organization name semibold */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="accountname"] .fieldValue,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="accountname"] a {
+	font-weight: 600;
+	color: #191c1e;
+}
+
+/* Website pill — URL field or http(s) link in website column only */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="website"][data-field-type="url"] a[href],
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="website"] a[href^="http"] {
+	display: inline-block;
+	max-width: 100%;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: #bbdeff;
+	color: #41627f !important;
+	font-weight: 600;
+	font-size: 13px;
+	line-height: 1.3;
+	text-decoration: none !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	vertical-align: middle;
+	box-sizing: border-box;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="website"][data-field-type="url"] a[href]:hover,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="website"] a[href^="http"]:hover {
+	background: #a8d4ff;
+}
+
+/* Hide duplicate column picker in header (filter row icon opens same control) */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listColumnFilterContainer .listColumnFilter {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Search row: collapsed until toolbar search icon */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-org-search-open) tr.searchRow.listViewSearchContainer {
+	display: none !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-org-search-open tr.searchRow.listViewSearchContainer {
+	display: table-row !important;
+	background: #fafbfc;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-org-search-open tr.searchRow th {
+	border-bottom: 1px solid #d4c4ad;
+}
+
+/* Stock bottom-fixed-scroll duplicates horizontal scroll (custom.css top:-19px); hide — native bar on #table-content only */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent .bottom-fixed-scroll {
+	display: none !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+	position: absolute !important;
+	left: -9999px !important;
+	width: 0 !important;
+	top: 0 !important;
+}

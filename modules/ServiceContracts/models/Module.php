@@ -15,7 +15,7 @@ class ServiceContracts_Module_Model extends Vtiger_Module_Model {
 	 * @return <Boolean> - true/false
 	 */
 	public function isSummaryViewSupported() {
-		return false;
+		return true;
 	}
 
 	/*
