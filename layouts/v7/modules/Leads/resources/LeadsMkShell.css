@@ -1,0 +1,139 @@
+/* Leads modern UI — split shell (sidebar + topbar), SALES app */
+
+/* ========== Leads List ========== */
+body[data-module="Leads"][data-view="List"][data-app="SALES"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Leads"][data-view="List"][data-app="SALES"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-leads-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Leads Create (Edit) ========== */
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] #page,
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-dash-main,
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-leads-edit-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
