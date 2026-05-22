@@ -1,14 +1,15 @@
 <?php
 /*+***********************************************************************************
- * Leads Detail: modern SALES UI (UI-only demo).
+ * Leads List: modern UI — SALES app only (UI-only dummy list).
  ************************************************************************************/
 
-class Leads_Detail_View extends Vtiger_Index_View {
+class Leads_List_View extends Vtiger_Index_View {
 
 	protected function preProcessTplName(Vtiger_Request $request) {
-		return 'DetailViewPreProcess.tpl';
+		return 'ListViewPreProcess.tpl';
 	}
 
+	/** Leads modern UI lives under SALES only. */
 	protected function resolveAppCategory(Vtiger_Request $request) {
 		return 'SALES';
 	}
@@ -18,7 +19,7 @@ class Leads_Detail_View extends Vtiger_Index_View {
 		if ($app === 'MARKETING') {
 			$query = array(
 				'module' => 'Leads',
-				'view' => 'Detail',
+				'view' => $request->get('view') ? $request->get('view') : 'List',
 				'app' => 'SALES',
 			);
 			if ($request->get('record')) {
@@ -36,9 +37,8 @@ class Leads_Detail_View extends Vtiger_Index_View {
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
 		$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
-		$viewer->assign('VIEW', 'Detail');
+		$viewer->assign('VIEW', 'List');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'Leads');
-		$viewer->assign('MK_LEADS_DETAIL_RECORD', $request->get('record'));
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
@@ -52,7 +52,7 @@ class Leads_Detail_View extends Vtiger_Index_View {
 
 	public function postProcess(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
-		$viewer->view('DetailViewPostProcess.tpl', $request->getModule());
+		$viewer->view('ListViewPostProcess.tpl', $request->getModule());
 		Vtiger_Basic_View::postProcess($request);
 	}
 
@@ -60,6 +60,9 @@ class Leads_Detail_View extends Vtiger_Index_View {
 		$this->redirectMarketingToSales($request);
 		$viewer = $this->getViewer($request);
 		$this->assignModernContext($request);
-		$viewer->view('DetailView.tpl', $request->getModule());
+		$viewer->assign('CURRENT_USER_MODEL', Users_Record_Model::getCurrentUserModel());
+		$viewer->assign('MODULE_BASIC_ACTIONS', array());
+		$viewer->assign('MODULE_SETTING_ACTIONS', array());
+		$viewer->view('ListViewContents.tpl', $request->getModule());
 	}
 }
