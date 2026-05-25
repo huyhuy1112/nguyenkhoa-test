@@ -10,6 +10,49 @@ require_once 'modules/HelpDesk/models/TicketService.php';
 
 class HelpDesk_List_View extends Vtiger_Index_View {
 
+	protected function preProcessTplName(Vtiger_Request $request) {
+		return 'ListViewPreProcess.tpl';
+	}
+
+	protected function assignSupportContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+		$appName = $request->get('app');
+		$viewer->assign('SELECTED_MENU_CATEGORY', !empty($appName) ? $appName : 'SUPPORT');
+		$viewer->assign('VIEW', 'List');
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		$this->assignSupportContext($request);
+		parent::preProcess($request, $display);
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$viewer->view('ListViewPostProcess.tpl', $request->getModule());
+		Vtiger_Basic_View::postProcess($request);
+	}
+
+	private static function assignedInitials($assignedUsers) {
+		$assignedUsers = trim((string)$assignedUsers);
+		if ($assignedUsers === '') {
+			return '';
+		}
+		$names = preg_split('/\s*,\s*/', $assignedUsers);
+		$first = trim($names[0]);
+		if ($first === '') {
+			return '';
+		}
+		$parts = preg_split('/\s+/', $first);
+		if (count($parts) >= 2) {
+			return strtoupper(substr($parts[0], 0, 1) . substr($parts[count($parts) - 1], 0, 1));
+		}
+		return strtoupper(substr($first, 0, 2));
+	}
+
 	public function process(Vtiger_Request $request) {
 		global $current_user;
 
@@ -85,9 +128,10 @@ class HelpDesk_List_View extends Vtiger_Index_View {
 					}
 				}
 
-				$row['sla_countdown']  = $slaCountdown;
-				$row['assigned_users'] = $row['assigned_users'] ?? '';
-				$tickets[]             = $row;
+				$row['sla_countdown']     = $slaCountdown;
+				$row['assigned_users']    = $row['assigned_users'] ?? '';
+				$row['assigned_initials'] = self::assignedInitials($row['assigned_users']);
+				$tickets[]                = $row;
 			}
 		}
 
@@ -133,9 +177,14 @@ class HelpDesk_List_View extends Vtiger_Index_View {
 
 		// Pagination info
 		$pageCount = $pageLimit > 0 ? (int)ceil($total / $pageLimit) : 1;
+		$showFrom  = $total > 0 ? $offset + 1 : 0;
+		$showTo    = min($offset + count($tickets), $total);
 
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('TICKETS', $tickets);
+		$viewer->assign('TOTAL_COUNT', $total);
+		$viewer->assign('SHOW_FROM', $showFrom);
+		$viewer->assign('SHOW_TO', $showTo);
 		$viewer->assign('TICKET_STATS', $stats);
 		$viewer->assign('CURRENT_PAGE', $page);
 		$viewer->assign('PAGE_COUNT', $pageCount);

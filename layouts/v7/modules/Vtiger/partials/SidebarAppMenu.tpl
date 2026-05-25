@@ -7,7 +7,7 @@
 * All Rights Reserved.
 ************************************************************************************}
 {* App menu CSS: đã chuyển vào layouts/v7/resources/custom.css (#app-menu.app-menu)
-   MK sidebar icons: Font Awesome mapping (UI only; no logic/permission changes) *}
+   MK app icons: designer SVG via DashboardSidebarSvgIcon.tpl *}
 <div class="app-menu hide" id="app-menu">
 	<div class="container-fluid">
 		<div class="row">
@@ -24,7 +24,7 @@
 			{if $USER_PRIVILEGES_MODEL->hasModulePermission($DASHBOARD_MODULE_MODEL->getId())}
 				<a class="menu-item app-item app-item-dashboard" href="index.php" title="Dashboard" data-app-name="DASHBOARD">
 					<div class="menu-items-wrapper app-menu-items-wrapper">
-						<span class="mk-icon app-icon-list"><i class="fa fa-tachometer"></i></span>
+						<span class="mk-icon app-icon-list mk-app-icon-svg">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='DASHBOARD'}</span>
 						<span class="app-name textOverflowEllipsis"> {vtranslate('LBL_DASHBOARD',$MODULE)}</span>
 						<span class="fa fa-chevron-right pull-right app-item-dashboard-chevron"></span>
 					</div>
@@ -45,17 +45,8 @@
 						{* Fix for Responsive Layout Menu - Changed data-default-url to # *}
 						<div class="menu-item app-item dropdown-toggle app-item-color-{$APP_NAME}" data-app-name="{$APP_NAME}" id="{$APP_NAME}_modules_dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-default-url="#">
 							<div class="menu-items-wrapper app-menu-items-wrapper">
-								{assign var=MK_APP_FA value=''}
-								{if $APP_NAME eq 'MARKETING'}{assign var=MK_APP_FA value='fa-bullhorn'}
-								{elseif $APP_NAME eq 'SALES'}{assign var=MK_APP_FA value='fa-dollar'}
-								{elseif $APP_NAME eq 'INVENTORY'}{assign var=MK_APP_FA value='fa-cubes'}
-								{elseif $APP_NAME eq 'SUPPORT'}{assign var=MK_APP_FA value='fa-ticket'}
-								{elseif $APP_NAME eq 'MANAGEMENT'}{assign var=MK_APP_FA value='fa-sitemap'}
-								{elseif $APP_NAME eq 'PROJECT'}{assign var=MK_APP_FA value='fa-briefcase'}
-								{elseif $APP_NAME eq 'TOOLS'}{assign var=MK_APP_FA value='fa-wrench'}
-								{/if}
-								{if $MK_APP_FA ne ''}
-									<span class="mk-icon app-icon-list"><i class="fa {$MK_APP_FA}"></i></span>
+								{if $APP_NAME eq 'MARKETING' || $APP_NAME eq 'SALES' || $APP_NAME eq 'INVENTORY' || $APP_NAME eq 'SUPPORT' || $APP_NAME eq 'MANAGEMENT' || $APP_NAME eq 'TOOLS'}
+									<span class="mk-icon app-icon-list mk-app-icon-svg">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON=$APP_NAME}</span>
 								{else}
 									<span class="app-icon-list fa {$APP_IMAGE_MAP.$APP_NAME}"></span>
 								{/if}
@@ -74,8 +65,10 @@
 								</li>
 							{/if}
 							{foreach item=moduleModel key=moduleName from=$APP_GROUPED_MENU[$APP_NAME]}
-								{* UI cleanup: hide separate Products/Services from sidebar submenu *}
-								{if $moduleName eq 'Products' || $moduleName eq 'Services'}{continue}{/if}
+								{* SUPPORT: ẩn Schedule (Calendar) — Schedule chỉ ở MANAGEMENT *}
+								{if $APP_NAME eq 'SUPPORT' && $moduleName eq 'Calendar'}{continue}{/if}
+								{* SALES: keep ProductsServices; hide legacy Products/Services *}
+								{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
 								{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}
 								{* Calendar: MANAGEMENT = Schedule, SUPPORT = Activities *}
 								{if $moduleName eq 'Calendar' && $APP_NAME eq 'MANAGEMENT'}

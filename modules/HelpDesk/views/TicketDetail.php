@@ -10,17 +10,53 @@ require_once 'modules/HelpDesk/models/TicketService.php';
 
 class HelpDesk_TicketDetail_View extends Vtiger_Index_View {
 
+	protected function preProcessTplName(Vtiger_Request $request) {
+		return 'TicketDetailPreProcess.tpl';
+	}
+
+	protected function assignSupportContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'SUPPORT');
+		$viewer->assign('VIEW', 'TicketDetail');
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		$this->assignSupportContext($request);
+		parent::preProcess($request, $display);
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$viewer->view('TicketDetailPostProcess.tpl', $request->getModule());
+		Vtiger_Basic_View::postProcess($request);
+	}
+
+	public function getHeaderScripts(Vtiger_Request $request) {
+		$headerScriptInstances = parent::getHeaderScripts($request);
+		$jsFileNames = array(
+			'modules.HelpDesk.resources.TicketDetail',
+		);
+		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+		return array_merge($headerScriptInstances, $jsScriptInstances);
+	}
+
 	public function process(Vtiger_Request $request) {
+		// Shell is opened/closed by WebUI (triggerPreProcess / triggerPostProcess). Do not call pre/post here.
+
 		$recordId = (int)$request->get('record');
 		if ($recordId <= 0) {
-			header('Location: index.php?module=HelpDesk&view=List');
+			header('Location: index.php?module=HelpDesk&view=List&app=SUPPORT');
 			return;
 		}
 
 		$service = HelpDesk_TicketService::getInstance();
 		$ticket  = $service->getTicketById($recordId);
 		if (!$ticket) {
-			header('Location: index.php?module=HelpDesk&view=List');
+			header('Location: index.php?module=HelpDesk&view=List&app=SUPPORT');
 			return;
 		}
 
@@ -222,10 +258,19 @@ class HelpDesk_TicketDetail_View extends Vtiger_Index_View {
 			}
 		}
 
+		$createdFormatted = $ticket['created_at'];
+		if (!empty($ticket['created_at'])) {
+			$ts = strtotime($ticket['created_at']);
+			if ($ts !== false) {
+				$createdFormatted = date('d-m-Y', $ts);
+			}
+		}
+
 		$viewer = $this->getViewer($request);
 
 		$viewer->assign('MODULE', $request->getModule());
 		$viewer->assign('TICKET', $ticket);
+		$viewer->assign('CREATED_AT_FORMATTED', $createdFormatted);
 		$viewer->assign('CUSTOMER_NAME', $customerName);
 		$viewer->assign('PROJECT_NAME', $projectName);
 		$viewer->assign('ASSIGNED_USERS', $assignedUsers);

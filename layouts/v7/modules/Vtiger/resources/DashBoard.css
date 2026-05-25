@@ -55,7 +55,7 @@
     font-weight: normal !important;
 }
 
-/* Axis labels (like "Value" on Y-axis) - ONLY in chart containers - MUCH LARGER SIZE */
+/* Axis labels — sized for card bounds (Phase 4B; avoids overflow / diagonal clutter) */
 .widgetChartContainer .jqplot-axis-label,
 .widgetChartContainer .jqplot-yaxis-label,
 .widgetChartContainer .jqplot-xaxis-label,
@@ -67,8 +67,8 @@
 .widgetChartContainer .jqplot-yaxis-label,
 .widgetChartContainer div.jqplot-yaxis-label,
 .widgetChartContainer span.jqplot-yaxis-label {
-    font-size: 28px !important;
-    font-weight: bold !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
     line-height: 1.2 !important;
 }
 
@@ -78,7 +78,7 @@
 .widgetChartContainer .jqplot-yaxis-tick-label,
 .widgetChartContainer div[class*="tick"]:not([class*="xaxis"]),
 .widgetChartContainer span[class*="tick"]:not([class*="xaxis"]) {
-    font-size: 15px !important;
+    font-size: 11px !important;
 }
 
 /* Y-axis tick labels (category labels in horizontal bar charts) - REDUCED SIZE to maximize chart area */
@@ -91,13 +91,13 @@
     fill: #777 !important;
 }
 
-/* Numbers on bars (data labels) - MOST IMPORTANT - ONLY in chart containers */
+/* Numbers on bars / series labels — readable inside card width */
 .widgetChartContainer .jqplot-point-label,
 .widgetChartContainer .jqplot-data-label,
 .widgetChartContainer .jqplot-bar-label,
 .widgetChartContainer .jqplot-series-label {
-    font-size: 22px !important;
-    font-weight: bold !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
     text-align: center !important;
 }
 
@@ -107,14 +107,14 @@
 .widgetChartContainer .jqplot-legend-swatch-label,
 .widgetChartContainer div[class*="legend"],
 .widgetChartContainer span[class*="legend"] {
-    font-size: 16px !important;
+    font-size: 11px !important;
 }
 
-/* SVG text elements - ONLY in chart containers */
+/* Default SVG text — conservative; point/data labels overridden below */
 .widgetChartContainer svg text,
 .widgetChartContainer svg tspan {
-    font-size: 22px !important;
-    font-weight: bold !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
 }
 
 /* Numbers in chart containers - be more specific to avoid affecting other widgets */
@@ -122,7 +122,4381 @@
 .widgetChartContainer span.jqplot-point-label,
 .widgetChartContainer div.jqplot-data-label,
 .widgetChartContainer span.jqplot-data-label {
-    font-size: 22px !important;
-    font-weight: bold !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
 }
 
+/* ========== Dashboard foundation (layout + widgets; no chart zoom/transform) ========== */
+
+/* Full-bleed page tint; centered canvas */
+body[data-view="DashBoard"] #page {
+    background: #F7F9FB;
+}
+
+/* Figma design tokens */
+body[data-view="DashBoard"] {
+    --mk-bg: #F7F9FB;
+    --mk-card: #ffffff;
+    --mk-card-border: #E2E8F0;
+    --mk-text: #191C1E;
+    --mk-muted: #64748B;
+    --mk-primary: #40627E;
+    --mk-amber: #FDBB2C;
+    --mk-amber-border: rgba(217, 119, 6, 0.45);
+    --mk-radius: 14px; /* target 12–16px */
+    --mk-radius-sm: 10px;
+    --mk-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --mk-shadow-md: 0 8px 28px rgba(15, 23, 42, 0.10);
+    --mk-pad-card-x: 16px;
+    --mk-pad-card-y: 14px;
+    --mk-gap: 10px;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ========== Dashboard sidebar (DashBoard + ModernDashboard + Accounts list SALES) ========== */
+body[data-view="DashBoard"],
+body[data-view="ModernDashboard"],
+body[data-module="Accounts"][data-view="List"][data-app="SALES"],
+body[data-module="Contacts"][data-view="List"][data-app="SALES"],
+body[data-module="Potentials"][data-view="List"][data-app="SALES"],
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"],
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"],
+body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"],
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"],
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"],
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"],
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"],
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] {
+    /* Figma shell */
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-view="ModernDashboard"] {
+    /* Global topbar (ListViewPreProcess) clears fixed sidebar top */
+    --mk-dash-topbar-offset: 64px;
+}
+
+/* Split shell: fixed sidebar column + app column (topbar + subnav + main). DashBoardPreProcess.tpl */
+body[data-view="DashBoard"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-view="DashBoard"] .mk-app-shell,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    /* Reserve vertical space for fixed topbar (Figma: main below 64px bar) */
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-view="DashBoard"] .mk-app-shell-subnav,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav {
+    flex: 0 0 auto;
+}
+
+body[data-view="DashBoard"] .mk-dash-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    /* Figma: tight under topbar; horizontal rhythm 32px */
+    padding: 8px 32px 32px;
+    box-sizing: border-box;
+}
+
+/* SALES module Detail: gutters live on .main-container.mk-*-detail-page (48px/32px), not mk-dash-main */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-dash-main.mk-camp-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* SALES app list pages: unified Contacts-style shell (24px pad + page bg) */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-leads-list-main,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-dash-main.mk-camp-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #page,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #page,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Leads"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #page,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #page.container-fluid,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #page.container-fluid,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #page.container-fluid,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #page.container-fluid,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #page.container-fluid,
+body[data-module="Leads"][data-view="List"][data-app="SALES"] #page.container-fluid,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #page.container-fluid,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #page.container-fluid,
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] #page,
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] #page.container-fluid,
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #page,
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+/* Topbar spans only the app column: x = sidebar width, width = viewport − sidebar (Figma) */
+body[data-view="DashBoard"] .mk-topbar,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-topbar,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-topbar,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-topbar,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-topbar,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-topbar,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-topbar,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-topbar,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-topbar,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-topbar,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-topbar,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-view="DashBoard"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+.mk-dashboard-sidebar {
+    position: fixed;
+    left: 0;
+    width: var(--mk-dash-sidebar-w);
+    z-index: 1000;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    box-shadow: none;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-sidebar,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-view="ModernDashboard"] .mk-dashboard-sidebar {
+    top: var(--mk-dash-topbar-offset);
+    height: calc(100vh - var(--mk-dash-topbar-offset));
+}
+
+.mk-dash-sidebar-brand {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 16px 0;
+    margin-bottom: 16px;
+    border: none;
+    border-bottom: none;
+    box-shadow: none;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+.mk-dash-sidebar-brand #appnavigator.mk-dash-appnavigator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 8px;
+    color: #475569;
+}
+
+.mk-dash-sidebar-brand #appnavigator.mk-dash-appnavigator:hover {
+    background: #f8fafc !important;
+    color: #334155;
+}
+
+.mk-dash-sidebar-brand .mk-dash-appnavigator-inner {
+    margin: 0 !important;
+    width: auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.mk-dash-sidebar-brand .mk-dash-appnavigator-inner::before,
+.mk-dash-sidebar-brand .mk-dash-appnavigator-inner::after {
+    display: none !important;
+    content: none !important;
+}
+
+.mk-dash-hamburger-svg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.mk-dash-hamburger-svg .mk-dash-svg {
+    color: #475569;
+}
+
+.mk-dash-logo-link {
+    text-decoration: none !important;
+    padding: 0;
+    margin: 0;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.mk-dash-bace-logo {
+    display: block;
+    width: auto;
+    max-width: min(218px, 100%);
+    height: auto;
+    max-height: 40px;
+    object-fit: contain;
+}
+
+.mk-dash-sidebar-logo {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo {
+    display: inline-flex;
+    align-items: center;
+    height: auto;
+    max-height: none;
+    padding: 0;
+}
+
+.mk-dash-sidebar-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.mk-dash-sidebar-nav {
+    /* Figma: 32px gap from logo block to first nav item — no horizontal rules */
+    padding: 32px 12px 20px;
+    overflow-y: auto;
+    overflow-x: visible;
+    flex: 1 1 auto;
+    min-height: 0;
+    box-sizing: border-box;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.mk-dash-sidebar-nav-track {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.mk-dash-svg {
+    display: block;
+    flex-shrink: 0;
+    color: #475569;
+}
+
+.mk-dash-svg--designer {
+    width: 20px;
+    height: 20px;
+    max-width: 20px;
+    max-height: 20px;
+}
+
+.mk-dash-nav-ic .mk-dash-svg--designer,
+.mk-dash-app-ic .mk-dash-svg--designer {
+    display: block;
+    margin: 0 auto;
+}
+
+.mk-dash-nav-item .mk-dash-svg,
+.mk-dash-app-toggle .mk-dash-svg {
+    color: inherit;
+}
+
+.mk-dash-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    margin: 0;
+    border-radius: 8px;
+    text-decoration: none !important;
+    color: #475569 !important;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    position: relative;
+    overflow: visible;
+}
+
+.mk-dash-nav-item:hover {
+    background: #f8fafc;
+}
+
+.mk-dash-nav-item--active {
+    background: #fffbeb !important;
+    color: #d97706 !important;
+    box-shadow: inset -4px 0 0 #f59e0b;
+}
+
+.mk-dash-nav-item--active .mk-dash-nav-label {
+    color: #d97706 !important;
+    font-weight: 600;
+}
+
+.mk-dash-nav-item--active .mk-dash-svg {
+    color: #d97706;
+}
+
+.mk-dash-nav-ic {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mk-dash-nav-label {
+    font-weight: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    color: inherit;
+}
+
+.mk-dash-sidebar-footer {
+    padding: 20px 16px 20px;
+    margin-top: auto;
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    box-shadow: none;
+    background: #ffffff;
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+}
+
+.mk-dash-sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.mk-dash-user-avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    object-fit: cover;
+}
+
+.mk-dash-user-avatar--fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #e2e8f0, #cbd5e1);
+    font-weight: 700;
+    font-size: 14px;
+    color: #475569;
+}
+
+.mk-dash-user-meta {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.mk-dash-user-name {
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 20px;
+    color: #0f172a;
+}
+
+.mk-dash-user-role {
+    font-size: 12px;
+    line-height: 16px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* Accordion: breathing room below logo (brand margin-bottom) + nav track; do not zero top padding */
+.mk-dashboard-sidebar .mk-dash-sidebar-nav.mk-dash-sidebar-nav--accordion {
+    padding-top: 8px;
+}
+
+.mk-dash-app-group {
+    border-bottom: none;
+    overflow: visible;
+}
+
+.mk-dash-app-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    margin: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    color: #475569;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0;
+    text-transform: none;
+    transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    position: relative;
+    overflow: visible;
+}
+
+.mk-dash-app-toggle:hover,
+.mk-dash-app-toggle:focus {
+    background: #f8fafc;
+    outline: none;
+}
+
+.mk-dash-app-group--active > .mk-dash-app-toggle {
+    background: #fffbeb !important;
+    color: #d97706 !important;
+    font-weight: 600;
+    box-shadow: inset -4px 0 0 #f59e0b;
+}
+
+.mk-dash-app-group--active > .mk-dash-app-toggle .mk-dash-svg {
+    color: #d97706;
+}
+
+.mk-dash-app-group--active > .mk-dash-app-toggle:hover,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus {
+    background: #fffbeb !important;
+    color: #d97706 !important;
+}
+
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle {
+    background: transparent;
+    color: #475569;
+    font-weight: 500;
+    box-shadow: none;
+}
+
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle .mk-dash-svg {
+    color: #475569;
+}
+
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:hover,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus {
+    background: #f8fafc;
+    color: #475569;
+}
+
+.mk-dash-app-ic {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mk-dash-app-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+}
+
+.mk-dash-app-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #94a3b8;
+    transition: transform 0.2s ease, color 0.18s ease;
+}
+
+.mk-dash-app-group--open .mk-dash-app-chevron {
+    transform: rotate(-180deg);
+}
+
+.mk-dash-app-group--active.mk-dash-app-group--open .mk-dash-app-chevron {
+    color: #d97706;
+}
+
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) .mk-dash-app-chevron {
+    color: #94a3b8;
+}
+
+.mk-dash-app-panel {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 0 0 8px;
+    transition: max-height 0.22s ease, opacity 0.2s ease;
+}
+
+.mk-dash-app-group--open .mk-dash-app-panel {
+    max-height: min(70vh, 560px);
+    opacity: 1;
+    padding-bottom: 6px;
+}
+
+.mk-dash-mod-link {
+    display: block;
+    padding: 8px 12px 8px 14px;
+    margin: 2px 0;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569 !important;
+    text-decoration: none !important;
+    border: none;
+    transition: background 0.18s ease, color 0.18s ease;
+    overflow: visible;
+    position: relative;
+}
+
+.mk-dash-mod-link:hover {
+    background: #f1f5f9;
+}
+
+.mk-dash-mod-link--active {
+    background: #fffbeb;
+    color: #d97706 !important;
+    font-weight: 600;
+    box-shadow: inset -4px 0 0 #f59e0b;
+}
+
+.mk-dash-sidebar-mobile-toggle {
+    display: none;
+}
+
+.mk-dash-sidebar-mobile-toggle .mk-dash-svg {
+    color: #0f172a;
+}
+
+.mk-dash-drawer-backdrop {
+    display: none;
+}
+
+@media (max-width: 991px) {
+    body[data-view="DashBoard"] .mk-dash-sidebar-mobile-toggle,
+    body[data-view="ModernDashboard"] .mk-dash-sidebar-mobile-toggle,
+    body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
+    body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
+    body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
+        body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
+        body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
+    body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        left: 12px;
+        bottom: 16px;
+        z-index: 1001;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12);
+        color: #0b1f4d;
+        cursor: pointer;
+    }
+
+    body[data-view="DashBoard"] .mk-dashboard-sidebar,
+    body[data-view="ModernDashboard"] .mk-dashboard-sidebar,
+    body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+    body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+    body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+    body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+    body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar,
+    body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
+        body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
+        body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
+    body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar {
+        transform: translateX(-105%);
+        transition: transform 0.22s ease;
+        box-shadow: 8px 0 32px rgba(15, 23, 42, 0.12);
+    }
+
+    body[data-view="DashBoard"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+    body[data-view="ModernDashboard"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+    body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+    body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+    body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+    body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+    body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+    body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+        body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+        body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+    body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open {
+        transform: translateX(0);
+    }
+
+    body[data-view="DashBoard"] .mk-dash-drawer-backdrop,
+    body[data-view="ModernDashboard"] .mk-dash-drawer-backdrop,
+    body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-dash-drawer-backdrop,
+    body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dash-drawer-backdrop,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dash-drawer-backdrop,
+    body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-dash-drawer-backdrop,
+    body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-dash-drawer-backdrop,
+    body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dash-drawer-backdrop,
+    body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop,
+        body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop,
+        body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop,
+    body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        background: rgba(15, 23, 42, 0.35);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+
+    body[data-view="DashBoard"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+    body[data-view="ModernDashboard"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+    body[data-module="Accounts"][data-view="List"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+    body[data-module="Contacts"][data-view="List"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+    body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+    body[data-module="SalesOrder"][data-view="List"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+    body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+    body[data-module="Accounts"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+        body[data-module="Contacts"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+        body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+    body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    body[data-view="DashBoard"] .mk-app-shell,
+    body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-app-shell,
+    body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-app-shell,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-app-shell,
+    body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+        body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+        body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+    body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-top: var(--mk-dash-topbar-h) !important;
+    }
+
+    body[data-view="DashBoard"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+        body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+        body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+    }
+
+    body[data-view="DashBoard"] .mk-dash-main,
+    body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-dash-main,
+    body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dash-main,
+    body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+        body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+        body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+    body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-main {
+        padding: 8px 16px 24px;
+    }
+
+    body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dash-main,
+    body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-dash-main,
+    body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-dash-main,
+    body[data-module="Quotes"][data-view="List"][data-app="SALES"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"],
+    body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-dash-main,
+    body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-dash-main,
+    body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-dash-main {
+        padding: 0;
+    }
+
+    body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-app-shell,
+    body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-app-shell,
+    body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-app-shell {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-top: var(--mk-dash-topbar-h);
+    }
+
+    body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+    }
+
+    body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main,
+    body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main,
+    body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main {
+        padding: 0;
+    }
+
+    body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-app-shell,
+    body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-app-shell,
+    body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-app-shell {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-top: var(--mk-dash-topbar-h);
+    }
+
+    body[data-view="DashBoard"] #page > .container-fluid.app-nav,
+    body[data-view="DashBoard"] .dashboard-page-root,
+    body[data-view="ModernDashboard"] #page > .container-fluid.app-nav,
+    body[data-view="ModernDashboard"] .mk-modern-dashboard-root {
+        margin-left: 0 !important;
+    }
+
+    body[data-view="ModernDashboard"] .mk-modern-main {
+        margin-left: 0 !important;
+    }
+}
+
+/* Content offset is .mk-app-shell margin-left; do not double-indent dashboard body */
+
+/* On dashboard, hide the legacy app-menu trigger column (prevents “ghost” strip) */
+body[data-view="DashBoard"] .app-nav .app-indicator-icon-container {
+    display: none !important;
+}
+
+body[data-view="DashBoard"] .app-nav .module-action-bar {
+    width: 100% !important;
+}
+
+/* Figma: hide Home “DASHBOARD” subnav strip (ModuleHeader) on classic dashboard shell only */
+body[data-view="DashBoard"] .mk-app-shell-subnav.app-nav {
+    display: none !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-main .dashboard-page-root {
+    min-height: 0;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-shell {
+    padding: 0;
+    margin: 0;
+}
+
+/* Tighter stack: title row → minimal tabs → widgets */
+body[data-view="DashBoard"] .mk-dashboard-top-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-top-stack .tabContainer {
+    width: 100%;
+    min-width: 0;
+}
+
+/* Figma header: one row — titles left, actions right */
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma {
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-figma-header-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px 24px;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dashboard-title-block {
+    float: none !important;
+    padding: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-figma-header-actions {
+    flex: 0 0 auto;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-tab-toolbar--figma {
+    margin: 0;
+    padding: 0;
+    min-height: 0;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-tab-toolbar-actions--figma {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-heading--figma.pull-right {
+    float: none !important;
+}
+
+/* Figma primary buttons (Modify / Add Widgets / save order) */
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn,
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-modify-dropdown > .btn.btn-default {
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 10px 24px !important;
+    box-sizing: border-box !important;
+    background: #fdbb2c !important;
+    border: 1px solid rgba(217, 119, 6, 0.45) !important;
+    color: #5e4200 !important;
+    border-radius: 8px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn:hover,
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-modify-dropdown > .btn.btn-default:hover {
+    background: #f6ad1b !important;
+    color: #4a3400 !important;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn--secondary {
+    background: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn .caret {
+    border-top-color: #5e4200;
+}
+
+/* Tab strip: text links only — no pills / underline / divider line */
+body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.nav.nav-tabs.tabs.mk-dashboard-tabs--figma {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 20px;
+    padding: 0;
+    margin: 0;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma.nav-tabs {
+    border-bottom: none !important;
+}
+
+body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma > li.dashboardTab {
+    float: none;
+    margin: 0;
+}
+
+body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma > li.dashboardTab > a {
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 4px 0 !important;
+    margin: 0;
+    background: transparent !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+}
+
+body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma > li.dashboardTab.active > a,
+body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma > li.dashboardTab.active > a:hover,
+body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma > li.dashboardTab.active > a:focus {
+    border: none !important;
+    background: transparent !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma > li.dashboardTab > a:hover {
+    color: #334155 !important;
+    background: transparent !important;
+}
+
+body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma > li.dashboardTab .deleteTab {
+    margin-left: 6px;
+    opacity: 0.55;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-tab .dashBoardTabContents {
+    padding-top: 0;
+}
+
+/* Light dashboard topbar (navbar-default): icon + search row */
+body[data-view="DashBoard"] .mk-dash-app-topbar.navbar-default {
+    margin-bottom: 0;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar.navbar-default .navbar-nav > li > a,
+body[data-view="DashBoard"] .mk-dash-app-topbar.navbar-default .navbar-nav > li > div > a,
+body[data-view="DashBoard"] .mk-dash-app-topbar.navbar-default .navbar-nav .dropdown-toggle {
+    color: #475569 !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar .search-link {
+    border-radius: 8px;
+}
+
+/* Figma dashboard header typography */
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dashboard-kicker {
+    color: #d97706 !important;
+    margin-bottom: 2px;
+}
+
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dashboard-title {
+    color: #191c1e !important;
+}
+
+/* Dashboard topbar: Figma SVG row — consistent grays, no FA on primary actions */
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-ic,
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-search-ic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #525252;
+    line-height: 0;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-ic--profile,
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-svg--user {
+    color: #28303f;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-svg {
+    display: block;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-linkic,
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-qcbtn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    border-radius: 8px;
+    color: #525252 !important;
+    text-decoration: none !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-linkic:hover,
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-linkic:focus,
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-qcbtn:hover,
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-qcbtn:focus {
+    background: rgba(15, 23, 42, 0.06) !important;
+    color: #525252 !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-navtoggle {
+    color: #525252 !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar .mk-dash-topbar-navtoggle .mk-dash-svg {
+    color: #525252;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar .search-link .fa-search {
+    display: none !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar .search-link .mk-dash-search-ic {
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar #navbar .nav.navbar-nav > li > div > a .fa,
+body[data-view="DashBoard"] .mk-dash-app-topbar #navbar .nav.navbar-nav > li > div > a .vicon,
+body[data-view="DashBoard"] .mk-dash-app-topbar #navbar .nav.navbar-nav > li > div > a[class*="fa-"] {
+    display: none !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar #modern-notifications-bell {
+    position: relative;
+}
+
+body[data-view="DashBoard"] .mk-dash-app-topbar #modern-notifications-bell .modern-notifications-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+}
+
+.dashboard-page-root {
+    background: #f7f9fb;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.mk-dashboard-shell {
+    max-width: none;
+    margin: 0;
+    padding: 16px 28px 28px;
+    box-sizing: border-box;
+}
+
+.mk-dash-board-inner {
+    margin: 0;
+}
+
+.mk-dashboard-top-stack {
+    margin: 0;
+    padding: 0;
+}
+
+.mk-dashboard-page-header {
+    margin: 0 0 8px;
+    padding: 0;
+    border: none;
+}
+
+.mk-dashboard-title-block {
+    padding: 4px 0 0;
+}
+
+.mk-dashboard-kicker {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mk-muted);
+    margin-bottom: 4px;
+}
+
+.mk-dashboard-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--mk-text);
+    margin: 0;
+    line-height: 1.25;
+}
+
+/* Phase 4B tokens (reference — shared values used below) */
+/* Page #F7F9FB | Card border #E2E8F0 | Text #191C1E | Secondary #64748B | Blue #40627E | Amber #FDBB2C / #D97706 | Radius 12px */
+
+/* Tab strip: compact pills (non-Figma dashboards / fallback only) */
+.dashBoardContainer .tabContainer > ul.nav.nav-tabs.tabs.mk-dashboard-tabs:not(.mk-dashboard-tabs--figma) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 4px 8px;
+    padding: 0 0 0;
+    margin: 0 0 8px;
+    background: transparent !important;
+    border-bottom: 1px solid var(--mk-card-border);
+}
+
+.dashBoardContainer .tabContainer > ul.nav.nav-tabs.tabs.mk-dashboard-tabs:not(.mk-dashboard-tabs--figma) > li.dashboardTab {
+    float: none;
+    margin-bottom: -1px;
+}
+
+.dashBoardContainer .tabContainer > ul.nav.nav-tabs.tabs.mk-dashboard-tabs:not(.mk-dashboard-tabs--figma) > li.dashboardTab > a {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 8px 14px !important;
+    margin-right: 0;
+    border: 1px solid transparent !important;
+    background: rgba(255, 255, 255, 0.75) !important;
+    color: #475569 !important;
+}
+
+.dashBoardContainer .tabContainer > ul.nav.nav-tabs.tabs.mk-dashboard-tabs:not(.mk-dashboard-tabs--figma) > li.dashboardTab.active > a,
+.dashBoardContainer .tabContainer > ul.nav.nav-tabs.tabs.mk-dashboard-tabs:not(.mk-dashboard-tabs--figma) > li.dashboardTab.active > a:hover,
+.dashBoardContainer .tabContainer > ul.nav.nav-tabs.tabs.mk-dashboard-tabs:not(.mk-dashboard-tabs--figma) > li.dashboardTab.active > a:focus {
+    background: #fff !important;
+    color: #0f172a !important;
+    border-color: var(--mk-card-border) !important;
+    border-bottom-color: #fff !important;
+    font-weight: 600;
+}
+
+/* Toolbar: Modify + Add Widgets (same tab pane as grid) */
+.mk-dashboard-tab-toolbar {
+    margin: 0 0 6px;
+    padding: 0;
+    min-height: 40px;
+}
+
+.mk-dashboard-tab-toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.mk-dash-modify-dropdown {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.mk-dash-modify-dropdown > .btn {
+    border-radius: var(--mk-radius-sm);
+    font-weight: 600;
+    border-color: #cbd5e1;
+    background: #fff;
+}
+
+.mk-dash-toolbar-add-wrap {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.mk-dashboard-heading--inline {
+    float: none !important;
+    display: inline-block;
+    margin: 0;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+.mk-dashboard-heading--inline .mk-dashboard-heading-actions {
+    float: none !important;
+}
+
+.mk-dashboard-heading--inline .btn.addButton {
+    border-radius: var(--mk-radius-sm);
+    font-weight: 600;
+    border-color: #cbd5e1;
+    background: #fff;
+    box-shadow: var(--mk-shadow-sm);
+}
+
+.mk-dash-save-tab-order {
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.mk-dashboard-tab .dashBoardTabContents {
+    padding-top: 4px;
+}
+
+.dashBoardTabContents [class^="gridster_"] {
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.dashBoardTabContents [class^="gridster_"] > ul {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Widget cards — Phase 4B shell (no transform/zoom) */
+.dashBoardTabContents ul li.dashboardWidget {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--mk-card-border) !important;
+    border-radius: var(--mk-radius) !important;
+    box-shadow: var(--mk-shadow-sm) !important;
+    padding: 0 !important;
+    overflow: hidden;
+    background: var(--mk-card) !important;
+    box-sizing: border-box;
+    transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+}
+
+.dashBoardTabContents ul li.dashboardWidget:hover {
+    box-shadow: var(--mk-shadow-md) !important;
+    border-color: rgba(148, 163, 184, 0.65) !important;
+}
+
+.dashBoardTabContents ul li.dashboardWidget .dashboardWidgetHeader {
+    padding: 12px var(--mk-pad-card-x);
+    border-bottom: 1px solid var(--mk-card-border);
+    background: var(--mk-card);
+    flex: 0 0 auto;
+}
+
+.dashBoardTabContents ul li.dashboardWidget .dashboardWidgetHeader .title,
+.dashBoardTabContents ul li.dashboardWidget .dashboardWidgetHeader .dashboardTitle {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em;
+    color: var(--mk-text) !important;
+    padding-bottom: 0 !important;
+}
+
+.dashBoardTabContents ul li.dashboardWidget .dashboardWidgetHeader .dashboardTitle {
+    max-width: 100%;
+    width: auto !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashBoardTabContents ul li.dashboardWidget .dashboardWidgetContent {
+    padding: var(--mk-pad-card-y) var(--mk-pad-card-x) 42px;
+    color: var(--mk-text);
+    box-sizing: border-box;
+    overflow: hidden;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* Chart stage — fill available height (avoid jqplot clipping) */
+.dashBoardTabContents ul li.dashboardWidget .widgetChartContainer,
+.widgetChartContainer.mk-chart-stage {
+    height: 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+    padding: 4px 2px 2px !important;
+}
+
+.widgetChartContainer.mk-chart-stage {
+    min-height: 268px;
+}
+
+.mk-dashboard-chart-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    height: 100%;
+}
+
+.mk-dashboard-chart-row .mk-chart-col {
+    padding-left: 0;
+    padding-right: 0;
+    height: 100%;
+}
+
+/* Upcoming / overdue activity lists: avoid clipping inside flex chart cards */
+body[data-view="DashBoard"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetContent,
+body[data-view="DashBoard"] .dashboardWidget[data-name="OverdueActivities"] .dashboardWidgetContent,
+body[data-view="DashBoard"] .dashboardWidget.fullscreenview[data-name="CalendarActivities"] .dashboardWidgetContent,
+body[data-view="DashBoard"] .dashboardWidget.fullscreenview[data-name="OverdueActivities"] .dashboardWidgetContent {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    min-height: 120px;
+}
+
+.dashBoardTabContents ul li.dashboardWidget .dashBoardWidgetFooter {
+    height: 38px;
+    background: var(--mk-bg);
+    border-top: 1px solid var(--mk-card-border);
+    flex: 0 0 auto;
+}
+
+/* Footer action icons — subtle until hover */
+.dashBoardTabContents ul li.dashboardWidget .dashBoardWidgetFooter .footerIcons {
+    padding: 8px 12px 0 0;
+}
+
+.dashBoardTabContents ul li.dashboardWidget .dashBoardWidgetFooter .footerIcons a {
+    opacity: 0.42;
+    transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.dashBoardTabContents ul li.dashboardWidget .dashBoardWidgetFooter .footerIcons a:hover,
+.dashBoardTabContents ul li.dashboardWidget .dashBoardWidgetFooter .footerIcons a:focus {
+    opacity: 1;
+    color: var(--mk-primary) !important;
+}
+
+.dashBoardTabContents ul li.dashboardWidget .dashBoardWidgetFooter .footerIcons .fa {
+    font-size: 15px;
+}
+
+/* Filter slide-down panel */
+.dashBoardTabContents ul li.dashboardWidget .dashBoardWidgetFooter .filterContainer {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Empty states — preserve message text */
+.dashboardWidgetContent .noDataMsg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 168px;
+    padding: 28px 20px;
+    margin: 0 auto;
+    max-width: 320px;
+    color: var(--mk-muted) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    line-height: 1.45;
+    box-sizing: border-box;
+}
+
+.dashboardWidgetContent .noDataMsg::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 12px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    border: 1px dashed #cbd5e1;
+    opacity: 0.9;
+}
+
+/* ========== History widget (Phase 4B) ========== */
+.mk-history-widget-header {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.mk-history-header-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 12px;
+}
+
+.mk-history-title-cell {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.mk-history-title-cell .dashboardTitle {
+    padding-bottom: 0 !important;
+}
+
+.mk-history-title-cell .dashboardTitle b {
+    font-weight: 600;
+    color: #191c1e;
+}
+
+.mk-history-filter-cell {
+    flex: 0 1 auto;
+    min-width: 0;
+    text-align: right;
+}
+
+.mk-history-filter-cell .select2-container {
+    max-width: 220px;
+}
+
+.mk-history-single-user-label {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    padding: 4px 0;
+}
+
+.mk-history-widget-body {
+    padding-top: 0 !important;
+}
+
+.mk-history-feed.mk-history-scroll {
+    max-height: min(340px, 42vh);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 2px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.mk-history-ts {
+    margin: 6px 0 0 46px !important;
+    padding-right: 4px !important;
+}
+
+.mk-history-feed.mk-history-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mk-history-feed.mk-history-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 6px;
+}
+
+.mk-history-item,
+.mk-history-item.mk-history-item--comment {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0 10px;
+    padding: 12px 10px;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.mk-history-item > .pull-left,
+.mk-history-item--comment > .pull-left {
+    float: none !important;
+}
+
+.mk-history-item:last-child,
+.mk-history-item--comment:last-child {
+    border-bottom: none;
+}
+
+.mk-history-item > .col-lg-1,
+.mk-history-item--comment > .col-lg-1 {
+    flex: 0 0 40px;
+    width: 40px !important;
+    max-width: 40px;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+}
+
+.mk-history-item > .col-lg-1 span,
+.mk-history-item--comment > .col-lg-1 span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f7f9fb;
+    border: 1px solid #e2e8f0;
+}
+
+.mk-history-item > .col-lg-10,
+.mk-history-item--comment > .col-lg-10 {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto !important;
+    max-width: none !important;
+    padding-left: 0 !important;
+}
+
+.mk-history-item > p.pull-right.muted,
+.mk-history-item--comment > p.pull-right.muted {
+    flex: 1 1 100%;
+    float: none !important;
+    margin: 6px 0 0 46px !important;
+    padding-right: 4px !important;
+    text-align: right;
+    font-size: 11px;
+    color: #64748b !important;
+}
+
+.mk-history-item a,
+.mk-history-item--comment a {
+    color: #40627e;
+}
+
+.mk-history-feed .load-more {
+    display: inline-block;
+    margin: 12px 10px 4px;
+    font-weight: 600;
+    color: #40627e !important;
+}
+
+@media (max-width: 767px) {
+    .mk-history-filter-cell {
+        flex: 1 1 100%;
+        text-align: left;
+    }
+
+    .mk-history-filter-cell .select2-container {
+        max-width: 100%;
+    }
+
+    .dashBoardTabContents ul li.dashboardWidget .widgetChartContainer,
+    .widgetChartContainer.mk-chart-stage {
+        min-height: 220px;
+    }
+}
+
+/* ========== Dashboard buttons (fallback: tab body only; shell uses .mk-dashboard-page-header--figma rules) ========== */
+.dashBoardTabContainer .mk-dash-modify-dropdown > .btn,
+.dashBoardTabContainer .mk-dashboard-heading--inline .btn.addButton {
+    background: #fdbb2c !important;
+    border-color: rgba(217, 119, 6, 0.45) !important;
+    color: #5e4200 !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    padding: 10px 24px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.25 !important;
+    border-radius: 8px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+.dashBoardTabContainer .mk-dash-modify-dropdown > .btn:hover,
+.dashBoardTabContainer .mk-dashboard-heading--inline .btn.addButton:hover {
+    background: #f6ad1b !important;
+    border-color: rgba(217, 119, 6, 0.65) !important;
+}
+
+.dashBoardTabContainer .mk-dash-modify-dropdown > .btn:active,
+.dashBoardTabContainer .mk-dashboard-heading--inline .btn.addButton:active {
+    background: #f59e0b !important;
+}
+
+/* ========== jqPlot visual polish (CSS-only; safe) ========== */
+/* Plot stack: canvases + grid fill; legend flows below (no overlay on data) */
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-target,
+body[data-view="DashBoard"] .fullscreenview .jqplot-target {
+    background: transparent !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-target > *:not(table.jqplot-table-legend),
+body[data-view="DashBoard"] .fullscreenview .jqplot-target > *:not(table.jqplot-table-legend) {
+    flex: 0 0 auto;
+    align-self: stretch;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-target > .jqplot-series-canvas,
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-target > .jqplot-grid-canvas,
+body[data-view="DashBoard"] .fullscreenview .jqplot-target > .jqplot-series-canvas,
+body[data-view="DashBoard"] .fullscreenview .jqplot-target > .jqplot-grid-canvas {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer table.jqplot-table-legend,
+body[data-view="DashBoard"] .fullscreenview table.jqplot-table-legend {
+    order: 99;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 6px 0 0 0 !important;
+    flex: 0 0 auto;
+    align-self: stretch;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 2px 4px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 2px 0 0 !important;
+    max-height: 96px;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-table-legend-swatch-outline,
+body[data-view="DashBoard"] .fullscreenview .jqplot-table-legend-swatch-outline {
+    border-radius: 3px !important;
+    border: none !important;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-table-legend-label,
+body[data-view="DashBoard"] .fullscreenview .jqplot-table-legend-label {
+    color: #64748B !important;
+    font-weight: 400 !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    padding: 1px 4px 1px 2px !important;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-title,
+body[data-view="DashBoard"] .fullscreenview .jqplot-title {
+    color: var(--mk-text) !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    letter-spacing: 0.01em;
+}
+
+body[data-view="DashBoard"] .fullscreenview .widgetChartContainer {
+    padding: 6px 8px !important;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer canvas {
+    image-rendering: auto;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-grid-canvas {
+    opacity: 0.92;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-highlighter-tooltip,
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-cursor-tooltip,
+body[data-view="DashBoard"] .fullscreenview .jqplot-highlighter-tooltip,
+body[data-view="DashBoard"] .fullscreenview .jqplot-cursor-tooltip {
+    background: rgba(17, 24, 39, 0.92) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.28) !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-jqplot-tooltip.jqplot-highlighter-tooltip,
+body[data-view="DashBoard"] .mk-dash-jqplot-tooltip {
+    font-family: inherit !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-jqplot-tooltip .mk-dash-tip-cat {
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 1.3;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    color: #fff !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-jqplot-tooltip .mk-dash-tip-body {
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.92) !important;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-axis-tick,
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-tick-label,
+body[data-view="DashBoard"] .fullscreenview .jqplot-axis-tick,
+body[data-view="DashBoard"] .fullscreenview .jqplot-tick-label {
+    color: #64748B !important;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-xaxis-tick,
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-yaxis-tick,
+body[data-view="DashBoard"] .fullscreenview .jqplot-xaxis-tick,
+body[data-view="DashBoard"] .fullscreenview .jqplot-yaxis-tick {
+    color: #64748B !important;
+}
+
+/* Ghost / duplicate nav: hide orphan app list; overlay menu fully non-interactive when hidden */
+body[data-view="DashBoard"] #page > .app-list.row {
+    display: none !important;
+}
+
+body[data-view="DashBoard"] #app-menu.app-menu.hide {
+    pointer-events: none !important;
+}
+
+/* (dedupe) */
+
+/* ========== Campaigns (MARKETING) — dashboard split shell (list + detail) ========== */
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"],
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+/* ========== Leads (MARKETING) — same split shell as Campaigns ========== */
+body[data-module="Leads"][data-view="List"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="List"][data-app="SALES"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="List"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Leads"][data-view="List"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Leads"][data-view="List"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="List"][data-app="SALES"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Leads"][data-view="List"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-dash-main,
+body[data-module="Leads"][data-view="List"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-leads-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Leads Edit (MARKETING) — split shell (same as list) ========== */
+body[data-module="Leads"][data-view="Edit"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] #page,
+body[data-module="Leads"][data-view="Edit"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Leads"][data-view="Edit"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-dash-main,
+body[data-module="Leads"][data-view="Edit"][data-app="MARKETING"],
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-leads-edit-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-app-shell,
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-topbar,
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-dash-app-ic .mk-dash-svg--marketing {
+    overflow: visible;
+}
+
+/* ========== Evaluate (MARKETING) — same split shell as Campaigns ========== */
+body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] #page,
+body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+/* ========== Plans (MARKETING) — same split shell as Campaigns ========== */
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #page,
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+/* ========== Plans (MARKETING) — detail split shell ========== */
+body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+/* ========== Contacts (MARKETING) — list + detail split shell ========== */
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-app-shell,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-topbar,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-dashboard-sidebar,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #page,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #page.container-fluid,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] #page,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-dash-main.mk-contacts-list-main,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-dash-main.mk-contact-detail-main {
+    padding: 20px 24px 24px 16px;
+}
+
+/* ========== Accounts / Organizations (MARKETING) — list + detail split shell ========== */
+body[data-module="Accounts"][data-view="List"][data-app="MARKETING"],
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-app-shell,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-topbar,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-dashboard-sidebar,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #page,
+body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #page.container-fluid,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #page,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-dash-main.mk-accounts-list-main,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-dash-main.mk-accounts-detail-main {
+    padding: 20px 24px 24px 16px;
+}
+
+/* ========== GoodsIssue Outbound (INVENTORY) — same split shell as Sale Orders ========== */
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] #page,
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-dash-main,
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-dash-main.mk-gi-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    /* Match Sale Orders list gutter (24px all sides) */
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Warehouse Storage (INVENTORY) — same split shell as Outbound ========== */
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] #page,
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-dash-main,
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-dash-main.mk-wh-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== GoodsReceipt Inbound (INVENTORY) — same split shell as Outbound ========== */
+body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] #page,
+body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-dash-main,
+body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-dash-main.mk-gr-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== GoodsReceipt Inbound Detail (INVENTORY) — same split shell as Sale Order Detail ========== */
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] #page,
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main,
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main.mk-gr-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0 !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== GoodsIssue Outbound Detail (INVENTORY) — same split shell as Inbound Detail ========== */
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] #page,
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+    body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main,
+    body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main,
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main.mk-go-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0 !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Warehouse Storage Detail (INVENTORY) — same split shell ========== */
+body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] #page,
+body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main,
+body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main.mk-wh-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0 !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== HelpDesk Tickets (SUPPORT) — same split shell + 24px pad as Outbound ========== */
+body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"],
+body[data-module="HelpDesk"][data-view="List"]:not([data-app]) {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="HelpDesk"][data-view="List"]:not([data-app]) #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-app-shell,
+body[data-module="HelpDesk"][data-view="List"]:not([data-app]) .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-topbar,
+body[data-module="HelpDesk"][data-view="List"]:not([data-app]) .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="HelpDesk"][data-view="List"]:not([data-app]) .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-dashboard-sidebar,
+body[data-module="HelpDesk"][data-view="List"]:not([data-app]) .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] #page,
+body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] #page.container-fluid,
+body[data-module="HelpDesk"][data-view="List"]:not([data-app]) #page,
+body[data-module="HelpDesk"][data-view="List"]:not([data-app]) #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-dash-main,
+body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-dash-main.mk-hd-list-main,
+body[data-module="HelpDesk"][data-view="List"]:not([data-app]) .mk-dash-main,
+body[data-module="HelpDesk"][data-view="List"]:not([data-app]) .mk-dash-main.mk-hd-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== HelpDesk Rules (SUPPORT) — same split shell + 24px pad ========== */
+body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"],
+body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-app-shell,
+body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-topbar,
+body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-dashboard-sidebar,
+body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] #page,
+body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] #page.container-fluid,
+body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) #page,
+body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-dash-main,
+body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-dash-main.mk-hd-rules-main,
+body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) .mk-dash-main,
+body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) .mk-dash-main.mk-hd-rules-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== HelpDesk RuleDetail (SUPPORT) — same split shell + 24px pad ========== */
+body[data-module="HelpDesk"][data-view="RuleDetail"][data-app="SUPPORT"],
+body[data-module="HelpDesk"][data-view="RuleDetail"]:not([data-app]) {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="HelpDesk"][data-view="RuleDetail"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="HelpDesk"][data-view="RuleDetail"]:not([data-app]) #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="HelpDesk"][data-view="RuleDetail"][data-app="SUPPORT"] .mk-app-shell,
+body[data-module="HelpDesk"][data-view="RuleDetail"]:not([data-app]) .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="HelpDesk"][data-view="RuleDetail"][data-app="SUPPORT"] .mk-topbar,
+body[data-module="HelpDesk"][data-view="RuleDetail"]:not([data-app]) .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="HelpDesk"][data-view="RuleDetail"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="HelpDesk"][data-view="RuleDetail"]:not([data-app]) .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="HelpDesk"][data-view="RuleDetail"][data-app="SUPPORT"] .mk-dashboard-sidebar,
+body[data-module="HelpDesk"][data-view="RuleDetail"]:not([data-app]) .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="HelpDesk"][data-view="RuleDetail"][data-app="SUPPORT"] #page,
+body[data-module="HelpDesk"][data-view="RuleDetail"][data-app="SUPPORT"] #page.container-fluid,
+body[data-module="HelpDesk"][data-view="RuleDetail"]:not([data-app]) #page,
+body[data-module="HelpDesk"][data-view="RuleDetail"]:not([data-app]) #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="HelpDesk"][data-view="RuleDetail"][data-app="SUPPORT"] .mk-dash-main,
+body[data-module="HelpDesk"][data-view="RuleDetail"][data-app="SUPPORT"] .mk-dash-main.mk-hd-rule-detail-main,
+body[data-module="HelpDesk"][data-view="RuleDetail"]:not([data-app]) .mk-dash-main,
+body[data-module="HelpDesk"][data-view="RuleDetail"]:not([data-app]) .mk-dash-main.mk-hd-rule-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== HelpDesk TicketDetail — split shell (any app category) ========== */
+body[data-module="HelpDesk"][data-view="TicketDetail"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="HelpDesk"][data-view="TicketDetail"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="HelpDesk"][data-view="TicketDetail"] #page,
+body[data-module="HelpDesk"][data-view="TicketDetail"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-dash-main,
+body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-dash-main.mk-go-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Activities List (SUPPORT) — same split shell + 24px pad as Tickets ========== */
+body[data-module="Activities"][data-view="List"][data-app="SUPPORT"],
+body[data-module="Activities"][data-view="List"]:not([data-app]) {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Activities"][data-view="List"]:not([data-app]) #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-app-shell,
+body[data-module="Activities"][data-view="List"]:not([data-app]) .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-topbar,
+body[data-module="Activities"][data-view="List"]:not([data-app]) .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Activities"][data-view="List"]:not([data-app]) .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-dashboard-sidebar,
+body[data-module="Activities"][data-view="List"]:not([data-app]) .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] #page,
+body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] #page.container-fluid,
+body[data-module="Activities"][data-view="List"]:not([data-app]) #page,
+body[data-module="Activities"][data-view="List"]:not([data-app]) #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-dash-main,
+body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-dash-main.mk-act-list-main,
+body[data-module="Activities"][data-view="List"]:not([data-app]) .mk-dash-main,
+body[data-module="Activities"][data-view="List"]:not([data-app]) .mk-dash-main.mk-act-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Activities Detail (SUPPORT) — same split shell + 24px pad ========== */
+body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"],
+body[data-module="Activities"][data-view="Detail"]:not([data-app]) {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Activities"][data-view="Detail"]:not([data-app]) #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-app-shell,
+body[data-module="Activities"][data-view="Detail"]:not([data-app]) .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-topbar,
+body[data-module="Activities"][data-view="Detail"]:not([data-app]) .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Activities"][data-view="Detail"]:not([data-app]) .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-dashboard-sidebar,
+body[data-module="Activities"][data-view="Detail"]:not([data-app]) .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] #page,
+body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] #page.container-fluid,
+body[data-module="Activities"][data-view="Detail"]:not([data-app]) #page,
+body[data-module="Activities"][data-view="Detail"]:not([data-app]) #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-dash-main,
+body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-dash-main.mk-act-detail-main,
+body[data-module="Activities"][data-view="Detail"]:not([data-app]) .mk-dash-main,
+body[data-module="Activities"][data-view="Detail"]:not([data-app]) .mk-dash-main.mk-act-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== SupportFAQ List — split shell + 24px pad (module+view; not data-app) ========== */
+body[data-module="SupportFAQ"][data-view="List"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="SupportFAQ"][data-view="List"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="SupportFAQ"][data-view="List"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="SupportFAQ"][data-view="List"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="SupportFAQ"][data-view="List"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="SupportFAQ"][data-view="List"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="SupportFAQ"][data-view="List"] #page,
+body[data-module="SupportFAQ"][data-view="List"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="SupportFAQ"][data-view="List"] .mk-dash-main,
+body[data-module="SupportFAQ"][data-view="List"] .mk-dash-main.mk-sf-faq-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== SupportFAQ Detail — split shell + 24px pad (same as Activities Detail) ========== */
+body[data-module="SupportFAQ"][data-view="Detail"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="SupportFAQ"][data-view="Detail"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="SupportFAQ"][data-view="Detail"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="SupportFAQ"][data-view="Detail"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="SupportFAQ"][data-view="Detail"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="SupportFAQ"][data-view="Detail"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="SupportFAQ"][data-view="Detail"] #page,
+body[data-module="SupportFAQ"][data-view="Detail"] #page.container-fluid {
+    padding: 0 !important;
+}
+
+body[data-module="SupportFAQ"][data-view="Detail"] .mk-dash-main,
+body[data-module="SupportFAQ"][data-view="Detail"] .mk-dash-main.mk-sf-faq-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Accounts Organizations List (SUPPORT) — split shell + 24px pad (mirror SALES list) ========== */
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #page,
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-dash-main,
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-dash-main.mk-accounts-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Accounts Organizations Detail (SUPPORT) — split shell ========== */
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #page,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-dash-main,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-dash-main.mk-accounts-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0 !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Calendar main view — split shell + 24px pad (module+view) ========== */
+body[data-module="Calendar"][data-view="Calendar"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Calendar"][data-view="Calendar"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Calendar"][data-view="Calendar"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Calendar"][data-view="Calendar"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Calendar"][data-view="Calendar"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Calendar"][data-view="Calendar"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Calendar"][data-view="Calendar"] #page,
+body[data-module="Calendar"][data-view="Calendar"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Calendar"][data-view="Calendar"] .mk-dash-main,
+body[data-module="Calendar"][data-view="Calendar"] .mk-dash-main.mk-cal-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Main Page (MANAGEMENT) — split shell; content pad in MainPageMkView.css ========== */
+body[data-module="Home"][data-view="MainPage"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Home"][data-view="MainPage"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Home"][data-view="MainPage"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Home"][data-view="MainPage"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Home"][data-view="MainPage"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Home"][data-view="MainPage"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Home"][data-view="MainPage"] #page,
+body[data-module="Home"][data-view="MainPage"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Home"][data-view="MainPage"] .mk-dash-main,
+body[data-module="Home"][data-view="MainPage"] .mk-dash-main.mk-mainpage-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 24px 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+html.mk-mainpage-ui-ready body[data-module="Home"][data-view="MainPage"] .app-nav,
+html.mk-mainpage-ui-ready body[data-module="Home"][data-view="MainPage"] .module-action-bar,
+html.mk-mainpage-ui-ready body[data-module="Home"][data-view="MainPage"] #modnavigator,
+html.mk-mainpage-ui-ready body[data-module="Home"][data-view="MainPage"] #sidebar-essentials {
+    display: none !important;
+}
+
+/* ========== ProjectTask List (MANAGEMENT) — split shell + 24px pad (Calendar / Main Page pattern) ========== */
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #page,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main.mk-projecttask-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+html.mk-projecttask-list-management body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .app-nav,
+html.mk-projecttask-list-management body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-projecttask-list-management body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-projecttask-list-management body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #sidebar-essentials {
+    display: none !important;
+}
+
+/* ========== Project List (MANAGEMENT) — split shell + 24px pad (ProjectTask pattern) ========== */
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #page,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main.mk-project-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .app-nav,
+html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #sidebar-essentials {
+    display: none !important;
+}
+
+/* ========== Reports Management (MANAGEMENT) — split shell + 24px pad ========== */
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] #page,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-dash-main,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-dash-main.mk-reports-mgmt-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+html.mk-reports-mgmt-management body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .app-nav,
+html.mk-reports-mgmt-management body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-reports-mgmt-management body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-reports-mgmt-management body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] #sidebar-essentials,
+html.mk-reports-mgmt-management body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .navbar.navbar-inverse.navbar-fixed-top {
+    display: none !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .main-container.mk-reports-mgmt-page,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .reports-content-area.mk-reports-mgmt-content {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .editViewPageDiv.viewContent {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+}
+
+/* ========== Documents List (MANAGEMENT) — split shell + 24px pad ========== */
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none !important;
+    border-bottom: none !important;
+    border-radius: 0;
+    box-shadow: none !important;
+    outline: none !important;
+    background: #ffffff !important;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #page,
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main,
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main.mk-documents-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 10px 16px 16px 6px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .app-nav,
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .navbar.navbar-inverse.navbar-fixed-top,
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #sidebar-essentials {
+    display: none !important;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .main-container.mk-documents-list-page,
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-documents-list-content {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+/* ========== Documents History (MANAGEMENT) — split shell ========== */
+body[data-module="Documents"][data-view="History"][data-app="MANAGEMENT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Documents"][data-view="History"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Documents"][data-view="History"][data-app="MANAGEMENT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Documents"][data-view="History"][data-app="MANAGEMENT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Documents"][data-view="History"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none !important;
+    border-bottom: none !important;
+    border-radius: 0;
+    box-shadow: none !important;
+    outline: none !important;
+    background: #ffffff !important;
+}
+
+body[data-module="Documents"][data-view="History"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Documents"][data-view="History"][data-app="MANAGEMENT"] #page,
+body[data-module="Documents"][data-view="History"][data-app="MANAGEMENT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Documents"][data-view="History"][data-app="MANAGEMENT"] .mk-dash-main.mk-documents-history-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Teams List (MANAGEMENT) — split shell + 24px pad ========== */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] #page,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main.mk-teams-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+html.mk-teams-list-management body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .app-nav,
+html.mk-teams-list-management body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-teams-list-management body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-teams-list-management body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] #sidebar-essentials {
+    display: none !important;
+}
+
+/* ========== Project Detail (MANAGEMENT) — split shell + 24px pad ========== */
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main.mk-project-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0 !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .app-nav,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #sidebar-essentials {
+    display: none !important;
+}
+
+/* ========== Documents Detail (MANAGEMENT) — split shell, tight left pad ========== */
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none !important;
+    border-bottom: none !important;
+    border-radius: 0;
+    box-shadow: none !important;
+    outline: none !important;
+    background: #ffffff !important;
+}
+
+/* Documents MANAGEMENT: topbar không viền (navbar-default / global-nav / custom.css .app-fixed-navbar) */
+body[data-module="Documents"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar.app-fixed-navbar,
+body[data-module="Documents"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar.navbar-default,
+body[data-module="Documents"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar-inner,
+body[data-module="Documents"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar-row,
+body[data-module="Documents"][data-app="MANAGEMENT"] .mk-topbar .global-nav,
+body[data-module="Documents"][data-app="MANAGEMENT"] .mk-topbar .global-nav-row,
+body[data-module="Documents"][data-app="MANAGEMENT"] .mk-topbar .container-fluid.global-nav {
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    margin-bottom: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] #page,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main.mk-documents-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0 !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .app-nav,
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .navbar.navbar-inverse.navbar-fixed-top,
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] #sidebar-essentials {
+    display: none !important;
+}

@@ -7,7 +7,7 @@
  ************************************************************************************/
 
 class HelpDesk_Detail_View extends Vtiger_Detail_View {
-
+	
 	/** Bỏ permission + tồn tại record check, chỉ redirect thẳng sang TicketDetail. */
 	public function requiresPermission(Vtiger_Request $request) { return []; }
 	public function checkPermission(Vtiger_Request $request) { return true; }

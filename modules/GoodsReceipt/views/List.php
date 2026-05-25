@@ -1,16 +1,37 @@
 <?php
 class GoodsReceipt_List_View extends Vtiger_Index_View {
 	protected function preProcessTplName(Vtiger_Request $request) {
+		$appName = $request->get('app');
+		if ($appName === 'INVENTORY' || $appName === '') {
+			return 'ListViewPreProcess.tpl';
+		}
 		return 'IndexViewPreProcess.tpl';
 	}
 
+	protected function assignInventoryContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+		$appName = $request->get('app');
+		$viewer->assign('SELECTED_MENU_CATEGORY', !empty($appName) ? $appName : 'INVENTORY');
+		$viewer->assign('VIEW', 'List');
+	}
+
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		$this->assignInventoryContext($request);
 		parent::preProcess($request, $display);
 	}
 
 	public function postProcess(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
-		$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		$appName = $request->get('app');
+		if ($appName === 'INVENTORY' || $appName === '') {
+			$viewer->view('ListViewPostProcess.tpl', $request->getModule());
+		} else {
+			$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		}
 		Vtiger_Basic_View::postProcess($request);
 	}
 

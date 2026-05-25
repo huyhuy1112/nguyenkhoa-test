@@ -1,12 +1,38 @@
 <?php
-class GoodsReceipt_Detail_View extends Vtiger_Detail_View {
+class GoodsReceipt_Detail_View extends Vtiger_Index_View {
 	protected $detailRecordData = null;
 	protected $detailRecordModel = null;
 
 	public function requiresPermission(\Vtiger_Request $request) { return array(); }
 	public function checkPermission($request) { return true; }
-	public function preProcessTplName(Vtiger_Request $request) { return 'DetailViewPreProcess.tpl'; }
-	public function postProcessTplName(Vtiger_Request $request) { return 'DetailViewPostProcess.tpl'; }
+
+	protected function isInventoryApp(Vtiger_Request $request) {
+		$appName = $request->get('app');
+		return ($appName === 'INVENTORY' || $appName === '');
+	}
+
+	protected function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isInventoryApp($request)) {
+			return 'DetailViewPreProcess.tpl';
+		}
+		return 'IndexViewPreProcess.tpl';
+	}
+
+	protected function assignInventoryContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		if ($moduleModel) {
+			$viewer->assign('MODULE_MODEL', $moduleModel);
+		}
+		$appName = $request->get('app');
+		$viewer->assign('SELECTED_MENU_CATEGORY', !empty($appName) ? $appName : 'INVENTORY');
+		$viewer->assign('VIEW', 'Detail');
+		$viewer->assign('NO_PAGINATION', true);
+	}
+
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		$recordId = (int) $request->get('record');
 		if ($recordId <= 0) {
@@ -28,11 +54,18 @@ class GoodsReceipt_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('RECORD_MODEL', $this->detailRecordModel);
 		$viewer->assign('RECORD_DATA', $this->detailRecordData);
 
-		$appName = $request->get('app');
-		if (!empty($appName)) {
-			$viewer->assign('SELECTED_MENU_CATEGORY', $appName);
-		}
+		$this->assignInventoryContext($request);
 		parent::preProcess($request, $display);
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		if ($this->isInventoryApp($request)) {
+			$viewer->view('DetailViewPostProcess.tpl', $request->getModule());
+		} else {
+			$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		}
+		Vtiger_Basic_View::postProcess($request);
 	}
 
 	public function process(Vtiger_Request $request) {
@@ -55,8 +88,12 @@ class GoodsReceipt_Detail_View extends Vtiger_Detail_View {
 			array($recordId)
 		);
 		$items = array();
+		$totalQty = 0.0;
+		$totalValue = 0.0;
 		while ($row = $db->fetchByAssoc($ri)) {
 			$row['line_total'] = (float) $row['quantity'] * (float) $row['unit_price'];
+			$totalQty += (float) $row['quantity'];
+			$totalValue += (float) $row['line_total'];
 			$row['product_name'] = $this->decodeText($row['product_name']);
 			$row['product_name_display'] = ucwords(mb_strtolower(trim($row['product_name']), 'UTF-8'));
 			if (!isset($row['product_type']) || $row['product_type'] === '') {
@@ -87,7 +124,18 @@ class GoodsReceipt_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('RECORD_MODEL', $recordModel);
 		$viewer->assign('RECORD_DATA', $record);
 		$viewer->assign('ITEMS', $items);
+		$viewer->assign('ITEM_COUNT', count($items));
+		$viewer->assign('TOTAL_QTY_DISPLAY', number_format($totalQty, 2, '.', ','));
+		$viewer->assign('TOTAL_VALUE_DISPLAY', number_format($totalValue, 0, '.', ','));
 		$viewer->assign('ATTACHMENTS', $attachments);
+
+		require_once 'modules/Warehouse/helpers/InventoryCrossNavHelper.php';
+		$viewer->assign('LINKED_STORAGE_STOCK_ID', Inventory_CrossNav_Helper::resolveStockIdForInboundReceipt($db, $recordId, $items));
+		$viewer->assign('LINKED_OUTBOUND_ISSUE_ID', Inventory_CrossNav_Helper::resolveOutboundIssueId($db, $items));
+		$viewer->assign('LINKED_INBOUND_RECEIPT_ID', 0);
+		$viewer->assign('MK_INV_NAV_ACTIVE', 'GoodsReceipt');
+		$viewer->assign('MK_INV_NAV_CLASS', 'mk-gr-detail-topnav');
+
 		$viewer->view('DetailViewFullContents.tpl', $request->getModule());
 	}
 
@@ -123,4 +171,3 @@ class GoodsReceipt_Detail_View extends Vtiger_Detail_View {
 		return $recordModel;
 	}
 }
-

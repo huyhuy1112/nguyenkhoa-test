@@ -1,0 +1,22 @@
+/**
+ * INVENTORY app list — shared table card tokens.
+ * Scope: body[data-view="List"][data-app="INVENTORY"]
+ */
+
+body[data-view="List"][data-app="INVENTORY"] .mk-gi-page {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="INVENTORY"] .mk-gi-suite-card {
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+	box-sizing: border-box;
+	width: 100%;
+}

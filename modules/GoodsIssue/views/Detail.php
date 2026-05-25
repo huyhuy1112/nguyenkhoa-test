@@ -1,13 +1,21 @@
 <?php
-class GoodsIssue_Detail_View extends Vtiger_Detail_View {
+class GoodsIssue_Detail_View extends Vtiger_Index_View {
 	protected $detailRecordData = null;
 	protected $detailRecordModel = null;
 
-	public function preProcessTplName(Vtiger_Request $request) {
-		return 'DetailViewPreProcess.tpl';
+	public function requiresPermission(\Vtiger_Request $request) { return array(); }
+	public function checkPermission($request) { return true; }
+
+	protected function isInventoryApp(Vtiger_Request $request) {
+		$appName = $request->get('app');
+		return ($appName === 'INVENTORY' || $appName === '');
 	}
-	public function postProcessTplName(Vtiger_Request $request) {
-		return 'DetailViewPostProcess.tpl';
+
+	protected function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isInventoryApp($request)) {
+			return 'DetailViewPreProcess.tpl';
+		}
+		return 'IndexViewPreProcess.tpl';
 	}
 
 	protected function assignInventoryContext(Vtiger_Request $request) {
@@ -15,24 +23,24 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 		$moduleName = $request->getModule();
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
-		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
-		$appName = $request->get('app');
-		if (!empty($appName)) {
-			$viewer->assign('SELECTED_MENU_CATEGORY', $appName);
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		if ($moduleModel) {
+			$viewer->assign('MODULE_MODEL', $moduleModel);
 		}
+		$appName = $request->get('app');
+		$viewer->assign('SELECTED_MENU_CATEGORY', !empty($appName) ? $appName : 'INVENTORY');
+		$viewer->assign('VIEW', 'Detail');
+		$viewer->assign('NO_PAGINATION', true);
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
-		$viewer = $this->getViewer($request);
-
-		$this->assignInventoryContext($request);
-
 		$recordId = (int) $request->get('record');
 		if ($recordId <= 0) {
 			header('Location: index.php?module=GoodsIssue&view=List&app=INVENTORY');
 			exit;
 		}
 
+		$viewer = $this->getViewer($request);
 		$db = PearDatabase::getInstance();
 		$issue = $this->getIssueById($db, $recordId);
 		if (!$issue) {
@@ -42,29 +50,90 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 
 		$this->detailRecordData = $this->normalizeRecordForDisplay($issue);
 		$this->detailRecordModel = $this->buildRecordModel($recordId, $this->detailRecordData);
-
-		// Must be assigned before ModuleHeader.tpl in preProcess chain.
 		$viewer->assign('RECORD', $this->detailRecordModel);
 		$viewer->assign('RECORD_MODEL', $this->detailRecordModel);
 		$viewer->assign('RECORD_DATA', $this->detailRecordData);
+
+		$this->assignInventoryContext($request);
 		parent::preProcess($request, $display);
 	}
 
-	public function requiresPermission(\Vtiger_Request $request) { return array(); }
-	public function checkPermission($request) { return true; }
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		if ($this->isInventoryApp($request)) {
+			$viewer->view('DetailViewPostProcess.tpl', $request->getModule());
+		} else {
+			$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		}
+		Vtiger_Basic_View::postProcess($request);
+	}
 
-	protected function loadIssue(PearDatabase $db, $issueId) {
-		$rs = $db->pquery(
-			"SELECT * FROM vtiger_goodsissue WHERE issueid = ? LIMIT 1",
-			array($issueId)
-		);
-		if ($db->num_rows($rs) <= 0) return null;
-		return $db->fetchByAssoc($rs);
+	public function process(Vtiger_Request $request) {
+		require_once 'modules/GoodsIssue/helpers/WorkflowSetup.php';
+		GoodsIssue_WorkflowSetup_Helper::runAll();
+
+		$db = PearDatabase::getInstance();
+		$viewer = $this->getViewer($request);
+		$issueId = (int) $request->get('record');
+
+		if ($issueId <= 0) {
+			header('Location: index.php?module=GoodsIssue&view=List&app=INVENTORY');
+			exit;
+		}
+
+		$issue = $this->detailRecordData;
+		if (!$issue) {
+			$issue = $this->getIssueById($db, $issueId);
+		}
+		if (!$issue || (int) $issue['deleted'] === 1) {
+			header('Location: index.php?module=GoodsIssue&view=List&app=INVENTORY');
+			exit;
+		}
+
+		$recordData = $this->normalizeRecordForDisplay($issue);
+		$recordModel = $this->detailRecordModel ?: $this->buildRecordModel($issueId, $recordData);
+
+		$items = $this->loadItems($db, $issueId);
+		$totalQty = 0.0;
+		$totalValue = 0.0;
+		foreach ($items as &$it) {
+			$totalQty += (float) $it['quantity'];
+			$totalValue += (float) $it['line_total'];
+			$name = trim((string) $it['product_name']);
+			$it['product_name_display'] = $name !== '' ? ucwords(mb_strtolower($name, 'UTF-8')) : '—';
+			$it['quantity_display'] = $this->formatNumber($it['quantity'], 2);
+			$it['unit_price_display'] = $this->formatNumber($it['unit_price'], 0);
+			$it['discount_percent_display'] = $this->formatNumber($it['discount_percent'], 2);
+			$it['line_total_display'] = $this->formatNumber($it['line_total'], 0);
+			if (!isset($it['product_type']) || $it['product_type'] === '') {
+				$it['product_type'] = 'Other';
+			}
+			$it['line_note'] = $this->decodeText($it['line_note']);
+		}
+		unset($it);
+
+		$viewer->assign('RECORD', $recordModel);
+		$viewer->assign('RECORD_MODEL', $recordModel);
+		$viewer->assign('RECORD_DATA', $recordData);
+		$viewer->assign('ITEMS', $items);
+		$viewer->assign('ITEM_COUNT', count($items));
+		$viewer->assign('TOTAL_QTY_DISPLAY', $this->formatNumber($totalQty, 2));
+		$viewer->assign('TOTAL_VALUE_DISPLAY', $this->formatNumber($totalValue, 0));
+
+		require_once 'modules/Warehouse/helpers/InventoryCrossNavHelper.php';
+		$viewer->assign('LINKED_STORAGE_STOCK_ID', Inventory_CrossNav_Helper::resolveStockId($db, $items));
+		$viewer->assign('LINKED_INBOUND_RECEIPT_ID', Inventory_CrossNav_Helper::resolveInboundReceiptIdFromOutboundItems($db, $items));
+		$viewer->assign('LINKED_OUTBOUND_ISSUE_ID', 0);
+		$viewer->assign('MK_INV_NAV_ACTIVE', 'GoodsIssue');
+		$viewer->assign('MK_INV_NAV_CLASS', 'mk-go-detail-topnav');
+
+		$viewer->assign('ATTACHMENTS', $this->loadAttachments($db, $issueId));
+		$viewer->assign('SHOW_DELETE_BLOCKED', (string) $request->get('deleteBlocked') === '1');
+		$viewer->assign('SHOW_DELETE_ERROR', (string) $request->get('delete_error') === '1');
+		$viewer->view('DetailViewFullContents.tpl', $request->getModule());
 	}
 
 	protected function loadItems(PearDatabase $db, $issueId) {
-		// Keep Outbound detail consistent with Storage outbound history:
-		// prefer saved outbound description, otherwise resolve from inbound/source.
 		$rs = $db->pquery(
 			"SELECT gii.*,
 				(
@@ -108,8 +177,12 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 			$qty = isset($row['quantity']) ? (float) $row['quantity'] : 0.0;
 			$unit = isset($row['unit_price']) ? (float) $row['unit_price'] : 0.0;
 			$discount = isset($row['discount_percent']) ? (float) $row['discount_percent'] : 0.0;
-			if ($discount < 0) $discount = 0.0;
-			if ($discount > 100) $discount = 100.0;
+			if ($discount < 0) {
+				$discount = 0.0;
+			}
+			if ($discount > 100) {
+				$discount = 100.0;
+			}
 			$lineTotal = $qty * $unit * (1.0 - ($discount / 100.0));
 
 			$sn = isset($row['serial_number']) ? trim($this->decodeText($row['serial_number'])) : '';
@@ -123,19 +196,17 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 			if ($desc === '0') {
 				$desc = '';
 			}
-			if ($desc === '') {
-				$desc = '-';
-			}
+
 			$items[] = array(
 				'productid' => !empty($row['productid']) ? (int) $row['productid'] : 0,
-				'product_name' => (string) $row['product_name'],
-				'product_type' => (string) $row['product_type'],
+				'product_name' => $this->decodeText($row['product_name']),
+				'product_type' => $this->decodeText($row['product_type']),
 				'quantity' => $qty,
 				'unit_price' => $unit,
 				'discount_percent' => $discount,
 				'serial_number' => $sn,
 				'description' => $desc,
-				'line_note' => (string) $row['line_note'],
+				'line_note' => $this->decodeText($row['line_note']),
 				'line_total' => $lineTotal,
 			);
 		}
@@ -154,8 +225,8 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 		while ($row = $db->fetchByAssoc($rs)) {
 			$atts[] = array(
 				'attachmentid' => (int) $row['attachmentid'],
-				'filename' => (string) $row['filename'],
-				'filetype' => (string) $row['filetype'],
+				'filename' => $this->decodeText($row['filename']),
+				'filetype' => $this->decodeText($row['filetype']),
 				'filesize' => (int) $row['filesize'],
 				'createdtime' => isset($row['createdtime']) ? (string) $row['createdtime'] : '',
 			);
@@ -165,47 +236,6 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 
 	protected function formatNumber($v, $dec = 2) {
 		return number_format((float) $v, $dec, '.', ',');
-	}
-
-	public function process(Vtiger_Request $request) {
-		require_once 'modules/GoodsIssue/helpers/WorkflowSetup.php';
-		GoodsIssue_WorkflowSetup_Helper::runAll();
-
-		$db = PearDatabase::getInstance();
-		$viewer = $this->getViewer($request);
-
-		$issueId = (int) $request->get('record');
-		if ($issueId <= 0) {
-			header('Location: index.php?module=GoodsIssue&view=List&app=INVENTORY');
-			exit;
-		}
-
-		$issue = $this->loadIssue($db, $issueId);
-		if (!$issue || (int)$issue['deleted'] === 1) {
-			header('Location: index.php?module=GoodsIssue&view=List&app=INVENTORY');
-			exit;
-		}
-
-		$recordData = $this->detailRecordData ?: $this->normalizeRecordForDisplay($issue);
-		$recordModel = $this->detailRecordModel ?: $this->buildRecordModel($issueId, $recordData);
-
-		$items = $this->loadItems($db, $issueId);
-		foreach ($items as &$it) {
-			$it['quantity_display'] = $this->formatNumber($it['quantity'], 2);
-			$it['unit_price_display'] = $this->formatNumber($it['unit_price'], 0);
-			$it['line_total_display'] = $this->formatNumber($it['line_total'], 0);
-		}
-		unset($it);
-
-		$viewer->assign('RECORD', $recordModel);
-		$viewer->assign('RECORD_MODEL', $recordModel);
-		$viewer->assign('RECORD_DATA', $recordData);
-
-		$viewer->assign('ITEMS', $items);
-		$viewer->assign('ATTACHMENTS', $this->loadAttachments($db, $issueId));
-		$viewer->assign('SHOW_DELETE_BLOCKED', (string) $request->get('deleteBlocked') === '1');
-		$viewer->assign('SHOW_DELETE_ERROR', (string) $request->get('delete_error') === '1');
-		$viewer->view('DetailViewFullContents.tpl', $request->getModule());
 	}
 
 	protected function getIssueById(PearDatabase $db, $issueId) {
@@ -221,7 +251,7 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 	}
 
 	protected function normalizeRecordForDisplay(array $record) {
-		$textFields = array('subject', 'issued_by', 'destination', 'storage_location', 'note');
+		$textFields = array('subject', 'issued_by', 'destination', 'storage_location', 'note', 'code');
 		foreach ($textFields as $f) {
 			if (isset($record[$f])) {
 				$record[$f] = $this->decodeText($record[$f]);
@@ -240,6 +270,3 @@ class GoodsIssue_Detail_View extends Vtiger_Detail_View {
 		return $recordModel;
 	}
 }
-
-?>
-

@@ -1,14 +1,27 @@
 <?php
-class Warehouse_Detail_View extends Vtiger_Detail_View {
+class Warehouse_Detail_View extends Vtiger_Index_View {
 
 	protected $stockRow = null;
 	protected $recordModel = null;
 
-	public function preProcessTplName(Vtiger_Request $request) {
-		return 'DetailViewPreProcess.tpl';
+	public function requiresPermission(\Vtiger_Request $request) {
+		return array();
 	}
-	public function postProcessTplName(Vtiger_Request $request) {
-		return 'DetailViewPostProcess.tpl';
+
+	public function checkPermission($request) {
+		return true;
+	}
+
+	protected function isInventoryApp(Vtiger_Request $request) {
+		$appName = $request->get('app');
+		return ($appName === 'INVENTORY' || $appName === '');
+	}
+
+	protected function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isInventoryApp($request)) {
+			return 'DetailViewPreProcess.tpl';
+		}
+		return 'IndexViewPreProcess.tpl';
 	}
 
 	protected function assignInventoryContext(Vtiger_Request $request) {
@@ -16,11 +29,15 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 		$moduleName = $request->getModule();
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
-		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
-		$appName = $request->get('app');
-		if (!empty($appName)) {
-			$viewer->assign('SELECTED_MENU_CATEGORY', $appName);
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		if ($moduleModel) {
+			$viewer->assign('MODULE_MODEL', $moduleModel);
 		}
+		$appName = $request->get('app');
+		$viewer->assign('SELECTED_MENU_CATEGORY', !empty($appName) ? $appName : 'INVENTORY');
+		$viewer->assign('VIEW', 'Detail');
+		$viewer->assign('NO_PAGINATION', true);
+		$viewer->assign('LISTVIEW_MODULE_TITLE', 'Storage');
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
@@ -46,16 +63,17 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('RECORD', $this->recordModel);
 		$viewer->assign('RECORD_MODEL', $this->recordModel);
 		$viewer->assign('RECORD_DATA', $this->stockRow);
-		$viewer->assign('LISTVIEW_MODULE_TITLE', 'Storage');
 		parent::preProcess($request, $display);
 	}
 
-	public function requiresPermission(\Vtiger_Request $request) {
-		return array();
-	}
-
-	public function checkPermission($request) {
-		return true;
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		if ($this->isInventoryApp($request)) {
+			$viewer->view('DetailViewPostProcess.tpl', $request->getModule());
+		} else {
+			$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		}
+		Vtiger_Basic_View::postProcess($request);
 	}
 
 	public function process(Vtiger_Request $request) {
@@ -67,6 +85,20 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 
 		$row = $this->stockRow;
 		$recordModel = $this->recordModel;
+
+		$stockId = (int) $request->get('record');
+		if (!$row) {
+			$row = $this->loadStockRow($stockId);
+			if ($row) {
+				$row = $this->normalizeRowForDisplay($row);
+				$this->stockRow = $row;
+				$recordModel = $this->buildRecordModel($row);
+			}
+		}
+		if (!$row) {
+			header('Location: index.php?module=Warehouse&view=List&app=INVENTORY');
+			exit;
+		}
 
 		$serialIndexes = Warehouse_Stock_Helper::fetchInboundSerialIndexes($db);
 		$stockSerialList = Warehouse_Stock_Helper::resolveInboundSerialsForStockRow($row, $serialIndexes);
@@ -174,7 +206,6 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 			$outboundHistory[] = $o;
 		}
 
-		// Build chronological movement dataset as individual events (no daily aggregation).
 		$movementEvents = array();
 		foreach ($inboundHistory as $h) {
 			$eventTime = '';
@@ -185,7 +216,9 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 			} elseif (!empty($h['received_date'])) {
 				$eventTime = (string) $h['received_date'] . ' 00:00:00';
 			}
-			if ($eventTime === '') continue;
+			if ($eventTime === '') {
+				continue;
+			}
 			$movementEvents[] = array(
 				'event_time' => $eventTime,
 				'event_type' => 'inbound',
@@ -203,7 +236,9 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 			} elseif (!empty($o['issued_date'])) {
 				$eventTime = (string) $o['issued_date'] . ' 00:00:00';
 			}
-			if ($eventTime === '') continue;
+			if ($eventTime === '') {
+				continue;
+			}
 			$movementEvents[] = array(
 				'event_time' => $eventTime,
 				'event_type' => 'outbound',
@@ -255,7 +290,6 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('RECORD_MODEL', $recordModel);
 		$viewer->assign('RECORD_DATA', $row);
 		$viewer->assign('STOCK', $row);
-		$viewer->assign('LISTVIEW_MODULE_TITLE', 'Storage');
 		$viewer->assign('PRODUCT_KEY_DISPLAY', Warehouse_Stock_Helper::formatProductKeyDisplay($row));
 		$typeLabel = Warehouse_Stock_Helper::formatProductTypeLabel(isset($row['raw_item_type']) ? $row['raw_item_type'] : null);
 		if ($typeLabel === null || $typeLabel === '') {
@@ -274,6 +308,16 @@ class Warehouse_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('SHOW_DELETE_BLOCKED', (string) $request->get('deleteBlocked') === '1');
 		$viewer->assign('SHOW_LINK_SUCCESS', (string) $request->get('linkSuccess') === '1');
 		$viewer->assign('LINK_ERROR', trim((string) $request->get('linkError')));
+		$viewer->assign('INBOUND_HISTORY_COUNT', count($inboundHistory));
+		$viewer->assign('OUTBOUND_HISTORY_COUNT', count($outboundHistory));
+
+		require_once 'modules/Warehouse/helpers/InventoryCrossNavHelper.php';
+		$viewer->assign('LINKED_INBOUND_RECEIPT_ID', Inventory_CrossNav_Helper::resolveInboundReceiptIdForStock($db, $row));
+		$viewer->assign('LINKED_OUTBOUND_ISSUE_ID', Inventory_CrossNav_Helper::resolveOutboundIssueIdForStock($db, $row));
+		$viewer->assign('LINKED_STORAGE_STOCK_ID', 0);
+		$viewer->assign('MK_INV_NAV_ACTIVE', 'Warehouse');
+		$viewer->assign('MK_INV_NAV_CLASS', 'mk-wh-detail-topnav');
+
 		$viewer->view('DetailViewFullContents.tpl', $request->getModule());
 	}
 

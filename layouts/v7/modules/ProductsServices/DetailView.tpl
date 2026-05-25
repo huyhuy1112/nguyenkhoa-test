@@ -13,4 +13,3 @@
 		{/foreach}
 	</div>
 {/if}
-
