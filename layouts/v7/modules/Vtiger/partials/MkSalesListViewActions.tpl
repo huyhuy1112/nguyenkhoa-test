@@ -20,10 +20,10 @@
         <div class="mk-so-filter-row__inner">
             <div class="mk-so-filter-row__start">
                 <div class="mk-so-toolbar-toggles" aria-label="{vtranslate('LBL_LIST_VIEW',$MODULE)}">
-                    <button type="button" class="mk-so-icon-btn mk-so-toggle-layout mk-so-toggle-layout--list" title="{vtranslate('LBL_LIST_VIEW',$MODULE)}" aria-pressed="true" disabled="disabled">
+                    <button type="button" class="mk-so-icon-btn mk-so-toggle-layout mk-so-toggle-layout--list is-active" title="{vtranslate('LBL_LIST_VIEW',$MODULE)}" aria-pressed="true">
                         <span class="mk-so-icon-btn__ic" aria-hidden="true">{include file="partials/DashboardTopbarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='LIST'}</span>
                     </button>
-                    <button type="button" class="mk-so-icon-btn mk-so-toggle-layout mk-so-toggle-layout--grid" title="Grid view" aria-pressed="false" disabled="disabled">
+                    <button type="button" class="mk-so-icon-btn mk-so-toggle-layout mk-so-toggle-layout--grid" title="Grid view" aria-pressed="false">
                         <span class="mk-so-icon-btn__ic" aria-hidden="true"><span class="fa fa-th"></span></span>
                     </button>
                 </div>

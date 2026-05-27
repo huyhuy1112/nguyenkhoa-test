@@ -139,6 +139,12 @@ body[data-view="List"][data-app="SALES"] .mk-so-icon-btn {
 	box-sizing: border-box;
 }
 
+body[data-view="List"][data-app="SALES"] .mk-so-toggle-layout.is-active,
+body[data-view="List"][data-app="SALES"] .mk-so-toggle-layout[aria-pressed="true"] {
+	background: #fff8eb !important;
+	border-color: #e5a820 !important;
+}
+
 body[data-view="List"][data-app="SALES"] .mk-so-mass-btn {
 	min-width: 40px;
 	height: 40px;
@@ -624,4 +630,75 @@ body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-t
 	order: 2;
 	flex: 1 1 auto;
 	min-height: 0;
+}
+
+/* ---- List / grid toggle: shared card layout (SALES + MANAGEMENT Project lists) ---- */
+body[data-view="List"].mk-so-is-view-grid #listViewContent #table-content {
+	max-height: none !important;
+	overflow-x: hidden !important;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table {
+	display: block !important;
+	min-width: 0 !important;
+	width: 100% !important;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table thead,
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tr.searchRow {
+	display: none !important;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 14px;
+	padding: 14px;
+	box-sizing: border-box;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody tr.listViewEntries {
+	display: flex !important;
+	flex-direction: column;
+	height: auto !important;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 2px 8px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody tr.listViewEntries:hover {
+	background: #fffdf8;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody tr.listViewEntries td {
+	display: block !important;
+	height: auto !important;
+	min-height: 0 !important;
+	padding: 8px 14px !important;
+	border-bottom: none !important;
+	white-space: normal !important;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody td.listViewRecordActions {
+	order: -1;
+	padding: 10px 12px !important;
+	border-bottom: 1px solid #eceef0 !important;
+	background: #f7f9fb;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody td.listViewEntryValue::before {
+	content: attr(data-name);
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	text-transform: capitalize;
+	color: #40627e;
+	margin-bottom: 4px;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody td.listViewEntryValue a {
+	word-break: break-word;
 }

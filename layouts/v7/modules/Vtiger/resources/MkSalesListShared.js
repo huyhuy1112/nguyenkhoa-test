@@ -8,6 +8,7 @@
 	var floatTheadPatched = false;
 	var postLoadPatched = false;
 	var showPagingPatched = false;
+	var layoutToggleBound = false;
 
 	function isSalesAppList() {
 		var b = document.body;
@@ -20,6 +21,19 @@
 		}
 		var params = new URLSearchParams(window.location.search || '');
 		return params.get('view') === 'List' && params.get('app') === 'SALES';
+	}
+
+	function isSupportAppList() {
+		var b = document.body;
+		if (!b || b.getAttribute('data-view') !== 'List') {
+			return false;
+		}
+		var appName = (b.getAttribute('data-app') || '').toUpperCase();
+		if (appName === 'SUPPORT') {
+			return true;
+		}
+		var params = new URLSearchParams(window.location.search || '');
+		return params.get('view') === 'List' && params.get('app') === 'SUPPORT';
 	}
 
 	function isManagementProjectTaskList() {
@@ -58,8 +72,95 @@
 		return params.get('module') === 'Documents' && params.get('view') === 'List' && params.get('app') === 'MANAGEMENT';
 	}
 
+	function isPotentialsSalesList() {
+		var b = document.body;
+		return b && b.getAttribute('data-module') === 'Potentials' && isSalesAppList();
+	}
+
 	function isMkEnhancedList() {
 		return isSalesAppList() || isManagementProjectTaskList() || isManagementProjectList() || isManagementDocumentsList();
+	}
+
+	function supportsLayoutToggle() {
+		return isSalesAppList() || isSupportAppList() || isManagementProjectList() || isManagementProjectTaskList();
+	}
+
+	function getListModuleName() {
+		var b = document.body;
+		return (b && b.getAttribute('data-module')) || 'Vtiger';
+	}
+
+	function getLayoutStorageKey() {
+		return 'mk_sales_list_layout_' + getListModuleName();
+	}
+
+	function getSavedLayoutMode() {
+		try {
+			var key = getLayoutStorageKey();
+			var saved = window.localStorage.getItem(key);
+			if (saved === 'grid' || saved === 'list') {
+				return saved;
+			}
+			if (getListModuleName() === 'Quotes') {
+				var legacy = window.localStorage.getItem('mk_quotes_sales_list_layout');
+				if (legacy === 'grid' || legacy === 'list') {
+					return legacy;
+				}
+			}
+		} catch (e) {
+			/* ignore */
+		}
+		return 'list';
+	}
+
+	function applyLayoutMode(mode) {
+		if (!supportsLayoutToggle()) {
+			return;
+		}
+		var isGrid = mode === 'grid';
+		var $lv = getListViewContainer();
+		$lv.toggleClass('mk-so-is-view-grid', isGrid);
+		document.body.classList.toggle('mk-so-is-view-grid', isGrid);
+		/* Quotes module CSS still keys off mk-qt-is-view-grid */
+		$lv.toggleClass('mk-qt-is-view-grid', isGrid);
+		document.body.classList.toggle('mk-qt-is-view-grid', isGrid);
+
+		var $listBtn = $('.mk-so-toggle-layout--list');
+		var $gridBtn = $('.mk-so-toggle-layout--grid');
+		$listBtn.prop('disabled', false).toggleClass('is-active', !isGrid).attr('aria-pressed', !isGrid ? 'true' : 'false');
+		$gridBtn.prop('disabled', false).toggleClass('is-active', isGrid).attr('aria-pressed', isGrid ? 'true' : 'false');
+
+		try {
+			window.localStorage.setItem(getLayoutStorageKey(), isGrid ? 'grid' : 'list');
+		} catch (e2) {
+			/* ignore */
+		}
+	}
+
+	function bindViewLayoutToggle() {
+		if (!supportsLayoutToggle() || layoutToggleBound) {
+			return;
+		}
+		layoutToggleBound = true;
+		$(document).on('click.mkSalesListLayout', '.mk-so-toggle-layout--list', function (e) {
+			if (!supportsLayoutToggle()) {
+				return;
+			}
+			e.preventDefault();
+			e.stopPropagation();
+			applyLayoutMode('list');
+			applyCommonUi();
+		});
+		$(document).on('click.mkSalesListLayout', '.mk-so-toggle-layout--grid', function (e) {
+			if (!supportsLayoutToggle()) {
+				return;
+			}
+			e.preventDefault();
+			e.stopPropagation();
+			applyLayoutMode('grid');
+			applyCommonUi();
+		});
+		applyLayoutMode(getSavedLayoutMode());
 	}
 
 	function notifyMkMgmtListUpdated() {
@@ -78,6 +179,27 @@
 		return $('#listViewContent');
 	}
 
+	/**
+	 * AJAX refresh can leave multiple .mk-so-filter-row__footer nodes (one moved below table,
+	 * another inside fresh #listview-actions). Collapse to a single footer element.
+	 */
+	function dedupePaginationFooters($scope) {
+		var $footers = $scope.find('.mk-so-filter-row__footer');
+		if (!$footers.length) {
+			return $();
+		}
+		if ($footers.length === 1) {
+			return $footers.first();
+		}
+		var $keep = $scope.find('#listview-actions .mk-so-filter-row__footer').last();
+		if (!$keep.length) {
+			$keep = $footers.last();
+		}
+		$keep = $keep.detach();
+		$footers.remove();
+		return $keep;
+	}
+
 	function relocatePaginationFooter() {
 		if (!isMkEnhancedList()) {
 			return;
@@ -89,15 +211,59 @@
 		var $card = $lv.find('.mk-so-table-card').first();
 		var $scope = $card.length ? $card : $lv;
 		var $table = $scope.find('#table-content').first();
-		var $footer = $scope.find('.mk-so-filter-row__footer').first();
-		if (!$table.length || !$footer.length) {
+		if (!$table.length) {
 			return;
 		}
-		if ($table[0].nextElementSibling === $footer[0]) {
+		/* Orphan footers left below table from a previous relocate */
+		$table.nextAll('.mk-so-filter-row__footer').remove();
+		var $footer = dedupePaginationFooters($scope);
+		if (!$footer.length) {
+			$footer = $scope.find('#listview-actions .mk-so-filter-row__footer').first().detach();
+		}
+		if (!$footer.length) {
 			return;
 		}
-		$footer.detach();
-		$table.after($footer);
+		$scope.find('.mk-so-filter-row__footer').not($footer).remove();
+		if ($table[0].nextElementSibling !== $footer[0]) {
+			$table.after($footer);
+		}
+	}
+
+	/** Update toolbar counts + pagination controls without replacing #listview-actions (Potentials). */
+	function syncToolbarFromFragment($source, $lv) {
+		var $page = getListPageRoot($lv);
+		var $scope = $page.length ? $page : $lv;
+		var $srcActions = $source.find('#listview-actions').first();
+		var $dstActions = $scope.find('#listview-actions').first();
+		if ($srcActions.length && $dstActions.length) {
+			var $srcNums = $srcActions.find('.pageNumbersText').first();
+			var $dstNums = $dstActions.find('.pageNumbersText').first();
+			if ($srcNums.length && $dstNums.length) {
+				$dstNums.html($srcNums.html());
+			}
+			var $srcTotal = $srcActions.find('.totalNumberOfRecords').first();
+			var $dstTotal = $dstActions.find('.totalNumberOfRecords').first();
+			if ($srcTotal.length && $dstTotal.length) {
+				$dstTotal.attr('class', $srcTotal.attr('class'));
+				$dstTotal.attr('title', $srcTotal.attr('title'));
+				$dstTotal.html($srcTotal.html());
+			}
+		}
+		var $srcFooter = $source.find('#listview-actions .mk-so-filter-row__footer').first();
+		if (!$srcFooter.length) {
+			$srcFooter = $source.find('.mk-so-filter-row__footer').first();
+		}
+		var $dstFooter = $scope.find('.mk-so-filter-row__footer').first();
+		if ($srcFooter.length && $dstFooter.length) {
+			$dstFooter.html($srcFooter.html());
+		}
+		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+		if (listInstance && listInstance.showPagingInfo) {
+			listInstance.showPagingInfo();
+		}
+		if (listInstance && listInstance.registerPostLoadListViewActions) {
+			listInstance.registerPostLoadListViewActions();
+		}
 	}
 
 	function destroyFloatTheadArtifacts() {
@@ -134,7 +300,66 @@
 		$lv.find('.floatThead-wrapper, .floatThead-container').css({ width: '', overflow: '' });
 	}
 
-	function syncHiddenFieldsFromFragment($incoming, $scope) {
+	function getListDataScope($lv) {
+		var $page = getListPageRoot($lv);
+		if (!$page.length) {
+			return $lv;
+		}
+		var $col = $page.find('.mk-so-table-card > .col-sm-12').first();
+		return $col.length ? $col : $page;
+	}
+
+	function captureSearchRowValues($lv) {
+		var values = {};
+		$lv.find('tr.searchRow .listSearchContributor[name]').each(function () {
+			var $el = $(this);
+			if ($el.hasClass('select2_input_element') || $el.is('div')) {
+				return;
+			}
+			var name = $el.attr('name');
+			if (!name) {
+				return;
+			}
+			var val = $el.val();
+			if (val != null && String(val).trim() !== '') {
+				values[name] = val;
+			}
+		});
+		return values;
+	}
+
+	function restoreSearchRowValues($lv, values) {
+		var name;
+		if (!values) {
+			return;
+		}
+		for (name in values) {
+			if (!Object.prototype.hasOwnProperty.call(values, name)) {
+				continue;
+			}
+			var $targets = $lv.find(
+				'tr.searchRow select.listSearchContributor[name="' + name + '"], ' +
+					'tr.searchRow input.listSearchContributor[name="' + name + '"]'
+			).not('.select2_input_element');
+			if (!$targets.length) {
+				continue;
+			}
+			$targets.each(function () {
+				var $el = $(this);
+				$el.val(values[name]);
+				if ($el.hasClass('select2') && $el.data('select2')) {
+					try {
+						$el.select2('val', values[name]);
+					} catch (eSel) {
+						/* ignore */
+					}
+				}
+			});
+		}
+	}
+
+	function syncHiddenFieldsFromFragment($incoming, $lv) {
+		var $scope = isPotentialsSalesList() ? getListDataScope($lv) : $lv;
 		var names = [
 			'pageNumber', 'pageLimit', 'orderBy', 'sortOrder', 'list_headers', 'totalCount', 'noOfEntries',
 			'pageStartRange', 'pageEndRange', 'previousPageExist', 'nextPageExist', 'viewname', 'cvid',
@@ -151,7 +376,11 @@
 	}
 
 	function getIncomingRoot($incoming) {
-		var $page = $incoming.find('.mk-so-page.mk-so-list-sales-root').first();
+		var $page = $incoming.find('.mk-so-page.mk-opportunity-page').first();
+		if ($page.length) {
+			return $page;
+		}
+		$page = $incoming.find('.mk-so-page.mk-so-list-sales-root').first();
 		if ($page.length) {
 			return $page;
 		}
@@ -195,11 +424,18 @@
 		if (!$newTableContent.length || !$card.length) {
 			return false;
 		}
+		var potentialsOnly = isPotentialsSalesList();
+		/* Drop orphan footers before table swap (stacked pagination bars). */
+		$card.find('#table-content').nextAll('.mk-so-filter-row__footer').remove();
 		$card.find('#table-content').replaceWith($newTableContent.clone(true, true));
-		var $newActions = $source.find('#listview-actions').first();
-		var $oldActions = $page.find('#listview-actions').first();
-		if ($newActions.length && $oldActions.length) {
-			$oldActions.replaceWith($newActions.clone(true, true));
+		if (potentialsOnly) {
+			syncToolbarFromFragment($source, $lv);
+		} else {
+			var $newActions = $source.find('#listview-actions').first();
+			var $oldActions = $page.find('#listview-actions').first();
+			if ($newActions.length && $oldActions.length) {
+				$oldActions.replaceWith($newActions.clone(true, true));
+			}
 		}
 		relocatePaginationFooter();
 		return true;
@@ -242,8 +478,16 @@
 			return;
 		}
 		destroyFloatTheadArtifacts();
+		var $lv = getListViewContainer();
+		var $card = $lv.find('.mk-so-table-card').first();
+		if ($card.length) {
+			dedupePaginationFooters($card);
+		}
 		relocatePaginationFooter();
 		autoLoadTotalRecordCount();
+		if (supportsLayoutToggle()) {
+			applyLayoutMode(getSavedLayoutMode());
+		}
 		notifyMkMgmtListUpdated();
 	}
 
@@ -316,6 +560,62 @@
 		placeListContentsPatched = true;
 		var originalPlace = Vtiger_List_Js.prototype.placeListContents;
 		Vtiger_List_Js.prototype.placeListContents = function (contents) {
+			/* Potentials: never container.html() the whole shell (causes white page). */
+			if (isPotentialsSalesList()) {
+				var $lv = getListViewContainer();
+				var $incoming = $('<div>').html(contents);
+				syncHiddenFieldsFromFragment($incoming, $lv);
+				if (swapListBodyInShell(contents)) {
+					applyCommonUi();
+					if (typeof window.mkPotentialsListAfterAjax === 'function') {
+						window.mkPotentialsListAfterAjax();
+					}
+					return;
+				}
+				var $page = getListPageRoot($lv);
+				var $card = $page.find('.mk-so-table-card').first();
+				var $newTableContent = $incoming.find('#table-content').first();
+				if ($page.length && $card.length && $newTableContent.length) {
+					var $sourceFb = getIncomingRoot($incoming);
+					var savedSearchFb = captureSearchRowValues($lv);
+					$card.find('#table-content').nextAll('.mk-so-filter-row__footer').remove();
+					$card.find('#table-content').replaceWith($newTableContent.clone(true, true));
+					if (savedSearchFb) {
+						restoreSearchRowValues($lv, savedSearchFb);
+					}
+					syncToolbarFromFragment($sourceFb, $lv);
+					applyCommonUi();
+					if (typeof window.mkPotentialsListAfterAjax === 'function') {
+						window.mkPotentialsListAfterAjax();
+					}
+					return;
+				}
+				var $col = $page.find('.mk-so-table-card > .col-sm-12').first();
+				var $sourceCol = getIncomingRoot($incoming);
+				if ($sourceCol.length && !$sourceCol.is('.col-sm-12')) {
+					$sourceCol = $sourceCol.find('> .col-sm-12').first();
+					if (!$sourceCol.length) {
+						$sourceCol = getIncomingRoot($incoming).find('.col-sm-12').first();
+					}
+				}
+				if ($col.length && $sourceCol.length) {
+					$col.html($sourceCol.html());
+					applyCommonUi();
+					if (typeof window.mkPotentialsListAfterAjax === 'function') {
+						window.mkPotentialsListAfterAjax();
+					}
+					return;
+				}
+				/* Do not call originalPlace — it wipes mk-so-page header/actions shell */
+				try {
+					if (typeof app !== 'undefined' && app.helper && app.helper.hideProgress) {
+						app.helper.hideProgress();
+					}
+				} catch (eHide) {
+					/* ignore */
+				}
+				return;
+			}
 			if (isMkEnhancedList() && swapListBodyInShell(contents)) {
 				applyCommonUi();
 				if (isSalesAppList() && typeof window.applySalesOrderListUi === 'function') {
@@ -361,6 +661,10 @@
 			if (isManagementProjectTaskList() || isManagementProjectList()) {
 				return;
 			}
+			/* Potentials: List.js handles search icon (avoid duplicate handlers). */
+			if (isPotentialsSalesList()) {
+				return;
+			}
 			root.toggleClass('mk-so-search-open');
 		});
 	}
@@ -401,6 +705,7 @@
 			if (isSalesAppList()) {
 				bindToolbarEvents();
 			}
+			bindViewLayoutToggle();
 			scheduleApply();
 			if (typeof app !== 'undefined' && app.event && app.event.on) {
 				app.event.on('post.listViewFilter.click', applyCommonUi);
@@ -411,12 +716,18 @@
 
 	window.MkSalesListShared = {
 		isSalesAppList: isSalesAppList,
+		isPotentialsSalesList: isPotentialsSalesList,
 		isManagementProjectTaskList: isManagementProjectTaskList,
 		isManagementProjectList: isManagementProjectList,
 		isManagementDocumentsList: isManagementDocumentsList,
 		isMkEnhancedList: isMkEnhancedList,
+		supportsLayoutToggle: supportsLayoutToggle,
 		applyCommonUi: applyCommonUi,
+		applyLayoutMode: applyLayoutMode,
+		getSavedLayoutMode: getSavedLayoutMode,
+		bindViewLayoutToggle: bindViewLayoutToggle,
 		relocatePaginationFooter: relocatePaginationFooter,
+		dedupePaginationFooters: dedupePaginationFooters,
 		autoLoadTotalRecordCount: autoLoadTotalRecordCount
 	};
 

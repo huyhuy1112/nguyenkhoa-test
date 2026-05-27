@@ -1,16 +1,47 @@
 <?php
 /*+***********************************************************************************
- * The contents of this file are subject to the vtiger CRM Public License Version 1.0
- * ("License"); You may not use this file except in compliance with the License
- * The Original Code is:  vtiger CRM Open Source
- * The Initial Developer of the Original Code is vtiger.
- * Portions created by vtiger are Copyright (C) vtiger.
- * All Rights Reserved.
+ * SalesOrder Edit — premium Create workspace (SALES, new record). Stock Inventory Save + line items.
+ * TOOLS app keeps custom Tools Orders editor.
  *************************************************************************************/
 
-Class SalesOrder_Edit_View extends Inventory_Edit_View {
+class SalesOrder_Edit_View extends Inventory_Edit_View {
+
 	protected function isToolsOrdersContext(Vtiger_Request $request) {
 		return strtoupper((string) $request->get('app')) === 'TOOLS';
+	}
+
+	protected function isMkModernSalesOrderCreate(Vtiger_Request $request) {
+		if ($this->isToolsOrdersContext($request)) {
+			return false;
+		}
+		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
+			return false;
+		}
+		if ($request->get('displayMode') === 'overlay') {
+			return false;
+		}
+		$app = strtoupper((string) $request->get('app'));
+		return $app === 'SALES' || $app === '';
+	}
+
+	protected function assignModernContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
+		$viewer->assign('VIEW', 'Edit');
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'SalesOrder');
+		$viewer->assign('MK_MODERN_SALES_ORDER_CREATE', true);
+	}
+
+	protected function redirectInventoryToSales(Vtiger_Request $request) {
+		$app = strtoupper((string) $request->get('app'));
+		if ($app === 'INVENTORY' && empty($request->get('record'))) {
+			header('Location: index.php?module=SalesOrder&view=Edit&app=SALES');
+			exit;
+		}
 	}
 
 	protected function getToolsOrderFieldModels($moduleModel) {
@@ -35,55 +66,111 @@ Class SalesOrder_Edit_View extends Inventory_Edit_View {
 		return $result;
 	}
 
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		if ($this->isMkModernSalesOrderCreate($request)) {
+			$this->redirectInventoryToSales($request);
+			parent::preProcess($request, false);
+			$this->assignModernContext($request);
+			if ($display) {
+				$this->preProcessDisplay($request);
+			}
+			return;
+		}
+		parent::preProcess($request, $display);
+	}
+
+	public function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isMkModernSalesOrderCreate($request)) {
+			return 'EditViewPreProcess.tpl';
+		}
+		return parent::preProcessTplName($request);
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		if ($this->isMkModernSalesOrderCreate($request)) {
+			$viewer = $this->getViewer($request);
+			$viewer->view('EditViewPostProcess.tpl', $request->getModule());
+			Vtiger_Basic_View::postProcess($request);
+			return;
+		}
+		parent::postProcess($request);
+	}
+
 	public function process(Vtiger_Request $request) {
-		if (!$this->isToolsOrdersContext($request)) {
-			parent::process($request);
+		if ($this->isToolsOrdersContext($request)) {
+			$viewer = $this->getViewer($request);
+			$moduleName = $request->getModule();
+			$recordId = $request->get('record');
+			if (!empty($recordId)) {
+				$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+				$viewer->assign('MODE', 'edit');
+				$viewer->assign('RECORD_ID', $recordId);
+			} else {
+				$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
+				$viewer->assign('MODE', '');
+			}
+
+			$moduleModel = $recordModel->getModule();
+			$fieldList = $moduleModel->getFields();
+			$requestFieldList = array_intersect_key($request->getAllPurified(), $fieldList);
+			foreach ($requestFieldList as $fieldName => $fieldValue) {
+				$fieldModel = $fieldList[$fieldName];
+				if ($fieldModel->isEditable()) {
+					$recordModel->set($fieldName, $fieldModel->getDBInsertValue($fieldValue));
+				}
+			}
+
+			$viewer->assign('MODULE', $moduleName);
+			$viewer->assign('RECORD', $recordModel);
+			$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
+			$viewer->assign('CURRENTDATE', date('Y-n-j'));
+			$viewer->assign('SELECTED_MENU_CATEGORY', $request->get('app'));
+			$viewer->assign('TOOLS_ORDERS_MODE', true);
+			$fieldsMap = $this->getToolsOrderFieldModels($moduleModel);
+			foreach ($fieldsMap as $fieldName => $fieldModel) {
+				$fieldModel->set('fieldvalue', $recordModel->get($fieldName));
+			}
+			$viewer->assign('FIELDS_MAP', $fieldsMap);
+			$viewer->assign('IS_RELATION_OPERATION', $request->get('relationOperation'));
+			$viewer->assign('SOURCE_MODULE', $request->get('sourceModule'));
+			$viewer->assign('SOURCE_RECORD', $request->get('sourceRecord'));
+			$viewer->assign('TOOLS_VALIDATION_ERROR', $request->get('validation_error'));
+
+			if ($request->get('returnview')) {
+				$request->setViewerReturnValues($viewer);
+			}
+
+			$viewer->view('ToolsOrdersEditView.tpl', $moduleName);
 			return;
 		}
 
-		$viewer = $this->getViewer($request);
-		$moduleName = $request->getModule();
-		$recordId = $request->get('record');
-		if (!empty($recordId)) {
-			$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
-			$viewer->assign('MODE', 'edit');
-			$viewer->assign('RECORD_ID', $recordId);
-		} else {
-			$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
-			$viewer->assign('MODE', '');
+		if ($this->isMkModernSalesOrderCreate($request)) {
+			$this->assignModernContext($request);
 		}
+		parent::process($request);
+	}
 
-		$moduleModel = $recordModel->getModule();
-		$fieldList = $moduleModel->getFields();
-		$requestFieldList = array_intersect_key($request->getAllPurified(), $fieldList);
-		foreach ($requestFieldList as $fieldName => $fieldValue) {
-			$fieldModel = $fieldList[$fieldName];
-			if ($fieldModel->isEditable()) {
-				$recordModel->set($fieldName, $fieldModel->getDBInsertValue($fieldValue));
-			}
+	public function getHeaderCss(Vtiger_Request $request) {
+		$headerCssInstances = parent::getHeaderCss($request);
+		if (!$this->isMkModernSalesOrderCreate($request)) {
+			return $headerCssInstances;
 		}
+		$cssFileNames = array(
+			'~layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.css',
+		);
+		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
+		return array_merge($headerCssInstances, $cssInstances);
+	}
 
-		$viewer->assign('MODULE', $moduleName);
-		$viewer->assign('RECORD', $recordModel);
-		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
-		$viewer->assign('CURRENTDATE', date('Y-n-j'));
-		$viewer->assign('SELECTED_MENU_CATEGORY', $request->get('app'));
-		$viewer->assign('TOOLS_ORDERS_MODE', true);
-		$fieldsMap = $this->getToolsOrderFieldModels($moduleModel);
-		// UI type templates read from FIELD_MODEL->get('fieldvalue'), so we must populate it.
-		foreach ($fieldsMap as $fieldName => $fieldModel) {
-			$fieldModel->set('fieldvalue', $recordModel->get($fieldName));
+	public function getHeaderScripts(Vtiger_Request $request) {
+		$headerScriptInstances = parent::getHeaderScripts($request);
+		if (!$this->isMkModernSalesOrderCreate($request)) {
+			return $headerScriptInstances;
 		}
-		$viewer->assign('FIELDS_MAP', $fieldsMap);
-		$viewer->assign('IS_RELATION_OPERATION', $request->get('relationOperation'));
-		$viewer->assign('SOURCE_MODULE', $request->get('sourceModule'));
-		$viewer->assign('SOURCE_RECORD', $request->get('sourceRecord'));
-		$viewer->assign('TOOLS_VALIDATION_ERROR', $request->get('validation_error'));
-
-		if ($request->get('returnview')) {
-			$request->setViewerReturnValues($viewer);
-		}
-
-		$viewer->view('ToolsOrdersEditView.tpl', $moduleName);
+		$jsFileNames = array(
+			'~layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.js',
+		);
+		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+		return array_merge($headerScriptInstances, $jsScriptInstances);
 	}
 }

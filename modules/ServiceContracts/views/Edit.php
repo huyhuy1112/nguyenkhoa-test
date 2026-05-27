@@ -1,43 +1,41 @@
 <?php
 /*+***********************************************************************************
- * Quotes Edit — premium Create workspace (SALES, new record). Stock Inventory Save + line items.
+ * ServiceContracts Edit — premium Create workspace (SALES, new record). Stock Save + fields.
  *************************************************************************************/
 
-class Quotes_Edit_View extends Inventory_Edit_View {
+class ServiceContracts_Edit_View extends Vtiger_Edit_View {
 
-	protected function isMkModernQuoteCreate(Vtiger_Request $request) {
+	protected function isMkModernServiceContractCreate(Vtiger_Request $request) {
 		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
 			return false;
 		}
-		if ($request->get('displayMode') === 'overlay') {
-			return false;
-		}
 		$app = strtoupper((string)$request->get('app'));
-		if ($app === 'SALES') {
-			return true;
-		}
-		if ($app === '') {
-			return true;
-		}
-		return false;
+		return $app === 'SALES' || $app === '';
 	}
 
 	protected function assignModernContext(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
-		$user = Users_Record_Model::getCurrentUserModel();
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
 		$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
 		$viewer->assign('VIEW', 'Edit');
-		$viewer->assign('MENU_SELECTED_MODULENAME', 'Quotes');
-		$viewer->assign('MK_MODERN_QUOTE_CREATE', true);
-		$viewer->assign('MK_QUOTE_OWNER_NAME', trim($user->getName()));
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'ServiceContracts');
+		$viewer->assign('MK_MODERN_SERVICE_CONTRACT_CREATE', true);
+	}
+
+	protected function redirectSupportToSales(Vtiger_Request $request) {
+		$app = strtoupper((string)$request->get('app'));
+		if ($app === 'SUPPORT' && empty($request->get('record'))) {
+			header('Location: index.php?module=ServiceContracts&view=Edit&app=SALES');
+			exit;
+		}
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
-		if ($this->isMkModernQuoteCreate($request)) {
+		if ($this->isMkModernServiceContractCreate($request)) {
+			$this->redirectSupportToSales($request);
 			parent::preProcess($request, false);
 			$this->assignModernContext($request);
 			if ($display) {
@@ -49,14 +47,14 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 	}
 
 	public function preProcessTplName(Vtiger_Request $request) {
-		if ($this->isMkModernQuoteCreate($request)) {
+		if ($this->isMkModernServiceContractCreate($request)) {
 			return 'EditViewPreProcess.tpl';
 		}
 		return parent::preProcessTplName($request);
 	}
 
 	public function postProcess(Vtiger_Request $request) {
-		if ($this->isMkModernQuoteCreate($request)) {
+		if ($this->isMkModernServiceContractCreate($request)) {
 			$viewer = $this->getViewer($request);
 			$viewer->view('EditViewPostProcess.tpl', $request->getModule());
 			Vtiger_Basic_View::postProcess($request);
@@ -66,7 +64,7 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 	}
 
 	public function process(Vtiger_Request $request) {
-		if ($this->isMkModernQuoteCreate($request)) {
+		if ($this->isMkModernServiceContractCreate($request)) {
 			$this->assignModernContext($request);
 		}
 		parent::process($request);
@@ -74,11 +72,11 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 
 	public function getHeaderCss(Vtiger_Request $request) {
 		$headerCssInstances = parent::getHeaderCss($request);
-		if (!$this->isMkModernQuoteCreate($request)) {
+		if (!$this->isMkModernServiceContractCreate($request)) {
 			return $headerCssInstances;
 		}
 		$cssFileNames = array(
-			'~layouts/v7/modules/Quotes/resources/QuoteMkEdit.css',
+			'~layouts/v7/modules/ServiceContracts/resources/ServiceContractMkEdit.css',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 		return array_merge($headerCssInstances, $cssInstances);
@@ -86,11 +84,11 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
-		if (!$this->isMkModernQuoteCreate($request)) {
+		if (!$this->isMkModernServiceContractCreate($request)) {
 			return $headerScriptInstances;
 		}
 		$jsFileNames = array(
-			'~layouts/v7/modules/Quotes/resources/QuoteMkEdit.js',
+			'~layouts/v7/modules/ServiceContracts/resources/ServiceContractMkEdit.js',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 		return array_merge($headerScriptInstances, $jsScriptInstances);
