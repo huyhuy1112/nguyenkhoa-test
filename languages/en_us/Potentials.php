@@ -57,6 +57,7 @@ $languageStrings = array(
 	//widgets headers
 	'LBL_RELATED_CONTACTS' => 'Related Contacts',
 	'LBL_RELATED_PRODUCTS' => 'Related Products',
+	'LBL_RELATED_PRODUCTS_AND_SERVICES' => 'Related Products & Services',
     
     //Convert Potentials
     'LBL_CONVERT_POTENTIAL' => 'Convert Opportunity',

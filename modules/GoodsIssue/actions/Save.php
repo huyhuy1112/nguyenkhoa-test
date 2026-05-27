@@ -46,6 +46,7 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 		$items = array();
 		$names = $request->get('item_product_name');
 		$ids = $request->get('item_productid');
+		$productKeys = $request->get('item_product_key');
 		$qtys = $request->get('item_quantity');
 		$prices = $request->get('item_unit_price');
 		$notes = $request->get('item_line_note');
@@ -93,6 +94,7 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 			if ($discount < 0) $discount = 0;
 			if ($discount > 100) $discount = 100;
 			$serial = (string) (is_array($serials) && isset($serials[$i]) ? $serials[$i] : '');
+			$productKey = trim((string) (is_array($productKeys) && isset($productKeys[$i]) ? $productKeys[$i] : ''));
 			$rawType = (string) (is_array($types) && isset($types[$i]) ? $types[$i] : '');
 
 			// Ignore invalid lines
@@ -104,6 +106,7 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 			$items[] = array(
 				'productid' => $productId > 0 ? $productId : null,
 				'product_name' => $name,
+				'product_key' => $productKey,
 				'product_type' => $this->resolveProductType($productId, $rawType),
 				'quantity' => $qty,
 				'unit_price' => $price,
@@ -117,10 +120,11 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 	}
 
 	protected function itemKey(array $item) {
-		if (!empty($item['productid'])) {
-			return 'P:' . (int) $item['productid'];
+		if (!empty($item['product_key'])) {
+			return trim((string) $item['product_key']);
 		}
-		return 'N:' . mb_strtolower(trim((string) $item['product_name']));
+		require_once 'modules/Warehouse/helpers/InventoryCrossNavHelper.php';
+		return Inventory_CrossNav_Helper::stockStyleItemKey($item);
 	}
 
 	protected function aggregateByProductKey(array $items) {
@@ -166,18 +170,17 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 	}
 
 	protected function loadStockRowsByKeys(PearDatabase $db, array $keys) {
+		require_once 'modules/Warehouse/helpers/StockHelper.php';
 		$keys = array_values(array_unique(array_filter($keys)));
-		if (empty($keys)) return array();
-		$placeholders = implode(',', array_fill(0, count($keys), '?'));
-		$rs = $db->pquery(
-			"SELECT stockid, product_key, quantity, shrinkage_qty
-			 FROM vtiger_warehouse_stock
-			 WHERE product_key IN ($placeholders)",
-			$keys
-		);
+		if (empty($keys)) {
+			return array();
+		}
 		$map = array();
-		while ($row = $db->fetchByAssoc($rs)) {
-			$map[(string) $row['product_key']] = $row;
+		foreach ($keys as $requestedKey) {
+			$row = Warehouse_Stock_Helper::findStockRowByProductKey($db, $requestedKey);
+			if ($row !== null) {
+				$map[(string) $requestedKey] = $row;
+			}
 		}
 		return $map;
 	}

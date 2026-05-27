@@ -81,7 +81,7 @@ class GoodsReceipt_Detail_View extends Vtiger_Index_View {
 		$recordModel = $this->detailRecordModel ?: $this->buildRecordModel($recordId, $record);
 
 		$ri = $db->pquery(
-			"SELECT itemid, receiptid, productid, product_name, product_type, quantity, unit_price, description, line_note, serial_number
+			"SELECT itemid, receiptid, productid, product_name, product_type, quantity, unit_price, description, line_note, serial_number, expired_date
 			 FROM vtiger_goodsreceipt_items
 			 WHERE receiptid = ?
 			 ORDER BY itemid ASC",
@@ -90,6 +90,7 @@ class GoodsReceipt_Detail_View extends Vtiger_Index_View {
 		$items = array();
 		$totalQty = 0.0;
 		$totalValue = 0.0;
+		$earliestExpired = '';
 		while ($row = $db->fetchByAssoc($ri)) {
 			$row['line_total'] = (float) $row['quantity'] * (float) $row['unit_price'];
 			$totalQty += (float) $row['quantity'];
@@ -104,6 +105,11 @@ class GoodsReceipt_Detail_View extends Vtiger_Index_View {
 			$row['quantity_display'] = number_format((float) $row['quantity'], 2, '.', ',');
 			$row['unit_price_display'] = number_format((float) $row['unit_price'], 0, '.', ',');
 			$row['line_total_display'] = number_format((float) $row['line_total'], 0, '.', ',');
+			$expRaw = isset($row['expired_date']) ? trim((string) $row['expired_date']) : '';
+			$row['expired_date_display'] = ($expRaw !== '' ? date('d/m/Y', strtotime($expRaw)) : '—');
+			if ($expRaw !== '' && ($earliestExpired === '' || $expRaw < $earliestExpired)) {
+				$earliestExpired = $expRaw;
+			}
 			$items[] = $row;
 		}
 		$ra = $db->pquery(
@@ -120,6 +126,7 @@ class GoodsReceipt_Detail_View extends Vtiger_Index_View {
 		}
 
 		$record = $this->normalizeRecordForDisplay($record);
+		$record['expired_date_display'] = ($earliestExpired !== '' ? date('d/m/Y', strtotime($earliestExpired)) : '—');
 		$viewer->assign('RECORD', $recordModel);
 		$viewer->assign('RECORD_MODEL', $recordModel);
 		$viewer->assign('RECORD_DATA', $record);
@@ -131,8 +138,8 @@ class GoodsReceipt_Detail_View extends Vtiger_Index_View {
 
 		require_once 'modules/Warehouse/helpers/InventoryCrossNavHelper.php';
 		$viewer->assign('LINKED_STORAGE_STOCK_ID', Inventory_CrossNav_Helper::resolveStockIdForInboundReceipt($db, $recordId, $items));
-		$viewer->assign('LINKED_OUTBOUND_ISSUE_ID', Inventory_CrossNav_Helper::resolveOutboundIssueId($db, $items));
-		$viewer->assign('LINKED_INBOUND_RECEIPT_ID', 0);
+		$viewer->assign('LINKED_OUTBOUND_ISSUE_ID', Inventory_CrossNav_Helper::resolveOutboundIssueIdForInboundReceipt($db, $recordId, $items));
+		$viewer->assign('LINKED_INBOUND_RECEIPT_ID', $recordId);
 		$viewer->assign('MK_INV_NAV_ACTIVE', 'GoodsReceipt');
 		$viewer->assign('MK_INV_NAV_CLASS', 'mk-gr-detail-topnav');
 

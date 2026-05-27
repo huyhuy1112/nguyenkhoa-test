@@ -1029,13 +1029,15 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-das
 body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"],
     body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-dash-main,
     body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-dash-main,
-    body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-dash-main {
+    body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-dash-main,
+    body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-dash-main {
         padding: 0;
     }
 
     body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-app-shell,
     body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-app-shell,
-    body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-app-shell {
+    body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-app-shell,
+    body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-app-shell {
         margin-left: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
@@ -1047,6 +1049,8 @@ body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"],
     body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
     body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
     body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
     body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
         left: 0 !important;
         right: 0 !important;
@@ -2897,6 +2901,144 @@ body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-das
     min-height: 0;
     display: block;
     padding: 0 !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== GoodsIssue Outbound Edit (INVENTORY) — same split shell as Outbound List ========== */
+body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] #page,
+body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-dash-main,
+body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-dash-main.mk-go-edit-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== GoodsReceipt Inbound Edit (INVENTORY) — same split shell as Inbound List ========== */
+body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] #page,
+body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-dash-main,
+body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-dash-main.mk-gr-edit-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
     box-sizing: border-box;
     background: #f7f9fb;
 }

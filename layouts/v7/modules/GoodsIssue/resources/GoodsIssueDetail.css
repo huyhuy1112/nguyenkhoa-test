@@ -1214,3 +1214,28 @@ body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-go-
 	border-radius: 8px;
 	border: 1px solid #e2e8f0;
 }
+
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-go-expired-date {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #334155;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	white-space: nowrap;
+}
+
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-go-expired-date--warn {
+	color: #9a3412;
+	background: #fff7ed;
+	border-color: #fed7aa;
+}
+
+body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-go-expired-date--danger {
+	color: #991b1b;
+	background: #fef2f2;
+	border-color: #fecaca;
+}

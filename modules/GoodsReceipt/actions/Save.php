@@ -16,6 +16,7 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 		$descs = $request->get('description');
 		$types = $request->get('item_product_type');
 		$serials = $request->get('item_serial');
+		$expiredDates = $request->get('item_expired_date');
 
 		if (!is_array($names)) {
 			return array();
@@ -30,6 +31,12 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 			$desc = is_array($descs) && isset($descs[$i]) ? (string) $descs[$i] : '';
 			$rawType = is_array($types) && isset($types[$i]) ? (string) $types[$i] : '';
 			$serial = is_array($serials) && isset($serials[$i]) ? (string) $serials[$i] : '';
+			$expiredDate = is_array($expiredDates) && isset($expiredDates[$i]) ? trim((string) $expiredDates[$i]) : '';
+			if ($expiredDate === '') {
+				$expiredDate = null;
+			} elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $expiredDate)) {
+				$expiredDate = null;
+			}
 			if ($name === '' || $qty <= 0) {
 				continue;
 			}
@@ -44,16 +51,28 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 				'description' => $desc,
 				'line_note' => $note,
 				'serial_number' => $serial,
+				'expired_date' => $expiredDate,
 			);
 		}
 		return $items;
 	}
 
 	protected function itemKey(array $item) {
+		$base = '';
 		if (!empty($item['productid'])) {
-			return 'P:' . (int) $item['productid'];
+			$base = 'P:' . (int) $item['productid'];
+		} else {
+			$base = 'N:' . mb_strtolower(trim((string) $item['product_name']));
 		}
-		return 'N:' . mb_strtolower(trim((string) $item['product_name']));
+		$serial = trim((string) (isset($item['serial_number']) ? $item['serial_number'] : ''));
+		if ($serial !== '') {
+			$base .= ':S:' . mb_strtolower($serial);
+		}
+		$exp = trim((string) (isset($item['expired_date']) ? $item['expired_date'] : ''));
+		if ($exp !== '') {
+			$base .= ':E:' . $exp;
+		}
+		return $base;
 	}
 
 	protected function aggregateByProduct(array $items) {
@@ -68,12 +87,16 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 					'product_type' => isset($item['product_type']) ? (string) $item['product_type'] : null,
 					'quantity' => 0.0,
 					'last_price' => 0.0,
+					'expired_date' => isset($item['expired_date']) ? $item['expired_date'] : null,
 				);
 			}
 			$agg[$key]['quantity'] += (float) $item['quantity'];
 			$agg[$key]['last_price'] = (float) $item['unit_price'];
 			if (!empty($item['product_type'])) {
 				$agg[$key]['product_type'] = (string) $item['product_type'];
+			}
+			if (!empty($item['expired_date'])) {
+				$agg[$key]['expired_date'] = $item['expired_date'];
 			}
 		}
 		return $agg;
@@ -222,11 +245,13 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 				$currentQty = (float) $db->query_result($check, 0, 'quantity');
 				$nextQty = $currentQty + $delta;
 				if ($nextQty < 0) $nextQty = 0;
+				$exp = isset($stockRow['expired_date']) ? trim((string) $stockRow['expired_date']) : '';
 				$db->pquery(
 					"UPDATE vtiger_warehouse_stock
 					 SET quantity = ?, product_name = ?, product_type = ?, last_price = ?,
 					 	 storage_location = CASE WHEN ? <> '' THEN ? ELSE storage_location END,
 					 	 inbound_note = CASE WHEN ? <> '' THEN ? ELSE inbound_note END,
+						 expired_date = CASE WHEN ? <> '' THEN ? ELSE expired_date END,
 					 	 updatedby = ?, updatedtime = ?
 					 WHERE stockid = ?",
 					array(
@@ -238,6 +263,8 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 						$location,
 						$note,
 						$note,
+						$exp,
+						$exp,
 						$userId,
 						$now,
 						$stockId
@@ -251,11 +278,13 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 					$currentQty = (float) $db->query_result($checkAgain, 0, 'quantity');
 					$nextQty = $currentQty + $delta;
 					if ($nextQty < 0) $nextQty = 0;
+					$exp = isset($stockRow['expired_date']) ? trim((string) $stockRow['expired_date']) : '';
 					$db->pquery(
 						"UPDATE vtiger_warehouse_stock
 						 SET quantity = ?, product_name = ?, product_type = ?, last_price = ?,
 						 	 storage_location = CASE WHEN ? <> '' THEN ? ELSE storage_location END,
 						 	 inbound_note = CASE WHEN ? <> '' THEN ? ELSE inbound_note END,
+							 expired_date = CASE WHEN ? <> '' THEN ? ELSE expired_date END,
 						 	 updatedby = ?, updatedtime = ?
 						 WHERE stockid = ?",
 						array(
@@ -267,6 +296,8 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 							$location,
 							$note,
 							$note,
+							$exp,
+							$exp,
 							$userId,
 							$now,
 							$stockId
@@ -276,13 +307,14 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 					$stockId = (int) $db->getUniqueID('vtiger_warehouse_stock');
 					$qty = $delta > 0 ? $delta : 0;
 					$code = $this->generateStorageCode($db);
+					$exp = isset($stockRow['expired_date']) ? $stockRow['expired_date'] : null;
 					if ($qty <= 0) {
 						error_log('[GoodsReceipt] Skip stock insert (delta qty<=0)');
 						continue;
 					}
 					$db->pquery(
-						"INSERT INTO vtiger_warehouse_stock(stockid, code, product_key, productid, product_name, product_type, quantity, last_price, storage_location, inbound_note, createdtime, updatedtime, updatedby)
-						 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+						"INSERT INTO vtiger_warehouse_stock(stockid, code, product_key, productid, product_name, product_type, quantity, last_price, storage_location, inbound_note, expired_date, createdtime, updatedtime, updatedby)
+						 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 						array(
 							$stockId,
 							$code,
@@ -294,6 +326,7 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 							(float) $stockRow['last_price'],
 							$location,
 							$note,
+							$exp,
 							$now,
 							$now,
 							$userId
@@ -352,8 +385,8 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 		foreach ($items as $item) {
 			$itemId = (int) $db->getUniqueID('vtiger_goodsreceipt_items');
 			$db->pquery(
-				"INSERT INTO vtiger_goodsreceipt_items(itemid, receiptid, productid, product_name, product_type, quantity, unit_price, description, line_note, serial_number)
-				 VALUES(?,?,?,?,?,?,?,?,?,?)",
+				"INSERT INTO vtiger_goodsreceipt_items(itemid, receiptid, productid, product_name, product_type, quantity, unit_price, description, line_note, serial_number, expired_date)
+				 VALUES(?,?,?,?,?,?,?,?,?,?,?)",
 				array(
 					$itemId,
 					$recordId,
@@ -364,7 +397,8 @@ class GoodsReceipt_Save_Action extends Vtiger_Action_Controller {
 					$item['unit_price'],
 					isset($item['description']) ? $item['description'] : '',
 					$item['line_note'],
-					isset($item['serial_number']) ? $item['serial_number'] : ''
+					isset($item['serial_number']) ? $item['serial_number'] : '',
+					isset($item['expired_date']) ? $item['expired_date'] : null
 				)
 			);
 		}

@@ -1,4 +1,169 @@
 {strip}
+{assign var=MK_GR_IS_INV value=false}
+{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'INVENTORY') || (isset($smarty.get.app) && $smarty.get.app eq 'INVENTORY')}
+	{assign var=MK_GR_IS_INV value=true}
+{/if}
+{if $MK_GR_IS_INV}
+<div class="mk-gi-page">
+	<div class="mk-gi-suite-card">
+		<div class="mk-wh-page-head mk-gr-page-head">
+			{include file="partials/InboundEditHeader.tpl"|vtemplate_path:$MODULE}
+		</div>
+		<div class="mk-inv-flow-bar">
+			{assign var=MK_INV_NAV_CLASS value="mk-gi-topnav mk-gi-topnav--pills"}
+			{include file="partials/InventoryDetailTopnav.tpl"|@vtemplate_path:'Vtiger'}
+		</div>
+		<div class="mk-gr-edit-content">
+			<form method="post" action="index.php" class="mk-gr-edit-form" enctype="multipart/form-data" id="GoodsReceiptEditForm">
+				<input type="hidden" name="module" value="GoodsReceipt" />
+				<input type="hidden" name="action" value="Save" />
+				<input type="hidden" name="app" value="INVENTORY" />
+				<input type="hidden" name="record" value="{$RECORD.receiptid|default:0}" />
+
+				<section class="mk-gr-detail-card" aria-labelledby="mkGrEditInfoTitle">
+					<header class="mk-gr-detail-card__head">
+						<h2 class="mk-gr-detail-card__title" id="mkGrEditInfoTitle">Inbound Info</h2>
+					</header>
+					<div class="mk-gr-detail-card__body">
+						<div class="mk-gr-edit-fields">
+							<label class="mk-gr-edit-field">
+								<span class="mk-gr-edit-field__label">Receipt subject</span>
+								<input type="text" name="subject" class="mk-gr-edit-input" value="{$RECORD.subject|escape:'html'}" required="required" />
+							</label>
+							<label class="mk-gr-edit-field">
+								<span class="mk-gr-edit-field__label">Inbound code</span>
+								<input type="text" class="mk-gr-edit-input" value="{if $RECORD.code}{$RECORD.code|escape:'html'}{else}Auto on save{/if}" readonly="readonly" />
+							</label>
+							<label class="mk-gr-edit-field">
+								<span class="mk-gr-edit-field__label">Supplier / source</span>
+								<input type="text" name="source_name" class="mk-gr-edit-input" value="{$RECORD.source_name|escape:'html'}" />
+							</label>
+							<label class="mk-gr-edit-field">
+								<span class="mk-gr-edit-field__label">Received date</span>
+								<input type="date" name="received_date" class="mk-gr-edit-input" value="{$RECORD.received_date|escape:'html'}" />
+							</label>
+							<label class="mk-gr-edit-field">
+								<span class="mk-gr-edit-field__label">Storage location</span>
+								<input type="text" name="storage_location" class="mk-gr-edit-input" value="{$RECORD.storage_location|escape:'html'}" />
+							</label>
+							<label class="mk-gr-edit-field mk-gr-edit-field--wide">
+								<span class="mk-gr-edit-field__label">Note</span>
+								<textarea name="note" class="mk-gr-edit-input" rows="4">{$RECORD.note|escape:'html'}</textarea>
+							</label>
+						</div>
+					</div>
+				</section>
+
+				<section class="mk-gr-detail-card mk-gr-detail-card--lines" aria-labelledby="mkGrEditLinesTitle">
+					<header class="mk-gr-detail-card__head">
+						<h2 class="mk-gr-detail-card__title" id="mkGrEditLinesTitle">Line Items</h2>
+					</header>
+					<div class="mk-gr-detail-card__body mk-gr-detail-card__body--flush">
+						<p class="mk-gr-edit-hint mk-gr-edit-hint--block">Enter product name and line details manually. Inbound does not use storage-based autocomplete (that is for Outbound only).</p>
+						<div class="mk-gi-table-wrap">
+							<table class="mk-gi-table mk-gr-edit-table" id="inboundItemsTable">
+								<thead>
+									<tr>
+										<th scope="col">Product name</th>
+										<th scope="col">Type</th>
+										<th scope="col">Serial number</th>
+										<th scope="col">Expired date</th>
+										<th scope="col" class="mk-gi-table__num">Qty</th>
+										<th scope="col" class="mk-gi-table__num">Price</th>
+										<th scope="col">Description</th>
+										<th scope="col">Line note</th>
+										<th scope="col" class="mk-gi-table__actions"></th>
+									</tr>
+								</thead>
+								<tbody>
+									{foreach from=$ITEMS item=IT}
+									<tr>
+										<td>
+											<input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" />
+											<input type="text" name="item_product_name[]" class="mk-gr-edit-input" value="{$IT.product_name|escape:'html'}" placeholder="Product name" autocomplete="off" required="required" />
+										</td>
+										<td>
+											<select name="item_product_type[]" class="mk-gr-edit-input js-product-type">
+												{assign var=ITYPE value=$IT.product_type|default:''}
+												<option value="Hardware" {if $ITYPE eq 'Hardware'}selected="selected"{/if}>Hardware</option>
+												<option value="Software" {if $ITYPE eq 'Software'}selected="selected"{/if}>Software</option>
+												<option value="Service" {if $ITYPE eq 'Service'}selected="selected"{/if}>Service</option>
+												<option value="Other" {if $ITYPE eq 'Other' || $ITYPE eq ''}selected="selected"{/if}>Other</option>
+											</select>
+										</td>
+										<td><input type="text" name="item_serial[]" class="mk-gr-edit-input" value="{$IT.serial_number|escape:'html'}" /></td>
+										<td><input type="date" name="item_expired_date[]" class="mk-gr-edit-input" value="{$IT.expired_date|escape:'html'}" /></td>
+										<td class="mk-gi-table__num"><input type="number" step="0.0001" min="0" name="item_quantity[]" class="mk-gr-edit-input" value="{$IT.quantity|escape:'html'}" required="required" /></td>
+										<td class="mk-gi-table__num"><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="mk-gr-edit-input" value="{$IT.unit_price|escape:'html'}" /></td>
+										<td><input type="text" name="description[]" class="mk-gr-edit-input" value="{$IT.description|escape:'html'}" /></td>
+										<td><input type="text" name="item_line_note[]" class="mk-gr-edit-input" value="{$IT.line_note|escape:'html'}" /></td>
+										<td class="mk-gi-table__actions"><button type="button" class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost js-remove-row">Remove</button></td>
+									</tr>
+									{/foreach}
+								</tbody>
+							</table>
+						</div>
+						<button type="button" class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost mk-gr-edit-add-row" id="addInboundRow">+ Add line</button>
+					</div>
+				</section>
+
+				<section class="mk-gr-detail-card" aria-labelledby="mkGrEditAttachTitle">
+					<header class="mk-gr-detail-card__head">
+						<h2 class="mk-gr-detail-card__title" id="mkGrEditAttachTitle">Attachments</h2>
+					</header>
+					<div class="mk-gr-detail-card__body">
+						<label class="mk-gr-edit-field mk-gr-edit-field--wide">
+							<span class="mk-gr-edit-field__label">Upload files</span>
+							<input type="file" name="attachments[]" class="mk-gr-edit-input" multiple="multiple"
+								accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt" />
+							<p class="mk-gr-edit-hint">Allowed: jpg, jpeg, png, webp, pdf, doc, docx, xls, xlsx, csv, txt</p>
+						</label>
+						{if $ATTACHMENTS|@count gt 0}
+							<div class="mk-gi-table-wrap" style="margin-top:12px;">
+								<table class="mk-gr-edit-attach-table">
+									<thead>
+										<tr>
+											<th scope="col">File</th>
+											<th scope="col">Type</th>
+											<th scope="col" class="mk-gi-table__num">Size</th>
+											<th scope="col" class="mk-gi-table__actions">Action</th>
+										</tr>
+									</thead>
+									<tbody>
+									{foreach from=$ATTACHMENTS item=A}
+										<tr>
+											<td>{$A.filename|escape:'html'}</td>
+											<td>{$A.filetype|escape:'html'}</td>
+											<td class="mk-gi-table__num">{$A.filesize|escape:'html'}</td>
+											<td class="mk-gi-table__actions">
+												<a class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost" target="_blank"
+												   href="index.php?module=GoodsReceipt&amp;action=DownloadAttachment&amp;attachmentid={$A.attachmentid}&amp;record={$RECORD.receiptid}&amp;app=INVENTORY">Open</a>
+												<a class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost"
+												   href="index.php?module=GoodsReceipt&amp;action=DeleteAttachment&amp;attachmentid={$A.attachmentid}&amp;record={$RECORD.receiptid}&amp;app=INVENTORY"
+												   onclick="return confirm('Delete this attachment?');">Delete</a>
+											</td>
+										</tr>
+									{/foreach}
+									</tbody>
+								</table>
+							</div>
+						{/if}
+					</div>
+				</section>
+
+				<div class="mk-gr-edit-actions">
+					<button type="submit" class="mk-gi-btn mk-gi-btn--primary">
+						<span class="mk-gi-btn__txt">Save inbound</span>
+					</button>
+					<a class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost" href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY">
+						<span class="mk-gi-btn__txt">Cancel</span>
+					</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+{else}
 <link rel="stylesheet" href="layouts/v7/modules/Inventory/resources/FlowModern.css?v=20260325" />
 <div class="main-container clearfix">
 	<div class="editViewPageDiv viewContent inv-modern-page">
@@ -44,20 +209,15 @@
 						<div class="form-group"><label>Note</label><textarea name="note" class="form-control" rows="4">{$RECORD.note|escape:'html'}</textarea></div>
 					</div>
 				</div>
-
 				<div class="panel panel-default inv-panel" style="margin-top:12px;">
 					<div class="panel-heading"><strong>Line items</strong></div>
 					<div class="panel-body">
-						<p class="text-muted">Enter product name and line details manually. Inbound does not use storage-based autocomplete (that is for Outbound only).</p>
 						<table class="table table-bordered inv-modern-table" id="inboundItemsTable">
-							<thead><tr><th>Product Name</th><th>Type</th><th>Serial Number</th><th>Qty</th><th>Price</th><th>Description</th><th>Line Note</th><th></th></tr></thead>
+							<thead><tr><th>Product Name</th><th>Type</th><th>Serial Number</th><th>Expired date</th><th>Qty</th><th>Price</th><th>Description</th><th>Line Note</th><th></th></tr></thead>
 							<tbody>
 								{foreach from=$ITEMS item=IT}
 								<tr>
-									<td>
-										<input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" />
-										<input type="text" name="item_product_name[]" class="form-control" value="{$IT.product_name|escape:'html'}" placeholder="Product name" autocomplete="off" required />
-									</td>
+									<td><input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" /><input type="text" name="item_product_name[]" class="form-control" value="{$IT.product_name|escape:'html'}" required /></td>
 									<td>
 										<select name="item_product_type[]" class="form-control js-product-type">
 											{assign var=ITYPE value=$IT.product_type|default:''}
@@ -68,8 +228,9 @@
 										</select>
 									</td>
 									<td><input type="text" name="item_serial[]" class="form-control" value="{$IT.serial_number|escape:'html'}" /></td>
-									<td><input type="number" step="0.0001" min="0" name="item_quantity[]" class="form-control" value="{$IT.quantity|escape:'html'}" required /></td>
-									<td><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="form-control" value="{$IT.unit_price|escape:'html'}" /></td>
+									<td><input type="date" name="item_expired_date[]" class="form-control" value="{$IT.expired_date|escape:'html'}" /></td>
+									<td><input type="number" name="item_quantity[]" class="form-control" value="{$IT.quantity|escape:'html'}" required /></td>
+									<td><input type="number" name="item_unit_price[]" class="form-control" value="{$IT.unit_price|escape:'html'}" /></td>
 									<td><input type="text" name="description[]" class="form-control" value="{$IT.description|escape:'html'}" /></td>
 									<td><input type="text" name="item_line_note[]" class="form-control" value="{$IT.line_note|escape:'html'}" /></td>
 									<td><button type="button" class="btn btn-xs btn-danger js-remove-row">x</button></td>
@@ -78,36 +239,6 @@
 							</tbody>
 						</table>
 						<button type="button" class="btn btn-default" id="addInboundRow">+ Add Line</button>
-					</div>
-				</div>
-
-				<div class="panel panel-default inv-panel" style="margin-top:12px;">
-					<div class="panel-heading"><strong>Attachments</strong></div>
-					<div class="panel-body">
-						<input type="file" name="attachments[]" class="form-control" multiple
-							accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt" />
-						<p class="text-muted" style="margin-top:8px;">Allowed: jpg, jpeg, png, webp, pdf, doc, docx, xls, xlsx, csv, txt</p>
-						{if $ATTACHMENTS|@count gt 0}
-							<table class="table table-bordered table-condensed inv-modern-table" style="margin-top:8px;">
-								<thead><tr><th>File</th><th>Type</th><th>Size</th><th>Action</th></tr></thead>
-								<tbody>
-								{foreach from=$ATTACHMENTS item=A}
-									<tr>
-										<td>{$A.filename|escape:'html'}</td>
-										<td>{$A.filetype|escape:'html'}</td>
-										<td>{$A.filesize|escape:'html'}</td>
-										<td>
-											<a class="btn btn-xs btn-default" target="_blank"
-											   href="index.php?module=GoodsReceipt&action=DownloadAttachment&attachmentid={$A.attachmentid}&record={$RECORD.receiptid}&app=INVENTORY">Open/Download</a>
-											<a class="btn btn-xs btn-danger"
-											   href="index.php?module=GoodsReceipt&action=DeleteAttachment&attachmentid={$A.attachmentid}&record={$RECORD.receiptid}&app=INVENTORY"
-											   onclick="return confirm('Delete this attachment?');">Delete</a>
-										</td>
-									</tr>
-								{/foreach}
-								</tbody>
-							</table>
-						{/if}
 					</div>
 				</div>
 				<div class="row inv-form-actions">
@@ -120,6 +251,7 @@
 		</div>
 	</div>
 </div>
+{/if}
 {literal}
 <script>
 (function(){
@@ -129,14 +261,15 @@
   if (addBtn) {
     addBtn.addEventListener('click', function() {
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td><input type="hidden" name="item_productid[]" value="" /><input type="text" name="item_product_name[]" class="form-control" placeholder="Product name" autocomplete="off" required /></td>' +
-        '<td><select name="item_product_type[]" class="form-control"><option value="Hardware">Hardware</option><option value="Software">Software</option><option value="Service">Service</option><option value="Other" selected="selected">Other</option></select></td>' +
-        '<td><input type="text" name="item_serial[]" class="form-control" /></td>' +
-        '<td><input type="number" step="0.0001" min="0" name="item_quantity[]" class="form-control" value="1" required /></td>' +
-        '<td><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="form-control" value="0" /></td>' +
-        '<td><input type="text" name="description[]" class="form-control" /></td>' +
-        '<td><input type="text" name="item_line_note[]" class="form-control" /></td>' +
-        '<td><button type="button" class="btn btn-xs btn-danger js-remove-row">x</button></td>';
+      tr.innerHTML = '<td><input type="hidden" name="item_productid[]" value="" /><input type="text" name="item_product_name[]" class="form-control mk-gr-edit-input" placeholder="Product name" autocomplete="off" required /></td>' +
+        '<td><select name="item_product_type[]" class="form-control mk-gr-edit-input"><option value="Hardware">Hardware</option><option value="Software">Software</option><option value="Service">Service</option><option value="Other" selected="selected">Other</option></select></td>' +
+        '<td><input type="text" name="item_serial[]" class="form-control mk-gr-edit-input" /></td>' +
+        '<td><input type="date" name="item_expired_date[]" class="form-control mk-gr-edit-input" /></td>' +
+        '<td class="mk-gi-table__num"><input type="number" step="0.0001" min="0" name="item_quantity[]" class="form-control mk-gr-edit-input" value="1" required /></td>' +
+        '<td class="mk-gi-table__num"><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="form-control mk-gr-edit-input" value="0" /></td>' +
+        '<td><input type="text" name="description[]" class="form-control mk-gr-edit-input" /></td>' +
+        '<td><input type="text" name="item_line_note[]" class="form-control mk-gr-edit-input" /></td>' +
+        '<td class="mk-gi-table__actions"><button type="button" class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost js-remove-row">Remove</button></td>';
       tbody.appendChild(tr);
     });
   }

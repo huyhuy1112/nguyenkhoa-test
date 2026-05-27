@@ -7,14 +7,17 @@
 {if $MK_GI_IS_INV}
 <div class="mk-gi-page">
 	<div class="mk-gi-suite-card">
-		<div class="mk-gi-dark-panel">
-		{include file="partials/OutboundListHeader.tpl"|vtemplate_path:$MODULE}
-		<nav class="mk-gi-topnav" aria-label="Inventory modules">
-			<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY">Inbound</a>
-			<a href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY">Storage</a>
-			<a class="is-active" href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY" aria-current="page">Outbound</a>
-		</nav>
-
+		<div class="mk-wh-page-head mk-go-page-head">
+			{include file="partials/OutboundListHeader.tpl"|vtemplate_path:$MODULE}
+		</div>
+		<div class="mk-inv-flow-bar">
+			<nav class="mk-gi-topnav mk-gi-topnav--pills" aria-label="Inventory modules">
+				<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY">Inbound</a>
+				<a href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY">Storage</a>
+				<a class="is-active" href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY" aria-current="page">Outbound</a>
+			</nav>
+		</div>
+		<div class="mk-gi-dark-panel mk-wh-filter-panel">
 		{if !empty($SHOW_DELETED)}
 			<div class="mk-gi-alert mk-gi-alert--success" role="status">Outbound issue deleted and stock restored.</div>
 		{/if}
@@ -29,11 +32,7 @@
 			<div class="mk-gi-filter-bar__fields">
 				<label class="mk-gi-field">
 					<span class="mk-gi-field__label">Subject or destination</span>
-					<input type="text" name="search" value="{$SEARCH|escape:'html'}" class="mk-gi-input" placeholder="Subject or destination" />
-				</label>
-				<label class="mk-gi-field">
-					<span class="mk-gi-field__label">Destination contains</span>
-					<input type="text" name="destination" value="{$DESTINATION|escape:'html'}" class="mk-gi-input" placeholder="Destination contains" />
+					<input type="text" name="search" value="{$SEARCH|escape:'html'}" class="mk-gi-input" placeholder="Search subject/destination" />
 				</label>
 				<label class="mk-gi-field mk-gi-field--date">
 					<span class="mk-gi-field__label">From</span>
@@ -42,6 +41,10 @@
 				<label class="mk-gi-field mk-gi-field--date">
 					<span class="mk-gi-field__label">To</span>
 					<input type="date" name="date_to" value="{$DATE_TO|escape:'html'}" class="mk-gi-input" />
+				</label>
+				<label class="mk-gi-field">
+					<span class="mk-gi-field__label">Storage location</span>
+					<input type="text" name="storage_location" value="{$STORAGE_LOCATION|escape:'html'}" class="mk-gi-input" placeholder="Storage location" />
 				</label>
 			</div>
 			<div class="mk-gi-filter-bar__actions">
@@ -66,31 +69,33 @@
 		</div>
 
 		<div class="mk-gi-table-wrap">
-			<table class="mk-gi-table" id="mkGiOutboundTable">
+			<table class="mk-gi-table mk-go-table" id="mkGiOutboundTable">
 				<thead>
 					<tr>
-						<th scope="col">Subject</th>
 						<th scope="col">Code</th>
+						<th scope="col">Subject</th>
 						<th scope="col">Destination</th>
-						<th scope="col">Date</th>
+						<th scope="col">Issued date</th>
+						<th scope="col">Storage</th>
 						<th scope="col" class="mk-gi-table__num">Total qty</th>
-						<th scope="col">Updated</th>
+						<th scope="col" class="mk-gi-table__num">Total value</th>
 						<th scope="col" class="mk-gi-table__actions">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
 					{foreach from=$ROWS item=R}
 						<tr>
-							<td class="mk-gi-table__subject">
-								<a href="index.php?module=GoodsIssue&amp;view=Detail&amp;record={$R.issueid}&amp;app=INVENTORY">{$R.subject|escape:'html'}</a>
-							</td>
 							<td>
 								{if $R.code}<span class="mk-gi-chip">{$R.code|escape:'html'}</span>{else}<span class="mk-gi-muted">—</span>{/if}
 							</td>
+							<td class="mk-gi-table__subject">
+								<a href="index.php?module=GoodsIssue&amp;view=Detail&amp;record={$R.issueid}&amp;app=INVENTORY">{$R.subject|escape:'html'}</a>
+							</td>
 							<td>{if $R.destination}{$R.destination|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</td>
 							<td>{if $R.issued_date}{$R.issued_date|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</td>
-							<td class="mk-gi-table__num mk-gi-table__qty">{number_format($R.total_qty,2,'.',',')}</td>
-							<td>{if $R.updatedtime}{$R.updatedtime|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</td>
+							<td>{if $R.storage_location}{$R.storage_location|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</td>
+							<td class="mk-gi-table__num mk-gi-table__qty">{$R.total_qty_display|escape:'html'}</td>
+							<td class="mk-gi-table__num mk-gi-table__qty">{$R.total_value_display|escape:'html'}</td>
 							<td class="mk-gi-table__actions">
 								<div class="mk-gi-row-actions">
 									<a class="mk-gi-icon-btn" href="index.php?module=GoodsIssue&amp;view=Detail&amp;record={$R.issueid}&amp;app=INVENTORY" title="View" aria-label="View">
@@ -107,7 +112,7 @@
 						</tr>
 					{foreachelse}
 						<tr>
-							<td colspan="7" class="mk-gi-table__empty">No outbound issues yet.</td>
+							<td colspan="8" class="mk-gi-table__empty">No outbound issues yet.</td>
 						</tr>
 					{/foreach}
 				</tbody>

@@ -1,0 +1,1053 @@
+/**
+ * Contacts list (Sales + Marketing).
+ * Scope: [data-app="SALES"] or [data-app="MARKETING"]
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&family=Space+Grotesk:wght@500&display=swap');
+
+/* ---- Page shell: neutralize legacy vtiger offsets (match Organizations list) ---- */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #page,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #page.container-fluid,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #page > .container-fluid.app-nav,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #page > .container-fluid.app-nav {
+	display: none !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	visibility: hidden !important;
+}
+
+/* ---- Main shell: Figma 24px padding under topbar (offset in DashBoard.css) ---- */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-contacts-list-main,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-dash-main.mk-contacts-list-main {
+	padding: 24px !important;
+	box-sizing: border-box;
+	background: #f7f9fb;
+}
+
+/* ---- Legacy LISTS column + module strip: remove from layout ---- */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #modnavigator.module-nav,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .main-container.mk-contacts-list-page #modnavigator.module-nav,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #modnavigator.module-nav.mk-contacts-list-hide-legacy,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .main-container.mk-contacts-list-page #modnavigator.module-nav.mk-contacts-list-hide-legacy {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	top: 0 !important;
+	pointer-events: none !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .main-container.mk-contacts-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #sidebar-essentials.sidebar-essentials .sidebar-menu,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .main-container.mk-contacts-list-page #sidebar-essentials.sidebar-essentials .sidebar-menu,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #sidebar-essentials .lists-menu-container,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .main-container.mk-contacts-list-page #sidebar-essentials .lists-menu-container {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	top: 0 !important;
+	pointer-events: none !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .essentials-toggle,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .essentials-toggle {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contacts-list-hide-legacy,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contacts-list-hide-legacy {
+	display: none !important;
+}
+
+/* ---- Main column: full width ---- */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .main-container.mk-contacts-list-page {
+	position: relative !important;
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	min-height: 0 !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .content-area,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .main-container.mk-contacts-list-page .content-area {
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .listViewPageDiv.content-area,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .main-container.mk-contacts-list-page .listViewPageDiv.content-area,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #listViewContent.listViewPageDiv,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .main-container.mk-contacts-list-page #listViewContent.listViewPageDiv,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #listViewContent.listViewPageDiv.content-area,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .main-container.mk-contacts-list-page #listViewContent.listViewPageDiv.content-area {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	left: auto !important;
+	position: relative !important;
+	z-index: auto !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-page,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-page,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-list-sales-root,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-list-sales-root {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	position: relative !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-page > .col-sm-12,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-page > .col-sm-12,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-list-sales-root > .col-sm-12,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-list-sales-root > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	float: none !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-page .contentsDiv,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-page .contentsDiv,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-page .contents,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-page .contents,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-page .listViewEntriesDiv,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-page .listViewEntriesDiv,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-list-sales-root .contentsDiv,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-list-sales-root .contentsDiv,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-list-sales-root .contents,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-list-sales-root .contents,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-list-sales-root .listViewEntriesDiv,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-list-sales-root .listViewEntriesDiv {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	position: relative !important;
+	left: auto !important;
+}
+
+/* ---- Action header (Figma) ---- */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-action-header,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-action-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px 24px;
+	margin: 0 0 20px;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-action-header__title,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-action-header__title {
+	margin: 0;
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 38px;
+	font-weight: 700;
+	line-height: 1.1;
+	color: #191c1e;
+	letter-spacing: -0.02em;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-action-header__subtitle,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-action-header__subtitle {
+	margin: 8px 0 0;
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 1.45;
+	color: #504533;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-action-header__actions,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-action-header__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 40px;
+	padding: 0 18px;
+	font-size: 14px;
+	font-weight: 600;
+	border-radius: 10px;
+	cursor: pointer;
+	border: 1px solid transparent;
+	box-sizing: border-box;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--primary,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--primary {
+	background: #fdbb2c;
+	border-color: #e5a820;
+	color: #191c1e;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--primary:hover,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--primary:hover {
+	background: #ffc85c;
+	border-color: #fdbb2c;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--outline,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--outline {
+	background: #ffffff;
+	border-color: #d4c4ad;
+	color: #191c1e;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--outline:hover,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--outline:hover {
+	background: #faf8f5;
+	border-color: #c4b49a;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--icononly,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--icononly {
+	min-width: 40px;
+	padding: 0 12px;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn__ic,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--primary .mk-contact-btn__ic,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--primary .mk-contact-btn__ic {
+	color: #191c1e;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn .mk-dash-topbar-svg,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn .mk-dash-topbar-svg {
+	width: 20px;
+	height: 20px;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-settings-wrap,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-settings-wrap {
+	position: relative;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-settings-menu,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-settings-menu {
+	min-width: 220px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	box-shadow: 0 8px 24px rgba(25, 28, 30, 0.08);
+}
+
+/* ---- Table card: single shell (no double card). No overflow:hidden — it clipped scrollbars / PS rails. ---- */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-page .module-action-bar,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-page .module-action-bar {
+	display: none !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-table-card,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-table-card {
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-table-card > .col-sm-12,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-table-card > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+}
+
+/* ---- Filter row ---- */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-actions.listview-actions-container.mk-contact-filter-row,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.listview-actions-container.mk-contact-filter-row {
+	background: #eceef0 !important;
+	border: none !important;
+	border-bottom: 1px solid #d4c4ad !important;
+	border-radius: 0 !important;
+	min-height: 73px;
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	box-sizing: border-box !important;
+	position: relative !important;
+	left: auto !important;
+	display: flex;
+	flex-direction: column;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-filter-row__inner,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-filter-row__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 10px 14px;
+	min-height: 73px;
+	padding: 0 14px 0 12px;
+	box-sizing: border-box;
+	flex: 1 1 auto;
+}
+
+/* Start: list/grid toggles + “Showing …” only (no stock pagination here) */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-filter-row__start,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-filter-row__start {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px 18px;
+	flex: 1 1 220px;
+	min-width: 0;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-toolbar-toggles,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-toolbar-toggles {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-toolbar-count,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-toolbar-count {
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-mass-actions,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-mass-actions {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	flex: 0 1 auto;
+	margin-left: 8px;
+	padding-left: 12px;
+	border-left: 1px solid #d4c4ad;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-filter-row__right,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-filter-row__right {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-left: auto;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-ajax-empty-hint--toolbar,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-ajax-empty-hint--toolbar {
+	padding: 6px 14px 0;
+	font-size: 13px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-page-numbers,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-page-numbers {
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 500;
+	color: #504533;
+	line-height: 1.4;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-page-numbers .pageNumbersText,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-page-numbers .pageNumbersText {
+	font-weight: 600;
+	color: #191c1e;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-page-numbers .totalNumberOfRecords,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-page-numbers .totalNumberOfRecords {
+	font-weight: 500;
+	color: #40627e;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-icon-btn,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-icon-btn {
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	background: #ffffff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-sizing: border-box;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-icon-btn:hover:not(:disabled),
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-icon-btn:hover:not(:disabled) {
+	background: #f2f4f6;
+	border-color: #c4b49a;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-icon-btn:disabled,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-icon-btn:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-icon-btn__ic,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-icon-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-mass-btn,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-mass-btn {
+	min-width: 40px;
+	height: 40px;
+	padding: 0 10px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	opacity: 0.92;
+	box-shadow: none;
+	font-weight: 500;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-mass-more,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-mass-more {
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+}
+
+/* ---- Pagination footer (centered, below table after JS relocate; also works if still inside #listview-actions) ---- */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent .mk-contact-filter-row__footer,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent .mk-contact-filter-row__footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 65px;
+	padding: 10px 16px;
+	border-top: 1px solid #d4c4ad;
+	background: #eceef0;
+	box-sizing: border-box;
+	pointer-events: auto;
+	border-radius: 0 0 11px 11px;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pagination,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-pagination {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pagination .btn-group,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-pagination .btn-group {
+	box-shadow: none;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pagination .mk-contact-page-btn,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-pagination .mk-contact-page-btn {
+	min-width: 40px;
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	color: #191c1e;
+	margin: 0 2px;
+	font-weight: 600;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pagination .mk-contact-page-btn:hover:not(:disabled),
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-pagination .mk-contact-page-btn:hover:not(:disabled),
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pagination .mk-contact-page-btn:focus:not(:disabled),
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-pagination .mk-contact-page-btn:focus:not(:disabled) {
+	background: #fdbb2c !important;
+	border-color: #e5a820 !important;
+	color: #191c1e !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pagination #PageJump.mk-contact-page-btn,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-pagination #PageJump.mk-contact-page-btn {
+	min-width: 48px;
+	box-shadow: inset 0 -3px 0 #fdbb2c;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pagination .mk-contact-page-btn:disabled,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-pagination .mk-contact-page-btn:disabled {
+	opacity: 0.45;
+}
+
+/* ---- Table block: ONE native horizontal scroll on #table-content (see ContactsList.js removes perfectScrollbar) ---- */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #table-content.table-container {
+	margin-top: 0 !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: #ffffff !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	position: relative !important;
+	left: auto !important;
+	box-sizing: border-box !important;
+	height: auto !important;
+	max-height: calc(100vh - 260px) !important;
+	overflow-x: auto !important;
+	overflow-y: auto !important;
+	-webkit-overflow-scrolling: touch;
+	pointer-events: auto !important;
+}
+
+/* ---- Native table layout: full-width table inside scrollport; no max-content (breaks floatThead / cols) ---- */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-contact-table,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table.mk-contact-table,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table {
+	margin-bottom: 0;
+	width: 100%;
+	min-width: 1230px;
+	box-sizing: border-box;
+	border-collapse: collapse;
+	border-spacing: 0;
+	table-layout: fixed;
+	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader {
+	background: #f7f9fb !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th {
+	box-sizing: border-box;
+	height: auto;
+	min-height: 52px;
+	padding: 12px 12px;
+	vertical-align: middle;
+	border-bottom: 1px solid #d4c4ad;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 13px;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #40627e !important;
+	white-space: normal;
+	line-height: 1.25;
+	text-align: center;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions)),
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions)) {
+	text-align: center;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th a.listViewContentHeaderValues,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	color: #40627e !important;
+	font-weight: 500;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	white-space: normal;
+	line-height: 1.25;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td {
+	box-sizing: border-box;
+	min-height: 64px;
+	height: auto;
+	padding: 12px 12px;
+	vertical-align: middle !important;
+	border-bottom: 1px solid #ececec;
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 1.35;
+	color: #191c1e;
+	text-align: center;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
+	background: #faf8f5;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow th {
+	height: auto !important;
+	min-height: 0 !important;
+	padding: 10px 12px !important;
+	vertical-align: middle;
+	font-size: 13px;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+	white-space: normal;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow input,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.searchRow input,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow select,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.searchRow select {
+	height: 42px;
+	padding: 0 14px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	font-size: 14px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="phone"],
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="phone"],
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="double"],
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="double"] {
+	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-size: 14px;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent .mk-contact-sort-hint,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent .mk-contact-sort-hint {
+	opacity: 0.45;
+	cursor: default;
+}
+
+/* First / last name — bold readable */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="firstname"] .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="firstname"] .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="firstname"] a,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="firstname"] a,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="lastname"] .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="lastname"] .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="lastname"] a,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="lastname"] a {
+	font-weight: 700;
+	font-size: 15px;
+	color: #191c1e;
+	text-decoration: none;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="firstname"] a:hover,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="firstname"] a:hover,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="lastname"] a:hover,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="lastname"] a:hover {
+	text-decoration: underline;
+	color: #7c5800;
+}
+
+/* Title — blue pill (JS adds .mk-contact-title-pill) */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-contact-title-pill,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .mk-contact-title-pill {
+	display: inline-flex;
+	align-items: center;
+	max-width: 100%;
+	padding: 5px 12px;
+	border-radius: 999px;
+	background: #dceeff;
+	color: #41627f;
+	font-weight: 600;
+	font-size: 12px;
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	box-sizing: border-box;
+}
+
+/* Created By — avatar + name */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="created_user_id"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table td[data-name="created_user_id"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="smcreatorid"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table td[data-name="smcreatorid"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="assigned_user_id"] .value.mk-contact-has-creator,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table td[data-name="assigned_user_id"] .value.mk-contact-has-creator {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	flex-wrap: nowrap;
+	max-width: 100%;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-contact-avatar,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .mk-contact-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 28px;
+	width: 28px;
+	height: 28px;
+	border-radius: 999px;
+	background: linear-gradient(135deg, #fde7b3 0%, #f7c863 100%);
+	color: #6d4d00;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-contact-avatar__label,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .mk-contact-avatar__label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 500;
+	font-size: 14px;
+	color: #191c1e;
+}
+
+/* Address column — allow wrap, 2-line clamp */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="mailingstreet"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name="mailingstreet"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="otherstreet"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name="otherstreet"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="mailingcity"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name="mailingcity"] .value {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	line-height: 1.35;
+	white-space: normal;
+}
+
+/* Base skin first-child 130px — pre-empt for control column */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr td:first-child,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr td:first-child,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr th:first-child,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr th:first-child {
+	width: 134px;
+	min-width: 134px;
+	max-width: 134px;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .table-actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+	flex-wrap: nowrap;
+	width: auto;
+	max-width: 100%;
+	margin-left: 0;
+	vertical-align: middle;
+	font-size: 14px;
+	color: #2b2b2b;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions .fa.action,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .table-actions .fa.action,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions .fa.icon,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .table-actions .fa.icon,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions .fa.fa-ellipsis-v,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .table-actions .fa.fa-ellipsis-v {
+	display: inline-block;
+	font-size: 16px;
+	line-height: 1;
+	color: #64748b;
+	width: 18px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions .fa-star.active,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .table-actions .fa-star.active {
+	color: #c98f12;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions .listViewEntriesCheckBox,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .table-actions .listViewEntriesCheckBox {
+	margin: 0;
+	vertical-align: middle;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td.listViewRecordActions,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td.listViewRecordActions,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td:first-child,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td:first-child {
+	vertical-align: middle !important;
+	text-align: left;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th:has(.table-actions),
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th:has(.table-actions),
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th:has(.table-actions),
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.searchRow th:has(.table-actions) {
+	text-align: left;
+}
+
+/* Cell content — vertically + horizontally centered like Opportunities list */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .value,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tfoot > tr > td .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tfoot > tr > td .value,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tfoot > tr > td .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tfoot > tr > td .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .listViewEntries .listViewEntryValue .fieldValue .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .listViewEntries .listViewEntryValue .fieldValue .value {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	max-width: 100%;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	vertical-align: middle;
+	line-height: 1.35;
+	text-align: center;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > thead > tr > td .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > thead > tr > td .fieldValue {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* floatThead clone can misalign body rows if left visible */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent .floatThead-container,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent .floatThead-container,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent .floatThead-table.floatThead-table,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent .floatThead-table.floatThead-table {
+	display: none !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+	height: 0 !important;
+	overflow: hidden !important;
+}
+
+/* Address columns: keep line-clamp (override inline-flex above) */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td[data-name="mailingstreet"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td[data-name="mailingstreet"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td[data-name="otherstreet"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td[data-name="otherstreet"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td[data-name="mailingcity"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td[data-name="mailingcity"] .value {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	line-height: 1.35;
+	white-space: normal;
+}
+
+/* Assigned To — avatar row stays centered */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="assigned_user_id"] .value.mk-contact-has-creator,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table td[data-name="assigned_user_id"] .value.mk-contact-has-creator,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="created_user_id"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table td[data-name="created_user_id"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="smcreatorid"] .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table td[data-name="smcreatorid"] .value {
+	display: inline-flex;
+	align-items: center;
+}
+
+/* Header / breadcrumb */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-breadcrumb,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-breadcrumb {
+	margin: 0 0 10px;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-breadcrumb__list,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-breadcrumb__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #6b6358;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-breadcrumb__item a,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-breadcrumb__item a {
+	color: #504533;
+	text-decoration: none;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-breadcrumb__item a:hover,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-breadcrumb__item a:hover {
+	color: #c98f12;
+	text-decoration: underline;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-breadcrumb__sep,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-breadcrumb__sep {
+	color: #d4c4ad;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-action-header__title,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-action-header__title {
+	margin: 0;
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 32px;
+	font-weight: 700;
+	line-height: 1.15;
+	color: #191c1e;
+	letter-spacing: -0.02em;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-action-header__subtitle,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-action-header__subtitle {
+	margin: 8px 0 0;
+	font-size: 15px;
+	font-weight: 500;
+	color: #5b5b5b;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 40px;
+	padding: 0 18px;
+	font-size: 14px;
+	font-weight: 600;
+	border-radius: 10px;
+	cursor: pointer;
+	border: 2px solid #40627e;
+	background: #fff;
+	color: #40627e;
+	box-sizing: border-box;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--primary,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--primary {
+	background: #fdbb2c;
+	border-color: #e59a0f;
+	color: #6d4d00;
+	font-weight: 700;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--outline:hover,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--outline:hover {
+	background: rgba(64, 98, 126, 0.06);
+}
+
+/* Hide duplicate column picker in header (filter row icon opens same control) */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listColumnFilterContainer .listColumnFilter,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listColumnFilterContainer .listColumnFilter {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Search row: collapsed until toolbar search icon */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open):not(.mk-contact-search-open) tr.searchRow.listViewSearchContainer,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-so-search-open):not(.mk-contact-search-open) tr.searchRow.listViewSearchContainer {
+	display: none !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent.mk-contact-search-open tr.searchRow.listViewSearchContainer,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent.mk-contact-search-open tr.searchRow.listViewSearchContainer {
+	display: table-row !important;
+	background: #fafbfc;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent.mk-contact-search-open tr.searchRow th,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent.mk-contact-search-open tr.searchRow th {
+	border-bottom: 1px solid #d4c4ad;
+}
+
+/* Stock bottom-fixed-scroll duplicates horizontal scroll (custom.css top:-19px); hide — native bar on #table-content only */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent .bottom-fixed-scroll,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent .bottom-fixed-scroll {
+	display: none !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+	position: absolute !important;
+	left: -9999px !important;
+	width: 0 !important;
+	top: 0 !important;
+}

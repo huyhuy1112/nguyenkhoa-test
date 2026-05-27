@@ -43,6 +43,7 @@ class GoodsIssue_SearchProducts_Action extends Vtiger_Action_Controller {
 	 * @return array|null
 	 */
 	protected function rowToOption(array $row) {
+		require_once 'modules/Warehouse/helpers/StockHelper.php';
 		$quantity = isset($row['quantity']) ? (float) $row['quantity'] : 0.0;
 		$shrink = isset($row['shrinkage_qty']) ? (float) $row['shrinkage_qty'] : 0.0;
 		$available = $quantity - $shrink;
@@ -54,12 +55,16 @@ class GoodsIssue_SearchProducts_Action extends Vtiger_Action_Controller {
 			'stockid' => (int) $row['stockid'],
 			'product_key' => (string) $row['product_key'],
 			'productid' => !empty($row['productid']) ? (int) $row['productid'] : 0,
-			'name' => (string) $row['product_name'],
+			'name' => Warehouse_Stock_Helper::decodeDisplayText($row['product_name']),
 			'type' => $this->normalizeTypeLabel($row['product_type']),
 			'available_qty' => (float) $available,
-			'stock_location' => isset($row['storage_location']) ? (string) $row['storage_location'] : '',
+			'stock_location' => Warehouse_Stock_Helper::decodeDisplayText(
+				isset($row['storage_location']) ? $row['storage_location'] : ''
+			),
 			'unit_price' => isset($row['last_price']) ? (float) $row['last_price'] : 0.0,
-			'description' => isset($row['last_inbound_description']) ? html_entity_decode((string) $row['last_inbound_description'], ENT_QUOTES | ENT_HTML5, 'UTF-8') : '',
+			'description' => Warehouse_Stock_Helper::decodeDisplayText(
+				isset($row['last_inbound_description']) ? $row['last_inbound_description'] : ''
+			),
 			'identity_type' => !empty($row['productid']) ? 'catalog' : 'legacy',
 		);
 	}

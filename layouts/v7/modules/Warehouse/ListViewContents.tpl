@@ -6,22 +6,33 @@
 {/if}
 {if $MK_WH_IS_INV}
 <div class="mk-gi-page">
-	<div class="mk-gi-suite-card">
-		<div class="mk-gi-dark-panel">
-		{include file="partials/StorageListHeader.tpl"|vtemplate_path:$MODULE}
-		<nav class="mk-gi-topnav" aria-label="Inventory modules">
-			<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY">Inbound</a>
-			<a class="is-active" href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY" aria-current="page">Storage</a>
-			<a href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY">Outbound</a>
-		</nav>
+	<div class="mk-gi-suite-card mk-wh-suite-card">
+		<div class="mk-wh-page-head">
+			{include file="partials/StorageListHeader.tpl"|vtemplate_path:$MODULE}
+		</div>
 
-		{if !empty($SHOW_DELETED)}
-			<div class="mk-gi-alert mk-gi-alert--success" role="status">Stock row deleted.</div>
-		{/if}
-		{if !empty($SHOW_DELETE_ERROR)}
-			<div class="mk-gi-alert mk-gi-alert--danger" role="alert">Unable to delete: row was not found or is not empty.</div>
-		{/if}
+		<div class="mk-inv-flow-bar">
+			<nav class="mk-gi-topnav mk-gi-topnav--pills" aria-label="Inventory modules">
+				<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY">Inbound</a>
+				<a class="is-active" href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY" aria-current="page">Storage</a>
+				<a href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY">Outbound</a>
+			</nav>
+		</div>
 
+		<section class="mk-wh-kpi-section" aria-label="Storage overview">
+			{include file="partials/StorageListKpi.tpl"|vtemplate_path:$MODULE}
+			{if !empty($SHOW_DELETED)}
+				<div class="mk-gi-alert mk-gi-alert--success" role="status">Stock row deleted.</div>
+			{/if}
+			{if !empty($SHOW_DELETE_ERROR)}
+				<div class="mk-gi-alert mk-gi-alert--danger" role="alert">Unable to delete: row was not found or is not empty.</div>
+			{/if}
+			{if !empty($FILTER_LOW_STOCK)}
+				<div class="mk-gi-alert mk-gi-alert--warn" role="status">Showing low stock only (available &lt; {$LOW_STOCK_THRESHOLD|escape:'html'}). <a href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY">Clear filter</a></div>
+			{/if}
+		</section>
+
+		<div class="mk-gi-dark-panel mk-wh-filter-panel">
 		<form method="get" action="index.php" class="mk-gi-filter-bar mk-wh-filter-bar">
 			<input type="hidden" name="module" value="Warehouse" />
 			<input type="hidden" name="view" value="List" />
@@ -93,7 +104,7 @@
 						<th scope="col">Identity</th>
 						<th scope="col">Type</th>
 						<th scope="col" class="mk-gi-table__num">Qty</th>
-						<th scope="col" class="mk-gi-table__num">Shrinkage</th>
+						<th scope="col">Expired date</th>
 						<th scope="col" class="mk-gi-table__num">Available</th>
 						<th scope="col" class="mk-gi-table__num">Last price</th>
 						<th scope="col">Location</th>
@@ -103,13 +114,14 @@
 				</thead>
 				<tbody>
 					{foreach from=$ROWS item=R}
-						<tr class="{if $R.is_low_stock}mk-wh-row--low{/if}">
+						<tr class="{if $R.is_low_stock}mk-wh-row--low{/if}{if $R.is_expiring_soon || $R.is_expired} mk-wh-row--expiring{/if}">
 							<td>
 								{if $R.code}<span class="mk-gi-chip">{$R.code|escape:'html'}</span>{else}<span class="mk-gi-muted">—</span>{/if}
 							</td>
 							<td class="mk-gi-table__product">
 								<a href="index.php?module=Warehouse&amp;view=Detail&amp;record={$R.stockid}&amp;app=INVENTORY">{$R.product_name_display|escape:'html'}</a>
-								{if $R.has_shrinkage}<span class="mk-wh-shrink-dot" title="Shrinkage recorded"></span>{/if}
+								{if $R.is_expiring_soon}<span class="mk-wh-exp-dot" title="Sắp hết hạn (<= 3 tháng)"></span>{/if}
+								{if $R.is_expired}<span class="mk-wh-exp-dot mk-wh-exp-dot--danger" title="Đã hết hạn"></span>{/if}
 							</td>
 							<td class="mk-gi-table__serial">
 								{if $R.serial_full ne ''}<span title="{$R.serial_full|escape:'html'}">{$R.serial_display|escape:'html'}</span>{else}{$R.serial_display|escape:'html'}{/if}
@@ -123,7 +135,23 @@
 							</td>
 							<td><span class="mk-gi-chip mk-gi-chip--type">{$R.type_label|escape:'html'}</span></td>
 							<td class="mk-gi-table__num mk-gi-table__qty">{$R.quantity_display|escape:'html'}</td>
-							<td class="mk-gi-table__num">{$R.shrinkage_display|escape:'html'}</td>
+							<td class="mk-wh-exp-cell">
+								{if $R.expired_date_display ne '—'}
+									<div class="mk-wh-exp-cell__group">
+										{if $R.is_expired}
+											<span class="mk-wh-expired-date mk-wh-expired-date--danger">{$R.expired_date_display|escape:'html'}</span>
+										{elseif $R.is_expiring_soon}
+											<a class="mk-wh-expired-date mk-wh-expired-date--warn" href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY&amp;expiring=1" title="Xem danh sách sắp hết hạn">{$R.expired_date_display|escape:'html'}</a>
+										{else}
+											<span class="mk-wh-expired-date">{$R.expired_date_display|escape:'html'}</span>
+										{/if}
+										{if $R.is_expired}<span class="mk-wh-badge mk-wh-badge--expired" title="Đã hết hạn sử dụng">Expired</span>
+										{elseif $R.is_expiring_soon}<span class="mk-wh-badge mk-wh-badge--dangerous" title="Sắp hết hạn (trong 3 tháng)">Dangerous</span>{/if}
+									</div>
+								{else}
+									<span class="mk-gi-muted">—</span>
+								{/if}
+							</td>
 							<td class="mk-gi-table__num mk-gi-table__qty">
 								{$R.available_display|escape:'html'}
 								{if $R.is_low_stock}<span class="mk-wh-badge mk-wh-badge--low">Low</span>{/if}
@@ -214,7 +242,7 @@
 									<th>Identity</th>
 									<th>Type</th>
 									<th class="text-right">Qty</th>
-									<th class="text-right">Shrinkage</th>
+									<th>Expired date</th>
 									<th class="text-right">Available</th>
 									<th class="text-right">Last price</th>
 									<th>Location</th>
@@ -224,11 +252,12 @@
 							</thead>
 							<tbody>
 								{foreach from=$ROWS item=R}
-									<tr class="{if $R.is_low_stock}inv-row-low{/if}">
+									<tr class="{if $R.is_low_stock}inv-row-low{/if}{if $R.is_expiring_soon || $R.is_expired} inv-row-expiring{/if}">
 										<td>{if $R.code}<span class="inv-chip">{$R.code|escape:'html'}</span>{else}<span class="text-muted">—</span>{/if}</td>
 										<td>
 											<a href="index.php?module=Warehouse&view=Detail&record={$R.stockid}&app=INVENTORY">{$R.product_name_display|escape:'html'}</a>
-											{if $R.has_shrinkage}<span class="inv-status-dot" title="Shrinkage recorded"></span>{/if}
+											{if $R.is_expiring_soon}<span class="inv-status-dot" title="Sắp hết hạn (<= 3 tháng)" style="background:#f59e0b;"></span>{/if}
+											{if $R.is_expired}<span class="inv-status-dot" title="Đã hết hạn" style="background:#dc2626;"></span>{/if}
 										</td>
 										<td class="serial-cell" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
 											{if $R.serial_full ne ''}<span title="{$R.serial_full|escape:'html'}">{$R.serial_display|escape:'html'}</span>{else}{$R.serial_display|escape:'html'}{/if}
@@ -242,7 +271,22 @@
 										</td>
 										<td><span class="inv-chip">{$R.type_label|escape:'html'}</span></td>
 										<td class="text-right metric-strong">{$R.quantity_display|escape:'html'}</td>
-										<td class="text-right">{$R.shrinkage_display|escape:'html'}</td>
+										<td class="mk-wh-exp-cell">
+											{if $R.expired_date_display ne '—'}
+												<div class="mk-wh-exp-cell__group">
+													{if $R.is_expired}
+														<span class="inv-badge inv-badge-low">{$R.expired_date_display|escape:'html'}</span>
+													{elseif $R.is_expiring_soon}
+														<a href="index.php?module=Warehouse&view=List&app=INVENTORY&expiring=1" class="inv-badge inv-badge-low" title="Xem danh sách sắp hết hạn">{$R.expired_date_display|escape:'html'}</a>
+													{else}
+														<span class="text-muted">{$R.expired_date_display|escape:'html'}</span>
+													{/if}
+													{if $R.is_expired}<span class="inv-badge inv-badge-expired" title="Đã hết hạn sử dụng">Expired</span>{elseif $R.is_expiring_soon}<span class="inv-badge inv-badge-dangerous" title="Sắp hết hạn (trong 3 tháng)">Dangerous</span>{/if}
+												</div>
+											{else}
+												<span class="text-muted">—</span>
+											{/if}
+										</td>
 										<td class="text-right metric-strong">{$R.available_display|escape:'html'}{if $R.is_low_stock}<span class="inv-badge inv-badge-low" title="Available below threshold">Low</span>{/if}</td>
 										<td class="text-right">{$R.last_price_display|escape:'html'}</td>
 										<td>{if $R.storage_location}{$R.storage_location|escape:'html'}{else}<span class="text-muted">—</span>{/if}</td>

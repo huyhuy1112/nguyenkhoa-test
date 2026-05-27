@@ -1,0 +1,2425 @@
+/**
+ * Accounts → Organizations Detail (Sales + Marketing + Support).
+ * Scope: body[data-module="Accounts"][data-view="Detail"][data-app="SALES"], MARKETING, or SUPPORT
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap');
+
+/* ---- App shell: offset past fixed sidebar (Detail was omitted from DashBoard .mk-app-shell) ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-app-shell,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-app-shell
+{
+	margin-left: var(--mk-dash-sidebar-w, 256px);
+	width: calc(100vw - var(--mk-dash-sidebar-w, 256px));
+	max-width: calc(100vw - var(--mk-dash-sidebar-w, 256px));
+	min-width: 0;
+	box-sizing: border-box;
+	overflow-x: hidden;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-dash-main,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-accounts-detail-main,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-accounts-detail-main,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-accounts-detail-main
+{
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+	overflow-x: hidden;
+}
+
+/* Content column — same as SalesOrder Detail */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #page,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #page,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #page.container-fluid,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #page.container-fluid,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #page.container-fluid
+{
+	padding-top: 0 !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .main-container.main-container-Accounts,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .main-container.main-container-Accounts,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .main-container.mk-accounts-detail-page,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .main-container.mk-accounts-detail-page,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page
+{
+	min-height: 0 !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-dash-main,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-dash-main
+{
+	padding: 0 !important;
+	overflow-x: hidden;
+	box-sizing: border-box;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .main-container.mk-accounts-detail-page,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .main-container.mk-accounts-detail-page,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page
+{
+	width: 100%;
+	max-width: 1232px;
+	margin-left: auto !important;
+	margin-right: auto !important;
+	padding-top: 24px !important;
+	padding-bottom: 32px !important;
+	padding-left: 48px !important;
+	padding-right: 32px !important;
+	box-sizing: border-box;
+	position: relative !important;
+	min-height: 0 !important;
+}
+
+@media (max-width: 1199px) {
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .main-container.mk-accounts-detail-page,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .main-container.mk-accounts-detail-page {
+		padding-left: 32px !important;
+		padding-right: 24px !important;
+	}
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .main-container,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .main-container,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .content-area,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .content-area,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .content-area
+{
+	width: 100% !important;
+	max-width: none !important;
+	margin-left: 0 !important;
+	padding-left: 0 !important;
+	min-width: 0 !important;
+}
+
+@media (max-width: 991px) {
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .main-container.mk-accounts-detail-page,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .main-container.mk-accounts-detail-page {
+		padding: 16px !important;
+	}
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .main-container.mk-accounts-detail-page .content-area,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .main-container.mk-accounts-detail-page .content-area,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-accounts-detail-content.content-area,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-accounts-detail-content.content-area,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-accounts-detail-content.content-area
+{
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	left: auto !important;
+	position: relative !important;
+	z-index: auto !important;
+	box-sizing: border-box !important;
+}
+
+@media (max-width: 991px) {
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-app-shell {
+		margin-left: 0 !important;
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+}
+
+/* ---- Inner content column ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dash-main.mk-accounts-detail-main,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-dash-main.mk-accounts-detail-main,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-dash-main.mk-accounts-detail-main
+{
+	padding: 0;
+	box-sizing: border-box;
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+	color: #0f172a;
+	background: transparent;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-accounts-detail-page,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-accounts-detail-page,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-accounts-detail-page
+{
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	box-sizing: border-box;
+	position: relative;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-accounts-detail-inner.detailViewContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-accounts-detail-inner.detailViewContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-accounts-detail-inner.detailViewContainer
+{
+	max-width: none;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	float: none;
+	overflow: visible;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .main-container.mk-accounts-detail-page #modnavigator.module-nav,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .main-container.mk-accounts-detail-page #modnavigator.module-nav,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page #modnavigator.module-nav,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .main-container.mk-accounts-detail-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .main-container.mk-accounts-detail-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page #sidebar-essentials.sidebar-essentials
+{
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-accounts-detail-content,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-accounts-detail-content,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-accounts-detail-content
+{
+	padding: 0 0 6px;
+}
+
+/* Breadcrumb — tight */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-breadcrumb,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-breadcrumb,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-breadcrumb
+{
+	margin-bottom: 10px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-breadcrumb__list,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-breadcrumb__list,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-breadcrumb__list
+{
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #6b6358;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-breadcrumb__item a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-breadcrumb__item a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-breadcrumb__item a
+{
+	color: #504533;
+	text-decoration: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-breadcrumb__item a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-breadcrumb__item a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-breadcrumb__item a:hover
+{
+	color: #c98f12;
+	text-decoration: underline;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-breadcrumb__item--current .mk-acc-detail-breadcrumb__text,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-breadcrumb__item--current .mk-acc-detail-breadcrumb__text,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-breadcrumb__item--current .mk-acc-detail-breadcrumb__text
+{
+	color: #8a7d6e;
+	max-width: 320px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-breadcrumb__sep,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-breadcrumb__sep,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-breadcrumb__sep
+{
+	color: #d4c4ad;
+	user-select: none;
+}
+
+/* ---- Hero strip: flat (no card), ~88–110px target, left-aligned ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero-strip,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero-strip,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero-strip
+{
+	background: transparent;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	padding: 0;
+	margin: 0 0 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero
+{
+	border: none;
+	padding: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__row,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__row,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__row
+{
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px 24px;
+	margin: 0;
+	min-height: 96px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__row::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__row::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__row::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__row::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__row::after
+{
+	display: none;
+	content: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__left,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__left,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__left
+{
+	flex: 1 1 auto;
+	min-width: 0;
+	padding-left: 0;
+	padding-right: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__identity,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__identity,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__identity
+{
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 16px;
+	min-width: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__avatar,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__avatar,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__avatar
+{
+	width: 72px;
+	height: 72px;
+	min-width: 72px;
+	border-radius: 12px;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: inset 0 0 0 1px #e2e8f0;
+	flex-shrink: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__avatar.recordImage,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__avatar.recordImage,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__avatar.bgAccounts,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__avatar.bgAccounts,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__avatar.bgAccounts
+{
+	width: 72px;
+	height: 72px;
+	min-height: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__avatar .summaryImg,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__avatar .summaryImg,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__avatar img,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__avatar img,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__avatar img
+{
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: cover;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__text,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__text,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__text
+{
+	min-width: 0;
+	flex: 1;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__title
+{
+	font-family: "Space Grotesk", Inter, sans-serif;
+	font-size: 1.625rem;
+	font-weight: 600;
+	margin: 0 0 6px;
+	color: #0f172a;
+	letter-spacing: -0.02em;
+	line-height: 1.2;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__text .info-row.headerAjaxEdit,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__text .info-row.headerAjaxEdit,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__text .info-row.headerAjaxEdit
+{
+	margin-bottom: 2px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__text .info-row.headerAjaxEdit .fieldLabel,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__text .info-row.headerAjaxEdit .fieldLabel,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__text .info-row.headerAjaxEdit .value,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__text .info-row.headerAjaxEdit .value,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__text .info-row.headerAjaxEdit .value
+{
+	font-size: 13px;
+	color: #5c5349;
+	line-height: 1.35;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__maplink,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__maplink,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__maplink
+{
+	margin-top: 4px;
+	font-size: 12px;
+	line-height: 1.3;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__maplink a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__maplink a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__maplink a
+{
+	color: #c98f12;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__maplink a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__maplink a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__maplink a:hover
+{
+	text-decoration: underline;
+}
+
+/* Tags directly under hero meta */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__tags,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__tags,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__tags
+{
+	margin: 0;
+	padding: 4px 0 10px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__tags .tagContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__tags .tagContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__tags .tagContainer
+{
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 10px;
+	margin: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__tags .tag-contents,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__tags .tag-contents,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__tags .tag-contents
+{
+	margin: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__tags #addTagContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__tags #addTagContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__tags #addTagContainer
+{
+	margin: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__tags .detailTagList,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__tags .detailTagList,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__tags .detailTagList
+{
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+}
+
+/* Actions — right column, navy outline; Send Email amber */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-actions,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-actions,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-actions
+{
+	flex: 0 0 auto;
+	align-self: center;
+	padding: 0;
+	margin: 0;
+	width: auto;
+	float: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-actions__toolbar,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-actions__toolbar,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-actions__toolbar
+{
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	float: none;
+	width: auto;
+	max-width: 100%;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-actions__group,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-actions__group,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-actions__group
+{
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-btn
+{
+	border-radius: 8px;
+	font-weight: 600;
+	font-size: 14px;
+	padding: 10px 16px;
+	min-height: 42px;
+	border: 1px solid #0b1f4d;
+	background: #fff;
+	color: #0b1f4d;
+	line-height: 1.2;
+	transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-btn:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-btn:hover
+{
+	background: rgba(11, 31, 77, 0.04);
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-btn--ghost:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn--ghost:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-btn--ghost:hover
+{
+	border-color: #0b1f4d;
+	box-shadow: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-btn--primary,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn--primary,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-btn--primary
+{
+	background: linear-gradient(180deg, #fdbb2c 0%, #f0a514 100%);
+	border-color: #e59a0f;
+	color: #1a1510;
+	box-shadow: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-btn--primary:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn--primary:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-btn--primary:hover
+{
+	filter: brightness(1.02);
+	background: linear-gradient(180deg, #fdbb2c 0%, #f0a514 100%);
+	color: #1a1510;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle.mk-acc-detail-btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle.mk-acc-detail-btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle.mk-acc-detail-btn
+{
+	min-width: auto;
+	width: auto;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle[style*="width"],
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle[style*="width"],
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle[style*="width"]
+{
+	width: auto;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-actions__pager,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-actions__pager,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-actions__pager
+{
+	margin-left: 2px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs.row,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs.row,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .related-tabs.row
+{
+	margin: 0 0 18px;
+	padding: 0;
+	border: none !important;
+	border-bottom: none !important;
+	box-shadow: none !important;
+	background: transparent;
+	width: 100%;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .navbar,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .related-tabs .navbar
+{
+	min-height: 0;
+	margin-bottom: 0;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .navbar-collapse,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .related-tabs .navbar-collapse
+{
+	padding: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .related-tabs .nav.nav-tabs
+{
+	border: none !important;
+	border-bottom: 0 !important;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0;
+	align-items: flex-end;
+}
+
+/* ---- Tabs: primary left, related icons right (spacer li in Accounts ModuleRelatedTabs SALES) ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs
+{
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	width: 100%;
+	min-height: 52px;
+	height: 52px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	gap: 0;
+	scrollbar-width: thin;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-tabs-spacer,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-tabs-spacer,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-tabs-spacer
+{
+	flex: 1 1 auto;
+	min-width: 12px;
+	height: 52px;
+	margin: 0;
+	padding: 0;
+	border: none;
+	list-style: none;
+	pointer-events: none;
+}
+
+/* ---- Related-module icons (right side): icon + always-visible count badge ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module],
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module],
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module],
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module],
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module]
+{
+	margin-right: 2px !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a
+{
+	position: relative;
+	padding: 4px 4px !important;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0;
+	border-bottom: none !important;
+	overflow: visible;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon
+{
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	background: transparent;
+	color: #94a3b8;
+	transition: background 0.12s ease, color 0.12s ease;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon i,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon i,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon i,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon i,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon i
+{
+	font-size: 18px;
+	line-height: 1;
+	color: inherit;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon
+{
+	background: rgba(253, 187, 44, 0.12);
+	color: #0f172a;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon
+{
+	background: rgba(253, 187, 44, 0.2);
+	color: #0f172a;
+}
+
+/* Force-visible count badge for related-module tabs (override stock .hide) */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle
+{
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	visibility: visible !important;
+	position: absolute;
+	top: -2px;
+	right: -4px;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 5px;
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1;
+	color: #ffffff;
+	background: #ba1a1a;
+	border: 2px solid #ffffff;
+	border-radius: 999px;
+	box-sizing: border-box;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+	pointer-events: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle.hide,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle.hide,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle.hide,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle.hide,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle.hide
+{
+	display: inline-flex !important;
+}
+
+/* Zero-count badge styling: amber instead of red */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"],
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"],
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"],
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"],
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"]
+{
+	background: #7c5800;
+	color: #ffffff;
+}
+
+/* The template prints "&nbsp;" between tab-icon and numberCircle; since the badge is
+   position:absolute, the nbsp becomes harmless trailing whitespace inside the link. */
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.tab-item,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.more-tab,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.related-tab-more-element,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .related-tabs .nav.nav-tabs > li.related-tab-more-element
+{
+	margin-bottom: 0 !important;
+	margin-right: 4px;
+	float: none;
+	border: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.tab-item > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.more-tab > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.related-tab-more-element > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .related-tabs .nav.nav-tabs > li.related-tab-more-element > a
+{
+	border: none !important;
+	border-radius: 0;
+	padding: 10px 12px 10px;
+	margin-bottom: 0;
+	font-weight: 600;
+	font-size: 13px;
+	color: #6b6358;
+	background: transparent;
+	border-bottom: none !important;
+	box-shadow: none !important;
+	text-decoration: none !important;
+	position: relative;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.more-tab.active > a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:focus,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:focus,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:focus,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:focus,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:focus
+{
+	color: #0f172a;
+	background: transparent;
+	border-bottom: none !important;
+	box-shadow: none !important;
+	outline: none !important;
+	text-decoration: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.tab-item.active > a::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.more-tab.active > a::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .related-tabs .nav.nav-tabs > li.more-tab.active > a::after
+{
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 2px;
+	border-radius: 2px;
+	background: #fdbb2c;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover
+{
+	color: #504533;
+	background: rgba(253, 187, 44, 0.08);
+}
+
+/* ---- Summary grid: 2fr / 1fr top row; balanced 3-col bottom ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-summary-grid,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-summary-grid,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-summary-grid
+{
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+	grid-template-areas:
+		"key activities"
+		"bottom bottom";
+	gap: 28px;
+	align-items: start;
+	width: 100%;
+	min-width: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-grid__key,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-grid__key,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-grid__key
+{
+	grid-area: key;
+	min-width: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-grid__activities,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-grid__activities,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-grid__activities
+{
+	grid-area: activities;
+	min-width: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-bottom-grid,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-bottom-grid,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-bottom-grid
+{
+	grid-area: bottom;
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 28px;
+	width: 100%;
+	min-width: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-bottom-grid > .mk-acc-detail-card,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-bottom-grid > .mk-acc-detail-card,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-bottom-grid > .mk-acc-detail-card
+{
+	min-width: 0;
+}
+
+@media (max-width: 1199px) {
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-summary-grid,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-summary-grid {
+		grid-template-columns: 1fr;
+		grid-template-areas:
+			"key"
+			"activities"
+			"bottom";
+	}
+
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-bottom-grid,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-bottom-grid {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-grid__documents,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-grid__documents {
+		grid-column: 1 / -1;
+	}
+}
+
+@media (max-width: 991px) {
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-bottom-grid,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-bottom-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 767px) {
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__row,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__row {
+		flex-wrap: wrap;
+		align-items: flex-start;
+	}
+
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-actions,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-actions {
+		width: 100%;
+		flex-basis: 100%;
+	}
+
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-actions__toolbar,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-actions__toolbar {
+		justify-content: flex-start;
+	}
+}
+
+/* ---- Cards: content-sized, no stretch ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card
+{
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	box-shadow: none;
+	padding: 0 0 18px;
+	overflow: visible;
+	height: auto;
+	min-height: 0;
+	max-height: none;
+	align-self: start;
+	min-width: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card__head,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card__head,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card__head
+{
+	padding: 12px 16px 0;
+	margin: 0;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card__title
+{
+	font-family: "Space Grotesk", Inter, sans-serif;
+	font-size: 1.125rem;
+	font-weight: 600;
+	margin: 0;
+	color: #3d3830;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-summaryView,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-summaryView,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-summaryView
+{
+	padding: 0 18px 10px;
+	overflow: visible;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap
+{
+	min-width: 0;
+	overflow: visible;
+}
+
+/* ---- Key fields: 2-column field pairs (desktop), true grid from table DOM ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap .summary-table
+{
+	display: block;
+	width: 100%;
+	border: none;
+	margin: 0;
+	background: transparent;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table tbody,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table tbody,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap .summary-table tbody
+{
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	column-gap: 32px;
+	row-gap: 0;
+	align-items: start;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries
+{
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: 6px;
+	align-items: start;
+	padding: 14px 0;
+	border-bottom: 1px solid #f1f5f9;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-child(odd),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-child(odd),
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-child(odd)
+{
+	grid-column: 1;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-child(even),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-child(even),
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-child(even)
+{
+	grid-column: 2;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table td,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table td,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap .summary-table td
+{
+	display: block;
+	width: auto;
+	border: none;
+	padding: 0;
+	vertical-align: top;
+	background: transparent;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table td.fieldLabel,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table td.fieldLabel,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap .summary-table td.fieldLabel
+{
+	display: block !important;
+	width: 100% !important;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	color: #64748b;
+	margin-bottom: 2px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table td.fieldLabel label,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table td.fieldLabel label,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap .summary-table td.fieldLabel label
+{
+	margin: 0;
+	font-weight: inherit;
+	color: inherit;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table td.fieldValue,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table td.fieldValue,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap .summary-table td.fieldValue
+{
+	display: block !important;
+	width: 100% !important;
+	font-size: 17px;
+	font-weight: 600;
+	color: #0f172a;
+	text-align: left;
+	word-break: break-word;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value
+{
+	font-weight: 600;
+	color: inherit;
+	font-size: 17px;
+}
+
+/* ---- Key Fields visual refresh (match provided reference) ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key
+{
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	padding: 0;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+	border-radius: 12px;
+	min-height: 0;
+	overflow: hidden;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-card__head,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-card__head,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-card__head
+{
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 18px;
+	border-bottom: 1px solid #f1f5f9;
+	box-sizing: border-box;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-card__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-card__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-card__title
+{
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+	font-size: 26px;
+	font-weight: 500;
+	line-height: 1.2;
+	letter-spacing: -0.01em;
+	text-transform: none;
+	color: #0f172a;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-card__head::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-card__head::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-card__head::after
+{
+	content: "";
+	width: 22px;
+	height: 22px;
+	border-radius: 999px;
+	flex: 0 0 22px;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='12' cy='12' r='9' stroke='%2394A3B8' stroke-width='2'/%3E%3Cpath d='M12 10V16' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='7' r='1.2' fill='%2394A3B8'/%3E%3C/svg%3E") center/22px 22px no-repeat;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-summaryView,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-summaryView,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-summaryView
+{
+	width: 100%;
+	padding: 6px 18px 12px;
+	box-sizing: border-box;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table tbody,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table tbody,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table tbody
+{
+	column-gap: 40px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries
+{
+	padding: 16px 0;
+	border-bottom: 1px solid #f1f5f9;
+	row-gap: 7px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-last-child(-n + 2),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-last-child(-n + 2),
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-last-child(-n + 2)
+{
+	border-bottom: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldLabel,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldLabel,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldLabel
+{
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	color: #94a3b8;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue a
+{
+	font-size: 16px;
+	font-weight: 600;
+	line-height: 1.35;
+	color: #0f172a !important;
+	text-decoration: none;
+}
+
+@media (max-width: 1400px) {
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-card__title,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-card__title {
+		font-size: 24px;
+	}
+
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue,
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value,
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue a,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue a {
+		font-size: 15px;
+	}
+}
+
+@media (max-width: 1199px) {
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-card__title,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-card__title {
+		font-size: 20px;
+	}
+
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue,
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value,
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue a,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue a {
+		font-size: 15px;
+	}
+}
+
+@media (max-width: 900px) {
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table tbody,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table tbody {
+		grid-template-columns: 1fr;
+	}
+
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-child(odd),
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-child(odd),
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-child(even),
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries:nth-child(even) {
+		grid-column: 1;
+	}
+}
+
+/* Neutralize legacy widget chrome inside summary cards */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card .summaryWidgetContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card .summaryWidgetContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card .summaryWidgetContainer
+{
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	margin: 0;
+}
+
+/* ---- Activities ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--activities,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--activities,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--activities
+{
+	padding-bottom: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .summaryWidgetContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .summaryWidgetContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .summaryWidgetContainer
+{
+	margin: 0;
+	border: none;
+	box-shadow: none;
+	background: transparent;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_header
+{
+	padding: 12px 16px 8px;
+	border: none;
+	background: transparent;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	min-height: 46px;
+	gap: 8px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__head::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__head::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__head::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__head::after,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-documents__head::after
+{
+	content: none !important;
+	display: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header h4,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header h4,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_header h4
+{
+	font-family: "Space Grotesk", Inter, sans-serif;
+	font-size: 1.125rem;
+	font-weight: 600;
+	line-height: 1.2;
+	margin: 0;
+	color: #3d3830;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0;
+	flex: 0 1 auto;
+	margin-right: auto;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header h4::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header h4::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_header h4::before
+{
+	content: "";
+	width: 16px;
+	height: 16px;
+	flex: 0 0 16px;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_contents,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_contents,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_contents
+{
+	padding: 0 16px 14px;
+	min-height: 0;
+	max-height: 320px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_contents .noContent,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_contents .noContent,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_contents .noContent
+{
+	align-self: center;
+	width: 100%;
+	max-width: none;
+	border: 1px dashed #d8cfc3;
+	border-radius: 10px;
+	padding: 16px 14px;
+	margin: 4px 0 0;
+	text-align: center;
+	background: #faf9f7;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .noContent p,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .noContent p,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .noContent p
+{
+	margin: 0 0 10px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #5c5349;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .noContent::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .noContent::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .noContent::before
+{
+	content: "";
+	display: block;
+	width: 36px;
+	height: 36px;
+	margin: 0 auto 10px;
+	border-radius: 10px;
+	background: rgba(253, 187, 44, 0.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23504533' stroke-width='1.6'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='M8 3v4M16 3v4M3 11h18'/%3E%3C/svg%3E") center / 18px 18px no-repeat;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .noContent + .row,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .noContent + .row,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .noContent + .row
+{
+	margin-top: 8px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header .pull-right,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header .pull-right,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_header .pull-right
+{
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 8px;
+	float: none !important;
+	margin-top: 0 !important;
+	margin-left: auto;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header .pull-right .btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header .pull-right .btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_header .pull-right .btn
+{
+	flex: 0 1 auto;
+	min-width: 0;
+	border-radius: 8px;
+	font-weight: 600;
+	font-size: 12px;
+	padding: 8px 14px;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	color: #0f172a;
+}
+
+@media (max-width: 640px) {
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header .pull-right,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header .pull-right {
+		width: 100%;
+		justify-content: center;
+		margin-top: 6px;
+	}
+
+	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header .pull-right .btn,
+	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header .pull-right .btn {
+		flex: 1 1 100%;
+		max-width: none;
+	}
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .activityEntries,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .activityEntries,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .activityEntries
+{
+	padding: 8px 0;
+	border-bottom: 1px solid #f1f5f9;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .activityEntries:last-child,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .activityEntries:last-child,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .activityEntries:last-child
+{
+	border-bottom: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .activityEntries .summaryViewEntries,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .activityEntries .summaryViewEntries,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .activityEntries .summaryViewEntries a,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .activityEntries .summaryViewEntries a,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .activityEntries .summaryViewEntries a
+{
+	font-size: 14px;
+	font-weight: 600;
+	color: #0f172a;
+	text-decoration: none;
+	line-height: 1.35;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .activityEntries .summaryViewEntries a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .activityEntries .summaryViewEntries a:hover,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .activityEntries .summaryViewEntries a:hover
+{
+	color: #c98f12;
+	text-decoration: underline;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .activityEntries span strong,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .activityEntries span strong,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .activityEntries span strong
+{
+	font-size: 13px;
+	font-weight: 500;
+	color: #64748b;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--activities .summaryWidgetContainer .widget_header h4,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--activities .summaryWidgetContainer .widget_header h4,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .summaryWidgetContainer .widget_header h4,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .summaryWidgetContainer .widget_header h4,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header h4.display-inline-block,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header h4.display-inline-block,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_header h4.display-inline-block
+{
+	font-family: "Space Grotesk", Inter, sans-serif;
+	font-size: 1.125rem;
+	font-weight: 600;
+	margin: 0;
+	color: #3d3830;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities hr,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities hr,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities hr
+{
+	border-color: #f0ebe4;
+	margin: 8px 0;
+}
+
+/* ---- Health: fixed compact height ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--health,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--health,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--health
+{
+	background: linear-gradient(145deg, #3a342f 0%, #252220 48%, #1a1816 100%);
+	border: 1px solid #2a2623;
+	color: #f7f9fb;
+	padding: 0;
+	height: auto;
+	max-height: 190px;
+	min-height: 0;
+	overflow: hidden;
+	align-self: start;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-health__inner,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-health__inner,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-health__inner
+{
+	padding: 14px 16px 16px;
+	box-sizing: border-box;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-health__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-health__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-health__title
+{
+	font-family: "Space Grotesk", Inter, sans-serif;
+	font-size: 1.125rem;
+	font-weight: 600;
+	margin: 0 0 10px;
+	color: rgba(255, 255, 255, 0.95);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-health__row + .mk-acc-detail-health__row,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-health__row + .mk-acc-detail-health__row,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-health__row + .mk-acc-detail-health__row
+{
+	margin-top: 10px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-health__label,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-health__label,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-health__label
+{
+	display: block;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	color: rgba(247, 249, 251, 0.55);
+	margin-bottom: 5px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-health__track,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-health__track,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-health__track
+{
+	height: 6px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.1);
+	overflow: hidden;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-health__fill,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-health__fill,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-health__fill
+{
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: linear-gradient(90deg, #fdbb2c, #ffd88a);
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-health__fill--b,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-health__fill--b,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-health__fill--b
+{
+	background: linear-gradient(90deg, #c4b5a0, #f2f0ec);
+}
+
+/* ---- Comments ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .widget_header,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .widget_header,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments .widget_header
+{
+	padding-bottom: 4px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .widget_header .mk-acc-detail-card__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .widget_header .mk-acc-detail-card__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .widget_header h4,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .widget_header h4,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments .widget_header h4
+{
+	font-family: "Space Grotesk", Inter, sans-serif;
+	font-size: 1.125rem;
+	font-weight: 600;
+	margin: 0;
+	color: #3d3830;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .widget_header .mk-acc-detail-card__title::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .widget_header .mk-acc-detail-card__title::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .widget_header h4::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .widget_header h4::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments .widget_header h4::before
+{
+	content: "";
+	width: 16px;
+	height: 16px;
+	flex: 0 0 16px;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .widget_contents,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .widget_contents,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments .widget_contents
+{
+	padding: 0 16px 14px;
+	max-height: 280px;
+	overflow-y: auto;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments textarea,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments textarea,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .commentTextArea,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .commentTextArea,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .commentTextArea textarea,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .commentTextArea textarea,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments .commentTextArea textarea
+{
+	border-radius: 10px;
+	border: 1px solid #e0d8cc;
+	padding: 12px 14px;
+	font-size: 14px;
+	width: 100%;
+	box-sizing: border-box;
+	min-height: 64px;
+	background: #fafbfc;
+	box-shadow: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments textarea:focus,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments textarea:focus,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .commentTextArea:focus-within,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .commentTextArea:focus-within,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments .commentTextArea:focus-within
+{
+	border-color: #fdbb2c;
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15);
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .modal-comment-widgets-container,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .modal-comment-widgets-container,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments .modal-comment-widgets-container
+{
+	margin-top: 8px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .saveComment,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .saveComment,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .postComment,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .postComment,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments button[name="saveButton"],
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments button[name="saveButton"],
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments button[name="saveButton"]
+{
+	border-radius: 8px;
+	font-weight: 600;
+	font-size: 13px;
+	background: linear-gradient(180deg, #fdbb2c 0%, #f0a514 100%);
+	border: 1px solid #e59a0f;
+	color: #2a241c;
+	padding: 8px 16px;
+	min-height: 40px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments .commentDetails,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .commentDetails,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments .commentDetails
+{
+	border-color: #f0ebe4;
+}
+
+/* ---- Documents ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__head,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__head,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-documents__head
+{
+	padding: 12px 16px 8px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	min-height: 46px;
+	gap: 8px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__head .mk-acc-detail-card__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__head .mk-acc-detail-card__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-documents__head .mk-acc-detail-card__title
+{
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	float: none !important;
+	flex: 0 1 auto;
+	margin-right: auto;
+	margin-top: 0;
+	margin-bottom: 0;
+	font-family: "Space Grotesk", Inter, sans-serif;
+	font-size: 1.125rem;
+	font-weight: 600;
+	color: #3d3830;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	line-height: 1.2;
+	padding: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__head .mk-acc-detail-card__title::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__head .mk-acc-detail-card__title::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-documents__head .mk-acc-detail-card__title::before
+{
+	content: "";
+	width: 16px;
+	height: 16px;
+	flex: 0 0 16px;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__head .toggleButton,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__head .toggleButton,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-documents__head .toggleButton
+{
+	display: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__head .pull-right,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__head .pull-right,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-documents__head .pull-right
+{
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	float: none !important;
+	margin-left: auto;
+	margin-top: 0 !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__head .dropdown,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__head .dropdown,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities .widget_header .pull-right > *,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header .pull-right > *,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_header .pull-right > *
+{
+	display: inline-flex;
+	align-items: center;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__head .pull-right .btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__head .pull-right .btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-documents__head .pull-right .btn
+{
+	border-radius: 8px;
+	font-weight: 600;
+	font-size: 12px;
+	padding: 8px 14px;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	color: #0f172a;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__body,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__body,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-documents__body
+{
+	padding: 16px 14px;
+	min-height: 0;
+	max-height: 240px;
+	overflow-y: auto;
+	border: 1px dashed #d8cfc3;
+	border-radius: 10px;
+	margin: 4px 16px 0;
+	background: #faf9f7;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-documents__body:not(:empty),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__body:not(:empty),
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-documents__body:not(:empty)
+{
+	display: block;
+	align-items: stretch;
+	justify-content: flex-start;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .widgetContainer_documents .widget_contents:not(:empty),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .widgetContainer_documents .widget_contents:not(:empty),
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .widgetContainer_documents .widget_contents:not(:empty)
+{
+	display: block;
+	min-height: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .widgetContainer_documents .widget_contents:empty,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .widgetContainer_documents .widget_contents:empty,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .widgetContainer_documents .widget_contents:empty
+{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 64px;
+	text-align: center;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .widgetContainer_documents .widget_contents:empty::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .widgetContainer_documents .widget_contents:empty::before,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .widgetContainer_documents .widget_contents:empty::before
+{
+	content: "Drag files here or use New Document to upload.";
+	font-size: 13px;
+	font-weight: 500;
+	color: #64748b;
+	line-height: 1.45;
+	padding: 8px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-widget-host,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-widget-host,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-widget-host
+{
+	margin: 0;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card .toggleButton,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card .toggleButton,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card .toggleButton
+{
+	color: #a89882;
+}
+
+/* Bootstrap / Vtiger offset resets inside inner column */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-accounts-detail-page .row,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-accounts-detail-page .row,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-accounts-detail-page .row
+{
+	margin-left: 0;
+	margin-right: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-accounts-detail-page [class*="col-"],
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-accounts-detail-page [class*="col-"],
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-accounts-detail-page [class*="col-"]
+{
+	padding-left: 0;
+	padding-right: 0;
+	float: none;
+	min-height: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row
+{
+	margin-top: 18px;
+	margin-left: 0;
+	margin-right: 0;
+	width: 100%;
+	overflow: visible;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row.row,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row.row,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row.row
+{
+	margin-left: 0;
+	margin-right: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-summary-form,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-summary-form,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-summary-col,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-summary-col,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-summary-col
+{
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+}
+
+/* ---- Details tab: block cards + cleaner field table ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row #detailView .block,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row #detailView .block,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row #detailView .block
+{
+	margin-bottom: 14px;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 14px 16px 16px;
+	box-shadow: 0 1px 2px rgba(80, 69, 51, 0.04);
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row #detailView .block + br,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row #detailView .block + br,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row #detailView .block + br
+{
+	display: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row #detailView .block > div:first-child h4,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row #detailView .block > div:first-child h4,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row #detailView .block > div:first-child h4
+{
+	font-family: "Space Grotesk", Inter, sans-serif;
+	font-size: 1.125rem;
+	font-weight: 600;
+	margin: 0 0 10px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid #f0ebe4;
+	color: #3d3830;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row #detailView .block hr,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row #detailView .block hr,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row #detailView .block hr
+{
+	display: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row #detailView .blockData,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row #detailView .blockData,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row #detailView .blockData
+{
+	padding: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row .detailview-table,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row .detailview-table,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row .detailview-table
+{
+	border: none;
+	margin: 0;
+	background: transparent;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row .detailview-table tbody tr,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row .detailview-table tbody tr,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row .detailview-table tbody tr
+{
+	border: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row .detailview-table td.fieldLabel,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row .detailview-table td.fieldLabel,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row .detailview-table td.fieldLabel
+{
+	border: none;
+	padding: 8px 12px 8px 0;
+	vertical-align: top;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: #7a7166;
+	background: transparent;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row .detailview-table td.fieldLabel .muted,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row .detailview-table td.fieldLabel .muted,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row .detailview-table td.fieldLabel .muted
+{
+	color: inherit;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row .detailview-table td.fieldValue,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row .detailview-table td.fieldValue,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row .detailview-table td.fieldValue
+{
+	border: none;
+	padding: 8px 0 8px 0;
+	vertical-align: top;
+	font-size: 15px;
+	font-weight: 500;
+	color: #2d2820;
+	background: transparent;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row .blockToggle,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row .blockToggle,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row .blockToggle
+{
+	opacity: 0.65;
+}
+
+/* Related / Updates tab containers */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row .relatedContents,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row .relatedContents,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row .relatedContents
+{
+	background: #fff;
+	border-radius: 12px;
+	border: 1px solid #e2e8f0;
+	padding: 12px 14px;
+	box-sizing: border-box;
+	box-shadow: 0 1px 2px rgba(80, 69, 51, 0.04);
+	overflow-x: auto;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row .relatedContents .listViewContentHeader,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row .relatedContents .listViewContentHeader,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row .relatedContents .listview-table,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row .relatedContents .listview-table,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row .relatedContents .listview-table
+{
+	border-radius: 8px;
+}
+
+
+/* ---- SVG icons (hero, actions, tabs, cards) — Sales + Marketing ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__avatar,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__avatar,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__avatar
+{
+	background: linear-gradient(135deg, #fde7b3 0%, #f7c863 100%);
+	box-shadow: inset 0 0 0 1px #e9d29a;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__icon-glyph,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__icon-glyph,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__icon-glyph
+{
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #3d2f00;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__maplink,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__maplink,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__maplink
+{
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__map-ic,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__map-ic,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__map-ic
+{
+	color: #c98f12;
+	display: inline-flex;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-btn__ic,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn__ic,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-btn__ic
+{
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-btn--primary .mk-acc-detail-btn__ic,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn--primary .mk-acc-detail-btn__ic,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-btn--primary .mk-acc-detail-btn__ic
+{
+	color: #191c1e;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-svg,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-svg,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-svg
+{
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-svg--building,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-svg--building,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-svg--building
+{
+	width: 32px;
+	height: 32px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle .starredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle .starredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle .unstarredStatus .fa,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle .unstarredStatus .fa,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle .unstarredStatus .fa
+{
+	display: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle.markStar.active .mk-acc-detail-btn__ic--follow,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle.markStar.active .mk-acc-detail-btn__ic--follow,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle.markStar.active .mk-acc-detail-btn__ic--follow
+{
+	color: #c98f12;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-tab-icon i,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-tab-icon i,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-tab-icon strong,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-tab-icon strong,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-tab-icon strong
+{
+	display: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-tab-svg,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-tab-svg,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-tab-svg
+{
+	display: block;
+	width: 20px;
+	height: 20px;
+	color: #64748b;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon .mk-acc-tab-svg,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon .mk-acc-tab-svg,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon .mk-acc-tab-svg,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon .mk-acc-tab-svg,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon .mk-acc-tab-svg
+{
+	color: #0f172a;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card__title,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card__title
+{
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card__title-ic,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card__title-ic,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card__title-ic
+{
+	display: inline-flex;
+	color: #94a3b8;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs li[data-module="Contacts"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs li[data-module="Contacts"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs li[data-module="Contacts"] > a .numberCircle:not([data-count="0"])
+{
+	background: #ba1a1a;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs li[data-module="Potentials"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs li[data-module="Potentials"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs li[data-module="Potentials"] > a .numberCircle:not([data-count="0"])
+{
+	background: #d97706;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs li[data-module="SalesOrder"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs li[data-module="SalesOrder"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs li[data-module="SalesOrder"] > a .numberCircle:not([data-count="0"])
+{
+	background: #ba1a1a;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs li[data-module="Documents"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs li[data-module="Documents"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs li[data-module="Documents"] > a .numberCircle:not([data-count="0"])
+{
+	background: #d97706;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs li[data-module="HelpDesk"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs li[data-module="HelpDesk"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-tabs li[data-module="Products"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-tabs li[data-module="Products"] > a .numberCircle:not([data-count="0"]),
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs li[data-module="Products"] > a .numberCircle:not([data-count="0"])
+{
+	background: #2563eb;
+}
+
+/* ---- Uniform hero action buttons (Follow / Edit / Send Email / More) ---- */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-actions__group.btn-group,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-actions__group.btn-group,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-actions__group.btn-group
+{
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	vertical-align: middle;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-actions__group.btn-group > .btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-actions__group.btn-group > .btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-actions__group.btn-group > .btn:first-child,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-actions__group.btn-group > .btn:first-child,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-actions__group.btn-group > .btn:last-child,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-actions__group.btn-group > .btn:last-child,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-actions__group.btn-group > .btn:last-child
+{
+	border-radius: 10px !important;
+	margin-left: 0 !important;
+	float: none;
+	position: relative;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-btn
+{
+	display: inline-flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 8px;
+	font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+	letter-spacing: 0;
+	text-transform: none;
+	white-space: nowrap;
+	box-shadow: none !important;
+	background-image: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-btn__txt,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn__txt,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-btn__txt
+{
+	display: inline;
+	line-height: 1.2;
+	font-weight: 600;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-btn .caret,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn .caret,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-btn .caret
+{
+	margin-left: 2px;
+	vertical-align: middle;
+	border-top-color: currentColor;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle.mk-acc-detail-btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle.mk-acc-detail-btn,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle.mk-acc-detail-btn
+{
+	width: auto !important;
+	min-width: 0 !important;
+	flex-direction: row !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle[style*="width"],
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle[style*="width"],
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle[style*="width"]
+{
+	width: auto !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle .starredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle .starredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle .unstarredStatus .fa,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle .unstarredStatus .fa,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle .unstarredStatus .fa
+{
+	display: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle .unstarredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle .unstarredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle.markStar.active .starredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle.markStar.active .starredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle.markStar.active .starredStatus
+{
+	display: inline-flex !important;
+	align-items: center;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle:not(.active) .starredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle:not(.active) .starredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle:not(.active) .starredStatus
+{
+	display: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle.active .unstarredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle.active .unstarredStatus,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle.active .unstarredStatus
+{
+	display: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle .starredStatus .unfollowMessage,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle .starredStatus .unfollowMessage,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle .starredStatus .followMessage,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle .starredStatus .followMessage,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle .starredStatus .followMessage
+{
+	display: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #starToggle.markStar.active .starredStatus .followMessage,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] #starToggle.markStar.active .starredStatus .followMessage,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #starToggle.markStar.active .starredStatus .followMessage
+{
+	display: inline-flex;
+	align-items: center;
+}
+
+
+/* ========== Support app — legacy shell + sidebar overlay fixes ========== */
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] #page > .container-fluid.app-nav,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .app-nav,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .module-action-bar,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .module-breadcrumb-Accounts {
+	display: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	visibility: hidden !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page #sidebar-essentials,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page #sidebar-essentials .sidebar-menu,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page #modnavigator,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page .mod-switcher-container,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-accounts-detail-hide-legacy {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	top: auto !important;
+	pointer-events: none !important;
+	opacity: 0 !important;
+	background: transparent !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page .detailViewContainer,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page .content-area,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page .viewContent {
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	left: auto !important;
+	width: 100% !important;
+	max-width: none !important;
+}

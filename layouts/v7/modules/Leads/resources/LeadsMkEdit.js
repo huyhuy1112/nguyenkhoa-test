@@ -58,13 +58,31 @@
     }
   }
 
+  function syncCustomerTypePanel() {
+    var panel = $("mk-td-company-panel");
+    var isCompany = state.customerType === "company";
+    if (panel) {
+      panel.hidden = !isCompany;
+    }
+    if (!isCompany) {
+      ["mk-td-company-name", "mk-td-company-tax", "mk-td-company-rep", "mk-td-company-address"].forEach(
+        function (id) {
+          var el = $(id);
+          if (el) el.value = "";
+        }
+      );
+    }
+  }
+
   function setChoiceGroup(group, btn) {
     document.querySelectorAll('.mk-td-choice[data-group="' + group + '"]').forEach(function (el) {
       el.classList.toggle("is-on", el === btn);
     });
     var tag = btn.getAttribute("data-tag");
-    if (group === "customer-type") state.customerType = tag;
-    else if (group === "lead-source") state.leadSource = tag;
+    if (group === "customer-type") {
+      state.customerType = tag;
+      syncCustomerTypePanel();
+    } else if (group === "lead-source") state.leadSource = tag;
     else if (group === "purchase-status") {
       state.purchaseStatus = tag;
       syncPurchaseReasonPanel(btn);
@@ -183,6 +201,13 @@
       alert("Vui lòng nhập Họ tên và SĐT (UI demo).");
       return;
     }
+    if (state.customerType === "company") {
+      var companyName = ($("mk-td-company-name") && $("mk-td-company-name").value) || "";
+      if (!companyName.trim()) {
+        alert("Vui lòng nhập tên công ty / doanh nghiệp.");
+        return;
+      }
+    }
     var purchaseVal = document.querySelector(
       '.mk-td-choice[data-group="purchase-status"].is-on'
     );
@@ -238,6 +263,11 @@
       if (b) b.addEventListener("click", mockSave);
     });
 
+    var initialType = document.querySelector('.mk-td-choice[data-group="customer-type"].is-on');
+    if (initialType) {
+      state.customerType = initialType.getAttribute("data-tag");
+    }
+    syncCustomerTypePanel();
     renderTags();
   }
 

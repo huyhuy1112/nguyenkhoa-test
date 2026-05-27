@@ -94,6 +94,8 @@ class GoodsIssue_Detail_View extends Vtiger_Index_View {
 		$recordModel = $this->detailRecordModel ?: $this->buildRecordModel($issueId, $recordData);
 
 		$items = $this->loadItems($db, $issueId);
+		require_once 'modules/Warehouse/helpers/StockHelper.php';
+		$earliestExpired = Warehouse_Stock_Helper::resolveEarliestExpiredDate($db, $items);
 		$totalQty = 0.0;
 		$totalValue = 0.0;
 		foreach ($items as &$it) {
@@ -112,6 +114,12 @@ class GoodsIssue_Detail_View extends Vtiger_Index_View {
 		}
 		unset($it);
 
+		$recordData['expired_date_display'] = ($earliestExpired !== '' ? date('d/m/Y', strtotime($earliestExpired)) : '—');
+		$today = date('Y-m-d');
+		$threeMonths = date('Y-m-d', strtotime('+3 months'));
+		$recordData['is_expired'] = ($earliestExpired !== '' && $earliestExpired < $today);
+		$recordData['is_expiring_soon'] = ($earliestExpired !== '' && !$recordData['is_expired'] && $earliestExpired <= $threeMonths);
+
 		$viewer->assign('RECORD', $recordModel);
 		$viewer->assign('RECORD_MODEL', $recordModel);
 		$viewer->assign('RECORD_DATA', $recordData);
@@ -123,7 +131,7 @@ class GoodsIssue_Detail_View extends Vtiger_Index_View {
 		require_once 'modules/Warehouse/helpers/InventoryCrossNavHelper.php';
 		$viewer->assign('LINKED_STORAGE_STOCK_ID', Inventory_CrossNav_Helper::resolveStockId($db, $items));
 		$viewer->assign('LINKED_INBOUND_RECEIPT_ID', Inventory_CrossNav_Helper::resolveInboundReceiptIdFromOutboundItems($db, $items));
-		$viewer->assign('LINKED_OUTBOUND_ISSUE_ID', 0);
+		$viewer->assign('LINKED_OUTBOUND_ISSUE_ID', $issueId);
 		$viewer->assign('MK_INV_NAV_ACTIVE', 'GoodsIssue');
 		$viewer->assign('MK_INV_NAV_CLASS', 'mk-go-detail-topnav');
 

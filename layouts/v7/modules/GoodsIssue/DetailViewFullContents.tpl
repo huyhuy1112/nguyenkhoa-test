@@ -49,6 +49,22 @@
 					<span class="mk-go-detail-field__value">{if $RECORD_DATA.issued_date}{$RECORD_DATA.issued_date|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</span>
 				</div>
 				<div class="mk-go-detail-field">
+					<span class="mk-go-detail-field__label">Expired date</span>
+					<span class="mk-go-detail-field__value">
+						{if $RECORD_DATA.expired_date_display && $RECORD_DATA.expired_date_display ne '—'}
+							{if !empty($RECORD_DATA.is_expired)}
+								<span class="mk-go-expired-date mk-go-expired-date--danger">{$RECORD_DATA.expired_date_display|escape:'html'}</span>
+							{elseif !empty($RECORD_DATA.is_expiring_soon)}
+								<span class="mk-go-expired-date mk-go-expired-date--warn">{$RECORD_DATA.expired_date_display|escape:'html'}</span>
+							{else}
+								<span class="mk-go-expired-date">{$RECORD_DATA.expired_date_display|escape:'html'}</span>
+							{/if}
+						{else}
+							<span class="mk-gi-muted">—</span>
+						{/if}
+					</span>
+				</div>
+				<div class="mk-go-detail-field">
 					<span class="mk-go-detail-field__label">Destination / receiver</span>
 					<span class="mk-go-detail-field__value">{if $RECORD_DATA.destination}{$RECORD_DATA.destination|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</span>
 				</div>

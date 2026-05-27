@@ -3,13 +3,51 @@ class GoodsReceipt_Edit_View extends Vtiger_Index_View {
 	public function requiresPermission(\Vtiger_Request $request) { return array(); }
 	public function checkPermission($request) { return true; }
 
+	protected function isInventoryApp(Vtiger_Request $request) {
+		$appName = $request->get('app');
+		return ($appName === 'INVENTORY' || $appName === '');
+	}
+
 	protected function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isInventoryApp($request)) {
+			return 'EditViewPreProcess.tpl';
+		}
 		return 'IndexViewPreProcess.tpl';
 	}
-	public function preProcess(Vtiger_Request $request, $display = true) { parent::preProcess($request, $display); }
+
+	protected function assignInventoryContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		if ($moduleModel) {
+			$viewer->assign('MODULE_MODEL', $moduleModel);
+		}
+		$appName = $request->get('app');
+		if (!empty($appName)) {
+			$viewer->assign('SELECTED_MENU_CATEGORY', $appName);
+		}
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		$this->assignInventoryContext($request);
+		if ($this->isInventoryApp($request)) {
+			$viewer = $this->getViewer($request);
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'INVENTORY');
+			$viewer->assign('MK_INV_NAV_ACTIVE', 'GoodsReceipt');
+			$viewer->assign('LINKED_INBOUND_RECEIPT_ID', (int) $request->get('record'));
+		}
+		parent::preProcess($request, $display);
+	}
+
 	public function postProcess(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
-		$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		if ($this->isInventoryApp($request)) {
+			$viewer->view('EditViewPostProcess.tpl', $request->getModule());
+		} else {
+			$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		}
 		Vtiger_Basic_View::postProcess($request);
 	}
 
@@ -59,7 +97,17 @@ class GoodsReceipt_Edit_View extends Vtiger_Index_View {
 		}
 
 		if (empty($items)) {
-			$items[] = array('productid' => '', 'product_name' => '', 'product_type' => 'Other', 'quantity' => '1', 'unit_price' => '0', 'line_note' => '');
+			$items[] = array(
+				'productid' => '',
+				'product_name' => '',
+				'product_type' => 'Other',
+				'quantity' => '1',
+				'unit_price' => '0',
+				'line_note' => '',
+				'serial_number' => '',
+				'expired_date' => '',
+				'description' => '',
+			);
 		}
 
 		$viewer->assign('MODE', $mode);
@@ -69,4 +117,3 @@ class GoodsReceipt_Edit_View extends Vtiger_Index_View {
 		$viewer->view('EditView.tpl', $request->getModule());
 	}
 }
-

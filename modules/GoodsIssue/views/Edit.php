@@ -1,7 +1,15 @@
 <?php
 class GoodsIssue_Edit_View extends Vtiger_Index_View {
 
+	protected function isInventoryApp(Vtiger_Request $request) {
+		$appName = $request->get('app');
+		return ($appName === 'INVENTORY' || $appName === '');
+	}
+
 	protected function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isInventoryApp($request)) {
+			return 'EditViewPreProcess.tpl';
+		}
 		return 'IndexViewPreProcess.tpl';
 	}
 
@@ -19,12 +27,22 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		$this->assignInventoryContext($request);
+		if ($this->isInventoryApp($request)) {
+			$viewer = $this->getViewer($request);
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'INVENTORY');
+			$viewer->assign('MK_INV_NAV_ACTIVE', 'GoodsIssue');
+			$viewer->assign('LINKED_OUTBOUND_ISSUE_ID', (int) $request->get('record'));
+		}
 		parent::preProcess($request, $display);
 	}
 
 	public function postProcess(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
-		$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		if ($this->isInventoryApp($request)) {
+			$viewer->view('EditViewPostProcess.tpl', $request->getModule());
+		} else {
+			$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		}
 		Vtiger_Basic_View::postProcess($request);
 	}
 
@@ -49,6 +67,11 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 		return $db->fetchByAssoc($rs);
 	}
 
+	protected function decodeText($value) {
+		require_once 'modules/Warehouse/helpers/StockHelper.php';
+		return Warehouse_Stock_Helper::decodeDisplayText($value);
+	}
+
 	protected function loadItems(PearDatabase $db, $issueId) {
 		$rs = $db->pquery(
 			"SELECT * FROM vtiger_goodsissue_items WHERE issueid = ? ORDER BY itemid ASC",
@@ -57,18 +80,18 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 		$items = array();
 		while ($row = $db->fetchByAssoc($rs)) {
 			$pid = !empty($row['productid']) ? (int) $row['productid'] : 0;
-			$pname = trim((string) $row['product_name']);
+			$pname = trim($this->decodeText($row['product_name']));
 			$keyHint = $pid > 0 ? ('P:' . $pid) : ($pname !== '' ? ('N:' . mb_strtolower($pname)) : '');
 			$items[] = array(
 				'productid' => $pid,
-				'product_name' => (string) $row['product_name'],
+				'product_name' => $pname,
 				'product_type' => $this->normalizeTypeLabel($row['product_type']),
 				'quantity' => (float) $row['quantity'],
 				'unit_price' => (float) $row['unit_price'],
 				'discount_percent' => isset($row['discount_percent']) ? (float) $row['discount_percent'] : 0.0,
-				'serial_number' => isset($row['serial_number']) ? (string) $row['serial_number'] : '',
-				'description' => isset($row['description']) ? (string) $row['description'] : '',
-				'line_note' => (string) $row['line_note'],
+				'serial_number' => isset($row['serial_number']) ? $this->decodeText($row['serial_number']) : '',
+				'description' => isset($row['description']) ? $this->decodeText($row['description']) : '',
+				'line_note' => $this->decodeText($row['line_note']),
 				'product_key_hint' => $keyHint,
 			);
 		}
@@ -152,13 +175,13 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 			}
 			$issue = array(
 				'issueid' => (int) $row['issueid'],
-				'code' => isset($row['code']) ? (string) $row['code'] : '',
-				'subject' => (string) $row['subject'],
-				'issued_by' => isset($row['issued_by']) ? (string) $row['issued_by'] : '',
+				'code' => isset($row['code']) ? $this->decodeText($row['code']) : '',
+				'subject' => $this->decodeText($row['subject']),
+				'issued_by' => isset($row['issued_by']) ? $this->decodeText($row['issued_by']) : '',
 				'issued_date' => (string) $row['issued_date'],
-				'destination' => (string) $row['destination'],
-				'storage_location' => (string) $row['storage_location'],
-				'note' => (string) $row['note'],
+				'destination' => $this->decodeText($row['destination']),
+				'storage_location' => $this->decodeText($row['storage_location']),
+				'note' => $this->decodeText($row['note']),
 			);
 			$items = $this->loadItems($db, $issueId);
 			if (empty($items)) {
@@ -203,8 +226,11 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 			if ($avail < 0) $avail = 0.0;
 
 			$it['available_qty'] = (float) $avail;
-			$it['stock_location'] = isset($st['storage_location']) ? (string) $st['storage_location'] : '';
+			$it['stock_location'] = isset($st['storage_location']) ? $this->decodeText($st['storage_location']) : '';
 			$it['identity_type'] = !empty($st['productid']) ? 'catalog' : 'legacy';
+			if (!empty($st['product_name'])) {
+				$it['product_name'] = $this->decodeText($st['product_name']);
+			}
 
 			if (!empty($st['product_type'])) {
 				$it['product_type'] = $this->normalizeTypeLabel($st['product_type']);

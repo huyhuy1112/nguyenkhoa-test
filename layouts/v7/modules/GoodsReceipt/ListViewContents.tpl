@@ -7,14 +7,17 @@
 {if $MK_GR_IS_INV}
 <div class="mk-gi-page">
 	<div class="mk-gi-suite-card">
-		<div class="mk-gi-dark-panel">
-		{include file="partials/InboundListHeader.tpl"|vtemplate_path:$MODULE}
-		<nav class="mk-gi-topnav" aria-label="Inventory modules">
-			<a class="is-active" href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY" aria-current="page">Inbound</a>
-			<a href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY">Storage</a>
-			<a href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY">Outbound</a>
-		</nav>
-
+		<div class="mk-wh-page-head mk-gr-page-head">
+			{include file="partials/InboundListHeader.tpl"|vtemplate_path:$MODULE}
+		</div>
+		<div class="mk-inv-flow-bar">
+			<nav class="mk-gi-topnav mk-gi-topnav--pills" aria-label="Inventory modules">
+				<a class="is-active" href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY" aria-current="page">Inbound</a>
+				<a href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY">Storage</a>
+				<a href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY">Outbound</a>
+			</nav>
+		</div>
+		<div class="mk-gi-dark-panel mk-wh-filter-panel">
 		<form method="get" action="index.php" class="mk-gi-filter-bar">
 			<input type="hidden" name="module" value="GoodsReceipt" />
 			<input type="hidden" name="view" value="List" />

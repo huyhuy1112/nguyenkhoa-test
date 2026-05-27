@@ -18,8 +18,114 @@
 		{/if}
 	{/foreach}
 
+{if !empty($MK_ACCOUNTS_MODERN_UI) || (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'MARKETING')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'MARKETING'))}
+	<div class="mk-acc-detail-summary-grid">
+		<section class="mk-acc-detail-card mk-acc-detail-card--key mk-acc-detail-grid__key" aria-labelledby="mk-acc-detail-keyfields-title">
+			<div class="mk-acc-detail-card__head">
+				<h2 id="mk-acc-detail-keyfields-title" class="mk-acc-detail-card__title">
+					{vtranslate('LBL_KEY_FIELDS', $MODULE_NAME)}
+					<span class="mk-acc-detail-card__title-ic" aria-hidden="true">{include file="partials/AccountsDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='INFO'}</span>
+				</h2>
+			</div>
+			<div class="summaryView mk-acc-detail-summaryView">
+				<div class="summaryViewFields mk-acc-detail-kv-wrap">
+					{$MODULE_SUMMARY}
+				</div>
+			</div>
+		</section>
+
+		<section class="mk-acc-detail-card mk-acc-detail-card--activities mk-acc-detail-grid__activities" aria-labelledby="mk-acc-detail-activities-title">
+			<div class="mk-acc-detail-card__head mk-acc-detail-card__head--activities">
+				<h2 id="mk-acc-detail-activities-title" class="mk-acc-detail-card__title">
+					<span class="mk-acc-detail-card__title-ic" aria-hidden="true">{include file="partials/AccountsDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='CALENDAR'}</span>
+					{vtranslate('LBL_ACTIVITIES', 'Vtiger')}
+				</h2>
+			</div>
+			<div id="relatedActivities" class="mk-acc-detail-related-activities">
+				{$RELATED_ACTIVITIES}
+			</div>
+		</section>
+
+		<div class="mk-acc-detail-bottom-grid">
+		<section class="mk-acc-detail-card mk-acc-detail-card--health mk-acc-detail-grid__health" aria-labelledby="mk-acc-detail-health-title">
+			<div class="mk-acc-detail-health__inner">
+				<h3 id="mk-acc-detail-health-title" class="mk-acc-detail-health__title">{vtranslate('LBL_ACC_DETAIL_HEALTH_TITLE', $MODULE_NAME)}</h3>
+				<div class="mk-acc-detail-health__row">
+					<span class="mk-acc-detail-health__label">{vtranslate('LBL_ACC_DETAIL_HEALTH_PROJECT', $MODULE_NAME)}</span>
+					<div class="mk-acc-detail-health__track" role="presentation"><span class="mk-acc-detail-health__fill mk-acc-detail-health__fill--a" style="width:72%;"></span></div>
+				</div>
+				<div class="mk-acc-detail-health__row">
+					<span class="mk-acc-detail-health__label">{vtranslate('LBL_ACC_DETAIL_HEALTH_ASSET', $MODULE_NAME)}</span>
+					<div class="mk-acc-detail-health__track" role="presentation"><span class="mk-acc-detail-health__fill mk-acc-detail-health__fill--b" style="width:54%;"></span></div>
+				</div>
+			</div>
+		</section>
+
+		{if $COMMENTS_WIDGET_MODEL}
+		<section class="mk-acc-detail-card mk-acc-detail-card--comments mk-acc-detail-grid__comments" aria-labelledby="mk-acc-detail-comments-title">
+			<div class="summaryWidgetContainer mk-acc-detail-widget-host">
+				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
+					<div class="widget_header mk-acc-detail-card__head">
+						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
+						<h2 id="mk-acc-detail-comments-title" class="mk-acc-detail-card__title">
+							<span class="mk-acc-detail-card__title-ic" aria-hidden="true">{include file="partials/AccountsDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='COMMENT'}</span>
+							{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}
+						</h2>
+					</div>
+					<div class="widget_contents">
+					</div>
+				</div>
+			</div>
+		</section>
+		{/if}
+
+		{if $DOCUMENT_WIDGET_MODEL}
+		<section class="mk-acc-detail-card mk-acc-detail-card--documents mk-acc-detail-grid__documents" aria-labelledby="mk-acc-detail-documents-title">
+			<div class="summaryWidgetContainer mk-acc-detail-widget-host">
+				<div class="widgetContainer_documents" data-url="{$DOCUMENT_WIDGET_MODEL->getUrl()}" data-name="{$DOCUMENT_WIDGET_MODEL->getLabel()}">
+					<div class="widget_header clearfix mk-acc-detail-card__head mk-acc-detail-documents__head">
+						<input type="hidden" name="relatedModule" value="{$DOCUMENT_WIDGET_MODEL->get('linkName')}" />
+						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
+						<h2 id="mk-acc-detail-documents-title" class="mk-acc-detail-card__title display-inline-block pull-left">
+							<span class="mk-acc-detail-card__title-ic" aria-hidden="true">{include file="partials/AccountsDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='FOLDER'}</span>
+							{vtranslate($DOCUMENT_WIDGET_MODEL->getLabel(),$MODULE_NAME)}
+						</h2>
+
+						{if $DOCUMENT_WIDGET_MODEL->get('action')}
+							{assign var=PARENT_ID value=$RECORD->getId()}
+							<div class="pull-right">
+								<div class="dropdown">
+									<button type="button" class="btn btn-default dropdown-toggle mk-acc-detail-btn mk-acc-detail-btn--ghost" data-toggle="dropdown">
+										<span class="fa fa-plus" title="{vtranslate('LBL_NEW_DOCUMENT', $MODULE_NAME)}"></span>&nbsp;{vtranslate('LBL_NEW_DOCUMENT', 'Documents')}&nbsp; <span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu">
+										<li class="dropdown-header"><i class="fa fa-upload"></i> {vtranslate('LBL_FILE_UPLOAD', 'Documents')}</li>
+										<li id="VtigerAction">
+											<a href="javascript:Documents_Index_Js.uploadTo('Vtiger',{$PARENT_ID},'{$MODULE_NAME}')">
+												<img style="  margin-top: -3px;margin-right: 4%;" title="Vtiger" alt="Vtiger" src="layouts/v7/skins//images/Vtiger.png">
+												{vtranslate('LBL_TO_SERVICE', 'Documents', {vtranslate('LBL_VTIGER', 'Documents')})}
+											</a>
+										</li>
+										<li role="separator" class="divider"></li>
+										<li class="dropdown-header"><i class="fa fa-link"></i> {vtranslate('LBL_LINK_EXTERNAL_DOCUMENT', 'Documents')}</li>
+										<li id="shareDocument"><a href="javascript:Documents_Index_Js.createDocument('E',{$PARENT_ID},'{$MODULE_NAME}')">&nbsp;<i class="fa fa-external-link"></i>&nbsp;&nbsp; {vtranslate('LBL_FROM_SERVICE', 'Documents', {vtranslate('LBL_FILE_URL', 'Documents')})}</a></li>
+										<li role="separator" class="divider"></li>
+										<li id="createDocument"><a href="javascript:Documents_Index_Js.createDocument('W',{$PARENT_ID},'{$MODULE_NAME}')"><i class="fa fa-file-text"></i> {vtranslate('LBL_CREATE_NEW', 'Documents', {vtranslate('SINGLE_Documents', 'Documents')})}</a></li>
+									</ul>
+								</div>
+							</div>
+						{/if}
+					</div>
+					<div class="widget_contents mk-acc-detail-documents__body">
+					</div>
+				</div>
+			</div>
+		</section>
+		{/if}
+		</div>
+	</div>
+{else}
 	<div class="left-block col-lg-4">
-		{* Module Summary View*}
 		<div class="summaryView">
 			<div class="summaryViewHeader">
 				<h4 class="display-inline-block">{vtranslate('LBL_KEY_FIELDS', $MODULE_NAME)}</h4>
@@ -28,10 +134,6 @@
 				{$MODULE_SUMMARY}
 			</div>
 		</div>
-		{* Module Summary View Ends Here*}
-
-
-		{* Summary View Documents Widget*}
 		{if $DOCUMENT_WIDGET_MODEL}
 			<div class="summaryWidgetContainer">
 				<div class="widgetContainer_documents" data-url="{$DOCUMENT_WIDGET_MODEL->getUrl()}" data-name="{$DOCUMENT_WIDGET_MODEL->getLabel()}">
@@ -70,17 +172,12 @@
 				</div>
 			</div>
 		{/if}
-		{* Summary View Documents Widget Ends Here*}
 	</div>
 
 	<div class="middle-block col-lg-8">
-		{* Summary View Related Activities Widget*}
 		<div id="relatedActivities">
 			{$RELATED_ACTIVITIES}
 		</div>
-		{* Summary View Related Activities Widget Ends Here*}
-
-		{* Summary View Comments Widget*}
 		{if $COMMENTS_WIDGET_MODEL}
 			<div class="summaryWidgetContainer">
 				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
@@ -93,6 +190,6 @@
 				</div>
 			</div>
 		{/if}
-		{* Summary View Comments Widget Ends Here*}
 	</div>
+{/if}
 {/strip}

@@ -24,6 +24,7 @@
 
   var ALL = [
     {
+      id: "L004",
       name: "Phạm Quốc Dũng",
       phone: "0978 111 222",
       type: "Franchise",
@@ -299,16 +300,64 @@
     },
   ];
 
+  var SOURCE_POOL = ["Facebook", "TikTok", "Website", "Zalo", "Other"];
+
+  var FILTER_DEFS = {
+    source: { field: "source", label: "Source", options: ["All"].concat(SOURCE_POOL) },
+    purchase: {
+      field: "stage",
+      label: "Purchase",
+      options: ["All", "New Purchase", "Repeat Purchase", "Not Buying", "Stopped"],
+    },
+    tier: { field: "tier", label: "Tier", options: ["All", "Gold", "Silver", "Bronze"] },
+    program: {
+      field: "program",
+      label: "Program",
+      options: ["All", "Franchise", "PCTH Program", "Free Class"],
+    },
+    owner: { field: "owner", label: "Owner", options: ["All", "Hà", "Linh", "Minh"] },
+  };
+
   var state = {
     q: "",
     staleOnly: false,
+    source: "All",
+    purchase: "All",
+    tier: "All",
+    program: "All",
+    owner: "All",
   };
 
   function chipClass(kind, val) {
+    var t = normalize(val);
     if (kind === "type") return "mk-chip mk-chip--blue";
     if (kind === "stage") return "mk-chip mk-chip--purple";
-    if (kind === "tier") return "mk-chip mk-chip--gold";
+    if (kind === "tier") {
+      if (t.indexOf("silver") >= 0) return "mk-chip mk-chip--silver";
+      if (t.indexOf("bronze") >= 0) return "mk-chip mk-chip--bronze";
+      return "mk-chip mk-chip--gold";
+    }
     return "mk-chip";
+  }
+
+  ALL.forEach(function (x, i) {
+    if (!x.id) {
+      x.id = "L" + String(i + 1).padStart(3, "0");
+    }
+    if (!x.source) {
+      x.source = SOURCE_POOL[i % SOURCE_POOL.length];
+    }
+    if (!x.program) {
+      x.program = x.type;
+    }
+  });
+
+  function detailUrl(id) {
+    return (
+      "index.php?module=Leads&view=Detail&record=" +
+      encodeURIComponent(id) +
+      "&app=SALES"
+    );
   }
 
   function rowHtml(x) {
@@ -322,8 +371,11 @@
         ? '<div class="mk-leads-priority"><span class="mk-fire" aria-hidden="true">♨</span> HIGH</div>'
         : "") +
       '<div class="mk-leads-lead__name">' +
+      '<a class="mk-leads-lead__link" href="' +
+      detailUrl(x.id) +
+      '">' +
       x.name +
-      "</div>" +
+      "</a></div>" +
       '<div class="mk-leads-lead__sub">' +
       x.phone +
       "</div>" +
@@ -364,10 +416,24 @@
     );
   }
 
+  function matchesFilter(key, row) {
+    var def = FILTER_DEFS[key];
+    var val = state[key];
+    if (!def || !val || val === "All") {
+      return true;
+    }
+    return String(row[def.field] || "") === val;
+  }
+
   function apply() {
     var qn = normalize(state.q);
     var list = ALL.filter(function (x) {
       if (state.staleOnly && !x.stale) return false;
+      if (!matchesFilter("source", x)) return false;
+      if (!matchesFilter("purchase", x)) return false;
+      if (!matchesFilter("tier", x)) return false;
+      if (!matchesFilter("program", x)) return false;
+      if (!matchesFilter("owner", x)) return false;
       if (!qn) return true;
       var hay = normalize(x.name + " " + x.phone);
       return hay.indexOf(qn) !== -1;
@@ -384,6 +450,91 @@
   function setToggle(btn, on) {
     btn.setAttribute("aria-checked", on ? "true" : "false");
     btn.classList.toggle("is-on", on);
+  }
+
+  function closeAllFilterMenus(exceptWrap) {
+    document.querySelectorAll(".mk-leads-filter--dropdown.is-open").forEach(function (wrap) {
+      if (exceptWrap && wrap === exceptWrap) return;
+      wrap.classList.remove("is-open");
+      var btn = wrap.querySelector(".mk-leads-filter__btn");
+      var menu = wrap.querySelector(".mk-leads-filter__menu");
+      if (btn) btn.setAttribute("aria-expanded", "false");
+      if (menu) menu.hidden = true;
+    });
+  }
+
+  function setFilterButtonLabel(wrap, value) {
+    var btn = wrap.querySelector(".mk-leads-filter__btn");
+    if (!btn) return;
+    var label = value === "All" ? "All" : value;
+    btn.innerHTML = label + ' <span class="mk-leads-filter__chev">▾</span>';
+  }
+
+  function bindFilterDropdowns() {
+    document.querySelectorAll(".mk-leads-filter--dropdown").forEach(function (wrap) {
+      var key = wrap.getAttribute("data-filter");
+      var def = FILTER_DEFS[key];
+      if (!def) return;
+
+      var menu = wrap.querySelector(".mk-leads-filter__menu");
+      var btn = wrap.querySelector(".mk-leads-filter__btn");
+      if (!menu || !btn) return;
+
+      menu.innerHTML = def.options
+        .map(function (opt) {
+          var active = state[key] === opt ? " is-active" : "";
+          return (
+            '<li role="presentation"><button type="button" class="mk-leads-filter__option' +
+            active +
+            '" data-value="' +
+            opt.replace(/"/g, "&quot;") +
+            '">' +
+            opt +
+            "</button></li>"
+          );
+        })
+        .join("");
+
+      setFilterButtonLabel(wrap, state[key]);
+
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var open = wrap.classList.contains("is-open");
+        closeAllFilterMenus();
+        if (!open) {
+          wrap.classList.add("is-open");
+          menu.hidden = false;
+          btn.setAttribute("aria-expanded", "true");
+        }
+      });
+
+      menu.querySelectorAll(".mk-leads-filter__option").forEach(function (optBtn) {
+        optBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          state[key] = optBtn.getAttribute("data-value") || "All";
+          menu.querySelectorAll(".mk-leads-filter__option").forEach(function (b) {
+            b.classList.toggle("is-active", b === optBtn);
+          });
+          setFilterButtonLabel(wrap, state[key]);
+          closeAllFilterMenus();
+          apply();
+        });
+      });
+    });
+
+    document.addEventListener("click", function () {
+      closeAllFilterMenus();
+    });
+  }
+
+  function resetFilters() {
+    state.q = "";
+    state.staleOnly = false;
+    state.source = "All";
+    state.purchase = "All";
+    state.tier = "All";
+    state.program = "All";
+    state.owner = "All";
   }
 
   function init() {
@@ -407,14 +558,26 @@
     var reset = $("mk-leads-reset");
     if (reset) {
       reset.addEventListener("click", function () {
-        state.q = "";
-        state.staleOnly = false;
+        resetFilters();
         if (search) search.value = "";
         if (stale) setToggle(stale, false);
+        document.querySelectorAll(".mk-leads-filter--dropdown").forEach(function (wrap) {
+          var key = wrap.getAttribute("data-filter");
+          if (key && FILTER_DEFS[key]) {
+            setFilterButtonLabel(wrap, "All");
+            var menu = wrap.querySelector(".mk-leads-filter__menu");
+            if (menu) {
+              menu.querySelectorAll(".mk-leads-filter__option").forEach(function (b) {
+                b.classList.toggle("is-active", b.getAttribute("data-value") === "All");
+              });
+            }
+          }
+        });
         apply();
       });
     }
 
+    bindFilterDropdowns();
     apply();
   }
 

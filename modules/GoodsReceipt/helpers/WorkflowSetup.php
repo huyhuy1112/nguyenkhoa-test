@@ -96,6 +96,7 @@ class GoodsReceipt_WorkflowSetup_Helper {
 		$add('warehouse_note', '`warehouse_note` TEXT');
 		$add('product_type', '`product_type` VARCHAR(50) DEFAULT NULL');
 		$add('inbound_note', '`inbound_note` TEXT');
+		$add('expired_date', '`expired_date` DATE DEFAULT NULL');
 		$add('code', '`code` VARCHAR(50) DEFAULT NULL');
 	}
 
@@ -114,6 +115,9 @@ class GoodsReceipt_WorkflowSetup_Helper {
 		}
 		if (empty($have['serial_number'])) {
 			$db->pquery("ALTER TABLE `{$table}` ADD COLUMN `serial_number` VARCHAR(255) DEFAULT NULL", array());
+		}
+		if (empty($have['expired_date'])) {
+			$db->pquery("ALTER TABLE `{$table}` ADD COLUMN `expired_date` DATE DEFAULT NULL", array());
 		}
 	}
 

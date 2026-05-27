@@ -1,0 +1,640 @@
+/**
+ * Quotes Create (SALES) — enterprise create workspace (content area only).
+ * Scope: body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mkQtCreateWorkspace
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+	--mk-qt-gold: #f4b400;
+	--mk-qt-gold-light: #ffcc33;
+	--mk-qt-ink: #1f2937;
+	--mk-qt-navy: #40627e;
+	--mk-qt-surface: #f7f9fb;
+	--mk-qt-white: #ffffff;
+	--mk-qt-muted: #64748b;
+	--mk-qt-border: rgba(31, 41, 55, 0.1);
+	--mk-qt-radius: 14px;
+	--mk-qt-radius-lg: 16px;
+	--mk-qt-shadow: 0 4px 24px rgba(31, 41, 55, 0.06);
+	--mk-qt-shadow-lg: 0 12px 40px rgba(31, 41, 55, 0.1);
+	--mk-qt-font: 'Inter', system-ui, -apple-system, sans-serif;
+	--mk-qt-display: 'Space Grotesk', 'Inter', sans-serif;
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+}
+
+/* ========== Split shell (unchanged sidebar/topbar geometry) ========== */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+	position: relative;
+	display: block;
+	min-height: 0;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w);
+	width: calc(100% - var(--mk-dash-sidebar-w));
+	max-width: calc(100% - var(--mk-dash-sidebar-w));
+	min-height: 100vh;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	background: var(--mk-qt-surface);
+	padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-topbar {
+	height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+	flex-shrink: 0;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+	position: fixed;
+	top: 0;
+	left: var(--mk-dash-sidebar-w);
+	right: 0;
+	width: auto;
+	min-height: var(--mk-dash-topbar-h);
+	height: var(--mk-dash-topbar-h);
+	z-index: 1030;
+	box-sizing: border-box;
+	border: none !important;
+	border-bottom: 1px solid var(--mk-qt-border) !important;
+	background: var(--mk-qt-white) !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #page,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-quote-edit-main {
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+	padding: 0 !important;
+	background: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%);
+	box-sizing: border-box;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .main-container.mk-quote-edit-page,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .editViewPageDiv.mk-quote-edit-inner {
+	padding: 0 !important;
+	margin: 0 !important;
+	background: transparent;
+	border: none;
+	width: 100%;
+	max-width: none;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-hide-legacy {
+	display: none !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-footer {
+	display: none !important;
+}
+
+/* ========== Workspace layout ========== */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create {
+	font-family: var(--mk-qt-font);
+	color: var(--mk-qt-ink);
+	padding: 0 32px 48px;
+	box-sizing: border-box;
+}
+
+/* Sticky action header */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head {
+	position: sticky;
+	top: var(--mk-dash-topbar-h);
+	z-index: 1020;
+	margin: 0 -32px 24px;
+	padding: 16px 32px;
+	background: rgba(255, 255, 255, 0.88);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border-bottom: 1px solid var(--mk-qt-border);
+	transition: box-shadow 0.2s ease;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head.is-elevated {
+	box-shadow: var(--mk-qt-shadow);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__inner {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 20px;
+	flex-wrap: wrap;
+	max-width: 1600px;
+	margin: 0 auto;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb {
+	font-size: 13px;
+	color: var(--mk-qt-muted);
+	margin-bottom: 6px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb a {
+	color: var(--mk-qt-navy);
+	text-decoration: none;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb a:hover {
+	text-decoration: underline;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__title-row {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__title {
+	font-family: var(--mk-qt-display);
+	font-size: 1.65rem;
+	font-weight: 700;
+	margin: 0;
+	color: var(--mk-qt-ink);
+	letter-spacing: -0.02em;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	background: linear-gradient(135deg, var(--mk-qt-gold-light), var(--mk-qt-gold));
+	color: var(--mk-qt-ink);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+	font-size: 13px;
+	color: var(--mk-qt-muted);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave__dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #22c55e;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave.is-dirty .mk-qt-autosave__dot {
+	background: var(--mk-qt-gold);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 42px;
+	padding: 0 18px;
+	border-radius: 12px;
+	font-size: 14px;
+	font-weight: 600;
+	border: 1px solid transparent;
+	cursor: pointer;
+	text-decoration: none;
+	transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--primary {
+	background: linear-gradient(180deg, var(--mk-qt-gold-light), var(--mk-qt-gold));
+	color: var(--mk-qt-ink);
+	border-color: #d4a000;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--primary:hover {
+	filter: brightness(1.03);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--secondary {
+	background: var(--mk-qt-white);
+	border-color: var(--mk-qt-border);
+	color: var(--mk-qt-ink);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--ghost {
+	background: transparent;
+	border-color: var(--mk-qt-border);
+	color: var(--mk-qt-muted);
+}
+
+/* 70 / 30 grid */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 320px;
+	gap: 24px;
+	align-items: start;
+	max-width: 1600px;
+	margin: 0 auto;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__main {
+	min-width: 0;
+}
+
+/* Right rail */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail {
+	position: sticky;
+	top: calc(var(--mk-dash-topbar-h) + 120px);
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card {
+	background: var(--mk-qt-white);
+	border: 1px solid var(--mk-qt-border);
+	border-radius: var(--mk-qt-radius-lg);
+	box-shadow: var(--mk-qt-shadow);
+	padding: 18px 20px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--summary {
+	border-top: 3px solid var(--mk-qt-gold);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--ai {
+	background: linear-gradient(160deg, #fffbeb 0%, #fff 60%);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 14px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__icon {
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	background: #f1f5f9;
+	color: var(--mk-qt-navy);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__title {
+	font-family: var(--mk-qt-display);
+	font-size: 15px;
+	font-weight: 600;
+	margin: 0;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 0;
+	border-bottom: 1px solid #f1f5f9;
+	font-size: 13px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row dt {
+	color: var(--mk-qt-muted);
+	font-weight: 500;
+	margin: 0;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row dd {
+	margin: 0;
+	font-weight: 600;
+	text-align: right;
+	max-width: 55%;
+	word-break: break-word;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row--total dd {
+	font-size: 16px;
+	color: var(--mk-qt-ink);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-placeholder,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-note {
+	font-size: 12px;
+	color: var(--mk-qt-muted);
+	margin: 0;
+	line-height: 1.5;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-ai-list {
+	margin: 0 0 10px;
+	padding-left: 18px;
+	font-size: 13px;
+	color: var(--mk-qt-ink);
+	line-height: 1.5;
+}
+
+/* ========== Form host ========== */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host form#EditView {
+	width: 100%;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .editViewBody,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .editViewContents,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host [name="editContent"] {
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	background: transparent;
+}
+
+/* Field cards */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block {
+	background: var(--mk-qt-white);
+	border: 1px solid var(--mk-qt-border);
+	border-radius: var(--mk-qt-radius-lg);
+	box-shadow: var(--mk-qt-shadow);
+	padding: 22px 24px 26px;
+	margin-bottom: 20px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block__header {
+	font-family: var(--mk-qt-display);
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: var(--mk-qt-ink);
+	margin: 0 0 18px;
+	padding: 0;
+	border: none;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block__icon {
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	background: linear-gradient(135deg, #fff8e1, #fff3cd);
+	color: #b45309;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table {
+	width: 100%;
+	border: none;
+	margin: 0;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px 24px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldLabel {
+	display: block;
+	padding: 0 0 6px !important;
+	border: none;
+	width: auto !important;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--mk-qt-muted);
+	text-align: left;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldLabel label {
+	margin: 0;
+	font-weight: 600;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldValue {
+	display: block;
+	padding: 0 !important;
+	border: none;
+	width: auto !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldLabel:nth-child(1) { grid-column: 1; grid-row: 1; }
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldValue:nth-child(2) { grid-column: 1; grid-row: 2; }
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldLabel:nth-child(3) { grid-column: 2; grid-row: 1; }
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldValue:nth-child(4) { grid-column: 2; grid-row: 2; }
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr:has(> td.fieldValueWidth80) {
+	grid-template-columns: 1fr;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .addressBlock > tbody > tr:first-child {
+	grid-template-columns: 1fr 1fr;
+}
+
+/* Inputs */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > input.inputElement,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > select.inputElement,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea.inputElement,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .form-control {
+	width: 100% !important;
+	min-height: 46px !important;
+	padding: 12px 16px !important;
+	border-radius: 12px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fafafa !important;
+	font-size: 15px !important;
+	box-sizing: border-box !important;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > input:focus,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > select:focus,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea:focus {
+	border-color: var(--mk-qt-navy) !important;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
+	background: #fff !important;
+	outline: none;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea {
+	min-height: 120px !important;
+	resize: vertical;
+}
+
+/* Composite / reference fields */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group {
+	display: flex !important;
+	align-items: center !important;
+	width: 100% !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	overflow: hidden;
+	background: #fafafa !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group:focus-within {
+	border-color: var(--mk-qt-navy) !important;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
+	background: #fff !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group input,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .autoComplete,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .dateField {
+	flex: 1;
+	border: none !important;
+	background: transparent !important;
+	min-height: 46px !important;
+	height: 46px !important;
+	line-height: 46px !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .input-group-addon {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 48px;
+	height: 46px;
+	border: none !important;
+	border-left: 1px solid #e2e8f0 !important;
+	background: #f1f5f9 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .input-group-addon:first-child {
+	border-left: none !important;
+	border-right: 1px solid #e2e8f0 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .select2-container {
+	width: 100% !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	background: #fafafa !important;
+	min-height: 46px !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .select2-container .select2-choice,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .select2-container--default .select2-selection--single {
+	border: none !important;
+	background: transparent !important;
+	min-height: 46px !important;
+	display: flex !important;
+	align-items: center !important;
+}
+
+/* Line items — CPQ-style table */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block--line-items {
+	padding-bottom: 12px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab {
+	border-collapse: separate;
+	border-spacing: 0;
+	border-radius: 12px;
+	overflow: hidden;
+	border: 1px solid var(--mk-qt-border) !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab thead tr {
+	background: #f8fafc;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab thead th {
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--mk-qt-navy);
+	padding: 12px 10px !important;
+	border-bottom: 1px solid var(--mk-qt-border) !important;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: #f8fafc;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab tbody tr.lineItemRow:nth-child(even) {
+	background: #fafbfc;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab tbody tr.lineItemRow:hover {
+	background: #fffbeb;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab tbody td {
+	padding: 10px !important;
+	vertical-align: middle !important;
+	border-color: #f1f5f9 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemResult.lineItemTable {
+	border-radius: var(--mk-qt-radius);
+	overflow: hidden;
+	margin-top: 16px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemResult .lineItemInputBox {
+	border-radius: 8px !important;
+	border: 1px solid #e2e8f0 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block--totals {
+	background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+}
+
+/* Add product row buttons */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #addProductsServices,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .addProduct,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .addService {
+	border-radius: 10px !important;
+	font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid {
+		grid-template-columns: 1fr;
+	}
+
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail {
+		position: static;
+		order: -1;
+	}
+}
+
+@media (max-width: 768px) {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create {
+		padding: 0 16px 32px;
+	}
+
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head {
+		margin: 0 -16px 20px;
+		padding: 14px 16px;
+	}
+
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr {
+		grid-template-columns: 1fr;
+	}
+
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td {
+		grid-column: 1 !important;
+		grid-row: auto !important;
+	}
+}

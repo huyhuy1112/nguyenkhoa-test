@@ -47,6 +47,7 @@ class GoodsReceipt_List_View extends Vtiger_Index_View {
 		require_once 'modules/GoodsReceipt/helpers/WorkflowSetup.php';
 		GoodsReceipt_WorkflowSetup_Helper::runAll();
 
+		require_once 'modules/Warehouse/helpers/StockHelper.php';
 		$db = PearDatabase::getInstance();
 		$viewer = $this->getViewer($request);
 		$viewer->assign('LISTVIEW_MODULE_TITLE', 'Inbound');
@@ -91,11 +92,11 @@ class GoodsReceipt_List_View extends Vtiger_Index_View {
 		while ($row = $db->fetchByAssoc($result)) {
 			$rows[] = array(
 				'receiptid' => (int) $row['receiptid'],
-				'code' => (string) $row['code'],
-				'subject' => (string) $row['subject'],
-				'source_name' => (string) $row['source_name'],
+				'code' => Warehouse_Stock_Helper::decodeDisplayText($row['code']),
+				'subject' => Warehouse_Stock_Helper::decodeDisplayText($row['subject']),
+				'source_name' => Warehouse_Stock_Helper::decodeDisplayText($row['source_name']),
 				'received_date' => (string) $row['received_date'],
-				'storage_location' => (string) $row['storage_location'],
+				'storage_location' => Warehouse_Stock_Helper::decodeDisplayText($row['storage_location']),
 				'updatedtime' => (string) $row['updatedtime'],
 				'note' => (string) $row['note'],
 				'total_qty' => (string) $row['total_qty'],

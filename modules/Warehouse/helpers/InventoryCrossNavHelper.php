@@ -6,14 +6,42 @@
 class Inventory_CrossNav_Helper {
 
 	public static function itemKey(array $item) {
+		return self::stockStyleItemKey($item);
+	}
+
+	/**
+	 * Same identity shape as GoodsReceipt save / vtiger_warehouse_stock.product_key.
+	 */
+	public static function stockStyleItemKey(array $item) {
+		require_once 'modules/Warehouse/helpers/StockHelper.php';
 		if (!empty($item['productid'])) {
-			return 'P:' . (int) $item['productid'];
+			$base = 'P:' . (int) $item['productid'];
+		} else {
+			$name = Warehouse_Stock_Helper::decodeDisplayText(isset($item['product_name']) ? $item['product_name'] : '');
+			$name = trim($name);
+			if ($name === '') {
+				return '';
+			}
+			$base = 'N:' . mb_strtolower($name);
 		}
-		$name = isset($item['product_name']) ? trim((string) $item['product_name']) : '';
-		if ($name === '') {
-			return '';
+		$serial = trim((string) (isset($item['serial_number']) ? $item['serial_number'] : ''));
+		if ($serial !== '') {
+			$base .= ':S:' . mb_strtolower($serial);
 		}
-		return 'N:' . mb_strtolower($name);
+		$exp = trim((string) (isset($item['expired_date']) ? $item['expired_date'] : ''));
+		if ($exp !== '') {
+			$base .= ':E:' . $exp;
+		}
+		return $base;
+	}
+
+	protected static function stockRowFromLineItem(array $item) {
+		require_once 'modules/Warehouse/helpers/StockHelper.php';
+		return array(
+			'product_key' => self::stockStyleItemKey($item),
+			'productid' => !empty($item['productid']) ? (int) $item['productid'] : 0,
+			'product_name' => Warehouse_Stock_Helper::decodeDisplayText(isset($item['product_name']) ? $item['product_name'] : ''),
+		);
 	}
 
 	public static function productKeysFromItems(array $items) {
@@ -172,34 +200,65 @@ class Inventory_CrossNav_Helper {
 	}
 
 	/**
-	 * Outbound detail from line items (unique issue or most recent match).
+	 * Outbound detail from inbound/outbound line items (most recent match).
 	 */
 	public static function resolveOutboundIssueId(PearDatabase $db, array $items) {
-		$keyList = self::productKeysFromItems($items);
-		if (empty($keyList)) {
+		if (empty($items)) {
 			return 0;
 		}
-		$clauses = array();
-		$params = array();
-		foreach ($keyList as $key) {
-			if (strpos($key, 'P:') === 0) {
-				$clauses[] = 'gii.productid = ?';
-				$params[] = (int) substr($key, 2);
-			} else {
-				$clauses[] = '((gii.productid IS NULL OR gii.productid = 0) AND LOWER(TRIM(gii.product_name)) = ?)';
-				$params[] = substr($key, 2);
+		$bestId = 0;
+		$bestTs = 0;
+		foreach ($items as $item) {
+			$issueId = self::resolveOutboundIssueIdForStock($db, self::stockRowFromLineItem($item));
+			if ($issueId <= 0) {
+				continue;
+			}
+			$tsRs = $db->pquery(
+				'SELECT issued_date FROM vtiger_goodsissue WHERE issueid = ? AND deleted = 0 LIMIT 1',
+				array($issueId)
+			);
+			$ts = 0;
+			if ($db->num_rows($tsRs) > 0) {
+				$tsRow = $db->fetchByAssoc($tsRs);
+				$ts = strtotime((string) (isset($tsRow['issued_date']) ? $tsRow['issued_date'] : ''));
+				if ($ts === false) {
+					$ts = 0;
+				}
+			}
+			if ($bestId === 0 || $ts >= $bestTs) {
+				$bestId = $issueId;
+				$bestTs = $ts;
 			}
 		}
-		$where = implode(' OR ', $clauses);
-		$rs = $db->pquery(
-			"SELECT DISTINCT gi.issueid, gi.issued_date
-			 FROM vtiger_goodsissue_items gii
-			 INNER JOIN vtiger_goodsissue gi ON gi.issueid = gii.issueid AND gi.deleted = 0
-			 WHERE ($where)
-			 ORDER BY gi.issued_date DESC, gi.issueid DESC",
-			$params
-		);
-		return self::pickSingleOrMostRecentId($rs, 'issueid');
+		return $bestId;
+	}
+
+	/**
+	 * Outbound detail from an inbound receipt (via linked stock row, then line items).
+	 */
+	public static function resolveOutboundIssueIdForInboundReceipt(PearDatabase $db, $receiptId, array $items = array()) {
+		$stockId = self::resolveStockIdForInboundReceipt($db, $receiptId, $items);
+		if ($stockId > 0) {
+			require_once 'modules/Warehouse/helpers/StockHelper.php';
+			$rs = $db->pquery(
+				"SELECT ws.*, COALESCE(NULLIF(ws.product_type, ''), ps.item_type) AS raw_item_type
+				 FROM vtiger_warehouse_stock ws
+				 LEFT JOIN vtiger_productsservices ps ON ps.productsservicesid = ws.productid AND ws.productid > 0
+				 WHERE ws.stockid = ?",
+				array($stockId)
+			);
+			if ($db->num_rows($rs) > 0) {
+				$row = $db->fetchByAssoc($rs);
+				$row['product_name'] = Warehouse_Stock_Helper::decodeDisplayText(
+					isset($row['product_name']) ? $row['product_name'] : ''
+				);
+				$issueId = self::resolveOutboundIssueIdForStock($db, $row);
+				if ($issueId > 0) {
+					return $issueId;
+				}
+			}
+		}
+		return self::resolveOutboundIssueId($db, $items);
 	}
 
 	/**
@@ -227,15 +286,72 @@ class Inventory_CrossNav_Helper {
 		require_once 'modules/Warehouse/helpers/StockHelper.php';
 		$params = array();
 		$match = Warehouse_Stock_Helper::outboundItemsMatchWhere($stockRow, $params);
+		if ($match !== '1=0') {
+			$rs = $db->pquery(
+				"SELECT DISTINCT gi.issueid, gi.issued_date
+				 FROM vtiger_goodsissue_items gii
+				 INNER JOIN vtiger_goodsissue gi ON gi.issueid = gii.issueid AND gi.deleted = 0
+				 WHERE {$match}
+				 ORDER BY gi.issued_date DESC, gi.issueid DESC",
+				$params
+			);
+			$id = self::pickSingleOrMostRecentId($rs, 'issueid');
+			if ($id > 0) {
+				return $id;
+			}
+		}
+		return self::resolveOutboundIssueIdForStockFallback($db, $stockRow);
+	}
+
+	/**
+	 * Fallback when SQL name match fails (HTML entities, legacy keys with :S:/:E:).
+	 */
+	protected static function resolveOutboundIssueIdForStockFallback(PearDatabase $db, array $stockRow) {
+		require_once 'modules/Warehouse/helpers/StockHelper.php';
+		$pid = !empty($stockRow['productid']) ? (int) $stockRow['productid'] : 0;
+		if ($pid <= 0) {
+			$parsed = Warehouse_Stock_Helper::parseProductKey(isset($stockRow['product_key']) ? $stockRow['product_key'] : '');
+			$pid = (int) $parsed['product_id'];
+		}
+		if ($pid > 0) {
+			$rs = $db->pquery(
+				"SELECT gi.issueid, gi.issued_date
+				 FROM vtiger_goodsissue_items gii
+				 INNER JOIN vtiger_goodsissue gi ON gi.issueid = gii.issueid AND gi.deleted = 0
+				 WHERE gii.productid = ?
+				 ORDER BY gi.issued_date DESC, gi.issueid DESC
+				 LIMIT 1",
+				array($pid)
+			);
+			if ($db->num_rows($rs) > 0) {
+				$row = $db->fetchByAssoc($rs);
+				return isset($row['issueid']) ? (int) $row['issueid'] : 0;
+			}
+		}
+
+		$target = Warehouse_Stock_Helper::legacyNameMatchKey($stockRow);
+		if ($target === '') {
+			return 0;
+		}
+
 		$rs = $db->pquery(
-			"SELECT DISTINCT gi.issueid, gi.issued_date
+			"SELECT gi.issueid, gi.issued_date, gii.product_name
 			 FROM vtiger_goodsissue_items gii
 			 INNER JOIN vtiger_goodsissue gi ON gi.issueid = gii.issueid AND gi.deleted = 0
-			 WHERE {$match}
-			 ORDER BY gi.issued_date DESC, gi.issueid DESC",
-			$params
+			 WHERE (gii.productid IS NULL OR gii.productid = 0)
+			 ORDER BY gi.issued_date DESC, gi.issueid DESC
+			 LIMIT 300",
+			array()
 		);
-		return self::pickSingleOrMostRecentId($rs, 'issueid');
+		while ($row = $db->fetchByAssoc($rs)) {
+			$name = mb_strtolower(trim(Warehouse_Stock_Helper::decodeDisplayText(
+				isset($row['product_name']) ? $row['product_name'] : ''
+			)));
+			if ($name === $target) {
+				return isset($row['issueid']) ? (int) $row['issueid'] : 0;
+			}
+		}
+		return 0;
 	}
 
 	/**

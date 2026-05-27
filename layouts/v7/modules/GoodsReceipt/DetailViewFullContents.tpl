@@ -45,6 +45,10 @@
 					<span class="mk-gr-detail-field__label">Received date</span>
 					<span class="mk-gr-detail-field__value">{if $RECORD_DATA.received_date}{$RECORD_DATA.received_date|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</span>
 				</div>
+				<div class="mk-gr-detail-field">
+					<span class="mk-gr-detail-field__label">Expired date</span>
+					<span class="mk-gr-detail-field__value">{if $RECORD_DATA.expired_date_display && $RECORD_DATA.expired_date_display ne '—'}{$RECORD_DATA.expired_date_display|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</span>
+				</div>
 				<div class="mk-gr-detail-field mk-gr-detail-field--wide">
 					<span class="mk-gr-detail-field__label">Storage location</span>
 					<span class="mk-gr-detail-field__value">{if $RECORD_DATA.storage_location}{$RECORD_DATA.storage_location|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</span>

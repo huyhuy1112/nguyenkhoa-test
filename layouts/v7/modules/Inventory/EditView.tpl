@@ -6,7 +6,12 @@
  * Portions created by vtiger are Copyright (C) vtiger.
  * All Rights Reserved.
  ************************************************************************************}
-
+{strip}
+{if $MODULE eq 'Quotes' && !empty($MK_MODERN_QUOTE_CREATE)}
+	{include file="partials/QuoteMkCreate.tpl"|vtemplate_path:'Quotes'}
+{elseif $MODULE eq 'SalesOrder' && !empty($MK_MODERN_SALES_ORDER_CREATE)}
+	{include file="partials/SalesOrderMkCreate.tpl"|vtemplate_path:'SalesOrder'}
+{else}
 <div class="main-container clearfix">
         <div id="modnavigator" class="module-nav editViewModNavigator">
             <div class="mod-switcher-container">
@@ -82,3 +87,5 @@
             </div>
         </div>
 </div>
+{/if}
+{/strip}

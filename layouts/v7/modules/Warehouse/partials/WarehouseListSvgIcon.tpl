@@ -17,5 +17,13 @@
 <svg class="mk-gi-svg mk-gi-svg--btn" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
 {elseif $ICON eq 'PLUS'}
 <svg class="mk-gi-svg mk-gi-svg--btn" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+{elseif $ICON eq 'KPI_SKU'}
+<svg class="mk-gi-svg mk-wh-kpi-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.75"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" stroke="currentColor" stroke-width="1.75"/></svg>
+{elseif $ICON eq 'KPI_VALUE'}
+<svg class="mk-gi-svg mk-wh-kpi-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" stroke-width="1.75"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6" stroke="currentColor" stroke-width="1.75"/></svg>
+{elseif $ICON eq 'KPI_WARNING'}
+<svg class="mk-gi-svg mk-wh-kpi-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="1.75"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="1.75"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+{elseif $ICON eq 'KPI_MOVEMENTS'}
+<svg class="mk-gi-svg mk-wh-kpi-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><circle cx="5.5" cy="18.5" r="2.5" stroke="currentColor" stroke-width="1.75"/><circle cx="18.5" cy="18.5" r="2.5" stroke="currentColor" stroke-width="1.75"/></svg>
 {/if}
 {/strip}

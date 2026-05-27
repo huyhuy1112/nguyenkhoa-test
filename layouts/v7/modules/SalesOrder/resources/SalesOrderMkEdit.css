@@ -1,0 +1,1450 @@
+/**
+ * SalesOrder Create SalesOrder — premium SALES workspace (content area only).
+ * Scope: body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"]
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+	--mk-so-yellow: #FDBB2C;
+	--mk-so-navy: #40627E;
+	--mk-so-surface: #F7F9FB;
+	--mk-so-surface-dim: #D8DADC;
+	--mk-so-white: #FFFFFF;
+	--mk-so-text: #1a2834;
+	--mk-so-muted: #64748b;
+	--mk-so-border: rgba(64, 98, 126, 0.14);
+	--mk-so-radius: 16px;
+	--mk-so-radius-sm: 10px;
+	--mk-so-shadow: 0 8px 32px rgba(26, 40, 52, 0.08);
+	--mk-so-shadow-lg: 0 20px 48px rgba(26, 40, 52, 0.12);
+	--mk-so-font: 'Inter', system-ui, -apple-system, sans-serif;
+	--mk-so-display: 'Space Grotesk', 'Inter', sans-serif;
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+}
+
+/* ========== Split shell ========== */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+	position: relative;
+	display: block;
+	min-height: 0;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w);
+	width: calc(100% - var(--mk-dash-sidebar-w));
+	max-width: calc(100% - var(--mk-dash-sidebar-w));
+	min-height: 100vh;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	background: var(--mk-so-surface);
+	padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-topbar {
+	height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+	flex-shrink: 0;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+	position: fixed;
+	top: 0;
+	left: var(--mk-dash-sidebar-w);
+	right: 0;
+	width: auto;
+	min-height: var(--mk-dash-topbar-h);
+	height: var(--mk-dash-topbar-h);
+	z-index: 1030;
+	box-sizing: border-box;
+	border: none !important;
+	border-bottom: 1px solid var(--mk-so-border) !important;
+	border-radius: 0;
+	box-shadow: none;
+	background: var(--mk-so-white) !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #page,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #page.container-fluid {
+	padding-top: 0 !important;
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #page > .container-fluid.app-nav,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .app-nav,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #modnavigator,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #sidebar-essentials,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .module-action-bar {
+	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	overflow: hidden !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-so-edit-main {
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+	padding: 0 !important;
+	background: linear-gradient(160deg, #f7f9fb 0%, #f8fafc 40%, #f7f9fb 100%);
+	box-sizing: border-box;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .main-container.mk-so-edit-page {
+	width: 100%;
+	max-width: none;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .editViewPageDiv.mk-so-edit-inner {
+	padding: 0 !important;
+	margin: 0 !important;
+	background: transparent;
+	border: none;
+}
+
+/* ========== Workspace ========== */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create {
+	font-family: var(--mk-so-font);
+	color: var(--mk-so-text);
+	padding: 24px 40px 56px;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host form#EditView,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .editViewContents,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host [name="editContent"] {
+	width: 100%;
+	max-width: 1120px;
+	margin-left: auto;
+	margin-right: auto;
+	box-sizing: border-box;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hide-legacy {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-form-container {
+	background: transparent !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .editViewPageDiv,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .content-area {
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+/* ========== Page header (create) ========== */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head {
+	margin-bottom: 24px;
+	padding: 22px 28px;
+	max-width: 1120px;
+	margin-left: auto;
+	margin-right: auto;
+	border-radius: 18px;
+	background: var(--mk-so-white);
+	border: 1px solid var(--mk-so-border);
+	box-shadow: var(--mk-so-shadow);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__crumb {
+	font-size: 12px;
+	color: var(--mk-so-muted);
+	margin-bottom: 12px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__crumb a {
+	color: var(--mk-so-navy);
+	text-decoration: none;
+	font-weight: 500;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__crumb span {
+	margin: 0 6px;
+	opacity: 0.5;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px 24px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__title {
+	margin: 0 0 6px;
+	font-family: var(--mk-so-display);
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__sub {
+	margin: 0;
+	font-size: 13px;
+	color: var(--mk-so-muted);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+}
+
+/* Legacy hero (unused on simplified create) */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero {
+	margin-bottom: 24px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__panel {
+	padding: 28px 32px 24px;
+	border-radius: var(--mk-so-radius);
+	background:
+		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(253, 187, 44, 0.14), transparent 55%),
+		radial-gradient(ellipse 60% 50% at 0% 100%, rgba(64, 98, 126, 0.07), transparent 50%),
+		var(--mk-so-white);
+	border: 1px solid var(--mk-so-border);
+	box-shadow: var(--mk-so-shadow);
+	backdrop-filter: blur(12px);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__crumb {
+	font-size: 12px;
+	color: var(--mk-so-muted);
+	margin-bottom: 16px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__crumb a {
+	color: var(--mk-so-navy);
+	text-decoration: none;
+	font-weight: 500;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__crumb-sep {
+	margin: 0 8px;
+	opacity: 0.5;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__top {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	align-items: flex-start;
+	justify-content: space-between;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__kicker {
+	margin: 0 0 6px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--mk-so-navy);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__title {
+	font-family: var(--mk-so-display);
+	font-size: clamp(1.5rem, 2.4vw, 2rem);
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	margin: 0 0 8px;
+	line-height: 1.15;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__subtitle {
+	margin: 0;
+	font-size: 14px;
+	color: var(--mk-so-muted);
+	max-width: 52ch;
+	line-height: 1.5;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__eyebrow {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pill--ai {
+	background: rgba(64, 98, 126, 0.1);
+	color: var(--mk-so-navy);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pill--draft {
+	background: rgba(253, 187, 44, 0.18);
+	color: #7a5a12;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pill__dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--mk-so-yellow);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pill__pulse {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--mk-so-navy);
+	animation: mkSoPulse 1.4s ease infinite;
+}
+
+@keyframes mkSoPulse {
+	0%, 100% { opacity: 0.4; transform: scale(0.9); }
+	50% { opacity: 1; transform: scale(1.1); }
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-health {
+	text-align: center;
+	padding: 6px 12px;
+	background: var(--mk-so-surface);
+	border-radius: var(--mk-so-radius-sm);
+	border: 1px solid var(--mk-so-border);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-health__label {
+	display: block;
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--mk-so-muted);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-health__chip {
+	display: inline-block;
+	margin-top: 4px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-health__chip--warm {
+	background: rgba(253, 187, 44, 0.2);
+	color: #7a5a12;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-health__chip--good {
+	background: rgba(34, 197, 94, 0.15);
+	color: #15803d;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-health__chip--cool {
+	background: rgba(64, 98, 126, 0.12);
+	color: var(--mk-so-navy);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-owner {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 14px;
+	background: var(--mk-so-surface);
+	border-radius: var(--mk-so-radius-sm);
+	border: 1px solid var(--mk-so-border);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-owner__avatar {
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	background: linear-gradient(135deg, var(--mk-so-navy), #2d4a5e);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: 13px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-owner__label {
+	display: block;
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--mk-so-muted);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-owner__name {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-forecast-preview {
+	padding: 8px 16px;
+	border-radius: var(--mk-so-radius-sm);
+	background: rgba(253, 187, 44, 0.12);
+	border: 1px solid rgba(253, 187, 44, 0.35);
+	min-width: 120px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-forecast-preview__label {
+	display: block;
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--mk-so-muted);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-forecast-preview__value {
+	font-family: var(--mk-so-display);
+	font-size: 18px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-forecast-preview__sub {
+	display: block;
+	font-size: 11px;
+	color: var(--mk-so-muted);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-forecast-preview[hidden] {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 10px 18px;
+	border-radius: var(--mk-so-radius-sm);
+	font-size: 13px;
+	font-weight: 600;
+	font-family: inherit;
+	border: none;
+	cursor: pointer;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+	text-decoration: none;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-btn--primary {
+	background: var(--mk-so-yellow);
+	color: var(--mk-so-text);
+	box-shadow: 0 4px 16px rgba(253, 187, 44, 0.45);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-btn--primary:hover {
+	transform: translateY(-1px);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-btn--secondary {
+	background: var(--mk-so-white);
+	color: var(--mk-so-navy);
+	border: 1px solid var(--mk-so-border);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-btn--ghost {
+	background: transparent;
+	color: var(--mk-so-navy);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-btn--sm {
+	padding: 8px 14px;
+	font-size: 12px;
+}
+
+/* ========== Pipeline (in hero) ========== */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline-wrap {
+	margin: 22px 0 0;
+	padding-top: 20px;
+	border-top: 1px solid var(--mk-so-border);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline-wrap[hidden] {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline-wrap__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px 20px;
+	flex-wrap: wrap;
+	margin-bottom: 14px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline-wrap__label {
+	margin: 0;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	color: var(--mk-so-muted);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline-wrap__hint {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--mk-so-navy);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline {
+	display: flex;
+	justify-content: space-between;
+	gap: 4px;
+	position: relative;
+	padding-top: 12px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__track {
+	position: absolute;
+	top: 22px;
+	left: 8%;
+	right: 8%;
+	height: 4px;
+	background: var(--mk-so-surface-dim);
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__fill {
+	display: block;
+	height: 100%;
+	width: 20%;
+	background: linear-gradient(90deg, var(--mk-so-navy), var(--mk-so-yellow));
+	border-radius: 4px;
+	transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__stage {
+	flex: 1;
+	min-width: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 8px 4px;
+	text-align: center;
+	font-family: inherit;
+	position: relative;
+	z-index: 1;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__stage:hover {
+	transform: translateY(-2px);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__dot {
+	display: block;
+	width: 14px;
+	height: 14px;
+	margin: 0 auto 8px;
+	border-radius: 50%;
+	background: var(--mk-so-white);
+	border: 2px solid var(--mk-so-surface-dim);
+	transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__stage.is-passed .mk-so-pipeline__dot,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__stage.is-active .mk-so-pipeline__dot {
+	border-color: var(--mk-so-navy);
+	background: var(--mk-so-yellow);
+	box-shadow: 0 0 0 4px rgba(253, 187, 44, 0.25);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__name {
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--mk-so-muted);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__stage.is-active .mk-so-pipeline__name {
+	color: var(--mk-so-text);
+}
+
+/* Virtual insights panel removed */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create__layout,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create__insights,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-float-bar {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create__insights {
+	position: sticky;
+	top: calc(var(--mk-dash-topbar-h) + 16px);
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	max-height: calc(100vh - var(--mk-dash-topbar-h) - 48px);
+	overflow-y: auto;
+	padding-right: 4px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-insight-card {
+	padding: 18px 20px;
+	border-radius: var(--mk-so-radius);
+	background: var(--mk-so-white);
+	border: 1px solid var(--mk-so-border);
+	box-shadow: var(--mk-so-shadow);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-insight-card--hero {
+	background:
+		linear-gradient(160deg, rgba(253, 187, 44, 0.08), transparent 45%),
+		var(--mk-so-white);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-insight-card__title {
+	margin: 0 0 12px;
+	font-family: var(--mk-so-display);
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--mk-so-navy);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-insight-card__hint {
+	margin: 8px 0 0;
+	font-size: 12px;
+	color: var(--mk-so-muted);
+	line-height: 1.4;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-gauge {
+	position: relative;
+	text-align: center;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-gauge__svg {
+	width: 100%;
+	max-width: 160px;
+	margin: 0 auto;
+	display: block;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-gauge__track {
+	fill: none;
+	stroke: var(--mk-so-surface-dim);
+	stroke-width: 8;
+	stroke-linecap: round;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-gauge__fill {
+	fill: none;
+	stroke: var(--mk-so-yellow);
+	stroke-width: 8;
+	stroke-linecap: round;
+	stroke-dasharray: 157;
+	stroke-dashoffset: 157;
+	transition: stroke-dashoffset 0.5s ease;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-gauge__value {
+	display: block;
+	font-family: var(--mk-so-display);
+	font-size: 28px;
+	font-weight: 700;
+	margin-top: -8px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-insight-metric {
+	margin: 0;
+	font-family: var(--mk-so-display);
+	font-size: 24px;
+	font-weight: 700;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rec-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rec {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	font-size: 13px;
+	color: var(--mk-so-muted);
+	padding: 10px 12px;
+	border-radius: var(--mk-so-radius-sm);
+	background: var(--mk-so-surface);
+	border: 1px solid var(--mk-so-border);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rec--done {
+	color: var(--mk-so-text);
+	border-color: rgba(253, 187, 44, 0.35);
+	background: rgba(253, 187, 44, 0.08);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rec__icon {
+	color: var(--mk-so-navy);
+	font-weight: 700;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-risk__bar {
+	display: block;
+	height: 8px;
+	background: var(--mk-so-surface);
+	border-radius: 4px;
+	overflow: hidden;
+	margin-bottom: 8px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-risk__fill {
+	display: block;
+	height: 100%;
+	width: 50%;
+	background: linear-gradient(90deg, var(--mk-so-yellow), #e85d4c);
+	border-radius: 4px;
+	transition: width 0.4s ease;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-risk__label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--mk-so-navy);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-action-chips {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-action-chip {
+	padding: 8px 12px;
+	border-radius: 999px;
+	border: 1px solid var(--mk-so-border);
+	background: var(--mk-so-surface);
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--mk-so-navy);
+	cursor: not-allowed;
+	opacity: 0.7;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-timeline {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-timeline__item {
+	display: grid;
+	grid-template-columns: 12px 1fr auto;
+	gap: 10px;
+	align-items: start;
+	padding: 10px 0;
+	border-bottom: 1px solid var(--mk-so-border);
+	font-size: 13px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-timeline__item:last-child {
+	border-bottom: none;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-timeline__dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--mk-so-surface-dim);
+	margin-top: 4px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-timeline__item.is-active .mk-so-timeline__dot {
+	background: var(--mk-so-yellow);
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.35);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-timeline__item time {
+	font-size: 11px;
+	color: var(--mk-so-muted);
+}
+
+/* ========== Form blocks — Project Task–style (wide, label above field) ========== */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block {
+	margin-bottom: 28px;
+	padding: 28px 32px 32px;
+	border-radius: 18px;
+	background: var(--mk-so-white);
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+	width: 100%;
+	box-sizing: border-box;
+	position: relative;
+	overflow: hidden;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 4px;
+	background: linear-gradient(180deg, var(--mk-so-yellow) 0%, var(--mk-so-navy) 100%);
+	border-radius: 18px 0 0 18px;
+	opacity: 0.95;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .fieldBlockHeader,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .mk-so-block__header {
+	display: block !important;
+	font-family: var(--mk-so-display);
+	font-size: 1.45rem;
+	font-weight: 700;
+	color: var(--mk-so-navy);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin: 0 0 28px 0 !important;
+	padding: 0 0 14px 10px !important;
+	border-bottom: 2px solid rgba(253, 187, 44, 0.45);
+	line-height: 1.3;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table.table,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table.table-borderless {
+	display: block !important;
+	width: 100% !important;
+	margin: 0 !important;
+	border: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody {
+	display: block !important;
+	width: 100%;
+}
+
+/* Each vtiger row → 2-column grid; label stacked above input */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	column-gap: 40px;
+	row-gap: 0;
+	width: 100%;
+	margin: 0 0 28px;
+	padding: 0;
+	border: none;
+	box-sizing: border-box;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:last-child {
+	margin-bottom: 0;
+}
+
+/* Single full-width field (description, etc.) */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:has(> td.fieldValueWidth80),
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:has(> td.fieldValue[colspan]) {
+	grid-template-columns: 1fr !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) {
+	grid-template-columns: 1fr !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	box-sizing: border-box;
+	float: none !important;
+	position: static !important;
+	vertical-align: top !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td:empty {
+	display: none !important;
+	height: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldLabel {
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	color: #475569 !important;
+	line-height: 1.4;
+	padding: 0 0 10px !important;
+	text-align: left !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue {
+	padding: 0 0 4px !important;
+	min-width: 0;
+}
+
+/* Grid cell placement: col1 label row1, col1 value row2, col2 label row1, col2 value row2 */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr > td.fieldLabel:nth-child(1) {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr > td.fieldValue:nth-child(2) {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+	grid-column: 2;
+	grid-row: 2;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldLabel,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldLabel {
+	grid-column: 1 !important;
+	grid-row: 1 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldValue,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldValue {
+	grid-column: 1 !important;
+	grid-row: 2 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > * {
+	max-width: 100%;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .referencefield-wrapper {
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box;
+}
+
+/* Composite fields (amount $, reference search, date): one rounded box — no double rectangles */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .referencefield-wrapper .input-group {
+	display: flex !important;
+	align-items: center !important;
+	flex-wrap: nowrap;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	overflow: hidden;
+	background: #fafafa !important;
+	box-shadow: none !important;
+	box-sizing: border-box;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group:focus-within,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .referencefield-wrapper .input-group:focus-within {
+	border-color: var(--mk-so-navy) !important;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
+	background: #fff !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group input,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .form-control,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .autoComplete,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .currencyField,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .dateField {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: auto !important;
+	max-width: none !important;
+	height: 46px !important;
+	min-height: 46px !important;
+	margin: 0 !important;
+	padding: 0 14px !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	font-size: 15px !important;
+	line-height: 46px !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .input-group-addon {
+	flex: 0 0 48px;
+	width: 48px;
+	min-width: 48px;
+	height: 46px !important;
+	min-height: 46px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	border-left: 1px solid #e2e8f0 !important;
+	border-radius: 0 !important;
+	background: #f1f5f9 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-shadow: none !important;
+	line-height: 1 !important;
+	font-size: 15px !important;
+	font-weight: 600;
+	color: #64748b;
+	text-align: center;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .input-group-addon:first-child {
+	border-left: none !important;
+	border-right: 1px solid #e2e8f0 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .input-group-addon .fa,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .input-group-addon i {
+	display: block !important;
+	line-height: 1 !important;
+	margin: 0 !important;
+	font-size: 14px !important;
+	color: #64748b !important;
+	vertical-align: middle;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .input-group-addon.relatedPopup:hover,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .input-group-addon.createReferenceRecord:hover {
+	background: var(--mk-so-navy) !important;
+	color: #fff !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .clearReferenceSelection {
+	flex: 0 0 auto;
+	align-self: center;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	margin: 0 4px;
+	padding: 0 10px;
+	height: 32px;
+	min-width: 28px;
+	border: none !important;
+	border-radius: 8px;
+	background: #e2e8f0;
+	color: #475569;
+	text-decoration: none;
+	line-height: 1;
+}
+
+/* Checkbox / boolean — compact (not full-width text field) */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > input[type="checkbox"],
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > input[type="checkbox"].inputElement,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue input[type="checkbox"][data-fieldtype="checkbox"] {
+	width: 18px !important;
+	height: 18px !important;
+	min-width: 18px !important;
+	max-width: 18px !important;
+	min-height: 18px !important;
+	max-height: 18px !important;
+	margin: 4px 0 0 !important;
+	padding: 0 !important;
+	border-radius: 4px !important;
+	border: 1px solid #cbd5e1 !important;
+	background: #fff !important;
+	box-shadow: none !important;
+	accent-color: var(--mk-so-navy);
+	cursor: pointer;
+	flex: 0 0 auto;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue:has(> input[type="checkbox"]) {
+	display: flex !important;
+	align-items: flex-start !important;
+	width: auto !important;
+	max-width: max-content !important;
+	min-height: 0 !important;
+}
+
+/* Simple standalone inputs (text, select, textarea) */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > select.inputElement,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.inputElement,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .form-control:not([type="checkbox"]) {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-height: 46px !important;
+	padding: 12px 16px !important;
+	border-radius: 12px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fafafa !important;
+	font-size: 15px !important;
+	font-family: var(--mk-so-font) !important;
+	box-sizing: border-box !important;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.inputElement,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.form-control {
+	min-height: 120px !important;
+	resize: vertical;
+}
+
+/* Select2 (single/multi): style outer container as the field; remove inner border to avoid double frames */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	display: block !important;
+	position: relative;
+	box-sizing: border-box !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	background: #fafafa !important;
+	padding: 0 !important;
+	height: 46px !important;
+	min-height: 46px !important;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container:hover {
+	background: #fff !important;
+	border-color: #cbd5e1 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container.select2-container--focus,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container:focus-within {
+	border-color: var(--mk-so-navy) !important;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
+	background: #fff !important;
+	outline: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .select2-container--default .select2-selection--single,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .select2-container--default .select2-selection--multiple {
+	display: flex !important;
+	align-items: center !important;
+	height: 46px !important;
+	min-height: 46px !important;
+	padding: 0 36px 0 0 !important;
+	border-radius: 0 !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .select2-container--default .select2-selection--single .select2-selection__rendered {
+	flex: 1 1 auto;
+	padding: 0 14px !important;
+	line-height: 46px !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .select2-container--default .select2-selection--single .select2-selection__arrow {
+	position: absolute !important;
+	top: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	height: auto !important;
+	width: 36px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .select2-container--default .select2-selection--single .select2-selection__arrow b {
+	margin-top: 0 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):hover,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > select.inputElement:hover,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.inputElement:hover,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .select2-container--default .select2-selection--single:hover {
+	background: #fff !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):focus,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > select.inputElement:focus,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.inputElement:focus,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .select2-container--default.select2-container--focus .select2-selection--single {
+	background: #fff !important;
+	outline: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	display: block;
+	margin-bottom: 0;
+}
+
+/* No virtual chips/slider on create */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-chips-wrap,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-slider-wrap,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-choice-row {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-form-footer {
+	display: none !important;
+	margin: 32px auto 0;
+	padding: 28px 32px;
+	max-width: 1120px;
+	width: 100%;
+	box-sizing: border-box;
+	border: 1px solid rgba(253, 187, 44, 0.35);
+	border-radius: 18px;
+	background: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+	box-shadow: 0 8px 28px rgba(64, 98, 126, 0.08);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-form-footer .saveButton {
+	background: linear-gradient(135deg, var(--mk-so-yellow) 0%, #e5a824 100%) !important;
+	border: none !important;
+	color: #1a2834 !important;
+	padding: 14px 32px !important;
+	font-size: 16px !important;
+	font-weight: 700 !important;
+	border-radius: 12px !important;
+	min-height: 48px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-form-footer .cancelLink {
+	margin-left: 16px !important;
+	padding: 12px 22px !important;
+	border-radius: 12px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fff !important;
+	font-weight: 600 !important;
+}
+
+/* Select2 v3 (vtiger default): single box + centered text & arrow */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container .select2-choice,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container .select2-choices {
+	display: flex !important;
+	align-items: center !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	height: 46px !important;
+	min-height: 46px !important;
+	line-height: normal !important;
+	padding: 0 40px 0 14px !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container .select2-chosen,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container .select2-choice > span:first-child {
+	display: block;
+	line-height: 46px !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container .select2-arrow {
+	position: absolute !important;
+	top: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	width: 40px !important;
+	height: auto !important;
+	border: none !important;
+	background: transparent !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container .select2-arrow b {
+	position: static !important;
+	display: block !important;
+	margin: 0 auto !important;
+	background-position: center center !important;
+}
+
+/* Date field calendar addon */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group.inputElement .input-group-addon,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group:has(.dateField) .input-group-addon {
+	border-left: 1px solid #e2e8f0 !important;
+}
+
+/* Float bar removed on simplified create */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-float-bar {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-float-bar.is-elevated {
+	transform: translateY(-2px);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-float-bar__status {
+	font-size: 12px;
+	color: var(--mk-so-muted);
+	font-weight: 500;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-float-bar__right {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-float-bar__keys {
+	font-size: 11px;
+	color: var(--mk-so-muted);
+	margin-right: 8px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-float-bar__keys kbd {
+	padding: 2px 5px;
+	border-radius: 4px;
+	background: var(--mk-so-surface);
+	border: 1px solid var(--mk-so-border);
+	font-size: 10px;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 1280px) {
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create__layout {
+		grid-template-columns: 1fr;
+	}
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create__insights {
+		position: static;
+		max-height: none;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	}
+}
+
+@media (max-width: 900px) {
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create {
+		padding: 16px 16px 48px;
+	}
+
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr {
+		grid-template-columns: 1fr !important;
+	}
+
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr > td.fieldLabel:nth-child(3),
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+		grid-column: 1 !important;
+	}
+
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
+		grid-row: 3 !important;
+	}
+
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+		grid-row: 4 !important;
+	}
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-choice-row--3,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-choice-row--4 {
+		grid-template-columns: 1fr 1fr;
+	}
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-float-bar {
+		left: 16px;
+		right: 16px;
+		flex-direction: column;
+		align-items: stretch;
+	}
+}
+/* Line items — CPQ-style table */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block--line-items {
+	padding-bottom: 12px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab {
+	border-collapse: separate;
+	border-spacing: 0;
+	border-radius: 12px;
+	overflow: hidden;
+	border: 1px solid var(--mk-so-border) !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab thead tr {
+	background: #f8fafc;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab thead th {
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--mk-so-navy);
+	padding: 12px 10px !important;
+	border-bottom: 1px solid var(--mk-so-border) !important;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: #f8fafc;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab tbody tr.lineItemRow:nth-child(even) {
+	background: #fafbfc;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab tbody tr.lineItemRow:hover {
+	background: #fffbeb;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab tbody td {
+	padding: 10px !important;
+	vertical-align: middle !important;
+	border-color: #f1f5f9 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemResult.lineItemTable {
+	border-radius: var(--mk-so-radius);
+	overflow: hidden;
+	margin-top: 16px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemResult .lineItemInputBox {
+	border-radius: 8px !important;
+	border: 1px solid #e2e8f0 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block--totals {
+	background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+}
+
+/* Add product row buttons */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #addProductsServices,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .addProduct,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .addService {
+	border-radius: 10px !important;
+	font-weight: 600;
+}

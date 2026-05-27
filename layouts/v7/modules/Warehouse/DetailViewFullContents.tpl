@@ -62,6 +62,26 @@
 					<span class="mk-wh-detail-field__label">Last updated</span>
 					<span class="mk-wh-detail-field__value">{$STOCK.updatedtime_display|escape:'html'}</span>
 				</div>
+				<div class="mk-wh-detail-field">
+					<span class="mk-wh-detail-field__label">Expired date</span>
+					<span class="mk-wh-detail-field__value">
+						{if $STOCK.expired_date_display ne '—'}
+							<div class="mk-wh-exp-cell__group">
+								{if $STOCK.is_expired}
+									<span class="mk-wh-expired-date mk-wh-expired-date--danger">{$STOCK.expired_date_display|escape:'html'}</span>
+								{elseif $STOCK.is_expiring_soon}
+									<span class="mk-wh-expired-date mk-wh-expired-date--warn">{$STOCK.expired_date_display|escape:'html'}</span>
+								{else}
+									<span class="mk-wh-expired-date">{$STOCK.expired_date_display|escape:'html'}</span>
+								{/if}
+								{if $STOCK.is_expired}<span class="mk-wh-badge mk-wh-badge--expired">Expired</span>
+								{elseif $STOCK.is_expiring_soon}<span class="mk-wh-badge mk-wh-badge--dangerous">Dangerous</span>{/if}
+							</div>
+						{else}
+							<span class="mk-gi-muted">—</span>
+						{/if}
+					</span>
+				</div>
 				<div class="mk-wh-detail-field mk-wh-detail-field--wide">
 					<span class="mk-wh-detail-field__label">Serial numbers <span class="mk-wh-detail-field__hint">(from inbound receipts)</span></span>
 					<span class="mk-wh-detail-field__value mk-wh-detail-field__value--mono">{if $STOCK.serial_full ne ''}<span title="{$STOCK.serial_full|escape:'html'}">{$STOCK.serial_display|escape:'html'}</span>{else}<span class="mk-gi-muted">—</span>{/if}</span>

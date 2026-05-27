@@ -4,34 +4,41 @@
 
 		<div class="mk-leads-filters-card" role="region" aria-label="Filters">
 			<div class="mk-leads-filters-row">
-				<div class="mk-leads-filter">
+				<div class="mk-leads-filter mk-leads-filter--dropdown" data-filter="source">
 					<label class="mk-leads-filter__label">Source:</label>
-					<button type="button" class="mk-leads-filter__btn">All <span class="mk-leads-filter__chev">▾</span></button>
+					<button type="button" class="mk-leads-filter__btn" aria-haspopup="listbox" aria-expanded="false">All <span class="mk-leads-filter__chev">▾</span></button>
+					<ul class="mk-leads-filter__menu" role="listbox" hidden></ul>
 				</div>
-				<div class="mk-leads-filter">
+				<div class="mk-leads-filter mk-leads-filter--dropdown" data-filter="purchase">
 					<label class="mk-leads-filter__label">Purchase:</label>
-					<button type="button" class="mk-leads-filter__btn">All <span class="mk-leads-filter__chev">▾</span></button>
+					<button type="button" class="mk-leads-filter__btn" aria-haspopup="listbox" aria-expanded="false">All <span class="mk-leads-filter__chev">▾</span></button>
+					<ul class="mk-leads-filter__menu" role="listbox" hidden></ul>
 				</div>
-				<div class="mk-leads-filter">
+				<div class="mk-leads-filter mk-leads-filter--dropdown" data-filter="tier">
 					<label class="mk-leads-filter__label">Tier:</label>
-					<button type="button" class="mk-leads-filter__btn">All <span class="mk-leads-filter__chev">▾</span></button>
+					<button type="button" class="mk-leads-filter__btn" aria-haspopup="listbox" aria-expanded="false">All <span class="mk-leads-filter__chev">▾</span></button>
+					<ul class="mk-leads-filter__menu" role="listbox" hidden></ul>
 				</div>
-				<div class="mk-leads-filter">
+				<div class="mk-leads-filter mk-leads-filter--dropdown" data-filter="program">
 					<label class="mk-leads-filter__label">Program:</label>
-					<button type="button" class="mk-leads-filter__btn">All <span class="mk-leads-filter__chev">▾</span></button>
+					<button type="button" class="mk-leads-filter__btn" aria-haspopup="listbox" aria-expanded="false">All <span class="mk-leads-filter__chev">▾</span></button>
+					<ul class="mk-leads-filter__menu" role="listbox" hidden></ul>
 				</div>
-				<div class="mk-leads-filter">
+				<div class="mk-leads-filter mk-leads-filter--dropdown" data-filter="owner">
 					<label class="mk-leads-filter__label">Owner:</label>
-					<button type="button" class="mk-leads-filter__btn">All <span class="mk-leads-filter__chev">▾</span></button>
+					<button type="button" class="mk-leads-filter__btn" aria-haspopup="listbox" aria-expanded="false">All <span class="mk-leads-filter__chev">▾</span></button>
+					<ul class="mk-leads-filter__menu" role="listbox" hidden></ul>
 				</div>
-				<div class="mk-leads-filter mk-leads-filter--right">
-					<label class="mk-leads-filter__label mk-leads-filter__label--muted">Stale only</label>
-					<button type="button" class="mk-leads-toggle" id="mk-leads-toggle-stale" data-toggle="stale" role="switch" aria-checked="false">
-						<span class="mk-leads-toggle__thumb"></span>
-					</button>
-				</div>
-				<div class="mk-leads-filter mk-leads-filter--reset">
-					<button type="button" class="mk-leads-reset" id="mk-leads-reset">Reset</button>
+				<div class="mk-leads-filters-actions">
+					<div class="mk-leads-filter mk-leads-filter--stale">
+						<label class="mk-leads-filter__label mk-leads-filter__label--muted">Stale only</label>
+						<button type="button" class="mk-leads-toggle" id="mk-leads-toggle-stale" data-toggle="stale" role="switch" aria-checked="false">
+							<span class="mk-leads-toggle__thumb"></span>
+						</button>
+					</div>
+					<div class="mk-leads-filter mk-leads-filter--reset">
+						<button type="button" class="mk-leads-reset" id="mk-leads-reset">Reset</button>
+					</div>
 				</div>
 			</div>
 		</div>

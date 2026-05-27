@@ -20,3 +20,69 @@ body[data-view="List"][data-app="INVENTORY"] .mk-gi-suite-card {
 	box-sizing: border-box;
 	width: 100%;
 }
+
+/* Page title row — separated from module switcher */
+body[data-view="List"][data-app="INVENTORY"] .mk-wh-page-head {
+	padding: 22px 24px 18px;
+	border-bottom: 1px solid #f1f5f9;
+	background: #ffffff;
+}
+
+body[data-view="List"][data-app="INVENTORY"] .mk-wh-page-head .mk-gi-header {
+	padding: 0;
+}
+
+/* Inbound | Storage | Outbound — pill switcher band */
+body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar {
+	padding: 16px 24px 18px;
+	background: #f8fafc;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav.mk-gi-topnav--pills {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	padding: 0;
+	margin: 0;
+	border: none;
+	background: transparent;
+}
+
+body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav--pills a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 10px 22px;
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #64748b;
+	text-decoration: none;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	background: transparent;
+	transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav--pills a:hover {
+	color: #0f172a;
+	background: #ffffff;
+	border-color: #e2e8f0;
+}
+
+body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav--pills a.is-active {
+	color: #b45309;
+	background: #ffffff;
+	border-color: #fdbb2c;
+	box-shadow: 0 1px 4px rgba(180, 83, 9, 0.12);
+}
+
+/* Filters only — below KPI / alerts on Storage */
+body[data-view="List"][data-app="INVENTORY"] .mk-gi-dark-panel.mk-wh-filter-panel {
+	background: #ffffff;
+	padding: 4px 0 0;
+	border-bottom: 1px solid #e2e8f0;
+}

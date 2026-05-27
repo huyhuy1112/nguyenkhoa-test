@@ -44,6 +44,27 @@
 							<span class="mk-td-choice__label">Company</span>
 						</button>
 					</div>
+					<div id="mk-td-company-panel" class="mk-td-company-panel" hidden>
+						<p class="mk-td-company-panel__title">Thông tin doanh nghiệp</p>
+						<div class="mk-td-fields">
+							<div class="mk-td-field mk-td-field--full">
+								<label for="mk-td-company-name">Tên công ty / doanh nghiệp <span class="mk-td-req">*</span></label>
+								<input type="text" id="mk-td-company-name" class="mk-td-input" placeholder="Công ty TNHH …" />
+							</div>
+							<div class="mk-td-field">
+								<label for="mk-td-company-tax">Mã số thuế</label>
+								<input type="text" id="mk-td-company-tax" class="mk-td-input" placeholder="0123456789" />
+							</div>
+							<div class="mk-td-field">
+								<label for="mk-td-company-rep">Người đại diện</label>
+								<input type="text" id="mk-td-company-rep" class="mk-td-input" placeholder="Họ tên người liên hệ" />
+							</div>
+							<div class="mk-td-field mk-td-field--full">
+								<label for="mk-td-company-address">Địa chỉ</label>
+								<input type="text" id="mk-td-company-address" class="mk-td-input" placeholder="Số nhà, phường, quận, tỉnh/thành" />
+							</div>
+						</div>
+					</div>
 				</div>
 			</section>
 

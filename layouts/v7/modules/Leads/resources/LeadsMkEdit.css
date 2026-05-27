@@ -533,6 +533,25 @@ body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell .con
     border: 1px solid #e5e7eb;
 }
 
+.mk-td-company-panel {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #c4b5fd;
+    background: #faf5ff;
+}
+
+.mk-td-company-panel[hidden] {
+    display: none !important;
+}
+
+.mk-td-company-panel__title {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #6d28d9;
+}
+
 .mk-td-reason-panel {
     margin-top: 16px;
     padding-top: 4px;

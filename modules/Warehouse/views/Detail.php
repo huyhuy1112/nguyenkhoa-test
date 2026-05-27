@@ -106,22 +106,15 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 		$row['serial_display'] = ($stockSerialDisp !== '') ? $stockSerialDisp : '—';
 		$row['serial_full'] = $stockSerialFull;
 
-		$params = array();
-		$match = Warehouse_Stock_Helper::inboundItemsMatchWhere($row, $params);
-		$histSql = "SELECT gr.receiptid, gr.code, gr.subject, gr.received_date, gr.storage_location, gr.note,
-				gr.createdtime AS receipt_createdtime, gr.updatedtime AS receipt_updatedtime,
-				gri.quantity, gri.unit_price, gri.product_name, gri.product_type, gri.itemid, gri.serial_number, gri.description
-			FROM vtiger_goodsreceipt_items gri
-			INNER JOIN vtiger_goodsreceipt gr ON gr.receiptid = gri.receiptid AND gr.deleted = 0
-			WHERE {$match}
-			ORDER BY gr.received_date DESC, gri.itemid DESC";
-		$hq = $db->pquery($histSql, $params);
 		$inboundHistory = array();
-		while ($h = $db->fetchByAssoc($hq)) {
+		foreach (Warehouse_Stock_Helper::fetchInboundHistoryRows($db, $row) as $h) {
 			$h['product_type'] = Warehouse_Stock_Helper::formatProductTypeLabel(isset($h['product_type']) ? $h['product_type'] : null);
 			if ($h['product_type'] === null || $h['product_type'] === '') {
 				$h['product_type'] = 'Other';
 			}
+			$h['subject'] = Warehouse_Stock_Helper::decodeDisplayText(isset($h['subject']) ? $h['subject'] : '');
+			$h['storage_location'] = Warehouse_Stock_Helper::decodeDisplayText(isset($h['storage_location']) ? $h['storage_location'] : '');
+			$h['product_name'] = Warehouse_Stock_Helper::decodeDisplayText($h['product_name']);
 			$h['product_name_display'] = Warehouse_Stock_Helper::normalizeDisplayName($h['product_name']);
 			$h['quantity_display'] = Warehouse_Stock_Helper::formatNumber($h['quantity'], 2);
 			$h['unit_price_display'] = Warehouse_Stock_Helper::formatNumber($h['unit_price'], 0);
@@ -137,54 +130,20 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 			$inboundHistory[] = $h;
 		}
 
-		$outParams = array();
-		$outMatch = Warehouse_Stock_Helper::outboundItemsMatchWhere($row, $outParams);
-		$outSql = "SELECT gi.issueid, gi.code, gi.subject, gi.issued_date, gi.destination, gi.storage_location,
-				gi.createdtime AS issue_createdtime, gi.updatedtime AS issue_updatedtime,
-				gii.productid, gii.quantity, gii.unit_price, gii.product_name, gii.product_type, gii.itemid, gii.serial_number, gii.description,
-				(
-					SELECT gri.description
-					FROM vtiger_goodsreceipt_items gri
-					INNER JOIN vtiger_goodsreceipt gr ON gr.receiptid = gri.receiptid AND gr.deleted = 0
-					WHERE
-						(
-							TRIM(gii.serial_number) <> ''
-							AND TRIM(gri.serial_number) <> ''
-							AND gri.serial_number = gii.serial_number
-							AND (
-								(gii.productid IS NOT NULL AND gii.productid > 0 AND gri.productid = gii.productid)
-								OR
-								((gii.productid IS NULL OR gii.productid = 0) AND LOWER(TRIM(gri.product_name)) = LOWER(TRIM(gii.product_name)))
-							)
-						)
-						OR
-						(
-							(TRIM(gii.serial_number) = '' OR gii.serial_number IS NULL)
-							AND gii.productid IS NOT NULL AND gii.productid > 0
-							AND gri.productid = gii.productid
-						)
-						OR
-						(
-							(TRIM(gii.serial_number) = '' OR gii.serial_number IS NULL)
-							AND (gii.productid IS NULL OR gii.productid = 0)
-							AND LOWER(TRIM(gri.product_name)) = LOWER(TRIM(gii.product_name))
-							AND LOWER(TRIM(COALESCE(gri.product_type,''))) = LOWER(TRIM(COALESCE(gii.product_type,'')))
-						)
-					ORDER BY gri.itemid DESC
-					LIMIT 1
-				) AS source_description
-			FROM vtiger_goodsissue_items gii
-			INNER JOIN vtiger_goodsissue gi ON gi.issueid = gii.issueid AND gi.deleted = 0
-			WHERE {$outMatch}
-			ORDER BY gi.issued_date DESC, gii.itemid DESC";
-		$oq = $db->pquery($outSql, $outParams);
 		$outboundHistory = array();
-		while ($o = $db->fetchByAssoc($oq)) {
+		foreach (Warehouse_Stock_Helper::fetchOutboundHistoryRows($db, $row) as $o) {
 			$o['product_type'] = Warehouse_Stock_Helper::formatProductTypeLabel(isset($o['product_type']) ? $o['product_type'] : null);
 			if ($o['product_type'] === null || $o['product_type'] === '') {
 				$o['product_type'] = 'Other';
 			}
+			$o['product_name'] = Warehouse_Stock_Helper::decodeDisplayText($o['product_name']);
 			$o['product_name_display'] = Warehouse_Stock_Helper::normalizeDisplayName($o['product_name']);
+			if (isset($o['destination'])) {
+				$o['destination'] = Warehouse_Stock_Helper::decodeDisplayText($o['destination']);
+			}
+			if (isset($o['storage_location'])) {
+				$o['storage_location'] = Warehouse_Stock_Helper::decodeDisplayText($o['storage_location']);
+			}
 			$o['quantity_display'] = Warehouse_Stock_Helper::formatNumber($o['quantity'], 2);
 			$o['unit_price_display'] = Warehouse_Stock_Helper::formatNumber($o['unit_price'], 0);
 			$o['issued_date_display'] = Warehouse_Stock_Helper::formatDateTimeDisplay($o['issued_date']);
@@ -285,6 +244,12 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 		$row['available_display'] = Warehouse_Stock_Helper::formatNumber(Warehouse_Stock_Helper::availableQty($row['quantity'], $row['shrinkage_qty']), 2);
 		$row['last_price_display'] = Warehouse_Stock_Helper::formatNumber($row['last_price'], 0);
 		$row['updatedtime_display'] = Warehouse_Stock_Helper::formatDateTimeDisplay($row['updatedtime']);
+		$exp = isset($row['expired_date']) ? trim((string) $row['expired_date']) : '';
+		$row['expired_date_display'] = ($exp !== '' ? date('d/m/Y', strtotime($exp)) : '—');
+		$today = date('Y-m-d');
+		$threeMonths = date('Y-m-d', strtotime('+3 months'));
+		$row['is_expired'] = ($exp !== '' && $exp < $today);
+		$row['is_expiring_soon'] = ($exp !== '' && !$row['is_expired'] && $exp <= $threeMonths);
 
 		$viewer->assign('RECORD', $recordModel);
 		$viewer->assign('RECORD_MODEL', $recordModel);
@@ -314,7 +279,7 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 		require_once 'modules/Warehouse/helpers/InventoryCrossNavHelper.php';
 		$viewer->assign('LINKED_INBOUND_RECEIPT_ID', Inventory_CrossNav_Helper::resolveInboundReceiptIdForStock($db, $row));
 		$viewer->assign('LINKED_OUTBOUND_ISSUE_ID', Inventory_CrossNav_Helper::resolveOutboundIssueIdForStock($db, $row));
-		$viewer->assign('LINKED_STORAGE_STOCK_ID', 0);
+		$viewer->assign('LINKED_STORAGE_STOCK_ID', $stockId);
 		$viewer->assign('MK_INV_NAV_ACTIVE', 'Warehouse');
 		$viewer->assign('MK_INV_NAV_CLASS', 'mk-wh-detail-topnav');
 
@@ -340,7 +305,7 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 		$textFields = array('product_name', 'storage_location', 'warehouse_note', 'inbound_note');
 		foreach ($textFields as $f) {
 			if (isset($row[$f])) {
-				$row[$f] = html_entity_decode((string) $row[$f], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+				$row[$f] = Warehouse_Stock_Helper::decodeDisplayText($row[$f]);
 			}
 		}
 		if (!isset($row['shrinkage_qty']) || $row['shrinkage_qty'] === null) {

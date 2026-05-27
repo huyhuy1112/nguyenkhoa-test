@@ -1,4 +1,20 @@
 {strip}
+{assign var=MK_GI_IS_INV value=false}
+{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'INVENTORY') || (isset($smarty.get.app) && $smarty.get.app eq 'INVENTORY')}
+	{assign var=MK_GI_IS_INV value=true}
+{/if}
+{if $MK_GI_IS_INV}
+<div class="mk-gi-page">
+	<div class="mk-gi-suite-card">
+		<div class="mk-wh-page-head mk-go-page-head">
+			{include file="partials/OutboundEditHeader.tpl"|vtemplate_path:$MODULE}
+		</div>
+		<div class="mk-inv-flow-bar">
+			{assign var=MK_INV_NAV_CLASS value="mk-gi-topnav mk-gi-topnav--pills"}
+			{include file="partials/InventoryDetailTopnav.tpl"|@vtemplate_path:'Vtiger'}
+		</div>
+		<div class="mk-go-edit-content">
+{else}
 <div class="main-container clearfix">
 	<link rel="stylesheet" href="layouts/v7/modules/Inventory/resources/FlowModern.css?v=20260326" />
 	<div class="editViewPageDiv viewContent content-area full-width inv-modern-page" style="margin-left:0;">
@@ -109,23 +125,79 @@
 					<a class="btn btn-default" href="index.php?module=GoodsIssue&view=List&app=INVENTORY">Back to list</a>
 				</div>
 			</div>
+{/if}
 
 			{if !empty($SHOW_VALIDATION)}
-				<div class="alert alert-warning inv-alert">Please fill subject and at least one valid line item (qty &gt; 0 and product selected or name filled).</div>
+				{if $MK_GI_IS_INV}
+					<div class="mk-gi-alert mk-gi-alert--warn" role="alert">Please fill subject and at least one valid line item (qty &gt; 0 and product selected or name filled).</div>
+				{else}
+					<div class="alert alert-warning inv-alert">Please fill subject and at least one valid line item (qty &gt; 0 and product selected or name filled).</div>
+				{/if}
 			{/if}
 			{if !empty($SHOW_OUT_OF_STOCK)}
-				<div class="alert alert-danger inv-alert">Insufficient stock for at least one line item. Nothing was saved.</div>
+				{if $MK_GI_IS_INV}
+					<div class="mk-gi-alert mk-gi-alert--danger" role="alert">Insufficient stock for at least one line item. Nothing was saved.</div>
+				{else}
+					<div class="alert alert-danger inv-alert">Insufficient stock for at least one line item. Nothing was saved.</div>
+				{/if}
 			{/if}
 			{if !empty($SHOW_ERROR_STOCK_MISSING)}
-				<div class="alert alert-danger inv-alert">Stock row not found for at least one item identity. Nothing was saved.</div>
+				{if $MK_GI_IS_INV}
+					<div class="mk-gi-alert mk-gi-alert--danger" role="alert">Stock row not found for at least one item identity. Nothing was saved.</div>
+				{else}
+					<div class="alert alert-danger inv-alert">Stock row not found for at least one item identity. Nothing was saved.</div>
+				{/if}
 			{/if}
 
-			<form id="GoodsIssueEditForm" method="post" action="index.php" class="form-horizontal" enctype="multipart/form-data">
+			<form id="GoodsIssueEditForm" method="post" action="index.php" class="{if $MK_GI_IS_INV}mk-go-edit-form{else}form-horizontal{/if}" enctype="multipart/form-data">
 				<input type="hidden" name="module" value="GoodsIssue" />
 				<input type="hidden" name="action" value="Save" />
 				<input type="hidden" name="app" value="INVENTORY" />
 				{if $ISSUE.issueid > 0}<input type="hidden" name="record" value="{$ISSUE.issueid}" />{/if}
 
+				{if $MK_GI_IS_INV}
+				<section class="mk-go-detail-card" aria-labelledby="mkGoEditInfoTitle">
+					<header class="mk-go-detail-card__head">
+						<h2 class="mk-go-detail-card__title" id="mkGoEditInfoTitle">Outbound Info</h2>
+					</header>
+					<div class="mk-go-detail-card__body">
+						<div class="mk-go-edit-fields">
+							<label class="mk-go-edit-field mk-go-edit-field--wide">
+								<span class="mk-go-edit-field__label">Subject</span>
+								<input type="text" name="subject" class="mk-go-edit-input" value="{$ISSUE.subject|escape:'html'}" required="required" />
+							</label>
+							{if $ISSUE.issueid > 0}
+							<label class="mk-go-edit-field">
+								<span class="mk-go-edit-field__label">Outbound code</span>
+								<input type="text" class="mk-go-edit-input" value="{$ISSUE.code|escape:'html'}" readonly="readonly" />
+							</label>
+							{/if}
+							<label class="mk-go-edit-field">
+								<span class="mk-go-edit-field__label">Issued date</span>
+								<input type="date" name="issued_date" class="mk-go-edit-input" value="{$ISSUE.issued_date|escape:'html'}" />
+							</label>
+							<label class="mk-go-edit-field">
+								<span class="mk-go-edit-field__label">Destination / receiver</span>
+								<input type="text" name="destination" class="mk-go-edit-input" value="{$ISSUE.destination|escape:'html'}" />
+							</label>
+							<label class="mk-go-edit-field mk-go-edit-field--wide">
+								<span class="mk-go-edit-field__label">Storage location</span>
+								<input type="text" name="storage_location" class="mk-go-edit-input" value="{$ISSUE.storage_location|escape:'html'}" placeholder="Optional reference (does not move stock rows)" />
+							</label>
+							<label class="mk-go-edit-field">
+								<span class="mk-go-edit-field__label">Issuer</span>
+								<input type="text" class="mk-go-edit-input" value="{$ISSUE.issued_by|escape:'html'}" readonly="readonly" />
+								<input type="hidden" name="issued_by" value="{$ISSUE.issued_by|escape:'html'}" />
+								<p class="mk-go-edit-hint">System-controlled (current logged-in user).</p>
+							</label>
+							<label class="mk-go-edit-field mk-go-edit-field--wide">
+								<span class="mk-go-edit-field__label">Note</span>
+								<textarea name="note" class="mk-go-edit-input" rows="3">{$ISSUE.note|escape:'html'}</textarea>
+							</label>
+						</div>
+					</div>
+				</section>
+				{else}
 				<div class="panel panel-default inv-panel">
 					<div class="panel-heading"><strong>Outbound info</strong></div>
 					<div class="panel-body">
@@ -175,7 +247,48 @@
 						</div>
 					</div>
 				</div>
+				{/if}
 
+				{if $MK_GI_IS_INV}
+				<section class="mk-go-detail-card" aria-labelledby="mkGoEditAttachTitle">
+					<header class="mk-go-detail-card__head">
+						<h2 class="mk-go-detail-card__title" id="mkGoEditAttachTitle">Attachments</h2>
+					</header>
+					<div class="mk-go-detail-card__body">
+						<label class="mk-go-edit-field mk-go-edit-field--wide">
+							<span class="mk-go-edit-field__label">Upload files</span>
+							<input type="file" name="attachments[]" class="mk-go-edit-input" multiple="multiple" />
+							<p class="mk-go-edit-hint">Allowed: images, PDF, Office docs, CSV/TXT.</p>
+						</label>
+						{if !empty($ATTACHMENTS)}
+							<div class="mk-gi-table-wrap" style="margin-top:12px;">
+								<table class="mk-go-edit-attach-table">
+									<thead>
+										<tr>
+											<th scope="col">File</th>
+											<th scope="col" class="text-right">Actions</th>
+										</tr>
+									</thead>
+									<tbody>
+										{foreach from=$ATTACHMENTS item=ATT}
+											<tr>
+												<td>
+													{$ATT.filename|escape:'html'}
+													{if $ATT.filetype}<div class="mk-go-edit-hint">{$ATT.filetype|escape:'html'}</div>{/if}
+												</td>
+												<td class="text-right">
+													<a class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost" href="index.php?module=GoodsIssue&amp;action=DownloadAttachment&amp;attachmentid={$ATT.attachmentid|escape:'html'}&amp;record={$ISSUE.issueid|escape:'html'}&amp;app=INVENTORY">Open</a>
+													<a class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost" href="index.php?module=GoodsIssue&amp;action=DeleteAttachment&amp;attachmentid={$ATT.attachmentid|escape:'html'}&amp;record={$ISSUE.issueid|escape:'html'}&amp;app=INVENTORY" onclick="return confirm('Delete attachment?');" style="margin-left:8px;">Delete</a>
+												</td>
+											</tr>
+										{/foreach}
+									</tbody>
+								</table>
+							</div>
+						{/if}
+					</div>
+				</section>
+				{else}
 				<div class="panel panel-default inv-panel" style="margin-top:12px;">
 					<div class="panel-heading"><strong>Attachments</strong></div>
 					<div class="panel-body">
@@ -214,7 +327,18 @@
 						{/if}
 					</div>
 				</div>
+				{/if}
 
+				{if $MK_GI_IS_INV}
+				<section class="mk-go-detail-card mk-go-detail-card--lines" aria-labelledby="mkGoEditLinesTitle">
+					<header class="mk-go-detail-card__head">
+						<h2 class="mk-go-detail-card__title" id="mkGoEditLinesTitle">Line Items</h2>
+					</header>
+					<div class="mk-go-detail-card__body mk-go-detail-card__body--flush">
+						<datalist id="products_list"></datalist>
+						<div class="mk-gi-table-wrap">
+							<table class="mk-gi-table mk-go-edit-table" id="GoodsIssueItemsTable">
+				{else}
 				<div class="panel panel-default inv-panel" style="margin-top:12px;">
 					<div class="panel-heading"><strong>Line items</strong></div>
 					<div class="panel-body">
@@ -222,6 +346,7 @@
 
 						<div class="table-responsive">
 							<table class="table table-bordered table-hover inv-modern-table line-items-table" id="GoodsIssueItemsTable">
+				{/if}
 								<thead>
 									<tr>
 										<th style="width:26%;">Product</th>
@@ -241,6 +366,7 @@
 										<tr class="row-item {if empty($IT.is_stock_linked)}is-legacy{/if}" data-gi-product-key="{if isset($IT.product_key_hint)}{$IT.product_key_hint|escape:'html'}{/if}" data-gi-product-name="{$IT.product_name|escape:'html'}">
 											<td>
 												<input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" />
+												<input type="hidden" name="item_product_key[]" value="{if isset($IT.product_key_hint)}{$IT.product_key_hint|escape:'html'}{/if}" class="gi-product-key-input" />
 												<input type="text" name="item_product_name[]" value="{$IT.product_name|escape:'html'}" class="form-control product-input" list="products_list" placeholder="Click for storage list, or type to filter by name…" autocomplete="off" />
 												{if !empty($IT.is_stock_linked)}
 													<span class="stock-badge catalog">✓ Catalog</span>
@@ -269,7 +395,7 @@
 												</select>
 											</td>
 											<td>
-												<input type="number" step="0.0001" min="0" name="item_quantity[]" value="{$IT.quantity|escape:'html'}" class="form-control text-right qty-input" data-available="{$IT.available_qty|escape:'html'}" />
+												<input type="number" step="1" min="0" name="item_quantity[]" value="{$IT.quantity|escape:'html'}" class="form-control text-right qty-input" data-available="{$IT.available_qty|escape:'html'}" />
 												<div style="margin-top:4px;">
 													<span class="available-badge text-muted small">
 														{if isset($IT.available_qty) && $IT.available_qty !== null && $IT.available_qty ne ''}
@@ -298,7 +424,19 @@
 								</tbody>
 							</table>
 						</div>
-
+				{if $MK_GI_IS_INV}
+						<button type="button" class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost mk-go-edit-add-row" id="GoodsIssueAddRow">Add row</button>
+					</div>
+				</section>
+				<div class="mk-go-edit-actions">
+					<button type="submit" class="mk-gi-btn mk-gi-btn--primary">
+						<span class="mk-gi-btn__txt">Save</span>
+					</button>
+					<a class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost" href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY">
+						<span class="mk-gi-btn__txt">Cancel</span>
+					</a>
+				</div>
+				{else}
 						<button type="button" class="btn btn-default" id="GoodsIssueAddRow">Add row</button>
 					</div>
 				</div>
@@ -309,6 +447,7 @@
 						<a class="btn btn-default" href="index.php?module=GoodsIssue&view=List&app=INVENTORY">Cancel</a>
 					</div>
 				</div>
+				{/if}
 			</form>
 
 			{literal}
@@ -317,6 +456,17 @@
 					var form = document.getElementById('GoodsIssueEditForm');
 					if (form) {
 						form.addEventListener('submit', function() {
+							form.querySelectorAll('tr.row-item').forEach(function(row) {
+								var keyInput = row.querySelector('.gi-product-key-input');
+								if (!keyInput) return;
+								var key = (row.dataset.giProductKey || '').trim();
+								if (!key) {
+									var nameInput = row.querySelector('input[name="item_product_name[]"]');
+									var nameVal = nameInput ? nameInput.value.trim() : '';
+									key = nameVal ? ('N:' + nameVal.toLowerCase()) : '';
+								}
+								keyInput.value = key;
+							});
 							if (typeof csrfMagicName !== 'undefined' && typeof csrfMagicToken !== 'undefined') {
 								var existing = form.querySelector('input[name="' + csrfMagicName + '"]');
 								if (!existing) {
@@ -484,8 +634,16 @@
 
 						if (found) {
 							row.dataset.giProductKey = (found.getAttribute('data-product-key') || found.dataset.productKey || '').trim();
+							var keyInput = row.querySelector('.gi-product-key-input');
+							if (keyInput) {
+								keyInput.value = row.dataset.giProductKey;
+							}
 						} else {
 							row.dataset.giProductKey = val ? ('N:' + val.trim().toLowerCase()) : '';
+							var keyInputManual = row.querySelector('.gi-product-key-input');
+							if (keyInputManual) {
+								keyInputManual.value = row.dataset.giProductKey;
+							}
 						}
 						row.dataset.giProductName = val;
 						loadSerials(row);
@@ -562,6 +720,7 @@
 							tr.innerHTML = '' +
 								'<td>' +
 								'  <input type="hidden" name="item_productid[]" value="" />' +
+								'  <input type="hidden" name="item_product_key[]" value="" class="gi-product-key-input" />' +
 								'  <input type="text" name="item_product_name[]" value="" class="form-control product-input" list="products_list" placeholder="Click for storage list, or type to filter by name…" autocomplete="off" />' +
 								'  <span class="stock-badge legacy">⚠ Legacy</span>' +
 								'  <div class="stock-meta small text-muted gi-stock-meta">' +
@@ -585,7 +744,7 @@
 								'  </select>' +
 								'</td>' +
 								'<td>' +
-								'  <input type="number" step="0.0001" min="0" name="item_quantity[]" value="1" class="form-control text-right qty-input" data-available="" />' +
+								'  <input type="number" step="1" min="0" name="item_quantity[]" value="1" class="form-control text-right qty-input" data-available="" />' +
 								'  <div style="margin-top:4px;">' +
 								'    <span class="available-badge text-muted small">Available: — (legacy)</span>' +
 								'  </div>' +
@@ -599,6 +758,10 @@
 								'<td class="text-nowrap"><button type="button" class="btn btn-xs btn-danger js-gi-remove">Remove</button></td>';
 							tr.className = 'row-item is-legacy';
 							tr.dataset.giProductKey = '';
+							var newKeyInput = tr.querySelector('.gi-product-key-input');
+							if (newKeyInput) {
+								newKeyInput.value = '';
+							}
 							tr.dataset.giProductName = '';
 							tbody.appendChild(tr);
 							// Initialize line total for new row
@@ -737,9 +900,15 @@
 				})();
 			</script>
 			{/literal}
+{if $MK_GI_IS_INV}
+		</div>
+	</div>
+</div>
+{else}
 		</div>
 	</div>
 	</div>
 </div>
+{/if}
 {/strip}
 

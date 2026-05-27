@@ -428,9 +428,13 @@ body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-ta
 	font-variant-numeric: tabular-nums;
 }
 
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table tbody td {
+	font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table__qty {
 	font-weight: 600;
-	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-variant-numeric: tabular-nums;
 }
 
 body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-chip {
@@ -442,7 +446,8 @@ body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-ch
 	color: #6d4d00;
 	font-size: 12px;
 	font-weight: 600;
-	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+	font-variant-numeric: tabular-nums;
 }
 
 body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-muted {
@@ -494,49 +499,36 @@ body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-ic
 	border-color: #e8a8a8;
 }
 
-/* Column widths */
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table th:nth-child(1),
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table td:nth-child(1) {
-	width: 18%;
+/* Column widths (8 cols — aligned with Inbound mk-gr-table) */
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table {
+	table-layout: fixed;
+	min-width: 1000px;
 }
 
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table th:nth-child(2),
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table td:nth-child(2) {
-	width: 14%;
-}
-
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table th:nth-child(3),
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table td:nth-child(3) {
-	width: 14%;
-}
-
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table th:nth-child(4),
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table td:nth-child(4) {
-	width: 11%;
-}
-
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table th:nth-child(5),
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table td:nth-child(5) {
-	width: 10%;
-}
-
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table th:nth-child(6),
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table td:nth-child(6) {
-	width: 16%;
-}
-
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table th:nth-child(7),
-body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table td:nth-child(7) {
-	width: 12%;
-}
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table th:nth-child(1),
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table td:nth-child(1) { width: 11%; }
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table th:nth-child(2),
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table td:nth-child(2) { width: 16%; }
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table th:nth-child(3),
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table td:nth-child(3) { width: 12%; }
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table th:nth-child(4),
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table td:nth-child(4) { width: 10%; }
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table th:nth-child(5),
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table td:nth-child(5) { width: 11%; }
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table th:nth-child(6),
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table td:nth-child(6) { width: 9%; }
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table th:nth-child(7),
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table td:nth-child(7) { width: 10%; }
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table th:nth-child(8),
+body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table td:nth-child(8) { width: 12%; }
 
 @media (max-width: 991px) {
 	body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-action-header__title {
 		font-size: 26px;
 	}
 
-	body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-gi-table {
+	body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-go-table {
 		table-layout: auto;
-		min-width: 880px;
+		min-width: 1000px;
 	}
 }
