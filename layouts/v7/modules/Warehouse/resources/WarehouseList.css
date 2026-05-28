@@ -667,18 +667,10 @@ body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-exp
 	vertical-align: middle;
 }
 
-body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-exp-cell__group {
-	display: inline-flex;
-	align-items: center;
-	justify-content: flex-start;
-	flex-wrap: nowrap;
-	gap: 10px;
-	white-space: nowrap;
-}
-
 body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-expired-date {
 	display: inline-flex;
 	align-items: center;
+	justify-content: center;
 	flex-shrink: 0;
 	padding: 4px 10px;
 	border-radius: 999px;
@@ -693,9 +685,10 @@ body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-exp
 }
 
 body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-expired-date--warn {
-	color: #9a3412;
-	background: #fff7ed;
-	border-color: #fed7aa;
+	/* Expiring soon date: red (stronger than Low) */
+	color: #9f1239 !important;
+	background: #ffe4e6 !important;
+	border-color: #fb7185 !important;
 }
 
 body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-expired-date--danger {
@@ -735,12 +728,33 @@ body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-bad
 
 body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-badge--low {
 	margin-left: 6px;
-	background: #fef2f2;
-	border: 1px solid #f5c2c2;
-	color: #b42318;
+	/* Low stock: soft light red */
+	background: #fff1f2 !important;
+	border: 1px solid #fecdd3 !important;
+	color: #be123c !important;
 	font-size: 10px;
 	padding: 2px 8px;
 	vertical-align: middle;
+}
+
+/* Expired date cell: date on top, status below */
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-exp-cell__group {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	white-space: nowrap;
+}
+
+/* Keep pills perfectly aligned (same height/padding) */
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-expired-date {
+	font-size: 11px;
+	padding: 3px 9px;
+	min-height: 20px;
+	line-height: 1.15;
+	min-width: 98px;
+	text-align: center;
 }
 
 body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-exp-cell__group .mk-wh-badge--dangerous,
@@ -749,28 +763,35 @@ body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-exp
 	flex-shrink: 0;
 	font-size: 10px;
 	padding: 3px 9px;
-	line-height: 1.2;
+	min-height: 20px;
+	line-height: 1.15;
 	vertical-align: middle;
+	min-width: 98px;
+	text-align: center;
 }
 
 body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-badge--dangerous {
-	background: #fff7ed;
-	border: 1px solid #fdba74;
-	color: #c2410c;
+	/* Expiring soon: stronger red than Low */
+	background: #ffe4e6 !important;
+	border: 1px solid #f43f5e !important;
+	color: #9f1239 !important;
 }
 
 body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-badge--expired {
-	background: #fef2f2;
-	border: 1px solid #fca5a5;
-	color: #991b1b;
+	/* Expired: strongest red */
+	background: #fee2e2 !important;
+	border: 1px solid #ef4444 !important;
+	color: #991b1b !important;
 }
 
 body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-row--low {
-	background: #fffaf5;
+	/* Low stock row highlight (subtle warm) */
+	background: #fff7ed;
 }
 
 body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-row--expiring {
-	background: #fffbeb;
+	/* Expiring/expired row highlight (light red like reference) */
+	background: #ffe4e6;
 }
 
 /* Column widths (12 cols) */

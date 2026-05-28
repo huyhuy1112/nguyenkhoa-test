@@ -35,7 +35,7 @@
 				</div>
 				<div class="mk-gr-detail-field">
 					<span class="mk-gr-detail-field__label">Subject</span>
-					<span class="mk-gr-detail-field__value">{$RECORD_DATA.subject|escape:'html'}</span>
+					<span class="mk-gr-detail-field__value">{decode_html($RECORD_DATA.subject)|escape:'html'}</span>
 				</div>
 				<div class="mk-gr-detail-field">
 					<span class="mk-gr-detail-field__label">Supplier / Source</span>

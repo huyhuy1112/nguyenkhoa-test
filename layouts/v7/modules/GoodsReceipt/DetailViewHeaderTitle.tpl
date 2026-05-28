@@ -7,7 +7,7 @@
 			</div>
 			<div class="mk-gr-detail-hero__text">
 				<h1 class="mk-gr-detail-hero__title">
-					<span class="recordLabel" title="{$RECORD_DATA.subject|escape:'html'}">{$RECORD_DATA.subject|escape:'html'}</span>
+					<span class="recordLabel" title="{decode_html($RECORD_DATA.subject)|escape:'html'}">{decode_html($RECORD_DATA.subject)|escape:'html'}</span>
 				</h1>
 				<p class="mk-gr-detail-hero__subtitle">Inbound receipt details and supporting documents</p>
 				<div class="mk-gr-detail-hero__meta">

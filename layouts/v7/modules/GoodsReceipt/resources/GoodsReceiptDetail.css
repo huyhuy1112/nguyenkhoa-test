@@ -109,6 +109,9 @@ body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-g
 body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] {
 	font-family: Inter, system-ui, -apple-system, sans-serif;
 	color: #2b2b2b;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
 }
 
 /* Hide legacy navigators */
@@ -369,13 +372,13 @@ body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-g
 }
 
 body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-gr-detail-hero__title {
-	font-family: "Space Grotesk", Inter, sans-serif !important;
-	font-size: 28px !important;
-	line-height: 36px !important;
-	font-weight: 600 !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	font-size: 30px !important;
+	line-height: 38px !important;
+	font-weight: 700 !important;
 	margin: 0 !important;
 	color: #0f172a !important;
-	letter-spacing: -0.02em !important;
+	letter-spacing: -0.015em !important;
 }
 
 body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-gr-detail-hero__title .recordLabel {
@@ -943,6 +946,11 @@ body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-g
 	font-weight: 500;
 	color: #64748b;
 	line-height: 1.5;
+}
+
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-gr-detail-hero__meta,
+body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-gr-detail-hero__meta * {
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
 }
 
 body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-gr-detail-status-pill {
