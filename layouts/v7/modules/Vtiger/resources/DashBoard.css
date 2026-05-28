@@ -2238,6 +2238,144 @@ body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-dashbo
     height: 100vh;
 }
 
+/* ========== Campaigns Edit/Create (MARKETING) — split shell + 24px pad ========== */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] #page,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-dash-main,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-dash-main.mk-camp-edit-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Plans (MARKETING) — edit/create split shell ========== */
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] #page,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-dash-main,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-dash-main.mk-plan-edit-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
 body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-dash-app-ic .mk-dash-svg--marketing {
     overflow: visible;
 }
@@ -3191,6 +3329,85 @@ body[data-module="HelpDesk"][data-view="List"]:not([data-app]) .mk-dash-main.mk-
     background: #f7f9fb;
 }
 
+/* ========== HelpDesk Ticket Edit/Create (SUPPORT) — split shell + 24px pad ========== */
+body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"],
+body[data-module="HelpDesk"][data-view="Edit"]:not([data-app]) {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="HelpDesk"][data-view="Edit"]:not([data-app]) #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-app-shell,
+body[data-module="HelpDesk"][data-view="Edit"]:not([data-app]) .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-topbar,
+body[data-module="HelpDesk"][data-view="Edit"]:not([data-app]) .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="HelpDesk"][data-view="Edit"]:not([data-app]) .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-dashboard-sidebar,
+body[data-module="HelpDesk"][data-view="Edit"]:not([data-app]) .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] #page,
+body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] #page.container-fluid,
+body[data-module="HelpDesk"][data-view="Edit"]:not([data-app]) #page,
+body[data-module="HelpDesk"][data-view="Edit"]:not([data-app]) #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-dash-main,
+body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-dash-main.mk-hd-edit-main,
+body[data-module="HelpDesk"][data-view="Edit"]:not([data-app]) .mk-dash-main,
+body[data-module="HelpDesk"][data-view="Edit"]:not([data-app]) .mk-dash-main.mk-hd-edit-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
 /* ========== HelpDesk Rules (SUPPORT) — same split shell + 24px pad ========== */
 body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"],
 body[data-module="HelpDesk"][data-view="Rules"]:not([data-app]) {
@@ -3576,6 +3793,85 @@ body[data-module="Activities"][data-view="Detail"]:not([data-app]) .mk-dash-main
     background: #f7f9fb;
 }
 
+/* ========== Activities Edit/Create (SUPPORT) — split shell + 24px pad ========== */
+body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"],
+body[data-module="Activities"][data-view="Edit"]:not([data-app]) {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Activities"][data-view="Edit"]:not([data-app]) #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-app-shell,
+body[data-module="Activities"][data-view="Edit"]:not([data-app]) .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-topbar,
+body[data-module="Activities"][data-view="Edit"]:not([data-app]) .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Activities"][data-view="Edit"]:not([data-app]) .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-dashboard-sidebar,
+body[data-module="Activities"][data-view="Edit"]:not([data-app]) .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] #page,
+body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] #page.container-fluid,
+body[data-module="Activities"][data-view="Edit"]:not([data-app]) #page,
+body[data-module="Activities"][data-view="Edit"]:not([data-app]) #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-dash-main,
+body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-dash-main.mk-act-edit-main,
+body[data-module="Activities"][data-view="Edit"]:not([data-app]) .mk-dash-main,
+body[data-module="Activities"][data-view="Edit"]:not([data-app]) .mk-dash-main.mk-act-edit-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
 /* ========== SupportFAQ List — split shell + 24px pad (module+view; not data-app) ========== */
 body[data-module="SupportFAQ"][data-view="List"] {
     --mk-dash-sidebar-w: 256px;
@@ -3706,6 +4002,75 @@ body[data-module="SupportFAQ"][data-view="Detail"] #page.container-fluid {
 
 body[data-module="SupportFAQ"][data-view="Detail"] .mk-dash-main,
 body[data-module="SupportFAQ"][data-view="Detail"] .mk-dash-main.mk-sf-faq-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== SupportFAQ Edit/Create — split shell + 24px pad ========== */
+body[data-module="SupportFAQ"][data-view="Edit"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="SupportFAQ"][data-view="Edit"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="SupportFAQ"][data-view="Edit"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="SupportFAQ"][data-view="Edit"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="SupportFAQ"][data-view="Edit"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="SupportFAQ"][data-view="Edit"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="SupportFAQ"][data-view="Edit"] #page,
+body[data-module="SupportFAQ"][data-view="Edit"] #page.container-fluid {
+    padding: 0 !important;
+}
+
+body[data-module="SupportFAQ"][data-view="Edit"] .mk-dash-main,
+body[data-module="SupportFAQ"][data-view="Edit"] .mk-dash-main.mk-sf-faq-edit-main {
     flex: 1 1 auto;
     min-height: 0;
     display: block;

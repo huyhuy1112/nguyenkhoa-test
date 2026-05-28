@@ -79,6 +79,41 @@
 		}
 	}
 
+	function formatDisplayDateStr(s) {
+		var d = parseDateLoose(s);
+		if (d) return formatShortDate(d);
+		if (!s || String(s).trim() === '' || String(s).trim().toLowerCase() === 'no date') {
+			return 'No date';
+		}
+		return String(s).trim();
+	}
+
+	function formatDateRange(start, end) {
+		var a = formatDisplayDateStr(start);
+		var b = formatDisplayDateStr(end);
+		if (a === b) return a;
+		return a + ' → ' + b;
+	}
+
+	function slugify(s) {
+		return String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+	}
+
+	function statusPillHtml(status) {
+		var text = String(status || '-').trim() || '-';
+		var key = slugify(text);
+		return '<span class="pm-status-pill pm-status-pill--' + esc(key) + '">' +
+			'<span class="pm-status-pill__dot" aria-hidden="true"></span>' +
+			'<span class="pm-status-pill__text">' + esc(text) + '</span></span>';
+	}
+
+	function roiToneClass(roi) {
+		var r = num(roi);
+		if (r > 0.0001) return 'pm-tl-metric--pos';
+		if (r < -0.0001) return 'pm-tl-metric--neg';
+		return '';
+	}
+
 	function computePlanStats(rows) {
 		var total = rows.length;
 		var completed = 0;
@@ -338,10 +373,15 @@
 		}
 		if (elMix) {
 			var st = computePlanStats(rows);
+			var bar = document.getElementById('pmMixBarFill');
 			if (!rows.length) {
 				elMix.textContent = '—';
+				if (bar) bar.style.width = '0%';
 			} else {
-				elMix.textContent = st.completed + ' done · ' + st.planning + ' planning · ' + st.inProgress + ' active';
+				var active = st.inProgress + st.planning;
+				var pct = st.total > 0 ? Math.round((active / st.total) * 100) : 0;
+				elMix.textContent = 'Manual / Automated';
+				if (bar) bar.style.width = Math.max(8, Math.min(100, pct)) + '%';
 			}
 		}
 	};
@@ -394,7 +434,8 @@
 				' <a href="' + esc(r.link) + '" target="_blank" rel="noopener" class="pm-ext-link" title="Open in new tab">↗</a></td>' +
 				'<td>' + esc(r.start_date || 'No date') + '</td>' +
 				'<td>' + esc(r.end_date || 'No date') + '</td>' +
-				'<td><span class="' + statusBadgeClass(r.status) + '">' + esc(r.status || '-') + '</span></td>' +
+				'<td><span class="pm-status-pill pm-status-pill--' + esc(String(r.status || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')) + '">' +
+				'<span class="pm-status-pill__dot" aria-hidden="true"></span><span class="pm-status-pill__text">' + esc(r.status || '-') + '</span></span></td>' +
 				'<td class="pm-num">' + esc(formatMoney(cost)) + '</td>' +
 				'<td class="pm-num">' + esc(formatMoney(revenue)) + '</td>' +
 				'<td class="pm-num">' + esc(formatRoi(roi)) + '</td>' +
@@ -422,48 +463,67 @@
 		});
 	};
 
+
 	PlanManager.prototype.renderSchedule = function () {
 		var self = this;
 		if (!self.$schedule) return;
 		if (!self.rows.length) {
 			self.$schedule.innerHTML =
-				'<div class="mk-empty">' +
-				'<div class="mk-empty__title">No campaigns added to this plan yet.</div>' +
-				'<div class="mk-empty__subtitle">Click Add Campaign to include existing campaigns.</div>' +
+				'<div class="pm-schedule-empty">' +
+				'<div class="pm-schedule-empty__title">No campaigns in this plan yet</div>' +
+				'<p class="pm-schedule-empty__text">Add campaigns from Campaign Management — they will appear here on the timeline.</p>' +
 				'</div>';
 			return;
 		}
 
 		var g = groupByDate(self.rows);
 		self.$schedule.innerHTML = g.dates.map(function (d) {
+			var count = g.map[d].length;
+			var label = formatDisplayDateStr(d);
 			var items = g.map[d].map(function (r) {
-				var desc = shortText(r.description, 140);
+				var desc = shortText(r.description, 120);
+				var roi = num(r.roi);
 				return '' +
-					'<article class="pm-tl-card" data-id="' + esc(r.id) + '">' +
-					'<div class="pm-item-name">' + esc(r.campaignname) + '</div>' +
-					'<div class="pm-item-meta">' +
-					'<span class="' + statusBadgeClass(r.status) + '">' + esc(r.status || '') + '</span>' +
-					'<span>' + esc((r.start_date || 'No date') + ' → ' + (r.end_date || 'No date')) + '</span>' +
+					'<article class="pm-tl-card" data-id="' + esc(r.id) + '" role="listitem" tabindex="0">' +
+					'<div class="pm-tl-card__main">' +
+					'<h4 class="pm-tl-card__title">' + esc(r.campaignname) + '</h4>' +
+					'<div class="pm-tl-card__meta">' +
+					statusPillHtml(r.status) +
+					'<span class="pm-tl-card__dates"><i class="fa fa-calendar-o" aria-hidden="true"></i> ' + esc(formatDateRange(r.start_date, r.end_date)) + '</span>' +
 					'</div>' +
-					(desc ? '<div class="pm-item-desc">' + esc(desc) + '</div>' : '') +
+					(desc ? '<p class="pm-tl-card__desc">' + esc(desc) + '</p>' : '') +
+					'</div>' +
+					'<div class="pm-tl-card__metrics">' +
+					'<div class="pm-tl-metric"><span class="pm-tl-metric__label">Cost</span><span class="pm-tl-metric__value">' + esc(formatMoney(r.cost)) + '</span></div>' +
+					'<div class="pm-tl-metric"><span class="pm-tl-metric__label">Revenue</span><span class="pm-tl-metric__value">' + esc(formatMoney(r.revenue)) + '</span></div>' +
+					'<div class="pm-tl-metric ' + roiToneClass(roi) + '"><span class="pm-tl-metric__label">ROI</span><span class="pm-tl-metric__value">' + esc(formatRoi(roi)) + '%</span></div>' +
+					'</div>' +
+					'<span class="pm-tl-card__chev" aria-hidden="true"><i class="fa fa-chevron-right"></i></span>' +
 					'</article>';
 			}).join('');
 
 			return '' +
-				'<section class="pm-tg">' +
+				'<section class="pm-tg" role="group" aria-label="' + esc(label) + '">' +
 				'<header class="pm-tg__header">' +
-				'<span class="pm-tg__date-badge">' + esc(d) + '</span>' +
-				'<span class="pm-tg__count">' + g.map[d].length + ' campaign' + (g.map[d].length === 1 ? '' : 's') + '</span>' +
+				'<div class="pm-tg__date-badge"><i class="fa fa-calendar" aria-hidden="true"></i><span class="pm-tg__date-text">' + esc(label) + '</span></div>' +
+				'<span class="pm-tg__count">' + count + ' campaign' + (count === 1 ? '' : 's') + '</span>' +
 				'</header>' +
-				'<div class="pm-tg__list">' + items + '</div>' +
+				'<div class="pm-tg__list" role="list">' + items + '</div>' +
 				'</section>';
 		}).join('');
 
 		self.$schedule.querySelectorAll('.pm-tl-card').forEach(function (el) {
-			el.addEventListener('click', function (e) {
-				var id = parseInt(e.currentTarget.getAttribute('data-id') || '0', 10);
+			function openCard() {
+				var id = parseInt(el.getAttribute('data-id') || '0', 10);
 				var row = self.rows.find(function (x) { return x.id === id; });
 				if (row) showCampaignModal(row);
+			}
+			el.addEventListener('click', openCard);
+			el.addEventListener('keydown', function (e) {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					openCard();
+				}
 			});
 		});
 	};

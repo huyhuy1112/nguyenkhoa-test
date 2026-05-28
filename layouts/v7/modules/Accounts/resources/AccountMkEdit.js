@@ -17,7 +17,12 @@
 		return (
 			$('body').data('module') === 'Accounts' &&
 			$('body').data('view') === 'Edit' &&
-			($('body').data('app') === 'SALES' || !$('body').data('app')) &&
+			(
+				$('body').data('app') === 'SALES' ||
+				$('body').data('app') === 'SUPPORT' ||
+				$('body').data('app') === 'MARKETING' ||
+				!$('body').data('app')
+			) &&
 			$('#mkAcCreateWorkspace').length &&
 			!$('#mkAcFormHost input[name="record"]').val()
 		);

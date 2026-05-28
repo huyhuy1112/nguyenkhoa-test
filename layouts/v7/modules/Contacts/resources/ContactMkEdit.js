@@ -17,7 +17,11 @@
 		return (
 			$('body').data('module') === 'Contacts' &&
 			$('body').data('view') === 'Edit' &&
-			($('body').data('app') === 'SALES' || !$('body').data('app')) &&
+			(
+				$('body').data('app') === 'SALES' ||
+				$('body').data('app') === 'MARKETING' ||
+				!$('body').data('app')
+			) &&
 			$('#mkCtCreateWorkspace').length &&
 			!$('#mkCtFormHost input[name="record"]').val()
 		);
@@ -29,7 +33,9 @@
 
 	function hideLegacyChrome() {
 		var $host = $('#mkCtFormHost');
-		$host.find('#modnavigator, .editViewModNavigator, .module-nav').addClass('mk-ct-hide-legacy');
+		// Remove modnavigator to avoid spacing/padding offsets.
+		$host.find('#modnavigator').remove();
+		$host.find('.editViewModNavigator, .module-nav').addClass('mk-ct-hide-legacy');
 		$host.find('.editViewHeader').addClass('mk-ct-hide-legacy');
 		$host.find('.modal-overlay-footer').addClass('mk-ct-form-footer');
 		$host.find('.main-container').first().addClass('mk-ct-form-container');

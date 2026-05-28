@@ -1,10 +1,11 @@
 {* Create Organization — dashboard shell + stock vtiger #EditView (all real fields). *}
 {strip}
-{assign var=MK_LIST_URL value='index.php?module=Accounts&view=List&app=SALES'}
+{assign var=MK_APP value=$SELECTED_MENU_CATEGORY|default:$smarty.get.app|default:'SALES'}
+{assign var=MK_LIST_URL value="index.php?module=Accounts&view=List&app=`$MK_APP`"}
 <div class="mk-ac-create" id="mkAcCreateWorkspace" data-mk-org-create="1">
 	<header class="mk-ac-page-head">
 		<nav class="mk-ac-page-head__crumb" aria-label="Breadcrumb">
-			<a href="index.php?module=Home&view=MainPage&app=SALES">{vtranslate('LBL_HOME', 'Vtiger')}</a>
+			<a href="index.php?module=Home&view=MainPage&app={$MK_APP}">{vtranslate('LBL_HOME', 'Vtiger')}</a>
 			<span aria-hidden="true">/</span>
 			<a href="{$MK_LIST_URL}">{vtranslate('Accounts', $MODULE)}</a>
 			<span aria-hidden="true">/</span>

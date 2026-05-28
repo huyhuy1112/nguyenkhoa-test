@@ -13,7 +13,9 @@ class Contacts_Edit_View extends Vtiger_Edit_View {
 			return false;
 		}
 		$app = strtoupper((string) $request->get('app'));
-		return $app === 'SALES' || $app === '';
+		// Enable modern Create UI for SALES + MARKETING (same shell/padding),
+		// without affecting Edit (record exists).
+		return $app === 'SALES' || $app === 'MARKETING' || $app === '';
 	}
 
 	protected function assignModernContext(Vtiger_Request $request) {
@@ -22,18 +24,15 @@ class Contacts_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
-		$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
+		$app = strtoupper((string) $request->get('app'));
+		$viewer->assign('SELECTED_MENU_CATEGORY', $app ? $app : 'SALES');
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'Contacts');
 		$viewer->assign('MK_MODERN_CONTACT_CREATE', true);
 	}
 
 	protected function redirectMarketingToSales(Vtiger_Request $request) {
-		$app = strtoupper((string) $request->get('app'));
-		if ($app === 'MARKETING' && empty($request->get('record'))) {
-			header('Location: index.php?module=Contacts&view=Edit&app=SALES');
-			exit;
-		}
+		// No-op: keep app context; modern create supports MARKETING directly now.
 	}
 
 	protected function assignSalutationField(Vtiger_Request $request) {

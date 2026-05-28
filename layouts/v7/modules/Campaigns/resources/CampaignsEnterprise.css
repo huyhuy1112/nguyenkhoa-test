@@ -1,0 +1,527 @@
+/**
+ * Campaigns enterprise redesign — ONLY content area.
+ * Scope: body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx
+ */
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx {
+	--mkx-bg: #f7f9fb;
+	--mkx-card: #ffffff;
+	--mkx-text: #0f172a;
+	--mkx-muted: #64748b;
+	--mkx-border: #e2e8f0;
+	--mkx-border-soft: #f1f5f9;
+	--mkx-accent: #fdbb2c;
+	--mkx-blue: #2563eb;
+	--mkx-green: #16a34a;
+	--mkx-gray: #64748b;
+	--mkx-red: #dc2626;
+	--mkx-radius: 16px;
+	--mkx-radius-sm: 12px;
+	--mkx-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+	--mkx-shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.06);
+	color: var(--mkx-text);
+}
+
+/* Hide the native vtiger chrome but keep inputs */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx #page > .container-fluid.app-nav,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .app-nav,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .navbar-fixed-top,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .editViewHeader,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .modal-overlay-footer,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx #modnavigator,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx #sidebar-essentials,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .editViewModNavigator {
+	display: none !important;
+}
+
+/* Hide legacy left panel (lists/tags) inside the content area only */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .sidebarContainer,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .sideBarContents,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .leftPanel,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx #leftPanel,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .listViewSidebar,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .quickLinksDiv {
+	display: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-native {
+	position: absolute !important;
+	left: -999999px !important;
+	top: 0 !important;
+	width: 1px !important;
+	height: 1px !important;
+	overflow: hidden !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
+
+/* Hero */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-hero {
+	background: var(--mkx-card);
+	border: 1px solid var(--mkx-border);
+	border-radius: var(--mkx-radius);
+	box-shadow: var(--mkx-shadow);
+	padding: 20px 22px;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+@media (max-width: 980px) {
+	body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-hero {
+		flex-direction: column;
+	}
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-hero__title {
+	margin: 0;
+	font-size: 28px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	line-height: 1.15;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-hero__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	padding-top: 10px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 10px;
+	border-radius: 999px;
+	background: #fff7ed;
+	border: 1px solid #fed7aa;
+	color: #92400e;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-pill--muted {
+	background: #f8fafc;
+	border-color: var(--mkx-border);
+	color: var(--mkx-muted);
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-hero__actions {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 40px;
+	padding: 0 16px;
+	border-radius: 12px;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	text-decoration: none;
+	border: 1px solid transparent;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-btn--primary {
+	background: var(--mkx-accent);
+	border-color: var(--mkx-accent);
+	color: #191c1e;
+	box-shadow: 0 6px 18px rgba(253, 187, 44, 0.25);
+}
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-btn--primary:hover {
+	background: #e5a824;
+	border-color: #e5a824;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-btn--ghost {
+	background: #fff;
+	border-color: var(--mkx-border);
+	color: #334155;
+}
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-btn--ghost:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 6px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	border: 1px solid transparent;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-badge--blue { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-badge--green { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-badge--gray { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-badge--red { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+
+/* KPI row */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpis {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+@media (max-width: 1100px) {
+	body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpis {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 560px) {
+	body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpis {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpi {
+	background: var(--mkx-card);
+	border: 1px solid var(--mkx-border);
+	border-radius: var(--mkx-radius-sm);
+	box-shadow: var(--mkx-shadow-sm);
+	padding: 14px 14px;
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpi__ic {
+	width: 38px;
+	height: 38px;
+	border-radius: 12px;
+	background: #0f172a;
+	color: #fff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpi__label {
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--mkx-muted);
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpi__value {
+	font-size: 22px;
+	font-weight: 750;
+	letter-spacing: -0.02em;
+	padding-top: 4px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpi__trend {
+	font-size: 12px;
+	color: var(--mkx-muted);
+	padding-top: 2px;
+}
+
+/* Cards + layout */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-card {
+	background: var(--mkx-card);
+	border: 1px solid var(--mkx-border);
+	border-radius: var(--mkx-radius);
+	box-shadow: var(--mkx-shadow);
+	overflow: hidden;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-card__head {
+	padding: 14px 16px;
+	border-bottom: 1px solid var(--mkx-border-soft);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-card__actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-miniBtn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 32px;
+	padding: 0 12px;
+	border-radius: 10px;
+	border: 1px solid var(--mkx-border);
+	background: #fff;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #334155;
+	cursor: pointer;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-miniBtn:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-miniHint {
+	font-size: 12px;
+	color: var(--mkx-muted);
+	white-space: nowrap;
+}
+
+/* Hide the legacy phase toolbar injected by core script */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .js-campaign-phase-toolbar {
+	display: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-card__title {
+	font-size: 13px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #0f172a;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-card__body {
+	padding: 16px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-grid--two {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 980px) {
+	body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-grid--two {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-formGrid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px 14px;
+}
+
+@media (max-width: 980px) {
+	body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-formGrid {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-field {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-field__label {
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--mkx-muted);
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-field__label .mk-campx-req {
+	color: #dc2626;
+	padding-left: 4px;
+}
+
+/* Inputs */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx input,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx select,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx textarea,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .select2-container .select2-selection {
+	border-radius: 12px !important;
+	border: 1px solid var(--mkx-border) !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx input:focus,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx select:focus,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx textarea:focus,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .select2-container--default.select2-container--focus .select2-selection {
+	border-color: rgba(253, 187, 44, 0.95) !important;
+	box-shadow: 0 0 0 4px rgba(253, 187, 44, 0.18) !important;
+	outline: none !important;
+}
+
+/* Mini stats */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-miniStats {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+@media (max-width: 560px) {
+	body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-miniStats {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-stat {
+	border: 1px solid var(--mkx-border);
+	border-radius: 14px;
+	padding: 12px;
+	background: #fff;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-stat__label {
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--mkx-muted);
+	margin-bottom: 8px;
+}
+
+/* Timeline */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-timeline {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step {
+	flex: 1 1 0;
+	min-width: 0;
+	position: relative;
+	padding-top: 26px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step::before {
+	content: '';
+	position: absolute;
+	top: 10px;
+	left: 0;
+	right: 0;
+	height: 4px;
+	background: var(--mkx-border-soft);
+	border-radius: 999px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step:first-child::before {
+	left: 50%;
+}
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step:last-child::before {
+	right: 50%;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step__dot {
+	position: absolute;
+	top: 2px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 20px;
+	height: 20px;
+	border-radius: 999px;
+	background: #fff;
+	border: 2px solid var(--mkx-border);
+	box-shadow: 0 6px 14px rgba(15, 23, 42, 0.10);
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step--done .mk-campx-step__dot,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step--current .mk-campx-step__dot {
+	border-color: var(--mkx-accent);
+	background: var(--mkx-accent);
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step__label {
+	text-align: center;
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--mkx-muted);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step--current .mk-campx-step__label {
+	color: var(--mkx-text);
+}
+
+/* Accordion */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc {
+	border: 1px solid var(--mkx-border);
+	border-radius: var(--mkx-radius);
+	overflow: hidden;
+	background: #fff;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc + .mk-campx-acc {
+	margin-top: 12px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc__btn {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 14px;
+	border: none;
+	background: #fff;
+	cursor: pointer;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc__ttl {
+	font-weight: 800;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-size: 12px;
+	color: #0f172a;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc__chev {
+	color: var(--mkx-muted);
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc__panel {
+	display: none;
+	padding: 14px;
+	border-top: 1px solid var(--mkx-border-soft);
+	background: #fff;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc[data-open="1"] .mk-campx-acc__panel {
+	display: block;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-accGrid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+}
+
+@media (max-width: 980px) {
+	body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-accGrid {
+		grid-template-columns: 1fr;
+	}
+}
+

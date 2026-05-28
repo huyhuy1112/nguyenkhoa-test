@@ -1,11 +1,78 @@
 <?php
 /*
  * Campaigns Edit view override
- * UI-only: remove legacy field "product" from record structure before rendering.
+ * UI-only: hide legacy single "Product" (field product_id) on Edit/Create; keep "Products & Services".
  */
 
 class Campaigns_Edit_View extends Vtiger_Edit_View {
+	protected function isMarketingShellCreate(Vtiger_Request $request) {
+		if ($request->get('displayMode') === 'overlay') {
+			return false;
+		}
+		$app = strtoupper((string) $request->get('app'));
+		if ($app !== 'MARKETING') {
+			return false;
+		}
+		// Only apply to Create (not Edit), per requested scope.
+		return empty($request->get('record')) || $request->get('isDuplicate');
+	}
+
+	protected function assignMarketingContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'MARKETING');
+		$viewer->assign('VIEW', 'Edit');
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'Campaigns');
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		if ($this->isMarketingShellCreate($request)) {
+			parent::preProcess($request, false);
+			$this->assignMarketingContext($request);
+			if ($display) {
+				$this->preProcessDisplay($request);
+			}
+			return;
+		}
+		parent::preProcess($request, $display);
+	}
+
+	public function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isMarketingShellCreate($request)) {
+			return 'EditViewPreProcess.tpl';
+		}
+		return parent::preProcessTplName($request);
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		if ($this->isMarketingShellCreate($request)) {
+			$viewer = $this->getViewer($request);
+			$viewer->view('EditViewPostProcess.tpl', $request->getModule());
+			Vtiger_Basic_View::postProcess($request);
+			return;
+		}
+		parent::postProcess($request);
+	}
+
+	public function getHeaderCss(Vtiger_Request $request) {
+		$headerCssInstances = parent::getHeaderCss($request);
+		if ($this->isMarketingShellCreate($request)) {
+			$cssFileNames = array(
+				'~layouts/v7/modules/Campaigns/resources/CampaignsEnterprise.css',
+			);
+			$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
+			return array_merge($headerCssInstances, $cssInstances);
+		}
+		return $headerCssInstances;
+	}
+
 	public function process(Vtiger_Request $request) {
+		if ($this->isMarketingShellCreate($request)) {
+			$this->assignMarketingContext($request);
+		}
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
 		$record = $request->get('record');
@@ -78,6 +145,12 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 			}
 		}
 
+		if ($moduleName === 'Campaigns') {
+			require_once 'modules/Campaigns/models/CampaignPhaseHelper.php';
+			$eff = Campaigns_CampaignPhase_Helper::effectivePhaseCount($recordModel->getData());
+			$recordModel->set('campaign_phase_count', $eff);
+		}
+
 		$recordStructureInstance = Vtiger_RecordStructure_Model::getInstanceFromRecordModel(
 			$recordModel,
 			Vtiger_RecordStructure_Model::RECORD_STRUCTURE_MODE_EDIT
@@ -100,7 +173,9 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 							$fieldModelName = $fieldModel->get('name');
 						}
 					}
-					if ($fieldName === 'product' || $fieldModelName === 'product') {
+					/* Core vtiger "Product" is product_id (reference). Keep "Products & Services" and other fields. */
+					$hideNames = array('product', 'product_id');
+					if (in_array($fieldName, $hideNames, true) || ($fieldModelName !== null && in_array($fieldModelName, $hideNames, true))) {
 						unset($blockFields[$fieldName]);
 					}
 				}
@@ -133,6 +208,27 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('MAX_UPLOAD_LIMIT_MB', Vtiger_Util_Helper::getMaxUploadSize());
 		$viewer->assign('MAX_UPLOAD_LIMIT_BYTES', Vtiger_Util_Helper::getMaxUploadSizeInBytes());
 
+		if ($moduleName === 'Campaigns') {
+			$viewer->assign('CAMPAIGN_INITIAL_PHASE_COUNT', (int) $recordModel->get('campaign_phase_count'));
+
+			require_once 'modules/Campaigns/models/CampaignFilesHelper.php';
+			$campaignFiles = array();
+			if (!empty($record)) {
+				$rec = (int) $record;
+				foreach (Campaigns_CampaignFiles_Helper::getFilesForCampaign($rec) as $f) {
+					$campaignFiles[] = array(
+						'id' => $f['id'],
+						'original_name' => $f['original_name'],
+						'download_url' => 'index.php?module=Campaigns&action=DownloadCampaignFile&record=' . $rec . '&fileid=' . (int) $f['id'],
+					);
+				}
+			}
+			$viewer->assign(
+				'CAMPAIGN_FILES_JSON',
+				json_encode($campaignFiles, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE)
+			);
+		}
+
 		if($request->get('displayMode')=='overlay'){
 			$viewer->assign('SCRIPTS',$this->getOverlayHeaderScripts($request));
 			$viewer->view('OverlayEditView.tpl', $moduleName);
@@ -141,5 +237,6 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 			$viewer->view('EditView.tpl', $moduleName);
 		}
 	}
+
 }
 

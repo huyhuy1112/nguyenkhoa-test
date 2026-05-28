@@ -1,43 +1,38 @@
 <?php
 /*+***********************************************************************************
- * Accounts Edit — premium Create workspace (SALES, new record). Stock Save + all fields.
+ * Plans Edit/Create (MARKETING) — split shell create UI (content only).
  *************************************************************************************/
 
-class Accounts_Edit_View extends Vtiger_Edit_View {
+class Plans_Edit_View extends Vtiger_Edit_View {
 
-	protected function isMkModernOrganizationCreate(Vtiger_Request $request) {
-		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
-			return false;
-		}
+	protected function isMarketingCreateShell(Vtiger_Request $request) {
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
-		$app = strtoupper((string)$request->get('app'));
-		return $app === 'SALES' || $app === 'SUPPORT' || $app === 'MARKETING' || $app === '';
+		$app = strtoupper((string) $request->get('app'));
+		if ($app !== 'MARKETING') {
+			return false;
+		}
+		// Apply to Create (and Duplicate) only.
+		return empty($request->get('record')) || $request->get('isDuplicate');
 	}
 
-	protected function assignModernContext(Vtiger_Request $request) {
+	protected function assignMarketingContext(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
-		$app = strtoupper((string)$request->get('app'));
-		$viewer->assign('SELECTED_MENU_CATEGORY', $app ? $app : 'SALES');
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'MARKETING');
 		$viewer->assign('VIEW', 'Edit');
-		$viewer->assign('MENU_SELECTED_MODULENAME', 'Accounts');
-		$viewer->assign('MK_MODERN_ORG_CREATE', true);
-	}
-
-	protected function redirectMarketingToSales(Vtiger_Request $request) {
-		// No-op: modern create supports MARKETING directly now.
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'Plans');
+		$viewer->assign('MK_PLANS_MODERN_CREATE', true);
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
-		if ($this->isMkModernOrganizationCreate($request)) {
-			$this->redirectMarketingToSales($request);
+		if ($this->isMarketingCreateShell($request)) {
 			parent::preProcess($request, false);
-			$this->assignModernContext($request);
+			$this->assignMarketingContext($request);
 			if ($display) {
 				$this->preProcessDisplay($request);
 			}
@@ -47,14 +42,14 @@ class Accounts_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function preProcessTplName(Vtiger_Request $request) {
-		if ($this->isMkModernOrganizationCreate($request)) {
+		if ($this->isMarketingCreateShell($request)) {
 			return 'EditViewPreProcess.tpl';
 		}
 		return parent::preProcessTplName($request);
 	}
 
 	public function postProcess(Vtiger_Request $request) {
-		if ($this->isMkModernOrganizationCreate($request)) {
+		if ($this->isMarketingCreateShell($request)) {
 			$viewer = $this->getViewer($request);
 			$viewer->view('EditViewPostProcess.tpl', $request->getModule());
 			Vtiger_Basic_View::postProcess($request);
@@ -64,17 +59,17 @@ class Accounts_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function process(Vtiger_Request $request) {
-		if ($this->isMkModernOrganizationCreate($request)) {
-			$this->assignModernContext($request);
+		if ($this->isMarketingCreateShell($request)) {
+			$this->assignMarketingContext($request);
 		}
 		parent::process($request);
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {
 		$headerCssInstances = parent::getHeaderCss($request);
-		if ($this->isMkModernOrganizationCreate($request)) {
+		if ($this->isMarketingCreateShell($request)) {
 			$cssFileNames = array(
-				'~layouts/v7/modules/Accounts/resources/AccountMkEdit.css',
+				'~layouts/v7/modules/Plans/resources/PlansEdit.css',
 			);
 			$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 			return array_merge($headerCssInstances, $cssInstances);
@@ -84,9 +79,9 @@ class Accounts_Edit_View extends Vtiger_Edit_View {
 
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
-		if ($this->isMkModernOrganizationCreate($request)) {
+		if ($this->isMarketingCreateShell($request)) {
 			$jsFileNames = array(
-				'~layouts/v7/modules/Accounts/resources/AccountMkEdit.js',
+				'~layouts/v7/modules/Plans/resources/PlansMkEdit.js',
 			);
 			$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 			return array_merge($headerScriptInstances, $jsScriptInstances);

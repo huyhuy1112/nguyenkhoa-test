@@ -1,10 +1,11 @@
 {* Create Contact — dashboard shell + stock vtiger #EditView (all real fields). *}
 {strip}
-{assign var=MK_LIST_URL value='index.php?module=Contacts&view=List&app=SALES'}
+{assign var=MK_APP value=((isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY neq '') ? $SELECTED_MENU_CATEGORY : ((isset($smarty.get.app) && $smarty.get.app neq '') ? $smarty.get.app : 'SALES'))}
+{assign var=MK_LIST_URL value="index.php?module=Contacts&view=List&app={$MK_APP}"}
 <div class="mk-ct-create" id="mkCtCreateWorkspace" data-mk-contact-create="1">
 	<header class="mk-ct-page-head">
 		<nav class="mk-ct-page-head__crumb" aria-label="Breadcrumb">
-			<a href="index.php?module=Home&view=MainPage&app=SALES">{vtranslate('LBL_HOME', 'Vtiger')}</a>
+			<a href="index.php?module=Home&view=MainPage&app={$MK_APP}">{vtranslate('LBL_HOME', 'Vtiger')}</a>
 			<span aria-hidden="true">/</span>
 			<a href="{$MK_LIST_URL}">{vtranslate('Contacts', $MODULE)}</a>
 			<span aria-hidden="true">/</span>

@@ -1,0 +1,799 @@
+/* Plans Create (MARKETING) — modern card wrapper for native EditView */
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-plan-edit-inner.editViewContainer {
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx {
+	--mk-planx-bg: #f7f9fb;
+	--mk-planx-card: #ffffff;
+	--mk-planx-border: #e5e7eb;
+	--mk-planx-text: #0f172a;
+	--mk-planx-muted: #64748b;
+	--mk-planx-primary: #2563eb;
+	--mk-planx-radius: 16px;
+	--mk-planx-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+	color: var(--mk-planx-text);
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-dash-main.mk-plan-edit-main {
+	background: var(--mk-planx-bg) !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-suite {
+	max-width: 1100px;
+	margin: 0 auto;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-head {
+	background: transparent;
+	margin-bottom: 12px;
+}
+
+.mk-planx-head {
+	position: relative;
+	padding: 4px 2px 6px 2px;
+}
+
+.mk-planx-head:before {
+	content: "";
+	position: absolute;
+	inset: -10px -10px auto -10px;
+	height: 120px;
+	background: radial-gradient(1200px 220px at 12% 0%, rgba(37, 99, 235, 0.16), rgba(37, 99, 235, 0) 60%),
+		radial-gradient(900px 240px at 88% 10%, rgba(124, 58, 237, 0.10), rgba(124, 58, 237, 0) 60%);
+	pointer-events: none;
+	filter: blur(0.2px);
+}
+
+.mk-planx-head__row,
+.mk-planx-bc {
+	position: relative;
+	z-index: 1;
+}
+
+.mk-planx-bc {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	color: var(--mk-planx-muted);
+	margin: 0 0 10px 0;
+}
+.mk-planx-bc__link {
+	color: #334155;
+	text-decoration: none;
+	font-weight: 600;
+}
+.mk-planx-bc__link:hover {
+	text-decoration: underline;
+}
+.mk-planx-bc__sep {
+	opacity: 0.6;
+}
+.mk-planx-bc__current {
+	opacity: 0.9;
+}
+
+.mk-planx-head__row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+.mk-planx-title {
+	margin: 0;
+	font-size: 22px;
+	line-height: 1.2;
+	font-weight: 750;
+	letter-spacing: -0.02em;
+}
+.mk-planx-sub {
+	margin-top: 6px;
+	font-size: 13px;
+	color: var(--mk-planx-muted);
+}
+
+.mk-planx-head__right {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.mk-planx-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 36px;
+	padding: 0 14px;
+	border-radius: 10px;
+	border: 1px solid transparent;
+	font-weight: 700;
+	font-size: 13px;
+	text-decoration: none !important;
+	cursor: pointer;
+	user-select: none;
+	white-space: nowrap;
+}
+.mk-planx-btn--primary {
+	background: var(--mk-planx-primary);
+	color: #fff;
+	box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+}
+.mk-planx-btn--primary:hover {
+	filter: brightness(0.98);
+}
+.mk-planx-btn--ghost {
+	background: rgba(255, 255, 255, 0.65);
+	border-color: var(--mk-planx-border);
+	color: #0f172a;
+}
+.mk-planx-btn--ghost:hover {
+	background: #fff;
+}
+
+.mk-planx-card {
+	background: var(--mk-planx-card);
+	border: 1px solid var(--mk-planx-border);
+	border-radius: var(--mk-planx-radius);
+	box-shadow: var(--mk-planx-shadow);
+	overflow: hidden;
+}
+
+/* Card padding + compact native form */
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native {
+	padding: 0 !important;
+}
+
+/* Hide legacy header/footer inside native EditView */
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .editViewHeader {
+	display: none !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native #modnavigator,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .editViewModNavigator,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .module-nav,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .sidebar-essentials {
+	display: none !important;
+}
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .modal-overlay-footer,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .editViewFooter {
+	display: none !important;
+}
+
+/* Remove LBL_* block headers */
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .fieldBlockHeader,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .blockHeader,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .blockLabel {
+	display: none !important;
+}
+
+/* Native form spacing + controls */
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .editViewPageDiv,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .content-area,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .editViewBody {
+	padding: 0 !important;
+	margin: 0 !important;
+	min-height: 0 !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .main-container {
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+/* Hide native form chrome after fields are moved */
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native.mk-planx-native--hidden {
+	position: absolute !important;
+	left: -9999px !important;
+	top: 0 !important;
+	width: 1px !important;
+	height: 1px !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+	opacity: 0 !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .editViewContainer,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .editViewContents,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .editViewBody {
+	min-height: 0 !important;
+	height: auto !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .blockContainer,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .blockData {
+	border: none !important;
+	box-shadow: none !important;
+	background: transparent !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .table.table-bordered,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native table.table {
+	border: none !important;
+	margin: 0 !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native table,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native tbody,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native tr,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native td {
+	border: none !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native tr {
+	background: transparent !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native td.fieldLabel {
+	width: 220px !important;
+	background: transparent !important;
+	border: none !important;
+	color: #475569 !important;
+	font-weight: 700 !important;
+	padding: 12px 12px 6px 8px !important;
+	vertical-align: top !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native td.fieldValue {
+	background: transparent !important;
+	border: none !important;
+	padding: 8px 8px 10px 12px !important;
+}
+
+/* ===== New content-area layout (hero/summary/cards) ===== */
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx {
+	--mk-planx-card: #ffffff;
+	--mk-planx-border: #e5e7eb;
+	--mk-planx-text: #0f172a;
+	--mk-planx-muted: #64748b;
+	--mk-planx-primary: #2563eb;
+	--mk-planx-radius: 16px;
+	--mk-planx-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-hero {
+	margin-bottom: 16px;
+}
+
+.mk-planx-hero__row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.mk-planx-layout {
+	display: grid;
+	grid-template-columns: 1fr 0.92fr;
+	gap: 16px;
+	margin-top: 16px;
+	align-items: start;
+}
+
+.mk-planx-rightCard {
+	margin-top: 12px;
+}
+
+.mk-planx-infoGrid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.mk-planx-infoFull {
+	margin-top: 12px;
+}
+
+.mk-planx-summary {
+	margin: 0 0 14px;
+}
+
+.mk-planx-summary__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.mk-planx-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	border-radius: 999px;
+	border: 1px solid var(--mk-planx-border);
+	background: #fff;
+	color: #0f172a;
+}
+
+.mk-planx-chip__ic,
+.mk-planx-chip__statusIc {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	color: #334155;
+}
+
+.mk-planx-chip__dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 999px;
+	background: #94a3b8;
+	flex-shrink: 0;
+}
+
+.mk-planx-chip__label {
+	font-size: 12.5px;
+	font-weight: 800;
+	color: #334155;
+	white-space: nowrap;
+}
+
+.mk-planx-chip__value {
+	font-size: 12.5px;
+	font-weight: 700;
+	color: #0f172a;
+	white-space: nowrap;
+}
+
+.mk-planx-card {
+	border: 1px solid var(--mk-planx-border) !important;
+	border-radius: var(--mk-planx-radius) !important;
+	background: var(--mk-planx-card) !important;
+	box-shadow: var(--mk-planx-shadow) !important;
+	overflow: hidden !important;
+}
+
+.mk-planx-card__head {
+	padding: 14px 16px;
+	border-bottom: 1px solid #e5e7eb;
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+}
+
+.mk-planx-card__title {
+	font-size: 14px;
+	font-weight: 900;
+	color: #0f172a;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.mk-planx-card__body {
+	padding: 16px;
+}
+
+.mk-planx-card--tight .mk-planx-card__body {
+	padding: 12px 14px;
+}
+
+/* Status badge colors (also reused by summary chip) */
+.mk-planx-status__badgeInner {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 9px 12px;
+	border-radius: 999px;
+	font-weight: 900;
+	font-size: 13px;
+	border: 1px solid transparent;
+	white-space: nowrap;
+}
+
+.mk-planx-status__badgeInner.mk-planx-status--draft,
+body.mk-planx-status--draft .mk-planx-chip--status,
+body.mk-planx-status--draft .mk-planx-chip--fromStatus {
+	background: rgba(148, 163, 184, 0.14);
+	border-color: rgba(148, 163, 184, 0.35);
+	color: #334155;
+}
+
+.mk-planx-status__badgeInner.mk-planx-status--planning,
+body.mk-planx-status--planning .mk-planx-chip--status,
+body.mk-planx-status--planning .mk-planx-chip--fromStatus {
+	background: rgba(37, 99, 235, 0.12);
+	border-color: rgba(37, 99, 235, 0.28);
+	color: #1d4ed8;
+}
+
+.mk-planx-status__badgeInner.mk-planx-status--inprogress,
+body.mk-planx-status--inprogress .mk-planx-chip--status,
+body.mk-planx-status--inprogress .mk-planx-chip--fromStatus {
+	background: rgba(245, 158, 11, 0.13);
+	border-color: rgba(245, 158, 11, 0.30);
+	color: #92400e;
+}
+
+.mk-planx-status__badgeInner.mk-planx-status--completed,
+body.mk-planx-status--completed .mk-planx-chip--status,
+body.mk-planx-status--completed .mk-planx-chip--fromStatus {
+	background: rgba(34, 197, 94, 0.13);
+	border-color: rgba(34, 197, 94, 0.28);
+	color: #166534;
+}
+
+.mk-planx-status__badgeInner.mk-planx-status--cancelled,
+body.mk-planx-status--cancelled .mk-planx-chip--status,
+body.mk-planx-status--cancelled .mk-planx-chip--fromStatus {
+	background: rgba(239, 68, 68, 0.13);
+	border-color: rgba(239, 68, 68, 0.30);
+	color: #991b1b;
+}
+
+/* Timeline */
+.mk-planx-timeline {
+}
+
+.mk-planx-timeline__bar {
+	height: 10px;
+	border-radius: 999px;
+	background: #f1f5f9;
+	overflow: hidden;
+	position: relative;
+}
+
+.mk-planx-timeline__fill {
+	height: 100%;
+	width: 0%;
+	background: linear-gradient(90deg, #3b82f6 0%, #f59e0b 55%, #22c55e 100%);
+	border-radius: 999px;
+	transition: width 0.35s ease;
+}
+
+.mk-planx-timeline__milestones {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 14px;
+	gap: 10px;
+}
+
+.mk-planx-tm {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+.mk-planx-tm__dot,
+.mk-planx-tm__dot span {
+	width: 12px;
+	height: 12px;
+	border-radius: 999px;
+	background: #cbd5e1;
+	box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.mk-planx-tm__lbl {
+	font-size: 12.5px;
+	font-weight: 800;
+	color: #475569;
+	white-space: nowrap;
+}
+
+.mk-planx-tm--done .mk-planx-tm__lbl,
+.mk-planx-tm--current .mk-planx-tm__lbl {
+	color: #0f172a;
+}
+
+.mk-planx-tm--done .mk-planx-tm__dot,
+.mk-planx-tm--current .mk-planx-tm__dot {
+	background: #2563eb;
+}
+
+.mk-planx-timeline__kvs {
+	margin-top: 14px;
+	display: grid;
+	gap: 10px;
+}
+
+.mk-planx-timeline__kv {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px 12px;
+	border-radius: 14px;
+	border: 1px solid #e5e7eb;
+	background: #fff;
+}
+
+.mk-planx-timeline__k {
+	font-size: 12.5px;
+	font-weight: 800;
+	color: #334155;
+}
+
+.mk-planx-timeline__v {
+	font-size: 12.5px;
+	font-weight: 800;
+	color: #0f172a;
+	text-align: right;
+	white-space: nowrap;
+}
+
+/* Activity placeholder styling */
+.mk-planx-activityItem {
+	display: flex;
+	gap: 12px;
+	padding: 10px 12px;
+	border: 1px solid #e5e7eb;
+	border-radius: 14px;
+	background: #fff;
+	margin-bottom: 10px;
+}
+
+.mk-planx-activityItem__ic {
+	width: 30px;
+	height: 30px;
+	border-radius: 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(37, 99, 235, 0.10);
+	color: #1d4ed8;
+	flex-shrink: 0;
+}
+
+.mk-planx-activityItem__title {
+	font-size: 12.5px;
+	font-weight: 900;
+	color: #0f172a;
+	margin-bottom: 3px;
+}
+
+.mk-planx-activityItem__text {
+	font-size: 12.5px;
+	font-weight: 700;
+	color: #64748b;
+}
+
+/* Native form -> old fieldCard (deprecated; keep harmless but hidden) */
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-fieldCard {
+	display: none !important;
+}
+
+/* Moved field wrapper (new grid system) */
+.mk-planx-field {
+	border: 1px solid #e5e7eb;
+	border-radius: 16px;
+	background: #fff;
+	padding: 12px;
+	transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.mk-planx-field:hover {
+	border-color: rgba(37, 99, 235, 0.30);
+	box-shadow: 0 16px 45px rgba(15, 23, 42, 0.07);
+	transform: translateY(-1px);
+}
+
+.mk-planx-field--full {
+	width: 100%;
+}
+
+.mk-planx-field__label {
+	font-size: 12.5px;
+	font-weight: 900;
+	color: #334155;
+	margin-bottom: 10px;
+}
+
+.mk-planx-req {
+	color: #ef4444;
+	margin-left: 6px;
+	font-weight: 900;
+}
+
+.mk-planx-field__control input[type="text"],
+.mk-planx-field__control input[type="number"],
+.mk-planx-field__control textarea,
+.mk-planx-field__control select {
+	width: 100% !important;
+	max-width: none !important;
+	min-height: 40px;
+	border-radius: 12px !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	padding: 10px 12px !important;
+}
+
+.mk-planx-field__control textarea {
+	min-height: 120px;
+}
+
+/* Single-border look: make control chrome live on wrapper */
+.mk-planx-field {
+	padding: 12px 12px 12px 12px;
+}
+
+.mk-planx-field__control {
+	border: 1px solid #d7dee8;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+	overflow: hidden;
+}
+
+.mk-planx-field:hover .mk-planx-field__control {
+	border-color: rgba(37, 99, 235, 0.40);
+}
+
+.mk-planx-field__control:focus-within {
+	border-color: rgba(37, 99, 235, 0.55);
+	box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+/* Date input-group: prevent double borders */
+.mk-planx-field__control .input-group {
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+.mk-planx-field__control .input-group .input-group-addon,
+.mk-planx-field__control .input-group .add-on,
+.mk-planx-field__control .input-group .input-group-btn > .btn,
+.mk-planx-field__control .input-group button {
+	border: none !important;
+	box-shadow: none !important;
+	background: #f8fafc !important;
+	color: #334155 !important;
+}
+
+.mk-planx-field__control .input-group .input-group-addon {
+	border-left: 1px solid #e2e8f0 !important;
+}
+
+.mk-planx-field__control .input-group input,
+.mk-planx-field__control .input-group select {
+	border: none !important;
+	box-shadow: none !important;
+	background: transparent !important;
+}
+
+.mk-planx-field__control select {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+}
+
+/* Status badge buttons */
+.mk-planx-statusBadges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 10px;
+}
+
+.mk-planx-sbadge {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 32px;
+	padding: 0 10px;
+	border-radius: 999px;
+	border: 1px solid #e5e7eb;
+	background: #fff;
+	font-weight: 900;
+	font-size: 12px;
+	color: #0f172a;
+	cursor: pointer;
+}
+
+.mk-planx-sbadge.is-active {
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
+}
+
+.mk-planx-sbadge--draft { background: rgba(148,163,184,0.14); border-color: rgba(148,163,184,0.35); color: #334155; }
+.mk-planx-sbadge--planning { background: rgba(37,99,235,0.12); border-color: rgba(37,99,235,0.28); color: #1d4ed8; }
+.mk-planx-sbadge--inprogress { background: rgba(245,158,11,0.13); border-color: rgba(245,158,11,0.30); color: #92400e; }
+.mk-planx-sbadge--completed { background: rgba(34,197,94,0.13); border-color: rgba(34,197,94,0.28); color: #166534; }
+.mk-planx-sbadge--cancelled { background: rgba(239,68,68,0.13); border-color: rgba(239,68,68,0.30); color: #991b1b; }
+
+/* Mini activity list */
+.mk-planx-activity__list--mini .mk-planx-activityItem {
+	padding: 8px 10px;
+	border-radius: 12px;
+	margin-bottom: 8px;
+}
+
+.mk-planx-activity__list--mini .mk-planx-activityItem__ic {
+	width: 28px;
+	height: 28px;
+	border-radius: 10px;
+}
+
+.mk-planx-activity__list--mini .mk-planx-activityItem__title {
+	font-size: 12px;
+	margin-bottom: 2px;
+}
+
+.mk-planx-activity__list--mini .mk-planx-activityItem__text {
+	font-size: 12px;
+}
+
+/* old fieldCard subparts (deprecated) */
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-fieldCard__label,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-fieldCard__control,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-fieldCard--status {
+	display: none !important;
+}
+
+@media (max-width: 991px) {
+	.mk-planx-layout {
+		grid-template-columns: 1fr;
+	}
+
+	.mk-planx-infoGrid {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native input[type="text"],
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native input[type="number"],
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native textarea,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native select {
+	width: 100% !important;
+	max-width: none !important;
+	min-height: 38px;
+	border-radius: 10px !important;
+	border: 1px solid #d7dee8 !important;
+	background: #fff !important;
+	box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+	padding: 8px 10px !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native input[type="text"]:focus,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native input[type="number"]:focus,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native textarea:focus,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native select:focus {
+	outline: none !important;
+	border-color: rgba(37, 99, 235, 0.55) !important;
+	box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12) !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native textarea {
+	min-height: 96px;
+	resize: vertical;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .select2-container .select2-choice,
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .select2-container .select2-choices {
+	min-height: 38px !important;
+	border-radius: 10px !important;
+	border: 1px solid #d7dee8 !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .select2-container .select2-choice {
+	box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02) !important;
+}
+
+body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .mk-planx-s2--placeholder .select2-chosen {
+	color: transparent !important;
+}
+
+@media (max-width: 991px) {
+	body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-head__row {
+		flex-direction: column;
+	}
+	body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-head__right {
+		width: 100%;
+		justify-content: flex-end;
+	}
+	body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native:not([data-mk-planx-decorated="1"]) td.fieldLabel {
+		width: auto !important;
+		display: block !important;
+		padding: 12px 0 6px 0 !important;
+	}
+	body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native:not([data-mk-planx-decorated="1"]) td.fieldValue {
+		display: block !important;
+		padding: 0 0 12px 0 !important;
+	}
+}
+
