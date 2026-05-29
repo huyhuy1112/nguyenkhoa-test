@@ -1,0 +1,733 @@
+/**
+ * B-ACE CRM — dark mode component overrides (token-driven).
+ * Scope: html[data-theme="dark"] — light mode CSS untouched.
+ */
+
+/* ========================================================================== */
+/* Global shell                                                               */
+/* ========================================================================== */
+
+html[data-theme="dark"],
+html[data-theme="dark"] body {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #page,
+html[data-theme="dark"] #page.container-fluid {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .main-container,
+html[data-theme="dark"] .content-area,
+html[data-theme="dark"] .listViewPageDiv {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] .mk-dash-main,
+html[data-theme="dark"] .mk-dash-main.mk-content {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .text-muted,
+html[data-theme="dark"] .mk-gi-muted {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] a {
+	color: var(--mk-text-link);
+}
+
+html[data-theme="dark"] a:hover {
+	color: var(--mk-text-link-hover);
+}
+
+/* Sidebar accordion — no cream light-mode strip */
+html[data-theme="dark"] .mk-dash-app-toggle:hover,
+html[data-theme="dark"] .mk-dash-app-toggle:focus {
+	background: var(--mk-sidebar-hover-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-dash-app-group--active > .mk-dash-app-toggle,
+html[data-theme="dark"] .mk-dash-app-group--active > .mk-dash-app-toggle:hover,
+html[data-theme="dark"] .mk-dash-app-group--active > .mk-dash-app-toggle:focus {
+	background: var(--mk-sidebar-active-bg) !important;
+	color: var(--mk-sidebar-active-text) !important;
+	box-shadow: inset -4px 0 0 var(--mk-sidebar-active-border) !important;
+}
+
+html[data-theme="dark"] .mk-dash-app-group--active > .mk-dash-app-toggle .mk-dash-svg,
+html[data-theme="dark"] .mk-dash-app-group--active.mk-dash-app-group--open .mk-dash-app-chevron {
+	color: var(--mk-sidebar-active-text) !important;
+}
+
+html[data-theme="dark"] .mk-dash-mod-link {
+	color: var(--mk-sidebar-text) !important;
+}
+
+html[data-theme="dark"] .mk-dash-mod-link:hover {
+	background: var(--mk-sidebar-hover-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-dash-mod-link--active {
+	background: var(--mk-sidebar-active-bg) !important;
+	color: var(--mk-sidebar-active-text) !important;
+	box-shadow: inset -4px 0 0 var(--mk-sidebar-active-border) !important;
+}
+
+/* ========================================================================== */
+/* Sidebar                                                                    */
+/* ========================================================================== */
+
+html[data-theme="dark"] .mk-dashboard-sidebar {
+	background: var(--mk-sidebar-bg) !important;
+	border-right-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] .mk-dash-sidebar-brand,
+html[data-theme="dark"] .mk-dash-sidebar-footer {
+	background: var(--mk-sidebar-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .mk-dash-sidebar-brand #appnavigator.mk-dash-appnavigator {
+	color: var(--mk-sidebar-icon) !important;
+}
+
+html[data-theme="dark"] .mk-dash-sidebar-brand #appnavigator.mk-dash-appnavigator:hover {
+	background: var(--mk-sidebar-hover-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-dash-hamburger-svg .mk-dash-svg,
+html[data-theme="dark"] .mk-dash-svg {
+	color: var(--mk-sidebar-icon) !important;
+}
+
+html[data-theme="dark"] .mk-dash-nav-item {
+	color: var(--mk-sidebar-text) !important;
+}
+
+html[data-theme="dark"] .mk-dash-nav-item:hover {
+	background: var(--mk-sidebar-hover-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-dash-nav-item--active {
+	background: var(--mk-sidebar-active-bg) !important;
+	color: var(--mk-sidebar-active-text) !important;
+	box-shadow: inset -4px 0 0 var(--mk-sidebar-active-border) !important;
+}
+
+html[data-theme="dark"] .mk-dash-nav-item--active .mk-dash-nav-label,
+html[data-theme="dark"] .mk-dash-nav-item--active .mk-dash-svg {
+	color: var(--mk-sidebar-active-text) !important;
+}
+
+html[data-theme="dark"] .mk-dash-user-name {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-dash-user-role {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] .mk-dash-user-avatar--fallback {
+	background: linear-gradient(145deg, #1e2430, #334155) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Accordion / app groups in sidebar */
+html[data-theme="dark"] .mk-dash-app-toggle,
+html[data-theme="dark"] .mk-dash-app-group-label {
+	color: var(--mk-sidebar-text) !important;
+}
+
+html[data-theme="dark"] .mk-dash-app-toggle:hover {
+	background: var(--mk-sidebar-hover-bg) !important;
+}
+
+/* ========================================================================== */
+/* Topbar                                                                     */
+/* ========================================================================== */
+
+html[data-theme="dark"] .mk-dash-app-topbar,
+html[data-theme="dark"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] header.mk-topbar .mk-dash-app-topbar {
+	background: var(--mk-topbar-bg) !important;
+	-webkit-backdrop-filter: var(--mk-topbar-blur);
+	backdrop-filter: var(--mk-topbar-blur);
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] .mk-dash-app-topbar .global-actions,
+html[data-theme="dark"] .mk-dash-app-topbar .navbar-nav {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] .mk-dash-app-topbar .mk-dash-topbar-linkic,
+html[data-theme="dark"] .mk-dash-app-topbar .navbar-nav > li > a,
+html[data-theme="dark"] .mk-dash-app-topbar .link-text-xs-only {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] .mk-dash-app-topbar .mk-dash-topbar-linkic:hover,
+html[data-theme="dark"] .mk-dash-app-topbar .navbar-nav > li > a:hover {
+	color: var(--mk-text-primary) !important;
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"] .mk-dash-app-topbar .search-link,
+html[data-theme="dark"] .mk-dash-app-topbar #globalSearchValue,
+html[data-theme="dark"] .mk-dash-app-topbar input[type="search"],
+html[data-theme="dark"] .mk-dash-app-topbar .global-search-input {
+	background: var(--mk-input-bg) !important;
+	color: var(--mk-input-text) !important;
+	border: 1px solid var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] .mk-dash-app-topbar .search-link::placeholder,
+html[data-theme="dark"] .mk-dash-app-topbar #globalSearchValue::placeholder {
+	color: var(--mk-input-placeholder) !important;
+}
+
+html[data-theme="dark"] .mk-dash-app-topbar .search-link:focus,
+html[data-theme="dark"] .mk-dash-app-topbar #globalSearchValue:focus {
+	border-color: var(--mk-input-focus-border) !important;
+	box-shadow: 0 0 0 4px var(--mk-input-focus-ring) !important;
+	outline: none !important;
+}
+
+html[data-theme="dark"] .mk-dash-search-ic,
+html[data-theme="dark"] .mk-dash-topbar-svg {
+	color: var(--mk-text-muted) !important;
+}
+
+/* Legacy fixed navbar (non-split pages) */
+html[data-theme="dark"] .navbar-inverse,
+html[data-theme="dark"] .app-fixed-navbar {
+	background: var(--mk-topbar-bg) !important;
+	border-color: var(--mk-topbar-border) !important;
+}
+
+/* ========================================================================== */
+/* Cards & panels                                                             */
+/* ========================================================================== */
+
+html[data-theme="dark"] .dashboardWidget,
+html[data-theme="dark"] .dashboardWidget .dashboardWidgetContent,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .panel-default,
+html[data-theme="dark"] .panel-default > .panel-heading,
+html[data-theme="dark"] .panel-default > .panel-body,
+html[data-theme="dark"] .mk-gr-detail-card,
+html[data-theme="dark"] .mk-gr-detail-stat,
+html[data-theme="dark"] .mk-gr-detail-hero-strip.detailview-header-block,
+html[data-theme="dark"] .mk-gi-table-panel,
+html[data-theme="dark"] .mk-wh-kpi-card,
+html[data-theme="dark"] .mk-campx-card,
+html[data-theme="dark"] .mk-planx-card,
+html[data-theme="dark"] .detailview-header-block,
+html[data-theme="dark"] .summaryWidgetContainer,
+html[data-theme="dark"] .widgetContainer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] .dashboardWidget:hover,
+html[data-theme="dark"] .mk-gr-detail-card:hover,
+html[data-theme="dark"] .mk-wh-kpi-card:hover {
+	background: var(--mk-card-hover) !important;
+}
+
+html[data-theme="dark"] .dashboardWidget .dashboardWidgetHeader,
+html[data-theme="dark"] .mk-gr-detail-card__head,
+html[data-theme="dark"] .mk-gi-table-toolbar,
+html[data-theme="dark"] .widget_header,
+html[data-theme="dark"] .panel-heading {
+	background: transparent !important;
+	border-bottom-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] .mk-gr-detail-card__title,
+html[data-theme="dark"] .widget_header .title,
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4 {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-gr-detail-hero__title,
+html[data-theme="dark"] .mk-gi-action-header__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-gr-detail-hero__subtitle,
+html[data-theme="dark"] .mk-gi-action-header__subtitle {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* ========================================================================== */
+/* Forms                                                                      */
+/* ========================================================================== */
+
+html[data-theme="dark"] input.form-control,
+html[data-theme="dark"] select.form-control,
+html[data-theme="dark"] textarea.form-control,
+html[data-theme="dark"] .mk-gi-input,
+html[data-theme="dark"] .mk-gi-select,
+html[data-theme="dark"] .select2-container--default .select2-selection--single,
+html[data-theme="dark"] .select2-container--default .select2-selection--multiple {
+	background: var(--mk-input-bg) !important;
+	color: var(--mk-input-text) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] input.form-control::placeholder,
+html[data-theme="dark"] textarea.form-control::placeholder,
+html[data-theme="dark"] .mk-gi-input::placeholder {
+	color: var(--mk-input-placeholder) !important;
+}
+
+html[data-theme="dark"] input.form-control:focus,
+html[data-theme="dark"] select.form-control:focus,
+html[data-theme="dark"] textarea.form-control:focus,
+html[data-theme="dark"] .mk-gi-input:focus,
+html[data-theme="dark"] .select2-container--default.select2-container--focus .select2-selection--single {
+	border-color: var(--mk-input-focus-border) !important;
+	box-shadow: 0 0 0 4px var(--mk-input-focus-ring) !important;
+	outline: none !important;
+}
+
+html[data-theme="dark"] .select2-dropdown {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .select2-results__option {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .select2-results__option--highlighted {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-primary) !important;
+}
+
+/* ========================================================================== */
+/* Buttons                                                                    */
+/* ========================================================================== */
+
+html[data-theme="dark"] .mk-gi-btn--primary,
+html[data-theme="dark"] .mk-gr-detail-btn--primary,
+html[data-theme="dark"] .btn-primary:not(.btn-link) {
+	background: var(--mk-btn-primary-bg) !important;
+	border-color: var(--mk-primary-hover) !important;
+	color: var(--mk-btn-primary-text) !important;
+}
+
+html[data-theme="dark"] .mk-gi-btn--primary:hover,
+html[data-theme="dark"] .mk-gr-detail-btn--primary:hover {
+	background: var(--mk-primary-hover) !important;
+	color: var(--mk-btn-primary-text) !important;
+}
+
+html[data-theme="dark"] .mk-gi-btn--ghost,
+html[data-theme="dark"] .mk-gi-btn--filter:not(.mk-gi-btn--primary),
+html[data-theme="dark"] .mk-gr-detail-btn,
+html[data-theme="dark"] .mk-gr-detail-btn--ghost,
+html[data-theme="dark"] .btn-default {
+	background: var(--mk-btn-secondary-bg) !important;
+	color: var(--mk-btn-secondary-text) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .mk-gi-btn--ghost:hover,
+html[data-theme="dark"] .mk-gr-detail-btn:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .mk-gr-detail-btn--danger {
+	background: var(--mk-badge-danger-bg) !important;
+	border-color: rgba(239, 68, 68, 0.35) !important;
+	color: var(--mk-badge-danger-text) !important;
+}
+
+/* ========================================================================== */
+/* Tables                                                                     */
+/* ========================================================================== */
+
+html[data-theme="dark"] .mk-gi-table,
+html[data-theme="dark"] .mk-gr-detail-table,
+html[data-theme="dark"] .mk-wh-table,
+html[data-theme="dark"] table.table {
+	background: var(--mk-table-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-gi-table thead th,
+html[data-theme="dark"] .mk-gr-detail-table thead th,
+html[data-theme="dark"] .mk-wh-table thead th,
+html[data-theme="dark"] table.table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .mk-gi-table tbody td,
+html[data-theme="dark"] .mk-gr-detail-table tbody td,
+html[data-theme="dark"] table.table tbody td {
+	border-bottom-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-gi-table tbody tr:hover td,
+html[data-theme="dark"] .mk-gr-detail-table tbody tr:hover td,
+html[data-theme="dark"] table.table tbody tr:hover td {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] .mk-gi-table__subject a,
+html[data-theme="dark"] .mk-gi-table__product a {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-gi-table-toolbar {
+	background: var(--mk-table-header-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Storage row highlights — keep semantic reds in dark */
+html[data-theme="dark"] .mk-wh-row--low {
+	background: rgba(239, 68, 68, 0.08) !important;
+}
+
+html[data-theme="dark"] .mk-wh-row--expiring {
+	background: rgba(244, 63, 94, 0.12) !important;
+}
+
+/* ========================================================================== */
+/* Chips, badges, status                                                      */
+/* ========================================================================== */
+
+html[data-theme="dark"] .mk-gi-chip {
+	background: rgba(253, 187, 44, 0.12) !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] .mk-gi-chip--type {
+	background: var(--mk-badge-info-bg) !important;
+	border-color: rgba(22, 216, 255, 0.25) !important;
+	color: var(--mk-badge-info-text) !important;
+}
+
+html[data-theme="dark"] .mk-gr-detail-status-pill {
+	background: var(--mk-badge-success-bg) !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+	color: var(--mk-badge-success-text) !important;
+}
+
+html[data-theme="dark"] .mk-wh-badge--low {
+	background: var(--mk-badge-danger-bg) !important;
+	border-color: rgba(239, 68, 68, 0.3) !important;
+	color: #fda4af !important;
+}
+
+html[data-theme="dark"] .mk-wh-badge--dangerous {
+	background: rgba(244, 63, 94, 0.18) !important;
+	border-color: rgba(244, 63, 94, 0.4) !important;
+	color: #fda4af !important;
+}
+
+html[data-theme="dark"] .label-success,
+html[data-theme="dark"] .badge-success {
+	background: var(--mk-badge-success-bg) !important;
+	color: var(--mk-badge-success-text) !important;
+}
+
+html[data-theme="dark"] .label-warning,
+html[data-theme="dark"] .badge-warning {
+	background: var(--mk-badge-warning-bg) !important;
+	color: var(--mk-badge-warning-text) !important;
+}
+
+html[data-theme="dark"] .label-danger,
+html[data-theme="dark"] .badge-danger {
+	background: var(--mk-badge-danger-bg) !important;
+	color: var(--mk-badge-danger-text) !important;
+}
+
+html[data-theme="dark"] .label-info,
+html[data-theme="dark"] .badge-info {
+	background: var(--mk-badge-info-bg) !important;
+	color: var(--mk-badge-info-text) !important;
+}
+
+/* ========================================================================== */
+/* KPI / stats                                                                */
+/* ========================================================================== */
+
+html[data-theme="dark"] .mk-gr-detail-stat--accent,
+html[data-theme="dark"] .mk-wh-kpi-card--warn {
+	background: rgba(253, 187, 44, 0.08) !important;
+	border-color: rgba(253, 187, 44, 0.25) !important;
+}
+
+html[data-theme="dark"] .mk-gr-detail-stat__value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-gr-detail-stat--accent .mk-gr-detail-stat__value {
+	color: var(--mk-kpi-inventory) !important;
+}
+
+/* ========================================================================== */
+/* Filters, breadcrumbs, topnav                                               */
+/* ========================================================================== */
+
+html[data-theme="dark"] .mk-gi-filter-bar,
+html[data-theme="dark"] .mk-wh-filter-panel .mk-gi-filter-bar,
+html[data-theme="dark"] .mk-gr-detail-topnav,
+html[data-theme="dark"] .mk-gi-topnav {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .mk-gr-detail-topnav a.is-active,
+html[data-theme="dark"] .mk-gi-topnav a.is-active {
+	background: var(--mk-sidebar-active-bg) !important;
+	color: var(--mk-primary) !important;
+	box-shadow: inset 0 0 0 1px rgba(253, 187, 44, 0.25) !important;
+}
+
+html[data-theme="dark"] .mk-gi-breadcrumb__item a,
+html[data-theme="dark"] .mk-gr-detail-breadcrumb__item a {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] .mk-gi-breadcrumb__item--current span,
+html[data-theme="dark"] .mk-gr-detail-breadcrumb__item--current .mk-gr-detail-breadcrumb__text {
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Profile dropdown, notifications, quick create                              */
+/* ========================================================================== */
+
+html[data-theme="dark"] .modern-profile-dropdown.logout-content,
+html[data-theme="dark"] .dropdown-menu.modern-profile-dropdown {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] .modern-profile-header {
+	background: var(--mk-bg-secondary) !important;
+}
+
+html[data-theme="dark"] .modern-profile-name {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .modern-profile-role,
+html[data-theme="dark"] .modern-profile-action-label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] a.modern-profile-action:hover {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .modern-profile-divider,
+html[data-theme="dark"] .modern-profile-logout-wrap {
+	border-color: var(--mk-border-color) !important;
+	background: var(--mk-bg-secondary) !important;
+}
+
+html[data-theme="dark"] .modern-profile-dark-toggle {
+	background: var(--mk-secondary) !important;
+}
+
+html[data-theme="dark"] .modern-profile-dark-toggle--on {
+	background: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] .modern-profile-dark-toggle--on:hover {
+	background: var(--mk-primary-hover) !important;
+}
+
+html[data-theme="dark"] .modern-notifications-panel,
+html[data-theme="dark"] .modern-quick-create-panel {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .dropdown-menu.modern-notifications-dropdown,
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-panel-header,
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-items.modern-notifications-items-host,
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-items > .modern-notification-item {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-panel-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .modern-notification-title,
+html[data-theme="dark"] #modern-notifications-container .modern-notification-record-link .modern-notification-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .modern-notification-subtitle,
+html[data-theme="dark"] #modern-notifications-container .modern-notification-record-link .modern-notification-subtitle {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .modern-notification-datetime,
+html[data-theme="dark"] #modern-notifications-container .modern-notification-record-link .modern-notification-datetime {
+	color: #93c5fd !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-items > .modern-notification-item.read-notification {
+	opacity: 0.85;
+}
+
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-items > .modern-notification-item.read-notification .modern-notification-title,
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-items > .modern-notification-item.read-notification .modern-notification-subtitle,
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-items > .modern-notification-item.read-notification .modern-notification-datetime {
+	opacity: 1;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-items > .modern-notification-item.deadline-notification {
+	background: rgba(127, 29, 29, 0.25) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-items > .modern-notification-item:hover {
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-action-txt,
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-action-label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-mark-all-read.modern-notifications-action-txt,
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-mark-all-read .modern-notifications-action-ic-doublecheck {
+	color: #fbbf24 !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-trash-icon,
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-delete-all .modern-notifications-action-ic {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-empty-msg {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-divider {
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-footer {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-view-all-link,
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-view-all-link:hover,
+html[data-theme="dark"] #modern-notifications-container .modern-notifications-view-all-link:focus {
+	color: #f8fafc !important;
+}
+
+/* ========================================================================== */
+/* Modals, overlays, app menu                                                 */
+/* ========================================================================== */
+
+html[data-theme="dark"] .modal-content {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .modal-header,
+html[data-theme="dark"] .modal-footer {
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] #app-menu.app-menu,
+html[data-theme="dark"] .app-list.row {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .overlayPageContent .modal-content {
+	background: var(--mk-bg-elevated) !important;
+}
+
+/* ========================================================================== */
+/* Charts (jqPlot in widgets)                                                   */
+/* ========================================================================== */
+
+html[data-theme="dark"] .widgetChartContainer .jqplot-axis-label,
+html[data-theme="dark"] .widgetChartContainer .jqplot-tick-label,
+html[data-theme="dark"] .widgetChartContainer .jqplot-point-label {
+	color: var(--mk-chart-axis) !important;
+	fill: var(--mk-chart-axis) !important;
+}
+
+html[data-theme="dark"] .widgetChartContainer .jqplot-grid-canvas {
+	background: transparent !important;
+}
+
+/* ========================================================================== */
+/* Login (minimal)                                                            */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-view="Login"] .login-container,
+html[data-theme="dark"] .loginDiv {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Field blocks (detail / edit native vtiger)                                 */
+/* ========================================================================== */
+
+html[data-theme="dark"] .detailViewContainer .block,
+html[data-theme="dark"] .editViewContents .fieldBlockContainer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .fieldLabel,
+html[data-theme="dark"] .fieldValue {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .fieldLabel label {
+	color: var(--mk-text-secondary) !important;
+}

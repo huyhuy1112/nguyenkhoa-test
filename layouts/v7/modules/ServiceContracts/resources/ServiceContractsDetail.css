@@ -37,12 +37,12 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-d
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .main-container.mk-sc-detail-page {
 	width: 100%;
-	max-width: 1232px;
-	margin-left: auto !important;
-	margin-right: auto !important;
+	max-width: none;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
 	padding-top: 24px !important;
 	padding-bottom: 32px !important;
-	padding-left: 48px !important;
+	padding-left: 32px !important;
 	padding-right: 32px !important;
 	box-sizing: border-box;
 	position: relative !important;
@@ -471,7 +471,16 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .rela
 	box-shadow: none;
 }
 
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse {
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-header {
+	display: none !important;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse.collapse {
+	display: block !important;
+	height: auto !important;
+	visibility: visible !important;
+	overflow: visible !important;
 	padding: 0;
 }
 
@@ -703,25 +712,32 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	min-height: 0;
 }
 
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-summary-grid {
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-summary-grid,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid {
 	margin: 24px 0 0;
 	display: grid;
-	grid-template-columns: minmax(320px, 1fr) minmax(0, 2fr);
+	grid-template-columns: minmax(300px, 1fr) minmax(0, 1.4fr);
 	grid-template-areas:
 		"key activities"
-		"key documents"
-		"key comments";
-	gap: 24px;
+		"overview overview"
+		"documents comments";
+	gap: 20px;
 	align-items: start;
 	width: 100%;
 	min-width: 0;
 	box-sizing: border-box;
 }
 
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__key        { grid-area: key; }
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__activities { grid-area: activities; }
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__documents  { grid-area: documents; }
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__comments   { grid-area: comments; }
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__key,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__key        { grid-area: key; }
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__activities,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__activities { grid-area: activities; }
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__overview,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__overview  { grid-area: overview; }
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__documents,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__documents  { grid-area: documents; }
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__comments,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__comments   { grid-area: comments; }
 
 @media (max-width: 1199px) {
 	body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-summary-grid {
@@ -729,6 +745,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 		grid-template-areas:
 			"key"
 			"activities"
+			"overview"
 			"documents"
 			"comments";
 	}

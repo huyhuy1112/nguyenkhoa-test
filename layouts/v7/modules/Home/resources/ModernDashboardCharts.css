@@ -1,0 +1,108 @@
+/* ModernDashboard jqPlot theme polish (scoped) */
+
+body[data-view="ModernDashboard"] .mk-modern-jqplot-tooltip {
+    background: rgba(15, 23, 42, 0.92) !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(148, 163, 184, 0.25) !important;
+    border-radius: 12px !important;
+    padding: 10px 12px !important;
+    box-shadow: 0 14px 30px rgba(2, 6, 23, 0.35) !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    backdrop-filter: blur(10px);
+}
+
+body[data-view="ModernDashboard"] .mk-modern-jqplot-tooltip__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-jqplot-tooltip__label {
+    color: rgba(226, 232, 240, 0.75);
+    font-weight: 600;
+    font-size: 11px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-jqplot-tooltip__value {
+    color: #f8fafc;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+/* Modern axis & title appearance (DOM elements jqPlot creates) */
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root .jqplot-title {
+    color: #0f172a !important;
+    font-weight: 750 !important;
+    letter-spacing: -0.01em;
+    font-size: 13px !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root .jqplot-axis {
+    color: #94a3b8 !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root .jqplot-axis-tick,
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root .jqplot-tick-label {
+    color: #94a3b8 !important;
+    font-weight: 650 !important;
+    font-size: 11px !important;
+}
+
+/* Legend container refinement */
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root table.jqplot-table-legend,
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root table.jqplot-cursor-legend {
+    background: rgba(255, 255, 255, 0.86) !important;
+    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.10) !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root td.jqplot-table-legend {
+    padding: 4px 8px !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root .jqplot-table-legend-label {
+    color: #334155 !important;
+    font-weight: 650 !important;
+    font-size: 11px !important;
+}
+
+/* =========================
+   Debug styling (enabled by body.mk-debug-charts)
+   ========================= */
+body[data-view="ModernDashboard"].mk-debug-charts .mk-modern-dashboard-root .jqplot-target,
+body[data-view="ModernDashboard"].mk-debug-charts .mk-modern-dashboard-root .widgetChartContainer {
+    outline: 3px solid #ff0033 !important;
+    outline-offset: 2px !important;
+}
+
+body[data-view="ModernDashboard"].mk-debug-charts .mk-modern-dashboard-root .jqplot-table-legend {
+    background: rgba(0, 255, 170, 0.25) !important;
+    border-color: #00ffaa !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-jqplot-tooltip table {
+    border-collapse: collapse;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-jqplot-tooltip td {
+    padding: 2px 6px 2px 0;
+    white-space: nowrap;
+}
+
+/* Pie / donut: soften label strokes (jqPlot uses canvas text, but some labels become DOM) */
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root .jqplot-point-label,
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root .jqplot-data-label {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+/* Legend swatches: round */
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root .jqplot-table-legend-swatch-outline {
+    border-radius: 999px !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+}
+

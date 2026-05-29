@@ -1,0 +1,632 @@
+/**
+ * B-ACE CRM — GLOBAL dark mode (all pages, all apps).
+ * Strategy: remap shared CSS variables + vtiger/bootstrap shells.
+ * Load after MkThemeDark.css / MkThemeDarkModules.css.
+ */
+
+/* ========================================================================== */
+/* Ambient canvas + shared design tokens on every page                        */
+/* ========================================================================== */
+
+html[data-theme="dark"] body {
+	color-scheme: dark;
+	background-color: var(--mk-bg-primary) !important;
+	background-image:
+		radial-gradient(ellipse 100% 70% at 100% -15%, rgba(253, 187, 44, 0.07), transparent 52%),
+		radial-gradient(ellipse 80% 55% at 0% 105%, rgba(22, 216, 255, 0.05), transparent 48%) !important;
+	background-attachment: fixed;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"],
+html[data-theme="dark"] body[data-view="ModernDashboard"] {
+	--mk-bg: var(--mk-bg-primary);
+	--mk-card: var(--mk-card-bg);
+	--mk-card-border: var(--mk-border-color);
+	--mk-text: var(--mk-text-primary);
+	--mk-muted: var(--mk-text-secondary);
+	--mk-primary: var(--mk-text-link);
+	--mk-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+	--mk-shadow-md: var(--mk-shadow-card);
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] {
+	--mk-mainpage-bg: var(--mk-bg-primary);
+}
+
+html[data-theme="dark"] html.mk-mainpage-ui-ready,
+html[data-theme="dark"] html.mk-mainpage-ui-ready body[data-module="Home"][data-view="MainPage"],
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] #page,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .main-container,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-figma-root {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Page shells (Dashboard, List, Detail, Edit, MainPage, Login exception below) */
+/* ========================================================================== */
+
+html[data-theme="dark"] #page,
+html[data-theme="dark"] #page.container-fluid,
+html[data-theme="dark"] .main-container,
+html[data-theme="dark"] .content-area,
+html[data-theme="dark"] .listViewPageDiv,
+html[data-theme="dark"] .detailViewContainer,
+html[data-theme="dark"] .detailview-content,
+html[data-theme="dark"] .editViewContents,
+html[data-theme="dark"] .editViewBody,
+html[data-theme="dark"] .contents,
+html[data-theme="dark"] .contentsDiv,
+html[data-theme="dark"] .listViewContentDiv,
+html[data-theme="dark"] .listViewEntriesDiv,
+html[data-theme="dark"] .dashboard-page-root,
+html[data-theme="dark"] .mk-dashboard-shell,
+html[data-theme="dark"] .dashBoardContainer,
+html[data-theme="dark"] .dashBoardTabContents {
+	background-color: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] #page,
+html[data-theme="dark"] .dashboard-page-root {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] .mk-dash-main,
+html[data-theme="dark"] .mk-dash-main.mk-content,
+html[data-theme="dark"] body[data-view="List"] .mk-dash-main,
+html[data-theme="dark"] body[data-view="Detail"] .mk-dash-main,
+html[data-theme="dark"] body[data-view="Edit"] .mk-dash-main,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-dash-main {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* Dashboard page title */
+html[data-theme="dark"] .mk-dashboard-kicker {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] .mk-dashboard-title,
+html[data-theme="dark"] .mk-dashboard-title-block h1,
+html[data-theme="dark"] .mk-dashboard-title-block h2 {
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Dashboard widgets (use --mk-card variables — reinforced)                   */
+/* ========================================================================== */
+
+html[data-theme="dark"] .dashBoardTabContents ul li.dashboardWidget,
+html[data-theme="dark"] .dashBoardTabContents ul li.dashboardWidget .dashboardWidgetHeader,
+html[data-theme="dark"] .dashBoardTabContents ul li.dashboardWidget .dashboardWidgetContent,
+html[data-theme="dark"] .dashboardWidget,
+html[data-theme="dark"] .dashboardWidgetHeader,
+html[data-theme="dark"] .dashboardWidgetContent,
+html[data-theme="dark"] .widgetChartContainer {
+	background: var(--mk-card-bg) !important;
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .dashboardWidgetHeader .title,
+html[data-theme="dark"] .dashboardWidgetHeader .dashboardTitle,
+html[data-theme="dark"] .dashboardWidgetHeader .widgetTitle {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .dashboardWidgetContent .emptyRecordsDiv,
+html[data-theme="dark"] .dashboardWidgetContent .emptyRecordsContent,
+html[data-theme="dark"] .widgetContents .emptyRecordsDiv {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] .dashBoardTabContents ul li.dashboardWidget:hover {
+	border-color: rgba(253, 187, 44, 0.25) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+/* Dashboard tabs */
+html[data-theme="dark"] .dashBoardContainer .nav-tabs > li > a {
+	color: var(--mk-text-muted) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] .dashBoardContainer .nav-tabs > li.active > a,
+html[data-theme="dark"] .dashBoardContainer .nav-tabs > li.active > a:hover {
+	color: var(--mk-primary) !important;
+	border-color: var(--mk-primary) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] .mk-dash-figma-btn,
+html[data-theme="dark"] .btn.btn-default {
+	background: var(--mk-btn-secondary-bg) !important;
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .btn.btn-primary,
+html[data-theme="dark"] .btn-primary:not(.btn-link) {
+	background: var(--mk-btn-primary-bg) !important;
+	color: var(--mk-btn-primary-text) !important;
+	border-color: var(--mk-primary-hover) !important;
+}
+
+/* ========================================================================== */
+/* Bootstrap / vtiger legacy blocks                                           */
+/* ========================================================================== */
+
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .panel-default,
+html[data-theme="dark"] .panel-default > .panel-heading,
+html[data-theme="dark"] .panel-default > .panel-body,
+html[data-theme="dark"] .panel-body,
+html[data-theme="dark"] .well,
+html[data-theme="dark"] .block,
+html[data-theme="dark"] .fieldBlockContainer,
+html[data-theme="dark"] .summaryWidgetContainer,
+html[data-theme="dark"] .relatedContents,
+html[data-theme="dark"] .overlayDetail .modal-content,
+html[data-theme="dark"] .overlayEdit .modal-content {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .panel-heading,
+html[data-theme="dark"] .block h4,
+html[data-theme="dark"] .fieldBlockContainer h4 {
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .table,
+html[data-theme="dark"] table.table,
+html[data-theme="dark"] .table-bordered,
+html[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .table > thead > tr > th,
+html[data-theme="dark"] table.table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .table > tbody > tr > td,
+html[data-theme="dark"] table.table tbody td {
+	border-color: var(--mk-border-subtle) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .table > tbody > tr:hover > td,
+html[data-theme="dark"] table.table tbody tr:hover td {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] .table a,
+html[data-theme="dark"] table.table a {
+	color: var(--mk-text-link) !important;
+}
+
+/* ========================================================================== */
+/* List views (all apps) — kill light hover + white table chrome                */
+/* ========================================================================== */
+
+html[data-theme="dark"] #listViewContent #listview-table tbody tr.listViewEntries:hover,
+html[data-theme="dark"] .listViewEntriesTable tbody tr:hover,
+html[data-theme="dark"] tr.listViewEntries:hover {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] #listViewContent #listview-table tbody tr.listViewEntries td,
+html[data-theme="dark"] .listViewEntriesTable tbody td {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #listViewContent #listview-table tbody td a,
+html[data-theme="dark"] .listViewEntriesTable tbody td a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] #table-content.table-container,
+html[data-theme="dark"] .listview-table,
+html[data-theme="dark"] .floatThead-wrapper {
+	background: var(--mk-card-bg) !important;
+}
+
+/* ========================================================================== */
+/* Detail / Edit field tables                                                   */
+/* ========================================================================== */
+
+html[data-theme="dark"] .detailview-table .fieldLabel,
+html[data-theme="dark"] .detailview-table .fieldLabel label,
+html[data-theme="dark"] .editViewContents .fieldLabel,
+html[data-theme="dark"] .fieldLabel {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] .detailview-table .fieldValue,
+html[data-theme="dark"] .detailview-table .fieldValue .value,
+html[data-theme="dark"] .detailview-table .fieldValue .displayValue,
+html[data-theme="dark"] .fieldValue .value,
+html[data-theme="dark"] .fieldValue span:not(.badge):not(.label):not([class*="-pill"]):not([class*="-status-dot"]) {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .fieldValue a,
+html[data-theme="dark"] .detailview-table .fieldValue a {
+	color: var(--mk-text-link) !important;
+}
+
+/* ========================================================================== */
+/* Evaluate dashboard (Marketing) — full page                                   */
+/* ========================================================================== */
+
+html[data-theme="dark"] .mk-eval-dashboard,
+html[data-theme="dark"] body[data-module="Evaluate"] .mk-dash-main {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-eval-breadcrumb__item a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] .mk-eval-breadcrumb__item a:hover,
+html[data-theme="dark"] .mk-eval-page-head__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-eval-page-head__subtitle {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] .mk-eval-kpi,
+html[data-theme="dark"] .mk-eval-panel,
+html[data-theme="dark"] .mk-eval-table-wrap {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-eval-kpi__label,
+html[data-theme="dark"] .mk-eval-panel__sub {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] .mk-eval-kpi__value,
+html[data-theme="dark"] .mk-eval-panel__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-eval-kpi--accent {
+	border-left-color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] .mk-eval-table-wrap thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .mk-eval-table-wrap tbody td {
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] .mk-eval-table-wrap tbody td a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] .mk-eval-list-toolbar {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] .mk-eval-filter__field .form-control {
+	background: var(--mk-input-bg) !important;
+	color: var(--mk-input-text) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] .mk-eval-pagination a,
+html[data-theme="dark"] .mk-eval-pagination span {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .mk-eval-pagination .is-active {
+	background: var(--mk-primary) !important;
+	border-color: var(--mk-primary-hover) !important;
+	color: var(--mk-btn-primary-text) !important;
+}
+
+html[data-theme="dark"] .mk-eval-type-tag {
+	background: var(--mk-badge-info-bg) !important;
+	color: var(--mk-badge-info-text) !important;
+	border: 1px solid rgba(22, 216, 255, 0.25);
+}
+
+html[data-theme="dark"] .mk-eval-roi-pos {
+	color: var(--mk-kpi-roi) !important;
+}
+
+html[data-theme="dark"] .mk-eval-roi-neg {
+	color: var(--mk-danger) !important;
+}
+
+/* ========================================================================== */
+/* Modern mk-* page wrappers (Inventory, Sales, Support, Marketing)           */
+/* ========================================================================== */
+
+html[data-theme="dark"] [class*="mk-gi-page"],
+html[data-theme="dark"] [class*="mk-camp-page"],
+html[data-theme="dark"] [class*="mk-eval-"],
+html[data-theme="dark"] [class*="mk-wh-"],
+html[data-theme="dark"] [class*="mk-gr-"],
+html[data-theme="dark"] [class*="mk-so-"],
+html[data-theme="dark"] [class*="mk-leads-"],
+html[data-theme="dark"] [class*="mk-contact-"],
+html[data-theme="dark"] [class*="mk-org-"],
+html[data-theme="dark"] [class*="mk-plan-"],
+html[data-theme="dark"] [class*="mk-ct-"],
+html[data-theme="dark"] [class*="mk-opportunity-"],
+html[data-theme="dark"] [class*="mk-mainpage-"] {
+	color: var(--mk-text-primary);
+}
+
+/* White cards inside mk modules — high-specificity sweep */
+html[data-theme="dark"] .mk-dash-main [class*="-table-card"],
+html[data-theme="dark"] .mk-dash-main [class*="-card"]:not([class*="icon"]):not([class*="btn"]),
+html[data-theme="dark"] .mk-dash-main .mk-gi-table-panel,
+html[data-theme="dark"] .mk-dash-main .mk-wh-kpi-section,
+html[data-theme="dark"] .mk-dash-main .detailview-header-block,
+html[data-theme="dark"] .mk-dash-main .mk-camp-detail-hero-strip,
+html[data-theme="dark"] .mk-dash-main .mk-camp-kpi-card,
+html[data-theme="dark"] .mk-dash-main .mk-gr-detail-card,
+html[data-theme="dark"] .mk-dash-main .mk-gr-detail-stat {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+/* Generic chips only — status/type pills: see MkThemeDarkMarketing.css */
+html[data-theme="dark"] .mk-dash-main .mk-gi-chip,
+html[data-theme="dark"] .mk-dash-main [class*="chip--type"]:not([class*="status"]):not([class*="plan"]):not([class*="camp"]) {
+	background: rgba(253, 187, 44, 0.12) !important;
+	color: var(--mk-primary) !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+}
+
+/* ========================================================================== */
+/* jqPlot / chart empty states in widgets                                       */
+/* ========================================================================== */
+
+html[data-theme="dark"] .jqplot-error,
+html[data-theme="dark"] .jqplot-highlighter,
+html[data-theme="dark"] .mk-dash-jqplot-tooltip {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* ========================================================================== */
+/* Select2 global                                                             */
+/* ========================================================================== */
+
+html[data-theme="dark"] .select2-container--default .select2-selection--single,
+html[data-theme="dark"] .select2-container--default .select2-selection--multiple,
+html[data-theme="dark"] .select2-dropdown {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .select2-container--default .select2-selection__rendered {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .select2-results__option--highlighted[aria-selected] {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-primary) !important;
+}
+
+/* Select2 v3 — list search picklists (OpportunityList.css forces #fff on .select2-choice) */
+html[data-theme="dark"] .select2-container .select2-choice,
+html[data-theme="dark"] .select2-container-active .select2-choice,
+html[data-theme="dark"] .select2-dropdown-open .select2-choice {
+	background: var(--mk-input-bg) !important;
+	background-color: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] .select2-container .select2-chosen,
+html[data-theme="dark"] .select2-container .select2-choice > span {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] #select2-drop,
+html[data-theme="dark"] .select2-drop {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .select2-results .select2-result-label {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .select2-results .select2-highlighted {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-primary) !important;
+}
+
+/* ========================================================================== */
+/* CASCADE FIX — beat module CSS loaded after Header (PreProcess <link>)        */
+/* ========================================================================== */
+
+/* Remap DashBoard.css tokens on body (module CSS re-declares light --mk-card) */
+html[data-theme="dark"] body[data-view="DashBoard"],
+html[data-theme="dark"] body[data-view="ModernDashboard"] {
+	--mk-bg: #12151c !important;
+	--mk-card: #1c2330 !important;
+	--mk-card-border: rgba(255, 255, 255, 0.1) !important;
+	--mk-text: #f8fafc !important;
+	--mk-muted: #94a3b8 !important;
+	--mk-primary: #5ee9ff !important;
+	--mk-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+	--mk-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] #page {
+	background: var(--mk-bg-primary) !important;
+}
+
+/* Split-shell: topbar + sidebar (DashBoard.css forces #fff !important) */
+html[data-theme="dark"] body .mk-topbar .mk-dash-app-topbar {
+	background: var(--mk-topbar-bg) !important;
+	-webkit-backdrop-filter: var(--mk-topbar-blur);
+	backdrop-filter: var(--mk-topbar-blur);
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+}
+
+html[data-theme="dark"] body .mk-dashboard-sidebar,
+html[data-theme="dark"] body .mk-dash-sidebar-brand {
+	background: var(--mk-sidebar-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body .mk-dash-app-topbar.navbar-default .navbar-nav > li > a,
+html[data-theme="dark"] body .mk-dash-app-topbar.navbar-default .navbar-nav > li > div > a,
+html[data-theme="dark"] body .mk-dash-app-topbar .mk-dash-search-input,
+html[data-theme="dark"] body .mk-dash-app-topbar .global-search-input {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Main canvas — all split-shell views */
+html[data-theme="dark"] body[data-view="List"] .mk-dash-main,
+html[data-theme="dark"] body[data-view="Detail"] .mk-dash-main,
+html[data-theme="dark"] body[data-view="Edit"] .mk-dash-main,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-dash-main,
+html[data-theme="dark"] body[data-view="MainPage"] .mk-dash-main,
+html[data-theme="dark"] body .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body #page,
+html[data-theme="dark"] body #page.container-fluid {
+	background: var(--mk-bg-primary) !important;
+}
+
+/* Evaluate — white KPI/chart cards from EvaluateDashboard.css */
+html[data-theme="dark"] body[data-module="Evaluate"] .mk-eval-dashboard,
+html[data-theme="dark"] body[data-module="Evaluate"] .mk-eval-page-head__title,
+html[data-theme="dark"] body[data-module="Evaluate"] .mk-eval-kpi__value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Evaluate"] .mk-eval-kpi,
+html[data-theme="dark"] body[data-module="Evaluate"] .mk-eval-panel,
+html[data-theme="dark"] body[data-module="Evaluate"] .mk-eval-table-wrap {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Evaluate"] .mk-eval-filter__field .form-control {
+	background: var(--mk-input-bg) !important;
+	color: var(--mk-input-text) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Evaluate"] .mk-eval-table-wrap thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Campaigns list — table card + row hover */
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"] .mk-so-table-card,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"] .mk-camp-table-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries td,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries td .value,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries td .fieldValue {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"] #listViewContent #listview-table tbody td a {
+	color: var(--mk-text-link) !important;
+}
+
+/* Campaign detail — hero + field blocks */
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"] .mk-camp-detail-hero-strip.detailview-header-block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"] .mk-camp-kpi-card,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"] .mk-campaign-detail-blocks .block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"] .fieldValue .value,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"] .fieldValue .displayValue,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"] .mk-campaign-detail-blocks .fieldValue span {
+	color: var(--mk-text-primary) !important;
+}
+
+/* Warehouse / inventory lists */
+html[data-theme="dark"] body[data-module="Warehouse"] .mk-gi-table-panel,
+html[data-theme="dark"] body[data-module="Warehouse"] .mk-wh-kpi-section,
+html[data-theme="dark"] body[data-module="Warehouse"] .mk-wh-kpi-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"] .mk-wh-kpi-card__label {
+	color: var(--mk-text-muted) !important;
+}
+
+/* Marketing list shared cards (Plans, Leads, Contacts, …) */
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-so-table-card,
+html[data-theme="dark"] body[data-app="SALES"] .mk-so-table-card,
+html[data-theme="dark"] body[data-app="INVENTORY"] .mk-gi-table-panel {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+/* Dashboard tabs (active tab text was #0f172a on dark) */
+html[data-theme="dark"] body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma > li.dashboardTab.active > a,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma > li.dashboardTab.active > a:hover {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashBoardContainer .tabContainer > ul.mk-dashboard-tabs--figma > li.dashboardTab > a {
+	color: var(--mk-text-muted) !important;
+}
+
+/* Widget footer strip */
+html[data-theme="dark"] body[data-view="DashBoard"] .dashBoardTabContents ul li.dashboardWidget .dashBoardWidgetFooter {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+}

@@ -29,6 +29,17 @@
 			</div>
 		</section>
 
+		{if isset($RECORD_STRUCTURE) && $RECORD_STRUCTURE|@count gt 0}
+		<section class="mk-sc-detail-card mk-sc-detail-card--overview mk-sc-detail-grid__overview" aria-labelledby="mk-sc-detail-overview-title">
+			<div class="mk-sc-detail-card__head">
+				<h2 id="mk-sc-detail-overview-title" class="mk-sc-detail-card__title">{vtranslate('LBL_DETAILS', $MODULE_NAME)}</h2>
+			</div>
+			<div class="mk-sc-detail-overview-body">
+				{include file='DetailViewBlockView.tpl'|@vtemplate_path:$MODULE_NAME RECORD_STRUCTURE=$RECORD_STRUCTURE MODULE_NAME=$MODULE_NAME}
+			</div>
+		</section>
+		{/if}
+
 		{if $DOCUMENT_WIDGET_MODEL}
 		<section class="mk-sc-detail-card mk-sc-detail-card--documents mk-sc-detail-grid__documents" aria-labelledby="mk-sc-detail-documents-title">
 			<div class="summaryWidgetContainer mk-sc-detail-widget-host">

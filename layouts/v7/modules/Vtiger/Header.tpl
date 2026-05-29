@@ -10,6 +10,16 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<script type="text/javascript">
+			(function () {
+				try {
+					if (localStorage.getItem('mk-crm-theme') === 'dark') {
+						document.documentElement.setAttribute('data-theme', 'dark');
+						document.documentElement.classList.add('dark-mode');
+					}
+				} catch (e) {}
+			})();
+		</script>
 		<title>B-ACE</title>
         <link rel="icon" type="image/png" sizes="32x32" href="layouts/v7/skins/images/favicon-32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="layouts/v7/skins/images/favicon-16.png">
@@ -53,12 +63,19 @@
 			<link type="text/css" rel="{$cssModel->getRel()}" href="{vresource_url($cssModel->getHref())}" media="{$cssModel->getMedia()}" />
 		{/foreach}
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernNotifications.css')}" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernQuickCreate.css')}" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernProfileDropdown.css')}" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeTokens.css')}?mk_v=dark_global_v18" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDark.css')}?mk_v=dark_global_v18" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkModules.css')}?mk_v=dark_global_v18" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkGlobal.css')}?mk_v=dark_global_v18" media="screen" />
 		{if $MODULE_NAME eq 'Products'}
 			<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Products/resources/Products.css')}" media="screen" />
 		{/if}
 		{* cv = cache-bust: dùng filemtime hoặc thời điểm hiện tại để menu/custom CSS luôn mới sau chuyển trang hoặc refresh *}
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/custom.css')}&amp;cv={$CUSTOM_CSS_VERSION|default:$smarty.now}" media="screen" />
+		{include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}
 
 		{* For making pages - print friendly *}
 		<style type="text/css">
@@ -70,6 +87,7 @@
 		<script type="text/javascript">var __pageCreationTime = (new Date()).getTime();</script>
 		<script src="{vresource_url('layouts/v7/lib/jquery/jquery.min.js')}"></script>
 		<script src="{vresource_url('layouts/v7/lib/jquery/jquery-migrate-1.4.1.js')}"></script>
+		<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkTheme.js')}"></script>
 		<script type="text/javascript">
 			var _META = { 'module': "{$MODULE}", view: "{$VIEW}", 'parent': "{$PARENT_MODULE}", 'notifier':"{$NOTIFIER_URL}", 'app':"{if isset($SELECTED_MENU_CATEGORY)} {$SELECTED_MENU_CATEGORY}{/if}" };
             {if $EXTENSION_MODULE}
@@ -84,7 +102,7 @@
 		</script>
 	</head>
 	 {assign var=CURRENT_USER_MODEL value=Users_Record_Model::getCurrentUserModel()}
-	<body data-skinpath="{Vtiger_Theme::getBaseThemePath()}" data-module="{$MODULE}" data-language="{$LANGUAGE}" data-app="{if isset($SELECTED_MENU_CATEGORY)}{$SELECTED_MENU_CATEGORY}{/if}" data-user-decimalseparator="{$CURRENT_USER_MODEL->get('currency_decimal_separator')}" data-user-dateformat="{$CURRENT_USER_MODEL->get('date_format')}"
+	<body data-skinpath="{Vtiger_Theme::getBaseThemePath()}" data-module="{$MODULE}" data-view="{if isset($VIEW)}{$VIEW}{/if}" data-language="{$LANGUAGE}" data-app="{if isset($SELECTED_MENU_CATEGORY)}{$SELECTED_MENU_CATEGORY}{/if}" data-user-decimalseparator="{$CURRENT_USER_MODEL->get('currency_decimal_separator')}" data-user-dateformat="{$CURRENT_USER_MODEL->get('date_format')}"
           data-user-groupingseparator="{$CURRENT_USER_MODEL->get('currency_grouping_separator')}" data-user-numberofdecimals="{$CURRENT_USER_MODEL->get('no_of_currency_decimals')}" data-user-hourformat="{$CURRENT_USER_MODEL->get('hour_format')}"
           data-user-calendar-reminder-interval="{$CURRENT_USER_MODEL->getCurrentUserActivityReminderInSeconds()}">
             <input type="hidden" id="start_day" value="{$CURRENT_USER_MODEL->get('dayoftheweek')}" /> 

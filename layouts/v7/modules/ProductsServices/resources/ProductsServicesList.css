@@ -540,12 +540,46 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table {
 	margin-bottom: 0;
 	width: 100%;
-	min-width: 1230px;
+	max-width: 100%;
+	min-width: 0;
 	box-sizing: border-box;
 	border-collapse: collapse;
 	border-spacing: 0;
-	table-layout: auto;
+	table-layout: fixed;
 	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.listViewRecordActions,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th:has(.table-actions) {
+	width: 88px;
+	max-width: 88px;
+}
+
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th[data-columnname="productsservicesname"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="productsservicesname"] {
+	width: 30%;
+}
+
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th[data-columnname="item_type"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="item_type"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-ps-type-cell {
+	width: 12%;
+}
+
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th[data-columnname="price"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="price"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-ps-price-cell {
+	width: 14%;
+}
+
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th[data-columnname="wholesale_price"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="wholesale_price"] {
+	width: 14%;
+}
+
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th[data-columnname="warranty"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="warranty"] {
+	width: 12%;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader {
@@ -554,7 +588,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th {
 	box-sizing: border-box;
-	height: 48px;
+	height: 42px;
 	padding: 0 10px;
 	vertical-align: middle;
 	border-bottom: 1px solid #d4c4ad;
@@ -575,15 +609,23 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td {
 	box-sizing: border-box;
-	height: 64px;
-	min-height: 64px;
+	height: 48px;
+	min-height: 48px;
 	padding: 0 10px;
 	vertical-align: middle;
 	border-bottom: 1px solid #eceef0;
-	font-size: 15px;
+	font-size: 14px;
 	font-weight: 400;
 	line-height: 1.35;
 	color: #191c1e;
+}
+
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="productsservicesname"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="wholesale_price"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="warranty"] .value {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
@@ -836,12 +878,12 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	display: none !important;
 }
 
-/* Row actions column — prevent overlap */
+/* Row actions column — checkbox + drag + quick actions */
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr td:first-child,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr th:first-child {
-	width: 120px;
-	min-width: 120px;
-	max-width: 120px;
+	width: 100px;
+	min-width: 100px;
+	max-width: 100px;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions {

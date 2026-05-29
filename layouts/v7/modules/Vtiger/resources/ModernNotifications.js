@@ -32,7 +32,56 @@
         .closest(".nav-tabs")
         .hide();
 
+      this.bindActionHandlers();
+
+      jQuery(document).on(
+        "click",
+        "#modern-notifications-view-all",
+        function (e) {
+          e.stopPropagation();
+        }
+      );
+
+      /* Keep non-interactive clicks inside the panel from closing the Bootstrap dropdown. */
+      jQuery("#modern-notifications-list")
+        .off("click.modernNotificationsPanel")
+        .on("click.modernNotificationsPanel", function (e) {
+          if (
+            jQuery(e.target).closest(
+              "button, a, input, label, .modern-notification-checkbox-wrap"
+            ).length
+          ) {
+            return;
+          }
+          e.stopPropagation();
+        });
+
       this.initialized = true;
+    },
+
+    bindActionHandlers: function () {
+      var self = this;
+      var $actions = jQuery(
+        "#modern-notifications-mark-all-read, #modern-notifications-delete-selected, #modern-notifications-delete-all"
+      );
+      if (!$actions.length) {
+        return;
+      }
+
+      $actions
+        .off("click.modernNotificationsActions")
+        .on("click.modernNotificationsActions", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var id = this.id;
+          if (id === "modern-notifications-mark-all-read") {
+            self.markAllAsRead();
+          } else if (id === "modern-notifications-delete-selected") {
+            self.deleteSelectedNotifications();
+          } else if (id === "modern-notifications-delete-all") {
+            self.deleteAllNotifications();
+          }
+        });
     },
 
     checkUnreadCountOnly: function () {
@@ -335,15 +384,15 @@
             var unreadList = (response.list || []).filter(function (n) {
               return String(n.is_read) === "0";
             });
-            if (!self.isFirstLoad) {
+              if (!self.isFirstLoad) {
               self.checkForNewNotifications(unreadList);
-            } else {
+              } else {
               if (unreadList.length > 0) {
                 for (var i = 0; i < unreadList.length; i++) {
                   self.previousIds.push(unreadList[i].id);
+                  }
                 }
-              }
-              self.isFirstLoad = false;
+                self.isFirstLoad = false;
             }
           }
         },
@@ -366,6 +415,9 @@
       var markAllBtn = document.getElementById(
         "modern-notifications-mark-all-read"
       );
+      var headerUnread = document.getElementById(
+        "modern-notifications-header-badge"
+      );
       var countNum = Number(count) || 0;
 
       if (countNum > 0) {
@@ -374,11 +426,19 @@
         if (markAllBtn) {
           markAllBtn.style.display = "";
         }
+        if (headerUnread) {
+          headerUnread.textContent = countNum + " NEW";
+          headerUnread.style.display = "";
+        }
       } else {
         badge.textContent = "";
         badge.style.display = "none";
         if (markAllBtn) {
           markAllBtn.style.display = "none";
+        }
+        if (headerUnread) {
+          headerUnread.textContent = "";
+          headerUnread.style.display = "none";
         }
       }
     },
@@ -403,12 +463,14 @@
       }
       emptyMsg.hide();
       itemsContainer.show();
+      itemsContainer.css({ display: "flex", "flex-direction": "column" });
       actionsContainer.show();
 
       for (var i = 0; i < list.length; i++) {
         var isRead = String(list[i].is_read) === "1";
         this.renderNotificationItem(list[i], itemsContainer[0], isRead);
       }
+      this.updateDeleteButtonState();
     },
 
     decodeHtmlEntities: function (text) {
@@ -416,6 +478,17 @@
       var textarea = document.createElement("textarea");
       textarea.innerHTML = text;
       return textarea.value;
+    },
+
+    /** First line vs remainder for two-line layout (no API change). */
+    splitMessageForDisplay: function (message) {
+      if (!message) {
+        return { title: "", body: "" };
+      }
+      var parts = message.split(/\r?\n/);
+      var title = (parts[0] || "").trim();
+      var body = parts.slice(1).join("\n").trim();
+      return { title: title, body: body };
     },
 
     highlightKeywords: function (text) {
@@ -469,7 +542,11 @@
 
       // Decode HTML entities in message and highlight keywords
       message = this.decodeHtmlEntities(message);
-      var highlightedMessage = this.highlightKeywords(message);
+      var splitMsg = this.splitMessageForDisplay(message);
+      var titleHtml = this.highlightKeywords(splitMsg.title);
+      var bodyHtml = splitMsg.body
+        ? this.highlightKeywords(splitMsg.body)
+        : "";
 
       if (recordId) {
         detailUrl =
@@ -488,11 +565,9 @@
       var isDeadlineReminder =
         message.indexOf("sắp đến hạn") !== -1 ||
         message.indexOf("sắp hết hạn") !== -1;
-      if (isDeadlineReminder) {
-        li.classList.add("deadline-notification");
-      }
-
       // Checkbox is ONLY for delete-selection (NOT read-state)
+      var checkboxWrap = document.createElement("span");
+      checkboxWrap.className = "modern-notification-checkbox-wrap";
       var checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.className = "modern-notification-checkbox";
@@ -508,20 +583,83 @@
         }
         self.updateDeleteButtonState();
       });
-      li.appendChild(checkbox);
+      checkboxWrap.appendChild(checkbox);
+      li.appendChild(checkboxWrap);
 
-      // Content wrapper with left margin for checkbox and warning icon
+      if (isDeadlineReminder) {
+        li.classList.add("deadline-notification");
+        var deadlineFlag = document.createElement("span");
+        deadlineFlag.className = "modern-notification-deadline-flag";
+        deadlineFlag.setAttribute("aria-hidden", "true");
+        deadlineFlag.textContent = "⚠";
+        li.appendChild(deadlineFlag);
+      }
+
       var contentWrapper = document.createElement("div");
+      contentWrapper.className = "modern-notification-content";
+
+      var inner = document.createElement("div");
+      inner.className = "modern-notification-inner";
+
+      var mainRow = document.createElement("div");
+      mainRow.className = "modern-notification-main-row";
+
+      var textBlock = document.createElement("div");
+      textBlock.className = "modern-notification-text-block";
+
+      var titleDiv = document.createElement("div");
+      titleDiv.className = "modern-notification-title";
+      titleDiv.innerHTML = titleHtml;
+
+      var bodyDiv = null;
+      if (bodyHtml) {
+        bodyDiv = document.createElement("div");
+        bodyDiv.className = "modern-notification-subtitle";
+        bodyDiv.innerHTML = bodyHtml;
+      }
+
+      var dateDiv = null;
+      if (createdAt) {
+        dateDiv = document.createElement("div");
+        dateDiv.className = "modern-notification-datetime";
+        dateDiv.textContent = this.formatDate(createdAt);
+      }
 
       // Create link first if needed
       var link = null;
       if (detailUrl) {
         link = document.createElement("a");
         link.href = detailUrl;
-        link.style.textDecoration = "none";
-        link.style.color = "#333";
-        link.style.display = "block";
+        link.className = "modern-notification-record-link";
+        link.appendChild(titleDiv);
+        if (bodyDiv) {
+          link.appendChild(bodyDiv);
+        }
+        if (dateDiv) {
+          link.appendChild(dateDiv);
+        }
+        textBlock.appendChild(link);
+      } else {
+        textBlock.appendChild(titleDiv);
+        if (bodyDiv) {
+          textBlock.appendChild(bodyDiv);
+        }
+        if (dateDiv) {
+          textBlock.appendChild(dateDiv);
+        }
       }
+
+      mainRow.appendChild(textBlock);
+
+        if (!isRead) {
+        var unreadDot = document.createElement("span");
+        unreadDot.className = "modern-notification-unread-dot";
+        unreadDot.setAttribute("aria-hidden", "true");
+        mainRow.appendChild(unreadDot);
+      }
+
+      inner.appendChild(mainRow);
+      contentWrapper.appendChild(inner);
 
       // Clicking the item marks as read (if unread) - checkbox click is ignored above
       li.addEventListener("click", function (e) {
@@ -532,58 +670,6 @@
           self.markAsRead(notificationId, li, checkbox);
         }
       });
-
-      if (link) {
-        var messageDiv = document.createElement("div");
-        messageDiv.style.marginBottom = "5px";
-        messageDiv.innerHTML = highlightedMessage;
-        // Unread notifications are bold, read notifications are normal
-        if (!isRead) {
-          messageDiv.style.fontWeight = "bold";
-          messageDiv.style.color = "#2c3e50";
-        } else {
-          messageDiv.style.fontWeight = "normal";
-          messageDiv.style.color = "#999";
-        }
-
-        if (createdAt) {
-          var dateDiv = document.createElement("div");
-          dateDiv.style.fontSize = "11px";
-          dateDiv.style.color = isRead ? "#bbb" : "#999";
-          dateDiv.textContent = this.formatDate(createdAt);
-
-          link.appendChild(messageDiv);
-          link.appendChild(dateDiv);
-          contentWrapper.appendChild(link);
-        } else {
-          link.appendChild(messageDiv);
-          contentWrapper.appendChild(link);
-        }
-      } else {
-        var messageDiv = document.createElement("div");
-        messageDiv.style.marginBottom = "5px";
-        messageDiv.innerHTML = highlightedMessage;
-        // Unread notifications are bold, read notifications are normal
-        if (!isRead) {
-          messageDiv.style.fontWeight = "bold";
-          messageDiv.style.color = "#2c3e50";
-        } else {
-          messageDiv.style.fontWeight = "normal";
-          messageDiv.style.color = "#999";
-        }
-
-        if (createdAt) {
-          var dateDiv = document.createElement("div");
-          dateDiv.style.fontSize = "11px";
-          dateDiv.style.color = "#999";
-          dateDiv.textContent = this.formatDate(createdAt);
-
-          contentWrapper.appendChild(messageDiv);
-          contentWrapper.appendChild(dateDiv);
-        } else {
-          contentWrapper.appendChild(messageDiv);
-        }
-      }
 
       li.appendChild(contentWrapper);
       container.appendChild(li);
@@ -907,9 +993,9 @@
       var checkedBoxes = jQuery(".modern-notification-checkbox:checked");
       var deleteSelectedBtn = jQuery("#modern-notifications-delete-selected");
       if (checkedBoxes.length > 0) {
-        deleteSelectedBtn.show();
+        deleteSelectedBtn.addClass("is-visible").removeAttr("style");
       } else {
-        deleteSelectedBtn.hide();
+        deleteSelectedBtn.removeClass("is-visible").removeAttr("style");
       }
     },
 
@@ -1004,6 +1090,10 @@
         clearInterval(this.intervalId);
         this.intervalId = null;
       }
+      jQuery("#modern-notifications-list").off("click.modernNotificationsPanel");
+      jQuery(
+        "#modern-notifications-mark-all-read, #modern-notifications-delete-selected, #modern-notifications-delete-all"
+      ).off("click.modernNotificationsActions");
       this.initialized = false;
       this.lastRenderedNotificationId = 0;
       this.previousIds = [];
@@ -1014,36 +1104,6 @@
 
   jQuery(document).ready(function () {
     ModernNotifications.init();
-
-    jQuery(document).on(
-      "click",
-      "#modern-notifications-mark-all-read",
-      function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        ModernNotifications.markAllAsRead();
-      }
-    );
-
-    jQuery(document).on(
-      "click",
-      "#modern-notifications-delete-selected",
-      function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        ModernNotifications.deleteSelectedNotifications();
-      }
-    );
-
-    jQuery(document).on(
-      "click",
-      "#modern-notifications-delete-all",
-      function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        ModernNotifications.deleteAllNotifications();
-      }
-    );
   });
 
   window.ModernNotifications = ModernNotifications;

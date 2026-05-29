@@ -1,350 +1,538 @@
 /* ============================================
-   Modern Notifications – Giao diện đẹp, hiện đại
+   Modern Notifications — Figma dropdown (scoped)
+   All rules scoped under #modern-notifications-container or .modern-notifications-dropdown
    ============================================ */
 
-/* ----- Panel dropdown ----- */
-.dropdown-menu.modern-notifications-dropdown {
-    min-width: 360px !important;
-    max-width: 420px;
-    max-height: 480px;
+#modern-notifications-container .dropdown-menu.modern-notifications-dropdown {
+    box-sizing: border-box;
+    z-index: 1040;
+    width: 446px;
+    max-width: calc(100vw - 24px);
+    min-width: 0 !important;
+    max-height: 644px;
     padding: 0;
-    border: none;
-    border-radius: 14px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    margin-top: 8px;
+    margin-right: 0;
+    left: auto !important;
+    right: 0 !important;
+    float: none;
     overflow: hidden;
-    background: #fff;
+    background: #ffffff;
+    border: 1px solid #d4c4ad;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    /* Must not override Bootstrap closed state — see .open rules below */
+    display: none !important;
+}
+
+/* Bootstrap adds .open on the inner wrapper div (getParent = toggle.parent()) or on li.dropdown */
+#modern-notifications-container.open .dropdown-menu.modern-notifications-dropdown,
+#modern-notifications-container .open > .dropdown-menu.modern-notifications-dropdown {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#modern-notifications-container .modern-notifications-dropdown > li {
+    list-style: none;
 }
 
 /* ----- Header ----- */
-.modern-notifications-dropdown .dropdown-header {
-    padding: 16px 18px 0 !important;
+#modern-notifications-container .modern-notifications-panel-header.dropdown-header {
+    padding: 16px 16px 8px !important;
     margin: 0;
-    border-bottom: none;
-    background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+    border-bottom: 1px solid #d4c4ad;
+    background: #ffffff;
+    flex: 0 0 auto;
 }
 
-.modern-notifications-dropdown .dropdown-header > div:first-child {
+#modern-notifications-container .modern-notifications-header-top {
     display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+#modern-notifications-container .modern-notifications-panel-title {
+    margin: 0;
+    padding: 0;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 36px;
+    color: #191c1e;
+}
+
+#modern-notifications-container .modern-notifications-header-unread-pill {
+    display: none;
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    background: #bbdeff;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 15px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #41627f;
+}
+
+/* ----- Action row ----- */
+#modern-notifications-container .modern-notifications-actions-row {
+    display: flex !important;
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 12px !important;
+    flex-wrap: nowrap;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 8px;
+    box-sizing: border-box;
 }
 
-.modern-notifications-dropdown .dropdown-header strong {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1e293b;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-}
-
-#modern-notifications-actions {
-    display: flex !important;
+#modern-notifications-container .modern-notifications-actions-left {
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+    flex: 0 1 auto;
 }
 
-#modern-notifications-mark-all-read,
-#modern-notifications-delete-selected,
-#modern-notifications-delete-all {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-    font-weight: 500;
-    border-radius: 8px;
-    transition: background 0.2s ease, color 0.2s ease;
-    border: 1px solid rgba(148, 163, 184, 0.25);
-}
-
-#modern-notifications-mark-all-read {
-    color: #2563eb !important;
-    background: rgba(37, 99, 235, 0.08);
-}
-
-#modern-notifications-mark-all-read:hover {
-    background: rgba(37, 99, 235, 0.15);
-    color: #1d4ed8 !important;
-}
-
-#modern-notifications-delete-selected,
-#modern-notifications-delete-all {
-    color: #dc2626 !important;
-    background: rgba(220, 38, 38, 0.06);
-}
-
-#modern-notifications-delete-selected:hover,
-#modern-notifications-delete-all:hover {
-    background: rgba(220, 38, 38, 0.12);
-    color: #b91c1c !important;
-}
-
-/* ----- Tabs ----- */
-.modern-notifications-dropdown .nav-tabs {
-    border-bottom: 1px solid #e2e8f0 !important;
-    margin: 0 -18px 0 -18px !important;
-    padding: 0 18px !important;
-}
-
-/* Single combined list: hide legacy read/unread tabs UI */
-.modern-notifications-dropdown .nav-tabs {
-    display: none !important;
-}
-
-/* Single combined list: hide the old "read empty" message */
-#modern-notifications-empty-read {
-    display: none !important;
-}
-
-.modern-notifications-dropdown .nav-tabs li {
-    margin-bottom: -1px;
-}
-
-.modern-notifications-dropdown .nav-tabs li a {
-    padding: 12px 16px !important;
-    font-size: 13px;
-    font-weight: 500;
-    color: #64748b;
-    border: none !important;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-    cursor: pointer;
-    transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.modern-notifications-dropdown .nav-tabs li a:hover {
-    color: #334155;
-}
-
-.modern-notifications-dropdown .nav-tabs li.active a {
-    color: #2563eb;
-    border-bottom-color: #2563eb !important;
-}
-
-/* ----- Divider ----- */
-.modern-notifications-dropdown .divider {
-    margin: 0;
-    height: 1px;
-    background: #e2e8f0;
-}
-
-/* ----- Danh sách thông báo ----- */
-#modern-notifications-items {
-    padding: 8px !important;
-    max-height: 360px;
-    overflow-y: auto;
-}
-
-#modern-notifications-items::-webkit-scrollbar {
-    width: 6px;
-}
-
-#modern-notifications-items::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 3px;
-}
-
-#modern-notifications-items::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
-}
-
-#modern-notifications-items::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-}
-
-/* ----- Từng item thông báo ----- */
-.modern-notification-item {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
-    color: #334155;
-    padding: 10px 12px 10px 44px !important;
-    margin-bottom: 6px !important;
-    border: none !important;
-    border-radius: 10px;
-    background: #f8fafc;
-    border-left: 3px solid transparent;
-    position: relative !important;
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-    list-style: none;
-    border-bottom: none !important;
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
-}
-
-.modern-notification-item:last-child {
-    margin-bottom: 0 !important;
-}
-
-.modern-notification-item:hover {
-    background: #f1f5f9;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-}
-
-.modern-notification-item a {
-    font-family: inherit;
-    color: inherit;
-    text-decoration: none !important;
-    display: block;
-    transition: color 0.2s ease;
-}
-
-.modern-notification-item a:hover {
-    color: #2563eb;
-}
-
-.modern-notification-item div {
-    font-family: inherit;
-}
-
-.modern-notification-item .notification-keyword {
-    display: inline;
-    font-weight: 600;
-    padding: 0 2px;
-    border-radius: 2px;
-    transition: opacity 0.2s ease;
-}
-
-.modern-notification-item .notification-keyword:hover {
-    opacity: 0.9;
-}
-
-.modern-notification-item .notification-keyword[style*="#e67e22"] { color: #ea580c !important; }
-.modern-notification-item .notification-keyword[style*="#3498db"] { color: #2563eb !important; }
-.modern-notification-item .notification-keyword[style*="#e74c3c"] { color: #dc2626 !important; }
-.modern-notification-item .notification-keyword[style*="#9b59b6"] { color: #7c3aed !important; }
-.modern-notification-item .notification-keyword[style*="#f39c12"] { color: #d97706 !important; }
-.modern-notification-item .notification-keyword[style*="#1abc9c"] { color: #0d9488 !important; }
-.modern-notification-item .notification-keyword[style*="#8e44ad"] { color: #6d28d9 !important; }
-.modern-notification-item .notification-keyword[style*="#27ae60"] { color: #059669 !important; }
-
-/* Thời gian */
-.modern-notification-item div[style*="font-size: 11px"],
-.modern-notification-item a div:last-child {
-    font-size: 12px !important;
-    color: #94a3b8 !important;
-    margin-top: 4px;
-}
-
-/* ----- Selection checkbox (delete selected only) ----- */
-#modern-notifications-items input.modern-notification-checkbox {
-    position: absolute !important;
-    left: 14px !important;
-    top: 50% !important;
-    transform: translateY(-50%);
-    width: 18px !important;
-    height: 18px !important;
-    margin: 0 !important;
+#modern-notifications-container .modern-notifications-action-txt {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
     padding: 0 !important;
-    border-radius: 5px !important;
-    border: 1.5px solid #cbd5e1 !important;
-    background: #ffffff !important;
-    cursor: pointer !important;
-    -webkit-appearance: none !important;
-    appearance: none !important;
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
-    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 14px;
+    letter-spacing: 0.7px;
+    text-decoration: none !important;
+    cursor: pointer;
 }
 
-#modern-notifications-items input.modern-notification-checkbox:hover {
-    border-color: #94a3b8 !important;
+#modern-notifications-container #modern-notifications-mark-all-read.modern-notifications-action-txt {
+    color: #7c5800 !important;
 }
 
-#modern-notifications-items input.modern-notification-checkbox:checked {
-    background: #16a34a !important;
-    border-color: #16a34a !important;
-    box-shadow: 0 1px 0 rgba(22, 163, 74, 0.25);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23fff' d='M6.2 11.2 3.6 8.6l-1 1 3.6 3.6L13.4 6l-1-1z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 12px 12px;
+#modern-notifications-container #modern-notifications-delete-all.modern-notifications-action-txt {
+    color: #504533 !important;
 }
 
-/* Content wrapper: cách checkbox một chút */
-.modern-notification-item > div {
-    margin-left: 0 !important;
+#modern-notifications-container #modern-notifications-delete-selected.modern-notifications-delete-selected-btn {
+    margin-left: auto;
+    flex: 0 0 auto;
+    display: none;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    color: #504533 !important;
+    justify-content: flex-end;
 }
 
-.modern-notification-item.deadline-notification > div {
-    margin-left: 0 !important;
+#modern-notifications-container #modern-notifications-delete-selected.modern-notifications-delete-selected-btn.is-visible {
+    display: inline-flex !important;
 }
 
-/* ----- Thông báo đã đọc ----- */
-.modern-notification-item.read-notification {
-    opacity: 0.82 !important;
-    background: #f9fafb !important;
+#modern-notifications-container .modern-notifications-trash-icon {
+    font-size: 13px;
+    line-height: 1;
+    color: #504533;
 }
 
-.modern-notification-item.read-notification a {
-    color: #64748b !important;
+#modern-notifications-container .modern-notifications-action-txt:hover,
+#modern-notifications-container .modern-notifications-action-txt:focus {
+    text-decoration: underline !important;
+    outline: none;
 }
 
-.modern-notification-item.read-notification div {
-    color: #64748b !important;
+#modern-notifications-container .modern-notifications-action-ic {
+    font-size: 13px;
+    line-height: 1;
 }
 
-.modern-notification-item:not(.read-notification) {
-    opacity: 1 !important;
-    border-left-color: #2563eb;
+#modern-notifications-container .modern-notifications-action-ic-doublecheck {
+    display: inline-flex;
+    gap: 1px;
+    color: #7c5800;
 }
 
-/* No unread dot: read/unread handled by card styling only */
-
-/* ----- Thông báo deadline (sắp đến hạn) ----- */
-.modern-notification-item.deadline-notification {
-    background: #fff1f2 !important;
-    border-left: 3px solid #fb7185 !important;
-    font-weight: 600 !important;
-    box-shadow: 0 1px 0 rgba(225, 29, 72, 0.08);
+#modern-notifications-container .modern-notifications-action-ic-doublecheck .fa-check {
+    font-size: 9px;
 }
 
-/* Deadline: keep lane clean (⚠ at 14px, checkbox moved right) */
-#modern-notifications-items .modern-notification-item.deadline-notification input.modern-notification-checkbox {
-    left: 40px !important;
+#modern-notifications-container .modern-notifications-action-sep-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 9999px;
+    background: #d4c4ad;
+    flex: 0 0 auto;
 }
 
-.modern-notification-item.deadline-notification::before {
-    content: "⚠";
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 15px;
-    color: #e11d48;
-    z-index: 1;
-    pointer-events: none;
+/* Legacy tabs (hidden by JS + CSS) */
+#modern-notifications-container .modern-notifications-legacy-tabs.nav-tabs,
+#modern-notifications-container .modern-notifications-dropdown .nav-tabs {
+    display: none !important;
 }
 
-/* (checkbox hidden) */
-
-.modern-notification-item.deadline-notification a {
-    color: #9f1239 !important;
+#modern-notifications-container #modern-notifications-empty-read.modern-notifications-empty-read,
+#modern-notifications-container #modern-notifications-empty-read {
+    display: none !important;
 }
 
-.modern-notification-item.deadline-notification a:hover {
-    color: #881337 !important;
-}
-
-.modern-notification-item.deadline-notification .notification-keyword {
-    color: #dc2626 !important;
+/* ----- Dividers ----- */
+#modern-notifications-container .modern-notifications-divider.divider {
+    margin: 0;
+    height: 0;
+    padding: 0;
+    border: none;
+    border-top: 1px solid #d4c4ad;
+    background: transparent;
+    flex: 0 0 auto;
 }
 
 /* ----- Empty state ----- */
-#modern-notifications-empty-unread,
-#modern-notifications-empty-read {
-    padding: 32px 24px !important;
+#modern-notifications-container .modern-notifications-empty-msg {
+    padding: 24px 16px !important;
     text-align: center;
-    color: #94a3b8 !important;
+    color: #64748b !important;
     font-size: 14px;
+    font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    flex: 0 0 auto;
 }
 
-/* ----- Bell shake khi có thông báo mới ----- */
-.bell-shake {
-    animation: bellShake 0.5s ease-in-out;
+/* ----- Scroll list host (li wraps notification rows) ----- */
+#modern-notifications-container #modern-notifications-items.modern-notifications-items-host {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 500px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: #ffffff;
+    -webkit-overflow-scrolling: touch;
 }
 
-@keyframes bellShake {
+#modern-notifications-container #modern-notifications-items.modern-notifications-items-host::-webkit-scrollbar {
+    width: 6px;
+}
+
+#modern-notifications-container #modern-notifications-items.modern-notifications-items-host::-webkit-scrollbar-track {
+    background: #f2f4f6;
+}
+
+#modern-notifications-container #modern-notifications-items.modern-notifications-items-host::-webkit-scrollbar-thumb {
+    background: #c4b8a8;
+    border-radius: 3px;
+}
+
+/* ----- Each notification row ----- */
+#modern-notifications-container #modern-notifications-items > .modern-notification-item {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    margin: 0 !important;
+    border: none;
+    border-radius: 0;
+    border-top: 1px solid rgba(212, 196, 173, 0.3);
+    background: #ffffff;
+    list-style: none;
+    position: relative;
+    font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    transition: background-color 0.15s ease;
+}
+
+#modern-notifications-container #modern-notifications-items > .modern-notification-item:first-child {
+    border-top: none;
+}
+
+#modern-notifications-container #modern-notifications-items > .modern-notification-item:hover {
+    background: #faf9f7;
+}
+
+#modern-notifications-container .modern-notification-deadline-flag {
+    flex: 0 0 auto;
+    margin-top: 4px;
+    font-size: 15px;
+    line-height: 1;
+    color: #e11d48;
+    user-select: none;
+}
+
+/* Kill TODC/Bootstrap global checkbox :checked::after (positions top:-6px; floats when input is static). */
+#modern-notifications-container #modern-notifications-items > .modern-notification-item::before,
+#modern-notifications-container #modern-notifications-items > .modern-notification-item::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* ----- Checkbox column (wrapper) ----- */
+#modern-notifications-container .modern-notification-checkbox-wrap {
+    box-sizing: border-box;
+    width: 16px;
+    flex: 0 0 16px;
+    padding-top: 4px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    align-self: flex-start;
+}
+
+/* Text column vertical alignment with checkbox column */
+#modern-notifications-container .modern-notification-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-top: 4px;
+}
+
+#modern-notifications-container .modern-notification-inner {
+    width: 100%;
+}
+
+#modern-notifications-container .modern-notification-main-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+#modern-notifications-container .modern-notification-text-block {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+#modern-notifications-container .modern-notification-title {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 22px;
+    color: #191c1e;
+    font-weight: 600;
+    width: 100%;
+    word-break: break-word;
+}
+
+#modern-notifications-container .modern-notification-item.read-notification .modern-notification-title {
+    font-weight: 500;
+}
+
+#modern-notifications-container .modern-notification-subtitle {
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 400;
+    color: #504533;
+    width: 100%;
+    word-break: break-word;
+}
+
+#modern-notifications-container .modern-notification-datetime {
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #274a65;
+    margin-top: 2px;
+}
+
+#modern-notifications-container .modern-notification-record-link {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    text-decoration: none !important;
+    color: inherit;
+    width: 100%;
+}
+
+#modern-notifications-container .modern-notification-record-link:hover .modern-notification-title,
+#modern-notifications-container .modern-notification-record-link:focus .modern-notification-title {
+    text-decoration: underline;
+}
+
+#modern-notifications-container .modern-notification-unread-dot {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 9999px;
+    background: #fdbb2c;
+}
+
+#modern-notifications-container .modern-notification-item.read-notification .modern-notification-unread-dot {
+    display: none !important;
+}
+
+#modern-notifications-container .modern-notification-item .notification-keyword {
+    display: inline;
+    font-weight: 600;
+}
+
+/* ----- Read / unread states ----- */
+#modern-notifications-container #modern-notifications-items > .modern-notification-item.read-notification {
+    opacity: 0.6;
+}
+
+#modern-notifications-container #modern-notifications-items > .modern-notification-item.read-notification .modern-notification-title,
+#modern-notifications-container #modern-notifications-items > .modern-notification-item.read-notification .modern-notification-subtitle,
+#modern-notifications-container #modern-notifications-items > .modern-notification-item.read-notification .modern-notification-datetime {
+    opacity: 1;
+}
+
+#modern-notifications-container #modern-notifications-items > .modern-notification-item:not(.read-notification) {
+    opacity: 1;
+}
+
+/* ----- Selection checkbox (delete selected) — override TODC bootstrap input[type=checkbox]:checked:after ----- */
+#modern-notifications-container #modern-notifications-items input.modern-notification-checkbox {
+    position: relative !important;
+    flex: 0 0 16px;
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 4px !important;
+    border: 1px solid #827561 !important;
+    background: #e0e3e5 !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    box-shadow: none !important;
+    flex-shrink: 0;
+}
+
+/* Remove global theme checkbox tick (url image, negative top/left) */
+#modern-notifications-container #modern-notifications-items input.modern-notification-checkbox::after {
+    content: none !important;
+    display: none !important;
+    background: none !important;
+    background-image: none !important;
+    border: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+#modern-notifications-container #modern-notifications-items input.modern-notification-checkbox:hover {
+    border-color: #5c4d3d !important;
+}
+
+/* Custom tick drawn inside the 16×16 box only when checked */
+#modern-notifications-container #modern-notifications-items input.modern-notification-checkbox:checked {
+    background: #e0e3e5 !important;
+    background-image: none !important;
+    border-color: #827561 !important;
+}
+
+#modern-notifications-container #modern-notifications-items input.modern-notification-checkbox:checked::after {
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+    left: 4px !important;
+    top: 1px !important;
+    width: 5px !important;
+    height: 9px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    background-image: none !important;
+    border: solid #504533 !important;
+    border-width: 0 2px 2px 0 !important;
+    border-radius: 0 !important;
+    transform: rotate(45deg) !important;
+    box-sizing: border-box !important;
+    box-shadow: none !important;
+}
+
+#modern-notifications-container #modern-notifications-items input.modern-notification-checkbox:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+#modern-notifications-container #modern-notifications-items input.modern-notification-checkbox:disabled:checked::after {
+    opacity: 0.85;
+}
+
+/* Deadline lane */
+#modern-notifications-container #modern-notifications-items > .modern-notification-item.deadline-notification {
+    background: #fff8f8;
+}
+
+/* ----- Footer ----- */
+#modern-notifications-container .modern-notifications-footer {
+    flex: 0 0 auto;
+    margin: 0 !important;
+    padding: 8px;
+    background: #f2f4f6;
+    border-top: 1px solid #d4c4ad;
+    list-style: none;
+}
+
+#modern-notifications-container .modern-notifications-view-all-link {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 8px 0;
+    font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 14px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    text-decoration: none !important;
+    color: #504533 !important;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+#modern-notifications-container .modern-notifications-view-all-link:hover,
+#modern-notifications-container .modern-notifications-view-all-link:focus {
+    color: #2f2a24 !important;
+    text-decoration: none !important;
+}
+
+/* ----- Bell badge (navbar) ----- */
+#modern-notifications-container .modern-notifications-badge {
+    position: absolute;
+    top: -4px;
+    right: -6px;
+}
+
+/* ----- Bell shake (scoped to notification bell) ----- */
+#modern-notifications-bell.bell-shake {
+    animation: modernNotificationsBellShake 0.5s ease-in-out;
+}
+
+@keyframes modernNotificationsBellShake {
     0%, 100% { transform: translateX(0) rotate(0deg); }
     10%, 30%, 50%, 70%, 90% { transform: translateX(-3px) rotate(-5deg); }
     20%, 40%, 60%, 80% { transform: translateX(3px) rotate(5deg); }

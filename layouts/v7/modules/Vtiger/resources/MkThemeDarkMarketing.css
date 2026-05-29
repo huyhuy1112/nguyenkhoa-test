@@ -1,0 +1,683 @@
+/**
+ * B-ACE CRM — Marketing app: list status colors + detail white cards + topbar.
+ * Load last (MkThemeStylesLast.tpl after custom.css + module CSS).
+ */
+
+/* ========================================================================== */
+/* TOPBAR — beat DashBoard.css #fff !important + custom.css .app-fixed-navbar */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar.navbar-default.app-fixed-navbar,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-view="ModernDashboard"] .mk-topbar .mk-dash-app-topbar {
+	background: var(--mk-topbar-bg) !important;
+	-webkit-backdrop-filter: var(--mk-topbar-blur);
+	backdrop-filter: var(--mk-topbar-blur);
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-dash-app-topbar .navbar-nav > li > a,
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-dash-app-topbar .navbar-nav > li > div > a,
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-dash-app-topbar .navbar-nav .dropdown-toggle,
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-dash-app-topbar .mk-dash-search-input,
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-dash-app-topbar input[type="text"].search-input {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-dash-app-topbar .global-search-input,
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-dash-app-topbar .select2-selection__rendered {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MARKETING"][data-view="Edit"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MARKETING"][data-view="Edit"] .mk-dash-main[class*="-edit-main"] {
+	background: var(--mk-bg-primary) !important;
+}
+
+/* ========================================================================== */
+/* LIST — preserve per-status colors (do NOT flatten to single cyan pill)     */
+/* ========================================================================== */
+
+/* Type pills — distinct blue (not same as status) */
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-camp-type-pill,
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-plan-type-pill {
+	background: rgba(37, 99, 235, 0.2) !important;
+	border: 1px solid rgba(96, 165, 250, 0.45) !important;
+	color: #93c5fd !important;
+}
+
+/* Status pills — transparent shell; colored dot + readable label */
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-camp-status-pill,
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-plan-status-pill {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-camp-status-pill__text,
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-plan-status-pill__text {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Status dots — keep semantic colors */
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--planning .mk-camp-status-pill__dot,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--planning .mk-plan-status-pill__dot {
+	background: #94a3b8 !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--active .mk-camp-status-pill__dot,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--active .mk-plan-status-pill__dot {
+	background: #22c55e !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--completed .mk-camp-status-pill__dot,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--complete .mk-camp-status-pill__dot,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--completed .mk-plan-status-pill__dot,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--complete .mk-plan-status-pill__dot {
+	background: #fdbb2c !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--cancelled .mk-camp-status-pill__dot,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--inactive .mk-camp-status-pill__dot,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--cancelled .mk-plan-status-pill__dot,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--inactive .mk-plan-status-pill__dot {
+	background: #ef4444 !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--in-progress .mk-camp-status-pill__dot,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--in-progress .mk-plan-status-pill__dot {
+	background: #22c55e !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--running .mk-plan-status-pill__dot,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--running .mk-camp-status-pill__dot {
+	background: #22c55e !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--draft .mk-plan-status-pill__dot,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--draft .mk-camp-status-pill__dot {
+	background: #64748b !important;
+}
+
+/* Legacy camp status dot (if used without pill wrapper) */
+html[data-theme="dark"] body[data-view="List"][data-app="MARKETING"] .mk-camp-status-dot {
+	opacity: 1;
+}
+
+/* Generic vtiger badges in list — only non-mk-* */
+html[data-theme="dark"] body[data-app="MARKETING"] #listview-table .listViewEntries td .badge:not([class*="mk-"]),
+html[data-theme="dark"] body[data-app="MARKETING"] #listview-table .listViewEntries td .label:not([class*="mk-"]):not([class*="pill"]) {
+	background: rgba(22, 216, 255, 0.12) !important;
+	border: 1px solid rgba(22, 216, 255, 0.28) !important;
+	color: var(--mk-badge-info-text) !important;
+}
+
+/* Title pill (Contacts list) */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-title-pill {
+	background: rgba(37, 99, 235, 0.2) !important;
+	border: 1px solid rgba(96, 165, 250, 0.4) !important;
+	color: #93c5fd !important;
+}
+
+/* ========================================================================== */
+/* DETAIL — Contacts & Organizations (Accounts) MARKETING                     */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--key,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--documents,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--comments,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-activities,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--documents,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card__title,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card__title {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card .summaryView,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-summaryView,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-kv-wrap,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-kv-wrap .summary-table,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-summaryView,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-details-row #detailView .block,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row #detailView .block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--comments .commentContainer,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--comments .addCommentBlock,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--comments .recentCommentsBody,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--comments .commentDetails,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .commentContainer,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .addCommentBlock,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .recentCommentsBody,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .commentDetails {
+	background: transparent !important;
+	border-color: var(--mk-border-subtle) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-activities .widget_contents .noContent,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_contents .noContent {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-kv-wrap .summary-table tr.summaryViewEntries,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-kv-wrap .summary-table td.fieldLabel,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table td.fieldLabel {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-kv-wrap .summary-table td.fieldValue,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-kv-wrap .summary-table td.fieldValue .value,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table td.fieldValue,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-kv-wrap .summary-table td.fieldValue a,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-kv-wrap .summary-table td.fieldValue a {
+	color: var(--mk-text-link) !important;
+}
+
+/* Documents drop zone */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-documents__body,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__body {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .widgetContainer_documents .widget_contents:empty::before,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .widgetContainer_documents .widget_contents:empty::before {
+	color: var(--mk-text-muted) !important;
+}
+
+/* Widget inner areas */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card .widget_contents,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-activities .widget_contents,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card .widget_contents,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_contents {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-activities .widget_contents .noContent,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_contents .noContent {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-activities .activityEntries,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .activityEntries {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-activities .activityEntries .summaryViewEntries,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-activities .activityEntries .summaryViewEntries a,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .activityEntries .summaryViewEntries,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .activityEntries .summaryViewEntries a {
+	color: var(--mk-text-primary) !important;
+}
+
+/* Comments */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--comments .widget_contents,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .widget_contents {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--comments textarea,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--comments .commentTextArea,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments textarea,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .commentTextArea {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--comments .modal-comment-widgets-container,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .modal-comment-widgets-container {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* Secondary buttons on detail */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-btn:not(.mk-contact-detail-btn--primary),
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-btn:not(.mk-acc-detail-btn--primary),
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-documents__head .pull-right .btn,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-documents__head .pull-right .btn,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-activities .widget_header .pull-right .btn,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header .pull-right .btn {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* DETAIL — Plans, Campaigns (Marketing)                                      */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-detail-hero-strip.detailview-header-block,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-kpi-card,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .detailview-header-block,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] #detailView .block,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .summaryWidgetContainer,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-campaign-detail-blocks .block,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-details-row #detailView .block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] #detailView .block h4,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-campaign-detail-blocks .block h4 {
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .detailview-table .fieldLabel,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .detailview-table .fieldValue .value,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .fieldLabel,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .fieldValue .value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .detailview-table .fieldLabel {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Leads detail (Marketing) */
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .block,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .summaryWidgetContainer,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .fieldBlockContainer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* DETAIL — Plans (pm-* summary + campaign panel)                             */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] #CampaignPhaseDashboard.campaign-detail-modern,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-wrap {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-kpi,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-kpi-card,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-panel,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] #CampaignPhaseDashboard.campaign-detail-modern .mk-panel,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .cpd-card,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tl-card,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-detail-fields-wrap .block,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-campaign-detail-blocks .block,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] #CampaignPhaseDashboard.campaign-detail-modern .mk-campaign-detail-blocks .block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-kpi__label,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-kpi-card__label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-kpi__value,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-kpi-card__pct {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-panel__head,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tabs > li > a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tabs > li.active > a {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-table tbody td {
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-link {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-pill {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-pill--active .pm-status-pill__dot,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-pill--in-progress .pm-status-pill__dot {
+	background: #22c55e !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-pill--planning .pm-status-pill__dot {
+	background: #94a3b8 !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-pill--completed .pm-status-pill__dot,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-pill--complete .pm-status-pill__dot {
+	background: #fdbb2c !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tl-card__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tl-card__dates,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tl-card__desc {
+	color: var(--mk-text-muted) !important;
+}
+
+/* ========================================================================== */
+/* LIST — module-specific (beats *List.css + MkMarketingListShared after head) */
+/* ========================================================================== */
+
+/* Page header: Import / Settings outline buttons */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--outline,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-btn--outline,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-btn--outline,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-btn--outline,
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"][data-app="MARKETING"] .mk-leads-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--outline:hover,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-btn--outline:hover,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-btn--outline:hover,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-btn--outline:hover,
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"][data-app="MARKETING"] .mk-leads-btn--outline:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn__ic,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-btn__ic,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-btn__ic,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-btn__ic {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-action-header__title,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-action-header__title,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-action-header__title,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-action-header__title,
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"][data-app="MARKETING"] .mk-leads-action-header__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-action-header__subtitle,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-action-header__subtitle,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-action-header__subtitle,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-action-header__subtitle,
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"][data-app="MARKETING"] .mk-leads-action-header__subtitle {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Table card + scrollport */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-table-card,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-table-card,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-table-card,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-table-card,
+html[data-theme="dark"] body[data-view="List"][data-app="MARKETING"] .mk-so-table-card.mk-plan-table-card,
+html[data-theme="dark"] body[data-view="List"][data-app="MARKETING"] .mk-so-table-card.mk-contact-table-card,
+html[data-theme="dark"] body[data-view="List"][data-app="MARKETING"] .mk-so-table-card.mk-camp-table-card,
+html[data-theme="dark"] body[data-view="List"][data-app="MARKETING"] .mk-so-table-card.mk-org-table-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #table-content.table-container {
+	background: var(--mk-card-bg) !important;
+}
+
+/* Toolbar / filter row */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-so-filter-row,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-so-filter-row,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-so-filter-row,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-so-filter-row {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-so-mass-actions,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-mass-actions,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-so-mass-actions,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-so-mass-actions {
+	border-left-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-so-page-numbers,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-page-numbers,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-so-page-numbers,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-so-page-numbers,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-so-page-numbers .pageNumbersText,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-page-numbers .pageNumbersText,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-so-page-numbers .pageNumbersText,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-so-page-numbers .pageNumbersText,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-page-numbers .totalNumberOfRecords {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-so-mass-btn,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-mass-btn,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-so-mass-btn,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-so-mass-btn,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-so-mass-more,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-mass-more,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-so-mass-more,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-so-mass-more {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-so-icon-btn__ic,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-icon-btn__ic,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-so-icon-btn__ic,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-so-icon-btn__ic {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent .mk-so-filter-row__footer,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent .mk-so-filter-row__footer,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listViewContent .mk-so-filter-row__footer,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent .mk-so-filter-row__footer {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-so-page-btn,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-so-page-btn,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-plan-page-btn,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-so-page-btn,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-camp-page-btn,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-so-page-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* Table header + rows */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader {
+	background: var(--mk-table-header-bg) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead th a.listViewContentHeaderValues,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead th a.listViewContentHeaderValues,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead th a.listViewContentHeaderValues,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries:hover,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries:hover,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries:hover,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow input.listSearchContributor,
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow input.listSearchContributor,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow input.listSearchContributor,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow input.listSearchContributor,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow input[type="text"],
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow input[type="text"],
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow input[type="text"],
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow input[type="text"] {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+/* Status dots — default + modifiers (beat tbody td / fieldValue span color) */
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listview-table .mk-plan-status-pill__dot,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listview-table .mk-camp-status-pill__dot {
+	background-color: #94a3b8 !important;
+	color: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listview-table .mk-plan-status-pill__text,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] #listview-table .mk-camp-status-pill__text {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--on-hold .mk-plan-status-pill__dot,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--on-hold .mk-camp-status-pill__dot {
+	background-color: #f59e0b !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--paused .mk-plan-status-pill__dot,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--paused .mk-camp-status-pill__dot {
+	background-color: #f59e0b !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--scheduled .mk-plan-status-pill__dot,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--scheduled .mk-camp-status-pill__dot {
+	background-color: #3b82f6 !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--running .mk-plan-status-pill__dot,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--running .mk-camp-status-pill__dot {
+	background-color: #22c55e !important;
+}
+
+/* ========================================================================== */
+/* LIST — beat custom.css .listview-actions-container { background:#fff }     */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="MARKETING"] #listViewContent .listview-actions-container,
+html[data-theme="dark"] body[data-app="MARKETING"] #listViewContent #listview-actions.listview-actions-container,
+html[data-theme="dark"] body[data-app="MARKETING"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+	padding-top: 0 !important;
+}
+
+html[data-theme="dark"] body[data-app="MARKETING"] #listViewContent .listview-actions-container .mk-so-filter-row__inner,
+html[data-theme="dark"] body[data-app="MARKETING"] #listViewContent .listview-actions-container .mk-so-filter-row__start,
+html[data-theme="dark"] body[data-app="MARKETING"] #listViewContent .listview-actions-container .mk-so-filter-row__right {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="MARKETING"] #listViewContent .listview-actions-container .btn-default.mk-so-mass-btn,
+html[data-theme="dark"] body[data-app="MARKETING"] #listViewContent .listview-actions-container .btn-default.mk-so-mass-more,
+html[data-theme="dark"] body[data-app="MARKETING"] #listViewContent .listview-actions-container .btn.btn-default {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MARKETING"] #listViewContent .listview-actions-container .btn-default .fa {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-dash-main.mk-plan-list-main,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-dash-main.mk-contacts-list-main,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-dash-main.mk-camp-list-main,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-dash-main.mk-org-list-main,
+html[data-theme="dark"] body[data-app="MARKETING"] .mk-dash-main[class*="-list-main"] {
+	background: var(--mk-bg-primary) !important;
+}

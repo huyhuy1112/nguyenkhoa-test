@@ -1,0 +1,1510 @@
+/**
+ * B-ACE CRM — Create/Edit (MARKETING + SALES) dark overrides.
+ * Load last after *Edit.css from EditViewPreProcess.
+ */
+
+/* ========================================================================== */
+/* Shared edit shell                                                          */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-view="Edit"] .mk-dash-main[class*="-edit-main"],
+html[data-theme="dark"] body[data-view="Edit"] .mk-dash-main.mk-plan-edit-main,
+html[data-theme="dark"] body[data-view="Edit"] .mk-dash-main.mk-contacts-edit-main,
+html[data-theme="dark"] body[data-view="Edit"] .mk-dash-main.mk-opportunity-edit-main,
+html[data-theme="dark"] body[data-view="Edit"] .mk-dash-main.mk-camp-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="Edit"] .editViewContainer,
+html[data-theme="dark"] body[data-view="Edit"] .editViewContents,
+html[data-theme="dark"] body[data-view="Edit"] .editViewBody,
+html[data-theme="dark"] body[data-view="Edit"] .fieldBlockContainer,
+html[data-theme="dark"] body[data-view="Edit"] .editViewPageDiv {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="Edit"] .fieldLabel,
+html[data-theme="dark"] body[data-view="Edit"] .fieldLabel label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-view="Edit"] input[type="text"],
+html[data-theme="dark"] body[data-view="Edit"] input[type="email"],
+html[data-theme="dark"] body[data-view="Edit"] input[type="tel"],
+html[data-theme="dark"] body[data-view="Edit"] input[type="number"],
+html[data-theme="dark"] body[data-view="Edit"] input[type="password"],
+html[data-theme="dark"] body[data-view="Edit"] input[type="search"],
+html[data-theme="dark"] body[data-view="Edit"] input[type="url"],
+html[data-theme="dark"] body[data-view="Edit"] input[type="date"],
+html[data-theme="dark"] body[data-view="Edit"] textarea,
+html[data-theme="dark"] body[data-view="Edit"] select,
+html[data-theme="dark"] body[data-view="Edit"] .inputElement,
+html[data-theme="dark"] body[data-view="Edit"] .select2-container .select2-choice,
+html[data-theme="dark"] body[data-view="Edit"] .select2-container--default .select2-selection--single {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-view="Edit"] .select2-container--default .select2-selection__rendered {
+	color: var(--mk-input-text) !important;
+}
+
+/* ========================================================================== */
+/* Plans Create (MARKETING) — mk-planx                                         */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar.navbar-default.app-fixed-navbar {
+	background: var(--mk-topbar-bg) !important;
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx {
+	--mk-planx-bg: var(--mk-bg-primary);
+	--mk-planx-card: var(--mk-card-bg);
+	--mk-planx-border: var(--mk-border-color);
+	--mk-planx-text: var(--mk-text-primary);
+	--mk-planx-muted: var(--mk-text-muted);
+	--mk-planx-shadow: var(--mk-shadow-card);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-card,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-head,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-chip,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-timeline__kv,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-activityItem,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-field,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-field__control,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-sbadge,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .block,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native .fieldBlockContainer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-title,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-bc__link,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-card__title,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-timeline__v,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-activityItem__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-sub,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-bc,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-field__label,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-chip__label,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-timeline__k,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-tm__lbl,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-activityItem__text {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-chip__value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-btn--ghost {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-timeline__bar {
+	background: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-tm__dot {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx input,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx select,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx textarea,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx .select2-container--default .select2-selection--single,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native input[type="text"],
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native input[type="number"],
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native textarea,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-native select {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx .select2-container--default .select2-selection__rendered,
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx .select2-container .select2-chosen {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-sbadge--draft {
+	background: rgba(148, 163, 184, 0.2) !important;
+	color: #cbd5e1 !important;
+	border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-sbadge--planning {
+	background: rgba(59, 130, 246, 0.2) !important;
+	color: #93c5fd !important;
+	border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-sbadge--inprogress {
+	background: rgba(245, 158, 11, 0.18) !important;
+	color: #fcd34d !important;
+	border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-sbadge--completed {
+	background: rgba(34, 197, 94, 0.18) !important;
+	color: #86efac !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-sbadge--cancelled {
+	background: rgba(239, 68, 68, 0.18) !important;
+	color: #fca5a5 !important;
+	border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+/* ========================================================================== */
+/* Campaigns Create/Edit (MARKETING) — mk-campx enterprise + legacy mk-camp-* */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-topbar .mk-dash-app-topbar.navbar-default.app-fixed-navbar {
+	background: var(--mk-topbar-bg) !important;
+	-webkit-backdrop-filter: var(--mk-topbar-blur);
+	backdrop-filter: var(--mk-topbar-blur);
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+	box-shadow: none !important;
+}
+
+/* Remap enterprise tokens (CampaignsEnterprise.css uses --mkx-card: #fff) */
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx {
+	--mkx-bg: var(--mk-bg-primary);
+	--mkx-card: var(--mk-card-bg);
+	--mkx-text: var(--mk-text-primary);
+	--mkx-muted: var(--mk-text-muted);
+	--mkx-border: var(--mk-border-color);
+	--mkx-border-soft: var(--mk-border-subtle);
+	--mkx-shadow: var(--mk-shadow-card);
+	--mkx-shadow-sm: var(--mk-shadow-sm);
+	--mk-camp-card: var(--mk-card-bg);
+	--mk-camp-white: var(--mk-card-bg);
+	--mk-camp-surface: var(--mk-bg-primary);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-hero,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpi,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-card,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-stat,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc__btn,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc__panel,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-suite-card,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-action-header,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-edit-content .block,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-hero__title,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-card__title,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc__ttl,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpi__value,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-action-header__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-field__label,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpi__label,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpi__trend,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-stat__label,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-miniHint,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step__label,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-acc__chev,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-action-header__subtitle,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-breadcrumb__item a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-card__head {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-pill {
+	background: rgba(253, 187, 44, 0.14) !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+	color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-pill--muted {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-badge--blue {
+	background: rgba(59, 130, 246, 0.2) !important;
+	color: #93c5fd !important;
+	border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-badge--green {
+	background: rgba(34, 197, 94, 0.18) !important;
+	color: #86efac !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-badge--gray {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-secondary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-badge--red {
+	background: rgba(239, 68, 68, 0.18) !important;
+	color: #fca5a5 !important;
+	border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-btn--ghost,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-miniBtn,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn--ghost {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-btn--ghost:hover,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-miniBtn:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-strong) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-kpi__ic {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-primary) !important;
+	border: 1px solid var(--mk-border-color);
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step::before {
+	background: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step__dot {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-step--current .mk-campx-step__label {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx input,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx select,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx textarea,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .select2-container .select2-selection,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-stat input,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-stat select,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-stat textarea {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .select2-container--default .select2-selection__rendered,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx .select2-container .select2-chosen {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] #campaign-files-edit-box,
+html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .campaign-edit-files {
+	background: var(--mk-bg-elevated) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	border-radius: 12px;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Contacts Create (SALES + MARKETING) — mk-ct-*                               */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-topbar .mk-dash-app-topbar.navbar-default.app-fixed-navbar {
+	background: var(--mk-topbar-bg) !important;
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-create {
+	--mk-ct-surface: var(--mk-bg-primary);
+	--mk-ct-white: var(--mk-card-bg);
+	--mk-ct-text: var(--mk-text-primary);
+	--mk-ct-muted: var(--mk-text-muted);
+	--mk-ct-border: var(--mk-border-color);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-dash-main.mk-contacts-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-page-head,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-block,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-insight-card,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-hero__panel,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-float-bar,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-pipeline-wrap,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .fieldBlockContainer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-page-head__title,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .fieldBlockHeader,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .mk-ct-block__header {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-page-head__sub,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-page-head__crumb,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-page-head__crumb a,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldLabel {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-btn--secondary,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-btn--ghost {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* Form inputs — beat ContactMkEdit.css #fff / #fafafa */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .input-group,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .referencefield-wrapper .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .input-group:focus-within,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .referencefield-wrapper .input-group:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(94, 233, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .input-group .input-group-addon {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .input-group .input-group-addon.relatedPopup:hover,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .input-group .input-group-addon.createReferenceRecord:hover {
+	background: var(--mk-primary) !important;
+	color: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > .form-control:not([type="checkbox"]) {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > input.inputElement:hover,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > select.inputElement:hover,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > textarea.inputElement:hover,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > input.inputElement:focus,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > select.inputElement:focus,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > textarea.inputElement:focus {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > .select2-container {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > .select2-container:hover,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > .select2-container.select2-container--focus,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > .select2-container:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block td.fieldValue > .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .select2-container--default .select2-selection--single,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .select2-container--default .select2-selection--multiple {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .select2-container--default .select2-selection__rendered,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block .select2-container .select2-chosen {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .modal-overlay-footer,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-form-footer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-form-footer .cancelLink {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Accounts / Organizations Create — mk-ac-* (MARKETING + SALES)             */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-topbar .mk-dash-app-topbar.navbar-default.app-fixed-navbar {
+	background: var(--mk-topbar-bg) !important;
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-create {
+	--mk-ac-surface: var(--mk-bg-primary);
+	--mk-ac-white: var(--mk-card-bg);
+	--mk-ac-text: var(--mk-text-primary);
+	--mk-ac-muted: var(--mk-text-muted);
+	--mk-ac-border: var(--mk-border-color);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-dash-main[class*="-edit-main"],
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-dash-main.mk-accounts-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-block,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__panel,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-insight-card,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-acc-block,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-org-block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__title,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .fieldBlockHeader {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__sub,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__crumb,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__crumb a,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldLabel {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-btn--secondary,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-btn--ghost {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .referencefield-wrapper .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group:focus-within,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .referencefield-wrapper .input-group:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(94, 233, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon.relatedPopup:hover,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon.createReferenceRecord:hover {
+	background: var(--mk-primary) !important;
+	color: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .form-control:not([type="checkbox"]) {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.inputElement:hover,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > select.inputElement:hover,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement:hover,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.inputElement:focus,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > select.inputElement:focus,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement:focus {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container:hover,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container.select2-container--focus,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-choice {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection__rendered,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container .select2-chosen {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .modal-overlay-footer,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-form-footer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-form-footer .cancelLink {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Potentials / Quotes / SalesOrder / ServiceContracts Create (SALES)          */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-create,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-page-head,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-hero__panel,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-page-head,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-card,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-card,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-create,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-page-head,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-card,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-create,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-page-head,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-card,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-create,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-page-head,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-page-head__title,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-page-head__title,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__title,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-page-head__title,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-page-head__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-page-head__sub,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-page-head__crumb a,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-page-head__sub,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__sub,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-page-head__sub,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-page-head__sub,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-page-head__sub,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-page-head__crumb,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-page-head__crumb span {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-page-head__crumb a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"] .mk-qt-btn--ghost,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"] .mk-so-btn--ghost,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"] .mk-sc-btn--ghost,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"] .mk-ld-btn--outline,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-btn--ghost,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-btn--ghost {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* SALES create — form inputs in mk-*-form-host */
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] .input-group,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] .referencefield-wrapper .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] .input-group:focus-within,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] .referencefield-wrapper .input-group:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] .input-group .input-group-addon {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] td.fieldValue > .form-control:not([type="checkbox"]) {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] td.fieldValue > .select2-container {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] .select2-container--default .select2-selection--single,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] td.fieldValue > .select2-container .select2-choice {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-host"] .modal-overlay-footer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] [class*="-form-footer"] {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* ========================================================================== */
+/* Potentials Create — tokens + aside + form (beat OpportunityMkEdit.css)    */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-create {
+	--mk-opp-surface: var(--mk-bg-primary);
+	--mk-opp-white: var(--mk-card-bg);
+	--mk-opp-text: var(--mk-text-primary);
+	--mk-opp-muted: var(--mk-text-muted);
+	--mk-opp-border: var(--mk-border-color);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-opportunity-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card__body,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card--tips .mk-opp-aside-card__head,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card--stages .mk-opp-aside-card__head {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card__text,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card__text strong,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__desc,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__stage {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card__text--muted,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__sep,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__hint,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-create__insights {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block .input-group,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block .referencefield-wrapper .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block .input-group:focus-within,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block .referencefield-wrapper .input-group:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(94, 233, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block .input-group .input-group-addon {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block .input-group .input-group-addon.relatedPopup:hover,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block .input-group .input-group-addon.createReferenceRecord:hover {
+	background: var(--mk-primary) !important;
+	color: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > .form-control:not([type="checkbox"]) {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > input.inputElement:hover,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > select.inputElement:hover,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > textarea.inputElement:hover,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > input.inputElement:focus,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > select.inputElement:focus,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > textarea.inputElement:focus {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > .select2-container {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > .select2-container:hover,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > .select2-container.select2-container--focus,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > .select2-container:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldValue > .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block .select2-container--default .select2-selection--single {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block .fieldLabel,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block .mk-opp-field-hint {
+	color: var(--mk-text-muted) !important;
+}
+
+/* ========================================================================== */
+/* Quotes Create — tokens + rail + form (beat QuoteMkEdit.css)                 */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create {
+	--mk-qt-surface: var(--mk-bg-primary);
+	--mk-qt-white: var(--mk-card-bg);
+	--mk-qt-ink: var(--mk-text-primary);
+	--mk-qt-muted: var(--mk-text-muted);
+	--mk-qt-border: var(--mk-border-color);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-quote-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--ai {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-placeholder,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-note,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list dt {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list dd,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-ai-list {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .referencefield-wrapper .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group:focus-within,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .referencefield-wrapper .input-group:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(94, 233, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .input-group-addon {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > input.inputElement,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .form-control {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > input:focus,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > select:focus,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea:focus {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .select2-container {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .select2-container--default .select2-selection--single {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block--totals {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* ========================================================================== */
+/* SalesOrder / ServiceContracts / Leads Create — shared mk-*-block pattern  */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-create,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-create {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create__insights,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-create__insights,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-create__insights {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group:focus-within,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block .input-group:focus-within,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block .input-group:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(94, 233, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block .input-group,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block .input-group,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .referencefield-wrapper .input-group,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block .referencefield-wrapper .input-group,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block .referencefield-wrapper .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .input-group-addon,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block .input-group .input-group-addon,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block .input-group .input-group-addon {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > input.inputElement,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > input.inputElement,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block td.fieldValue > input.inputElement,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block td.fieldValue > textarea.inputElement {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > input:focus,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > select:focus,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > input:focus,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > select:focus,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block td.fieldValue > input:focus,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block td.fieldValue > select:focus {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > .select2-container,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block td.fieldValue > .select2-container {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-ld-form-host .mk-ld-block .select2-container .select2-choice {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-input-text) !important;
+}
+
+/* Contacts + Accounts create on SALES app (reuse MARKETING mk-ct/mk-ac rules scope) */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-create,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create {
+	--mk-ct-surface: var(--mk-bg-primary);
+	--mk-ct-white: var(--mk-card-bg);
+	--mk-ct-text: var(--mk-text-primary);
+	--mk-ct-muted: var(--mk-text-muted);
+	--mk-ac-surface: var(--mk-bg-primary);
+	--mk-ac-white: var(--mk-card-bg);
+	--mk-ac-text: var(--mk-text-primary);
+	--mk-ac-muted: var(--mk-text-muted);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-create__insights,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create__insights {
+	color: var(--mk-text-muted) !important;
+}
+
+/* ========================================================================== */
+/* Quotes Create — sticky header (beat rgba(255,255,255,0.88))                 */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head {
+	background: color-mix(in srgb, var(--mk-card-bg) 92%, transparent) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--secondary {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--ai {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block__icon {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block--line-items thead th {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+/* ========================================================================== */
+/* SalesOrder Create — tokens + all field types (beat SalesOrderMkEdit.css)    */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-create {
+	--mk-so-surface: var(--mk-bg-primary);
+	--mk-so-white: var(--mk-card-bg);
+	--mk-so-text: var(--mk-text-primary);
+	--mk-so-muted: var(--mk-text-muted);
+	--mk-so-border: var(--mk-border-color);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-so-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__crumb,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__sub {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-page-head__crumb a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldLabel,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldLabel label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-page-head__crumb,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-page-head__sub,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldLabel,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldLabel label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-page-head__crumb,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-page-head__sub {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-page-head__crumb a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .form-control:not([type="checkbox"]) {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container:hover,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container.select2-container--focus,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container.select2-container--focus,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .select2-container:focus-within {
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(94, 233, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .referencefield-wrapper .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group:focus-within,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .referencefield-wrapper .input-group:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(94, 233, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .input-group-addon,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .clearReferenceSelection {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block--totals {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* ========================================================================== */
+/* Potentials Create — stage guide chips (dark-friendly tints)                 */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--early {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--early .mk-opp-stage-guide__badge {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-secondary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--qualify {
+	background: rgba(59, 130, 246, 0.12) !important;
+	border-color: rgba(59, 130, 246, 0.28) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--qualify .mk-opp-stage-guide__badge {
+	background: rgba(59, 130, 246, 0.22) !important;
+	color: #93c5fd !important;
+	border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--mid {
+	background: rgba(253, 187, 44, 0.1) !important;
+	border-color: rgba(253, 187, 44, 0.28) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--mid .mk-opp-stage-guide__badge {
+	background: rgba(253, 187, 44, 0.2) !important;
+	color: #fcd34d !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--won {
+	background: rgba(34, 197, 94, 0.1) !important;
+	border-color: rgba(34, 197, 94, 0.28) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--won .mk-opp-stage-guide__badge {
+	background: rgba(34, 197, 94, 0.2) !important;
+	color: #86efac !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--lost {
+	background: rgba(239, 68, 68, 0.1) !important;
+	border-color: rgba(239, 68, 68, 0.28) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--lost .mk-opp-stage-guide__badge {
+	background: rgba(239, 68, 68, 0.2) !important;
+	color: #fca5a5 !important;
+	border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+/* ========================================================================== */
+/* Leads Create — mk-td-* tag-driven UI (beat LeadsMkEdit.css #fff)            */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-leads-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-create {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-card,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-tags-panel {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-create__title,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-card__title,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-tags-panel__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-create__subtitle,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-card__desc,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-card__desc strong,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-tags-panel__desc,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-create__crumb,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-label,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-choice__hint {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-create__crumb a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-label--nested {
+	color: var(--mk-info) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-card__num {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Unselected tiles only — keep .is-on gradient colors from LeadsMkEdit.css */
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-choice:not(.is-on) {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-choice:not(.is-on):hover {
+	border-color: var(--mk-border-accent) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-choice:not(.is-on) .mk-td-choice--tile .mk-td-choice__ico,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-choice--tile:not(.is-on) .mk-td-choice__ico {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-input,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-select,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-textarea {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-input::placeholder,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-textarea::placeholder {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-card__desc code {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Tag pills: keep per-tag colors; only neutral pills get dark shell */
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-tag-pill:not([data-tag]) {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-btn--ghost {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] #mk-td-entry-pcth-wrap.mk-td-nested-box {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-select.mk-td-select--picked,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-td-select:not([value=""]):valid {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 2px rgba(94, 233, 255, 0.15) !important;
+	color: var(--mk-input-text) !important;
+}
+
+/* ServiceContracts Create — same field pattern as SalesOrder */
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-create {
+	--mk-sc-surface: var(--mk-bg-primary);
+	--mk-sc-white: var(--mk-card-bg);
+	--mk-sc-text: var(--mk-text-primary);
+	--mk-sc-muted: var(--mk-text-muted);
+	--mk-sc-border: var(--mk-border-color);
+}
+
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-sc-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-page-head,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > input.inputElement,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > .select2-container,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block .input-group:focus-within,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-form-host .mk-sc-block td.fieldValue > .select2-container:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+}
+
+/* ========================================================================== */
+/* ProductsServices Create (SALES)                                             */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-create {
+	--mk-ps-surface: var(--mk-bg-primary);
+	--mk-ps-white: var(--mk-card-bg);
+	--mk-ps-text: var(--mk-text-primary);
+	--mk-ps-muted: var(--mk-text-muted);
+	--mk-ps-border: var(--mk-border-color);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-ps-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+	background: var(--mk-card-bg) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .fieldBlockHeader,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .mk-ps-block__header {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldLabel,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldLabel label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .input-group,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .referencefield-wrapper .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .input-group:focus-within,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .referencefield-wrapper .input-group:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(94, 233, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .input-group .input-group-addon,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .input-group .clearReferenceSelection {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > .form-control:not([type="checkbox"]) {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > input.inputElement:focus,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > select.inputElement:focus,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > textarea.inputElement:focus {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > .select2-container,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > .select2-container:hover,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > .select2-container.select2-container--focus,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > .select2-container:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > .select2-container.select2-container--focus,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > .select2-container:focus-within {
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(94, 233, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .select2-container--default .select2-selection--single,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block td.fieldValue > .select2-container .select2-choice {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .select2-container--default .select2-selection__rendered,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-block .select2-container .select2-chosen {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-form-footer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-ps-form-host .mk-ps-form-footer .cancelLink {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}

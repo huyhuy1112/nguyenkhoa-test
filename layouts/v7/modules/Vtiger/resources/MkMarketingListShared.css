@@ -1,0 +1,427 @@
+/**
+ * MARKETING app list — shared toolbar, table card, footer pagination.
+ * Scope: body[data-view="List"][data-app="MARKETING"]
+ */
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-page,
+body[data-view="List"][data-app="MARKETING"] .mk-so-list-sales-root,
+body[data-view="List"][data-app="MARKETING"] .mk-contact-page,
+body[data-view="List"][data-app="MARKETING"] .mk-org-page,
+body[data-view="List"][data-app="MARKETING"] .mk-opportunity-page,
+body[data-view="List"][data-app="MARKETING"] .mk-qt-page,
+body[data-view="List"][data-app="MARKETING"] .mk-sc-page,
+body[data-view="List"][data-app="MARKETING"] .mk-camp-page,
+body[data-view="List"][data-app="MARKETING"] .mk-plan-page,
+body[data-view="List"][data-app="SALES"] .mk-leads-page {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-contact-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-org-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-opportunity-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-qt-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-sc-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-camp-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-plan-table-card,
+body[data-view="List"][data-app="SALES"] .mk-leads-table-card {
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row {
+	background: #eceef0 !important;
+	border: none !important;
+	border-bottom: 1px solid #d4c4ad !important;
+	border-radius: 0 !important;
+	min-height: 72px;
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	box-sizing: border-box !important;
+	display: flex;
+	flex-direction: column;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: nowrap;
+	gap: 12px 16px;
+	min-height: 72px;
+	padding: 16px;
+	box-sizing: border-box;
+	flex: 1 1 auto;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__start {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px 18px;
+	flex: 1 1 220px;
+	min-width: 0;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-toolbar-toggles {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-toolbar-count {
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-mass-actions {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	flex: 0 1 auto;
+	margin-left: 8px;
+	padding-left: 12px;
+	border-left: 1px solid #d4c4ad;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__right {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-left: auto;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-page-numbers {
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 500;
+	color: #504533;
+	line-height: 1.4;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-page-numbers .pageNumbersText {
+	font-weight: 600;
+	color: #191c1e;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-page-numbers .mk-so-total-count {
+	font-weight: 600;
+	color: #191c1e;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-page-numbers .totalNumberOfRecords .showTotalCountIcon {
+	color: #40627e;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-icon-btn {
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	background: #ffffff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-sizing: border-box;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-mass-btn {
+	min-width: 40px;
+	height: 40px;
+	padding: 0 10px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent .mk-so-filter-row__footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 64px;
+	padding: 12px 16px;
+	border-top: 1px solid #d4c4ad;
+	background: #eceef0;
+	box-sizing: border-box;
+	border-radius: 0 0 11px 11px;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-pagination {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-so-page-btn {
+	min-width: 40px;
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	color: #191c1e;
+	margin: 0 2px;
+	font-weight: 600;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
+body[data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
+	background: #fdbb2c !important;
+	border-color: #e5a820 !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
+	display: none !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer {
+	display: table-row !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] .floatThead-container {
+	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-page .module-action-bar {
+	display: none !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #table-content.table-container {
+	margin-top: 0 !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: #ffffff !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	box-sizing: border-box !important;
+	height: auto !important;
+	max-height: calc(100vh - 260px) !important;
+	overflow-x: auto !important;
+	overflow-y: auto !important;
+	-webkit-overflow-scrolling: touch;
+}
+
+/* ---- Table (Sales Order reference) ---- */
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table {
+	margin-bottom: 0;
+	width: 100%;
+	min-width: 1232px;
+	box-sizing: border-box;
+	border-collapse: collapse;
+	border-spacing: 0;
+	table-layout: fixed;
+	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader {
+	background: #f7f9fb !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th {
+	box-sizing: border-box;
+	height: 48px;
+	padding: 0 10px;
+	vertical-align: middle;
+	border-bottom: 1px solid #d4c4ad;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 14px;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #40627e !important;
+	white-space: nowrap;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
+	color: #40627e !important;
+	font-weight: 500;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td {
+	box-sizing: border-box;
+	height: 60px;
+	min-height: 56px;
+	padding: 0 12px;
+	vertical-align: middle;
+	border-bottom: 1px solid #e2e8f0;
+	font-size: 14px;
+	color: #191c1e;
+	overflow: hidden;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
+	background: #faf8f5;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name="subject"] a {
+	font-weight: 600;
+	color: #0057d9;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow th {
+	height: auto !important;
+	padding: 8px 10px !important;
+	font-size: 13px;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+}
+
+/* Win over module *List.css (Quotes/Contacts used overflow:visible — corners looked “cut”) */
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card.mk-contact-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card.mk-org-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card.mk-opportunity-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card.mk-qt-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card.mk-sc-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card.mk-camp-table-card {
+	overflow: hidden !important;
+	border-radius: 12px !important;
+	border: 1px solid #d4c4ad !important;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06) !important;
+	background: #ffffff !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent .mk-so-filter-row__footer {
+	border-radius: 0 0 11px 11px !important;
+}
+
+/* Card inner layout: toolbar → table → footer (all SALES lists) */
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card > .col-sm-12,
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card > .col-xs-12 {
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-so-filter-row {
+	display: flex !important;
+	flex-direction: column !important;
+	flex: 0 0 auto !important;
+}
+
+/* Do not flatten toolbar (breaks rounded card clip) */
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-so-filter-row,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-opportunity-filter-row,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-contact-filter-row,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-org-filter-row,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-qt-filter-row,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-sc-filter-row,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-actions.mk-ps-filter-row {
+	display: flex !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-page #listViewContent.listViewPageDiv,
+body[data-view="List"][data-app="MARKETING"] .mk-so-list-sales-root #listViewContent.listViewPageDiv {
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+
+/* Legacy module-only card classes (same shell as Sales Order) */
+body[data-view="List"][data-app="MARKETING"] .mk-contact-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-org-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-opportunity-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-qt-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-sc-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-camp-table-card,
+body[data-view="List"][data-app="MARKETING"] .mk-plan-table-card {
+	overflow: hidden !important;
+	border-radius: 12px !important;
+	border: 1px solid #d4c4ad !important;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06) !important;
+	background: #ffffff !important;
+}
+
+/* List / grid card layout (shared with SALES lists) */
+body[data-view="List"].mk-so-is-view-grid #listViewContent #table-content {
+	max-height: none !important;
+	overflow-x: hidden !important;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table {
+	display: block !important;
+	min-width: 0 !important;
+	width: 100% !important;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table thead,
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tr.searchRow {
+	display: none !important;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 14px;
+	padding: 14px;
+	box-sizing: border-box;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody tr.listViewEntries {
+	display: flex !important;
+	flex-direction: column;
+	height: auto !important;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 2px 8px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody tr.listViewEntries td {
+	display: block !important;
+	height: auto !important;
+	min-height: 0 !important;
+	padding: 8px 14px !important;
+	border-bottom: none !important;
+	white-space: normal !important;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody td.listViewRecordActions {
+	order: -1;
+	padding: 10px 12px !important;
+	border-bottom: 1px solid #eceef0 !important;
+	background: #f7f9fb;
+}
+
+body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody td.listViewEntryValue::before {
+	content: attr(data-name);
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	text-transform: capitalize;
+	color: #40627e;
+	margin-bottom: 4px;
+}

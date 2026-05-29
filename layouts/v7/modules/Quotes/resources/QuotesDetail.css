@@ -38,12 +38,12 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dash-main.m
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .main-container.mk-qt-detail-page {
 	width: 100%;
-	max-width: 1232px;
-	margin-left: auto !important;
-	margin-right: auto !important;
+	max-width: none;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
 	padding-top: 24px !important;
 	padding-bottom: 32px !important;
-	padding-left: 48px !important;
+	padding-left: 32px !important;
 	padding-right: 32px !important;
 	box-sizing: border-box;
 	position: relative !important;
@@ -730,7 +730,16 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .related-tabs .
 	box-shadow: none;
 }
 
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse {
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-header {
+	display: none !important;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse.collapse {
+	display: block !important;
+	height: auto !important;
+	visibility: visible !important;
+	overflow: visible !important;
 	padding: 0;
 }
 
@@ -950,11 +959,12 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-r
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid {
 	margin: 24px 0 0;
 	display: grid;
-	grid-template-columns: minmax(320px, 1fr) minmax(0, 2fr);
+	grid-template-columns: minmax(300px, 1fr) minmax(0, 1.4fr);
 	grid-template-areas:
 		"key activities"
+		"overview overview"
 		"documents comments";
-	gap: 24px;
+	gap: 20px;
 	align-items: start;
 	width: 100%;
 	min-width: 0;
@@ -967,6 +977,10 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__activities {
 	grid-area: activities;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__overview {
+	grid-area: overview;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__documents {
@@ -988,6 +1002,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-c
 		grid-template-areas:
 			"key"
 			"activities"
+			"overview"
 			"documents"
 			"comments";
 	}

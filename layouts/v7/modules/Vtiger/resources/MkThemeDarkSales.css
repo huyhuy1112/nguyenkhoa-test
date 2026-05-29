@@ -1,0 +1,1019 @@
+/**
+ * B-ACE CRM — SALES app: list + detail dark overrides.
+ * Beats *List.css + MkSalesListShared.css + custom.css .listview-actions-container
+ */
+
+/* ========================================================================== */
+/* TOPBAR — beat DashBoard.css #fff !important + custom.css .app-fixed-navbar */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SALES"] .mk-topbar .mk-dash-app-topbar.navbar-default.app-fixed-navbar,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+	background: var(--mk-topbar-bg) !important;
+	-webkit-backdrop-filter: var(--mk-topbar-blur);
+	backdrop-filter: var(--mk-topbar-blur);
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .navbar-nav > li > a,
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .navbar-nav > li > div > a,
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .navbar-nav .dropdown-toggle,
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .mk-dash-search-input,
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar input[type="text"].search-input,
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .mk-dash-topbar-linkic,
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .mk-dash-topbar-qcbtn {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .global-search-input,
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .search-link,
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar #globalSearchValue,
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .select2-selection__rendered {
+	color: var(--mk-text-primary) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .mk-dash-topbar-linkic:hover,
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-app-topbar .navbar-nav > li > a:hover {
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* LIST — shared toolbar (custom.css forces white .listview-actions-container) */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .listview-actions-container,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-actions.listview-actions-container,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .listview-actions-container .mk-so-filter-row__inner,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .listview-actions-container .mk-so-filter-row__start,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .listview-actions-container .mk-so-filter-row__right {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] .mk-dash-main[class*="-list-main"] {
+	background: var(--mk-bg-primary) !important;
+}
+
+/* Outline header buttons */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--outline,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--outline,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-btn--outline,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-btn--outline,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn--outline,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--outline:hover,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--outline:hover,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-btn--outline:hover,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-btn--outline:hover,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn--outline:hover,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline:hover,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-btn--outline:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn__ic,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn__ic,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-btn__ic,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-btn__ic,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn__ic,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn__ic,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-btn__ic {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Table card shell */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-table-card,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-table-card,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-table-card,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-table-card,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-table-card,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-table-card,
+html[data-theme="dark"] body[data-view="List"][data-app="SALES"] .mk-so-table-card,
+html[data-theme="dark"] body[data-view="List"][data-app="SALES"] .mk-leads-table-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #table-content.table-container {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* Toolbar controls */
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .mk-so-icon-btn,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .mk-so-mass-btn,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .mk-so-mass-more,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .listview-actions-container .btn-default {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .mk-so-icon-btn__ic,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .listview-actions-container .btn-default .fa {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .mk-so-filter-row__footer {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .mk-so-pagination .mk-so-page-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .mk-so-page-numbers,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .mk-so-page-numbers .pageNumbersText,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent .mk-so-page-numbers .mk-so-total-count {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Table header + rows */
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader {
+	background: var(--mk-table-header-bg) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table tbody td a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table tr.searchRow input.listSearchContributor,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table tr.searchRow input[type="text"] {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+/* Leads list (SALES) */
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-table-card,
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-action-header__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-action-header__subtitle {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* ========================================================================== */
+/* Leads list — custom grid (not #listview-table)                               */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-page {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"][data-app="SALES"],
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-leads-list-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-search {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-search__ic {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-search__input {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-search__input::placeholder {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-filters-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-filter {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-filter__label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-filter__btn {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-filter__chev {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-filters-card ul.mk-leads-filter__menu {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-filter__option {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-filter__option:hover {
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-filter__option.is-active {
+	background: rgba(253, 187, 44, 0.15) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-reset {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-tr--head {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-th,
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-td {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-tr {
+	border-top-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-lead__link {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-lead__sub,
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-muted {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-chip {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-chip--blue {
+	background: rgba(59, 130, 246, 0.18) !important;
+	border-color: rgba(96, 165, 250, 0.35) !important;
+	color: #93c5fd !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-chip--purple {
+	background: rgba(168, 85, 247, 0.18) !important;
+	border-color: rgba(192, 132, 252, 0.35) !important;
+	color: #c4b5fd !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-chip--gold {
+	background: rgba(253, 187, 44, 0.18) !important;
+	border-color: rgba(253, 187, 44, 0.45) !important;
+	color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-chip--silver {
+	background: rgba(148, 163, 184, 0.2) !important;
+	border-color: rgba(148, 163, 184, 0.4) !important;
+	color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-chip--bronze {
+	background: rgba(251, 146, 60, 0.18) !important;
+	border-color: rgba(251, 146, 60, 0.4) !important;
+	color: #fdba74 !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-tr--high {
+	background: rgba(239, 68, 68, 0.1) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-toggle {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-toggle__thumb {
+	background: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Opportunities (Potentials) — search row always visible + select2           */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-opportunity-list-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow input.listSearchContributor:not(.select2_input_element),
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element) {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-active .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-active .select2-choice {
+	background: var(--mk-input-bg) !important;
+	background-color: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-chosen,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-chosen,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice > span,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-arrow b,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-arrow b {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td[data-name="amount"] .value {
+	color: var(--mk-text-primary) !important;
+}
+
+/* Category pills — dark translucent (not white INTERNAL badge) */
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-project {
+	background: rgba(59, 130, 246, 0.2) !important;
+	color: #93c5fd !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-service {
+	background: rgba(34, 197, 94, 0.18) !important;
+	color: #86efac !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-consulting {
+	background: rgba(168, 85, 247, 0.18) !important;
+	color: #c4b5fd !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-internal {
+	background: rgba(100, 116, 139, 0.25) !important;
+	color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-default {
+	background: rgba(148, 163, 184, 0.2) !important;
+	color: #94a3b8 !important;
+}
+
+/* Sales stage — label + colored dots */
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage .dot {
+	background-color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-prospecting .dot {
+	background-color: #3b82f6 !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-needsanalysis .dot {
+	background-color: #8b5cf6 !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-qualification .dot {
+	background-color: #f4b122 !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-valueprop .dot {
+	background-color: #06b6d4 !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-decision .dot {
+	background-color: #f97316 !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-perception .dot {
+	background-color: #ec4899 !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-proposal .dot {
+	background-color: #6366f1 !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-negotiation .dot {
+	background-color: #22c55e !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-closedwon .dot {
+	background-color: #10b981 !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-closedlost .dot {
+	background-color: #ef4444 !important;
+}
+
+/* Select2 dropdown (filter popups) */
+html[data-theme="dark"] #select2-drop,
+html[data-theme="dark"] .select2-drop {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .select2-results .select2-result-label {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] .select2-results .select2-highlighted {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-primary) !important;
+}
+
+/* ========================================================================== */
+/* DETAIL + EDIT — SALES app shell & white cards                                */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .mk-app-shell,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .mk-dash-main[class*="-detail-main"],
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .main-container[class*="-detail-page"],
+html[data-theme="dark"] body[data-app="SALES"][data-view="Edit"] .mk-dash-main[class*="-edit-main"] {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card"],
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-hero-strip"],
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-hero__panel"],
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .detailview-header-block,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] #detailView .block,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .fieldBlockContainer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .summaryWidgetContainer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card__title"],
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .detailview-table td.fieldLabel,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .summary-table td.fieldLabel {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .detailview-table td.fieldValue,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .detailview-table td.fieldValue .value,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .summary-table td.fieldValue,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .summary-table td.fieldValue .value,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-hero__title"],
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .recordLabel {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .widget_contents,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-kv-wrap"],
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-summaryView"] {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .widget_contents .noContent,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-documents__body"] {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] textarea,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .commentTextArea {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .btn:not(.btn-primary):not([class*="mk-"]--primary),
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-btn"]:not([class*="--primary"]) {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* Contacts + Accounts detail (SALES) — same mk-* classes as list/marketing */
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-card,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-card--key,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-card--documents,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-card--comments,
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-related-activities,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--key,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--documents,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero-strip,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-hero-strip,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-hero-strip {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-details-row #detailView .block,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row #detailView .block,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] #detailView .block,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] #detailView .block,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] #detailView .block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-leads-detail-card,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-leads-filters-card,
+html[data-theme="dark"] body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-leads-filters-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* ========================================================================== */
+/* SALES list — search row cells + select2 (beat *List.css #fff !important)   */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow th {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container-active .select2-choice,
+html[data-theme="dark"] body[data-app="SALES"] #listview-table thead tr.searchRow .select2-container-active .select2-choice {
+	background: var(--mk-input-bg) !important;
+	background-color: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-actions.mk-opportunity-filter-row,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent #listview-actions.mk-opportunity-filter-row {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-icon-btn,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-mass-btn,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-pagination .btn,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-pagination .mk-opportunity-page-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-page-numbers,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-page-numbers .pageNumbersText {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* ========================================================================== */
+/* SALES detail — Summary / Details / Updates tabs (readable on dark)         */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs.row,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .related-tabs.row,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs.row,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs.row {
+	background: transparent !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .navbar-collapse.collapse,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .navbar-collapse {
+	display: block !important;
+	height: auto !important;
+	visibility: visible !important;
+	overflow: visible !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .nav.nav-tabs {
+	display: flex !important;
+	flex-wrap: nowrap !important;
+	flex-direction: row !important;
+	align-items: center !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .nav.nav-tabs > li {
+	float: none !important;
+	display: list-item !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item > a,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.more-tab > a,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.related-tab-more-element > a {
+	color: var(--mk-text-secondary) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.more-tab.active > a,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:hover,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:focus,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover {
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* SALES detail — comments (beat skin .commentContainer { background:white }) */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .summaryWidgetContainer .commentContainer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .summaryWidgetContainer .commentContainer.recentComments,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .commentContainer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .addCommentBlock,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .recentCommentsBody,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .commentDetails {
+	background: transparent !important;
+	border-color: var(--mk-border-subtle) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] textarea,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .commentTextArea,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .commentTextArea textarea,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .summaryWidgetContainer .commentContainertextarea {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .recentCommentsHeader,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .summaryWidgetContainer .recentCommentsHeader {
+	border-top-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .recentCommentsHeader h4,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .summaryWidgetContainer .recentCommentsHeader h4 {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .noCommentsMsgContainer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .recentComments .noCommentsMsgContainer p {
+	background: transparent !important;
+	border-color: var(--mk-border-subtle) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .toggleButton,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card"] .toggleButton {
+	color: var(--mk-text-muted) !important;
+}
+
+/* SALES detail — documents drop zone + overview block */
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-documents__body"],
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .widgetContainer_documents .widget_contents {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--overview"] .fieldBlockContainer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-overview-body"] .block {
+	background: transparent !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-overview-body"] td.fieldLabel,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-overview-body"] td.fieldLabel label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-overview-body"] td.fieldValue,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-overview-body"] td.fieldValue .value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-kv-wrap"] td.fieldValue,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-kv-wrap"] td.fieldValue .value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .widgetContainer_documents table,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .widgetContainer_documents .listViewEntriesDiv {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-card--comments"] .addCommentBlock > .row:last-child {
+	background: transparent !important;
+}
+
+/* Opportunities list — beat OpportunityList.css search row #fafbfc / #fff */
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow td {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-choice {
+	background: var(--mk-input-bg) !important;
+	background-color: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .inline-search-btn .btn,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow button {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* Opportunities list — readable headers (beat #6b6358 / #5d5246) */
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-breadcrumb,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-action-header__subtitle,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-toolbar-count {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-breadcrumb a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-action-header__title {
+	color: var(--mk-text-primary) !important;
+}
+
+/* List filters — no white boxes (select2 v3 + v4 + native select; beat custom.css) */
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow input.listSearchContributor,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow select.listSearchContributor,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table tr.searchRow input,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent #listview-table tr.searchRow select,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent.list-view-sidebar-offset .listview-table tr.searchRow input,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent.list-view-sidebar-offset .listview-table tr.searchRow select,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent.list-view-sidebar-offset .listview-table tr.searchRow .select2-container .select2-selection,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-active .select2-choice,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container--default .select2-selection--single,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container--default .select2-selection--multiple {
+	background: var(--mk-input-bg) !important;
+	background-color: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-chosen,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container--default .select2-selection__rendered,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice > span {
+	color: var(--mk-input-text) !important;
+}
+
+/* Products & Services list — headers + breadcrumbs */
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__list,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__subtitle,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-toolbar-count {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent.mk-ps-search-open tr.searchRow.listViewSearchContainer {
+	background: var(--mk-bg-elevated) !important;
+}
+
+/* Type pills — keep Product/Service colors in dark mode */
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--product {
+	background: rgba(14, 165, 233, 0.18) !important;
+	color: #7dd3fc !important;
+	border-color: rgba(14, 165, 233, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--service {
+	background: rgba(139, 92, 246, 0.18) !important;
+	color: #c4b5fd !important;
+	border-color: rgba(139, 92, 246, 0.35) !important;
+}
+
+/* Stage dots / category badges — keep module colors, do not flatten */
+
+/* ========================================================================== */
+/* ProductsServices detail — beat ProductsServicesDetail.css #fff !important */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero-strip.detailview-header-block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__title,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__title .recordLabel,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__subtitle,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-text {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--amount .mk-ps-detail-hero__meta-text {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .fieldBlockContainer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .fieldBlockHeader {
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .table-borderless td.fieldLabel,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .table-borderless td.fieldValue {
+	border-color: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* Key fields — no white divider lines */
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-kv-wrap"] .summary-table tr.summaryViewEntries {
+	border-bottom: none !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-kv-wrap"] .summary-table td.fieldLabel,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-kv-wrap"] .summary-table td.fieldLabel label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-kv-wrap"] .summary-table td.fieldValue,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-kv-wrap"] .summary-table td.fieldValue .value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] [class*="-detail-kv-wrap"] .summary-table td.fieldValue a {
+	color: var(--mk-text-link) !important;
+}
+
+/* ========================================================================== */
+/* Opportunities list filters — beat OpportunityList.css #fff on th/select2  */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.mk-col-sales-stage,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.mk-col-assigned-to,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.mk-col-order-category,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.mk-col-lead-source,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th {
+	background: var(--mk-bg-elevated) !important;
+	background-color: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2_search_div {
+	background: transparent !important;
+	background-color: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-active .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-active .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element),
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow input.listSearchContributor:not(.select2_input_element) {
+	background: var(--mk-input-bg) !important;
+	background-color: var(--mk-input-bg) !important;
+	background-image: none !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-chosen,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-chosen,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-choice > span {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow select.listSearchContributor.select2,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow select.listSearchContributor.select2 {
+	display: none !important;
+	visibility: hidden !important;
+	opacity: 0 !important;
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	background: transparent !important;
+	border: none !important;
+}

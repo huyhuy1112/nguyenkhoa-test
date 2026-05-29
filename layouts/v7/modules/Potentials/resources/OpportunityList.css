@@ -776,6 +776,11 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-defau
 	color: #4a5565;
 }
 
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-internal {
+	background: #e2e8f0;
+	color: #475569;
+}
+
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage {
 	display: inline-flex;
 	align-items: center;
@@ -794,6 +799,26 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage .do
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-qualification .dot {
 	background: #f4b122;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-prospecting .dot {
+	background: #3b82f6;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-needsanalysis .dot {
+	background: #8b5cf6;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-valueprop .dot {
+	background: #06b6d4;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-decision .dot {
+	background: #f97316;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-perception .dot {
+	background: #ec4899;
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-proposal .dot {

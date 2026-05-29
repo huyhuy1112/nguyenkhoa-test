@@ -1,4 +1,4 @@
-{* ServiceContracts Detail (Sales): close split shell. *}
+{* ProductsServices Detail (Sales): close split shell. *}
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
 					</div>
 				</div>

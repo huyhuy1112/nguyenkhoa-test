@@ -1005,9 +1005,16 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-kv-wrap .summary-table tbody,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-kv-wrap .summary-table tbody {
-	display: flex;
-	flex-direction: column;
-	gap: 0;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0 20px;
+}
+
+@media (max-width: 767px) {
+	body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-kv-wrap .summary-table tbody,
+	body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-kv-wrap .summary-table tbody {
+		grid-template-columns: 1fr;
+	}
 }
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-kv-wrap .summary-table tr.summaryViewEntries,
@@ -1016,13 +1023,14 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 	grid-template-columns: minmax(0, 1fr);
 	row-gap: 4px;
 	align-items: start;
-	padding: 10px 0;
-	border-bottom: 1px solid #f1ebde;
+	padding: 8px 0 12px;
+	border-bottom: none;
 }
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-kv-wrap .summary-table tr.summaryViewEntries:last-child,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-kv-wrap .summary-table tr.summaryViewEntries:last-child {
 	border-bottom: none;
+	padding-bottom: 0;
 }
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-kv-wrap .summary-table td,

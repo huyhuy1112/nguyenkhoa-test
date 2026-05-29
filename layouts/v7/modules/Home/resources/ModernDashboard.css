@@ -1,0 +1,592 @@
+/* Modern fixed-sidebar Management dashboard for Home -> ModernDashboard view */
+
+/* Scope everything to the ModernDashboard view to avoid touching classic dashboard */
+body[data-view="ModernDashboard"] #page {
+    background: #f7f9fb;
+}
+
+body[data-view="ModernDashboard"] {
+    /* Align with shared dashboard sidebar width (DashBoard.css --mk-dash-sidebar-w) */
+    --mk-modern-sidebar-w: var(--mk-dash-sidebar-w, 256px);
+    --mk-surface: #ffffff;
+    --mk-surface-2: #f8fafc;
+    --mk-border: rgba(15, 23, 42, 0.08);
+    --mk-border-2: rgba(15, 23, 42, 0.06);
+    --mk-text: #0f172a;
+    --mk-text-2: #334155;
+    --mk-muted: #64748b;
+    --mk-muted-2: #94a3b8;
+    --mk-accent: #fdbb2c;
+    --mk-accent-2: #d97706;
+    --mk-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+    --mk-shadow-soft: 0 6px 18px rgba(2, 6, 23, 0.06);
+}
+
+/* Reuse shared mk-dashboard-sidebar visuals; only adjust offsets for this view */
+body[data-view="ModernDashboard"] .mk-modern-dashboard-root {
+    min-height: calc(100vh - 50px);
+    background: #f7f9fb;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-main {
+    margin-left: var(--mk-modern-sidebar-w);
+}
+
+/* Hide legacy left sidebar + modnavigator inside main-container to keep layout clean */
+body[data-view="ModernDashboard"] .main-container-Home #modnavigator,
+body[data-view="ModernDashboard"] .main-container-Home #sidebar-essentials {
+    display: none !important;
+}
+
+body[data-view="ModernDashboard"] .main-container-Home .listViewPageDiv {
+    width: 100% !important;
+}
+
+/* Core shell adapts existing mk-dashboard-shell tokens */
+body[data-view="ModernDashboard"] .mk-modern-shell {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 20px 28px 34px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Header */
+body[data-view="ModernDashboard"] .mk-modern-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-header-left {
+    max-width: 60%;
+    min-width: 240px;
+}
+
+body[data-view="ModernDashboard"] .mk-dashboard-kicker {
+    color: var(--mk-muted) !important;
+    letter-spacing: 0.18em;
+}
+
+body[data-view="ModernDashboard"] .mk-dashboard-title {
+    color: var(--mk-text) !important;
+    font-size: 26px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-subtitle {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--mk-muted);
+}
+
+body[data-view="ModernDashboard"] .mk-modern-header-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1 1 auto;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-weight: 650;
+    font-size: 13px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-btn--primary {
+    background-color: #fdbb2c;
+    border-color: #fdbb2c;
+    color: #111827;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-btn--primary:hover {
+    background-color: #f59e0b;
+    border-color: #f59e0b;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-btn--ghost {
+    background-color: var(--mk-surface);
+    border-color: rgba(15, 23, 42, 0.14);
+    color: var(--mk-text-2);
+}
+
+/* Main grid */
+body[data-view="ModernDashboard"] .mk-modern-main-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-row {
+    width: 100%;
+}
+
+/* History row: single wide card */
+body[data-view="ModernDashboard"] .mk-modern-card {
+    background: var(--mk-surface);
+    border-radius: 14px;
+    border: 1px solid var(--mk-border);
+    box-shadow: var(--mk-shadow-soft);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--mk-border-2);
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-header-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--mk-text);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-ic {
+    font-size: 15px;
+    color: #1f4b64;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-sub {
+    margin: 0;
+    font-size: 12px;
+    color: var(--mk-muted);
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body {
+    padding: 10px 16px 12px;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-feed {
+    max-height: 210px; /* shorter like Figma */
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-footer {
+    padding: 10px 16px 12px;
+    border-top: 1px solid var(--mk-border-2);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0), rgba(248, 250, 252, 0.75));
+    border-radius: 0 0 14px 14px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 650;
+    font-size: 12px;
+    color: #1f4b64 !important;
+    text-decoration: none !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-footer-link:hover {
+    color: #0f172a !important;
+}
+
+/* KPI row: 3-column grid */
+body[data-view="ModernDashboard"] .mk-modern-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card--kpi {
+    min-height: 104px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-header--compact {
+    padding-bottom: 4px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-title--kpi {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-sub--kpi {
+    font-size: 11px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--kpi {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-kpi-value {
+    font-size: 24px;
+    font-weight: 780;
+    letter-spacing: -0.02em;
+    color: var(--mk-text);
+}
+
+body[data-view="ModernDashboard"] .mk-modern-kpi-sparkline {
+    margin-top: 6px;
+    min-height: 22px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(31, 75, 100, 0.14), rgba(148, 163, 184, 0.05));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-kpi-placeholder {
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* Bottom row: chart + upcoming list */
+body[data-view="ModernDashboard"] .mk-modern-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); /* larger chart emphasis */
+    gap: 12px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card--chart {
+    min-height: 360px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--chart {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-chart-placeholder {
+    width: 100%;
+    height: 280px;
+    border-radius: 10px;
+    border: 1px dashed rgba(148, 163, 184, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--mk-muted-2);
+    font-size: 12px;
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(226, 232, 240, 0.3),
+        rgba(226, 232, 240, 0.3) 6px,
+        rgba(248, 250, 252, 0.3) 6px,
+        rgba(248, 250, 252, 0.3) 12px
+    );
+}
+
+/* Upcoming list */
+body[data-view="ModernDashboard"] .mk-modern-card-body--upcoming {
+    padding-top: 8px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-upcoming-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-upcoming-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 8px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    transition: background 120ms ease, border-color 120ms ease;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-upcoming-item:hover {
+    background: rgba(248, 250, 252, 0.8);
+    border-color: var(--mk-border-2);
+}
+
+body[data-view="ModernDashboard"] .mk-modern-upcoming-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(31, 75, 100, 0.08);
+    color: #1f4b64;
+    flex-shrink: 0;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-upcoming-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-upcoming-link {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--mk-text) !important;
+    text-decoration: none !important;
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-upcoming-link:hover {
+    color: #1f4b64 !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-upcoming-for {
+    margin-left: 6px;
+    font-size: 11px;
+    color: var(--mk-muted);
+}
+
+body[data-view="ModernDashboard"] .mk-modern-upcoming-meta {
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--mk-muted-2);
+}
+
+body[data-view="ModernDashboard"] .mk-modern-upcoming-trailing {
+    color: rgba(100, 116, 139, 0.9);
+    display: flex;
+    align-items: center;
+    padding-left: 4px;
+}
+
+/* Empty state */
+body[data-view="ModernDashboard"] .mk-modern-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* Footer */
+body[data-view="ModernDashboard"] .mk-modern-footer {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px dashed #e2e8f0;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1199px) {
+    body[data-view="ModernDashboard"] .mk-modern-header-left {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 1024px) {
+    /* Collapse sidebar into content for smaller screens to avoid horizontal scroll */
+    body[data-view="ModernDashboard"] .mk-dashboard-sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    body[data-view="ModernDashboard"] .mk-modern-main {
+        margin-left: 0;
+    }
+
+    body[data-view="ModernDashboard"] .mk-modern-bottom-grid,
+    body[data-view="ModernDashboard"] .mk-modern-kpi-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    body[data-view="ModernDashboard"] .mk-modern-shell {
+        padding: 14px 14px 22px;
+    }
+
+    body[data-view="ModernDashboard"] .mk-modern-header {
+        align-items: flex-start;
+    }
+
+    body[data-view="ModernDashboard"] .mk-modern-header-right {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    body[data-view="ModernDashboard"] .mk-modern-header-actions {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-feed {
+        max-height: none;
+    }
+}
+
+/* =========================
+   History feed refinement
+   (HistoryContents.tpl output)
+   ========================= */
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-feed {
+    overflow: auto;
+    padding-right: 4px;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 8px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    margin: 0 0 6px;
+    background: rgba(248, 250, 252, 0.55);
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item:hover {
+    background: rgba(248, 250, 252, 0.9);
+    border-color: var(--mk-border-2);
+}
+
+/* Undo legacy grid/floats inside the History rows */
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item > [class*="col-"] {
+    float: none !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item .col-lg-1 {
+    width: 30px;
+    flex: 0 0 30px;
+    padding: 0 !important;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    opacity: 0.9;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item .col-lg-10 {
+    flex: 1 1 auto;
+    width: auto;
+    padding: 0 !important;
+    min-width: 0;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item b,
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item strong {
+    font-weight: 700;
+    color: var(--mk-text);
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item a {
+    color: #1f4b64 !important;
+    font-weight: 650;
+    text-decoration: none !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item a:hover {
+    color: var(--mk-text) !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item .muted,
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item small {
+    color: var(--mk-muted-2) !important;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+/* Timestamp positioning cleanup (the template uses pull-right + inline style) */
+body[data-view="ModernDashboard"] .mk-modern-card-body--history .mk-history-item p.pull-right {
+    float: none !important;
+    margin: 6px 0 0 !important;
+    padding-right: 0 !important;
+}
+
+/* =========================
+   jqPlot premium skin (when a jqPlot widget is used inside ModernDashboard cards)
+   ========================= */
+body[data-view="ModernDashboard"] .mk-modern-card .widgetChartContainer,
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-target {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Reduce the “legacy” feel in tick labels and prevent harsh diagonal rotation */
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-axis-tick,
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-tick-label,
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-yaxis-tick-label,
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-xaxis-tick-label {
+    color: var(--mk-muted-2) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em;
+    transform: none !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-axis-label,
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-yaxis-label,
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-xaxis-label {
+    color: var(--mk-muted) !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+}
+
+/* Legend modernization */
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-table-legend {
+    border: 1px solid var(--mk-border) !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.06) !important;
+    padding: 8px 10px !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-table-legend td {
+    padding: 3px 6px !important;
+}
+
+body[data-view="ModernDashboard"] .mk-modern-card .jqplot-table-legend-label {
+    color: var(--mk-text-2) !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+}
+
+/* Chart inner padding: jqPlot uses absolute positioned canvases, so we pad the container */
+body[data-view="ModernDashboard"] .mk-modern-card .widgetChartContainer {
+    padding: 6px 6px 2px;
+}
+
+
