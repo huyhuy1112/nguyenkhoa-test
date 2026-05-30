@@ -1,6 +1,6 @@
 {strip}
-<div class="table-responsive">
-	<table class="table listViewEntriesTable">
+<div class="table-responsive mk-teams-table-wrap">
+	<table class="table listViewEntriesTable mk-teams-groups-table">
 		<thead>
 			<tr>
 				<th>Group Name</th>

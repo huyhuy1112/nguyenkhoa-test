@@ -1,12 +1,21 @@
 {*+**********************************************************************************
- * ProjectTask Detail Header - subtask style like taskDetailToolbar (Complete, #, ellipsis)
+ * ProjectTask Detail Header — MANAGEMENT hero shell
  ************************************************************************************}
 {strip}
+{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'MANAGEMENT') || (isset($smarty.get.app) && $smarty.get.app eq 'MANAGEMENT')}
+<div class="detailview-header-block mk-projecttask-detail-hero-strip">
+	<div class="detailview-header mk-projecttask-detail-hero">
+		<div class="mk-projecttask-detail-hero__row row">
+			{include file="DetailViewHeaderTitle.tpl"|vtemplate_path:$MODULE}
+			{include file="DetailViewActions.tpl"|vtemplate_path:$MODULE}
+		</div>
+	</div>
+</div>
+{else}
 <div class="detailview-header-block projecttask-detail-header {if $RECORD->get('parent_projecttaskid')}projecttask-subtask-header taskDetailToolbar{/if}">
     <div class="detailview-header">
         <div class="row">
             {if $RECORD->get('parent_projecttaskid')}
-            {* taskDetailToolbar style: taskCurrentStage, taskIdContainer, ellipsis *}
             <div class="projecttask-subtask-header-content taskDetailToolbar-inner">
                 <div class="taskCurrentStage taskCompleteTrigger">
                     <div class="taskCheckBox"><span class="taskComplete {if $RECORD->get('projecttaskstatus') == 'Completed' || $RECORD->get('projecttaskprogress') >= 100}checked{/if}"></span></div>
@@ -22,7 +31,6 @@
                 <div class="taskDetailToolbar-fill"></div>
                 <div class="taskDetailToolbar-actions">{include file="DetailViewActions.tpl"|vtemplate_path:$MODULE}</div>
             </div>
-            {* Breadcrumb: tdProjectName, tdListName, breadcrumb (parent link) *}
             <div class="taskDetailBreadcrumbWrap">
                 <div class="tdProjectName"><i class="fa fas fa-circle" style="color:#3F9843"></i> {assign var=PROJECT_ID value=$RECORD->get('projectid')}{if $PROJECT_ID}{assign var=PROJECT_RECORD value=Vtiger_Record_Model::getInstanceById($PROJECT_ID, 'Project')}{$PROJECT_RECORD->getName()|default:vtranslate('LBL_PROJECT', $MODULE_NAME)}{else}{vtranslate('LBL_PROJECT', $MODULE_NAME)}{/if} </div>
                 <div class="tdListName"><i class="far fa-angle-right"></i> {vtranslate('LBL_TASKS_LIST', $MODULE_NAME)}</div>
@@ -31,11 +39,11 @@
             </div>
             <h4 class="titleCardArea subtask-title">{$RECORD->getName()}</h4>
             {else}
-            {* Standard task: use default header *}
             {include file="DetailViewHeaderTitle.tpl"|vtemplate_path:'Vtiger' MODULE_MODEL=$MODULE_MODEL RECORD=$RECORD}
             {include file="DetailViewActions.tpl"|vtemplate_path:$MODULE}
             {/if}
         </div>
     </div>
 </div>
+{/if}
 {/strip}

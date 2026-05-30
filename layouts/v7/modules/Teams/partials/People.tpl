@@ -1,6 +1,6 @@
 {strip}
-<div class="table-responsive teams-people-table-wrap">
-	<table class="table listViewEntriesTable teams-people-table">
+<div class="table-responsive teams-people-table-wrap mk-teams-table-wrap">
+	<table class="table listViewEntriesTable teams-people-table mk-teams-people-table">
 		<thead>
 			<tr>
 				<th class="teams-people-th-checkbox">

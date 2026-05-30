@@ -1,0 +1,1488 @@
+/**
+ * B-ACE CRM — SUPPORT app: Tickets, Activities, Rules, FAQ, Organizations list.
+ * Loads after module list CSS (HelpDeskList, ActivitiesList, etc.).
+ */
+
+/* ========================================================================== */
+/* Canvas + topbar                                                            */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar.navbar-default.app-fixed-navbar,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar {
+	background: var(--mk-topbar-bg) !important;
+	-webkit-backdrop-filter: var(--mk-topbar-blur);
+	backdrop-filter: var(--mk-topbar-blur);
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"] .mk-dash-app-topbar .navbar-nav > li > a,
+html[data-theme="dark"] body[data-app="SUPPORT"] .mk-dash-app-topbar .navbar-nav > li > div > a,
+html[data-theme="dark"] body[data-app="SUPPORT"] .mk-dash-app-topbar .mk-dash-search-input,
+html[data-theme="dark"] body[data-app="SUPPORT"] .mk-dash-app-topbar .mk-dash-topbar-linkic {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-dash-main.mk-hd-list-main,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-dash-main.mk-hd-rules-main,
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-dash-main.mk-act-list-main,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-dash-main.mk-sf-faq-main,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-dash-main {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="List"] .content-area,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="List"] #listViewContent,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .content-area {
+	background: transparent !important;
+}
+
+/* ========================================================================== */
+/* HelpDesk — Tickets list                                                    */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-suite-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-stat-card {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-stat-card__label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-stat-card__value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-prio--critical {
+	background: rgba(239, 68, 68, 0.15) !important;
+	color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-prio--high {
+	background: rgba(245, 158, 11, 0.15) !important;
+	color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-prio--medium {
+	background: rgba(94, 233, 255, 0.12) !important;
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-prio--low {
+	background: rgba(34, 197, 94, 0.15) !important;
+	color: #86efac !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-table-panel {
+	background: var(--mk-card-bg) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-table-toolbar {
+	background: var(--mk-table-header-bg) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-table-toolbar__count {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-table-toolbar__count strong {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-view-toggle {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-view-toggle__btn {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-view-toggle__btn.is-active {
+	background: var(--mk-primary) !important;
+	color: #0f172a !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-toolbar-link {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-toolbar-link:hover {
+	color: var(--mk-text-link-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] #listViewContent .mk-hd-table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] #listViewContent .mk-hd-table tbody td {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] #listViewContent .mk-hd-table tbody tr:hover {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-code-link,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-table__subject,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-table__customer {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-code-link:hover {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-muted,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-table__empty {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-badge--priority-critical {
+	background: rgba(239, 68, 68, 0.15) !important;
+	color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-badge--priority-high {
+	background: rgba(245, 158, 11, 0.15) !important;
+	color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-badge--priority-medium {
+	background: rgba(94, 233, 255, 0.12) !important;
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-badge--priority-low {
+	background: rgba(34, 197, 94, 0.15) !important;
+	color: #86efac !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-badge--status-open {
+	background: rgba(139, 92, 246, 0.15) !important;
+	color: #c4b5fd !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-badge--status-in_progress {
+	background: rgba(245, 158, 11, 0.15) !important;
+	color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-badge--status-resolved {
+	background: rgba(34, 197, 94, 0.15) !important;
+	color: #86efac !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-badge--status-closed {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-sla {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-sla--overdue {
+	color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-assignee__name {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-pagination__btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-pagination__btn.is-active {
+	background: var(--mk-primary) !important;
+	border-color: var(--mk-primary) !important;
+	color: #0f172a !important;
+}
+
+/* ========================================================================== */
+/* HelpDesk — Rules list                                                      */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__crumb,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__crumb a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__crumb-current {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__strip {
+	background: var(--mk-bg-elevated) !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__strip-k {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__strip-v {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__strip-tip {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__table thead tr {
+	background: var(--mk-table-header-bg) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__table th {
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__table td {
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__name {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__minutes {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__status--active {
+	background: rgba(139, 92, 246, 0.2) !important;
+	color: #c4b5fd !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__status--inactive {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__icon-btn {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__icon-btn:hover {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-link-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__footer {
+	background: var(--mk-table-header-bg) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__range {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__range strong {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__pager-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__pager-btn:hover:not(:disabled) {
+	background: var(--mk-card-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app="SUPPORT"] .mk-hd-rules__empty-text {
+	color: var(--mk-text-muted) !important;
+}
+
+/* ========================================================================== */
+/* Activities — list                                                            */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__shell {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__top {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__crumb,
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__crumb a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__desc {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__btn--outline,
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__btn--ghost {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__btn--outline:hover,
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__btn--ghost:hover {
+	background: var(--mk-card-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__metrics {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__metric {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__metric-label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__metric-value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__filters {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__search,
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__select,
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__date {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__feed-count {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__card {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__card:hover {
+	border-color: var(--mk-border-accent) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__card-date-label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__card-date time {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__card-subject {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__meta-item {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"] .activity-tag-task {
+	background: rgba(37, 99, 235, 0.2) !important;
+	color: #93c5fd !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"] .activity-tag-meeting {
+	background: rgba(34, 197, 94, 0.15) !important;
+	color: #86efac !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"] .activity-tag-call {
+	background: rgba(139, 92, 246, 0.15) !important;
+	color: #c4b5fd !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"] .activity-tag-anniversary {
+	background: rgba(253, 187, 44, 0.15) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"] .activity-tag-default {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__status--scheduled {
+	background: rgba(139, 92, 246, 0.15) !important;
+	color: #c4b5fd !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__status--ready {
+	background: rgba(94, 233, 255, 0.12) !important;
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__status--completed {
+	background: rgba(34, 197, 94, 0.15) !important;
+	color: #86efac !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__status--skipped {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__card-link {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__card-link:hover {
+	background: var(--mk-card-hover) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="List"][data-app="SUPPORT"] .mk-act-v2__empty {
+	color: var(--mk-text-muted) !important;
+	border-color: var(--mk-border-color) !important;
+	background: transparent !important;
+}
+
+/* ========================================================================== */
+/* SupportFAQ — list                                                          */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-breadcrumb__link {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-breadcrumb__current,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-breadcrumb__sep {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-hero__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-shared__select {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-btn--outline {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-card__toolbar {
+	background: var(--mk-table-header-bg) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-card__summary {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-card__summary strong {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-view-toggle {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-view-toggle__btn {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-view-toggle__btn.is-active {
+	background: var(--mk-card-bg) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-icon-btn {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-td {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-row:hover td {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-question-link {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-question-link:hover {
+	color: var(--mk-text-link-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-creator__name {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-row-action {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-row-action:hover {
+	color: var(--mk-text-primary) !important;
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-empty {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-pagination {
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-pagination__arrow,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-pagination__page {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="List"][data-app="SUPPORT"] .mk-sf-faq-pagination__page.is-active {
+	background: var(--mk-primary) !important;
+	color: #0f172a !important;
+}
+
+/* ========================================================================== */
+/* Accounts — Organizations list (SUPPORT app)                                */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-table-card,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-table-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row {
+	background: var(--mk-table-header-bg) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-page-numbers,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-toolbar-count {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-page-numbers .pageNumbersText,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-page-numbers .mk-so-total-count,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-page-numbers strong {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-mass-actions {
+	border-left-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-mass-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #table-content.table-container {
+	background: var(--mk-card-bg) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table thead tr.listViewContentHeader {
+	background: var(--mk-table-header-bg) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table thead tr.listViewContentHeader th,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table tbody tr.listViewEntries td {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table tbody td[data-name="subject"] a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent .mk-so-filter-row__footer {
+	background: var(--mk-table-header-bg) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-pagination .mk-so-page-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled) {
+	background: var(--mk-primary) !important;
+	border-color: var(--mk-primary) !important;
+	color: #0f172a !important;
+}
+
+/* ========================================================================== */
+/* Organizations list — action buttons (Add / Import / Customize)               */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-action-header__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-action-header__subtitle {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-btn--outline:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-btn__ic {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-btn--primary .mk-org-btn__ic {
+	color: #191c1e !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-settings-menu {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-md) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-settings-menu a {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-settings-menu a:hover {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-primary) !important;
+}
+
+/* ========================================================================== */
+/* SUPPORT — shared create/edit shells (beat module *Edit.css + MkTheme h1)   */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Edit"] .mk-dash-main.mk-hd-edit-main,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Edit"] .mk-dash-main.mk-act-edit-main,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Edit"] .mk-dash-main.mk-sf-faq-edit-main,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-dash-main.mk-hd-rule-detail-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Edit"] .main-container .content-area,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Edit"] .editViewContainer,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .main-container .content-area {
+	background: transparent !important;
+}
+
+/* Suite card + page head */
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-suite-card,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-suite-card,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-suite-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-page-head,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-page-head,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-page-head {
+	background: var(--mk-card-bg) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-edit-toolbar,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-toolbar {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-edit-content,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-content,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-edit-content {
+	background: var(--mk-bg-primary) !important;
+}
+
+/* Titles — override html[data-theme="dark"] h1 !important */
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-action-header__title,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-action-header__title,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-page-head__title,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-hero-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-action-header__subtitle,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-action-header__subtitle,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-page-head__crumb a,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-page-head__crumb span[aria-current],
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-hero-sub,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-breadcrumb,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-breadcrumb a {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-breadcrumb__item a,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-breadcrumb__item a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-breadcrumb__item--current span,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-breadcrumb__item--current span {
+	color: var(--mk-text-primary) !important;
+}
+
+/* Ghost / toolbar links */
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-btn--ghost,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-toolbar-link,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-toolbar-link,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-btn--ghost,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-btn--ghost:hover,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-toolbar-link:hover,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-toolbar-link:hover,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-btn--ghost:hover,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-btn--outline:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-primary) !important;
+}
+
+/* Form cards */
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-detail-card,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-detail-card,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .mk-sf-faq-block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-detail-card__head,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-detail-card__head {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-detail-card__title,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-detail-card__title,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .mk-sf-faq-block td.fieldLabel,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .mk-sf-faq-block td.fieldLabel label {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Module custom inputs (beat HelpDeskEdit.css / ActivitiesEdit.css white fields) */
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-edit-input,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-edit-form .form-control,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-input,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .mk-sf-faq-block td.fieldValue textarea,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .mk-sf-faq-block td.fieldValue input[type="text"],
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .mk-sf-faq-block td.fieldValue select,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-input {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-edit-input:focus,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-input:focus,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-input:focus {
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.2) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-edit-input[readonly],
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-edit-field__label,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-edit-field__label,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-edit-hint,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-label,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-help {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-edit-input[readonly] {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] input[type="datetime-local"],
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] input[type="date"],
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] input[type="time"] {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+	color-scheme: dark;
+}
+
+/* Aside panels */
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-aside-card,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-aside-card,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-aside-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-aside-card__head,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-aside-card__head,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-aside-card__head {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-aside-card--tips .mk-hd-aside-card__head,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-aside-card--priority .mk-hd-aside-card__head,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-aside-card--tips .mk-act-aside-card__head,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-aside-card--status .mk-act-aside-card__head,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-aside-card--guide .mk-sf-faq-aside-card__head {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-aside-card__title,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-aside-card--tips .mk-hd-aside-card__title,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-aside-card--priority .mk-hd-aside-card__title,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-aside-card__title,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-aside-card__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-aside-card__text,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-aside-card__text strong,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-aside-card__text,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-aside-card__text,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-guide-list__desc {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Edit"][data-app="SUPPORT"] .mk-hd-priority-guide__item {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Edit"][data-app="SUPPORT"] .mk-act-status-guide__item {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-guide-list__item--search,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-guide-list__item--clear,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-guide-list__item--update {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-guide-list__badge {
+	color: var(--mk-text-primary) !important;
+}
+
+/* SupportFAQ — vtiger form host (reference + select2) */
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .referencefield-wrapper .input-group,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .input-group .input-group-addon,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .input-group .input-group-addon.createReferenceRecord {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .input-group .input-group-addon.createReferenceRecord:hover {
+	background: var(--mk-primary) !important;
+	color: #0f172a !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host td.fieldValue > .select2-container {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Edit"][data-app="SUPPORT"] .mk-sf-faq-form-host .select2-container--default .select2-selection--single {
+	background: transparent !important;
+	color: var(--mk-input-text) !important;
+}
+
+/* HelpDesk — Rule create/edit (RuleDetail view) */
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-hero {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-form-card,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-guide {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-form-card-head {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-form-card-title,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-guide-title,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-guide-card-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-guide-card {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-guide-card-text,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-toggle-label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-sep {
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-btn--secondary {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="RuleDetail"] .mk-hd-rule-detail-checkbox {
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* SUPPORT — Detail views (shared shell + per-module)                         */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .mk-app-shell,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="TicketDetail"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .mk-dash-main[class*="-detail-main"],
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-dash-main.mk-go-detail-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-card"],
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-hero-strip"],
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] #detailView .block,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .fieldBlockContainer,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .summaryWidgetContainer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-card__title"],
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .detailview-table td.fieldLabel,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .summary-table td.fieldLabel {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .detailview-table td.fieldValue,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .detailview-table td.fieldValue .value,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .summary-table td.fieldValue,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .summary-table td.fieldValue .value,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-hero__title"],
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .recordLabel {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .widget_contents,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-kv-wrap"],
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-summaryView"] {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .widget_contents .noContent,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-documents__body"] {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+/* Detail tabs (Summary / Details / Updates) */
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .related-tabs.row {
+	background: transparent !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item > a,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.more-tab > a {
+	color: var(--mk-text-secondary) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:hover,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover {
+	color: var(--mk-text-primary) !important;
+	background: transparent !important;
+	border-bottom-color: var(--mk-primary) !important;
+}
+
+/* Comments widget */
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-card--comments"] .commentContainer,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-card--comments"] .addCommentBlock,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-card--comments"] .recentCommentsBody,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-card--comments"] .commentDetails {
+	background: transparent !important;
+	border-color: var(--mk-border-subtle) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-card--comments"] textarea,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] [class*="-detail-card--comments"] .commentTextArea,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .summaryWidgetContainer .commentContainertextarea {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .noCommentsMsgContainer,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .recentComments .noCommentsMsgContainer p {
+	background: transparent !important;
+	color: var(--mk-text-muted) !important;
+}
+
+/* Ghost / outline action buttons on detail headers */
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .mk-hd-btn--ghost,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .mk-act-btn--ghost,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .mk-act-btn--outline,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .mk-sf-faq-detail-hero__btn,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-btn--ghost,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .mk-hd-btn--ghost:hover,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .mk-act-btn--ghost:hover,
+html[data-theme="dark"] body[data-app="SUPPORT"][data-view="Detail"] .mk-act-btn--outline:hover,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-btn--ghost:hover,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-btn--outline:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-primary) !important;
+}
+
+/* ---- HelpDesk TicketDetail ---- */
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .detailview-content.mk-go-detailview-content {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-detail-hero__title,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-card__title,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-description {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-detail-hero__meta,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-detail-hero__created,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-muted,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-empty p,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-field-label,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-detail-breadcrumb__item a {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-detail-hero__code-pill {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-input,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-textarea,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] select.mk-hd-input {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-assign-search__field {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-assign-select {
+	background: transparent !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-assign-select option {
+	background: var(--mk-card-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-assign-tag {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-detail-tabs__btn {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="TicketDetail"] .mk-hd-detail-tabs__btn.is-active {
+	color: var(--mk-primary) !important;
+	border-bottom-color: var(--mk-primary) !important;
+}
+
+/* ---- Activities Detail ---- */
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-top-card,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-summary,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-summary__head,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-card__head {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-summary__title,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-card__title,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-hero__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-hero__meta,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-hero__created,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-breadcrumb__item a,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-breadcrumb__link,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-breadcrumb__muted,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-breadcrumb__sep {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-breadcrumb__item--current span,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-breadcrumb__current {
+	color: var(--mk-text-primary) !important;
+}
+
+/* Summary dl grid (DetailViewSummary.tpl — beats ActivitiesDetail.css #191c1e) */
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-fields__row {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-fields__row dt,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-subfields__label,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-notes__label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-fields__row dd,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-subfields__value,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-notes__value,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-assignee__name,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-exec__date,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-exec__date span,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-logs li,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-logs li strong {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-fields__row dd a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-content-box {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-empty-dash,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-muted {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-field {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-field__label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-field__value,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-field__link {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-field__value--muted,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-field__value--empty {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-field__value--box {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-tabs__btn {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-tabs__btn--active,
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-tabs__btn.is-active {
+	color: var(--mk-primary) !important;
+	border-bottom-color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-tabs__dropdown {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-md) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-tabs__dropdown a {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Activities"][data-view="Detail"][data-app="SUPPORT"] .mk-act-detail-tabs__dropdown a:hover {
+	background: var(--mk-bg-hover) !important;
+}
+
+/* ---- SupportFAQ Detail ---- */
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-top-card,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-summary {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-summary__head {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-summary__title,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-hero__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-hero__meta,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-hero__created,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-breadcrumb__item a,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-breadcrumb__link {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-breadcrumb__item--current span,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-breadcrumb__current {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-fields-grid {
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-field {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-field__label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-field__value,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-field__link {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-field__box,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-field__value--box {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-field__empty {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-assignee__name {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-tabs__btn {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-tabs__btn--active,
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-tabs__btn.is-active {
+	color: var(--mk-primary) !important;
+	border-bottom-color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="SupportFAQ"][data-view="Detail"][data-app="SUPPORT"] .mk-sf-faq-detail-tabs__dropdown {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* ---- Accounts Organizations Detail ---- */
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--documents,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-card__head {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-card__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldLabel {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue .value,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table td.fieldValue a {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-kv-wrap .summary-table tr.summaryViewEntries {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row #detailView .block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a {
+	color: var(--mk-text-secondary) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item.active > a,
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-tabs .nav.nav-tabs > li.tab-item.active > a:hover {
+	color: var(--mk-text-primary) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_header .pull-right .btn {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}

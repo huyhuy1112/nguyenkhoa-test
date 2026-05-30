@@ -9,6 +9,49 @@ require_once 'modules/HelpDesk/models/TicketService.php';
 
 class HelpDesk_Edit_View extends Vtiger_Index_View {
 
+	protected function isSupportApp(Vtiger_Request $request) {
+		$appName = strtoupper((string)$request->get('app'));
+		return ($appName === 'SUPPORT' || $appName === '');
+	}
+
+	protected function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isSupportApp($request)) {
+			return 'EditViewPreProcess.tpl';
+		}
+		return 'IndexViewPreProcess.tpl';
+	}
+
+	protected function assignSupportContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+		$appName = $request->get('app');
+		$viewer->assign('SELECTED_MENU_CATEGORY', !empty($appName) ? $appName : 'SUPPORT');
+		$viewer->assign('VIEW', 'Edit');
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'HelpDesk');
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		$this->assignSupportContext($request);
+		if ($this->isSupportApp($request)) {
+			$viewer = $this->getViewer($request);
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'SUPPORT');
+		}
+		parent::preProcess($request, $display);
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		if ($this->isSupportApp($request)) {
+			$viewer->view('EditViewPostProcess.tpl', $request->getModule());
+		} else {
+			$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		}
+		Vtiger_Basic_View::postProcess($request);
+	}
+
 	public function process(Vtiger_Request $request) {
 		$recordId = (int)$request->get('record');
 		$service  = HelpDesk_TicketService::getInstance();
@@ -23,7 +66,6 @@ class HelpDesk_Edit_View extends Vtiger_Index_View {
 
 		$db = PearDatabase::getInstance();
 
-		// Load contacts as potential customers (with organization)
 		$contacts = [];
 		$cRes = $db->pquery(
 			"SELECT cd.contactid, cd.firstname, cd.lastname,
@@ -43,7 +85,6 @@ class HelpDesk_Edit_View extends Vtiger_Index_View {
 			}
 		}
 
-		// Load users for assignment
 		$users = [];
 		$uRes = $db->pquery(
 			"SELECT id, first_name, last_name FROM vtiger_users WHERE status = 'Active' ORDER BY first_name, last_name",
@@ -55,7 +96,6 @@ class HelpDesk_Edit_View extends Vtiger_Index_View {
 			}
 		}
 
-		// Existing assignees for edit mode
 		$assignedUserIds = [];
 		if ($recordId > 0) {
 			$aRes = $db->pquery(
@@ -70,8 +110,9 @@ class HelpDesk_Edit_View extends Vtiger_Index_View {
 		}
 
 		$viewer = $this->getViewer($request);
-		$viewer->assign('MODULE', $request->getModule());
+		$this->assignSupportContext($request);
 		$viewer->assign('TICKET', $ticket);
+		$viewer->assign('MODE', ($ticket ? 'edit' : 'create'));
 		$viewer->assign('CONTACTS', $contacts);
 		$viewer->assign('USERS', $users);
 		$viewer->assign('ASSIGNED_USER_IDS', $assignedUserIds);
@@ -79,4 +120,3 @@ class HelpDesk_Edit_View extends Vtiger_Index_View {
 		$viewer->view('EditView.tpl', $request->getModule());
 	}
 }
-

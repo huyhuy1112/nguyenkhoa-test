@@ -14,6 +14,16 @@
  */
 class Evaluate_List_View extends Vtiger_Index_View {
 
+	protected function preProcessTplName(Vtiger_Request $request) {
+		return 'ListViewPreProcess.tpl';
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$viewer->view('ListViewPostProcess.tpl', $request->getModule());
+		Vtiger_Basic_View::postProcess($request);
+	}
+
 	private function parseMoney($value) {
 		if ($value === null) {
 			return 0.0;
@@ -36,30 +46,68 @@ class Evaluate_List_View extends Vtiger_Index_View {
 		return "0";
 	}
 
+	private function statusCssClass($status) {
+		$s = strtolower(trim((string)$status));
+		if ($s === 'completed') {
+			return 'completed';
+		}
+		if ($s === 'active') {
+			return 'active';
+		}
+		return 'planning';
+	}
+
+	private function buildListPageNumbers($current, $total) {
+		if ($total <= 7) {
+			return range(1, max(1, $total));
+		}
+		$pages = array(1);
+		if ($current > 3) {
+			$pages[] = '…';
+		}
+		$start = max(2, $current - 1);
+		$end = min($total - 1, $current + 1);
+		for ($i = $start; $i <= $end; $i++) {
+			$pages[] = $i;
+		}
+		if ($current < $total - 2) {
+			$pages[] = '…';
+		}
+		$pages[] = $total;
+		return array_values(array_unique($pages, SORT_REGULAR));
+	}
+
 	public function process(Vtiger_Request $request) {
 		global $adb;
 
 		$moduleName = $request->getModule();
 		$viewer = $this->getViewer($request);
 
-		$name = trim((string)$request->get('name'));
 		$from = trim((string)$request->get('from'));
 		$to   = trim((string)$request->get('to'));
-		$status = $request->get('status');
-		if (!is_array($status)) {
-			$status = $status ? array($status) : array();
+		$campaignId = (int)$request->get('campaignid');
+		$filterApplied = $request->has('filter_applied');
+		$filterInProgress = $filterApplied ? $request->has('in_progress') : true;
+		$filterCompleted = $filterApplied ? $request->has('completed') : true;
+		if (!$filterInProgress && !$filterCompleted) {
+			$filterInProgress = true;
+			$filterCompleted = true;
 		}
-		// Default: Planning + Completed if nothing selected
-		if (count($status) === 0) {
-			$status = array('Planning', 'Completed');
+		$status = array();
+		if ($filterInProgress) {
+			$status = array_merge($status, array('Planning', 'Active'));
 		}
+		if ($filterCompleted) {
+			$status[] = 'Completed';
+		}
+		$status = array_values(array_unique($status));
 
 		$where = array('ce.deleted = 0');
 		$params = array();
 
-		if ($name !== '') {
-			$where[] = 'c.campaignname LIKE ?';
-			$params[] = '%' . $name . '%';
+		if ($campaignId > 0) {
+			$where[] = 'c.campaignid = ?';
+			$params[] = $campaignId;
 		}
 		if ($from !== '') {
 			$where[] = 'ce.createdtime >= ?';
@@ -72,6 +120,8 @@ class Evaluate_List_View extends Vtiger_Index_View {
 		if (count($status) > 0) {
 			$where[] = 'c.campaignstatus IN (' . generateQuestionMarks($status) . ')';
 			$params = array_merge($params, $status);
+		} else {
+			$where[] = '1=0';
 		}
 
 		// -------------------------
@@ -95,6 +145,24 @@ class Evaluate_List_View extends Vtiger_Index_View {
 
 		$costExpr = "COALESCE(NULLIF(c.actualcost,0), NULLIF(c.budgetcost,0), NULLIF({$cfActualCost},0), NULLIF({$cfBudgetCost},0), 0)";
 		$revenueExpr = "COALESCE(NULLIF(c.expectedrevenue,0), NULLIF({$cfExpectedRevenue},0), 0)";
+		$plannedCostExpr = "COALESCE(NULLIF(c.budgetcost,0), NULLIF({$cfBudgetCost},0), 0)";
+
+		// Campaign dropdown options
+		$campaignOptions = array();
+		$optRes = $adb->pquery(
+			"SELECT c.campaignid, c.campaignname
+			 FROM vtiger_campaign c
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = c.campaignid
+			 WHERE ce.deleted = 0
+			 ORDER BY c.campaignname ASC",
+			array()
+		);
+		for ($oi = 0; $optRes && $oi < $adb->num_rows($optRes); $oi++) {
+			$campaignOptions[] = array(
+				'id' => (int)$adb->query_result($optRes, $oi, 'campaignid'),
+				'name' => (string)$adb->query_result($optRes, $oi, 'campaignname'),
+			);
+		}
 
 		// -------------------------
 		// 1) Base rows for charts + list
@@ -103,12 +171,16 @@ class Evaluate_List_View extends Vtiger_Index_View {
 					c.campaignid,
 					c.campaignname,
 					c.campaignstatus,
+					c.campaigntype,
+					c.closingdate,
 					{$costExpr} AS actualcost,
 					{$revenueExpr} AS expectedrevenue,
-					ce.createdtime
+					ce.createdtime,
+					TRIM(CONCAT(IFNULL(u.first_name,''), ' ', IFNULL(u.last_name,''))) AS assigned_to
 				FROM vtiger_campaign c
 				INNER JOIN vtiger_crmentity ce ON ce.crmid = c.campaignid
 				LEFT JOIN vtiger_campaignscf cf ON cf.campaignid = c.campaignid
+				LEFT JOIN vtiger_users u ON u.id = ce.smownerid
 				WHERE " . implode(' AND ', $where) . "
 				ORDER BY ce.createdtime DESC";
 
@@ -139,16 +211,27 @@ class Evaluate_List_View extends Vtiger_Index_View {
 			$totalRevenue += $revenue;
 
 			$profit = $revenue - $cost;
+			$closing = $row['closingdate'];
+			$closingDisplay = $closing ? date('d-m-Y', strtotime($closing)) : '—';
+			$assigned = trim((string)$row['assigned_to']);
+			if ($assigned === '') {
+				$assigned = '—';
+			}
 			$rows[] = array(
 				'campaignid' => (int)$row['campaignid'],
 				'campaignname' => (string)$row['campaignname'],
 				'campaignstatus' => (string)$row['campaignstatus'],
+				'status_class' => $this->statusCssClass($row['campaignstatus']),
+				'campaigntype' => (string)$row['campaigntype'],
+				'closingdate' => $closing,
+				'closingdate_display' => $closingDisplay,
+				'assigned_to' => $assigned,
 				'cost' => $cost,
 				'revenue' => $revenue,
 				'profit' => $profit,
 				'roi' => $roi,
 				'createdtime' => $row['createdtime'],
-				'link' => 'index.php?module=Campaigns&view=Detail&record=' . (int)$row['campaignid'],
+				'link' => 'index.php?module=Campaigns&view=Detail&record=' . (int)$row['campaignid'] . '&app=MARKETING',
 			);
 		}
 
@@ -199,6 +282,9 @@ class Evaluate_List_View extends Vtiger_Index_View {
 		// -------------------------
 		$kpi = array(
 			'total_campaigns' => 0,
+			'completed' => 0,
+			'completion_rate' => 0.0,
+			'total_planned_cost' => 0.0,
 			'total_cost' => 0,
 			'total_revenue' => 0,
 			'avg_roi' => 0,
@@ -206,6 +292,8 @@ class Evaluate_List_View extends Vtiger_Index_View {
 
 		$kpiSql = "SELECT
 						COUNT(c.campaignid) as total_campaigns,
+						SUM(CASE WHEN c.campaignstatus = 'Completed' THEN 1 ELSE 0 END) as completed,
+						SUM({$plannedCostExpr}) as total_planned_cost,
 						SUM({$costExpr}) as total_cost,
 						SUM({$revenueExpr}) as total_revenue,
 						AVG((({$revenueExpr})-({$costExpr}))/NULLIF(({$costExpr}),0)*100) as avg_roi
@@ -274,32 +362,72 @@ class Evaluate_List_View extends Vtiger_Index_View {
 			);
 		}
 
+		$listPage = max(1, (int)$request->get('list_page', 1));
+		$listPerPage = 14;
+		$listTotal = count($rows);
+		$listTotalPages = max(1, (int)ceil($listTotal / $listPerPage));
+		if ($listPage > $listTotalPages) {
+			$listPage = $listTotalPages;
+		}
+		$listOffset = ($listPage - 1) * $listPerPage;
+		$listCampaigns = array_slice($rows, $listOffset, $listPerPage);
+		$listFrom = $listTotal > 0 ? $listOffset + 1 : 0;
+		$listTo = min($listOffset + $listPerPage, $listTotal);
+
+		$pageUrlParams = array(
+			'module' => 'Evaluate',
+			'view' => 'List',
+			'app' => 'MARKETING',
+		);
+		if ($from !== '') {
+			$pageUrlParams['from'] = $from;
+		}
+		if ($to !== '') {
+			$pageUrlParams['to'] = $to;
+		}
+		if ($campaignId > 0) {
+			$pageUrlParams['campaignid'] = $campaignId;
+		}
+		if ($filterInProgress) {
+			$pageUrlParams['in_progress'] = '1';
+		}
+		if ($filterCompleted) {
+			$pageUrlParams['completed'] = '1';
+		}
+		if ($filterApplied) {
+			$pageUrlParams['filter_applied'] = '1';
+		}
+
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
-		$viewer->assign('FILTER_NAME', $name);
 		$viewer->assign('FILTER_FROM', $from);
 		$viewer->assign('FILTER_TO', $to);
-		$viewer->assign('FILTER_STATUS', $status);
+		$viewer->assign('FILTER_CAMPAIGN_ID', $campaignId);
+		$viewer->assign('FILTER_IN_PROGRESS', $filterInProgress);
+		$viewer->assign('FILTER_COMPLETED', $filterCompleted);
+		$viewer->assign('CAMPAIGN_OPTIONS', $campaignOptions);
 
-		// Map for Smarty (avoid in_array in template)
-		$statusMap = array();
-		foreach ($status as $s) $statusMap[(string)$s] = true;
-		$viewer->assign('FILTER_STATUS_MAP', $statusMap);
-
-		// Keep existing KPI vars (for backward compatibility with template)
 		$viewer->assign('KPI_TOTAL_CAMPAIGNS', (int)$kpi['total_campaigns']);
+		$viewer->assign('KPI_COMPLETED', (int)$kpi['completed']);
+		$viewer->assign('KPI_COMPLETION_RATE', (float)$kpi['completion_rate']);
+		$viewer->assign('KPI_TOTAL_PLANNED_COST', (float)$kpi['total_planned_cost']);
 		$viewer->assign('KPI_TOTAL_COST', (float)$kpi['total_cost']);
 		$viewer->assign('KPI_TOTAL_REVENUE', (float)$kpi['total_revenue']);
 		$viewer->assign('KPI_AVG_ROI', (float)$kpi['avg_roi']);
 
-		// New variables requested
 		$viewer->assign('KPI', $kpi);
 		$viewer->assign('TOP_CAMPAIGNS', $topCampaigns);
 		$viewer->assign('MONTHLY_SUMMARY', $monthlySummary);
 		$viewer->assign('INSIGHTS', $insights);
-
-		// Table data (detail list)
 		$viewer->assign('CAMPAIGNS', $rows);
+		$viewer->assign('LIST_CAMPAIGNS', $listCampaigns);
+		$viewer->assign('LIST_PAGE', $listPage);
+		$viewer->assign('LIST_TOTAL', $listTotal);
+		$viewer->assign('LIST_FROM', $listFrom);
+		$viewer->assign('LIST_TO', $listTo);
+		$viewer->assign('LIST_TOTAL_PAGES', $listTotalPages);
+		$viewer->assign('LIST_PAGE_NUMBERS', $this->buildListPageNumbers($listPage, $listTotalPages));
+		$viewer->assign('LIST_PAGE_URL_PREFIX', 'index.php?' . http_build_query($pageUrlParams));
 
 		// JSON for charts (no monthly line chart — replaced by ROI ranking in JS)
 		$rankingLabels = array();

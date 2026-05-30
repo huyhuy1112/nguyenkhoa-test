@@ -12,9 +12,20 @@
 {assign var="moreMenus" value=$MENU_STRUCTURE->getMore()}
 
 <div id="modules-menu" class="modules-menu">
+	{if $SELECTED_MENU_CATEGORY eq 'MANAGEMENT'}
+		<ul title="Main Page" class="module-qtip">
+			<li{if $MODULE eq 'Home' && ($VIEW eq 'MainPage' || $VIEW eq 'DashBoard')} class="active"{/if}>
+				<a href="index.php?module=Home&amp;view=MainPage&amp;app=MANAGEMENT">
+					<span class="mk-icon menubar-module-icon"><i class="fa fa-home"></i></span>
+					<span>Main Page</span>
+				</a>
+			</li>
+		</ul>
+	{/if}
 	{foreach key=moduleName item=moduleModel from=$SELECTED_CATEGORY_MENU_LIST}
-		{* UI cleanup: hide separate Products/Services from sidebar module strip *}
-		{if $moduleName eq 'Products' || $moduleName eq 'Services'}{continue}{/if}
+		{if $SELECTED_MENU_CATEGORY eq 'MANAGEMENT' && $moduleName eq 'Home'}{continue}{/if}
+		{* SALES: keep Products/Services; hide legacy Products/Services in module strip *}
+		{if $SELECTED_MENU_CATEGORY eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
 		{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}
 		{* Calendar: MANAGEMENT = Schedule, SUPPORT = Activities *}
 		{if $moduleName eq 'Calendar' && $SELECTED_MENU_CATEGORY eq 'MANAGEMENT'}
@@ -58,6 +69,32 @@
 				</a>
 			</li>
 		</ul>
+	{foreachelse}
+		{if $MODULE eq 'Campaigns'}
+			{assign var=_CampMenuMod value=Vtiger_Module_Model::getInstance('Campaigns')}
+			<ul title="{vtranslate('Campaigns','Campaigns')}" class="module-qtip mk-campaigns-menubar-fallback">
+				<li class="active">
+					<a href="{$_CampMenuMod->getDefaultUrl()}&app={if $SELECTED_MENU_CATEGORY}{$SELECTED_MENU_CATEGORY}{else}MARKETING{/if}"
+					   title="{vtranslate('LBL_MARKETING','Vtiger')} — {vtranslate('Campaigns','Campaigns')}">
+						<span class="mk-icon menubar-module-icon"><i class="fa fa-bullhorn"></i></span>
+						<span>Campaigns</span>
+					</a>
+				</li>
+			</ul>
+		{/if}
 	{/foreach}
+</div>
+{elseif $MODULE eq 'Campaigns'}
+	{assign var=_CampMenuMod value=Vtiger_Module_Model::getInstance('Campaigns')}
+	<div id="modules-menu" class="modules-menu mk-campaigns-menubar-fallback">
+		<ul title="{vtranslate('Campaigns','Campaigns')}" class="module-qtip">
+			<li class="active">
+				<a href="{$_CampMenuMod->getDefaultUrl()}&app={if $SELECTED_MENU_CATEGORY}{$SELECTED_MENU_CATEGORY}{else}MARKETING{/if}"
+				   title="{vtranslate('LBL_MARKETING','Vtiger')} — {vtranslate('Campaigns','Campaigns')}">
+					<span class="mk-icon menubar-module-icon"><i class="fa fa-bullhorn"></i></span>
+					<span>Campaigns</span>
+				</a>
+			</li>
+		</ul>
 </div>
 {/if}

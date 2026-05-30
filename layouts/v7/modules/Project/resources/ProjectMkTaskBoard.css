@@ -1,0 +1,336 @@
+/**
+ * Project Task Board — MANAGEMENT Detail (Figma Kanban)
+ * Overrides layouts/v7/resources/custom.css board rules (max-width columns, blue accents).
+ */
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board.project-task-board {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	padding: 0 !important;
+	margin: 0;
+	width: 100%;
+	max-width: 100%;
+}
+
+/* Beat custom.css body[data-module="Project"] .project-task-board rules */
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-task-board.mk-project-task-board .board-column,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board.project-task-board .board-column {
+	max-width: none !important;
+	min-width: 220px !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-task-board.mk-project-task-board .board-card,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board.project-task-board .board-card {
+	cursor: grab !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-task-board.mk-project-task-board .board-card:hover,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board.project-task-board .board-card:hover {
+	border-color: #cbd5e1 !important;
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-task-board.mk-project-task-board .board-column[data-status="Completed"] .board-card:not(.mk-project-task-board__card--done),
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board .board-column[data-status="Completed"] .board-card {
+	background: #ecfdf5 !important;
+	border-color: #bbf7d0 !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-task-board.mk-project-task-board .board-cards.drop-over,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-task-board.mk-project-task-board .board-column.drop-over,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__cards.drop-over,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column.drop-over {
+	background: rgba(253, 187, 44, 0.12) !important;
+	border: 2px dashed #fdbb2c !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-task-board .card-add-assignee:not(.mk-project-task-board__assignee-plus) {
+	display: none !important;
+}
+
+/* Toolbar: minimal — primary actions live in detail header tabs */
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__toolbar {
+	display: none !important;
+}
+
+/* Columns row — full width, horizontal scroll on small screens */
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__columns.board-columns {
+	display: flex !important;
+	flex-wrap: nowrap;
+	gap: 16px !important;
+	align-items: flex-start !important;
+	overflow-x: auto;
+	padding-bottom: 8px;
+	margin: 0;
+	width: 100%;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column.board-column {
+	flex: 1 1 0;
+	min-width: 240px;
+	max-width: none !important;
+	background: #f1f5f9 !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 14px !important;
+	padding: 12px !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-head.board-column-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: 0 0 12px !important;
+	padding: 0;
+	font-weight: 700;
+	font-size: 14px;
+	color: #0f172a;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-title {
+	font-weight: 700;
+	font-size: 14px;
+	color: #0f172a;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-count.status-count {
+	background: #dbeafe !important;
+	color: #1e40af !important;
+	border-radius: 999px !important;
+	padding: 2px 9px !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	min-width: 22px;
+	text-align: center;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-add.board-add-task {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	width: 28px !important;
+	height: 28px !important;
+	border-radius: 50% !important;
+	background: #ffffff !important;
+	border: 1px solid #fdbb2c !important;
+	color: #6d4d00 !important;
+	text-decoration: none !important;
+	font-size: 0 !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-add:hover {
+	background: #fff9e6 !important;
+	border-color: #d4c4ad !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-add-icon {
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1;
+	color: #c98f12;
+}
+
+/* Cards container */
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__cards.board-cards {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	min-height: 140px;
+	flex: 1 1 auto;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__cards.drop-over,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column.drop-over {
+	background: rgba(253, 187, 44, 0.12) !important;
+	border: 2px dashed #fdbb2c !important;
+	border-radius: 12px !important;
+}
+
+/* Empty state */
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__empty.board-cards-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: 28px 16px;
+	min-height: 140px;
+	color: #94a3b8;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__empty.hidden {
+	display: none !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__empty-icon {
+	color: #cbd5e1;
+	margin-bottom: 10px;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__empty-title {
+	margin: 0 0 4px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #64748b;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__empty-hint {
+	margin: 0;
+	font-size: 12px;
+	color: #94a3b8;
+	max-width: 200px;
+	line-height: 1.4;
+}
+
+/* Task card */
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card.board-card {
+	background: #ffffff !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	padding: 14px !important;
+	cursor: grab;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+	transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card.board-card:hover {
+	border-color: #cbd5e1 !important;
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card--done.board-card,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .board-column[data-status="Completed"] .mk-project-task-board__card.board-card {
+	background: #ecfdf5 !important;
+	border-color: #bbf7d0 !important;
+	border-left: 4px solid #22c55e !important;
+	padding-left: 12px !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card--done:hover {
+	border-color: #86efac !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card.dragging {
+	opacity: 0.55;
+	cursor: grabbing;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card-title-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card-check {
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card-title {
+	font-size: 14px;
+	font-weight: 700;
+	color: #0f172a;
+	line-height: 1.35;
+	margin: 0 !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-size: 12px;
+	color: #64748b !important;
+	margin: 0;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card-meta .meta-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	line-height: 1.35;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__assignee-plus {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	margin-left: 4px;
+	border-radius: 50%;
+	background: #fdbb2c;
+	color: #6d4d00;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1;
+	cursor: pointer;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-top: 12px !important;
+	padding-top: 10px !important;
+	border-top: 1px solid #f1f5f9 !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__age-badge {
+	font-size: 11px;
+	font-weight: 600;
+	color: #94a3b8;
+	background: #f1f5f9;
+	border-radius: 6px;
+	padding: 3px 8px;
+	white-space: nowrap;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__progress {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 1;
+	min-width: 0;
+	justify-content: flex-end;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .card-progress-track {
+	flex: 1;
+	max-width: 72px;
+	height: 6px;
+	background: #e2e8f0;
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .card-progress-fill {
+	height: 100%;
+	background: #94a3b8;
+	border-radius: 999px;
+	transition: width 0.2s ease;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card--done .card-progress-fill,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .board-column[data-status="Completed"] .card-progress-fill {
+	background: #22c55e !important;
+}
+
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .card-progress-value {
+	font-size: 11px;
+	font-weight: 600;
+	color: #64748b;
+	flex-shrink: 0;
+	min-width: 28px;
+	text-align: right;
+}
+
+/* Task detail popup — see ProjectMkTaskDetail.css */

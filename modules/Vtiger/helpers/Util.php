@@ -50,28 +50,69 @@ class Vtiger_Util_Helper {
 	}
 
 	/**
- * Function parses date into readable format
- * @param <Date Time> $dateTime
- * @param <Boolean> $isUserFormat
- * @return <String>
- */
-public static function formatDateDiffInStrings($dateTime, $isUserFormat = FALSE) {
-    try {
-        
-        if ($isUserFormat) {
-            $dateTime = Vtiger_Datetime_UIType::getDBDateTimeValue($dateTime);
-            return Vtiger_Datetime_UIType::getDisplayDateTimeValue($dateTime);
-        }
+	 * Function parses date into readable format
+	 * @param <Date Time> $dateTime
+	 * @param <Boolean> $isUserFormat
+	 * @return <String>
+	 */
+	public static function formatDateDiffInStrings($dateTime, $isUserFormat = FALSE) {
+		try {
+			// http://www.php.net/manual/en/datetime.diff.php#101029
+			$currentDateTime = date('Y-m-d H:i:s');
 
-        $dateTimeObj = new DateTime($dateTime);
-        return $dateTimeObj->format('Y-m-d H:i:s');
+			if ($isUserFormat) {
+				$dateTime = Vtiger_Datetime_UIType::getDBDateTimeValue($dateTime);
+			}
+			$seconds = strtotime($currentDateTime) - strtotime($dateTime);
 
-    } catch (Exception $e) {
-        // fallback nếu parse thất bại
-        return $dateTime;
-    }
-}
+			if ($seconds == 0) return vtranslate('LBL_JUSTNOW');
+			if ($seconds > 0) {
+				$prefix = '';
+				$suffix = ' '. vtranslate('LBL_AGO');
+			} else if ($seconds < 0) {
+				$prefix = vtranslate('LBL_DUE') . ' ';
+				$suffix = '';
+				$seconds = -($seconds);
+			}
 
+			$minutes = floor($seconds/60);
+			$hours = floor($minutes/60);
+			$days = floor($hours/24);
+			$months = floor($days/30);
+
+			if ($seconds < 60)	return $prefix . self::pluralize($seconds,	"LBL_SECOND") . $suffix;
+			if ($minutes < 60)	return $prefix . self::pluralize($minutes,	"LBL_MINUTE") . $suffix;
+			if ($hours < 24)	return $prefix . self::pluralize($hours,	"LBL_HOUR") . $suffix;
+			if ($days < 30)		return $prefix . self::pluralize($days,		"LBL_DAY") . $suffix;
+			if ($months < 12)	return $prefix . self::pluralize($months,	"LBL_MONTH") . $suffix;
+			if ($months > 11)	return $prefix . self::pluralize(floor($days/365), "LBL_YEAR") . $suffix;
+		} catch (Exception $e) {
+			//Not handling if failed to parse
+		}
+	}
+
+	/**
+	 * Exact comment datetime in the current user's timezone and date/time format.
+	 * @param <String> $dateTime DB datetime (e.g. vtiger_crmentity.createdtime)
+	 * @return <String>
+	 */
+	public static function formatCommentDateTime($dateTime) {
+		if ($dateTime === null || $dateTime === '') {
+			return '';
+		}
+		$display = Vtiger_Datetime_UIType::getDisplayDateTimeValue($dateTime);
+		$currentUser = Users_Record_Model::getCurrentUserModel();
+		if ($currentUser && $currentUser->get('hour_format') === '12') {
+			$parts = preg_split('/\s+/', trim($display), 3);
+			if (count($parts) >= 2) {
+				$timePart = isset($parts[2])
+					? ($parts[1] . ' ' . $parts[2])
+					: Vtiger_Time_UIType::getTimeValueInAMorPM($parts[1]);
+				return $parts[0] . ' ' . $timePart;
+			}
+		}
+		return $display;
+	}
 
 	/**
 	 * Function returns singular or plural text

@@ -56,7 +56,8 @@ Vtiger_List_Js(
         (folderId === undefined || folderId === "" || folderId === null) &&
         jQuery(".doc-management-view").length
       ) {
-        var dataId = jQuery(".doc-management-view").data("folder-id");
+        var $docRoot = jQuery(".doc-management-view");
+        var dataId = $docRoot.data("folder-id");
         if (dataId !== undefined && dataId !== "") folderId = dataId;
       }
       if (

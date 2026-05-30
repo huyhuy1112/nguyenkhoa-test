@@ -36,7 +36,53 @@ class Documents_List_View extends Vtiger_List_View {
 		$viewer->assign('FOLDERS', $folderList);
 		$viewer->assign('ADD_FOLDER_URL', $documentModuleModel->getAddFolderUrl());
 
-		parent::preProcess($request);
+		$parentApp = $request->get('app');
+		if ($parentApp === 'MANAGEMENT') {
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'MANAGEMENT');
+			$viewer->assign('SELECTED_MENU_CATEGORY_LABEL', vtranslate('LBL_MANAGEMENT', 'Vtiger'));
+			$menuGroupedByParent = Settings_MenuEditor_Module_Model::getAllVisibleModules();
+			if (isset($menuGroupedByParent['MANAGEMENT'])) {
+				$viewer->assign('SELECTED_CATEGORY_MENU_LIST', $menuGroupedByParent['MANAGEMENT']);
+			}
+		}
+
+		parent::preProcess($request, $display);
+	}
+
+	public function preProcessTplName(Vtiger_Request $request) {
+		return 'ListViewPreProcess.tpl';
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$viewer->view('ListViewPostProcess.tpl', $request->getModule());
+		Vtiger_Basic_View::postProcess($request);
+	}
+
+	public function getHeaderCss(Vtiger_Request $request) {
+		$headerCssInstances = parent::getHeaderCss($request);
+		$app = $request->get('app');
+		if ($app !== 'MANAGEMENT') {
+			return $headerCssInstances;
+		}
+		$cssFileNames = array(
+			'~layouts/v7/modules/Documents/resources/DocumentsMkView.css',
+			'~layouts/v7/modules/Documents/resources/DocumentsMkPremium.css',
+		);
+		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
+		return array_merge($headerCssInstances, $cssInstances);
+	}
+
+	public function getHeaderScripts(Vtiger_Request $request) {
+		$headerScriptInstances = parent::getHeaderScripts($request);
+		if ($request->get('app') !== 'MANAGEMENT') {
+			return $headerScriptInstances;
+		}
+		$jsFileNames = array(
+			'~layouts/v7/modules/Documents/resources/DocumentsMkView.js',
+		);
+		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+		return array_merge($headerScriptInstances, $jsScriptInstances);
 	}
 
 
@@ -237,6 +283,9 @@ class Documents_List_View extends Vtiger_List_View {
 		$viewer->assign('FOLDER_ID', $folderId);
 		$viewer->assign('FOLDER_VALUE', $folderValue);
 		$docListUrl = 'index.php?module=Documents&view=List';
+		if ($request->get('app') === 'MANAGEMENT') {
+			$docListUrl .= '&app=MANAGEMENT';
+		}
 		if ($folderId !== '' && $folderId !== null) {
 			$docListUrl .= '&folder_id=' . urlencode($folderId) . '&folder_value=' . urlencode($folderValue);
 		}

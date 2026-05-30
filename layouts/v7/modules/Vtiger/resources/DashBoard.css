@@ -4694,6 +4694,97 @@ body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-docum
     background: transparent !important;
 }
 
+/* ========== Documents Edit/Create (MANAGEMENT) — split shell + padding ========== */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-radius: 0;
+    box-shadow: none !important;
+    background: #ffffff !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+    display: flex !important;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: var(--mk-dash-sidebar-w);
+    height: 100vh;
+    z-index: 1000;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #page,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-documents-edit-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0 !important;
+    box-sizing: border-box;
+    background: transparent;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .app-nav,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .navbar.navbar-inverse.navbar-fixed-top,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #sidebar-essentials {
+    display: none !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .main-container.mk-documents-edit-page,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-documents-edit-inner {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
 /* ========== Documents History (MANAGEMENT) — split shell ========== */
 body[data-module="Documents"][data-view="History"][data-app="MANAGEMENT"] {
     --mk-dash-sidebar-w: 256px;
@@ -4911,6 +5002,82 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .module-action-bar,
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #modnavigator,
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #sidebar-essentials {
+    display: none !important;
+}
+
+/* ========== ProjectTask Detail (MANAGEMENT) — split shell + topbar (Project pattern) ========== */
+body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] #page,
+body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main,
+body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main.mk-projecttask-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0 !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+html.mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .app-nav,
+html.mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] #sidebar-essentials {
     display: none !important;
 }
 

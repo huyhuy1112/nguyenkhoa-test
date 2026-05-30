@@ -7,7 +7,7 @@
 * All Rights Reserved.
 *************************************************************************************}
 
-<div style='padding:5px;'>
+<div class="mk-history-feed mk-history-scroll">
 	{if $HISTORIES neq false}
 		{foreach key=$index item=HISTORY from=$HISTORIES}
 			{assign var=MODELNAME value=get_class($HISTORY)}
@@ -26,7 +26,7 @@
 					{/if}
 				{/if}
 				{if $PROCEED}
-					<div class="row entry clearfix">
+					<div class="row entry clearfix mk-history-item">
 						<div class='col-lg-1 pull-left'>
 							{assign var=VT_ICON value=$MOD_NAME}
 							{if $MOD_NAME eq "Events"}
@@ -114,11 +114,16 @@
 							</div>
 						{/if}
 					</div>
-					{if $TIME}<p class="pull-right muted" style="padding-right:10px;"><small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString("$TIME")}">{Vtiger_Util_Helper::formatDateDiffInStrings("$TIME")}</small></p>{/if}
+					{if $TIME}
+						{assign var=MK_HISTORY_TIME value=$TIME}
+						<p class="pull-right muted mk-history-ts">
+							<small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($MK_HISTORY_TIME)}">{Vtiger_Util_Helper::formatDateDiffInStrings($MK_HISTORY_TIME)}</small>
+						</p>
+					{/if}
 				</div>
 			{/if}
 			{else if $MODELNAME == 'ModComments_Record_Model'}
-				<div class="row">
+				<div class="row mk-history-item mk-history-item--comment">
 					<div class="col-lg-1 pull-left">
 						<span><i class="vicon-chat entryIcon" title={$TRANSLATED_MODULE_NAME}></i></span>
 					</div>
@@ -129,7 +134,10 @@
 						</div>
 						<div><i>"{nl2br($HISTORY->get('commentcontent'))}"</i></div>
 					</div>
-					<p class="pull-right muted" style="padding-right:10px;"><small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString("$COMMENT_TIME")}">{Vtiger_Util_Helper::formatDateDiffInStrings("$COMMENT_TIME")}</small></p>
+					{assign var=MK_COMMENT_TIME value=$COMMENT_TIME}
+					<p class="pull-right muted mk-history-ts">
+						<small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($MK_COMMENT_TIME)}">{Vtiger_Util_Helper::formatDateDiffInStrings($MK_COMMENT_TIME)}</small>
+					</p>
 				</div>
 			{/if}
 		{/foreach}

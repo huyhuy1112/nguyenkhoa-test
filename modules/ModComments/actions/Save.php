@@ -27,7 +27,7 @@ class ModComments_Save_Action extends Vtiger_Save_Action {
 		}
 
 		$result['success'] = true;
-		$result['modifiedtime'] = Vtiger_Util_Helper::formatDateDiffInStrings($recordModel->get('modifiedtime'));
+		$result['modifiedtime'] = Vtiger_Util_Helper::formatCommentDateTime($recordModel->get('modifiedtime'));
 		$result['modifiedtimetitle'] = Vtiger_Util_Helper::formatDateTimeIntoDayString($recordModel->get('modifiedtime'));
 
 		$response = new Vtiger_Response();

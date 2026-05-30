@@ -1,0 +1,404 @@
+/**
+ * Reports — Management overview (view=Management, app=MANAGEMENT)
+ * Shell padding: DashBoard.css. Content + amber accent aligned with Project / ProjectTask.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-root {
+	width: 100%;
+	max-width: 1232px;
+	margin: 0 auto;
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+	color: #0f172a;
+	box-sizing: border-box;
+}
+
+/* Page header */
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-header {
+	margin: 0 0 20px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-breadcrumb {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #6b6358;
+	margin: 0 0 10px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-breadcrumb__sep {
+	color: #a79a88;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-title {
+	margin: 0;
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 32px;
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: -0.02em;
+	color: #191c1e;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-subtitle {
+	margin: 8px 0 0;
+	font-size: 14px;
+	color: #64748b;
+	max-width: 720px;
+	line-height: 1.45;
+}
+
+/* Filter toolbar — 3 cards */
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-filters {
+	margin-bottom: 20px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-top-grid {
+	display: grid;
+	grid-template-columns: 1.15fr 1.05fr 0.75fr;
+	gap: 16px;
+	margin-bottom: 0;
+}
+
+@media (max-width: 1200px) {
+	body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-top-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-card {
+	background: #ffffff;
+	border: 1px solid #e8edf2;
+	border-radius: 12px;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+	padding: 16px 18px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-card-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 4px;
+	font-weight: 700;
+	font-size: 14px;
+	color: #0f172a;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-card-title .fa {
+	color: #b45309;
+	font-size: 14px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-card-subtitle {
+	margin: 0 0 14px;
+	color: #64748b;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-form-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(140px, 1fr));
+	gap: 12px 14px;
+	align-items: end;
+}
+
+@media (max-width: 768px) {
+	body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-form-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-field label {
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	color: #475569;
+	margin: 0 0 6px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-field .form-control {
+	min-height: 38px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	font-size: 13px;
+	box-shadow: none;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-field .form-control:focus {
+	border-color: #fdbb2c;
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15);
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn {
+	border-radius: 8px;
+	min-height: 36px;
+	font-size: 13px;
+	font-weight: 600;
+	padding: 6px 14px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-primary {
+	background: #fdbb2c !important;
+	border: 1px solid #e59a0f !important;
+	color: #2a241c !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-primary:hover {
+	background: #f0a514 !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-default {
+	background: #ffffff !important;
+	border: 1px solid #40627e !important;
+	color: #40627e !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-default:hover {
+	background: #f2f4f6 !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-danger {
+	background: #ffffff !important;
+	border: 1px solid #dc2626 !important;
+	color: #dc2626 !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-success,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-export-right .btn-success {
+	background: #45627d !important;
+	border: 1px solid #45627d !important;
+	color: #ffffff !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-success:hover,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-export-right .btn-success:hover {
+	background: #3a5268 !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-export-right {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-export-right .btn {
+	border-radius: 8px;
+	min-height: 38px;
+	width: 100%;
+}
+
+/* Data sections */
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-body {
+	margin-top: 4px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-tables {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+@media (max-width: 1100px) {
+	body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-tables {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-panel {
+	background: #ffffff;
+	border: 1px solid #e8edf2;
+	border-radius: 12px;
+	padding: 16px 18px 14px;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-section-header {
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #64748b;
+	margin: 0 0 12px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #f1f5f9;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table {
+	margin: 0;
+	border: 1px solid #e8edf2;
+	border-radius: 10px;
+	overflow: hidden;
+	background: #ffffff;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table thead th {
+	background: #f8fafc;
+	color: #475569;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	border-bottom: 1px solid #e8edf2;
+	padding: 10px 12px;
+	white-space: nowrap;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody td {
+	font-size: 13px;
+	padding: 10px 12px;
+	border-top: 1px solid #f1f5f9;
+	vertical-align: middle;
+	color: #334155;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody tr:hover td {
+	background: #fffbeb;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody a.text-primary,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table .report-task-link {
+	color: #40627e !important;
+	font-weight: 600;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-select-col,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-select-cell {
+	width: 40px;
+	min-width: 40px;
+	text-align: center;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-charts {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px;
+}
+
+@media (max-width: 900px) {
+	body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-charts {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-chart-meta {
+	margin: 0 0 10px;
+	font-size: 12px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-chart-meta strong {
+	color: #0f172a;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-chart-wrap {
+	position: relative;
+	height: 220px;
+	min-height: 200px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-empty {
+	background: #f8fafc;
+	border: 1px dashed #e2e8f0;
+	border-radius: 10px;
+	padding: 20px 16px;
+	text-align: center;
+	color: #64748b;
+	font-size: 12px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-chart-empty .fa {
+	display: block;
+	font-size: 28px;
+	color: #cbd5e1;
+	margin-bottom: 10px;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-chart-empty p {
+	margin: 0;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-empty .text-muted {
+	margin-top: 10px;
+	font-size: 12px;
+}
+
+/* Export modal */
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] #mgmtExportModal .modal-content {
+	border-radius: 12px;
+	border: 1px solid #e8edf2;
+	overflow: hidden;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] #mgmtExportModal .modal-header {
+	background: #f8fafc;
+	border-bottom: 1px solid #e8edf2;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] #mgmtExportModal .js-mgmt-export-confirm {
+	background: #fdbb2c !important;
+	border-color: #e59a0f !important;
+	color: #2a241c !important;
+}
+
+/* Beat legacy custom.css green header / narrow wrap */
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .management-report-wrap,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-root.management-report-wrap {
+	max-width: none !important;
+	margin: 0 !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-header {
+	background: transparent !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border-radius: 0 !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-hero {
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+/* Neutralize legacy custom.css Management report block */
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .main-container,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .main-container-Reports {
+	background: transparent !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-filters,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-body {
+	margin-top: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table.table-striped > tbody > tr:nth-of-type(odd) > td,
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table.table-striped > tbody > tr:nth-of-type(odd) {
+	background-color: transparent !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody tr:nth-child(even) td {
+	background: transparent !important;
+}
+
+body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table:hover {
+	box-shadow: none !important;
+	transform: none !important;
+}

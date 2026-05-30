@@ -1,0 +1,585 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* ---- Page shell (content inside mk-dash-main 24px from DashBoard.css) ---- */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-hide-legacy,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .main-container.mk-teams-list-page #modnavigator,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .main-container.mk-teams-list-page #sidebar-essentials {
+	display: none !important;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .main-container.mk-teams-list-page,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .main-container.mk-teams-list-page #listViewContent {
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .bodyContents,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+html.mk-teams-list-management body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .app-nav,
+html.mk-teams-list-management body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .module-action-bar {
+	display: none !important;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-page {
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+	color: #191c1e;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* ---- Header ---- */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-page-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 16px 24px;
+	margin-bottom: 20px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-breadcrumb {
+	font-size: 13px;
+	font-weight: 500;
+	color: #6b6358;
+	margin-bottom: 8px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-page-title {
+	margin: 0;
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 38px;
+	font-weight: 700;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+	color: #191c1e;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-page-subtitle {
+	margin: 8px 0 0;
+	font-size: 15px;
+	color: #5d5246;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-page-header__actions {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+}
+
+/* ---- Buttons ---- */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 40px;
+	padding: 0 18px;
+	border-radius: 10px;
+	border: 1px solid transparent;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	box-sizing: border-box;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-btn--sm {
+	min-height: 36px;
+	padding: 0 14px;
+	font-size: 13px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-btn--primary {
+	background: #fdbb2c !important;
+	border-color: #d4c4ad !important;
+	color: #6d4d00 !important;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-btn--primary:hover {
+	background: #ffc85c !important;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-btn--outline {
+	background: #fff !important;
+	border-color: #40627e !important;
+	color: #40627e !important;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-btn--outline:hover {
+	background: #f2f4f6 !important;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	background: #fff;
+	color: #40627e;
+	cursor: pointer;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-icon-btn:hover {
+	background: #f2f4f6;
+}
+
+/* ---- Tabs ---- */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-tabs {
+	display: flex;
+	gap: 4px;
+	margin-bottom: 20px;
+	border-bottom: 1px solid #d4c4ad;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-tab {
+	display: inline-flex;
+	align-items: center;
+	padding: 12px 20px;
+	margin-bottom: -1px;
+	border-bottom: 2px solid transparent;
+	font-size: 14px;
+	font-weight: 600;
+	color: #6b6358;
+	text-decoration: none;
+	transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-tab:hover {
+	color: #40627e;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-tab.is-active {
+	color: #191c1e;
+	border-bottom-color: #fdbb2c;
+}
+
+/* ---- People layout: groups sidebar + main ---- */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-layout {
+	display: flex;
+	align-items: stretch;
+	gap: 0;
+	min-height: 480px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-panel {
+	flex: 0 0 260px;
+	width: 260px;
+	background: #fff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px 0 0 12px;
+	padding: 16px 14px;
+	box-sizing: border-box;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-panel__title {
+	margin: 0 0 14px;
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 18px;
+	font-weight: 600;
+	color: #191c1e;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-panel__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-panel__label {
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #40627e;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-panel__tools {
+	display: inline-flex;
+	gap: 6px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-search {
+	width: 100%;
+	height: 36px;
+	margin-bottom: 10px;
+	padding: 0 12px;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	font-size: 13px;
+	box-sizing: border-box;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: calc(100vh - 320px);
+	overflow-y: auto;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-item {
+	margin: 0;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link {
+	display: block;
+	padding: 10px 12px;
+	border-radius: 10px;
+	text-decoration: none;
+	color: #191c1e;
+	transition: background 0.12s ease;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-item.is-active .mk-teams-groups-link,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link:hover {
+	background: #f2f4f6;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-item.is-active .mk-teams-groups-link {
+	background: #e8f0f6;
+	box-shadow: inset 3px 0 0 #40627e;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link__name {
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link__meta {
+	display: block;
+	margin-top: 2px;
+	font-size: 12px;
+	color: #6b6358;
+}
+
+/* ---- People main panel ---- */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-panel {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border: 1px solid #d4c4ad;
+	border-left: none;
+	border-radius: 0 12px 12px 0;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 12px;
+	padding: 14px 16px;
+	background: #eceef0;
+	border-bottom: 1px solid #d4c4ad;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-toolbar__title {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: #191c1e;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-toolbar__actions {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-search-wrap {
+	position: relative;
+	min-width: 220px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-search-wrap__icon {
+	position: absolute;
+	left: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: #6b6358;
+	font-size: 14px;
+	pointer-events: none;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-search-input {
+	width: 100%;
+	height: 40px;
+	padding: 0 14px 0 36px;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	font-size: 14px;
+	background: #fff;
+	box-sizing: border-box;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-filter-menu {
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	box-shadow: 0 8px 24px rgba(25, 28, 30, 0.1);
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-filter-menu .teams-tenure-option.active {
+	font-weight: 600;
+	color: #40627e;
+}
+
+/* ---- Table card ---- */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-table-card {
+	flex: 1 1 auto;
+	overflow: auto;
+	background: #fff;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-table-card--solo {
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	padding: 0;
+	overflow: hidden;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-table-wrap {
+	margin: 0;
+	border: none;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-table,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-table {
+	margin: 0;
+	border-collapse: collapse;
+	width: 100%;
+	font-size: 14px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-table thead th,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-table thead th {
+	background: #f2f4f6 !important;
+	background-image: none !important;
+	color: #40627e !important;
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	padding: 12px 14px;
+	border-bottom: 1px solid #d4c4ad;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-table tbody td,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-table tbody td {
+	padding: 12px 14px;
+	border-bottom: 1px solid #ececec;
+	vertical-align: middle;
+	color: #191c1e;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-table tbody tr:hover td {
+	background: #f7f9fb;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-role-header td,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-role-th {
+	background: #fafbfc !important;
+	font-weight: 600;
+	color: #40627e;
+	cursor: pointer;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-role-row.teams-role-collapsed {
+	display: none;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-role-chevron {
+	margin-right: 8px;
+	color: #40627e;
+	font-size: 12px;
+}
+
+/* Avatar */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: #ffdea7;
+	color: #191c1e;
+	font-size: 13px;
+	font-weight: 700;
+	flex-shrink: 0;
+	margin-right: 10px;
+	vertical-align: middle;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-name-cell {
+	display: flex;
+	align-items: center;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-name-block {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-name-link {
+	font-weight: 600;
+	color: #191c1e;
+	text-decoration: none;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-name-link:hover {
+	color: #40627e;
+	text-decoration: underline;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-email-inline {
+	display: none;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-project-count {
+	color: #40627e !important;
+	font-weight: 600;
+	text-decoration: none !important;
+	cursor: pointer;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-project-count:hover {
+	color: #2f4f66 !important;
+	text-decoration: underline !important;
+}
+
+/* Status badges */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-badge--online {
+	background: #c8f5d8;
+	color: #1a5c32;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-badge--danger {
+	background: #fde8e8;
+	color: #9b1c1c;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-status-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #2e9b4a;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-status-dot--away {
+	background: #9aa3ad;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-muted {
+	color: #6b6358;
+	font-size: 13px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .label.label-success.teams-status-online,
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-status-online {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	background: #c8f5d8 !important;
+	color: #1a5c32 !important;
+	font-size: 12px;
+	font-weight: 600;
+	border: none;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .dot-online {
+	background: #2e9b4a;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-action-btn {
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	background: #fff;
+	color: #40627e;
+	min-width: 36px;
+	height: 36px;
+	padding: 0 10px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-action-btn:hover {
+	background: #f2f4f6;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .dropdown-menu {
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	box-shadow: 0 8px 20px rgba(25, 28, 30, 0.1);
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .dropdown-menu > li > a {
+	padding: 8px 16px;
+	font-size: 14px;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .dropdown-menu > li > a:hover {
+	background: #f2f4f6;
+	color: #191c1e;
+}
+
+/* Hide legacy purple bootstrap primary on Teams page */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .btn-primary {
+	background: #fdbb2c !important;
+	border-color: #d4c4ad !important;
+	color: #6d4d00 !important;
+}
+
+@media (max-width: 991px) {
+	body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-layout {
+		flex-direction: column;
+	}
+
+	body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-panel {
+		flex: none;
+		width: 100%;
+		border-radius: 12px 12px 0 0;
+		border-bottom: none;
+	}
+
+	body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-panel {
+		border-left: 1px solid #d4c4ad;
+		border-radius: 0 0 12px 12px;
+	}
+}

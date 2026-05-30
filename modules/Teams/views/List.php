@@ -10,8 +10,43 @@
 
 class Teams_List_View extends Vtiger_List_View {
 
+	public function preProcessTplName(Vtiger_Request $request) {
+		return 'ListViewPreProcess.tpl';
+	}
+
+	public function postProcessTplName(Vtiger_Request $request) {
+		return 'ListViewPostProcess.tpl';
+	}
+
 	public function preProcess(Vtiger_Request $request, $display = true) {
-		parent::preProcess($request, $display);
+		/* Teams uses a custom List.tpl — do not run Vtiger_List_View list-model preProcess (causes fatal/blank). */
+		Vtiger_Index_View::preProcess($request, false);
+
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		if ($moduleModel) {
+			$this->setModuleInfo($request, $moduleModel);
+		}
+
+		$app = strtoupper((string) $request->get('app'));
+		if ($app === '') {
+			$app = 'MANAGEMENT';
+		}
+		$viewer->assign('SELECTED_MENU_CATEGORY', $app);
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('CUSTOM_VIEWS', array());
+
+		if ($display) {
+			$this->preProcessDisplay($request);
+		}
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$viewer->view($this->postProcessTplName($request), $request->getModule());
+		Vtiger_Index_View::postProcess($request);
 	}
 
 	public function getHeaderScripts(Vtiger_Request $request) {

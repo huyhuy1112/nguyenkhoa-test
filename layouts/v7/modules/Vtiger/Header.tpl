@@ -66,10 +66,10 @@
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernQuickCreate.css')}" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernProfileDropdown.css')}" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" media="screen" />
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeTokens.css')}?mk_v=dark_global_v18" media="screen" />
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDark.css')}?mk_v=dark_global_v18" media="screen" />
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkModules.css')}?mk_v=dark_global_v18" media="screen" />
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkGlobal.css')}?mk_v=dark_global_v18" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeTokens.css')}?mk_v=dark_global_v34" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDark.css')}?mk_v=dark_global_v34" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkModules.css')}?mk_v=dark_global_v34" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkGlobal.css')}?mk_v=dark_global_v34" media="screen" />
 		{if $MODULE_NAME eq 'Products'}
 			<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Products/resources/Products.css')}" media="screen" />
 		{/if}

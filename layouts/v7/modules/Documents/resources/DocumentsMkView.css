@@ -1,0 +1,68 @@
+/**
+ * Documents List — MANAGEMENT: shell (sidebar + topbar).
+ * Nội dung list: mk-doc-workspace (DocumentsMkPremium.css).
+ */
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .app-nav,
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .navbar.navbar-inverse.navbar-fixed-top,
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #sidebar-essentials,
+html.mk-documents-list-management body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-documents-hide-legacy {
+	display: none !important;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar.app-fixed-navbar,
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar.navbar-default,
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .container-fluid.global-nav {
+	border: none !important;
+	border-bottom: none !important;
+	box-shadow: none !important;
+	margin-bottom: 0 !important;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main.mk-documents-list-main {
+	padding: 10px 16px 16px 6px !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .main-container.mk-documents-list-page {
+	display: block !important;
+	visibility: visible !important;
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-documents-list-content,
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #listViewContent {
+	display: block !important;
+	visibility: visible !important;
+	width: 100% !important;
+	max-width: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	background: transparent !important;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.list-view-sidebar-offset {
+	margin-left: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	min-height: 0 !important;
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace.doc-management-view {
+	display: flex !important;
+	flex-direction: row;
+	min-height: calc(100vh - 120px);
+}
+
+body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-panel.doc-management-main {
+	flex: 1;
+	min-width: 0;
+}

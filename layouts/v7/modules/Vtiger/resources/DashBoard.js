@@ -355,11 +355,11 @@ Vtiger.Class(
       // Formula: scale = 0.75 + (log(areaRatio) / log(4)) * 0.5
       // This means: 0.25x area = 0.75 scale, 1x area = 1.0 scale, 4x area = 1.25 scale
       var scale =
-        0.75 +
-        (Math.log(Math.max(0.25, Math.min(4, areaRatio))) / Math.log(4)) * 0.5;
+        0.82 +
+        (Math.log(Math.max(0.25, Math.min(4, areaRatio))) / Math.log(4)) * 0.28;
 
-      // Clamp between 0.75 and 1.25
-      scale = Math.max(0.75, Math.min(1.25, scale));
+      // Tighter clamp — avoids oversized chart typography vs Figma
+      scale = Math.max(0.88, Math.min(1.06, scale));
 
       return scale;
     },
@@ -403,12 +403,12 @@ Vtiger.Class(
 
         // Base font sizes (at scale 1.0) - defines visual hierarchy
         var baseSizes = {
-          title: 18, // Chart title (slightly larger)
-          axisLabel: 16, // Axis labels like "Value" (bold)
-          tickLabel: 13, // Numbers on axes
-          categoryLabel: 10, // Y-axis category labels (smaller, muted)
-          numberLabel: 15, // Numbers on bars/points (bold)
-          legend: 12, // Legend text (slightly smaller than axis)
+          title: 15,
+          axisLabel: 12,
+          tickLabel: 11,
+          categoryLabel: 10,
+          numberLabel: 10,
+          legend: 11,
         };
 
         // Apply scale to all base sizes
@@ -522,7 +522,7 @@ Vtiger.Class(
         // 3. Tick labels (numbers on axes) and category labels
         chartContainer
           .find(
-            ".jqplot-yaxis-tick, .jqplot-yaxis-tick-label, .jqplot-yaxis-tick text, .jqplot-yaxis-tick svg text"
+            ".jqplot-yaxis-tick, .jqplot-yaxis-tick-label, .jqplot-yaxis-tick text, .jqplot-yaxis-tick svg text, .jqplot-xaxis-tick, .jqplot-xaxis-tick-label, .jqplot-xaxis-tick text, .jqplot-xaxis-tick svg text"
           )
           .each(function () {
             var element = this;
@@ -543,19 +543,19 @@ Vtiger.Class(
                 sizes.categoryLabel,
                 "normal",
                 null,
-                "#777"
+                "#64748B"
               );
 
               // For SVG text elements
               if (element.tagName === "text" && element.setAttribute) {
                 element.setAttribute("font-size", sizes.categoryLabel);
                 element.setAttribute("font-weight", "normal");
-                element.setAttribute("fill", "#777");
+                element.setAttribute("fill", "#64748B");
               }
             }
           });
 
-        // 4. Numbers on bars/points (data labels) - bold, prominent
+        // 4. Numbers on bars/points (data labels) — subtle SaaS style
         chartContainer
           .find(
             ".jqplot-point-label, .jqplot-data-label, .jqplot-bar-label, .jqplot-series-label"
@@ -570,7 +570,13 @@ Vtiger.Class(
 
             // Only update if it's a number
             if (/^\d+\.?\d*$/.test(textContent)) {
-              applyFontSize(element, sizes.numberLabel, "bold");
+              applyFontSize(
+                element,
+                sizes.numberLabel,
+                "500",
+                null,
+                "#94A3B8"
+              );
               element.style.textAlign = "center";
               element.style.display = "flex";
               element.style.alignItems = "center";
@@ -706,10 +712,13 @@ Vtiger.Class(
           ).trim();
 
           if (/^\d+\.?\d*$/.test(textContent)) {
-            // Numbers in SVG - bold, prominent
+            // Numbers in SVG - medium weight, muted
             element.setAttribute("font-size", sizes.numberLabel);
             element.style.fontSize = sizes.numberLabel + "px";
-            element.style.fontWeight = "bold";
+            element.style.fontWeight = "500";
+            element.style.fill = "#94A3B8";
+            element.setAttribute("font-weight", "500");
+            element.setAttribute("fill", "#94A3B8");
             element.setAttribute("text-anchor", "middle");
             element.setAttribute("dominant-baseline", "middle");
           } else {
@@ -719,13 +728,6 @@ Vtiger.Class(
           }
         });
 
-        // Log scale application (once per resize)
-        console.log(
-          "[DashBoard] Scale applied:",
-          scale.toFixed(2),
-          "widget:",
-          currentWidth + "x" + currentHeight
-        );
       };
 
       // Debounced update function - only runs after resize stops
@@ -1396,8 +1398,11 @@ Vtiger.Class(
                         tabid +
                         '"></div>';
 
-                      jQuery(".moreSettings").before(tabEle);
-                      jQuery(".moreSettings")
+                      dashBoardContainer
+                        .find(".mk-dashboard-tab-insert-anchor")
+                        .before(tabEle);
+                      dashBoardContainer
+                        .find(".mk-dashboard-tab-insert-anchor")
                         .prev()
                         .find(".name > strong")
                         .text(tabname);

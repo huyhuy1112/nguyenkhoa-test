@@ -1,0 +1,1683 @@
+/**
+ * ProjectTask Create — MANAGEMENT dashboard shell (sidebar + topbar + modern form).
+ * Scope: body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"]
+ */
+
+/* Neutralize legacy custom.css ProjectTask edit chrome */
+html.mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .editViewPageDiv .content-area,
+html.mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .editViewPageDiv,
+html.mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .content-area {
+	background: transparent !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	max-width: none !important;
+	align-items: stretch !important;
+}
+
+html.mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .navbar.navbar-inverse.navbar-fixed-top,
+html.mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .app-nav,
+html.mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] #page > .container-fluid.app-nav {
+	display: none !important;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+	--mk-ptask-yellow: #FDBB2C;
+	--mk-ptask-navy: #40627E;
+	--mk-ptask-surface: #F7F9FB;
+	--mk-ptask-surface-dim: #D8DADC;
+	--mk-ptask-white: #FFFFFF;
+	--mk-ptask-text: #1a2834;
+	--mk-ptask-muted: #64748b;
+	--mk-ptask-label: #334155;
+	--mk-ptask-border: rgba(64, 98, 126, 0.14);
+	--mk-ptask-radius: 16px;
+	--mk-ptask-radius-sm: 10px;
+	--mk-ptask-shadow: 0 8px 32px rgba(26, 40, 52, 0.08);
+	--mk-ptask-shadow-lg: 0 20px 48px rgba(26, 40, 52, 0.12);
+	--mk-ptask-font: 'Inter', system-ui, -apple-system, sans-serif;
+	--mk-ptask-display: 'Space Grotesk', 'Inter', sans-serif;
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+}
+
+/* ========== Split shell ========== */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+	position: relative;
+	display: block;
+	min-height: 0;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w);
+	width: calc(100% - var(--mk-dash-sidebar-w));
+	max-width: calc(100% - var(--mk-dash-sidebar-w));
+	min-height: 100vh;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	background: var(--mk-ptask-surface);
+	padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar {
+	height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+	flex-shrink: 0;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+	position: fixed;
+	top: 0;
+	left: var(--mk-dash-sidebar-w);
+	right: 0;
+	width: auto;
+	min-height: var(--mk-dash-topbar-h);
+	height: var(--mk-dash-topbar-h);
+	z-index: 1030;
+	box-sizing: border-box;
+	border: none !important;
+	border-bottom: 1px solid var(--mk-ptask-border) !important;
+	border-radius: 0;
+	box-shadow: none;
+	background: var(--mk-ptask-white) !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] #page,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-projecttask-edit-main {
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+	padding: 0 !important;
+	background: linear-gradient(160deg, #f7f9fb 0%, #f8fafc 40%, #f7f9fb 100%);
+	box-sizing: border-box;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .main-container.mk-projecttask-edit-page {
+	width: 100%;
+	max-width: none;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .editViewPageDiv.mk-projecttask-edit-inner {
+	padding: 0 !important;
+	margin: 0 !important;
+	background: transparent;
+	border: none;
+}
+
+/* ========== Workspace ========== */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create {
+	font-family: var(--mk-ptask-font);
+	color: var(--mk-ptask-text);
+	padding: 24px 40px 56px;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+	gap: 24px;
+	align-items: start;
+	max-width: 1280px;
+	margin: 0 auto;
+	box-sizing: border-box;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create-main {
+	min-width: 0;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host form#EditView,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .editViewContents,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host [name="editContent"] {
+	width: 100%;
+	max-width: none;
+	margin-left: 0;
+	margin-right: 0;
+	box-sizing: border-box;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hide-legacy,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] #mkPtaskFormHost #modnavigator,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] #mkPtaskFormHost .editViewModNavigator {
+	display: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-form-container {
+	background: transparent !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .editViewPageDiv,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .content-area {
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+/* ========== Page header (create) ========== */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head {
+	margin-bottom: 24px;
+	padding: 22px 28px;
+	max-width: 1280px;
+	margin-left: auto;
+	margin-right: auto;
+	border-radius: 18px;
+	background: var(--mk-ptask-white);
+	border: 1px solid var(--mk-ptask-border);
+	box-shadow: var(--mk-ptask-shadow);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__crumb {
+	font-size: 12px;
+	color: var(--mk-ptask-muted);
+	margin-bottom: 12px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__crumb a {
+	color: var(--mk-ptask-navy);
+	text-decoration: none;
+	font-weight: 500;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__crumb span {
+	margin: 0 6px;
+	opacity: 0.5;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px 24px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__title {
+	margin: 0 0 6px;
+	font-family: var(--mk-ptask-display);
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__sub {
+	margin: 0;
+	font-size: 13px;
+	color: var(--mk-ptask-muted);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+}
+
+/* Legacy hero (unused on simplified create) */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero {
+	margin-bottom: 24px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero__panel {
+	padding: 28px 32px 24px;
+	border-radius: var(--mk-ptask-radius);
+	background:
+		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(253, 187, 44, 0.14), transparent 55%),
+		radial-gradient(ellipse 60% 50% at 0% 100%, rgba(64, 98, 126, 0.07), transparent 50%),
+		var(--mk-ptask-white);
+	border: 1px solid var(--mk-ptask-border);
+	box-shadow: var(--mk-ptask-shadow);
+	backdrop-filter: blur(12px);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero__crumb {
+	font-size: 12px;
+	color: var(--mk-ptask-muted);
+	margin-bottom: 16px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero__crumb a {
+	color: var(--mk-ptask-navy);
+	text-decoration: none;
+	font-weight: 500;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero__crumb-sep {
+	margin: 0 8px;
+	opacity: 0.5;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero__top {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	align-items: flex-start;
+	justify-content: space-between;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero__kicker {
+	margin: 0 0 6px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--mk-ptask-navy);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero__title {
+	font-family: var(--mk-ptask-display);
+	font-size: clamp(1.5rem, 2.4vw, 2rem);
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	margin: 0 0 8px;
+	line-height: 1.15;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero__subtitle {
+	margin: 0;
+	font-size: 14px;
+	color: var(--mk-ptask-muted);
+	max-width: 52ch;
+	line-height: 1.5;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero__eyebrow {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pill--ai {
+	background: rgba(64, 98, 126, 0.1);
+	color: var(--mk-ptask-navy);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pill--draft {
+	background: rgba(253, 187, 44, 0.18);
+	color: #7a5a12;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pill__dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--mk-ptask-yellow);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pill__pulse {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--mk-ptask-navy);
+	animation: mkPtaskPulse 1.4s ease infinite;
+}
+
+@keyframes mkPtaskPulse {
+	0%, 100% { opacity: 0.4; transform: scale(0.9); }
+	50% { opacity: 1; transform: scale(1.1); }
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-hero__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-health {
+	text-align: center;
+	padding: 6px 12px;
+	background: var(--mk-ptask-surface);
+	border-radius: var(--mk-ptask-radius-sm);
+	border: 1px solid var(--mk-ptask-border);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-health__label {
+	display: block;
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--mk-ptask-muted);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-health__chip {
+	display: inline-block;
+	margin-top: 4px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-health__chip--warm {
+	background: rgba(253, 187, 44, 0.2);
+	color: #7a5a12;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-health__chip--good {
+	background: rgba(34, 197, 94, 0.15);
+	color: #15803d;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-health__chip--cool {
+	background: rgba(64, 98, 126, 0.12);
+	color: var(--mk-ptask-navy);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-owner {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 14px;
+	background: var(--mk-ptask-surface);
+	border-radius: var(--mk-ptask-radius-sm);
+	border: 1px solid var(--mk-ptask-border);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-owner__avatar {
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	background: linear-gradient(135deg, var(--mk-ptask-navy), #2d4a5e);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: 13px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-owner__label {
+	display: block;
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--mk-ptask-muted);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-owner__name {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-forecast-preview {
+	padding: 8px 16px;
+	border-radius: var(--mk-ptask-radius-sm);
+	background: rgba(253, 187, 44, 0.12);
+	border: 1px solid rgba(253, 187, 44, 0.35);
+	min-width: 120px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-forecast-preview__label {
+	display: block;
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--mk-ptask-muted);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-forecast-preview__value {
+	font-family: var(--mk-ptask-display);
+	font-size: 18px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-forecast-preview__sub {
+	display: block;
+	font-size: 11px;
+	color: var(--mk-ptask-muted);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-forecast-preview[hidden] {
+	display: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 10px 18px;
+	border-radius: var(--mk-ptask-radius-sm);
+	font-size: 13px;
+	font-weight: 600;
+	font-family: inherit;
+	border: none;
+	cursor: pointer;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+	text-decoration: none;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-btn--primary {
+	background: var(--mk-ptask-yellow);
+	color: var(--mk-ptask-text);
+	box-shadow: 0 4px 16px rgba(253, 187, 44, 0.45);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-btn--primary:hover {
+	transform: translateY(-1px);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-btn--secondary {
+	background: var(--mk-ptask-white);
+	color: var(--mk-ptask-navy);
+	border: 1px solid var(--mk-ptask-border);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-btn--ghost {
+	background: transparent;
+	color: var(--mk-ptask-navy);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-btn--sm {
+	padding: 8px 14px;
+	font-size: 12px;
+}
+
+/* ========== Pipeline (in hero) ========== */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline-wrap {
+	margin: 22px 0 0;
+	padding-top: 20px;
+	border-top: 1px solid var(--mk-ptask-border);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline-wrap[hidden] {
+	display: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline-wrap__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px 20px;
+	flex-wrap: wrap;
+	margin-bottom: 14px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline-wrap__label {
+	margin: 0;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	color: var(--mk-ptask-muted);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline-wrap__hint {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--mk-ptask-navy);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline {
+	display: flex;
+	justify-content: space-between;
+	gap: 4px;
+	position: relative;
+	padding-top: 12px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__track {
+	position: absolute;
+	top: 22px;
+	left: 8%;
+	right: 8%;
+	height: 4px;
+	background: var(--mk-ptask-surface-dim);
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__fill {
+	display: block;
+	height: 100%;
+	width: 20%;
+	background: linear-gradient(90deg, var(--mk-ptask-navy), var(--mk-ptask-yellow));
+	border-radius: 4px;
+	transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__stage {
+	flex: 1;
+	min-width: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 8px 4px;
+	text-align: center;
+	font-family: inherit;
+	position: relative;
+	z-index: 1;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__stage:hover {
+	transform: translateY(-2px);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__dot {
+	display: block;
+	width: 14px;
+	height: 14px;
+	margin: 0 auto 8px;
+	border-radius: 50%;
+	background: var(--mk-ptask-white);
+	border: 2px solid var(--mk-ptask-surface-dim);
+	transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__stage.is-passed .mk-ptask-pipeline__dot,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__stage.is-active .mk-ptask-pipeline__dot {
+	border-color: var(--mk-ptask-navy);
+	background: var(--mk-ptask-yellow);
+	box-shadow: 0 0 0 4px rgba(253, 187, 44, 0.25);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__name {
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--mk-ptask-muted);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__stage.is-active .mk-ptask-pipeline__name {
+	color: var(--mk-ptask-text);
+}
+
+/* Legacy virtual panel hidden */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create__layout,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create__insights,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-float-bar {
+	display: none !important;
+}
+
+/* ========== Aside: quick tips + sales stage guide (colored cards) ========== */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside {
+	display: flex !important;
+	flex-direction: column;
+	gap: 14px;
+	position: sticky;
+	top: calc(var(--mk-dash-topbar-h) + 16px);
+	max-height: calc(100vh - var(--mk-dash-topbar-h) - 48px);
+	overflow-y: auto;
+	padding-right: 2px;
+	font-family: var(--mk-ptask-font) !important;
+	box-sizing: border-box;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card {
+	display: block !important;
+	border-radius: 14px !important;
+	overflow: hidden !important;
+	background: var(--mk-ptask-white) !important;
+	box-shadow: 0 4px 16px rgba(26, 40, 52, 0.08) !important;
+	box-sizing: border-box;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--tips {
+	border: 1px solid rgba(253, 187, 44, 0.55) !important;
+	box-shadow: 0 4px 18px rgba(253, 187, 44, 0.12) !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages {
+	border: 1px solid rgba(64, 98, 126, 0.28) !important;
+	box-shadow: 0 4px 18px rgba(64, 98, 126, 0.1) !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__head {
+	display: flex !important;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 16px !important;
+	border-bottom: 1px solid var(--mk-ptask-border) !important;
+	margin: 0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--tips .mk-ptask-aside-card__head {
+	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+	border-bottom-color: rgba(253, 187, 44, 0.35) !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages .mk-ptask-aside-card__head {
+	background: linear-gradient(135deg, #f0f4f8 0%, #e2eaf2 100%) !important;
+	border-bottom-color: rgba(64, 98, 126, 0.2) !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__icon {
+	flex: 0 0 auto;
+	width: 36px !important;
+	height: 36px !important;
+	border-radius: 10px !important;
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__icon--tips {
+	background: var(--mk-ptask-yellow) !important;
+	color: #6d4d00 !important;
+	box-shadow: 0 4px 10px rgba(253, 187, 44, 0.35);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__icon--stages {
+	background: var(--mk-ptask-navy) !important;
+	color: #fff !important;
+	box-shadow: 0 4px 10px rgba(64, 98, 126, 0.28);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__title {
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	line-height: 1.2;
+	border: none !important;
+	background: transparent !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--tips .mk-ptask-aside-card__title {
+	color: #92400e !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages .mk-ptask-aside-card__title {
+	color: var(--mk-ptask-navy) !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__body {
+	display: block !important;
+	padding: 14px 16px 16px !important;
+	margin: 0 !important;
+	background: #fff !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__text {
+	display: block !important;
+	margin: 0 0 10px !important;
+	padding: 0 !important;
+	font-size: 14px !important;
+	font-weight: 400 !important;
+	line-height: 1.6 !important;
+	color: #334155 !important;
+	font-family: var(--mk-ptask-font) !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__text:last-child {
+	margin-bottom: 0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__text--muted {
+	font-size: 13px !important;
+	color: var(--mk-ptask-muted) !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__text strong {
+	font-weight: 600 !important;
+	color: var(--mk-ptask-text) !important;
+	background: transparent !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide {
+	list-style: none !important;
+	margin: 0 !important;
+	padding: 12px 12px 14px !important;
+	display: flex !important;
+	flex-direction: column;
+	gap: 8px;
+	background: #fff !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item {
+	display: grid !important;
+	grid-template-columns: 72px minmax(0, 1fr);
+	align-items: center;
+	gap: 12px;
+	padding: 10px 12px !important;
+	margin: 0 !important;
+	border-radius: 10px !important;
+	border: 1px solid transparent !important;
+	list-style: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__badge {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-width: 0;
+	padding: 5px 8px !important;
+	border-radius: 999px !important;
+	font-size: 10px !important;
+	font-weight: 700 !important;
+	text-align: center;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.2;
+	white-space: nowrap;
+	box-sizing: border-box;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__hint {
+	display: block !important;
+	min-width: 0;
+	font-size: 13px !important;
+	font-weight: 500 !important;
+	line-height: 1.45 !important;
+	color: #475569 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	word-break: break-word;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--early {
+	background: #f8fafc !important;
+	border-color: #e2e8f0 !important;
+}
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--early .mk-ptask-stage-guide__badge {
+	background: #f1f5f9 !important;
+	color: #475569 !important;
+	border: 1px solid #cbd5e1 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--qualify {
+	background: #eff6ff !important;
+	border-color: #bfdbfe !important;
+}
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--qualify .mk-ptask-stage-guide__badge {
+	background: #dbeafe !important;
+	color: #1d4ed8 !important;
+	border: 1px solid #93c5fd !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--mid {
+	background: #fffbeb !important;
+	border-color: #fde68a !important;
+}
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--mid .mk-ptask-stage-guide__badge {
+	background: #fef3c7 !important;
+	color: #b45309 !important;
+	border: 1px solid #fcd34d !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--won {
+	background: #f0fdf4 !important;
+	border-color: #bbf7d0 !important;
+}
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--won .mk-ptask-stage-guide__badge {
+	background: #dcfce7 !important;
+	color: #166534 !important;
+	border: 1px solid #86efac !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--lost {
+	background: #fef2f2 !important;
+	border-color: #fecaca !important;
+}
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--lost .mk-ptask-stage-guide__badge {
+	background: #fee2e2 !important;
+	color: #b91c1c !important;
+	border: 1px solid #fca5a5 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create__insights {
+	position: sticky;
+	top: calc(var(--mk-dash-topbar-h) + 16px);
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	max-height: calc(100vh - var(--mk-dash-topbar-h) - 48px);
+	overflow-y: auto;
+	padding-right: 4px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-insight-card {
+	padding: 18px 20px;
+	border-radius: var(--mk-ptask-radius);
+	background: var(--mk-ptask-white);
+	border: 1px solid var(--mk-ptask-border);
+	box-shadow: var(--mk-ptask-shadow);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-insight-card--hero {
+	background:
+		linear-gradient(160deg, rgba(253, 187, 44, 0.08), transparent 45%),
+		var(--mk-ptask-white);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-insight-card__title {
+	margin: 0 0 12px;
+	font-family: var(--mk-ptask-display);
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--mk-ptask-navy);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-insight-card__hint {
+	margin: 8px 0 0;
+	font-size: 12px;
+	color: var(--mk-ptask-muted);
+	line-height: 1.4;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-gauge {
+	position: relative;
+	text-align: center;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-gauge__svg {
+	width: 100%;
+	max-width: 160px;
+	margin: 0 auto;
+	display: block;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-gauge__track {
+	fill: none;
+	stroke: var(--mk-ptask-surface-dim);
+	stroke-width: 8;
+	stroke-linecap: round;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-gauge__fill {
+	fill: none;
+	stroke: var(--mk-ptask-yellow);
+	stroke-width: 8;
+	stroke-linecap: round;
+	stroke-dasharray: 157;
+	stroke-dashoffset: 157;
+	transition: stroke-dashoffset 0.5s ease;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-gauge__value {
+	display: block;
+	font-family: var(--mk-ptask-display);
+	font-size: 28px;
+	font-weight: 700;
+	margin-top: -8px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-insight-metric {
+	margin: 0;
+	font-family: var(--mk-ptask-display);
+	font-size: 24px;
+	font-weight: 700;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-rec-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-rec {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	font-size: 13px;
+	color: var(--mk-ptask-muted);
+	padding: 10px 12px;
+	border-radius: var(--mk-ptask-radius-sm);
+	background: var(--mk-ptask-surface);
+	border: 1px solid var(--mk-ptask-border);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-rec--done {
+	color: var(--mk-ptask-text);
+	border-color: rgba(253, 187, 44, 0.35);
+	background: rgba(253, 187, 44, 0.08);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-rec__icon {
+	color: var(--mk-ptask-navy);
+	font-weight: 700;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-risk__bar {
+	display: block;
+	height: 8px;
+	background: var(--mk-ptask-surface);
+	border-radius: 4px;
+	overflow: hidden;
+	margin-bottom: 8px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-risk__fill {
+	display: block;
+	height: 100%;
+	width: 50%;
+	background: linear-gradient(90deg, var(--mk-ptask-yellow), #e85d4c);
+	border-radius: 4px;
+	transition: width 0.4s ease;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-risk__label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--mk-ptask-navy);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-action-chips {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-action-chip {
+	padding: 8px 12px;
+	border-radius: 999px;
+	border: 1px solid var(--mk-ptask-border);
+	background: var(--mk-ptask-surface);
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--mk-ptask-navy);
+	cursor: not-allowed;
+	opacity: 0.7;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-timeline {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-timeline__item {
+	display: grid;
+	grid-template-columns: 12px 1fr auto;
+	gap: 10px;
+	align-items: start;
+	padding: 10px 0;
+	border-bottom: 1px solid var(--mk-ptask-border);
+	font-size: 13px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-timeline__item:last-child {
+	border-bottom: none;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-timeline__dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--mk-ptask-surface-dim);
+	margin-top: 4px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-timeline__item.is-active .mk-ptask-timeline__dot {
+	background: var(--mk-ptask-yellow);
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.35);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-timeline__item time {
+	font-size: 11px;
+	color: var(--mk-ptask-muted);
+}
+
+/* ========== Form blocks — Project Task–style (wide, label above field) ========== */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block {
+	margin-bottom: 28px;
+	padding: 28px 32px 32px;
+	border-radius: 18px;
+	background: var(--mk-ptask-white);
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+	width: 100%;
+	box-sizing: border-box;
+	position: relative;
+	overflow: hidden;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 4px;
+	background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+	border-radius: 18px 0 0 18px;
+	opacity: 0.95;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .fieldBlockHeader,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .mk-ptask-block__header {
+	display: block !important;
+	font-family: var(--mk-ptask-display);
+	font-size: 1.45rem;
+	font-weight: 700;
+	color: var(--mk-ptask-navy) !important;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin: 0 0 28px 0 !important;
+	padding: 0 0 14px 10px !important;
+	border-bottom: 2px solid rgba(16, 185, 129, 0.45);
+	line-height: 1.3;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table.table,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table.table-borderless {
+	display: block !important;
+	width: 100% !important;
+	margin: 0 !important;
+	border: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody {
+	display: block !important;
+	width: 100%;
+}
+
+/* Each vtiger row → 2-column grid; label stacked above input */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	column-gap: 40px;
+	row-gap: 0;
+	width: 100%;
+	margin: 0 0 28px;
+	padding: 0;
+	border: none;
+	box-sizing: border-box;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr:last-child {
+	margin-bottom: 0;
+}
+
+/* Single full-width field (description, etc.) */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr:has(> td.fieldValueWidth80),
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr:has(> td.fieldValue[colspan]) {
+	grid-template-columns: 1fr !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) {
+	grid-template-columns: 1fr !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	box-sizing: border-box;
+	float: none !important;
+	position: static !important;
+	vertical-align: top !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td:empty {
+	display: none !important;
+	height: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldLabel {
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	color: var(--mk-ptask-label) !important;
+	line-height: 1.4;
+	padding: 0 0 10px !important;
+	text-align: left !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldLabel label {
+	color: inherit !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue {
+	padding: 0 0 4px !important;
+	min-width: 0;
+}
+
+/* Grid cell placement: col1 label row1, col1 value row2, col2 label row1, col2 value row2 */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr > td.fieldLabel:nth-child(1) {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr > td.fieldValue:nth-child(2) {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+	grid-column: 2;
+	grid-row: 2;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldLabel,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldLabel {
+	grid-column: 1 !important;
+	grid-row: 1 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldValue,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldValue {
+	grid-column: 1 !important;
+	grid-row: 2 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > * {
+	max-width: 100%;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .referencefield-wrapper {
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box;
+}
+
+/* Composite fields (amount $, reference search, date): one rounded box — no double rectangles */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .referencefield-wrapper .input-group {
+	display: flex !important;
+	align-items: center !important;
+	flex-wrap: nowrap;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	overflow: hidden;
+	background: #fafafa !important;
+	box-shadow: none !important;
+	box-sizing: border-box;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group:focus-within,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .referencefield-wrapper .input-group:focus-within {
+	border-color: var(--mk-ptask-navy) !important;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
+	background: #fff !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group input,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .form-control,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .autoComplete,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .currencyField,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .dateField {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: auto !important;
+	max-width: none !important;
+	height: 46px !important;
+	min-height: 46px !important;
+	margin: 0 !important;
+	padding: 0 14px !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	font-size: 15px !important;
+	line-height: 46px !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .input-group-addon {
+	flex: 0 0 48px;
+	width: 48px;
+	min-width: 48px;
+	height: 46px !important;
+	min-height: 46px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	border-left: 1px solid #e2e8f0 !important;
+	border-radius: 0 !important;
+	background: #f1f5f9 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-shadow: none !important;
+	line-height: 1 !important;
+	font-size: 15px !important;
+	font-weight: 600;
+	color: #64748b;
+	text-align: center;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .input-group-addon:first-child {
+	border-left: none !important;
+	border-right: 1px solid #e2e8f0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .input-group-addon .fa,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .input-group-addon i {
+	display: block !important;
+	line-height: 1 !important;
+	margin: 0 !important;
+	font-size: 14px !important;
+	color: #64748b !important;
+	vertical-align: middle;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .input-group-addon.relatedPopup:hover,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .input-group-addon.createReferenceRecord:hover {
+	background: var(--mk-ptask-navy) !important;
+	color: #fff !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group .clearReferenceSelection {
+	flex: 0 0 auto;
+	align-self: center;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	margin: 0 4px;
+	padding: 0 10px;
+	height: 32px;
+	min-width: 28px;
+	border: none !important;
+	border-radius: 8px;
+	background: #e2e8f0;
+	color: #475569;
+	text-decoration: none;
+	line-height: 1;
+}
+
+/* Simple standalone inputs (text, select, textarea) */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > input.inputElement,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > select.inputElement,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > textarea.inputElement,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .form-control {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-height: 46px !important;
+	padding: 12px 16px !important;
+	border-radius: 12px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fafafa !important;
+	font-size: 15px !important;
+	font-family: var(--mk-ptask-font) !important;
+	box-sizing: border-box !important;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > textarea.inputElement,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > textarea.form-control {
+	min-height: 120px !important;
+	resize: vertical;
+}
+
+/* Select2 (single/multi): style outer container as the field; remove inner border to avoid double frames */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	display: block !important;
+	position: relative;
+	box-sizing: border-box !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	background: #fafafa !important;
+	padding: 0 !important;
+	height: 46px !important;
+	min-height: 46px !important;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container:hover {
+	background: #fff !important;
+	border-color: #cbd5e1 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container.select2-container--focus,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container:focus-within {
+	border-color: var(--mk-ptask-navy) !important;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
+	background: #fff !important;
+	outline: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .select2-container--default .select2-selection--single,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .select2-container--default .select2-selection--multiple {
+	display: flex !important;
+	align-items: center !important;
+	height: 46px !important;
+	min-height: 46px !important;
+	padding: 0 36px 0 0 !important;
+	border-radius: 0 !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .select2-container--default .select2-selection--single .select2-selection__rendered {
+	flex: 1 1 auto;
+	padding: 0 14px !important;
+	line-height: 46px !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .select2-container--default .select2-selection--single .select2-selection__arrow {
+	position: absolute !important;
+	top: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	height: auto !important;
+	width: 36px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .select2-container--default .select2-selection--single .select2-selection__arrow b {
+	margin-top: 0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > input.inputElement:hover,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > select.inputElement:hover,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > textarea.inputElement:hover,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .select2-container--default .select2-selection--single:hover {
+	background: #fff !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > input.inputElement:focus,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > select.inputElement:focus,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > textarea.inputElement:focus,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .select2-container--default.select2-container--focus .select2-selection--single {
+	background: #fff !important;
+	outline: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	display: block;
+	margin-bottom: 0;
+}
+
+/* No virtual chips/slider on create */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-chips-wrap,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-slider-wrap,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-choice-row {
+	display: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-form-footer,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create-main .mk-ptask-form-footer {
+	display: none !important;
+	margin: 32px auto 0;
+	padding: 28px 32px;
+	max-width: 1120px;
+	width: 100%;
+	box-sizing: border-box;
+	border: 1px solid rgba(253, 187, 44, 0.35);
+	border-radius: 18px;
+	background: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+	box-shadow: 0 8px 28px rgba(64, 98, 126, 0.08);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-form-footer .saveButton {
+	background: linear-gradient(135deg, var(--mk-ptask-yellow) 0%, #e5a824 100%) !important;
+	border: none !important;
+	color: #1a2834 !important;
+	padding: 14px 32px !important;
+	font-size: 16px !important;
+	font-weight: 700 !important;
+	border-radius: 12px !important;
+	min-height: 48px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-form-footer .cancelLink {
+	margin-left: 16px !important;
+	padding: 12px 22px !important;
+	border-radius: 12px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fff !important;
+	font-weight: 600 !important;
+}
+
+/* Select2 v3 (vtiger default): single box + centered text & arrow */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container .select2-choice,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container .select2-choices {
+	display: flex !important;
+	align-items: center !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	height: 46px !important;
+	min-height: 46px !important;
+	line-height: normal !important;
+	padding: 0 40px 0 14px !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container .select2-chosen,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container .select2-choice > span:first-child {
+	display: block;
+	line-height: 46px !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container .select2-arrow {
+	position: absolute !important;
+	top: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	width: 40px !important;
+	height: auto !important;
+	border: none !important;
+	background: transparent !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container .select2-arrow b {
+	position: static !important;
+	display: block !important;
+	margin: 0 auto !important;
+	background-position: center center !important;
+}
+
+/* Date field calendar addon */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group.inputElement .input-group-addon,
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .input-group:has(.dateField) .input-group-addon {
+	border-left: 1px solid #e2e8f0 !important;
+}
+
+/* Float bar removed on simplified create */
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-float-bar {
+	display: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-float-bar.is-elevated {
+	transform: translateY(-2px);
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-float-bar__status {
+	font-size: 12px;
+	color: var(--mk-ptask-muted);
+	font-weight: 500;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-float-bar__right {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-float-bar__keys {
+	font-size: 11px;
+	color: var(--mk-ptask-muted);
+	margin-right: 8px;
+}
+
+body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-float-bar__keys kbd {
+	padding: 2px 5px;
+	border-radius: 4px;
+	background: var(--mk-ptask-surface);
+	border: 1px solid var(--mk-ptask-border);
+	font-size: 10px;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 1280px) {
+	body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create-body {
+		grid-template-columns: 1fr;
+	}
+	body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside {
+		position: static;
+		max-height: none;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 14px;
+	}
+}
+
+@media (max-width: 900px) {
+	body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create {
+		padding: 16px 16px 48px;
+	}
+
+	body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr {
+		grid-template-columns: 1fr !important;
+	}
+
+	body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr > td.fieldLabel:nth-child(3),
+	body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+		grid-column: 1 !important;
+	}
+
+	body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
+		grid-row: 3 !important;
+	}
+
+	body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+		grid-row: 4 !important;
+	}
+	body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-choice-row--3,
+	body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-choice-row--4 {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+/* Dark mode — label + select2 readability */
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] {
+	--mk-ptask-label: #cbd5e1;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__body,
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide {
+	background: var(--mk-card-bg, #1c2330) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages .mk-ptask-aside-card__head {
+	background: var(--mk-bg-elevated, #252d3d) !important;
+	border-bottom-color: var(--mk-border-color, rgba(255, 255, 255, 0.1)) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages .mk-ptask-aside-card__title {
+	color: var(--mk-text-primary, #e8eaed) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__hint {
+	color: var(--mk-text-muted, #9aa0a6) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--early {
+	background: var(--mk-bg-elevated, #252d3d) !important;
+	border-color: var(--mk-border-color, rgba(255, 255, 255, 0.1)) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--early .mk-ptask-stage-guide__badge {
+	background: var(--mk-bg-hover, #2d3748) !important;
+	color: var(--mk-text-secondary, #cbd5e1) !important;
+	border-color: var(--mk-border-color, rgba(255, 255, 255, 0.14)) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--mid {
+	background: rgba(253, 187, 44, 0.1) !important;
+	border-color: rgba(253, 187, 44, 0.28) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--mid .mk-ptask-stage-guide__badge {
+	background: rgba(253, 187, 44, 0.2) !important;
+	color: #fcd34d !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--won {
+	background: rgba(34, 197, 94, 0.1) !important;
+	border-color: rgba(34, 197, 94, 0.28) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--won .mk-ptask-stage-guide__badge {
+	background: rgba(34, 197, 94, 0.2) !important;
+	color: #86efac !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldLabel,
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldLabel label,
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .fieldBlockHeader,
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__sub,
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__text {
+	color: var(--mk-ptask-label) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container,
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > select.inputElement {
+	background: var(--mk-input-bg, #252d3d) !important;
+	border: 1px solid var(--mk-input-border, rgba(255, 255, 255, 0.14)) !important;
+	border-radius: 12px !important;
+	color: var(--mk-input-text, #e8eaed) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block .select2-container--default .select2-selection--single,
+html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block td.fieldValue > .select2-container .select2-choice {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-input-text, #e8eaed) !important;
+}

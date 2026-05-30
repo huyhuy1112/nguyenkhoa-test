@@ -8,6 +8,7 @@
 *************************************************************************************}
 
 {strip}
+<div class="mk-project-detail-summary-layout">
 	{foreach item=DETAIL_VIEW_WIDGET from=$DETAILVIEW_LINKS['DETAILVIEWWIDGET']}
 		{if ($DETAIL_VIEW_WIDGET->getLabel() eq 'Documents') }
 			{assign var=DOCUMENT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
@@ -24,17 +25,17 @@
 		{/if}
 	{/foreach}
 
-	<div class="left-block col-lg-4 col-md-4 col-sm-4">
-		<div class="summaryView">
-			<div class="summaryViewHeader" style="margin-bottom: 15px;">
-				<h4 class="display-inline-block">{vtranslate('LBL_KEY_METRICS', $MODULE_NAME)}</h4>
+	<div class="left-block col-lg-4 col-md-4 col-sm-4 mk-project-detail-col mk-project-detail-col--left">
+		<div class="summaryView mk-project-detail-metrics">
+			<div class="summaryViewHeader mk-project-detail-card-head">
+				<h4 class="display-inline-block mk-project-detail-card-title">{vtranslate('LBL_KEY_METRICS', $MODULE_NAME)}</h4>
 			</div>
-			<div class="summaryViewFields">
+			<div class="summaryViewFields mk-project-detail-metrics-grid">
 				{foreach item=SUMMARY_CATEGORY from=$SUMMARY_INFORMATION}
 					<div class="row textAlignCenter roundedCorners">
 						{foreach key=FIELD_NAME item=FIELD_VALUE from=$SUMMARY_CATEGORY}
 							<div class="col-lg-3">
-								<div class="well" style="min-height: 125px; padding-left: 0px; padding-right: 0px;">
+								<div class="well">
 									<div>
 										<label class="font-x-small">
 											{vtranslate($FIELD_NAME,$MODULE_NAME)}
@@ -53,11 +54,11 @@
 			</div>
 		</div>
 		{* Module Summary View*}
-		<div class="summaryView">
-			<div class="summaryViewHeader">
-				<h4 class="display-inline-block">{vtranslate('LBL_KEY_FIELDS', $MODULE_NAME)}</h4>
+		<div class="summaryView mk-project-detail-keyfields">
+			<div class="summaryViewHeader mk-project-detail-card-head">
+				<h4 class="display-inline-block mk-project-detail-card-title">{vtranslate('LBL_KEY_FIELDS', $MODULE_NAME)}</h4>
 			</div>
-			<div class="summaryViewFields">
+			<div class="summaryViewFields mk-project-detail-keyfields-body">
 				{$MODULE_SUMMARY}
 			</div>
 		</div>
@@ -65,12 +66,12 @@
 
 		{* Summary View Documents Widget*}
 		{if $DOCUMENT_WIDGET_MODEL}
-			<div class="summaryWidgetContainer">
+			<div class="summaryWidgetContainer mk-project-detail-widget">
 				<div class="widgetContainer_documents" data-url="{$DOCUMENT_WIDGET_MODEL->getUrl()}" data-name="{$DOCUMENT_WIDGET_MODEL->getLabel()}">
 					<div class="widget_header clearfix">
 						<input type="hidden" name="relatedModule" value="{$DOCUMENT_WIDGET_MODEL->get('linkName')}" />
 						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
-						<h4 class="display-inline-block pull-left">{vtranslate($DOCUMENT_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
+						<h4 class="display-inline-block mk-project-detail-card-title">{vtranslate($DOCUMENT_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
 
 						{if $DOCUMENT_WIDGET_MODEL->get('action')}
 							{assign var=PARENT_ID value=$RECORD->getId()}
@@ -105,14 +106,14 @@
 		{* Summary View Documents Widget Ends Here*}
 	</div>
 
-	<div class="middle-block col-lg-4 col-md-4 col-sm-4">
+	<div class="middle-block col-lg-4 col-md-4 col-sm-4 mk-project-detail-col mk-project-detail-col--middle">
 		{* Summary View Comments Widget*}
 		{if $COMMENTS_WIDGET_MODEL}
-			<div class="summaryWidgetContainer">
+			<div class="summaryWidgetContainer mk-project-detail-widget mk-project-detail-widget--comments">
 				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
 					<div class="widget_header">
 						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-						<h4 class="display-inline-block">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
+						<h4 class="display-inline-block mk-project-detail-comments-title">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
 					</div>
 					<div class="widget_contents">
 					</div>
@@ -122,16 +123,16 @@
 		{* Summary View Comments Widget Ends Here*}
 	</div>
 
-	<div class="right-block col-lg-4 col-md-4 col-sm-4">
+	<div class="right-block col-lg-4 col-md-4 col-sm-4 mk-project-detail-col mk-project-detail-col--right">
 
 		{* Summary View Contacts Widget *}
 		{if $HELPDESK_WIDGET_MODEL}
-			<div class="summaryWidgetContainer">
+			<div class="summaryWidgetContainer mk-project-detail-widget">
 				<div class="widgetContainer_troubleTickets" data-url="{$HELPDESK_WIDGET_MODEL->getUrl()}" data-name="{$HELPDESK_WIDGET_MODEL->getLabel()}">
 					<div class="widget_header clearfix">
 						<input type="hidden" name="relatedModule" value="{$HELPDESK_WIDGET_MODEL->get('linkName')}" />
 						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
-						<h4 class="display-inline-block pull-left">{vtranslate($HELPDESK_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
+						<h4 class="display-inline-block pull-left mk-project-detail-card-title">{vtranslate($HELPDESK_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
 
 						{if $HELPDESK_WIDGET_MODEL->get('action')}
 							<div class="pull-right">
@@ -167,12 +168,12 @@
 
 		{* Summary View Contacts Widget *}
 		{if $MILESTONE_WIDGET_MODEL}
-			<div class="summaryWidgetContainer">
+			<div class="summaryWidgetContainer mk-project-detail-widget">
 				<div class="widgetContainer_mileStone" data-url="{$MILESTONE_WIDGET_MODEL->getUrl()}" data-name="{$MILESTONE_WIDGET_MODEL->getLabel()}">
 					<div class="widget_header clearfix">
 						<input type="hidden" name="relatedModule" value="{$MILESTONE_WIDGET_MODEL->get('linkName')}" />
 						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
-						<h4 class="display-inline-block pull-left">{vtranslate($MILESTONE_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
+						<h4 class="display-inline-block pull-left mk-project-detail-card-title">{vtranslate($MILESTONE_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
 
 						{if $MILESTONE_WIDGET_MODEL->get('action')}
 							<div class="pull-right">
@@ -193,12 +194,12 @@
 			{assign var=RELATED_MODULE_MODEL value=Vtiger_Module_Model::getInstance('ProjectTask')}
 			{assign var=PROGRESS_FIELD_MODEL value=$RELATED_MODULE_MODEL->getField('projecttaskprogress')}
 			{assign var=STATUS_FIELD_MODEL value=$RELATED_MODULE_MODEL->getField('projecttaskstatus')}
-			<div class="summaryWidgetContainer">
+			<div class="summaryWidgetContainer mk-project-detail-widget">
 				<div class="widgetContainer_tasks" data-url="{$TASKS_WIDGET_MODEL->getUrl()}" data-name="{$TASKS_WIDGET_MODEL->getLabel()}">
 					<div class="widget_header clearfix">
 						<input type="hidden" name="relatedModule" value="{$TASKS_WIDGET_MODEL->get('linkName')}" />
 						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
-						<h4 class="display-inline-block pull-left">{vtranslate($TASKS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
+						<h4 class="display-inline-block pull-left mk-project-detail-card-title">{vtranslate($TASKS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
 
 						{if $TASKS_WIDGET_MODEL->get('action')}
 							<div class="pull-right">
@@ -247,4 +248,5 @@
 		{/if}
 		{* Summary View Contacts Widget Ends Here *}
 	</div>
+</div>
 {/strip}

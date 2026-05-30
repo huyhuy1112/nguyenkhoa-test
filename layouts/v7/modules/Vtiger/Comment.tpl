@@ -48,7 +48,7 @@
 										</span>&nbsp;&nbsp;
 									{/if}
 									<span class="commentTime text-muted cursorDefault">
-										<small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($COMMENT->getCommentedTime())}">{Vtiger_Util_Helper::formatDateDiffInStrings($COMMENT->getCommentedTime())}</small>
+										<small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($COMMENT->getCommentedTime())}">{Vtiger_Util_Helper::formatCommentDateTime($COMMENT->getCommentedTime())}</small>
 									</span>&nbsp;&nbsp;
 									
 									{if in_array($MODULE_NAME, $PRIVATE_COMMENT_MODULES)}
@@ -128,7 +128,7 @@
 											{/if}
 											<div style="margin-top:5px;" class="text-muted">
 												<small>{vtranslate('LBL_COMMENT',$MODULE_NAME)} {strtolower(vtranslate('LBL_MODIFIED',$MODULE_NAME))}</small>&nbsp;
-												<small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($COMMENT->getModifiedTime())}" class="commentModifiedTime">{Vtiger_Util_Helper::formatDateDiffInStrings($COMMENT->getModifiedTime())}</small>
+												<small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($COMMENT->getModifiedTime())}" class="commentModifiedTime">{Vtiger_Util_Helper::formatCommentDateTime($COMMENT->getModifiedTime())}</small>
 											</div>
 										</div>
 									{/if}

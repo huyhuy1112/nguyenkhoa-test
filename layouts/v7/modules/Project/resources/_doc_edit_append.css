@@ -1,0 +1,547 @@
+	--mk-doc-navy: #40627E;
+	--mk-doc-surface: #F7F9FB;
+	--mk-doc-surface-dim: #D8DADC;
+	--mk-doc-white: #FFFFFF;
+	--mk-doc-text: #1a2834;
+	--mk-doc-muted: #64748b;
+	--mk-doc-border: rgba(64, 98, 126, 0.14);
+	--mk-doc-radius: 16px;
+	--mk-doc-radius-sm: 10px;
+	--mk-doc-shadow: 0 8px 32px rgba(26, 40, 52, 0.08);
+	--mk-doc-shadow-lg: 0 20px 48px rgba(26, 40, 52, 0.12);
+	--mk-doc-font: 'Inter', system-ui, -apple-system, sans-serif;
+	--mk-doc-display: 'Space Grotesk', 'Inter', sans-serif;
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+}
+
+/* ========== Split shell ========== */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+	position: relative;
+	display: block;
+	min-height: 0;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w);
+	width: calc(100% - var(--mk-dash-sidebar-w));
+	max-width: calc(100% - var(--mk-dash-sidebar-w));
+	min-height: 100vh;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	background: var(--mk-doc-surface);
+	padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar {
+	height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+	flex-shrink: 0;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+	position: fixed;
+	top: 0;
+	left: var(--mk-dash-sidebar-w);
+	right: 0;
+	width: auto;
+	min-height: var(--mk-dash-topbar-h);
+	height: var(--mk-dash-topbar-h);
+	z-index: 1030;
+	box-sizing: border-box;
+	border: none !important;
+	border-bottom: 1px solid var(--mk-doc-border) !important;
+	border-radius: 0;
+	box-shadow: none;
+	background: var(--mk-doc-white) !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #page,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-docect-edit-main {
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+	padding: 0 !important;
+	background: linear-gradient(160deg, #f7f9fb 0%, #f8fafc 40%, #f7f9fb 100%);
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .main-container.mk-docect-edit-page {
+	width: 100%;
+	max-width: none;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .editViewPageDiv.mk-docect-edit-inner {
+	padding: 0 !important;
+	margin: 0 !important;
+	background: transparent;
+	border: none;
+}
+
+/* ========== Workspace ========== */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-create {
+	font-family: var(--mk-doc-font);
+	color: var(--mk-doc-text);
+	padding: 24px 40px 56px;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-create-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+	gap: 24px;
+	align-items: start;
+	max-width: 1280px;
+	margin: 0 auto;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-create-main {
+	min-width: 0;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host form#EditView,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewContents,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host [name="editContent"] {
+	width: 100%;
+	max-width: none;
+	margin-left: 0;
+	margin-right: 0;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-hide-legacy,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #mkDocFormHost #modnavigator,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #mkDocFormHost .editViewModNavigator {
+	display: none !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-form-container {
+	background: transparent !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewPageDiv,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .content-area {
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+/* ========== Page header (create) ========== */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head {
+	margin-bottom: 24px;
+	padding: 22px 28px;
+	max-width: 1280px;
+	margin-left: auto;
+	margin-right: auto;
+	border-radius: 18px;
+	background: var(--mk-doc-white);
+	border: 1px solid var(--mk-doc-border);
+	box-shadow: var(--mk-doc-shadow);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__crumb {
+	font-size: 12px;
+	color: var(--mk-doc-muted);
+	margin-bottom: 12px;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__crumb a {
+	color: var(--mk-doc-navy);
+	text-decoration: none;
+	font-weight: 500;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__crumb span {
+	margin: 0 6px;
+	opacity: 0.5;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px 24px;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__title {
+	margin: 0 0 6px;
+	font-family: var(--mk-doc-display);
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__sub {
+	margin: 0;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--mk-doc-surface-dim);
+	margin-top: 4px;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-timeline__item.is-active .mk-doc-timeline__dot {
+	background: var(--mk-doc-yellow);
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.35);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-timeline__item time {
+	font-size: 11px;
+	color: var(--mk-doc-muted);
+}
+
+/* ========== Form blocks — Documents Task–style (wide, label above field) ========== */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block {
+	margin-bottom: 28px;
+	padding: 28px 32px 32px;
+	border-radius: 18px;
+	background: var(--mk-doc-white);
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+	width: 100%;
+	box-sizing: border-box;
+	position: relative;
+	overflow: hidden;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 4px;
+	background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+	border-radius: 18px 0 0 18px;
+	opacity: 0.95;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .fieldBlockHeader,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .mk-doc-block__header {
+	display: block !important;
+	font-family: var(--mk-doc-display);
+	font-size: 1.45rem;
+	font-weight: 700;
+	color: var(--mk-doc-navy);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin: 0 0 28px 0 !important;
+	padding: 0 0 14px 10px !important;
+	border-bottom: 2px solid rgba(16, 185, 129, 0.45);
+	line-height: 1.3;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table.table,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table.table-borderless {
+	display: block !important;
+	width: 100% !important;
+	margin: 0 !important;
+	border: none !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody {
+	display: block !important;
+	width: 100%;
+}
+
+/* Each vtiger row → 2-column grid; label stacked above input */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	column-gap: 40px;
+	row-gap: 0;
+	width: 100%;
+	margin: 0 0 28px;
+	padding: 0;
+	border: none;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:last-child {
+	margin-bottom: 0;
+}
+
+/* Single full-width field (description, etc.) */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:has(> td.fieldValueWidth80),
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:has(> td.fieldValue[colspan]) {
+	grid-template-columns: 1fr !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) {
+	grid-template-columns: 1fr !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	box-sizing: border-box;
+	float: none !important;
+	position: static !important;
+	vertical-align: top !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td:empty {
+	display: none !important;
+	height: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldLabel {
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	color: #475569 !important;
+	line-height: 1.4;
+	padding: 0 0 10px !important;
+	text-align: left !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue {
+	padding: 0 0 4px !important;
+	min-width: 0;
+}
+
+/* Grid cell placement: col1 label row1, col1 value row2, col2 label row1, col2 value row2 */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldLabel:nth-child(1) {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldValue:nth-child(2) {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+	grid-column: 2;
+	grid-row: 2;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldLabel,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldLabel {
+	grid-column: 1 !important;
+	grid-row: 1 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldValue,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldValue {
+	grid-column: 1 !important;
+	grid-row: 2 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > * {
+	max-width: 100%;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .referencefield-wrapper {
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box;
+}
+
+/* Composite fields (amount $, reference search, date): one rounded box — no double rectangles */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .referencefield-wrapper .input-group {
+	display: flex !important;
+	align-items: center !important;
+	flex-wrap: nowrap;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	overflow: hidden;
+	background: #fafafa !important;
+	box-shadow: none !important;
+	box-sizing: border-box;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group:focus-within,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .referencefield-wrapper .input-group:focus-within {
+	border-color: var(--mk-doc-navy) !important;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
+	background: #fff !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group input,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group .form-control,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group .autoComplete,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group .currencyField,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group .dateField {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: auto !important;
+	max-width: none !important;
+	height: 46px !important;
+	min-height: 46px !important;
+	margin: 0 !important;
+	padding: 0 14px !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	font-size: 15px !important;
+	line-height: 46px !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group .input-group-addon {
+	flex: 0 0 48px;
+	width: 48px;
+	min-width: 48px;
+	height: 46px !important;
+	min-height: 46px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	border-left: 1px solid #e2e8f0 !important;
+	border-radius: 0 !important;
+	background: #f1f5f9 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-shadow: none !important;
+	color: var(--mk-doc-muted);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-pipeline__stage.is-active .mk-doc-pipeline__name {
+	color: var(--mk-doc-text);
+}
+
+/* Legacy virtual panel hidden */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-create__layout,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-create__insights,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-float-bar {
+	display: none !important;
+}
+
+/* ========== Aside: quick tips + sales stage guide (colored cards) ========== */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside {
+	display: flex !important;
+	flex-direction: column;
+	gap: 14px;
+	position: sticky;
+	top: calc(var(--mk-dash-topbar-h) + 16px);
+	max-height: calc(100vh - var(--mk-dash-topbar-h) - 48px);
+	overflow-y: auto;
+	padding-right: 2px;
+	font-family: var(--mk-doc-font) !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card {
+	display: block !important;
+	border-radius: 14px !important;
+	overflow: hidden !important;
+	background: var(--mk-doc-white) !important;
+	box-shadow: 0 4px 16px rgba(26, 40, 52, 0.08) !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--tips {
+	border: 1px solid rgba(253, 187, 44, 0.55) !important;
+	box-shadow: 0 4px 18px rgba(253, 187, 44, 0.12) !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--stages {
+	border: 1px solid rgba(64, 98, 126, 0.28) !important;
+	box-shadow: 0 4px 18px rgba(64, 98, 126, 0.1) !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__head {
+	display: flex !important;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 16px !important;
+	border-bottom: 1px solid var(--mk-doc-border) !important;
+	margin: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--tips .mk-doc-aside-card__head {
+	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+	border-bottom-color: rgba(253, 187, 44, 0.35) !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--stages .mk-doc-aside-card__head {
+	background: linear-gradient(135deg, #f0f4f8 0%, #e2eaf2 100%) !important;
+	border-bottom-color: rgba(64, 98, 126, 0.2) !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__icon {
+	flex: 0 0 auto;
+	width: 36px !important;
+	height: 36px !important;
+	border-radius: 10px !important;
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__icon--tips {
+	background: var(--mk-doc-yellow) !important;
+	color: #6d4d00 !important;
+	box-shadow: 0 4px 10px rgba(253, 187, 44, 0.35);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__icon--stages {
+	background: var(--mk-doc-navy) !important;
+	color: #fff !important;
+	box-shadow: 0 4px 10px rgba(64, 98, 126, 0.28);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__title {
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	line-height: 1.2;
+	border: none !important;
+	background: transparent !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--tips .mk-doc-aside-card__title {
+	color: #92400e !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--stages .mk-doc-aside-card__title {
+	color: var(--mk-doc-navy) !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__body {
+	display: block !important;
+	padding: 14px 16px 16px !important;
+	margin: 0 !important;

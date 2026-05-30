@@ -142,9 +142,12 @@
 		'MkThemeDarkGlobal.css',
 		'MkThemeDarkMarketing.css',
 		'MkThemeDarkSales.css',
+		'MkThemeDarkInventory.css',
+		'MkThemeDarkSupport.css',
+		'MkThemeDarkManagement.css',
 		'MkThemeDarkEdit.css'
 	];
-	var THEME_CACHE_VER = 'dark_global_v18';
+	var THEME_CACHE_VER = 'dark_global_v34';
 
 	function removeInjectedDarkStyles() {
 		document.querySelectorAll('link[data-mk-theme-injected="1"]').forEach(function (el) {
@@ -184,6 +187,9 @@
 			'layouts/v7/modules/Vtiger/resources/MkThemeDarkGlobal.css',
 			'layouts/v7/modules/Vtiger/resources/MkThemeDarkMarketing.css',
 			'layouts/v7/modules/Vtiger/resources/MkThemeDarkSales.css',
+			'layouts/v7/modules/Vtiger/resources/MkThemeDarkInventory.css',
+			'layouts/v7/modules/Vtiger/resources/MkThemeDarkSupport.css',
+			'layouts/v7/modules/Vtiger/resources/MkThemeDarkManagement.css',
 			'layouts/v7/modules/Vtiger/resources/MkThemeDarkEdit.css'
 		];
 		var created = [];

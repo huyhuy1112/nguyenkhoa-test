@@ -1,0 +1,892 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/**
+ * Documents Edit/Create — MANAGEMENT dashboard shell (same pattern as Project create).
+ */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] {
+	--mk-doc-yellow: #fdbb2c;
+	--mk-doc-navy: #40627e;
+	--mk-doc-surface: #f7f9fb;
+	--mk-doc-white: #ffffff;
+	--mk-doc-text: #1a2834;
+	--mk-doc-label: #334155;
+	--mk-doc-muted: #64748b;
+	--mk-doc-border: rgba(64, 98, 126, 0.14);
+	--mk-doc-shadow: 0 8px 32px rgba(26, 40, 52, 0.08);
+	--mk-doc-font: 'Inter', system-ui, -apple-system, sans-serif;
+	--mk-doc-display: 'Space Grotesk', 'Inter', sans-serif;
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+}
+
+/* Hide legacy chrome + beat custom.css Documents edit glass */
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .app-nav,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .navbar.navbar-inverse.navbar-fixed-top,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #page > .container-fluid.app-nav,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-documents-edit-hide-legacy {
+	display: none !important;
+}
+
+/* Beat custom.css full-white Documents body on edit shell */
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"],
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #page,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .bodyContents,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .main-container {
+	background: transparent !important;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+	display: flex !important;
+	visibility: visible !important;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .editViewPageDiv.viewContent,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .editViewPageDiv .content-area,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .recordEditView,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .editViewBody .fieldBlockContainer {
+	background: transparent !important;
+	box-shadow: none !important;
+	backdrop-filter: none !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .editViewBody .fieldBlockHeader,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .editViewBody .table-borderless > tbody > tr > td.fieldLabel,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .editViewBody .table-borderless > tbody > tr > td.fieldLabel label {
+	color: var(--mk-doc-label) !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #page,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+/* Split shell */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w);
+	width: calc(100% - var(--mk-dash-sidebar-w));
+	max-width: calc(100% - var(--mk-dash-sidebar-w));
+	min-height: 100vh;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	background: var(--mk-doc-surface);
+	padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar {
+	height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+	position: fixed;
+	top: 0;
+	left: var(--mk-dash-sidebar-w);
+	right: 0;
+	min-height: var(--mk-dash-topbar-h);
+	height: var(--mk-dash-topbar-h);
+	z-index: 1030;
+	border: none !important;
+	border-bottom: 1px solid var(--mk-doc-border) !important;
+	background: var(--mk-doc-white) !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-documents-edit-main {
+	width: 100%;
+	padding: 0 !important;
+	background: linear-gradient(160deg, #f7f9fb 0%, #f8fafc 40%, #f7f9fb 100%);
+	color: var(--mk-doc-text);
+	font-family: var(--mk-doc-font);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .main-container.mk-documents-edit-page,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-documents-edit-inner,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-documents-edit-body {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+}
+
+@media (max-width: 991px) {
+	body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell {
+		margin-left: 0 !important;
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+}
+
+/* Workspace */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-create {
+	padding: 24px 40px 56px;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-create-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+	gap: 24px;
+	align-items: start;
+	max-width: 1280px;
+	margin: 0 auto;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-hide-legacy,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] #mkDocFormHost .editViewHeader,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-form-footer {
+	display: none !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewPageDiv,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .content-area,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-form-container {
+	padding: 0 !important;
+	margin: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+/* Page head */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head {
+	margin-bottom: 24px;
+	padding: 22px 28px;
+	max-width: 1280px;
+	margin-left: auto;
+	margin-right: auto;
+	border-radius: 18px;
+	background: var(--mk-doc-white);
+	border: 1px solid var(--mk-doc-border);
+	box-shadow: var(--mk-doc-shadow);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__crumb {
+	font-size: 13px;
+	color: var(--mk-doc-muted);
+	margin-bottom: 12px;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__crumb a {
+	color: var(--mk-doc-navy);
+	text-decoration: none;
+	font-weight: 500;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__crumb span {
+	margin: 0 6px;
+	opacity: 0.55;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px 24px;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__title {
+	margin: 0 0 6px;
+	font-family: var(--mk-doc-display);
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: #1a2834 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__record {
+	font-weight: 600;
+	color: var(--mk-doc-muted);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__sub {
+	margin: 0;
+	font-size: 14px;
+	color: var(--mk-doc-muted);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__actions {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 10px 18px;
+	border-radius: 10px;
+	font-size: 13px;
+	font-weight: 600;
+	font-family: inherit;
+	border: none;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-btn--primary {
+	background: var(--mk-doc-yellow);
+	color: var(--mk-doc-text);
+	box-shadow: 0 4px 16px rgba(253, 187, 44, 0.45);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-btn--ghost {
+	background: transparent;
+	color: var(--mk-doc-navy);
+	border: 1px solid var(--mk-doc-border);
+}
+
+/* Form blocks — label above field (match Project create) */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block {
+	margin-bottom: 28px;
+	padding: 28px 32px 32px 36px;
+	border-radius: 18px;
+	background: var(--mk-doc-white);
+	border: 1px solid #e2e8f0;
+	border-left: 4px solid var(--mk-doc-yellow);
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+	position: relative;
+	overflow: visible;
+	box-sizing: border-box;
+	width: 100%;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block::before {
+	display: none !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > hr,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block hr {
+	display: none !important;
+	margin: 0 !important;
+	border: none !important;
+	height: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .fieldBlockHeader,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .mk-doc-block__header {
+	display: block !important;
+	font-family: var(--mk-doc-display);
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: var(--mk-doc-navy) !important;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	margin: 0 0 24px !important;
+	padding: 0 0 14px 0 !important;
+	border-bottom: 2px solid rgba(253, 187, 44, 0.45) !important;
+	line-height: 1.35;
+	position: relative;
+	z-index: 1;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .fieldBlockHeader::before {
+	display: none !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table.table,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table.table-borderless {
+	display: block !important;
+	width: 100% !important;
+	margin: 0 !important;
+	border: none !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody {
+	display: block !important;
+	width: 100%;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	column-gap: 40px;
+	row-gap: 0;
+	width: 100%;
+	margin: 0 0 28px;
+	padding: 0;
+	border: none;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:last-child {
+	margin-bottom: 0;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:has(> td.fieldValueWidth80),
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:has(> td.fieldValue[colspan]) {
+	grid-template-columns: 1fr !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) {
+	grid-template-columns: 1fr !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	box-sizing: border-box;
+	float: none !important;
+	position: static !important;
+	vertical-align: top !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td:empty {
+	display: none !important;
+	height: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldLabel {
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	color: var(--mk-doc-label) !important;
+	line-height: 1.45 !important;
+	padding: 0 0 10px !important;
+	text-align: left !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	white-space: normal !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldLabel label,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldLabel .muted {
+	color: inherit !important;
+	font-weight: inherit !important;
+	margin: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue {
+	padding: 0 0 6px !important;
+	min-width: 0;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldLabel:nth-child(1) {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldValue:nth-child(2) {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+	grid-column: 2;
+	grid-row: 2;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldLabel,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldLabel {
+	grid-column: 1 !important;
+	grid-row: 1 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldValue,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldValue {
+	grid-column: 1 !important;
+	grid-row: 2 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > * {
+	max-width: 100%;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .referencefield-wrapper .input-group {
+	display: flex !important;
+	align-items: center !important;
+	flex-wrap: nowrap;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	overflow: hidden;
+	background: #fafafa !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group input,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group .form-control {
+	flex: 1 1 auto;
+	min-width: 0;
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	min-height: 46px !important;
+	padding: 0 14px !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]),
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > select.inputElement,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > textarea.inputElement,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > .form-control:not([type="file"]) {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-height: 46px !important;
+	padding: 12px 16px !important;
+	border-radius: 12px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fafafa !important;
+	font-size: 15px !important;
+	color: var(--mk-doc-text) !important;
+	box-sizing: border-box !important;
+}
+
+/* Checkbox / boolean (e.g. Active) — custom tick; beat custom.css .inputElement on checkboxes */
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"],
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input[type="checkbox"],
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input[type="checkbox"].inputElement,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue input[type="checkbox"][data-fieldtype="checkbox"] {
+	-webkit-appearance: none !important;
+	appearance: none !important;
+	position: relative !important;
+	display: inline-block !important;
+	width: 20px !important;
+	height: 20px !important;
+	min-width: 20px !important;
+	max-width: 20px !important;
+	min-height: 20px !important;
+	max-height: 20px !important;
+	margin: 4px 0 0 !important;
+	padding: 0 !important;
+	border-radius: 6px !important;
+	border: 2px solid #cbd5e1 !important;
+	background: #ffffff !important;
+	box-shadow: none !important;
+	cursor: pointer;
+	flex: 0 0 auto;
+	vertical-align: middle;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue:has(> input[type="checkbox"]) {
+	display: flex !important;
+	align-items: flex-start !important;
+	width: auto !important;
+	max-width: max-content !important;
+	min-height: 0 !important;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"]:hover,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input[type="checkbox"]:hover {
+	border-color: var(--mk-doc-navy) !important;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"]:checked,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input[type="checkbox"]:checked {
+	background: var(--mk-doc-yellow) !important;
+	border-color: #e5a820 !important;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"]:checked::after,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input[type="checkbox"]:checked::after {
+	content: '' !important;
+	position: absolute;
+	left: 6px;
+	top: 2px;
+	width: 5px;
+	height: 10px;
+	border: solid #1a2834;
+	border-width: 0 2.5px 2.5px 0;
+	transform: rotate(45deg);
+	display: block;
+	pointer-events: none;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-height: 46px;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	background: #fafafa !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > .select2-container .select2-choice,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .select2-container--default .select2-selection--single {
+	border: none !important;
+	background: transparent !important;
+	min-height: 44px !important;
+	line-height: 44px !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_chrome {
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	overflow: hidden;
+	margin-top: 4px;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_top {
+	background: #f8fafc !important;
+	border-bottom: 1px solid #e2e8f0 !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_contents {
+	background: #ffffff !important;
+	min-height: 180px !important;
+}
+
+/* Beat custom.css Documents edit label/field layout inside modern shell */
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .fieldBlockContainer,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .table-borderless > tbody > tr > td.fieldLabel {
+	width: 100% !important;
+	max-width: 100% !important;
+	white-space: normal !important;
+	padding-right: 0 !important;
+}
+
+/* File upload — custom button only; hide native file picker chrome */
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadContainer,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadContainer {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	background: transparent !important;
+	border: none !important;
+	text-align: left;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn.btn-primary,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn.btn-primary {
+	position: relative;
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 44px;
+	min-width: 148px;
+	padding: 10px 20px !important;
+	margin: 0 !important;
+	background: var(--mk-doc-yellow) !important;
+	border: 1px solid #e5a820 !important;
+	color: #1a2834 !important;
+	border-radius: 10px !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	box-shadow: 0 2px 8px rgba(253, 187, 44, 0.35) !important;
+	overflow: hidden;
+	cursor: pointer;
+	width: auto !important;
+	max-width: 100%;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn:hover,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn:hover {
+	background: #ffc85c !important;
+	border-color: #d4a017 !important;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn > span,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn > span {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	pointer-events: none;
+	line-height: 1.2;
+	color: inherit !important;
+	font-family: var(--mk-doc-font) !important;
+	font-weight: 600 !important;
+}
+
+/* Beat custom.css .editViewBody .inputElement border on file inputs */
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="file"],
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn input[type="file"],
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn input.inputElement[type="file"],
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="file"],
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn input[type="file"],
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn input.inputElement[type="file"] {
+	position: absolute !important;
+	inset: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	opacity: 0 !important;
+	font-size: 0 !important;
+	line-height: 0 !important;
+	color: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	appearance: none !important;
+	-webkit-appearance: none !important;
+	cursor: pointer;
+	z-index: 2;
+}
+
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn input[type="file"]::file-selector-button,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .fileUploadBtn input[type="file"]::file-selector-button {
+	display: none !important;
+	width: 0 !important;
+	height: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	opacity: 0 !important;
+	visibility: hidden !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .uploadedFileDetails {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .uploadedFileName {
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--mk-doc-label) !important;
+	line-height: 1.4;
+	word-break: break-all;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .uploadedFileSize {
+	font-size: 13px;
+	color: var(--mk-doc-muted) !important;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .uploadFileSizeLimit,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .uploadFileSizeLimit.redColor {
+	font-size: 13px !important;
+	font-weight: 400 !important;
+	color: var(--mk-doc-muted) !important;
+	margin: 0;
+	line-height: 1.4;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .uploadFileSizeLimit .maxUploadSize {
+	font-weight: 600;
+	color: var(--mk-doc-label) !important;
+}
+
+/* Aside */
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	position: sticky;
+	top: calc(var(--mk-dash-topbar-h) + 16px);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card {
+	border-radius: 14px;
+	background: var(--mk-doc-white);
+	border: 1px solid rgba(253, 187, 44, 0.45);
+	box-shadow: var(--mk-doc-shadow);
+	overflow: hidden;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 16px;
+	border-bottom: 1px solid var(--mk-doc-border);
+	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__title {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--mk-doc-navy);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__body {
+	padding: 14px 16px 16px;
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__text {
+	margin: 0 0 10px;
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--mk-doc-label);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__text--muted {
+	font-size: 13px;
+	color: var(--mk-doc-muted);
+}
+
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .footer,
+body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .app-footer {
+	display: none !important;
+}
+
+@media (max-width: 1280px) {
+	body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-create-body {
+		grid-template-columns: 1fr;
+	}
+	body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside {
+		position: static;
+	}
+}
+
+@media (max-width: 900px) {
+	body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-create {
+		padding: 16px 16px 48px;
+	}
+
+	body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr {
+		grid-template-columns: 1fr !important;
+	}
+
+	body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldLabel:nth-child(3),
+	body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+		grid-column: 1 !important;
+	}
+
+	body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
+		grid-row: 3 !important;
+	}
+
+	body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+		grid-row: 4 !important;
+	}
+}
+
+/* Dark mode */
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] {
+	--mk-doc-surface: var(--mk-bg-primary, #0f1419);
+	--mk-doc-white: var(--mk-card-bg, #1e2433);
+	--mk-doc-text: var(--mk-text-primary, #e8eaed);
+	--mk-doc-label: #cbd5e1;
+	--mk-doc-muted: #94a3b8;
+	--mk-doc-border: var(--mk-border-color, rgba(255, 255, 255, 0.12));
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-documents-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__title,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .fieldBlockHeader,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldLabel,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__text {
+	color: var(--mk-doc-label) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]),
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > select.inputElement,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > .select2-container,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_chrome {
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_top {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_contents,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_wysiwyg_frame,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_wysiwyg_div {
+	background: var(--mk-input-bg) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_toolgroup,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_combo_button {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .cke_button_icon {
+	filter: invert(0.85);
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > .select2-container .select2-choice,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .select2-container--default .select2-selection--single {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group input,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block .input-group .form-control {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__head {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-btn--ghost {
+	background: var(--mk-btn-secondary-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .uploadedFileName,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .uploadFileSizeLimit {
+	color: var(--mk-doc-muted) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"],
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input[type="checkbox"] {
+	border-color: rgba(169, 203, 245, 0.75) !important;
+	background: var(--mk-input-bg, #1e2433) !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"]:checked,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input[type="checkbox"]:checked {
+	background: var(--mk-doc-yellow) !important;
+	border-color: #e5a820 !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"]:checked::after,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input[type="checkbox"]:checked::after {
+	border-color: #ffffff !important;
+}

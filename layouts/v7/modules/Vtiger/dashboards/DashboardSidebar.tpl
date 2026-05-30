@@ -5,6 +5,7 @@
 ************************************************************************************}
 
 {strip}
+{include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}
 {assign var=USER_PRIVILEGES_MODEL value=Users_Privileges_Model::getCurrentUserPrivilegesModel()}
 {assign var=DASHBOARD_MODULE_MODEL value=Vtiger_Module_Model::getInstance('Dashboard')}
 {assign var=APP_GROUPED_MENU value=Settings_MenuEditor_Module_Model::getAllVisibleModules()}
@@ -74,14 +75,16 @@
 						{/if}
 						{assign var=_mkHasLeads value=false}
 						{assign var=_mkHasAccounts value=false}
+						{assign var=_mkHasActivities value=false}
 						{assign var=_mkHasCalendar value=false}
 						{foreach item=moduleModel key=moduleName from=$APP_GROUPED_MENU[$APP_NAME]}
 							{if $APP_NAME eq 'MANAGEMENT' && $moduleName eq 'Home'}{continue}{/if}
-							{* SUPPORT: ẩn Schedule/Calendar — chỉ dùng Activities (nếu có module riêng) *}
-							{if $APP_NAME eq 'SUPPORT' && $moduleName eq 'Calendar'}{continue}{/if}
+							{* SUPPORT: ẩn Schedule/Calendar — chỉ dùng Activities (Schedule chỉ ở MANAGEMENT) *}
+							{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Calendar' || $moduleName eq 'Schedule')}{continue}{/if}
 							{if $moduleName eq 'Calendar'}{assign var=_mkHasCalendar value=true}{/if}
 							{if $moduleName eq 'Leads'}{assign var=_mkHasLeads value=true}{/if}
 							{if $moduleName eq 'Accounts'}{assign var=_mkHasAccounts value=true}{/if}
+							{if $moduleName eq 'Activities'}{assign var=_mkHasActivities value=true}{/if}
 							{* Leads belongs to SALES only — hide from Marketing sidebar *}
 							{if $APP_NAME eq 'MARKETING' && $moduleName eq 'Leads'}{continue}{/if}
 							{if $moduleName eq 'ExtensionStore'}{continue}{/if}
@@ -111,6 +114,13 @@
 							{assign var=_mkScheduleActive value=($MODULE eq 'Calendar' && $VIEW eq 'Calendar')}
 							<a class="mk-dash-mod-link{if $_mkScheduleActive} mk-dash-mod-link--active{/if}" href="index.php?module=Calendar&amp;view=Calendar&amp;app=MANAGEMENT">
 								<span class="mk-dash-mod-label">{vtranslate('LBL_SCHEDULE','Calendar')}</span>
+							</a>
+						{/if}
+						{* SUPPORT: Activities when missing from MenuEditor *}
+						{if ($_mkHasActivities eq false) && ($APP_NAME eq 'SUPPORT')}
+							{assign var=_mkActivitiesActive value=($MENU_SELECTED_MODULENAME eq 'Activities')}
+							<a class="mk-dash-mod-link{if $_mkActivitiesActive} mk-dash-mod-link--active{/if}" href="index.php?module=Activities&amp;view=List&amp;app=SUPPORT">
+								<span class="mk-dash-mod-label">{vtranslate('LBL_ACTIVITIES','Calendar')}</span>
 							</a>
 						{/if}
 						{* SUPPORT: Organizations (Accounts) when missing from MenuEditor *}

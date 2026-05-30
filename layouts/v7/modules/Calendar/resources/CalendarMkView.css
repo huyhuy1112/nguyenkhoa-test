@@ -1,0 +1,1056 @@
+/**
+ * Calendar main view — Figma light UI (scoped to mk-cal-ui-ready).
+ * Shell layout: DashBoard.css. This file: in-page sidebar, toolbar, FullCalendar skin.
+ */
+
+html.mk-cal-ui-ready,
+html.mk-cal-ui-ready body[data-module="Calendar"] {
+    background: #f7f9fb !important;
+    overflow-x: hidden;
+}
+
+/* Beat legacy `calendar-google.css` dark theme (uses :has + !important) */
+html.mk-cal-ui-ready body[data-module="Calendar"],
+html.mk-cal-ui-ready body:has(.mk-cal-page),
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) {
+    background: #f7f9fb !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] #page,
+html.mk-cal-ui-ready body:has(.mk-cal-page) #page,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #page {
+    background: #f7f9fb !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] #page,
+html.mk-cal-ui-ready body[data-module="Calendar"] .main-container.main-container-Calendar {
+    background: #f7f9fb !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Ensure main container is not centered/narrow */
+html.mk-cal-ui-ready body[data-module="Calendar"] .main-container-Calendar.mk-cal-page,
+html.mk-cal-ui-ready body:has(.mk-cal-page) .main-container-Calendar.mk-cal-page {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Neutralize legacy dark google-calendar chrome */
+html.mk-cal-ui-ready body[data-module="Calendar"] .CalendarViewPageDiv,
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-content-area {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Keep Calendar content aligned like other split-shell pages */
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-page,
+html.mk-cal-ui-ready body[data-module="Calendar"] #CalendarViewContent {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Remove legacy forced left-padding/height from `calendar-google.css` */
+html.mk-cal-ui-ready body[data-module="Calendar"] .content-area,
+html.mk-cal-ui-ready body[data-module="Calendar"] .CalendarViewPageDiv,
+html.mk-cal-ui-ready body:has(.mk-cal-page) .content-area,
+html.mk-cal-ui-ready body:has(.mk-cal-page) .CalendarViewPageDiv {
+    padding-left: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .CalendarViewPageDiv.full-width,
+html.mk-cal-ui-ready body:has(.mk-cal-page) .CalendarViewPageDiv.full-width {
+    padding-left: 0 !important;
+}
+
+/* HARD override dark calendar-google.css (it uses body:has + !important) */
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .CalendarViewPageDiv.content-area,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #mycalendar,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .calendarview,
+html.mk-cal-ui-ready body[data-module="Calendar"] .CalendarViewPageDiv.content-area,
+html.mk-cal-ui-ready body[data-module="Calendar"] #mycalendar,
+html.mk-cal-ui-ready body[data-module="Calendar"] .calendarview {
+    background: #ffffff !important;
+    color: #504533 !important;
+}
+
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc {
+    background: #ffffff !important;
+    color: #504533 !important;
+}
+
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-header,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-day-header {
+    background: #ffffff !important;
+    color: #6b5d4a !important;
+    border-color: #e8e0d4 !important;
+    text-transform: none !important;
+}
+
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-body .fc-widget-content,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-grid .fc-day:not(.fc-today),
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-time-grid .fc-day:not(.fc-today),
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-body .fc-widget-content,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-day-grid .fc-day:not(.fc-today),
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-time-grid .fc-day:not(.fc-today) {
+    background: #ffffff !important;
+    border-color: #ebe6dc !important;
+}
+
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-grid .fc-day.fc-today,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-time-grid .fc-day.fc-today,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-day-grid .fc-day.fc-today,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-time-grid .fc-day.fc-today {
+    background: rgba(236, 72, 153, 0.14) !important;
+    border-color: #ebe6dc !important;
+}
+
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-header.fc-today,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-day-header.fc-today {
+    background: rgba(236, 72, 153, 0.18) !important;
+    color: #9d174d !important;
+    font-weight: 700;
+}
+
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-unthemed .fc-divider,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-unthemed .fc-popover,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-unthemed .fc-row,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-unthemed .fc-divider,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-unthemed .fc-popover,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-unthemed .fc-row {
+    border-color: #ebe6dc !important;
+}
+
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-number,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-time,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-day-number,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-time {
+    color: #6b5d4a !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-hide-legacy,
+html.mk-cal-ui-ready #modnavigator.mk-cal-hide-legacy,
+html.mk-cal-ui-ready #sidebar-essentials.mk-cal-hide-legacy,
+html.mk-cal-ui-ready .mk-cal-hide-legacy.essentials-toggle {
+    display: none !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .app-nav.app-nav-Schedule,
+html.mk-cal-ui-ready body[data-module="Calendar"] .navbar-fixed-top,
+html.mk-cal-ui-ready body[data-module="Calendar"] nav.app-fixed-navbar {
+    display: none !important;
+}
+
+/* Re-enable split-shell topbar (it also uses `.app-fixed-navbar`) */
+html.mk-cal-ui-ready body[data-module="Calendar"] header.mk-topbar nav.mk-dash-app-topbar.app-fixed-navbar {
+    display: block !important;
+}
+
+/* calendar-google.css may force navbars to relative; restore fixed topbar like other modules */
+html.mk-cal-ui-ready body[data-module="Calendar"] header.mk-topbar .mk-dash-app-topbar.app-fixed-navbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: var(--mk-dash-sidebar-w, 256px) !important;
+    right: 0 !important;
+    width: auto !important;
+    height: var(--mk-dash-topbar-h, 64px) !important;
+    min-height: var(--mk-dash-topbar-h, 64px) !important;
+    margin: 0 !important;
+    z-index: 1030 !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-app-shell {
+    padding-top: var(--mk-dash-topbar-h, 64px) !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] header.mk-topbar .mk-dash-app-topbar-inner {
+    height: var(--mk-dash-topbar-h, 64px) !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] header.mk-topbar .mk-dash-app-topbar-row {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Prevent overlay container from blocking clicks when idle */
+html.mk-cal-ui-ready body[data-module="Calendar"] #overlayPageContent {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+/* When Bootstrap modal is open, it uses `.in` */
+html.mk-cal-ui-ready body[data-module="Calendar"] #overlayPageContent.in,
+html.mk-cal-ui-ready body[data-module="Calendar"] #overlayPageContent.show {
+    display: block !important;
+    pointer-events: auto !important;
+}
+
+/* Bootstrap backdrops sometimes linger and block interactions */
+html.mk-cal-ui-ready body[data-module="Calendar"] .modal-backdrop {
+    pointer-events: auto;
+}
+html.mk-cal-ui-ready body[data-module="Calendar"] .modal-backdrop.fade:not(.in):not(.show) {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+/* Safety: drawer backdrop should not block calendar unless active */
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-dash-drawer-backdrop[aria-hidden="true"] {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"]:not(.mk-dash-drawer-open) .mk-dash-drawer-backdrop {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+/* In-page layout */
+.mk-cal-layout {
+    display: flex;
+    align-items: stretch;
+    gap: 8px; /* bring calendar closer to left panel */
+    width: 100%;
+    min-height: calc(100vh - var(--mk-dash-topbar-h, 64px) - 48px);
+    box-sizing: border-box;
+}
+
+.mk-cal-layout__aside {
+    flex: 0 0 240px;
+    width: 240px;
+    max-width: 240px;
+    min-width: 0;
+}
+
+.mk-cal-layout__main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mk-cal-layout__grid-wrap {
+    flex: 1 1 auto;
+    min-height: 480px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+    box-shadow: none;
+}
+
+.mk-cal-grid-surface {
+    background: #ffffff;
+    border: 1px solid #d4c4ad;
+    border-radius: 8px;
+    overflow: hidden; /* keep grid tidy; popovers are portal-based */
+    box-shadow: 0 1px 2px rgba(80, 69, 51, 0.06);
+}
+
+/* Header bar (breadcrumb row like mockup) */
+.mk-cal-headerbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    margin: 0 0 8px;
+    padding: 0 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.mk-cal-headerbar__left {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #6b5d4a;
+}
+
+.mk-cal-headerbar__link {
+    color: #2c2416;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.mk-cal-headerbar__link:hover {
+    text-decoration: underline;
+}
+
+.mk-cal-headerbar__sep {
+    color: #b6ad9f;
+}
+
+.mk-cal-headerbar__current {
+    color: #6b5d4a;
+    font-weight: 600;
+}
+
+/* Sidebar actions */
+.mk-cal-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mk-cal-sidebar-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mk-cal-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d4c4ad;
+    border-radius: 6px;
+    background: #fdbb2c;
+    color: #6d4d00;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    box-sizing: border-box;
+}
+
+.mk-cal-action-btn:hover,
+.mk-cal-action-btn:focus {
+    background: #f5ad14;
+    border-color: #c9a86a;
+    color: #5a3f00;
+    outline: none;
+}
+
+.mk-cal-action-btn__icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Mini calendar */
+.mk-cal-mini-wrap {
+    background: #ffffff;
+    border: 1px solid #d4c4ad;
+    border-radius: 8px;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.mk-cal-mini-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.mk-cal-mini-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #504533;
+    text-align: center;
+    flex: 1 1 auto;
+}
+
+.mk-cal-mini-nav {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #d4c4ad;
+    border-radius: 4px;
+    background: #fff;
+    color: #504533;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+
+.mk-cal-mini-grid-host .calendar-mini-label {
+    display: none;
+}
+
+.mk-cal-mini-grid-host #calendar-mini-wrap {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mk-cal-mini-grid-host #calendar-mini-wrap .calendar-mini-label {
+    display: none !important;
+}
+
+.mk-cal-mini-grid-host #calendar-mini .fc-toolbar {
+    display: none !important;
+}
+
+.mk-cal-mini-grid-host #calendar-mini .fc-view-container {
+    background: #ffffff !important;
+}
+
+.mk-cal-mini-grid-host #calendar-mini .fc-day {
+    border-color: #ebe6dc !important;
+    background: #ffffff !important;
+}
+
+.mk-cal-mini-grid-host #calendar-mini .fc-day-number {
+    color: #504533 !important;
+    font-size: 12px;
+}
+
+.mk-cal-mini-grid-host #calendar-mini .fc-today {
+    background: rgba(236, 72, 153, 0.12) !important;
+}
+
+/* Mini calendar header row + weekdays should be light too */
+.mk-cal-mini-grid-host #calendar-mini .fc-widget-header,
+.mk-cal-mini-grid-host #calendar-mini .fc-head-container,
+.mk-cal-mini-grid-host #calendar-mini .fc-row {
+    background: #ffffff !important;
+    border-color: #ebe6dc !important;
+}
+
+.mk-cal-mini-grid-host #calendar-mini .fc-day-header,
+.mk-cal-mini-grid-host #calendar-mini th,
+.mk-cal-mini-grid-host #calendar-mini td {
+    color: #6b5d4a !important;
+}
+
+/* Override dark mini-calendar rules from calendar-google.css */
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day-header,
+html.mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day-header,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day-number,
+html.mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day-number {
+    color: #6b5d4a !important;
+}
+
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day.fc-today,
+html.mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day.fc-today {
+    background: #ffffff !important;
+}
+
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day.fc-today .fc-day-number,
+html.mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day.fc-today .fc-day-number {
+    background: #7c5800 !important;
+    color: #ffffff !important;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    line-height: 20px;
+    text-align: center;
+    display: inline-block;
+}
+
+/* Activities card — tạm ẩn (mockup), xử lý sau */
+.mk-cal-activities-card {
+    display: none !important;
+}
+
+.mk-cal-activitytypes-card {
+    background: #ffffff;
+    border: 1px solid #d4c4ad;
+    border-radius: 8px;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.mk-cal-activitytypes-inner .sidebar-container.lists-menu-container {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.mk-cal-activitytypes-inner .sidebar-widget {
+    border: none !important;
+    margin: 0 0 10px !important;
+    background: transparent !important;
+}
+
+.mk-cal-activitytypes-inner .sidebar-widget:last-child {
+    margin-bottom: 0 !important;
+}
+
+.mk-cal-activitytypes-inner .sidebar-widget-header {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.mk-cal-activitytypes-inner .sidebar-header h5 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #6d4d00;
+    margin: 0;
+    line-height: 24px;
+}
+
+.mk-cal-activitytypes-inner .sidebar-btn.add-calendar-feed {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid #d4c4ad;
+    background: #fff;
+    color: #6d4d00;
+}
+
+.mk-cal-activitytypes-inner .sidebar-btn.add-calendar-feed:hover {
+    border-color: #7c5800;
+    color: #7c5800;
+}
+
+.mk-cal-activitytypes-inner .list-menu-content {
+    margin-top: 8px;
+}
+
+.mk-cal-activitytypes-inner .sidebar-widget-body.activitytypes {
+    background: #ffffff;
+    border: 1px solid #ebe6dc;
+    border-radius: 8px;
+    padding: 6px 6px;
+}
+
+/* Activity Types: giữ nguyên mẫu Vtiger (nền màu inline trên từng feed), không ép thành thẻ trắng */
+.mk-cal-activitytypes-inner .feedslist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.mk-cal-activitytypes-inner .calendar-feed-indicator {
+    margin: 4px 0;
+    border-radius: 4px;
+}
+
+.mk-cal-activitytypes-inner .activitytype-actions i {
+    color: inherit;
+}
+
+/* Sidebar sáng: không dùng chữ xám #e8eaed của theme tối */
+.mk-cal-activitytypes-inner .sidebar-widget-body.activitytypes,
+.mk-cal-activitytypes-inner .sidebar-widget-body .activitytypes,
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-activitytypes-inner .sidebar-widget-body .activitytypes {
+    color: #2c2416 !important;
+}
+
+.mk-cal-activities-title {
+    margin: 0 0 12px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #6d4d00;
+}
+
+.mk-cal-activities-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mk-cal-activity {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+}
+
+.mk-cal-activity__bar {
+    flex: 0 0 4px;
+    width: 4px;
+    align-self: stretch;
+    border-radius: 2px;
+    min-height: 32px;
+}
+
+.mk-cal-activity__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.mk-cal-activity__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2c2416;
+    line-height: 1.35;
+}
+
+.mk-cal-activity__time {
+    font-size: 12px;
+    color: #6b5d4a;
+}
+
+.mk-cal-activity--green {
+    background: #e2f2e2;
+    border-color: #2e7d32;
+}
+.mk-cal-activity--green .mk-cal-activity__bar {
+    background: #2e7d32;
+}
+
+.mk-cal-activity--orange {
+    background: rgba(253, 187, 44, 0.22);
+    border-color: #fdbb2c;
+}
+.mk-cal-activity--orange .mk-cal-activity__bar {
+    background: #fdbb2c;
+}
+
+.mk-cal-activity--blue {
+    background: #bbdeff;
+    border-color: #40627e;
+}
+.mk-cal-activity--blue .mk-cal-activity__bar {
+    background: #40627e;
+}
+
+/* Toolbar */
+.mk-cal-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 24px;
+}
+
+.mk-cal-toolbar__title-wrap {
+    flex: 0 0 auto;
+    min-width: 220px;
+}
+
+.mk-cal-toolbar__title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: #2c2416;
+    line-height: 1.2;
+}
+
+.mk-cal-toolbar__views {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1 1 auto;
+}
+
+.mk-cal-toolbar__nav {
+    flex: 0 0 auto;
+}
+
+.mk-cal-view-tab {
+    position: relative;
+    border: none;
+    background: transparent;
+    color: #6b5d4a;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 14px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.mk-cal-view-tab:hover {
+    color: #2c2416;
+    background: rgba(124, 88, 0, 0.06);
+}
+
+.mk-cal-view-tab.is-active {
+    color: #7c5800;
+    font-weight: 600;
+}
+
+.mk-cal-view-tab.is-active::after {
+    content: "";
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 2px;
+    height: 2px;
+    background: #7c5800;
+    border-radius: 1px;
+}
+
+.mk-cal-toolbar__nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.mk-cal-nav-btn--today {
+    padding: 8px 16px;
+    border: 1px solid #d4c4ad;
+    border-radius: 6px;
+    background: #fff;
+    color: #7c5800;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mk-cal-nav-btn--today:hover {
+    background: rgba(124, 88, 0, 0.08);
+}
+
+.mk-cal-nav-arrows {
+    display: flex;
+    gap: 4px;
+}
+
+.mk-cal-nav-arrow,
+.mk-cal-nav-icon {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #d4c4ad;
+    border-radius: 6px;
+    background: #fff;
+    color: #504533;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.mk-cal-nav-arrow:hover,
+.mk-cal-nav-icon:hover {
+    border-color: #7c5800;
+    color: #7c5800;
+}
+
+/* FullCalendar host */
+.mk-cal-fc-host.calendarview {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #f7f9fb !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-toolbar {
+    display: none !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-view-container {
+    background: #ffffff !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-widget-header {
+    background: #ffffff !important;
+    border-color: #e8e0d4 !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-day-header {
+    padding: 10px 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #504533;
+    text-transform: none;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-widget-content {
+    border-color: #ebe6dc !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-row,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-content-skeleton,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid-container,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-day-grid-container {
+    background: #ffffff !important;
+}
+
+/* Chỉ nền lưới ngày — KHÔNG ép .fc-bg bên trong .fc-event (tránh task hồng thành trắng) */
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-row > .fc-bg,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-bg-table .fc-bg {
+    background: #ffffff !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-event .fc-bg {
+    background: transparent !important;
+    opacity: 0 !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-scroller,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-slats,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-divider {
+    background: #ffffff !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-axis,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-day-header,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid-event .fc-time,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid-event .fc-title {
+    color: #504533 !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid .fc-slats td {
+    border-color: #f0ebe3 !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid .fc-slats .fc-minor td {
+    border-top-style: dotted;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-axis {
+    color: #6b5d4a;
+    font-size: 11px;
+}
+
+/* Hôm nay: cột hồng nhạt để nhận biết ngày hiện tại (task vẫn giữ màu feed) */
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-today,
+html.mk-cal-ui-ready .mk-cal-fc-host td.fc-today,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-unthemed td.fc-today,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-agenda-view .fc-today,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid .fc-today,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-day-grid .fc-today,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-bg td.fc-today {
+    background: rgba(236, 72, 153, 0.14) !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-day-header.fc-today {
+    background: rgba(236, 72, 153, 0.18) !important;
+    color: #9d174d !important;
+    font-weight: 700;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-event {
+    border-radius: 4px;
+    border-width: 1px;
+    font-size: 12px;
+    padding: 1px 4px;
+}
+
+/* Giữ màu inline từ feed / performPreEventRenderActions */
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-event .fc-title,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-event .fc-time {
+    color: inherit;
+}
+
+/* If a feed color isn't applied, default to the configured pink */
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-event:not([style*="background-color"]) {
+    background-color: #ec4899 !important;
+    border-color: #ec4899 !important;
+    color: #ffffff !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-event:not([style*="background-color"]) .fc-title,
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-event:not([style*="background-color"]) .fc-time {
+    color: #ffffff !important;
+}
+
+html.mk-cal-ui-ready .mk-cal-fc-host .fc-now-indicator {
+    border-color: #7c5800;
+}
+
+@media (max-width: 1100px) {
+    .mk-cal-layout {
+        flex-direction: column;
+    }
+    .mk-cal-layout__aside {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Year view — split shell (data-view=Year misses DashBoard Calendar rules) + full scroll */
+html.mk-cal-ui-ready body:has(.calendar-yearview),
+html.mk-cal-ui-ready body[data-module="Calendar"][data-view="Year"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+html.mk-cal-ui-ready body:has(.calendar-yearview) #mk-dash-split-root.mk-dash-split-root,
+html.mk-cal-ui-ready body[data-module="Calendar"][data-view="Year"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+html.mk-cal-ui-ready body:has(.calendar-yearview) .mk-app-shell,
+html.mk-cal-ui-ready body[data-module="Calendar"][data-view="Year"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w, 256px) !important;
+    width: calc(100% - var(--mk-dash-sidebar-w, 256px)) !important;
+    max-width: calc(100% - var(--mk-dash-sidebar-w, 256px)) !important;
+    min-height: 100vh !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding-top: var(--mk-dash-topbar-h, 64px) !important;
+}
+
+html:not([data-theme="dark"]).mk-cal-ui-ready body:has(.calendar-yearview) .mk-app-shell,
+html:not([data-theme="dark"]).mk-cal-ui-ready body[data-module="Calendar"][data-view="Year"] .mk-app-shell {
+    background: #f7f9fb !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready body:has(.calendar-yearview) .mk-app-shell,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"][data-view="Year"] .mk-app-shell {
+    background: var(--mk-bg-primary, #0f172a) !important;
+}
+
+html.mk-cal-ui-ready body:has(.calendar-yearview) .mk-dashboard-sidebar,
+html.mk-cal-ui-ready body[data-module="Calendar"][data-view="Year"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+/* Year view topbar — match Calendar main + remove calendar-google dark border leak */
+html.mk-cal-ui-ready body:has(.calendar-yearview) header.mk-topbar nav.mk-dash-app-topbar.app-fixed-navbar,
+html.mk-cal-ui-ready body[data-module="Calendar"][data-view="Year"] header.mk-topbar nav.mk-dash-app-topbar.app-fixed-navbar {
+    display: block !important;
+}
+
+html.mk-cal-ui-ready body:has(.calendar-yearview) header.mk-topbar .mk-dash-app-topbar.app-fixed-navbar,
+html.mk-cal-ui-ready body[data-module="Calendar"][data-view="Year"] header.mk-topbar .mk-dash-app-topbar.app-fixed-navbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: var(--mk-dash-sidebar-w, 256px) !important;
+    right: 0 !important;
+    width: auto !important;
+    height: var(--mk-dash-topbar-h, 64px) !important;
+    min-height: var(--mk-dash-topbar-h, 64px) !important;
+    margin: 0 !important;
+    z-index: 1030 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+html:not([data-theme="dark"]).mk-cal-ui-ready body:has(.calendar-yearview) header.mk-topbar .mk-dash-app-topbar.app-fixed-navbar,
+html:not([data-theme="dark"]).mk-cal-ui-ready body[data-module="Calendar"][data-view="Year"] header.mk-topbar .mk-dash-app-topbar.app-fixed-navbar {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html:not([data-theme="dark"]).mk-cal-ui-ready body:has(.calendar-yearview),
+html:not([data-theme="dark"]).mk-cal-ui-ready body[data-module="Calendar"][data-view="Year"],
+html:not([data-theme="dark"]).mk-cal-ui-ready body:has(.calendar-yearview) #page,
+html:not([data-theme="dark"]).mk-cal-ui-ready body:has(.calendar-yearview) .mk-dash-main,
+html:not([data-theme="dark"]).mk-cal-ui-ready body:has(.calendar-yearview) .mk-app-shell {
+    background: #f7f9fb !important;
+}
+
+html:not([data-theme="dark"]).mk-cal-ui-ready body:has(.calendar-yearview) .CalendarViewPageDiv,
+html:not([data-theme="dark"]).mk-cal-ui-ready body:has(.calendar-yearview) #mycalendar.calendar-yearview {
+    background: transparent !important;
+    color: #504533 !important;
+}
+
+html.mk-cal-ui-ready:has(.calendar-yearview),
+html.mk-cal-ui-ready body:has(.calendar-yearview),
+html.mk-cal-ui-ready body:has(.calendar-yearview) #page {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+html.mk-cal-ui-ready body:has(.calendar-yearview) .mk-dash-main,
+html.mk-cal-ui-ready body:has(.calendar-yearview) .mk-cal-main {
+    flex: 0 0 auto !important;
+    min-height: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    padding: 20px 24px 32px !important;
+    box-sizing: border-box !important;
+}
+
+html.mk-cal-ui-ready body:has(.calendar-yearview) #CalendarViewContent,
+html.mk-cal-ui-ready body:has(.calendar-yearview) .content-area,
+html.mk-cal-ui-ready body:has(.calendar-yearview) .CalendarViewPageDiv,
+html.mk-cal-ui-ready body:has(.calendar-yearview) .CalendarViewPageDiv.content-area,
+html.mk-cal-ui-ready body:has(.calendar-yearview) .main-container.main-container-Calendar.mk-cal-page {
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+    flex: 0 0 auto !important;
+}
+
+html.mk-cal-ui-ready body:has(.calendar-yearview) .main-container.main-container-Calendar.mk-cal-page {
+    overflow: visible !important;
+    min-height: auto !important;
+}
+
+html.mk-cal-ui-ready body:has(.calendar-yearview) #mycalendar,
+html.mk-cal-ui-ready body:has(.calendar-yearview) #mycalendar.calendar-yearview,
+html.mk-cal-ui-ready body:has(.calendar-yearview) .calendarview.calendar-yearview {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+    flex: none !important;
+    padding-left: 0 !important;
+    background: transparent !important;
+}
+
+html.mk-cal-ui-ready body:has(.calendar-yearview) .calendar-yearview-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    padding-bottom: 48px !important;
+}
+
+@media (max-width: 992px) {
+    html.mk-cal-ui-ready body:has(.calendar-yearview) .mk-dash-main,
+    html.mk-cal-ui-ready body:has(.calendar-yearview) .mk-cal-main {
+        padding: 16px 16px 24px !important;
+    }
+
+    html.mk-cal-ui-ready body:has(.calendar-yearview) .calendar-yearview-wrapper {
+        padding: 16px 14px 32px 14px !important;
+    }
+}

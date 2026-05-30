@@ -1,15 +1,29 @@
-{*<!--
-/*********************************************************************************
-** The contents of this file are subject to the vtiger CRM Public License Version 1.0
-* ("License"); You may not use this file except in compliance with the License
-* The Original Code is:  vtiger CRM Open Source
-* The Initial Developer of the Original Code is vtiger.
-* Portions created by vtiger are Copyright (C) vtiger.
-* All Rights Reserved.
-*
-********************************************************************************/
--->*}
+{* Project Detail header title — MANAGEMENT hero | legacy elsewhere *}
 {strip}
+{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'MANAGEMENT') || (isset($smarty.get.app) && $smarty.get.app eq 'MANAGEMENT')}
+	<div class="col-lg-6 col-md-6 col-sm-6 mk-project-detail-hero__left">
+		<div class="record-header clearfix mk-project-detail-hero__identity">
+			<div class="recordImage bgproject app-{$SELECTED_MENU_CATEGORY} mk-project-detail-hero__avatar">
+				<span class="mk-project-detail-hero__icon-glyph" aria-hidden="true">{include file="partials/ProjectDetailSvgIcon.tpl"|vtemplate_path:$MODULE ICON='PROJECT'}</span>
+			</div>
+			<div class="recordBasicInfo mk-project-detail-hero__text">
+				<div class="info-row">
+					<h1 class="mk-project-detail-hero__title">
+						<div class="recordLabel pushDown" title="{$RECORD->getName()}">
+							{foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
+								{assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
+								{if $FIELD_MODEL->getPermissions()}
+									<span class="{$NAME_FIELD}">{$RECORD->get($NAME_FIELD)}</span>&nbsp;
+								{/if}
+							{/foreach}
+						</div>
+					</h1>
+				</div>
+				{include file="DetailViewHeaderFieldsView.tpl"|vtemplate_path:$MODULE}
+			</div>
+		</div>
+	</div>
+{else}
     <div class="col-lg-6 col-md-6 col-sm-6">
         <div class="record-header clearfix">
             <div class="recordImage bgproject app-{$SELECTED_MENU_CATEGORY}">
@@ -29,28 +43,8 @@
                     </h4>
                 </div>
                 {include file="DetailViewHeaderFieldsView.tpl"|vtemplate_path:$MODULE}
-                
-                {*
-                {assign var=RELATED_TO value=$RECORD->get('linktoaccountscontacts')}
-                {assign var=CONTACT value=$RECORD->get('contactid')}
-                <div class="info-row row ">
-                {if !empty($RELATED_TO)}
-                         <div class="col-lg-7 fieldLabel">
-                        <span class="muted">
-                            {$RECORD->getDisplayValue('linktoaccountscontacts')}
-                        </span>
-                         </div>
-                    {elseif !empty($CONTACT)}
-                        <div class="info-row row ">
-                             <div class="col-lg-7 fieldLabel">
-                            <span class="muted">
-                                {$RECORD->getDisplayValue('contactid')}</span>
-                             </div>
-                        </div>       
-                    {/if}
-                </div>
-                *}
             </div>
         </div>
     </div>
+{/if}
 {/strip}

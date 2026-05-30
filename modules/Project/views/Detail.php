@@ -154,6 +154,7 @@ class Project_Detail_View extends Vtiger_Detail_View {
 			'Backlog' => array(),
 			'In Progress' => array(),
 			'Completed' => array(),
+			'Redundancy' => array(),
 		);
 		foreach ($tasks as $task) {
 			$status = $task['projecttaskstatus'];
@@ -161,8 +162,10 @@ class Project_Detail_View extends Vtiger_Detail_View {
 				$columns['In Progress'][] = $task;
 			} elseif ($status === 'Completed') {
 				$columns['Completed'][] = $task;
-			} else {
+			} elseif ($status === 'Open' || $status === 'Backlog' || empty($status)) {
 				$columns['Backlog'][] = $task;
+			} else {
+				$columns['Redundancy'][] = $task;
 			}
 		}
 
@@ -172,10 +175,17 @@ class Project_Detail_View extends Vtiger_Detail_View {
 			'Backlog' => 'Open',
 			'In Progress' => 'In Progress',
 			'Completed' => 'Completed',
+			'Redundancy' => 'Open',
 		);
 
 		$currentUserModel = Users_Record_Model::getCurrentUserModel();
 		$taskStatus = Vtiger_Util_Helper::getRoleBasedPicklistValues('projecttaskstatus', $currentUserModel->get('roleid'));
+		foreach (array('Deferred', 'Cancelled', 'On Hold', 'Waiting') as $redundancyCandidate) {
+			if (in_array($redundancyCandidate, $taskStatus, true)) {
+				$statusMap['Redundancy'] = $redundancyCandidate;
+				break;
+			}
+		}
 		$users = Users_Record_Model::getAll(true);
 		$userOptions = array();
 		foreach ($users as $userId => $userModel) {

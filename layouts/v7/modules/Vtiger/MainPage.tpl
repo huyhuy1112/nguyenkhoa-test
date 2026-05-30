@@ -1,41 +1,45 @@
 {strip}
-<div class="container-fluid mainpage-wrap">
-	<div class="mainpage-banner">
-		<div class="mainpage-banner-inner">
-			<span class="mainpage-banner-logo">TDB</span>
-			<div class="mainpage-banner-text">
-				<div class="mainpage-banner-title">TDB SOLUTION</div>
-				<div class="mainpage-banner-subtitle">Management Dashboard</div>
+<div class="mk-mainpage-figma-root">
+<div class="mk-mainpage-figma-inner mainpage-wrap">
+	<div class="mk-mainpage-hero">
+		<div class="mk-mainpage-hero-brand">
+			<span class="mk-mainpage-hero-kicker">TDB SOLUTION</span>
+			<h1 class="mk-mainpage-hero-title">Management Dashboard</h1>
+		</div>
+		{if $MAINPAGE_CAN_SEE_TEAM_STATUS}
+		<form method="get" class="mainpage-global-filter mk-mainpage-hero-filters" id="mainpage-global-filter-form">
+			<input type="hidden" name="module" value="Home" />
+			<input type="hidden" name="view" value="MainPage" />
+			<input type="hidden" name="app" value="MANAGEMENT" />
+			<div class="mainpage-global-filter-inner mk-mainpage-filter-row">
+				<div class="mk-mainpage-filter-field">
+					<label class="mainpage-global-filter-label" for="mainpage-filter-user">Người phụ trách</label>
+					<select id="mainpage-filter-user" name="team_filter_user" class="form-control input-sm mainpage-global-filter-select">
+						<option value="">— Tất cả —</option>
+						{foreach from=$MAINPAGE_TEAM_FILTER_OPTIONS.users item=u}
+							<option value="{$u.id}"{if $MAINPAGE_TEAM_FILTER_USER == $u.id} selected="selected"{/if}>{$u.name|escape:'html'}</option>
+						{/foreach}
+					</select>
+				</div>
+				<div class="mk-mainpage-filter-field">
+					<label class="mainpage-global-filter-label" for="mainpage-filter-dept">Phòng ban</label>
+					<select id="mainpage-filter-dept" name="team_filter_department" class="form-control input-sm mainpage-global-filter-select">
+						<option value="">— Tất cả —</option>
+						{foreach from=$MAINPAGE_TEAM_FILTER_OPTIONS.departments item=d}
+							<option value="{$d|escape:'html'}"{if $MAINPAGE_TEAM_FILTER_DEPARTMENT == $d} selected="selected"{/if}>{$d|escape:'html'}</option>
+						{/foreach}
+					</select>
+				</div>
+				<div class="mk-mainpage-filter-field mk-mainpage-filter-field--date">
+					<label class="mainpage-global-filter-label" for="mainpage-filter-date">Thời gian</label>
+					<input id="mainpage-filter-date" type="date" name="team_filter_date" class="form-control input-sm mainpage-global-filter-date" value="{$MAINPAGE_TEAM_FILTER_DATE|escape:'html'}" />
+				</div>
+				<button type="submit" class="btn btn-sm mainpage-global-filter-btn"><i class="fa fa-filter"></i><span>Filters</span></button>
 			</div>
-		</div>
+		</form>
+		{/if}
 	</div>
-	{if $MAINPAGE_CAN_SEE_TEAM_STATUS}
-	<form method="get" class="mainpage-global-filter" id="mainpage-global-filter-form">
-		<input type="hidden" name="module" value="Home" />
-		<input type="hidden" name="view" value="MainPage" />
-		<div class="mainpage-global-filter-inner">
-			<span class="mainpage-global-filter-title"><i class="fa fa-filter"></i> Bộ lọc trang:</span>
-			<label class="mainpage-global-filter-label">Người phụ trách</label>
-			<select name="team_filter_user" class="form-control input-sm mainpage-global-filter-select">
-				<option value="">— Tất cả —</option>
-				{foreach from=$MAINPAGE_TEAM_FILTER_OPTIONS.users item=u}
-					<option value="{$u.id}"{if $MAINPAGE_TEAM_FILTER_USER == $u.id} selected="selected"{/if}>{$u.name|escape:'html'}</option>
-				{/foreach}
-			</select>
-			<label class="mainpage-global-filter-label">Phòng ban</label>
-			<select name="team_filter_department" class="form-control input-sm mainpage-global-filter-select">
-				<option value="">— Tất cả —</option>
-				{foreach from=$MAINPAGE_TEAM_FILTER_OPTIONS.departments item=d}
-					<option value="{$d|escape:'html'}"{if $MAINPAGE_TEAM_FILTER_DEPARTMENT == $d} selected="selected"{/if}>{$d|escape:'html'}</option>
-				{/foreach}
-			</select>
-			<label class="mainpage-global-filter-label">Thời gian</label>
-			<input type="date" name="team_filter_date" class="form-control input-sm mainpage-global-filter-date" value="{$MAINPAGE_TEAM_FILTER_DATE|escape:'html'}" />
-			<button type="submit" class="btn btn-primary btn-sm mainpage-global-filter-btn"><i class="fa fa-filter"></i> Lọc</button>
-		</div>
-	</form>
-	{/if}
-	<div class="mainpage-grid">
+	<div class="mk-mainpage-grid">
 		<div class="mainpage-card announcements area-ann">
 			<div class="card-header subtle">
 				<div class="title"><i class="fa fa-bullhorn"></i> Announcements</div>
@@ -58,8 +62,258 @@
 				{/if}
 			</div>
 		</div>
+		<div class="mainpage-card projects area-projects">
+			<div class="card-header subtle">
+				<div class="title"><i class="fa fa-folder-open-o"></i> My projects</div>
+				<div class="actions">
+					<a href="{$MAINPAGE_LINKS.project_list}" class="btn btn-default btn-xs">Xem tất cả</a>
+				</div>
+			</div>
+			<div class="table-responsive">
+				<table class="table mainpage-table table-hover">
+					<thead>
+						<tr>
+							<th style="width: 46%;">Title</th>
+							<th>Start</th>
+							<th>End</th>
+							<th style="width: 60px;">Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						{if $MAINPAGE_PROJECTS|@count gt 0}
+							{foreach from=$MAINPAGE_PROJECTS item=p}
+								<tr>
+									<td><a href="{$p.url}" class="text-primary">{$p.title|escape:'html'}</a></td>
+									<td>{$p.startdate|escape:'html'}</td>
+									<td>{$p.enddate|escape:'html'}</td>
+									<td><span class="status-pill gray">{$p.status|escape:'html'|default:'-'}</span></td>
+								</tr>
+							{/foreach}
+						{else}
+							<tr><td colspan="4" class="text-muted text-center">Chưa có dữ liệu. <a href="{$MAINPAGE_LINKS.project_list}">Tạo project</a></td></tr>
+						{/if}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="mainpage-card tasks area-tasks">
+			<div class="card-header subtle">
+				<div class="title"><i class="fa fa-list-ul"></i> My tasks</div>
+				<div class="actions">
+					<a href="{$MAINPAGE_LINKS.projecttask_list}" class="btn btn-default btn-xs">Xem tất cả</a>
+				</div>
+			</div>
+			<div class="table-responsive">
+				<table class="table mainpage-table">
+					<thead>
+						<tr>
+							<th>Title</th>
+							<th>Due date</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						{if $MAINPAGE_TASKS|@count gt 0}
+							{foreach from=$MAINPAGE_TASKS item=t}
+								<tr>
+									<td><a href="{$t.url}" class="text-primary">{$t.title|escape:'html'}</a></td>
+									<td>{$t.duedate|escape:'html'}</td>
+									<td><span class="status-pill gray">{$t.status|escape:'html'|default:'-'}</span></td>
+								</tr>
+							{/foreach}
+						{else}
+							<tr><td colspan="3" class="text-muted text-center">Chưa có dữ liệu. <a href="{$MAINPAGE_LINKS.projecttask_list}">Tạo task</a></td></tr>
+						{/if}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="mainpage-card shortcuts area-shortcuts">
+			<div class="card-header subtle">
+				<div class="title"><i class="fa fa-star-o"></i> My shortcuts</div>
+			</div>
+			<div class="card-body shortcuts-grid">
+				<a href="{$MAINPAGE_LINKS.projecttask_list}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="14" height="14" rx="3" stroke="#40627E" stroke-width="1.5"/><path d="M6 9.2L8.1 11.3L12.5 6.8" stroke="#40627E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>My tasks</span>{if $MAINPAGE_TASK_COUNT gt 0}<span class="badge blue">{$MAINPAGE_TASK_COUNT}</span>{/if}</a>
+				<a href="{$MAINPAGE_LINKS.calendar}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="3.5" width="13" height="12" rx="2" stroke="#40627E" stroke-width="1.5"/><path d="M2.5 7.5H15.5" stroke="#40627E" stroke-width="1.5"/><path d="M6 2.5V5M12 2.5V5" stroke="#40627E" stroke-width="1.5" stroke-linecap="round"/></svg></span><span>My events &amp; milestones</span></a>
+				<a href="{$MAINPAGE_LINKS.projecttask_list}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#40627E" stroke-width="1.5"/><path d="M9 5.5V9L11.2 10.4" stroke="#40627E" stroke-width="1.5" stroke-linecap="round"/></svg></span><span>Thời gian phiên</span></a>
+				<a href="{$MAINPAGE_LINKS.calendar}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 5H14.5M3.5 9H14.5M3.5 13H10.5" stroke="#40627E" stroke-width="1.5" stroke-linecap="round"/></svg></span><span>My activities</span></a>
+				<a href="{$MAINPAGE_LINKS.home}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5.5 3.5H12.5L14.5 5.5V12.5L10.5 14.5H7.5L3.5 10.5V5.5Z" stroke="#40627E" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span>Stickies</span></a>
+				<a href="{$MAINPAGE_LINKS.home}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4.5 3.5H13.5V14.5L9 11.5L4.5 14.5Z" stroke="#40627E" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span>Bookmarks</span></a>
+			</div>
+		</div>
+		<div class="mainpage-card agenda area-agenda">
+			<div class="card-header subtle">
+				<div class="title"><i class="fa fa-calendar-check-o"></i> Agenda</div>
+				<div class="tab-group agenda-tabs">
+					<span class="tab active" data-agenda-panel="today">Today</span>
+					<span class="tab" data-agenda-panel="upcoming">Upcoming</span>
+					<a href="{$MAINPAGE_LINKS.calendar}" class="tab" target="_blank" rel="noopener noreferrer" title="Quá hạn - Công việc/lịch đã qua ngày hẹn">Overdue <span class="small text-muted">(Quá hạn)</span></a>
+				</div>
+			</div>
+			<div class="card-body">
+				<div id="agenda-panel-today" class="agenda-panel">
+					{if $MAINPAGE_AGENDA|@count gt 0}
+						<ul class="agenda-list list-unstyled">
+							{foreach from=$MAINPAGE_AGENDA item=a}
+								<li class="agenda-item agenda-item-row" {if $a.color}style="border-left: 3px solid {$a.color};"{/if}>
+									<a href="{$a.url}" class="text-primary agenda-item-title">{$a.title|escape:'html'}</a>
+									<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>
+									{if $a.timeDisplay}<span class="agenda-time text-muted">{$a.timeDisplay|escape:'html'}</span>{/if}
+									{if $a.type}<span class="label label-default">{$a.type}</span>{/if}
+								</li>
+							{/foreach}
+						</ul>
+					{else}
+						<div class="agenda-empty text-muted small">Chưa có lịch hôm nay. <a href="{$MAINPAGE_LINKS.calendar}">Mở lịch (Schedule)</a></div>
+					{/if}
+					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs">Mở lịch (Schedule)</a>
+				</div>
+				<div id="agenda-panel-upcoming" class="agenda-panel hide">
+					{if $MAINPAGE_AGENDA_UPCOMING|@count gt 0}
+						<ul class="agenda-list list-unstyled">
+							{foreach from=$MAINPAGE_AGENDA_UPCOMING item=a}
+								<li class="agenda-item agenda-item-row" {if $a.color}style="border-left: 3px solid {$a.color};"{/if}>
+									<a href="{$a.url}" class="text-primary agenda-item-title">{$a.title|escape:'html'}</a>
+									<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>
+									{if $a.timeDisplay}<span class="agenda-time text-muted">{$a.timeDisplay|escape:'html'}</span>{/if}
+									{if $a.type}<span class="label label-default">{$a.type}</span>{/if}
+								</li>
+							{/foreach}
+						</ul>
+					{else}
+						<div class="agenda-empty text-muted small">Chưa có lịch sắp tới (ngày mai, ngày kia...). <a href="{$MAINPAGE_LINKS.calendar}">Mở lịch (Schedule)</a></div>
+					{/if}
+					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs" target="_blank" rel="noopener noreferrer">Mở lịch (Schedule)</a>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+		(function(){
+			var tabs = document.querySelectorAll('.agenda-tabs [data-agenda-panel]');
+			var panels = document.querySelectorAll('.agenda-panel');
+			if (!tabs.length || !panels.length) return;
+			function showPanel(id) {
+				panels.forEach(function(p) {
+					p.classList.add('hide');
+					if (p.id === 'agenda-panel-' + id) p.classList.remove('hide');
+				});
+				tabs.forEach(function(t) {
+					t.classList.toggle('active', t.getAttribute('data-agenda-panel') === id);
+				});
+			}
+			tabs.forEach(function(t) {
+				t.addEventListener('click', function() { showPanel(this.getAttribute('data-agenda-panel')); });
+			});
+		})();
+		</script>
+		<div class="mainpage-card time area-time">
+			<div class="card-header subtle">
+				<div class="title-block">
+					<div class="title"><i class="fa fa-users"></i> Team Status</div>
+					<div class="subtitle text-muted small">Nhân sự đi làm, vắng mặt, làm ở nhà, đi công tác,…</div>
+				</div>
+			</div>
+			<div class="card-body time-grid">
+				{if $MAINPAGE_CAN_SEE_TEAM_STATUS}
+					{* CEO/Admin: block Người nghỉ phép (nếu có) + toàn bộ trạng thái *}
+					{if $MAINPAGE_TEAM_STATUS_LEAVE_ONLY|@count gt 0}
+						<div class="team-status-leave-block">
+							<div class="team-status-leave-block-title"><i class="fa fa-calendar-minus-o"></i> Người nghỉ phép ({$MAINPAGE_TEAM_FILTER_DATE_DISPLAY|escape:'html'})</div>
+							<ul class="team-status-list team-status-list-leave list-unstyled">
+								{foreach from=$MAINPAGE_TEAM_STATUS_LEAVE_ONLY item=member}
+									<li class="team-status-item team-status-leave">
+										<span class="team-status-avatar">{$member.initial|escape:'html'}</span>
+										<span class="team-status-name">{$member.name|escape:'html'}</span>
+										<span class="team-status-badge status-leave">{$member.status_label|escape:'html'}</span>
+										{if $member.leave_note}<span class="team-status-leave-note text-muted">— {$member.leave_note|escape:'html'}</span>{/if}
+									</li>
+								{/foreach}
+							</ul>
+						</div>
+					{/if}
+					<div class="team-status-legend text-muted small">
+						<span class="team-status-legend-item"><i class="fa fa-circle status-online"></i> Online</span>
+						<span class="team-status-legend-item"><i class="fa fa-circle status-offline"></i> Offline</span>
+						<span class="team-status-legend-item"><i class="fa fa-calendar-minus-o status-leave"></i> Ngày nghỉ phép</span>
+					</div>
+					<div class="team-status-list-wrap">
+						{if $MAINPAGE_TEAM_STATUS|@count gt 0}
+							<ul class="team-status-list list-unstyled">
+								{foreach from=$MAINPAGE_TEAM_STATUS item=member}
+									<li class="team-status-item team-status-{$member.status}">
+										<span class="team-status-avatar">{$member.initial|escape:'html'}</span>
+										<span class="team-status-name">{$member.name|escape:'html'}</span>
+										<span class="team-status-badge status-{$member.status}">{$member.status_label|escape:'html'}</span>
+										{if $member.leave_note}<span class="team-status-leave-note text-muted">({$member.leave_note|escape:'html'})</span>{/if}
+									</li>
+								{/foreach}
+							</ul>
+						{else}
+							<div class="text-muted small">Chưa có dữ liệu thành viên.</div>
+						{/if}
+					</div>
+				{else}
+					{* User thường: xem thời gian phiên + lịch sử đăng nhập của mình *}
+					{if $MAINPAGE_LOGIN_TIMESTAMP gt 0}
+						<div class="logged-time-wrap">
+							<div class="logged-time-value" id="mainpage-logged-time-display">{$MAINPAGE_LOGGED_TIME_DISPLAY|escape:'html'}</div>
+							<div class="logged-time-label">Đã đăng nhập từ lúc bắt đầu phiên</div>
+							<input type="hidden" id="mainpage-login-timestamp" value="{$MAINPAGE_LOGIN_TIMESTAMP}" />
+						</div>
+					{else}
+						<div class="time-empty text-muted small">Đăng nhập lại để bắt đầu tính thời gian phiên làm việc.</div>
+					{/if}
+					<div class="login-history-section">
+						<div class="login-history-title">Lịch sử đăng nhập</div>
+						{if $MAINPAGE_LOGIN_HISTORY|@count gt 0}
+							<ul class="login-history-list list-unstyled">
+								{foreach from=$MAINPAGE_LOGIN_HISTORY item=hist}
+									<li class="login-history-item">
+										<span class="hist-time">{$hist.login_display|escape:'html'} → {$hist.logout_display|escape:'html'}</span>
+										{if $hist.duration_display != '-'}<span class="hist-duration">{$hist.duration_display|escape:'html'}</span>{/if}
+										<span class="hist-status status-{if $hist.status == 'Signed off'}off{else}on{/if}">{$hist.status|escape:'html'}</span>
+									</li>
+								{/foreach}
+							</ul>
+						{else}
+							<div class="text-muted small">Chưa có lịch sử.</div>
+						{/if}
+					</div>
+				{/if}
+			</div>
+		</div>
+		<div class="mainpage-card kpi area-kpi">
+			<div class="card-header subtle">
+				<div class="title"><i class="fa fa-bar-chart"></i> KPI</div>
+				<div class="actions kpi-actions">
+					<select class="form-control input-sm kpi-chart-select" id="mainpage-kpi-type" style="max-width:140px;">
+						<option value="bar-ngang">Bar ngang</option>
+						<option value="bar-doc">Bar dọc</option>
+						<option value="tron">Biểu đồ tròn</option>
+						<option value="donut">Donut</option>
+						<option value="duong">Đường</option>
+						<option value="stacked">Bar xếp chồng</option>
+					</select>
+					<select class="form-control input-sm kpi-chart-select" id="mainpage-kpi-select" style="max-width:180px;">
+						<option value="kinhdoanh">Phòng Kinh doanh</option>
+						<option value="kythuat">Phòng Kỹ thuật</option>
+						<option value="nhansu">Phòng Nhân sự</option>
+						<option value="ketoan">Phòng Kế toán</option>
+						<option value="marketing">Phòng Marketing</option>
+					</select>
+				</div>
+			</div>
+			<div class="card-body kpi-body">
+				<div id="kpi-chart-kinhdoanh" class="kpi-chart-panel" data-vals="85,72,91" data-colors="#059669,#10b981,#34d399" data-labels="Doanh thu T1,Chỉ tiêu bán hàng,Khách hàng mới"></div>
+				<div id="kpi-chart-kythuat" class="kpi-chart-panel hide" data-vals="78,95,88" data-colors="#3b82f6,#60a5fa,#93c5fd" data-labels="Hoàn thành sprint,Code review,Bug fix rate"></div>
+				<div id="kpi-chart-nhansu" class="kpi-chart-panel hide" data-vals="68,82,94" data-colors="#8b5cf6,#a78bfa,#c4b5fd" data-labels="Tuyển dụng,Đào tạo nội bộ,Tỷ lệ giữ chân"></div>
+				<div id="kpi-chart-ketoan" class="kpi-chart-panel hide" data-vals="92,100,76" data-colors="#ec4899,#f472b6,#f9a8d4" data-labels="Thu chi cân đối,Báo cáo đúng hạn,Kiểm toán nội bộ"></div>
+				<div id="kpi-chart-marketing" class="kpi-chart-panel hide" data-vals="89,65,80" data-colors="#f59e0b,#fbbf24,#fcd34d" data-labels="Lượt tiếp cận,Conversion rate,Brand awareness"></div>
+			</div>
+		</div>
+	</div>
 
-		<div class="modal fade" id="mainpage-announcement-detail-modal" tabindex="-1" role="dialog">
+	<div class="modal fade" id="mainpage-announcement-detail-modal" tabindex="-1" role="dialog">
 			<div class="modal-dialog ann-detail-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-body ann-detail-body">
@@ -180,298 +434,17 @@
 			</div>
 		</div>
 
-		<div class="mainpage-card shortcuts area-shortcuts">
-			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-star-o"></i> My shortcuts</div>
-			</div>
-			<div class="card-body shortcuts-grid">
-				<a href="{$MAINPAGE_LINKS.projecttask_list}" class="shortcut"><i class="fa fa-check-square-o text-primary"></i><span>My tasks</span>{if $MAINPAGE_TASK_COUNT gt 0}<span class="badge blue">{$MAINPAGE_TASK_COUNT}</span>{/if}</a>
-				<a href="{$MAINPAGE_LINKS.calendar}" class="shortcut"><i class="fa fa-calendar text-primary"></i><span>My events & milestones</span></a>
-				<a href="{$MAINPAGE_LINKS.projecttask_list}" class="shortcut"><i class="fa fa-clock-o text-primary"></i><span>Thời gian phiên</span></a>
-				<a href="{$MAINPAGE_LINKS.calendar}" class="shortcut"><i class="fa fa-list-alt text-primary"></i><span>My activities</span></a>
-				<a href="{$MAINPAGE_LINKS.home}" class="shortcut"><i class="fa fa-sticky-note-o text-primary"></i><span>Stickies</span></a>
-				<a href="{$MAINPAGE_LINKS.home}" class="shortcut"><i class="fa fa-bookmark-o text-primary"></i><span>Bookmarks</span></a>
-			</div>
-		</div>
-
-		<div class="mainpage-card projects area-projects">
-			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-folder-open-o"></i> My projects</div>
-				<div class="actions">
-					<a href="{$MAINPAGE_LINKS.project_list}" class="btn btn-default btn-xs">Xem tất cả</a>
-				</div>
-			</div>
-			<div class="table-responsive">
-				<table class="table mainpage-table table-hover">
-					<thead>
-						<tr>
-							<th style="width: 46%;">Title</th>
-							<th>Start</th>
-							<th>End</th>
-							<th style="width: 60px;">Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{if $MAINPAGE_PROJECTS|@count gt 0}
-							{foreach from=$MAINPAGE_PROJECTS item=p}
-								<tr>
-									<td><a href="{$p.url}" class="text-primary">{$p.title|escape:'html'}</a></td>
-									<td>{$p.startdate|escape:'html'}</td>
-									<td>{$p.enddate|escape:'html'}</td>
-									<td><span class="status-pill gray">{$p.status|escape:'html'|default:'-'}</span></td>
-								</tr>
-							{/foreach}
-						{else}
-							<tr><td colspan="4" class="text-muted text-center">Chưa có dữ liệu. <a href="{$MAINPAGE_LINKS.project_list}">Tạo project</a></td></tr>
-						{/if}
-					</tbody>
-				</table>
-			</div>
-		</div>
-
-		<div class="mainpage-card agenda area-agenda">
-			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-calendar-check-o"></i> Agenda</div>
-				<div class="tab-group agenda-tabs">
-					<span class="tab active" data-agenda-panel="today">Today</span>
-					<span class="tab" data-agenda-panel="upcoming">Upcoming</span>
-					<a href="{$MAINPAGE_LINKS.calendar}" class="tab" target="_blank" rel="noopener noreferrer" title="Quá hạn - Công việc/lịch đã qua ngày hẹn">Overdue <span class="small text-muted">(Quá hạn)</span></a>
-				</div>
-			</div>
-			<div class="card-body">
-				<div id="agenda-panel-today" class="agenda-panel">
-					{if $MAINPAGE_AGENDA|@count gt 0}
-						<ul class="agenda-list list-unstyled">
-							{foreach from=$MAINPAGE_AGENDA item=a}
-								<li class="agenda-item agenda-item-row" {if $a.color}style="border-left: 3px solid {$a.color};"{/if}>
-									<a href="{$a.url}" class="text-primary agenda-item-title">{$a.title|escape:'html'}</a>
-									<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>
-									{if $a.timeDisplay}<span class="agenda-time text-muted">{$a.timeDisplay|escape:'html'}</span>{/if}
-									{if $a.type}<span class="label label-default">{$a.type}</span>{/if}
-								</li>
-							{/foreach}
-						</ul>
-					{else}
-						<div class="agenda-empty text-muted small">Chưa có lịch hôm nay. <a href="{$MAINPAGE_LINKS.calendar}">Mở lịch (Schedule)</a></div>
-					{/if}
-					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs">Mở lịch (Schedule)</a>
-				</div>
-				<div id="agenda-panel-upcoming" class="agenda-panel hide">
-					{if $MAINPAGE_AGENDA_UPCOMING|@count gt 0}
-						<ul class="agenda-list list-unstyled">
-							{foreach from=$MAINPAGE_AGENDA_UPCOMING item=a}
-								<li class="agenda-item agenda-item-row" {if $a.color}style="border-left: 3px solid {$a.color};"{/if}>
-									<a href="{$a.url}" class="text-primary agenda-item-title">{$a.title|escape:'html'}</a>
-									<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>
-									{if $a.timeDisplay}<span class="agenda-time text-muted">{$a.timeDisplay|escape:'html'}</span>{/if}
-									{if $a.type}<span class="label label-default">{$a.type}</span>{/if}
-								</li>
-							{/foreach}
-						</ul>
-					{else}
-						<div class="agenda-empty text-muted small">Chưa có lịch sắp tới (ngày mai, ngày kia...). <a href="{$MAINPAGE_LINKS.calendar}">Mở lịch (Schedule)</a></div>
-					{/if}
-					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs" target="_blank" rel="noopener noreferrer">Mở lịch (Schedule)</a>
-				</div>
-			</div>
-		</div>
-		<script type="text/javascript">
-		(function(){
-			var tabs = document.querySelectorAll('.agenda-tabs [data-agenda-panel]');
-			var panels = document.querySelectorAll('.agenda-panel');
-			if (!tabs.length || !panels.length) return;
-			function showPanel(id) {
-				panels.forEach(function(p) {
-					p.classList.add('hide');
-					if (p.id === 'agenda-panel-' + id) p.classList.remove('hide');
-				});
-				tabs.forEach(function(t) {
-					t.classList.toggle('active', t.getAttribute('data-agenda-panel') === id);
-				});
-			}
-			tabs.forEach(function(t) {
-				t.addEventListener('click', function() { showPanel(this.getAttribute('data-agenda-panel')); });
-			});
-		})();
-		</script>
-
-		<div class="mainpage-card tasks area-tasks">
-			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-list-ul"></i> My tasks</div>
-				<div class="actions">
-					<a href="{$MAINPAGE_LINKS.projecttask_list}" class="btn btn-default btn-xs">Xem tất cả</a>
-				</div>
-			</div>
-			<div class="table-responsive">
-				<table class="table mainpage-table">
-					<thead>
-						<tr>
-							<th>Title</th>
-							<th>Due date</th>
-							<th>Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{if $MAINPAGE_TASKS|@count gt 0}
-							{foreach from=$MAINPAGE_TASKS item=t}
-								<tr>
-									<td><a href="{$t.url}" class="text-primary">{$t.title|escape:'html'}</a></td>
-									<td>{$t.duedate|escape:'html'}</td>
-									<td><span class="status-pill gray">{$t.status|escape:'html'|default:'-'}</span></td>
-								</tr>
-							{/foreach}
-						{else}
-							<tr><td colspan="3" class="text-muted text-center">Chưa có dữ liệu. <a href="{$MAINPAGE_LINKS.projecttask_list}">Tạo task</a></td></tr>
-						{/if}
-					</tbody>
-				</table>
-			</div>
-		</div>
-
-		<div class="mainpage-card time area-time">
-			<div class="card-header subtle">
-				<div class="title-block">
-					<div class="title"><i class="fa fa-users"></i> Team Status</div>
-					<div class="subtitle text-muted small">Nhân sự đi làm, vắng mặt, làm ở nhà, đi công tác,…</div>
-				</div>
-			</div>
-			<div class="card-body time-grid">
-				{if $MAINPAGE_CAN_SEE_TEAM_STATUS}
-					{* CEO/Admin: block Người nghỉ phép (nếu có) + toàn bộ trạng thái *}
-					{if $MAINPAGE_TEAM_STATUS_LEAVE_ONLY|@count gt 0}
-						<div class="team-status-leave-block">
-							<div class="team-status-leave-block-title"><i class="fa fa-calendar-minus-o"></i> Người nghỉ phép ({$MAINPAGE_TEAM_FILTER_DATE_DISPLAY|escape:'html'})</div>
-							<ul class="team-status-list team-status-list-leave list-unstyled">
-								{foreach from=$MAINPAGE_TEAM_STATUS_LEAVE_ONLY item=member}
-									<li class="team-status-item team-status-leave">
-										<span class="team-status-avatar">{$member.initial|escape:'html'}</span>
-										<span class="team-status-name">{$member.name|escape:'html'}</span>
-										<span class="team-status-badge status-leave">{$member.status_label|escape:'html'}</span>
-										{if $member.leave_note}<span class="team-status-leave-note text-muted">— {$member.leave_note|escape:'html'}</span>{/if}
-									</li>
-								{/foreach}
-							</ul>
-						</div>
-					{/if}
-					<div class="team-status-legend text-muted small">
-						<span class="team-status-legend-item"><i class="fa fa-circle status-online"></i> Online</span>
-						<span class="team-status-legend-item"><i class="fa fa-circle status-offline"></i> Offline</span>
-						<span class="team-status-legend-item"><i class="fa fa-calendar-minus-o status-leave"></i> Ngày nghỉ phép</span>
-					</div>
-					<div class="team-status-list-wrap">
-						{if $MAINPAGE_TEAM_STATUS|@count gt 0}
-							<ul class="team-status-list list-unstyled">
-								{foreach from=$MAINPAGE_TEAM_STATUS item=member}
-									<li class="team-status-item team-status-{$member.status}">
-										<span class="team-status-avatar">{$member.initial|escape:'html'}</span>
-										<span class="team-status-name">{$member.name|escape:'html'}</span>
-										<span class="team-status-badge status-{$member.status}">{$member.status_label|escape:'html'}</span>
-										{if $member.leave_note}<span class="team-status-leave-note text-muted">({$member.leave_note|escape:'html'})</span>{/if}
-									</li>
-								{/foreach}
-							</ul>
-						{else}
-							<div class="text-muted small">Chưa có dữ liệu thành viên.</div>
-						{/if}
-					</div>
-				{else}
-					{* User thường: xem thời gian phiên + lịch sử đăng nhập của mình *}
-					{if $MAINPAGE_LOGIN_TIMESTAMP gt 0}
-						<div class="logged-time-wrap">
-							<div class="logged-time-value" id="mainpage-logged-time-display">{$MAINPAGE_LOGGED_TIME_DISPLAY|escape:'html'}</div>
-							<div class="logged-time-label">Đã đăng nhập từ lúc bắt đầu phiên</div>
-							<input type="hidden" id="mainpage-login-timestamp" value="{$MAINPAGE_LOGIN_TIMESTAMP}" />
-						</div>
-					{else}
-						<div class="time-empty text-muted small">Đăng nhập lại để bắt đầu tính thời gian phiên làm việc.</div>
-					{/if}
-					<div class="login-history-section">
-						<div class="login-history-title">Lịch sử đăng nhập</div>
-						{if $MAINPAGE_LOGIN_HISTORY|@count gt 0}
-							<ul class="login-history-list list-unstyled">
-								{foreach from=$MAINPAGE_LOGIN_HISTORY item=hist}
-									<li class="login-history-item">
-										<span class="hist-time">{$hist.login_display|escape:'html'} → {$hist.logout_display|escape:'html'}</span>
-										{if $hist.duration_display != '-'}<span class="hist-duration">{$hist.duration_display|escape:'html'}</span>{/if}
-										<span class="hist-status status-{if $hist.status == 'Signed off'}off{else}on{/if}">{$hist.status|escape:'html'}</span>
-									</li>
-								{/foreach}
-							</ul>
-						{else}
-							<div class="text-muted small">Chưa có lịch sử.</div>
-						{/if}
-					</div>
-				{/if}
-			</div>
-		</div>
-
-		<div class="mainpage-card time area-time-demo">
-			<div class="card-header subtle">
-				<div class="title-block">
-					<div class="title"><i class="fa fa-users"></i> Test Team Status</div>
-					<div class="subtitle text-muted small">Ví dụ demo Online / Offline / Nghỉ phép (không dùng dữ liệu thật)</div>
-				</div>
-			</div>
-			<div class="card-body time-grid">
-				<div class="team-status-legend text-muted small">
-					<span class="team-status-legend-item"><i class="fa fa-circle status-online"></i> Online</span>
-					<span class="team-status-legend-item"><i class="fa fa-circle status-offline"></i> Offline</span>
-					<span class="team-status-legend-item"><i class="fa fa-calendar-minus-o status-leave"></i> Nghỉ phép</span>
-				</div>
-				<div class="team-status-list-wrap">
-					<ul class="team-status-list list-unstyled">
-						<li class="team-status-item team-status-online">
-							<span class="team-status-avatar">HA</span>
-							<span class="team-status-name">Huy Admin (Online demo)</span>
-							<span class="team-status-badge status-online">Online</span>
-						</li>
-						<li class="team-status-item team-status-offline">
-							<span class="team-status-avatar">NB</span>
-							<span class="team-status-name">Nam Bán hàng (Offline demo)</span>
-							<span class="team-status-badge status-offline">Offline</span>
-						</li>
-						<li class="team-status-item team-status-leave">
-							<span class="team-status-avatar">LT</span>
-							<span class="team-status-name">Lan Trợ lý (Nghỉ phép demo)</span>
-							<span class="team-status-badge status-leave">Nghỉ phép</span>
-							<span class="team-status-leave-note text-muted">— Nghỉ phép năm (3 ngày)</span>
-						</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-
-		<div class="mainpage-card kpi area-kpi">
-			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-bar-chart"></i> KPI</div>
-				<div class="actions kpi-actions">
-					<select class="form-control input-sm kpi-chart-select" id="mainpage-kpi-type" style="max-width:140px;">
-						<option value="bar-ngang">Bar ngang</option>
-						<option value="bar-doc">Bar dọc</option>
-						<option value="tron">Biểu đồ tròn</option>
-						<option value="donut">Donut</option>
-						<option value="duong">Đường</option>
-						<option value="stacked">Bar xếp chồng</option>
-					</select>
-					<select class="form-control input-sm kpi-chart-select" id="mainpage-kpi-select" style="max-width:180px;">
-						<option value="kinhdoanh">Phòng Kinh doanh</option>
-						<option value="kythuat">Phòng Kỹ thuật</option>
-						<option value="nhansu">Phòng Nhân sự</option>
-						<option value="ketoan">Phòng Kế toán</option>
-						<option value="marketing">Phòng Marketing</option>
-					</select>
-				</div>
-			</div>
-			<div class="card-body kpi-body">
-				<div id="kpi-chart-kinhdoanh" class="kpi-chart-panel" data-vals="85,72,91" data-colors="#059669,#10b981,#34d399" data-labels="Doanh thu T1,Chỉ tiêu bán hàng,Khách hàng mới"></div>
-				<div id="kpi-chart-kythuat" class="kpi-chart-panel hide" data-vals="78,95,88" data-colors="#3b82f6,#60a5fa,#93c5fd" data-labels="Hoàn thành sprint,Code review,Bug fix rate"></div>
-				<div id="kpi-chart-nhansu" class="kpi-chart-panel hide" data-vals="68,82,94" data-colors="#8b5cf6,#a78bfa,#c4b5fd" data-labels="Tuyển dụng,Đào tạo nội bộ,Tỷ lệ giữ chân"></div>
-				<div id="kpi-chart-ketoan" class="kpi-chart-panel hide" data-vals="92,100,76" data-colors="#ec4899,#f472b6,#f9a8d4" data-labels="Thu chi cân đối,Báo cáo đúng hạn,Kiểm toán nội bộ"></div>
-				<div id="kpi-chart-marketing" class="kpi-chart-panel hide" data-vals="89,65,80" data-colors="#f59e0b,#fbbf24,#fcd34d" data-labels="Lượt tiếp cận,Conversion rate,Brand awareness"></div>
-			</div>
-		</div>
-	</div>
+	<footer class="mk-mainpage-footer" role="contentinfo">
+		<span>&copy; 2026 TDB Solution. All rights reserved.</span>
+		<span class="mk-mainpage-footer-links">
+			<a href="javascript:void(0)">Documentation</a>
+			<a href="javascript:void(0)">Privacy Policy</a>
+			<a href="javascript:void(0)">Terms of Service</a>
+		</span>
+	</footer>
 </div>
+</div>
+
 
 <script type="text/javascript">
 (function() {
@@ -489,12 +462,19 @@
 	var $subSelect = jQuery('#ann-subscribers');
 	if (!addBtn || !modal || !submitBtn) return;
 
+	function decodeHtmlEntities(str) {
+		if (!str) return '';
+		var txt = document.createElement('textarea');
+		txt.innerHTML = str;
+		return txt.value;
+	}
+
 	function subscriberOptionTemplate(id, text, element) {
 		var type = 'user';
-		var name = text || '';
+		var name = decodeHtmlEntities(text || '');
 		if (element) {
 			type = element.getAttribute('data-type') || (id && id.indexOf('g_') === 0 ? 'group' : 'user');
-			name = element.getAttribute('data-name') || element.textContent || text;
+			name = decodeHtmlEntities(element.getAttribute('data-name') || element.textContent || text);
 		} else if (id) {
 			type = id.indexOf('g_') === 0 ? 'group' : 'user';
 		}
@@ -560,6 +540,8 @@
 	addBtn.addEventListener('click', function() {
 		if (titleInput) titleInput.value = '';
 		if (descInput) descInput.value = '';
+		var lastsSelect = document.getElementById('ann-lasts');
+		if (lastsSelect) lastsSelect.value = '24';
 		if ($subSelect.length && $subSelect.data('select2')) {
 			$subSelect.val(null).trigger('change');
 		}

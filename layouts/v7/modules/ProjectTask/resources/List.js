@@ -14,6 +14,25 @@ Vtiger_List_Js(
       var thisInstance = this;
       var listViewContentDiv = this.getListViewContainer();
 
+      // In ProjectTask List, clicking the related Project should navigate to full Project Detail,
+      // not trigger reference quick preview overlay (which is broken for Project in Management app).
+      listViewContentDiv.on("click", "a.js-reference-display-value", function (e) {
+        var link = jQuery(e.currentTarget);
+        var href = link.attr("href") || "";
+        // Normalize to data params; core reference preview uses this too.
+        var data = app.convertUrlToDataParams(href);
+        if (data && data.module === "Project" && data.record) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          e.stopPropagation();
+          window.location.href =
+            "index.php?module=Project&view=Detail&record=" +
+            encodeURIComponent(data.record) +
+            "&app=MANAGEMENT";
+          return false;
+        }
+      });
+
       listViewContentDiv.on("click", ".listViewEntries a", function (e) {
         var target = jQuery(e.target);
         if (target.hasClass("js-reference-display-value")) return;
@@ -69,8 +88,8 @@ Vtiger_List_Js(
       container.find(".detail-description").val("");
       container.find(".task-comments-list").empty();
       container.find(".task-history-list").empty();
-      container.find(".board-subtasks-block .task-list").empty();
-      container.find(".board-subtasks-block .task-list-empty").show();
+      container.find(".mk-pt-subtasks__list").empty();
+      container.find(".mk-pt-subtasks__empty").show();
       container.find(".task-comment-input").val("");
       container.find(".task-comment-file-input").val("");
       container.find(".task-comment-file-name").text("").addClass("hidden");
@@ -140,18 +159,18 @@ Vtiger_List_Js(
         .join("");
 
       var html =
-        '<div class="projecttask-list-task-overlay" id="projecttask-list-task-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;overflow:auto;">' +
-        '<div class="project-task-board projecttask-list-task-board" style="max-width:920px;margin:24px auto;background:#fff;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,0.2);min-height:400px;">' +
-        '<div class="task-detail-modal">' +
-        '<div class="task-detail-dialog">' +
-        '<div class="task-detail-header">' +
-        '<div class="header-left"><span class="status-pill detail-status">--</span><span class="detail-id"></span></div>' +
-        '<div class="header-right">' +
-        '<button type="button" class="tab-btn active">Comments</button>' +
-        '<button type="button" class="tab-btn">Task history</button>' +
-        '<span class="panel-close">&times;</span></div></div>' +
-        '<div class="task-detail-content">' +
-        '<div class="task-detail-left">' +
+        '<div class="projecttask-list-task-overlay mk-project-task-detail-scope" id="projecttask-list-task-overlay" style="display:none;">' +
+        '<div class="project-task-board projecttask-list-task-board mk-project-task-detail-scope">' +
+        '<div class="task-detail-modal mk-project-task-detail-modal">' +
+        '<div class="task-detail-dialog mk-project-task-detail">' +
+        '<div class="task-detail-header mk-project-task-detail__header">' +
+        '<div class="header-left mk-project-task-detail__header-left"><span class="status-pill detail-status mk-project-task-detail__status">--</span><span class="detail-id mk-project-task-detail__id"></span></div>' +
+        '<div class="header-right mk-project-task-detail__header-right">' +
+        '<button type="button" class="tab-btn mk-project-task-detail__nav-tab active" data-tab="comments">Comments</button>' +
+        '<button type="button" class="tab-btn mk-project-task-detail__nav-tab" data-tab="history">Task history</button>' +
+        '<button type="button" class="panel-close mk-project-task-detail__close" aria-label="Close">&times;</button></div></div>' +
+        '<div class="task-detail-content mk-project-task-detail__body">' +
+        '<div class="task-detail-left mk-project-task-detail__main">' +
         '<div class="detail-back-wrap hide"><a href="javascript:void(0)" class="detail-back-link">&larr; Back to <span class="detail-back-parent-name"></span></a></div>' +
         '<div class="detail-breadcrumb"></div>' +
         '<div class="detail-title"></div>' +
@@ -165,25 +184,24 @@ Vtiger_List_Js(
         '<div class="detail-row"><span class="label">Status</span><span class="value"><select class="detail-status-select">' +
         statusHtml +
         "</select></span></div>" +
-        '<div class="detail-row"><a class="detail-link" href="javascript:void(0)">Add field</a> <span>or</span> <a class="detail-link" href="javascript:void(0)">Manage fields</a></div></div>' +
-        '<div class="detail-subtasks board-subtasks-block"><div class="section-label">Subtasks</div>' +
-        '<div class="tasksListToolbar"><input type="text" class="form-control board-subtask-title-input quickAddTaskInput" placeholder="Add task and hit enter/return key">' +
-        '<button type="button" class="btn btn-primary btn-sm board-subtask-save-btn">Save</button></div>' +
-        '<div class="task-list-container"><div class="task-list-empty text-muted">No subtasks exist in this task</div><ul class="task-list list-unstyled"></ul></div></div></div>' +
-        '<div class="task-detail-right">' +
-        '<div class="ann-detail-tabs"><button type="button" class="ann-tab task-detail-tab active" data-tab="comments">Comments <span class="badge task-comments-badge">0</span></button>' +
+        "</div>" +
+        '<div class="detail-subtasks mk-pt-subtasks board-subtasks-block"><div class="section-label mk-pt-subtasks__title">Subtasks</div>' +
+        '<div class="tasksListToolbar mk-pt-subtasks__toolbar"><input type="text" class="form-control mk-pt-subtasks__input board-subtask-title-input quickAddTaskInput" placeholder="Add a subtask and press Enter">' +
+        '<button type="button" class="btn btn-primary btn-sm mk-pt-subtasks__save board-subtask-save-btn">Save</button></div>' +
+        '<div class="task-list-container mk-pt-subtasks__list-wrap"><div class="task-list-empty mk-pt-subtasks__empty text-muted">No subtasks exist in this task</div><ul class="task-list mk-pt-subtasks__list list-unstyled"></ul></div></div></div>' +
+        '<div class="task-detail-right mk-project-task-detail__sidebar">' +
+        '<div class="ann-detail-tabs mk-project-task-detail__sidebar-tabs"><button type="button" class="ann-tab task-detail-tab active" data-tab="comments">Comments <span class="badge task-comments-badge">0</span></button>' +
         '<button type="button" class="ann-tab task-detail-tab" data-tab="history">Task history</button></div>' +
-        '<div id="task-panel-comments-list" class="ann-detail-panel task-detail-panel"><ul class="ann-comments-list list-unstyled task-comments-list"></ul>' +
-        '<div class="ann-add-comment">' +
-        '<div class="task-comment-toolbar"><button type="button" class="btn btn-default btn-xs task-comment-emoji-btn" title="Emoji">&#128512;</button>' +
+        '<div id="task-panel-comments-list" class="ann-detail-panel task-detail-panel mk-project-task-detail__panel mk-project-task-detail__panel--comments"><ul class="ann-comments-list list-unstyled task-comments-list"></ul>' +
+        '<div class="ann-add-comment mk-project-task-detail__composer">' +
+        '<div class="task-comment-toolbar mk-project-task-detail__composer-toolbar">' +
         '<button type="button" class="btn btn-default btn-xs task-comment-upload-btn" title="Upload from computer"><span class="fa fa-paperclip"></span> Upload</button>' +
         '<input type="file" class="task-comment-file-input" accept="*" style="display:none">' +
-        '<span class="task-comment-file-name text-muted small"></span></div>' +
-        '<div class="task-comment-emoji-picker hidden"></div>' +
-        '<textarea class="form-control task-comment-input" rows="2" placeholder="Write a comment"></textarea>' +
-        '<button type="button" class="btn btn-primary btn-sm task-comment-add">Add</button></div></div>' +
-        '<div id="task-panel-history-list" class="ann-detail-panel task-detail-panel hide"><ul class="task-history-list list-unstyled"></ul><div class="task-history-empty text-muted small">No history yet.</div></div></div></div>' +
-        '<div class="task-detail-footer"><button type="button" class="btn btn-primary detail-save">Save</button><button type="button" class="btn btn-default detail-cancel">Cancel</button></div></div></div></div></div>';
+        '<span class="task-comment-file-name text-muted small hidden"></span></div>' +
+        '<textarea class="form-control task-comment-input mk-project-task-detail__composer-input" rows="3" placeholder="Write a comment"></textarea>' +
+        '<button type="button" class="btn btn-primary btn-sm task-comment-add mk-project-task-detail__composer-add">Add</button></div></div>' +
+        '<div id="task-panel-history" class="ann-detail-panel task-detail-panel mk-project-task-detail__panel mk-project-task-detail__panel--history hide"><ul class="task-history-list list-unstyled"></ul><div class="task-history-empty text-muted small">No history yet.</div></div></div></div>' +
+        '<div class="task-detail-footer mk-project-task-detail__footer"><button type="button" class="btn btn-primary detail-save mk-project-task-detail__btn-save">Save</button><button type="button" class="btn btn-default detail-cancel mk-project-task-detail__btn-cancel">Cancel</button></div></div></div></div></div>';
 
       jQuery("body").append(html);
       thisInstance._taskModalContainer = jQuery(
@@ -317,15 +335,15 @@ Vtiger_List_Js(
         }
       });
 
-      container.find(".task-detail-tab").on("click", function () {
-        var tab = jQuery(this).data("tab");
-        if (tab) thisInstance.switchTaskTab(container, tab);
-      });
-
       container
-        .find(".board-subtasks-block .task-list")
-        .on("click", function (e) {
-          var row = jQuery(e.target).closest(".task-list-row");
+        .find(".mk-project-task-detail__nav-tab, .task-detail-tab")
+        .on("click", function () {
+          var tab = jQuery(this).data("tab");
+          if (tab) thisInstance.switchTaskTab(container, tab);
+        });
+
+      container.find(".mk-pt-subtasks__list").on("click", function (e) {
+          var row = jQuery(e.target).closest(".mk-pt-subtasks__row");
           if (!row.length) return;
           var recordId = row.attr("data-recordid");
           var wrap = jQuery(e.target).closest(".subtask-status-wrap");
@@ -477,7 +495,18 @@ Vtiger_List_Js(
       container.find(".detail-description").val(task.description || "");
       container.find(".detail-start").val(task.startdate || "");
       container.find(".detail-end").val(task.enddate || "");
-      container.find(".detail-status").text(task.projecttaskstatus || "--");
+      var statusEl = container.find(".detail-status");
+      statusEl.text(task.projecttaskstatus || "--");
+      statusEl.attr(
+        "class",
+        "status-pill detail-status mk-project-task-detail__status"
+      );
+      var statusKey = (task.projecttaskstatus || "")
+        .toLowerCase()
+        .replace(/\s+/g, "-");
+      if (statusKey) {
+        statusEl.addClass("mk-project-task-detail__status--" + statusKey);
+      }
       container
         .find(".detail-status-select")
         .val(task.projecttaskstatus || "Open");
@@ -497,6 +526,84 @@ Vtiger_List_Js(
         .toString()
         .replace(/%/g, "");
       container.find(".detail-progress").val(progressVal);
+      (function enhanceModalProgressBar() {
+        var pct = parseInt(progressVal, 10);
+        if (isNaN(pct)) {
+          pct = 0;
+        }
+        pct = Math.min(100, Math.max(0, pct));
+        var $value = container
+          .find(".detail-row")
+          .has(".detail-progress")
+          .find(".value")
+          .first();
+        if (!$value.length) {
+          return;
+        }
+        var tone = pct >= 100 ? "done" : "default";
+        var label = pct > 0 ? pct + "%" : "";
+        var $input = $value.find(".detail-progress");
+        var $suffix = $value.find(".progress-suffix");
+        if (!$value.find(".mk-projecttask-progress").length) {
+          $value.prepend(
+            '<div class="mk-projecttask-progress mk-projecttask-progress--' +
+              tone +
+              '"><div class="mk-projecttask-progress__fill" style="width:' +
+              pct +
+              '%"></div>' +
+              (label
+                ? '<span class="mk-projecttask-progress__label">' + label + "</span>"
+                : "") +
+              "</div>"
+          );
+        } else {
+          $value
+            .find(".mk-projecttask-progress")
+            .removeClass("mk-projecttask-progress--done mk-projecttask-progress--default")
+            .addClass("mk-projecttask-progress--" + tone);
+          $value.find(".mk-projecttask-progress__fill").css("width", pct + "%");
+          var $lbl = $value.find(".mk-projecttask-progress__label");
+          if (label) {
+            if ($lbl.length) {
+              $lbl.text(label);
+            } else {
+              $value
+                .find(".mk-projecttask-progress")
+                .append('<span class="mk-projecttask-progress__label">' + label + "</span>");
+            }
+          } else {
+            $lbl.remove();
+          }
+        }
+        $input.off("input.mkModalProgress").on("input.mkModalProgress", function () {
+          var v = parseInt(this.value, 10);
+          if (isNaN(v)) {
+            v = 0;
+          }
+          v = Math.min(100, Math.max(0, v));
+          var t = v >= 100 ? "done" : "default";
+          var l = v > 0 ? v + "%" : "";
+          $value
+            .find(".mk-projecttask-progress")
+            .removeClass("mk-projecttask-progress--done mk-projecttask-progress--default")
+            .addClass("mk-projecttask-progress--" + t);
+          $value.find(".mk-projecttask-progress__fill").css("width", v + "%");
+          var $l = $value.find(".mk-projecttask-progress__label");
+          if (l) {
+            if ($l.length) {
+              $l.text(l);
+            } else {
+              $value
+                .find(".mk-projecttask-progress")
+                .append('<span class="mk-projecttask-progress__label">' + l + "</span>");
+            }
+          } else {
+            $l.remove();
+          }
+        });
+        $input.css({ width: "72px", display: "inline-block", marginLeft: "10px", verticalAlign: "middle" });
+        $suffix.css({ marginLeft: "2px" });
+      })();
 
       var ownerSelect = container.find(".detail-owner-select");
       function setOwnerSelect(users) {
@@ -581,7 +688,13 @@ Vtiger_List_Js(
           '<span class="ann-avatar ann-avatar-user ann-avatar-sm">' +
           initial +
           "</span>" +
-          '<span class="ann-comment-meta">' +
+          '<span class="ann-comment-meta"' +
+          (c.timeTitle
+            ? ' title="' +
+              String(c.timeTitle).replace(/"/g, "&quot;") +
+              '"'
+            : "") +
+          ">" +
           (c.userName || "") +
           " " +
           (c.time || "") +
@@ -681,8 +794,8 @@ Vtiger_List_Js(
           if (err) return;
           var res = data && data.result ? data.result : data || {};
           var subtasks = res.subtasks || [];
-          var ul = container.find(".board-subtasks-block .task-list");
-          var empty = container.find(".board-subtasks-block .task-list-empty");
+          var ul = container.find(".mk-pt-subtasks__list");
+          var empty = container.find(".mk-pt-subtasks__empty");
           ul.empty();
           if (!subtasks.length) {
             empty.show();
@@ -723,7 +836,7 @@ Vtiger_List_Js(
             });
             statusHtml += "</div></span>";
             ul.append(
-              '<li class="task-list-row" data-recordid="' +
+              '<li class="mk-pt-subtasks__row task-list-row" data-recordid="' +
                 (st.recordid || "") +
                 '"><span class="task-check-wrap"><input type="checkbox" class="task-checkbox" ' +
                 (completed ? "checked" : "") +
@@ -743,15 +856,15 @@ Vtiger_List_Js(
 
     switchTaskTab: function (container, tab) {
       container
-        .find(".task-detail-tab")
+        .find(".mk-project-task-detail__nav-tab, .task-detail-tab")
         .removeClass("active")
-        .filter("[data-tab=" + tab + "]")
+        .filter('[data-tab="' + tab + '"]')
         .addClass("active");
       container
         .find("#task-panel-comments-list")
         .toggleClass("hide", tab !== "comments");
       container
-        .find("#task-panel-history-list")
+        .find("#task-panel-history, #task-panel-history-list")
         .toggleClass("hide", tab !== "history");
       if (
         tab === "history" &&
@@ -1008,3 +1121,142 @@ Vtiger_List_Js(
     },
   }
 );
+
+/**
+ * ProjectTask List (MANAGEMENT): neutralize floatThead / bottom scroller (MkSalesListShared handles footer swap).
+ */
+(function ($) {
+  "use strict";
+
+  function isManagementProjectTaskList() {
+    var b = document.body;
+    if (!b || b.getAttribute("data-module") !== "ProjectTask" || b.getAttribute("data-view") !== "List") {
+      return false;
+    }
+    return (b.getAttribute("data-app") || "").toUpperCase() === "MANAGEMENT";
+  }
+
+  function destroyPerfectScrollbar($tc) {
+    if (!$tc || !$tc.length) {
+      return;
+    }
+    try {
+      if ($.fn.perfectScrollbar) {
+        $tc.perfectScrollbar("destroy");
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    $tc.removeClass("ps ps--active-x ps--active-y ps--scrolling-x ps--scrolling-y");
+    $tc.find(".ps__rail-x, .ps__rail-y, .ps__thumb-x, .ps__thumb-y").remove();
+  }
+
+  function fixListScrollContainer() {
+    if (!isManagementProjectTaskList()) {
+      return;
+    }
+    var $tc = $("#listViewContent #table-content");
+    if (!$tc.length) {
+      return;
+    }
+
+    destroyPerfectScrollbar($tc);
+
+    $tc.css({
+      position: "relative",
+      width: "100%",
+      height: "auto",
+      maxHeight: "",
+      overflowX: "auto",
+      overflowY: "auto",
+      WebkitOverflowScrolling: "touch",
+      pointerEvents: "auto",
+    });
+
+    $("#listViewContent #scroller_wrapper.bottom-fixed-scroll, #listViewContent .bottom-fixed-scroll").css({
+      display: "none",
+      height: 0,
+      margin: 0,
+      padding: 0,
+      border: "none",
+      overflow: "hidden",
+      pointerEvents: "none",
+      position: "absolute",
+      left: "-9999px",
+      width: 0,
+    });
+
+    var $table = $("#listViewContent #listview-table");
+    if ($table.length && $.fn.floatThead) {
+      try {
+        $table.floatThead("destroy");
+      } catch (e2) {
+        /* not initialized */
+      }
+    }
+    $table.removeClass("floatThead-table");
+    $(".floatThead-container").remove();
+  }
+
+  function patchVtigerListScrollHooks() {
+    if (!window.Vtiger_List_Js || !Vtiger_List_Js.prototype || Vtiger_List_Js.prototype.__mkProjectTaskScrollPatched) {
+      return !!window.Vtiger_List_Js;
+    }
+    var proto = Vtiger_List_Js.prototype;
+    var origRegister = proto.registerFloatingThead;
+    var origReflow = proto.reflowList;
+
+    proto.registerFloatingThead = function () {
+      if (isManagementProjectTaskList()) {
+        fixListScrollContainer();
+        return;
+      }
+      return origRegister.apply(this, arguments);
+    };
+
+    proto.reflowList = function () {
+      if (isManagementProjectTaskList()) {
+        fixListScrollContainer();
+        return;
+      }
+      return origReflow.apply(this, arguments);
+    };
+
+    proto.__mkProjectTaskScrollPatched = true;
+    return true;
+  }
+
+  function init() {
+    if (!isManagementProjectTaskList()) {
+      return;
+    }
+    patchVtigerListScrollHooks();
+    fixListScrollContainer();
+    setTimeout(fixListScrollContainer, 0);
+    setTimeout(fixListScrollContainer, 150);
+    $(document).on("mkProjectTaskListPostLoad", function () {
+      setTimeout(fixListScrollContainer, 0);
+    });
+    if (typeof app !== "undefined" && app.event && app.event.on) {
+      app.event.on("post.listViewFilter.click", function () {
+        setTimeout(fixListScrollContainer, 80);
+      });
+      app.event.on("Vtiger.Post.MenuToggle", function () {
+        setTimeout(fixListScrollContainer, 80);
+      });
+    }
+    $(document).on(
+      "click.mkProjectTaskList",
+      "#listViewContent #NextPageButton, #listViewContent #PreviousPageButton, #listViewContent #pageToJumpSubmit",
+      function () {
+        setTimeout(fixListScrollContainer, 120);
+      }
+    );
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})(jQuery);

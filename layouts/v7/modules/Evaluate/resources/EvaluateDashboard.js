@@ -65,10 +65,78 @@
 		}
 	}
 
+	function isDarkTheme() {
+		return document.documentElement.getAttribute('data-theme') === 'dark';
+	}
+
+	function chartScaleTheme() {
+		var dark = isDarkTheme();
+		return {
+			tick: dark ? '#94a3b8' : '#64748b',
+			grid: dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)',
+			legend: dark ? '#cbd5e1' : '#475569'
+		};
+	}
+
+	function baseChartOptions(extra) {
+		var t = chartScaleTheme();
+		var opts = {
+			responsive: true,
+			maintainAspectRatio: false,
+			plugins: {
+				legend: {
+					position: 'bottom',
+					labels: { color: t.legend, boxWidth: 12, padding: 14 }
+				}
+			},
+			scales: {
+				x: {
+					ticks: { color: t.tick, autoSkip: true, maxRotation: 0, font: { size: 10 } },
+					grid: { color: t.grid }
+				},
+				y: {
+					beginAtZero: true,
+					ticks: { color: t.tick },
+					grid: { color: t.grid }
+				}
+			}
+		};
+		if (extra) {
+			Object.keys(extra).forEach(function (k) {
+				opts[k] = extra[k];
+			});
+		}
+		return opts;
+	}
+
 	function barColorForRoi(roi) {
-		if (roi > 0.0001) return { bg: 'rgba(34,197,94,0.45)', border: 'rgba(22,163,74,0.95)' };
-		if (roi < -0.0001) return { bg: 'rgba(239,68,68,0.4)', border: 'rgba(220,38,38,0.95)' };
-		return { bg: 'rgba(148,163,184,0.35)', border: 'rgba(100,116,139,0.9)' };
+		var vivid = isDarkTheme();
+		if (roi > 0.0001) {
+			return vivid
+				? { bg: 'rgba(34,197,94,0.55)', border: 'rgba(74,222,128,0.95)' }
+				: { bg: 'rgba(34,197,94,0.45)', border: 'rgba(22,163,74,0.95)' };
+		}
+		if (roi < -0.0001) {
+			return vivid
+				? { bg: 'rgba(239,68,68,0.5)', border: 'rgba(248,113,113,0.95)' }
+				: { bg: 'rgba(239,68,68,0.4)', border: 'rgba(220,38,38,0.95)' };
+		}
+		return vivid
+			? { bg: 'rgba(148,163,184,0.25)', border: 'rgba(148,163,184,0.7)' }
+			: { bg: 'rgba(148,163,184,0.35)', border: 'rgba(100,116,139,0.9)' };
+	}
+
+	function costRevenueDatasetColors() {
+		if (!isDarkTheme()) {
+			return {
+				cost: { bg: 'rgba(239,68,68,0.32)', border: 'rgba(220,38,38,0.85)' },
+				revenue: { bg: 'rgba(34,197,94,0.32)', border: 'rgba(22,163,74,0.85)' }
+			};
+		}
+		return {
+			cost: { bg: 'rgba(245,158,11,0.45)', border: 'rgba(251,191,36,0.95)' },
+			revenue: { bg: 'rgba(22,216,255,0.4)', border: 'rgba(94,234,212,0.95)' }
+		};
 	}
 
 	function renderCharts(data) {
@@ -87,41 +155,34 @@
 		var cr = document.getElementById('evalCostRevenueChart');
 		if (cr) {
 			destroyChart('costRevenue');
+			var crColors = costRevenueDatasetColors();
 			_charts.costRevenue = new Chart(cr, {
 				type: 'bar',
 				data: {
 					labels: labels,
 					datasets: [
-						{ label: 'Cost', data: costs, backgroundColor: 'rgba(239,68,68,0.32)', borderColor: 'rgba(220,38,38,0.85)', borderWidth: 1 },
-						{ label: 'Revenue', data: revenues, backgroundColor: 'rgba(34,197,94,0.32)', borderColor: 'rgba(22,163,74,0.85)', borderWidth: 1 }
+						{ label: 'Cost', data: costs, backgroundColor: crColors.cost.bg, borderColor: crColors.cost.border, borderWidth: 1 },
+						{ label: 'Revenue', data: revenues, backgroundColor: crColors.revenue.bg, borderColor: crColors.revenue.border, borderWidth: 1 }
 					]
 				},
-				options: {
-					responsive: true,
-					maintainAspectRatio: false,
-					plugins: { legend: { position: 'bottom' } },
-					scales: { x: { ticks: { autoSkip: true, maxRotation: 0, font: { size: 10 } } }, y: { beginAtZero: true } }
-				}
+				options: baseChartOptions()
 			});
 		}
 
 		var rc = document.getElementById('evalRoiChart');
 		if (rc) {
 			destroyChart('roi');
+			var roiBg = rois.map(function (r) { return barColorForRoi(r).bg; });
+			var roiBorder = rois.map(function (r) { return barColorForRoi(r).border; });
 			_charts.roi = new Chart(rc, {
 				type: 'bar',
 				data: {
 					labels: labels,
 					datasets: [
-						{ label: 'ROI (%)', data: rois, backgroundColor: 'rgba(59,130,246,0.35)', borderColor: 'rgba(37,99,235,0.9)', borderWidth: 1 }
+						{ label: 'ROI (%)', data: rois, backgroundColor: roiBg, borderColor: roiBorder, borderWidth: 1 }
 					]
 				},
-				options: {
-					responsive: true,
-					maintainAspectRatio: false,
-					plugins: { legend: { position: 'bottom' } },
-					scales: { x: { ticks: { autoSkip: true, maxRotation: 0, font: { size: 10 } } }, y: { beginAtZero: true } }
-				}
+				options: baseChartOptions()
 			});
 		}
 
@@ -157,10 +218,8 @@
 						borderWidth: 1
 					}]
 				},
-				options: {
+				options: baseChartOptions({
 					indexAxis: 'y',
-					responsive: true,
-					maintainAspectRatio: false,
 					plugins: {
 						legend: { display: false },
 						tooltip: {
@@ -173,10 +232,20 @@
 						}
 					},
 					scales: {
-						x: { beginAtZero: true, ticks: { callback: function (v) { return v + '%'; } } },
-						y: { ticks: { font: { size: 10 }, autoSkip: false } }
+						x: {
+							beginAtZero: true,
+							ticks: {
+								color: chartScaleTheme().tick,
+								callback: function (v) { return v + '%'; }
+							},
+							grid: { color: chartScaleTheme().grid }
+						},
+						y: {
+							ticks: { color: chartScaleTheme().tick, font: { size: 10 }, autoSkip: false },
+							grid: { color: chartScaleTheme().grid }
+						}
 					}
-				}
+				})
 			});
 		}
 	}
@@ -196,4 +265,8 @@
 
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 	else init();
+
+	window.addEventListener('mk:theme-change', function () {
+		init();
+	});
 })();

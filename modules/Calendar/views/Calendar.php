@@ -14,6 +14,7 @@ class Calendar_Calendar_View extends Vtiger_Index_View {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
 		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE', $moduleName);
 		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
 		$viewer->assign('IS_CREATE_PERMITTED', $moduleModel->isPermitted('CreateView'));
 		$viewer->assign('IS_MODULE_EDITABLE', $moduleModel->isPermitted('EditView'));
@@ -23,10 +24,28 @@ class Calendar_Calendar_View extends Vtiger_Index_View {
 		$viewer->assign('SHOW_MINI_CALENDAR_LEAVE', true);
 		$viewer->assign('SHOW_LEAVE_REQUEST', false);
 
+		$viewer->assign('MK_CALENDAR_MODERN_UI', true);
+		$viewer->assign('VIEW', 'Calendar');
+
 		parent::preProcess($request, false);
+
+		// Schedule (Calendar view) thuộc MANAGEMENT — không dùng SUPPORT
+		$appName = $request->get('app');
+		$resolvedApp = 'MANAGEMENT';
+		if (!empty($appName) && strtoupper($appName) !== 'SUPPORT') {
+			$resolvedApp = strtoupper($appName);
+		}
+		$viewer->assign('SELECTED_MENU_CATEGORY', $resolvedApp);
+		$viewer->assign('MK_CALENDAR_APP', $resolvedApp);
 		if($display) {
 			$this->preProcessDisplay($request);
 		}
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$viewer->view('CalendarViewPostProcess.tpl', $request->getModule());
+		Vtiger_Basic_View::postProcess($request);
 	}
 
 	protected function preProcessTplName(Vtiger_Request $request) {
@@ -42,7 +61,8 @@ class Calendar_Calendar_View extends Vtiger_Index_View {
 			// Logic lịch nằm ở layouts/.../Calendar.js (nạp qua Index: modules.Calendar.resources.Calendar).
 			// modules.Calendar.resources.CalendarView không tồn tại trên v7 → trước đây script này bị bỏ qua im lặng.
 			"~/libraries/jquery/colorpicker/js/colorpicker.js",
-			"layouts.v7.modules.Calendar.resources.CalendarQuickCreate"
+			"layouts.v7.modules.Calendar.resources.CalendarQuickCreate",
+			"layouts.v7.modules.Calendar.resources.CalendarMkView"
 		);
 
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
@@ -59,7 +79,8 @@ class Calendar_Calendar_View extends Vtiger_Index_View {
 			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/lib/jquery/webui-popover/dist/jquery.webui-popover.css',
 			'~/libraries/jquery/colorpicker/css/colorpicker.css',
 			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/modules/Calendar/resources/calendar-google.css',
-			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/modules/Calendar/resources/Calendar.css'
+			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/modules/Calendar/resources/Calendar.css',
+			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/modules/Calendar/resources/CalendarMkView.css'
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 		$headerCssInstances = array_merge($headerCssInstances, $cssInstances);

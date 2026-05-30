@@ -66,7 +66,7 @@
 							{/if}
 							{foreach item=moduleModel key=moduleName from=$APP_GROUPED_MENU[$APP_NAME]}
 								{* SUPPORT: ẩn Schedule (Calendar) — Schedule chỉ ở MANAGEMENT *}
-								{if $APP_NAME eq 'SUPPORT' && $moduleName eq 'Calendar'}{continue}{/if}
+								{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Calendar' || $moduleName eq 'Schedule')}{continue}{/if}
 								{* SALES: keep ProductsServices; hide legacy Products/Services *}
 								{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
 								{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}

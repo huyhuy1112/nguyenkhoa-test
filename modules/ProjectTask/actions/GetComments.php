@@ -46,7 +46,8 @@ class ProjectTask_GetComments_Action extends Vtiger_Action_Controller {
 				'id' => $commentModel->getId(),
 				'comment_text' => $commentModel->get('commentcontent'),
 				'userName' => $userName,
-				'time' => $commentModel->getCommentedTime(),
+				'time' => Vtiger_Util_Helper::formatCommentDateTime($commentModel->getCommentedTime()),
+				'timeTitle' => Vtiger_Util_Helper::formatDateTimeIntoDayString($commentModel->getCommentedTime()),
 				'attachments' => $attachments,
 			);
 		}

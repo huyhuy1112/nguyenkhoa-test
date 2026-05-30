@@ -17,6 +17,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		parent::preProcess($request, false);
 		$viewer = $this->getViewer($request);
+		$viewer->assign('VIEW', 'MainPage');
 		// Main Page: luôn dùng MANAGEMENT và hiển thị app menu (sidebar)
 		$viewer->assign('SELECTED_MENU_CATEGORY', 'MANAGEMENT');
 		$viewer->assign('SELECTED_MENU_CATEGORY_LABEL', vtranslate('LBL_MANAGEMENT', 'Vtiger'));
@@ -36,7 +37,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 	public function postProcess(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$viewer->view('MainPagePostProcess.tpl', $request->getModule());
-		parent::postProcess($request);
+		Vtiger_Basic_View::postProcess($request);
 	}
 
 	/**

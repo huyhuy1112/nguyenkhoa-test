@@ -1,45 +1,76 @@
 {* Task Board view for Project *}
 {strip}
-<div class="project-task-board">
-    <div class="board-toolbar">
+<div class="project-task-board mk-project-task-board mk-project-task-detail-scope">
+    <div class="board-toolbar mk-project-task-board__toolbar">
         <div class="btn-group">
-            <a class="btn btn-default btn-sm board-add-main" href="{$CREATE_TASK_URL}">
+            <a class="btn btn-default btn-sm board-add-main mk-project-task-board__add" href="{$CREATE_TASK_URL}&app=MANAGEMENT">
                 <i class="fa fa-plus"></i> {vtranslate('LBL_ADD', $MODULE)}
             </a>
         </div>
-        <div class="board-tabs">
-            <button class="btn btn-default btn-sm active"><i class="fa fa-th-large"></i> Board</button>
-            <button class="btn btn-default btn-sm"><i class="fa fa-table"></i> Table</button>
+        <div class="board-tabs mk-project-task-board__view-tabs">
+            <button type="button" class="btn btn-default btn-sm active" disabled><i class="fa fa-th-large"></i> Board</button>
         </div>
     </div>
 
-    <div class="board-columns">
+    <div class="board-columns mk-project-task-board__columns">
         {foreach from=$TASK_COLUMNS key=STATUS_LABEL item=TASKS}
-            <div class="board-column" data-status="{$STATUS_LABEL}">
-                <div class="board-column-header">
-                    <span class="status-name">{$STATUS_LABEL}</span>
-                    <span class="status-actions">
-                        <span class="status-count">{php7_count($TASKS)}</span>
-                        <a class="board-add-task"
-                           href="{$CREATE_TASK_URL}&projecttaskstatus={$STATUS_MAP[$STATUS_LABEL]|escape:'url'}">
-                            <i class="fa fa-plus"></i>
+            {assign var=TASK_COUNT value=$TASKS|@count}
+            <div class="board-column mk-project-task-board__column" data-status="{$STATUS_LABEL}">
+                <div class="board-column-header mk-project-task-board__column-head">
+                    <span class="status-name mk-project-task-board__column-title">{$STATUS_LABEL}</span>
+                    <span class="status-actions mk-project-task-board__column-actions">
+                        <span class="status-count mk-project-task-board__column-count">{$TASK_COUNT}</span>
+                        <a class="board-add-task mk-project-task-board__column-add"
+                           href="{$CREATE_TASK_URL}&projecttaskstatus={$STATUS_MAP[$STATUS_LABEL]|escape:'url'}&app=MANAGEMENT"
+                           title="{vtranslate('LBL_ADD', $MODULE)}">
+                            <span class="mk-project-task-board__column-add-icon" aria-hidden="true">+</span>
                         </a>
                     </span>
                 </div>
-                <div class="board-cards" data-status="{$STATUS_LABEL}" data-status-value="{$STATUS_MAP[$STATUS_LABEL]}">
+                <div class="board-cards mk-project-task-board__cards" data-status="{$STATUS_LABEL}" data-status-value="{$STATUS_MAP[$STATUS_LABEL]}">
+                    {if $TASK_COUNT eq 0}
+                    <div class="board-cards-empty mk-project-task-board__empty">
+                        <div class="mk-project-task-board__empty-icon" aria-hidden="true">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        </div>
+                        <p class="mk-project-task-board__empty-title">{if $STATUS_LABEL eq 'In Progress'}No active tasks{else}No tasks{/if}</p>
+                        <p class="mk-project-task-board__empty-hint">Drag and drop cards here to start working</p>
+                    </div>
+                    {/if}
                     {foreach from=$TASKS item=TASK}
-                        <div class="board-card" draggable="true" data-task='{Vtiger_Util_Helper::toSafeHTML(Zend_JSON::encode($TASK))}'>
-                            <div class="card-title">{$TASK.name}</div>
-                            <div class="card-meta">
-                                <span class="meta-item"><i class="fa fa-calendar"></i> Due date {if $TASK.enddate}{$TASK.enddate}{else}--{/if}</span>
-                                <span class="meta-item"><i class="fa fa-user"></i> Assignees {$TASK.owner_name|default:'--'} <i class="fa fa-plus card-add-assignee" title="Add assignee"></i></span>
-                            </div>
-                            <div class="card-footer">
-                                <span class="card-post-time">
-                                    {if $TASK.createdtime_display}{$TASK.createdtime_display}{/if}
-                                    {if $TASK.comment_count > 0}<i class="fa fa-comment-o card-comment-icon"></i> {$TASK.comment_count}{/if}
+                        {assign var=CARD_PROGRESS value=$TASK.progress|default:'0%'}
+                        {assign var=CARD_PROGRESS_NUM value=0}
+                        {if $TASK.projecttaskstatus eq 'Completed'}
+                            {assign var=CARD_PROGRESS_NUM value=100}
+                        {elseif $TASK.projecttaskprogress}
+                            {assign var=CARD_PROGRESS_NUM value=$TASK.projecttaskprogress}
+                        {else}
+                            {assign var=CARD_PROGRESS_NUM value=$CARD_PROGRESS|replace:'%':''}
+                        {/if}
+                        <div class="board-card mk-project-task-board__card{if $TASK.projecttaskstatus eq 'Completed'} mk-project-task-board__card--done{/if}" draggable="true" data-task='{Vtiger_Util_Helper::toSafeHTML(Zend_JSON::encode($TASK))}'>
+                            <div class="card-title-row mk-project-task-board__card-title-row">
+                                {if $TASK.projecttaskstatus eq 'Completed'}
+                                <span class="card-check mk-project-task-board__card-check" aria-hidden="true">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#22c55e"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                 </span>
-                                <span class="card-progress-value">{if $TASK.progress}{$TASK.progress}{else}0%{/if}</span>
+                                {/if}
+                                <div class="card-title mk-project-task-board__card-title">{$TASK.name}</div>
+                            </div>
+                            <div class="card-meta mk-project-task-board__card-meta">
+                                <span class="meta-item"><span class="meta-ic" aria-hidden="true">📅</span> Due date {if $TASK.enddate}{$TASK.enddate}{else}--{/if}</span>
+                                <span class="meta-item meta-item--assignee"><span class="meta-ic" aria-hidden="true">👤</span> Assignees {$TASK.owner_name|default:'--'} <span class="mk-project-task-board__assignee-plus" title="Add assignee">+</span></span>
+                            </div>
+                            <div class="card-footer mk-project-task-board__card-footer">
+                                <span class="card-age-badge mk-project-task-board__age-badge">
+                                    {if $TASK.createdtime_display}{$TASK.createdtime_display}{else}—{/if}
+                                    {if $TASK.comment_count > 0}<span class="card-comment-badge"><i class="fa fa-comment-o"></i> {$TASK.comment_count}</span>{/if}
+                                </span>
+                                <div class="card-progress-wrap mk-project-task-board__progress">
+                                    <div class="card-progress-track">
+                                        <div class="card-progress-fill" style="width: {$CARD_PROGRESS_NUM|default:0}%"></div>
+                                    </div>
+                                    <span class="card-progress-value">{if $TASK.projecttaskstatus eq 'Completed'}100%{elseif $TASK.progress}{$TASK.progress}{else}0%{/if}</span>
+                                </div>
                             </div>
                         </div>
                     {/foreach}
@@ -48,21 +79,21 @@
         {/foreach}
     </div>
 
-    <div class="task-detail-modal hidden">
-        <div class="task-detail-dialog">
-            <div class="task-detail-header">
-                <div class="header-left">
-                    <span class="status-pill detail-status">--</span>
-                    <span class="detail-id"></span>
+    <div class="task-detail-modal mk-project-task-detail-modal hidden">
+        <div class="task-detail-dialog mk-project-task-detail">
+            <div class="task-detail-header mk-project-task-detail__header">
+                <div class="header-left mk-project-task-detail__header-left">
+                    <span class="status-pill detail-status mk-project-task-detail__status">--</span>
+                    <span class="detail-id mk-project-task-detail__id"></span>
                 </div>
-                <div class="header-right">
-                    <button class="tab-btn active">Comments</button>
-                    <button class="tab-btn">Task history</button>
-                    <span class="panel-close">&times;</span>
+                <div class="header-right mk-project-task-detail__header-right">
+                    <button type="button" class="tab-btn mk-project-task-detail__nav-tab active" data-tab="comments">Comments</button>
+                    <button type="button" class="tab-btn mk-project-task-detail__nav-tab" data-tab="history">Task history</button>
+                    <button type="button" class="panel-close mk-project-task-detail__close" aria-label="Close">&times;</button>
                 </div>
             </div>
-            <div class="task-detail-content">
-                <div class="task-detail-left">
+            <div class="task-detail-content mk-project-task-detail__body">
+                <div class="task-detail-left mk-project-task-detail__main">
                     <div class="detail-back-wrap hide"><a href="javascript:void(0)" class="detail-back-link">← Back to <span class="detail-back-parent-name"></span></a></div>
                     <div class="detail-breadcrumb">{$PROJECT_NAME|default:''} › {vtranslate('LBL_TASKS', 'Project')}</div>
                     <div class="detail-title"></div>
@@ -114,52 +145,45 @@
                                 </select>
                             </span>
                         </div>
-                        <div class="detail-row">
-                            <a class="detail-link" href="javascript:void(0)">Add field</a>
-                            <span>or</span>
-                            <a class="detail-link" href="javascript:void(0)">Manage fields</a>
-                        </div>
                     </div>
-                    <div class="detail-subtasks board-subtasks-block">
-                        <div class="section-label">Subtasks</div>
-                        <div class="tasksListToolbar">
-                            <input type="text" class="form-control board-subtask-title-input quickAddTaskInput" placeholder="Add task and hit enter/return key" />
-                            <button type="button" class="btn btn-primary btn-sm board-subtask-save-btn">{vtranslate('LBL_SAVE', 'ProjectTask')}</button>
+                    <div class="detail-subtasks mk-pt-subtasks board-subtasks-block">
+                        <div class="section-label mk-pt-subtasks__title">Subtasks</div>
+                        <div class="tasksListToolbar mk-pt-subtasks__toolbar">
+                            <input type="text" class="form-control mk-pt-subtasks__input board-subtask-title-input quickAddTaskInput" placeholder="Add a subtask and press Enter" />
+                            <button type="button" class="btn btn-primary btn-sm mk-pt-subtasks__save board-subtask-save-btn">{vtranslate('LBL_SAVE', 'ProjectTask')}</button>
                         </div>
-                        <div class="task-list-container">
-                            <div class="task-list-empty text-muted">{vtranslate('LBL_NO_SUBTASKS', 'ProjectTask')}</div>
-                            <ul class="task-list list-unstyled"></ul>
+                        <div class="task-list-container mk-pt-subtasks__list-wrap">
+                            <div class="task-list-empty mk-pt-subtasks__empty text-muted">{vtranslate('LBL_NO_SUBTASKS', 'ProjectTask')}</div>
+                            <ul class="task-list mk-pt-subtasks__list list-unstyled"></ul>
                         </div>
                     </div>
                 </div>
-                <div class="task-detail-right">
-                    <div class="ann-detail-tabs">
+                <div class="task-detail-right mk-project-task-detail__sidebar">
+                    <div class="ann-detail-tabs mk-project-task-detail__sidebar-tabs">
                         <button type="button" class="ann-tab task-detail-tab active" data-tab="comments">Comments <span class="badge task-comments-badge">0</span></button>
                         <button type="button" class="ann-tab task-detail-tab" data-tab="history">Task history</button>
                     </div>
-                    <div id="task-panel-comments-list" class="ann-detail-panel task-detail-panel">
+                    <div id="task-panel-comments-list" class="ann-detail-panel task-detail-panel mk-project-task-detail__panel mk-project-task-detail__panel--comments">
                         <ul class="ann-comments-list list-unstyled task-comments-list"></ul>
-                        <div class="ann-add-comment">
-                            <div class="task-comment-toolbar">
-                                <button type="button" class="btn btn-default btn-xs task-comment-emoji-btn" title="Emoji">&#128512;</button>
+                        <div class="ann-add-comment mk-project-task-detail__composer">
+                            <div class="task-comment-toolbar mk-project-task-detail__composer-toolbar">
                                 <button type="button" class="btn btn-default btn-xs task-comment-upload-btn" title="Upload from computer"><span class="fa fa-paperclip"></span> Upload</button>
                                 <input type="file" class="task-comment-file-input" accept="*" style="display:none" />
                                 <span class="task-comment-file-name text-muted small hidden"></span>
                             </div>
-                            <div class="task-comment-emoji-picker hidden"></div>
-                            <textarea class="form-control task-comment-input" rows="2" placeholder="Write a comment"></textarea>
-                            <button type="button" class="btn btn-primary btn-sm task-comment-add">Add</button>
+                            <textarea class="form-control task-comment-input mk-project-task-detail__composer-input" rows="3" placeholder="Write a comment"></textarea>
+                            <button type="button" class="btn btn-primary btn-sm task-comment-add mk-project-task-detail__composer-add">Add</button>
                         </div>
                     </div>
-                    <div id="task-panel-history" class="ann-detail-panel task-detail-panel hide">
+                    <div id="task-panel-history" class="ann-detail-panel task-detail-panel mk-project-task-detail__panel mk-project-task-detail__panel--history hide">
                         <ul class="task-history-list list-unstyled"></ul>
                         <div class="task-history-empty text-muted small">No history yet.</div>
                     </div>
                 </div>
             </div>
-            <div class="task-detail-footer">
-                <button class="btn btn-primary detail-save">Save</button>
-                <button class="btn btn-default detail-cancel">Cancel</button>
+            <div class="task-detail-footer mk-project-task-detail__footer">
+                <button type="button" class="btn btn-primary detail-save mk-project-task-detail__btn-save">Save</button>
+                <button type="button" class="btn btn-default detail-cancel mk-project-task-detail__btn-cancel">Cancel</button>
             </div>
         </div>
     </div>
@@ -190,8 +214,8 @@
     var commentFileInput = board.querySelector('.task-comment-file-input');
     var commentFileName = board.querySelector('.task-comment-file-name');
     var commentEmojiPicker = board.querySelector('.task-comment-emoji-picker');
-    var subtaskList = board.querySelector('.board-subtasks-block .task-list');
-    var subtaskEmpty = board.querySelector('.board-subtasks-block .task-list-empty');
+    var subtaskList = board.querySelector('.mk-pt-subtasks__list');
+    var subtaskEmpty = board.querySelector('.mk-pt-subtasks__empty');
     var subtaskTitleInput = board.querySelector('.board-subtask-title-input');
     var subtaskSaveBtn = board.querySelector('.board-subtask-save-btn');
     var currentTask = null;
@@ -248,7 +272,14 @@
         if (endEl) endEl.value = task.enddate || '';
         if (ownerSelect && task.smownerid) ownerSelect.value = task.smownerid;
         if (progressEl) progressEl.value = (task.progress != null ? task.progress : (task.projecttaskprogress != null ? task.projecttaskprogress : '0')).toString().replace(/%/g, '');
-        if (statusEl) statusEl.textContent = task.projecttaskstatus || '--';
+        if (statusEl) {
+            statusEl.textContent = task.projecttaskstatus || '--';
+            statusEl.className = 'status-pill detail-status mk-project-task-detail__status';
+            var statusKey = (task.projecttaskstatus || '').toLowerCase().replace(/\s+/g, '-');
+            if (statusKey) {
+                statusEl.classList.add('mk-project-task-detail__status--' + statusKey);
+            }
+        }
         if (statusSelect) statusSelect.value = task.projecttaskstatus || '';
         if (idEl) idEl.textContent = task.recordid ? ('#' + task.recordid) : '';
         if (backWrap) backWrap.classList.toggle('hide', parentStack.length === 0);
@@ -322,7 +353,7 @@
             });
             statusHtml += '</div></span>';
             var item = document.createElement('li');
-            item.className = 'task-list-row';
+            item.className = 'mk-pt-subtasks__row task-list-row';
             item.setAttribute('data-recordid', st.recordid);
             item.innerHTML = '<span class="task-check-wrap"><input type="checkbox" class="task-checkbox" ' + (completed ? 'checked' : '') + ' /></span>' +
                 statusHtml +
@@ -478,7 +509,7 @@
     function switchTaskDetailTab(tab) {
         var commentsPanel = board.querySelector('#task-panel-comments-list');
         var historyPanel = board.querySelector('#task-panel-history');
-        var tabs = board.querySelectorAll('.task-detail-tab');
+        var tabs = board.querySelectorAll('.mk-project-task-detail__nav-tab, .task-detail-tab');
         tabs.forEach(function (t) {
             t.classList.toggle('active', t.getAttribute('data-tab') === tab);
         });
@@ -518,7 +549,7 @@
         });
     }
 
-    board.querySelectorAll('.task-detail-tab').forEach(function (tab) {
+    board.querySelectorAll('.mk-project-task-detail__nav-tab, .task-detail-tab').forEach(function (tab) {
         tab.addEventListener('click', function () {
             var t = this.getAttribute('data-tab');
             if (t) switchTaskDetailTab(t);
@@ -538,7 +569,7 @@
     }
     if (subtaskList) {
         subtaskList.addEventListener('click', function (e) {
-            var item = e.target.closest('.task-list-row');
+            var item = e.target.closest('.mk-pt-subtasks__row');
             if (!item) return;
             var recordId = item.getAttribute('data-recordid');
             if (e.target.closest('.task-checkbox')) {
@@ -570,7 +601,7 @@
                             if (err) return;
                             var progress = (newStatus === 'Completed') ? '100%' : '0%';
                             app.request.post({ data: { module: 'ProjectTask', action: 'SaveAjax', record: rid, field: 'projecttaskprogress', value: progress } }).then(function () {
-                                var row = wrap.closest('.task-list-row');
+                                var row = wrap.closest('.mk-pt-subtasks__row');
                                 if (row) {
                                     var trigIcon = wrap.querySelector('.subtask-status-trigger .subtask-status-icon');
                                     if (trigIcon) trigIcon.className = 'subtask-status-icon ' + getStatusIconClass(newStatus);
@@ -764,7 +795,7 @@
             }
     });
     /* Drag and drop tasks between columns */
-    var statusMap = { 'Backlog': 'Open', 'In Progress': 'In Progress', 'Completed': 'Completed' };
+    var statusMap = { 'Backlog': 'Open', 'In Progress': 'In Progress', 'Completed': 'Completed', 'Redundancy': 'Open' };
     var draggedCard = null;
     var columns = board.querySelectorAll('.board-column');
 
@@ -811,9 +842,23 @@
             } catch (_) {}
             if (!taskData.recordid) return;
             cardsContainer.appendChild(draggedCard);
+            var emptyEl = cardsContainer.querySelector('.board-cards-empty');
+            if (emptyEl) emptyEl.classList.add('hidden');
             taskData.projecttaskstatus = newStatus;
             draggedCard.setAttribute('data-task', JSON.stringify(taskData));
+            draggedCard.classList.toggle('mk-project-task-board__card--done', newStatus === 'Completed');
             updateColumnCounts();
+            updateColumnEmptyStates();
+            if (newStatus === 'Completed') {
+                draggedCard.classList.add('mk-project-task-board__card--done');
+                var fill = draggedCard.querySelector('.card-progress-fill');
+                var val = draggedCard.querySelector('.card-progress-value');
+                if (fill) fill.style.width = '100%';
+                if (val) val.textContent = '100%';
+                taskData.progress = '100%';
+            } else {
+                draggedCard.classList.remove('mk-project-task-board__card--done');
+            }
             if (typeof app !== 'undefined' && app.request) {
                 app.request.post({
                     data: {
@@ -844,6 +889,14 @@
             var count = cards ? cards.querySelectorAll('.board-card').length : 0;
             var badge = col.querySelector('.status-count');
             if (badge) badge.textContent = count;
+        });
+    }
+
+    function updateColumnEmptyStates() {
+        board.querySelectorAll('.board-cards').forEach(function (cardsEl) {
+            var count = cardsEl.querySelectorAll('.board-card').length;
+            var empty = cardsEl.querySelector('.board-cards-empty');
+            if (empty) empty.classList.toggle('hidden', count > 0);
         });
     }
 

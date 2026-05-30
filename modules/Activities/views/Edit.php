@@ -1,9 +1,53 @@
 <?php
 /*+***********************************************************************************
- * Activities_Edit_View – create / edit activity.
+ * Activities Edit — create / edit activity (SUPPORT app modern UI).
  ************************************************************************************/
 
 class Activities_Edit_View extends Vtiger_Edit_View {
+
+	protected function isSupportApp(Vtiger_Request $request) {
+		$appName = strtoupper((string)$request->get('app'));
+		return ($appName === 'SUPPORT' || $appName === '');
+	}
+
+	protected function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isSupportApp($request)) {
+			return 'EditViewPreProcess.tpl';
+		}
+		return parent::preProcessTplName($request);
+	}
+
+	protected function assignSupportContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+		$appName = $request->get('app');
+		$viewer->assign('SELECTED_MENU_CATEGORY', !empty($appName) ? $appName : 'SUPPORT');
+		$viewer->assign('VIEW', 'Edit');
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'Activities');
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		$this->assignSupportContext($request);
+		if ($this->isSupportApp($request)) {
+			$viewer = $this->getViewer($request);
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'SUPPORT');
+		}
+		parent::preProcess($request, $display);
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		if ($this->isSupportApp($request)) {
+			$viewer->view('EditViewPostProcess.tpl', $request->getModule());
+		} else {
+			$viewer->view('IndexPostProcess.tpl', $request->getModule());
+		}
+		Vtiger_Basic_View::postProcess($request);
+	}
+
 	public function requiresPermission(Vtiger_Request $request) {
 		return [];
 	}
@@ -42,7 +86,6 @@ class Activities_Edit_View extends Vtiger_Edit_View {
 			}
 		}
 
-		// dropdowns
 		$accounts = [];
 		$res = $adb->pquery(
 			"SELECT acc.accountid, acc.accountname
@@ -78,9 +121,10 @@ class Activities_Edit_View extends Vtiger_Edit_View {
 			$fromTicket = 1;
 		}
 
+		$this->assignSupportContext($request);
 		$viewer = $this->getViewer($request);
-		$viewer->assign('MODULE', 'Activities');
 		$viewer->assign('RECORD', $data);
+		$viewer->assign('MODE', (!empty($data['activityid']) ? 'edit' : 'create'));
 		$viewer->assign('FROM_TICKET', $fromTicket);
 		$viewer->assign('ACCOUNTS', $accounts);
 		$viewer->assign('PROJECTS', $projects);

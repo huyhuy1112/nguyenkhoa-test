@@ -1,0 +1,2843 @@
+/**
+ * B-ACE CRM — MANAGEMENT app dark overrides.
+ * MainPage, Calendar, ProjectTask, Project, Reports, Teams, Documents.
+ * Loads last via MkThemeStylesLast.tpl (after module *MkView.css).
+ */
+
+/* ========================================================================== */
+/* Token remap (beat module re-declarations)                                  */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"],
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"],
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"],
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"],
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] {
+	--mk-mainpage-bg: var(--mk-bg-primary);
+	--mk-doc-bg: var(--mk-bg-primary);
+	--mk-doc-surface: var(--mk-card-bg);
+	--mk-doc-surface-dim: var(--mk-bg-elevated);
+	--mk-doc-glass: rgba(28, 35, 48, 0.92);
+	--mk-doc-border: var(--mk-border-color);
+	--mk-doc-border-strong: var(--mk-border-accent);
+	--mk-doc-text: var(--mk-text-primary);
+	--mk-doc-muted: var(--mk-text-muted);
+	--mk-doc-accent: var(--mk-text-secondary);
+	--mk-doc-accent-soft: var(--mk-bg-hover);
+	--mk-doc-accent-hover: var(--mk-primary);
+	--mk-doc-shadow: var(--mk-shadow-card);
+	--mk-doc-shadow-hover: var(--mk-shadow-md);
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] {
+	--mk-proj-title: var(--mk-text-primary);
+	--mk-proj-muted: var(--mk-text-muted);
+	--mk-proj-card-bg: var(--mk-card-bg);
+	--mk-proj-border: var(--mk-border-color);
+	--mk-proj-page-bg: var(--mk-bg-primary);
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] {
+	--mk-ptask-dtl-title: var(--mk-text-primary);
+	--mk-ptask-dtl-muted: var(--mk-text-muted);
+	--mk-ptask-dtl-card-bg: var(--mk-card-bg);
+	--mk-ptask-dtl-border: var(--mk-border-color);
+	--mk-ptask-dtl-page-bg: var(--mk-bg-primary);
+}
+
+/* ========================================================================== */
+/* Shared MANAGEMENT shell canvas                                               */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-app-shell,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] .mk-dash-main,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-dash-main,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-dash-main,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-dash-main,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #page,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #page.container-fluid,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] #page,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .main-container.main-container-Calendar {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar.navbar-default.app-fixed-navbar,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-topbar .mk-dash-app-topbar {
+	background: var(--mk-topbar-bg) !important;
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+	box-shadow: none !important;
+}
+
+/* ========================================================================== */
+/* MainPage dashboard                                                         */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-figma-root,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-page,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-content {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-hero-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-hero-kicker {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mainpage-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mainpage-card .card-header,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mainpage-card .card-header.subtle {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mainpage-card .card-header .title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mainpage-table tbody td {
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mainpage-table tbody td a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .announcement-item {
+	background: var(--mk-bg-elevated) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	border-radius: 10px !important;
+	padding: 10px 12px !important;
+	margin-bottom: 8px !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .announcement-item:last-child {
+	margin-bottom: 0 !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .shortcuts-grid .shortcut {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-filter-row,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-hero-filters .mainpage-global-filter-inner.mk-mainpage-filter-row {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-filter-field .mainpage-global-filter-label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-filter-field .mainpage-global-filter-select,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-filter-field .mainpage-global-filter-date {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+/* ========================================================================== */
+/* Calendar                                                                   */
+/* ========================================================================== */
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .CalendarViewPageDiv,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-content-area,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-page,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] #CalendarViewContent {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-grid-surface,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-headerbar,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-activitytypes-card,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-mini-calendar,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-view-container,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-widget-header,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-widget-content {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .CalendarViewPageDiv.content-area,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] #mycalendar,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .calendarview,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .fc,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .fc-day-header,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .fc-body .fc-widget-content,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .fc-time-grid .fc-day:not(.fc-today),
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-day-header,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-axis,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-slats,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-bg-table .fc-bg {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-headerbar__link,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-headerbar__current,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-headerbar__left {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-headerbar__sep {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-action-btn,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-toolbar-btn {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .fc-time,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-axis {
+	color: var(--mk-text-muted) !important;
+}
+
+/* ========================================================================== */
+/* Project + ProjectTask lists (shared mk-so-* table chrome)                  */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-table-card,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-table-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--outline,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--outline:hover,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--outline:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn__ic,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn__ic {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row {
+	background: var(--mk-table-header-bg) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #table-content.table-container {
+	background: var(--mk-card-bg) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table thead tr.listViewContentHeader,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table thead tr.listViewContentHeader th {
+	background: var(--mk-table-header-bg) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table thead tr.listViewContentHeader th,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table thead tr.searchRow th {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table tbody tr.listViewEntries td,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table tbody tr.listViewEntries td .value,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table tbody tr.listViewEntries td .fieldValue {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table.listview-table > tbody > tr.listViewEntries:nth-child(even),
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent .listview-table > tbody > tr.listViewEntries:nth-child(even) {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table.listview-table > tbody > tr.listViewEntries:hover,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent .listview-table > tbody > tr.listViewEntries:hover {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table a,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table .listViewEntries a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table thead tr.searchRow input.listSearchContributor,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table thead tr.searchRow select.listSearchContributor,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table thead tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent #listview-table thead tr.searchRow .select2-container-multi .select2-choices {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent .mk-so-icon-btn,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent .mk-so-mass-btn,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent .mk-so-filter-row__footer {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent .mk-so-page-numbers,
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent .mk-so-page-numbers .pageNumbersText {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"] #listViewContent .mk-so-pagination .mk-so-page-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Reports Management                                                         */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-subtitle,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-breadcrumb {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-card,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-panel {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-card-title,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-section-header {
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-card-subtitle,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-field label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-field .form-control {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-default,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-danger {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody td {
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-subtle) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody tr:hover td,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table.table-striped > tbody > tr:nth-of-type(odd) > td {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody a.text-primary,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table .report-task-link {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-empty,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-empty .text-muted {
+	color: var(--mk-text-muted) !important;
+}
+
+/* ========================================================================== */
+/* Teams list                                                                 */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-page-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-page-subtitle,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-breadcrumb {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-btn--outline,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-icon-btn {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-panel,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-panel,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-table-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-panel__title,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-panel__label,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-toolbar__title {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link__name {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link__meta {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-item.is-active .mk-teams-groups-link {
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-search,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-search-input {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-table thead th,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-table tbody td {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-table tbody tr:hover td {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-tab {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-tab.is-active {
+	color: var(--mk-primary) !important;
+	border-bottom-color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .dropdown-menu {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .dropdown-menu > li > a {
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Documents list (premium workspace)                                         */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace.doc-management-view {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-rail,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-panel,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-hero,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-filter-chip,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-empty-state {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-rail__label,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-rail__count,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-folder__name,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-hero__title,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-breadcrumb__current {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-breadcrumb__link,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-hero__meta,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-rail__empty {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-rail__search-input,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-search-input,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listview-table thead tr.searchRow input,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listview-table thead tr.searchRow select,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listview-table thead tr.searchRow .select2-container .select2-choice {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listview-table thead tr.listViewContentHeader th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listview-table tbody tr.listViewEntries td,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listview-table tbody tr.listViewEntries td .value {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listview-table tbody tr.listViewEntries:hover {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listview-table a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-btn--outline,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-btn--ghost {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-folder.is-active,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-folder:hover {
+	background: var(--mk-bg-hover) !important;
+}
+
+/* ========================================================================== */
+/* High-specificity fixes (module CSS loads with body[module] + !important)     */
+/* ========================================================================== */
+
+/* MainPage — beat MainPageMkView.css white cards / filters / shortcuts */
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mainpage-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mainpage-card .card-header .title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-filter-field .mainpage-global-filter-label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-filter-field .mainpage-global-filter-select,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-filter-field .mainpage-global-filter-date {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-mainpage-filter-field .mainpage-global-filter-select option {
+	background: var(--mk-input-bg) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .announcement-item {
+	background: var(--mk-bg-elevated) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	border-radius: 10px !important;
+	padding: 10px 12px !important;
+	margin-bottom: 8px !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .shortcuts-grid .shortcut {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mainpage-table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* Calendar — white toolbar / grid + invisible h1 title */
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-headerbar,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-toolbar,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-grid-surface,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-mini-calendar {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-toolbar__title,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-mini-title,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-headerbar__link,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-headerbar__current {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-headerbar__left {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-view-tab {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-view-tab.is-active,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-view-tab[aria-selected="true"] {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-mini-nav {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-activities-title,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-activity__title {
+	color: var(--mk-text-primary) !important;
+}
+
+/* Project / ProjectTask lists — toolbar bands + zebra rows + dark link override */
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #table-content + .mk-so-filter-row__footer,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #table-content + .mk-so-filter-row__footer,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-table-card .mk-so-filter-row__footer,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-table-card .mk-so-filter-row__footer {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table.listview-table > thead > tr.listViewContentHeader > th,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table.listview-table > thead > tr.listViewContentHeader > th,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.list-view-sidebar-offset .listview-table > thead > tr.listViewContentHeader > th,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.list-view-sidebar-offset .listview-table > thead > tr.listViewContentHeader > th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table.listview-table > tbody > tr.listViewEntries:nth-child(even),
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table.listview-table > tbody > tr.listViewEntries:nth-child(even),
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.list-view-sidebar-offset .listview-table > tbody > tr.listViewEntries:nth-child(even),
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.list-view-sidebar-offset .listview-table > tbody > tr.listViewEntries:nth-child(even) {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table.listview-table > tbody > tr.listViewEntries:hover,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table.listview-table > tbody > tr.listViewEntries:hover,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.list-view-sidebar-offset .listview-table > tbody > tr.listViewEntries:hover,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.list-view-sidebar-offset .listview-table > tbody > tr.listViewEntries:hover {
+	background: var(--mk-table-row-hover) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table tbody tr.listViewEntries td,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tbody tr.listViewEntries td,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table tbody tr.listViewEntries td .value,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tbody tr.listViewEntries td .value,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table tbody tr.listViewEntries td .fieldValue,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tbody tr.listViewEntries td .fieldValue {
+	color: var(--mk-text-primary) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table a,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table .listViewEntries a,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table a,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table .listViewEntries a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .pageNumbersText,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .pageNumbersText {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagination .mk-so-page-btn,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagination .mk-so-page-btn,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-mass-btn,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-mass-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* Reports — white report panels + invisible table text */
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-panel,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody td {
+	color: var(--mk-text-primary) !important;
+	background: transparent !important;
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody tr:hover td,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table.table-striped > tbody > tr:nth-of-type(odd) > td {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody a.text-primary,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table .report-task-link {
+	color: var(--mk-text-link) !important;
+}
+
+/* Teams — dark text on dark panels */
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link__name {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-item.is-active .mk-teams-groups-link {
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-table thead th,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-table tbody td,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-role-header td,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-role-th {
+	color: var(--mk-text-primary) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-table tbody tr:hover td {
+	background: var(--mk-table-row-hover) !important;
+}
+
+/* Documents — white folder rail + table rows */
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace.doc-management-view,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-panel,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table > thead > tr.listViewContentHeader > th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	backdrop-filter: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table > tbody > tr.listViewEntries > td,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table > tbody > tr.listViewEntries:nth-child(even) > td {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table > tbody > tr.listViewEntries:hover > td {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table td .fieldValue .value,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table td .fieldValue .value span {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table td .fieldValue .value a {
+	color: var(--mk-text-link) !important;
+}
+
+/* ========================================================================== */
+/* Phase 3 — beat module body[module][view][app] + :has() specificity         */
+/* ========================================================================== */
+
+/* ---- Calendar (mirror CalendarMkView.css :has selectors) ---- */
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.mk-cal-page),
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv),
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.mk-cal-page) #page,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #page,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-dash-main,
+html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .main-container-Calendar.mk-cal-page {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .CalendarViewPageDiv,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .CalendarViewPageDiv.content-area,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #mycalendar,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .calendarview,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-header,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-body .fc-widget-content,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-time-grid .fc-day:not(.fc-today),
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-grid .fc-day:not(.fc-today),
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host.calendarview,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-view-container,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-widget-header,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-row,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-content-skeleton,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid-container,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-day-grid-container,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-scroller,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-slats,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-divider,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-row > .fc-bg,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-bg-table .fc-bg,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day-header,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day-number,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day.fc-today {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-day-header,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-axis,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid-event .fc-time,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid-event .fc-title,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-number,
+html[data-theme="dark"] html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-time {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-layout,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-layout__aside,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-layout__main,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-layout__grid-wrap,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-sidebar,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-card,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-mini-calendar {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-grid-surface,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-headerbar,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-toolbar {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-toolbar__title,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-mini-title,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-headerbar__link,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-headerbar__current,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-headerbar__left {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-view-tab {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-view-tab.is-active,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-view-tab[aria-selected="true"] {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-action-btn,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-mini-nav,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-toolbar-btn,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-nav-arrow,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-nav-icon {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid .fc-slats td {
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-card,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .sidebar-widget-body.activitytypes {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .sidebar-header h5,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .sidebar-btn.add-calendar-feed {
+	color: var(--mk-text-primary) !important;
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* ---- Project / ProjectTask lists — toolbar + buttons + progress ---- */
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.list-view-sidebar-offset .listview-actions-container,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent .listview-actions-container.mk-so-filter-row,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.list-view-sidebar-offset .listview-actions-container,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent .listview-actions-container.mk-so-filter-row,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--outline,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-btn--outline,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--outline,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--outline:hover,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-btn--outline:hover,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--outline:hover,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-btn--outline:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-btn,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-more,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__right .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-mass-btn,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-btn,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-more,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__right .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-mass-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table .mk-projecttask-progress {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table .mk-projecttask-progress__label {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listview-table input[type="checkbox"] {
+	accent-color: var(--mk-primary);
+	background-color: var(--mk-input-bg) !important;
+	border: 1px solid var(--mk-border-color) !important;
+}
+
+/* Project list checkboxes styled in ProjectMkView.css (custom ::after tick) */
+
+/* ---- Teams — people toolbar white band ---- */
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-toolbar {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-toolbar__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-search-input {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-panel {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* ---- Documents — table container + toolbar white bands ---- */
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #table-content.table-container,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .table-container,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card__body {
+	background: var(--mk-card-bg) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] #table-content + .mk-so-filter-row__footer,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card .mk-so-filter-row__footer {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-actions-container .btn,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-actions-container .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-actions-container .mk-so-mass-more {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-actions-container .row:last-child,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listview-actions + .row,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .mk-so-page-numbers,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .mk-so-page-numbers .pageNumbersText {
+	background: transparent !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-rail__add,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ---- Reports — chart panels + demo chart area ---- */
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-card,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-panel {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-empty {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-empty .text-muted,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-chart-meta,
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-reports-mgmt-chart-meta strong {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-default {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Phase 4 — Calendar full dark, Documents custom.css, Project toolbar UX     */
+/* ========================================================================== */
+
+/* ---- Calendar: html.mk-cal-ui-ready + data-theme on same element ---- */
+html[data-theme="dark"].mk-cal-ui-ready,
+html[data-theme="dark"].mk-cal-ui-ready body,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.mk-cal-page),
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv),
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] #page,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #page,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] .main-container.main-container-Calendar,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-main,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] .mk-dash-main {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .CalendarViewPageDiv,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .CalendarViewPageDiv.content-area,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #mycalendar,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .calendarview,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-header,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-body .fc-widget-content,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-grid .fc-day:not(.fc-today),
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-time-grid .fc-day:not(.fc-today),
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host.calendarview,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-view-container,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-widget-header,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-row,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-content-skeleton,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid-container,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-day-grid-container,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-scroller,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-slats,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-divider,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-row > .fc-bg,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-bg-table .fc-bg,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-widget-content,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-grid-surface,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-headerbar,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-toolbar,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-calendar,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-activitytypes-card,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-activitytypes-inner .sidebar-widget-body.activitytypes {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-grid .fc-day.fc-today,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-time-grid .fc-day.fc-today,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] .fc-day-grid .fc-day.fc-today,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] .fc-time-grid .fc-day.fc-today {
+	background: rgba(253, 187, 44, 0.1) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-header.fc-today,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] .fc-day-header.fc-today {
+	background: rgba(253, 187, 44, 0.16) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-day-header,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-axis,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid-event .fc-time,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid-event .fc-title,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-number,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-time,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-toolbar__title,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-title,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-headerbar__link,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-headerbar__current,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-headerbar__left,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-view-tab {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-view-tab.is-active,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-view-tab[aria-selected="true"] {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-time-grid .fc-slats td,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-fc-host .fc-widget-content {
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-action-btn {
+	background: rgba(253, 187, 44, 0.14) !important;
+	border: 1px solid rgba(253, 187, 44, 0.45) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-action-btn:hover {
+	background: rgba(253, 187, 44, 0.24) !important;
+}
+
+/* ---- Project / ProjectTask — list/grid toggle (toolbar only, separate dark buttons) ---- */
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-actions .mk-so-toolbar-toggles,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles,
+html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles {
+	display: inline-flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	gap: 6px !important;
+	padding: 0 !important;
+	height: auto !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn,
+html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn {
+	width: 38px !important;
+	height: 38px !important;
+	min-width: 38px !important;
+	min-height: 38px !important;
+	flex: 0 0 38px !important;
+	padding: 0 !important;
+	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	border-radius: 10px !important;
+	background: #252d3d !important;
+	box-shadow: none !important;
+	line-height: 1 !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic,
+html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic {
+	color: #cbd5e1 !important;
+	line-height: 1 !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout[aria-pressed="true"],
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
+html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active {
+	background: rgba(253, 187, 44, 0.18) !important;
+	border-color: rgba(253, 187, 44, 0.55) !important;
+	box-shadow: inset 0 0 0 1px rgba(253, 187, 44, 0.35) !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active .mk-so-icon-btn__ic,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active .mk-so-icon-btn__ic,
+html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active .mk-so-icon-btn__ic {
+	color: #fdbb2c !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-table .table-actions .mk-so-toolbar-toggles,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table .table-actions .mk-so-toolbar-toggles,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table .table-actions .mk-so-toolbar-toggles {
+	display: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__right .mk-so-icon-btn,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__right .mk-so-icon-btn {
+	background: var(--mk-bg-hover) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	border-radius: 10px !important;
+}
+
+/* ---- Documents — beat custom.css gradient + white table shell ---- */
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listViewContent.list-view-sidebar-offset,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listViewContent.listViewPageDiv,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listViewPageDiv.content-area {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listViewContent.list-view-sidebar-offset .listview-table,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #table-content.table-container,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .table-container,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .floatThead-wrapper,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card__body,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card__body > .col-sm-12,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card__body > .col-xs-12 {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listViewContent.list-view-sidebar-offset .listview-table > thead > tr.listViewContentHeader > th,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table > thead > tr.listViewContentHeader > th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-color: var(--mk-border-color) !important;
+	backdrop-filter: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listViewContent.list-view-sidebar-offset .listview-table tr.searchRow th,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table tr.searchRow th {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listViewContent.list-view-sidebar-offset .listview-table > tbody > tr.listViewEntries:nth-child(even),
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table > tbody > tr.listViewEntries:nth-child(even) > td {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace #listViewContent.list-view-sidebar-offset .listview-table > tbody > tr.listViewEntries:hover,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table > tbody > tr.listViewEntries:hover > td {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table tr.searchRow input.listSearchContributor,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table tr.searchRow select.listSearchContributor,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table tr.searchRow .select2-container-multi .select2-choices {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listview-table tr.searchRow .btn-success {
+	background: var(--mk-primary) !important;
+	color: #1a1a1a !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-hero__main {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-rail__add {
+	background: var(--mk-btn-secondary-bg) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card:has(.listViewEntries) .mk-doc-empty,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-table-card:has(tbody tr.listViewEntries) #mkDocEmpty {
+	display: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-empty {
+	background: var(--mk-bg-elevated) !important;
+	border-top: 1px solid var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-empty__title {
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Phase 5 — Documents toolbar, Project toggle, Calendar mini numbers         */
+/* ========================================================================== */
+
+/* ---- Documents (Image 1): legacy ListViewActions bar (Edit / Delete / More) ---- */
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main #listview-actions.listview-actions-container,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .doc-management-main .listview-actions-container {
+	background: var(--mk-bg-elevated) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main #listview-actions.listview-actions-container .btn-default,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main #listview-actions.listview-actions-container .dropdown-toggle,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main .listview-actions-container .listViewActionsContainer .btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main #listview-actions.listview-actions-container .btn-default:hover:not(:disabled),
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main #listview-actions.listview-actions-container .dropdown-toggle:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main .listview-actions-container .pagination,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main .listview-actions-container .pageNumbersText,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main .listview-actions-container .totalNumberOfRecords,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main .listview-pagination,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main .listview-actions-container .pageJump {
+	color: var(--mk-text-secondary) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main .listview-actions-container .pagination .btn,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main .listview-pagination .btn,
+html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .doc-management-main .listview-actions-container .pageJumpData {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ---- Project: list/grid toggle — toolbar only ---- */
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listViewContent #listview-actions .mk-so-toolbar-toggles,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles {
+	display: inline-flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	gap: 6px !important;
+	padding: 0 !important;
+	height: auto !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn.mk-so-toggle-layout,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn.mk-so-toggle-layout,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn.mk-so-toggle-layout {
+	width: 38px !important;
+	height: 38px !important;
+	min-width: 38px !important;
+	min-height: 38px !important;
+	flex: 0 0 38px !important;
+	padding: 0 !important;
+	background: #252d3d !important;
+	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	border-radius: 10px !important;
+	box-shadow: none !important;
+	line-height: 1 !important;
+	-webkit-appearance: none !important;
+	appearance: none !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout[aria-pressed="true"] {
+	background: rgba(253, 187, 44, 0.18) !important;
+	border-color: rgba(253, 187, 44, 0.55) !important;
+	box-shadow: inset 0 0 0 1px rgba(253, 187, 44, 0.35) !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic {
+	color: #cbd5e1 !important;
+	line-height: 1 !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active .mk-so-icon-btn__ic,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active .mk-so-icon-btn__ic {
+	color: #fdbb2c !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-table .table-actions .mk-so-toolbar-toggles,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table .table-actions .mk-so-toolbar-toggles,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table .table-actions .mk-so-toolbar-toggles {
+	display: none !important;
+}
+
+/* ---- Calendar mini (Image 3): dark shell + bright day numbers ---- */
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-wrap {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-nav {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-view-container,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-widget-header,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-head-container,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-row,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-day,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-day-header,
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini th,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day-header,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day-header {
+	color: var(--mk-text-muted) !important;
+	background: var(--mk-bg-elevated) !important;
+	font-weight: 600 !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-day-number,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day-number,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day-number {
+	color: #e8eaed !important;
+	font-weight: 500 !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-other-month .fc-day-number,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-other-month .fc-day-number,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-other-month .fc-day-number {
+	color: var(--mk-text-muted) !important;
+	opacity: 0.85 !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-day.fc-today,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day.fc-today,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day.fc-today {
+	background: transparent !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-day.fc-today .fc-day-number,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day.fc-today .fc-day-number,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day.fc-today .fc-day-number {
+	background: var(--mk-primary) !important;
+	color: #1a1a1a !important;
+	border-radius: 50% !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready .mk-cal-mini-grid-host #calendar-mini .fc-day:hover,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day:hover,
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day:hover {
+	background: var(--mk-bg-hover) !important;
+}
+
+/* ========================================================================== */
+/* Phase 6 — MANAGEMENT Detail, MainPage KPI/Ann, Calendar QC, Task modal     */
+/* ========================================================================== */
+
+/* ---- MainPage — KPI labels (beat custom.css #0f172a / #64748b) ---- */
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .kpi-chart-title,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .kpi-bar-label,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .kpi-bar-row-vertical .kpi-bar-label,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .kpi-bar-val,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .kpi-pie-legend-item,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .kpi-line-legend-item,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .kpi-stacked-legend-item {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .kpi-chart-select,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .area-kpi .kpi-actions select {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .area-ann .announcements-body,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .area-ann .ann-list-wrap,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .announcements .card-body {
+	background: var(--mk-bg-elevated) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	border-left: 3px solid var(--mk-primary) !important;
+	border-radius: 10px !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .announcements-list {
+	padding: 4px 0 !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .announcement-item,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-item-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-item-title {
+	font-weight: 600 !important;
+	line-height: 1.4 !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-item-time {
+	background: rgba(253, 187, 44, 0.22) !important;
+	color: #fcd34d !important;
+	border: 1px solid rgba(253, 187, 44, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-item-clickable:hover {
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .area-ann .ann-empty {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .team-status-name,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .team-status-leave-block-title,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .team-status-legend,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .team-status-leave-note,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .area-time .text-muted {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .team-status-item {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mainpage-card .card-header {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+/* Announcement add modal */
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-modal .modal-content.ann-add-modal-content,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-modal .modal-body.ann-add-modal-body {
+	background: var(--mk-card-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-modal .modal-header.ann-add-modal-header {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom: 1px solid var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-modal .modal-header .modal-title,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-modal .modal-header .ann-add-close {
+	color: var(--mk-text-primary) !important;
+	opacity: 1 !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .ann-label,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .ann-hint,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .ann-checkbox-label,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .checkbox label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .ann-input,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .ann-textarea,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .ann-select,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form #ann-lasts,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form select.form-control,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .select2-container .select2-choice,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .select2-container--default .select2-selection--multiple {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+	-webkit-text-fill-color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form #ann-lasts,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form select.ann-select {
+	color-scheme: dark;
+	min-height: 44px;
+	appearance: auto;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form #ann-lasts option {
+	background: var(--mk-input-bg) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .ann-input::placeholder,
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-form .ann-textarea::placeholder {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-modal .select2-container--default .select2-selection__choice {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-modal .select2-container--default .select2-results__option {
+	background: var(--mk-card-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-modal .select2-container--default .select2-results__option--highlighted {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-modal .select2-dropdown {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-modal .cke_chrome,
+html[data-theme="dark"] #mainpage-announcement-modal .cke_inner,
+html[data-theme="dark"] #mainpage-announcement-modal .cke_top,
+html[data-theme="dark"] #mainpage-announcement-modal .cke_bottom {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-modal .cke_top {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-modal .cke_contents,
+html[data-theme="dark"] #mainpage-announcement-modal .cke_wysiwyg_frame,
+html[data-theme="dark"] #mainpage-announcement-modal iframe.cke_wysiwyg_frame {
+	background: var(--mk-input-bg) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-modal .cke_button,
+html[data-theme="dark"] #mainpage-announcement-modal .cke_combo_button {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-modal .cke_button_icon {
+	filter: invert(0.85);
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-modal .modal-footer.ann-add-modal-footer {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-modal .ann-btn-cancel {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .ann-add-modal .ann-btn-submit {
+	background: var(--mk-primary) !important;
+	color: #1a1a1a !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+/* Announcement detail modal (click item on MainPage) */
+html[data-theme="dark"] #mainpage-announcement-detail-modal .modal-content {
+	background: var(--mk-card-bg) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .modal-body.ann-detail-body {
+	background: var(--mk-card-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-close {
+	color: var(--mk-text-secondary) !important;
+	opacity: 1 !important;
+	text-shadow: none !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-close:hover {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-left {
+	border-right-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-name,
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-desc,
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-desc p,
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-desc span,
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-desc div,
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-desc li,
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-desc td,
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-desc th {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-desc a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-time-badge {
+	background: rgba(253, 187, 44, 0.22) !important;
+	color: #fcd34d !important;
+	border: 1px solid rgba(253, 187, 44, 0.35) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-tabs {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-tabs .ann-tab {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-tabs .ann-tab.active {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-tabs .ann-tab .badge {
+	background: var(--mk-primary) !important;
+	color: #1a1a1a !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-comment-item {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-comment-meta {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-comment-text {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-comment-delete {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-comment-delete:hover {
+	color: #fca5a5 !important;
+	background: rgba(239, 68, 68, 0.12) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-add-comment textarea,
+html[data-theme="dark"] #mainpage-announcement-detail-modal #ann-detail-comment-input {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-add-comment textarea::placeholder,
+html[data-theme="dark"] #mainpage-announcement-detail-modal #ann-detail-comment-input::placeholder {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-comment-upload-btn {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal #ann-detail-comment-add {
+	background: var(--mk-primary) !important;
+	border-color: var(--mk-primary) !important;
+	color: #1a1a1a !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .modal-footer.ann-detail-footer {
+	background: var(--mk-bg-elevated) !important;
+	border-top: 1px solid var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-sub-pill {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-sub-remove {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-sub-remove:hover {
+	color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .select2-container--default .select2-selection--multiple {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .select2-container--default .select2-selection__choice {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .text-muted,
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-detail-comment-file-name {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-comments-list {
+	scrollbar-color: var(--mk-border-color) transparent;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-comment-file-link,
+html[data-theme="dark"] #mainpage-announcement-detail-modal .ann-comment-attachment a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] #mainpage-announcement-detail-modal label.small {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* ---- MANAGEMENT Detail — shared (Documents, Project, Activities, …) ---- */
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .mk-dash-main[class*="-detail-main"],
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .main-container[class*="-detail-page"] {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] [class*="-detail-card"],
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] [class*="-detail-hero-strip"],
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .detailview-header-block,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] #detailView .block,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .fieldBlockContainer,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .summaryWidgetContainer,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .summaryView.mk-project-detail-metrics,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .summaryView.mk-project-detail-keyfields,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .mk-project-detail-metrics,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .mk-project-detail-keyfields,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .mk-projecttask-detail-metrics,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .mk-projecttask-detail-keyfields,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .mk-projecttask-detail-widget,
+html[data-theme="dark"] body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] #detailView .block > div:first-child h4,
+html[data-theme="dark"] body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block h4 {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .detailview-table td.fieldLabel,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .detailview-table td.fieldLabel span.muted,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .summary-table td.fieldLabel,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldLabel {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .detailview-table td.fieldValue,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .detailview-table td.fieldValue .value,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .summary-table td.fieldValue,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .summary-table td.fieldValue .value,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .detailview-table td.fieldValue .value a,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .summary-table td.fieldValue a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .mk-project-detail-card-title,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .summaryViewHeader h4,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .mk-project-detail-widget .widget_header h4,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] [class*="-detail-hero__title"],
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .recordLabel {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .mk-project-detail-btn--outline,
+html[data-theme="dark"] body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item > a,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.more-tab > a {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .related-tabs .nav.nav-tabs > li.active > a {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .font-x-small {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .font-x-x-large {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .noDataMsg,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .emptyRecordsDiv,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .widget_contents .noContent {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-comment-composer,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-comment-composer__body,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-comment-composer__body textarea,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] .summaryWidgetContainer .commentContainertextarea,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Detail"] [class*="-detail-card--comments"] textarea {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-comment-composer__footer {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .well,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(1) .well,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(2) .well,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(3) .well,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(4) .well,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(5) .well,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(6) .well,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(7) .well,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(8) .well {
+	background: var(--mk-bg-elevated) !important;
+	border: 1px solid var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .summary-table tr.summaryViewEntries {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue .editAction {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_header {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .btn.addButton,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .createRecord,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .btn-default.dropdown-toggle {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .commentDetails {
+	border-bottom-color: var(--mk-border-subtle) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-hero__title,
+html[data-theme="dark"] body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .record-header .recordLabel {
+	color: var(--mk-text-primary) !important;
+}
+
+/* ---- Project List — header title in dark mode ---- */
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-action-header__title,
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-breadcrumb {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-breadcrumb__sep {
+	color: var(--mk-text-muted) !important;
+}
+
+/* ---- ProjectTask List — header title in dark mode ---- */
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-action-header__title,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-breadcrumb {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-breadcrumb__sep {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-btn--outline:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-btn__ic {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* ---- Project Detail — kill white boxes (beat custom.css + v14 light tokens) ---- */
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView.mk-project-detail-metrics,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView.mk-project-detail-keyfields,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .widget_contents,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_contents,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .addCommentBlock,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .commentContainer,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .recentComments {
+	background: var(--mk-card-bg) !important;
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .noRelatedRecords,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .noContent,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .noDataMsg,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .emptyRecordsDiv {
+	background: var(--mk-bg-elevated) !important;
+	border: 1px dashed var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+/* Key Fields + summary table — beat custom.css #334155 / #0f172a on dark bg */
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView .summaryViewFields .summary-table .fieldValue .value,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView .summaryViewFields .detailview-table .fieldValue .value,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue .value,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue .value span {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView .summaryViewFields .summary-table .fieldLabel .muted,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldLabel label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue a,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView .summaryViewFields .summary-table .fieldValue .value a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue .editAction {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue .editAction:hover {
+	color: var(--mk-primary) !important;
+}
+
+/* Tasks / Tickets / Milestones widgets — recentActivitiesContainer (not listview-table) */
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailViewContainer .recentActivitiesContainer,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .recentActivitiesContainer {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .recentActivitiesContainer .row .row > span.col-lg-6:first-child {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .recentActivitiesContainer a,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .recentActivitiesContainer .dropdown-toggle,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .recentActivitiesContainer .fieldValue,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .recentActivitiesContainer strong {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .recentActivitiesContainer a:hover,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .recentActivitiesContainer .moreRecentTasks {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .listview-table td,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .listview-table td .value,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .listview-table td .fieldValue,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .listview-table a {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .listview-table .picklist-color,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .picklist-color,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_mileStone .picklist-color {
+	filter: saturate(1.1);
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .commentInfoContent,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .commentInfoHeader,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .commentInfoContent a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .commentInfoContent a:hover {
+	color: var(--mk-text-link) !important;
+}
+
+/* ---- Project Detail — Task Kanban board dark mode ---- */
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column.board-column,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-task-board.mk-project-task-board .board-column {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-title,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-head.board-column-header {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-count.status-count {
+	background: rgba(59, 130, 246, 0.18) !important;
+	color: #93c5fd !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column-add.board-add-task {
+	background: var(--mk-card-bg) !important;
+	border-color: rgba(253, 187, 44, 0.55) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card.board-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card-title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card-meta,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card-meta .meta-item {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card-footer {
+	border-top-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__age-badge {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .card-progress-track {
+	background: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .card-progress-value {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__card--done.board-card,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .board-column[data-status="Completed"] .mk-project-task-board__card.board-card {
+	background: rgba(34, 197, 94, 0.12) !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__empty.board-cards-empty,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__empty-title,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .select2-container .select2-selection,
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .select2-container--default .select2-selection--single {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .select2-container--default .select2-selection--single .select2-selection__rendered {
+	color: var(--mk-input-text) !important;
+}
+
+/* ---- Teams — active group + checkboxes ---- */
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-item.is-active .mk-teams-groups-link,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link:hover {
+	background: rgba(253, 187, 44, 0.14) !important;
+	box-shadow: inset 3px 0 0 var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-item.is-active .mk-teams-groups-link__name,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-item.is-active .mk-teams-groups-link__meta,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-groups-link__name {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-panel {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-select-all,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-row-select {
+	accent-color: var(--mk-primary) !important;
+	width: 16px !important;
+	height: 16px !important;
+	cursor: pointer;
+}
+
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-row-select:checked,
+html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .teams-people-select-all:checked {
+	box-shadow: 0 0 0 2px rgba(253, 187, 44, 0.45);
+}
+
+/* ---- Calendar Quick Create (Task / Event) ---- */
+html[data-theme="dark"] #QuickCreate .modal-content,
+html[data-theme="dark"] #QuickCreate .modal-body {
+	background: var(--mk-card-bg) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #QuickCreate .modal-header {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #QuickCreate .modal-header .close {
+	color: var(--mk-text-primary) !important;
+	opacity: 0.85;
+}
+
+html[data-theme="dark"] #QuickCreate .quickCreateContent,
+html[data-theme="dark"] #QuickCreate .calendarQuickCreateContent,
+html[data-theme="dark"] #QuickCreate .google-task-form {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] #QuickCreate .calendar-repeat-section {
+	background: var(--mk-bg-elevated) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	border-radius: 8px !important;
+}
+
+html[data-theme="dark"] #QuickCreate .calendar-repeat-section label,
+html[data-theme="dark"] #QuickCreate .google-task-meta,
+html[data-theme="dark"] #QuickCreate .calendar-qc-datetime-summary,
+html[data-theme="dark"] #QuickCreate .fieldLabel label.muted,
+html[data-theme="dark"] #QuickCreate label.muted,
+html[data-theme="dark"] #QuickCreate .muted {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] #QuickCreate .google-task-title-wrap input[name="subject"],
+html[data-theme="dark"] #QuickCreate .inputElement,
+html[data-theme="dark"] #QuickCreate input.form-control,
+html[data-theme="dark"] #QuickCreate textarea.form-control,
+html[data-theme="dark"] #QuickCreate select.form-control,
+html[data-theme="dark"] #QuickCreate .dateField,
+html[data-theme="dark"] #QuickCreate .timepicker-default,
+html[data-theme="dark"] #QuickCreate .calendarQuickCreateContent .table .inputElement,
+html[data-theme="dark"] #QuickCreate .select2-container .select2-choice {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] #QuickCreate .google-task-title-wrap input[name="subject"] {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] #QuickCreate .google-task-form textarea[name="description"] {
+	border-bottom-color: var(--mk-border-color) !important;
+	background: var(--mk-input-bg) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] #QuickCreate .input-group-addon {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] #QuickCreate .modal-footer {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] #QuickCreate .massEditTable td.fieldValue {
+	background: transparent !important;
+}
+
+/* ---- Project / ProjectTask — task detail overlay modal ---- */
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail.task-detail-dialog,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__header.task-detail-header,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__main.task-detail-left,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__sidebar.task-detail-right,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__footer.task-detail-footer {
+	background: var(--mk-card-bg) !important;
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__main .detail-title,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__main .section-label,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__main .detail-breadcrumb,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__main .detail-table .detail-row .label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__main .detail-description,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__main .detail-table input,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__main .detail-table select,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__composer-input.task-comment-input,
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail .mk-pt-subtasks__input {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__main .detail-table .detail-row:nth-child(even) {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"] .mk-project-task-detail-scope .mk-project-task-detail__btn-cancel.detail-cancel {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* Calendar sidebar action buttons — beat CalendarMkView.css tan #fdbb2c */
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-sidebar-actions .mk-cal-action-btn,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .mk-cal-sidebar-actions .mk-cal-action-btn {
+	background: rgba(253, 187, 44, 0.14) !important;
+	border: 1px solid rgba(253, 187, 44, 0.45) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"].mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-sidebar-actions .mk-cal-action-btn:hover,
+html[data-theme="dark"].mk-cal-ui-ready body:has(.CalendarViewPageDiv) .mk-cal-sidebar-actions .mk-cal-action-btn:hover {
+	background: rgba(253, 187, 44, 0.24) !important;
+	border-color: rgba(253, 187, 44, 0.55) !important;
+	color: var(--mk-primary) !important;
+}
+
+/* ---- Documents Detail/Edit — beat DocumentsMkDetail.css + custom.css dark text ---- */
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"] .mk-documents-detail-inner .detailview-table td.fieldLabel,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"] .mk-documents-detail-inner .detailview-table td.fieldLabel span.muted,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"] .mk-documents-detail-inner .detailview-table td.fieldLabel label,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"] .detailViewContainer .detailview-table .fieldLabel span.muted {
+	color: #94a3b8 !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"] .mk-documents-detail-inner .detailview-table td.fieldValue,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"] .mk-documents-detail-inner .detailview-table td.fieldValue .value,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"] .detailViewContainer .detailview-table .fieldValue .value,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"] #Documents_detailView_fieldValue_filedownloadcount .value {
+	color: #e8eaed !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"] .mk-documents-detail-breadcrumb__list,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"] .mk-documents-detail-breadcrumb__item a,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"] .mk-documents-detail-breadcrumb__item--current .mk-documents-detail-breadcrumb__text {
+	color: #cbd5e1 !important;
+}
+
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"] .mk-app-shell,
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Edit"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w, 256px) !important;
+	width: calc(100vw - var(--mk-dash-sidebar-w, 256px)) !important;
+	max-width: calc(100vw - var(--mk-dash-sidebar-w, 256px)) !important;
+}
+
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"] .main-container.mk-documents-detail-page,
+html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"] .main-container.mk-documents-edit-page {
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"] .mk-documents-edit-card .fieldBlockHeader,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"] .mk-documents-edit-card .table-borderless td.fieldLabel,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"] .mk-documents-edit-page-head__title,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-page-head__title {
+	color: #e8eaed !important;
+}
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"] .mk-documents-edit-card select,
+html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"] .mk-documents-edit-card textarea {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+/* ========== Project Create (MANAGEMENT) — dark mode ========== */
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] .mk-app-shell {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-create,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-page-head,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-hero__panel,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-aside-card,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-block,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="MANAGEMENT"] .mk-qt-create,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="MANAGEMENT"] .mk-qt-page-head,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="MANAGEMENT"] .mk-qt-card,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="MANAGEMENT"] .mk-qt-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="MANAGEMENT"] .mk-so-create,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="MANAGEMENT"] .mk-so-page-head,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="MANAGEMENT"] .mk-so-card,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="MANAGEMENT"] .mk-so-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="MANAGEMENT"] .mk-sc-create,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="MANAGEMENT"] .mk-sc-page-head,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="MANAGEMENT"] .mk-sc-card,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="MANAGEMENT"] .mk-sc-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ld-create,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ld-page-head,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ld-card,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ld-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ps-create,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ps-page-head,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ps-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ps-form-host .mk-ps-block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-page-head__title,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__title,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="MANAGEMENT"] .mk-qt-page-head__title,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="MANAGEMENT"] .mk-so-page-head__title,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="MANAGEMENT"] .mk-sc-page-head__title,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ld-page-head__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-page-head__sub,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-page-head__crumb a,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__sub,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-page-head__crumb a,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"][data-app="MANAGEMENT"] .mk-qt-page-head__sub,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-app="MANAGEMENT"] .mk-so-page-head__sub,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="MANAGEMENT"] .mk-sc-page-head__sub,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ld-page-head__sub,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ps-page-head__sub,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ps-page-head__crumb,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ps-page-head__crumb span {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ps-page-head__crumb a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Edit"] .mk-qt-btn--ghost,
+html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"] .mk-so-btn--ghost,
+html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"] .mk-sc-btn--ghost,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"] .mk-ld-btn--outline,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-btn--ghost,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-btn--ghost,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ps-btn--ghost {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* MANAGEMENT create — form inputs in mk-*-form-host */
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] .input-group,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] .referencefield-wrapper .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] .input-group:focus-within,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] .referencefield-wrapper .input-group:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] .input-group .input-group-addon {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] td.fieldValue > .form-control:not([type="checkbox"]) {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] td.fieldValue > .select2-container {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] .select2-container--default .select2-selection--single,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] td.fieldValue > .select2-container .select2-choice {
+	background: transparent !important;
+	border: none !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-host"] .modal-overlay-footer,
+html[data-theme="dark"] body[data-app="MANAGEMENT"][data-view="Edit"] [class*="-form-footer"] {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+/* ========================================================================== */
+/* Project Create — tokens + aside + form (beat OpportunityMkEdit.css)    */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-create {
+	--mk-proj-surface: var(--mk-bg-primary);
+	--mk-proj-white: var(--mk-card-bg);
+	--mk-proj-text: var(--mk-text-primary);
+	--mk-proj-muted: var(--mk-text-muted);
+	--mk-proj-border: var(--mk-border-color);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-project-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-aside-card__body,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-stage-guide {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-aside-card--tips .mk-proj-aside-card__head,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-aside-card--stages .mk-proj-aside-card__head {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-aside-card__text,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-aside-card__text strong,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-stage-guide__hint {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-aside-card__text--muted,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-stage-guide__hint,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-create__insights {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-aside-card__text,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-aside-card__text strong {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-stage-guide__item--early {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-stage-guide__item--early .mk-proj-stage-guide__badge {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-secondary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-stage-guide__item--mid {
+	background: rgba(253, 187, 44, 0.1) !important;
+	border-color: rgba(253, 187, 44, 0.28) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-stage-guide__item--mid .mk-proj-stage-guide__badge {
+	background: rgba(253, 187, 44, 0.2) !important;
+	color: #fcd34d !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-stage-guide__item--won {
+	background: rgba(34, 197, 94, 0.1) !important;
+	border-color: rgba(34, 197, 94, 0.28) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-stage-guide__item--won .mk-proj-stage-guide__badge {
+	background: rgba(34, 197, 94, 0.2) !important;
+	color: #86efac !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block .input-group,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block .referencefield-wrapper .input-group {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block .input-group:focus-within,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block .referencefield-wrapper .input-group:focus-within {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(94, 233, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block .input-group .input-group-addon {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block .input-group .input-group-addon.relatedPopup:hover,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block .input-group .input-group-addon.createReferenceRecord:hover {
+	background: var(--mk-primary) !important;
+	color: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block td.fieldValue > select.inputElement,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block td.fieldValue > textarea.inputElement,
+html[data-theme="dark"] body[data-module="Project"][data-view="Edit"][data-app="MANAGEMENT"] .mk-proj-form-host .mk-proj-block td.fieldValue > .form-control:not([type="checkbox"]) {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+/* ========================================================================== */
+/* ProjectTask Create — aside + status guide dark mode                      */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-create {
+	--mk-ptask-surface: var(--mk-bg-primary);
+	--mk-ptask-white: var(--mk-card-bg);
+	--mk-ptask-text: var(--mk-text-primary);
+	--mk-ptask-muted: var(--mk-text-muted);
+	--mk-ptask-border: var(--mk-border-color);
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-projecttask-edit-main {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__body,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--tips,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages {
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--tips .mk-ptask-aside-card__head,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages .mk-ptask-aside-card__head {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--tips .mk-ptask-aside-card__title,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages .mk-ptask-aside-card__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__text,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__text strong,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__hint {
+	color: var(--mk-text-primary) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__text--muted,
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__hint {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--early {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--early .mk-ptask-stage-guide__badge {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-secondary) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--mid {
+	background: rgba(253, 187, 44, 0.1) !important;
+	border-color: rgba(253, 187, 44, 0.28) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--mid .mk-ptask-stage-guide__badge {
+	background: rgba(253, 187, 44, 0.2) !important;
+	color: #fcd34d !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--won {
+	background: rgba(34, 197, 94, 0.1) !important;
+	border-color: rgba(34, 197, 94, 0.28) !important;
+}
+
+html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--won .mk-ptask-stage-guide__badge {
+	background: rgba(34, 197, 94, 0.2) !important;
+	color: #86efac !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+/* ---- ProjectTask Detail — content blocks + subtasks (dark) ---- */
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] #detailView .block,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .fieldBlockContainer,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .taskListPanel.subtasks,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .taskDetailFormOuter,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer .widget_contents {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .taskListPanel .quickAddTaskInput,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .taskDetailFormOuter input,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .taskDetailFormOuter select,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .taskDetailFormOuter textarea {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .taskListPanel .task-list .task-list-row,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .task-list-container .task-list li {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-detail-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-detail-btn--danger {
+	background: rgba(239, 68, 68, 0.12) !important;
+	border-color: rgba(239, 68, 68, 0.35) !important;
+	color: #fca5a5 !important;
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-progress {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-progress__label {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-detail-hero__title,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .record-header .recordLabel {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-detail-breadcrumb__item a,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-detail-breadcrumb__item--current .mk-projecttask-detail-breadcrumb__text {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldLabel,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .taskDetailFormOuter .smLabelCls {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue,
+html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .taskDetailFormOuter .borderLeft {
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-subtle) !important;
+}

@@ -38,7 +38,7 @@
 								{$CREATOR_NAME}
 							</span>&nbsp; 
 							<span class="commentTime text-muted cursorDefault">
-								<small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($COMMENT->getCommentedTime())}">{Vtiger_Util_Helper::formatDateDiffInStrings($COMMENT->getCommentedTime())}</small>
+								<small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($COMMENT->getCommentedTime())}">{Vtiger_Util_Helper::formatCommentDateTime($COMMENT->getCommentedTime())}</small>
 							</span>
 							<div class="">
 								<span class="commentInfoContent">

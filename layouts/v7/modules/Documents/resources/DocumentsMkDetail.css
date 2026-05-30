@@ -1,0 +1,608 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/**
+ * Documents Detail — MANAGEMENT app (shell: DashBoard.css)
+ */
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .app-nav,
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .navbar.navbar-inverse.navbar-fixed-top,
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] #page > .container-fluid.app-nav {
+	display: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] {
+	--mk-doc-amber: #fdbb2c;
+	--mk-doc-amber-soft: #fffbeb;
+	--mk-doc-border: #d4c4ad;
+	--mk-doc-slate: #40627e;
+	--mk-doc-page-bg: #f7f9fb;
+	--mk-doc-card: #ffffff;
+	--mk-doc-title: #191c1e;
+	--mk-doc-muted: #6b6358;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar.app-fixed-navbar,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-topbar .container-fluid.global-nav {
+	border: none !important;
+	border-bottom: none !important;
+	box-shadow: none !important;
+	margin-bottom: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w, 256px);
+	width: calc(100vw - var(--mk-dash-sidebar-w, 256px));
+	max-width: calc(100vw - var(--mk-dash-sidebar-w, 256px));
+	min-width: 0;
+	box-sizing: border-box;
+	overflow-x: hidden;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main.mk-documents-detail-main {
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+	overflow-x: hidden;
+	padding: 0 !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+	color: var(--mk-doc-title);
+	background: transparent;
+}
+
+/* Gutter — đồng bộ Project Detail (MANAGEMENT) */
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .main-container.mk-documents-detail-page {
+	width: 100% !important;
+	max-width: 1232px !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+	padding: 24px 32px 32px 48px !important;
+	box-sizing: border-box;
+	position: relative !important;
+	min-height: 0 !important;
+}
+
+@media (max-width: 1199px) {
+	body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .main-container.mk-documents-detail-page {
+		padding-left: 32px !important;
+		padding-right: 24px !important;
+	}
+}
+
+@media (max-width: 991px) {
+	body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .main-container.mk-documents-detail-page {
+		padding: 16px !important;
+	}
+
+	body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
+		margin-left: 0 !important;
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hide-legacy {
+	display: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner.detailViewContainer {
+	width: 100%;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	float: none;
+}
+
+/* Kill custom.css centered gradient layout */
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .detailViewContainer {
+	background: transparent !important;
+	padding: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .detailViewContainer .details.row,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-details-row.details {
+	max-width: none !important;
+	margin: 0 !important;
+}
+
+/* Breadcrumb */
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-breadcrumb {
+	margin: 0 0 10px;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-breadcrumb__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--mk-doc-muted);
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-breadcrumb__item a {
+	color: #504533;
+	text-decoration: none;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-breadcrumb__item a:hover {
+	color: #6d4d00;
+	text-decoration: underline;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-breadcrumb__item--current .mk-documents-detail-breadcrumb__text {
+	color: #8a7d6e;
+	max-width: 420px;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-breadcrumb__sep {
+	color: #d4c4ad;
+}
+
+/* Hero header */
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-header-block.mk-documents-detail-hero-strip {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+	margin: 0 0 12px !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__row.row {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px 20px;
+	margin: 0;
+	min-height: 88px;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__row.row::before,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__row.row::after {
+	display: none;
+	content: none;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__left {
+	float: none !important;
+	flex: 1 1 auto;
+	min-width: 0;
+	width: auto !important;
+	padding: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-actions.detailViewButtoncontainer {
+	float: none !important;
+	flex: 0 0 auto;
+	width: auto !important;
+	max-width: 58%;
+	padding: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__identity {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	min-width: 0;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__avatar.recordImage {
+	width: 52px !important;
+	height: 52px !important;
+	min-width: 52px;
+	border-radius: 12px !important;
+	background: var(--mk-doc-amber) !important;
+	background-image: none !important;
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__avatar .name,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__avatar .vicon-documents {
+	display: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__icon-glyph {
+	font-size: 22px;
+	color: #ffffff;
+	line-height: 1;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__title {
+	margin: 0 0 4px;
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 22px;
+	font-weight: 700;
+	line-height: 1.25;
+	color: var(--mk-doc-title);
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__text .info-row.headerAjaxEdit .action,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__text .editAction {
+	display: none !important;
+}
+
+/* Header action buttons */
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-actions__toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	float: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-actions__group.btn-group {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-btn {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 8px;
+	min-height: 40px !important;
+	padding: 0 16px !important;
+	border-radius: 10px !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	box-shadow: none !important;
+	background-image: none !important;
+	text-shadow: none !important;
+	transform: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-btn--outline {
+	background: #fff !important;
+	border: 1px solid var(--mk-doc-slate) !important;
+	color: var(--mk-doc-slate) !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-btn--outline:hover {
+	background: #f2f4f6 !important;
+	border-color: #2f4f66 !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-btn--primary-soft {
+	background: var(--mk-doc-amber) !important;
+	border-color: #e5a820 !important;
+	color: var(--mk-doc-title) !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-btn--primary-soft:hover {
+	background: #ffc85c !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] #starToggle .fa {
+	display: none !important;
+}
+
+/* Tags */
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-tags.row {
+	margin: 0 0 14px !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-tags .tagContainer {
+	padding: 0;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-tags #addTagTriggerer {
+	border-radius: 8px;
+	border: 1px dashed var(--mk-doc-border);
+	background: #fff;
+	color: var(--mk-doc-muted);
+	font-weight: 600;
+}
+
+/* Tabs */
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detailview-content.detailview-content {
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-content .related-tabs,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs.row {
+	margin: 0 0 16px !important;
+	padding: 0 !important;
+	border: none !important;
+	background: transparent !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li > a {
+	border: none !important;
+	border-radius: 0;
+	padding: 10px 12px !important;
+	font-weight: 600 !important;
+	font-size: 13px !important;
+	color: var(--mk-doc-muted) !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.active > a {
+	color: var(--mk-doc-title) !important;
+	position: relative;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]).active > a::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 2px;
+	background: var(--mk-doc-amber);
+	border-radius: 2px;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon {
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #94a3b8;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon {
+	background: rgba(253, 187, 44, 0.2);
+	color: var(--mk-doc-title);
+}
+
+/* Detail blocks — form hệ thống, card MANAGEMENT */
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-details-row.details {
+	background: transparent !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block {
+	background: var(--mk-doc-card) !important;
+	border-radius: 12px !important;
+	border: 1px solid var(--mk-doc-border) !important;
+	box-shadow: 0 2px 10px rgba(25, 28, 30, 0.05) !important;
+	padding: 0 !important;
+	margin: 0 0 16px !important;
+	overflow: hidden;
+	transform: none !important;
+	backdrop-filter: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block:hover {
+	transform: none !important;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.07) !important;
+	border-color: var(--mk-doc-border) !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block h4 {
+	display: flex !important;
+	align-items: center;
+	gap: 8px;
+	margin: 0 !important;
+	padding: 12px 16px !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.08em !important;
+	text-transform: uppercase !important;
+	color: var(--mk-doc-title) !important;
+	background: #faf8f5 !important;
+	border-bottom: 1px solid var(--mk-doc-border) !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block hr {
+	display: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block .blockContents,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block .blockData {
+	padding: 14px 16px 16px !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table.no-border td {
+	padding: 10px 12px !important;
+	border: none !important;
+	vertical-align: middle;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table .fieldLabel span.muted {
+	color: var(--mk-doc-muted) !important;
+	font-size: 11px !important;
+	font-weight: 600 !important;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table .fieldValue .value {
+	color: var(--mk-doc-title) !important;
+	font-size: 14px !important;
+	font-weight: 500 !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table .fieldValue .value a {
+	color: var(--mk-doc-slate) !important;
+	font-weight: 600 !important;
+	text-decoration: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table .fieldValue .value a::after {
+	display: none !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table .fieldValue .value a:hover {
+	color: #2f4f66 !important;
+	text-decoration: underline !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block[data-block="LBL_FILE_INFORMATION"] {
+	border-color: #fde68a !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block[data-block="LBL_FILE_INFORMATION"] h4 {
+	background: var(--mk-doc-amber-soft) !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block[data-block="LBL_FILE_INFORMATION"] .blockContents {
+	background: #fffdf7 !important;
+}
+
+/* History block */
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .block-document-history {
+	border-radius: 12px !important;
+	border: 1px solid var(--mk-doc-border) !important;
+	overflow: hidden;
+	margin-top: 8px !important;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .block-document-history .blockHeader {
+	padding: 12px 16px;
+	background: #faf8f5;
+	border-bottom: 1px solid var(--mk-doc-border);
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--mk-doc-title);
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .block-document-history .table {
+	margin: 0;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .block-document-history .table > thead > tr > th {
+	background: #f8fafc;
+	font-size: 11px;
+	text-transform: uppercase;
+	color: #64748b;
+	border-color: #e8edf2;
+}
+
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .footer,
+body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .app-footer {
+	display: none !important;
+}
+
+/* Neutralize custom.css Documents detail gradient when MANAGEMENT shell active */
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .detailViewContainer,
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner.detailViewContainer {
+	background: transparent !important;
+	padding: 0 !important;
+}
+
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .detailViewContainer .block {
+	transform: none !important;
+	backdrop-filter: none !important;
+}
+
+html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .detailViewContainer .block h4 {
+	background: #faf8f5 !important;
+	color: var(--mk-doc-title) !important;
+	box-shadow: none !important;
+	border-radius: 0 !important;
+	padding: 12px 16px !important;
+}
+
+/* ========================================================================== */
+/* Dark mode — readable labels/values (beat MkThemeDark + custom.css)       */
+/* ========================================================================== */
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] {
+	--mk-doc-card: var(--mk-card-bg, #1e2433);
+	--mk-doc-border: var(--mk-border-color, rgba(255, 255, 255, 0.12));
+	--mk-doc-title: var(--mk-text-primary, #e8eaed);
+	--mk-doc-muted: var(--mk-text-muted, #94a3b8);
+	--mk-doc-slate: var(--mk-text-link, #7dd3fc);
+	--mk-doc-amber-soft: rgba(253, 187, 44, 0.12);
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-breadcrumb__item a,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-breadcrumb__item--current .mk-documents-detail-breadcrumb__text {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-hero__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .detailViewContainer .block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block h4,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .detailViewContainer .block h4 {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table td.fieldLabel,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table td.fieldLabel span.muted,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table td.fieldLabel label,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table .fieldLabel {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table td.fieldValue,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table td.fieldValue .value,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table .fieldValue {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table .fieldValue .value a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table tr:hover td,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .detailview-table tr.ajaxEdited td {
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block[data-block="LBL_FILE_INFORMATION"] .blockContents {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-btn--outline {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li > a {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.active > a {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .block-document-history .blockHeader,
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .block-document-history .table > thead > tr > th {
+	background: var(--mk-bg-elevated) !important;
+	color: var(--mk-text-muted) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .block-document-history .table tbody td {
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-subtle) !important;
+}

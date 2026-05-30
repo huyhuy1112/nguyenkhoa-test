@@ -8,9 +8,8 @@
 *************************************************************************************}
 
 {strip}
-	<div class='dashBoardTabContainer'>
-		{include file="dashboards/DashBoardHeader.tpl"|vtemplate_path:$MODULE_NAME DASHBOARDHEADER_TITLE=vtranslate($MODULE, $MODULE)}
-		<br><div class="dashboardBanner"></div>
+	<div class='dashBoardTabContainer mk-dashboard-tab'>
+		<div class="dashboardBanner"></div>
 		<div class="dashBoardTabContents clearfix">
 			<div class="gridster_{$TABID}">
 				{assign var="ROWCOUNT" value=0}
