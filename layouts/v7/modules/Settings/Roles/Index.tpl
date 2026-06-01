@@ -1,31 +1,32 @@
-{*+**********************************************************************************
-* The contents of this file are subject to the vtiger CRM Public License Version 1.1
-* ("License"); You may not use this file except in compliance with the License
-* The Original Code is: vtiger CRM Open Source
-* The Initial Developer of the Original Code is vtiger.
-* Portions created by vtiger are Copyright (C) vtiger.
-* All Rights Reserved.
-************************************************************************************}
-{* modules/Settings/Roles/views/Index.php *}
-
+{* modules/Settings/Roles/views/Index.php — modern hierarchy card *}
 {strip}
-    <div class="listViewPageDiv " id="listViewContent">
-        <div class="col-sm-12 col-xs-12 ">
-            <br>
-            <div class="clearfix treeView">
-                <ul>
-                    <li data-role="{$ROOT_ROLE->getParentRoleString()}" data-roleid="{$ROOT_ROLE->getId()}">
-                        <div class="toolbar-handle">
-                            <a href="javascript:;" class="btn app-MARKETING droppable">{$ROOT_ROLE->getName()}</a>
-                            <div class="toolbar" title="{vtranslate('LBL_ADD_RECORD', $QUALIFIED_MODULE)}">
-                                &nbsp;<a href="{$ROOT_ROLE->getCreateChildUrl()}" data-url="{$ROOT_ROLE->getCreateChildUrl()}" data-action="modal"><span class="icon-plus-sign"></span></a>
-                            </div>
-                        </div>
-                        {assign var="ROLE" value=$ROOT_ROLE}
-                        {include file=vtemplate_path("RoleTree.tpl", "Settings:Roles")}
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+<div class="listViewPageDiv mk-settings-roles-page" id="listViewContent">
+	<div class="mk-settings-roles-panel">
+		<div class="mk-settings-roles-panel__top">
+			<div class="mk-settings-roles-panel__intro">
+				<p class="mk-settings-roles-panel__desc">{vtranslate('LBL_CLICK_TO_EDIT_OR_DRAG_TO_MOVE', $QUALIFIED_MODULE)}</p>
+			</div>
+			<a href="{$ROOT_ROLE->getCreateChildUrl()}" data-url="{$ROOT_ROLE->getCreateChildUrl()}" data-action="modal" class="mk-settings-btn mk-settings-btn--primary">
+				<span class="fa fa-plus" aria-hidden="true"></span>
+				{vtranslate('LBL_ADD_RECORD', $QUALIFIED_MODULE)}
+			</a>
+		</div>
+		<div class="mk-settings-roles-tree treeView" role="tree" aria-label="{vtranslate('Roles', $QUALIFIED_MODULE)}">
+			<ul class="mk-settings-roles-tree__root">
+				<li data-role="{$ROOT_ROLE->getParentRoleString()}" data-roleid="{$ROOT_ROLE->getId()}">
+					<div class="toolbar-handle">
+						<a href="javascript:;" class="mk-settings-role-node mk-settings-role-node--root draggable droppable">{$ROOT_ROLE->getName()}</a>
+						<div class="toolbar mk-settings-role-toolbar" title="{vtranslate('LBL_ADD_RECORD', $QUALIFIED_MODULE)}">
+							<a href="{$ROOT_ROLE->getCreateChildUrl()}" data-url="{$ROOT_ROLE->getCreateChildUrl()}" data-action="modal" class="mk-settings-role-toolbar__btn" aria-label="{vtranslate('LBL_ADD_RECORD', $QUALIFIED_MODULE)}">
+								<span class="fa fa-plus" aria-hidden="true"></span>
+							</a>
+						</div>
+					</div>
+					{assign var=ROLE value=$ROOT_ROLE}
+					{include file=vtemplate_path("RoleTree.tpl", "Settings:Roles")}
+				</li>
+			</ul>
+		</div>
+	</div>
+</div>
 {/strip}

@@ -1,65 +1,64 @@
 {*+**********************************************************************************
- * The contents of this file are subject to the vtiger CRM Public License Version 1.1
- * ("License"); You may not use this file except in compliance with the License
- * The Original Code is: vtiger CRM Open Source
- * The Initial Developer of the Original Code is vtiger.
- * Portions created by vtiger are Copyright (C) vtiger.
- * All Rights Reserved.
+ * Settings shell — same split layout as Marketing/Sales (DashboardSidebar + app topbar).
+ * Local-only UI refresh; icons: SettingsShortcutSvgIcon.tpl (SVG placeholders).
  ************************************************************************************}
-{* modules/Settings/Vtiger/views/Index.php *}
-
-{* START YOUR IMPLEMENTATION FROM BELOW. Use {debug} for information *}
-{include file="modules/Vtiger/partials/Topbar.tpl"}
-
-<div class="container-fluid app-nav">
-    <div class="row">
-        {include file="modules/Settings/Vtiger/SidebarHeader.tpl"}
-        {include file="modules/Settings/Vtiger/ModuleHeader.tpl"}
-    </div>
-</div>
-</nav>
- <div id='overlayPageContent' class='fade modal overlayPageContent content-area overlay-container-300' tabindex='-1' role='dialog' aria-hidden='true'>
-        <div class="data">
-        </div>
-        <div class="modal-dialog">
-        </div>
-    </div>
+{strip}
+{include file="modules/Vtiger/Header.tpl"}
+<script type="text/javascript">document.documentElement.classList.add('mk-settings-ui-ready');document.body.setAttribute('data-parent','Settings');</script>
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Settings/Vtiger/resources/SettingsUi.css')}?mk_v=20260601_settings_single_scroll" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Settings/Vtiger/resources/SettingsListScroll.js')}"></script>
+<script type="text/javascript" src="{vresource_url('~layouts/v7/lib/jquery/Lightweight-jQuery-In-page-Filtering-Plugin-instaFilta/instafilta.js')}"></script>
+<div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-settings-ui="1">
+	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
+	<div class="mk-app-shell">
+		<header class="mk-topbar" role="banner">
+			{include file="partials/DashboardAppTopbar.tpl"|@vtemplate_path:'Vtiger'}
+		</header>
+		<div id="overlayPageContent" class="fade modal content-area overlayPageContent overlay-container-60" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="data"></div>
+			<div class="modal-dialog"></div>
+		</div>
+		<main class="mk-dash-main mk-settings-main" id="mk-dash-main" role="main">
+			<div class="main-container clearfix mk-settings-page">
+				<div class="module-nav settingsNav mk-settings-hide-legacy" id="modnavigator">
+					<div class="hidden-xs hidden-sm height100Per">
+						{include file="modules/Settings/Vtiger/Sidebar.tpl"}
+					</div>
+				</div>
+				<div class="settingsPageDiv content-area clearfix mk-settings-content mk-settings-subpage">
 {if isset($FIELDS_INFO) && $FIELDS_INFO neq null}
-    <script type="text/javascript">
-        var uimeta = (function() {
-            var fieldInfo  = {$FIELDS_INFO};
-            return {
-                field: {
-                    get: function(name, property) {
-                        if(name && property === undefined) {
-                            return fieldInfo[name];
-                        }
-                        if(name && property) {
-                            return fieldInfo[name][property]
-                        }
-                    },
-                    isMandatory : function(name){
-                        if(fieldInfo[name]) {
-                            return fieldInfo[name].mandatory;
-                        }
-                        return false;
-                    },
-                    getType : function(name){
-                        if(fieldInfo[name]) {
-                            return fieldInfo[name].type
-                        }
-                        return false;
-                    }
-                },
-            };
-        })();
-    </script>
+	<script type="text/javascript">
+		var uimeta = (function() {
+			var fieldInfo  = {$FIELDS_INFO};
+			return {
+				field: {
+					get: function(name, property) {
+						if(name && property === undefined) {
+							return fieldInfo[name];
+						}
+						if(name && property) {
+							return fieldInfo[name][property]
+						}
+					},
+					isMandatory : function(name){
+						if(fieldInfo[name]) {
+							return fieldInfo[name].mandatory;
+						}
+						return false;
+					},
+					getType : function(name){
+						if(fieldInfo[name]) {
+							return fieldInfo[name].type
+						}
+						return false;
+					}
+				},
+			};
+		})();
+	</script>
 {/if}
-<div class="main-container clearfix">
-		{assign var=LEFTPANELHIDE value=$USER_MODEL->get('leftpanelhide')}
-        <div class="module-nav clearfix settingsNav" id="modnavigator">
-            <div class="hidden-xs hidden-sm height100Per">
-                {include file="modules/Settings/Vtiger/Sidebar.tpl"}
-            </div>
-        </div>
-        <div class="settingsPageDiv content-area clearfix">
+{if !($MODULE eq 'Vtiger' && $VIEW eq 'Index')}
+	{include file="partials/SettingsSubpageHeader.tpl"|@vtemplate_path:'Settings:Vtiger'}
+{/if}
+{/strip}

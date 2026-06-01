@@ -71,6 +71,12 @@ abstract class Vtiger_Basic_View extends Vtiger_Footer_View {
 			$selectedMenuCategoryLabel = vtranslate($selectedModule, $selectedModule);
 		}
 
+		// Settings modules are not in MARKETING/SALES app menus — avoid default MARKETING highlight.
+		if ($request->get('parent') === 'Settings') {
+			$selectedModuleMenuCategory = '';
+			$selectedMenuCategoryLabel = vtranslate('LBL_SETTINGS', 'Vtiger');
+		}
+
 		$viewer->assign('SELECTED_MENU_CATEGORY',$selectedModuleMenuCategory);
 		$viewer->assign('SELECTED_MENU_CATEGORY_LABEL', $selectedMenuCategoryLabel);
 		$viewer->assign('SELECTED_CATEGORY_MENU_LIST',$menuGroupedByParent[$selectedModuleMenuCategory]);

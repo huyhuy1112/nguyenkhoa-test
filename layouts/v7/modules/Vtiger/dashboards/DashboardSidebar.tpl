@@ -41,8 +41,12 @@
 		</div>
 		<div class="mk-dash-sidebar-logo">
 			<a href="index.php" class="company-logo mk-dash-logo-link" title="B-ACE" aria-label="B-ACE home">
-				<img class="mk-dash-bace-logo" src="{vresource_url('layouts/v7/resources/Images/bace-logo-figma.png')}" width="218" height="40" alt="B-ACE">
+				<img class="mk-dash-bace-logo mk-dash-bace-logo--light" src="layouts/v7/resources/Images/bace-logo-figma.png?v=20260530_logo9" width="218" height="40" alt="B-ACE">
+				<img class="mk-dash-bace-logo mk-dash-bace-logo--dark" src="layouts/v7/resources/Images/bace-logo-figma-transparent.png?v=20260530_logo9" width="218" height="40" alt="B-ACE">
 			</a>
+			{if $_settingsActive}
+				<p class="mk-settings-site-kicker">SITE SETTINGS</p>
+			{/if}
 		</div>
 	</div>
 	<div class="mk-dash-sidebar-scroll">
@@ -57,8 +61,8 @@
 
 			{foreach item=APP_NAME from=$MK_SIDEBAR_APPS}
 				{if !isset($APP_GROUPED_MENU[$APP_NAME]) || php7_count($APP_GROUPED_MENU[$APP_NAME]) eq 0} {continue}{/if}
-				{assign var=_app_expand_initial value=(!$_dashViewActive && $APP_NAME eq $SELECTED_MENU_CATEGORY)}
-				{assign var=_app_route_active value=(!$_dashViewActive && $APP_NAME eq $SELECTED_MENU_CATEGORY)}
+				{assign var=_app_expand_initial value=(!$_dashViewActive && !$_settingsActive && $APP_NAME eq $SELECTED_MENU_CATEGORY)}
+				{assign var=_app_route_active value=(!$_dashViewActive && !$_settingsActive && $APP_NAME eq $SELECTED_MENU_CATEGORY)}
 				<div class="mk-dash-app-group{if $_app_expand_initial} mk-dash-app-group--open{/if}{if $_app_route_active} mk-dash-app-group--active{/if}" data-mk-app="{$APP_NAME|escape:'html'}">
 					<button type="button" class="mk-dash-app-toggle" id="mk-dash-app-btn-{$APP_NAME}" aria-expanded="{if $_app_expand_initial}true{else}false{/if}" aria-controls="mk-dash-app-panel-{$APP_NAME}">
 						<span class="mk-dash-app-ic" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON=$APP_NAME}</span>
@@ -68,7 +72,7 @@
 					<div class="mk-dash-app-panel" id="mk-dash-app-panel-{$APP_NAME}" role="region" aria-labelledby="mk-dash-app-btn-{$APP_NAME}">
 						{* MANAGEMENT: Main Page (landing) — không có trong MenuEditor mặc định *}
 						{if $APP_NAME eq 'MANAGEMENT'}
-							{assign var=_mkMainPageActive value=($MODULE eq 'Home' && ($VIEW eq 'MainPage' || $VIEW eq 'DashBoard'))}
+							{assign var=_mkMainPageActive value=(!$_settingsActive && $MODULE eq 'Home' && ($VIEW eq 'MainPage' || $VIEW eq 'DashBoard'))}
 							<a class="mk-dash-mod-link{if $_mkMainPageActive} mk-dash-mod-link--active{/if}" href="index.php?module=Home&amp;view=MainPage&amp;app=MANAGEMENT">
 								<span class="mk-dash-mod-label">Main Page</span>
 							</a>
@@ -91,7 +95,7 @@
 							{* SALES: keep ProductsServices; hide legacy Products/Services entries *}
 							{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
 							{if $moduleModel}
-								{assign var=_mkModActive value=($MENU_SELECTED_MODULENAME eq $moduleName)}
+								{assign var=_mkModActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq $moduleName)}
 								{if $MODULE eq 'HelpDesk' && ($VIEW eq 'Rules' || $VIEW eq 'RuleDetail')}
 									{if $moduleName eq 'HelpDesk'}{assign var=_mkModActive value=false}{/if}
 									{if $moduleName eq 'Rules'}{assign var=_mkModActive value=true}{/if}
@@ -104,28 +108,28 @@
 
 						{* SALES: Leads modern list (sidebar fallback when missing from MenuEditor) *}
 						{if ($_mkHasLeads eq false) && ($APP_NAME eq 'SALES')}
-							{assign var=_mkLeadsActive value=($MENU_SELECTED_MODULENAME eq 'Leads')}
+							{assign var=_mkLeadsActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Leads')}
 							<a class="mk-dash-mod-link{if $_mkLeadsActive} mk-dash-mod-link--active{/if}" href="index.php?module=Leads&amp;view=List&amp;app=SALES">
 								<span class="mk-dash-mod-label">{vtranslate('Leads', 'Leads')}</span>
 							</a>
 						{/if}
 						{* MANAGEMENT: Schedule khi Calendar chưa có trong MenuEditor *}
 						{if ($_mkHasCalendar eq false) && ($APP_NAME eq 'MANAGEMENT')}
-							{assign var=_mkScheduleActive value=($MODULE eq 'Calendar' && $VIEW eq 'Calendar')}
+							{assign var=_mkScheduleActive value=(!$_settingsActive && $MODULE eq 'Calendar' && $VIEW eq 'Calendar')}
 							<a class="mk-dash-mod-link{if $_mkScheduleActive} mk-dash-mod-link--active{/if}" href="index.php?module=Calendar&amp;view=Calendar&amp;app=MANAGEMENT">
 								<span class="mk-dash-mod-label">{vtranslate('LBL_SCHEDULE','Calendar')}</span>
 							</a>
 						{/if}
 						{* SUPPORT: Activities when missing from MenuEditor *}
 						{if ($_mkHasActivities eq false) && ($APP_NAME eq 'SUPPORT')}
-							{assign var=_mkActivitiesActive value=($MENU_SELECTED_MODULENAME eq 'Activities')}
+							{assign var=_mkActivitiesActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Activities')}
 							<a class="mk-dash-mod-link{if $_mkActivitiesActive} mk-dash-mod-link--active{/if}" href="index.php?module=Activities&amp;view=List&amp;app=SUPPORT">
 								<span class="mk-dash-mod-label">{vtranslate('LBL_ACTIVITIES','Calendar')}</span>
 							</a>
 						{/if}
 						{* SUPPORT: Organizations (Accounts) when missing from MenuEditor *}
 						{if ($_mkHasAccounts eq false) && ($APP_NAME eq 'SUPPORT')}
-							{assign var=_mkAccountsActive value=($MENU_SELECTED_MODULENAME eq 'Accounts')}
+							{assign var=_mkAccountsActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Accounts')}
 							<a class="mk-dash-mod-link{if $_mkAccountsActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SUPPORT">
 								<span class="mk-dash-mod-label">{vtranslate('Accounts', 'Accounts')}</span>
 							</a>
@@ -138,6 +142,9 @@
 				<span class="mk-dash-nav-ic" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='SETTINGS'}</span>
 				<span class="mk-dash-nav-label">{vtranslate('LBL_SETTINGS','Vtiger')}</span>
 			</a>
+			{if $_settingsActive}
+				{include file="partials/SettingsSidebarSubmenu.tpl"|@vtemplate_path:'Settings:Vtiger'}
+			{/if}
 			</div>
 		</nav>
 	</div>

@@ -1,53 +1,50 @@
-{*+**********************************************************************************
- * The contents of this file are subject to the vtiger CRM Public License Version 1.1
- * ("License"); You may not use this file except in compliance with the License
- * The Original Code is: vtiger CRM Open Source
- * The Initial Developer of the Original Code is vtiger.
- * Portions created by vtiger are Copyright (C) vtiger.
- * All Rights Reserved.
-*
- ********************************************************************************/
--->*}
+{* Settings Index — Figma-aligned summary + shortcuts *}
 {strip}
-	<div class="settingsIndexPage col-lg-12 col-md-12 col-sm-12">
-		<div><h4>{vtranslate('LBL_SUMMARY',$MODULE)}</h4></div>
-		<hr>
-		<div class="row">
-			<span class="col-lg-4 col-md-4 col-sm-4 settingsSummary">
-				<a href="index.php?module=Users&parent=Settings&view=List">
-					<h2 class="summaryCount">{$USERS_COUNT}</h2> 
-					<p class="summaryText" style="margin-top:20px;">{vtranslate('LBL_ACTIVE_USERS',$MODULE)}</p> 
-				</a>
-			</span>
-			<span class="col-lg-4 col-md-4 col-sm-4 settingsSummary">
-				<a href="index.php?module=Workflows&parent=Settings&view=List&parentblock=LBL_AUTOMATION">
-					<h2 class="summaryCount">{$ACTIVE_WORKFLOWS}</h2> 
-					<p class="summaryText" style="margin-top:20px;">{vtranslate('LBL_WORKFLOWS_ACTIVE',$MODULE)}</p> 
-				</a>
-			</span>
-			<span class="col-lg-4 col-md-4 col-sm-4 settingsSummary">
-				<a href="index.php?module=ModuleManager&parent=Settings&view=List">
-					<h2 class="summaryCount">{$ACTIVE_MODULES}</h2> 
-					<p class="summaryText" style="margin-top:20px;">{vtranslate('LBL_MODULES',$MODULE)}</p>
-				</a>
-			</span>
+<div class="mk-settings-index">
+	<nav class="mk-settings-breadcrumb" aria-label="Breadcrumb">
+		<ol class="mk-settings-breadcrumb__list">
+			<li class="mk-settings-breadcrumb__item">
+				<a href="index.php?module=Vtiger&amp;parent=Settings&amp;view=Index">{vtranslate('LBL_SETTINGS', 'Vtiger')}</a>
+			</li>
+			<li class="mk-settings-breadcrumb__sep" aria-hidden="true">&gt;</li>
+			<li class="mk-settings-breadcrumb__item mk-settings-breadcrumb__item--current">
+				<span>{vtranslate('LBL_SUMMARY', $MODULE)}</span>
+			</li>
+		</ol>
+	</nav>
+
+	<header class="mk-settings-index-header">
+		<div class="mk-settings-index-header__text">
+			<h1 class="mk-settings-index-header__title">{vtranslate('LBL_SETTINGS', 'Vtiger')}</h1>
+			<p class="mk-settings-index-header__subtitle">{vtranslate('LBL_SETTINGS', 'Vtiger')}</p>
 		</div>
-		<br><br>&nbsp;
-		<h4>{vtranslate('LBL_SETTINGS_SHORTCUTS',$MODULE)}</h4>
-		<hr>
-		<div id="settingsShortCutsContainer" style="min-height: 500px;">
-			<div class="col-lg-12">
-				{assign var=COUNTER value=0}
-				{foreach item=SETTINGS_SHORTCUT from=$SETTINGS_SHORTCUTS name=shortcuts}
-					{if $COUNTER eq 4}
-						</div><div class="col-lg-12">
-						{assign var=COUNTER value=1}
-					{else}
-						{assign var=COUNTER value=$COUNTER+1}
-					{/if}
-					{include file='SettingsShortCut.tpl'|@vtemplate_path:$MODULE}
-				{/foreach}
-			</div>
+	</header>
+
+	<section class="mk-settings-summary" aria-labelledby="mk-settings-summary-title">
+		<h2 id="mk-settings-summary-title" class="mk-settings-section-title">{vtranslate('LBL_SUMMARY', $MODULE)}</h2>
+		<div class="mk-settings-summary-grid">
+			<a class="mk-settings-stat-card" href="index.php?module=Users&amp;parent=Settings&amp;view=List">
+				<div class="mk-settings-stat-card__value">{$USERS_COUNT}</div>
+				<div class="mk-settings-stat-card__label">{vtranslate('LBL_ACTIVE_USERS', $MODULE)}</div>
+			</a>
+			<a class="mk-settings-stat-card" href="index.php?module=Workflows&amp;parent=Settings&amp;view=List&amp;parentblock=LBL_AUTOMATION">
+				<div class="mk-settings-stat-card__value">{$ACTIVE_WORKFLOWS}</div>
+				<div class="mk-settings-stat-card__label">{vtranslate('LBL_WORKFLOWS_ACTIVE', $MODULE)}</div>
+			</a>
+			<a class="mk-settings-stat-card" href="index.php?module=ModuleManager&amp;parent=Settings&amp;view=List">
+				<div class="mk-settings-stat-card__value">{$ACTIVE_MODULES}</div>
+				<div class="mk-settings-stat-card__label">{vtranslate('LBL_MODULES', $MODULE)}</div>
+			</a>
 		</div>
-	</div>
+	</section>
+
+	<section class="mk-settings-shortcuts" aria-labelledby="mk-settings-shortcuts-title">
+		<h2 id="mk-settings-shortcuts-title" class="mk-settings-section-title">{vtranslate('LBL_SETTINGS_SHORTCUTS', $MODULE)}</h2>
+		<div id="settingsShortCutsContainer" class="mk-settings-shortcuts-grid">
+			{foreach item=SETTINGS_SHORTCUT from=$SETTINGS_SHORTCUTS name=shortcuts}
+				{include file='SettingsShortCut.tpl'|@vtemplate_path:$MODULE}
+			{/foreach}
+		</div>
+	</section>
+</div>
 {/strip}
