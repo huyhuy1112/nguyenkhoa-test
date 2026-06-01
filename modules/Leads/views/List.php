@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * Leads List: modern UI — SALES app only (UI-only dummy list).
+ * Leads List: modern SALES UI (UI-only demo data — no database list).
  ************************************************************************************/
 
 class Leads_List_View extends Vtiger_Index_View {
@@ -9,7 +9,6 @@ class Leads_List_View extends Vtiger_Index_View {
 		return 'ListViewPreProcess.tpl';
 	}
 
-	/** Leads modern UI lives under SALES only. */
 	protected function resolveAppCategory(Vtiger_Request $request) {
 		return 'SALES';
 	}
@@ -64,5 +63,13 @@ class Leads_List_View extends Vtiger_Index_View {
 		$viewer->assign('MODULE_BASIC_ACTIONS', array());
 		$viewer->assign('MODULE_SETTING_ACTIONS', array());
 		$viewer->view('ListViewContents.tpl', $request->getModule());
+	}
+
+	public function checkPermission(Vtiger_Request $request) {
+		$moduleName = $request->getModule();
+		if (!Users_Privileges_Model::isPermitted($moduleName, 'index')) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED', $moduleName));
+		}
+		return true;
 	}
 }

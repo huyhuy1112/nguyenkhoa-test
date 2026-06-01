@@ -1,63 +1,73 @@
 <?php
-
-/* +***********************************************************************************
- * Leads Detail: modern SALES/MARKETING shell with standard Vtiger detail + comments.
+/*+***********************************************************************************
+ * Leads Detail: modern SALES UI (UI-only demo — no database record).
  ************************************************************************************/
 
-class Leads_Detail_View extends Accounts_Detail_View {
+class Leads_Detail_View extends Vtiger_Index_View {
 
-	protected function isModernLeadsDetailUi(Vtiger_Request $request) {
-		$app = strtoupper((string)$request->get('app'));
-		if ($app === '') {
-			$app = strtoupper((string)$request->get('SELECTED_MENU_CATEGORY'));
-		}
-		return in_array($app, array('SALES', 'MARKETING'), true);
+	protected function preProcessTplName(Vtiger_Request $request) {
+		return 'DetailViewPreProcess.tpl';
 	}
 
-	protected function assignModernLeadsDetailUi(Vtiger_Request $request) {
-		if (!$this->isModernLeadsDetailUi($request)) {
-			return;
+	protected function resolveAppCategory(Vtiger_Request $request) {
+		return 'SALES';
+	}
+
+	protected function redirectMarketingToSales(Vtiger_Request $request) {
+		$app = strtoupper((string)$request->get('app'));
+		if ($app === 'MARKETING') {
+			$query = array(
+				'module' => 'Leads',
+				'view' => 'Detail',
+				'app' => 'SALES',
+			);
+			if ($request->get('record')) {
+				$query['record'] = $request->get('record');
+			}
+			header('Location: index.php?' . http_build_query($query));
+			exit;
 		}
+	}
+
+	protected function assignModernContext(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
-		$appName = $request->get('app');
-		if (!empty($appName)) {
-			$viewer->assign('SELECTED_MENU_CATEGORY', $appName);
-		}
-		$viewer->assign('MK_LEADS_MODERN_UI', true);
-		$viewer->assign('MENU_SELECTED_MODULENAME', 'Leads');
+		$moduleName = $request->getModule();
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
 		$viewer->assign('VIEW', 'Detail');
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'Leads');
+		$viewer->assign('MK_LEADS_DETAIL_RECORD', $request->get('record'));
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
-		$this->assignModernLeadsDetailUi($request);
-		return parent::preProcess($request, $display);
-	}
-
-	/**
-	 * Use standard Vtiger detail (tabs, comments). Skip Accounts tag ACL on Leads.
-	 */
-	public function process(Vtiger_Request $request) {
-		$this->assignModernLeadsDetailUi($request);
-		return Vtiger_Detail_View::process($request);
+		$this->redirectMarketingToSales($request);
+		parent::preProcess($request, false);
+		$this->assignModernContext($request);
+		if ($display) {
+			$this->preProcessDisplay($request);
+		}
 	}
 
 	public function postProcess(Vtiger_Request $request) {
-		$this->assignModernLeadsDetailUi($request);
-		return parent::postProcess($request);
+		$viewer = $this->getViewer($request);
+		$viewer->view('DetailViewPostProcess.tpl', $request->getModule());
+		Vtiger_Basic_View::postProcess($request);
 	}
 
-	public function showModuleBasicView(Vtiger_Request $request) {
-		$this->assignModernLeadsDetailUi($request);
-		return parent::showModuleBasicView($request);
+	public function process(Vtiger_Request $request) {
+		$this->redirectMarketingToSales($request);
+		$viewer = $this->getViewer($request);
+		$this->assignModernContext($request);
+		$viewer->view('DetailView.tpl', $request->getModule());
 	}
 
-	public function showModuleSummaryView($request) {
-		$this->assignModernLeadsDetailUi($request);
-		return parent::showModuleSummaryView($request);
-	}
-
-	public function showModuleDetailView(Vtiger_Request $request) {
-		$this->assignModernLeadsDetailUi($request);
-		return parent::showModuleDetailView($request);
+	public function checkPermission(Vtiger_Request $request) {
+		$moduleName = $request->getModule();
+		if (!Users_Privileges_Model::isPermitted($moduleName, 'index')) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED', $moduleName));
+		}
+		return true;
 	}
 }
