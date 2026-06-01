@@ -68,16 +68,5 @@ Vtiger_List_Js("Settings_Vtiger_List_Js",{
 		this.registerEmailFieldClickEvent();
         this.registerDynamicDropdownPosition('table-actions', 'listview-table');
 	
-	},
-
-	/**
-	 * Settings uses the split shell — one page scroll only (no perfectScrollbar on .table-container).
-	 */
-	registerFloatingThead: function () {
-		return;
-	},
-
-	reflowList: function () {
-		return;
 	}
 });

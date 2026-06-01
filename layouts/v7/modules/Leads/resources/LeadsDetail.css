@@ -1,0 +1,82 @@
+/**
+ * Leads Detail (Sales + Marketing) — split shell + standard Vtiger detail (comments, tabs).
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #page,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] #page,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #page.container-fluid,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-dash-main.mk-leads-detail-main,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-dash-main.mk-leads-detail-main {
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+	padding: 0 !important;
+	background: #f7f9fb;
+	box-sizing: border-box;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .main-container.mk-leads-detail-page,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .main-container.mk-leads-detail-page {
+	width: 100%;
+	max-width: 1232px;
+	margin-left: auto !important;
+	margin-right: auto !important;
+	padding: 24px 32px 32px 48px !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-leads-detail-hide-legacy,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-leads-detail-hide-legacy {
+	display: none !important;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .app-nav,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .app-nav {
+	display: none !important;
+}
+
+.mk-leads-detail-breadcrumb {
+	margin-bottom: 16px;
+}
+
+.mk-leads-detail-breadcrumb__list {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	font-size: 13px;
+	color: #64748b;
+}
+
+.mk-leads-detail-breadcrumb__list a {
+	color: #2563eb;
+	text-decoration: none;
+}
+
+.mk-leads-detail-breadcrumb__list a:hover {
+	text-decoration: underline;
+}
+
+.mk-leads-detail-breadcrumb__item--current .mk-leads-detail-breadcrumb__text {
+	color: #0f172a;
+	font-weight: 600;
+}
+
+.mk-leads-detailview-content {
+	background: transparent;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .detailViewContainer.mk-leads-detail-inner,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .detailViewContainer.mk-leads-detail-inner {
+	width: 100%;
+	max-width: none;
+}

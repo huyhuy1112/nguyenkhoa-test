@@ -2,11 +2,12 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .app-nav,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #modnavigator,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .module-action-bar,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .detailViewHeader,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .modal-overlay-footer {
+/* Demo UI only (#mk-ld-detail); standard detail uses LeadsDetail.css */
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"]:has(#mk-ld-detail) .app-nav,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"]:has(#mk-ld-detail) #modnavigator,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"]:has(#mk-ld-detail) .module-action-bar,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"]:has(#mk-ld-detail) .detailViewHeader,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"]:has(#mk-ld-detail) .modal-overlay-footer {
     display: none !important;
 }
 

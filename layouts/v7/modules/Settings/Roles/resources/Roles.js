@@ -120,7 +120,7 @@ var Settings_Roles_Js = {
 		
 		jQuery('.toolbar-handle').bind('mouseover', function(e){
 			var target = $(e.currentTarget);
-			jQuery('.toolbar', target).css({display: 'inline-flex'});
+			jQuery('.toolbar', target).css({display: 'inline'});
 		});
 		jQuery('.toolbar-handle').bind('mouseout', function(e){
 			var target = $(e.currentTarget);

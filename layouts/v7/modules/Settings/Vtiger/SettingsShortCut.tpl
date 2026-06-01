@@ -1,16 +1,27 @@
-{* Settings shortcut tile — icon slot ready for designer SVG *}
+{*+**********************************************************************************
+ * The contents of this file are subject to the vtiger CRM Public License Version 1.1
+ * ("License"); You may not use this file except in compliance with the License
+ * The Original Code is: vtiger CRM Open Source
+ * The Initial Developer of the Original Code is vtiger.
+ * Portions created by vtiger are Copyright (C) vtiger.
+ * All Rights Reserved.
+*
+ ********************************************************************************/
+-->*}
 {strip}
-{assign var=_shortcutName value=$SETTINGS_SHORTCUT->get('name')}
-<div id="shortcut_{$SETTINGS_SHORTCUT->getId()}" data-actionurl="{$SETTINGS_SHORTCUT->getPinUnpinActionUrl()}" class="mk-settings-shortcut-card moduleBlock cursorPointer" data-url="{$SETTINGS_SHORTCUT->getUrl()}" role="button" tabindex="0">
-	<span class="mk-settings-shortcut-card__icon" aria-hidden="true">
-		{include file="partials/SettingsShortcutSvgIcon.tpl"|@vtemplate_path:'Settings:Vtiger' ICON=$_shortcutName}
+	<span id="shortcut_{$SETTINGS_SHORTCUT->getId()}" data-actionurl="{$SETTINGS_SHORTCUT->getPinUnpinActionUrl()}" class="col-lg-3 contentsBackground well cursorPointer moduleBlock" data-url="{$SETTINGS_SHORTCUT->getUrl()}" style="height: 100px; width: 23.5%;">
+		<div>
+			<span>
+				<b class="themeTextColor">{vtranslate($SETTINGS_SHORTCUT->get('name'),$MODULE)}</b>
+			</span>
+			<span class="pull-right">
+				<button data-id="{$SETTINGS_SHORTCUT->getId()}" title="{vtranslate('LBL_REMOVE',$MODULE)}" type="button" class="unpin close hiden"><i class="fa fa-close"></i></button>
+			</span>
+		</div>
+		<div>
+			{if $SETTINGS_SHORTCUT->get('description') && $SETTINGS_SHORTCUT->get('description') neq 'NULL'}
+				{vtranslate($SETTINGS_SHORTCUT->get('description'),$MODULE)}
+			{/if}
+		</div>
 	</span>
-	<span class="mk-settings-shortcut-card__title">{vtranslate($_shortcutName, $MODULE)}</span>
-	{if $SETTINGS_SHORTCUT->get('description') && $SETTINGS_SHORTCUT->get('description') neq 'NULL'}
-		<span class="mk-settings-shortcut-card__desc">{vtranslate($SETTINGS_SHORTCUT->get('description'), $MODULE)}</span>
-	{/if}
-	<button data-id="{$SETTINGS_SHORTCUT->getId()}" title="{vtranslate('LBL_REMOVE', $MODULE)}" type="button" class="mk-settings-shortcut-unpin unpin hiden" aria-label="{vtranslate('LBL_REMOVE', $MODULE)}">
-		<i class="fa fa-close" aria-hidden="true"></i>
-	</button>
-</div>
 {/strip}
