@@ -1930,6 +1930,54 @@ body[data-app="PROJECT"] #app-menu .app-item-color-PROJECT {
     color: #ffffff !important;
     text-decoration: none !important;
 }
+
+/* ========================================================================== */
+/* Settings UI — production-safe overrides (high specificity)                  */
+/* Some environments override sidebar colors; force the localhost palette.     */
+/* ========================================================================== */
+
+body .main-container .module-nav.settingsNav,
+body .main-container #modnavigator.settingsNav {
+    background: #243746 !important;
+}
+
+body .main-container .module-nav.settingsNav .settingsgroup-accordion a,
+body .main-container .module-nav.settingsNav .list-group a,
+body .main-container .module-nav.settingsNav .menuItemLabel,
+body .main-container .module-nav.settingsNav .settingsgroup,
+body .main-container .module-nav.settingsNav .settingsgroup span,
+body .main-container .module-nav.settingsNav .settingsgroup div,
+body .main-container .module-nav.settingsNav .settingsgroup i {
+    color: #ffffff !important;
+}
+
+body .main-container .module-nav.settingsNav .list-group a,
+body .main-container .module-nav.settingsNav .list-group .menuItemLabel {
+    background: #2f4658 !important;
+}
+
+body .main-container .module-nav.settingsNav .settingsgroup-accordion a:hover,
+body .main-container .module-nav.settingsNav .list-group a:hover,
+body .main-container .module-nav.settingsNav .menuItemLabel:hover {
+    background: #3a566b !important;
+}
+
+/* Alternate Settings sidebar template (SettingsSidebar.tpl) */
+body .main-container .settings-sidebar,
+body .main-container .settings-sidebar .sidebar-container,
+body .main-container .settings-sidebar .lists-menu-container {
+    background: #243746 !important;
+}
+
+body .main-container .settings-sidebar .settings-menu-items a {
+    background: #2f4658 !important;
+    color: #ffffff !important;
+}
+
+body .main-container .settings-sidebar .settings-menu-items a:hover {
+    background: #3a566b !important;
+    color: #ffffff !important;
+}
 /* Tránh trang bị chặn: nội dung luôn trên, không bị đè bởi sidebar/footer */
 .viewContent .content-area,
 .listViewPageDiv.content-area,
