@@ -1844,16 +1844,28 @@ body[data-app="PROJECT"] #app-menu .app-item-color-PROJECT {
     border: 1px solid rgba(255, 255, 255, 0.35) !important;
 }
 
-/* Settings-only: fix white/translucent row backgrounds in Settings sidebar */
+/* Settings-only: solid dark panels (transparent was exposing white .panel-default / .module-nav) */
 .main-container .module-nav.settingsNav .settingsgroup,
 .main-container .module-nav.settingsNav .settingsgroup-panel,
+.main-container .module-nav.settingsNav .panel,
+.main-container .module-nav.settingsNav .panel-default,
+.main-container .module-nav.settingsNav .panel-group,
+.main-container .module-nav.settingsNav .app-settings-accordion,
 .main-container .module-nav.settingsNav .settingsgroup-accordion,
-.main-container .module-nav.settingsNav .settingsgroup-accordion a,
+.main-container .module-nav.settingsNav .panel-collapse,
+.main-container .module-nav.settingsNav .panel-collapse.ulBlock,
 .main-container .module-nav.settingsNav .list-group,
-.main-container .module-nav.settingsNav .list-group-item,
-.main-container .module-nav.settingsNav .menuItemLabel {
-    background: transparent !important;
+.main-container .module-nav.settingsNav .list-group-item {
+    background-color: #2c3b49 !important;
+    background: #2c3b49 !important;
     opacity: 1 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.main-container .module-nav.settingsNav .settingsgroup-accordion a,
+.main-container .module-nav.settingsNav .menuItemLabel {
+    background-color: transparent !important;
     color: #ffffff !important;
 }
 
@@ -2116,6 +2128,19 @@ body[data-module="ProjectTask"] .main-container .editViewPageDiv .editViewConten
 }*/
 .module-nav{
     background: #fff; 
+}
+/* Settings sidebar must not inherit the 56px white module-nav shell above */
+.main-container .module-nav.settingsNav,
+.main-container #modnavigator.settingsNav {
+    background: #243746 !important;
+    width: 230px !important;
+    max-width: 230px !important;
+    min-width: 230px !important;
+}
+.main-container .module-nav.settingsNav .settingsgroup,
+.main-container .module-nav.settingsNav .settingsgroup .panel,
+.main-container .module-nav.settingsNav .settingsgroup .panel-default {
+    background: #2c3b49 !important;
 }
 /* Sidebar Management (Schedule, Teams, Report, Project...): luôn hiện, chỉ icon */
 .module-nav .modules-menu,
@@ -14069,4 +14094,76 @@ body[data-module="Activities"] .activities-status-skipped {
 .history-empty {
     margin: 10px 0;
     border-radius: 14px;
+}
+
+/* ========================================================================== */
+/* Settings Index sidebar — FINAL (load order wins over .module-nav / panels) */
+/* ========================================================================== */
+body .main-container .module-nav.settingsNav,
+body .main-container #modnavigator.settingsNav,
+html[data-theme="dark"] body .main-container .module-nav.settingsNav,
+html[data-theme="dark"] body .main-container #modnavigator.settingsNav {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 230px !important;
+    max-width: 230px !important;
+    min-width: 230px !important;
+    background: #243746 !important;
+    color: #ffffff !important;
+    overflow-y: auto !important;
+}
+
+body .main-container .module-nav.settingsNav .hidden-xs.height100Per,
+body .main-container .module-nav.settingsNav .settingsgroup {
+    min-height: 100% !important;
+    background: #2c3b49 !important;
+}
+
+body .main-container .module-nav.settingsNav .settingsgroup .panel,
+body .main-container .module-nav.settingsNav .settingsgroup .panel-default,
+body .main-container .module-nav.settingsNav .settingsgroup-panel,
+body .main-container .module-nav.settingsNav .panel-collapse,
+body .main-container .module-nav.settingsNav .panel-collapse.ulBlock,
+html[data-theme="dark"] body .main-container .module-nav.settingsNav .panel,
+html[data-theme="dark"] body .main-container .module-nav.settingsNav .panel-default,
+html[data-theme="dark"] body .main-container .module-nav.settingsNav .panel-body {
+    background: #2c3b49 !important;
+    background-color: #2c3b49 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+body .main-container .module-nav.settingsNav .settingsgroup-accordion a,
+body .main-container .module-nav.settingsNav .settingsgroup-accordion a span,
+body .main-container .module-nav.settingsNav .settingsgroup-accordion a i,
+body .main-container .module-nav.settingsNav .list-group a,
+body .main-container .module-nav.settingsNav .list-group .menuItemLabel,
+body .main-container .module-nav.settingsNav .menuItemLabel,
+html[data-theme="dark"] body .main-container .module-nav.settingsNav a,
+html[data-theme="dark"] body .main-container .module-nav.settingsNav .menuItemLabel {
+    color: #ffffff !important;
+}
+
+body .main-container .module-nav.settingsNav .list-group a,
+body .main-container .module-nav.settingsNav .list-group .menuItemLabel {
+    background: #2f4658 !important;
+}
+
+body .main-container .module-nav.settingsNav .settingsgroup-accordion a:hover,
+body .main-container .module-nav.settingsNav .list-group a:hover,
+body .main-container .module-nav.settingsNav .menuItemLabel:hover {
+    background: #3a566b !important;
+    color: #ffffff !important;
+}
+
+body .main-container .module-nav.settingsNav #settingsMenuSearch,
+body .main-container .module-nav.settingsNav input.search-list {
+    color: #333333 !important;
+    background: #ffffff !important;
+}
+
+body .main-container .settingsPageDiv.content-area {
+    margin-left: 230px !important;
 }
