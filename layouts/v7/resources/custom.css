@@ -1782,6 +1782,112 @@ body[data-app="PROJECT"] #app-menu .app-item-color-PROJECT {
 .main-container .settingsPageDiv {
     padding-left: 296px !important;
 }
+
+/* Settings-only: restore normal Settings sidebar/layout (do not affect CRM module sidebars) */
+.main-container .module-nav.settingsNav,
+.main-container #modnavigator.settingsNav {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 230px !important;
+    max-width: 230px !important;
+    min-width: 230px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.main-container .module-nav.settingsNav .settingsgroup {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.main-container .settingsPageDiv.content-area {
+    /* module-nav.settingsNav is absolute overlay → offset content with margin-left */
+    margin-left: 230px !important;
+    padding-left: 15px !important;
+}
+
+/* Settings-only: ensure Settings sidebar text is readable */
+.main-container .module-nav.settingsNav,
+.main-container .module-nav.settingsNav * {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.main-container .module-nav.settingsNav {
+    background: #243746 !important;
+}
+
+.main-container .module-nav.settingsNav .settingsgroup,
+.main-container .module-nav.settingsNav .settingsgroup a,
+.main-container .module-nav.settingsNav .settingsgroup span,
+.main-container .module-nav.settingsNav .settingsgroup div,
+.main-container .module-nav.settingsNav .settingsgroup i {
+    color: #ffffff !important;
+}
+
+.main-container .module-nav.settingsNav .settingsgroup .list-group a.menuItemLabel {
+    color: #f5f7fa !important;
+}
+
+.main-container .module-nav.settingsNav .settingsgroup .list-group a.menuItemLabel.settingsgroup-menu-color,
+.main-container .module-nav.settingsNav .settingsgroup .list-group a.menuItemLabel:hover,
+.main-container .module-nav.settingsNav .settingsgroup .settingsgroup-accordion a:hover {
+    color: #ffffff !important;
+}
+
+.main-container .module-nav.settingsNav #settingsMenuSearch,
+.main-container .module-nav.settingsNav input.search-list {
+    color: #333333 !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Settings-only: fix white/translucent row backgrounds in Settings sidebar */
+.main-container .module-nav.settingsNav .settingsgroup,
+.main-container .module-nav.settingsNav .settingsgroup-panel,
+.main-container .module-nav.settingsNav .settingsgroup-accordion,
+.main-container .module-nav.settingsNav .settingsgroup-accordion a,
+.main-container .module-nav.settingsNav .list-group,
+.main-container .module-nav.settingsNav .list-group-item,
+.main-container .module-nav.settingsNav .menuItemLabel {
+    background: transparent !important;
+    opacity: 1 !important;
+    color: #ffffff !important;
+}
+
+.main-container .module-nav.settingsNav .settingsgroup-accordion a {
+    display: block !important;
+    padding: 12px 16px !important;
+    color: #ffffff !important;
+}
+
+.main-container .module-nav.settingsNav .panel-collapse.ulBlock,
+.main-container .module-nav.settingsNav .list-group {
+    background: #243746 !important;
+}
+
+.main-container .module-nav.settingsNav .list-group .menuItemLabel,
+.main-container .module-nav.settingsNav .list-group a {
+    display: block !important;
+    padding: 9px 28px !important;
+    background: #2f4658 !important;
+    color: #ffffff !important;
+}
+
+.main-container .module-nav.settingsNav .settingsgroup-accordion a:hover,
+.main-container .module-nav.settingsNav .list-group a:hover,
+.main-container .module-nav.settingsNav .menuItemLabel:hover {
+    background: #3a566b !important;
+    color: #ffffff !important;
+}
+
+.main-container .module-nav.settingsNav i,
+.main-container .module-nav.settingsNav .fa,
+.main-container .module-nav.settingsNav .app-icon {
+    color: #ffffff !important;
+}
 /* Tránh trang bị chặn: nội dung luôn trên, không bị đè bởi sidebar/footer */
 .viewContent .content-area,
 .listViewPageDiv.content-area,
