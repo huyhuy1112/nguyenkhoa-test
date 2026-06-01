@@ -1888,6 +1888,48 @@ body[data-app="PROJECT"] #app-menu .app-item-color-PROJECT {
 .main-container .module-nav.settingsNav .app-icon {
     color: #ffffff !important;
 }
+
+/* Settings sidebar (alternate template: SettingsSidebar.tpl uses .settings-sidebar) */
+.main-container .settings-sidebar,
+.main-container .settings-sidebar .sidebar-container,
+.main-container .settings-sidebar .lists-menu-container {
+    background: #243746 !important;
+    color: #ffffff !important;
+}
+
+.main-container .settings-sidebar .lists-header,
+.main-container .settings-sidebar .lists-header a,
+.main-container .settings-sidebar .lists-header a:visited {
+    color: #ffffff !important;
+}
+
+.main-container .settings-sidebar hr {
+    border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.main-container .settings-sidebar .settings-flip,
+.main-container .settings-sidebar .settings-flip span,
+.main-container .settings-sidebar .settings-flip i {
+    color: #ffffff !important;
+}
+
+.main-container .settings-sidebar .settings-menu-items,
+.main-container .settings-sidebar .settings-menu-items a,
+.main-container .settings-sidebar .settings-menu-items a:visited {
+    color: #f5f7fa !important;
+}
+
+.main-container .settings-sidebar .settings-menu-items a {
+    display: block !important;
+    padding: 9px 16px !important;
+    border-radius: 8px;
+}
+
+.main-container .settings-sidebar .settings-menu-items a:hover {
+    background: #3a566b !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
 /* Tránh trang bị chặn: nội dung luôn trên, không bị đè bởi sidebar/footer */
 .viewContent .content-area,
 .listViewPageDiv.content-area,
