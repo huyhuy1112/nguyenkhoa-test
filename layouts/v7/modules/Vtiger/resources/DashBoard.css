@@ -497,6 +497,27 @@ body[data-view="ModernDashboard"] .mk-dashboard-sidebar {
     height: auto;
     max-height: 40px;
     object-fit: contain;
+    object-position: left center;
+}
+
+.mk-dash-bace-logo--dark {
+    display: none;
+}
+
+/* Dark: horizontal transparent export (200×32) — same sizing rules as light */
+html[data-theme="dark"] .mk-dash-bace-logo--light {
+    display: none !important;
+}
+
+html[data-theme="dark"] .mk-dash-bace-logo--dark {
+    display: block !important;
+    width: auto;
+    max-width: min(218px, 100%);
+    height: auto;
+    max-height: 40px;
+    object-fit: contain;
+    object-position: left center;
+    filter: brightness(0.82) saturate(1.05) contrast(1.08);
 }
 
 .mk-dash-sidebar-logo {

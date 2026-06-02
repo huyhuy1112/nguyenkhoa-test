@@ -46,6 +46,48 @@
     <script type="text/javascript" src="{vresource_url('layouts/v7/lib/bootbox/bootbox.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/Base.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/Vtiger.js')}"></script>
+    {*
+      Failsafe: after cache clear / JS errors, a stuck backdrop can block all clicks (even Login).
+      This snippet runs very early on every page to ensure the UI remains interactive.
+    *}
+    <script type="text/javascript">
+      (function () {
+        function cleanupStuckOverlays() {
+          try {
+            var hasActiveModal = document.querySelector('.modal.in, .fc-overlay-modal, .overlayDetail, .overlayEdit');
+            var hasOverlayPage = document.querySelector('#overlayPage.in, #overlayPageContent.in, #overlayPageContent.fade.in');
+            if (hasActiveModal || hasOverlayPage) return;
+
+            document.querySelectorAll('.modal-backdrop').forEach(function (n) { n.parentNode && n.parentNode.removeChild(n); });
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+
+            // Drawer/menu backdrops (modern shell)
+            document.body.classList.remove('mk-dash-drawer-open');
+            document.querySelectorAll('.mk-dash-drawer-backdrop').forEach(function (n) { n.parentNode && n.parentNode.removeChild(n); });
+
+            var om = document.getElementById('app-menu');
+            if (om) { om.classList.add('hide'); om.style.display = 'none'; om.style.visibility = 'hidden'; }
+
+            var opc = document.getElementById('overlayPageContent');
+            if (opc) { opc.classList.remove('in'); opc.style.display = 'none'; opc.style.visibility = 'hidden'; }
+            var op = document.getElementById('overlayPage');
+            if (op) { op.classList.remove('in'); op.style.display = 'none'; op.style.visibility = 'hidden'; }
+          } catch (e) {}
+        }
+
+        // Run immediately and keep trying briefly during boot.
+        cleanupStuckOverlays();
+        document.addEventListener('DOMContentLoaded', cleanupStuckOverlays);
+        window.addEventListener('load', cleanupStuckOverlays);
+        var tries = 0;
+        var t = setInterval(function () {
+          cleanupStuckOverlays();
+          tries++;
+          if (tries >= 12) clearInterval(t);
+        }, 250);
+      })();
+    </script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Calendar/resources/TaskManagement.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Import/resources/Import.js')}?v=FORCE_RELOAD_2"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Emails/resources/EmailPreview.js')}"></script>
@@ -55,7 +97,8 @@
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Documents/resources/Documents.js')}"></script>
     <script type="text/javascript" src="{vresource_url('libraries/DOMPurify/dist/purify.min.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernNotifications.js')}"></script>
-   
+    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernProfileDropdown.js')}"></script>
+
     {foreach key=index item=jsModel from=$SCRIPTS}
         <script type="{$jsModel->getType()}" src="{vresource_url($jsModel->getSrc())}"></script>
     {/foreach}

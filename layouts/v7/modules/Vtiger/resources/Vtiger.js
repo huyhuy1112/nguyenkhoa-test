@@ -361,6 +361,7 @@ Vtiger.Class('Vtiger_Index_Js', {
 	},
 
 	registerEvents: function() {
+		this.cleanupStuckOverlays();
 		this.registerMenuToggle();
 		this.registerGlobalSearch();
 		this.registerAppTriggerEvent();
@@ -368,6 +369,7 @@ Vtiger.Class('Vtiger_Index_Js', {
 		this.registerListEssentialsToggleEvent();
 		this.registerAdvanceSeachIntiator();
 		this.registerQuickCreateEvent();
+		this.registerModernQuickCreateLauncher();
 		this.registerQuickCreateSubMenus();
 		this.registerPostQuickCreateEvent();
 		this.registerEventForTaskManagement();
@@ -383,6 +385,46 @@ Vtiger.Class('Vtiger_Index_Js', {
 		this.registerEventForPostSaveFail();
 
 		vtUtils.enableTooltips();
+	},
+
+	/**
+	 * Safety cleanup: if a full-screen overlay/backdrop gets stuck (common after cache clear
+	 * or a JS exception), remove it so the page remains clickable.
+	 *
+	 * This runs only when there is no active modal/overlay content visible.
+	 */
+	cleanupStuckOverlays: function () {
+		try {
+			var $body = jQuery('body');
+			var hasActiveModal =
+				jQuery('.modal.in:visible, .fc-overlay-modal:visible, .overlayDetail:visible, .overlayEdit:visible').length > 0;
+			var hasOverlayPage =
+				jQuery('#overlayPage.in:visible, #overlayPageContent.in:visible, #overlayPageContent.fade.in:visible').length > 0;
+
+			// If there is a real active modal, do not touch backdrops.
+			if (hasActiveModal || hasOverlayPage) {
+				return;
+			}
+
+			// Remove Bootstrap modal backdrops and reset body state.
+			jQuery('.modal-backdrop').remove();
+			$body.removeClass('modal-open');
+			$body.css('overflow', '');
+
+			// Remove/close marketing drawer backdrop if present.
+			$body.removeClass('mk-dash-drawer-open');
+			jQuery('.mk-dash-drawer-backdrop').remove();
+
+			// Hide app overlay menu if it is open but backdrop got stuck.
+			jQuery('#app-menu').addClass('hide').hide();
+
+			// Ensure overlay containers are not blocking clicks.
+			jQuery('#overlayPageContent, #overlayPage')
+				.removeClass('in')
+				.hide();
+		} catch (e) {
+			// no-op
+		}
 	},
 
 	addBodyScroll: function () {
@@ -404,8 +446,11 @@ Vtiger.Class('Vtiger_Index_Js', {
 	registerEventForTaskManagement : function(){
 		var globalNav = jQuery('.global-nav');
 		globalNav.find(".taskManagement").on("click",function(e){
-			// Unified behavior: always go to full-page MANAGEMENT Task Board, remembering origin
-			// as a relative CRM URL (no scheme/host).
+			var href = jQuery(this).attr('href') || '';
+			// Dashboard shell topbar uses a real href; legacy bars may use #.
+			if (href && href !== '#' && href.indexOf('javascript') !== 0) {
+				return;
+			}
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			var search = window.location.search || '';
@@ -455,12 +500,39 @@ Vtiger.Class('Vtiger_Index_Js', {
 	},
 
 	/**
+	 * Close button + ESC for the modern Quick Create launcher dropdown only.
+	 */
+	registerModernQuickCreateLauncher : function() {
+		jQuery(document).on('click.modernQuickCreate', '#menubar_quickCreate_close', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $dropdown = jQuery(this).closest('.dropdown');
+			$dropdown.removeClass('open');
+			$dropdown.find('.dropdown-toggle').attr('aria-expanded', 'false');
+		});
+		jQuery(document).on('keydown.modernQuickCreate', function(e) {
+			if (e.keyCode !== 27) {
+				return;
+			}
+			var $open = jQuery('.dropdown.open').filter(function() {
+				return jQuery(this).find('.modern-quick-create').length > 0;
+			});
+			if (!$open.length) {
+				return;
+			}
+			$open.removeClass('open').find('.dropdown-toggle').attr('aria-expanded', 'false');
+		});
+	},
+
+	/**
 	 * Function to register Quick Create Event
 	 * @returns {undefined}
 	 */
 	registerQuickCreateEvent : function (){
 		var thisInstance = this;
 		jQuery("#quickCreateModules").on("click",".quickCreateModule",function(e,params){
+			jQuery(e.currentTarget).closest('.dropdown').removeClass('open')
+				.find('.dropdown-toggle').attr('aria-expanded', 'false');
 			var quickCreateElem = jQuery(e.currentTarget);
 			var quickCreateUrl = quickCreateElem.data('url');
 			var quickCreateModuleName = quickCreateElem.data('name');

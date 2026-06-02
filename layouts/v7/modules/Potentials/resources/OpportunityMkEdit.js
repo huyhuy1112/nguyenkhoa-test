@@ -12,8 +12,7 @@ var MK_BUILD = '20260527_create7';
 			$('body').data('module') === 'Potentials' &&
 			$('body').data('view') === 'Edit' &&
 			($('body').data('app') === 'SALES' || !$('body').data('app')) &&
-			$('#mkOppCreateWorkspace').length &&
-			!$('input[name="record"]').val()
+			$('#mkOppCreateWorkspace').length
 		);
 	}
 
@@ -23,7 +22,7 @@ var MK_BUILD = '20260527_create7';
 
 	function hideLegacyChrome() {
 		var $host = $('#mkOppFormHost');
-		$host.find('#modnavigator, .editViewModNavigator').addClass('mk-opp-hide-legacy');
+		$host.find('#modnavigator, .editViewModNavigator').remove();
 		$host.find('.editViewHeader').addClass('mk-opp-hide-legacy');
 		$host.find('.modal-overlay-footer').addClass('mk-opp-form-footer');
 		$host.find('.main-container').first().addClass('mk-opp-form-container');

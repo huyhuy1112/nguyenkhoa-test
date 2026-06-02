@@ -28,7 +28,7 @@
 						<div class="mk-gr-edit-fields">
 							<label class="mk-gr-edit-field">
 								<span class="mk-gr-edit-field__label">Receipt subject</span>
-								<input type="text" name="subject" class="mk-gr-edit-input" value="{$RECORD.subject|escape:'html'}" required="required" />
+								<input type="text" name="subject" class="mk-gr-edit-input" value="{decode_html($RECORD.subject)|escape:'html'}" required="required" />
 							</label>
 							<label class="mk-gr-edit-field">
 								<span class="mk-gr-edit-field__label">Inbound code</span>
@@ -44,7 +44,7 @@
 							</label>
 							<label class="mk-gr-edit-field">
 								<span class="mk-gr-edit-field__label">Storage location</span>
-								<input type="text" name="storage_location" class="mk-gr-edit-input" value="{$RECORD.storage_location|escape:'html'}" />
+								<input type="text" name="storage_location" class="mk-gr-edit-input" value="{decode_html($RECORD.storage_location)|escape:'html'}" />
 							</label>
 							<label class="mk-gr-edit-field mk-gr-edit-field--wide">
 								<span class="mk-gr-edit-field__label">Note</span>
@@ -80,7 +80,7 @@
 									<tr>
 										<td>
 											<input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" />
-											<input type="text" name="item_product_name[]" class="mk-gr-edit-input" value="{$IT.product_name|escape:'html'}" placeholder="Product name" autocomplete="off" required="required" />
+											<input type="text" name="item_product_name[]" class="mk-gr-edit-input" value="{decode_html($IT.product_name)|escape:'html'}" placeholder="Product name" autocomplete="off" required="required" />
 										</td>
 										<td>
 											<select name="item_product_type[]" class="mk-gr-edit-input js-product-type">
@@ -91,12 +91,12 @@
 												<option value="Other" {if $ITYPE eq 'Other' || $ITYPE eq ''}selected="selected"{/if}>Other</option>
 											</select>
 										</td>
-										<td><input type="text" name="item_serial[]" class="mk-gr-edit-input" value="{$IT.serial_number|escape:'html'}" /></td>
+										<td><input type="text" name="item_serial[]" class="mk-gr-edit-input" value="{decode_html($IT.serial_number)|escape:'html'}" /></td>
 										<td><input type="date" name="item_expired_date[]" class="mk-gr-edit-input" value="{$IT.expired_date|escape:'html'}" /></td>
 										<td class="mk-gi-table__num"><input type="number" step="0.0001" min="0" name="item_quantity[]" class="mk-gr-edit-input" value="{$IT.quantity|escape:'html'}" required="required" /></td>
 										<td class="mk-gi-table__num"><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="mk-gr-edit-input" value="{$IT.unit_price|escape:'html'}" /></td>
-										<td><input type="text" name="description[]" class="mk-gr-edit-input" value="{$IT.description|escape:'html'}" /></td>
-										<td><input type="text" name="item_line_note[]" class="mk-gr-edit-input" value="{$IT.line_note|escape:'html'}" /></td>
+										<td><input type="text" name="description[]" class="mk-gr-edit-input" value="{decode_html($IT.description)|escape:'html'}" /></td>
+										<td><input type="text" name="item_line_note[]" class="mk-gr-edit-input" value="{decode_html($IT.line_note)|escape:'html'}" /></td>
 										<td class="mk-gi-table__actions"><button type="button" class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost js-remove-row">Remove</button></td>
 									</tr>
 									{/foreach}
@@ -198,13 +198,13 @@
 					<div class="panel-heading"><strong>Inbound info</strong></div>
 					<div class="panel-body">
 						<div class="row">
-							<div class="col-sm-6"><div class="form-group"><label>Receipt Subject</label><input type="text" name="subject" class="form-control" value="{$RECORD.subject|escape:'html'}" required /></div></div>
+							<div class="col-sm-6"><div class="form-group"><label>Receipt Subject</label><input type="text" name="subject" class="form-control" value="{decode_html($RECORD.subject)|escape:'html'}" required /></div></div>
 							<div class="col-sm-6"><div class="form-group"><label>Inbound Code</label><input type="text" class="form-control" value="{if $RECORD.code}{$RECORD.code|escape:'html'}{else}Auto on save{/if}" readonly="readonly" /></div></div>
 						</div>
 						<div class="row">
-							<div class="col-sm-6"><div class="form-group"><label>Supplier/Source</label><input type="text" name="source_name" class="form-control" value="{$RECORD.source_name|escape:'html'}" /></div></div>
+							<div class="col-sm-6"><div class="form-group"><label>Supplier/Source</label><input type="text" name="source_name" class="form-control" value="{decode_html($RECORD.source_name)|escape:'html'}" /></div></div>
 							<div class="col-sm-3"><div class="form-group"><label>Received Date</label><input type="date" name="received_date" class="form-control" value="{$RECORD.received_date|escape:'html'}" /></div></div>
-							<div class="col-sm-3"><div class="form-group"><label>Storage Location</label><input type="text" name="storage_location" class="form-control" value="{$RECORD.storage_location|escape:'html'}" /></div></div>
+							<div class="col-sm-3"><div class="form-group"><label>Storage Location</label><input type="text" name="storage_location" class="form-control" value="{decode_html($RECORD.storage_location)|escape:'html'}" /></div></div>
 						</div>
 						<div class="form-group"><label>Note</label><textarea name="note" class="form-control" rows="4">{$RECORD.note|escape:'html'}</textarea></div>
 					</div>
@@ -227,12 +227,12 @@
 											<option value="Other" {if $ITYPE eq 'Other' || $ITYPE eq ''}selected="selected"{/if}>Other</option>
 										</select>
 									</td>
-									<td><input type="text" name="item_serial[]" class="form-control" value="{$IT.serial_number|escape:'html'}" /></td>
+									<td><input type="text" name="item_serial[]" class="form-control" value="{decode_html($IT.serial_number)|escape:'html'}" /></td>
 									<td><input type="date" name="item_expired_date[]" class="form-control" value="{$IT.expired_date|escape:'html'}" /></td>
 									<td><input type="number" name="item_quantity[]" class="form-control" value="{$IT.quantity|escape:'html'}" required /></td>
 									<td><input type="number" name="item_unit_price[]" class="form-control" value="{$IT.unit_price|escape:'html'}" /></td>
-									<td><input type="text" name="description[]" class="form-control" value="{$IT.description|escape:'html'}" /></td>
-									<td><input type="text" name="item_line_note[]" class="form-control" value="{$IT.line_note|escape:'html'}" /></td>
+									<td><input type="text" name="description[]" class="form-control" value="{decode_html($IT.description)|escape:'html'}" /></td>
+									<td><input type="text" name="item_line_note[]" class="form-control" value="{decode_html($IT.line_note)|escape:'html'}" /></td>
 									<td><button type="button" class="btn btn-xs btn-danger js-remove-row">x</button></td>
 								</tr>
 								{/foreach}

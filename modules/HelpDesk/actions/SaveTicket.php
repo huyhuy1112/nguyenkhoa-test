@@ -48,6 +48,29 @@ class HelpDesk_SaveTicket_Action extends Vtiger_Action_Controller {
 				return;
 			}
 
+			if ($mode === 'unassignUser') {
+				$removeId = (int)$request->get('user_id');
+				$keepIds = [];
+				if ($removeId > 0) {
+					$db = PearDatabase::getInstance();
+					$res = $db->pquery(
+						'SELECT user_id FROM ticket_assignments WHERE ticket_id = ?',
+						[$ticketId]
+					);
+					if ($res && $db->num_rows($res) > 0) {
+						while ($row = $db->fetchByAssoc($res)) {
+							$uid = (int)$row['user_id'];
+							if ($uid > 0 && $uid !== $removeId) {
+								$keepIds[] = $uid;
+							}
+						}
+					}
+				}
+				$service->assignUsers($ticketId, $keepIds, $currentId);
+				$this->redirectToDetail($ticketId);
+				return;
+			}
+
 			if ($mode === 'addTimeLog') {
 				$minutes = (int)$request->get('minutes_spent');
 				$note    = (string)$request->get('note');
@@ -126,7 +149,7 @@ class HelpDesk_SaveTicket_Action extends Vtiger_Action_Controller {
 	}
 
 	protected function redirectToDetail(int $ticketId): void {
-		$detailUrl = 'index.php?module=HelpDesk&view=TicketDetail&record=' . $ticketId;
+		$detailUrl = 'index.php?module=HelpDesk&view=TicketDetail&record=' . $ticketId . '&app=SUPPORT';
 		header("Location: $detailUrl");
 		exit;
 	}

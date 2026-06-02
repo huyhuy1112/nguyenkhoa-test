@@ -194,7 +194,7 @@ for ($i = 1; $i <= 5; $i++) {
 		$cfTable,
 		$commentColumn,
 		$commentName,
-		"Phase {$i} Comment",
+		'Comment',
 		19,      // textarea
 		'V~O'
 	);

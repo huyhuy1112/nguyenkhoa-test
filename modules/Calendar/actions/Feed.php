@@ -90,7 +90,7 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 											} else {
 												$this->pullDetails($start, $end, $result, $type, $fieldName, $color, $textColor);
 											}
-												break;
+											break;
 				case 'MultipleEvents'	:	$this->pullMultipleEvents($start,$end, $result,$mapping);break;
 				case $type				:	$this->pullDetails($start, $end, $result, $type, $fieldName, $color, $textColor);break;
 			}
@@ -432,19 +432,19 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 
 			// Timed events need timezone conversion; all-day must stay date-only (avoid shifting 23:59 into next day in user TZ).
 			if (!$isAllDay) {
-				$dateTimeFieldInstance = new DateTimeField($record['date_start'].' '.$record['time_start']);
-				$userDateTimeString = $dateTimeFieldInstance->getDisplayDateTimeValue($currentUser);
-				$dateTimeComponents = explode(' ',$userDateTimeString);
-				$dateComponent = isset($dateTimeComponents[0]) ? $dateTimeComponents[0] : '';
-				$startDateYmd = DateTimeField::__convertToDBFormat($dateComponent, $currentUser->get('date_format'));
-				$startTimePart = isset($dateTimeComponents[1]) ? $dateTimeComponents[1] : '';
+			$dateTimeFieldInstance = new DateTimeField($record['date_start'].' '.$record['time_start']);
+			$userDateTimeString = $dateTimeFieldInstance->getDisplayDateTimeValue($currentUser);
+			$dateTimeComponents = explode(' ',$userDateTimeString);
+			$dateComponent = isset($dateTimeComponents[0]) ? $dateTimeComponents[0] : '';
+			$startDateYmd = DateTimeField::__convertToDBFormat($dateComponent, $currentUser->get('date_format'));
+			$startTimePart = isset($dateTimeComponents[1]) ? $dateTimeComponents[1] : '';
 
-				$dateTimeFieldInstanceEnd = new DateTimeField($record['due_date'].' '.$record['time_end']);
-				$userDateTimeStringEnd = $dateTimeFieldInstanceEnd->getDisplayDateTimeValue($currentUser);
-				$dateTimeComponentsEnd = explode(' ',$userDateTimeStringEnd);
-				$dateComponentEnd = isset($dateTimeComponentsEnd[0]) ? $dateTimeComponentsEnd[0] : $record['due_date'];
-				$endDateYmd = DateTimeField::__convertToDBFormat($dateComponentEnd, $currentUser->get('date_format'));
-				$endTimePart = isset($dateTimeComponentsEnd[1]) ? $dateTimeComponentsEnd[1] : '';
+			$dateTimeFieldInstanceEnd = new DateTimeField($record['due_date'].' '.$record['time_end']);
+			$userDateTimeStringEnd = $dateTimeFieldInstanceEnd->getDisplayDateTimeValue($currentUser);
+			$dateTimeComponentsEnd = explode(' ',$userDateTimeStringEnd);
+			$dateComponentEnd = isset($dateTimeComponentsEnd[0]) ? $dateTimeComponentsEnd[0] : $record['due_date'];
+			$endDateYmd = DateTimeField::__convertToDBFormat($dateComponentEnd, $currentUser->get('date_format'));
+			$endTimePart = isset($dateTimeComponentsEnd[1]) ? $dateTimeComponentsEnd[1] : '';
 
 				$item['start'] = $startDateYmd . ' ' . $startTimePart;
 				$item['end'] = $endDateYmd . ' ' . $endTimePart;
@@ -553,19 +553,19 @@ class Calendar_Feed_Action extends Vtiger_BasicAjax_Action {
 
 			// Timed tasks need timezone conversion; all-day must stay date-only (avoid shifting 23:59 into next day in user TZ).
 			if (!$isAllDay) {
-				$dateTimeFieldInstance = new DateTimeField($record['date_start'].' '.$record['time_start']);
-				$userDateTimeString = $dateTimeFieldInstance->getDisplayDateTimeValue($currentUser);
-				$dateTimeComponents = explode(' ', $userDateTimeString);
-				$dateComponent = isset($dateTimeComponents[0]) ? $dateTimeComponents[0] : '';
-				$startDateYmd = DateTimeField::__convertToDBFormat($dateComponent, $currentUser->get('date_format'));
-				$startTimePart = isset($dateTimeComponents[1]) ? $dateTimeComponents[1] : '';
+			$dateTimeFieldInstance = new DateTimeField($record['date_start'].' '.$record['time_start']);
+			$userDateTimeString = $dateTimeFieldInstance->getDisplayDateTimeValue($currentUser);
+			$dateTimeComponents = explode(' ', $userDateTimeString);
+			$dateComponent = isset($dateTimeComponents[0]) ? $dateTimeComponents[0] : '';
+			$startDateYmd = DateTimeField::__convertToDBFormat($dateComponent, $currentUser->get('date_format'));
+			$startTimePart = isset($dateTimeComponents[1]) ? $dateTimeComponents[1] : '';
 
-				$dateTimeFieldInstanceEnd = new DateTimeField($dueDate.' '.$timeEndVal);
-				$userDateTimeStringEnd = $dateTimeFieldInstanceEnd->getDisplayDateTimeValue($currentUser);
-				$dateTimeComponentsEnd = explode(' ', $userDateTimeStringEnd);
-				$dateComponentEnd = isset($dateTimeComponentsEnd[0]) ? $dateTimeComponentsEnd[0] : $dueDate;
-				$endDateYmd = DateTimeField::__convertToDBFormat($dateComponentEnd, $currentUser->get('date_format'));
-				$endTimePart = isset($dateTimeComponentsEnd[1]) ? $dateTimeComponentsEnd[1] : '';
+			$dateTimeFieldInstanceEnd = new DateTimeField($dueDate.' '.$timeEndVal);
+			$userDateTimeStringEnd = $dateTimeFieldInstanceEnd->getDisplayDateTimeValue($currentUser);
+			$dateTimeComponentsEnd = explode(' ', $userDateTimeStringEnd);
+			$dateComponentEnd = isset($dateTimeComponentsEnd[0]) ? $dateTimeComponentsEnd[0] : $dueDate;
+			$endDateYmd = DateTimeField::__convertToDBFormat($dateComponentEnd, $currentUser->get('date_format'));
+			$endTimePart = isset($dateTimeComponentsEnd[1]) ? $dateTimeComponentsEnd[1] : '';
 
 				$item['start'] = $startDateYmd . ' ' . $startTimePart;
 				$item['end'] = $endDateYmd . ' ' . $endTimePart;

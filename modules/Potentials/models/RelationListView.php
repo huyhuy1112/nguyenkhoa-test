@@ -1,27 +1,54 @@
 <?php
-/*+***********************************************************************************
- * The contents of this file are subject to the vtiger CRM Public License Version 1.1
- * ("License"); You may not use this file except in compliance with the License
- * The Original Code is: vtiger CRM Open Source
- * The Initial Developer of the Original Code is vtiger.
- * Portions created by vtiger are Copyright (C) vtiger.
- * All Rights Reserved.
- *************************************************************************************/
+require_once 'modules/Vtiger/models/RelationListView.php';
 
+/**
+ * Potentials RelationListView model.
+ * Customizes headers only for Potentials → ProductsServices related list.
+ */
 class Potentials_RelationListView_Model extends Vtiger_RelationListView_Model {
-
-	public function getCreateViewUrl() {
-		$createViewUrl = parent::getCreateViewUrl();
-		$relationModel = $this->getRelationModel();
-		$relatedModuleModel = $relationModel->getRelationModuleModel();
-		$relatedModuleName = $relatedModuleModel->getName();
-
-		if (in_array($relatedModuleName, array('Quotes', 'SalesOrder'))) {
-			$parentRecordModel = $this->getParentRecordModel();
-			$createViewUrl .= '&account_id='.$parentRecordModel->get('related_to').'&contact_id='.$parentRecordModel->get('contact_id');
+	public function getHeaders() {
+		$relatedModuleName = $this->getRelatedModuleName();
+		if ($relatedModuleName !== 'ProductsServices') {
+			return parent::getHeaders();
 		}
-		return $createViewUrl;
+
+		$psModule = $this->getRelatedModuleModel();
+		if (!$psModule) {
+			return parent::getHeaders();
+		}
+
+		$fieldModels = array();
+
+		$nameField = $psModule->getField('productsservicesname');
+		if ($nameField) {
+			$nameField->set('label', 'Name');
+			$fieldModels[] = $nameField;
+		}
+
+		$typeField = $psModule->getField('item_type');
+		if (!$typeField) {
+			$typeField = $psModule->getField('type');
+		}
+		if ($typeField) {
+			$typeField->set('label', 'Type');
+			$fieldModels[] = $typeField;
+		}
+
+		$priceField = $psModule->getField('price');
+		if ($priceField) {
+			$priceField->set('label', 'Price');
+			$fieldModels[] = $priceField;
+		}
+
+		if (!empty($fieldModels)) {
+			return $fieldModels;
+		}
+
+		return parent::getHeaders();
 	}
 
+	public function getEntries($pagingModel) {
+		return parent::getEntries($pagingModel);
+	}
 }
-?>
+

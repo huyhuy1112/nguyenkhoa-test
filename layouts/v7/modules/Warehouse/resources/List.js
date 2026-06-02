@@ -101,6 +101,38 @@
 		}
 		$body.addClass('mk-wh-list-ready');
 		bindRealtimeSearchFilter();
+
+		var $qcLink = $('[data-mk-wh-tab="qc"]').first();
+		var $storagePane = $('#mkWhStoragePane');
+		var $qcPane = $('#mkWhQcPane');
+		if (!$qcLink.length || !$storagePane.length || !$qcPane.length) {
+			return;
+		}
+
+		function setTab(tab) {
+			var $links = $qcLink.closest('.mk-gi-topnav').find('a');
+			$links.removeClass('is-active').removeAttr('aria-current');
+			if (tab === 'qc') {
+				$qcLink.addClass('is-active').attr('aria-current', 'page');
+				$storagePane.addClass('hide');
+				$qcPane.removeClass('hide');
+			} else {
+				// Default: keep Storage active
+				var $storageLink = $links.filter(function () {
+					return ($(this).text() || '').trim().toLowerCase() === 'storage';
+				}).first();
+				if ($storageLink.length) {
+					$storageLink.addClass('is-active').attr('aria-current', 'page');
+				}
+				$qcPane.addClass('hide');
+				$storagePane.removeClass('hide');
+			}
+		}
+
+		$qcLink.on('click', function (e) {
+			e.preventDefault();
+			setTab('qc');
+		});
 	}
 
 	$(function () {

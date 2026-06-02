@@ -596,15 +596,33 @@ Vtiger_Index_Js("Vtiger_TaskManagement_Js",{},{
 
 	initializeTaskStatus : function(){
 		var container = this.getOverlayContainer();
-		var taskStatus = container.find('select[name="taskstatus"]');
-		if(taskStatus.length > 0){
-			taskStatus.find('[value="Not Started"]').attr('selected', "selected");
-			taskStatus.find('[value="In Progress"]').attr('selected', "selected");
-			taskStatus.find('[value="Pending Input"]').attr('selected', "selected");
-			taskStatus.find('[value="Planned"]').attr('selected', "selected");
-			vtUtils.showSelect2ElementView(taskStatus);
+		var filtersRoot = container.find('#taskManagementOtherFilters');
+		if (!filtersRoot.length) {
 			this.loadContents();
+			return;
 		}
+
+		var select2Common = {
+			allowClear: true,
+			closeOnSelect: true,
+			width: 'resolve'
+		};
+
+		var ownerSelect = filtersRoot.find('select[name="assigned_user_id"]');
+		if (ownerSelect.length) {
+			vtUtils.showSelect2ElementView(ownerSelect, jQuery.extend({}, select2Common, {
+				placeholder: app.vtranslate('LBL_SELECT_USERS', 'Calendar')
+			}));
+		}
+
+		var taskStatus = filtersRoot.find('select[name="taskstatus"]');
+		if (taskStatus.length) {
+			vtUtils.showSelect2ElementView(taskStatus, jQuery.extend({}, select2Common, {
+				placeholder: app.vtranslate('LBL_SELECT_STATUS', 'Calendar')
+			}));
+		}
+
+		this.loadContents();
 	},
 
 	registerQuickPreviewForTask : function(){

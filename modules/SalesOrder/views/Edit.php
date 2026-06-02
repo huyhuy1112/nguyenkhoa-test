@@ -14,9 +14,6 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		if ($this->isToolsOrdersContext($request)) {
 			return false;
 		}
-		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
-			return false;
-		}
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
@@ -34,6 +31,7 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'SalesOrder');
 		$viewer->assign('MK_MODERN_SALES_ORDER_CREATE', true);
+		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
 	}
 
 	protected function redirectInventoryToSales(Vtiger_Request $request) {

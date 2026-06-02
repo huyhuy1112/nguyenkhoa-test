@@ -31,7 +31,8 @@ jQuery(function () {
 		percent = Math.round(clampPercent(percent));
 
 		var $bar = $card.find('.js-phase-progress').first();
-		$bar.css('width', percent + '%').text(percent + '%').attr('aria-valuenow', percent);
+		$bar.css('width', percent + '%').attr('aria-valuenow', percent);
+		$card.find('.js-phase-progress-pct').first().text(percent + '%');
 	});
 
 	// Result Progress
@@ -42,8 +43,18 @@ jQuery(function () {
 	resultPercent = Math.round(clampPercent(resultPercent));
 	jQuery('.js-result-progress')
 		.css('width', resultPercent + '%')
-		.text(resultPercent + '%')
 		.attr('aria-valuenow', resultPercent);
+	jQuery('.js-result-progress-value').text(resultPercent + '%');
+
+	function fmtInt(n) {
+		var v = Math.round(n);
+		if (typeof v.toLocaleString === 'function') {
+			return v.toLocaleString();
+		}
+		return String(v);
+	}
+	jQuery('.js-campaign-phase-sum-expected').text(fmtInt(sumExpected));
+	jQuery('.js-campaign-phase-sum-actual').text(fmtInt(sumActual));
 
 	// Time Progress
 	var $dash = jQuery('#CampaignPhaseDashboard');
@@ -69,7 +80,14 @@ jQuery(function () {
 	timePercent = Math.round(clampPercent(timePercent));
 	jQuery('.js-time-progress')
 		.css('width', timePercent + '%')
-		.text(timePercent + '%')
 		.attr('aria-valuenow', timePercent);
+	jQuery('.js-time-progress-value').text(timePercent + '%');
+
+	// Detail block labels: show "Comment" only (same as Edit), not "Phase N Comment" from DB.
+	var shortComment =
+		typeof app !== 'undefined' && app.vtranslate
+			? app.vtranslate('LBL_COMMENT_SHORT', 'Campaigns')
+			: 'Comment';
+	jQuery('[id^="Campaigns_detailView_fieldLabel_phase"][id$="_comment"] .muted').text(shortComment);
 });
 

@@ -6,7 +6,7 @@
 class Potentials_Edit_View extends Vtiger_Edit_View {
 
 	protected function isMkModernOpportunityCreate(Vtiger_Request $request) {
-		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
+		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
 		$app = strtoupper((string)$request->get('app'));
@@ -24,6 +24,7 @@ class Potentials_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'Potentials');
 		$viewer->assign('MK_MODERN_OPPORTUNITY_CREATE', true);
+		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
 		$viewer->assign('MK_OPP_OWNER_NAME', trim($user->getName()));
 		$viewer->assign('MK_OPP_OWNER_INITIAL', $this->getUserInitial($user->getName()));
 	}

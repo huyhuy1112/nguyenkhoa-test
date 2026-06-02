@@ -56,6 +56,7 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 			exit;
 		}
 		$row = $this->normalizeRowForDisplay($row);
+		$row = $this->enrichStockRow($row, false);
 		$this->stockRow = $row;
 		$this->recordModel = $this->buildRecordModel($row);
 		$viewer = $this->getViewer($request);
@@ -63,6 +64,10 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 		$viewer->assign('RECORD', $this->recordModel);
 		$viewer->assign('RECORD_MODEL', $this->recordModel);
 		$viewer->assign('RECORD_DATA', $this->stockRow);
+		$viewer->assign('STOCK', $row);
+		$viewer->assign('CATALOG_PRODUCT_ID', !empty($row['productid']) ? (int) $row['productid'] : 0);
+		$viewer->assign('IS_LEGACY_IDENTITY', Warehouse_Stock_Helper::isLegacyNameKey($row));
+		$viewer->assign('TYPE_LABEL', $this->resolveTypeLabel($row));
 		parent::preProcess($request, $display);
 	}
 
@@ -238,29 +243,14 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 			);
 		}
 
-		$row['product_name_display'] = Warehouse_Stock_Helper::normalizeDisplayName($row['product_name']);
-		$row['quantity_display'] = Warehouse_Stock_Helper::formatNumber($row['quantity'], 2);
-		$row['shrinkage_display'] = Warehouse_Stock_Helper::formatNumber($row['shrinkage_qty'], 2);
-		$row['available_display'] = Warehouse_Stock_Helper::formatNumber(Warehouse_Stock_Helper::availableQty($row['quantity'], $row['shrinkage_qty']), 2);
-		$row['last_price_display'] = Warehouse_Stock_Helper::formatNumber($row['last_price'], 0);
-		$row['updatedtime_display'] = Warehouse_Stock_Helper::formatDateTimeDisplay($row['updatedtime']);
-		$exp = isset($row['expired_date']) ? trim((string) $row['expired_date']) : '';
-		$row['expired_date_display'] = ($exp !== '' ? date('d/m/Y', strtotime($exp)) : '—');
-		$today = date('Y-m-d');
-		$threeMonths = date('Y-m-d', strtotime('+3 months'));
-		$row['is_expired'] = ($exp !== '' && $exp < $today);
-		$row['is_expiring_soon'] = ($exp !== '' && !$row['is_expired'] && $exp <= $threeMonths);
+		$row = $this->enrichStockRow($row, true);
 
 		$viewer->assign('RECORD', $recordModel);
 		$viewer->assign('RECORD_MODEL', $recordModel);
 		$viewer->assign('RECORD_DATA', $row);
 		$viewer->assign('STOCK', $row);
 		$viewer->assign('PRODUCT_KEY_DISPLAY', Warehouse_Stock_Helper::formatProductKeyDisplay($row));
-		$typeLabel = Warehouse_Stock_Helper::formatProductTypeLabel(isset($row['raw_item_type']) ? $row['raw_item_type'] : null);
-		if ($typeLabel === null || $typeLabel === '') {
-			$typeLabel = 'Other';
-		}
-		$viewer->assign('TYPE_LABEL', $typeLabel);
+		$viewer->assign('TYPE_LABEL', $this->resolveTypeLabel($row));
 		$viewer->assign('AVAILABLE_QTY', Warehouse_Stock_Helper::availableQty($row['quantity'], $row['shrinkage_qty']));
 		$viewer->assign('INBOUND_HISTORY', $inboundHistory);
 		$viewer->assign('OUTBOUND_HISTORY', $outboundHistory);
@@ -289,7 +279,8 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 	protected function loadStockRow($stockId) {
 		$db = PearDatabase::getInstance();
 		$rs = $db->pquery(
-			"SELECT ws.*, COALESCE(NULLIF(ws.product_type, ''), ps.item_type) AS raw_item_type
+			"SELECT ws.*, COALESCE(NULLIF(ws.product_type, ''), ps.item_type) AS raw_item_type,
+				ps.productsservicesname AS catalog_product_name
 			 FROM vtiger_warehouse_stock ws
 			 LEFT JOIN vtiger_productsservices ps ON ps.productsservicesid = ws.productid AND ws.productid > 0
 			 WHERE ws.stockid = ?",
@@ -302,7 +293,7 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 	}
 
 	protected function normalizeRowForDisplay(array $row) {
-		$textFields = array('product_name', 'storage_location', 'warehouse_note', 'inbound_note');
+		$textFields = array('product_name', 'storage_location', 'warehouse_note', 'inbound_note', 'catalog_product_name');
 		foreach ($textFields as $f) {
 			if (isset($row[$f])) {
 				$row[$f] = Warehouse_Stock_Helper::decodeDisplayText($row[$f]);
@@ -314,11 +305,60 @@ class Warehouse_Detail_View extends Vtiger_Index_View {
 		return $row;
 	}
 
+	/**
+	 * Product name for hero + Stock info (falls back to catalog name when stock name is empty).
+	 *
+	 * @param bool $withMetrics When true, also sets quantity/price/date display fields.
+	 */
+	protected function enrichStockRow(array $row, $withMetrics = false) {
+		$catalogName = Warehouse_Stock_Helper::normalizeDisplayName(
+			isset($row['catalog_product_name']) ? (string) $row['catalog_product_name'] : ''
+		);
+		$row['catalog_product_name_display'] = $catalogName;
+		$row['product_name_display'] = Warehouse_Stock_Helper::normalizeDisplayName(
+			isset($row['product_name']) ? (string) $row['product_name'] : ''
+		);
+		if ($row['product_name_display'] === '' && $catalogName !== '') {
+			$row['product_name_display'] = $catalogName;
+		}
+
+		if (!$withMetrics) {
+			return $row;
+		}
+
+		$row['quantity_display'] = Warehouse_Stock_Helper::formatNumber($row['quantity'], 2);
+		$row['shrinkage_display'] = Warehouse_Stock_Helper::formatNumber($row['shrinkage_qty'], 2);
+		$row['available_display'] = Warehouse_Stock_Helper::formatNumber(
+			Warehouse_Stock_Helper::availableQty($row['quantity'], $row['shrinkage_qty']),
+			2
+		);
+		$row['last_price_display'] = Warehouse_Stock_Helper::formatNumber($row['last_price'], 0);
+		$row['updatedtime_display'] = Warehouse_Stock_Helper::formatDateTimeDisplay($row['updatedtime']);
+		$exp = isset($row['expired_date']) ? trim((string) $row['expired_date']) : '';
+		$row['expired_date_display'] = ($exp !== '' ? date('d/m/Y', strtotime($exp)) : '—');
+		$today = date('Y-m-d');
+		$threeMonths = date('Y-m-d', strtotime('+3 months'));
+		$row['is_expired'] = ($exp !== '' && $exp < $today);
+		$row['is_expiring_soon'] = ($exp !== '' && !$row['is_expired'] && $exp <= $threeMonths);
+
+		return $row;
+	}
+
+	protected function resolveTypeLabel(array $row) {
+		$typeLabel = Warehouse_Stock_Helper::formatProductTypeLabel(isset($row['raw_item_type']) ? $row['raw_item_type'] : null);
+		if ($typeLabel === null || $typeLabel === '') {
+			$typeLabel = 'Other';
+		}
+		return $typeLabel;
+	}
+
 	protected function buildRecordModel(array $row) {
 		$recordModel = new Vtiger_Record_Model();
 		$recordModel->setModule('Warehouse');
 		$recordModel->setId((int) $row['stockid']);
-		$label = Warehouse_Stock_Helper::normalizeDisplayName(isset($row['product_name']) ? (string) $row['product_name'] : 'Stock');
+		$label = !empty($row['product_name_display'])
+			? (string) $row['product_name_display']
+			: Warehouse_Stock_Helper::normalizeDisplayName(isset($row['product_name']) ? (string) $row['product_name'] : 'Stock');
 		$recordModel->set('label', $label);
 		$recordModel->setData($row);
 		return $recordModel;

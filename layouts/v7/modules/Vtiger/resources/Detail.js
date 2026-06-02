@@ -1677,12 +1677,17 @@ Vtiger.Class("Vtiger_Detail_Js",{
 				referenceModuleName = "Events";
 			}
 			var quickCreateNode = jQuery('#quickCreateModules').find('[data-name="'+ referenceModuleName +'"]');
+			/* Top bar quick-create lists Calendar, not Events; Calendar QuickCreateAjax builds both Task + Event forms. */
+			if(referenceModuleName === 'Events' && quickCreateNode.length <= 0) {
+				quickCreateNode = jQuery('#quickCreateModules').find('[data-name="Calendar"]');
+			}
 			var recordId = thisInstance.getRecordId();
 			var module = app.getModuleName();
 			var element = jQuery(e.currentTarget);
 
 			if(quickCreateNode.length <= 0) {
 				app.helper.showErrorMessage(app.vtranslate('JS_NO_CREATE_OR_NOT_QUICK_CREATE_ENABLED'));
+				return;
 			}
 			var fieldName = thisInstance.referenceFieldNames[module];
 			if(typeof fieldName == 'undefined' && module != 'Contacts'){
@@ -1720,6 +1725,9 @@ Vtiger.Class("Vtiger_Detail_Js",{
 			var QuickCreateParams = {};
 			QuickCreateParams['noCache'] = false;
 			QuickCreateParams['data'] = customParams;
+			if(referenceModuleName === 'Events') {
+				QuickCreateParams['data']['module'] = 'Events';
+			}
 			quickCreateNode.trigger('click', QuickCreateParams);
 		});
 	},

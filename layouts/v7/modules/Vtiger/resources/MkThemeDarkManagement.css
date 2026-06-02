@@ -10,6 +10,7 @@
 
 html[data-theme="dark"] body[data-app="MANAGEMENT"],
 html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"],
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"],
 html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"],
 html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace,
 html[data-theme="dark"].mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"],
@@ -52,6 +53,8 @@ html[data-theme="dark"].mk-projecttask-detail-management body[data-module="Proje
 
 html[data-theme="dark"] body[data-app="MANAGEMENT"] .mk-app-shell,
 html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-app-shell,
+html[data-theme="dark"] html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-app-shell,
 html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-app-shell,
 html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell,
 html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell,
@@ -64,6 +67,8 @@ html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app
 
 html[data-theme="dark"] body[data-app="MANAGEMENT"] .mk-dash-main,
 html[data-theme="dark"] body[data-module="Home"][data-view="MainPage"] .mk-dash-main,
+html[data-theme="dark"] html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-dash-main,
 html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-dash-main,
 html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main,
 html[data-theme="dark"] body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main,
@@ -77,6 +82,9 @@ html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app
 
 html[data-theme="dark"] body[data-app="MANAGEMENT"] #page,
 html[data-theme="dark"] body[data-app="MANAGEMENT"] #page.container-fluid,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #page,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #page.container-fluid,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .main-container.main-container-Calendar,
 html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] #page,
 html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .main-container.main-container-Calendar {
 	background: var(--mk-bg-primary) !important;
@@ -88,6 +96,7 @@ html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="
 html[data-theme="dark"] body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar,
 html[data-theme="dark"] body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar,
 html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-topbar .mk-dash-app-topbar,
 html[data-theme="dark"] html.mk-cal-ui-ready body[data-module="Calendar"] .mk-topbar .mk-dash-app-topbar {
 	background: var(--mk-topbar-bg) !important;
 	border-bottom: 1px solid var(--mk-topbar-border) !important;
@@ -2840,4 +2849,317 @@ html[data-theme="dark"].mk-projecttask-detail-management body[data-module="Proje
 html[data-theme="dark"].mk-projecttask-detail-management body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .taskDetailFormOuter .borderLeft {
 	color: var(--mk-text-primary) !important;
 	border-color: var(--mk-border-subtle) !important;
+}
+
+/* ========================================================================== */
+/* Calendar — Task Management (Kanban board)                                  */
+/* ========================================================================== */
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"],
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-task-mgmt-panel.task-management-page,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-management-page.panel {
+	background: var(--mk-card-bg) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-mgmt-fullpage-header h4,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-task-mgmt-panel .task-mgmt-fullpage-header h4 {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-mgmt-fullpage-close {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-mgmt-fullpage-close:hover {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] hr {
+	border-color: var(--mk-border-subtle) !important;
+	opacity: 1;
+}
+
+/* Toolbar */
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-management-page .data-header {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .data-header .btn-group.dateFilters .btn {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .data-header .btn-group.dateFilters .btn:hover {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .data-header .btn-group.dateFilters .btn.active,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer button.active {
+	background: rgba(59, 130, 246, 0.18) !important;
+	border-color: rgba(59, 130, 246, 0.45) !important;
+	color: #93c5fd !important;
+	box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2) !important;
+	text-shadow: none !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .data-header .otherFilters .btn-success.search {
+	background: var(--mk-primary) !important;
+	border-color: transparent !important;
+	color: #fff !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-mgmt-filters .form-control,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-mgmt-filters input,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-mgmt-filters .select2-container .select2-choice,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-mgmt-filters .select2-container-multi .select2-choices {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-mgmt-filters .select2-container .select2-choice .select2-chosen,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-mgmt-filters .select2-search-choice {
+	color: var(--mk-text-primary) !important;
+}
+
+/* Priority lane headers (override inline background) */
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock .title {
+	border-radius: 10px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	font-size: 11px !important;
+	padding: 6px 12px !important;
+	width: auto !important;
+	height: auto !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock.high .title {
+	background: rgba(139, 92, 246, 0.22) !important;
+	color: #ddd6fe !important;
+	box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.35);
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock.medium .title {
+	background: rgba(59, 130, 246, 0.2) !important;
+	color: #bfdbfe !important;
+	box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.35);
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock.low .title {
+	background: rgba(20, 184, 166, 0.2) !important;
+	color: #99f6e4 !important;
+	box-shadow: inset 0 0 0 1px rgba(20, 184, 166, 0.35);
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock .high-header,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock .medium-header,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock .low-header {
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+/* Kanban columns */
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-management-page .contentsBlock .content,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .contentsBlock .content {
+	background: var(--mk-bg-elevated) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+	border-radius: 14px !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-management-page .task-mgmt-column-scroll.scrollable,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .task-mgmt-column-scroll.scrollable {
+	background: rgba(0, 0, 0, 0.2) !important;
+	border: 1px solid var(--mk-border-subtle) !important;
+	border-radius: 12px !important;
+}
+
+/* Add task input */
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock .input-group .form-control,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .input-group input {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock .input-group .form-control::placeholder {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock .input-group .input-group-addon,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .input-group .input-group-addon {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .contentsBlock .input-group .input-group-addon .fa {
+	color: #60a5fa !important;
+}
+
+/* Task cards */
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-management-page .task-card,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .entries {
+	background: var(--mk-card-bg) !important;
+	border: 1px solid var(--mk-border-color) !important;
+	border-radius: 12px !important;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-management-page .task-card:hover {
+	border-color: var(--mk-border-accent) !important;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+	transform: translateY(-1px);
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-card .taskSubject,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-card .taskSubject a,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .taskSubject > p,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .taskSubject a {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-card .other-details,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .other-details {
+	border-top-color: var(--mk-border-subtle) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-card .task-details,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .entries .task-details {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-card .task-details a,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .task-details .recordName a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-card .task-actions a,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .entries .other-details .task-actions a {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-card .task-actions a:hover,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] #taskManagementContainer .entries .other-details .task-actions a:hover {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-card .statusCheckbox {
+	accent-color: var(--mk-primary);
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .task-card .taskStatus {
+	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	font-weight: 600;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .textStrike,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .textStrike a {
+	color: var(--mk-text-muted) !important;
+	opacity: 0.75;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .moreButtonBlock .btn-default {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* Topbar icons */
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-dash-app-topbar .mk-dash-topbar-linkic,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-dash-app-topbar .mk-dash-topbar-ic,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-dash-app-topbar .mk-dash-topbar-svg {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-dash-app-topbar a.taskManagement.mk-dash-topbar-linkic--active {
+	background: rgba(59, 130, 246, 0.2) !important;
+	color: #93c5fd !important;
+	box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.35) !important;
+}
+
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-dash-app-topbar a.taskManagement.mk-dash-topbar-linkic--active .mk-dash-topbar-ic,
+html[data-theme="dark"] html.mk-task-mgmt-ui-ready body[data-module="Calendar"][data-view="TaskManagement"] .mk-dash-app-topbar a.taskManagement.mk-dash-topbar-linkic--active .mk-dash-topbar-svg {
+	color: #93c5fd !important;
+}
+
+/* ========================================================================== */
+/* Calendar — Event full-page create/edit                                     */
+/* ========================================================================== */
+
+html[data-theme="dark"] html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell,
+html[data-theme="dark"] html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-event-edit-main,
+html[data-theme="dark"] html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] #page {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+	background: var(--mk-topbar-bg) !important;
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+}
+
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-page-head__title,
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-page-head__crumb a:hover {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-page-head__sub,
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-page-head__crumb a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-btn--ghost {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-host .fieldBlockContainer,
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-footer {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-host .fieldBlockHeader,
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-host .fieldValue,
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-host .fieldValue .value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-host .fieldLabel label,
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-host .fieldLabel {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-host .inputElement,
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-host .form-control,
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-host .select2-container .select2-choice,
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-host .select2-container-multi .select2-choices {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] html.mk-event-create-ready .mk-event-form-footer .cancelLink {
+	color: var(--mk-text-link) !important;
 }

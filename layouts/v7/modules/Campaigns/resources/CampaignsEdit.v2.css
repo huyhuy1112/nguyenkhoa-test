@@ -1,0 +1,366 @@
+/**
+ * Campaigns Create (MARKETING) — clean premium content (v2).
+ * Keeps shell (sidebar/topbar/padding) unchanged; styles only content area + form.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] {
+	--mk-camp-bg: #f7f9fb;
+	--mk-camp-card: #ffffff;
+	--mk-camp-text: #0f172a;
+	--mk-camp-muted: #64748b;
+	--mk-camp-border: #e2e8f0;
+	--mk-camp-border-soft: #f1f5f9;
+	--mk-camp-accent: #fdbb2c;
+	--mk-camp-radius: 14px;
+	--mk-camp-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+	font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	color: var(--mk-camp-text);
+}
+
+/* Hide legacy vtiger chrome inside split-shell */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] #page,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] #page > .container-fluid.app-nav,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .app-nav,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .navbar-fixed-top {
+	display: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	visibility: hidden !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .editViewHeader,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .modal-overlay-footer {
+	display: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .editViewPageDiv,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .content-area,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .editViewBody {
+	background: transparent !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+/* ===== Suite card (Ticket-like) ===== */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-suite-card {
+	background: var(--mk-camp-card);
+	border: 1px solid var(--mk-camp-border);
+	border-radius: var(--mk-camp-radius);
+	box-shadow: var(--mk-camp-shadow);
+	overflow: hidden;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-page-head {
+	padding: 22px 24px 18px;
+	border-bottom: 1px solid var(--mk-camp-border-soft);
+	background: var(--mk-camp-card);
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-edit-content {
+	padding: 20px 24px 28px;
+	background: #f8fafc;
+}
+
+/* Header bits */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-breadcrumb__list {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0 0 14px;
+	padding: 0;
+	list-style: none;
+	font-size: 13px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-breadcrumb__item a {
+	color: var(--mk-camp-muted);
+	text-decoration: none;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-breadcrumb__item a:hover {
+	color: #b45309;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-breadcrumb__sep {
+	color: #94a3b8;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-breadcrumb__item--current span {
+	color: var(--mk-camp-text);
+	font-weight: 500;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-action-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-action-header__brand {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	min-width: 0;
+	flex: 1 1 280px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-icon-chip {
+	width: 54px;
+	height: 54px;
+	border-radius: 12px;
+	background: var(--mk-camp-accent);
+	color: #6d4d00;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 4px 12px rgba(253, 187, 44, 0.35);
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-action-header__title {
+	margin: 0;
+	font-size: 30px;
+	font-weight: 650;
+	line-height: 1.15;
+	letter-spacing: -0.02em;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-action-header__subtitle {
+	margin: 6px 0 0;
+	font-size: 14px;
+	color: var(--mk-camp-muted);
+	max-width: 62ch;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-action-header__actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 40px;
+	padding: 0 18px;
+	border-radius: 10px;
+	font-size: 13px;
+	font-weight: 650;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	text-decoration: none;
+	border: 1px solid transparent;
+	cursor: pointer;
+	box-sizing: border-box;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn--primary {
+	background: var(--mk-camp-accent);
+	border-color: var(--mk-camp-accent);
+	color: #191c1e;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn--primary:hover {
+	background: #e5a824;
+	border-color: #e5a824;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn--ghost {
+	background: #ffffff;
+	border-color: #d4c4ad;
+	color: #40627e;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn--ghost:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+	color: #0f172a;
+}
+
+/* ===== Form host ===== */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host form#EditView {
+	width: 100%;
+	max-width: 1120px;
+	margin: 0 auto;
+}
+
+/* Kill nested legacy left panel/menu inside embedded Vtiger/EditView.tpl */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host #modnavigator,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .editViewModNavigator,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .module-nav,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host #sidebar-essentials {
+	display: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .main-container.clearfix {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .content-area {
+	padding: 0 !important;
+	margin: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .fieldBlockContainer[data-block] {
+	background: #ffffff !important;
+	border: 1px solid var(--mk-camp-border) !important;
+	border-radius: 12px !important;
+	box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+	overflow: hidden;
+	margin: 0 0 16px !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .fieldBlockContainer[data-block] > hr {
+	display: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .fieldBlockHeader {
+	margin: 0 !important;
+	padding: 14px 16px !important;
+	font-size: 12px !important;
+	font-weight: 750 !important;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #0f172a !important;
+	background: #ffffff !important;
+	border-bottom: 1px solid var(--mk-camp-border-soft) !important;
+}
+
+/* Keep vtiger table layout (avoid layout bugs). Only style spacing/width safely. */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host table.table-borderless {
+	width: 100% !important;
+	margin: 0 !important;
+	table-layout: fixed;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host table.table-borderless > tbody {
+	display: table-row-group !important;
+	padding: 0 !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host table.table-borderless > tbody > tr {
+	display: table-row !important;
+	border-bottom: 1px solid var(--mk-camp-border-soft);
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host table.table-borderless > tbody > tr:last-child {
+	border-bottom: none;
+}
+
+@media (max-width: 980px) {
+	body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host table.table-borderless > tbody > tr {
+		display: table-row !important;
+	}
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host td {
+	border: none !important;
+	padding: 10px 14px !important;
+	vertical-align: middle !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host td.fieldLabel {
+	color: var(--mk-camp-muted) !important;
+	font-size: 12px !important;
+	font-weight: 650 !important;
+	white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+	body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host td.fieldLabel {
+		white-space: normal;
+	}
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host td.fieldValue {
+	min-width: 0 !important;
+}
+
+/* Inputs */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host td.fieldValue input.inputElement,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host td.fieldValue select.inputElement,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host td.fieldValue textarea.inputElement {
+	width: 100% !important;
+	border-radius: 10px !important;
+	border: 1px solid var(--mk-camp-border) !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host td.fieldValue textarea.inputElement {
+	min-height: 96px;
+	resize: vertical;
+}
+
+/* Select2 */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .select2-container .select2-selection {
+	min-height: 34px !important;
+	border-radius: 10px !important;
+	border: 1px solid var(--mk-camp-border) !important;
+	display: flex !important;
+	align-items: center !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .select2-container .select2-selection__rendered {
+	padding-left: 10px !important;
+	padding-right: 34px !important;
+	line-height: 32px !important;
+}
+
+/* Input groups */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .input-group {
+	width: 100% !important;
+	display: flex !important;
+	align-items: stretch !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .input-group > input.inputElement,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .input-group > .form-control {
+	flex: 1 1 auto !important;
+	width: 1% !important;
+	min-width: 0 !important;
+}
+
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .input-group-addon,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .add-on {
+	background: #f8fafc !important;
+	border-color: var(--mk-camp-border) !important;
+	color: #475569 !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	min-width: 38px;
+}
+
+/* Focus */
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host input.inputElement:focus,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host select.inputElement:focus,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host textarea.inputElement:focus,
+body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .select2-container--default.select2-container--focus .select2-selection {
+	border-color: rgba(253, 187, 44, 0.9) !important;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.18) !important;
+	outline: none !important;
+}
+

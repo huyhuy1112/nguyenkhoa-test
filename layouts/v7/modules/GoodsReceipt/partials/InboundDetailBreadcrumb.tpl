@@ -10,7 +10,7 @@
 		</li>
 		<li class="mk-gr-detail-breadcrumb__sep" aria-hidden="true">&gt;</li>
 		<li class="mk-gr-detail-breadcrumb__item mk-gr-detail-breadcrumb__item--current">
-			<span class="mk-gr-detail-breadcrumb__text textOverflowEllipsis" title="{$RECORD_DATA.subject|escape:'html'}">{$RECORD_DATA.subject|escape:'html'}</span>
+			<span class="mk-gr-detail-breadcrumb__text textOverflowEllipsis" title="{decode_html($RECORD_DATA.subject)|escape:'html'}">{decode_html($RECORD_DATA.subject)|escape:'html'}</span>
 		</li>
 	</ol>
 </nav>

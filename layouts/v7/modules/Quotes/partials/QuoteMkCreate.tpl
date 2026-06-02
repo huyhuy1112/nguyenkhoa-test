@@ -1,7 +1,8 @@
 {* Create Quote — dashboard shell + stock Inventory #EditView (all fields + line items). *}
 {strip}
 {assign var=MK_LIST_URL value='index.php?module=Quotes&view=List&app=SALES'}
-<div class="mk-qt-create" id="mkQtCreateWorkspace" data-mk-quote-create="1">
+{assign var=MK_IS_EDIT value=(!empty($RECORD_ID) && empty($IS_DUPLICATE))}
+<div class="mk-qt-create{if $MK_IS_EDIT} mk-qt-create--edit{/if}" id="mkQtCreateWorkspace" data-mk-quote-create="1">
 	<header class="mk-qt-sticky-head" id="mkQtStickyHead">
 		<div class="mk-qt-sticky-head__inner">
 			<div class="mk-qt-sticky-head__left">
@@ -10,10 +11,14 @@
 					<span aria-hidden="true">/</span>
 					<a href="{$MK_LIST_URL}">{vtranslate('Quotes', $MODULE)}</a>
 					<span aria-hidden="true">/</span>
-					<span aria-current="page">{vtranslate('LBL_CREATING_NEW', $MODULE)}</span>
+					{if $MK_IS_EDIT}<span aria-current="page">{vtranslate('LBL_EDITING', $MODULE)}</span>{else}<span aria-current="page">{vtranslate('LBL_CREATING_NEW', $MODULE)}</span>{/if}
 				</nav>
 				<div class="mk-qt-sticky-head__title-row">
-					<h1 class="mk-qt-sticky-head__title">{vtranslate('LBL_CREATING_NEW', $MODULE)} {vtranslate('SINGLE_Quotes', $MODULE)}</h1>
+					{if $MK_IS_EDIT}
+						<h1 class="mk-qt-sticky-head__title">{vtranslate('LBL_EDITING', $MODULE)} {vtranslate('SINGLE_Quotes', $MODULE)}</h1>
+					{else}
+						<h1 class="mk-qt-sticky-head__title">{vtranslate('LBL_CREATING_NEW', $MODULE)} {vtranslate('SINGLE_Quotes', $MODULE)}</h1>
+					{/if}
 					<span class="mk-qt-badge mk-qt-badge--stage" id="mkQtHeadStageBadge">Draft</span>
 				</div>
 				<div class="mk-qt-autosave" id="mkQtAutosave" aria-live="polite">

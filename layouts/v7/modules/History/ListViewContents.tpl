@@ -235,6 +235,6 @@
 					No system activity history found for this Tools context.
 				</div>
 			{/if}
-		</div>
-	</div>
+        </div>
+    </div>
 </div>

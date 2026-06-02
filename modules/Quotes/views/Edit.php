@@ -6,9 +6,6 @@
 class Quotes_Edit_View extends Inventory_Edit_View {
 
 	protected function isMkModernQuoteCreate(Vtiger_Request $request) {
-		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
-			return false;
-		}
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
@@ -33,6 +30,7 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'Quotes');
 		$viewer->assign('MK_MODERN_QUOTE_CREATE', true);
+		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
 		$viewer->assign('MK_QUOTE_OWNER_NAME', trim($user->getName()));
 	}
 

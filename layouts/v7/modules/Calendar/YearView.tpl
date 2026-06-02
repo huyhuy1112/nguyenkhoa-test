@@ -8,7 +8,7 @@
 <input type="hidden" id="date_format" value="{$CURRENT_USER->get('date_format')}" />
 <div id="mycalendar" class="calendarview col-lg-12 calendar-yearview" data-year="{$YEAR|escape}">
 	{assign var=LEFTPANELHIDE value=(isset($CURRENT_USER_MODEL) && $CURRENT_USER_MODEL) ? $CURRENT_USER_MODEL->get('leftpanelhide') : 0}
-	<div class="essentials-toggle" title="{vtranslate('LBL_LEFT_PANEL_SHOW_HIDE', 'Vtiger')}">
+	<div class="essentials-toggle hide mk-cal-hide-legacy" title="{vtranslate('LBL_LEFT_PANEL_SHOW_HIDE', 'Vtiger')}">
 		<span class="essentials-toggle-marker fa {if $LEFTPANELHIDE eq '1'}fa-chevron-right{else}fa-chevron-left{/if} cursorPointer"></span>
 	</div>
 
@@ -111,6 +111,24 @@
 			</div>
 		</div>
 	</div>
+
+	<div id="cyv-day-panel" class="cyv-day-panel" aria-hidden="true" hidden>
+		<div class="cyv-day-panel__backdrop" tabindex="-1"></div>
+		<div class="cyv-day-panel__sheet" role="dialog" aria-modal="true" aria-labelledby="cyv-day-panel-title">
+			<div class="cyv-day-panel__header">
+				<div class="cyv-day-panel__head-main">
+					<div class="cyv-day-panel__kicker">Lịch trong ngày</div>
+					<div class="cyv-day-panel__title" id="cyv-day-panel-title"></div>
+					<div class="cyv-day-panel__meta" id="cyv-day-panel-meta"></div>
+				</div>
+				<button type="button" class="cyv-day-panel__close" aria-label="Đóng">&times;</button>
+			</div>
+			<div class="cyv-day-panel__body" id="cyv-day-panel-body"></div>
+			<div class="cyv-day-panel__footer">
+				<a class="cyv-day-panel__open-cal btn" id="cyv-day-panel-open-cal" href="#">Mở lịch ngày này</a>
+			</div>
+		</div>
+	</div>
 </div>
 {/strip}
 
@@ -160,46 +178,123 @@
 		return { index:index, counts:counts, typeCounts:typeCounts };
 	}
 
-	function showDayModal(dateKey, items){
-		var title = dateKey;
-		var total = (items && items.length) ? items.length : 0;
-		var body = "<div class='cyv-modal'>";
-		body += "<div class='cyv-modal-head'>";
-		body += "<div class='cyv-modal-title'>" + escapeHtml(title) + "</div>";
-		body += "<div class='cyv-modal-sub'>" + (total ? (total + " mục") : "Không có mục") + "</div>";
-		body += "</div>";
-		if (!items || !items.length){
-			body += "<div class='cyv-empty'>Không có sự kiện / công việc trong ngày này.</div>";
-		} else {
-			body += "<ul class='cyv-list'>";
-			items.forEach(function(ev){
-				var subject = ev.title || ev.subject || ev.name || "(No subject)";
-				var id = ev.id || ev.activityid || "";
-				var mod = ev.module || ev.sourceModule || "";
-				var isEvent = (mod === "Events");
-				var icon = isEvent ? "fa-calendar" : "fa-check-square-o";
-				var badge = isEvent ? "Event" : "Task";
-				var url = id ? ("index.php?module=Calendar&view=Detail&record=" + encodeURIComponent(id)) : "javascript:void(0)";
-				body += "<li class='cyv-item'>";
-				body += "<span class='cyv-dot " + (isEvent ? "is-event" : "is-task") + "'></span>";
-				body += "<i class='fa " + icon + " cyv-ico' aria-hidden='true'></i>";
-				body += "<a class='cyv-link' href='" + url + "' target='_self'>" + escapeHtml(subject) + "</a>";
-				body += "<span class='cyv-badge " + (isEvent ? "is-event" : "is-task") + "'>" + badge + "</span>";
-				body += "</li>";
-			});
-			body += "</ul>";
+	function getAppParam(){
+		try {
+			var m = window.location.search.match(/[?&]app=([^&]+)/);
+			return m ? ("&app=" + encodeURIComponent(decodeURIComponent(m[1]))) : "";
+		} catch (e) {
+			return "";
 		}
-		body += "<div class='cyv-actions'>";
-		body += "<a class='btn btn-default cyv-open' href='index.php?module=Calendar&view=Calendar&date=" + encodeURIComponent(title) + "'>Mở lịch</a>";
-		body += "</div>";
-		body += "</div>";
-		app.helper.showModal(
-			"<div class='modal-header'><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>" +
-			"<div class='modal-body'>" + body + "</div>"
+	}
+
+	function formatDayLabel(dateKey){
+		if (window.moment) {
+			var m = moment(dateKey, "YYYY-MM-DD");
+			if (m.isValid()) {
+				return m.format("dddd, D MMMM YYYY");
+			}
+		}
+		return dateKey;
+	}
+
+	function formatEventTime(ev){
+		if (ev.allDay) return "Cả ngày";
+		var r = parseEventRange(ev);
+		if (!r.start) return "";
+		if (r.end && r.end.isValid() && !r.start.isSame(r.end)) {
+			return r.start.format("HH:mm") + " – " + r.end.format("HH:mm");
+		}
+		return r.start.format("HH:mm");
+	}
+
+	function getEventStatus(ev, isEvent){
+		if (isEvent) return ev.status || ev.eventstatus || "";
+		return ev.status || ev.taskstatus || "";
+	}
+
+	function hideDayPanel(){
+		var $panel = jQuery("#cyv-day-panel");
+		if (!$panel.length) return;
+		$panel.removeClass("is-open").attr("aria-hidden", "true").prop("hidden", true);
+		jQuery("body").removeClass("cyv-day-panel-open");
+	}
+
+	function showDayModal(dateKey, items){
+		var $panel = jQuery("#cyv-day-panel");
+		if (!$panel.length) return;
+
+		var total = (items && items.length) ? items.length : 0;
+		var eventCount = 0;
+		var taskCount = 0;
+		(items || []).forEach(function(ev){
+			var mod = ev.module || ev.sourceModule || ev.calendarModule || "";
+			if (mod === "Events") eventCount += 1;
+			else taskCount += 1;
+		});
+
+		var metaParts = [];
+		if (eventCount) metaParts.push(eventCount + " sự kiện");
+		if (taskCount) metaParts.push(taskCount + " công việc");
+		var metaText = metaParts.length ? metaParts.join(" · ") : "Không có mục nào";
+
+		jQuery("#cyv-day-panel-title").text(formatDayLabel(dateKey));
+		jQuery("#cyv-day-panel-meta").text(metaText);
+		jQuery("#cyv-day-panel-open-cal").attr(
+			"href",
+			"index.php?module=Calendar&view=Calendar&date=" + encodeURIComponent(dateKey) + getAppParam()
 		);
+
+		var bodyHtml = "";
+		if (!items || !items.length) {
+			bodyHtml = "<div class='cyv-day-panel__empty'>" +
+				"<div class='cyv-day-panel__empty-ic'><i class='fa fa-calendar-o'></i></div>" +
+				"<div>Không có sự kiện hoặc công việc trong ngày này.</div>" +
+				"</div>";
+		} else {
+			bodyHtml = "<ul class='cyv-day-panel__list'>";
+			items.forEach(function(ev){
+				var subject = ev.title || ev.subject || ev.name || "(Không có tiêu đề)";
+				var id = ev.id || ev.activityid || "";
+				var mod = ev.module || ev.sourceModule || ev.calendarModule || "";
+				var isEvent = (mod === "Events");
+				var typeClass = isEvent ? "is-event" : "is-task";
+				var typeLabel = isEvent ? "Sự kiện" : "Công việc";
+				var icon = isEvent ? "fa-calendar" : "fa-check-square-o";
+				var url = id ? ("index.php?module=Calendar&view=Detail&record=" + encodeURIComponent(id) + getAppParam()) : "javascript:void(0)";
+				var timeText = formatEventTime(ev);
+				var statusText = getEventStatus(ev, isEvent);
+
+				bodyHtml += "<li>";
+				bodyHtml += "<a class='cyv-day-panel__card " + typeClass + "' href='" + url + "'>";
+				bodyHtml += "<span class='cyv-day-panel__card-ic'><i class='fa " + icon + "' aria-hidden='true'></i></span>";
+				bodyHtml += "<span class='cyv-day-panel__card-main'>";
+				bodyHtml += "<span class='cyv-day-panel__card-title'>" + escapeHtml(subject) + "</span>";
+				bodyHtml += "<span class='cyv-day-panel__card-meta'>";
+				bodyHtml += "<span class='cyv-day-panel__tag " + typeClass + "'>" + typeLabel + "</span>";
+				if (timeText) bodyHtml += "<span>" + escapeHtml(timeText) + "</span>";
+				if (statusText) bodyHtml += "<span>" + escapeHtml(String(statusText)) + "</span>";
+				bodyHtml += "</span></span></a></li>";
+			});
+			bodyHtml += "</ul>";
+		}
+
+		jQuery("#cyv-day-panel-body").html(bodyHtml);
+		$panel.prop("hidden", false).attr("aria-hidden", "false").addClass("is-open");
+		jQuery("body").addClass("cyv-day-panel-open");
 	}
 
 	jQuery(function(){
+		// Day panel close handlers
+		jQuery(document).off("click.cyvDayPanelClose").on("click.cyvDayPanelClose", "#cyv-day-panel .cyv-day-panel__backdrop, #cyv-day-panel .cyv-day-panel__close", function(e){
+			e.preventDefault();
+			hideDayPanel();
+		});
+		jQuery(document).off("keydown.cyvDayPanelClose").on("keydown.cyvDayPanelClose", function(e){
+			if (e.key === "Escape" && jQuery("#cyv-day-panel").hasClass("is-open")) {
+				hideDayPanel();
+			}
+		});
+
 		// Ensure global app-menu hamburger binding is active on Year view (PJAX/Calendar view can skip global init)
 		try {
 			if (window.Vtiger_Index_Js && Vtiger_Index_Js.getInstance) {

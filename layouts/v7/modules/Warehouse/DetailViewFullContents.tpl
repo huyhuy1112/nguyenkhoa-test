@@ -50,6 +50,20 @@
 		</header>
 		<div class="mk-wh-detail-card__body">
 			<div class="mk-wh-detail-fields">
+				<div class="mk-wh-detail-field mk-wh-detail-field--wide">
+					<span class="mk-wh-detail-field__label">Product name</span>
+					<span class="mk-wh-detail-field__value mk-wh-detail-field__value--product">
+						{if $STOCK.product_name_display ne ''}
+							{if $CATALOG_PRODUCT_ID > 0}
+								<a class="mk-wh-detail-product-link" href="index.php?module=ProductsServices&amp;view=Detail&amp;record={$CATALOG_PRODUCT_ID}&amp;app=SALES" title="View in Products &amp; Services">{decode_html($STOCK.product_name_display)|escape:'html'}</a>
+							{else}
+								<strong class="mk-wh-detail-product-name">{decode_html($STOCK.product_name_display)|escape:'html'}</strong>
+							{/if}
+						{else}
+							<span class="mk-gi-muted">—</span>
+						{/if}
+					</span>
+				</div>
 				<div class="mk-wh-detail-field">
 					<span class="mk-wh-detail-field__label">Storage code</span>
 					<span class="mk-wh-detail-field__value">{if $STOCK.code}<span class="mk-gi-chip">{$STOCK.code|escape:'html'}</span>{else}<span class="mk-gi-muted">—</span>{/if}</span>

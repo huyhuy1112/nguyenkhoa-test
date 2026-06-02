@@ -35,13 +35,22 @@ class HelpDesk_SaveRule_Action extends Vtiger_Action_Controller {
 			'level_3_time_minutes' => $request->get('level_3_time_minutes'),
 		];
 
+		$savedId = $id;
 		try {
-			$service->saveRule($data);
+			$savedId = $service->saveRule($data);
 		} catch (Exception $e) {
 			// Could log error; for now just redirect
 		}
 
-		header('Location: index.php?module=HelpDesk&view=Rules');
+		$returnView = (string)$request->get('return_view');
+		$appParam    = $request->get('app');
+		$appSuffix   = ($appParam !== null && $appParam !== '') ? '&app=' . rawurlencode((string)$appParam) : '&app=SUPPORT';
+
+		if ($returnView === 'RuleDetail' && $savedId > 0) {
+			header('Location: index.php?module=HelpDesk&view=RuleDetail&rule_id=' . (int)$savedId . $appSuffix);
+		} else {
+			header('Location: index.php?module=HelpDesk&view=Rules' . $appSuffix);
+		}
 		exit;
 	}
 }

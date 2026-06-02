@@ -1,6 +1,6 @@
 /**
  * Accounts Create Accounts — premium SALES workspace (content area only).
- * Scope: body[data-module="Accounts"][data-view="Edit"][data-app="SALES"]
+ * Scope: body[data-module="Accounts"][data-view="Edit"]
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
@@ -25,13 +25,21 @@
 }
 
 /* ========== Split shell ========== */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+body[data-module="Accounts"][data-view="Edit"],
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] {
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Accounts"][data-view="Edit"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root {
 	position: relative;
 	display: block;
 	min-height: 0;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-app-shell {
+body[data-module="Accounts"][data-view="Edit"] .mk-app-shell,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-app-shell {
 	margin-left: var(--mk-dash-sidebar-w);
 	width: calc(100% - var(--mk-dash-sidebar-w));
 	max-width: calc(100% - var(--mk-dash-sidebar-w));
@@ -43,7 +51,8 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-app-shell {
 	padding-top: var(--mk-dash-topbar-h);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-topbar {
+body[data-module="Accounts"][data-view="Edit"] .mk-topbar,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-topbar {
 	height: 0;
 	margin: 0;
 	padding: 0;
@@ -51,7 +60,8 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-topbar {
 	flex-shrink: 0;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+body[data-module="Accounts"][data-view="Edit"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar {
 	position: fixed;
 	top: 0;
 	left: var(--mk-dash-sidebar-w);
@@ -68,8 +78,10 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-
 	background: var(--mk-ac-white) !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] #page,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] #page.container-fluid {
+body[data-module="Accounts"][data-view="Edit"] #page,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] #page,
+body[data-module="Accounts"][data-view="Edit"] #page.container-fluid,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] #page.container-fluid {
 	padding-top: 0 !important;
 	padding-left: 0 !important;
 	margin-left: 0 !important;
@@ -78,18 +90,24 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] #page.container
 	box-sizing: border-box !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] #page > .container-fluid.app-nav,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .app-nav,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] #modnavigator,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] #sidebar-essentials,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .module-action-bar {
+body[data-module="Accounts"][data-view="Edit"] #page > .container-fluid.app-nav,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] #page > .container-fluid.app-nav,
+body[data-module="Accounts"][data-view="Edit"] .app-nav,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .app-nav,
+body[data-module="Accounts"][data-view="Edit"] #modnavigator,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] #modnavigator,
+body[data-module="Accounts"][data-view="Edit"] #sidebar-essentials,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] #sidebar-essentials,
+body[data-module="Accounts"][data-view="Edit"] .module-action-bar,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .module-action-bar {
 	display: none !important;
 	visibility: hidden !important;
 	height: 0 !important;
 	overflow: hidden !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-accounts-edit-main {
+body[data-module="Accounts"][data-view="Edit"] .mk-dash-main.mk-accounts-edit-main,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-dash-main.mk-accounts-edit-main {
 	width: 100%;
 	max-width: none;
 	min-width: 0;
@@ -98,7 +116,8 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-dash-main.m
 	box-sizing: border-box;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .main-container.mk-accounts-edit-page {
+body[data-module="Accounts"][data-view="Edit"] .main-container.mk-accounts-edit-page,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .main-container.mk-accounts-edit-page {
 	width: 100%;
 	max-width: none;
 	margin: 0 !important;
@@ -106,7 +125,8 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .main-container
 	background: transparent;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .editViewPageDiv.mk-accounts-edit-inner {
+body[data-module="Accounts"][data-view="Edit"] .editViewPageDiv.mk-accounts-edit-inner,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .editViewPageDiv.mk-accounts-edit-inner {
 	padding: 0 !important;
 	margin: 0 !important;
 	background: transparent;
@@ -114,7 +134,8 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .editViewPageDi
 }
 
 /* ========== Workspace ========== */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-create,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-create {
 	font-family: var(--mk-ac-font);
 	color: var(--mk-ac-text);
 	padding: 24px 40px 56px;
@@ -124,9 +145,12 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create {
 	box-sizing: border-box;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host form#EditView,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .editViewContents,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host [name="editContent"] {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host form#EditView,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-form-host form#EditView,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .editViewContents,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-form-host .editViewContents,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host [name="editContent"],
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-form-host [name="editContent"] {
 	width: 100%;
 	max-width: 1120px;
 	margin-left: auto;
@@ -134,11 +158,13 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	box-sizing: border-box;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hide-legacy {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hide-legacy,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-hide-legacy {
 	display: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-form-container {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-form-container,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-form-host .mk-ac-form-container {
 	background: transparent !important;
 	margin: 0 !important;
 	padding: 0 !important;
@@ -146,15 +172,18 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	box-shadow: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .editViewPageDiv,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .content-area {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .editViewPageDiv,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-form-host .editViewPageDiv,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .content-area,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-form-host .content-area {
 	padding: 0 !important;
 	width: 100% !important;
 	max-width: 100% !important;
 }
 
 /* ========== Page header (create) ========== */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-head {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head,
+body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-page-head {
 	margin-bottom: 24px;
 	padding: 22px 28px;
 	max-width: 1120px;
@@ -166,24 +195,24 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-hea
 	box-shadow: var(--mk-ac-shadow);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-head__crumb {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__crumb {
 	font-size: 12px;
 	color: var(--mk-ac-muted);
 	margin-bottom: 12px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-head__crumb a {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__crumb a {
 	color: var(--mk-ac-navy);
 	text-decoration: none;
 	font-weight: 500;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-head__crumb span {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__crumb span {
 	margin: 0 6px;
 	opacity: 0.5;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-head__row {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__row {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-start;
@@ -191,7 +220,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-hea
 	gap: 16px 24px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-head__title {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__title {
 	margin: 0 0 6px;
 	font-family: var(--mk-ac-display);
 	font-size: 1.5rem;
@@ -199,13 +228,13 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-hea
 	line-height: 1.2;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-head__sub {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__sub {
 	margin: 0;
 	font-size: 13px;
 	color: var(--mk-ac-muted);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-head__actions {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head__actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
@@ -213,11 +242,11 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-page-hea
 }
 
 /* Legacy hero (unused on simplified create) */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero {
 	margin-bottom: 24px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__panel {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__panel {
 	padding: 28px 32px 24px;
 	border-radius: var(--mk-ac-radius);
 	background:
@@ -229,24 +258,24 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__pa
 	backdrop-filter: blur(12px);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__crumb {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__crumb {
 	font-size: 12px;
 	color: var(--mk-ac-muted);
 	margin-bottom: 16px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__crumb a {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__crumb a {
 	color: var(--mk-ac-navy);
 	text-decoration: none;
 	font-weight: 500;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__crumb-sep {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__crumb-sep {
 	margin: 0 8px;
 	opacity: 0.5;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__top {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__top {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 20px;
@@ -254,7 +283,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__to
 	justify-content: space-between;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__kicker {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__kicker {
 	margin: 0 0 6px;
 	font-size: 11px;
 	font-weight: 700;
@@ -263,7 +292,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__ki
 	color: var(--mk-ac-navy);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__title {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__title {
 	font-family: var(--mk-ac-display);
 	font-size: clamp(1.5rem, 2.4vw, 2rem);
 	font-weight: 700;
@@ -272,7 +301,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__ti
 	line-height: 1.15;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__subtitle {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__subtitle {
 	margin: 0;
 	font-size: 14px;
 	color: var(--mk-ac-muted);
@@ -280,14 +309,14 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__su
 	line-height: 1.5;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__eyebrow {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__eyebrow {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	margin-bottom: 8px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pill {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pill {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -297,24 +326,24 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pill {
 	font-weight: 600;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pill--ai {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pill--ai {
 	background: rgba(64, 98, 126, 0.1);
 	color: var(--mk-ac-navy);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pill--draft {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pill--draft {
 	background: rgba(253, 187, 44, 0.18);
 	color: #7a5a12;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pill__dot {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pill__dot {
 	width: 6px;
 	height: 6px;
 	border-radius: 50%;
 	background: var(--mk-ac-yellow);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pill__pulse {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pill__pulse {
 	width: 6px;
 	height: 6px;
 	border-radius: 50%;
@@ -327,14 +356,14 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pill__pu
 	50% { opacity: 1; transform: scale(1.1); }
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-hero__actions {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-hero__actions {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 10px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-health {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-health {
 	text-align: center;
 	padding: 6px 12px;
 	background: var(--mk-ac-surface);
@@ -342,7 +371,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-health {
 	border: 1px solid var(--mk-ac-border);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-health__label {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-health__label {
 	display: block;
 	font-size: 10px;
 	text-transform: uppercase;
@@ -350,7 +379,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-health__
 	color: var(--mk-ac-muted);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-health__chip {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-health__chip {
 	display: inline-block;
 	margin-top: 4px;
 	padding: 4px 12px;
@@ -359,22 +388,22 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-health__
 	font-weight: 600;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-health__chip--warm {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-health__chip--warm {
 	background: rgba(253, 187, 44, 0.2);
 	color: #7a5a12;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-health__chip--good {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-health__chip--good {
 	background: rgba(34, 197, 94, 0.15);
 	color: #15803d;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-health__chip--cool {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-health__chip--cool {
 	background: rgba(64, 98, 126, 0.12);
 	color: var(--mk-ac-navy);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-owner {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-owner {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -384,7 +413,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-owner {
 	border: 1px solid var(--mk-ac-border);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-owner__avatar {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-owner__avatar {
 	width: 36px;
 	height: 36px;
 	border-radius: 10px;
@@ -397,7 +426,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-owner__a
 	font-size: 13px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-owner__label {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-owner__label {
 	display: block;
 	font-size: 10px;
 	text-transform: uppercase;
@@ -405,12 +434,12 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-owner__l
 	color: var(--mk-ac-muted);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-owner__name {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-owner__name {
 	font-size: 13px;
 	font-weight: 600;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-forecast-preview {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-forecast-preview {
 	padding: 8px 16px;
 	border-radius: var(--mk-ac-radius-sm);
 	background: rgba(253, 187, 44, 0.12);
@@ -418,7 +447,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-forecast
 	min-width: 120px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-forecast-preview__label {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-forecast-preview__label {
 	display: block;
 	font-size: 10px;
 	text-transform: uppercase;
@@ -426,22 +455,22 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-forecast
 	color: var(--mk-ac-muted);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-forecast-preview__value {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-forecast-preview__value {
 	font-family: var(--mk-ac-display);
 	font-size: 18px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-forecast-preview__sub {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-forecast-preview__sub {
 	display: block;
 	font-size: 11px;
 	color: var(--mk-ac-muted);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-forecast-preview[hidden] {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-forecast-preview[hidden] {
 	display: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-btn {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -457,44 +486,44 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-btn {
 	text-decoration: none;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-btn--primary {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-btn--primary {
 	background: var(--mk-ac-yellow);
 	color: var(--mk-ac-text);
 	box-shadow: 0 4px 16px rgba(253, 187, 44, 0.45);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-btn--primary:hover {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-btn--primary:hover {
 	transform: translateY(-1px);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-btn--secondary {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-btn--secondary {
 	background: var(--mk-ac-white);
 	color: var(--mk-ac-navy);
 	border: 1px solid var(--mk-ac-border);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-btn--ghost {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-btn--ghost {
 	background: transparent;
 	color: var(--mk-ac-navy);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-btn--sm {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-btn--sm {
 	padding: 8px 14px;
 	font-size: 12px;
 }
 
 /* ========== Pipeline (in hero) ========== */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline-wrap {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline-wrap {
 	margin: 22px 0 0;
 	padding-top: 20px;
 	border-top: 1px solid var(--mk-ac-border);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline-wrap[hidden] {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline-wrap[hidden] {
 	display: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline-wrap__head {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline-wrap__head {
 	display: flex;
 	align-items: baseline;
 	justify-content: space-between;
@@ -503,7 +532,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline
 	margin-bottom: 14px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline-wrap__label {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline-wrap__label {
 	margin: 0;
 	font-size: 11px;
 	font-weight: 700;
@@ -512,14 +541,14 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline
 	color: var(--mk-ac-muted);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline-wrap__hint {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline-wrap__hint {
 	margin: 0;
 	font-size: 14px;
 	font-weight: 600;
 	color: var(--mk-ac-navy);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline {
 	display: flex;
 	justify-content: space-between;
 	gap: 4px;
@@ -527,7 +556,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline
 	padding-top: 12px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline__track {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline__track {
 	position: absolute;
 	top: 22px;
 	left: 8%;
@@ -538,7 +567,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline
 	overflow: hidden;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline__fill {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline__fill {
 	display: block;
 	height: 100%;
 	width: 20%;
@@ -547,7 +576,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline
 	transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline__stage {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline__stage {
 	flex: 1;
 	min-width: 0;
 	background: none;
@@ -560,11 +589,11 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline
 	z-index: 1;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline__stage:hover {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline__stage:hover {
 	transform: translateY(-2px);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline__dot {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline__dot {
 	display: block;
 	width: 14px;
 	height: 14px;
@@ -575,14 +604,14 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline
 	transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline__stage.is-passed .mk-ac-pipeline__dot,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline__stage.is-active .mk-ac-pipeline__dot {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline__stage.is-passed .mk-ac-pipeline__dot,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline__stage.is-active .mk-ac-pipeline__dot {
 	border-color: var(--mk-ac-navy);
 	background: var(--mk-ac-yellow);
 	box-shadow: 0 0 0 4px rgba(253, 187, 44, 0.25);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline__name {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline__name {
 	display: block;
 	font-size: 11px;
 	font-weight: 600;
@@ -592,18 +621,18 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline
 	text-overflow: ellipsis;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-pipeline__stage.is-active .mk-ac-pipeline__name {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-pipeline__stage.is-active .mk-ac-pipeline__name {
 	color: var(--mk-ac-text);
 }
 
 /* Virtual insights panel removed */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create__layout,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create__insights,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-float-bar {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-create__layout,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-create__insights,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-float-bar {
 	display: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create__insights {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-create__insights {
 	position: sticky;
 	top: calc(var(--mk-dash-topbar-h) + 16px);
 	display: flex;
@@ -614,7 +643,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create__
 	padding-right: 4px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-insight-card {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-insight-card {
 	padding: 18px 20px;
 	border-radius: var(--mk-ac-radius);
 	background: var(--mk-ac-white);
@@ -622,13 +651,13 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-insight-
 	box-shadow: var(--mk-ac-shadow);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-insight-card--hero {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-insight-card--hero {
 	background:
 		linear-gradient(160deg, rgba(253, 187, 44, 0.08), transparent 45%),
 		var(--mk-ac-white);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-insight-card__title {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-insight-card__title {
 	margin: 0 0 12px;
 	font-family: var(--mk-ac-display);
 	font-size: 14px;
@@ -636,33 +665,33 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-insight-
 	color: var(--mk-ac-navy);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-insight-card__hint {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-insight-card__hint {
 	margin: 8px 0 0;
 	font-size: 12px;
 	color: var(--mk-ac-muted);
 	line-height: 1.4;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-gauge {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-gauge {
 	position: relative;
 	text-align: center;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-gauge__svg {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-gauge__svg {
 	width: 100%;
 	max-width: 160px;
 	margin: 0 auto;
 	display: block;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-gauge__track {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-gauge__track {
 	fill: none;
 	stroke: var(--mk-ac-surface-dim);
 	stroke-width: 8;
 	stroke-linecap: round;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-gauge__fill {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-gauge__fill {
 	fill: none;
 	stroke: var(--mk-ac-yellow);
 	stroke-width: 8;
@@ -672,7 +701,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-gauge__f
 	transition: stroke-dashoffset 0.5s ease;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-gauge__value {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-gauge__value {
 	display: block;
 	font-family: var(--mk-ac-display);
 	font-size: 28px;
@@ -680,14 +709,14 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-gauge__v
 	margin-top: -8px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-insight-metric {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-insight-metric {
 	margin: 0;
 	font-family: var(--mk-ac-display);
 	font-size: 24px;
 	font-weight: 700;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-rec-list {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-rec-list {
 	list-style: none;
 	margin: 0;
 	padding: 0;
@@ -696,7 +725,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-rec-list
 	gap: 10px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-rec {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-rec {
 	display: flex;
 	gap: 10px;
 	align-items: flex-start;
@@ -708,18 +737,18 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-rec {
 	border: 1px solid var(--mk-ac-border);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-rec--done {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-rec--done {
 	color: var(--mk-ac-text);
 	border-color: rgba(253, 187, 44, 0.35);
 	background: rgba(253, 187, 44, 0.08);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-rec__icon {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-rec__icon {
 	color: var(--mk-ac-navy);
 	font-weight: 700;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-risk__bar {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-risk__bar {
 	display: block;
 	height: 8px;
 	background: var(--mk-ac-surface);
@@ -728,7 +757,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-risk__ba
 	margin-bottom: 8px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-risk__fill {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-risk__fill {
 	display: block;
 	height: 100%;
 	width: 50%;
@@ -737,13 +766,13 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-risk__fi
 	transition: width 0.4s ease;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-risk__label {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-risk__label {
 	font-size: 13px;
 	font-weight: 600;
 	color: var(--mk-ac-navy);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-action-chips {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-action-chips {
 	list-style: none;
 	margin: 0;
 	padding: 0;
@@ -752,7 +781,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-action-c
 	gap: 8px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-action-chip {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-action-chip {
 	padding: 8px 12px;
 	border-radius: 999px;
 	border: 1px solid var(--mk-ac-border);
@@ -764,13 +793,13 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-action-c
 	opacity: 0.7;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-timeline {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-timeline {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-timeline__item {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-timeline__item {
 	display: grid;
 	grid-template-columns: 12px 1fr auto;
 	gap: 10px;
@@ -780,11 +809,11 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-timeline
 	font-size: 13px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-timeline__item:last-child {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-timeline__item:last-child {
 	border-bottom: none;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-timeline__dot {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-timeline__dot {
 	width: 10px;
 	height: 10px;
 	border-radius: 50%;
@@ -792,18 +821,18 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-timeline
 	margin-top: 4px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-timeline__item.is-active .mk-ac-timeline__dot {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-timeline__item.is-active .mk-ac-timeline__dot {
 	background: var(--mk-ac-yellow);
 	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.35);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-timeline__item time {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-timeline__item time {
 	font-size: 11px;
 	color: var(--mk-ac-muted);
 }
 
 /* ========== Form blocks — Project Task–style (wide, label above field) ========== */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block {
 	margin-bottom: 28px;
 	padding: 28px 32px 32px;
 	border-radius: 18px;
@@ -816,7 +845,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	overflow: hidden;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block::before {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block::before {
 	content: "";
 	position: absolute;
 	left: 0;
@@ -828,8 +857,8 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	opacity: 0.95;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .fieldBlockHeader,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .mk-ac-block__header {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .fieldBlockHeader,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .mk-ac-block__header {
 	display: block !important;
 	font-family: var(--mk-ac-display);
 	font-size: 1.45rem;
@@ -843,21 +872,21 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	line-height: 1.3;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table.table,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table.table-borderless {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table.table,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table.table-borderless {
 	display: block !important;
 	width: 100% !important;
 	margin: 0 !important;
 	border: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody {
 	display: block !important;
 	width: 100%;
 }
 
 /* Each vtiger row → 2-column grid; label stacked above input */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr {
 	display: grid !important;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	column-gap: 40px;
@@ -869,21 +898,21 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	box-sizing: border-box;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:last-child {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:last-child {
 	margin-bottom: 0;
 }
 
 /* Single full-width field (description, etc.) */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:has(> td.fieldValueWidth80),
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:has(> td.fieldValue[colspan]) {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:has(> td.fieldValueWidth80),
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:has(> td.fieldValue[colspan]) {
 	grid-template-columns: 1fr !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) {
 	grid-template-columns: 1fr !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td {
 	display: block !important;
 	width: 100% !important;
 	max-width: 100% !important;
@@ -896,14 +925,14 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	vertical-align: top !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td:empty {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td:empty {
 	display: none !important;
 	height: 0 !important;
 	padding: 0 !important;
 	margin: 0 !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldLabel {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldLabel {
 	font-size: 13px !important;
 	font-weight: 600 !important;
 	color: #475569 !important;
@@ -912,57 +941,57 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	text-align: left !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue {
 	padding: 0 0 4px !important;
 	min-width: 0;
 }
 
 /* Grid cell placement: col1 label row1, col1 value row2, col2 label row1, col2 value row2 */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldLabel:nth-child(1) {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldLabel:nth-child(1) {
 	grid-column: 1;
 	grid-row: 1;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldValue:nth-child(2) {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldValue:nth-child(2) {
 	grid-column: 1;
 	grid-row: 2;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
 	grid-column: 2;
 	grid-row: 1;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldValue:nth-child(4) {
 	grid-column: 2;
 	grid-row: 2;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldLabel,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldLabel {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldLabel,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldLabel {
 	grid-column: 1 !important;
 	grid-row: 1 !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldValue,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldValue {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:has(> td.fieldValueWidth80) > td.fieldValue,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) > td.fieldValue {
 	grid-column: 1 !important;
 	grid-row: 2 !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > * {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > * {
 	max-width: 100%;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .referencefield-wrapper {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .referencefield-wrapper {
 	width: 100% !important;
 	max-width: 100% !important;
 	box-sizing: border-box;
 }
 
 /* Composite fields (amount $, reference search, date): one rounded box — no double rectangles */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .referencefield-wrapper .input-group {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .referencefield-wrapper .input-group {
 	display: flex !important;
 	align-items: center !important;
 	flex-wrap: nowrap;
@@ -978,18 +1007,18 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group:focus-within,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .referencefield-wrapper .input-group:focus-within {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group:focus-within,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .referencefield-wrapper .input-group:focus-within {
 	border-color: var(--mk-ac-navy) !important;
 	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
 	background: #fff !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group input,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .form-control,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .autoComplete,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .currencyField,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .dateField {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group input,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .form-control,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .autoComplete,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .currencyField,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .dateField {
 	flex: 1 1 auto;
 	min-width: 0;
 	width: auto !important;
@@ -1007,7 +1036,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	box-sizing: border-box !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon {
 	flex: 0 0 48px;
 	width: 48px;
 	min-width: 48px;
@@ -1030,13 +1059,13 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	text-align: center;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon:first-child {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon:first-child {
 	border-left: none !important;
 	border-right: 1px solid #e2e8f0 !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon .fa,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon i {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon .fa,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon i {
 	display: block !important;
 	line-height: 1 !important;
 	margin: 0 !important;
@@ -1045,13 +1074,13 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	vertical-align: middle;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon.relatedPopup:hover,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon.createReferenceRecord:hover {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon.relatedPopup:hover,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon.createReferenceRecord:hover {
 	background: var(--mk-ac-navy) !important;
 	color: #fff !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group .clearReferenceSelection {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .clearReferenceSelection {
 	flex: 0 0 auto;
 	align-self: center;
 	display: inline-flex !important;
@@ -1070,9 +1099,9 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 }
 
 /* Checkbox / boolean — compact (not full-width text field) */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > input[type="checkbox"],
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > input[type="checkbox"].inputElement,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue input[type="checkbox"][data-fieldtype="checkbox"] {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > input[type="checkbox"],
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > input[type="checkbox"].inputElement,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue input[type="checkbox"][data-fieldtype="checkbox"] {
 	width: 18px !important;
 	height: 18px !important;
 	min-width: 18px !important;
@@ -1090,7 +1119,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	flex: 0 0 auto;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue:has(> input[type="checkbox"]) {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue:has(> input[type="checkbox"]) {
 	display: flex !important;
 	align-items: flex-start !important;
 	width: auto !important;
@@ -1099,10 +1128,10 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 }
 
 /* Simple standalone inputs (text, select, textarea) */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > select.inputElement,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .form-control:not([type="checkbox"]) {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > select.inputElement,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .form-control:not([type="checkbox"]) {
 	width: 100% !important;
 	max-width: 100% !important;
 	min-height: 46px !important;
@@ -1116,14 +1145,14 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.form-control {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.form-control {
 	min-height: 120px !important;
 	resize: vertical;
 }
 
 /* Select2 (single/multi): style outer container as the field; remove inner border to avoid double frames */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container {
 	width: 100% !important;
 	max-width: 100% !important;
 	display: block !important;
@@ -1138,21 +1167,21 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container:hover {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container:hover {
 	background: #fff !important;
 	border-color: #cbd5e1 !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container.select2-container--focus,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container:focus-within {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container.select2-container--focus,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container:focus-within {
 	border-color: var(--mk-ac-navy) !important;
 	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
 	background: #fff !important;
 	outline: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--multiple {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--multiple {
 	display: flex !important;
 	align-items: center !important;
 	height: 46px !important;
@@ -1164,13 +1193,13 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	box-shadow: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single .select2-selection__rendered {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single .select2-selection__rendered {
 	flex: 1 1 auto;
 	padding: 0 14px !important;
 	line-height: 46px !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single .select2-selection__arrow {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single .select2-selection__arrow {
 	position: absolute !important;
 	top: 0 !important;
 	right: 0 !important;
@@ -1182,26 +1211,26 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	justify-content: center !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single .select2-selection__arrow b {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single .select2-selection__arrow b {
 	margin-top: 0 !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):hover,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > select.inputElement:hover,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement:hover,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single:hover {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):hover,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > select.inputElement:hover,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement:hover,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single:hover {
 	background: #fff !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):focus,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > select.inputElement:focus,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement:focus,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .select2-container--default.select2-container--focus .select2-selection--single {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):focus,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > select.inputElement:focus,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement:focus,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default.select2-container--focus .select2-selection--single {
 	background: #fff !important;
 	outline: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .select2-container {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container {
 	width: 100% !important;
 	max-width: 100% !important;
 	display: block;
@@ -1209,13 +1238,13 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 }
 
 /* No virtual chips/slider on create */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-chips-wrap,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-slider-wrap,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-choice-row {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-chips-wrap,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-slider-wrap,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-choice-row {
 	display: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-form-footer {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-form-footer {
 	display: none !important;
 	margin: 32px auto 0;
 	padding: 28px 32px;
@@ -1228,7 +1257,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	box-shadow: 0 8px 28px rgba(64, 98, 126, 0.08);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-form-footer .saveButton {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-form-footer .saveButton {
 	background: linear-gradient(135deg, var(--mk-ac-yellow) 0%, #e5a824 100%) !important;
 	border: none !important;
 	color: #1a2834 !important;
@@ -1239,7 +1268,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	min-height: 48px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-form-footer .cancelLink {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-form-footer .cancelLink {
 	margin-left: 16px !important;
 	padding: 12px 22px !important;
 	border-radius: 12px !important;
@@ -1249,8 +1278,8 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 }
 
 /* Select2 v3 (vtiger default): single box + centered text & arrow */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-choice,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-choices {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-choice,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-choices {
 	display: flex !important;
 	align-items: center !important;
 	border: none !important;
@@ -1264,8 +1293,8 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	box-sizing: border-box !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-chosen,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-choice > span:first-child {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-chosen,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-choice > span:first-child {
 	display: block;
 	line-height: 46px !important;
 	overflow: hidden;
@@ -1273,7 +1302,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	white-space: nowrap;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-arrow {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-arrow {
 	position: absolute !important;
 	top: 0 !important;
 	right: 0 !important;
@@ -1287,7 +1316,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 	justify-content: center !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-arrow b {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-arrow b {
 	position: static !important;
 	display: block !important;
 	margin: 0 auto !important;
@@ -1295,40 +1324,40 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-hos
 }
 
 /* Date field calendar addon */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group.inputElement .input-group-addon,
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block .input-group:has(.dateField) .input-group-addon {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group.inputElement .input-group-addon,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group:has(.dateField) .input-group-addon {
 	border-left: 1px solid #e2e8f0 !important;
 }
 
 /* Float bar removed on simplified create */
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-float-bar {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-float-bar {
 	display: none !important;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-float-bar.is-elevated {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-float-bar.is-elevated {
 	transform: translateY(-2px);
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-float-bar__status {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-float-bar__status {
 	font-size: 12px;
 	color: var(--mk-ac-muted);
 	font-weight: 500;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-float-bar__right {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-float-bar__right {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 	flex-wrap: wrap;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-float-bar__keys {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-float-bar__keys {
 	font-size: 11px;
 	color: var(--mk-ac-muted);
 	margin-right: 8px;
 }
 
-body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-float-bar__keys kbd {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-float-bar__keys kbd {
 	padding: 2px 5px;
 	border-radius: 4px;
 	background: var(--mk-ac-surface);
@@ -1338,10 +1367,10 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-float-ba
 
 /* ========== Responsive ========== */
 @media (max-width: 1280px) {
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create__layout {
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-create__layout {
 		grid-template-columns: 1fr;
 	}
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create__insights {
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-create__insights {
 		position: static;
 		max-height: none;
 		display: grid;
@@ -1350,31 +1379,31 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-float-ba
 }
 
 @media (max-width: 900px) {
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-create {
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-create {
 		padding: 16px 16px 48px;
 	}
 
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr {
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr {
 		grid-template-columns: 1fr !important;
 	}
 
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldLabel:nth-child(3),
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldLabel:nth-child(3),
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldValue:nth-child(4) {
 		grid-column: 1 !important;
 	}
 
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldLabel:nth-child(3) {
 		grid-row: 3 !important;
 	}
 
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldValue:nth-child(4) {
 		grid-row: 4 !important;
 	}
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-choice-row--3,
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-choice-row--4 {
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-choice-row--3,
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-choice-row--4 {
 		grid-template-columns: 1fr 1fr;
 	}
-	body[data-module="Accounts"][data-view="Edit"][data-app="SALES"] .mk-ac-float-bar {
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-float-bar {
 		left: 16px;
 		right: 16px;
 		flex-direction: column;

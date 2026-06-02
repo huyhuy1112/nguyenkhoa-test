@@ -96,6 +96,10 @@
 							{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
 							{if $moduleModel}
 								{assign var=_mkModActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq $moduleName)}
+								{* INVENTORY: Warehouse prototype uses module=Warehouse but should not highlight Storage (Warehouse List) *}
+								{if $MODULE eq 'Warehouse' && ($VIEW eq 'Prototype' || $VIEW eq 'PrototypeDetail') && $moduleName eq 'Warehouse'}
+									{assign var=_mkModActive value=false}
+								{/if}
 								{if $MODULE eq 'HelpDesk' && ($VIEW eq 'Rules' || $VIEW eq 'RuleDetail')}
 									{if $moduleName eq 'HelpDesk'}{assign var=_mkModActive value=false}{/if}
 									{if $moduleName eq 'Rules'}{assign var=_mkModActive value=true}{/if}
@@ -132,6 +136,14 @@
 							{assign var=_mkAccountsActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Accounts')}
 							<a class="mk-dash-mod-link{if $_mkAccountsActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SUPPORT">
 								<span class="mk-dash-mod-label">{vtranslate('Accounts', 'Accounts')}</span>
+							</a>
+						{/if}
+
+						{* INVENTORY: UI-only Warehouse prototype page (no DB) *}
+						{if $APP_NAME eq 'INVENTORY'}
+							{assign var=_mkProtoActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'Prototype' || $VIEW eq 'PrototypeDetail'))}
+							<a class="mk-dash-mod-link{if $_mkProtoActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=Prototype&amp;app=INVENTORY">
+								<span class="mk-dash-mod-label">Prototype kho</span>
 							</a>
 						{/if}
 					</div>

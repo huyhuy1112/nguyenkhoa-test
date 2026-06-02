@@ -101,8 +101,8 @@ class HelpDesk_SupportRulesService {
 
 		if ($id > 0) {
 			$sql = "UPDATE support_rules
-					   SET rule_name = ?, rule_type = ?, description = ?, is_active = ?, updated_at = NOW()
-					 WHERE id = ?";
+					SET rule_name = ?, rule_type = ?, description = ?, is_active = ?, updated_at = NOW()
+					WHERE id = ?";
 			$this->db->pquery($sql, [$name, $type, $desc, $isActive, $id]);
 		} else {
 			$sql = "INSERT INTO support_rules
@@ -116,13 +116,13 @@ class HelpDesk_SupportRulesService {
 		$res = $this->db->pquery('SELECT id FROM support_rule_levels WHERE rule_id = ?', [$id]);
 		if ($res && $this->db->num_rows($res) > 0) {
 			$sql = "UPDATE support_rule_levels
-					 SET level_1_time_minutes = ?, level_2_time_minutes = ?, level_3_time_minutes = ?
-					 WHERE rule_id = ?";
+						  SET level_1_time_minutes = ?, level_2_time_minutes = ?, level_3_time_minutes = ?
+						  WHERE rule_id = ?";
 			$this->db->pquery($sql, [$l1, $l2, $l3, $id]);
 		} else {
 			$sql = "INSERT INTO support_rule_levels
-						(rule_id, level_1_time_minutes, level_2_time_minutes, level_3_time_minutes)
-					VALUES (?, ?, ?, ?)";
+				(rule_id, level_1_time_minutes, level_2_time_minutes, level_3_time_minutes)
+				VALUES (?, ?, ?, ?)";
 			$this->db->pquery($sql, [$id, $l1, $l2, $l3]);
 		}
 
@@ -148,19 +148,8 @@ class HelpDesk_SupportRulesService {
 			return;
 		}
 
-		// Lấy support_level từ Contacts (1/2/3), mặc định = 2
-		$level = 2;
-		$res = $this->db->pquery(
-			"SELECT cf.support_level
-			   FROM vtiger_contactscf cf
-			   JOIN vtiger_contactdetails cd ON cd.contactid = cf.contactid
-			  WHERE cd.contactid = ?",
-			[$customerId]
-		);
-		if ($res && $this->db->num_rows($res) > 0) {
-			$raw = $this->db->query_result($res, 0, 'support_level');
-			$level = (int)$raw > 0 ? (int)$raw : 2;
-		}
+		// Support level (Contacts.picklist: usually '1'|'2'|'3'), default = level 2
+		$level = $this->getCustomerSupportLevel($customerId);
 
 		// Lấy các rule đang active
 		$rulesRes = $this->db->pquery(
@@ -168,8 +157,8 @@ class HelpDesk_SupportRulesService {
 					l.level_1_time_minutes,
 					l.level_2_time_minutes,
 					l.level_3_time_minutes
-			   FROM support_rules r
-		  LEFT JOIN support_rule_levels l ON l.rule_id = r.id
+				FROM support_rules r
+				LEFT JOIN support_rule_levels l ON l.rule_id = r.id
 			  WHERE r.is_active = 1",
 			[]
 		);
@@ -206,12 +195,66 @@ class HelpDesk_SupportRulesService {
 	}
 
 	/** Đánh dấu ticket_sla quá hạn. */
-	public function markOverdue(): void {
+	public function markOverdue(): int {
 		$sql = "UPDATE ticket_sla
 				   SET status = 'overdue'
 				 WHERE status = 'pending'
 				   AND deadline_at < NOW()";
-		$this->db->pquery($sql, []);
+		$res = $this->db->pquery($sql, []);
+		return $res ? (int)$this->db->getAffectedRowCount($res) : 0;
+	}
+
+	/**
+	 * Mark all SLA entries for a ticket as completed.
+	 * Minimal lifecycle: complete when ticket is Closed/Resolved.
+	 */
+	public function completeSlaForTicket(int $ticketId): int {
+		if ($ticketId <= 0) {
+			return 0;
+		}
+		$res = $this->db->pquery(
+			"UPDATE ticket_sla
+			    SET status = 'completed',
+			        completed_at = NOW()
+			  WHERE ticket_id = ?
+			    AND status IN ('pending','overdue')",
+			[$ticketId]
+		);
+		return $res ? (int)$this->db->getAffectedRowCount($res) : 0;
+	}
+
+	/**
+	 * Resolve customer support level from Contacts.
+	 * Accepts either numeric picklist values ('1','2','3') or labels ('Level 1', ...).
+	 */
+	protected function getCustomerSupportLevel(int $contactId): int {
+		if ($contactId <= 0) {
+			return 2;
+		}
+
+		$level = 2;
+		$res = $this->db->pquery(
+			"SELECT cd.support_level
+			   FROM vtiger_contactdetails cd
+			   INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
+			  WHERE cd.contactid = ?",
+			[$contactId]
+		);
+		if ($res && $this->db->num_rows($res) > 0) {
+			$raw = (string)$this->db->query_result($res, 0, 'support_level');
+			$raw = trim($raw);
+			if ($raw !== '') {
+				if ($raw === '1' || stripos($raw, 'level 1') !== false) {
+					$level = 1;
+				} elseif ($raw === '2' || stripos($raw, 'level 2') !== false) {
+					$level = 2;
+				} elseif ($raw === '3' || stripos($raw, 'level 3') !== false) {
+					$level = 3;
+				}
+			}
+		}
+
+		return $level;
 	}
 
 	protected function normalizeMinutes($value): ?int {

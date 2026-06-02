@@ -1,0 +1,1122 @@
+/**
+ * B-ACE CRM — INVENTORY app: Inbound / Storage / Outbound list (+ shared mk-gi-* UI).
+ * Loads after GoodsReceiptList.css, WarehouseList.css, GoodsIssueList.css.
+ */
+
+/* ========================================================================== */
+/* Topbar (INVENTORY split shell)                                             */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar.navbar-default.app-fixed-navbar,
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Edit"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+	background: var(--mk-topbar-bg) !important;
+	-webkit-backdrop-filter: var(--mk-topbar-blur);
+	backdrop-filter: var(--mk-topbar-blur);
+	border-bottom: 1px solid var(--mk-topbar-border) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"] .mk-dash-app-topbar .navbar-nav > li > a,
+html[data-theme="dark"] body[data-app="INVENTORY"] .mk-dash-app-topbar .navbar-nav > li > div > a,
+html[data-theme="dark"] body[data-app="INVENTORY"] .mk-dash-app-topbar .mk-dash-search-input,
+html[data-theme="dark"] body[data-app="INVENTORY"] .mk-dash-app-topbar .mk-dash-topbar-linkic {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* ========================================================================== */
+/* List canvas                                                                */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-dash-main.mk-gr-list-main,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-dash-main.mk-wh-list-main,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="List"][data-app="INVENTORY"] .mk-dash-main.mk-gi-list-main,
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main.mk-gr-detail-main,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main.mk-wh-detail-main,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main.mk-go-detail-main,
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-dash-main.mk-gr-edit-main,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] .mk-dash-main.mk-go-edit-main {
+	background: var(--mk-bg-primary) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* Page header + breadcrumbs                                                  */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-breadcrumb__item a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-breadcrumb__item a:hover {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-breadcrumb__item--current span,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-breadcrumb__sep {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-action-header__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-action-header__subtitle {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-action-header__icon {
+	background: rgba(253, 187, 44, 0.15) !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+	color: var(--mk-primary) !important;
+}
+
+/* ========================================================================== */
+/* Flow tabs (Inbound / Storage / Outbound)                                   */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-dark-panel,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-topnav {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-topnav a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-topnav a:hover {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-topnav a.is-active {
+	color: var(--mk-primary) !important;
+	border-bottom-color: var(--mk-primary) !important;
+}
+
+/* ========================================================================== */
+/* KPI strip (Storage)                                                        */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-section {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] a.mk-wh-kpi-card:hover {
+	border-color: var(--mk-border-accent) !important;
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-card--warn {
+	background: rgba(239, 68, 68, 0.12) !important;
+	border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-card__icon {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-card--warn .mk-wh-kpi-card__icon,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-card--warn .mk-wh-kpi-card__label {
+	color: #fda4af !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-card__label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-card__value,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-card__value--warn {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-card--warn .mk-wh-kpi-card__value--warn {
+	color: #fda4af !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-card__hint {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-section .mk-gi-alert--warn {
+	background: rgba(245, 158, 11, 0.12) !important;
+	border-color: rgba(245, 158, 11, 0.35) !important;
+	color: #fcd34d !important;
+}
+
+/* ========================================================================== */
+/* Filters + inputs                                                           */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-filter-bar {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-field__label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-input,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-select,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-check {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-input::placeholder {
+	color: var(--mk-text-muted) !important;
+	opacity: 1;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-btn--primary {
+	background: var(--mk-primary) !important;
+	border-color: var(--mk-primary) !important;
+	color: #0f172a !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-btn--primary:hover {
+	background: var(--mk-primary-hover) !important;
+	border-color: var(--mk-primary-hover) !important;
+	color: #0f172a !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-btn--filter,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-btn--ghost {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-btn--filter:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-btn--ghost:hover {
+	background: var(--mk-card-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-btn__ic,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-btn__txt {
+	color: inherit !important;
+}
+
+/* ========================================================================== */
+/* Alerts                                                                     */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-alert--success {
+	background: rgba(34, 197, 94, 0.12) !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+	color: #86efac !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-alert--danger {
+	background: rgba(239, 68, 68, 0.12) !important;
+	border-color: rgba(239, 68, 68, 0.35) !important;
+	color: #fca5a5 !important;
+}
+
+/* ========================================================================== */
+/* Table panel — toolbar count (was #504533, invisible on dark)               */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table-panel {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table-toolbar {
+	background: var(--mk-table-header-bg) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table-toolbar__count {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table-toolbar__count strong {
+	color: var(--mk-text-primary) !important;
+	font-weight: 600;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table tbody td {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table tbody tr:hover {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table__subject,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table__subject a,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table__product,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table__product a {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table__subject a:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table__product a:hover {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-muted,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-table__empty {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-chip {
+	background: rgba(253, 187, 44, 0.12) !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-gi-chip--type {
+	background: rgba(94, 233, 255, 0.1) !important;
+	border-color: rgba(94, 233, 255, 0.3) !important;
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-icon-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-icon-btn:hover {
+	background: rgba(94, 233, 255, 0.12) !important;
+	border-color: rgba(94, 233, 255, 0.35) !important;
+	color: var(--mk-text-link-hover) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-icon-btn--danger {
+	background: rgba(239, 68, 68, 0.12) !important;
+	border-color: rgba(239, 68, 68, 0.35) !important;
+	color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-icon-btn--danger:hover {
+	background: rgba(239, 68, 68, 0.2) !important;
+	border-color: rgba(239, 68, 68, 0.5) !important;
+	color: #fecaca !important;
+}
+
+/* Storage badges + expiry pills */
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-badge--legacy {
+	background: rgba(253, 187, 44, 0.15) !important;
+	border-color: rgba(253, 187, 44, 0.4) !important;
+	color: #fde68a !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-badge--catalog {
+	background: rgba(34, 197, 94, 0.12) !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+	color: #86efac !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-badge--low {
+	background: rgba(244, 63, 94, 0.15) !important;
+	border-color: rgba(244, 63, 94, 0.4) !important;
+	color: #fda4af !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-expired-date--warn {
+	color: #fcd34d !important;
+	background: rgba(245, 158, 11, 0.15) !important;
+	border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-expired-date--danger,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-badge--dangerous {
+	background: rgba(244, 63, 94, 0.18) !important;
+	border-color: rgba(244, 63, 94, 0.45) !important;
+	color: #fda4af !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-badge--expired {
+	background: rgba(239, 68, 68, 0.22) !important;
+	border-color: rgba(239, 68, 68, 0.5) !important;
+	color: #fecaca !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-updated {
+	color: var(--mk-text-muted) !important;
+}
+
+/* Sidebar — INVENTORY active item */
+html[data-theme="dark"] body[data-app="INVENTORY"] .mk-dashboard-sidebar .menu-scroller .modules-menu li.active > a,
+html[data-theme="dark"] body[data-module="GoodsReceipt"] .mk-dashboard-sidebar .modules-menu li.active > a,
+html[data-theme="dark"] body[data-module="Warehouse"] .mk-dashboard-sidebar .modules-menu li.active > a,
+html[data-theme="dark"] body[data-module="GoodsIssue"] .mk-dashboard-sidebar .modules-menu li.active > a {
+	color: var(--mk-primary) !important;
+}
+
+/* ========================================================================== */
+/* LIST — remaining white chrome (tabs bar, ghost btn, legacy wrappers)       */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-btn--ghost {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-btn--ghost:hover {
+	background: var(--mk-card-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-dark-panel {
+	border-bottom: 1px solid var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-topnav {
+	border-bottom: 1px solid var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .main-container .content-area,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .listViewPageDiv,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] #listViewContent {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-filter-panel {
+	background: transparent !important;
+}
+
+/* ========================================================================== */
+/* LIST — MkInventoryListShared (loads after theme; white suite card + tabs)  */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-view="List"][data-app="INVENTORY"] .mk-gi-suite-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-view="List"][data-app="INVENTORY"] .mk-wh-page-head {
+	background: var(--mk-card-bg) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav--pills a {
+	color: var(--mk-text-muted) !important;
+	background: transparent !important;
+	border-color: transparent !important;
+}
+
+html[data-theme="dark"] body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav--pills a:hover {
+	color: var(--mk-text-primary) !important;
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav--pills a.is-active {
+	color: var(--mk-primary) !important;
+	background: rgba(253, 187, 44, 0.12) !important;
+	border-color: rgba(253, 187, 44, 0.45) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-view="List"][data-app="INVENTORY"] .mk-gi-dark-panel.mk-wh-filter-panel {
+	background: var(--mk-card-bg) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+/* ========================================================================== */
+/* EDIT — New Inbound / New Outbound (shared mk-gi-suite-card shell)          */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-suite-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-wh-page-head,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-wh-page-head.mk-gr-page-head,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-wh-page-head.mk-go-page-head {
+	background: var(--mk-card-bg) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-inv-flow-bar {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom: 1px solid var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-content,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-content {
+	background: var(--mk-bg-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-breadcrumb__item a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-breadcrumb__item a:hover {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-breadcrumb__item--current span {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-breadcrumb__sep {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-action-header__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-action-header__subtitle {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-action-header__icon {
+	background: rgba(253, 187, 44, 0.2) !important;
+	color: var(--mk-primary) !important;
+	box-shadow: 0 4px 12px rgba(253, 187, 44, 0.15) !important;
+}
+
+/* Flow pills (edit pages) */
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-inv-flow-bar .mk-gi-topnav--pills a {
+	color: var(--mk-text-muted) !important;
+	background: transparent !important;
+	border-color: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-inv-flow-bar .mk-gi-topnav--pills a:hover {
+	color: var(--mk-text-primary) !important;
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-inv-flow-bar .mk-gi-topnav--pills a.is-active {
+	color: var(--mk-primary) !important;
+	background: rgba(253, 187, 44, 0.12) !important;
+	border-color: rgba(253, 187, 44, 0.45) !important;
+	box-shadow: none !important;
+}
+
+/* Form cards */
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-detail-card,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-detail-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-detail-card__head,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-detail-card__head {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-detail-card__title,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-detail-card__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-detail-card__body,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-detail-card__body {
+	background: var(--mk-card-bg) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-field__label,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-field__label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-input,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-input,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-form .form-control,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-form .form-control,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable input,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable select,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssueItemsTable input,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssueItemsTable select {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-input:focus,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-input:focus,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-form .form-control:focus,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-form .form-control:focus {
+	border-color: var(--mk-primary) !important;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.2) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-input[readonly],
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-input[readonly],
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] input[readonly].form-control {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-hint,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-hint,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .text-muted {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-hint--block,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-alert--warn {
+	background: rgba(245, 158, 11, 0.12) !important;
+	border-color: rgba(245, 158, 11, 0.35) !important;
+	color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-alert--danger {
+	background: rgba(239, 68, 68, 0.12) !important;
+	border-color: rgba(239, 68, 68, 0.35) !important;
+	color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-chip {
+	background: rgba(253, 187, 44, 0.12) !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-btn--ghost {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-btn--ghost:hover {
+	background: var(--mk-card-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+}
+
+/* Line items tables */
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] #GoodsReceiptItemsTable thead th,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] #GoodsIssueItemsTable thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] #GoodsReceiptItemsTable tbody td,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] #GoodsIssueItemsTable tbody td {
+	background: var(--mk-card-bg) !important;
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] #GoodsReceiptItemsTable tbody tr.row-item:hover,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="Edit"][data-app="INVENTORY"] #GoodsIssueItemsTable tbody tr.row-item:hover {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable .stock-meta,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssueItemsTable .stock-meta {
+	background: rgba(253, 187, 44, 0.08) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable .stock-meta .available-text,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssueItemsTable .stock-meta .available-text {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable .legacy-warning,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssueItemsTable .legacy-warning {
+	background: rgba(245, 158, 11, 0.1) !important;
+	border-left-color: #f59e0b !important;
+	color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable .stock-badge.catalog,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssueItemsTable .stock-badge.catalog {
+	background: rgba(34, 197, 94, 0.15) !important;
+	color: #86efac !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable .stock-badge.legacy,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssueItemsTable .stock-badge.legacy {
+	background: rgba(253, 187, 44, 0.15) !important;
+	color: #fde68a !important;
+	border-color: rgba(253, 187, 44, 0.4) !important;
+}
+
+/* Attachments table */
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-attach-table th,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-attach-table th {
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-attach-table td,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-attach-table td {
+	color: var(--mk-text-primary) !important;
+	border-bottom-color: var(--mk-border-subtle) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] input[type="file"] {
+	background: var(--mk-input-bg) !important;
+	border: 1px dashed var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .editViewContainer,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .content-area,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .main-container {
+	background: transparent !important;
+}
+
+/* ========================================================================== */
+/* DETAIL — Inbound / Storage / Outbound (module Detail.css loads after theme) */
+/* ========================================================================== */
+
+/* Breadcrumbs */
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-breadcrumb__item a,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-breadcrumb__item a,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-breadcrumb__item a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-breadcrumb__item a:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-breadcrumb__item a:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-breadcrumb__item a:hover {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-breadcrumb__item--current .mk-gr-detail-breadcrumb__text,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-breadcrumb__item--current .mk-wh-detail-breadcrumb__text,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-breadcrumb__item--current .mk-go-detail-breadcrumb__text,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-breadcrumb__sep,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-breadcrumb__sep,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-breadcrumb__sep {
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Hero strip */
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-gr-detail-hero-strip.detailview-header-block,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-hero-strip.detailview-header-block,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-go-detail-hero-strip.detailview-header-block {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-hero__title,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-hero__title,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-hero__title,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-hero__title .recordLabel,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-hero__title .recordLabel,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-hero__title .recordLabel {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-hero__subtitle,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-hero__subtitle,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-hero__subtitle,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-hero__meta-item,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-hero__meta-item,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-hero__meta-item {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-hero__meta-date,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-hero__meta-date,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-hero__meta-date,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-hero__meta-dest {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-status-pill,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-status-pill,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-status-pill {
+	background: rgba(34, 197, 94, 0.15) !important;
+	border-color: rgba(34, 197, 94, 0.4) !important;
+	color: #86efac !important;
+}
+
+/* Hero actions */
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-btn,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-btn,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-btn {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-btn:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-btn:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-btn:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-btn:focus,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-btn:focus,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-btn:focus {
+	background: var(--mk-card-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-btn--ghost,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-btn--ghost,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-btn--ghost {
+	background: transparent !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-btn--primary,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-btn--primary,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-btn--primary,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-btn--warn {
+	background: linear-gradient(180deg, #ffd76a 0%, #fdbb2c 55%, #f0a514 100%) !important;
+	border-color: #e59a0f !important;
+	color: #5c4200 !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-btn--danger,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-btn--danger,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-btn--danger {
+	background: rgba(239, 68, 68, 0.15) !important;
+	border-color: rgba(239, 68, 68, 0.45) !important;
+	color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-btn--danger:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-btn--danger:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-btn--danger:hover {
+	background: rgba(239, 68, 68, 0.25) !important;
+	border-color: rgba(239, 68, 68, 0.55) !important;
+	color: #fecaca !important;
+}
+
+/* Module switcher (detail body) */
+html[data-theme="dark"] body[data-module="GoodsReceipt"][data-view="Detail"][data-app="INVENTORY"] .mk-gr-detail-topnav,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-topnav,
+html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="Detail"][data-app="INVENTORY"] .mk-go-detail-topnav,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-page-content .mk-gi-topnav,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-page-content .mk-gi-topnav,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-page-content .mk-gi-topnav {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-topnav a,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-topnav a,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-topnav a,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-page-content .mk-gi-topnav a,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-page-content .mk-gi-topnav a,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-page-content .mk-gi-topnav a {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-topnav a:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-topnav a:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-topnav a:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-page-content .mk-gi-topnav a:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-page-content .mk-gi-topnav a:hover,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-page-content .mk-gi-topnav a:hover {
+	color: var(--mk-text-primary) !important;
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-topnav a.is-active,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-topnav a.is-active,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-topnav a.is-active,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-page-content .mk-gi-topnav a.is-active,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-page-content .mk-gi-topnav a.is-active,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-page-content .mk-gi-topnav a.is-active {
+	color: var(--mk-primary) !important;
+	background: rgba(253, 187, 44, 0.12) !important;
+	box-shadow: inset 0 0 0 1px rgba(253, 187, 44, 0.35) !important;
+}
+
+/* KPI stats */
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-stat,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-stat,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-stat {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-stat--accent,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-stat--accent,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-stat--accent {
+	background: rgba(253, 187, 44, 0.1) !important;
+	border-color: rgba(253, 187, 44, 0.4) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-stat__label,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-stat__label,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-stat__label {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-stat__value,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-stat__value,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-stat__value {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-stat--accent .mk-gr-detail-stat__value,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-stat--accent .mk-wh-detail-stat__value,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-stat--accent .mk-go-detail-stat__value,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-stat__value--accent {
+	color: var(--mk-primary) !important;
+}
+
+/* Info cards */
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-card,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-card,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-card__head,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-card__head,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-card__head {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-card__title,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-card__title,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-card__title {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-card__body,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-card__body,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-card__body {
+	background: var(--mk-card-bg) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-card__badge,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-card__badge,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-card__badge {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+/* Field tiles */
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-field,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-field,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-field,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-field--wide,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-field--wide,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-field--wide {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-field__label,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-field__label,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-field__label,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-field__hint {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-field__value,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-field__value,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-field__value,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-field__value--mono {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-field__value--note,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-field__value--note,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-field__value--note {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gi-chip {
+	background: rgba(253, 187, 44, 0.12) !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gi-muted {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-product-link,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-product-name {
+	color: var(--mk-text-primary) !important;
+	font-weight: 600;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-product-link {
+	color: var(--mk-text-link) !important;
+	text-decoration: none;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-product-link:hover {
+	color: var(--mk-text-link-hover) !important;
+	text-decoration: underline;
+}
+
+/* Alerts */
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-alert--warn,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-alert--warn,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-alert--warn {
+	background: rgba(245, 158, 11, 0.12) !important;
+	border-color: rgba(245, 158, 11, 0.35) !important;
+	color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-alert--error,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-alert--error,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-alert--error {
+	background: rgba(239, 68, 68, 0.12) !important;
+	border-color: rgba(239, 68, 68, 0.35) !important;
+	color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-alert--success,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-alert--success,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-alert--success {
+	background: rgba(34, 197, 94, 0.12) !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+	color: #86efac !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-lead {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-footnote {
+	color: var(--mk-text-muted) !important;
+}
+
+/* Storage — link catalog + chart */
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-select {
+	background: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-chart {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-chart-empty {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-chart-legend__item--in {
+	background: rgba(34, 197, 94, 0.15) !important;
+	border-color: rgba(34, 197, 94, 0.35) !important;
+	color: #86efac !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-chart-legend__item--out {
+	background: rgba(253, 187, 44, 0.12) !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-expired-date {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-expired-date--warn,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-badge--dangerous {
+	background: rgba(245, 158, 11, 0.15) !important;
+	border-color: rgba(245, 158, 11, 0.35) !important;
+	color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-expired-date--danger,
+html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-badge--expired {
+	background: rgba(239, 68, 68, 0.15) !important;
+	border-color: rgba(239, 68, 68, 0.4) !important;
+	color: #fca5a5 !important;
+}
+
+/* Line-item tables */
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-table thead th,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-table thead th,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-table thead th {
+	background: var(--mk-table-header-bg) !important;
+	color: var(--mk-text-secondary) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-table tbody td,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-table tbody td,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-table tbody td {
+	border-bottom-color: var(--mk-border-subtle) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-table tbody tr:hover td,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-table tbody tr:hover td,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-table tbody tr:hover td {
+	background: var(--mk-table-row-hover) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-table .mk-gi-table__subject,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-table .mk-gi-table__subject,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-table .mk-gi-table__subject,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-table .mk-gi-table__num,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-table .mk-gi-table__num,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-table .mk-gi-table__num {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gi-table__empty {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .content-area,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .detailview-content,
+html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .main-container {
+	background: transparent !important;
+}

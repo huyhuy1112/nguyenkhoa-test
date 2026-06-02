@@ -6,9 +6,6 @@
 class Accounts_Edit_View extends Vtiger_Edit_View {
 
 	protected function isMkModernOrganizationCreate(Vtiger_Request $request) {
-		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
-			return false;
-		}
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
@@ -27,6 +24,7 @@ class Accounts_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'Accounts');
 		$viewer->assign('MK_MODERN_ORG_CREATE', true);
+		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
 	}
 
 	protected function redirectMarketingToSales(Vtiger_Request $request) {

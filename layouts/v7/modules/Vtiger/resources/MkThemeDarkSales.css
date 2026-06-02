@@ -601,6 +601,7 @@ html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-ap
 html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-card--comments,
 html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-related-activities,
 html[data-theme="dark"] body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero-strip,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero-strip,
 html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-hero-strip,
 html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-hero-strip {
 	background: var(--mk-card-bg) !important;
@@ -611,6 +612,7 @@ html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Detail"][data-
 html[data-theme="dark"] body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-details-row #detailView .block,
 html[data-theme="dark"] body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-details-row #detailView .block,
 html[data-theme="dark"] body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] #detailView .block,
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-details-row #detailView .block,
 html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] #detailView .block,
 html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] #detailView .block {
 	background: var(--mk-card-bg) !important;
@@ -853,16 +855,39 @@ html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-ap
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice,
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-active .select2-choice,
 html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container--default .select2-selection--single,
-html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container--default .select2-selection--multiple {
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container--default .select2-selection--multiple,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-choices,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-choices {
 	background: var(--mk-input-bg) !important;
 	background-color: var(--mk-input-bg) !important;
+	background-image: none !important;
 	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-choices .select2-search-field input,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices .select2-search-field input,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-choices .select2-search-field input {
+	background: transparent !important;
+	background-color: transparent !important;
+	border: none !important;
+	color: var(--mk-input-text) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
 	color: var(--mk-input-text) !important;
 }
 
 html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-chosen,
 html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container--default .select2-selection__rendered,
-html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice > span {
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice > span,
+html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-choices .select2-search-field input::placeholder {
 	color: var(--mk-input-text) !important;
 }
 
@@ -991,6 +1016,8 @@ html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-ap
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice,
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-active .select2-choice,
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-active .select2-choice,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices,
+html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-choices,
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element),
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow input.listSearchContributor:not(.select2_input_element) {
 	background: var(--mk-input-bg) !important;

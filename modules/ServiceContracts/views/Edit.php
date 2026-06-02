@@ -6,9 +6,6 @@
 class ServiceContracts_Edit_View extends Vtiger_Edit_View {
 
 	protected function isMkModernServiceContractCreate(Vtiger_Request $request) {
-		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
-			return false;
-		}
 		$app = strtoupper((string)$request->get('app'));
 		return $app === 'SALES' || $app === '';
 	}
@@ -23,6 +20,7 @@ class ServiceContracts_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'ServiceContracts');
 		$viewer->assign('MK_MODERN_SERVICE_CONTRACT_CREATE', true);
+		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
 	}
 
 	protected function redirectSupportToSales(Vtiger_Request $request) {

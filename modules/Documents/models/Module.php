@@ -237,4 +237,34 @@ class Documents_Module_Model extends Vtiger_Module_Model {
 	public function isFieldsDuplicateCheckAllowed() {
 		return false;
 	}
+
+	/**
+	 * Giữ app=MANAGEMENT khi mở Detail từ list Management.
+	 */
+	public function getDetailViewUrl($id) {
+		$url = parent::getDetailViewUrl($id);
+		if (!empty($_REQUEST['app']) && $_REQUEST['app'] === 'MANAGEMENT') {
+			$url .= '&app=MANAGEMENT';
+		}
+		return $url;
+	}
+
+	/**
+	 * Giữ app=MANAGEMENT khi mở Edit/Create từ list Management.
+	 */
+	public function getEditViewUrl($recordId = null) {
+		$url = parent::getEditViewUrl($recordId);
+		if (!empty($_REQUEST['app']) && $_REQUEST['app'] === 'MANAGEMENT') {
+			$url .= '&app=MANAGEMENT';
+		}
+		return $url;
+	}
+
+	public function getCreateRecordUrl() {
+		$url = parent::getCreateRecordUrl();
+		if (!empty($_REQUEST['app']) && $_REQUEST['app'] === 'MANAGEMENT') {
+			$url .= '&app=MANAGEMENT';
+		}
+		return $url;
+	}
 }

@@ -6,9 +6,6 @@
 class ProductsServices_Edit_View extends Vtiger_Edit_View {
 
 	protected function isMkModernProductsServicesCreate(Vtiger_Request $request) {
-		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
-			return false;
-		}
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
@@ -27,6 +24,7 @@ class ProductsServices_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'ProductsServices');
 		$viewer->assign('MK_MODERN_PRODUCTSSERVICES_CREATE', true);
+		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {

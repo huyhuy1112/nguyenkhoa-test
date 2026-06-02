@@ -25,22 +25,47 @@ class Calendar_TaskManagement_View extends Vtiger_Index_View {
 		return in_array($mode, array('getAllContents', 'getContentsOfPriority'), true);
 	}
 
+	protected function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isTaskManagementDataMode($request)) {
+			return parent::preProcessTplName($request);
+		}
+		return 'TaskManagementViewPreProcess.tpl';
+	}
+
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		if ($this->isTaskManagementDataMode($request)) {
 			return;
 		}
-		parent::preProcess($request, $display);
+		parent::preProcess($request, false);
+		$viewer = $this->getViewer($request);
+		$viewer->assign('VIEW', 'TaskManagement');
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'MANAGEMENT');
+		$viewer->assign('SELECTED_MENU_CATEGORY_LABEL', vtranslate('LBL_MANAGEMENT', 'Vtiger'));
+		$viewer->assign('MK_TASK_MANAGEMENT_ACTIVE', true);
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'Calendar');
+		$menuGroupedByParent = Settings_MenuEditor_Module_Model::getAllVisibleModules();
+		if (isset($menuGroupedByParent['MANAGEMENT'])) {
+			$viewer->assign('SELECTED_CATEGORY_MENU_LIST', $menuGroupedByParent['MANAGEMENT']);
+		}
+		if ($display) {
+			$this->preProcessDisplay($request);
+		}
 	}
 
 	public function postProcess(Vtiger_Request $request) {
 		if ($this->isTaskManagementDataMode($request)) {
 			return;
 		}
-		parent::postProcess($request);
+		$viewer = $this->getViewer($request);
+		$viewer->view('TaskManagementViewPostProcess.tpl', $request->getModule());
+		Vtiger_Basic_View::postProcess($request);
 	}
 
 	public function process(Vtiger_Request $request) {
 		$mode = $request->getMode();
+		if (empty($mode)) {
+			$mode = 'showManagementView';
+		}
 		if (!empty($mode) && $this->isMethodExposed($mode)) {
 			$this->invokeExposedMethod($mode, $request);
 			return;
@@ -179,6 +204,18 @@ class Calendar_TaskManagement_View extends Vtiger_Index_View {
 		$filters = isset($_SESSION['task_filters'])? $_SESSION['task_filters'] : null;
 		if (!$filters) {
 			$filters = array('status' => array(), 'date' => 'all', 'assigned_user_id' => array());
+		}
+		// Legacy UI pre-selected these four statuses on every load; treat as "no filter".
+		if (!empty($filters['status']) && is_array($filters['status'])) {
+			$legacyDefault = array('Not Started', 'In Progress', 'Pending Input', 'Planned');
+			$current = array_values($filters['status']);
+			sort($current);
+			$sortedLegacy = $legacyDefault;
+			sort($sortedLegacy);
+			if ($current === $sortedLegacy) {
+				$filters['status'] = array();
+				$_SESSION['task_filters'] = $filters;
+			}
 		}
 		return $filters;
 	}

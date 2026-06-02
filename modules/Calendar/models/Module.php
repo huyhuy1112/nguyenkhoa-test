@@ -71,7 +71,7 @@ class Calendar_Module_Model extends Vtiger_Module_Model {
 	 * @return <String>
 	 */
 	public function getCreateEventRecordUrl() {
-		return 'index.php?module='.$this->get('name').'&view='.$this->getEditViewName().'&mode=Events';
+		return 'index.php?module='.$this->get('name').'&view='.$this->getEditViewName().'&mode=Events&app=MANAGEMENT';
 	}
 
 	/**

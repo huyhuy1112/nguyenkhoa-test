@@ -250,7 +250,23 @@
     window.location.href = isEdit && recordId ? detailUrl(recordId) : LIST_URL;
   }
 
+  function initStockEdit() {
+    var topSave = $("mkTdStockSaveTop");
+    if (!topSave) return;
+    topSave.addEventListener("click", function () {
+      var form = document.querySelector("#mkTdStockFormHost form#EditView, #mkTdStockFormHost form[name='edit']");
+      if (!form) return;
+      var btn = form.querySelector("button.saveButton, .saveButton");
+      if (btn) btn.click();
+    });
+  }
+
   function init() {
+    if (document.getElementById("mkTdEditStockWorkspace")) {
+      initStockEdit();
+      return;
+    }
+
     var root = $("mk-td-create");
     if (!root) return;
 

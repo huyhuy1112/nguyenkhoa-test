@@ -11,14 +11,36 @@
 			{include file="partials/StorageListHeader.tpl"|vtemplate_path:$MODULE}
 		</div>
 
+		{* Prototype KPI strip (UI-only) *}
+		<section class="mk-inv-kpis" aria-label="Storage KPIs">
+			<article class="mk-inv-kpi">
+				<div class="mk-inv-kpi__label"><span class="mk-inv-kpi__ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="1.9"/></svg></span>Phiếu chờ QC</div>
+				<div class="mk-inv-kpi__value">1</div>
+			</article>
+			<article class="mk-inv-kpi">
+				<div class="mk-inv-kpi__label"><span class="mk-inv-kpi__ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>Phiếu xuất chờ duyệt</div>
+				<div class="mk-inv-kpi__value">1</div>
+			</article>
+			<article class="mk-inv-kpi">
+				<div class="mk-inv-kpi__label"><span class="mk-inv-kpi__ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73Z" stroke="currentColor" stroke-width="1.7"/><path d="M3.3 7.7 12 12l8.7-4.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22V12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>SKU đang lưu kho</div>
+				<div class="mk-inv-kpi__value">4</div>
+			</article>
+			<article class="mk-inv-kpi mk-inv-kpi--danger">
+				<div class="mk-inv-kpi__label"><span class="mk-inv-kpi__ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 9v4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M12 16.6h.01" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M10.3 4.2 2.7 18a2 2 0 0 0 1.8 3h15a2 2 0 0 0 1.8-3L13.7 4.2a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>Lô sắp hết hạn (&lt;90 ngày)</div>
+				<div class="mk-inv-kpi__value">2</div>
+			</article>
+		</section>
+
 		<div class="mk-inv-flow-bar">
 			<nav class="mk-gi-topnav mk-gi-topnav--pills" aria-label="Inventory modules">
-				<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY">Inbound</a>
-				<a class="is-active" href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY" aria-current="page">Storage</a>
-				<a href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY">Outbound</a>
+				<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Inbound</a>
+				<a class="is-active" href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY" aria-current="page"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73Z" stroke="currentColor" stroke-width="1.6"/><path d="M3.3 7.7 12 12l8.7-4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22V12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>Storage</a>
+				<a href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21V9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17 14l-5-5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Outbound</a>
+				<a href="javascript:void(0)" role="button" data-mk-wh-tab="qc"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="1.8"/></svg></span>QC</a>
 			</nav>
 		</div>
 
+		<div id="mkWhStoragePane">
 		<section class="mk-wh-kpi-section" aria-label="Storage overview">
 			{include file="partials/StorageListKpi.tpl"|vtemplate_path:$MODULE}
 			{if !empty($SHOW_DELETED)}
@@ -178,6 +200,51 @@
 				</tbody>
 			</table>
 		</div>
+		</div>
+	</div>
+	</div>
+
+	<div class="mk-inv-qc-pane hide" id="mkWhQcPane" aria-label="Hàng đợi QC">
+		<div class="mk-inv-qc-card">
+			<div class="mk-inv-qc-card__head">
+				<h3 class="mk-inv-qc-card__title">Hàng đợi QC</h3>
+				<a class="mk-inv-qc-card__btn" href="index.php?module=GoodsReceipt&amp;view=Edit&amp;app=INVENTORY">Tạo phiếu nhập</a>
+			</div>
+			<div class="mk-inv-qc-table-wrap">
+				<table class="mk-inv-qc-table" role="table">
+					<thead>
+						<tr>
+							<th>Mã phiếu</th>
+							<th>Nhà cung cấp</th>
+							<th>PO</th>
+							<th>Số dòng</th>
+							<th>Ngày tạo</th>
+							<th>Trạng thái</th>
+							<th class="mk-inv-qc-td-right">Thao tác</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="mk-gi-chip">GRN-0002</span></td>
+							<td>Vinamilk Logistics</td>
+							<td>PO-2026-0151</td>
+							<td>2</td>
+							<td>16:09 26/5/26</td>
+							<td><span class="mk-inv-qc-pill">Chờ QC</span></td>
+							<td class="mk-inv-qc-td-right"><a class="mk-gi-btn mk-gi-btn--mini" href="index.php?module=GoodsReceipt&amp;view=Edit&amp;app=INVENTORY">QC</a></td>
+						</tr>
+						<tr>
+							<td><span class="mk-gi-chip">GRN-0004</span></td>
+							<td>CTY Dược Hậu Giang</td>
+							<td>PO-2026-0182</td>
+							<td>1</td>
+							<td>09:41 01/6/26</td>
+							<td><span class="mk-inv-qc-pill">Chờ QC</span></td>
+							<td class="mk-inv-qc-td-right"><a class="mk-gi-btn mk-gi-btn--mini" href="index.php?module=GoodsReceipt&amp;view=Edit&amp;app=INVENTORY">QC</a></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>
 </div>

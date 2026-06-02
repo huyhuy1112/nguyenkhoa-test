@@ -140,24 +140,40 @@ class Potentials_DetailView_Model extends Vtiger_DetailView_Model {
 			);
 		}
 
-		$productsInstance = Vtiger_Module_Model::getInstance('Products');
-		if($userPrivilegesModel->hasModuleActionPermission($productsInstance->getId(), 'DetailView')) {
-			$createPermission = $userPrivilegesModel->hasModuleActionPermission($productsInstance->getId(), 'CreateView');
-			$widgets[] = array(
-					'linktype' => 'DETAILVIEWWIDGET',
-					'linklabel' => 'LBL_RELATED_PRODUCTS',
-					'linkName'	=> $productsInstance->getName(),
-					'linkurl' => 'module='.$this->getModuleName().'&view=Detail&record='.$this->getRecord()->getId().
-							'&relatedModule=Products&mode=showRelatedRecords&page=1&limit=5',
-					'action'	=>	($createPermission == true) ? array('Add') : array(),
-					'actionURL' =>	$productsInstance->getQuickCreateUrl()
-			);
-		}
+		// Skip ProductsServices Summary widget for Potentials:
+		// It requires a template like "ProductsServicesSummaryWidgetContents.tpl" which isn't present
+		// and causes "Unable to load template ..." on the Summary page.
 
 		foreach ($widgets as $widgetDetails) {
 			$widgetLinks[] = Vtiger_Link_Model::getInstanceFromValues($widgetDetails);
 		}
 
 		return $widgetLinks;
+	}
+
+	/**
+	 * Potentials-only: replace Products related tab with ProductsServices ("Product And Service").
+	 * Keeps the rest of related tabs intact and avoids touching global templates.
+	 */
+	public function getDetailViewRelatedLinks() {
+		$links = parent::getDetailViewRelatedLinks();
+		$result = array();
+		foreach ($links as $link) {
+			$relatedModule = isset($link['relatedModuleName']) ? $link['relatedModuleName'] : null;
+			// Remove legacy Products related tab for Opportunities.
+			if ($relatedModule === 'Products') {
+				continue;
+			}
+			// Hide Services tab for Opportunities.
+			if ($relatedModule === 'Services') {
+				continue;
+			}
+			// Rename ProductsServices tab label for BA clarity.
+			if ($relatedModule === 'ProductsServices') {
+				$link['linklabel'] = 'Product And Service';
+			}
+			$result[] = $link;
+		}
+		return $result;
 	}
 }

@@ -28,7 +28,10 @@ class Leads_Edit_View extends Vtiger_Edit_View {
 
 	/** Tag-driven Create/Edit Lead UI (SALES — empty form shell). */
 	protected function isMkModernLeadsUi(Vtiger_Request $request) {
-		$app = strtoupper((string) $request->get('app'));
+		if ($request->get('displayMode') === 'overlay') {
+			return false;
+		}
+		$app = strtoupper((string)$request->get('app'));
 		return $app === 'SALES' || $app === '';
 	}
 
@@ -45,6 +48,7 @@ class Leads_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('MK_MODERN_LEADS_CREATE', true);
 		$viewer->assign('MK_LEAD_RECORD_ID', $recordId);
 		$viewer->assign('MK_LEADS_EDIT_MODE', !empty($recordId));
+		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
 	}
 
 	public function requiresPermission(\Vtiger_Request $request) {
@@ -100,37 +104,8 @@ class Leads_Edit_View extends Vtiger_Edit_View {
 	public function process(Vtiger_Request $request) {
 		if ($this->isMkModernLeadsUi($request)) {
 			$this->redirectMarketingToSales($request);
-			$viewer = $this->getViewer($request);
 			$this->assignModernContext($request);
-			$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
-			$viewer->assign('CURRENTDATE', date('Y-n-j'));
-			$viewer->view('EditView.tpl', $request->getModule());
-			return;
 		}
-
-		$moduleName = $request->getModule();
-		$recordId = $request->get('record');
-		$recordModel = $this->record;
-		if (!$recordModel) {
-			if (!empty($recordId)) {
-				$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
-			} else {
-				$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
-			}
-		}
-
-		$viewer = $this->getViewer($request);
-		$salutationFieldModel = Vtiger_Field_Model::getInstance('salutationtype', $recordModel->getModule());
-		if ($salutationFieldModel) {
-			$salutationValue = $request->get('salutationtype');
-			if (!empty($salutationValue)) {
-				$salutationFieldModel->set('fieldvalue', $salutationValue);
-			} else {
-				$salutationFieldModel->set('fieldvalue', $recordModel->get('salutationtype'));
-			}
-			$viewer->assign('SALUTATION_FIELD_MODEL', $salutationFieldModel);
-		}
-
 		parent::process($request);
 	}
 }

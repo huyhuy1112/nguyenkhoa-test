@@ -9,6 +9,9 @@
  *************************************************************************************/
 
 $languageStrings = array(
-	'LBL_ADD_RECORD' => 'ADD PLAN',
+	'Plans' => 'Plans',
+	'SINGLE_Plans' => 'Plan',
+	'LBL_ADD_RECORD' => 'Add Plan',
+	'LBL_RECORDS_LIST' => 'All Plans',
 );
 

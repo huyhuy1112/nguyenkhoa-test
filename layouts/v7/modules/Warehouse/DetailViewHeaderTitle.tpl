@@ -7,7 +7,7 @@
 			</div>
 			<div class="mk-wh-detail-hero__text">
 				<h1 class="mk-wh-detail-hero__title">
-					<span class="recordLabel" title="{$STOCK.product_name_display|escape:'html'}">{$STOCK.product_name_display|escape:'html'}</span>
+					<span class="recordLabel" title="{decode_html($STOCK.product_name_display)|escape:'html'}">{if $STOCK.product_name_display ne ''}{decode_html($STOCK.product_name_display)|escape:'html'}{else}<span class="mk-gi-muted">Unnamed product</span>{/if}</span>
 				</h1>
 				<p class="mk-wh-detail-hero__subtitle">Aggregated storage from Inbound. Quantities and last price are derived; edit only warehouse fields on Edit.</p>
 				<div class="mk-wh-detail-hero__meta">

@@ -5,6 +5,7 @@
 </main>
 </div>
 </div>
+{include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}
 {else}
 {include file="ListViewPostProcess.tpl"|@vtemplate_path:'Vtiger'}
 {/if}

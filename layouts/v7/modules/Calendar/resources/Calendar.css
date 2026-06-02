@@ -6,77 +6,142 @@ font-weight: 600;
 }
 
 /* Calendar Year view (custom, non-FullCalendar) */
-.calendar-yearview {
-  padding: 0 !important;
-}
-.calendar-yearview-header {
-  padding: 10px 0 14px 0;
+body:has(.calendar-yearview),
+html.mk-cal-ui-ready body:has(.calendar-yearview),
+html.mk-cal-ui-ready body:has(.calendar-yearview) #page {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
 }
 
-/* Premium dark canvas (scoped to Year only) */
+body:has(.calendar-yearview) .mk-app-shell {
+  min-height: 100vh;
+  overflow: visible !important;
+}
+
+body:has(.calendar-yearview) .mk-dash-main,
+body:has(.calendar-yearview) .mk-cal-main {
+  padding: 20px 24px 32px !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  min-height: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  box-sizing: border-box !important;
+  flex: 0 0 auto !important;
+}
+
+body:has(.calendar-yearview) #CalendarViewContent,
+body:has(.calendar-yearview) .CalendarViewPageDiv,
+body:has(.calendar-yearview) .CalendarViewPageDiv.content-area,
+body:has(.calendar-yearview) .main-container.main-container-Calendar.mk-cal-page {
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  min-height: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  box-sizing: border-box !important;
+  flex: 0 0 auto !important;
+}
+
+html.mk-cal-ui-ready body:has(.calendar-yearview) #mycalendar,
+html.mk-cal-ui-ready body:has(.calendar-yearview) #mycalendar.calendar-yearview,
+html.mk-cal-ui-ready body:has(.calendar-yearview) .calendarview.calendar-yearview {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  display: block !important;
+  flex: none !important;
+}
+
+body:has(.calendar-yearview) .essentials-toggle,
+body:has(.calendar-yearview) #mycalendar .essentials-toggle {
+  display: none !important;
+}
+
+.calendar-yearview {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
+  float: none !important;
+}
+
+.calendar-yearview-header {
+  padding: 0 0 18px 0;
+}
+
+/* Premium light canvas (Year view default) — matches mk-cal split shell */
 .calendar-yearview-wrapper {
-  background: radial-gradient(1200px 600px at 20% 0%, rgba(59,130,246,0.22), transparent 60%),
-              radial-gradient(1000px 600px at 90% 10%, rgba(16,185,129,0.16), transparent 55%),
-              linear-gradient(180deg, #0b1220 0%, #070a12 100%);
-  border-radius: 14px;
-  padding: 16px 16px 18px 16px;
-  box-shadow: 0 18px 60px rgba(0,0,0,0.35);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid #e8e0d4;
+  border-radius: 16px;
+  padding: 20px 22px 24px 22px;
+  box-shadow: 0 4px 24px rgba(80, 69, 51, 0.08);
+  overflow: visible;
 }
 
 /* Year toolbar */
 .cyv-toolbar {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
+  padding-top: 4px;
 }
 .cyv-title { display:flex; flex-direction:column; gap: 2px; }
-.cyv-title-kicker { font-size: 12px; color: rgba(148,163,184,0.95); letter-spacing: 0.08em; text-transform: uppercase; }
-.cyv-title-main { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.03em; }
-.cyv-toolbar-right { display:flex; gap: 8px; flex-wrap: wrap; }
+.cyv-title-kicker { font-size: 12px; color: #6b5d4a; letter-spacing: 0.08em; text-transform: uppercase; }
+.cyv-title-main { font-size: 20px; font-weight: 800; color: #504533; letter-spacing: -0.03em; }
+.cyv-toolbar-left,
+.cyv-toolbar-right {
+  min-width: 0;
+}
+
+.cyv-toolbar-left {
+  flex: 1 1 auto;
+  padding-right: 12px;
+}
+
+.cyv-toolbar-right {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 .cyv-btn { border-radius: 10px; padding: 7px 12px; }
 
-/* Sidebar blocks for Year view (inside existing Calendar sidebar) */
+/* Sidebar blocks for Year view (legacy essentials sidebar) */
 body:has(.calendar-yearview) .cyv-sidebar-block {
   margin: 10px 0 8px 0;
   padding: 12px 12px;
   border-radius: 12px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.10);
+  background: #ffffff;
+  border: 1px solid #e8e0d4;
 }
 body:has(.calendar-yearview) .cyv-sidebar-title {
   font-size: 12px;
   font-weight: 700;
-  color: rgba(229,231,235,0.95);
+  color: #6b5d4a;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 10px;
 }
-body:has(.calendar-yearview) .cyv-legend-row {
-  display:flex;
-  align-items:center;
-  gap: 10px;
-  padding: 8px 8px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-body:has(.calendar-yearview) .cyv-legend-row:hover {
-  background: rgba(255,255,255,0.06);
-}
-body:has(.calendar-yearview) .cyv-legend-dot {
-  width: 10px; height: 10px; border-radius: 99px;
-  box-shadow: 0 0 0 4px rgba(255,255,255,0.06);
-}
-body:has(.calendar-yearview) .cyv-legend-dot.is-event { background: #60a5fa; box-shadow: 0 0 0 4px rgba(96,165,250,0.14); }
-body:has(.calendar-yearview) .cyv-legend-dot.is-task { background: #34d399; box-shadow: 0 0 0 4px rgba(52,211,153,0.14); }
-body:has(.calendar-yearview) .cyv-legend-text { flex:1; color:#e5e7eb; font-weight: 600; }
+body:has(.calendar-yearview) .cyv-legend-text { flex:1; color:#504533; font-weight: 600; }
 body:has(.calendar-yearview) .cyv-legend-chip {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.06);
-  color: rgba(148,163,184,0.95);
+  background: #f3efe8;
+  color: #6b5d4a;
 }
 body:has(.calendar-yearview) .cyv-menu { display:flex; flex-direction:column; gap: 6px; }
 body:has(.calendar-yearview) .cyv-menu-item {
@@ -85,14 +150,14 @@ body:has(.calendar-yearview) .cyv-menu-item {
   gap: 10px;
   padding: 10px 10px;
   border-radius: 12px;
-  color: rgba(229,231,235,0.92);
+  color: #504533;
   text-decoration: none !important;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(15,23,42,0.40);
+  border: 1px solid #ebe6dc;
+  background: #faf8f5;
 }
-body:has(.calendar-yearview) .cyv-menu-item:hover { background: rgba(255,255,255,0.06); }
+body:has(.calendar-yearview) .cyv-menu-item:hover { background: #f3efe8; }
 body:has(.calendar-yearview) .cyv-menu-item.is-active {
-  background: rgba(59,130,246,0.14);
+  background: rgba(59,130,246,0.10);
   border-color: rgba(59,130,246,0.28);
   box-shadow: 0 0 0 4px rgba(59,130,246,0.08);
 }
@@ -103,47 +168,59 @@ body:has(.calendar-yearview) .cyv-menu-badge {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.06);
-  color: rgba(148,163,184,0.95);
+  background: #f3efe8;
+  color: #6b5d4a;
 }
 .calendar-yearview-wrapper .module-title {
-  color: #e5e7eb !important;
+  color: #504533 !important;
   letter-spacing: -0.02em;
 }
 .calendar-yearview-wrapper .btn.btn-default {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.10);
-  color: #e5e7eb;
+  background: #ffffff;
+  border-color: #e8e0d4;
+  color: #504533;
+  box-shadow: 0 1px 2px rgba(80, 69, 51, 0.06);
 }
 .calendar-yearview-wrapper .btn.btn-default:hover {
-  background: rgba(255,255,255,0.10);
-  border-color: rgba(255,255,255,0.14);
-  color: #fff;
+  background: #faf8f5;
+  border-color: #d4c9b8;
+  color: #3d3428;
 }
 
 /* Year composition: sidebar + main grid */
 .cyv-body {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: minmax(200px, 220px) minmax(0, 1fr);
   gap: 16px;
   align-items: start;
-  margin-top: 14px;
+  margin-top: 0;
+  min-width: 0;
 }
+
+.cyv-main {
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+  padding: 0;
+}
+
 @media (max-width: 1100px) {
   .cyv-body { grid-template-columns: 1fr; }
+  .cyv-side {
+    position: static;
+    top: auto;
+  }
 }
 .cyv-side {
   position: sticky;
   top: 70px;
 }
 .cyv-panel {
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid #e8e0d4;
+  background: #ffffff;
   border-radius: 14px;
   padding: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.20);
+  box-shadow: 0 2px 12px rgba(80, 69, 51, 0.06);
   margin-bottom: 12px;
 }
 .cyv-panel-title {
@@ -151,34 +228,34 @@ body:has(.calendar-yearview) .cyv-menu-badge {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(148,163,184,0.95);
+  color: #6b5d4a;
   margin-bottom: 10px;
 }
 .cyv-hint {
   margin-top: 10px;
   font-size: 12px;
-  color: rgba(148,163,184,0.90);
+  color: #8a7b68;
 }
 /* (Tips panel removed by BA) */
 
 /* Year toolbar dropdown */
 .cyv-dropdown-menu {
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(255,255,255,0.10);
+  background: #ffffff;
+  border: 1px solid #e8e0d4;
   border-radius: 12px;
   padding: 8px 0;
-  box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+  box-shadow: 0 12px 40px rgba(80, 69, 51, 0.12);
 }
 .cyv-dropdown-menu > li > a {
-  color: rgba(226,232,240,0.92);
+  color: #504533;
   padding: 8px 14px;
 }
 .cyv-dropdown-menu > li > a:hover {
-  background: rgba(255,255,255,0.06);
-  color: #fff;
+  background: #faf8f5;
+  color: #3d3428;
 }
 .cyv-dropdown-menu .divider {
-  background: rgba(255,255,255,0.08);
+  background: #ebe6dc;
 }
 
 /* Toggle rows */
@@ -191,33 +268,34 @@ body:has(.calendar-yearview) .cyv-menu-badge {
   cursor: pointer;
   user-select: none;
   margin-bottom: 6px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.03);
+  border: 1px solid #ebe6dc;
+  background: #faf8f5;
 }
-.cyv-toggle:hover { background: rgba(255,255,255,0.06); }
+.cyv-toggle:hover { background: #f3efe8; }
 .cyv-toggle input { display: none; }
 .cyv-toggle-ui {
   width: 36px;
   height: 20px;
   border-radius: 999px;
-  background: rgba(148,163,184,0.20);
+  background: #e8e0d4;
   position: relative;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  box-shadow: inset 0 0 0 1px rgba(80, 69, 51, 0.08);
 }
 .cyv-toggle-ui::after {
   content: "";
   width: 16px;
   height: 16px;
   border-radius: 99px;
-  background: rgba(226,232,240,0.95);
+  background: #ffffff;
   position: absolute;
   left: 2px;
   top: 2px;
   transition: transform 0.18s ease, background 0.18s ease;
+  box-shadow: 0 1px 3px rgba(80, 69, 51, 0.15);
 }
 .cyv-toggle input:checked + .cyv-toggle-ui {
-  background: rgba(34,197,94,0.22);
-  box-shadow: inset 0 0 0 1px rgba(34,197,94,0.35);
+  background: rgba(52, 211, 153, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.35);
 }
 .cyv-toggle input:checked + .cyv-toggle-ui::after {
   transform: translateX(16px);
@@ -225,16 +303,16 @@ body:has(.calendar-yearview) .cyv-menu-badge {
 }
 .cyv-toggle-text {
   flex: 1;
-  color: rgba(226,232,240,0.94);
+  color: #504533;
   font-weight: 600;
   display: inline-flex;
   gap: 10px;
   align-items: center;
 }
 .cyv-badge {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.10);
-  color: rgba(226,232,240,0.92);
+  background: #f3efe8;
+  border: 1px solid #e8e0d4;
+  color: #6b5d4a;
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 12px;
@@ -245,14 +323,14 @@ body:has(.calendar-yearview) .cyv-menu-badge {
   align-items: center;
   padding: 8px 8px;
   border-radius: 12px;
-  color: rgba(226,232,240,0.92);
+  color: #504533;
 }
-.cyv-legend-row:hover { background: rgba(255,255,255,0.06); }
+.cyv-legend-row:hover { background: #faf8f5; }
 .cyv-swatch {
   width: 10px;
   height: 10px;
   border-radius: 99px;
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.06);
+  box-shadow: 0 0 0 3px rgba(80, 69, 51, 0.08);
 }
 .cyv-swatch.is-event { background: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.14); }
 .cyv-swatch.is-task { background: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,0.14); }
@@ -265,46 +343,59 @@ body:has(.calendar-yearview) .cyv-menu-badge {
 }
 .calendar-yearview-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
+
+@media (min-width: 1680px) {
+  .calendar-yearview-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 1200px) {
-  .calendar-yearview-grid { grid-template-columns: repeat(3, minmax(220px, 1fr)); }
+  .calendar-yearview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
-@media (max-width: 992px) {
-  .calendar-yearview-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
-}
+
 @media (max-width: 620px) {
-  .calendar-yearview-grid { grid-template-columns: 1fr; }
+  .calendar-yearview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .calendar-yearview-month {
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.20);
+  border-radius: 12px;
+  overflow: visible;
+  border: 1px solid #ebe6dc;
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(80, 69, 51, 0.06);
 }
+
 .calendar-yearview-month .calendar-yearview-month-head {
-  padding: 8px 10px;
-  background: rgba(255,255,255,0.06);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 14px 16px 12px;
+  background: #faf8f5;
+  border-bottom: 1px solid #ebe6dc;
   font-weight: 600;
-  color: #e5e7eb;
+  color: #504533;
+  border-radius: 12px 12px 0 0;
 }
 .calendar-yearview-month .cyv-month-title {
   display: inline-block;
   font-size: 13px;
   font-weight: 800;
-  color: #fff;
+  color: #504533;
   letter-spacing: -0.02em;
 }
 .calendar-yearview-month .cyv-month-sub {
   display: inline-block;
   margin-left: 8px;
   font-size: 11px;
-  color: rgba(148,163,184,0.95);
+  color: #8a7b68;
 }
 .calendar-yearview-month table {
   width: 100%;
@@ -328,31 +419,36 @@ body:has(.calendar-yearview) .cyv-menu-badge {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0;
-  padding: 8px 10px 0 10px;
+  padding: 12px 14px 0 14px;
 }
+
 .calendar-yearview-weekdays > div {
   text-align: center;
   font-size: 10px;
   font-weight: 600;
-  color: rgba(148,163,184,0.85);
-  padding: 2px 0 6px 0;
+  color: #8a7b68;
+  padding: 2px 0 10px 0;
 }
+
 .calendar-yearview-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0;
-  padding: 0 10px 10px 10px;
+  gap: 3px 0;
+  padding: 0 14px 18px 14px;
 }
+
 .calendar-yearview-day {
   position: relative;
-  height: 22px;
+  height: 30px;
+  min-height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   user-select: none;
-  color: #cbd5e1;
+  color: #504533;
+  margin: 1px 0;
 }
 .calendar-yearview-day.is-blank {
   cursor: default;
@@ -373,19 +469,19 @@ body:has(.calendar-yearview) .cyv-menu-badge {
   font-size: 9px;
   line-height: 12px;
   text-align: center;
-  background: rgba(59, 130, 246, 0.16);
-  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.14);
+  color: #2563eb;
   display: none;
 }
 .calendar-yearview-day.has-events .m {
   display: inline-block;
 }
 .calendar-yearview-day:hover:not(.is-blank) {
-  background: rgba(255,255,255,0.06);
+  background: #f3efe8;
 }
 .calendar-yearview-day.has-events:not(.is-blank) {
   background: rgba(59, 130, 246, 0.10);
-  box-shadow: inset 0 0 0 1px rgba(59,130,246,0.25), 0 0 0 4px rgba(59,130,246,0.06);
+  box-shadow: inset 0 0 0 1px rgba(59,130,246,0.22), 0 0 0 3px rgba(59,130,246,0.06);
 }
 
 /* Dot cluster */
@@ -412,32 +508,431 @@ body.cyv-filter-tasks .calendar-yearview-day .dots .dot.is-event { display: none
 body.cyv-filter-events .calendar-yearview-day.has-events[data-ev="0"] { opacity: 0.35; }
 body.cyv-filter-tasks .calendar-yearview-day.has-events[data-tk="0"] { opacity: 0.35; }
 
-/* Premium day modal */
-.cyv-modal { color: #e5e7eb; }
-.cyv-modal-head { padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 10px; }
-.cyv-modal-title { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
-.cyv-modal-sub { margin-top: 4px; font-size: 12px; color: rgba(148,163,184,0.95); }
-.cyv-empty { padding: 14px 0; color: rgba(148,163,184,0.95); }
-.cyv-list { list-style: none; padding: 0; margin: 0; }
-.cyv-item { display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-radius: 10px; }
-.cyv-item:hover { background: rgba(255,255,255,0.06); }
-.cyv-dot { width: 8px; height: 8px; border-radius: 99px; box-shadow: 0 0 0 3px rgba(255,255,255,0.06); }
-.cyv-dot.is-event { background: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.14); }
-.cyv-dot.is-task { background: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,0.14); }
-.cyv-ico { opacity: 0.85; }
-.cyv-link { color: #e5e7eb; flex: 1; text-decoration: none !important; }
-.cyv-link:hover { color: #ffffff; }
-.cyv-badge { font-size: 11px; padding: 3px 8px; border-radius: 999px; }
-.cyv-badge.is-event { background: rgba(96,165,250,0.14); color: #93c5fd; }
-.cyv-badge.is-task { background: rgba(52,211,153,0.14); color: #6ee7b7; }
-.cyv-actions { padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 10px; display: flex; justify-content: flex-end; }
-.cyv-actions .btn { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.10); color: #e5e7eb; }
-.cyv-actions .btn:hover { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.14); }
+/* ---- Year view: day task panel (replaces legacy bootstrap modal) ---- */
+.cyv-day-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.cyv-day-panel.is-open {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+}
+
+.cyv-day-panel__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(80, 69, 51, 0.28);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.cyv-day-panel__sheet {
+  position: relative;
+  z-index: 1;
+  width: min(440px, 100%);
+  max-height: min(78vh, 640px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  border: 1px solid #e8e0d4;
+  background: #ffffff;
+  box-shadow: 0 24px 64px rgba(80, 69, 51, 0.18);
+  transform: translateY(12px) scale(0.98);
+  transition: transform 0.22s ease;
+  overflow: hidden;
+}
+
+.cyv-day-panel.is-open .cyv-day-panel__sheet {
+  transform: translateY(0) scale(1);
+}
+
+.cyv-day-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid #ebe6dc;
+  background: #faf8f5;
+}
+
+.cyv-day-panel__kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a7b68;
+  margin-bottom: 4px;
+}
+
+.cyv-day-panel__title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #504533;
+  line-height: 1.25;
+}
+
+.cyv-day-panel__meta {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #6b5d4a;
+  line-height: 1.4;
+}
+
+.cyv-day-panel__close {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e8e0d4;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #6b5d4a;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.cyv-day-panel__close:hover {
+  background: #f3efe8;
+  border-color: #d4c9b8;
+  color: #504533;
+}
+
+.cyv-day-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 14px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cyv-day-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cyv-day-panel__card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid #ebe6dc;
+  background: #faf8f5;
+  text-decoration: none !important;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.cyv-day-panel__card:hover {
+  background: #f3efe8;
+  border-color: #d4c9b8;
+  transform: translateY(-1px);
+}
+
+.cyv-day-panel__card.is-event {
+  border-left: 3px solid #60a5fa;
+}
+
+.cyv-day-panel__card.is-task {
+  border-left: 3px solid #34d399;
+}
+
+.cyv-day-panel__card-ic {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.cyv-day-panel__card.is-event .cyv-day-panel__card-ic {
+  background: rgba(59, 130, 246, 0.14);
+  color: #2563eb;
+}
+
+.cyv-day-panel__card.is-task .cyv-day-panel__card-ic {
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
+}
+
+.cyv-day-panel__card-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cyv-day-panel__card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #504533;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.cyv-day-panel__card-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b5d4a;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.cyv-day-panel__tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.cyv-day-panel__tag.is-event {
+  background: rgba(59, 130, 246, 0.14);
+  color: #2563eb;
+}
+
+.cyv-day-panel__tag.is-task {
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
+}
+
+.cyv-day-panel__empty {
+  text-align: center;
+  padding: 28px 16px;
+  color: #8a7b68;
+}
+
+.cyv-day-panel__empty-ic {
+  font-size: 28px;
+  opacity: 0.5;
+  margin-bottom: 10px;
+}
+
+.cyv-day-panel__footer {
+  padding: 14px 18px 18px;
+  border-top: 1px solid #ebe6dc;
+  background: #faf8f5;
+  display: flex;
+  justify-content: stretch;
+}
+
+.cyv-day-panel__open-cal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px !important;
+  border: 1px solid rgba(253, 187, 44, 0.55) !important;
+  background: rgba(253, 187, 44, 0.14) !important;
+  color: #92400e !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  text-decoration: none !important;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.cyv-day-panel__open-cal:hover {
+  background: rgba(253, 187, 44, 0.24) !important;
+  border-color: rgba(253, 187, 44, 0.75) !important;
+  color: #78350f !important;
+}
+
+body.cyv-day-panel-open {
+  overflow: hidden;
+}
 .calendar-yearview-daylist {
   margin: 0;
   padding-left: 18px;
 }
 .calendar-yearview-daylist li {
   margin: 6px 0;
+}
+
+/* ==========================================================================
+   Year view — dark mode (html[data-theme="dark"])
+   ========================================================================== */
+html[data-theme="dark"] .calendar-yearview-wrapper {
+  background: radial-gradient(1200px 600px at 20% 0%, rgba(59,130,246,0.22), transparent 60%),
+              radial-gradient(1000px 600px at 90% 10%, rgba(16,185,129,0.16), transparent 55%),
+              linear-gradient(180deg, #0b1220 0%, #070a12 100%);
+  border-color: rgba(255,255,255,0.10);
+  box-shadow: 0 18px 60px rgba(0,0,0,0.35);
+}
+
+html[data-theme="dark"] .cyv-title-kicker { color: rgba(148,163,184,0.95); }
+html[data-theme="dark"] .cyv-title-main { color: #fff; }
+
+html[data-theme="dark"] .calendar-yearview-wrapper .module-title { color: #e5e7eb !important; }
+html[data-theme="dark"] .calendar-yearview-wrapper .btn.btn-default {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+  color: #e5e7eb;
+  box-shadow: none;
+}
+html[data-theme="dark"] .calendar-yearview-wrapper .btn.btn-default:hover {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.14);
+  color: #fff;
+}
+
+html[data-theme="dark"] .cyv-panel {
+  border-color: rgba(255,255,255,0.10);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.20);
+}
+html[data-theme="dark"] .cyv-panel-title,
+html[data-theme="dark"] .cyv-hint { color: rgba(148,163,184,0.95); }
+
+html[data-theme="dark"] .cyv-dropdown-menu {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255,255,255,0.10);
+  box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+}
+html[data-theme="dark"] .cyv-dropdown-menu > li > a { color: rgba(226,232,240,0.92); }
+html[data-theme="dark"] .cyv-dropdown-menu > li > a:hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+html[data-theme="dark"] .cyv-dropdown-menu .divider { background: rgba(255,255,255,0.08); }
+
+html[data-theme="dark"] .cyv-toggle {
+  border-color: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+}
+html[data-theme="dark"] .cyv-toggle:hover { background: rgba(255,255,255,0.06); }
+html[data-theme="dark"] .cyv-toggle-ui {
+  background: rgba(148,163,184,0.20);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+html[data-theme="dark"] .cyv-toggle-text { color: rgba(226,232,240,0.94); }
+html[data-theme="dark"] .cyv-badge {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+  color: rgba(226,232,240,0.92);
+}
+html[data-theme="dark"] .cyv-legend-row { color: rgba(226,232,240,0.92); }
+html[data-theme="dark"] .cyv-legend-row:hover { background: rgba(255,255,255,0.06); }
+html[data-theme="dark"] .cyv-swatch { box-shadow: 0 0 0 3px rgba(255,255,255,0.06); }
+
+html[data-theme="dark"] .calendar-yearview-month {
+  border-color: rgba(255,255,255,0.10);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.20);
+}
+html[data-theme="dark"] .calendar-yearview-month .calendar-yearview-month-head {
+  background: rgba(255,255,255,0.06);
+  border-bottom-color: rgba(255,255,255,0.08);
+  color: #e5e7eb;
+}
+html[data-theme="dark"] .calendar-yearview-month .cyv-month-title { color: #fff; }
+html[data-theme="dark"] .calendar-yearview-month .cyv-month-sub { color: rgba(148,163,184,0.95); }
+html[data-theme="dark"] .calendar-yearview-weekdays > div { color: rgba(148,163,184,0.85); }
+html[data-theme="dark"] .calendar-yearview-day { color: #e2e8f0; }
+html[data-theme="dark"] .calendar-yearview-day:hover:not(.is-blank) { background: rgba(255,255,255,0.06); }
+html[data-theme="dark"] .calendar-yearview-day .m { background: rgba(59,130,246,0.16); color: #93c5fd; }
+
+html[data-theme="dark"] body:has(.calendar-yearview) .cyv-sidebar-block {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+}
+html[data-theme="dark"] body:has(.calendar-yearview) .cyv-sidebar-title { color: rgba(229,231,235,0.95); }
+html[data-theme="dark"] body:has(.calendar-yearview) .cyv-legend-text { color: #e5e7eb; }
+html[data-theme="dark"] body:has(.calendar-yearview) .cyv-legend-chip,
+html[data-theme="dark"] body:has(.calendar-yearview) .cyv-menu-badge {
+  background: rgba(255,255,255,0.06);
+  color: rgba(148,163,184,0.95);
+}
+html[data-theme="dark"] body:has(.calendar-yearview) .cyv-menu-item {
+  color: rgba(229,231,235,0.92);
+  border-color: rgba(255,255,255,0.08);
+  background: rgba(15,23,42,0.40);
+}
+html[data-theme="dark"] body:has(.calendar-yearview) .cyv-menu-item:hover { background: rgba(255,255,255,0.06); }
+
+html[data-theme="dark"] .cyv-day-panel__backdrop { background: rgba(2, 6, 14, 0.72); }
+html[data-theme="dark"] .cyv-day-panel__sheet {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(165deg, rgba(22, 32, 52, 0.98) 0%, rgba(11, 18, 32, 0.98) 100%);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+html[data-theme="dark"] .cyv-day-panel__header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+html[data-theme="dark"] .cyv-day-panel__kicker { color: rgba(148, 163, 184, 0.95); }
+html[data-theme="dark"] .cyv-day-panel__title { color: #f8fafc; }
+html[data-theme="dark"] .cyv-day-panel__meta { color: rgba(148, 163, 184, 0.95); }
+html[data-theme="dark"] .cyv-day-panel__close {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+}
+html[data-theme="dark"] .cyv-day-panel__close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+html[data-theme="dark"] .cyv-day-panel__card {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+html[data-theme="dark"] .cyv-day-panel__card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+html[data-theme="dark"] .cyv-day-panel__card.is-event .cyv-day-panel__card-ic {
+  background: rgba(96, 165, 250, 0.16);
+  color: #93c5fd;
+}
+html[data-theme="dark"] .cyv-day-panel__card.is-task .cyv-day-panel__card-ic {
+  background: rgba(52, 211, 153, 0.16);
+  color: #6ee7b7;
+}
+html[data-theme="dark"] .cyv-day-panel__card-title { color: #f1f5f9; }
+html[data-theme="dark"] .cyv-day-panel__card-meta { color: rgba(148, 163, 184, 0.95); }
+html[data-theme="dark"] .cyv-day-panel__tag.is-event { background: rgba(96, 165, 250, 0.18); color: #93c5fd; }
+html[data-theme="dark"] .cyv-day-panel__tag.is-task { background: rgba(52, 211, 153, 0.18); color: #6ee7b7; }
+html[data-theme="dark"] .cyv-day-panel__empty { color: rgba(148, 163, 184, 0.95); }
+html[data-theme="dark"] .cyv-day-panel__footer {
+  border-top-color: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.12);
+}
+html[data-theme="dark"] .cyv-day-panel__open-cal {
+  border-color: rgba(253, 187, 44, 0.45) !important;
+  background: rgba(253, 187, 44, 0.16) !important;
+  color: #fde68a !important;
+}
+html[data-theme="dark"] .cyv-day-panel__open-cal:hover {
+  background: rgba(253, 187, 44, 0.28) !important;
+  border-color: rgba(253, 187, 44, 0.65) !important;
+  color: #fff !important;
 }
 

@@ -65,12 +65,12 @@ class Plans extends CRMEntity {
 
 	var $required_fields = array('planname', 'assigned_user_id');
 	var $mandatory_fields = array('planname', 'assigned_user_id', 'createdtime', 'modifiedtime');
-
-	function __construct() {
+    
+    function __construct() {
 		$this->column_fields = getColumnFields(get_class($this));
 		$this->db = PearDatabase::getInstance();
-		global $log;
-		$this->log = $log;
+        global $log;
+        $this->log = $log;
 	}
 
 	/**

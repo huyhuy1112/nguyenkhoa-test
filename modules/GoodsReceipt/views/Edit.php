@@ -53,6 +53,7 @@ class GoodsReceipt_Edit_View extends Vtiger_Index_View {
 
 	public function process(Vtiger_Request $request) {
 		require_once 'modules/GoodsReceipt/helpers/WorkflowSetup.php';
+		require_once 'modules/Warehouse/helpers/StockHelper.php';
 		GoodsReceipt_WorkflowSetup_Helper::runAll();
 
 		$db = PearDatabase::getInstance();
@@ -75,14 +76,14 @@ class GoodsReceipt_Edit_View extends Vtiger_Index_View {
 		if ($recordId > 0) {
 			$rs = $db->pquery("SELECT * FROM vtiger_goodsreceipt WHERE receiptid = ? AND deleted = 0", array($recordId));
 			if ($db->num_rows($rs) > 0) {
-				$record = $db->fetchByAssoc($rs);
+				$record = $this->normalizeRecordForEdit($db->fetchByAssoc($rs));
 			}
 			$ri = $db->pquery("SELECT * FROM vtiger_goodsreceipt_items WHERE receiptid = ? ORDER BY itemid ASC", array($recordId));
 			while ($row = $db->fetchByAssoc($ri)) {
 				if (!isset($row['product_type']) || $row['product_type'] === '') {
 					$row['product_type'] = 'Other';
 				}
-				$items[] = $row;
+				$items[] = $this->normalizeItemForEdit($row);
 			}
 			$ra = $db->pquery(
 				"SELECT attachmentid, filename, filetype, filesize, createdtime
@@ -115,5 +116,40 @@ class GoodsReceipt_Edit_View extends Vtiger_Index_View {
 		$viewer->assign('ITEMS', $items);
 		$viewer->assign('ATTACHMENTS', $attachments);
 		$viewer->view('EditView.tpl', $request->getModule());
+	}
+
+	/**
+	 * Decode HTML entities from DB (e.g. Sữa b&ograve; → Sữa bò) for edit form inputs.
+	 */
+	protected function decodeEditText($value) {
+		$value = Warehouse_Stock_Helper::decodeDisplayText($value);
+		// Some rows were saved double-encoded (&amp;ograve;).
+		if (strpos($value, '&') !== false) {
+			$again = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+			if ($again !== $value) {
+				$value = $again;
+			}
+		}
+		return $value;
+	}
+
+	protected function normalizeRecordForEdit(array $record) {
+		$textFields = array('subject', 'source_name', 'storage_location', 'note', 'code');
+		foreach ($textFields as $field) {
+			if (isset($record[$field])) {
+				$record[$field] = $this->decodeEditText($record[$field]);
+			}
+		}
+		return $record;
+	}
+
+	protected function normalizeItemForEdit(array $row) {
+		$textFields = array('product_name', 'serial_number', 'description', 'line_note');
+		foreach ($textFields as $field) {
+			if (isset($row[$field])) {
+				$row[$field] = $this->decodeEditText($row[$field]);
+			}
+		}
+		return $row;
 	}
 }

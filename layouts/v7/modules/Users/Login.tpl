@@ -617,27 +617,27 @@
 							</div>
 						</div>
 					</form>
-				</div>
 			</div>
+		</div>
 
 			{* Grid column 2: info slider (moved from absolute top-level for responsive layout) *}
 			<div class="bace-info-slider" aria-label="B-ACE info slider">
 				<div class="bace-slide active">
 					<h3>TDB Solution</h3>
 					<p>TDB Solution sáng tạo và đổi mới, chúng tôi mang đến khách hàng sự hài lòng nhờ đồng hành và cung cấp dịch vụ chất lượng cao.</p>
-				</div>
+		</div>
 				<div class="bace-slide">
 					<h3>Tận tâm</h3>
 					<p>Luôn đặt trải nghiệm và sự hài lòng của khách hàng lên hàng đầu.</p>
-				</div>
+												</div>
 				<div class="bace-slide">
 					<h3>Tiên phong</h3>
 					<p>Đổi mới liên tục, chuẩn hóa quy trình, nâng hiệu suất vận hành.</p>
-				</div>
+													</div>
 				<div class="bace-slide">
 					<h3>Đồng hành</h3>
 					<p>Phát triển bền vững cùng doanh nghiệp bằng giải pháp thực tế.</p>
-				</div>
+													</div>
 				<div class="bace-info-dots" aria-hidden="true">
 					<span class="bace-info-dot is-active"></span>
 					<span class="bace-info-dot"></span>

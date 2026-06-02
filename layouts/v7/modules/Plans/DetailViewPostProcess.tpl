@@ -9,6 +9,7 @@
 		</main>
 	</div>
 </div>
+{include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}
 {else}
 {include file="DetailViewPostProcess.tpl"|@vtemplate_path:'Vtiger'}
 {/if}

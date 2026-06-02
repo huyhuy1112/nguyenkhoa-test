@@ -118,6 +118,31 @@ class Reports_Module_Model extends Vtiger_Module_Model {
 	}
 
 	/**
+	 * MANAGEMENT app: open Reports overview (Management view), not legacy vtiger List.
+	 */
+	protected function isManagementAppContext() {
+		$app = '';
+		if (!empty($_REQUEST['app'])) {
+			$app = (string) $_REQUEST['app'];
+		}
+		return strtoupper($app) === 'MANAGEMENT';
+	}
+
+	public function getDefaultUrl() {
+		if ($this->isManagementAppContext()) {
+			return 'index.php?module=Reports&view=Management';
+		}
+		return parent::getDefaultUrl();
+	}
+
+	public function getListViewUrl() {
+		if ($this->isManagementAppContext()) {
+			return 'index.php?module=Reports&view=Management';
+		}
+		return parent::getListViewUrl();
+	}
+
+	/**
 	 * Function to get the url for add folder from list view of the module
 	 * @return <string> - url
 	 */

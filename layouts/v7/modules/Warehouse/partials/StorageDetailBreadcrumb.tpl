@@ -10,7 +10,7 @@
 		</li>
 		<li class="mk-wh-detail-breadcrumb__sep" aria-hidden="true">&gt;</li>
 		<li class="mk-wh-detail-breadcrumb__item mk-wh-detail-breadcrumb__item--current">
-			<span class="mk-wh-detail-breadcrumb__text textOverflowEllipsis" title="{$STOCK.product_name_display|escape:'html'}">{$STOCK.product_name_display|escape:'html'}</span>
+			<span class="mk-wh-detail-breadcrumb__text textOverflowEllipsis" title="{decode_html($STOCK.product_name_display)|escape:'html'}">{decode_html($STOCK.product_name_display)|escape:'html'}</span>
 		</li>
 	</ol>
 </nav>

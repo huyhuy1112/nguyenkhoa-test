@@ -15,7 +15,27 @@ class Reports_List_View extends Vtiger_Index_View {
 	protected $listViewCount   = false;
 	protected $listviewinitcalled = false;
 
+	/**
+	 * MANAGEMENT app uses custom Reports overview (view=Management), not vtiger List + spec doc.
+	 */
+	protected function redirectManagementAppToOverview(Vtiger_Request $request) {
+		if (strtoupper((string) $request->get('app')) !== 'MANAGEMENT') {
+			return;
+		}
+		if ($request->get('legacy') === '1') {
+			return;
+		}
+		$query = array(
+			'module' => 'Reports',
+			'view' => 'Management',
+			'app' => 'MANAGEMENT',
+		);
+		header('Location: index.php?' . http_build_query($query));
+		exit;
+	}
+
 	function preProcess(Vtiger_Request $request, $display=true) {
+		$this->redirectManagementAppToOverview($request);
 		parent::preProcess($request, false);
 
 		$viewer = $this->getViewer ($request);
@@ -42,6 +62,7 @@ class Reports_List_View extends Vtiger_Index_View {
 		return 'ListViewPreProcess.tpl';
 	}
 	function process(Vtiger_Request $request) {
+		$this->redirectManagementAppToOverview($request);
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
 

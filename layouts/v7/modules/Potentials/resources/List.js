@@ -35,7 +35,9 @@
 			}
 			var token = normalizeToken(text);
 			var klass = 'mk-cat-default';
-			if (token.indexOf('project') === 0) {
+			if (token.indexOf('internal') > -1) {
+				klass = 'mk-cat-internal';
+			} else if (token.indexOf('project') === 0) {
 				klass = 'mk-cat-project';
 			} else if (token.indexOf('service') === 0) {
 				klass = 'mk-cat-service';
@@ -58,14 +60,26 @@
 			}
 			var token = normalizeToken(text);
 			var stageClass = 'mk-stage-qualification';
-			if (token.indexOf('proposal') > -1) {
+			if (token.indexOf('prospect') > -1) {
+				stageClass = 'mk-stage-prospecting';
+			} else if (token.indexOf('needs') > -1 || token.indexOf('analysis') > -1) {
+				stageClass = 'mk-stage-needsanalysis';
+			} else if (token.indexOf('qualif') > -1) {
+				stageClass = 'mk-stage-qualification';
+			} else if (token.indexOf('proposal') > -1 || token.indexOf('quote') > -1) {
 				stageClass = 'mk-stage-proposal';
 			} else if (token.indexOf('negotiation') > -1) {
 				stageClass = 'mk-stage-negotiation';
-			} else if (token.indexOf('closedwon') > -1) {
+			} else if (token.indexOf('closedwon') > -1 || token.indexOf('won') > -1) {
 				stageClass = 'mk-stage-closedwon';
-			} else if (token.indexOf('closedlost') > -1) {
+			} else if (token.indexOf('closedlost') > -1 || token.indexOf('lost') > -1) {
 				stageClass = 'mk-stage-closedlost';
+			} else if (token.indexOf('value') > -1 || token.indexOf('proposition') > -1) {
+				stageClass = 'mk-stage-valueprop';
+			} else if (token.indexOf('decision') > -1 || token.indexOf('maker') > -1) {
+				stageClass = 'mk-stage-decision';
+			} else if (token.indexOf('perception') > -1) {
+				stageClass = 'mk-stage-perception';
 			}
 			$value.empty().append(
 				$('<span>', { class: 'mk-stage ' + stageClass }).append(
