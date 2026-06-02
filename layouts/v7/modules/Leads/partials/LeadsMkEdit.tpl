@@ -1,23 +1,36 @@
-{* Create Lead — Tag-Driven CRM (UI only, no save). *}
+{* Create / Edit Lead — Tag-Driven CRM (UI only, no save). *}
 {strip}
 {assign var=MK_LIST_URL value='index.php?module=Leads&view=List&app=SALES'}
-<div class="mk-td-create" id="mk-td-create">
+{assign var=MK_IS_EDIT value=!empty($MK_LEADS_EDIT_MODE) && !empty($MK_LEAD_RECORD_ID)}
+{assign var=MK_DETAIL_URL value='index.php?module=Leads&view=Detail&record='|cat:$MK_LEAD_RECORD_ID|cat:'&app=SALES'}
+{if $MK_IS_EDIT}
+	{assign var=MK_CANCEL_URL value=$MK_DETAIL_URL}
+{else}
+	{assign var=MK_CANCEL_URL value=$MK_LIST_URL}
+{/if}
+<div class="mk-td-create" id="mk-td-create" data-record-id="{$MK_LEAD_RECORD_ID|escape:'html'}"{if $MK_IS_EDIT} data-mode="edit"{/if}>
 	<header class="mk-td-create__head">
 		<nav class="mk-td-create__crumb" aria-label="Breadcrumb">
 			<a href="{$MK_LIST_URL}">Leads</a>
 			<span class="mk-td-create__crumb-sep">/</span>
-			<span>New</span>
+			{if $MK_IS_EDIT}
+				<a href="{$MK_DETAIL_URL}" id="mk-td-crumb-record">{$MK_LEAD_RECORD_ID|escape}</a>
+				<span class="mk-td-create__crumb-sep">/</span>
+				<span>Edit</span>
+			{else}
+				<span>New</span>
+			{/if}
 		</nav>
 		<div class="mk-td-create__head-row">
 			<div>
-				<h1 class="mk-td-create__title">Create Lead</h1>
-				<p class="mk-td-create__subtitle">Mỗi lựa chọn sẽ tự động gắn tag để hệ thống chạy đúng workflow, journey &amp; script bán hàng.</p>
+				<h1 class="mk-td-create__title">{if $MK_IS_EDIT}Edit Lead{else}Create Lead{/if}</h1>
+				<p class="mk-td-create__subtitle">{if $MK_IS_EDIT}Form trống — Backend gắn dữ liệu record <code>{$MK_LEAD_RECORD_ID|escape}</code> vào các field.{else}Mỗi lựa chọn sẽ tự động gắn tag để hệ thống chạy đúng workflow, journey &amp; script bán hàng.{/if}</p>
 			</div>
 			<div class="mk-td-create__head-actions">
-				<a class="mk-td-btn mk-td-btn--ghost" href="{$MK_LIST_URL}">Cancel</a>
+				<a class="mk-td-btn mk-td-btn--ghost" href="{$MK_CANCEL_URL}">Cancel</a>
 				<button type="button" class="mk-td-btn mk-td-btn--dark" id="mk-td-save-top">
 					<span class="mk-td-btn__ic" aria-hidden="true">💾</span>
-					Save Lead
+					{if $MK_IS_EDIT}Save Changes{else}Save Lead{/if}
 				</button>
 			</div>
 		</div>
@@ -258,7 +271,7 @@
 				<p class="mk-td-tags-panel__trigger" id="mk-td-tags-trigger">WORKFLOW TRIGGER: 1 tag(s) → khớp script &amp; automation tương ứng.</p>
 				<button type="button" class="mk-td-btn mk-td-btn--dark mk-td-btn--block" id="mk-td-save-aside">
 					<span class="mk-td-btn__ic" aria-hidden="true">💾</span>
-					Save Lead &amp; Apply Tags
+					{if $MK_IS_EDIT}Save Changes{else}Save Lead &amp; Apply Tags{/if}
 				</button>
 			</div>
 		</aside>

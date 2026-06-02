@@ -16,6 +16,124 @@ Class Calendar_Edit_View extends Vtiger_Edit_View {
 		$this->exposeMethod('Calendar');
 	}
 
+	/**
+	 * Events + Calendar Task full-page create/edit — MANAGEMENT dashboard shell.
+	 */
+	protected function isMkModernActivityForm(Vtiger_Request $request) {
+		if ($request->get('displayMode') === 'overlay') {
+			return false;
+		}
+		$app = strtoupper((string) $request->get('app'));
+		if ($app !== 'MANAGEMENT' && $app !== '') {
+			return false;
+		}
+		$mode = $request->get('mode');
+		$module = $request->getModule();
+		$recordId = $request->get('record');
+
+		if ($mode === 'Events' || $module === 'Events') {
+			return true;
+		}
+		if (!empty($recordId) && getSalesEntityType($recordId) === 'Events') {
+			return true;
+		}
+		if ($module === 'Calendar') {
+			if (!empty($recordId) && getSalesEntityType($recordId) === 'Events') {
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	protected function isMkModernEventForm(Vtiger_Request $request) {
+		return $this->isMkModernActivityForm($request);
+	}
+
+	protected function ensureManagementApp(Vtiger_Request $request) {
+		if (empty($request->get('app'))) {
+			$request->set('app', 'MANAGEMENT');
+			$_REQUEST['app'] = 'MANAGEMENT';
+		}
+	}
+
+	protected function assignModernActivityContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$moduleName = $request->getModule();
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'MANAGEMENT');
+		$viewer->assign('SELECTED_MENU_CATEGORY_LABEL', vtranslate('LBL_MANAGEMENT', 'Vtiger'));
+		$menuGroupedByParent = Settings_MenuEditor_Module_Model::getAllVisibleModules();
+		if (isset($menuGroupedByParent['MANAGEMENT'])) {
+			$viewer->assign('SELECTED_CATEGORY_MENU_LIST', $menuGroupedByParent['MANAGEMENT']);
+		}
+		$viewer->assign('VIEW', 'Edit');
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'Calendar');
+		$viewer->assign('MK_MODERN_ACTIVITY_CREATE', true);
+		$viewer->assign('MK_MODERN_EVENT_CREATE', true);
+		$viewer->assign('MK_CALENDAR_URL', 'index.php?module=Calendar&view=Calendar&app=MANAGEMENT');
+		$viewer->assign('MK_ACTIVITY_MODULE', $moduleName === 'Events' ? 'Events' : 'Calendar');
+	}
+
+	protected function assignModernEventContext(Vtiger_Request $request) {
+		$this->assignModernActivityContext($request);
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		if ($this->isMkModernActivityForm($request)) {
+			$this->ensureManagementApp($request);
+			parent::preProcess($request, false);
+			$this->assignModernActivityContext($request);
+			if ($display) {
+				$this->preProcessDisplay($request);
+			}
+			return;
+		}
+		parent::preProcess($request, $display);
+	}
+
+	public function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isMkModernActivityForm($request)) {
+			return 'EditViewPreProcess.tpl';
+		}
+		return parent::preProcessTplName($request);
+	}
+
+	public function postProcess(Vtiger_Request $request) {
+		if ($this->isMkModernActivityForm($request)) {
+			$viewer = $this->getViewer($request);
+			$module = $request->getModule();
+			$viewer->view('EditViewPostProcess.tpl', $module === 'Events' ? 'Events' : 'Calendar');
+			Vtiger_Basic_View::postProcess($request);
+			return;
+		}
+		parent::postProcess($request);
+	}
+
+	public function getHeaderCss(Vtiger_Request $request) {
+		$headerCssInstances = parent::getHeaderCss($request);
+		if ($this->isMkModernActivityForm($request)) {
+			$cssFileNames = array(
+				'~layouts/v7/modules/Calendar/resources/EventMkEdit.css',
+			);
+			$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
+			return array_merge($headerCssInstances, $cssInstances);
+		}
+		return $headerCssInstances;
+	}
+
+	public function getHeaderScripts(Vtiger_Request $request) {
+		$headerScriptInstances = parent::getHeaderScripts($request);
+		if ($this->isMkModernActivityForm($request)) {
+			$jsFileNames = array(
+				'layouts.v7.modules.Calendar.resources.Edit',
+				'layouts.v7.modules.Calendar.resources.EventMkEdit',
+			);
+			$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+			return array_merge($headerScriptInstances, $jsScriptInstances);
+		}
+		return $headerScriptInstances;
+	}
+
 	public function checkPermission(Vtiger_Request $request) {
 		parent::checkPermission($request);
 		$moduleName = $request->getModule();
@@ -47,6 +165,11 @@ Class Calendar_Edit_View extends Vtiger_Edit_View {
 	}
 
 	function Events($request, $moduleName) {
+		if ($this->isMkModernActivityForm($request)) {
+			$this->ensureManagementApp($request);
+			$this->assignModernActivityContext($request);
+		}
+
 		$currentUser = Users_Record_Model::getCurrentUserModel();
 
 		$viewer = $this->getViewer ($request);
@@ -63,6 +186,7 @@ Class Calendar_Edit_View extends Vtiger_Edit_View {
 		} else {
 			$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
 			$viewer->assign('MODE', '');
+			$viewer->assign('RECORD_ID', '');
 		}
 		$eventModule = Vtiger_Module_Model::getInstance($moduleName);
 		$recordModel->setModuleFromInstance($eventModule);
@@ -212,6 +336,10 @@ Class Calendar_Edit_View extends Vtiger_Edit_View {
 	}
 
 	function Calendar($request, $moduleName) {
+		if ($this->isMkModernActivityForm($request)) {
+			$this->ensureManagementApp($request);
+			$this->assignModernActivityContext($request);
+		}
 		parent::process($request);
 	}
 }

@@ -1,0 +1,389 @@
+/**
+ * Calendar Task + Events — full-page create/edit (MANAGEMENT dashboard shell).
+ */
+
+html.mk-event-create-ready,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"][data-module="Events"],
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"][data-module="Calendar"] {
+	overflow-x: hidden;
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+	--mk-event-surface: #f7f9fb;
+	--mk-event-card: #ffffff;
+	--mk-event-border: #e2e8f0;
+	--mk-event-text: #0f172a;
+	--mk-event-muted: #64748b;
+	--mk-event-accent: #fdbb2c;
+}
+
+html:not([data-theme="dark"]).mk-event-create-ready,
+html:not([data-theme="dark"]).mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"][data-module="Events"],
+html:not([data-theme="dark"]).mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"][data-module="Calendar"] {
+	background: var(--mk-event-surface) !important;
+}
+
+/* Hide legacy vtiger chrome */
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .navbar.navbar-inverse.navbar-fixed-top,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .app-nav,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] #modnavigator,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .module-action-bar,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] #page > .container-fluid.app-nav,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .editViewHeader:not(.hide) {
+	display: none !important;
+}
+
+/* Cancel global editView offset (custom.css padding-left: 296px) */
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] #page,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] #page.container-fluid {
+	padding-top: 0 !important;
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	box-sizing: border-box !important;
+}
+
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-event-form-host .main-container,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-event-form-host .editViewPageDiv,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-event-form-host .content-area,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-event-form-host .content-area.full-width,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-event-edit-inner,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell .content-area.overlayPageContent {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	margin-left: 0 !important;
+	padding: 0 !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	left: auto !important;
+	position: relative !important;
+	box-sizing: border-box !important;
+}
+
+/* Split shell */
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+	position: relative;
+	display: block;
+	min-height: 0;
+}
+
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w);
+	width: calc(100% - var(--mk-dash-sidebar-w));
+	max-width: calc(100% - var(--mk-dash-sidebar-w));
+	min-height: 100vh;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	padding-top: var(--mk-dash-topbar-h);
+}
+
+html:not([data-theme="dark"]) html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-app-shell {
+	background: var(--mk-event-surface);
+}
+
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar {
+	height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+	flex-shrink: 0;
+}
+
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+	position: fixed;
+	top: 0;
+	left: var(--mk-dash-sidebar-w);
+	right: 0;
+	width: auto;
+	min-height: var(--mk-dash-topbar-h);
+	height: var(--mk-dash-topbar-h);
+	z-index: 1030;
+	box-sizing: border-box;
+	border: none !important;
+	border-bottom: 1px solid var(--mk-event-border) !important;
+	box-shadow: none !important;
+}
+
+html:not([data-theme="dark"]) html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-topbar .mk-dash-app-topbar {
+	background: #ffffff !important;
+}
+
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-dashboard-sidebar {
+	top: 0;
+	height: 100vh;
+}
+
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .main-container,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .main-container.main-container-Calendar,
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .main-container.main-container-Events {
+	padding: 0 !important;
+	margin: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	background: transparent !important;
+	box-sizing: border-box;
+}
+
+html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-event-edit-main {
+	padding: 20px 24px 28px 16px !important;
+	box-sizing: border-box;
+	min-height: 0;
+	flex: 1 1 auto;
+}
+
+html:not([data-theme="dark"]) html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-event-edit-main {
+	background: var(--mk-event-surface) !important;
+}
+
+/* Page header */
+.mk-event-create,
+.mk-calendar-create {
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+	color: var(--mk-event-text);
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+.mk-event-page-head {
+	margin-bottom: 20px;
+}
+
+.mk-event-page-head__crumb {
+	font-size: 13px;
+	margin-bottom: 10px;
+	color: var(--mk-event-muted);
+}
+
+.mk-event-page-head__crumb a {
+	color: var(--mk-event-muted);
+	text-decoration: none;
+}
+
+.mk-event-page-head__crumb a:hover {
+	color: var(--mk-event-text);
+}
+
+.mk-event-page-head__crumb span[aria-hidden="true"] {
+	margin: 0 6px;
+	color: #cbd5e1;
+}
+
+.mk-event-page-head__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.mk-event-page-head__title {
+	font-size: 26px;
+	font-weight: 700;
+	margin: 0 0 4px;
+	color: var(--mk-event-text);
+	letter-spacing: -0.02em;
+	line-height: 1.2;
+}
+
+.mk-event-page-head__sub {
+	margin: 0;
+	font-size: 14px;
+	color: var(--mk-event-muted);
+}
+
+.mk-event-page-head__actions {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.mk-event-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 40px;
+	padding: 0 18px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: 600;
+	border: 1px solid transparent;
+	cursor: pointer;
+	text-decoration: none !important;
+	transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mk-event-btn--ghost {
+	background: #fff;
+	border-color: var(--mk-event-border);
+	color: var(--mk-event-text) !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.mk-event-btn--ghost:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+
+.mk-event-btn--primary {
+	background: #16a34a;
+	border-color: #16a34a;
+	color: #fff !important;
+	box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+}
+
+.mk-event-btn--primary:hover {
+	background: #15803d;
+	border-color: #15803d;
+}
+
+/* Form — full width, no centered narrow column */
+.mk-event-create-body {
+	width: 100%;
+	max-width: none;
+	margin: 0;
+}
+
+.mk-event-form-host .editViewBody,
+.mk-event-form-host .editViewContents {
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.mk-event-form-host .fieldBlockContainer {
+	background: var(--mk-event-card) !important;
+	border: 1px solid var(--mk-event-border) !important;
+	border-radius: 14px !important;
+	padding: 18px 20px 10px !important;
+	margin-bottom: 16px !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.mk-event-form-host .fieldBlockHeader {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px !important;
+	font-weight: 700 !important;
+	color: var(--mk-event-text) !important;
+	border: none !important;
+	margin: 0 0 4px !important;
+	padding: 0 !important;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+.mk-event-form-host .fieldBlockHeader::before {
+	content: "";
+	width: 4px;
+	height: 16px;
+	border-radius: 2px;
+	background: var(--mk-event-accent);
+	flex: 0 0 4px;
+}
+
+.mk-event-form-host .fieldBlockContainer > hr {
+	border: none !important;
+	border-top: 1px solid var(--mk-event-border) !important;
+	margin: 0 0 14px !important;
+}
+
+.mk-event-form-host .fieldLabel label,
+.mk-event-form-host .fieldLabel {
+	color: var(--mk-event-muted) !important;
+	font-weight: 600 !important;
+	font-size: 12px !important;
+}
+
+.mk-event-form-host .inputElement,
+.mk-event-form-host .form-control,
+.mk-event-form-host textarea.inputElement,
+.mk-event-form-host .select2-container .select2-choice,
+.mk-event-form-host .select2-container-multi .select2-choices {
+	border: 1px solid var(--mk-event-border) !important;
+	border-radius: 8px !important;
+	min-height: 38px;
+	box-shadow: none !important;
+}
+
+.mk-event-form-host .inputElement:focus,
+.mk-event-form-host .form-control:focus,
+.mk-event-form-host textarea.inputElement:focus {
+	border-color: #c98f12 !important;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.2) !important;
+	outline: none !important;
+}
+
+.mk-event-form-host .table.table-borderless {
+	margin-bottom: 0;
+}
+
+.mk-event-form-host .table.table-borderless > tbody > tr > td {
+	padding-top: 6px !important;
+	padding-bottom: 10px !important;
+	vertical-align: top;
+}
+
+.mk-event-form-host .fieldValue {
+	min-width: 0;
+}
+
+.mk-event-form-footer {
+	background: var(--mk-event-card) !important;
+	border: 1px solid var(--mk-event-border) !important;
+	border-radius: 14px !important;
+	padding: 14px 18px !important;
+	margin-top: 4px;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.mk-event-form-footer .textAlignCenter {
+	text-align: left !important;
+}
+
+.mk-event-form-footer .saveButton {
+	border-radius: 10px !important;
+	min-width: 110px;
+	min-height: 40px;
+	font-weight: 600;
+	background: #16a34a !important;
+	border-color: #16a34a !important;
+}
+
+.mk-event-form-footer .saveButton:hover {
+	background: #15803d !important;
+}
+
+.mk-event-form-footer .cancelLink {
+	margin-left: 14px;
+	font-weight: 600;
+	color: #dc2626 !important;
+}
+
+@media (max-width: 991px) {
+	html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"] .mk-dash-main.mk-event-edit-main {
+		padding: 16px 16px 24px 12px !important;
+	}
+
+}
+
+@media (max-width: 767px) {
+	.mk-event-page-head__title {
+		font-size: 22px;
+	}
+
+	.mk-event-page-head__actions {
+		width: 100%;
+		justify-content: flex-start;
+	}
+}
+
+html[data-theme="dark"] body[data-view="Edit"][data-app="MANAGEMENT"] .mk-event-form-host .fieldBlockContainer,
+html[data-theme="dark"] body[data-view="Edit"][data-app="MANAGEMENT"] .mk-event-form-footer {
+	background: var(--mk-card-bg, #1e293b) !important;
+	border-color: var(--mk-border-color, #334155) !important;
+}

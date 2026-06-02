@@ -11,7 +11,10 @@
 	{foreach key=index item=jsModel from=$SCRIPTS}
 		<script type="{$jsModel->getType()}" src="{$jsModel->getSrc()}"></script>
 	{/foreach}
-	<div class="modal-dialog modal-md">
+	{if $MODULE eq 'Calendar' || $MODULE eq 'Events'}
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Calendar/resources/CalendarQuickCreateTask.css')}&mk_v=20260603_event_ui" />
+	{/if}
+	<div class="modal-dialog modal-md{if $MODULE eq 'Calendar'} mk-qc-task-modal{elseif $MODULE eq 'Events'} mk-qc-event-modal{/if}">
 		<div class="modal-content">
 			<form class="form-horizontal recordEditView" id="QuickCreate" name="QuickCreate" method="post" action="index.php">
 				{if $MODE eq 'edit' && !empty($RECORD_ID)}
@@ -42,7 +45,7 @@
 					{assign var="BLOCK_FIELDS" value=$QUICK_CREATE_CONTENTS[$MODULE]['recordStructure']} {* Dependency in Time UiType template *}
 					{assign var="MODULE_MODEL" value=$QUICK_CREATE_CONTENTS[$MODULE]['moduleModel']}
 
-					<div class="quickCreateContent calendarQuickCreateContent" style="padding-top:2%;margin-top:5px;">
+					<div class="quickCreateContent calendarQuickCreateContent{if $MODULE eq 'Calendar'} mk-qc-task-content{elseif $MODULE eq 'Events'} mk-qc-event-content{/if}">
 						{if $MODULE eq 'Calendar'}
 							{if !empty($PICKIST_DEPENDENCY_DATASOURCE_TODO)}
 								<input type="hidden" name="picklistDependency" value='{Vtiger_Util_Helper::toSafeHTML($PICKIST_DEPENDENCY_DATASOURCE_TODO)}' />
@@ -53,121 +56,199 @@
 							{/if}
 						{/if}
 
-						{* Subject / Title: "Add title" cho Task, label chuẩn cho Event *}
-						<div class="{if $MODULE eq 'Calendar'}google-task-title-wrap{/if}">
+						{if $MODULE eq 'Calendar'}
+						<input type="hidden" name="activitytype" value="Task" />
+						{elseif $MODULE eq 'Events'}
+						<input type="hidden" name="activitytype" value="Meeting" />
+						{/if}
+
+						{* Subject / Title *}
+						<div class="{if $MODULE eq 'Calendar' || $MODULE eq 'Events'}mk-qc-task__title google-task-title-wrap{else}google-task-title-wrap{/if}">
 							{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['subject']}
-							<div style="margin-left: 14px;width: 95%;">
-								{assign var="FIELD_INFO" value=$FIELD_MODEL->getFieldInfo()}
-								{assign var="SPECIAL_VALIDATOR" value=$FIELD_MODEL->getValidator()}
-								<input id="{$MODULE}_editView_fieldName_{$FIELD_MODEL->get('name')}" type="text" class="inputElement {if $FIELD_MODEL->isNameField()}nameField{/if}" name="{$FIELD_MODEL->getFieldName()}" value="{$FIELD_MODEL->get('fieldvalue')}"
-									   {if $FIELD_MODEL->get('uitype') eq '3' || $FIELD_MODEL->get('uitype') eq '4'|| $FIELD_MODEL->isReadOnly()} readonly {/if} {if !empty($SPECIAL_VALIDATOR)}data-validator="{Zend_Json::encode($SPECIAL_VALIDATOR)}"{/if}  
-									   {if $FIELD_INFO["mandatory"] eq true} data-rule-required="true" {/if}
-									   {foreach item=VALIDATOR from=$FIELD_INFO["validator"]}
-										   {assign var=VALIDATOR_NAME value=$VALIDATOR["name"]}
-										   data-rule-{$VALIDATOR_NAME} = "true" 
-									   {/foreach}
-									   placeholder="{if $MODULE eq 'Calendar'}{vtranslate('LBL_ADD_TITLE','Calendar')}{else}{vtranslate($FIELD_MODEL->get('label'), $MODULE)} *{/if}" style="width: 100%;"/>
-							</div>
+							{assign var="FIELD_INFO" value=$FIELD_MODEL->getFieldInfo()}
+							{assign var="SPECIAL_VALIDATOR" value=$FIELD_MODEL->getValidator()}
+							<input id="{$MODULE}_editView_fieldName_{$FIELD_MODEL->get('name')}" type="text" class="inputElement {if $FIELD_MODEL->isNameField()}nameField{/if}" name="{$FIELD_MODEL->getFieldName()}" value="{$FIELD_MODEL->get('fieldvalue')}"
+								   {if $FIELD_MODEL->get('uitype') eq '3' || $FIELD_MODEL->get('uitype') eq '4'|| $FIELD_MODEL->isReadOnly()} readonly {/if} {if !empty($SPECIAL_VALIDATOR)}data-validator="{Zend_Json::encode($SPECIAL_VALIDATOR)}"{/if}
+								   {if $FIELD_INFO["mandatory"] eq true} data-rule-required="true" {/if}
+								   {foreach item=VALIDATOR from=$FIELD_INFO["validator"]}
+									   {assign var=VALIDATOR_NAME value=$VALIDATOR["name"]}
+									   data-rule-{$VALIDATOR_NAME} = "true"
+								   {/foreach}
+								   placeholder="{if $MODULE eq 'Calendar'}{vtranslate('LBL_ADD_TITLE','Calendar')}{elseif $MODULE eq 'Events'}{vtranslate('LBL_ADD_TITLE','Calendar')}{else}{vtranslate($FIELD_MODEL->get('label'), $MODULE)} *{/if}" />
 						</div>
 
-						{* ----- TASK (Calendar): Form giống hình - thời gian 1 dòng "Thursday, Jan 1 8:45am - 4:45pm", deadline optional ----- *}
+						{* ----- TASK (Calendar): compact quick-create ----- *}
 						{if $MODULE eq 'Calendar'}
-						<div class="google-task-form calendar-task-qc" style="margin-top: 16px;">
-							{* Dòng thời gian: icon đồng hồ + text "Thursday, January 1 8:45am - 4:45pm" (JS cập nhật) *}
-							<div class="google-task-row calendar-qc-datetime-row" style="display: flex; align-items: flex-start; margin-bottom: 10px;">
-								<span class="fa fa-clock-o" style="width: 24px; margin-right: 12px; color: #5f6368; margin-top: 6px;"></span>
-								<div style="flex: 1;">
-									<div class="calendar-qc-datetime-summary" style="font-size: 14px; color: #202124; margin-bottom: 8px; min-height: 22px;">—</div>
-									<div class="calendar-qc-datetime-inputs" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-										{* date_start dùng DateTime.tpl → đã có cả ô ngày + ô giờ (time_start) bên trong, không include time_start lần nữa *}
+						<div class="mk-qc-task google-task-form calendar-task-qc">
+							<div class="mk-qc-task__row mk-qc-task__when calendar-qc-datetime-row">
+								<span class="mk-qc-task__icon fa fa-clock-o" aria-hidden="true"></span>
+								<div class="mk-qc-task__body">
+									<div class="mk-qc-task__summary calendar-qc-datetime-summary">—</div>
+									<div class="mk-qc-task__inputs calendar-qc-datetime-inputs">
 										{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['date_start']}
 										{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
 									</div>
 								</div>
 							</div>
-							{* All day: khi tick thì trên full calendar sẽ vẽ trên hàng All day từ ngày bắt đầu đến hết ngày deadline (điền deadline để span nhiều ngày) *}
-							<div class="google-task-row" style="margin-bottom: 12px; padding-left: 36px;">
-								<label class="checkbox-inline">
-									<input type="checkbox" name="allday" value="1" /> {vtranslate('LBL_ALL_DAY','Calendar')}
+
+							<div class="mk-qc-task__allday">
+								<label>
+									<input type="checkbox" name="allday" value="1" />
+									{vtranslate('LBL_ALL_DAY', $MODULE)}
 								</label>
-								<span class="muted small" style="margin-left: 8px;">({vtranslate('LBL_ALL_DAY_HINT','Calendar')})</span>
+								<span class="mk-qc-task__allday-hint">{vtranslate('LBL_ALL_DAY_HINT', $MODULE)}</span>
 							</div>
-							{* Repeat: giống Event - chữ Repeat ở trên, ô chọn bên dưới *}
-							<div class="calendar-repeat-section" style="margin-top: 12px; margin-bottom: 12px; padding: 10px 15px; padding-left: 36px; background: #f9f9f9; border-radius: 4px;">
-								<div class="form-group" style="margin-bottom: 0;">
-									<label class="control-label" style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">Repeat</label>
-									<select name="calendar_repeat_type" id="calendar_repeat_type" class="form-control" style="font-size: 13px; max-width: 280px;">
-										<option value="">{vtranslate('LBL_DOES_NOT_REPEAT','Calendar')}</option>
-										<option value="Daily">Daily</option>
-										<option value="Weekly">Weekly</option>
-										<option value="Monthly">Monthly</option>
-										<option value="Yearly">Yearly</option>
-									</select>
-									<input type="hidden" name="recurringtype" id="calendar_recurringtype_hidden" value="" />
+
+							<div class="mk-qc-task__repeat calendar-repeat-section">
+								<span class="mk-qc-task__repeat-label">{vtranslate('LBL_REPEAT', $MODULE)}</span>
+								<select name="calendar_repeat_type" id="calendar_repeat_type" class="form-control inputElement">
+									<option value="">{vtranslate('LBL_DOES_NOT_REPEAT', $MODULE)}</option>
+									<option value="Daily">{vtranslate('LBL_DAILY', $MODULE)}</option>
+									<option value="Weekly">{vtranslate('LBL_WEEKLY', $MODULE)}</option>
+									<option value="Monthly">{vtranslate('LBL_MONTHLY', $MODULE)}</option>
+									<option value="Yearly">{vtranslate('LBL_YEARLY', $MODULE)}</option>
+								</select>
+								<input type="hidden" name="recurringtype" id="calendar_recurringtype_hidden" value="" />
+							</div>
+
+							<div class="mk-qc-task__row mk-qc-task__deadline">
+								<span class="mk-qc-task__icon fa fa-flag-o" aria-hidden="true"></span>
+								<div class="mk-qc-task__body mk-qc-task__inputs">
+									<input type="text" class="inputElement dateField" name="due_date" value="" placeholder="{vtranslate('LBL_ADD_DEADLINE', $MODULE)}" data-date-format="{$USER_MODEL->get('date_format')}" data-rule-required="false" />
+									<input type="text" name="time_end" class="timepicker-default form-control input-sm" data-format="24" placeholder="HH:mm" />
 								</div>
 							</div>
-							{* Deadline: optional, để trống, placeholder "Add deadline" *}
-							<div class="google-task-row" style="display: flex; align-items: center; margin-bottom: 12px;">
-								<span class="fa fa-bullseye" style="width: 24px; margin-right: 12px; color: #5f6368;"></span>
-								<div style="flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-									<input type="text" class="inputElement dateField" name="due_date" value="" placeholder="{vtranslate('LBL_ADD_DEADLINE','Calendar')}" data-date-format="{$USER_MODEL->get('date_format')}" data-rule-required="false" style="max-width: 220px;" />
-									<input type="text" name="time_end" class="timepicker-default form-control input-sm" data-format="24" placeholder="HH:mm" style="width: 80px;" />
+
+							<div class="mk-qc-task__row mk-qc-task__desc">
+								<span class="mk-qc-task__icon fa fa-align-left" aria-hidden="true"></span>
+								<div class="mk-qc-task__body">
+									<textarea name="description" class="form-control" rows="3" placeholder="{vtranslate('LBL_ADD_DESCRIPTION', $MODULE)}"></textarea>
 								</div>
 							</div>
-							{* Add description *}
-							<div class="google-task-row" style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-								<span class="fa fa-align-left" style="width: 24px; margin-right: 12px; color: #5f6368; margin-top: 8px;"></span>
-								<div style="flex: 1;">
-									<textarea name="description" class="form-control" rows="3" placeholder="{vtranslate('LBL_ADD_DESCRIPTION','Calendar')}" style="resize: vertical; font-size: 13px;"></textarea>
-								</div>
-							</div>
-						</div>
-						{* Assigned To + Status: hàng kiểu Google (List / Calendar owner) *}
-						<div class="google-task-meta" style="margin-top: 8px; padding-left: 36px; font-size: 13px; color: #5f6368;">
-							{* Các field Assigned To, Status vẫn nằm trong table bên dưới *}
-						</div>
-						{* ----- EVENT (Events): ngày + giờ, All Day, Duration ----- *}
-						{else}
-						<div class="row" style="padding-top: 2%;">
-							<div class="col-sm-12">
-								<div class="col-sm-5 calendar-date-time-wrapper">
-									{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['date_start']}
-									{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
-									{if isset($RECORD_STRUCTURE['time_start'])}
-									<div style="margin-top: 8px;">
-										{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['time_start']}
+
+							<div class="mk-qc-task__meta google-task-meta">
+								{if isset($RECORD_STRUCTURE['assigned_user_id'])}
+									{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['assigned_user_id']}
+									<div class="mk-qc-task__field mk-qc-task__field--owner">
+										<label>{vtranslate($FIELD_MODEL->get('label'), $MODULE)}{if $FIELD_MODEL->isMandatory()} <span class="redColor">*</span>{/if}</label>
+										{if empty($RECORD_ID) && $MODE neq 'edit'}
+											<input type="hidden" name="assigned_user_id" value="{$USER_MODEL->get('id')}" />
+											<div class="mk-qc-owner-locked" aria-readonly="true">{$USER_MODEL->getDisplayName()}</div>
+										{else}
+											{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
+										{/if}
+									</div>
+								{/if}
+								{if isset($RECORD_STRUCTURE['taskstatus'])}
+									{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['taskstatus']}
+									<div class="mk-qc-task__field">
+										<label>{vtranslate($FIELD_MODEL->get('label'), $MODULE)}{if $FIELD_MODEL->isMandatory()} <span class="redColor">*</span>{/if}</label>
 										{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
 									</div>
-									{/if}
-								</div>
-								<div class="muted col-sm-1" style="line-height: 67px; left: 20px; padding-right: 7%; text-align: center;">
-									{vtranslate('LBL_TO',$MODULE)}
-								</div>
-								<div class="col-sm-5 calendar-date-time-wrapper">
-									{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['due_date']}
-									{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
-									{if isset($RECORD_STRUCTURE['time_end'])}
-									<div style="margin-top: 8px;">
-										{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['time_end']}
-										{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
+								{/if}
+							</div>
+						</div>
+						{* ----- EVENT (Events): compact quick-create (Log Meeting) ----- *}
+						{elseif $MODULE eq 'Events'}
+						<div class="mk-qc-task mk-qc-event google-task-form calendar-event-qc">
+							<div class="mk-qc-task__row mk-qc-task__when calendar-qc-datetime-row">
+								<span class="mk-qc-task__icon fa fa-clock-o" aria-hidden="true"></span>
+								<div class="mk-qc-task__body">
+									<div class="mk-qc-event__range calendar-qc-datetime-inputs">
+										{if isset($RECORD_STRUCTURE['date_start'])}
+										<div class="mk-qc-event__col calendar-date-time-wrapper">
+											<span class="mk-qc-event__lbl">{vtranslate('LBL_START_DATE','Calendar')}</span>
+											{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['date_start']}
+											{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
+											{if isset($RECORD_STRUCTURE['time_start'])}
+											<div class="mk-qc-event__time">
+												{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['time_start']}
+												{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
+											</div>
+											{/if}
+										</div>
+										{/if}
+										<span class="mk-qc-event__to muted">{vtranslate('LBL_TO','Calendar')}</span>
+										{if isset($RECORD_STRUCTURE['due_date'])}
+										<div class="mk-qc-event__col calendar-date-time-wrapper">
+											<span class="mk-qc-event__lbl">{vtranslate('LBL_END_DATE','Calendar')}</span>
+											{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['due_date']}
+											{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
+											{if isset($RECORD_STRUCTURE['time_end'])}
+											<div class="mk-qc-event__time">
+												{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['time_end']}
+												{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
+											</div>
+											{/if}
+										</div>
+										{/if}
 									</div>
-									{/if}
+									<div id="calendar-duration-display" class="mk-qc-event__duration"></div>
 								</div>
 							</div>
-							<div class="col-sm-12" style="margin-top: 10px; padding-left: 14px;">
-								<label class="checkbox-inline">
+
+							<div class="mk-qc-task__allday">
+								<label>
 									<input type="checkbox" name="allday" id="calendar_allday" value="1" />
-									<strong>{vtranslate('LBL_ALL_DAY','Calendar')}</strong>
+									{vtranslate('LBL_ALL_DAY', $MODULE)}
 								</label>
-								<span id="calendar-duration-display" style="margin-left: 15px; color: #666; font-size: 12px;"></span>
+							</div>
+
+							<div class="mk-qc-task__repeat calendar-repeat-section">
+								<span class="mk-qc-task__repeat-label">{vtranslate('LBL_REPEAT', 'Calendar')}</span>
+								<select name="calendar_repeat_type" id="calendar_repeat_type" class="form-control inputElement">
+									<option value="">{vtranslate('LBL_DOES_NOT_REPEAT', 'Calendar')}</option>
+									<option value="Daily">{vtranslate('LBL_DAILY', 'Calendar')}</option>
+									<option value="Weekly">{vtranslate('LBL_WEEKLY', 'Calendar')}</option>
+									<option value="Monthly">{vtranslate('LBL_MONTHLY', 'Calendar')}</option>
+									<option value="Yearly">{vtranslate('LBL_YEARLY', 'Calendar')}</option>
+								</select>
+								<input type="hidden" name="recurringtype" id="calendar_recurringtype_hidden" value="" />
+							</div>
+
+							<div class="mk-qc-task__row mk-qc-task__desc">
+								<span class="mk-qc-task__icon fa fa-map-marker" aria-hidden="true"></span>
+								<div class="mk-qc-task__body">
+									<input type="text" name="location" class="form-control inputElement" placeholder="{vtranslate('LBL_LOCATION','Events')}" />
+								</div>
+							</div>
+
+							<div class="mk-qc-task__row mk-qc-task__desc">
+								<span class="mk-qc-task__icon fa fa-align-left" aria-hidden="true"></span>
+								<div class="mk-qc-task__body">
+									<textarea name="description" class="form-control" rows="3" placeholder="{vtranslate('LBL_ADD_DESCRIPTION', 'Calendar')}"></textarea>
+								</div>
+							</div>
+
+							<div class="mk-qc-task__meta google-task-meta">
+								{if isset($RECORD_STRUCTURE['assigned_user_id'])}
+									{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['assigned_user_id']}
+									<div class="mk-qc-task__field mk-qc-task__field--owner">
+										<label>{vtranslate($FIELD_MODEL->get('label'), $MODULE)}{if $FIELD_MODEL->isMandatory()} <span class="redColor">*</span>{/if}</label>
+										{if empty($RECORD_ID) && $MODE neq 'edit'}
+											<input type="hidden" name="assigned_user_id" value="{$USER_MODEL->get('id')}" />
+											<div class="mk-qc-owner-locked" aria-readonly="true">{$USER_MODEL->getDisplayName()}</div>
+										{else}
+											{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
+										{/if}
+									</div>
+								{/if}
+								{if isset($RECORD_STRUCTURE['eventstatus'])}
+									{assign var="FIELD_MODEL" value=$RECORD_STRUCTURE['eventstatus']}
+									<div class="mk-qc-task__field">
+										<label>{vtranslate($FIELD_MODEL->get('label'), $MODULE)}{if $FIELD_MODEL->isMandatory()} <span class="redColor">*</span>{/if}</label>
+										{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
+									</div>
+								{/if}
 							</div>
 						</div>
 						{/if}
-						<div class="container-fluid paddingTop15">
+						{if $MODULE neq 'Events'}
+						<div class="container-fluid paddingTop15{if $MODULE eq 'Calendar'} mk-qc-extra-fields{/if}">
 							<table class="massEditTable table no-border">
 								<tr>
 									{foreach key=FIELD_NAME item=FIELD_MODEL from=$RECORD_STRUCTURE name=blockfields}
-									{if $FIELD_NAME eq 'subject' || $FIELD_NAME eq 'date_start' || $FIELD_NAME eq 'due_date' || $FIELD_NAME eq 'time_start' || ($MODULE eq 'Events' && $FIELD_NAME eq 'time_end') || ($MODULE eq 'Calendar' && $FIELD_NAME eq 'description')}
+									{if $FIELD_NAME eq 'subject' || $FIELD_NAME eq 'date_start' || $FIELD_NAME eq 'due_date' || $FIELD_NAME eq 'time_start' || ($MODULE eq 'Events' && $FIELD_NAME eq 'time_end') || ($MODULE eq 'Events' && $FIELD_NAME eq 'description') || ($MODULE eq 'Events' && $FIELD_NAME eq 'assigned_user_id') || ($MODULE eq 'Events' && $FIELD_NAME eq 'eventstatus') || ($MODULE eq 'Events' && $FIELD_NAME eq 'activitytype') || ($MODULE eq 'Events' && $FIELD_NAME eq 'location') || ($MODULE eq 'Calendar' && $FIELD_NAME eq 'description') || ($MODULE eq 'Calendar' && $FIELD_NAME eq 'assigned_user_id') || ($MODULE eq 'Calendar' && $FIELD_NAME eq 'taskstatus') || ($MODULE eq 'Calendar' && $FIELD_NAME eq 'taskpriority') || ($MODULE eq 'Calendar' && $FIELD_NAME eq 'activitytype')}
 								</tr>{continue}
 								{/if}
 								{assign var="isReferenceField" value=$FIELD_MODEL->getFieldDataType()}
@@ -211,56 +292,25 @@
 								</tr>
 							</table>
 						</div>
-						
-						{* Repeat + Optional Details: chỉ cho EVENT, không cho Task *}
-						{if $MODULE eq 'Events'}
-						<div class="calendar-repeat-section" style="margin-top: 15px; padding: 10px 15px; background: #f9f9f9; border-radius: 4px;">
-							<div class="form-group" style="margin-bottom: 0;">
-								<label class="control-label" style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">Repeat</label>
-								<select name="calendar_repeat_type" id="calendar_repeat_type" class="form-control" style="font-size: 13px;">
-									<option value="">Does not repeat</option>
-									<option value="Daily">Daily</option>
-									<option value="Weekly">Weekly</option>
-									<option value="Monthly">Monthly</option>
-									<option value="Yearly">Yearly</option>
-								</select>
-								<input type="hidden" name="recurringtype" id="calendar_recurringtype_hidden" value="" />
-							</div>
-						</div>
-						<div class="calendar-optional-fields" style="margin-top: 15px; padding: 10px 15px; background: #f9f9f9; border-radius: 4px;">
-							<h5 style="margin-top: 0; margin-bottom: 12px; font-size: 13px; color: #666; font-weight: bold;">Optional Details</h5>
-							<div class="form-group" style="margin-bottom: 10px;">
-								<label class="control-label" style="font-size: 12px;">Location</label>
-								<input type="text" name="location" class="form-control" placeholder="Add location" style="font-size: 13px;" />
-							</div>
-							<div class="form-group" style="margin-bottom: 10px;">
-								<label class="control-label" style="font-size: 12px;">Meeting Link</label>
-								<input type="url" name="meeting_link" class="form-control" placeholder="https://meet.google.com/..." style="font-size: 13px;" />
-							</div>
-							<div class="form-group" style="margin-bottom: 0;">
-								<label class="control-label" style="font-size: 12px;">Description</label>
-								<textarea name="description" class="form-control" rows="3" placeholder="Add description" style="font-size: 13px; resize: vertical;"></textarea>
-							</div>
-						</div>
 						{/if}
 					</div>
 				</div>
-				<div class="modal-footer">
-					<center>
-						{if $BUTTON_NAME neq null}
-							{assign var=BUTTON_LABEL value=$BUTTON_NAME}
-						{else}
-							{assign var=BUTTON_LABEL value={vtranslate('LBL_SAVE', $MODULE)}}
-						{/if}
-						{assign var="CALENDAR_MODULE_MODEL" value=$QUICK_CREATE_CONTENTS['Calendar']['moduleModel']}
-						{assign var="EDIT_VIEW_URL" value=$CALENDAR_MODULE_MODEL->getCreateTaskRecordUrl()}
-						{if $MODULE eq 'Events'}
-							{assign var="EDIT_VIEW_URL" value=$CALENDAR_MODULE_MODEL->getCreateEventRecordUrl()}
-						{/if}
-						<button class="btn btn-default" id="goToFullForm" data-edit-view-url="{$EDIT_VIEW_URL}" type="button"><strong>{vtranslate('LBL_GO_TO_FULL_FORM', $MODULE)}</strong></button>
-						<button {if $BUTTON_ID neq null} id="{$BUTTON_ID}" {/if} class="btn btn-success" type="submit" name="saveButton"><strong>{$BUTTON_LABEL}</strong></button>
+				<div class="modal-footer{if $MODULE eq 'Calendar' || $MODULE eq 'Events'} mk-qc-task-footer{/if}">
+					{if $BUTTON_NAME neq null}
+						{assign var=BUTTON_LABEL value=$BUTTON_NAME}
+					{else}
+						{assign var=BUTTON_LABEL value={vtranslate('LBL_SAVE', $MODULE)}}
+					{/if}
+					{assign var="CALENDAR_MODULE_MODEL" value=$QUICK_CREATE_CONTENTS['Calendar']['moduleModel']}
+					{assign var="EDIT_VIEW_URL" value=$CALENDAR_MODULE_MODEL->getCreateTaskRecordUrl()}
+					{if $MODULE eq 'Events'}
+						{assign var="EDIT_VIEW_URL" value=$CALENDAR_MODULE_MODEL->getCreateEventRecordUrl()}
+					{/if}
+					<button class="btn btn-default" id="goToFullForm" data-edit-view-url="{$EDIT_VIEW_URL}" type="button">{vtranslate('LBL_GO_TO_FULL_FORM', $MODULE)}</button>
+					<div class="mk-qc-footer-actions">
 						<a href="#" class="cancelLink" type="reset" data-dismiss="modal">{vtranslate('LBL_CANCEL', $MODULE)}</a>
-					</center>
+						<button {if $BUTTON_ID neq null} id="{$BUTTON_ID}" {/if} class="btn btn-success" type="submit" name="saveButton">{$BUTTON_LABEL}</button>
+					</div>
 				</div>
 			</form>
 		</div>

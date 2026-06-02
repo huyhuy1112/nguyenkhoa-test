@@ -19,6 +19,7 @@ $languageStrings = array(
 	'LBL_EVENTS' => 'Events',
 	'LBL_TODOS' => 'Task',
 	'LBL_CALENDAR_SETTINGS' => 'Calendar Settings',
+	'LBL_CHOOSE_YEAR' => 'Choose Year',
 	'LBL_CALENDAR_SHARING' => 'Calendar Sharing',
 	'LBL_DEFAULT_EVENT_DURATION' => 'Default Event Duration',
 	'LBL_CALL' => 'Call',
@@ -88,7 +89,13 @@ $languageStrings = array(
 	'LBL_ADD_DEADLINE' => 'Add deadline',
 	'LBL_ALL_DAY_HINT' => 'When checked, task shows in the All day row from start date to end of deadline (fill deadline for multiple days)',
 	'LBL_ADD_DESCRIPTION' => 'Add description',
+	'LBL_SELECT_STATUS' => 'Select status…',
 	'LBL_DOES_NOT_REPEAT' => 'Does not repeat',
+	'LBL_REPEAT' => 'Repeat',
+	'LBL_DAILY' => 'Daily',
+	'LBL_WEEKLY' => 'Weekly',
+	'LBL_MONTHLY' => 'Monthly',
+	'LBL_YEARLY' => 'Yearly',
 
 	// Leave request
 	'LBL_LEAVE_REQUEST' => 'Leave request',

@@ -6,6 +6,14 @@
 
   var LIST_URL = "index.php?module=Leads&view=List&app=SALES";
 
+  function detailUrl(recordId) {
+    return (
+      "index.php?module=Leads&view=Detail&record=" +
+      encodeURIComponent(recordId || "") +
+      "&app=SALES"
+    );
+  }
+
   var state = {
     customerType: null,
     leadSource: null,
@@ -227,15 +235,19 @@
       }
     }
     var tags = collectTags();
+    var root = $("mk-td-create");
+    var recordId = root && root.getAttribute("data-record-id");
+    var isEdit = root && root.getAttribute("data-mode") === "edit";
+
     alert(
-      "Lead đã lưu (UI demo).\n\n" +
+      (isEdit ? "Lead đã cập nhật (UI demo).\n\n" : "Lead đã lưu (UI demo).\n\n") +
         "Tên: " +
         name.trim() +
         "\nTags: " +
         (tags.length ? tags.map(function (t) { return "#" + t; }).join(", ") : "(none)") +
         (state.purchaseReason ? "\nLý do: " + state.purchaseReason : "")
     );
-    window.location.href = LIST_URL;
+    window.location.href = isEdit && recordId ? detailUrl(recordId) : LIST_URL;
   }
 
   function init() {

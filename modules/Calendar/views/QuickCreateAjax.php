@@ -32,6 +32,23 @@ class Calendar_QuickCreateAjax_View extends Vtiger_QuickCreateAjax_View {
 
 			$recordModel = Vtiger_Record_Model::getCleanInstance($module);
 
+			// Quick Create (new): assign to current user only
+			if ($moduleName == $module) {
+				$qcRecordId = $request->get('record', '');
+				$qcMode = $request->get('mode');
+				if (empty($qcRecordId) && $qcMode !== 'edit'
+					&& in_array($module, array('Calendar', 'Events'), true)) {
+					$recordModel->set(
+						'assigned_user_id',
+						Users_Record_Model::getCurrentUserModel()->getId()
+					);
+					if ($module === 'Events') {
+						$recordModel->set('activitytype', 'Meeting');
+						$recordModel->set('eventstatus', 'Planned');
+					}
+				}
+			}
+
 			//To enable popup edit support from calendar views
 			if($moduleName == $module) {
 				$recordId = $request->get('record','');

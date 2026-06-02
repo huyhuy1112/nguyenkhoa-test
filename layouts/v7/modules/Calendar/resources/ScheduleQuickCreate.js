@@ -20,9 +20,21 @@
 			// Check if this is Calendar/Events module
 			var moduleName = $container.find('input[name="module"]').val();
 			if (!moduleName || (moduleName !== 'Calendar' && moduleName !== 'Events')) return;
-			
-			// Check if form is ready
-			if ($container.find('input[name="time_start"]').length === 0) return;
+
+			var recordId = $.trim($container.find('input[name="record"]').val() || '');
+			var mode = $.trim($container.find('input[name="mode"]').val() || '');
+			if (!recordId && mode !== 'edit') {
+				this.lockAssignedToCurrentUser();
+			}
+
+			var hasTimeStart = $container.find('input[name="time_start"]').length > 0;
+			if (!hasTimeStart) {
+				if (moduleName === 'Calendar') {
+					this.setupRepeatDropdown();
+					this.initialized = true;
+				}
+				return;
+			}
 			
 			this.enhanceTimePickers();
 			this.setupAllDayToggle();
@@ -38,6 +50,63 @@
 		
 		reset: function() {
 			this.initialized = false;
+		},
+
+		/**
+		 * Quick Create (new): Assigned To = current user, not changeable.
+		 */
+		lockAssignedToCurrentUser: function() {
+			var $container = $('#QuickCreate');
+			if (!$container.length) {
+				return;
+			}
+			var userId = '';
+			if (typeof app !== 'undefined' && typeof app.getUserId === 'function') {
+				userId = String(app.getUserId());
+			}
+			if (!userId && typeof _USERMETA !== 'undefined' && _USERMETA && _USERMETA.id) {
+				userId = String(_USERMETA.id);
+			}
+			if (!userId) {
+				return;
+			}
+
+			var $hidden = $container.find('input[type="hidden"][name="assigned_user_id"].mk-qc-owner-lock-value');
+			if (!$hidden.length) {
+				$hidden = $container.find('input[type="hidden"][name="assigned_user_id"]').first();
+			}
+			if ($hidden.length) {
+				$hidden.val(userId).addClass('mk-qc-owner-lock-value');
+			}
+
+			$container.find('select[name="assigned_user_id"]').each(function() {
+				var $owner = $(this);
+				if ($owner.data('mkOwnerLocked')) {
+					return;
+				}
+				$owner.data('mkOwnerLocked', true);
+				$owner.val(userId);
+				if (!$hidden.length) {
+					$hidden = $('<input>', {
+						type: 'hidden',
+						name: 'assigned_user_id',
+						'class': 'mk-qc-owner-lock-value',
+					});
+					$owner.after($hidden);
+				}
+				$hidden.val(userId);
+				$owner.removeAttr('name');
+				if ($owner.data('select2')) {
+					try {
+						$owner.select2('readonly', true);
+					} catch (e) {
+						$owner.prop('disabled', true);
+					}
+				} else {
+					$owner.prop('disabled', true);
+				}
+				$owner.closest('.mk-qc-task__field, .fieldValue, td').addClass('mk-qc-owner-locked-wrap');
+			});
 		},
 
 		/**

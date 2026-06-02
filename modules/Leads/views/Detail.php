@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * Leads Detail: modern SALES UI (UI-only demo — no database record).
+ * Leads Detail: modern SALES UI (UI-only demo — no CRM record required).
  ************************************************************************************/
 
 class Leads_Detail_View extends Vtiger_Index_View {
@@ -14,7 +14,7 @@ class Leads_Detail_View extends Vtiger_Index_View {
 	}
 
 	protected function redirectMarketingToSales(Vtiger_Request $request) {
-		$app = strtoupper((string)$request->get('app'));
+		$app = strtoupper((string) $request->get('app'));
 		if ($app === 'MARKETING') {
 			$query = array(
 				'module' => 'Leads',
@@ -54,6 +54,7 @@ class Leads_Detail_View extends Vtiger_Index_View {
 		$viewer = $this->getViewer($request);
 		$viewer->view('DetailViewPostProcess.tpl', $request->getModule());
 		Vtiger_Basic_View::postProcess($request);
+		$viewer->view('DetailViewScripts.tpl', $request->getModule());
 	}
 
 	public function process(Vtiger_Request $request) {

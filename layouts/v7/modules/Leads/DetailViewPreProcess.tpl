@@ -1,13 +1,11 @@
-{* Leads Detail (SALES): dashboard split shell + UI demo body (no CRM record). *}
+{* Leads Detail (SALES): split shell + Opp-style UI demo (no Vtiger record). *}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
-<script type="text/javascript">document.documentElement.classList.add('mk-leads-ui-ready');</script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260601_leads_ui" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkDetail.css')}&mk_v=20260601_leads_ui" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListShared.css')}" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsDetailShell.css')}&mk_v=20260603_column_stack" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Calendar/resources/CalendarQuickCreateTask.css')}&mk_v=20260603_event_ui" />
+<script type="text/javascript">document.body.classList.add('mk-lead-detail-ui-loading');</script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkDetail.js')}&mk_v=20260601_leads_ui"></script>
-<div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-leads-detail="1">
+<div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-lead-detail="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">
 		<header class="mk-topbar" role="banner">
@@ -17,7 +15,7 @@
 			<div class="data"></div>
 			<div class="modal-dialog"></div>
 		</div>
-		<main class="mk-dash-main mk-content mk-leads-detail-main" id="mk-dash-main" role="main">
-		<div class="main-container main-container-{$MODULE} mk-leads-detail-page">
-			<div class="mk-leads-detail-inner" id="mk-leads-detail-root" data-record-id="{$MK_LEADS_DETAIL_RECORD|escape:'html'}">
+		<main class="mk-dash-main mk-content mk-lead-detail-main" id="mk-dash-main" role="main">
+		<div class="main-container main-container-{$MODULE} mk-lead-detail-page">
+			<div class="detailViewContainer viewContent clearfix mk-lead-detail-inner" id="mk-leads-detail-root" data-record-id="{$MK_LEADS_DETAIL_RECORD|escape:'html'}">
 {/strip}

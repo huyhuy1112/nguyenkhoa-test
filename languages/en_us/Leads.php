@@ -13,6 +13,16 @@ $languageStrings = array(
 	'SINGLE_Leads' => 'Lead',
 	'LBL_RECORDS_LIST' => 'Leads List',
 	'LBL_ADD_RECORD' => 'Add Lead',
+	'LBL_MK_ACTIVITY_LOG' => 'Activity log',
+	'LBL_MK_ACTIVITY_LOG_ITEMS' => 'items',
+	'LBL_MK_ADD' => 'Add',
+	'LBL_MK_ADD_NOTE' => 'Add Note',
+	'LBL_MK_LOG_CALL' => 'Log Call',
+	'LBL_MK_LOG_MEETING' => 'Log Meeting',
+	'LBL_MK_CREATE_TASK' => 'Create Task',
+	'LBL_MK_OPEN_ACTIVITY_MENU' => 'Open activity menu',
+	'LBL_MK_LOG_ACTIVITY' => 'Log activity',
+	'LBL_MK_LOG_PLACEHOLDER' => 'Add note / log call / add task...',
 
 	// Blocks
 	'LBL_LEAD_INFORMATION' => 'Lead Details',
@@ -66,6 +76,7 @@ $languageStrings = array(
 	'Lead Image' => 'Lead Image',
 );
 $jsLanguageStrings = array(
+	'JS_MK_ACTIVITY_LOG_EMPTY' => 'No activities yet.',
 	'JS_SELECT_CONTACTS' => 'Select Contacts to proceed',
 	'JS_SELECT_ORGANIZATION' => 'Select Organization to proceed',
 	'JS_SELECT_ORGANIZATION_OR_CONTACT_TO_CONVERT_LEAD' => 'Conversion requires selection of Contact or Organization'

@@ -21,6 +21,16 @@ $languageStrings = array(
 	'Industry' => 'Ngành Nghề',
 	'Junk Lead'=>'Không tiềm năng',
 	'LBL_ADD_RECORD' => 'Thêm Khách tiềm năng',
+	'LBL_MK_ACTIVITY_LOG' => 'Nhật ký hoạt động',
+	'LBL_MK_ACTIVITY_LOG_ITEMS' => 'mục',
+	'LBL_MK_ADD' => 'Thêm',
+	'LBL_MK_ADD_NOTE' => 'Thêm ghi chú',
+	'LBL_MK_LOG_CALL' => 'Ghi cuộc gọi',
+	'LBL_MK_LOG_MEETING' => 'Ghi cuộc họp',
+	'LBL_MK_CREATE_TASK' => 'Tạo công việc',
+	'LBL_MK_OPEN_ACTIVITY_MENU' => 'Mở menu hoạt động',
+	'LBL_MK_LOG_ACTIVITY' => 'Ghi hoạt động',
+	'LBL_MK_LOG_PLACEHOLDER' => 'Thêm ghi chú / ghi cuộc gọi / tạo việc...',
 	'LBL_CONVERT_LEAD' => 'Chuyển đổi Khách tiềm năng',
 	'LBL_CONVERT_LEAD_ERROR_TITLE' => 'Modules đã bị vô hiệu hóa',
 	'LBL_CONVERT_LEAD_ERROR' => 'Bạn phải kích hoạt đồng thời tổ chức hoặc liên hệ để chuyển đổi sang Khách tiềm năng',
@@ -57,6 +67,7 @@ $languageStrings = array(
 );
 
 $jsLanguageStrings = array(
+	'JS_MK_ACTIVITY_LOG_EMPTY' => 'Chưa có hoạt động.',
 	'JS_SELECT_CONTACTS' => 'Chọn liên hệ để liên lạc',
 	'JS_SELECT_ORGANIZATION_OR_CONTACT_TO_CONVERT_LEAD' => 'Chuyển đổi Khách tiềm năng đòi hỏi phải có sự lựa chọn Liên hệ hoặc Tổ chức',
 	'JS_SELECT_ORGANIZATION' => 'Chọn tổ chức để tiến hành',

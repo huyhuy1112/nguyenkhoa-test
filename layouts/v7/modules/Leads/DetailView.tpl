@@ -1,2 +1,2 @@
-{* Leads Detail — modern UI body *}
-{include file="partials/LeadsMkDetail.tpl"|vtemplate_path:$MODULE}
+{* Leads Detail — Opp-style UI demo body *}
+{include file="partials/LeadsDetailUiDemo.tpl"|vtemplate_path:$MODULE}

@@ -1,72 +1,85 @@
-{*<!--
-/*********************************************************************************
-** The contents of this file are subject to the vtiger CRM Public License Version 1.0
-* ("License"); You may not use this file except in compliance with the License
-* The Original Code is: vtiger CRM Open Source
-* The Initial Developer of the Original Code is vtiger.
-* Portions created by vtiger are Copyright (C) vtiger.
-* All Rights Reserved.
-*
-********************************************************************************/
--->*}
+{* Leads Detail hero — name, company, status, contact meta. *}
 {strip}
-    <div class="col-sm-6 col-lg-6 col-md-6">
-        <div class="record-header clearfix">
-            <div class="hidden-sm hidden-xs recordImage bgleads app-{$SELECTED_MENU_CATEGORY}">
-                {assign var=IMAGE_DETAILS value=$RECORD->getImageDetails()}
-                {foreach key=ITER item=IMAGE_INFO from=$IMAGE_DETAILS}
-                    {if !empty($IMAGE_INFO.url)}
-                        <img src="{$IMAGE_INFO.url}" alt="{$IMAGE_INFO.orgname}" title="{$IMAGE_INFO.orgname}" width="100%" height="100px" align="left"><br>
-                    {else}
-                        <img src="{vimage_path('summary_Leads.png')}" class="summaryImg"/>
-                    {/if}
-                {/foreach}
-                {if empty($IMAGE_DETAILS)}
-                    <div class="name"><span><strong>{$MODULE_MODEL->getModuleIcon()}</strong></span></div>
+{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+	{assign var=MK_LEAD_COMPANY      value=$RECORD->getDisplayValue('company')}
+	{assign var=MK_LEAD_PHONE        value=$RECORD->getDisplayValue('phone')}
+	{assign var=MK_LEAD_EMAIL        value=$RECORD->getDisplayValue('email')}
+	{assign var=MK_LEAD_STATUS_RAW   value=$RECORD->get('leadstatus')}
+	{assign var=MK_LEAD_STATUS_LABEL value=$RECORD->getDisplayValue('leadstatus')}
+	{assign var=MK_LEAD_SOURCE       value=$RECORD->getDisplayValue('leadsource')}
+	<div class="mk-lead-detail-hero__left">
+		<div class="mk-lead-detail-hero__identity clearfix">
+			<div class="mk-lead-detail-hero__icon recordImage bg{$MODULE|lower} app-{(isset($SELECTED_MENU_CATEGORY)) ? $SELECTED_MENU_CATEGORY : ''}">
+				<span class="mk-lead-detail-hero__icon-glyph" aria-hidden="true">{include file="partials/LeadDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='LEAD'}</span>
+			</div>
+			<div class="mk-lead-detail-hero__text recordBasicInfo">
+				<div class="info-row mk-lead-detail-hero__name-row">
+					<h1 class="mk-lead-detail-hero__title">
+						<span class="recordLabel pushDown" title="{$RECORD->getName()}">
+							{foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
+								{assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
+								{if $FIELD_MODEL->getPermissions()}
+									<span class="{$NAME_FIELD}">{decode_html($RECORD->get($NAME_FIELD))}</span>&nbsp;
+								{/if}
+							{/foreach}
+						</span>
+					</h1>
+				</div>
+				{if !empty($MK_LEAD_COMPANY)}
+					<p class="mk-lead-detail-hero__subtitle" title="{vtranslate('company', $MODULE)}">{$MK_LEAD_COMPANY}</p>
 				{/if}
-            </div>
-            <div class="recordBasicInfo">
-                <div class="info-row">
-                    <h4>
-                        <span class="recordLabel pushDown" title="{$RECORD->getDisplayValue('salutationtype')}&nbsp;{$RECORD->getName()}"> 
-                            {if $RECORD->getDisplayValue('salutationtype')}
-                                <span class="salutation">  {$RECORD->getDisplayValue('salutationtype')}</span>&nbsp;
-                            {/if}
-                            {assign var=COUNTER value=0}
-                            {foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
-                                {assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
-                                {if $FIELD_MODEL->getPermissions()}
-                                    <span class="{$NAME_FIELD}">{trim($RECORD->get($NAME_FIELD))}</span>
-                                    {if $COUNTER eq 0 && ($RECORD->get($NAME_FIELD))}&nbsp;{assign var=COUNTER value=$COUNTER+1}{/if}
-                                {/if}
-                            {/foreach}
-                        </span>
-                    </h4>
-                </div>
-                {include file="DetailViewHeaderFieldsView.tpl"|vtemplate_path:$MODULE}
-                {*
-                <div class="info-row row">
-                    {assign var=FIELD_MODEL value=$MODULE_MODEL->getField('email')}
-                    <div class="col-lg-7 fieldLabel">
-                        <span class="email" title="{vtranslate($FIELD_MODEL->get('label'),$MODULE)} : {$RECORD->get('email')}">
-                            {$RECORD->getDisplayValue("email")}
-                        </span>
-                    </div>
-                </div>
-                <div class="info-row row">
-                    {assign var=FIELD_MODEL value=$MODULE_MODEL->getField('phone')}
-                    <div class="col-lg-7 fieldLabel">
-                        <span class="phone" title="{vtranslate($FIELD_MODEL->get('label'),$MODULE)} : {$RECORD->get('phone')}">
-                            {$RECORD->getDisplayValue("phone")}
-                        </span>
-                    </div>
-                </div>
-                *}
-               <div class="info-row">
-                  <i class="fa fa-map-marker"></i>&nbsp;
-                  <a class="showMap" href="javascript:void(0);" onclick='Vtiger_Index_Js.showMap(this);' data-module='{$RECORD->getModule()->getName()}' data-record='{$RECORD->getId()}'>{vtranslate('LBL_SHOW_MAP', $MODULE_NAME)}</a>
-               </div>
-            </div>
-        </div>
-    </div>
+				<div class="mk-lead-detail-hero__meta">
+					{if !empty($MK_LEAD_PHONE)}
+						<span class="mk-lead-detail-hero__meta-item" title="{vtranslate('phone', $MODULE)}">
+							<span class="mk-lead-detail-hero__meta-ic" aria-hidden="true">{include file="partials/LeadDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='PHONE'}</span>
+							<span class="mk-lead-detail-hero__meta-text">{$MK_LEAD_PHONE}</span>
+						</span>
+					{/if}
+					{if !empty($MK_LEAD_EMAIL)}
+						<span class="mk-lead-detail-hero__meta-item" title="{vtranslate('email', $MODULE)}">
+							<span class="mk-lead-detail-hero__meta-ic" aria-hidden="true">{include file="partials/LeadDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='EMAIL_META'}</span>
+							<span class="mk-lead-detail-hero__meta-text">{$MK_LEAD_EMAIL}</span>
+						</span>
+					{/if}
+					{if !empty($MK_LEAD_SOURCE)}
+						<span class="mk-lead-detail-hero__meta-item" title="{vtranslate('leadsource', $MODULE)}">
+							<span class="mk-lead-detail-hero__meta-ic" aria-hidden="true">{include file="partials/LeadDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='SOURCE'}</span>
+							<span class="mk-lead-detail-hero__meta-text">{$MK_LEAD_SOURCE}</span>
+						</span>
+					{/if}
+					{if !empty($MK_LEAD_STATUS_LABEL)}
+						{assign var=MK_LEAD_STATUS_KEY value=$MK_LEAD_STATUS_RAW|lower|regex_replace:"/[^a-z0-9]+/":"-"}
+						<span class="mk-lead-detail-hero__stage mk-lead-stage-pill mk-lead-stage-pill--{$MK_LEAD_STATUS_KEY}" data-stage="{$MK_LEAD_STATUS_RAW}">
+							<span class="mk-lead-stage-pill__dot" aria-hidden="true"></span>
+							<span class="mk-lead-stage-pill__text">{$MK_LEAD_STATUS_LABEL}</span>
+						</span>
+					{/if}
+				</div>
+			</div>
+		</div>
+	</div>
+{else}
+	<div class="col-sm-6 col-lg-6 col-md-6">
+		<div class="record-header clearfix">
+			<div class="recordImage bgleads app-{$SELECTED_MENU_CATEGORY}">
+				<div class="name"><span><strong>{$MODULE_MODEL->getModuleIcon()}</strong></span></div>
+			</div>
+			<div class="recordBasicInfo">
+				<div class="info-row">
+					<h4>
+						<span class="recordLabel pushDown" title="{$RECORD->getName()}">
+							{foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
+								{assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
+								{if $FIELD_MODEL->getPermissions()}
+									<span class="{$NAME_FIELD}">{$RECORD->get($NAME_FIELD)}</span>&nbsp;
+								{/if}
+							{/foreach}
+						</span>
+					</h4>
+				</div>
+				{include file="DetailViewHeaderFieldsView.tpl"|vtemplate_path:'Vtiger'}
+			</div>
+		</div>
+	</div>
+{/if}
 {/strip}
