@@ -5,7 +5,89 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260527_list6';
+	var MK_BUILD = '20260603_list9';
+	var autoSearchTimer = null;
+
+	var COL_CLASS_BY_FIELD = {
+		order_category: 'mk-col-order-category',
+		potentialname: 'mk-col-potentialname',
+		related_to: 'mk-col-orgname',
+		account_id: 'mk-col-orgname',
+		accountname: 'mk-col-orgname',
+		sales_stage: 'mk-col-sales-stage',
+		leadsource: 'mk-col-lead-source',
+		closingdate: 'mk-col-closing-date',
+		expectedclosedate: 'mk-col-closing-date',
+		amount: 'mk-col-amount',
+		assigned_user_id: 'mk-col-assigned-to',
+		contact_id: 'mk-col-contact-name',
+	};
+
+	function fieldFromHeaderTh($th) {
+		var $a = $th.find('a.listViewContentHeaderValues').first();
+		if ($a.length) {
+			return $a.data('columnname') || '';
+		}
+		return '';
+	}
+
+	function assignColumnClasses() {
+		var $table = getRoot().find('#listview-table');
+		if (!$table.length) {
+			return;
+		}
+		var $headerCells = $table.find('thead tr.listViewContentHeader th');
+		$headerCells.each(function () {
+			var $th = $(this);
+			var field = fieldFromHeaderTh($th);
+			if (field && COL_CLASS_BY_FIELD[field]) {
+				$th.addClass(COL_CLASS_BY_FIELD[field]);
+			}
+			if ($th.find('.table-actions').length) {
+				$th.addClass('mk-col-control');
+			}
+		});
+		$table.find('thead tr.searchRow th').each(function (idx) {
+			var $th = $(this);
+			if ($th.hasClass('inline-search-btn') || $th.find('.table-actions').length) {
+				$th.addClass('mk-col-control');
+				return;
+			}
+			var field = $th.find('.listSearchContributor[name]').first().attr('name');
+			if (!field && $headerCells.eq(idx).length) {
+				field = fieldFromHeaderTh($headerCells.eq(idx));
+			}
+			if (field && COL_CLASS_BY_FIELD[field]) {
+				$th.addClass(COL_CLASS_BY_FIELD[field]);
+			}
+		});
+		$table.find('tbody tr.listViewEntries').each(function () {
+			$(this)
+				.children('td')
+				.each(function () {
+					var $td = $(this);
+					var field = $td.data('name');
+					if (field && COL_CLASS_BY_FIELD[field]) {
+						$td.addClass(COL_CLASS_BY_FIELD[field]);
+					}
+					if ($td.hasClass('listViewRecordActions')) {
+						$td.addClass('mk-col-control');
+					}
+				});
+		});
+	}
+
+	function syncRowSelectedClass() {
+		getRoot()
+			.find('tbody tr.listViewEntries')
+			.each(function () {
+				var $row = $(this);
+				$row.toggleClass(
+					'mk-opp-row-selected',
+					$row.find('.listViewEntriesCheckBox:checked').length > 0
+				);
+			});
+	}
 
 	function isSalesOpportunityList() {
 		var b = document.body;
@@ -333,6 +415,57 @@
 		return listSearchParams;
 	}
 
+	function scheduleAutoSearch() {
+		if (!isSalesOpportunityList()) {
+			return;
+		}
+		if (autoSearchTimer) {
+			clearTimeout(autoSearchTimer);
+		}
+		autoSearchTimer = setTimeout(function () {
+			autoSearchTimer = null;
+			syncSearchFieldMeta();
+			runStockListSearch();
+		}, 160);
+	}
+
+	function bindAutoSearchPicklist() {
+		var root = getRoot();
+		root
+			.off(
+				'change.mkOppAutoSearch select2-selecting.mkOppAutoSearch select2-removed.mkOppAutoSearch'
+			)
+			.on(
+				'change.mkOppAutoSearch',
+				'tr.searchRow select.listSearchContributor',
+				function () {
+					if (!isSalesOpportunityList()) {
+						return;
+					}
+					if ($(this).hasClass('select2_input_element')) {
+						return;
+					}
+					scheduleAutoSearch();
+				}
+			)
+			.on(
+				'select2-selecting.mkOppAutoSearch select2-removed.mkOppAutoSearch',
+				'tr.searchRow .listSearchContributor.select2',
+				function () {
+					if (!isSalesOpportunityList()) {
+						return;
+					}
+					scheduleAutoSearch();
+				}
+			)
+			.on('datepicker-change.mkOppAutoSearch', 'tr.searchRow .dateField', function () {
+				if (!isSalesOpportunityList()) {
+					return;
+				}
+				scheduleAutoSearch();
+			});
+	}
+
 	/** PJAX list refresh with explicit search_params (never ListAjax without mode). */
 	function runStockListSearch() {
 		var root = getRoot();
@@ -459,7 +592,10 @@
 		}
 		fixListScrollContainer();
 		reinitSearchRow();
+		bindAutoSearchPicklist();
+		assignColumnClasses();
 		enhanceRows(document);
+		syncRowSelectedClass();
 		hideProgressSafe();
 	}
 
@@ -470,6 +606,7 @@
 		}
 
 		root.addClass('mk-opportunity-search-open mk-so-search-open');
+		bindAutoSearchPicklist();
 
 		/* Enter in filter row → stock Search button */
 		root.off('keydown.mkOppListSearch').on('keydown.mkOppListSearch', 'tr.searchRow input.listSearchContributor', function (ev) {
@@ -549,6 +686,7 @@
 			});
 
 		root.off('change.mkOppRowCheck', '.listViewEntriesCheckBox').on('change.mkOppRowCheck', '.listViewEntriesCheckBox', function () {
+			syncRowSelectedClass();
 			var listInstance = getListInstance();
 			if (listInstance && listInstance.registerPostLoadListViewActions) {
 				setTimeout(function () {
@@ -559,6 +697,7 @@
 
 		root.off('change.mkOppMainCheck', '.listViewEntriesMainCheckBox').on('change.mkOppMainCheck', '.listViewEntriesMainCheckBox', function () {
 			hideProgressSafe();
+			syncRowSelectedClass();
 			var listInstance = getListInstance();
 			if (listInstance && listInstance.registerPostLoadListViewActions) {
 				setTimeout(function () {

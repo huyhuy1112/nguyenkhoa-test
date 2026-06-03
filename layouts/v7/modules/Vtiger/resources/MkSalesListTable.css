@@ -1,0 +1,362 @@
+/**
+ * SALES menu list tables — shared chrome (Opportunities list reference).
+ * Scope: body[data-view="List"][data-app="SALES"]
+ */
+
+/* Filter row: always visible */
+body[data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="SALES"] #listViewContent:not(.mk-qt-search-open) tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="SALES"] #listViewContent:not(.mk-sc-search-open) tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="SALES"] #listViewContent:not(.mk-ps-search-open) tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="SALES"] #listViewContent:not(.mk-contact-search-open) tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="SALES"] #listViewContent:not(.mk-org-search-open) tr.searchRow.listViewSearchContainer {
+	display: table-row !important;
+	background: #fafbfc !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table tr td:first-child,
+body[data-view="List"][data-app="SALES"] #listview-table tr th:first-child {
+	width: 152px !important;
+	min-width: 152px !important;
+	max-width: 152px !important;
+	box-sizing: border-box;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table > tbody > tr > td .value,
+body[data-view="List"][data-app="SALES"] #listview-table > tfoot > tr > td .value {
+	padding: 0;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table > thead > tr > td .fieldValue,
+body[data-view="List"][data-app="SALES"] #listview-table > tbody > tr > td .fieldValue,
+body[data-view="List"][data-app="SALES"] #listview-table > tfoot > tr > td .fieldValue {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table .table-actions {
+	width: auto !important;
+	min-width: 0 !important;
+	max-width: 100% !important;
+	margin-left: 0 !important;
+	font-size: 14px;
+	color: #2b2b2b;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th {
+	text-align: left;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues {
+	display: inline-block;
+	text-align: left;
+	width: auto;
+	max-width: 100%;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th {
+	text-align: left !important;
+	background: #fff;
+	padding: 10px 12px !important;
+	vertical-align: middle !important;
+	overflow: visible !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td {
+	text-align: left !important;
+	padding: 10px 12px !important;
+	vertical-align: middle !important;
+	line-height: 1.35;
+	word-break: break-word;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td .value,
+body[data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td .fieldValue,
+body[data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td .referencefield-wrapper {
+	text-align: left !important;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td .value {
+	display: block;
+	justify-content: flex-start !important;
+	align-items: flex-start !important;
+}
+
+/* Amount / currency columns stay right-aligned when marked */
+body[data-view="List"][data-app="SALES"] #listview-table tbody td[data-name="amount"] .value,
+body[data-view="List"][data-app="SALES"] #listview-table tbody td[data-name="hdnGrandTotal"] .value,
+body[data-view="List"][data-app="SALES"] #listview-table tbody td[data-name="total"] .value,
+body[data-view="List"][data-app="SALES"] #listview-table tbody td.mk-col-amount,
+body[data-view="List"][data-app="SALES"] #listview-table tbody td[data-name="amount"],
+body[data-view="List"][data-app="SALES"] #listview-table tbody td[data-name="hdnGrandTotal"],
+body[data-view="List"][data-app="SALES"] #listview-table tbody td[data-name="total"] {
+	text-align: right !important;
+}
+
+/* Unified filter inputs */
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .listSearchContributor.inputElement,
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element),
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow input.dateField,
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow select.listSearchContributor {
+	display: block;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	text-align: left !important;
+	box-shadow: none !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2_input_element {
+	display: none !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	display: block !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-choice {
+	width: 100% !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	line-height: 38px !important;
+	padding: 0 12px !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	background-image: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-chosen {
+	text-align: left !important;
+	margin-right: 24px !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices {
+	min-height: 40px !important;
+	padding: 4px 8px !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-field input {
+	height: 28px !important;
+	min-height: 28px !important;
+	margin: 0 !important;
+	padding: 0 4px !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice {
+	margin: 2px 4px 2px 0 !important;
+	padding: 5px 10px 5px 26px !important;
+	position: relative !important;
+	border-radius: 6px !important;
+	font-size: 13px !important;
+	line-height: 1.35 !important;
+	border: 1px solid #e2d6c4 !important;
+	background: #f8fafc !important;
+	color: #334155 !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close {
+	left: 7px !important;
+	right: auto !important;
+	top: 50% !important;
+	margin-top: -7px !important;
+	width: 12px !important;
+	height: 12px !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow li.select2-search-choice div {
+	display: inline-block;
+	padding: 0 !important;
+	margin: 0 !important;
+	white-space: nowrap;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th .row-fluid,
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th > div:not(.table-actions),
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th .select2_search_div {
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	display: block;
+	box-sizing: border-box;
+}
+
+/* Hide legacy green Tìm — Enter / picklist auto-search */
+body[data-view="List"][data-app="SALES"] #listview-table tr.searchRow th.inline-search-btn button,
+body[data-view="List"][data-app="SALES"] #listview-table tr.searchRow th.inline-search-btn .btn,
+body[data-view="List"][data-app="SALES"] #listview-table tr.searchRow th.inline-search-btn .searchAndClearButton {
+	display: none !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table tr.searchRow th.inline-search-btn {
+	padding: 10px !important;
+	vertical-align: middle;
+	background: #fafbfc;
+	border-right: 1px solid #e8dfd0;
+}
+
+/* Control column rail */
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.inline-search-btn,
+body[data-view="List"][data-app="SALES"] #listview-table tbody td.listViewRecordActions,
+body[data-view="List"][data-app="SALES"] #listview-table th.mk-col-control,
+body[data-view="List"][data-app="SALES"] #listview-table td.mk-col-control {
+	text-align: left !important;
+	vertical-align: middle !important;
+	padding-left: 12px !important;
+	padding-right: 14px !important;
+	overflow: visible !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.inline-search-btn {
+	border-right: 1px solid #e8dfd0;
+	background: #fafbfc;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table tbody td.listViewRecordActions,
+body[data-view="List"][data-app="SALES"] #listview-table tbody td.mk-col-control {
+	background: #fcfcfd;
+	border-right: 1px solid #f0ebe3;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table .table-actions:before,
+body[data-view="List"][data-app="SALES"] #listview-table .table-actions:after {
+	display: none !important;
+	content: none !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th .table-actions,
+body[data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td .table-actions {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	gap: 6px !important;
+	flex-wrap: nowrap !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	padding: 0 2px 0 0 !important;
+	overflow: visible !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table .table-actions > .input,
+body[data-view="List"][data-app="SALES"] #listview-table .table-actions > span,
+body[data-view="List"][data-app="SALES"] #listview-table .table-actions > .more {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex: 0 0 auto;
+	float: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	opacity: 1 !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table .listViewEntries .table-actions span {
+	float: none !important;
+	padding-right: 0 !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table .table-actions .fa.action,
+body[data-view="List"][data-app="SALES"] #listview-table .table-actions .fa.icon,
+body[data-view="List"][data-app="SALES"] #listview-table .table-actions .fa.fa-ellipsis-v {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 26px;
+	height: 26px;
+	border-radius: 8px;
+	font-size: 15px !important;
+	color: #64748b !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table .table-actions .more .dropdown-toggle {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	min-width: 26px;
+	padding: 0 2px !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesCheckBox,
+body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox {
+	-webkit-appearance: none !important;
+	appearance: none !important;
+	width: 18px !important;
+	height: 18px !important;
+	min-width: 18px !important;
+	min-height: 18px !important;
+	margin: 0 !important;
+	border: 2px solid #94a3b8 !important;
+	border-radius: 5px !important;
+	background: #fff !important;
+	position: relative;
+	box-sizing: border-box !important;
+	float: none !important;
+	cursor: pointer;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
+body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
+	background: #fdbb2c !important;
+	border-color: #c98f12 !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
+body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked::after {
+	content: '' !important;
+	position: absolute;
+	left: 5px;
+	top: 1px;
+	width: 5px;
+	height: 10px;
+	border: solid #fff;
+	border-width: 0 2.5px 2.5px 0;
+	transform: rotate(45deg);
+	display: block;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
+body[data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries.mk-sales-row-selected {
+	background: rgba(253, 187, 44, 0.1) !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table td.listViewRecordActions,
+body[data-view="List"][data-app="SALES"] #listview-table td.mk-col-control {
+	overflow: visible !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-table td.listViewRecordActions .table-actions {
+	overflow: visible !important;
+}

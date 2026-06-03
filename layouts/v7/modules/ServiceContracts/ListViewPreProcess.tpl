@@ -5,9 +5,10 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-service-contracts-ui-ready');</script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsList.css')}" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260527_list_layout1" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260527_list_layout1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsList.css')}?mk_v=20260603_sc_pad" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260603_sales_std" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260603_sales_std" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260603_sales_std"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/List.js')}"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-service-contracts-list="1">

@@ -5,9 +5,8 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&family=Space+Grotesk:wght@500&display=swap');
 
-/* ---- Main shell: Figma 24px padding under topbar ---- */
+/* Main shell padding: DashBoard.css (24px); keep class hook for module overrides */
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-sc-list-main {
-	padding: 24px !important;
 	box-sizing: border-box;
 }
 
@@ -95,11 +94,12 @@ body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .main-c
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-page,
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-list-sales-root {
 	width: 100% !important;
-	max-width: 1200px !important;
-	margin: 0 auto !important;
+	max-width: none !important;
+	margin: 0 !important;
 	padding: 0 !important;
 	box-sizing: border-box !important;
 	position: relative !important;
+	overflow: hidden;
 }
 
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-page > .col-sm-12,

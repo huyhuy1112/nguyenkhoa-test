@@ -189,13 +189,7 @@ body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:focus
 	border-color: #e5a820 !important;
 }
 
-body[data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
-	display: none !important;
-}
-
-body[data-view="List"][data-app="SALES"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer {
-	display: table-row !important;
-}
+/* Filter row visibility + table chrome: MkSalesListTable.css (loaded after this file) */
 
 body[data-view="List"][data-app="SALES"] .floatThead-container {
 	display: none !important;

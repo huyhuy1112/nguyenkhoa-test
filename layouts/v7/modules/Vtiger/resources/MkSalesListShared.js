@@ -477,6 +477,9 @@
 		if (!isMkEnhancedList()) {
 			return;
 		}
+		if (isSalesAppList()) {
+			ensureSalesListTableUi();
+		}
 		destroyFloatTheadArtifacts();
 		var $lv = getListViewContainer();
 		var $card = $lv.find('.mk-so-table-card').first();
@@ -570,6 +573,9 @@
 					if (typeof window.mkPotentialsListAfterAjax === 'function') {
 						window.mkPotentialsListAfterAjax();
 					}
+					if (typeof window.mkSalesListAfterAjax === 'function') {
+						window.mkSalesListAfterAjax();
+					}
 					return;
 				}
 				var $page = getListPageRoot($lv);
@@ -618,6 +624,9 @@
 			}
 			if (isMkEnhancedList() && swapListBodyInShell(contents)) {
 				applyCommonUi();
+				if (isSalesAppList()) {
+					ensureSalesListTableUi();
+				}
 				if (isSalesAppList() && typeof window.applySalesOrderListUi === 'function') {
 					window.applySalesOrderListUi();
 				}
@@ -661,13 +670,309 @@
 			if (isManagementProjectTaskList() || isManagementProjectList()) {
 				return;
 			}
-			/* Potentials: List.js handles search icon (avoid duplicate handlers). */
 			if (isPotentialsSalesList()) {
+				return;
+			}
+			if (isSalesAppList()) {
+				ensureSalesListTableUi();
+				var $row = root.find('tr.searchRow.listViewSearchContainer').first();
+				if ($row.length && $row[0].scrollIntoView) {
+					$row[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				}
 				return;
 			}
 			root.toggleClass('mk-so-search-open');
 		});
 	}
+
+	/* ========== SALES list table standard (Opportunities reference) ========== */
+	var salesTableHooksPatched = false;
+	var salesTableEventsBound = false;
+	var autoSearchTimer = null;
+
+	function getSalesTableRoot() {
+		return getListViewContainer();
+	}
+
+	function ensureSearchRowVisible() {
+		if (!isSalesAppList()) {
+			return;
+		}
+		var $root = getSalesTableRoot();
+		$root.addClass('mk-so-search-open mk-sales-list-table-ready');
+		$root.addClass('mk-qt-search-open mk-sc-search-open mk-ps-search-open mk-contact-search-open mk-org-search-open');
+	}
+
+	function syncSearchFieldMeta() {
+		if (typeof uimeta === 'undefined' || !uimeta.field || !uimeta.field.get) {
+			return;
+		}
+		getSalesTableRoot().find('tr.searchRow .listSearchContributor[name]').each(function () {
+			var $el = $(this);
+			if ($el.data('fieldinfo')) {
+				return;
+			}
+			var fn = $el.attr('name');
+			if (!fn) {
+				return;
+			}
+			var fi = uimeta.field.get(fn);
+			if (fi) {
+				$el.data('fieldinfo', fi);
+			}
+		});
+	}
+
+	function fixSearchRowSelect2() {
+		var $root = getSalesTableRoot();
+		$root.find('tr.searchRow .select2_input_element').each(function () {
+			$(this).attr('tabindex', '-1').attr('aria-hidden', 'true');
+		});
+		$root.find('tr.searchRow .select2_search_div').css({ width: '100%', maxWidth: '100%', position: 'relative' });
+		$root.find('tr.searchRow .select2-container').css({ width: '100%', maxWidth: '100%' });
+	}
+
+	function reinitSearchRow() {
+		var $row = getSalesTableRoot().find('tr.searchRow').first();
+		if ($row.length && window.vtUtils && vtUtils.applyFieldElementsView) {
+			try {
+				vtUtils.applyFieldElementsView($row);
+			} catch (e) {
+				/* ignore */
+			}
+		}
+		syncSearchFieldMeta();
+		fixSearchRowSelect2();
+	}
+
+	function getListSearchParamsSafe(listInstance, includeStarFilters) {
+		if (typeof includeStarFilters === 'undefined') {
+			includeStarFilters = true;
+		}
+		if (listInstance) {
+			listInstance.filterClick = false;
+		}
+		var listViewPageDiv = getSalesTableRoot();
+		var listViewTable = listViewPageDiv.find('tr.searchRow.listViewSearchContainer').first();
+		if (!listViewTable.length) {
+			listViewTable = listViewPageDiv.find('tr.searchRow').first();
+		}
+		var searchParams = [];
+		var currentSearchParams = null;
+		var rawCurrent = listViewPageDiv.find('#currentSearchParams').val();
+		if (rawCurrent) {
+			try {
+				currentSearchParams = JSON.parse(rawCurrent);
+			} catch (parseErr) {
+				currentSearchParams = null;
+			}
+		}
+		listViewTable.find('.listSearchContributor').each(function () {
+			var searchContributorElement = $(this);
+			if (searchContributorElement.hasClass('select2_input_element') || searchContributorElement.is('div')) {
+				return;
+			}
+			var fieldName = searchContributorElement.attr('name');
+			if (!fieldName) {
+				return;
+			}
+			var fieldInfo = (typeof uimeta !== 'undefined' && uimeta.field && uimeta.field.get)
+				? uimeta.field.get(fieldName)
+				: undefined;
+			if (typeof fieldInfo === 'undefined') {
+				fieldInfo = searchContributorElement.data('fieldinfo');
+			}
+			if (!fieldInfo || typeof fieldInfo !== 'object') {
+				fieldInfo = { type: 'string' };
+			}
+			if (currentSearchParams && currentSearchParams[fieldName]) {
+				delete currentSearchParams[fieldName];
+			}
+			if (currentSearchParams && currentSearchParams.starred) {
+				delete currentSearchParams.starred;
+			}
+			var searchValue = searchContributorElement.val();
+			if (typeof searchValue === 'object') {
+				searchValue = searchValue == null ? '' : searchValue.join(',');
+			}
+			searchValue = (searchValue || '').toString().trim();
+			if (!searchValue.length) {
+				return;
+			}
+			var searchOperator = 'c';
+			var fieldType = fieldInfo.type || 'string';
+			if (fieldType === 'date' || fieldType === 'datetime') {
+				searchOperator = 'bw';
+			} else if (
+				fieldType === 'percentage' || fieldType === 'double' || fieldType === 'integer' ||
+				fieldType === 'currency' || fieldType === 'number' || fieldType === 'boolean' ||
+				fieldType === 'picklist'
+			) {
+				searchOperator = 'e';
+			}
+			var storedOperator = searchContributorElement.closest('th').find('.operatorValue').val();
+			if (storedOperator) {
+				searchOperator = storedOperator;
+			}
+			searchParams.push([fieldName, searchOperator, searchValue]);
+		});
+		if (currentSearchParams) {
+			var i;
+			for (i in currentSearchParams) {
+				if (!Object.prototype.hasOwnProperty.call(currentSearchParams, i)) {
+					continue;
+				}
+				var row = currentSearchParams[i];
+				if (!row || !row.fieldName) {
+					continue;
+				}
+				searchParams.push([row.fieldName, row.comparator, row.searchValue]);
+			}
+		}
+		var listSearchParams = searchParams.length > 0 ? [searchParams] : [];
+		if (includeStarFilters && listInstance && listInstance.addStarSearchParams) {
+			listSearchParams = listInstance.addStarSearchParams(listSearchParams);
+		}
+		return listSearchParams;
+	}
+
+	function runSalesListSearch() {
+		ensureSearchRowVisible();
+		syncSearchFieldMeta();
+		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+		if (!listInstance || !listInstance.loadListViewRecords) {
+			return;
+		}
+		listInstance.filterClick = false;
+		listInstance.loadListViewRecords({
+			page: '1',
+			search_params: JSON.stringify(getListSearchParamsSafe(listInstance, false))
+		});
+	}
+
+	function scheduleAutoSearch() {
+		if (!isSalesAppList()) {
+			return;
+		}
+		if (autoSearchTimer) {
+			clearTimeout(autoSearchTimer);
+		}
+		autoSearchTimer = setTimeout(function () {
+			autoSearchTimer = null;
+			runSalesListSearch();
+		}, 160);
+	}
+
+	function assignControlColumnClasses() {
+		var $table = getSalesTableRoot().find('#listview-table');
+		if (!$table.length) {
+			return;
+		}
+		$table.find('thead tr.listViewContentHeader th').each(function () {
+			if ($(this).find('.table-actions').length) {
+				$(this).addClass('mk-col-control');
+			}
+		});
+		$table.find('thead tr.searchRow th').each(function () {
+			if ($(this).hasClass('inline-search-btn') || $(this).find('.table-actions').length) {
+				$(this).addClass('mk-col-control');
+			}
+		});
+		$table.find('tbody td.listViewRecordActions').addClass('mk-col-control');
+	}
+
+	function syncRowSelectedClass() {
+		getSalesTableRoot().find('tbody tr.listViewEntries').each(function () {
+			var $row = $(this);
+			$row.toggleClass(
+				'mk-sales-row-selected mk-opp-row-selected',
+				$row.find('.listViewEntriesCheckBox:checked').length > 0
+			);
+		});
+	}
+
+	function bindSalesListTableEvents() {
+		if (!isSalesAppList() || salesTableEventsBound) {
+			return;
+		}
+		salesTableEventsBound = true;
+		var root = getSalesTableRoot();
+		root.off('keydown.mkSalesListSearch').on('keydown.mkSalesListSearch', 'tr.searchRow input.listSearchContributor', function (ev) {
+			if (ev.key === 'Enter') {
+				ev.preventDefault();
+				runSalesListSearch();
+			}
+		});
+		root
+			.off('change.mkSalesAutoSearch select2-selecting.mkSalesAutoSearch select2-removed.mkSalesAutoSearch')
+			.on('change.mkSalesAutoSearch', 'tr.searchRow select.listSearchContributor', function () {
+				if ($(this).hasClass('select2_input_element')) {
+					return;
+				}
+				scheduleAutoSearch();
+			})
+			.on('select2-selecting.mkSalesAutoSearch select2-removed.mkSalesAutoSearch', 'tr.searchRow .listSearchContributor.select2', function () {
+				scheduleAutoSearch();
+			})
+			.on('datepicker-change.mkSalesAutoSearch', 'tr.searchRow .dateField', function () {
+				scheduleAutoSearch();
+			});
+		root.off('change.mkSalesRowCheck', '.listViewEntriesCheckBox').on('change.mkSalesRowCheck', '.listViewEntriesCheckBox', syncRowSelectedClass);
+		root.off('change.mkSalesMainCheck', '.listViewEntriesMainCheckBox').on('change.mkSalesMainCheck', '.listViewEntriesMainCheckBox', syncRowSelectedClass);
+	}
+
+	function patchSalesListTableHooks() {
+		if (!isSalesAppList() || salesTableHooksPatched || typeof Vtiger_List_Js === 'undefined') {
+			return;
+		}
+		if (Vtiger_List_Js.prototype.__mkSalesListTableHooks) {
+			salesTableHooksPatched = true;
+			return;
+		}
+		var proto = Vtiger_List_Js.prototype;
+		if (!proto.__mkOppListHooks) {
+			var origGetSearch = proto.getListSearchParams;
+			proto.getListSearchParams = function (includeStarFilters) {
+				if (!isSalesAppList()) {
+					return origGetSearch.apply(this, arguments);
+				}
+				return getListSearchParamsSafe(this, includeStarFilters);
+			};
+			var origLoad = proto.loadListViewRecords;
+			proto.loadListViewRecords = function (urlParams) {
+				if (isSalesAppList()) {
+					this.filterClick = false;
+					if (typeof urlParams === 'undefined') {
+						urlParams = {};
+					}
+					if (typeof urlParams.search_params === 'undefined') {
+						urlParams.search_params = JSON.stringify(getListSearchParamsSafe(this, false));
+					}
+				}
+				return origLoad.apply(this, arguments);
+			};
+		}
+		Vtiger_List_Js.prototype.__mkSalesListTableHooks = true;
+		salesTableHooksPatched = true;
+	}
+
+	function ensureSalesListTableUi() {
+		if (!isSalesAppList()) {
+			return;
+		}
+		ensureSearchRowVisible();
+		reinitSearchRow();
+		assignControlColumnClasses();
+		syncRowSelectedClass();
+		bindSalesListTableEvents();
+	}
+
+	window.mkSalesListAfterAjax = function () {
+		if (!isSalesAppList()) {
+			return;
+		}
+		ensureSalesListTableUi();
+	};
 
 	function scheduleApply() {
 		var delays = [0, 50, 150, 400, 800];
@@ -704,6 +1009,9 @@
 			patchPostLoadListViewRecords();
 			if (isSalesAppList()) {
 				bindToolbarEvents();
+				patchSalesListTableHooks();
+				bindSalesListTableEvents();
+				ensureSalesListTableUi();
 			}
 			bindViewLayoutToggle();
 			scheduleApply();
@@ -728,7 +1036,9 @@
 		bindViewLayoutToggle: bindViewLayoutToggle,
 		relocatePaginationFooter: relocatePaginationFooter,
 		dedupePaginationFooters: dedupePaginationFooters,
-		autoLoadTotalRecordCount: autoLoadTotalRecordCount
+		autoLoadTotalRecordCount: autoLoadTotalRecordCount,
+		ensureSalesListTableUi: ensureSalesListTableUi,
+		runSalesListSearch: runSalesListSearch
 	};
 
 	if (document.readyState === 'loading') {

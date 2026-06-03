@@ -254,6 +254,9 @@
 		if (!isQuotesSalesList()) {
 			return;
 		}
+		if (typeof window.mkSalesListAfterAjax === 'function') {
+			window.mkSalesListAfterAjax();
+		}
 		relocatePagination();
 		markTable();
 		enhanceQuoteStage(document);
@@ -286,7 +289,13 @@
 
 		$(document).on('click.mkQtList', '.mk-qt-filter-trigger-search', function (e) {
 			e.preventDefault();
-			root.toggleClass('mk-qt-search-open');
+			if (typeof window.mkSalesListAfterAjax === 'function') {
+				window.mkSalesListAfterAjax();
+			}
+			var $row = root.find('tr.searchRow.listViewSearchContainer').first();
+			if ($row.length && $row[0].scrollIntoView) {
+				$row[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+			}
 		});
 
 		if (window.MkSalesListShared && window.MkSalesListShared.bindViewLayoutToggle) {

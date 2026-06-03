@@ -433,9 +433,9 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-tab
  * cannot commit a stale 130px before JS adds `.mk-col-control`. */
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tr td:first-child,
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tr th:first-child {
-	width: 134px;
-	min-width: 134px;
-	max-width: 134px;
+	width: 152px;
+	min-width: 152px;
+	max-width: 152px;
 }
 
 /* Neutralize base skin: `.listview-table > tbody > tr > td .value { padding: 0 5px }`
@@ -499,13 +499,13 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-tab
 /* Keep row action icons inside the control column (no bleed into category pill). */
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.listViewRecordActions,
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-control {
-	overflow: hidden;
+	overflow: visible;
 	box-sizing: border-box;
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.listViewRecordActions .table-actions {
 	max-width: 100%;
-	overflow: hidden;
+	overflow: visible;
 	flex-wrap: nowrap;
 }
 
@@ -567,26 +567,39 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-tab
 	border-bottom: 1px solid #ececec;
 	padding: 10px 12px !important;
 	vertical-align: middle;
+	text-align: left;
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element) {
-	height: 42px;
-	padding: 0 14px;
+	height: 40px;
+	min-height: 40px;
+	padding: 0 12px;
 	border-radius: 10px;
 	border: 1px solid #d4c4ad;
 	font-size: 14px;
 	width: 100%;
 	box-sizing: border-box;
+	text-align: left;
 }
 
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .inline-search-btn .table-actions {
-	display: flex;
-	gap: 8px;
+/* Filter row: Enter to search — hide legacy green Tìm / Xóa buttons */
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tr.searchRow th.inline-search-btn button,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tr.searchRow th.inline-search-btn .btn,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tr.searchRow th.inline-search-btn .searchAndClearButton {
+	display: none !important;
 }
 
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .inline-search-btn .btn {
-	height: 42px;
-	border-radius: 10px;
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tr.searchRow th.inline-search-btn {
+	padding: 10px !important;
+	vertical-align: middle;
+	background: #fafbfc;
+	border-right: 1px solid #e8dfd0;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tr.searchRow th.inline-search-btn .table-actions {
+	display: block;
+	min-height: 42px;
+	margin: 0;
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td {
@@ -598,38 +611,44 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-tab
 	line-height: 1.35;
 	white-space: normal;
 	word-break: break-word;
-	text-align: center;
+	text-align: left;
 }
 
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.listViewRecordActions {
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.listViewRecordActions,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.mk-col-control {
 	text-align: left;
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions)) {
-	text-align: center;
+	text-align: left;
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues {
 	display: inline-block;
-	text-align: center;
-	width: 100%;
+	text-align: left;
+	width: auto;
+	max-width: 100%;
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td .value,
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td .fieldValue,
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td .referencefield-wrapper {
-	text-align: center;
+	text-align: left;
 }
 
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td[data-name="sales_stage"] .value {
-	display: flex;
-	justify-content: center;
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td[data-name="sales_stage"] .value,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-sales-stage .value {
+	display: inline-flex;
+	justify-content: flex-start;
 	align-items: center;
+	text-align: left;
 }
 
 /* Override base skin .listview-table .table-actions { width:120px; margin-left:7px } */
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions {
-	width: 90px;
+	width: auto;
+	min-width: 0;
+	max-width: 100%;
 	margin-left: 0;
 }
 
@@ -637,9 +656,9 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-tab
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table th.mk-col-control,
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-control,
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.mk-col-control {
-	width: 134px !important;
-	min-width: 134px !important;
-	max-width: 134px !important;
+	width: 152px !important;
+	min-width: 152px !important;
+	max-width: 152px !important;
 	box-sizing: border-box;
 }
 
@@ -837,8 +856,9 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-clo
 	background: #ef4444;
 }
 
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td[data-name="amount"] {
-	text-align: center;
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td[data-name="amount"],
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-amount {
+	text-align: left;
 	white-space: nowrap;
 }
 
@@ -907,30 +927,145 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewCont
 	display: none !important;
 }
 
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow input.listSearchContributor:not(.select2_input_element) {
-	width: 100% !important;
-	max-width: 100% !important;
-	min-height: 38px !important;
-	box-sizing: border-box !important;
-	border: 1px solid #d4c4ad !important;
-	border-radius: 10px !important;
+/* ---- Filter row: one unified field style (text, date, select2 single/multi) ---- */
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th {
+	overflow: visible !important;
 }
 
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container {
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .listSearchContributor.inputElement,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .listSearchContributor.inputElement,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element),
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow input.listSearchContributor:not(.select2_input_element),
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow input.dateField,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow select.listSearchContributor {
+	display: block;
 	width: 100% !important;
 	max-width: 100% !important;
-	display: block !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
 	margin: 0 !important;
-}
-
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice {
-	width: 100% !important;
-	min-height: 38px !important;
-	line-height: 36px !important;
 	box-sizing: border-box !important;
 	border: 1px solid #d4c4ad !important;
 	border-radius: 10px !important;
 	background: #fff !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	text-align: left !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2_input_element {
+	display: none !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	display: block !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-choice {
+	width: 100% !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	line-height: 38px !important;
+	padding: 0 12px !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	background-image: none !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-chosen,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-chosen {
+	text-align: left !important;
+	margin-right: 24px !important;
+	color: #191c1e !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-arrow,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container .select2-arrow {
+	width: 28px !important;
+	border-left: none !important;
+	background: transparent !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-choices {
+	min-height: 40px !important;
+	padding: 4px 8px !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-field input,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-search-field input {
+	height: 28px !important;
+	min-height: 28px !important;
+	margin: 0 !important;
+	padding: 0 4px !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	font-size: 14px !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice {
+	margin: 2px 4px 2px 0 !important;
+	padding: 5px 10px 5px 26px !important;
+	position: relative !important;
+	border-radius: 6px !important;
+	font-size: 13px !important;
+	line-height: 1.35 !important;
+	border: 1px solid #e2d6c4 !important;
+	background: #f8fafc !important;
+	color: #334155 !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close {
+	left: 7px !important;
+	right: auto !important;
+	top: 50% !important;
+	margin-top: -7px !important;
+	width: 12px !important;
+	height: 12px !important;
+	opacity: 0.65;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close:hover,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close:hover {
+	opacity: 1;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow li.select2-search-choice div,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow li.select2-search-choice div {
+	display: inline-block;
+	padding: 0 !important;
+	margin: 0 !important;
+	white-space: nowrap;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .inputElement.select2-container,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow .inputElement.select2-container {
+	border: none !important;
+	padding: 0 !important;
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #select2-drop {
@@ -947,9 +1082,9 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-sort-h
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.listViewRecordActions,
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th:has(.table-actions),
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th:has(.table-actions) {
-	width: 134px !important;
-	min-width: 134px !important;
-	max-width: 134px !important;
+	width: 152px !important;
+	min-width: 152px !important;
+	max-width: 152px !important;
 	box-sizing: border-box;
 }
 
@@ -1072,6 +1207,216 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-tab
 	body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-btn {
 		flex: 1 1 100%;
 	}
+}
+
+/* =============================================================================
+ * Control column — compact rail (checkbox + actions, one row)
+ * ============================================================================= */
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th:first-child,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.inline-search-btn,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody td.listViewRecordActions,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table th.mk-col-control,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-control {
+	text-align: left !important;
+	vertical-align: middle !important;
+	padding-left: 12px !important;
+	padding-right: 14px !important;
+	background: #fafbfc;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.inline-search-btn {
+	border-right: 1px solid #e8dfd0;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody td.listViewRecordActions,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody td.mk-col-control {
+	background: #fcfcfd;
+	border-right: 1px solid #f0ebe3;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions:before,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions:after {
+	display: none !important;
+	content: none !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th .table-actions,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td .table-actions {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	gap: 6px !important;
+	flex-wrap: nowrap !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	margin: 0 !important;
+	padding: 0 2px 0 0 !important;
+	box-sizing: border-box !important;
+	font-size: 14px !important;
+	color: #40627e !important;
+	overflow: visible !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions > .input,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions > span,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions > .more {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex: 0 0 auto;
+	float: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	opacity: 1 !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .listViewEntries .table-actions span {
+	float: none !important;
+	padding-right: 0 !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions .dropdown {
+	float: none !important;
+	display: inline-flex !important;
+	align-items: center !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions .fa.action,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions .fa.icon,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions .fa.fa-ellipsis-v {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 26px;
+	height: 26px;
+	border-radius: 8px;
+	font-size: 15px !important;
+	line-height: 1 !important;
+	color: #64748b !important;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions > .more {
+	margin-right: 0 !important;
+	padding-right: 0 !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions .more .dropdown-toggle {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	min-width: 26px;
+	padding: 0 2px !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions .fa.action:hover,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions .more .dropdown-toggle:hover .fa {
+	background: #f1f5f9;
+	color: #334155 !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions .fa-star.active {
+	color: #c98f12 !important;
+	background: rgba(253, 187, 44, 0.14);
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions .listColumnFilter {
+	width: 28px;
+	height: 28px;
+	line-height: 26px;
+	border-radius: 8px;
+	border: 1px solid #e2d6c4;
+	background: #fff;
+	color: #64748b;
+	text-align: center;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesCheckBox,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox {
+	-webkit-appearance: none !important;
+	appearance: none !important;
+	width: 18px !important;
+	height: 18px !important;
+	min-width: 18px !important;
+	min-height: 18px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	flex-shrink: 0;
+	cursor: pointer;
+	border: 2px solid #94a3b8 !important;
+	border-radius: 5px !important;
+	background: #ffffff !important;
+	box-shadow: none !important;
+	position: relative;
+	vertical-align: middle;
+	box-sizing: border-box !important;
+	opacity: 1 !important;
+	float: none !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:hover,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:hover {
+	border-color: #e5a820 !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
+	background: #fdbb2c !important;
+	border-color: #c98f12 !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked::after {
+	content: '' !important;
+	position: absolute;
+	left: 5px;
+	top: 1px;
+	width: 5px;
+	height: 10px;
+	border: solid #ffffff;
+	border-width: 0 2.5px 2.5px 0;
+	transform: rotate(45deg);
+	display: block;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries.mk-opp-row-selected {
+	background: rgba(253, 187, 44, 0.1) !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th .row-fluid,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th > div:not(.table-actions),
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th .select2_search_div {
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	display: block;
+	text-align: left;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow .select2-container .select2-chosen {
+	text-align: left !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow input.dateField {
+	text-align: left;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td[data-name="order_category"] .value,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-order-category .value {
+	text-align: left;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td[data-name="potentialname"] a,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-potentialname a {
+	text-align: left;
 }
 
 /* Toolbar: hide grid + magnifying-glass (broken UX); search/columns remain in table header */

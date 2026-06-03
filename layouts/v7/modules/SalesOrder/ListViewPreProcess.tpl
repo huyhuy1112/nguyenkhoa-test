@@ -5,8 +5,9 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderList.css')}" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260527_list_layout1" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260527_list_layout1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260603_sales_std" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260603_sales_std" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260603_sales_std"></script>
 {assign var=mk_so_mod value=Vtiger_Module_Model::getInstance($MODULE)}
 {assign var=mk_so_status_fm value=Vtiger_Field_Model::getInstance('sostatus', $mk_so_mod)}
 {if !$mk_so_status_fm}
