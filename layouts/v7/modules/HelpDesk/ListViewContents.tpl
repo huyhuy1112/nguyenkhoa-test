@@ -72,10 +72,10 @@
 			<div class="mk-hd-table-toolbar">
 				<div class="mk-hd-table-toolbar__left">
 					<div class="mk-hd-view-toggle" role="group" aria-label="View mode">
-						<button type="button" class="mk-hd-view-toggle__btn" disabled aria-pressed="false" title="Grid view">
+						<button type="button" class="mk-hd-view-toggle__btn" data-mk-hd-view="grid" aria-pressed="false" title="Grid view">
 							{include file="partials/TicketListSvgIcon.tpl"|vtemplate_path:$MODULE ICON='GRID'}
 						</button>
-						<button type="button" class="mk-hd-view-toggle__btn is-active" aria-pressed="true" title="List view">
+						<button type="button" class="mk-hd-view-toggle__btn is-active" data-mk-hd-view="list" aria-pressed="true" title="List view">
 							{include file="partials/TicketListSvgIcon.tpl"|vtemplate_path:$MODULE ICON='LIST'}
 						</button>
 					</div>

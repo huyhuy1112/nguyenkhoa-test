@@ -109,6 +109,21 @@
 		$('#listViewContent #listview-table').addClass('mk-org-table');
 	}
 
+	function isSalesStyleAccountsList() {
+		var b = document.body;
+		if (!b || b.getAttribute('data-module') !== 'Accounts' || b.getAttribute('data-view') !== 'List') {
+			return false;
+		}
+		var appName = (b.getAttribute('data-app') || '').toUpperCase();
+		if (appName === 'SALES' || appName === 'SUPPORT') {
+			return true;
+		}
+		var params = new URLSearchParams(window.location.search || '');
+		var app = params.get('app');
+		return params.get('module') === 'Accounts' && params.get('view') === 'List' &&
+			(app === 'SALES' || app === 'SUPPORT');
+	}
+
 	function afterListLayout() {
 		if (!isModernAccountsList()) {
 			return;
@@ -116,6 +131,9 @@
 		relocateOrgPagination();
 		markOrgTable();
 		fixListScrollContainer();
+		if (isSalesStyleAccountsList() && typeof window.mkSalesListAfterAjax === 'function') {
+			window.mkSalesListAfterAjax();
+		}
 	}
 
 	function init() {
@@ -137,6 +155,16 @@
 
 		$(document).on('click.mkOrgList', '.mk-so-filter-trigger-search, .mk-org-filter-trigger-search', function (e) {
 			e.preventDefault();
+			if (isSalesStyleAccountsList()) {
+				if (typeof window.mkSalesListAfterAjax === 'function') {
+					window.mkSalesListAfterAjax();
+				}
+				var $row = root.find('tr.searchRow.listViewSearchContainer').first();
+				if ($row.length && $row[0].scrollIntoView) {
+					$row[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				}
+				return;
+			}
 			root.toggleClass('mk-so-search-open mk-org-search-open');
 		});
 

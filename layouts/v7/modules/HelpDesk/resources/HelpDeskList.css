@@ -693,3 +693,67 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-pagination__btn.is-active 
 		min-width: 900px;
 	}
 }
+
+/* Grid view toggle — card layout */
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table-wrap {
+	overflow: visible;
+}
+
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table {
+	display: block;
+	min-width: 0 !important;
+	width: 100%;
+	border: none;
+}
+
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table colgroup,
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table thead {
+	display: none;
+}
+
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table tbody {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 14px;
+	padding: 14px;
+}
+
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table tbody tr {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 16px;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+}
+
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table tbody tr:hover {
+	background: #fffdf8;
+}
+
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table tbody td {
+	display: block;
+	padding: 0;
+	border: none;
+	height: auto;
+}
+
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table__code {
+	font-size: 15px;
+	font-weight: 700;
+}
+
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table__subject {
+	font-size: 14px;
+	font-weight: 600;
+	color: #191c1e;
+	white-space: normal;
+}
+
+body[data-module="HelpDesk"][data-view="List"].mk-hd-is-view-grid .mk-hd-table__empty {
+	grid-column: 1 / -1;
+	text-align: center;
+	padding: 24px;
+}

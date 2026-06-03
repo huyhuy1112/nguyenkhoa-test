@@ -77,6 +77,10 @@
 		return b && b.getAttribute('data-module') === 'Potentials' && isSalesAppList();
 	}
 
+	function isSalesStyleTableList() {
+		return isSalesAppList() || isSupportAppList();
+	}
+
 	function isMkEnhancedList() {
 		return isSalesAppList() || isManagementProjectTaskList() || isManagementProjectList() || isManagementDocumentsList();
 	}
@@ -201,14 +205,14 @@
 	}
 
 	function relocatePaginationFooter() {
-		if (!isMkEnhancedList()) {
+		if (!isMkEnhancedList() && !isSupportAppList()) {
 			return;
 		}
 		var $lv = getListViewContainer();
 		if (!$lv.length) {
 			return;
 		}
-		var $card = $lv.find('.mk-so-table-card').first();
+		var $card = $lv.find('.mk-so-table-card, .mk-org-table-card, .mk-contact-table-card').first();
 		var $scope = $card.length ? $card : $lv;
 		var $table = $scope.find('#table-content').first();
 		if (!$table.length) {
@@ -474,10 +478,10 @@
 	}
 
 	function applyCommonUi() {
-		if (!isMkEnhancedList()) {
+		if (!isMkEnhancedList() && !isSupportAppList()) {
 			return;
 		}
-		if (isSalesAppList()) {
+		if (isSalesStyleTableList()) {
 			ensureSalesListTableUi();
 		}
 		destroyFloatTheadArtifacts();
@@ -541,14 +545,14 @@
 		var originalFloat = Vtiger_List_Js.prototype.registerFloatingThead;
 		var originalReflow = Vtiger_List_Js.prototype.reflowList;
 		Vtiger_List_Js.prototype.registerFloatingThead = function () {
-			if (isMkEnhancedList()) {
+			if (isMkEnhancedList() || isSupportAppList()) {
 				applyCommonUi();
 				return;
 			}
 			originalFloat.call(this);
 		};
 		Vtiger_List_Js.prototype.reflowList = function () {
-			if (isMkEnhancedList()) {
+			if (isMkEnhancedList() || isSupportAppList()) {
 				applyCommonUi();
 				return;
 			}
@@ -650,7 +654,7 @@
 		var originalPostLoad = Vtiger_List_Js.prototype.postLoadListViewRecords;
 		Vtiger_List_Js.prototype.postLoadListViewRecords = function (res) {
 			originalPostLoad.call(this, res);
-			if (isMkEnhancedList()) {
+			if (isMkEnhancedList() || isSupportAppList()) {
 				setTimeout(applyCommonUi, 0);
 			}
 		};
@@ -673,7 +677,7 @@
 			if (isPotentialsSalesList()) {
 				return;
 			}
-			if (isSalesAppList()) {
+			if (isSalesStyleTableList()) {
 				ensureSalesListTableUi();
 				var $row = root.find('tr.searchRow.listViewSearchContainer').first();
 				if ($row.length && $row[0].scrollIntoView) {
@@ -695,7 +699,7 @@
 	}
 
 	function ensureSearchRowVisible() {
-		if (!isSalesAppList()) {
+		if (!isSalesStyleTableList()) {
 			return;
 		}
 		var $root = getSalesTableRoot();
@@ -851,7 +855,7 @@
 	}
 
 	function scheduleAutoSearch() {
-		if (!isSalesAppList()) {
+		if (!isSalesStyleTableList()) {
 			return;
 		}
 		if (autoSearchTimer) {
@@ -892,7 +896,7 @@
 	}
 
 	function bindSalesListTableEvents() {
-		if (!isSalesAppList() || salesTableEventsBound) {
+		if (!isSalesStyleTableList() || salesTableEventsBound) {
 			return;
 		}
 		salesTableEventsBound = true;
@@ -957,7 +961,7 @@
 	}
 
 	function ensureSalesListTableUi() {
-		if (!isSalesAppList()) {
+		if (!isSalesStyleTableList()) {
 			return;
 		}
 		ensureSearchRowVisible();
@@ -968,7 +972,7 @@
 	}
 
 	window.mkSalesListAfterAjax = function () {
-		if (!isSalesAppList()) {
+		if (!isSalesStyleTableList()) {
 			return;
 		}
 		ensureSalesListTableUi();
@@ -999,17 +1003,21 @@
 	}
 
 	function init() {
-		if (!isMkEnhancedList()) {
+		if (!isMkEnhancedList() && !isSupportAppList()) {
 			return;
 		}
 		whenVtigerListReady(function () {
-			patchShowPagingInfo();
+			if (isMkEnhancedList()) {
+				patchShowPagingInfo();
+				patchPlaceListContents();
+				patchPostLoadListViewRecords();
+			}
 			patchVtigerFloatingThead();
-			patchPlaceListContents();
-			patchPostLoadListViewRecords();
-			if (isSalesAppList()) {
+			if (isSalesStyleTableList()) {
 				bindToolbarEvents();
-				patchSalesListTableHooks();
+				if (isSalesAppList()) {
+					patchSalesListTableHooks();
+				}
 				bindSalesListTableEvents();
 				ensureSalesListTableUi();
 			}
@@ -1024,6 +1032,8 @@
 
 	window.MkSalesListShared = {
 		isSalesAppList: isSalesAppList,
+		isSupportAppList: isSupportAppList,
+		isSalesStyleTableList: isSalesStyleTableList,
 		isPotentialsSalesList: isPotentialsSalesList,
 		isManagementProjectTaskList: isManagementProjectTaskList,
 		isManagementProjectList: isManagementProjectList,
