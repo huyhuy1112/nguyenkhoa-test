@@ -351,6 +351,45 @@ class Home_MainPage_View extends Vtiger_Index_View {
 		return $out;
 	}
 
+	/**
+	 * Lối tắt Main Page — chỉ hiện khi user có quyền module tương ứng.
+	 * @return array[] keys: type (link|info), label, url?, badge?, icon (tasks|calendar|clock)
+	 */
+	protected function buildMainPageShortcuts(array $links, $taskCount, $loggedTimeDisplay) {
+		$shortcuts = array();
+
+		if (Users_Privileges_Model::isPermitted('ProjectTask', 'DetailView')) {
+			$shortcuts[] = array(
+				'type' => 'link',
+				'icon' => 'tasks',
+				'label' => vtranslate('LBL_MK_SHORTCUT_MY_TASKS', 'Home'),
+				'url' => $links['projecttask_list'],
+				'badge' => (int) $taskCount,
+			);
+		}
+
+		if (Users_Privileges_Model::isPermitted('Calendar', 'DetailView')) {
+			$shortcuts[] = array(
+				'type' => 'link',
+				'icon' => 'calendar',
+				'label' => vtranslate('LBL_MK_SHORTCUT_EVENTS', 'Home'),
+				'url' => $links['calendar'],
+				'badge' => 0,
+			);
+		}
+
+		if ($loggedTimeDisplay !== '') {
+			$shortcuts[] = array(
+				'type' => 'info',
+				'icon' => 'clock',
+				'label' => vtranslate('LBL_MK_SHORTCUT_SESSION', 'Home'),
+				'badge' => $loggedTimeDisplay,
+			);
+		}
+
+		return $shortcuts;
+	}
+
 	public function process(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$currentUser = Users_Record_Model::getCurrentUserModel();
@@ -378,6 +417,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 		$viewer->assign('MAINPAGE_AGENDA', $mainPageAgenda);
 		$viewer->assign('MAINPAGE_AGENDA_UPCOMING', $mainPageAgendaUpcoming);
 		$viewer->assign('MAINPAGE_LINKS', $mainPageLinks);
+
 		// Announcements from vtiger_announcement (filter by current user: assigned to me or to all)
 		$mainPageAnnouncements = array();
 		$mainPageAssignableUsers = array();
@@ -409,6 +449,9 @@ class Home_MainPage_View extends Vtiger_Index_View {
 		$viewer->assign('MAINPAGE_LOGIN_TIMESTAMP', $loginTime);
 		$viewer->assign('MAINPAGE_LOGGED_TIME_DISPLAY', $loggedTimeDisplay);
 		$viewer->assign('MAINPAGE_LOGGED_TIME_SECONDS', $loggedTimeSeconds);
+
+		// Shortcuts: chỉ module user có quyền; bỏ Stickies/Bookmarks (không có module)
+		$viewer->assign('MAINPAGE_SHORTCUTS', $this->buildMainPageShortcuts($mainPageLinks, $projectTaskCount, $loggedTimeDisplay));
 
 		// Heartbeat: cập nhật login_time của phiên hiện tại để Team Status (30 phút) coi user đang có hoạt động
 		if (class_exists('LoginHeartbeat')) {

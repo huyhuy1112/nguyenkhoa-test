@@ -4,7 +4,7 @@
 	<div class="mk-mainpage-hero">
 		<div class="mk-mainpage-hero-brand">
 			<span class="mk-mainpage-hero-kicker">TDB SOLUTION</span>
-			<h1 class="mk-mainpage-hero-title">Management Dashboard</h1>
+			<h1 class="mk-mainpage-hero-title">{vtranslate('LBL_MK_MANAGEMENT_DASHBOARD', 'Home')}</h1>
 		</div>
 		{if $MAINPAGE_CAN_SEE_TEAM_STATUS}
 		<form method="get" class="mainpage-global-filter mk-mainpage-hero-filters" id="mainpage-global-filter-form">
@@ -34,7 +34,7 @@
 					<label class="mainpage-global-filter-label" for="mainpage-filter-date">Thời gian</label>
 					<input id="mainpage-filter-date" type="date" name="team_filter_date" class="form-control input-sm mainpage-global-filter-date" value="{$MAINPAGE_TEAM_FILTER_DATE|escape:'html'}" />
 				</div>
-				<button type="submit" class="btn btn-sm mainpage-global-filter-btn"><i class="fa fa-filter"></i><span>Filters</span></button>
+				<button type="submit" class="btn btn-sm mainpage-global-filter-btn"><i class="fa fa-filter"></i><span>{vtranslate('LBL_MK_FILTERS', 'Home')}</span></button>
 			</div>
 		</form>
 		{/if}
@@ -42,9 +42,9 @@
 	<div class="mk-mainpage-grid">
 		<div class="mainpage-card announcements area-ann">
 			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-bullhorn"></i> Announcements</div>
+				<div class="title"><i class="fa fa-bullhorn"></i> {vtranslate('LBL_MK_ANNOUNCEMENTS', 'Home')}</div>
 				<div class="actions">
-					<button type="button" class="btn btn-default btn-xs" id="mainpage-announcement-add" title="Add announcement"><i class="fa fa-plus"></i> Add</button>
+					<button type="button" class="btn btn-default btn-xs" id="mainpage-announcement-add" title="{vtranslate('LBL_MK_ADD', 'Home')}"><i class="fa fa-plus"></i> {vtranslate('LBL_MK_ADD', 'Home')}</button>
 				</div>
 			</div>
 			<div class="card-body announcements-body ann-list-wrap">
@@ -64,19 +64,19 @@
 		</div>
 		<div class="mainpage-card projects area-projects">
 			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-folder-open-o"></i> My projects</div>
+				<div class="title"><i class="fa fa-folder-open-o"></i> {vtranslate('LBL_MK_MY_PROJECTS', 'Home')}</div>
 				<div class="actions">
-					<a href="{$MAINPAGE_LINKS.project_list}" class="btn btn-default btn-xs">Xem tất cả</a>
+					<a href="{$MAINPAGE_LINKS.project_list}" class="btn btn-default btn-xs">{vtranslate('LBL_MK_VIEW_ALL', 'Home')}</a>
 				</div>
 			</div>
 			<div class="table-responsive">
 				<table class="table mainpage-table table-hover">
 					<thead>
 						<tr>
-							<th style="width: 46%;">Title</th>
-							<th>Start</th>
-							<th>End</th>
-							<th style="width: 60px;">Status</th>
+							<th style="width: 46%;">{vtranslate('LBL_MK_TABLE_TITLE', 'Home')}</th>
+							<th>{vtranslate('LBL_MK_TABLE_START', 'Home')}</th>
+							<th>{vtranslate('LBL_MK_TABLE_END', 'Home')}</th>
+							<th style="width: 60px;">{vtranslate('LBL_MK_TABLE_STATUS', 'Home')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -98,18 +98,18 @@
 		</div>
 		<div class="mainpage-card tasks area-tasks">
 			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-list-ul"></i> My tasks</div>
+				<div class="title"><i class="fa fa-list-ul"></i> {vtranslate('LBL_MK_MY_TASKS', 'Home')}</div>
 				<div class="actions">
-					<a href="{$MAINPAGE_LINKS.projecttask_list}" class="btn btn-default btn-xs">Xem tất cả</a>
+					<a href="{$MAINPAGE_LINKS.projecttask_list}" class="btn btn-default btn-xs">{vtranslate('LBL_MK_VIEW_ALL', 'Home')}</a>
 				</div>
 			</div>
 			<div class="table-responsive">
 				<table class="table mainpage-table">
 					<thead>
 						<tr>
-							<th>Title</th>
-							<th>Due date</th>
-							<th>Status</th>
+							<th>{vtranslate('LBL_MK_TABLE_TITLE', 'Home')}</th>
+							<th>{vtranslate('LBL_MK_TABLE_DUE_DATE', 'Home')}</th>
+							<th>{vtranslate('LBL_MK_TABLE_STATUS', 'Home')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -130,24 +130,43 @@
 		</div>
 		<div class="mainpage-card shortcuts area-shortcuts">
 			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-star-o"></i> My shortcuts</div>
+				<div class="title"><i class="fa fa-star-o"></i> {vtranslate('LBL_MK_MY_SHORTCUTS', 'Home')}</div>
 			</div>
 			<div class="card-body shortcuts-grid">
-				<a href="{$MAINPAGE_LINKS.projecttask_list}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="14" height="14" rx="3" stroke="#40627E" stroke-width="1.5"/><path d="M6 9.2L8.1 11.3L12.5 6.8" stroke="#40627E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>My tasks</span>{if $MAINPAGE_TASK_COUNT gt 0}<span class="badge blue">{$MAINPAGE_TASK_COUNT}</span>{/if}</a>
-				<a href="{$MAINPAGE_LINKS.calendar}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="3.5" width="13" height="12" rx="2" stroke="#40627E" stroke-width="1.5"/><path d="M2.5 7.5H15.5" stroke="#40627E" stroke-width="1.5"/><path d="M6 2.5V5M12 2.5V5" stroke="#40627E" stroke-width="1.5" stroke-linecap="round"/></svg></span><span>My events &amp; milestones</span></a>
-				<a href="{$MAINPAGE_LINKS.projecttask_list}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#40627E" stroke-width="1.5"/><path d="M9 5.5V9L11.2 10.4" stroke="#40627E" stroke-width="1.5" stroke-linecap="round"/></svg></span><span>Thời gian phiên</span></a>
-				<a href="{$MAINPAGE_LINKS.calendar}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 5H14.5M3.5 9H14.5M3.5 13H10.5" stroke="#40627E" stroke-width="1.5" stroke-linecap="round"/></svg></span><span>My activities</span></a>
-				<a href="{$MAINPAGE_LINKS.home}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5.5 3.5H12.5L14.5 5.5V12.5L10.5 14.5H7.5L3.5 10.5V5.5Z" stroke="#40627E" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span>Stickies</span></a>
-				<a href="{$MAINPAGE_LINKS.home}" class="shortcut"><span class="mk-shortcut-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4.5 3.5H13.5V14.5L9 11.5L4.5 14.5Z" stroke="#40627E" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span>Bookmarks</span></a>
+				{if $MAINPAGE_SHORTCUTS|@count gt 0}
+					{foreach from=$MAINPAGE_SHORTCUTS item=sc}
+						{if $sc.type eq 'info'}
+							<span class="shortcut shortcut--info" title="{$sc.label|escape:'html'}">
+								<span class="mk-shortcut-icon" aria-hidden="true">
+									{if $sc.icon eq 'clock'}<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#40627E" stroke-width="1.5"/><path d="M9 5.5V9L11.2 10.4" stroke="#40627E" stroke-width="1.5" stroke-linecap="round"/></svg>{/if}
+								</span>
+								<span>{$sc.label|escape:'html'}</span>
+								{if $sc.badge}<span class="badge blue">{$sc.badge|escape:'html'}</span>{/if}
+							</span>
+						{else}
+							<a href="{$sc.url|escape:'html'}" class="shortcut">
+								<span class="mk-shortcut-icon" aria-hidden="true">
+									{if $sc.icon eq 'tasks'}<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="14" height="14" rx="3" stroke="#40627E" stroke-width="1.5"/><path d="M6 9.2L8.1 11.3L12.5 6.8" stroke="#40627E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+									{elseif $sc.icon eq 'calendar'}<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="3.5" width="13" height="12" rx="2" stroke="#40627E" stroke-width="1.5"/><path d="M2.5 7.5H15.5" stroke="#40627E" stroke-width="1.5"/><path d="M6 2.5V5M12 2.5V5" stroke="#40627E" stroke-width="1.5" stroke-linecap="round"/></svg>
+									{/if}
+								</span>
+								<span>{$sc.label|escape:'html'}</span>
+								{if $sc.badge gt 0}<span class="badge blue">{$sc.badge}</span>{/if}
+							</a>
+						{/if}
+					{/foreach}
+				{else}
+					<p class="text-muted small" style="margin:0;">{vtranslate('LBL_NO_DATA_AVAILABLE', 'Vtiger')}</p>
+				{/if}
 			</div>
 		</div>
 		<div class="mainpage-card agenda area-agenda">
 			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-calendar-check-o"></i> Agenda</div>
+				<div class="title"><i class="fa fa-calendar-check-o"></i> {vtranslate('LBL_MK_AGENDA', 'Home')}</div>
 				<div class="tab-group agenda-tabs">
-					<span class="tab active" data-agenda-panel="today">Today</span>
-					<span class="tab" data-agenda-panel="upcoming">Upcoming</span>
-					<a href="{$MAINPAGE_LINKS.calendar}" class="tab" target="_blank" rel="noopener noreferrer" title="Quá hạn - Công việc/lịch đã qua ngày hẹn">Overdue <span class="small text-muted">(Quá hạn)</span></a>
+					<span class="tab active" data-agenda-panel="today">{vtranslate('LBL_MK_AGENDA_TODAY', 'Home')}</span>
+					<span class="tab" data-agenda-panel="upcoming">{vtranslate('LBL_MK_AGENDA_UPCOMING', 'Home')}</span>
+					<a href="{$MAINPAGE_LINKS.calendar}" class="tab" target="_blank" rel="noopener noreferrer" title="{vtranslate('LBL_MK_AGENDA_OVERDUE', 'Home')}">{vtranslate('LBL_MK_AGENDA_OVERDUE', 'Home')}</a>
 				</div>
 			</div>
 			<div class="card-body">

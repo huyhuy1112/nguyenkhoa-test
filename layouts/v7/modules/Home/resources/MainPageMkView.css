@@ -437,7 +437,8 @@ body[data-module="Home"][data-view="MainPage"] .shortcuts-grid {
 	gap: 8px;
 }
 
-body[data-module="Home"][data-view="MainPage"] .shortcuts-grid .shortcut {
+body[data-module="Home"][data-view="MainPage"] .shortcuts-grid .shortcut,
+body[data-module="Home"][data-view="MainPage"] .shortcuts-grid .shortcut--info {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -448,6 +449,10 @@ body[data-module="Home"][data-view="MainPage"] .shortcuts-grid .shortcut {
 	font-size: 13px;
 	color: #0f172a;
 	text-decoration: none;
+}
+
+body[data-module="Home"][data-view="MainPage"] .shortcuts-grid .shortcut--info {
+	cursor: default;
 }
 
 body[data-module="Home"][data-view="MainPage"] .mk-shortcut-icon {

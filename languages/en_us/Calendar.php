@@ -231,6 +231,7 @@ $languageStrings = array(
 );
 
 $jsLanguageStrings = array(
+	'JS_SELECT_TASK_OR_EVENT' => 'Choose whether to add a task or an event to your calendar.',
 	'LBL_ADD_EVENT_TASK' => 'Add Event/Task',
 	'JS_TASK_IS_SUCCESSFULLY_ADDED_TO_YOUR_CALENDAR' => 'Task is successfully added to your Calendar',
         'LBL_CANT_SELECT_CONTACT_FROM_LEADS' => 'Cannot select related Contacts for Leads',

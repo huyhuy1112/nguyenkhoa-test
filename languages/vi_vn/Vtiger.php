@@ -358,6 +358,7 @@ $languageStrings = array(
 	'LBL_MARKETING_AND_SALES' => 'TIẾP THỊ & BÁN HÀNG',
 	'LBL_MARK_AS_HELD' => 'Đánh dấu Hoàn thành',
 	'LBL_MASS_EDITING' => 'Sửa hàng loạt',
+	'LBL_MASS_SELECT' => 'Chọn hàng loạt',
 	'LBL_MATCHED_THIS_CRITERIA' => 'xuất hiện theo tiêu chí này',
 	'LBL_MAX_NUMBER_FILTER_COLUMNS' => 'Tối đa 12',
 	'LBL_MAX_QTY_SELECT' => 'Giá trị tối đa là',

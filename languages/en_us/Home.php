@@ -26,6 +26,28 @@ $languageStrings = array(
 	'LBL_SAVE_ORDER'=>'Save Order',
 	'LBL_ADD_NEW_DASHBOARD'=>'Add new dashboard',
 	'LBL_MAX_CHARACTERS_ALLOWED_DASHBOARD' => 'Maximum 30 characters are allowed for dashboard name.',
+
+	// Main Page (Management dashboard)
+	'LBL_MK_MY_SHORTCUTS' => 'My shortcuts',
+	'LBL_MK_SHORTCUT_MY_TASKS' => 'My tasks',
+	'LBL_MK_SHORTCUT_EVENTS' => 'My events & milestones',
+	'LBL_MK_SHORTCUT_SESSION' => 'Session time',
+	'LBL_MK_MY_TASKS' => 'My tasks',
+	'LBL_MK_MY_PROJECTS' => 'My projects',
+	'LBL_MK_ANNOUNCEMENTS' => 'Announcements',
+	'LBL_MK_AGENDA' => 'Agenda',
+	'LBL_MK_VIEW_ALL' => 'View all',
+	'LBL_MK_TABLE_TITLE' => 'Title',
+	'LBL_MK_TABLE_DUE_DATE' => 'Due date',
+	'LBL_MK_TABLE_STATUS' => 'Status',
+	'LBL_MK_TABLE_START' => 'Start',
+	'LBL_MK_TABLE_END' => 'End',
+	'LBL_MK_AGENDA_TODAY' => 'Today',
+	'LBL_MK_AGENDA_UPCOMING' => 'Upcoming',
+	'LBL_MK_AGENDA_OVERDUE' => 'Overdue',
+	'LBL_MK_ADD' => 'Add',
+	'LBL_MK_MANAGEMENT_DASHBOARD' => 'Management Dashboard',
+	'LBL_MK_FILTERS' => 'Filters',
 );
 
 $jsLanguageStrings = array(

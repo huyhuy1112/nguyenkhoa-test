@@ -31,8 +31,9 @@ $languageStrings = array(
 	'LBL_ACTIVITY_TYPES' => 'Các loại công việc',
 	'LBL_ADD_CALENDAR_VIEW' => 'Thêm dịch theo dõi',
 	'LBL_ADDED_CALENDARS' => 'Đã thêm công việc',
-	'LBL_ADD_EVENT' => 'Thêm Sự kiện',
-	'LBL_ADD_TASK' => 'Thêm Việc cần làm',
+	'LBL_ADD_EVENT' => 'Thêm sự kiện',
+	'LBL_ADD_TASK' => 'Thêm công việc',
+	'LBL_SELECT_TYPE' => 'Chọn loại',
 	'LBL_CALENDAR_SETTINGS' => 'Cài đặt công việc',
 	'LBL_CHOOSE_YEAR' => 'Chọn năm',
 	'LBL_CALENDAR_SHARING' => 'Chia sẻ công việc',
@@ -122,6 +123,7 @@ $languageStrings = array(
 );
 
 $jsLanguageStrings = array(
+	'JS_SELECT_TASK_OR_EVENT' => 'Chọn công việc hoặc sự kiện bạn muốn thêm vào lịch.',
 	'JS_CALENDAR_VIEW_ADDED_SUCCESSFULLY' => 'Thêm công việc thành công',
 	'JS_CALENDAR_VIEW_COLOR_UPDATED_SUCCESSFULLY' => 'Màu hiển thị của công việc được cập nhập thành công', 
 	'JS_CALENDAR_VIEW_DELETE_CONFIRMATION' => 'Bạn có chắc bạn muốn xóa công việc này không?', 

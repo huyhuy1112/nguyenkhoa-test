@@ -950,6 +950,42 @@ html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .sideba
 	border-color: var(--mk-border-color) !important;
 }
 
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .calendar-feed-indicator.activitytype-indicator {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .calendar-feed-indicator:hover {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-accent) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .mk-cal-feed-mass {
+	background: var(--mk-bg-hover) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .mk-cal-feed-title,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .mk-cal-feed-module {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .mk-cal-feed-field,
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .mk-cal-feed-meta {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .activitytype-actions i {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] html.mk-cal-ui-ready .mk-cal-activitytypes-inner .activitytype-actions i:hover {
+	color: var(--mk-primary) !important;
+	background: var(--mk-bg-hover) !important;
+}
+
 /* ---- Project / ProjectTask lists — toolbar + buttons + progress ---- */
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.list-view-sidebar-offset .listview-actions-container,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent .listview-actions-container.mk-so-filter-row,

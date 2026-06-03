@@ -157,7 +157,11 @@ Calendar_Calendar_Js('Calendar_SharedCalendar_Js', {
 				feedCheckbox.data('calendarFeedColor',selectedColor).
 				data('calendarFeedTextcolor',textColor);
 				var feedIndicator = feedCheckbox.closest('.calendar-feed-indicator');
-				feedIndicator.css({'background-color':selectedColor,'color':textColor});
+				if (typeof Calendar_Calendar_Js !== 'undefined' && Calendar_Calendar_Js.applyMkFeedIndicatorStyle) {
+					Calendar_Calendar_Js.applyMkFeedIndicatorStyle(feedIndicator, selectedColor, textColor);
+				} else {
+					feedIndicator.css({'background-color':selectedColor,'color':textColor});
+				}
 				thisInstance.refreshFeed(feedCheckbox);
 
 				app.helper.hideProgress();

@@ -6,7 +6,7 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 {* cache-bust to force browser reload *}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Calendar/resources/Calendar.css')}&mk_v=20260529_year_light" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Calendar/resources/CalendarMkView.css')}&mk_v=20260529_year_light" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Calendar/resources/CalendarMkView.css')}?mk_v=20260603_cal_choice1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Calendar/resources/CalendarMkView.js')}&mk_v=20260529_year_fit"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-calendar-ui="1">

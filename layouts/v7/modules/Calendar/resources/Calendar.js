@@ -343,14 +343,32 @@ Vtiger.Class(
         }
       );
     },
+    applyMkFeedIndicatorStyle: function (feedIndicator, color, textColor) {
+      if (!feedIndicator || !feedIndicator.length) {
+        return;
+      }
+      if (jQuery("html").hasClass("mk-cal-ui-ready")) {
+        var accent = color || "#94a3b8";
+        feedIndicator[0].style.setProperty("--mk-feed-accent", accent);
+        feedIndicator.css({ "background-color": "", color: "" });
+        feedIndicator.find(".mk-cal-feed-dot").css("background", accent);
+      } else {
+        feedIndicator.css({
+          "background-color": color,
+          color: textColor,
+        });
+      }
+    },
     assignFeedTextColor: function (feedCheckbox) {
       var color = feedCheckbox.data("calendarFeedColor");
       var contrast = app.helper.getColorContrast(color);
       var textColor = contrast === "dark" ? "white" : "black";
       feedCheckbox.data("calendarFeedTextcolor", textColor);
-      feedCheckbox
-        .closest(".calendar-feed-indicator")
-        .css({ color: textColor });
+      var indicator = feedCheckbox.closest(".calendar-feed-indicator");
+      if (indicator.hasClass("mass-edit-option")) {
+        return;
+      }
+      this.applyMkFeedIndicatorStyle(indicator, color, textColor);
     },
     colorizeFeed: function (feedCheckbox) {
       this.assignFeedTextColor(feedCheckbox);
@@ -693,7 +711,11 @@ Vtiger.Class(
             feedIndicatorTitle =
               translatedModuleName +
               feedIndicatorTitle.substr(feedIndicatorModuleEndIndex);
-            newFeedIndicator.find("span:first").text(feedIndicatorTitle);
+            var labelEl = newFeedIndicator.find(".mk-cal-feed-label");
+            if (!labelEl.length) {
+              labelEl = newFeedIndicator.find("span").not(".mk-cal-feed-dot").first();
+            }
+            labelEl.text(feedIndicatorTitle);
             var newFeedCheckbox = newFeedIndicator.find(".toggleCalendarFeed");
             newFeedCheckbox
               .attr("data-calendar-sourcekey", calendarSourceKey)
@@ -716,10 +738,11 @@ Vtiger.Class(
               .closest(".calendar-feed-indicator");
           }
 
-          feedIndicator.css({
-            "background-color": selectedColor,
-            color: textColor,
-          });
+          thisInstance.applyMkFeedIndicatorStyle(
+            feedIndicator,
+            selectedColor,
+            textColor
+          );
           var feedCheckbox = feedIndicator.find(".toggleCalendarFeed");
           feedCheckbox
             .data("calendarFeedColor", selectedColor)
@@ -1598,14 +1621,27 @@ Vtiger.Class(
         return txt || fallback || key;
       };
 
-      var message = translateClean(
+      var escHtml = function (text) {
+        return jQuery("<div/>").text(text || "").html();
+      };
+      var leadText = translateClean(
         "JS_SELECT_TASK_OR_EVENT",
-        "Chọn Công việc hoặc Sự kiện?"
+        "Chọn công việc hoặc sự kiện bạn muốn thêm vào lịch."
       );
+      var titleText = translateClean("LBL_SELECT_TYPE", "Chọn loại");
+      var taskLabel = translateClean("LBL_ADD_TASK", "Thêm công việc");
+      var eventLabel = translateClean("LBL_ADD_EVENT", "Thêm sự kiện");
+      var message =
+        '<div class="mk-cal-type-choice">' +
+        '<p class="mk-cal-type-choice__lead">' +
+        escHtml(leadText) +
+        "</p>" +
+        "</div>";
       var buttons = {
         task: {
-          label: translateClean("LBL_ADD_TASK", "Thêm Việc cần làm"),
-          className: "btn-default",
+          label: taskLabel,
+          className:
+            "btn mk-cal-type-choice__btn mk-cal-type-choice__btn--secondary",
           callback: function () {
             thisInstance.choiceDialogOpen = false;
             thisInstance.performingDayClickOperation = false;
@@ -1613,8 +1649,9 @@ Vtiger.Class(
           },
         },
         event: {
-          label: translateClean("LBL_ADD_EVENT", "Thêm Sự kiện"),
-          className: "btn-primary",
+          label: eventLabel,
+          className:
+            "btn mk-cal-type-choice__btn mk-cal-type-choice__btn--primary",
           callback: function () {
             thisInstance.choiceDialogOpen = false;
             thisInstance.performingDayClickOperation = false;
@@ -1623,8 +1660,9 @@ Vtiger.Class(
         },
       };
       var dlg = bootbox.dialog({
-        title: translateClean("LBL_SELECT_TYPE", "Chọn loại"),
+        title: titleText,
         message: message,
+        className: "mk-cal-type-choice-modal",
         closeButton: true,
         buttons: buttons,
         onEscape: function () {
@@ -1633,6 +1671,7 @@ Vtiger.Class(
         },
       });
       if (dlg) {
+        jQuery(dlg).addClass("mk-cal-type-choice-modal");
         jQuery(dlg).one("hidden.bs.modal", function () {
           thisInstance.choiceDialogOpen = false;
           thisInstance.performingDayClickOperation = false;
