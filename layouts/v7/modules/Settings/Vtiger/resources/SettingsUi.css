@@ -105,7 +105,7 @@ body[data-parent="Settings"] .mk-dash-main.mk-settings-main {
 	min-height: 0;
 	min-width: 0;
 	display: block;
-	padding: 24px !important;
+	padding: 20px 28px 28px !important;
 	box-sizing: border-box;
 	background: var(--mk-settings-bg);
 }
@@ -309,16 +309,16 @@ body[data-parent="Settings"] .mk-settings-subnav-group:has(.settingsgroup-menu-c
 .mk-settings-subnav-links {
 	list-style: none;
 	margin: 0;
-	padding: 0 0 0 8px;
+	padding: 0 0 0 12px;
 }
 
 /* Sub-item — giống mk-dash-mod-link */
 .mk-settings-subnav-link,
 body[data-parent="Settings"] .mk-dashboard-sidebar .mk-settings-subnav a.menuItemLabel {
 	display: block;
-	padding: 8px 12px 8px 28px;
-	margin: 2px 0;
-	border-radius: 6px;
+	padding: 8px 12px 8px 24px;
+	margin: 1px 0;
+	border-radius: 8px;
 	color: #475569 !important;
 	font-size: 13px;
 	font-weight: 500;
@@ -403,15 +403,16 @@ body[data-parent="Settings"] .mk-dash-mod-link--active {
 /* ========================================================================== */
 
 .mk-settings-index {
-	max-width: 1200px;
+	max-width: none;
+	width: 100%;
 }
 
 .mk-settings-breadcrumb__list {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 8px;
-	margin: 0 0 16px;
+	gap: 6px;
+	margin: 0 0 12px;
 	padding: 0;
 	list-style: none;
 	font-size: 13px;
@@ -437,46 +438,41 @@ body[data-parent="Settings"] .mk-dash-mod-link--active {
 }
 
 .mk-settings-index-header {
-	margin-bottom: 28px;
+	margin: 0 0 20px;
 }
 
 .mk-settings-index-header__title {
-	margin: 0 0 6px;
-	font-size: 28px;
+	margin: 0;
+	font-size: 26px;
 	font-weight: 800;
 	color: var(--mk-settings-text);
 	letter-spacing: -0.02em;
-}
-
-.mk-settings-index-header__subtitle {
-	margin: 0;
-	font-size: 14px;
-	color: var(--mk-settings-muted);
+	line-height: 1.2;
 }
 
 .mk-settings-section-title {
-	margin: 0 0 16px;
-	font-size: 12px;
+	margin: 0 0 10px;
+	font-size: 11px;
 	font-weight: 800;
-	letter-spacing: 0.12em;
+	letter-spacing: 0.1em;
 	text-transform: uppercase;
 	color: var(--mk-settings-muted);
 }
 
 .mk-settings-summary {
-	margin-bottom: 32px;
+	margin-bottom: 24px;
 }
 
 .mk-settings-summary-grid {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 16px;
+	gap: 12px;
 }
 
 .mk-settings-stat-card {
 	display: block;
-	padding: 24px 20px;
-	border-radius: 16px;
+	padding: 16px 18px;
+	border-radius: 12px;
 	background: var(--mk-settings-card);
 	border: 1px solid var(--mk-settings-border);
 	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -491,24 +487,28 @@ body[data-parent="Settings"] .mk-dash-mod-link--active {
 }
 
 .mk-settings-stat-card__value {
-	font-size: 36px;
+	font-size: 32px;
 	font-weight: 800;
 	line-height: 1;
 	color: var(--mk-settings-text);
 }
 
 .mk-settings-stat-card__label {
-	margin-top: 12px;
-	font-size: 14px;
+	margin-top: 8px;
+	font-size: 13px;
 	font-weight: 600;
 	color: var(--mk-settings-muted);
+}
+
+.mk-settings-shortcuts {
+	margin-top: 4px;
 }
 
 .mk-settings-shortcuts-grid {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 16px;
-	min-height: 120px;
+	gap: 12px;
+	min-height: 0;
 }
 
 .mk-settings-shortcut-card {
@@ -517,9 +517,9 @@ body[data-parent="Settings"] .mk-dash-mod-link--active {
 	flex-direction: column;
 	align-items: center;
 	justify-content: flex-start;
-	min-height: 132px;
-	padding: 20px 14px 14px;
-	border-radius: 16px;
+	min-height: 0;
+	padding: 14px 12px 12px;
+	border-radius: 12px;
 	background: var(--mk-settings-card);
 	border: 1px solid var(--mk-settings-border);
 	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -538,30 +538,30 @@ body[data-parent="Settings"] .mk-dash-mod-link--active {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 44px;
-	height: 44px;
-	margin-bottom: 10px;
-	border-radius: 12px;
+	width: 40px;
+	height: 40px;
+	margin-bottom: 8px;
+	border-radius: 10px;
 	background: rgba(15, 23, 42, 0.04);
 	color: rgba(15, 23, 42, 0.55);
-	font-size: 20px;
+	font-size: 18px;
 }
 
 .mk-settings-shortcut-card__title {
 	display: block;
-	font-size: 12px;
+	font-size: 11px;
 	font-weight: 800;
-	letter-spacing: 0.04em;
+	letter-spacing: 0.03em;
 	text-transform: uppercase;
 	color: var(--mk-settings-text);
-	line-height: 1.35;
+	line-height: 1.3;
 }
 
 .mk-settings-shortcut-card__desc {
 	display: block;
-	margin-top: 6px;
+	margin-top: 4px;
 	font-size: 11px;
-	line-height: 1.4;
+	line-height: 1.35;
 	color: var(--mk-settings-muted);
 }
 
@@ -1733,7 +1733,13 @@ body[data-parent="Settings"] .main-container .settingsPageDiv.content-area,
 body[data-parent="Settings"] .main-container .settingsPageDiv,
 body[data-parent="Settings"] .main-container .listViewPageDiv.content-area,
 body[data-parent="Settings"] .main-container .listViewPageDiv,
-body[data-parent="Settings"] .main-container .content-area {
+body[data-parent="Settings"] .main-container .content-area,
+body[data-parent="Settings"] .main-container.mk-settings-page .settingsPageDiv.mk-settings-content {
 	margin-left: 0 !important;
-	padding-left: 0 !important;
+	margin-right: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	float: none !important;
+	left: auto !important;
 }

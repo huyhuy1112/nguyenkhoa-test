@@ -14,10 +14,7 @@
 	</nav>
 
 	<header class="mk-settings-index-header">
-		<div class="mk-settings-index-header__text">
-			<h1 class="mk-settings-index-header__title">{vtranslate('LBL_SETTINGS', 'Vtiger')}</h1>
-			<p class="mk-settings-index-header__subtitle">{vtranslate('LBL_SETTINGS', 'Vtiger')}</p>
-		</div>
+		<h1 class="mk-settings-index-header__title">{vtranslate('LBL_SETTINGS', 'Vtiger')}</h1>
 	</header>
 
 	<section class="mk-settings-summary" aria-labelledby="mk-settings-summary-title">
