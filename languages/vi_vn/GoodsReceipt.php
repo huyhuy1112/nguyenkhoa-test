@@ -1,7 +1,7 @@
 <?php
 $languageStrings = array(
-	'GoodsReceipt' => 'Inbound',
-	'SINGLE_GoodsReceipt' => 'Inbound',
-	'LBL_ADD_RECORD' => 'Add Inbound',
-	'LBL_RECORDS_LIST' => 'Inbound',
+	'GoodsReceipt' => 'Nhập kho',
+	'SINGLE_GoodsReceipt' => 'Nhập kho',
+	'LBL_ADD_RECORD' => 'Tạo phiếu nhập',
+	'LBL_RECORDS_LIST' => 'Nhập kho',
 );

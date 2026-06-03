@@ -1,6 +1,6 @@
 <?php
 $languageStrings = array(
-	'GoodsIssue' => 'Outbound',
-	'SINGLE_GoodsIssue' => 'Outbound',
-	'LBL_RECORDS_LIST' => 'Outbound',
+	'GoodsIssue' => 'Xuất kho',
+	'SINGLE_GoodsIssue' => 'Xuất kho',
+	'LBL_RECORDS_LIST' => 'Xuất kho',
 );

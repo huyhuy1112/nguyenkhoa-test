@@ -6,7 +6,7 @@
 		</li>
 		<li class="mk-go-detail-breadcrumb__sep" aria-hidden="true">&gt;</li>
 		<li class="mk-go-detail-breadcrumb__item">
-			<a href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY">Outbound</a>
+			<a href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY">{vtranslate('GoodsIssue','GoodsIssue')}</a>
 		</li>
 		<li class="mk-go-detail-breadcrumb__sep" aria-hidden="true">&gt;</li>
 		<li class="mk-go-detail-breadcrumb__item mk-go-detail-breadcrumb__item--current">

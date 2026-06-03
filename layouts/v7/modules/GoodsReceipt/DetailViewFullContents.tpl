@@ -154,9 +154,9 @@
 <div class="container-fluid detailview-content inv-modern-page">
 	<div class="inv-modern-card">
 	<div class="inv-topnav">
-		<a class="active" href="index.php?module=GoodsReceipt&view=List&app=INVENTORY">Inbound</a>
-		<a href="index.php?module=Warehouse&view=List&app=INVENTORY">Storage</a>
-		<a href="index.php?module=GoodsIssue&view=List&app=INVENTORY">Outbound</a>
+		<a class="active" href="index.php?module=GoodsReceipt&view=List&app=INVENTORY">{vtranslate('GoodsReceipt','GoodsReceipt')}</a>
+		<a href="index.php?module=Warehouse&view=List&app=INVENTORY">{vtranslate('Warehouse','Warehouse')}</a>
+		<a href="index.php?module=GoodsIssue&view=List&app=INVENTORY">{vtranslate('GoodsIssue','GoodsIssue')}</a>
 	</div>
 	<div class="row">
 		<div class="col-lg-12">

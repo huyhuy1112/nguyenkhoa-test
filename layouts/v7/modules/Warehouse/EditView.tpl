@@ -5,9 +5,9 @@
 		<div class="inv-modern-card">
 		<div class="container-fluid">
 			<div class="inv-topnav">
-				<a href="index.php?module=GoodsReceipt&view=List&app=INVENTORY">Inbound</a>
-				<a class="active" href="index.php?module=Warehouse&view=List&app=INVENTORY">Storage</a>
-				<a href="index.php?module=GoodsIssue&view=List&app=INVENTORY">Outbound</a>
+				<a href="index.php?module=GoodsReceipt&view=List&app=INVENTORY">{vtranslate('GoodsReceipt','GoodsReceipt')}</a>
+				<a class="active" href="index.php?module=Warehouse&view=List&app=INVENTORY">{vtranslate('Warehouse','Warehouse')}</a>
+				<a href="index.php?module=GoodsIssue&view=List&app=INVENTORY">{vtranslate('GoodsIssue','GoodsIssue')}</a>
 			</div>
 			<div class="inv-suite-head">
 				<div>

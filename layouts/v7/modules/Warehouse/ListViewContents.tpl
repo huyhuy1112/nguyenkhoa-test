@@ -32,10 +32,10 @@
 		</section>
 
 		<div class="mk-inv-flow-bar">
-			<nav class="mk-gi-topnav mk-gi-topnav--pills" aria-label="Inventory modules">
-				<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Inbound</a>
-				<a class="is-active" href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY" aria-current="page"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73Z" stroke="currentColor" stroke-width="1.6"/><path d="M3.3 7.7 12 12l8.7-4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22V12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>Storage</a>
-				<a href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21V9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17 14l-5-5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Outbound</a>
+			<nav class="mk-gi-topnav mk-gi-topnav--pills" aria-label="Các module kho">
+				<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>{vtranslate('GoodsReceipt','GoodsReceipt')}</a>
+				<a class="is-active" href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY" aria-current="page"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73Z" stroke="currentColor" stroke-width="1.6"/><path d="M3.3 7.7 12 12l8.7-4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22V12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>{vtranslate('Warehouse','Warehouse')}</a>
+				<a href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21V9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17 14l-5-5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>{vtranslate('GoodsIssue','GoodsIssue')}</a>
 				<a href="javascript:void(0)" role="button" data-mk-wh-tab="qc"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="1.8"/></svg></span>QC</a>
 			</nav>
 		</div>
@@ -255,15 +255,15 @@
 		<div class="inv-modern-card">
 		<div class="container-fluid">
 			<div class="inv-topnav">
-				<a href="index.php?module=GoodsReceipt&view=List&app=INVENTORY">Inbound</a>
-				<a class="active" href="index.php?module=Warehouse&view=List&app=INVENTORY">Storage</a>
-				<a href="index.php?module=GoodsIssue&view=List&app=INVENTORY">Outbound</a>
+				<a href="index.php?module=GoodsReceipt&view=List&app=INVENTORY">{vtranslate('GoodsReceipt','GoodsReceipt')}</a>
+				<a class="active" href="index.php?module=Warehouse&view=List&app=INVENTORY">{vtranslate('Warehouse','Warehouse')}</a>
+				<a href="index.php?module=GoodsIssue&view=List&app=INVENTORY">{vtranslate('GoodsIssue','GoodsIssue')}</a>
 			</div>
 			<div class="row">
 				<div class="col-lg-12">
 					<div class="inv-suite-head">
 						<div>
-							<h3>Storage</h3>
+							<h3>{vtranslate('Warehouse','Warehouse')}</h3>
 							<p class="text-muted">Authoritative current stock per catalog or legacy identity, derived from Inbound/Outbound.</p>
 						</div>
 						<div class="inv-suite-actions">

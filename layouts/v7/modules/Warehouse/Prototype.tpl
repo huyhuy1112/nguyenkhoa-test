@@ -111,24 +111,7 @@
 									<th class="mk-wh-proto-td-right">Thao tác</th>
 								</tr>
 							</thead>
-							<tbody>
-								<tr>
-									<td><strong>GRN-0001</strong></td>
-									<td>CTY Dược Hậu Giang</td>
-									<td>PO-2026-0142</td>
-									<td>14:20 28/5/26</td>
-									<td><span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đã nhập kho</span></td>
-									<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="inbound-detail" data-code="GRN-0001">Mở</button></td>
-								</tr>
-								<tr>
-									<td><strong>GRN-0002</strong></td>
-									<td>Vinamilk Logistics</td>
-									<td>PO-2026-0151</td>
-									<td>16:09 26/5/26</td>
-									<td><span class="mk-wh-proto-pill mk-wh-proto-pill--warn">Chờ QC</span></td>
-									<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="inbound-detail" data-code="GRN-0002">Mở</button></td>
-								</tr>
-							</tbody>
+							<tbody id="mkWhProtoInboundTbody"></tbody>
 						</table>
 					</div>
 				</div>
@@ -147,17 +130,7 @@
 									<th class="mk-wh-proto-td-right">QC</th>
 								</tr>
 							</thead>
-							<tbody>
-								<tr>
-									<td><strong>GRN-0002</strong></td>
-									<td>Vinamilk Logistics</td>
-									<td>Sữa tươi 1L <span class="mk-wh-proto-muted">(FMC-010)</span></td>
-									<td>LOT-0106</td>
-									<td>2026-08-30</td>
-									<td>300</td>
-									<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="qc-record" data-code="GRN-0002">Ghi nhận QC</button></td>
-								</tr>
-							</tbody>
+							<tbody id="mkWhProtoQcTbody"></tbody>
 						</table>
 					</div>
 				</div>
@@ -175,40 +148,7 @@
 									<th class="mk-wh-proto-td-right">Tồn</th>
 								</tr>
 							</thead>
-							<tbody>
-								<tr>
-									<td><strong>MED-001</strong></td>
-									<td>Paracetamol 500mg</td>
-									<td>LOT-2605A</td>
-									<td>2027-05-01 <span class="mk-wh-proto-muted">(333d)</span></td>
-									<td class="mk-wh-proto-td-right">A1-02</td>
-									<td class="mk-wh-proto-td-right"><strong>800</strong></td>
-								</tr>
-								<tr>
-									<td><strong>MED-002</strong></td>
-									<td>Amoxicillin 250mg</td>
-									<td>LOT-2605B</td>
-									<td>2027-03-15 <span class="mk-wh-proto-muted">(286d)</span></td>
-									<td class="mk-wh-proto-td-right">A1-03</td>
-									<td class="mk-wh-proto-td-right"><strong>400</strong></td>
-								</tr>
-								<tr>
-									<td><strong>MED-004</strong></td>
-									<td>Aspirin 100mg</td>
-									<td>LOT-2504X</td>
-									<td><span class="mk-wh-proto-exp">2026-07-10</span> <span class="mk-wh-proto-muted">(38d)</span></td>
-									<td class="mk-wh-proto-td-right">A2-01</td>
-									<td class="mk-wh-proto-td-right"><strong>150</strong></td>
-								</tr>
-								<tr>
-									<td><strong>FMC-010</strong></td>
-									<td>Sữa tươi 1L</td>
-									<td>LOT-0506</td>
-									<td><span class="mk-wh-proto-exp">2026-06-15</span> <span class="mk-wh-proto-muted">(13d)</span></td>
-									<td class="mk-wh-proto-td-right">B1-01</td>
-									<td class="mk-wh-proto-td-right"><strong>50</strong></td>
-								</tr>
-							</tbody>
+							<tbody id="mkWhProtoStockTbody"></tbody>
 						</table>
 					</div>
 				</div>
@@ -226,24 +166,7 @@
 									<th class="mk-wh-proto-td-right">Thao tác</th>
 								</tr>
 							</thead>
-							<tbody>
-								<tr>
-									<td><strong>GIN-0001</strong></td>
-									<td>Bệnh viện Bạch Mai</td>
-									<td>SO-2026-0088</td>
-									<td>21:00 30/5/26</td>
-									<td><span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đã giao</span></td>
-									<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="outbound-detail" data-code="GIN-0001">Mở</button></td>
-								</tr>
-								<tr>
-									<td><strong>GIN-0002</strong></td>
-									<td>Nhà thuốc Quận 1</td>
-									<td>SO-2026-0101</td>
-									<td>09:12 01/6/26</td>
-									<td><span class="mk-wh-proto-pill mk-wh-proto-pill--warn">Chờ duyệt</span></td>
-									<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="outbound-detail" data-code="GIN-0002">Mở</button></td>
-								</tr>
-							</tbody>
+							<tbody id="mkWhProtoOutboundTbody"></tbody>
 						</table>
 					</div>
 				</div>

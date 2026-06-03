@@ -183,10 +183,22 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 	color: #166534;
 }
 
+.mk-wh-proto-pill--blue {
+	background: rgba(59, 130, 246, 0.12);
+	border-color: rgba(59, 130, 246, 0.35);
+	color: #1d4ed8;
+}
+
 .mk-wh-proto-pill--warn {
 	background: rgba(245, 158, 11, 0.16);
 	border-color: rgba(245, 158, 11, 0.45);
 	color: #92400e;
+}
+
+.mk-wh-proto-pill--draft {
+	background: rgba(148, 163, 184, 0.18);
+	border-color: rgba(148, 163, 184, 0.55);
+	color: #334155;
 }
 
 .mk-wh-proto-btn--primary {

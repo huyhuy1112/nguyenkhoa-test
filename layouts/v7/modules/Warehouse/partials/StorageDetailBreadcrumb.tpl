@@ -6,7 +6,7 @@
 		</li>
 		<li class="mk-wh-detail-breadcrumb__sep" aria-hidden="true">&gt;</li>
 		<li class="mk-wh-detail-breadcrumb__item">
-			<a href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY">Storage</a>
+			<a href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY">{vtranslate('Warehouse','Warehouse')}</a>
 		</li>
 		<li class="mk-wh-detail-breadcrumb__sep" aria-hidden="true">&gt;</li>
 		<li class="mk-wh-detail-breadcrumb__item mk-wh-detail-breadcrumb__item--current">

@@ -170,9 +170,9 @@
 		<div class="col-sm-12 col-xs-12 content-area full-width" style="margin-left:0;">
 			<form method="post" action="index.php" class="container-fluid inv-modern-card" enctype="multipart/form-data">
 				<div class="inv-topnav">
-					<a class="active" href="index.php?module=GoodsReceipt&view=List&app=INVENTORY">Inbound</a>
-					<a href="index.php?module=Warehouse&view=List&app=INVENTORY">Storage</a>
-					<a href="index.php?module=GoodsIssue&view=List&app=INVENTORY">Outbound</a>
+					<a class="active" href="index.php?module=GoodsReceipt&view=List&app=INVENTORY">{vtranslate('GoodsReceipt','GoodsReceipt')}</a>
+					<a href="index.php?module=Warehouse&view=List&app=INVENTORY">{vtranslate('Warehouse','Warehouse')}</a>
+					<a href="index.php?module=GoodsIssue&view=List&app=INVENTORY">{vtranslate('GoodsIssue','GoodsIssue')}</a>
 				</div>
 				<input type="hidden" name="module" value="GoodsReceipt" />
 				<input type="hidden" name="action" value="Save" />

@@ -6,7 +6,7 @@
 		</li>
 		<li class="mk-gr-detail-breadcrumb__sep" aria-hidden="true">&gt;</li>
 		<li class="mk-gr-detail-breadcrumb__item">
-			<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY">Inbound</a>
+			<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY">{vtranslate('GoodsReceipt','GoodsReceipt')}</a>
 		</li>
 		<li class="mk-gr-detail-breadcrumb__sep" aria-hidden="true">&gt;</li>
 		<li class="mk-gr-detail-breadcrumb__item mk-gr-detail-breadcrumb__item--current">

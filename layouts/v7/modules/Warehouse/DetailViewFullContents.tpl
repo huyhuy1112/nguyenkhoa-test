@@ -246,7 +246,7 @@
 					<thead>
 						<tr>
 							<th scope="col">Code</th>
-							<th scope="col">Outbound</th>
+							<th scope="col">{vtranslate('GoodsIssue','GoodsIssue')}</th>
 							<th scope="col">Date</th>
 							<th scope="col">Destination</th>
 							<th scope="col">Location</th>
@@ -287,7 +287,7 @@
 <div class="main-container clearfix">
 	<div class="detailViewPageDiv content-area full-width" style="margin-left:0;padding:24px;">
 		<p class="text-muted">Open with <code>app=INVENTORY</code> for the modern Storage detail view.</p>
-		<a class="btn btn-default" href="index.php?module=Warehouse&amp;view=Detail&amp;record={$STOCK.stockid}&amp;app=INVENTORY">Open Inventory view</a>
+		<a class="btn btn-default" href="index.php?module=Warehouse&amp;view=Detail&amp;record={$STOCK.stockid}&amp;app=INVENTORY">Mở giao diện kho</a>
 	</div>
 </div>
 {/if}

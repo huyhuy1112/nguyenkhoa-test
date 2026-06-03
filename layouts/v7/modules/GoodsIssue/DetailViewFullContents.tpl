@@ -181,7 +181,7 @@
 		<div class="inv-modern-card">
 			<div class="container-fluid">
 				<p class="text-muted">Open with <code>app=INVENTORY</code> for the modern outbound detail view.</p>
-				<a class="btn btn-default" href="index.php?module=GoodsIssue&amp;view=Detail&amp;record={$RECORD_DATA.issueid}&amp;app=INVENTORY">Open Inventory view</a>
+				<a class="btn btn-default" href="index.php?module=GoodsIssue&amp;view=Detail&amp;record={$RECORD_DATA.issueid}&amp;app=INVENTORY">Mở giao diện kho</a>
 			</div>
 		</div>
 	</div>
