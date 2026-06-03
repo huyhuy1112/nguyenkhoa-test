@@ -360,6 +360,9 @@
 		if (window.MkSalesListShared && typeof window.MkSalesListShared.relocatePaginationFooter === 'function') {
 			window.MkSalesListShared.relocatePaginationFooter();
 		}
+		if (typeof window.mkSalesListAfterAjax === 'function') {
+			window.mkSalesListAfterAjax();
+		}
 
 		dedupeListDom();
 
@@ -481,10 +484,7 @@
 			root.find('.listColumnFilter').first().trigger('click');
 		});
 
-		$(document).off('click.mkSoList', '.mk-so-filter-trigger-search').on('click.mkSoList', '.mk-so-filter-trigger-search', function (e) {
-			e.preventDefault();
-			root.toggleClass('mk-so-search-open');
-		});
+		/* Filter icon: MkSalesListShared scrolls to filter row (no toggle hide) */
 
 		patchPlaceListContents();
 		bindListEvents();

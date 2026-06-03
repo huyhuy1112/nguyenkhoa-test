@@ -653,12 +653,16 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewCont
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th {
 	height: auto !important;
 	min-height: 0 !important;
-	padding: 8px 10px !important;
+	padding: 10px 12px !important;
 	font-size: 13px;
 	font-weight: 400;
 	text-transform: none;
 	letter-spacing: normal;
 	white-space: normal;
+	background: #fafbfc;
+	border-bottom: 1px solid #d4c4ad;
+	vertical-align: middle !important;
+	overflow: visible !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="phone"],
@@ -829,19 +833,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewCont
 	border: 0;
 }
 
-/* Search row: collapsed until toolbar search icon */
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
-	display: none !important;
-}
-
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer {
-	display: table-row !important;
-	background: #fafbfc;
-}
-
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent.mk-so-search-open tr.searchRow th {
-	border-bottom: 1px solid #d4c4ad;
-}
+/* Filter row visibility + spacing: shared MkSalesListTable.css (always visible) */
 
 /* Stock bottom-fixed-scroll duplicates horizontal scroll (custom.css top:-19px); hide — native bar on #table-content only */
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
@@ -941,24 +933,18 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewCont
 	contain: layout style;
 }
 
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout > tbody > tr > td,
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout > thead > tr > th {
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout > thead > tr.listViewContentHeader > th,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout > tbody > tr > td {
 	padding: 0 10px !important;
 	vertical-align: middle !important;
 }
 
-/* Search row inputs */
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow input.listSearchContributor,
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow input[type="text"] {
-	width: 100%;
-	min-height: 36px;
-	padding: 6px 10px;
-	border: 1px solid #d4c4ad;
-	border-radius: 8px;
-	font-size: 13px;
-	box-sizing: border-box;
-	background: #fff;
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout > thead > tr.searchRow > th {
+	padding: 10px 12px !important;
+	vertical-align: middle !important;
 }
+
+/* Search row inputs: MkSalesListTable.css (Opportunities reference) */
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-so-list-main {
 	background: #f7f9fb;
