@@ -342,9 +342,14 @@
 			})
 			.map(function (s) {
 				var days = daysUntil(s.expiry);
-				var expCls = days < 30 ? 'mk-wh-proto-pill--warn' : days < 90 ? 'mk-wh-proto-pill--blue' : 'mk-wh-proto-pill--ok';
 				var expLabel = days < 0 ? 'Quá hạn' : 'Còn ' + days + ' ngày';
-				var qtyCls = (Number(s.qty) || 0) < 50 ? ' style="color:#b45309;font-weight:600;"' : '';
+				var hsdCls = 'mk-wh-proto-hsd';
+				if (days < 0) {
+					hsdCls += ' mk-wh-proto-hsd--expired';
+				} else if (days < 90) {
+					hsdCls += ' mk-wh-proto-hsd--soon';
+				}
+				var qtyCls = (Number(s.qty) || 0) < 50 ? ' mk-wh-proto-qty--low' : '';
 				return (
 					'<tr>' +
 					'<td><strong>' +
@@ -356,7 +361,9 @@
 					'<td>' +
 					escapeHtml(s.lot) +
 					'</td>' +
-					'<td>' +
+					'<td class="' +
+					hsdCls +
+					'">' +
 					escapeHtml(s.expiry || '—') +
 					' <span class="mk-wh-proto-muted">(' +
 					escapeHtml(expLabel) +
@@ -364,9 +371,9 @@
 					'<td class="mk-wh-proto-td-right">' +
 					escapeHtml(s.location || '—') +
 					'</td>' +
-					'<td class="mk-wh-proto-td-right"' +
+					'<td class="mk-wh-proto-td-right' +
 					qtyCls +
-					'><strong>' +
+					'"><strong>' +
 					escapeHtml(s.qty) +
 					'</strong></td>' +
 					'</tr>'
@@ -395,12 +402,17 @@
 		var map = {
 			inbound: { title: 'Danh sách phiếu nhập', btn: 'Tạo phiếu nhập', pane: '#mkWhProtoPaneInbound' },
 			qc: { title: 'Hàng đợi QC', btn: 'Tạo phiếu QC', pane: '#mkWhProtoPaneQc' },
-			stock: { title: 'Tồn kho', btn: 'Thêm SKU', pane: '#mkWhProtoPaneStock' },
+			stock: { title: 'Tồn kho', pane: '#mkWhProtoPaneStock', hideCreate: true },
 			outbound: { title: 'Danh sách phiếu xuất', btn: 'Tạo phiếu xuất', pane: '#mkWhProtoPaneOutbound' },
 		};
 		var meta = map[key] || map.inbound;
 		title.textContent = meta.title;
-		btn.textContent = meta.btn;
+		if (meta.hideCreate) {
+			btn.classList.add('hide');
+		} else {
+			btn.classList.remove('hide');
+			btn.textContent = meta.btn;
+		}
 
 		['#mkWhProtoPaneInbound', '#mkWhProtoPaneQc', '#mkWhProtoPaneStock', '#mkWhProtoPaneOutbound'].forEach(function (sel) {
 			var el = qs(sel);
@@ -442,13 +454,19 @@
 		if (permItems) permItems.textContent = meta.perms;
 
 		// Role-based create availability (UI only)
-		// inbound/outbound: stock + manager, qc: qc + manager, stock tab: stock + manager
+		// inbound/outbound: stock + manager, qc: qc + manager; tồn kho chỉ xem (không tạo SKU)
 		var activeTab = 'inbound';
 		var active = qs('.mk-wh-proto-tab.is-active');
 		if (active) activeTab = active.getAttribute('data-tab') || 'inbound';
+		if (activeTab === 'stock') {
+			if (btn) {
+				btn.classList.add('hide');
+				btn.disabled = true;
+			}
+			return;
+		}
 		var canCreate =
 			(activeTab === 'qc' && (role === 'qc' || role === 'manager')) ||
-			(activeTab === 'stock' && (role === 'stock' || role === 'manager')) ||
 			((activeTab === 'inbound' || activeTab === 'outbound') && (role === 'stock' || role === 'manager'));
 		if (btn) {
 			btn.disabled = !canCreate;

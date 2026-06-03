@@ -616,6 +616,23 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 	font-weight: 900;
 }
 
+.mk-wh-proto-hsd--expired,
+.mk-wh-proto-hsd--expired .mk-wh-proto-muted {
+	color: #dc2626;
+	font-weight: 700;
+}
+
+.mk-wh-proto-hsd--soon,
+.mk-wh-proto-hsd--soon .mk-wh-proto-muted {
+	color: #b45309;
+	font-weight: 600;
+}
+
+.mk-wh-proto-qty--low {
+	color: #6366f1;
+	font-weight: 700;
+}
+
 .mk-wh-proto-mini-btn {
 	display: inline-flex;
 	align-items: center;
