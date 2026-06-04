@@ -6,6 +6,20 @@
 (function ($) {
 	'use strict';
 
+	function stageSortKey(data, stageLabel) {
+		var minSort = 9999;
+		var k;
+		for (k = 0; k < data.length; k++) {
+			if (data[k].sales_stage === stageLabel && data[k].stage_sort != null) {
+				var s = parseInt(data[k].stage_sort, 10);
+				if (!isNaN(s) && s < minSort) {
+					minSort = s;
+				}
+			}
+		}
+		return minSort;
+	}
+
 	function buildSalesPersonChartData(widgetInstance, valueField) {
 		var data = widgetInstance.readWidgetData();
 		if (!data || !data.length) {
@@ -24,31 +38,25 @@
 				stages.push(data[i].sales_stage);
 			}
 		}
+		stages.sort(function (a, b) {
+			return stageSortKey(data, a) - stageSortKey(data, b);
+		});
 		var count = [];
 		var allLinks = [];
-		for (j in stages) {
-			if (!Object.prototype.hasOwnProperty.call(stages, j)) {
-				continue;
-			}
+		for (j = 0; j < stages.length; j++) {
 			var salesStageCount = [];
 			var links = [];
-			for (i in users) {
-				if (!Object.prototype.hasOwnProperty.call(users, i)) {
-					continue;
-				}
+			for (i = 0; i < users.length; i++) {
 				var salesCount = 0;
-				var link;
-				for (k in data) {
-					if (!Object.prototype.hasOwnProperty.call(data, k)) {
-						continue;
-					}
+				var link = null;
+				for (k = 0; k < data.length; k++) {
 					var userData = data[k];
 					if (userData.sales_stage === stages[j] && userData.last_name === users[i]) {
 						salesCount =
 							typeof mkParseDashboardChartNumber === 'function'
 								? mkParseDashboardChartNumber(userData[valueField])
 								: parseFloat(userData[valueField]) || 0;
-						link = userData.links;
+						link = userData.links || null;
 						break;
 					}
 				}

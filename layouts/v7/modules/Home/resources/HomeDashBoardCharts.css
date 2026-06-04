@@ -17,10 +17,41 @@ body[data-view="DashBoard"][data-module="Home"] .dashboardWidget .dashboardWidge
 	background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
 }
 
-body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer.mk-chart-stage {
-	min-height: 280px;
-	padding: 12px 8px 8px !important;
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="GroupedBySalesPerson"] .dashboardWidgetContent,
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="PipelinedAmountPerSalesPerson"] .dashboardWidgetContent {
+	padding-bottom: 40px !important;
+	overflow: hidden !important;
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .mk-chart-col .widgetChartContainer.mk-chart-stage {
+	flex: 1 1 auto !important;
+	min-height: 120px !important;
+	max-height: none !important;
+	height: auto !important;
+	padding: 8px 8px 2px !important;
 	background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+	border-radius: 0;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .mk-chart-col .mk-dash-chart-xlabels {
+	display: flex !important;
+	padding: 4px 12px 6px;
+	min-height: 38px !important;
+	flex: 0 0 38px !important;
+	background: #ffffff;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .mk-dash-chart-xlabel {
+	color: #334155 !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .mk-chart-col .mk-dash-chart-legend {
+	display: flex !important;
+	min-height: 44px;
 	border-radius: 0 0 12px 12px;
 }
 
@@ -59,4 +90,58 @@ body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="Cale
 
 body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData .muted small {
 	color: #94a3b8 !important;
+}
+
+/* —— Chart widgets: CRM-style jqPlot (complements DashBoardChartsTheme.js) —— */
+
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget .dashboardWidgetHeader .title {
+	font-size: 15px !important;
+	font-weight: 600 !important;
+	letter-spacing: -0.01em;
+	color: #0f172a !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer {
+	background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+	border-radius: 0 0 12px 12px;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer .jqplot-target {
+	min-height: 200px;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .mk-chart-col .mk-dash-chart-legend,
+body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer .mk-dash-chart-legend {
+	background: linear-gradient(180deg, #fafbfc 0%, #f8fafc 100%);
+}
+
+body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer .jqplot-table-legend-swatch-outline {
+	border-radius: 4px !important;
+	width: 12px !important;
+	height: 12px !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer .jqplot-table-legend-label {
+	color: #334155 !important;
+	font-weight: 500 !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer .jqplot-xaxis-tick text {
+	font-size: 10px !important;
+	fill: #475569 !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer .jqplot-yaxis-tick text {
+	font-size: 10px !important;
+	fill: #64748b !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer .jqplot-grid-canvas {
+	opacity: 1;
+}
+
+/* Hover tooltip */
+body[data-view="DashBoard"][data-module="Home"] .mk-dash-jqplot-tooltip.jqplot-highlighter-tooltip {
+	border-radius: 10px !important;
+	font-size: 12px !important;
 }

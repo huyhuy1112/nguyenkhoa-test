@@ -46,16 +46,26 @@
 				}
 				
                 var allLinks = new Array();
-				for(j in stages) {
+				stages.sort(function(a, b) {
+					var sortA = 9999, sortB = 9999, n, row;
+					for (n = 0; n < data.length; n++) {
+						row = data[n];
+						if (row.sales_stage === a && row.stage_sort != null) { sortA = Math.min(sortA, parseInt(row.stage_sort, 10)); }
+						if (row.sales_stage === b && row.stage_sort != null) { sortB = Math.min(sortB, parseInt(row.stage_sort, 10)); }
+					}
+					return sortA - sortB;
+				});
+				for(j = 0; j < stages.length; j++) {
 					var salesStageCount = new Array();
                     var links = new Array();
-					for(i in users) {
+					for(i = 0; i < users.length; i++) {
 						var salesCount = 0;
-						for(var k in data) {
+						var link = null;
+						for(var k = 0; k < data.length; k++) {
 							var userData = data[k];
 							if(userData.sales_stage == stages[j] && userData.last_name == users[i]) {
 								salesCount = (typeof mkParseDashboardChartNumber === 'function') ? mkParseDashboardChartNumber(userData.count) : parseFloat(userData.count) || 0;
-                                link = userData.links
+                                link = userData.links || null;
 								break;
 							}
 						}

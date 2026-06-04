@@ -62,17 +62,27 @@ Vtiger.Class('Vtiger_Widget_Js',{
 		if (!$el.length) {
 			return null;
 		}
-		var raw = $el.is('script[type="application/json"]') ? $.trim($el.text()) : $.trim($el.val());
+		var raw;
+		if ($el.is('script[type="application/json"]')) {
+			raw = $.trim($el.text());
+		} else {
+			raw = $.trim($el.val());
+		}
 		if (!raw) {
 			return null;
 		}
 		try {
 			return JSON.parse(raw);
-		} catch (e) {
-			if (window.console && console.warn) {
-				console.warn('[Dashboard] widgetData JSON parse failed', e);
+		} catch (e1) {
+			try {
+				var decoded = jQuery('<textarea/>').html(raw).text();
+				return JSON.parse(decoded);
+			} catch (e2) {
+				if (window.console && console.warn) {
+					console.warn('[Dashboard] widgetData JSON parse failed', e2, raw.substring(0, 120));
+				}
+				return null;
 			}
-			return null;
 		}
 	},
 
@@ -156,7 +166,12 @@ Vtiger.Class('Vtiger_Widget_Js',{
 		this.registerFilter();
 		this.registerFilterChangeEvent();
 		this.restrictContentDrag();
-        this.mkAdjustWidgetContentHeight();
+		if (
+			jQuery('body').attr('data-view') !== 'DashBoard' ||
+			jQuery('body').attr('data-module') !== 'Home'
+		) {
+			this.mkAdjustWidgetContentHeight();
+		}
 		
 		// Update font sizes after widget is loaded and chart is drawn (with multiple delays)
 		var self = this;
@@ -215,11 +230,15 @@ Vtiger.Class('Vtiger_Widget_Js',{
 	},
 
 	mkAdjustWidgetContentHeight : function() {
-		var widgetContent = jQuery('.dashboardWidgetContent', this.getContainer());
+		var container = this.getContainer();
+		var widgetContent = jQuery('.dashboardWidgetContent', container);
 		if (!widgetContent.length) {
 			return;
 		}
-		var shellH = this.getContainer().height();
+		if (widgetContent.find('.mk-chart-stage').length) {
+			return;
+		}
+		var shellH = container.height();
 		var contentH = widgetContent.height();
 		var base = contentH > 0 ? contentH : Math.max(160, shellH - 50);
 		var next = Math.max(120, base - 40);
@@ -411,6 +430,18 @@ Vtiger_Widget_Js('Vtiger_History_Widget_Js', {}, {
 		this.registerFilterChangeEvent();
 		this.restrictContentDrag();
 		var widgetContent = jQuery('.dashboardWidgetContent', this.getContainer());
+		if (
+			jQuery('body').attr('data-view') === 'DashBoard' &&
+			jQuery('body').attr('data-module') === 'Home'
+		) {
+			if (typeof widgetContent.mCustomScrollbar === 'function') {
+				try { widgetContent.mCustomScrollbar('destroy'); } catch (e) { /* ignore */ }
+			}
+			widgetContent.parent('.slimScrollDiv').children().unwrap();
+			widgetContent.css({ height: '', minHeight: '', overflow: 'visible' });
+			this.registerLoadMore();
+			return;
+		}
 		var adjustedHeight = Math.max(180, this.getContainer().height() - 50);
 		app.helper.showVerticalScroll(widgetContent, { setHeight: adjustedHeight });
 		widgetContent.css({ height: adjustedHeight + 'px', minHeight: adjustedHeight + 'px' });
@@ -625,11 +656,13 @@ Vtiger_Widget_Js('Vtiger_Barchat_Widget_Js',{},{
 		var yMaxValue = 0;
 		for(var index in data) {
 			var row = data[index];
-			row[0] = mkParseDashboardChartNumber(row[0]);
-			xLabels.push(app.getDecodedValue(row[1]));
-			chartData.push(row[0]);
-			if(row[0] > yMaxValue){
-				yMaxValue = row[0];
+			/* PHP: [0]=amount, [1]=stage label (getPotentialTotalAmountBySalesStage) */
+			var value = mkParseDashboardChartNumber(row[0]);
+			var label = row[1] != null ? row[1] : row[0];
+			xLabels.push(app.getDecodedValue(label));
+			chartData.push(value);
+			if(value > yMaxValue){
+				yMaxValue = value;
 			}
 		}
         // yMaxValue Should be 25% more than Maximum Value; keep a visible scale when all values are 0
@@ -642,13 +675,22 @@ Vtiger_Widget_Js('Vtiger_Barchat_Widget_Js',{},{
 	},
     
     generateLinks : function() {
-        var container = this.getContainer();
         var statData = this.readWidgetData() || [];
         var links = [];
         for(var i = 0; i < statData.length ; i++){
             links.push(statData[i]['links']);
         }
         return links;
+    },
+
+    getBarDataLabels : function() {
+        var data = this.readWidgetData() || [];
+        var labels = [];
+        var i;
+        for (i = 0; i < data.length; i++) {
+            labels.push(data[i][1] != null ? data[i][1] : data[i][0]);
+        }
+        return labels;
     },
     
     postInitializeCalls : function() {
@@ -663,11 +705,18 @@ Vtiger_Widget_Js('Vtiger_Barchat_Widget_Js',{},{
 		var plot = this.getPlotContainer(false);
 		plot.css({ minHeight: '220px', height: '100%', width: '100%' });
 		var data = this.generateChartData();
+		data.data_labels = this.getBarDataLabels();
         var chartOptions = {
             renderer:'bar',
             links: this.generateLinks()
         };
-        plot.vtchart(data, chartOptions);
+		try {
+			plot.vtchart(data, chartOptions);
+		} catch (e) {
+			if (window.console && console.error) {
+				console.error('[Dashboard] FunnelAmount/bar chart failed', e, data);
+			}
+		}
 	}
     
 });
@@ -727,14 +776,52 @@ Vtiger_Widget_Js('Vtiger_MultiBarchat_Widget_Js',{
     
 	loadChart : function(){
 		var plot = this.getPlotContainer(false);
-		plot.css({ minHeight: '220px', height: '100%', width: '100%' });
+		plot.css({ minHeight: '120px', width: '100%', flex: '1 1 auto' });
 		var chartRelatedData = this.getCharRelatedData();
+		if (!chartRelatedData.ticks || !chartRelatedData.ticks.length) {
+			if (window.console && console.warn) {
+				console.warn('[Dashboard] multibar: no chart data', chartRelatedData);
+			}
+			return;
+		}
         var chartOptions = {
             renderer:'multibar',
             links:chartRelatedData.links
         };
         plot.data('widget-data', JSON.stringify(chartRelatedData));
-        plot.vtchart(chartRelatedData, chartOptions);
+		try {
+			plot.vtchart(chartRelatedData, chartOptions);
+			var self = this;
+			setTimeout(function () {
+				var $col = plot.closest('.mk-chart-col');
+				var ticks = chartRelatedData.ticks;
+				var stageLabels = chartRelatedData.labels;
+				if (!$col.length || !ticks || !ticks.length) {
+					return;
+				}
+				var $xl = $col.find('.mk-dash-chart-xlabels').first();
+				if (!$xl.length) {
+					$xl = jQuery('<div class="mk-dash-chart-xlabels"></div>');
+					plot.after($xl);
+				}
+				$xl.empty().css('display', 'flex');
+				var i;
+				for (i = 0; i < ticks.length; i++) {
+					var t = ticks[i];
+					if (typeof t !== 'string' && t != null && t[1] != null) {
+						t = t[1];
+					}
+					jQuery('<span class="mk-dash-chart-xlabel"></span>')
+						.text(String(t))
+						.attr('title', String(t))
+						.appendTo($xl);
+				}
+			}, 120);
+		} catch (e) {
+			if (window.console && console.error) {
+				console.error('[Dashboard] multibar chart failed', e, chartRelatedData);
+			}
+		}
 	}
 
 });

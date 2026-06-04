@@ -10,7 +10,7 @@
 {strip}
 	<div class='dashBoardTabContainer mk-dashboard-tab'>
 		<div class="dashboardBanner"></div>
-		<div class="dashBoardTabContents clearfix">
+		<div class="dashBoardTabContents clearfix mk-dash-widgets-zone">
 			<div class="gridster_{$TABID}">
 				{assign var="ROWCOUNT" value=0}
 				{assign var="COLCOUNT" value=0}

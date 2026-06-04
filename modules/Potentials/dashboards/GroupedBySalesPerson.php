@@ -10,6 +10,20 @@
 
 class Potentials_GroupedBySalesPerson_Dashboard extends Vtiger_IndexAjax_View {
     
+    private function getChartUserLabels($data) {
+        $users = array();
+        if (!is_array($data)) {
+            return $users;
+        }
+        foreach ($data as $row) {
+            $name = isset($row['last_name']) ? $row['last_name'] : '';
+            if ($name !== '' && !in_array($name, $users, true)) {
+                $users[] = $name;
+            }
+        }
+        return $users;
+    }
+
     function getSearchParams($assignedto,$stage) {
         $listSearchParams = array();
         $conditions = array(array('assigned_user_id','e',decode_html(urlencode(escapeSlashes($assignedto)))),array("sales_stage","e",  decode_html(urlencode(escapeSlashes($stage)))));
@@ -26,7 +40,7 @@ class Potentials_GroupedBySalesPerson_Dashboard extends Vtiger_IndexAjax_View {
 
 		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
 		$data = $moduleModel->getPotentialsCountBySalesPerson();
-        $listViewUrl = $moduleModel->getListViewUrlWithAllFilter();
+        $listViewUrl = $moduleModel->getListViewUrlWithAllFilter() . '&app=SALES';
         for($i = 0;$i<php7_count($data);$i++){
             $data[$i]["links"] = $listViewUrl.$this->getSearchParams($data[$i]["last_name"],$data[$i]["link"]).'&nolistcache=1';
         }
@@ -36,6 +50,7 @@ class Potentials_GroupedBySalesPerson_Dashboard extends Vtiger_IndexAjax_View {
 		$viewer->assign('WIDGET', $widget);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('DATA', $data);
+		$viewer->assign('CHART_USER_LABELS', $this->getChartUserLabels($data));
 
 		//Include special script and css needed for this widget
 		$viewer->assign('STYLES',$this->getHeaderCss($request));

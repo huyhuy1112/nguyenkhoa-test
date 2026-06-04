@@ -77,6 +77,9 @@
                 {/foreach}
             </div>
 				</div>
+				<footer class="app-footer mk-dash-in-shell-footer" role="contentinfo">
+					<p>B-ACE developed by TDB SOLUTION 2025</p>
+				</footer>
 			</div>
 		</div>
 	</div>

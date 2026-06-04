@@ -16,16 +16,66 @@ Vtiger.Class(
     currentInstance: false,
     dashboardTabsLimit: 10,
 
+    getWidgetsListMenu: function () {
+      var $menu = jQuery(
+        ".dashBoardContainer .widgetsList, .mk-dash-toolbar-add-wrap .widgetsList"
+      ).first();
+      return $menu.length ? $menu : jQuery(".widgetsList").first();
+    },
+
+    hideSelectableWidgetMenuItem: function (name, linkId) {
+      if (!name) {
+        return;
+      }
+      var $menu = Vtiger_DashBoard_Js.getWidgetsListMenu();
+      $menu.find('a[data-name="' + name + '"]').each(function () {
+        var $anchor = jQuery(this);
+        var itemLinkId = $anchor.data("linkid");
+        var $li = $anchor.closest("li");
+        if (
+          linkId === undefined ||
+          linkId === null ||
+          linkId === "" ||
+          String(itemLinkId) === String(linkId)
+        ) {
+          $li.hide();
+        }
+      });
+    },
+
+    showSelectableWidgetMenuItem: function (name, linkId) {
+      if (!name) {
+        return;
+      }
+      var $menu = Vtiger_DashBoard_Js.getWidgetsListMenu();
+      $menu.find('a[data-name="' + name + '"]').each(function () {
+        var $anchor = jQuery(this);
+        var itemLinkId = $anchor.data("linkid");
+        var $li = $anchor.closest("li");
+        if (
+          linkId === undefined ||
+          linkId === null ||
+          linkId === "" ||
+          String(itemLinkId) === String(linkId)
+        ) {
+          $li.show();
+        }
+      });
+    },
+
     addWidget: function (element, url) {
       var element = jQuery(element);
       var linkId = element.data("linkid");
       var name = element.data("name");
 
-      // After adding widget, we should remove that widget from Add Widget drop down menu from active tab
       var activeTabId = Vtiger_DashBoard_Js.currentInstance.getActiveTabId();
-      jQuery('a[data-name="' + name + '"]', "#tab_" + activeTabId)
-        .parent()
-        .hide();
+      if (
+        jQuery("#tab_" + activeTabId + " li.dashboardWidget#" + linkId).length
+      ) {
+        Vtiger_DashBoard_Js.hideSelectableWidgetMenuItem(name, linkId);
+        return;
+      }
+      Vtiger_DashBoard_Js.hideSelectableWidgetMenuItem(name, linkId);
       var widgetContainer = jQuery(
         '<li class="new dashboardWidget loadcompleted" id="' +
           linkId +
@@ -34,10 +84,12 @@ Vtiger.Class(
           '" data-mode="open"></li>'
       );
       widgetContainer.data("url", url);
-      var width = element.data("width");
-      var height = element.data("height");
+      var width = parseInt(element.data("width"), 10) || 1;
+      var height = parseInt(element.data("height"), 10) || 1;
       Vtiger_DashBoard_Js.gridster.add_widget(widgetContainer, width, height);
-      Vtiger_DashBoard_Js.currentInstance.loadWidget(widgetContainer);
+      var inst = Vtiger_DashBoard_Js.currentInstance;
+      inst.loadWidget(widgetContainer);
+      inst.mkRefitDashboardGrid(widgetContainer);
     },
 
     addMiniListWidget: function (element, url) {
@@ -195,10 +247,13 @@ Vtiger.Class(
             '" data-mode="open"></li>'
         );
         widgetContainer.data("url", url);
-        var width = element.data("width");
-        var height = element.data("height");
+        var width = parseInt(element.data("width"), 10) || 1;
+        var height = parseInt(element.data("height"), 10) || 1;
         Vtiger_DashBoard_Js.gridster.add_widget(widgetContainer, width, height);
-        Vtiger_DashBoard_Js.currentInstance.loadWidget(widgetContainer);
+        var inst = Vtiger_DashBoard_Js.currentInstance;
+        inst.loadWidget(widgetContainer);
+        inst.mkRefitDashboardGrid(widgetContainer);
+        Vtiger_DashBoard_Js.hideSelectableWidgetMenuItem(name);
         app.helper.hideModal();
       }
     },
@@ -260,9 +315,10 @@ Vtiger.Class(
                         width,
                         height
                       );
-                      Vtiger_DashBoard_Js.currentInstance.loadWidget(
-                        widgetContainer
-                      );
+                      var inst = Vtiger_DashBoard_Js.currentInstance;
+                      inst.loadWidget(widgetContainer);
+                      inst.mkRefitDashboardGrid(widgetContainer);
+                      Vtiger_DashBoard_Js.hideSelectableWidgetMenuItem(name);
                     }
                   });
                 return false;
@@ -837,9 +893,21 @@ Vtiger.Class(
 
       // Constructing the grid based on window width
       var cols = this.getgridColumns();
+      var minRowsNeeded = 2;
+      items.each(function () {
+        var $w = jQuery(this);
+        var row = parseInt($w.attr("data-row"), 10) || 1;
+        var sizeY = parseInt($w.attr("data-sizey"), 10) || 1;
+        minRowsNeeded = Math.max(minRowsNeeded, row + sizeY - 1);
+      });
+      minRowsNeeded = Math.min(Math.max(minRowsNeeded, 2), 16);
       $(".mainContainer").css("min-width", "500px");
+      var shellW =
+        jQuery(".mk-app-shell").width() ||
+        jQuery(".mk-dash-main").width() ||
+        jQuery(window).width();
       var col_width =
-        Math.floor(($(window).width() - 30) / cols) - 2 * widgetMargin;
+        Math.floor((shellW - 30) / cols) - 2 * widgetMargin;
 
       Vtiger_DashBoard_Js.gridster = this.getContainer()
         .gridster({
@@ -847,7 +915,7 @@ Vtiger.Class(
           widget_base_dimensions: [col_width, 300],
           min_cols: 1,
           max_cols: 4,
-          min_rows: 20,
+          min_rows: minRowsNeeded,
           resize: {
             enabled: true,
             start: function (e, ui, widget) {
@@ -877,10 +945,10 @@ Vtiger.Class(
                */
               var widgetChartContainer = widget.find(".widgetChartContainer");
               if (widgetChartContainer.length > 0) {
-                widgetChartContainer.css("height", widget.height() - 60);
+                widgetChartContainer.html("");
               }
-              widgetChartContainer.html("");
-              Vtiger_Widget_Js.getInstance(widget, widgetName);
+              var widgetInst = Vtiger_Widget_Js.getInstance(widget, widgetName);
+              thisInstance.mkSizeDashboardChartArea(widget, widgetName);
 
               widget.trigger(Vtiger_Widget_Js.widgetPostResizeEvent);
 
@@ -896,6 +964,7 @@ Vtiger.Class(
               }, 1000);
 
               thisInstance.saveWidgetSize(widget);
+              thisInstance.mkFitGridsterCanvas(widget.closest('[class^="gridster_"]'));
             },
           },
           draggable: {
@@ -903,6 +972,7 @@ Vtiger.Class(
               thisInstance.savePositions(
                 activeGridster.find(".dashboardWidget")
               );
+              thisInstance.mkFitGridsterCanvas(activeGridster);
             },
           },
         })
@@ -940,6 +1010,134 @@ Vtiger.Class(
       });
       //used when after gridster is loaded
       thisInstance.savePositions(activeGridster.find(".dashboardWidget"));
+      thisInstance.mkFitGridsterCanvas(activeGridster);
+      thisInstance.mkEnsureSinglePageScroll();
+      thisInstance.syncAddWidgetsMenu();
+      setTimeout(function () {
+        thisInstance.mkFitGridsterCanvas(activeGridster);
+        thisInstance.mkEnsureSinglePageScroll();
+        thisInstance.syncAddWidgetsMenu();
+        if (thisInstance.mkIsHomeDashboardPage()) {
+          window.scrollTo(0, 0);
+        }
+      }, 400);
+      setTimeout(function () {
+        thisInstance.mkFitGridsterCanvas(activeGridster);
+      }, 1200);
+    },
+
+    mkGridCellsFree: function (matrix, row, col, sizeX, sizeY, maxCols) {
+      var r;
+      var c;
+      for (r = row; r < row + sizeY; r++) {
+        for (c = col; c < col + sizeX; c++) {
+          if (c < 1 || c > maxCols || matrix[r + "-" + c]) {
+            return false;
+          }
+        }
+      }
+      return true;
+    },
+
+    mkGridOccupy: function (matrix, row, col, sizeX, sizeY) {
+      var r;
+      var c;
+      for (r = row; r < row + sizeY; r++) {
+        for (c = col; c < col + sizeX; c++) {
+          matrix[r + "-" + c] = true;
+        }
+      }
+    },
+
+    mkNormalizeWidgetRows: function (items, maxCols) {
+      if (!this.mkIsHomeDashboardPage() || !items || !items.length) {
+        return;
+      }
+      var list = [];
+      items.each(function () {
+        list.push(jQuery(this));
+      });
+      list.sort(function (a, b) {
+        var rowA = parseInt(a.attr("data-row"), 10) || 1;
+        var rowB = parseInt(b.attr("data-row"), 10) || 1;
+        if (rowA !== rowB) {
+          return rowA - rowB;
+        }
+        return (parseInt(a.attr("data-col"), 10) || 1) - (parseInt(b.attr("data-col"), 10) || 1);
+      });
+      var maxSavedRow = 1;
+      var i;
+      for (i = 0; i < list.length; i++) {
+        maxSavedRow = Math.max(
+          maxSavedRow,
+          (parseInt(list[i].attr("data-row"), 10) || 1) +
+            (parseInt(list[i].attr("data-sizey"), 10) || 1) -
+            1
+        );
+      }
+      if (maxSavedRow <= list.length + 2) {
+        return;
+      }
+      var matrix = {};
+      for (i = 0; i < list.length; i++) {
+        var w = list[i];
+        var sizeX = Math.min(
+          maxCols,
+          Math.max(1, parseInt(w.attr("data-sizex"), 10) || 1)
+        );
+        var sizeY = Math.max(1, parseInt(w.attr("data-sizey"), 10) || 1);
+        var placed = false;
+        var r;
+        var c;
+        for (r = 1; r < 40 && !placed; r++) {
+          for (c = 1; c <= maxCols - sizeX + 1 && !placed; c++) {
+            if (this.mkGridCellsFree(matrix, r, c, sizeX, sizeY, maxCols)) {
+              w.attr({ "data-row": r, "data-col": c });
+              this.mkGridOccupy(matrix, r, c, sizeX, sizeY);
+              placed = true;
+            }
+          }
+        }
+      }
+    },
+
+    mkFitGridsterCanvas: function (gridsterEl) {
+      var $gs = gridsterEl && gridsterEl.length ? gridsterEl : this.getContainer();
+      if (!$gs || !$gs.length) {
+        return;
+      }
+      var maxBottom = 0;
+      $gs.find("li.dashboardWidget").each(function () {
+        var $li = jQuery(this);
+        var top = parseFloat($li.css("top")) || 0;
+        var h = $li.outerHeight(true) || 0;
+        maxBottom = Math.max(maxBottom, top + h);
+      });
+      var $ul = $gs.find("> ul").first();
+      if (maxBottom < 80) {
+        $gs.removeClass("mk-gridster-fitted");
+        $gs.css({ minHeight: "", height: "", maxHeight: "" });
+        $ul.css({ minHeight: "", height: "", maxHeight: "" });
+        return;
+      }
+      var canvasH = Math.ceil(maxBottom + 32) + "px";
+      $gs.addClass("mk-gridster-fitted");
+      $gs.css({ minHeight: canvasH, height: "", maxHeight: "" });
+      $ul.css({ minHeight: canvasH, height: "", maxHeight: "" });
+    },
+
+    mkRefitDashboardGrid: function (widgetContainer) {
+      var thisInstance = this;
+      var run = function () {
+        var $gs = widgetContainer
+          ? widgetContainer.closest('[class^="gridster_"]')
+          : thisInstance.getContainer();
+        thisInstance.mkFitGridsterCanvas($gs);
+        thisInstance.savePositions($gs.find("li.dashboardWidget"));
+      };
+      run();
+      setTimeout(run, 120);
+      setTimeout(run, 500);
     },
 
     savePositions: function (widgets) {
@@ -961,6 +1159,44 @@ Vtiger.Class(
 
     getDashboardWidgets: function () {
       return jQuery(".dashboardWidget", jQuery(".tab-pane.active"));
+    },
+
+    syncAddWidgetsMenu: function () {
+      var tabId = this.getActiveTabId();
+      var $menu = Vtiger_DashBoard_Js.getWidgetsListMenu();
+      if (!$menu.length) {
+        return;
+      }
+      $menu.find("li").not(".divider").show();
+      jQuery("#tab_" + tabId + " li.dashboardWidget").each(function () {
+        var $w = jQuery(this);
+        var name = $w.data("name");
+        var id = $w.attr("id");
+        if (!name) {
+          return;
+        }
+        if (
+          name === "MiniList" ||
+          name === "Notebook" ||
+          name === "ChartReportWidget"
+        ) {
+          if (name === "ChartReportWidget" && id) {
+            var reportKey = String(id).split("-")[0];
+            $menu.find('a[data-name="ChartReportWidget"]').each(function () {
+              var $a = jQuery(this);
+              if (String($a.data("linkid")) === reportKey) {
+                $a.closest("li").hide();
+              }
+            });
+          } else {
+            Vtiger_DashBoard_Js.hideSelectableWidgetMenuItem(name);
+          }
+        } else if (id) {
+          Vtiger_DashBoard_Js.hideSelectableWidgetMenuItem(name, id);
+        } else {
+          Vtiger_DashBoard_Js.hideSelectableWidgetMenuItem(name);
+        }
+      });
     },
 
     executeWidgetInlineScripts: function (widgetContainer) {
@@ -1014,6 +1250,221 @@ Vtiger.Class(
             app.vtranslate("JS_NO_DATA_AVAILABLE") +
             "</div>"
         );
+    },
+
+    mkSizeDashboardChartArea: function (widgetContainer, widgetName) {
+      if (widgetContainer.closest(".fullscreenview").length) {
+        return;
+      }
+      var $chart = widgetContainer.find(".widgetChartContainer").first();
+      if (!$chart.length) {
+        return;
+      }
+      var isMultibar =
+        widgetName === "GroupedBySalesPerson" ||
+        widgetName === "PipelinedAmountPerSalesPerson";
+      var shellH = widgetContainer.height() || 280;
+      var headerH =
+        widgetContainer.find(".dashboardWidgetHeader").outerHeight(true) || 0;
+      var footerH = 38;
+      var xLabelsH = isMultibar ? 34 : 0;
+      var legendH = isMultibar ? 40 : 0;
+      var gap = 10;
+      var chartHeight = Math.max(
+        130,
+        shellH - headerH - footerH - xLabelsH - legendH - gap
+      );
+      $chart.css({
+        height: chartHeight,
+        minHeight: chartHeight,
+        maxHeight: chartHeight,
+        flex: "0 0 auto",
+        width: "100%",
+      });
+      var plot = $chart.data("jqplot");
+      if (plot && typeof plot.replot === "function") {
+        try {
+          plot.replot({ resetAxes: false });
+        } catch (e) { /* ignore */ }
+      }
+    },
+
+    mkIsHomeDashboardPage: function () {
+      return (
+        jQuery("body").attr("data-view") === "DashBoard" &&
+        jQuery("body").attr("data-module") === "Home"
+      );
+    },
+
+    mkEnsureSinglePageScroll: function () {
+      if (!this.mkIsHomeDashboardPage()) {
+        return;
+      }
+      var selectors =
+        "#page, #mk-dash-split-root, .mk-app-shell, .mk-dash-main, .dashBoardContainer, .dashBoardTabContents, .tab-content";
+      jQuery(selectors).each(function () {
+        var $el = jQuery(this);
+        if (
+          typeof $el.mCustomScrollbar === "function" &&
+          ($el.hasClass("mCustomScrollbar") || $el.find("> .mCSB_container").length)
+        ) {
+          try {
+            $el.mCustomScrollbar("destroy");
+          } catch (e) { /* ignore */ }
+        }
+        $el.css({
+          overflow: "",
+          overflowY: "",
+          overflowX: "",
+          height: "",
+          maxHeight: "",
+        });
+      });
+      jQuery("body").css({ overflowY: "visible", height: "auto" });
+      jQuery("html").css({ overflowY: "scroll", height: "auto" });
+      jQuery('[class^="gridster_"]').each(function () {
+        var $gs = jQuery(this);
+        var $ul = $gs.children("ul").first();
+        var maxBottom = 0;
+        $gs.find("li.dashboardWidget").each(function () {
+          var $li = jQuery(this);
+          maxBottom = Math.max(
+            maxBottom,
+            (parseFloat($li.css("top")) || 0) + ($li.outerHeight(true) || 0)
+          );
+        });
+        if (maxBottom > 80) {
+          var h = Math.ceil(maxBottom + 32) + "px";
+          $gs.addClass("mk-gridster-fitted");
+          $gs.css({ minHeight: h, height: "", maxHeight: "" });
+          $ul.css({ minHeight: h, height: "", maxHeight: "" });
+        }
+      });
+    },
+
+    mkDestroyWidgetInnerScroll: function (widgetContainer) {
+      var $content = widgetContainer.find(".dashboardWidgetContent").first();
+      if (!$content.length) {
+        return;
+      }
+      if (
+        typeof $content.mCustomScrollbar === "function" &&
+        $content.closest(".mCustomScrollbar").length
+      ) {
+        try {
+          $content.mCustomScrollbar("destroy");
+        } catch (e) { /* ignore */ }
+      }
+      $content.parent(".slimScrollDiv").children().unwrap();
+      $content.css({ height: "", maxHeight: "", overflow: "" });
+    },
+
+    mkSyncMultibarUserLabels: function (widgetContainer) {
+      var $col = widgetContainer.find(".mk-chart-col").first();
+      var $xl = $col.find(".mk-dash-chart-xlabels").first();
+      if (!$xl.length) {
+        return;
+      }
+      if ($xl.find(".mk-dash-chart-xlabel").length > 0) {
+        $xl.css({ display: "flex", visibility: "visible", opacity: 1 });
+        return;
+      }
+      var raw = widgetContainer.find(".widgetData").first();
+      if (!raw.length) {
+        return;
+      }
+      var data;
+      try {
+        data = JSON.parse(
+          raw.is('script[type="application/json"]')
+            ? $.trim(raw.text())
+            : $.trim(raw.val())
+        );
+      } catch (e) {
+        return;
+      }
+      if (!data || !data.length) {
+        return;
+      }
+      var users = [];
+      var i;
+      for (i = 0; i < data.length; i++) {
+        if (
+          data[i].last_name &&
+          $.inArray(data[i].last_name, users) === -1
+        ) {
+          users.push(data[i].last_name);
+        }
+      }
+      $xl.empty().css("display", "flex");
+      for (i = 0; i < users.length; i++) {
+        jQuery("<span class=\"mk-dash-chart-xlabel\"></span>")
+          .text(users[i])
+          .attr("title", users[i])
+          .appendTo($xl);
+      }
+    },
+
+    mkPaintDashboardChartWidget: function (
+      widgetContainer,
+      widgetInstance,
+      widgetName
+    ) {
+      var thisInstance = this;
+      if (!widgetInstance) {
+        return;
+      }
+      var attempt = 0;
+      var paint = function () {
+        attempt += 1;
+        var $chart = widgetContainer.find(".widgetChartContainer").first();
+        var width =
+          ($chart.length && $chart.width()) || widgetContainer.width();
+        if (width < 40 && attempt < 25) {
+          setTimeout(paint, 50);
+          return;
+        }
+        if ($chart.length) {
+          thisInstance.mkSizeDashboardChartArea(widgetContainer, widgetName);
+          if (
+            widgetName === "GroupedBySalesPerson" ||
+            widgetName === "PipelinedAmountPerSalesPerson"
+          ) {
+            $chart.addClass("mk-chart-multibar");
+          }
+        }
+        try {
+          widgetInstance.postLoadWidget();
+        } catch (error) {
+          if (window.console && console.error) {
+            console.error(
+              "[Dashboard] chart render failed",
+              error,
+              widgetName
+            );
+          }
+        }
+        setTimeout(function () {
+          thisInstance.mkSizeDashboardChartArea(widgetContainer, widgetName);
+          thisInstance.mkSyncMultibarUserLabels(widgetContainer);
+          thisInstance.updateWidgetFontSizes(widgetContainer);
+        }, 100);
+        setTimeout(function () {
+          thisInstance.mkSizeDashboardChartArea(widgetContainer, widgetName);
+          thisInstance.mkSyncMultibarUserLabels(widgetContainer);
+          thisInstance.updateWidgetFontSizes(widgetContainer);
+        }, 500);
+      };
+      setTimeout(paint, 0);
+    },
+
+    mkClearDashboardWidgetShell: function (widgetContainer) {
+      var id = widgetContainer.attr("id");
+      if (id && this.instancesCache && this.instancesCache[id]) {
+        delete this.instancesCache[id];
+      }
+      widgetContainer.removeData("mk-widget-loading");
+      widgetContainer.children().remove();
     },
 
     mkShowWidgetLoadError: function (widgetContainer) {
@@ -1079,6 +1530,10 @@ Vtiger.Class(
       if (!urlParams) {
         return;
       }
+      if (widgetContainer.data("mk-widget-loading")) {
+        return;
+      }
+      widgetContainer.data("mk-widget-loading", true);
 
       var activeTabId = this.getActiveTabId();
       urlParams += "&tab=" + activeTabId;
@@ -1087,6 +1542,7 @@ Vtiger.Class(
         app.request.post({ url: urlParams }).then(function (err, data) {
           var widgetName = widgetContainer.data("name");
           app.helper.hideProgress();
+          widgetContainer.removeData("mk-widget-loading");
           if (err) {
             if (window.console && console.error) {
               console.error("[Dashboard] widget load failed", err, widgetName);
@@ -1108,6 +1564,7 @@ Vtiger.Class(
             thisInstance.mkShowWidgetLoadError(widgetContainer);
             return;
           }
+          thisInstance.mkClearDashboardWidgetShell(widgetContainer);
           widgetContainer.prepend(data);
           thisInstance.executeWidgetInlineScripts(widgetContainer);
           vtUtils.applyFieldElementsView(widgetContainer);
@@ -1116,35 +1573,22 @@ Vtiger.Class(
             ".widgetChartContainer"
           );
           if (widgetChartContainer.length > 0) {
-            var chartHeight = Math.max(240, widgetContainer.height() - 60);
-            widgetChartContainer.css({
-              height: chartHeight,
-              minHeight: chartHeight,
-            });
+            thisInstance.mkSizeDashboardChartArea(
+              widgetContainer,
+              widgetContainer.data("name")
+            );
           }
 
-          thisInstance.mkFinalizeDashboardWidget(widgetContainer);
-          try {
-            widgetContainer.trigger(Vtiger_Widget_Js.widgetPostLoadEvent);
-
-            setTimeout(function () {
-              thisInstance.updateWidgetFontSizes(widgetContainer);
-            }, 100);
-            setTimeout(function () {
-              thisInstance.updateWidgetFontSizes(widgetContainer);
-            }, 500);
-            setTimeout(function () {
-              thisInstance.updateWidgetFontSizes(widgetContainer);
-            }, 1000);
-          } catch (error) {
-            if (window.console && console.error) {
-              console.error("[Dashboard] chart render failed", error, widgetName);
-            }
-            if (thisInstance.mkIsChartDashboardWidget(widgetName)) {
-              thisInstance.mkShowChartLoadError(widgetContainer);
-            }
-          }
+          var widgetInstance =
+            thisInstance.mkFinalizeDashboardWidget(widgetContainer);
+          thisInstance.mkDestroyWidgetInnerScroll(widgetContainer);
+          thisInstance.mkPaintDashboardChartWidget(
+            widgetContainer,
+            widgetInstance,
+            widgetName
+          );
           widgetContainer.addClass("loadcompleted");
+          thisInstance.mkRefitDashboardGrid(widgetContainer);
         });
       }
     },
@@ -1192,34 +1636,43 @@ Vtiger.Class(
                 parent.fadeOut("slow", function () {
                   Vtiger_DashBoard_Js.gridster.remove_widget(parent);
                   parent.remove();
+                  if (Vtiger_DashBoard_Js.currentInstance) {
+                    Vtiger_DashBoard_Js.currentInstance.mkRefitDashboardGrid();
+                  }
                 });
                 if (jQuery.inArray(widgetName, nonReversableWidgets) == -1) {
-                  var data =
-                    "<li><a onclick=\"Vtiger_DashBoard_Js.addWidget(this, '" +
-                    response.url +
-                    '\')" href="javascript:void(0);"';
-                  data +=
-                    "data-width=" +
-                    width +
-                    " data-height=" +
-                    height +
-                    " data-linkid=" +
-                    response.linkid +
-                    " data-name=" +
-                    response.name +
-                    ">" +
-                    response.title +
-                    "</a></li>";
-                  var divider = jQuery(
-                    ".widgetsList .divider",
-                    "#tab_" + activeTabId
+                  var $menu = Vtiger_DashBoard_Js.getWidgetsListMenu();
+                  var $existing = $menu.find(
+                    'a[data-linkid="' + response.linkid + '"]'
                   );
-                  if (divider.length) {
-                    jQuery(data).insertBefore(divider);
-                  } else {
-                    jQuery(data).insertAfter(
-                      jQuery(".widgetsList li:last", "#tab_" + activeTabId)
+                  if ($existing.length) {
+                    Vtiger_DashBoard_Js.showSelectableWidgetMenuItem(
+                      response.name,
+                      response.linkid
                     );
+                  } else {
+                    var data =
+                      "<li><a onclick=\"Vtiger_DashBoard_Js.addWidget(this, '" +
+                      response.url +
+                      '\')" href="javascript:void(0);"';
+                    data +=
+                      " data-width=" +
+                      width +
+                      " data-height=" +
+                      height +
+                      " data-linkid=" +
+                      response.linkid +
+                      " data-name=" +
+                      response.name +
+                      ">" +
+                      response.title +
+                      "</a></li>";
+                    var divider = $menu.find(".divider");
+                    if (divider.length) {
+                      jQuery(data).insertBefore(divider);
+                    } else {
+                      jQuery(data).appendTo($menu);
+                    }
                   }
                 }
               }
@@ -1245,6 +1698,76 @@ Vtiger.Class(
       });
     },
 
+    mkExtractWidgetDataJson: function (widgetContainer) {
+      var $script = widgetContainer.find(
+        'script.widgetData[type="application/json"]'
+      );
+      if ($script.length) {
+        return jQuery.trim($script.text());
+      }
+      var $input = widgetContainer.find("input.widgetData");
+      if ($input.length) {
+        return jQuery.trim($input.val());
+      }
+      return "";
+    },
+
+    mkGetFullscreenChartModule: function (widgetName) {
+      if (
+        widgetName === "GroupedBySalesPerson" ||
+        widgetName === "PipelinedAmountPerSalesPerson" ||
+        widgetName === "FunnelAmount"
+      ) {
+        return "Potentials";
+      }
+      return app.getModuleName();
+    },
+
+    mkPaintFullscreenChartWidget: function (modalWidgetContainer, widgetName) {
+      var moduleName = this.mkGetFullscreenChartModule(widgetName);
+      var widgetInstance = Vtiger_Widget_Js.getInstance(
+        modalWidgetContainer,
+        widgetName,
+        moduleName
+      );
+      modalWidgetContainer
+        .find(".mk-chart-col")
+        .first()
+        .css({ paddingLeft: "24px", paddingRight: "12px", overflow: "visible" });
+      var $chart = modalWidgetContainer.find(".widgetChartContainer").first();
+      $chart.css({
+        minHeight: "380px",
+        height: "calc(65vh - 140px)",
+        width: "100%",
+        flex: "1 1 auto",
+        overflow: "visible",
+        boxSizing: "border-box",
+      });
+      this.mkPaintDashboardChartWidget(
+        modalWidgetContainer,
+        widgetInstance,
+        widgetName
+      );
+      var self = this;
+      setTimeout(function () {
+        self.mkSyncMultibarUserLabels(modalWidgetContainer);
+        var plot = $chart.data("jqplot");
+        if (plot && typeof plot.replot === "function") {
+          try {
+            plot.replot({ resetAxes: true });
+          } catch (e) { /* ignore */ }
+        }
+      }, 400);
+      setTimeout(function () {
+        var plot2 = $chart.data("jqplot");
+        if (plot2 && typeof plot2.replot === "function") {
+          try {
+            plot2.replot({ resetAxes: true });
+          } catch (e2) { /* ignore */ }
+        }
+      }, 900);
+    },
+
     registerWidgetFullScreenView: function () {
       var thisInstance = this;
       this.getContainer().on(
@@ -1255,8 +1778,8 @@ Vtiger.Class(
           var widgetContainer = currentTarget.closest("li");
           var widgetName = widgetContainer.data("name");
           var widgetTitle = widgetContainer.find(".dashboardTitle").text();
-          var widgetId = widgetContainer.attr("id");
-          var data = widgetContainer.find("input.widgetData").val();
+          var widgetDataJson =
+            thisInstance.mkExtractWidgetDataJson(widgetContainer);
           var chartType = "";
           if (widgetContainer.find('input[name="charttype"]').length) {
             chartType = widgetContainer.find('input[name="charttype"]').val();
@@ -1267,9 +1790,24 @@ Vtiger.Class(
               .find('input[name="clickthrough"]')
               .val();
           }
+          var isMultibar =
+            widgetName === "GroupedBySalesPerson" ||
+            widgetName === "PipelinedAmountPerSalesPerson";
+          var xlabelsHtml = widgetContainer
+            .find(".mk-dash-chart-xlabels")
+            .first()
+            .html();
+          var legendClone = widgetContainer
+            .find(".mk-dash-chart-legend")
+            .first()
+            .clone();
+          var chartStageClass =
+            "widgetChartContainer mk-chart-stage" +
+            (isMultibar ? " mk-chart-multibar" : "");
+
           var fullscreenview =
             '<div class="fullscreencontents modal-dialog modal-lg">\n\
-									<div class="modal-content">\n\
+									<div class="modal-content mk-dash-fullscreen-modal">\n\
 									<div class="modal-header backgroundColor">\n\
 										<div class="clearfix">\n\
 											<div class="pull-right">\n\
@@ -1282,28 +1820,37 @@ Vtiger.Class(
             '</h4>\n\
 										</div>\n\
 									</div>\n\
-									<div class="modal-body" style="overflow:auto;">\n\
-										<ul style="list-style: none;"><li id="fullscreenpreview" class="dashboardWidget fullscreenview" data-name="' +
+									<div class="modal-body mk-dash-fullscreen-body" style="overflow:auto;">\n\
+										<ul style="list-style:none;margin:0;padding:0;"><li id="fullscreenpreview" class="dashboardWidget fullscreenview" data-name="' +
             widgetName +
             '">\n\
-											<div class="dashboardWidgetContent" style="min-height:500px;width:100%;min-width:600px; margin: 0 auto" data-displaymode="fullscreen">';
-          if (chartType != "") {
+											<div class="dashboardWidgetContent mk-fullscreen-widget-content" data-displaymode="fullscreen">';
+
+          if (chartType !== "") {
             fullscreenview +=
-              ' <input type="hidden" value="' +
+              '<input type="hidden" value="' +
               chartType +
               '" name="charttype">\n\
 												<input type="hidden" value="' +
               clickThrough +
               '" name="clickthrough">\n\
-												<div id="chartDiv" name="chartcontent" style="width:100%;height:100%" data-mode="preview"></div> \n\
-												<input class="widgetData" type="hidden" value="" name="data">';
+												<div id="chartDiv" name="chartcontent" class="widgetChartContainer" style="width:100%;min-height:420px;height:55vh;"></div>\n\
+												<input class="widgetData" type="hidden" name="data" value="">';
           } else {
             fullscreenview +=
-              ' <div class="dashboardWidgetContent" style="width:100%;height:100%" data-displaymode="fullscreen">\n\
-													<div id="chartDiv" class="widgetChartContainer" style="width:100%;height:100%"></div>\n\
-														<input class="widgetData" type="hidden" value="" name="data">';
+              '<script type="application/json" class="widgetData"></script>\n\
+												<div class="row mk-dashboard-chart-row" style="margin:0;">\n\
+													<div class="col-xs-12 mk-chart-col">\n\
+														<div class="' +
+              chartStageClass +
+              '" name="chartcontent"></div>\n\
+														<div class="mk-dash-chart-xlabels">' +
+              (xlabelsHtml || "") +
+              '</div>\n\
+													</div>\n\
+												</div>';
           }
-          fullscreenview += "</div></ul></li></div></div></div>";
+          fullscreenview += "</div></li></ul></div></div></div>";
 
           var callback = function (modalData) {
             var element = jQuery(modalData);
@@ -1315,27 +1862,59 @@ Vtiger.Class(
               bottom: "30px",
             });
             modal.css("height", "100%");
-            var modalWidgetContainer = jQuery(".fullscreenview");
-            modalWidgetContainer.find(".widgetData").val(data);
-            if (chartType != "") {
-              //Chart report widget
+            var modalWidgetContainer = element.find(".fullscreenview").first();
+            if (!modalWidgetContainer.length) {
+              modalWidgetContainer = jQuery(".fullscreenview").first();
+            }
+
+            if (chartType !== "") {
+              modalWidgetContainer
+                .find("input.widgetData")
+                .val(widgetDataJson);
               var chartClassName = chartType.toCamelCase();
               var chartClass = window["Report_" + chartClassName + "_Js"];
-              chartClass(
-                "Vtiger_ChartReportWidget_Widget_Js",
-                {},
-                {
-                  init: function () {
-                    this._super(modalWidgetContainer);
-                  },
-                }
+              if (typeof chartClass === "function") {
+                chartClass(
+                  "Vtiger_ChartReportWidget_Widget_Js",
+                  {},
+                  {
+                    init: function () {
+                      this._super(modalWidgetContainer);
+                    },
+                  }
+                );
+              }
+              var reportInstance = Vtiger_Widget_Js.getInstance(
+                modalWidgetContainer,
+                widgetName
               );
+              modalWidgetContainer.trigger(
+                Vtiger_Widget_Js.widgetPostLoadEvent
+              );
+              if (reportInstance && reportInstance.postLoadWidget) {
+                reportInstance.postLoadWidget();
+              }
+            } else {
+              modalWidgetContainer
+                .find('script.widgetData[type="application/json"]')
+                .text(widgetDataJson);
+              if (legendClone.length) {
+                modalWidgetContainer
+                  .find(".mk-chart-col")
+                  .first()
+                  .append(legendClone);
+              }
+              var paintFullscreen = function () {
+                thisInstance.mkPaintFullscreenChartWidget(
+                  modalWidgetContainer,
+                  widgetName
+                );
+              };
+              modal.one("shown.bs.modal", function () {
+                setTimeout(paintFullscreen, 80);
+              });
+              setTimeout(paintFullscreen, 200);
             }
-            var widgetInstance = Vtiger_Widget_Js.getInstance(
-              modalWidgetContainer,
-              widgetName
-            );
-            modalWidgetContainer.trigger(Vtiger_Widget_Js.widgetPostLoadEvent);
           };
           app.helper.showModal(fullscreenview, { cb: callback });
         }
@@ -1695,6 +2274,7 @@ Vtiger.Class(
             })
             .data("gridster");
 
+          thisInstance.syncAddWidgetsMenu();
           return;
         }
         var data = {
@@ -1814,6 +2394,7 @@ Vtiger.Class(
           }
           instance.registerGridster();
           instance.loadWidgets();
+          instance.syncAddWidgetsMenu();
           instance.registerRefreshWidget();
           instance.removeWidget();
           instance.registerWidgetFullScreenView();
@@ -1821,6 +2402,10 @@ Vtiger.Class(
         }
       );
       app.event.trigger("post.DashBoardTab.load");
+      thisInstance.mkEnsureSinglePageScroll();
+      jQuery(window).on("resize.mkDashSingleScroll", function () {
+        thisInstance.mkEnsureSinglePageScroll();
+      });
     },
   }
 );

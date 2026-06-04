@@ -7,9 +7,11 @@
 * All Rights Reserved.
 ************************************************************************************}
 
+{if !($MODULE_NAME eq 'Home' && $VIEW eq 'DashBoard')}
 <footer class="app-footer">
 	<p>B-ACE developed by TDB SOLUTION 2025</p>
 </footer>
+{/if}
 </div>
 <div id='overlayPage' class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 	<!-- arrow is added to point arrow to the clicked element (Ex:- TaskManagement), 

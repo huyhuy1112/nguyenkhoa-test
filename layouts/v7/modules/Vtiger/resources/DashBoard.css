@@ -1552,6 +1552,7 @@ body[data-view="DashBoard"] .mk-dash-app-topbar #modern-notifications-bell .mode
 .dashBoardTabContents ul li.dashboardWidget {
     display: flex;
     flex-direction: column;
+    position: relative;
     border: 1px solid var(--mk-card-border) !important;
     border-radius: var(--mk-radius) !important;
     box-shadow: var(--mk-shadow-sm) !important;
@@ -1598,12 +1599,13 @@ body[data-view="DashBoard"] .mk-dash-app-topbar #modern-notifications-bell .mode
     overflow: hidden;
     flex: 1 1 auto;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Chart stage — fill available height (avoid jqplot clipping) */
+/* Chart stage — flex column shares space with HTML legend below */
 .dashBoardTabContents ul li.dashboardWidget .widgetChartContainer,
 .widgetChartContainer.mk-chart-stage {
-    height: 100% !important;
     width: 100% !important;
     max-width: 100% !important;
     overflow: visible !important;
@@ -1611,20 +1613,226 @@ body[data-view="DashBoard"] .mk-dash-app-topbar #modern-notifications-bell .mode
     padding: 4px 2px 2px !important;
 }
 
-.widgetChartContainer.mk-chart-stage {
-    min-height: 268px;
+.mk-chart-col .widgetChartContainer.mk-chart-stage {
+    flex: 1 1 auto !important;
+    min-height: 120px;
+    max-height: none !important;
+    width: 100% !important;
+}
+
+/* User names — row between chart and stage legend (must not shrink to 0) */
+body[data-view="DashBoard"] .mk-chart-col .mk-dash-chart-xlabels {
+    flex: 0 0 38px !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    gap: 6px 12px;
+    width: 100%;
+    min-height: 38px !important;
+    max-height: none;
+    padding: 4px 14px 6px;
+    margin: 0;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: none;
+    z-index: 4;
+    overflow: visible;
+}
+
+body[data-view="DashBoard"] .mk-dash-chart-xlabels:empty {
+    display: none !important;
+    flex: 0 0 0 !important;
+    min-height: 0 !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-chart-xlabel {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 50%;
+    text-align: center;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    line-height: 1.35;
+    white-space: normal;
+    word-break: break-word;
+    overflow: visible;
+}
+
+.dashBoardTabContents ul li.dashboardWidget .widgetChartContainer:not(.mk-chart-stage) {
+    height: 100% !important;
+}
+
+.widgetChartContainer.mk-chart-stage:not(.mk-chart-col .widgetChartContainer) {
+    min-height: 220px;
 }
 
 .mk-dashboard-chart-row {
     margin-left: 0 !important;
     margin-right: 0 !important;
+    flex: 1 1 auto;
+    min-height: 0;
     height: 100%;
+    width: 100%;
 }
 
 .mk-dashboard-chart-row .mk-chart-col {
     padding-left: 0;
     padding-right: 0;
     height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow: hidden;
+}
+
+.dashBoardTabContents ul li.dashboardWidget .dashboardWidgetContent:has(.mk-chart-stage),
+.dashBoardTabContents ul li.dashboardWidget[data-name="GroupedBySalesPerson"] .dashboardWidgetContent,
+.dashBoardTabContents ul li.dashboardWidget[data-name="PipelinedAmountPerSalesPerson"] .dashboardWidgetContent,
+.dashBoardTabContents ul li.dashboardWidget[data-name="FunnelAmount"] .dashboardWidgetContent {
+    position: relative;
+    overflow: hidden !important;
+    padding-bottom: 40px !important;
+    padding-top: 6px !important;
+}
+
+/* Home dashboard: one viewport scrollbar (avoid inner .mk-dash-main scroll then body “jerk”) */
+html:has(body[data-view="DashBoard"][data-module="Home"]) {
+    overflow-x: hidden !important;
+    overflow-y: scroll !important;
+    height: auto !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    min-height: 0;
+}
+
+body[data-view="DashBoard"][data-module="Home"] #page {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-top: 0 !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] #mk-dash-split-root,
+body[data-view="DashBoard"][data-module="Home"] .mk-app-shell,
+body[data-view="DashBoard"][data-module="Home"] .mk-dash-main,
+body[data-view="DashBoard"][data-module="Home"] .mk-content,
+body[data-view="DashBoard"][data-module="Home"] .dashboard-page-root,
+body[data-view="DashBoard"][data-module="Home"] .dashBoardContainer,
+body[data-view="DashBoard"][data-module="Home"] .dashBoardTabContainer,
+body[data-view="DashBoard"][data-module="Home"] .tab-content,
+body[data-view="DashBoard"][data-module="Home"] .tab-pane.active,
+body[data-view="DashBoard"][data-module="Home"] .dashBoardTabContents,
+body[data-view="DashBoard"][data-module="Home"] .dashBoardTabContents [class^="gridster_"] {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+}
+
+/* Flex shell (min-height:100vh + flex child min-height:0) creates a nested scroll column */
+body[data-view="DashBoard"][data-module="Home"] .mk-app-shell {
+    display: block !important;
+    min-height: 0 !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .mk-dash-main {
+    flex: none !important;
+    min-height: 0 !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .mk-dash-sidebar-scroll,
+body[data-view="DashBoard"][data-module="Home"] .mk-dash-sidebar-nav {
+    overflow-y: visible !important;
+    overflow-x: hidden;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .mk-dash-in-shell-footer {
+    clear: both;
+    margin: 24px 0 0;
+    padding: 16px 0 8px;
+    border-top: 1px solid var(--mk-card-border);
+    background: transparent;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .mk-dash-in-shell-footer p {
+    margin: 0;
+    text-align: left;
+    color: var(--mk-muted);
+    font-size: 12px;
+}
+
+/* Widgets are position:absolute — gridster must reserve height so footer stays below cards */
+body[data-view="DashBoard"][data-module="Home"] .mk-dash-widgets-zone,
+body[data-view="DashBoard"][data-module="Home"] .dashBoardTabContents {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashBoardTabContents [class^="gridster_"] {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashBoardTabContents [class^="gridster_"] > ul {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    box-sizing: border-box;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashBoardTabContents [class^="gridster_"].mk-gridster-fitted > ul {
+    overflow: visible !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .mk-dash-in-shell-footer {
+    position: static !important;
+    order: unset !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidgetContent .mCustomScrollBox,
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidgetContent .slimScrollDiv {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="GroupedBySalesPerson"] .dashboardWidgetContent,
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="PipelinedAmountPerSalesPerson"] .dashboardWidgetContent,
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="FunnelAmount"] .dashboardWidgetContent {
+    overflow: hidden !important;
+}
+
+body[data-view="DashBoard"] .mk-chart-col .mk-dash-chart-legend {
+    flex: 0 0 auto;
+    display: flex !important;
+    visibility: visible !important;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 16px;
+    margin: 0;
+    padding: 8px 12px 4px;
+    min-height: 40px;
+    border-top: 1px solid #e2e8f0;
+    background: #fafbfc;
+    border-radius: 0;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+    z-index: 1;
 }
 
 /* Upcoming / overdue activity lists: avoid clipping inside flex chart cards */
@@ -1639,10 +1847,20 @@ body[data-view="DashBoard"] .dashboardWidget.fullscreenview[data-name="OverdueAc
 }
 
 .dashBoardTabContents ul li.dashboardWidget .dashBoardWidgetFooter {
-    height: 38px;
-    background: var(--mk-bg);
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    background: var(--mk-bg) !important;
     border-top: 1px solid var(--mk-card-border);
-    flex: 0 0 auto;
+    flex: none !important;
+    z-index: 12 !important;
+    margin: 0 !important;
+    border-radius: 0 0 var(--mk-radius) var(--mk-radius);
+    box-sizing: border-box;
 }
 
 /* Footer action icons — subtle until hover */
@@ -1897,53 +2115,172 @@ body[data-view="DashBoard"] .dashboardWidget.fullscreenview[data-name="OverdueAc
 }
 
 /* ========== jqPlot visual polish (CSS-only; safe) ========== */
-/* Plot stack: canvases + grid fill; legend flows below (no overlay on data) */
+body[data-view="DashBoard"] .widgetChartContainer.mk-chart-stage,
+body[data-view="DashBoard"] .fullscreenview .widgetChartContainer {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+}
+
+body[data-view="DashBoard"] .mk-dash-fullscreen-modal .modal-body.mk-dash-fullscreen-body {
+    min-height: 60vh;
+    padding: 16px 20px 24px;
+    background: #f7f9fb;
+}
+
+body[data-view="DashBoard"] .fullscreenview .mk-fullscreen-widget-content {
+    min-height: 55vh;
+    padding: 12px 16px 12px 20px;
+    background: #ffffff;
+    border: 1px solid var(--mk-card-border);
+    border-radius: var(--mk-radius);
+    box-shadow: var(--mk-shadow-sm);
+    overflow: visible;
+}
+
+body[data-view="DashBoard"] .fullscreenview .mk-chart-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 50vh;
+    padding-left: 20px;
+    padding-right: 12px;
+    overflow: visible !important;
+    box-sizing: border-box;
+}
+
+body[data-view="DashBoard"] .fullscreenview .widgetChartContainer.mk-chart-stage,
+body[data-view="DashBoard"] .fullscreenview .widgetChartContainer.mk-chart-multibar {
+    overflow: visible !important;
+    padding-left: 4px;
+    padding-right: 4px;
+    box-sizing: border-box;
+}
+
+body[data-view="DashBoard"] .fullscreenview .jqplot-yaxis,
+body[data-view="DashBoard"] .fullscreenview .jqplot-yaxis-tick,
+body[data-view="DashBoard"] .fullscreenview .jqplot-yaxis-tick text,
+body[data-view="DashBoard"] .fullscreenview .jqplot-yaxis-label {
+    overflow: visible !important;
+}
+
+body[data-view="DashBoard"] .fullscreenview .mk-dash-chart-xlabels {
+    flex: 0 0 auto;
+    min-height: 38px;
+}
+
 body[data-view="DashBoard"] .widgetChartContainer .jqplot-target,
 body[data-view="DashBoard"] .fullscreenview .jqplot-target {
     background: transparent !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
+    position: relative !important;
+    flex: 1 1 auto !important;
+    min-height: 160px !important;
+    width: 100% !important;
+    overflow: visible !important;
 }
 
-body[data-view="DashBoard"] .widgetChartContainer .jqplot-target > *:not(table.jqplot-table-legend),
-body[data-view="DashBoard"] .fullscreenview .jqplot-target > *:not(table.jqplot-table-legend) {
+/* Multibar: keep salesperson names on X-axis fully visible */
+body[data-view="DashBoard"] .widgetChartContainer.mk-chart-stage,
+body[data-view="DashBoard"] .widgetChartContainer.mk-chart-multibar {
+    padding-bottom: 4px !important;
+    overflow: visible !important;
+}
+
+body[data-view="DashBoard"] .mk-chart-col .widgetChartContainer.mk-chart-multibar {
+    margin-bottom: 0;
+}
+
+body[data-view="DashBoard"] .mk-chart-col .widgetChartContainer .jqplot-target {
+    min-height: 0 !important;
+    height: 100% !important;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer.mk-chart-stage .jqplot-xaxis,
+body[data-view="DashBoard"] .widgetChartContainer.mk-chart-stage .jqplot-xaxis-tick,
+body[data-view="DashBoard"] .widgetChartContainer.mk-chart-stage .jqplot-xaxis-tick text {
+    overflow: visible !important;
+}
+
+/* Hide jqPlot built-in legend when custom HTML legend is present */
+body[data-view="DashBoard"] .mk-chart-col:has(.mk-dash-chart-legend) table.jqplot-table-legend,
+body[data-view="DashBoard"] .widgetChartContainer:has(+ .mk-dash-chart-legend) table.jqplot-table-legend {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Custom legend row — always below chart, never over bars */
+body[data-view="DashBoard"] .widgetChartContainer .mk-dash-chart-legend,
+body[data-view="DashBoard"] .fullscreenview .mk-dash-chart-legend {
     flex: 0 0 auto;
-    align-self: stretch;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 16px;
+    margin: 0;
+    padding: 10px 12px 8px;
+    border-top: 1px solid #e2e8f0;
+    background: #fafbfc;
+    border-radius: 0 0 10px 10px;
+    box-sizing: border-box;
+    width: 100%;
 }
 
-body[data-view="DashBoard"] .widgetChartContainer .jqplot-target > .jqplot-series-canvas,
-body[data-view="DashBoard"] .widgetChartContainer .jqplot-target > .jqplot-grid-canvas,
-body[data-view="DashBoard"] .fullscreenview .jqplot-target > .jqplot-series-canvas,
-body[data-view="DashBoard"] .fullscreenview .jqplot-target > .jqplot-grid-canvas {
-    flex: 1 1 auto;
-    min-height: 0;
+body[data-view="DashBoard"] .mk-dash-chart-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #334155;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+body[data-view="DashBoard"] .mk-dash-chart-legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+body[data-view="DashBoard"] .mk-dash-chart-legend-label {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 body[data-view="DashBoard"] .widgetChartContainer table.jqplot-table-legend,
 body[data-view="DashBoard"] .fullscreenview table.jqplot-table-legend {
-    order: 99;
-    position: static !important;
+    position: relative !important;
     left: auto !important;
     top: auto !important;
     right: auto !important;
     bottom: auto !important;
     transform: none !important;
-    margin: 6px 0 0 0 !important;
-    flex: 0 0 auto;
-    align-self: stretch;
+    display: table !important;
+    margin: 12px auto 6px auto !important;
     width: 100% !important;
     max-width: 100% !important;
     border-collapse: separate !important;
-    border-spacing: 2px 4px !important;
+    border-spacing: 8px 6px !important;
     background: transparent !important;
     border: none !important;
+    border-top: 1px solid #e2e8f0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    padding: 0 2px 0 0 !important;
-    max-height: 96px;
-    overflow-x: auto;
-    overflow-y: auto;
+    padding: 10px 8px 4px 8px !important;
+    max-height: none;
+    overflow: visible;
+    text-align: center !important;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer table.jqplot-table-legend td,
+body[data-view="DashBoard"] .fullscreenview table.jqplot-table-legend td {
+    text-align: left !important;
+    vertical-align: middle !important;
+    padding: 2px 8px !important;
 }
 
 body[data-view="DashBoard"] .widgetChartContainer .jqplot-table-legend-swatch-outline,
@@ -1954,11 +2291,11 @@ body[data-view="DashBoard"] .fullscreenview .jqplot-table-legend-swatch-outline 
 
 body[data-view="DashBoard"] .widgetChartContainer .jqplot-table-legend-label,
 body[data-view="DashBoard"] .fullscreenview .jqplot-table-legend-label {
-    color: #64748B !important;
-    font-weight: 400 !important;
+    color: #334155 !important;
+    font-weight: 500 !important;
     font-size: 11px !important;
-    line-height: 1.25 !important;
-    padding: 1px 4px 1px 2px !important;
+    line-height: 1.3 !important;
+    padding: 2px 6px 2px 4px !important;
 }
 
 body[data-view="DashBoard"] .widgetChartContainer .jqplot-title,
@@ -1969,8 +2306,17 @@ body[data-view="DashBoard"] .fullscreenview .jqplot-title {
     letter-spacing: 0.01em;
 }
 
+body[data-view="DashBoard"] .fullscreenview .mk-dashboard-chart-row,
+body[data-view="DashBoard"] .fullscreenview .mk-dashboard-chart-row .mk-chart-col {
+    overflow: visible !important;
+}
+
+body[data-view="DashBoard"] .fullscreenview .dashboardWidgetContent.mk-fullscreen-widget-content {
+    overflow: visible !important;
+}
+
 body[data-view="DashBoard"] .fullscreenview .widgetChartContainer {
-    padding: 6px 8px !important;
+    padding: 8px 16px 8px 32px !important;
 }
 
 body[data-view="DashBoard"] .widgetChartContainer canvas {
@@ -2028,7 +2374,28 @@ body[data-view="DashBoard"] .widgetChartContainer .jqplot-xaxis-tick,
 body[data-view="DashBoard"] .widgetChartContainer .jqplot-yaxis-tick,
 body[data-view="DashBoard"] .fullscreenview .jqplot-xaxis-tick,
 body[data-view="DashBoard"] .fullscreenview .jqplot-yaxis-tick {
-    color: #64748B !important;
+    color: #475569 !important;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-xaxis-tick text,
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-xaxis .jqplot-xaxis-tick text,
+body[data-view="DashBoard"] .fullscreenview .jqplot-xaxis-tick text {
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    fill: #475569 !important;
+}
+
+body[data-view="DashBoard"] .widgetChartContainer .jqplot-yaxis-tick text,
+body[data-view="DashBoard"] .fullscreenview .jqplot-yaxis-tick text {
+    font-size: 10px !important;
+    fill: #64748b !important;
+}
+
+/* Stacked bars: rely on tooltip, not segment numbers */
+body[data-view="DashBoard"] .widgetChartContainer.mk-chart-stage .jqplot-point-label {
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    color: #334155 !important;
 }
 
 /* Ghost / duplicate nav: hide orphan app list; overlay menu fully non-interactive when hidden */

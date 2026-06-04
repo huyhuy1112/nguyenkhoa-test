@@ -6,18 +6,18 @@
 (function ($) {
   "use strict";
 
-  /** Site-aligned palette: slate blue, amber, teal, muted indigo, soft rose (sparingly), neutrals */
+  /** CRM-style palette: brand gold + refined blues/teals (HubSpot / SF-inspired) */
   var PALETTE_LIGHT = [
-    "#FDBB2C",
-    "#40627E",
-    "#14B8A6",
-    "#6366F1",
-    "#1F4B64",
+    "#2563EB",
     "#F59E0B",
-    "#0F766E",
-    "#94A3B8",
-    "#475569",
-    "#A5B4FC",
+    "#10B981",
+    "#8B5CF6",
+    "#FDBB2C",
+    "#0EA5E9",
+    "#6366F1",
+    "#EC4899",
+    "#64748B",
+    "#14B8A6",
   ];
 
   var PALETTE_DARK = [
@@ -63,9 +63,9 @@
     };
   }
 
-  var MAX_TICK_CHARS = 16;
-  var SHORT_TICK_LEN = 10;
-  var ANGLE_TICK_THRESHOLD = 10;
+  var MAX_TICK_CHARS = 14;
+  var SHORT_TICK_LEN = 8;
+  var FEW_CATEGORY_MAX = 4;
 
   function isDashBoardView() {
     return (
@@ -115,6 +115,7 @@
   function truncateCategoryTicks(opts, axisKey, $plotRoot) {
     if (!opts.axes || !opts.axes[axisKey]) return;
     var ax = opts.axes[axisKey];
+    if (ax.renderer !== $.jqplot.CategoryAxisRenderer) return;
     var ticks = ax.ticks;
     if (!ticks || !$.isArray(ticks) || ticks.length === 0) return;
 
@@ -169,12 +170,14 @@
     var ax = opts.axes.xaxis;
     ax.tickOptions = $.extend(true, {}, ax.tickOptions);
     ax.tickOptions = normalizeTickFontSize(ax.tickOptions);
-    if (maxLen <= SHORT_TICK_LEN) {
+    if (ticks.length <= FEW_CATEGORY_MAX) {
+      ax.tickOptions.angle = 0;
+    } else if (maxLen <= SHORT_TICK_LEN) {
       ax.tickOptions.angle = 0;
     } else if (maxLen > MAX_TICK_CHARS) {
       ax.tickOptions.angle = 0;
     } else {
-      ax.tickOptions.angle = -25;
+      ax.tickOptions.angle = -22;
     }
   }
 
@@ -231,17 +234,19 @@
         shadowAlpha: 0,
         shadowDepth: 0,
         barMargin: stacked
-          ? Math.min(ro.barMargin != null ? ro.barMargin : 10, 12)
-          : Math.min(ro.barMargin != null ? ro.barMargin : 12, 14),
-        barPadding: ro.barPadding != null ? ro.barPadding : 6,
-        barWidth: ro.barWidth != null ? ro.barWidth : 22,
+          ? Math.min(ro.barMargin != null ? ro.barMargin : 14, 16)
+          : Math.min(ro.barMargin != null ? ro.barMargin : 12, 18),
+        barPadding: ro.barPadding != null ? ro.barPadding : 8,
+        barWidth: ro.barWidth != null ? ro.barWidth : 28,
       }),
       pointLabels: $.extend(
         true,
         {
-          show: sd.pointLabels ? sd.pointLabels.show : true,
-          textColor: "#94A3B8",
+          show: stacked ? false : sd.pointLabels ? sd.pointLabels.show !== false : true,
+          hideZeros: true,
+          textColor: "#334155",
           fontSize: "10px",
+          formatString: "%d",
         },
         sd.pointLabels || {}
       ),
@@ -349,10 +354,6 @@
     opts.axesDefaults = $.extend(
       true,
       {
-        tickRenderer:
-          $.jqplot && $.jqplot.CanvasAxisTickRenderer
-            ? $.jqplot.CanvasAxisTickRenderer
-            : undefined,
         tickOptions: {
           fontSize: "10px",
           textColor: colors.axis,
@@ -410,27 +411,13 @@
     var legendCols =
       legCount > 10 ? 6 : legCount > 6 ? 5 : 4;
 
-    if (showLeg && $.jqplot && $.jqplot.EnhancedLegendRenderer) {
-      leg.renderer = $.jqplot.EnhancedLegendRenderer;
-      leg.rendererOptions = $.extend(
-        true,
-        {
-          textColor: "#64748B",
-          borderAlpha: 0,
-          rowSpacing: "0.12em",
-          numberColumns: legendCols,
-        },
-        leg.rendererOptions || {}
-      );
-    }
-
     leg.border = "none";
     leg.background = "transparent";
     leg.shadow = false;
     leg.placement = "outsideGrid";
-    leg.location = "sw";
+    leg.location = "s";
     leg.xoffset = 0;
-    leg.yoffset = 0;
+    leg.yoffset = 6;
 
     if (showLeg) {
       leg.fontSize = legCount > 12 ? "10px" : "11px";
@@ -441,36 +428,64 @@
     if (showLeg) {
       var bottomPad;
       if (legCount > 0) {
-        var rows = Math.ceil(legCount / legendCols);
+        var cols = Math.min(legendCols, Math.max(2, legCount));
+        var rows = Math.ceil(legCount / cols);
         rows = Math.max(1, rows);
-        bottomPad = 12 + rows * 18;
-        bottomPad = Math.min(96, Math.max(26, bottomPad));
+        bottomPad = 16 + rows * 20;
+        bottomPad = Math.min(110, Math.max(44, bottomPad));
       } else {
-        bottomPad = 36;
+        bottomPad = 40;
       }
-      opts.gridPadding = $.extend(true, { bottom: bottomPad }, opts.gridPadding || {});
+      opts.gridPadding = $.extend(
+        true,
+        { top: 12, right: 14, left: 14, bottom: bottomPad },
+        opts.gridPadding || {}
+      );
+    } else {
+      opts.gridPadding = $.extend(
+        true,
+        { top: 12, right: 14, left: 14, bottom: 28 },
+        opts.gridPadding || {}
+      );
+    }
+
+    if ($plotRoot && $plotRoot.closest(".fullscreenview").length) {
+      opts.gridPadding = opts.gridPadding || {};
+      opts.gridPadding.left = Math.max(
+        parseInt(opts.gridPadding.left, 10) || 0,
+        76
+      );
     }
 
     opts.legend = leg;
 
-    opts.highlighter = $.extend(
-      true,
-      {
-        show: true,
-        showMarker: false,
-        tooltipAxes: "xy",
-        fadeTooltip: true,
-        tooltipFadeSpeed: "fast",
-        sizeAdjust: 4,
-        tooltipOffset: 8,
-        useAxesFormatters: true,
-        tooltipClass: "mk-dash-jqplot-tooltip",
-      },
-      opts.highlighter || {}
-    );
+    var isLineChart =
+      opts.seriesDefaults &&
+      opts.seriesDefaults.renderer &&
+      $.jqplot &&
+      opts.seriesDefaults.renderer === $.jqplot.LineRenderer;
 
-    if ($plotRoot && $plotRoot.length) {
-      chainHighlighterTooltip(opts, $plotRoot);
+    if (isLineChart) {
+      opts.highlighter = $.extend(
+        true,
+        {
+          show: true,
+          showMarker: false,
+          tooltipAxes: "xy",
+          fadeTooltip: true,
+          tooltipFadeSpeed: "fast",
+          sizeAdjust: 4,
+          tooltipOffset: 8,
+          useAxesFormatters: true,
+          tooltipClass: "mk-dash-jqplot-tooltip",
+        },
+        opts.highlighter || {}
+      );
+      if ($plotRoot && $plotRoot.length) {
+        chainHighlighterTooltip(opts, $plotRoot);
+      }
+    } else if (opts.highlighter) {
+      opts.highlighter.show = false;
     }
 
     opts.shadow = opts.shadow != null ? opts.shadow : false;
@@ -478,7 +493,13 @@
     return opts;
   }
 
+  /** Set true to re-enable jqPlot theming after charts load reliably */
+  var MK_DASH_CHART_THEME_ENABLED = false;
+
   function installWrapper() {
+    if (!MK_DASH_CHART_THEME_ENABLED) {
+      return;
+    }
     if (!$.fn || !$.fn.jqplot || $.fn.jqplot.__mkDashBoardChartsWrapped) {
       return;
     }
@@ -488,8 +509,16 @@
       if (!shouldThemeElement($root)) {
         return original.apply(this, arguments);
       }
-      var themed = applyDashboardChartTheme(options || {}, $root, data);
-      return original.call(this, data, themed);
+      var baseOpts = options || {};
+      try {
+        var themed = applyDashboardChartTheme(baseOpts, $root, data);
+        return original.call(this, data, themed);
+      } catch (themeErr) {
+        if (window.console && console.warn) {
+          console.warn("[DashBoardChartsTheme] theme failed, using defaults", themeErr);
+        }
+        return original.call(this, data, baseOpts);
+      }
     };
     $.fn.jqplot.__mkDashBoardChartsWrapped = true;
   }
@@ -502,19 +531,8 @@
     installWrapper();
   });
 
+  /* Do not reload widgets on theme change — loadWidget prepends HTML and would duplicate headers */
   $(document).on("mk:theme-change", function () {
     installWrapper();
-    $(".dashboardWidget.loadcompleted").each(function () {
-      var $w = $(this);
-      if (
-        $w.data("name") &&
-        typeof Vtiger_DashBoard_Js !== "undefined" &&
-        Vtiger_DashBoard_Js.currentInstance
-      ) {
-        try {
-          Vtiger_DashBoard_Js.currentInstance.loadWidget($w);
-        } catch (e) { /* ignore */ }
-      }
-    });
   });
 })(jQuery);

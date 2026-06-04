@@ -37,7 +37,7 @@ class Home_DashBoard_View extends Vtiger_DashBoard_View {
 	public function getHeaderCss(Vtiger_Request $request) {
 		$headerCssScriptInstances = parent::getHeaderCss($request);
 		$css = array(
-			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/Home/resources/HomeDashBoardCharts.css?mk_v=20260603_dash5',
+			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/Home/resources/HomeDashBoardCharts.css',
 		);
 		return array_merge($headerCssScriptInstances, $this->checkAndConvertCssStyles($css));
 	}

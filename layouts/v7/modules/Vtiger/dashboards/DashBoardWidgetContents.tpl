@@ -16,6 +16,13 @@
         <div class="row mk-dashboard-chart-row" style="margin:0;">
             <div class="col-xs-12 mk-chart-col">
                 <div class="widgetChartContainer mk-chart-stage" name="chartcontent"></div>
+                <div class="mk-dash-chart-xlabels" aria-label="Salesperson">
+                {if isset($CHART_USER_LABELS) && $CHART_USER_LABELS|@count gt 0}
+                    {foreach from=$CHART_USER_LABELS item=USER_NAME}
+                        <span class="mk-dash-chart-xlabel" title="{$USER_NAME|escape:'html'}">{$USER_NAME|escape:'html'}</span>
+                    {/foreach}
+                {/if}
+                </div>
             </div>
         </div>
     {else}
