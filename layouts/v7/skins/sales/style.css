@@ -5175,6 +5175,13 @@ TN-34230 .row .nav > li > a:hover {
 .commentAttachmentName .filePreview .fa-download {
   display: inline-block !important;
 }
+a.mk-comment-delete-link {
+  color: #dc2626 !important;
+  font-weight: 600;
+}
+a.mk-comment-delete-link:hover {
+  color: #b91c1c !important;
+}
 /******************************************* 
 ********** Layout Editor ********
 ********************************************/

@@ -2845,6 +2845,71 @@ Vtiger.Class("Vtiger_Detail_Js",{
 		//RegisterBasicEvents for Related-List overlay's
 		this.registerBasicEvents();
 		this.registerHeaderAjaxEditEvents();
+		detailContentsHolder.on('click', '.deleteComment', function (e) {
+			e.preventDefault();
+			var link = jQuery(e.currentTarget);
+			var commentId = link.data('commentid');
+			if (!commentId) {
+				return;
+			}
+			var message = app.vtranslate('JS_LBL_ARE_YOU_SURE_YOU_WANT_TO_DELETE');
+			app.helper.showConfirmationBox({ message: message, htmlSupportEnable: false }).then(function () {
+				app.helper.showProgress();
+				app.request.post({
+					url: 'index.php',
+					data: {
+						module: 'ModComments',
+						action: 'DeleteAjax',
+						record: commentId,
+					},
+				}).then(function (err) {
+					app.helper.hideProgress();
+					if (err) {
+						app.helper.showErrorNotification({
+							message: err.message || app.vtranslate('LBL_PERMISSION_DENIED'),
+						});
+						return;
+					}
+					var commentBlock = link.closest('.commentDetails');
+					if (!commentBlock.length) {
+						commentBlock = link.closest('.singleComment').closest('.commentDetails');
+					}
+					if (commentBlock.length) {
+						var nextHr = commentBlock.next('hr');
+						commentBlock.remove();
+						if (nextHr.length) {
+							nextHr.remove();
+						}
+					} else {
+						link.closest('.singleComment').remove();
+					}
+					var commentsList = detailContentsHolder.find('.commentsList .commentDetails');
+					if (!commentsList.length) {
+						detailContentsHolder.find('.noCommentsMsgContainer').show();
+					}
+					var tabElement = self.getTabByLabel(self.detailViewRecentCommentsTabLabel);
+					if (tabElement && tabElement.length) {
+						try {
+							var relatedController = new Vtiger_RelatedList_Js(
+								self.getRecordId(),
+								app.getModuleName(),
+								tabElement,
+								self.getRelatedModuleName()
+							);
+							relatedController.updateRelatedRecordsCount(
+								jQuery(tabElement).data('relation-id'),
+								[-1],
+								true
+							);
+						} catch (ignore) { /* optional counter */ }
+					}
+					app.helper.showSuccessNotification({
+						message: app.vtranslate('JS_ITEMS_DELETED_SUCCESSFULLY'),
+					});
+				});
+			});
+		});
+
 		detailContentsHolder.on('click','.detailViewSaveComment', function(e){
 			var element = jQuery(e.currentTarget);
 			if(!element.is(":disabled")) {

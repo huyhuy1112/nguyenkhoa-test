@@ -87,6 +87,8 @@
 													</a>
 												{/if}
 											{/if}
+											{assign var=SHOW_COMMENT_ACTION_SEP value=($COMMENTS_MODULE_MODEL->isPermitted('EditView'))}
+											{include file="partials/CommentAdminDeleteLink.tpl"|vtemplate_path:'Vtiger' COMMENT=$COMMENT MODULE_NAME=$MODULE_NAME CAN_ADMIN_DELETE_COMMENTS=$CAN_ADMIN_DELETE_COMMENTS SHOW_COMMENT_ACTION_SEP=$SHOW_COMMENT_ACTION_SEP}
 
 											{assign var=CHILD_COMMENTS_COUNT value=$COMMENT->getChildCommentsCount()}
 											{if $CHILD_COMMENTS_MODEL neq null and (isset($CHILDS_ROOT_PARENT_ID)&& $CHILDS_ROOT_PARENT_ID neq $PARENT_COMMENT_ID)}

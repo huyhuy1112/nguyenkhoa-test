@@ -24,6 +24,10 @@ class ModComments_DetailAjax_View extends Vtiger_IndexAjax_View {
         $viewer->assign('COMMENTS_MODULE_MODEL', $modCommentsModel);
 		$viewer->assign('ROLLUP_STATUS', false);
 		$viewer->assign('CHILDS_ROOT_PARENT_MODEL', null);
+		$viewer->assign(
+			'CAN_ADMIN_DELETE_COMMENTS',
+			ModComments_Module_Model::canCurrentUserAdminDeleteComment()
+		);
 		echo $viewer->view('Comment.tpl', $moduleName, true);
 	}
 }

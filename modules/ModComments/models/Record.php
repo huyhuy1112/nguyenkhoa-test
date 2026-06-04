@@ -436,7 +436,7 @@ class ModComments_Record_Model extends Vtiger_Record_Model {
 	 * @return <Boolean> - true/false
 	 */
 	public function isDeletable() {
-		return false;
+		return ModComments_Module_Model::canCurrentUserAdminDeleteComment();
 	}
 
 	public function getCommentedByName() {

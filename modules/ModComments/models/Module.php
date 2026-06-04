@@ -111,6 +111,34 @@ class ModComments_Module_Model extends Vtiger_Module_Model{
 		return false;
 	}
 
+	/**
+	 * CRM admin (is_admin = on) may delete comments from detail widgets.
+	 * @return bool
+	 */
+	public static function canCurrentUserAdminDeleteComment() {
+		$currentUserModel = Users_Record_Model::getCurrentUserModel();
+		return $currentUserModel && $currentUserModel->isAdminUser();
+	}
+
+	/**
+	 * Ensure admin can access the parent record before deleting a comment.
+	 * @param int $commentId
+	 */
+	public static function assertAdminCanDeleteComment($commentId) {
+		$commentModel = ModComments_Record_Model::getInstanceById($commentId, 'ModComments');
+		if (!$commentModel || !$commentModel->getId()) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED', 'ModComments'));
+		}
+		$parentId = $commentModel->get('related_to');
+		if (empty($parentId)) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED', 'ModComments'));
+		}
+		$parentModule = getSalesEntityType($parentId);
+		if (empty($parentModule) || !Users_Privileges_Model::isPermitted($parentModule, 'DetailView', $parentId)) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED', 'ModComments'));
+		}
+	}
+
 }
 
 ?>

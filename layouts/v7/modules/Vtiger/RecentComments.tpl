@@ -157,6 +157,8 @@
 																{vtranslate('LBL_EDIT',$MODULE_NAME)}
 															</a>
 														{/if}
+														{assign var=SHOW_COMMENT_ACTION_SEP value=($IS_CREATABLE || ($CURRENTUSER->getId() eq $COMMENT->get('userid') && $IS_EDITABLE))}
+														{include file="partials/CommentAdminDeleteLink.tpl"|vtemplate_path:'Vtiger' COMMENT=$COMMENT MODULE_NAME=$MODULE_NAME CAN_ADMIN_DELETE_COMMENTS=$CAN_ADMIN_DELETE_COMMENTS SHOW_COMMENT_ACTION_SEP=$SHOW_COMMENT_ACTION_SEP}
 													</span>
 												</div>
 												{if $COMMENT->getCommentedTime() neq $COMMENT->getModifiedTime()}

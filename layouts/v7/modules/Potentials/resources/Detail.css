@@ -1380,6 +1380,15 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	opacity: 0.85;
 }
 
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card--comments a.mk-comment-delete-link {
+	color: #dc2626 !important;
+	font-weight: 600;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card--comments a.mk-comment-delete-link:hover {
+	color: #b91c1c !important;
+}
+
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card .toggleButton {
 	color: #a89882;
 }

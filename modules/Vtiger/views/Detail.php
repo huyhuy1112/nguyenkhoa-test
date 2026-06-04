@@ -527,6 +527,10 @@ class Vtiger_Detail_View extends Vtiger_Index_View {
 			$rollupsettings['rollupid'] : 0);
 		$viewer->assign('PARENT_RECORD', $parentId);
 		$viewer->assign('STARTINDEX', 0);
+		$viewer->assign(
+			'CAN_ADMIN_DELETE_COMMENTS',
+			ModComments_Module_Model::canCurrentUserAdminDeleteComment()
+		);
 
 		return $viewer->view('RecentComments.tpl', $moduleName, 'true');
 	}
