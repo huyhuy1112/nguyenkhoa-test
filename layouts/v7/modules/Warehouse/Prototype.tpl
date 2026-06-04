@@ -6,7 +6,7 @@
 			<header class="mk-wh-proto-head">
 				<div class="mk-wh-proto-title">
 					<h1 class="mk-wh-proto-title__h1">Prototype — Quản lý kho theo vai trò</h1>
-					<p class="mk-wh-proto-title__sub">Mô phỏng luồng nghiệp vụ: Thủ kho → QC → Quản lý kho. Phiếu nhập, QC, tồn kho, phiếu xuất.</p>
+					<p class="mk-wh-proto-title__sub">Mô phỏng luồng: Thủ kho tạo phiếu nhập/xuất → QC ghi nhận kết quả trên phiếu nhập → Quản lý duyệt xuất.</p>
 				</div>
 				<div class="mk-wh-proto-role">
 					<div class="mk-wh-proto-role__label">Đang đăng nhập với vai trò</div>

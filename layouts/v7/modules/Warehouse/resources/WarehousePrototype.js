@@ -401,7 +401,7 @@
 
 		var map = {
 			inbound: { title: 'Danh sách phiếu nhập', btn: 'Tạo phiếu nhập', pane: '#mkWhProtoPaneInbound' },
-			qc: { title: 'Hàng đợi QC', btn: 'Tạo phiếu QC', pane: '#mkWhProtoPaneQc' },
+			qc: { title: 'Hàng đợi QC', pane: '#mkWhProtoPaneQc', hideCreate: true },
 			stock: { title: 'Tồn kho', pane: '#mkWhProtoPaneStock', hideCreate: true },
 			outbound: { title: 'Danh sách phiếu xuất', btn: 'Tạo phiếu xuất', pane: '#mkWhProtoPaneOutbound' },
 		};
@@ -443,8 +443,8 @@
 			},
 			manager: {
 				badge: 'Quản lý kho',
-				hint: 'Quyền: Duyệt phiếu xuất • Xem báo cáo tồn kho • Tạo phiếu theo tab',
-				perms: 'Duyệt phiếu xuất • Xem báo cáo tồn kho • Tạo phiếu theo tab',
+				hint: 'Quyền: Duyệt phiếu xuất • Xem báo cáo tồn kho',
+				perms: 'Duyệt phiếu xuất • Xem báo cáo tồn kho',
 			},
 		};
 		var meta = map[role] || map.qc;
@@ -453,28 +453,29 @@
 		if (permRole) permRole.textContent = meta.badge;
 		if (permItems) permItems.textContent = meta.perms;
 
-		// Role-based create availability (UI only)
-		// QC: chỉ ghi nhận kết quả — không tạo phiếu trên bất kỳ tab nào
-		// inbound/outbound: thủ kho + quản lý; tab QC: chỉ quản lý (nếu cần); tồn kho: không tạo
+		// Chỉ thủ kho tạo phiếu nhập / xuất. Tab QC & tồn kho không có nút tạo (không có “phiếu QC”).
 		var activeTab = 'inbound';
 		var active = qs('.mk-wh-proto-tab.is-active');
 		if (active) activeTab = active.getAttribute('data-tab') || 'inbound';
-		if (role === 'qc' || activeTab === 'stock') {
+		var canCreate =
+			role === 'stock' && (activeTab === 'inbound' || activeTab === 'outbound');
+		if (!canCreate) {
 			if (btn) {
 				btn.classList.add('hide');
 				btn.disabled = true;
 				btn.classList.remove('is-disabled');
+				btn.title =
+					role !== 'stock'
+						? 'Chỉ thủ kho được tạo phiếu nhập / xuất (UI demo).'
+						: 'Tab này không tạo phiếu mới (UI demo).';
 			}
 			return;
 		}
-		if (btn) btn.classList.remove('hide');
-		var canCreate =
-			(activeTab === 'qc' && role === 'manager') ||
-			((activeTab === 'inbound' || activeTab === 'outbound') && (role === 'stock' || role === 'manager'));
 		if (btn) {
-			btn.disabled = !canCreate;
-			btn.title = canCreate ? '' : 'Vai trò này không có quyền tạo ở tab hiện tại (UI demo).';
-			btn.classList.toggle('is-disabled', !canCreate);
+			btn.classList.remove('hide', 'is-disabled');
+			btn.disabled = false;
+			btn.title = '';
+			btn.textContent = activeTab === 'outbound' ? 'Tạo phiếu xuất' : 'Tạo phiếu nhập';
 		}
 	}
 
@@ -913,27 +914,6 @@
 				],
 			};
 		}
-		if (tabKey === 'qc') {
-			return {
-				title: 'Tạo phiếu QC',
-				submitLabel: 'Tạo phiếu',
-				fields: [
-					{ name: 'ref', label: 'Mã phiếu nhập', required: true, full: true, placeholder: 'GRN-0002' },
-					{
-						name: 'result',
-						label: 'Kết quả',
-						type: 'select',
-						required: true,
-						full: true,
-						options: [
-							{ value: 'pass', label: 'Đạt' },
-							{ value: 'fail', label: 'Không đạt' },
-						],
-					},
-					{ name: 'note', label: 'Ghi chú', type: 'textarea', full: true, placeholder: 'Ghi chú kiểm tra…' },
-				],
-			};
-		}
 		if (tabKey === 'stock') {
 			return {
 				title: 'Thêm SKU lưu kho',
@@ -1002,8 +982,9 @@
 				var active = qs('.mk-wh-proto-tab.is-active');
 				var tabKey = active ? active.getAttribute('data-tab') : 'inbound';
 				var role = roleSel ? roleSel.value : 'qc';
-				if (role === 'qc') return;
-				openModal(modalSchema(tabKey, role));
+				if (role !== 'stock' || tabKey === 'qc' || tabKey === 'stock') return;
+				var schema = modalSchema(tabKey, role);
+				if (schema) openModal(schema);
 			});
 		}
 		var modal = qs('#mkWhProtoModal');
