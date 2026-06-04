@@ -454,19 +454,22 @@
 		if (permItems) permItems.textContent = meta.perms;
 
 		// Role-based create availability (UI only)
-		// inbound/outbound: stock + manager, qc: qc + manager; tồn kho chỉ xem (không tạo SKU)
+		// QC: chỉ ghi nhận kết quả — không tạo phiếu trên bất kỳ tab nào
+		// inbound/outbound: thủ kho + quản lý; tab QC: chỉ quản lý (nếu cần); tồn kho: không tạo
 		var activeTab = 'inbound';
 		var active = qs('.mk-wh-proto-tab.is-active');
 		if (active) activeTab = active.getAttribute('data-tab') || 'inbound';
-		if (activeTab === 'stock') {
+		if (role === 'qc' || activeTab === 'stock') {
 			if (btn) {
 				btn.classList.add('hide');
 				btn.disabled = true;
+				btn.classList.remove('is-disabled');
 			}
 			return;
 		}
+		if (btn) btn.classList.remove('hide');
 		var canCreate =
-			(activeTab === 'qc' && (role === 'qc' || role === 'manager')) ||
+			(activeTab === 'qc' && role === 'manager') ||
 			((activeTab === 'inbound' || activeTab === 'outbound') && (role === 'stock' || role === 'manager'));
 		if (btn) {
 			btn.disabled = !canCreate;
@@ -995,10 +998,11 @@
 		var btn = qs('#mkWhProtoCreateBtn');
 		if (btn) {
 			btn.addEventListener('click', function () {
-				if (btn.disabled) return;
+				if (btn.disabled || btn.classList.contains('hide')) return;
 				var active = qs('.mk-wh-proto-tab.is-active');
 				var tabKey = active ? active.getAttribute('data-tab') : 'inbound';
 				var role = roleSel ? roleSel.value : 'qc';
+				if (role === 'qc') return;
 				openModal(modalSchema(tabKey, role));
 			});
 		}

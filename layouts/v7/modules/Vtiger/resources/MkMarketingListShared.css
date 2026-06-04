@@ -187,12 +187,35 @@ body[data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-so-page-btn:f
 	border-color: #e5a820 !important;
 }
 
-body[data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
-	display: none !important;
+body[data-view="List"][data-app="MARKETING"] .mk-so-toggle-layout.is-active,
+body[data-view="List"][data-app="MARKETING"] .mk-so-toggle-layout[aria-pressed="true"] {
+	background: #fff8eb !important;
+	border-color: #e5a820 !important;
 }
 
-body[data-view="List"][data-app="MARKETING"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer {
+body[data-view="List"][data-app="MARKETING"] .mk-so-toggle-layout {
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	background: #ffffff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-sizing: border-box;
+}
+
+/* Filter row: always visible (Opportunities reference) */
+body[data-view="List"][data-app="MARKETING"] #listViewContent tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-contact-search-open) tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-org-search-open) tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-camp-search-open) tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-plan-search-open) tr.searchRow.listViewSearchContainer {
 	display: table-row !important;
+	background: #fafbfc !important;
 }
 
 body[data-view="List"][data-app="MARKETING"] .floatThead-container {
@@ -288,11 +311,16 @@ body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tb
 
 body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow th {
 	height: auto !important;
-	padding: 8px 10px !important;
+	min-height: 0 !important;
+	padding: 10px 12px !important;
 	font-size: 13px;
 	font-weight: 400;
 	text-transform: none;
 	letter-spacing: normal;
+	background: #fafbfc;
+	border-bottom: 1px solid #d4c4ad;
+	vertical-align: middle !important;
+	overflow: visible !important;
 }
 
 /* Win over module *List.css (Quotes/Contacts used overflow:visible — corners looked “cut”) */

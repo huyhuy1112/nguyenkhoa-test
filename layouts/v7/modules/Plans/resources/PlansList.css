@@ -635,7 +635,7 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewConte
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow th {
 	height: auto !important;
 	min-height: 0 !important;
-	padding: 8px 10px !important;
+	padding: 10px 12px !important;
 	font-size: 13px;
 	font-weight: 400;
 	text-transform: none;
@@ -739,19 +739,7 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewConte
 	border: 0;
 }
 
-/* Search row: collapsed until toolbar search icon */
-body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
-	display: none !important;
-}
-
-body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer {
-	display: table-row !important;
-	background: #fafbfc;
-}
-
-body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent.mk-so-search-open tr.searchRow th {
-	border-bottom: 1px solid #d4c4ad;
-}
+/* Filter row: always visible (MkMarketingListTable.css) */
 
 /* Stock bottom-fixed-scroll duplicates horizontal scroll (custom.css top:-19px); hide — native bar on #table-content only */
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,

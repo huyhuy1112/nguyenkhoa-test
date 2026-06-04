@@ -298,6 +298,9 @@
 		enhanceCreatedBy(document);
 		applySearchPlaceholders(document);
 		fixListScrollContainer();
+		if (typeof window.mkMarketingListAfterAjax === 'function') {
+			window.mkMarketingListAfterAjax();
+		}
 		setReadyState();
 	}
 

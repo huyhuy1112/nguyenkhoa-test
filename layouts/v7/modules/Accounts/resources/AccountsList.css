@@ -959,9 +959,8 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 	border: 0;
 }
 
-/* Search row: collapsed until toolbar search icon */
+/* Search row: collapsed until toolbar search icon (SALES/SUPPORT only; MARKETING uses MkMarketingListTable) */
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open):not(.mk-org-search-open) tr.searchRow.listViewSearchContainer,
-body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-so-search-open):not(.mk-org-search-open) tr.searchRow.listViewSearchContainer,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent:not(.mk-so-search-open):not(.mk-org-search-open) tr.searchRow.listViewSearchContainer
 {
 	display: none !important;
@@ -969,8 +968,6 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer,
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-org-search-open tr.searchRow.listViewSearchContainer,
-body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer,
-body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent.mk-org-search-open tr.searchRow.listViewSearchContainer,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent.mk-org-search-open tr.searchRow.listViewSearchContainer
 {
 	display: table-row !important;
@@ -978,7 +975,6 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-org-search-open tr.searchRow th,
-body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent.mk-org-search-open tr.searchRow th,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent.mk-org-search-open tr.searchRow th
 {
 	border-bottom: 1px solid #d4c4ad;

@@ -109,6 +109,19 @@
 		$('#listViewContent #listview-table').addClass('mk-org-table');
 	}
 
+	function isMarketingAccountsList() {
+		var b = document.body;
+		if (!b || b.getAttribute('data-module') !== 'Accounts' || b.getAttribute('data-view') !== 'List') {
+			return false;
+		}
+		var appName = (b.getAttribute('data-app') || '').toUpperCase();
+		if (appName === 'MARKETING') {
+			return true;
+		}
+		var params = new URLSearchParams(window.location.search || '');
+		return params.get('module') === 'Accounts' && params.get('view') === 'List' && params.get('app') === 'MARKETING';
+	}
+
 	function isSalesStyleAccountsList() {
 		var b = document.body;
 		if (!b || b.getAttribute('data-module') !== 'Accounts' || b.getAttribute('data-view') !== 'List') {
@@ -133,6 +146,9 @@
 		fixListScrollContainer();
 		if (isSalesStyleAccountsList() && typeof window.mkSalesListAfterAjax === 'function') {
 			window.mkSalesListAfterAjax();
+		}
+		if (isMarketingAccountsList() && typeof window.mkMarketingListAfterAjax === 'function') {
+			window.mkMarketingListAfterAjax();
 		}
 	}
 
@@ -162,6 +178,16 @@
 				var $row = root.find('tr.searchRow.listViewSearchContainer').first();
 				if ($row.length && $row[0].scrollIntoView) {
 					$row[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				}
+				return;
+			}
+			if (isMarketingAccountsList()) {
+				if (typeof window.mkMarketingListAfterAjax === 'function') {
+					window.mkMarketingListAfterAjax();
+				}
+				var $mktRow = root.find('tr.searchRow.listViewSearchContainer').first();
+				if ($mktRow.length && $mktRow[0].scrollIntoView) {
+					$mktRow[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 				}
 				return;
 			}
