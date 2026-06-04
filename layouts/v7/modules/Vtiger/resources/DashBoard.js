@@ -1020,9 +1020,10 @@ Vtiger.Class(
       if (widgetContainer.find(".dashboardWidgetHeader").length) {
         return;
       }
+      var widgetLabel = widgetContainer.data("name") || "Widget";
       widgetContainer.prepend(
         '<div class="dashboardWidgetHeader"><div class="title"><div class="dashboardTitle"><b>' +
-          app.vtranslate("JS_ERROR") +
+          app.vtranslate(widgetLabel, "Vtiger") +
           '</b></div></div></div><div class="dashboardWidgetContent"><div class="noDataMsg" style="padding:40px 16px;text-align:center;color:#64748b;">' +
           app.vtranslate("JS_NO_DATA_AVAILABLE") +
           "</div></div>"

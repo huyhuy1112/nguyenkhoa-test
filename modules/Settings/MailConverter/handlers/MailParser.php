@@ -13,6 +13,11 @@ class Vtiger_MailParser {
 	var $msg = false;
 
 	function __construct($string) {
+		$string = (string) $string;
+		if ($string === '') {
+			$this->msg = '';
+			return;
+		}
 		$this->msg = mb_convert_encoding($string, 'HTML-ENTITIES', 'UTF-8');
 	}
 
@@ -20,6 +25,9 @@ class Vtiger_MailParser {
 	 * Function to parse html content to plain text preserving the html structure
 	 */
 	function parseHtml() {
+		if ($this->msg === false || $this->msg === '' || $this->msg === null) {
+			return '';
+		}
 		$this->msg = str_replace("\r\n", "\n", $this->msg);
 		$this->msg = str_replace("\r", "\n", $this->msg);
 

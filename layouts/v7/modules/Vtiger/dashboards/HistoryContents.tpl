@@ -15,7 +15,8 @@
 				{assign var=USER value=$HISTORY->getModifiedBy()}
 				{assign var=TIME value=$HISTORY->getActivityTime()}
 				{assign var=PARENT value=$HISTORY->getParent()}
-				{assign var=MOD_NAME value=$HISTORY->getParent()->getModule()->getName()}
+				{if !$PARENT}{continue}{/if}
+				{assign var=MOD_NAME value=$PARENT->getModule()->getName()}
 				{assign var=SINGLE_MODULE_NAME value='SINGLE_'|cat:$MOD_NAME}
 				{assign var=TRANSLATED_MODULE_NAME value = vtranslate($MOD_NAME ,$MOD_NAME)}
 				{assign var=PROCEED value= TRUE}
@@ -35,7 +36,7 @@
 							{else if $MOD_NAME eq "Calendar"}
 								{assign var=VT_ICON value="Task"}
 							{/if}
-							<span>{$HISTORY->getParent()->getModule()->getModuleIcon($VT_ICON)}</span>&nbsp;&nbsp;
+							<span>{$PARENT->getModule()->getModuleIcon($VT_ICON)}</span>&nbsp;&nbsp;
 						</div>
 						<div class="col-lg-10 pull-left">
 							{assign var=DETAILVIEW_URL value=$PARENT->getDetailViewUrl()}
