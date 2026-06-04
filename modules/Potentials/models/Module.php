@@ -148,7 +148,7 @@ class Potentials_Module_Model extends Vtiger_Module_Model {
 		for($i=0; $i<$db->num_rows($result); $i++) {
 			$row = $db->query_result_rowdata($result, $i);
             $row['link'] = decode_html($row['sales_stage']);
-			$row['amount'] = CurrencyField::convertToUserFormat($row['amount'], null, false, true);
+			$row['amount'] = (float) ($row['amount'] ? $row['amount'] : 0);
             $row['last_name'] = decode_html($row['last_name']);
             $row['sales_stage'] = vtranslate(decode_html($row['sales_stage']),  $this->getName());
 			$data[] = $row;
@@ -310,21 +310,26 @@ class Potentials_Module_Model extends Vtiger_Module_Model {
         $picklistValues = getAllPickListValues("sales_stage");
 		$data = array();
 		foreach ($picklistValues as $key => $picklistValue) {
-			$result = $db->pquery('SELECT SUM(amount) AS amount FROM vtiger_potential
-								   INNER JOIN vtiger_crmentity ON vtiger_potential.potentialid = vtiger_crmentity.crmid
-								   AND deleted = 0 '.Users_Privileges_Model::getNonAdminAccessControlQuery($this->getName()).' WHERE sales_stage = ?', array($picklistValue));
-			$num_rows = $db->num_rows($result);
-			for($i=0; $i<$num_rows; $i++) {
-				$values = array();
-				$amount = $db->query_result($result, $i, 'amount');
-				if(!empty($amount)){
-					$values[0] = CurrencyField::convertToUserFormat($db->query_result($result, $i, 'amount'), null, false, true);
-					$values[1] = vtranslate($picklistValue, $this->getName());
-                    $values['link'] = $picklistValue;
-					$data[] = $values;
-				}
-				
+			$result = $db->pquery(
+				'SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM vtiger_potential
+				INNER JOIN vtiger_crmentity ON vtiger_potential.potentialid = vtiger_crmentity.crmid
+				AND deleted = 0 ' . Users_Privileges_Model::getNonAdminAccessControlQuery($this->getName()) . ' WHERE sales_stage = ?',
+				array($picklistValue)
+			);
+			if (!$db->num_rows($result)) {
+				continue;
 			}
+			$cnt = (int) $db->query_result($result, 0, 'cnt');
+			if ($cnt <= 0) {
+				continue;
+			}
+			$amount = (float) $db->query_result($result, 0, 'amount');
+			$values = array();
+			// Raw number for jqPlot (formatted strings break parseFloat in dashboard JS).
+			$values[0] = $amount;
+			$values[1] = vtranslate($picklistValue, $this->getName());
+			$values['link'] = $picklistValue;
+			$data[] = $values;
 		}
 		return $data;
 	}

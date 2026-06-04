@@ -38,8 +38,12 @@ class Vtiger_History_Dashboard extends Vtiger_IndexAjax_View {
 		$pagingModel->set('page', $page);
 		$pagingModel->set('limit', $LIMIT);
 
-		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
-		$history = $moduleModel->getHistory($pagingModel, $historyType,$userId, $dates);
+		if ($moduleName === 'Home') {
+			$moduleModel = Home_Module_Model::getInstance($moduleName);
+		} else {
+			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		}
+		$history = $moduleModel->getHistory($pagingModel, $historyType, $userId, $dates);
 		$widget = Vtiger_Widget_Model::getInstance($linkId, $currentUser->getId());
 		$modCommentsModel = Vtiger_Module_Model::getInstance('ModComments'); 
 

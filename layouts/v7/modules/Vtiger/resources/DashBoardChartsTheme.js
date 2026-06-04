@@ -8,13 +8,13 @@
 
   /** Site-aligned palette: slate blue, amber, teal, muted indigo, soft rose (sparingly), neutrals */
   var PALETTE_LIGHT = [
+    "#FDBB2C",
     "#40627E",
-    "#F59E0B",
     "#14B8A6",
     "#6366F1",
-    "#F472B6",
+    "#1F4B64",
+    "#F59E0B",
     "#0F766E",
-    "#FBBF24",
     "#94A3B8",
     "#475569",
     "#A5B4FC",
@@ -233,7 +233,8 @@
         barMargin: stacked
           ? Math.min(ro.barMargin != null ? ro.barMargin : 10, 12)
           : Math.min(ro.barMargin != null ? ro.barMargin : 12, 14),
-        barPadding: ro.barPadding != null ? ro.barPadding : 5,
+        barPadding: ro.barPadding != null ? ro.barPadding : 6,
+        barWidth: ro.barWidth != null ? ro.barWidth : 22,
       }),
       pointLabels: $.extend(
         true,
@@ -317,22 +318,24 @@
 
   function applyDashboardChartTheme(options, $plotRoot, chartData) {
     var opts = $.extend(true, {}, options || {});
+    var colors = getChartColors();
+    var palette = getPalette();
 
     if ($plotRoot && $plotRoot.length) {
       $plotRoot.removeData("mkDashTickFull");
     }
 
-    opts.seriesColors = PALETTE.slice();
+    opts.seriesColors = palette.slice();
 
     opts.grid = $.extend(
       true,
       {
         drawGridlines: true,
-        gridLineColor: "#F1F5F9",
-        borderColor: "#EEF2F7",
+        gridLineColor: colors.gridLine,
+        borderColor: colors.border,
         borderWidth: 0.5,
         shadow: false,
-        background: "#FFFFFF",
+        background: colors.background,
       },
       opts.grid || {}
     );

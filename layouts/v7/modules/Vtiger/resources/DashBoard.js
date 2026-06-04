@@ -305,9 +305,19 @@ Vtiger.Class(
         if (widgetName === "ChartReportWidget") {
           widgetName += "_" + id;
         }
+        var moduleName = app.getModuleName();
+        var potentialsWidgets = {
+          FunnelAmount: true,
+          GroupedBySalesPerson: true,
+          PipelinedAmountPerSalesPerson: true,
+        };
+        if (potentialsWidgets[widgetName]) {
+          moduleName = "Potentials";
+        }
         this.instancesCache[id] = Vtiger_Widget_Js.getInstance(
           widgetContainer,
-          widgetName
+          widgetName,
+          moduleName
         );
       } else {
         this.instancesCache[id].init(widgetContainer);
@@ -953,14 +963,88 @@ Vtiger.Class(
       return jQuery(".dashboardWidget", jQuery(".tab-pane.active"));
     },
 
+    executeWidgetInlineScripts: function (widgetContainer) {
+      jQuery(widgetContainer)
+        .find("script")
+        .each(function () {
+          if (this.src) {
+            return;
+          }
+          var code = this.textContent || this.innerHTML || "";
+          if (!jQuery.trim(code)) {
+            return;
+          }
+          if (typeof jQuery.globalEval === "function") {
+            jQuery.globalEval(code);
+          } else {
+            window.eval(code);
+          }
+        });
+      if (typeof window.mkRegisterDashboardWidgets === "function") {
+        window.mkRegisterDashboardWidgets();
+      }
+    },
+
+    mkIsChartDashboardWidget: function (widgetName) {
+      return {
+        FunnelAmount: true,
+        GroupedBySalesPerson: true,
+        PipelinedAmountPerSalesPerson: true,
+        ChartReportWidget: true,
+      }[widgetName || ""];
+    },
+
+    mkFinalizeDashboardWidget: function (widgetContainer) {
+      var id = widgetContainer.attr("id");
+      if (id && this.instancesCache[id]) {
+        delete this.instancesCache[id];
+      }
+      if (typeof window.mkRegisterDashboardWidgets === "function") {
+        window.mkRegisterDashboardWidgets();
+      }
+      return this.getWidgetInstance(widgetContainer);
+    },
+
+    mkShowChartLoadError: function (widgetContainer) {
+      widgetContainer
+        .find(".widgetChartContainer, [name=chartcontent]")
+        .first()
+        .html(
+          '<div class="mk-chart-render-error" style="text-align:center;padding:48px 16px;color:#64748b;">' +
+            app.vtranslate("JS_NO_DATA_AVAILABLE") +
+            "</div>"
+        );
+    },
+
+    mkShowWidgetLoadError: function (widgetContainer) {
+      if (widgetContainer.find(".dashboardWidgetHeader").length) {
+        return;
+      }
+      widgetContainer.prepend(
+        '<div class="dashboardWidgetHeader"><div class="title"><div class="dashboardTitle"><b>' +
+          app.vtranslate("JS_ERROR") +
+          '</b></div></div></div><div class="dashboardWidgetContent"><div class="noDataMsg" style="padding:40px 16px;text-align:center;color:#64748b;">' +
+          app.vtranslate("JS_NO_DATA_AVAILABLE") +
+          "</div></div>"
+      );
+    },
+
     loadWidgets: function () {
       var thisInstance = this;
+      if (typeof window.mkRegisterDashboardWidgets === "function") {
+        window.mkRegisterDashboardWidgets();
+      }
       var widgetList = thisInstance.getDashboardWidgets();
       widgetList.each(function (index, widgetContainerELement) {
-        if (thisInstance.isScrolledIntoView(widgetContainerELement)) {
-          thisInstance.loadWidget(jQuery(widgetContainerELement));
-          jQuery(widgetContainerELement).addClass("loadcompleted");
+        var $widget = jQuery(widgetContainerELement);
+        if (
+          $widget.hasClass("loadcompleted") &&
+          $widget.find(".dashboardWidgetHeader, .dashboardWidgetContent").length
+        ) {
+          return;
         }
+        $widget.removeClass("loadcompleted");
+        thisInstance.loadWidget($widget);
       });
     },
 
@@ -976,9 +1060,9 @@ Vtiger.Class(
         $targetElement = jQuery(elem),
         elementOffset = $targetElement.offset();
       if (
-        elementOffset.top > minTop &&
+        elementOffset.top + $targetElement.outerHeight() > minTop &&
         elementOffset.top < maxTop &&
-        elementOffset.left > minLeft &&
+        elementOffset.left + $targetElement.outerWidth() > minLeft &&
         elementOffset.left < maxLeft
       ) {
         return true;
@@ -991,27 +1075,57 @@ Vtiger.Class(
       var thisInstance = this;
       var urlParams = widgetContainer.data("url");
       var mode = widgetContainer.data("mode");
+      if (!urlParams) {
+        return;
+      }
 
       var activeTabId = this.getActiveTabId();
       urlParams += "&tab=" + activeTabId;
       app.helper.showProgress();
       if (mode == "open") {
         app.request.post({ url: urlParams }).then(function (err, data) {
+          var widgetName = widgetContainer.data("name");
+          app.helper.hideProgress();
+          if (err) {
+            if (window.console && console.error) {
+              console.error("[Dashboard] widget load failed", err, widgetName);
+            }
+            thisInstance.mkShowWidgetLoadError(widgetContainer);
+            return;
+          }
+          if (data == null || (typeof data === "string" && !jQuery.trim(data))) {
+            if (window.console && console.error) {
+              console.error("[Dashboard] widget empty response", widgetName, data);
+            }
+            thisInstance.mkShowWidgetLoadError(widgetContainer);
+            return;
+          }
+          if (typeof data === "object") {
+            if (window.console && console.error) {
+              console.error("[Dashboard] widget JSON error response", widgetName, data);
+            }
+            thisInstance.mkShowWidgetLoadError(widgetContainer);
+            return;
+          }
           widgetContainer.prepend(data);
+          thisInstance.executeWidgetInlineScripts(widgetContainer);
           vtUtils.applyFieldElementsView(widgetContainer);
 
           var widgetChartContainer = widgetContainer.find(
             ".widgetChartContainer"
           );
           if (widgetChartContainer.length > 0) {
-            widgetChartContainer.css("height", widgetContainer.height() - 60);
+            var chartHeight = Math.max(240, widgetContainer.height() - 60);
+            widgetChartContainer.css({
+              height: chartHeight,
+              minHeight: chartHeight,
+            });
           }
 
-          thisInstance.getWidgetInstance(widgetContainer);
+          thisInstance.mkFinalizeDashboardWidget(widgetContainer);
           try {
             widgetContainer.trigger(Vtiger_Widget_Js.widgetPostLoadEvent);
 
-            // Update font sizes AFTER chart is rendered (with multiple delays to catch all renders)
             setTimeout(function () {
               thisInstance.updateWidgetFontSizes(widgetContainer);
             }, 100);
@@ -1022,18 +1136,15 @@ Vtiger.Class(
               thisInstance.updateWidgetFontSizes(widgetContainer);
             }, 1000);
           } catch (error) {
-            widgetContainer
-              .find('[name="chartcontent"]')
-              .html("<div>" + app.vtranslate("JS_NO_DATA_AVAILABLE") + "</div>")
-              .css({
-                "text-align": "center",
-                position: "relative",
-                top: "100px",
-              });
+            if (window.console && console.error) {
+              console.error("[Dashboard] chart render failed", error, widgetName);
+            }
+            if (thisInstance.mkIsChartDashboardWidget(widgetName)) {
+              thisInstance.mkShowChartLoadError(widgetContainer);
+            }
           }
-          app.helper.hideProgress();
+          widgetContainer.addClass("loadcompleted");
         });
-      } else {
       }
     },
 
@@ -1128,7 +1239,6 @@ Vtiger.Class(
         widgetList.each(function (index, widgetContainerELement) {
           if (thisInstance.isScrolledIntoView(widgetContainerELement)) {
             thisInstance.loadWidget(jQuery(widgetContainerELement));
-            jQuery(widgetContainerELement).addClass("loadcompleted");
           }
         });
       });

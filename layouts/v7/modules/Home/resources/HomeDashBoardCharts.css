@@ -1,0 +1,62 @@
+/**
+ * Home / My Dashboard — premium chart polish (DashBoard view).
+ * Works with DashBoardChartsTheme.js (jqPlot wrapper).
+ */
+
+body[data-view="DashBoard"][data-module="Home"] .dashBoardTabContents ul li.dashboardWidget {
+	border-radius: 14px !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06) !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashBoardTabContents ul li.dashboardWidget:hover {
+	box-shadow: 0 4px 6px rgba(15, 23, 42, 0.05), 0 16px 32px rgba(15, 23, 42, 0.08) !important;
+	border-color: rgba(253, 187, 44, 0.35) !important;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget .dashboardWidgetHeader {
+	background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+}
+
+body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer.mk-chart-stage {
+	min-height: 280px;
+	padding: 12px 8px 8px !important;
+	background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+	border-radius: 0 0 12px 12px;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidgetContent .noDataMsg {
+	color: #64748b;
+	font-size: 14px;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="History"] .dashboardWidgetContent,
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="History"] .mk-history-feed {
+	min-height: 200px;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="History"] .mk-history-widget-header {
+	display: block !important;
+}
+
+/* Activity list — overdue hint */
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData > div {
+	padding: 10px 4px;
+	border-bottom: 1px solid #f1f5f9;
+	transition: background 0.15s ease;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData > div:hover {
+	background: #fffbeb;
+	border-radius: 8px;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData a {
+	color: #1e40af;
+	font-weight: 600;
+}
+
+body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData .muted small {
+	color: #94a3b8 !important;
+}

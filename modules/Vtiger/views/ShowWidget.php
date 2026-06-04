@@ -33,23 +33,26 @@ class Vtiger_ShowWidget_View extends Vtiger_IndexAjax_View {
 			if(!empty($className)) {
 				$widget = NULL;
 				if(!empty($linkId)) {
-					$widget = new Vtiger_Widget_Model();
-					$widget->set('linkid', $linkId);
-					$widget->set('userid', $currentUser->getId());
-					$widget->set('filterid', $request->get('filterid', NULL));
-                    
-                    // In Vtiger7, we need to pin this report widget to first tab of that user
-                    $dasbBoardModel = Vtiger_DashBoard_Model::getInstance($moduleName);
-                    $defaultTab = $dasbBoardModel->getUserDefaultTab($currentUser->getId());
-                    $widget->set('tabid', $request->get('tab', $defaultTab['id']));
-                    
-					if ($request->has('data')) {
-						$widget->set('data', $request->get('data'));
+					$widgetId = $request->get('widgetid');
+					if (!empty($widgetId)) {
+						$widget = Vtiger_Widget_Model::getInstanceWithWidgetId($widgetId, $currentUser->getId());
+					} else {
+						$widget = Vtiger_Widget_Model::getInstance($linkId, $currentUser->getId());
 					}
-		    		$widget->add();
+					if (empty($widget->get('id'))) {
+						$widget = new Vtiger_Widget_Model();
+						$widget->set('linkid', $linkId);
+						$widget->set('userid', $currentUser->getId());
+						$widget->set('filterid', $request->get('filterid', NULL));
 
-					if ($request->get('widgetid')) {
-						$widget->set('id', $request->get('widgetid'));
+						$dasbBoardModel = Vtiger_DashBoard_Model::getInstance($moduleName);
+						$defaultTab = $dasbBoardModel->getUserDefaultTab($currentUser->getId());
+						$widget->set('tabid', $request->get('tab', $defaultTab['id']));
+
+						if ($request->has('data')) {
+							$widget->set('data', $request->get('data'));
+						}
+						$widget->add();
 					}
 					$request->set('widgetid', $widget->get('id'));
 				}

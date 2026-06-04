@@ -11,7 +11,7 @@
 -->*}
 {strip}
     {if php7_count($DATA) gt 0 }
-        <input class="widgetData" type=hidden value='{Vtiger_Util_Helper::toSafeHTML(ZEND_JSON::encode($DATA))}' />
+        <script type="application/json" class="widgetData">{ZEND_JSON::encode($DATA)}</script>
         <input class="yAxisFieldType" type="hidden" value="{if isset($YAXIS_FIELD_TYPE)}$YAXIS_FIELD_TYPE{/if}" />
         <div class="row mk-dashboard-chart-row" style="margin:0;">
             <div class="col-xs-12 mk-chart-col">

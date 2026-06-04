@@ -210,7 +210,9 @@ class Home_Module_Model extends Vtiger_Module_Model {
 		}
 
 		if ($mode === 'upcoming') {
-			$query .= " AND CASE WHEN vtiger_activity.activitytype='Task' THEN due_date >= '$currentDate' ELSE CONCAT(due_date,' ',time_end) >= '$nowInDBFormat' END";
+			// Open work: overdue (90d) + today + future — Home dashboard should not look empty when tasks exist.
+			$query .= " AND CASE WHEN vtiger_activity.activitytype='Task' THEN due_date >= DATE_SUB('$currentDate', INTERVAL 90 DAY)"
+				. " ELSE CONCAT(IFNULL(due_date, date_start),' ',IFNULL(NULLIF(time_end,''),'23:59:59')) >= DATE_SUB('$nowInDBFormat', INTERVAL 90 DAY) END";
 		} elseif ($mode === 'overdue') {
 			$query .= " AND CASE WHEN vtiger_activity.activitytype='Task' THEN due_date < '$currentDate' ELSE CONCAT(due_date,' ',time_end) < '$nowInDBFormat' END";
 		} elseif ($mode === 'today') {
@@ -225,7 +227,11 @@ class Home_Module_Model extends Vtiger_Module_Model {
 				$params[] = $user;
 		}
 
-		$query .= " ORDER BY date_start, time_start LIMIT ?, ?";
+		if ($mode === 'upcoming') {
+			$query .= " ORDER BY due_date ASC, time_start ASC LIMIT ?, ?";
+		} else {
+			$query .= " ORDER BY date_start, time_start LIMIT ?, ?";
+		}
 		$params[] = $pagingModel->getStartIndex();
 		$params[] = $pagingModel->getPageLimit()+1;
 

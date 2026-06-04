@@ -56,6 +56,26 @@ Vtiger.Class('Vtiger_Widget_Js',{
 		return (container.find('.noDataMsg').length > 0) ? true : false;
 	},
 
+	readWidgetData : function() {
+		var container = this.getContainer();
+		var $el = container.find('.widgetData').first();
+		if (!$el.length) {
+			return null;
+		}
+		var raw = $el.is('script[type="application/json"]') ? $.trim($el.text()) : $.trim($el.val());
+		if (!raw) {
+			return null;
+		}
+		try {
+			return JSON.parse(raw);
+		} catch (e) {
+			if (window.console && console.warn) {
+				console.warn('[Dashboard] widgetData JSON parse failed', e);
+			}
+			return null;
+		}
+	},
+
 	getUserDateFormat : function() {
 		return jQuery('#userDateFormat').val();
 	},
@@ -136,8 +156,7 @@ Vtiger.Class('Vtiger_Widget_Js',{
 		this.registerFilter();
 		this.registerFilterChangeEvent();
 		this.restrictContentDrag();
-        var widgetContent = jQuery('.dashboardWidgetContent', this.getContainer());
-        widgetContent.css({height: widgetContent.height()-40});
+        this.mkAdjustWidgetContentHeight();
 		
 		// Update font sizes after widget is loaded and chart is drawn (with multiple delays)
 		var self = this;
@@ -165,8 +184,7 @@ Vtiger.Class('Vtiger_Widget_Js',{
 		}else{
 			//this.positionNoDataMsg();
 		}
-        var widgetContent = jQuery('.dashboardWidgetContent', this.getContainer());
-        widgetContent.css({height: widgetContent.height()-40});
+        this.mkAdjustWidgetContentHeight();
 		
 		// Update font sizes after resize and chart is rendered (with multiple delays)
 		var self = this;
@@ -194,6 +212,18 @@ Vtiger.Class('Vtiger_Widget_Js',{
 		}else{
 //			this.positionNoDataMsg();
 		}
+	},
+
+	mkAdjustWidgetContentHeight : function() {
+		var widgetContent = jQuery('.dashboardWidgetContent', this.getContainer());
+		if (!widgetContent.length) {
+			return;
+		}
+		var shellH = this.getContainer().height();
+		var contentH = widgetContent.height();
+		var base = contentH > 0 ? contentH : Math.max(160, shellH - 50);
+		var next = Math.max(120, base - 40);
+		widgetContent.css({ height: next + 'px', minHeight: next + 'px' });
 	},
 
 	getFilterData : function() {
@@ -370,19 +400,20 @@ Vtiger_Widget_Js('Vtiger_TopPotentials_Widget_Js', {}, {
 		var widgetContent = jQuery('.dashboardWidgetContent', this.getContainer());
         var adjustedHeight = this.getContainer().height()-50;
         app.helper.showVerticalScroll(widgetContent,{'setHeight' : adjustedHeight});
-		widgetContent.css({height: widgetContent.height()-40});
+		this.mkAdjustWidgetContentHeight();
 	}
 });
 
 Vtiger_Widget_Js('Vtiger_History_Widget_Js', {}, {
 
 	postLoadWidget: function() {
-		this._super();
+		this.registerFilter();
+		this.registerFilterChangeEvent();
+		this.restrictContentDrag();
 		var widgetContent = jQuery('.dashboardWidgetContent', this.getContainer());
-        var adjustedHeight = this.getContainer().height()-50;
-        app.helper.showVerticalScroll(widgetContent,{'setHeight' : adjustedHeight});
-		widgetContent.css({height: widgetContent.height()-40});
-        //this.initSelect2Elements(widgetContent);
+		var adjustedHeight = Math.max(180, this.getContainer().height() - 50);
+		app.helper.showVerticalScroll(widgetContent, { setHeight: adjustedHeight });
+		widgetContent.css({ height: adjustedHeight + 'px', minHeight: adjustedHeight + 'px' });
 		this.registerLoadMore();
 	},
     
@@ -563,33 +594,56 @@ Vtiger_Widget_Js('Vtiger_Pie_Widget_Js',{},{
 });
 
 
+function mkParseDashboardChartNumber(val) {
+	if (typeof val === 'number' && !isNaN(val)) {
+		return val;
+	}
+	if (val === null || typeof val === 'undefined' || val === '') {
+		return 0;
+	}
+	var s = String(val).replace(/[^\d.,\-]/g, '').replace(/\s/g, '');
+	if (s.indexOf(',') > -1 && s.indexOf('.') > -1) {
+		s = s.replace(/\./g, '').replace(',', '.');
+	} else if (s.indexOf(',') > -1) {
+		s = s.replace(',', '.');
+	}
+	var n = parseFloat(s);
+	return isNaN(n) ? 0 : n;
+}
+window.mkParseDashboardChartNumber = mkParseDashboardChartNumber;
+
 Vtiger_Widget_Js('Vtiger_Barchat_Widget_Js',{},{
 
 	generateChartData : function() {
 		var container = this.getContainer();
-		var jData = container.find('.widgetData').val();
-		var data = JSON.parse(jData);
+		var data = this.readWidgetData();
+		if (!data || !data.length) {
+			return { chartData: [[]], yMaxValue: 5, labels: [] };
+		}
 		var chartData = [];
 		var xLabels = new Array();
 		var yMaxValue = 0;
 		for(var index in data) {
 			var row = data[index];
-			row[0] = parseFloat(row[0]);
+			row[0] = mkParseDashboardChartNumber(row[0]);
 			xLabels.push(app.getDecodedValue(row[1]));
 			chartData.push(row[0]);
-			if(parseInt(row[0]) > yMaxValue){
-				yMaxValue = parseInt(row[0]);
+			if(row[0] > yMaxValue){
+				yMaxValue = row[0];
 			}
 		}
-        // yMaxValue Should be 25% more than Maximum Value
-		yMaxValue = yMaxValue + 2 + (yMaxValue/100)*25;
+        // yMaxValue Should be 25% more than Maximum Value; keep a visible scale when all values are 0
+		if (yMaxValue <= 0 && chartData.length > 0) {
+			yMaxValue = 5;
+		} else {
+			yMaxValue = yMaxValue + 2 + (yMaxValue/100)*25;
+		}
 		return {'chartData':[chartData], 'yMaxValue':yMaxValue, 'labels':xLabels};
 	},
     
     generateLinks : function() {
         var container = this.getContainer();
-        var jData = container.find('.widgetData').val();
-        var statData = JSON.parse(jData);
+        var statData = this.readWidgetData() || [];
         var links = [];
         for(var i = 0; i < statData.length ; i++){
             links.push(statData[i]['links']);
@@ -606,12 +660,14 @@ Vtiger_Widget_Js('Vtiger_Barchat_Widget_Js',{},{
     },
 
 	loadChart : function() {
+		var plot = this.getPlotContainer(false);
+		plot.css({ minHeight: '220px', height: '100%', width: '100%' });
 		var data = this.generateChartData();
         var chartOptions = {
             renderer:'bar',
             links: this.generateLinks()
         };
-        this.getPlotContainer(false).vtchart(data,chartOptions);
+        plot.vtchart(data, chartOptions);
 	}
     
 });
@@ -623,7 +679,10 @@ Vtiger_Widget_Js('Vtiger_MultiBarchat_Widget_Js',{
 	 */
 	getCharRelatedData : function() {
 		var container = this.getContainer();
-		var data = container.find('.widgetData').val();
+		var data = this.readWidgetData();
+		if (!data || !data.length) {
+			return { data: [], ticks: [], labels: [] };
+		}
 		var users = new Array();
 		var stages = new Array();
 		var count = new Array();
@@ -643,7 +702,7 @@ Vtiger_Widget_Js('Vtiger_MultiBarchat_Widget_Js',{
 				for(var k in data) {
 					var userData = data[k];
 					if(userData.sales_stage == stages[j] && userData.last_name == users[i]) {
-						salesCount = parseInt(userData.count);
+						salesCount = mkParseDashboardChartNumber(userData.count);
 						break;
 					}
 				}
@@ -667,13 +726,15 @@ Vtiger_Widget_Js('Vtiger_MultiBarchat_Widget_Js',{
     },
     
 	loadChart : function(){
+		var plot = this.getPlotContainer(false);
+		plot.css({ minHeight: '220px', height: '100%', width: '100%' });
 		var chartRelatedData = this.getCharRelatedData();
         var chartOptions = {
             renderer:'multibar',
             links:chartRelatedData.links
         };
-        this.getPlotContainer(false).data('widget-data',JSON.stringify(this.getCharRelatedData()));
-        this.getPlotContainer(false).vtchart(chartRelatedData,chartOptions);
+        plot.data('widget-data', JSON.stringify(chartRelatedData));
+        plot.vtchart(chartRelatedData, chartOptions);
 	}
 
 });

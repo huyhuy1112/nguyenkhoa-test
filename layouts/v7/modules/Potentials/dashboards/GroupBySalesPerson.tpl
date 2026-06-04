@@ -29,8 +29,10 @@
 	Vtiger_MultiBarchat_Widget_Js('Vtiger_GroupedBySalesPerson_Widget_Js',{},{
 			getCharRelatedData : function() {
 				var container = this.getContainer();
-				var data = container.find('.widgetData').val();
-				data = JSON.parse(data);
+				var data = this.readWidgetData();
+				if (!data || !data.length) {
+					return { data: [], ticks: [], labels: [], links: [] };
+				}
 				var users = new Array();
 				var stages = new Array();
 				var count = new Array();
@@ -52,7 +54,7 @@
 						for(var k in data) {
 							var userData = data[k];
 							if(userData.sales_stage == stages[j] && userData.last_name == users[i]) {
-								salesCount = parseFloat(userData.count);
+								salesCount = (typeof mkParseDashboardChartNumber === 'function') ? mkParseDashboardChartNumber(userData.count) : parseFloat(userData.count) || 0;
                                 link = userData.links
 								break;
 							}
