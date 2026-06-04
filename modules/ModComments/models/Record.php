@@ -74,26 +74,52 @@ class ModComments_Record_Model extends Vtiger_Record_Model {
 			return array();
 		}
 		$this->set('id', $commentId);
+		$this->set('modcommentsid', $commentId);
 		$fileDetails = parent::getFileDetails($attachmentId);
 		if (!empty($fileDetails)) {
 			return $fileDetails;
 		}
 		// Fallback: vtiger_modcomments.filename may store attachment id(s) comma-separated
 		$filenameField = $this->get('filename');
-		if (empty($filenameField)) {
-			return array();
+		if (!empty($filenameField)) {
+			$ids = is_array($filenameField) ? $filenameField : preg_split('/\s*,\s*/', trim($filenameField), -1, PREG_SPLIT_NO_EMPTY);
+			$ids = array_filter(array_map('intval', $ids));
+			if (!empty($ids)) {
+				$db = PearDatabase::getInstance();
+				$q = 'SELECT vtiger_attachments.*, vtiger_seattachmentsrel.attachmentsid AS attachmentsid
+					FROM vtiger_attachments
+					INNER JOIN vtiger_seattachmentsrel ON vtiger_seattachmentsrel.attachmentsid = vtiger_attachments.attachmentsid
+					WHERE vtiger_seattachmentsrel.crmid = ? AND vtiger_attachments.attachmentsid IN (' . generateQuestionMarks($ids) . ')';
+				$params = array_merge(array($commentId), $ids);
+				$result = $db->pquery($q, $params);
+				$fileDetails = array();
+				while ($row = $db->fetch_array($result)) {
+					if (!empty($row)) {
+						$fileDetails[] = $row;
+					}
+				}
+				if (!empty($fileDetails)) {
+					return $fileDetails;
+				}
+			}
 		}
-		$ids = is_array($filenameField) ? $filenameField : preg_split('/\s*,\s*/', trim($filenameField), -1, PREG_SPLIT_NO_EMPTY);
-		$ids = array_filter(array_map('intval', $ids));
-		if (empty($ids)) {
-			return array();
-		}
+		return $this->getAllAttachmentsByCommentId($commentId, $attachmentId);
+	}
+
+	/**
+	 * All attachments linked to this comment (crmid = modcommentsid).
+	 */
+	protected function getAllAttachmentsByCommentId($commentId, $attachmentId = false) {
 		$db = PearDatabase::getInstance();
 		$q = 'SELECT vtiger_attachments.*, vtiger_seattachmentsrel.attachmentsid AS attachmentsid
 			FROM vtiger_attachments
 			INNER JOIN vtiger_seattachmentsrel ON vtiger_seattachmentsrel.attachmentsid = vtiger_attachments.attachmentsid
-			WHERE vtiger_seattachmentsrel.crmid = ? AND vtiger_attachments.attachmentsid IN (' . generateQuestionMarks($ids) . ')';
-		$params = array_merge(array($commentId), $ids);
+			WHERE vtiger_seattachmentsrel.crmid = ?';
+		$params = array($commentId);
+		if ($attachmentId) {
+			$q .= ' AND vtiger_attachments.attachmentsid = ?';
+			$params[] = $attachmentId;
+		}
 		$result = $db->pquery($q, $params);
 		$fileDetails = array();
 		while ($row = $db->fetch_array($result)) {
@@ -102,6 +128,14 @@ class ModComments_Record_Model extends Vtiger_Record_Model {
 			}
 		}
 		return $fileDetails;
+	}
+
+	/**
+	 * @return bool
+	 */
+	protected function isImageAttachmentFileName($fileName) {
+		$ext = strtolower(pathinfo((string) $fileName, PATHINFO_EXTENSION));
+		return in_array($ext, array('jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'), true);
 	}
 
 	public function getFileNameAndDownloadURL($recordId = false,$attachmentId = false){
@@ -119,10 +153,14 @@ class ModComments_Record_Model extends Vtiger_Record_Model {
 				foreach($fileDetails as $index => $fileDetail){
 					if(!empty($fileDetail)){
 						$rawFileName = $fileDetail['name'];
+						$attId = $fileDetail['attachmentsid'];
+						$trimmed = $this->trimFileName($rawFileName);
 						$attachmentDetails[$index]['rawFileName'] = $rawFileName;
-						$attachmentDetails[$index]['attachmentId'] = $fileDetail['attachmentsid'];
-						$attachmentDetails[$index]['trimmedFileName'] = $this->trimFileName($rawFileName);
-						$attachmentDetails[$index]['url'] = 'index.php?module=ModComments&action=DownloadFile&record='. $recordId .'&fileid='. $fileDetail['attachmentsid'];
+						$attachmentDetails[$index]['attachmentId'] = $attId;
+						$attachmentDetails[$index]['trimmedFileName'] = !empty($trimmed) ? $trimmed : $rawFileName;
+						$attachmentDetails[$index]['url'] = 'index.php?module=ModComments&action=DownloadFile&record='. $recordId .'&fileid='. $attId;
+						$attachmentDetails[$index]['isImage'] = $this->isImageAttachmentFileName($rawFileName);
+						$attachmentDetails[$index]['inlineUrl'] = 'index.php?module=ModComments&action=InlineFile&record='. $recordId .'&fileid='. $attId;
 					}
 				}
 			}
@@ -493,5 +531,29 @@ class ModComments_Record_Model extends Vtiger_Record_Model {
 		require_once 'modules/Settings/MailConverter/handlers/MailParser.php';
 		$htmlParser = new Vtiger_MailParser($content);
 		return $htmlParser->parseHtml();
+	}
+
+	/**
+	 * Comment body for display: linkify URLs, preserve line breaks.
+	 * @return string
+	 */
+	public function getCommentContentForDisplay() {
+		$content = decode_html($this->get('commentcontent'));
+		if ($content === null || $content === '') {
+			return '';
+		}
+		$escaped = htmlspecialchars($content, ENT_QUOTES, vglobal('default_charset'));
+		$escaped = preg_replace_callback(
+			'~\b((?:https?://|www\.)[^\s<]+)~iu',
+			function ($matches) {
+				$url = $matches[1];
+				$href = (stripos($url, 'http') === 0) ? $url : 'http://' . $url;
+				$safeUrl = htmlspecialchars($url, ENT_QUOTES, vglobal('default_charset'));
+				$safeHref = htmlspecialchars($href, ENT_QUOTES, vglobal('default_charset'));
+				return '<a href="' . $safeHref . '" target="_blank" rel="noopener noreferrer" class="mk-comment-link">' . $safeUrl . '</a>';
+			},
+			$escaped
+		);
+		return nl2br($escaped);
 	}
 }

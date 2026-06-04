@@ -5153,6 +5153,28 @@ TN-34230 .row .nav > li > a:hover {
 .commentAttachmentName {
   font-size: 11px;
 }
+.mk-comment-attachments {
+  display: block;
+  margin-top: 6px;
+}
+.mk-comment-attachment-img {
+  display: block;
+  max-width: 100%;
+  max-height: 220px;
+  width: auto;
+  height: auto;
+  margin: 6px 0 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  object-fit: contain;
+}
+.mk-comment-link {
+  color: #2563eb;
+  word-break: break-all;
+}
+.commentAttachmentName .filePreview .fa-download {
+  display: inline-block !important;
+}
 /******************************************* 
 ********** Layout Editor ********
 ********************************************/

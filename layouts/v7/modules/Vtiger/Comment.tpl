@@ -63,7 +63,7 @@
 									
 									<div class="commentInfoContentBlock">
 										<span class="commentInfoContent">
-											{nl2br($COMMENT->get('commentcontent'))}
+											{$COMMENT->getCommentContentForDisplay() nofilter}
 										</span>
 									</div>
 									<br>
@@ -133,24 +133,7 @@
 										</div>
 									{/if}
 									<div style="margin-top:5px;">
-										{assign var="FILE_DETAILS" value=$COMMENT->getFileNameAndDownloadURL()}
-										{foreach key=index item=FILE_DETAIL from=$FILE_DETAILS}
-											{assign var="FILE_NAME" value=$FILE_DETAIL['trimmedFileName']}
-											{if !empty($FILE_NAME)}
-												<div class="row-fluid">
-													<div class="span11 commentAttachmentName">
-														<span class="filePreview">
-															<a onclick="Vtiger_Detail_Js.previewFile(event,{$COMMENT->get('id')},{$FILE_DETAIL['attachmentId']});" data-filename="{$FILE_NAME}" href="javascript:void(0)" name="viewfile">
-																<span title="{$FILE_DETAIL['rawFileName']}" style="line-height:1.5em;">{$FILE_NAME}</span>&nbsp
-															</a>&nbsp;
-															<a name="downloadfile" href="{$FILE_DETAIL['url']}">
-																<i title="{vtranslate('LBL_DOWNLOAD_FILE',$MODULE_NAME)}" class="pull-left hide fa fa-download alignMiddle"></i>
-															</a>
-														</span>
-													</div>
-												</div>
-											{/if}
-										{/foreach}
+										{include file="partials/CommentAttachments.tpl"|vtemplate_path:'Vtiger' COMMENT=$COMMENT MODULE_NAME=$MODULE_NAME}
 									</div>
 								</div>
 							</div>

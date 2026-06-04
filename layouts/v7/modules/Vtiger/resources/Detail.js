@@ -1949,11 +1949,10 @@ Vtiger.Class("Vtiger_Detail_Js",{
 		var self = this;
 		var aDeferred = jQuery.Deferred();
 		var currentTarget = jQuery(e.currentTarget);
-		var form = jQuery(e.currentTarget).closest('form');
 		var commentMode = currentTarget.data('mode');
 		var closestCommentBlock = currentTarget.closest('.addCommentBlock');
 		var commentContent = closestCommentBlock.find('.commentcontent');
-		var formData = new FormData(form[0]); 
+		var formData = new FormData();
 		var commentContentValue = commentContent.val();
 		var isPrivate;
 		if(closestCommentBlock.find('#is_private').is(":checked")) {
@@ -1961,8 +1960,19 @@ Vtiger.Class("Vtiger_Detail_Js",{
 		} else {
 			isPrivate = 0;
 		}
+		var hasUploadFiles = false;
+		if (Vtiger_Index_Js.files && Vtiger_Index_Js.files.length) {
+			hasUploadFiles = true;
+		} else {
+			closestCommentBlock.find('input[type="file"][name="filename[]"]').each(function () {
+				if (this.files && this.files.length > 0) {
+					hasUploadFiles = true;
+					return false;
+				}
+			});
+		}
 		var errorMsg;
-		if(commentContentValue.trim() == ""){
+		if (commentContentValue.trim() === '' && !hasUploadFiles) {
 			errorMsg = app.vtranslate('JS_LBL_COMMENT_VALUE_CANT_BE_EMPTY');
 			vtUtils.showValidationMessage(commentContent, errorMsg);
 			aDeferred.reject();
@@ -2000,11 +2010,31 @@ Vtiger.Class("Vtiger_Detail_Js",{
 		} else if(commentMode == "add"){
 			postData['parent_comments'] = commentId;
 			postData['action'] = 'SaveAjax';
-			postData['filename'] = Vtiger_Index_Js.files,
 			incrementCount = true;
 		}
+		if (commentMode === 'add') {
+			var filesToUpload = Vtiger_Index_Js.files;
+			if (filesToUpload && filesToUpload.length) {
+				jQuery.each(filesToUpload, function (i, file) {
+					if (file) {
+						formData.append('filename[]', file, file.name || ('upload-' + i));
+					}
+				});
+			} else {
+				closestCommentBlock.find('input[type="file"][name="filename[]"]').each(function () {
+					var input = this;
+					if (input.files && input.files.length) {
+						jQuery.each(input.files, function (j, file) {
+							formData.append('filename[]', file, file.name);
+						});
+					}
+				});
+			}
+		}
 		jQuery.each(postData, function (key, value) {
-			formData.append(key, value);
+			if (value !== undefined && value !== null) {
+				formData.append(key, value);
+			}
 		});
 		 postData = { 
 			'url': 'index.php', 

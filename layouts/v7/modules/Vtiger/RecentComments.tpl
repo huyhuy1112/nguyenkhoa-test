@@ -16,6 +16,7 @@
 <div class="commentContainer recentComments">
 	<div class="commentTitle">
 		{if $IS_CREATABLE}
+			<form class="mk-comment-upload-form" enctype="multipart/form-data" method="post" onsubmit="return false;">
 			<div class="addCommentBlock">
 				<div class="row">
 					<div class=" col-lg-12">
@@ -45,6 +46,7 @@
 					{/if}
 				</div>
 			</div>
+			</form>
 		{/if}
 	</div>
 
@@ -120,37 +122,21 @@
 												{/if}
 												
 												<div class="commentInfoContentBlock">
-													{assign var=COMMENT_CONTENT value={nl2br($COMMENT->get('commentcontent'))}}
+													{assign var=COMMENT_CONTENT value=$COMMENT->getCommentContentForDisplay()}
 													{if $COMMENT_CONTENT}
-														{assign var=DISPLAYNAME value={decode_html($COMMENT_CONTENT)}}
+														{assign var=DISPLAYNAME value=$COMMENT->get('commentcontent')}
 														{assign var=MAX_LENGTH value=200}
 														<span class="commentInfoContent" data-maxlength="{$MAX_LENGTH}" style="display: block" data-fullComment="{$COMMENT_CONTENT|escape:"html"}" data-shortComment="{$DISPLAYNAME|mb_substr:0:200|escape:"html"}..." data-more='{vtranslate('LBL_SHOW_MORE',$MODULE)}' data-less='{vtranslate('LBL_SHOW',$MODULE)} {vtranslate('LBL_LESS',$MODULE)}'>
 															{if $DISPLAYNAME|count_characters:true gt $MAX_LENGTH}
 																{mb_substr(trim($DISPLAYNAME),0,$MAX_LENGTH)}...
 																<a class="pull-right toggleComment showMore" style="color: blue;"><small>{vtranslate('LBL_SHOW_MORE',$MODULE)}</small></a>
 															{else}
-																{$COMMENT_CONTENT}
+																{$COMMENT_CONTENT nofilter}
 															{/if}
 														</span>
 													{/if}
 												</div>
-												{assign var="FILE_DETAILS" value=$COMMENT->getFileNameAndDownloadURL()}
-												{foreach key=index item=FILE_DETAIL from=$FILE_DETAILS}
-													{assign var="FILE_NAME" value=$FILE_DETAIL['trimmedFileName']}
-													{if !empty($FILE_NAME)}
-														<div class="commentAttachmentName">
-															<div class="filePreview clearfix">
-																<span class="fa fa-paperclip cursorPointer" ></span>&nbsp;&nbsp;
-																<a class="previewfile" onclick="Vtiger_Detail_Js.previewFile(event,{$COMMENT->get('id')},{$FILE_DETAIL['attachmentId']});" data-filename="{$FILE_NAME}" href="javascript:void(0)" name="viewfile" style="color: blue;">
-																	<span title="{$FILE_DETAIL['rawFileName']}" style="line-height:1.5em;">{$FILE_NAME}</span>&nbsp
-																</a>&nbsp;
-																<a name="downloadfile" href="{$FILE_DETAIL['url']}" style="color: blue;">
-																	<i title="{vtranslate('LBL_DOWNLOAD_FILE',$MODULE_NAME)}" class="hide fa fa-download alignMiddle" ></i>
-																</a>
-															</div>
-														</div>
-													{/if}
-												{/foreach}
+												{include file="partials/CommentAttachments.tpl"|vtemplate_path:'Vtiger' COMMENT=$COMMENT MODULE_NAME=$MODULE_NAME}
 												&nbsp;
 												<div class="commentActionsContainer" style="margin-top: 2px;">
 													<span>

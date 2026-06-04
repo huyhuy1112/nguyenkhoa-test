@@ -1349,6 +1349,37 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	border-color: #f1ebde;
 }
 
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card--comments .mk-comment-attachments,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card--comments .commentAttachmentName {
+	display: block !important;
+	visibility: visible !important;
+	margin-top: 6px;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card--comments .mk-comment-attachment-img {
+	display: block;
+	max-width: 100%;
+	max-height: 220px;
+	width: auto;
+	height: auto;
+	margin: 6px 0 8px;
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+	object-fit: contain;
+	background: #f8fafc;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card--comments .mk-comment-link,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card--comments .filePreview a.previewfile,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card--comments a[name="downloadfile"] {
+	color: #2563eb !important;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card--comments .filePreview .fa-download {
+	display: inline-block !important;
+	opacity: 0.85;
+}
+
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card .toggleButton {
 	color: #a89882;
 }
