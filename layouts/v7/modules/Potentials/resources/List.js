@@ -5,8 +5,9 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260603_list9';
+	var MK_BUILD = '20260606_search4';
 	var autoSearchTimer = null;
+	var inflightSearchId = 0;
 
 	var COL_CLASS_BY_FIELD = {
 		order_category: 'mk-col-order-category',
@@ -470,7 +471,7 @@
 			autoSearchTimer = null;
 			syncSearchFieldMeta();
 			runStockListSearch();
-		}, 160);
+		}, 280);
 	}
 
 	function bindAutoSearchPicklist() {
@@ -516,6 +517,23 @@
 			});
 	}
 
+	function applyPotentialsListResponse(html, requestId) {
+		if (requestId !== inflightSearchId) {
+			return false;
+		}
+		var applied = false;
+		if (window.MkSalesListShared && typeof window.MkSalesListShared.applyPotentialsListContents === 'function') {
+			applied = window.MkSalesListShared.applyPotentialsListContents(html);
+		}
+		if (applied) {
+			afterListLayout();
+			if (typeof window.mkPotentialsListAfterAjax === 'function') {
+				window.mkPotentialsListAfterAjax();
+			}
+		}
+		return applied;
+	}
+
 	/** PJAX list refresh with explicit search_params (never ListAjax without mode). */
 	function runStockListSearch() {
 		var root = getRoot();
@@ -525,6 +543,7 @@
 		if (!listInstance || !listInstance.loadListViewRecords) {
 			return;
 		}
+		var requestId = ++inflightSearchId;
 		listInstance.filterClick = false;
 		var searchParams = getListSearchParamsSafe(listInstance, false);
 		if (!searchParams.length || !searchParams[0] || !searchParams[0].length) {
@@ -543,14 +562,14 @@
 				search_params: JSON.stringify(searchParams),
 				nolistcache: '1',
 			})
+			.done(function (html) {
+				applyPotentialsListResponse(html, requestId);
+			})
 			.always(function () {
+				if (requestId !== inflightSearchId) {
+					return;
+				}
 				hideProgressSafe();
-				setTimeout(function () {
-					afterListLayout();
-					if (typeof window.mkPotentialsListAfterAjax === 'function') {
-						window.mkPotentialsListAfterAjax();
-					}
-				}, 0);
 			});
 	}
 
@@ -588,6 +607,32 @@
 			return;
 		}
 		$col.trigger('click');
+	}
+
+	function patchPotentialsPostLoad() {
+		if (!window.Vtiger_List_Js || !Vtiger_List_Js.prototype || Vtiger_List_Js.prototype.__mkOppPostLoad) {
+			return;
+		}
+		var proto = Vtiger_List_Js.prototype;
+		var origPostLoad = proto.postLoadListViewRecords;
+		proto.postLoadListViewRecords = function (res) {
+			if (!isSalesOpportunityList()) {
+				return origPostLoad.apply(this, arguments);
+			}
+			var renderId = inflightSearchId;
+			var self = this;
+			var origPlace = self.placeListContents;
+			self.placeListContents = function (contents) {
+				if (renderId !== inflightSearchId) {
+					hideProgressSafe();
+					return;
+				}
+				return origPlace.call(self, contents);
+			};
+			origPostLoad.call(self, res);
+			self.placeListContents = origPlace;
+		};
+		proto.__mkOppPostLoad = true;
 	}
 
 	function patchVtigerListHooks() {
@@ -880,6 +925,7 @@
 
 		whenReady(function () {
 			patchVtigerListHooks();
+			patchPotentialsPostLoad();
 			bindListEvents();
 			bindSelect2FilterDrop();
 			afterListLayout();

@@ -467,6 +467,39 @@
 		return $lv.find('.mk-so-page.mk-project-list-mgmt-root').first();
 	}
 
+	/**
+	 * Potentials (SALES): always replace the full table card from PJAX HTML.
+	 * Partial #table-content swaps can leave stale tbody rows for text filters.
+	 */
+	function applyPotentialsListContents(contents) {
+		if (!isPotentialsSalesList()) {
+			return false;
+		}
+		var $lv = getListViewContainer();
+		if (!$lv.length) {
+			return false;
+		}
+		var $incoming = $('<div>').html(contents);
+		var $source = getIncomingRoot($incoming);
+		if (!$source.length) {
+			return false;
+		}
+		var $page = getListPageRoot($lv);
+		if (!$page.length) {
+			return false;
+		}
+		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card').first();
+		var $newCard = $source.find('.mk-so-table-card, .mk-opportunity-table-card').first();
+		syncHiddenFieldsFromFragment($source, $lv);
+		if ($card.length && $newCard.length) {
+			$card.html($newCard.html());
+			syncToolbarFromFragment($source, $lv);
+			relocatePaginationFooter();
+			return true;
+		}
+		return potentialsSwapFallback($incoming, $lv);
+	}
+
 	function potentialsSwapFallback($incoming, $lv) {
 		var $source = getIncomingRoot($incoming);
 		if (!$source.length) {
@@ -525,7 +558,7 @@
 			return false;
 		}
 		syncHiddenFieldsFromFragment($source, $lv);
-		var $card = $page.find('.mk-so-table-card').first();
+		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card').first();
 		var $newTableContent = $source.find('#table-content').first();
 		if (!$newTableContent.length || !$card.length) {
 			return false;
@@ -671,57 +704,13 @@
 		Vtiger_List_Js.prototype.placeListContents = function (contents) {
 			/* Potentials: never container.html() the whole shell (causes white page). */
 			if (isPotentialsSalesList()) {
-				var $lv = getListViewContainer();
-				var $incoming = $('<div>').html(contents);
-				syncHiddenFieldsFromFragment($incoming, $lv);
-				if (swapListBodyInShell(contents)) {
-					applyCommonUi();
-					if (typeof window.mkPotentialsListAfterAjax === 'function') {
-						window.mkPotentialsListAfterAjax();
-					}
-					if (typeof window.mkSalesListAfterAjax === 'function') {
-						window.mkSalesListAfterAjax();
-					}
-					return;
-				}
-				var $page = getListPageRoot($lv);
-				var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card').first();
-				var $newTableContent = $incoming.find('#table-content').first();
-				if ($page.length && $card.length && $newTableContent.length) {
-					var $sourceFb = getIncomingRoot($incoming);
-					$card.find('#table-content').nextAll('.mk-so-filter-row__footer').remove();
-					$card.find('#table-content').replaceWith($newTableContent.clone(true, true));
-					syncToolbarFromFragment($sourceFb, $lv);
+				if (applyPotentialsListContents(contents)) {
 					applyCommonUi();
 					if (typeof window.mkPotentialsListAfterAjax === 'function') {
 						window.mkPotentialsListAfterAjax();
 					}
 					return;
 				}
-				var $col = $page.find('.mk-so-table-card > .col-sm-12').first();
-				var $sourceCol = getIncomingRoot($incoming);
-				if ($sourceCol.length && !$sourceCol.is('.col-sm-12')) {
-					$sourceCol = $sourceCol.find('> .col-sm-12').first();
-					if (!$sourceCol.length) {
-						$sourceCol = getIncomingRoot($incoming).find('.col-sm-12').first();
-					}
-				}
-				if ($col.length && $sourceCol.length) {
-					$col.html($sourceCol.html());
-					applyCommonUi();
-					if (typeof window.mkPotentialsListAfterAjax === 'function') {
-						window.mkPotentialsListAfterAjax();
-					}
-					return;
-				}
-				if (potentialsSwapFallback($incoming, $lv)) {
-					applyCommonUi();
-					if (typeof window.mkPotentialsListAfterAjax === 'function') {
-						window.mkPotentialsListAfterAjax();
-					}
-					return;
-				}
-				/* Do not call originalPlace — it wipes mk-so-page header/actions shell */
 				try {
 					if (typeof app !== 'undefined' && app.helper && app.helper.hideProgress) {
 						app.helper.hideProgress();
@@ -1258,7 +1247,8 @@
 		syncSearchButtonState: syncSearchButtonState,
 		scheduleAutoSearch: scheduleAutoSearch,
 		patchSalesListTableHooks: patchSalesListTableHooks,
-		bindSalesListTableEvents: bindSalesListTableEvents
+		bindSalesListTableEvents: bindSalesListTableEvents,
+		applyPotentialsListContents: applyPotentialsListContents
 	};
 
 	if (document.readyState === 'loading') {
