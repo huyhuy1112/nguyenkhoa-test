@@ -499,6 +499,17 @@
 			relocatePaginationFooter();
 			return true;
 		}
+
+		// Last-resort: replace the card content (keep sidebar/topbar shell).
+		// This prevents the "3 dots then nothing changes" state when markup differs unexpectedly.
+		var $newCard = $source.find('.mk-so-table-card, .mk-opportunity-table-card').first();
+		if ($card.length && $newCard.length) {
+			$card.html($newCard.html());
+			syncHiddenFieldsFromFragment($source, $lv);
+			syncToolbarFromFragment($source, $lv);
+			relocatePaginationFooter();
+			return true;
+		}
 		return false;
 	}
 
