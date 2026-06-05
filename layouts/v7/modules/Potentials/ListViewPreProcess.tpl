@@ -8,9 +8,9 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/OpportunityList.css')}&mk_v=20260603_list10" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}&mk_v=20260606_search2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}&mk_v=20260606_search2" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}&mk_v=20260606_search2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}&mk_v=20260606_search3"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/List.js')}&mk_v=20260606_search2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/List.js')}&mk_v=20260606_search3"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/InternalOrderProtection.js')}"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-opportunity-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

@@ -245,14 +245,17 @@
 	}
 
 	function getListInstance() {
-		if (typeof app !== 'undefined' && app.controller) {
-			var c = app.controller();
-			if (c && typeof c.loadListViewRecords === 'function') {
-				return c;
+		if (window.Vtiger_List_Js && Vtiger_List_Js.getInstance) {
+			var listInstance = Vtiger_List_Js.getInstance();
+			if (listInstance && typeof listInstance.loadListViewRecords === 'function') {
+				return listInstance;
 			}
 		}
-		if (window.Vtiger_List_Js && Vtiger_List_Js.getInstance) {
-			return Vtiger_List_Js.getInstance();
+		if (typeof app !== 'undefined' && app.controller) {
+			var controller = app.controller();
+			if (controller && typeof controller.loadListViewRecords === 'function') {
+				return controller;
+			}
 		}
 		return null;
 	}
@@ -363,6 +366,9 @@
 			}
 			searchValue = (searchValue || '').toString().trim();
 			if (!searchValue.length) {
+				if (currentSearchParams && currentSearchParams[fieldName]) {
+					delete currentSearchParams[fieldName];
+				}
 				return;
 			}
 
@@ -487,7 +493,7 @@
 				}
 			)
 			.on(
-				'select2-selecting.mkOppAutoSearch select2-removed.mkOppAutoSearch',
+				'select2-selecting.mkOppAutoSearch select2-removed.mkOppAutoSearch select2-close.mkOppAutoSearch',
 				'tr.searchRow .listSearchContributor.select2',
 				function () {
 					if (!isSalesOpportunityList()) {
@@ -496,6 +502,12 @@
 					scheduleAutoSearch();
 				}
 			)
+			.on('select2-selected.mkOppAutoSearch', 'tr.searchRow .select2-container', function () {
+				if (!isSalesOpportunityList()) {
+					return;
+				}
+				scheduleAutoSearch();
+			})
 			.on('datepicker-change.mkOppAutoSearch', 'tr.searchRow .dateField', function () {
 				if (!isSalesOpportunityList()) {
 					return;
@@ -515,10 +527,31 @@
 		}
 		listInstance.filterClick = false;
 		var searchParams = getListSearchParamsSafe(listInstance, false);
-		listInstance.loadListViewRecords({
-			page: '1',
-			search_params: JSON.stringify(searchParams),
-		});
+		if (!searchParams.length || !searchParams[0] || !searchParams[0].length) {
+			root.find('#currentSearchParams').val('');
+		}
+		try {
+			if (typeof app !== 'undefined' && app.helper && app.helper.showProgress) {
+				app.helper.showProgress();
+			}
+		} catch (progressErr) {
+			/* ignore */
+		}
+		listInstance
+			.loadListViewRecords({
+				page: '1',
+				search_params: JSON.stringify(searchParams),
+				nolistcache: '1',
+			})
+			.always(function () {
+				hideProgressSafe();
+				setTimeout(function () {
+					afterListLayout();
+					if (typeof window.mkPotentialsListAfterAjax === 'function') {
+						window.mkPotentialsListAfterAjax();
+					}
+				}, 0);
+			});
 	}
 
 	function openColumnPicker() {

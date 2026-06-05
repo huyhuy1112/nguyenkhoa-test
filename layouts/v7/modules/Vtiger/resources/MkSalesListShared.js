@@ -452,7 +452,11 @@
 	}
 
 	function getListPageRoot($lv) {
-		var $page = $lv.find('.mk-so-page.mk-so-list-sales-root').first();
+		var $page = $lv.find('.mk-so-page.mk-opportunity-page').first();
+		if ($page.length) {
+			return $page;
+		}
+		$page = $lv.find('.mk-so-page.mk-so-list-sales-root').first();
 		if ($page.length) {
 			return $page;
 		}
@@ -461,6 +465,41 @@
 			return $page;
 		}
 		return $lv.find('.mk-so-page.mk-project-list-mgmt-root').first();
+	}
+
+	function potentialsSwapFallback($incoming, $lv) {
+		var $source = getIncomingRoot($incoming);
+		if (!$source.length) {
+			return false;
+		}
+		var $page = getListPageRoot($lv);
+		if (!$page.length) {
+			return false;
+		}
+		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card').first();
+		var $newCol = $source.find('.mk-so-table-card > .col-sm-12, .mk-opportunity-table-card > .col-sm-12').first();
+		if (!$newCol.length) {
+			$newCol = $source.find('.col-sm-12').first();
+		}
+		var $oldCol = $card.find('> .col-sm-12, > .col-xs-12').first();
+		if ($newCol.length && $oldCol.length) {
+			$card.find('#table-content').nextAll('.mk-so-filter-row__footer').remove();
+			$oldCol.replaceWith($newCol.clone(true, true));
+			syncHiddenFieldsFromFragment($source, $lv);
+			syncToolbarFromFragment($source, $lv);
+			relocatePaginationFooter();
+			return true;
+		}
+		var $newTable = $incoming.find('#listview-table').first();
+		var $oldTable = $lv.find('#listview-table').first();
+		if ($newTable.length && $oldTable.length) {
+			$oldTable.replaceWith($newTable.clone(true, true));
+			syncHiddenFieldsFromFragment($source, $lv);
+			syncToolbarFromFragment($source, $lv);
+			relocatePaginationFooter();
+			return true;
+		}
+		return false;
 	}
 
 	function swapListBodyInShell(contents) {
@@ -635,16 +674,12 @@
 					return;
 				}
 				var $page = getListPageRoot($lv);
-				var $card = $page.find('.mk-so-table-card').first();
+				var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card').first();
 				var $newTableContent = $incoming.find('#table-content').first();
 				if ($page.length && $card.length && $newTableContent.length) {
 					var $sourceFb = getIncomingRoot($incoming);
-					var savedSearchFb = captureSearchRowValues($lv);
 					$card.find('#table-content').nextAll('.mk-so-filter-row__footer').remove();
 					$card.find('#table-content').replaceWith($newTableContent.clone(true, true));
-					if (savedSearchFb) {
-						restoreSearchRowValues($lv, savedSearchFb);
-					}
 					syncToolbarFromFragment($sourceFb, $lv);
 					applyCommonUi();
 					if (typeof window.mkPotentialsListAfterAjax === 'function') {
@@ -662,6 +697,13 @@
 				}
 				if ($col.length && $sourceCol.length) {
 					$col.html($sourceCol.html());
+					applyCommonUi();
+					if (typeof window.mkPotentialsListAfterAjax === 'function') {
+						window.mkPotentialsListAfterAjax();
+					}
+					return;
+				}
+				if (potentialsSwapFallback($incoming, $lv)) {
 					applyCommonUi();
 					if (typeof window.mkPotentialsListAfterAjax === 'function') {
 						window.mkPotentialsListAfterAjax();
@@ -707,7 +749,12 @@
 		Vtiger_List_Js.prototype.postLoadListViewRecords = function (res) {
 			originalPostLoad.call(this, res);
 			if (shouldBootMkSalesListShared()) {
-				setTimeout(applyCommonUi, 0);
+				setTimeout(function () {
+					applyCommonUi();
+					if (isPotentialsSalesList() && typeof window.mkPotentialsListAfterAjax === 'function') {
+						window.mkPotentialsListAfterAjax();
+					}
+				}, 0);
 			}
 		};
 	}
@@ -853,6 +900,9 @@
 			}
 			searchValue = (searchValue || '').toString().trim();
 			if (!searchValue.length) {
+				if (currentSearchParams && currentSearchParams[fieldName]) {
+					delete currentSearchParams[fieldName];
+				}
 				return;
 			}
 			var searchOperator = 'c';
