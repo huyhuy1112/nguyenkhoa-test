@@ -126,7 +126,7 @@
 	}
 
 	function needsSalesListSearchHooks() {
-		return isSalesAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
+		return isSalesAppList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
 	}
 
 	function shouldBootMkSalesListShared() {
@@ -906,10 +906,48 @@
 		});
 	}
 
+	function hasActiveSearchFilters() {
+		var hasValue = false;
+		getSalesTableRoot().find('tr.searchRow .listSearchContributor').each(function () {
+			var $el = $(this);
+			if ($el.hasClass('select2_input_element') || $el.is('div')) {
+				return;
+			}
+			var searchValue = $el.val();
+			if (typeof searchValue === 'object') {
+				searchValue = searchValue == null ? '' : searchValue.join(',');
+			}
+			if ((searchValue || '').toString().trim().length) {
+				hasValue = true;
+			}
+		});
+		return hasValue;
+	}
+
+	function syncSearchButtonState() {
+		if (!isSalesStyleTableList()) {
+			return;
+		}
+		var $root = getSalesTableRoot();
+		var $search = $root.find('tr.searchRow [data-trigger="listSearch"]');
+		var $clear = $root.find('tr.searchRow [data-trigger="clearListSearch"]');
+		if (!$search.length) {
+			return;
+		}
+		if (hasActiveSearchFilters()) {
+			$search.addClass('hide');
+			$clear.removeClass('hide');
+		} else {
+			$search.removeClass('hide');
+			$clear.addClass('hide');
+		}
+	}
+
 	function scheduleAutoSearch() {
 		if (!isSalesStyleTableList()) {
 			return;
 		}
+		syncSearchButtonState();
 		if (autoSearchTimer) {
 			clearTimeout(autoSearchTimer);
 		}
@@ -948,6 +986,11 @@
 	}
 
 	function bindSalesListTableEvents() {
+		// Potentials list has its own search logic in `modules/Potentials/resources/List.js`.
+		// Prevent this shared file from binding click/real-time handlers there (would block search).
+		if (isPotentialsSalesList()) {
+			return;
+		}
 		if (!isSalesStyleTableList() || salesTableEventsBound) {
 			return;
 		}
@@ -959,6 +1002,11 @@
 				runSalesListSearch();
 			}
 		});
+		root
+			.off('input.mkSalesAutoSearch')
+			.on('input.mkSalesAutoSearch', 'tr.searchRow input.listSearchContributor:not(.select2_input_element)', function () {
+				scheduleAutoSearch();
+			});
 		root
 			.off('change.mkSalesAutoSearch select2-selecting.mkSalesAutoSearch select2-removed.mkSalesAutoSearch')
 			.on('change.mkSalesAutoSearch', 'tr.searchRow select.listSearchContributor', function () {
@@ -973,11 +1021,51 @@
 			.on('datepicker-change.mkSalesAutoSearch', 'tr.searchRow .dateField', function () {
 				scheduleAutoSearch();
 			});
+		root
+			.off('click.mkSalesListSearchBtn', 'tr.searchRow [data-trigger="listSearch"]')
+			.on('click.mkSalesListSearchBtn', 'tr.searchRow [data-trigger="listSearch"]', function (e) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+				if (listInstance) {
+					listInstance.filterClick = false;
+				}
+				syncSearchFieldMeta();
+				runSalesListSearch();
+			});
+		root
+			.off('click.mkSalesListClearBtn', 'tr.searchRow [data-trigger="clearListSearch"]')
+			.on('click.mkSalesListClearBtn', 'tr.searchRow [data-trigger="clearListSearch"]', function (e) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				root.find('tr.searchRow .listSearchContributor').each(function () {
+					var $el = $(this);
+					if ($el.hasClass('select2_input_element') || $el.is('div')) {
+						return;
+					}
+					if ($el.is('input')) {
+						$el.val('');
+					} else if ($el.is('select')) {
+						if ($el.hasClass('select2') && $el.select2) {
+							$el.select2('val', '');
+						}
+						$el.val('');
+					}
+				});
+				root.find('#currentSearchParams').val('');
+				syncSearchButtonState();
+				runSalesListSearch();
+			});
 		root.off('change.mkSalesRowCheck', '.listViewEntriesCheckBox').on('change.mkSalesRowCheck', '.listViewEntriesCheckBox', syncRowSelectedClass);
 		root.off('change.mkSalesMainCheck', '.listViewEntriesMainCheckBox').on('change.mkSalesMainCheck', '.listViewEntriesMainCheckBox', syncRowSelectedClass);
 	}
 
 	function patchSalesListTableHooks() {
+		// Potentials list has its own search logic in `modules/Potentials/resources/List.js`.
+		// Prevent this shared file from overriding getListSearchParams/loadListViewRecords there.
+		if (isPotentialsSalesList()) {
+			return;
+		}
 		if (!needsSalesListSearchHooks() || salesTableHooksPatched || typeof Vtiger_List_Js === 'undefined') {
 			return;
 		}
@@ -1020,6 +1108,7 @@
 		reinitSearchRow();
 		assignControlColumnClasses();
 		syncRowSelectedClass();
+		syncSearchButtonState();
 		bindSalesListTableEvents();
 	}
 
@@ -1105,6 +1194,8 @@
 		autoLoadTotalRecordCount: autoLoadTotalRecordCount,
 		ensureSalesListTableUi: ensureSalesListTableUi,
 		runSalesListSearch: runSalesListSearch,
+		syncSearchButtonState: syncSearchButtonState,
+		scheduleAutoSearch: scheduleAutoSearch,
 		patchSalesListTableHooks: patchSalesListTableHooks,
 		bindSalesListTableEvents: bindSalesListTableEvents
 	};

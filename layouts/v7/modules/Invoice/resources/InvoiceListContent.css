@@ -581,13 +581,6 @@ body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table 
 	text-align: left;
 }
 
-/* Filter row: Enter to search — hide legacy green Tìm / Xóa buttons */
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn button,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn .btn,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn .searchAndClearButton {
-	display: none !important;
-}
-
 body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn {
 	padding: 10px !important;
 	vertical-align: middle;
@@ -2017,13 +2010,6 @@ body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-tabl
 	width: 100%;
 	box-sizing: border-box;
 	text-align: left;
-}
-
-/* Filter row: Enter to search — hide legacy green Tìm / Xóa buttons */
-body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr.searchRow th.inline-search-btn button,
-body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr.searchRow th.inline-search-btn .btn,
-body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr.searchRow th.inline-search-btn .searchAndClearButton {
-	display: none !important;
 }
 
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr.searchRow th.inline-search-btn {

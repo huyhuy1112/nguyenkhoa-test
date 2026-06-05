@@ -10,9 +10,9 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceListContent.css')}?mk_v=20260605_inv_search1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceSupportList.css')}?mk_v=20260605_inv_search1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260605_inv_search1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260605_inv_search1" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260605_inv_search1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260606_search2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_search2" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260606_search2"></script>
 {assign var=mk_inv_mod value=Vtiger_Module_Model::getInstance($MODULE)}
 {assign var=mk_inv_status_fm value=Vtiger_Field_Model::getInstance('invoicestatus', $mk_inv_mod)}
 {if !$mk_inv_status_fm}

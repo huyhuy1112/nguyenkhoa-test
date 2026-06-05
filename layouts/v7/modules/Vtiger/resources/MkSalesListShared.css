@@ -696,3 +696,66 @@ body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody
 body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody td.listViewEntryValue a {
 	word-break: break-word;
 }
+
+/* ---- Inline filter-row search / clear (control column under checkbox rail) ---- */
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn .table-actions {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-height: 40px;
+	margin: 0;
+}
+
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"],
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	min-width: 40px;
+	min-height: 40px;
+	padding: 0 !important;
+	border-radius: 10px !important;
+	font-size: 0 !important;
+	line-height: 1 !important;
+	box-shadow: none !important;
+}
+
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] {
+	background: #2e7d32 !important;
+	border: 1px solid #2e7d32 !important;
+	color: #fff !important;
+}
+
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"]:hover,
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"]:focus {
+	background: #256628 !important;
+	border-color: #256628 !important;
+	color: #fff !important;
+}
+
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] {
+	background: #fff !important;
+	border: 1px solid #d4c4ad !important;
+	color: #5c4a3a !important;
+}
+
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"]:hover,
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"]:focus {
+	background: #fff8f0 !important;
+	border-color: #c4a882 !important;
+	color: #3d3028 !important;
+}
+
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] i,
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] i {
+	font-size: 14px !important;
+	line-height: 1 !important;
+	margin: 0 !important;
+}
+
+body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] .s2-btn-text {
+	display: none !important;
+}
