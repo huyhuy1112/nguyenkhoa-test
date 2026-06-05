@@ -1,0 +1,45 @@
+/**
+ * SalesOrder Edit (TOOLS) — shared shell fixes.
+ */
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] #page,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] #page.container-fluid {
+	padding-top: 0 !important;
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .navbar.navbar-inverse.navbar-fixed-top,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .app-nav,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] #page > .container-fluid.app-nav,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .module-action-bar {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-dash-main {
+	padding: 0 !important;
+	box-sizing: border-box;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-so-tools-form-host .content-area,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-so-tools-form-host .editViewPageDiv,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-so-tools-form-host .main-container {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-so-tools-form-host #modnavigator,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-so-tools-form-host .editViewModNavigator,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-so-tools-form-host .editViewHeader {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-so-tools-form-host .modal-overlay-footer {
+	display: none !important;
+}

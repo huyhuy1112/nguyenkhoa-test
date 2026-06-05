@@ -1,0 +1,111 @@
+/**
+ * Invoice list (TOOLS / SUPPORT) — hide legacy vtiger chrome.
+ */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .app-nav,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .app-nav,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] nav.app-nav,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] nav.app-nav {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-inv-support-list-page #modnavigator.module-nav,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page #modnavigator.module-nav,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-inv-support-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-inv-support-list-page .essentials-toggle,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page .essentials-toggle {
+	display: none !important;
+	visibility: hidden !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-inv-support-list-page .listViewPageDiv.content-area,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page .listViewPageDiv.content-area,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-inv-support-list-page #listViewContent,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page #listViewContent {
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent .floatThead-container,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent .floatThead-container,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent #scroller_wrapper.bottom-fixed-scroll {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-page .module-action-bar,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-page .module-action-bar,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-page .module-action-bar,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .module-action-bar,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .module-action-bar {
+	display: none !important;
+}
+
+/* Pagination (prev / … / next) below the table — same as Opportunities / SALES lists */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-actions .mk-so-filter-row__footer,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-actions .mk-so-filter-row__footer {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #table-content + .mk-so-filter-row__footer,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card .mk-so-filter-row__footer,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #table-content + .mk-so-filter-row__footer,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card .mk-so-filter-row__footer {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	min-height: 64px;
+	padding: 12px 16px;
+	border-top: 1px solid #d4c4ad;
+	background: #eceef0;
+	box-sizing: border-box;
+	border-radius: 0 0 11px 11px;
+	flex: 0 0 auto;
+	order: 3;
+	width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-sm-12 > #listview-actions,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-xs-12 > #listview-actions,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card > .col-sm-12 > #listview-actions,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card > .col-xs-12 > #listview-actions {
+	order: 1;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-sm-12 > #table-content,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-xs-12 > #table-content,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card > .col-sm-12 > #table-content,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card > .col-xs-12 > #table-content {
+	order: 2;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-pagination,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__footer .mk-so-pagination,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-opportunity-pagination,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__footer .mk-opportunity-pagination {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-page-btn,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__footer .mk-so-page-btn {
+	min-width: 40px;
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	color: #191c1e;
+	margin: 0 2px;
+	font-weight: 600;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-page-btn:hover:not(:disabled),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__footer .mk-so-page-btn:hover:not(:disabled) {
+	background: #fdbb2c !important;
+	border-color: #e5a820 !important;
+}

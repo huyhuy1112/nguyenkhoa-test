@@ -1,0 +1,409 @@
+/**
+ * History audit log (TOOLS) — premium content card (B-ACE / Invoice palette).
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-dash-main.mk-history-list-main,
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-page,
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-page * {
+	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-page {
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Page header ---- */
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-page-header {
+	margin-bottom: 20px;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-breadcrumb {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	font-size: 13px;
+	color: #6b7c8f;
+	margin-bottom: 10px;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-breadcrumb a {
+	color: #40627e;
+	text-decoration: none;
+	font-weight: 500;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-breadcrumb a:hover {
+	color: #0057d9;
+	text-decoration: underline;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-breadcrumb__sep {
+	color: #9aa8b6;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-eyebrow {
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: #8a9bab;
+	margin-bottom: 6px;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-title {
+	margin: 0 0 8px 0 !important;
+	font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif !important;
+	font-size: 28px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: #191c1e;
+	line-height: 1.2;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-subtitle {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.5;
+	color: #504533;
+	max-width: 640px;
+}
+
+/* ---- Main card ---- */
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-card {
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+}
+
+/* ---- Summary chips ---- */
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-summary-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px 16px;
+	padding: 16px 20px;
+	background: linear-gradient(180deg, #fafbfc 0%, #f3f5f7 100%);
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-summary-label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #40627e;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-summary-label strong {
+	color: #191c1e;
+	font-weight: 700;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	border: 1px solid transparent;
+	white-space: nowrap;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(25, 28, 30, 0.08);
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip--total {
+	background: #eceef0;
+	border-color: #d4c4ad;
+	color: #40627e;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip--created {
+	background: #e8f1fd;
+	border-color: #b8d4f5;
+	color: #1d5fbf;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip--edited {
+	background: #eeeafe;
+	border-color: #c9c3f5;
+	color: #5b4fc7;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip--status {
+	background: #fff4e5;
+	border-color: #f5d9a8;
+	color: #b45309;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip--approved {
+	background: #e6f7ef;
+	border-color: #a8e0c4;
+	color: #047857;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip--rejected,
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip--deleted {
+	background: #fdeee8;
+	border-color: #f5c4b0;
+	color: #c2410c;
+}
+
+/* ---- Filter toolbar ---- */
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-filter-bar {
+	padding: 16px 20px;
+	background: #eceef0;
+	border-bottom: 1px solid #d4c4ad;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-filter-grid {
+	display: grid;
+	grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(140px, 1fr)) minmax(260px, 1.2fr);
+	gap: 12px 14px;
+	align-items: end;
+}
+
+@media (max-width: 1200px) {
+	body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-filter-grid {
+		grid-template-columns: repeat(2, minmax(160px, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-filter-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-control-label {
+	display: block;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #40627e;
+	margin-bottom: 6px;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-input,
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-control-label,
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-chip,
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-badge {
+	font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-input {
+	width: 100%;
+	height: 40px;
+	padding: 0 12px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #ffffff !important;
+	font-size: 14px;
+	color: #191c1e;
+	box-shadow: none !important;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-input:focus {
+	border-color: #e5a820 !important;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.25) !important;
+	outline: none !important;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-date-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-date-row .mk-history-input {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-date-sep {
+	font-size: 13px;
+	font-weight: 500;
+	color: #6b7c8f;
+	flex-shrink: 0;
+}
+
+/* ---- Table ---- */
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-table-area {
+	padding: 0;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-audit-table {
+	width: 100%;
+	min-width: 960px;
+	border-collapse: collapse;
+	border-spacing: 0;
+	table-layout: fixed;
+	font-size: 14px;
+	font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-audit-table thead th {
+	height: 48px;
+	padding: 0 14px;
+	vertical-align: middle;
+	text-align: left;
+	background: #f7f9fb;
+	border-bottom: 1px solid #d4c4ad;
+	font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif !important;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #40627e;
+	white-space: nowrap;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-audit-table tbody td {
+	padding: 14px;
+	vertical-align: top;
+	border-bottom: 1px solid #e8edf2;
+	color: #191c1e;
+	line-height: 1.45;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-audit-table tbody tr.history-row:hover td {
+	background: #faf8f5;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-cell--time {
+	font-variant-numeric: tabular-nums;
+	font-size: 13px;
+	color: #504533;
+	white-space: nowrap;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-cell--user {
+	font-weight: 500;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-cell--module {
+	color: #40627e;
+	font-weight: 500;
+}
+
+/* ---- Action badges ---- */
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 5px 10px;
+	border-radius: 8px;
+	font-size: 12px;
+	font-weight: 600;
+	border: 1px solid transparent;
+	white-space: nowrap;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-badge--created {
+	background: #e8f1fd;
+	color: #1d5fbf;
+	border-color: #b8d4f5;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-badge--approved {
+	background: #e6f7ef;
+	color: #047857;
+	border-color: #a8e0c4;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-badge--rejected {
+	background: #fdeee8;
+	color: #c2410c;
+	border-color: #f5c4b0;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-badge--deleted {
+	background: #fee8e8;
+	color: #b91c1c;
+	border-color: #f5b8b8;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-badge--restored {
+	background: #e6faf8;
+	color: #0f766e;
+	border-color: #a8e8df;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-badge--status-changed {
+	background: #fff4e5;
+	color: #b45309;
+	border-color: #f5d9a8;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-badge--edited {
+	background: #eeeafe;
+	color: #5b4fc7;
+	border-color: #c9c3f5;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-record-link {
+	color: #0057d9;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-record-link:hover {
+	color: #0041a8;
+	text-decoration: underline;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-changes {
+	max-width: 100%;
+	word-break: break-word;
+	color: #504533;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* ---- Empty state ---- */
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-empty {
+	margin: 32px 24px;
+	padding: 28px 24px;
+	text-align: center;
+	border-radius: 12px;
+	border: 1px dashed #d4c4ad;
+	background: #fafbfc;
+	color: #40627e;
+	font-size: 15px;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-empty__title {
+	display: block;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 18px;
+	font-weight: 600;
+	color: #191c1e;
+	margin-bottom: 6px;
+}

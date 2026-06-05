@@ -1,0 +1,407 @@
+/**
+ * DocumentTemplate list content (TOOLS) — B-ACE / Invoice palette.
+ */
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-page {
+	width: 100%;
+	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ---- Header ---- */
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-header {
+	margin-bottom: 18px;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-breadcrumb {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	font-size: 13px;
+	color: #6b7c8f;
+	margin-bottom: 10px;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-breadcrumb a {
+	color: #40627e;
+	text-decoration: none;
+	font-weight: 500;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-breadcrumb a:hover {
+	color: #0057d9;
+	text-decoration: underline;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-breadcrumb__sep {
+	color: #9aa8b6;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-action-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-eyebrow {
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: #8a9bab;
+	margin-bottom: 4px;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-action-header__title {
+	margin: 0 0 6px 0;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 28px;
+	font-weight: 700;
+	color: #191c1e;
+	letter-spacing: -0.02em;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-action-header__subtitle {
+	margin: 0;
+	font-size: 14px;
+	color: #504533;
+	line-height: 1.45;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-create-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 42px;
+	padding: 0 16px;
+	border-radius: 10px;
+	border: 1px solid #191c1e;
+	background: #191c1e;
+	color: #fff !important;
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: none !important;
+	transition: background 0.15s ease, border-color 0.15s ease;
+	flex-shrink: 0;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-create-btn:hover {
+	background: #2d3135;
+	border-color: #2d3135;
+	color: #fff !important;
+	text-decoration: none !important;
+}
+
+/* ---- Feature tabs ---- */
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-feature-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 16px;
+	padding-bottom: 4px;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-feature-tab {
+	display: inline-flex;
+	align-items: center;
+	padding: 8px 14px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	background: #ffffff;
+	color: #40627e;
+	font-size: 13px;
+	font-weight: 600;
+	text-decoration: none;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-feature-tab:hover {
+	background: #faf8f5;
+	border-color: #c4b49a;
+	color: #191c1e;
+	text-decoration: none;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-feature-tab.is-active {
+	background: #fff8eb;
+	border-color: #e5a820;
+	color: #191c1e;
+	box-shadow: 0 2px 8px rgba(229, 168, 32, 0.15);
+}
+
+/* ---- Card ---- */
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-card {
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+}
+
+/* ---- Toolbar / filters ---- */
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-toolbar {
+	padding: 16px 20px;
+	background: linear-gradient(180deg, #fafbfc 0%, #f3f5f7 100%);
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-filter-grid {
+	display: grid;
+	grid-template-columns: minmax(220px, 1fr) auto;
+	gap: 12px 16px;
+	align-items: end;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-filter-label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #40627e;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-input {
+	min-height: 40px;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	font-size: 14px;
+	box-shadow: none !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-filter-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 40px;
+	padding: 0 16px;
+	border-radius: 10px !important;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.2;
+	box-sizing: border-box;
+	cursor: pointer;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-filter-actions .mk-dt-btn {
+	flex: 0 0 auto;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-btn--primary {
+	background: #fdbb2c !important;
+	border: 1px solid #e5a820 !important;
+	color: #191c1e !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-btn--primary:hover {
+	background: #f5b01e !important;
+	border-color: #d99b10 !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-btn--ghost {
+	background: #fff !important;
+	border: 1px solid #d4c4ad !important;
+	color: #40627e !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-btn--ghost:hover {
+	background: #f7f9fb !important;
+	color: #191c1e !important;
+	text-decoration: none !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-btn--reset {
+	min-width: 88px;
+}
+
+/* ---- Summary ---- */
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-summary {
+	padding: 12px 20px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #40627e;
+	border-bottom: 1px solid #e8edf2;
+	background: #fff;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-summary strong {
+	color: #191c1e;
+	font-weight: 700;
+}
+
+/* ---- Table ---- */
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-table-wrap {
+	overflow-x: auto;
+	padding: 0;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-table {
+	width: 100%;
+	min-width: 960px;
+	margin: 0;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-table thead tr th {
+	height: 48px;
+	padding: 0 14px;
+	vertical-align: middle;
+	background: #f7f9fb !important;
+	border-bottom: 1px solid #d4c4ad;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: #40627e !important;
+	white-space: nowrap;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-table tbody tr.mk-dt-row td {
+	padding: 14px;
+	vertical-align: middle;
+	border-bottom: 1px solid #e8edf2;
+	color: #191c1e;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-table tbody tr.mk-dt-row:hover td {
+	background: #faf8f5;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-name-link {
+	color: #0057d9;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-name-link:hover {
+	text-decoration: underline;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-feature-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	border: 1px solid transparent;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-feature-pill--invoice {
+	background: #eef6ff;
+	color: #1d4ed8;
+	border-color: #bfdbfe;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-feature-pill--quote {
+	background: #f0fdf4;
+	color: #15803d;
+	border-color: #bbf7d0;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-feature-pill--contract {
+	background: #fff8eb;
+	color: #b45309;
+	border-color: #fde68a;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-feature-pill--other {
+	background: #f3f4f6;
+	color: #4b5563;
+	border-color: #e5e7eb;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-default-yes {
+	color: #15803d;
+	font-weight: 700;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-default-no {
+	color: #9aa8b6;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-row-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 8px;
+	border: 1px solid #d4c4ad;
+	background: #fff;
+	color: #40627e;
+	text-decoration: none;
+	cursor: pointer;
+	padding: 0;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-icon-btn:hover {
+	background: #f2f4f6;
+	border-color: #c4b49a;
+	color: #0057d9;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-icon-btn--danger {
+	color: #c62828;
+	border-color: #ef9a9a;
+	background: #fff5f5;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-icon-btn--danger:hover {
+	background: #ffebee;
+	border-color: #e57373;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-icon-btn--disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-delete-form {
+	display: inline-flex;
+	margin: 0;
+	padding: 0;
+}
+
+/* ---- Empty / alert ---- */
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-empty {
+	padding: 48px 24px;
+	text-align: center;
+	color: #40627e;
+	font-size: 15px;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-alert {
+	margin: 16px 20px 0;
+	border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+	body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-filter-grid {
+		grid-template-columns: 1fr;
+	}
+
+	body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-action-header {
+		flex-direction: column;
+	}
+}

@@ -1,0 +1,446 @@
+/**
+ * RecycleBin list content (TOOLS) — B-ACE / Invoice palette.
+ */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-page {
+	width: 100%;
+	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ---- Header ---- */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-header {
+	margin-bottom: 18px;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-breadcrumb {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	font-size: 13px;
+	color: #6b7c8f;
+	margin-bottom: 10px;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-breadcrumb a {
+	color: #40627e;
+	text-decoration: none;
+	font-weight: 500;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-breadcrumb a:hover {
+	color: #0057d9;
+	text-decoration: underline;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-breadcrumb__sep {
+	color: #9aa8b6;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-eyebrow {
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: #8a9bab;
+	margin-bottom: 4px;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-action-header__title {
+	margin: 0 0 6px 0;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 28px;
+	font-weight: 700;
+	color: #191c1e;
+	letter-spacing: -0.02em;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-action-header__subtitle {
+	margin: 0;
+	font-size: 14px;
+	color: #504533;
+	line-height: 1.45;
+}
+
+/* ---- Module tabs (replaces legacy MODULES sidebar) ---- */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-module-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 16px;
+	padding-bottom: 4px;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-module-tab {
+	display: inline-flex;
+	align-items: center;
+	padding: 8px 14px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	background: #ffffff;
+	color: #40627e;
+	font-size: 13px;
+	font-weight: 600;
+	text-decoration: none;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-module-tab:hover {
+	background: #faf8f5;
+	border-color: #c4b49a;
+	color: #191c1e;
+	text-decoration: none;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-module-tab.is-active {
+	background: #fff8eb;
+	border-color: #e5a820;
+	color: #191c1e;
+	box-shadow: 0 2px 8px rgba(229, 168, 32, 0.15);
+}
+
+/* ---- Table card ---- */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-table-card {
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-table-card > .col-sm-12,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-table-card > .col-xs-12 {
+	display: flex;
+	flex-direction: column;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+}
+
+/* ---- Toolbar ---- */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-actions.mk-rb-filter-row {
+	background: #eceef0 !important;
+	border: none !important;
+	border-bottom: 1px solid #d4c4ad !important;
+	min-height: 73px;
+	margin: 0 !important;
+	padding: 0 !important;
+	display: flex;
+	flex-direction: column;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-filter-row__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: nowrap;
+	gap: 12px;
+	min-height: 73px;
+	padding: 0 14px;
+	flex: 1 1 auto;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-filter-row__start {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 14px 18px;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-toolbar-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-mass-btn {
+	min-width: 40px;
+	height: 40px;
+	padding: 0 12px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	color: #40627e;
+	font-weight: 500;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-mass-btn:hover:not(:disabled) {
+	background: #f2f4f6 !important;
+	border-color: #c4b49a !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-clear-btn {
+	height: 40px;
+	padding: 0 16px;
+	border-radius: 10px !important;
+	border: 1px solid #e57373 !important;
+	background: #fff5f5 !important;
+	color: #c62828 !important;
+	font-weight: 600;
+	font-size: 13px;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-clear-btn:hover:not(:disabled) {
+	background: #ffebee !important;
+	border-color: #ef5350 !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-toolbar-count .pageNumbers {
+	font-size: 14px;
+	color: #504533;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-toolbar-count .pageNumbersText {
+	font-weight: 600;
+	color: #191c1e;
+}
+
+/* ---- Table ---- */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listViewContent #table-content.table-container {
+	margin-top: 0 !important;
+	border: none !important;
+	background: #ffffff !important;
+	width: 100% !important;
+	overflow-x: auto !important;
+	overflow-y: visible !important;
+	height: auto !important;
+	max-height: calc(100vh - 320px) !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table {
+	width: 100%;
+	min-width: 1280px;
+	border-collapse: collapse;
+	table-layout: fixed;
+	font-size: 14px;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-tabletr td:first-child,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-tabletr th:first-child {
+	width: 152px;
+	min-width: 152px;
+	max-width: 152px;
+	box-sizing: border-box;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table> tbody > tr > td .value {
+	padding: 0;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table> thead > tr > td .fieldValue,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table> tbody > tr > td .fieldValue {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table.table-actions {
+	width: auto !important;
+	min-width: 0 !important;
+	max-width: 100% !important;
+	margin-left: 0 !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th {
+	height: auto;
+	min-height: 48px;
+	padding: 10px 12px;
+	vertical-align: middle;
+	background: #f7f9fb !important;
+	border-bottom: 1px solid #d4c4ad;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: #40627e !important;
+	white-space: normal;
+	line-height: 1.35;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues {
+	display: inline;
+	white-space: normal;
+	line-height: 1.35;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead th a.listViewContentHeaderValues {
+	color: #40627e !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries td {
+	height: 56px;
+	padding: 0 12px;
+	vertical-align: middle;
+	border-bottom: 1px solid #e8edf2;
+	color: #191c1e;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries:hover td {
+	background: #faf8f5;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table tbody td a {
+	color: #0057d9;
+	font-weight: 600;
+}
+
+/* ---- Search row ---- */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow.listViewSearchContainer {
+	display: table-row !important;
+	background: #fafbfc !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-tablethead tr.searchRow th {
+	height: auto !important;
+	padding: 10px 12px !important;
+	font-size: 13px;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+	text-align: left !important;
+	vertical-align: middle !important;
+	overflow: visible !important;
+	background: #fff;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn .btn-success,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn .searchAndClearButton {
+	border-radius: 10px !important;
+	font-weight: 600;
+	min-height: 36px;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn .btn-success {
+	background: #2e7d32 !important;
+	border-color: #2e7d32 !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th {
+	box-sizing: border-box;
+	vertical-align: middle;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .listSearchContributor.inputElement,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element),
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow input.dateField,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow select.listSearchContributor,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .mk-rb-filter-input {
+	display: block;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	box-sizing: border-box !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	font-size: 14px !important;
+	background: #fff !important;
+	box-shadow: none !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2_input_element {
+	display: none !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	box-sizing: border-box;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container .select2-choice {
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	line-height: 38px !important;
+	width: 100% !important;
+	padding: 0 12px !important;
+	box-sizing: border-box !important;
+	background: #fff !important;
+	background-image: none !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices {
+	min-height: 40px !important;
+	padding: 4px 8px !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .input-group,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .input-group .dateField {
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th .referencefield-wrapper,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th .searchable,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th .select2_search_div {
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-so-total-count {
+	font-weight: 700;
+	color: #191c1e;
+}
+
+/* ---- Record actions ---- */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table .listViewRecordActions .table-actions a {
+	color: #40627e;
+	margin: 0 4px;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table .listViewRecordActions .table-actions a:hover {
+	color: #0057d9;
+}
+
+/* ---- Pagination ---- */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-opportunity-pagination,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-so-pagination {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-page-btn {
+	min-width: 40px;
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	font-weight: 600;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-page-btn:hover:not(:disabled) {
+	background: #fdbb2c !important;
+	border-color: #e5a820 !important;
+}
+
+/* ---- Empty state ---- */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-empty-records {
+	padding: 48px 24px !important;
+	text-align: center;
+	color: #40627e;
+	font-size: 15px;
+}

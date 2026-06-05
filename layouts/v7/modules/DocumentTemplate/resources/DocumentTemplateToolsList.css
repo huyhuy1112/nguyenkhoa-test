@@ -1,0 +1,26 @@
+/**
+ * DocumentTemplate list (TOOLS) — hide legacy vtiger chrome.
+ */
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .app-nav,
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] nav.app-nav {
+	display: none !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .main-container.mk-dt-list-page #modnavigator.module-nav,
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .main-container.mk-dt-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .main-container.mk-dt-list-page .essentials-toggle {
+	display: none !important;
+	visibility: hidden !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .main-container.mk-dt-list-page .listViewPageDiv.content-area,
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .main-container.mk-dt-list-page #listViewContent {
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dt-page .module-action-bar {
+	display: none !important;
+}

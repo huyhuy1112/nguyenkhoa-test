@@ -11,6 +11,8 @@
 	{include file="partials/QuoteMkCreate.tpl"|vtemplate_path:'Quotes'}
 {elseif $MODULE eq 'SalesOrder' && !empty($MK_MODERN_SALES_ORDER_CREATE)}
 	{include file="partials/SalesOrderMkCreate.tpl"|vtemplate_path:'SalesOrder'}
+{elseif $MODULE eq 'Invoice' && !empty($MK_MODERN_INVOICE_CREATE)}
+	{include file="partials/InvoiceMkCreate.tpl"|vtemplate_path:'Invoice'}
 {else}
 <div class="main-container clearfix">
         <div id="modnavigator" class="module-nav editViewModNavigator">

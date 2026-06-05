@@ -17,6 +17,9 @@ class DocumentTemplate_Detail_View extends Vtiger_Index_View {
 	}
 
 	protected function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isToolsContext($request)) {
+			return 'DetailViewPreProcess.tpl';
+		}
 		return 'ListViewPreProcess.tpl';
 	}
 
@@ -27,8 +30,10 @@ class DocumentTemplate_Detail_View extends Vtiger_Index_View {
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+		$viewer->assign('VIEW', 'Detail');
 
 		if ($this->isToolsContext($request)) {
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'TOOLS');
 			$recordId = (int) $request->get('record');
 			if ($recordId > 0) {
 				$record = $this->getTemplateById($recordId);
@@ -47,8 +52,22 @@ class DocumentTemplate_Detail_View extends Vtiger_Index_View {
 
 	public function postProcess(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
-		$viewer->view('ListViewPostProcess.tpl', $request->getModule());
+		$postTpl = $this->isToolsContext($request) ? 'DetailViewPostProcess.tpl' : 'ListViewPostProcess.tpl';
+		$viewer->view($postTpl, $request->getModule());
 		Vtiger_Basic_View::postProcess($request);
+	}
+
+	public function getHeaderCss(Vtiger_Request $request) {
+		$headerCssInstances = parent::getHeaderCss($request);
+		if (!$this->isToolsContext($request)) {
+			return $headerCssInstances;
+		}
+		$cssFileNames = array(
+			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/DocumentTemplate/resources/DocumentTemplateDetailContent.css',
+			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/DocumentTemplate/resources/DocumentTemplateToolsDetail.css',
+		);
+		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
+		return array_merge($headerCssInstances, $cssInstances);
 	}
 
 	public function process(Vtiger_Request $request) {

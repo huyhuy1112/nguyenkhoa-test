@@ -1,0 +1,31 @@
+/**
+ * DocumentTemplate detail (TOOLS) — hide legacy chrome.
+ */
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .app-nav,
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] nav.app-nav {
+	display: none !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .main-container.mk-dt-detail-page #modnavigator.module-nav,
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .main-container.mk-dt-detail-page #sidebar-essentials.sidebar-essentials,
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .main-container.mk-dt-detail-page .essentials-toggle,
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .mk-dt-hide-legacy {
+	display: none !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .main-container.mk-dt-detail-page .detailViewPageDiv.content-area,
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .main-container.mk-dt-detail-page #detailViewContent {
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .main-container.mk-dt-detail-page {
+	width: 100%;
+	max-width: 1280px;
+	margin-left: auto !important;
+	margin-right: auto !important;
+	padding: 0 !important;
+	box-sizing: border-box;
+}

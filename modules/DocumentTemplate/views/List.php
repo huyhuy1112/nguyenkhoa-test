@@ -31,6 +31,9 @@ class DocumentTemplate_List_View extends Vtiger_Index_View {
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+		if ($this->isToolsContext($request)) {
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'TOOLS');
+		}
 		parent::preProcess($request, $display);
 	}
 
@@ -65,6 +68,8 @@ class DocumentTemplate_List_View extends Vtiger_Index_View {
 			$errorMessage = $errorMessage ?: $e->getMessage();
 		}
 		$viewer->assign('GROUPS', $templates['groups']);
+		$viewer->assign('ALL_ROWS', $templates['rows']);
+		$viewer->assign('TOTAL_COUNT', count($templates['rows']));
 		$viewer->assign('PRESENT_FEATURES', $templates['presentFeatures']);
 		$viewer->assign('FEATURES', $templates['features']);
 		$viewer->assign('FILTER_FEATURE', $request->get('feature'));
@@ -149,6 +154,7 @@ class DocumentTemplate_List_View extends Vtiger_Index_View {
 
 		return array(
 			'groups' => $groups,
+			'rows' => $rows,
 			'presentFeatures' => $presentFeatures,
 			'features' => $features,
 		);

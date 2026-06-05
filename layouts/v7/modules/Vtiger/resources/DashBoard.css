@@ -3638,6 +3638,649 @@ body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-dash
     background: #f7f9fb;
 }
 
+/* ========== Invoice list (TOOLS / SUPPORT) — split shell like Opportunities ========== */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-app-shell,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-topbar,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-dashboard-sidebar,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #page,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #page.container-fluid,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #page,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-dash-main.mk-inv-support-list-main,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-dash-main.mk-inv-support-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== SalesOrder list (TOOLS) — split shell like Invoice ========== */
+body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #page,
+body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-dash-main.mk-so-tools-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== SalesOrder Detail (TOOLS) — split shell + 24px pad ========== */
+body[data-module="SalesOrder"][data-view="Detail"][data-app="TOOLS"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="TOOLS"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="TOOLS"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="TOOLS"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="TOOLS"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="TOOLS"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="TOOLS"] #page,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="TOOLS"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="TOOLS"] .mk-dash-main.mk-so-tools-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== SalesOrder Edit (TOOLS) — split shell + tight pad ========== */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] #page,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="TOOLS"] .mk-dash-main.mk-so-tools-edit-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0 !important;
+    box-sizing: border-box;
+    background: linear-gradient(160deg, #f7f9fb 0%, #f8fafc 40%, #f7f9fb 100%);
+}
+
+/* ========== History audit log (TOOLS) — split shell like Invoice ========== */
+body[data-module="History"][data-view="List"][data-app="TOOLS"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] #page,
+body[data-module="History"][data-view="List"][data-app="TOOLS"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-dash-main.mk-history-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 12px 20px 24px 12px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== RecycleBin (TOOLS) — split shell like Invoice ========== */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #page,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-dash-main.mk-rb-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== DocumentTemplate (TOOLS) — split shell like History / RecycleBin ========== */
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] #page,
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="List"][data-app="TOOLS"] .mk-dash-main.mk-dt-list-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== DocumentTemplate Detail (TOOLS) — split shell + 24px pad ========== */
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] #page,
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="DocumentTemplate"][data-view="Detail"][data-app="TOOLS"] .mk-dash-main.mk-dt-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 24px !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
+/* ========== Invoice Edit (TOOLS / SUPPORT) — split shell + 24px pad ========== */
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"],
+body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-dashboard-sidebar,
+body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+/* ========== Invoice Detail (TOOLS / SUPPORT) — split shell ========== */
+body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"],
+body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] {
+    --mk-dash-sidebar-w: 256px;
+    --mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] #mk-dash-split-root.mk-dash-split-root {
+    position: relative;
+    display: block;
+    min-height: 0;
+}
+
+body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-app-shell,
+body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-app-shell {
+    margin-left: var(--mk-dash-sidebar-w);
+    width: calc(100% - var(--mk-dash-sidebar-w));
+    max-width: calc(100% - var(--mk-dash-sidebar-w));
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #f7f9fb;
+    padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-topbar,
+body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-topbar {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-topbar .mk-dash-app-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--mk-dash-sidebar-w);
+    right: 0;
+    width: auto;
+    min-height: var(--mk-dash-topbar-h);
+    height: var(--mk-dash-topbar-h);
+    z-index: 1030;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+}
+
+body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-dashboard-sidebar,
+body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-dashboard-sidebar {
+    top: 0;
+    height: 100vh;
+}
+
+body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] #page,
+body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] #page,
+body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] #page.container-fluid,
+body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] #page.container-fluid {
+    padding-top: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-dash-main.mk-inv-detail-main,
+body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-dash-main.mk-inv-detail-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: block;
+    padding: 0 !important;
+    box-sizing: border-box;
+    background: #f7f9fb;
+}
+
 /* ========== HelpDesk Tickets (SUPPORT) — same split shell + 24px pad as Outbound ========== */
 body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"],
 body[data-module="HelpDesk"][data-view="List"]:not([data-app]) {

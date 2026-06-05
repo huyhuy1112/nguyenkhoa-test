@@ -25,6 +25,10 @@ class RecycleBin_List_View extends Vtiger_Index_View {
 	function preProcess(Vtiger_Request $request, $display=true) {
 		parent::preProcess($request, false);
 		$viewer = $this->getViewer ($request);
+		$appName = $request->get('app');
+		if (!empty($appName)) {
+			$viewer->assign('SELECTED_MENU_CATEGORY', $appName);
+		}
 		$moduleName = $request->getModule();
 
 		$moduleModel = RecycleBin_Module_Model::getInstance($moduleName);
@@ -131,13 +135,14 @@ class RecycleBin_List_View extends Vtiger_Index_View {
 		}
 
 		$moduleModel = RecycleBin_Module_Model::getInstance($moduleName);
-		//If sourceModule is empty, pick the first module name from the list
-		if(empty($sourceModule)) {
-			foreach($moduleModel->getAllModuleList() as $model) {
+		// If sourceModule is empty or legacy "All", pick the first permitted module.
+		if (empty($sourceModule) || strcasecmp((string) $sourceModule, 'All') === 0) {
+			foreach ($moduleModel->getAllModuleList() as $model) {
 				$sourceModule = $model->get('name');
 				break;
 			}
 		}
+
 		$listViewModel = RecycleBin_ListView_Model::getInstance($moduleName, $sourceModule);
 
 		$linkParams = array('MODULE'=>$moduleName, 'ACTION'=>$request->get('view'));
@@ -209,20 +214,17 @@ class RecycleBin_List_View extends Vtiger_Index_View {
 		$viewer->assign('NO_SEARCH_PARAMS_CACHE', $request->get('nolistcache'));
 		$viewer->assign('FASORT_IMAGE',$faSortImage);
 
-		if (PerformancePrefs::getBoolean('LISTVIEW_COMPUTE_PAGE_COUNT', false)) {
-			if(!$this->listViewCount){
-				$this->listViewCount = $listViewModel->getListViewCount();
-			}
-			$totalCount = $this->listViewCount;
-			$pageLimit = $pagingModel->getPageLimit();
-			$pageCount = ceil((int) $totalCount / (int) $pageLimit);
-
-			if($pageCount == 0){
-				$pageCount = 1;
-			}
-			$viewer->assign('PAGE_COUNT', $pageCount);
-			$viewer->assign('LISTVIEW_COUNT', $totalCount);
+		if (!$this->listViewCount) {
+			$this->listViewCount = $listViewModel->getListViewCount();
 		}
+		$totalCount = (int) $this->listViewCount;
+		$pageLimit = $pagingModel->getPageLimit();
+		$pageCount = ceil($totalCount / (int) $pageLimit);
+		if ($pageCount == 0) {
+			$pageCount = 1;
+		}
+		$viewer->assign('PAGE_COUNT', $pageCount);
+		$viewer->assign('LISTVIEW_COUNT', $totalCount);
 		$viewer->assign('IS_MODULE_DELETABLE', $listViewModel->getModule()->isPermitted('Delete'));
 
 		$this->listviewinitcalled = true; // to make a early exit if it is called more than once

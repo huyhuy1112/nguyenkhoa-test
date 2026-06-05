@@ -1,0 +1,2876 @@
+
+/* Main shell padding: DashBoard.css (24px); keep class hook for module overrides */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-dash-main.mk-opportunity-list-main {
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-opportunity-list-page #modnavigator.module-nav,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-opportunity-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-opportunity-list-page #sidebar-essentials .sidebar-menu,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-opportunity-list-page #sidebar-essentials .lists-menu-container,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-opportunity-list-page .essentials-toggle,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-hide-legacy {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-opportunity-list-page {
+	position: relative !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-opportunity-list-page .listViewPageDiv.content-area,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-opportunity-list-page #listViewContent.listViewPageDiv,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-opportunity-list-page #listViewContent.listViewPageDiv.content-area,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-opportunity-list-page #listViewContent.listViewPageDiv.content-area.full-width {
+	padding: 0 !important;
+	padding-left: 0 !important;
+	margin: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	left: auto !important;
+	position: relative !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-page,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-list-sales-root {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-page > .col-sm-12,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-list-sales-root > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-header {
+	margin: 0 0 20px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-breadcrumb {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #6b6358;
+	margin: 0 0 10px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-breadcrumb a {
+	color: #504533;
+	text-decoration: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-breadcrumb__sep {
+	color: #a79a88;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-action-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 14px 22px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-action-header__title {
+	margin: 0;
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 38px;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+	font-weight: 700;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-action-header__subtitle {
+	margin: 6px 0 0;
+	font-size: 15px;
+	font-weight: 500;
+	color: #5d5246;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-action-header__actions {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 40px;
+	padding: 0 18px;
+	border-radius: 10px;
+	cursor: pointer;
+	border: 1px solid transparent;
+	box-sizing: border-box;
+	font-size: 14px;
+	font-weight: 600;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn--primary {
+	background: #fdbb2c;
+	border-color: #e5a820;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn--primary:hover {
+	background: #ffc85c;
+	border-color: #fdbb2c;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn--outline {
+	background: #ffffff;
+	border-color: #d4c4ad;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn--outline:hover {
+	background: #faf8f5;
+	border-color: #c4b49a;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn--icononly .mk-opportunity-btn__txt {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn--primary .mk-opportunity-btn__ic {
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn .mk-dash-topbar-svg {
+	width: 20px;
+	height: 20px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-settings-wrap {
+	position: relative;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-settings-menu {
+	min-width: 210px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card {
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+	box-sizing: border-box;
+	margin: 0;
+	width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-page .module-action-bar {
+	display: none !important;
+}
+
+/* ---- Filter row (server-rendered ListViewActions.tpl) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent #listview-actions.listview-actions-container.mk-opportunity-filter-row {
+	background: #eceef0 !important;
+	border: none !important;
+	border-bottom: 1px solid #d4c4ad !important;
+	border-radius: 0 !important;
+	min-height: 73px;
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	box-sizing: border-box !important;
+	position: relative !important;
+	left: auto !important;
+	display: flex;
+	flex-direction: column;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-filter-row__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: nowrap;
+	gap: 10px 14px;
+	min-height: 73px;
+	padding: 0 14px 0 12px;
+	box-sizing: border-box;
+	flex: 1 1 auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-filter-row__start {
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 12px 18px;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-toolbar-toggles {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-mass-actions {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 6px;
+	flex: 0 0 auto;
+	margin-left: 0;
+	padding-left: 12px;
+	border-left: 1px solid #d4c4ad;
+	pointer-events: auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-mass-actions .btn:not(:disabled),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .listViewEntriesCheckBox,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .listViewEntriesMainCheckBox,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow input,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow button,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container {
+	pointer-events: auto !important;
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container .select2-choice {
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-toolbar-count {
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-filter-row__right {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-left: auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-page-numbers {
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 500;
+	color: #504533;
+	line-height: 1.4;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-page-numbers .pageNumbersText {
+	font-weight: 600;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-icon-btn {
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	background: #ffffff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-sizing: border-box;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-icon-btn:hover:not(:disabled) {
+	background: #f2f4f6;
+	border-color: #c4b49a;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-icon-btn:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-icon-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-mass-btn {
+	min-width: 40px;
+	height: 40px;
+	padding: 0 10px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	opacity: 0.92;
+	box-shadow: none;
+	font-weight: 500;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-mass-more {
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-actions > .row {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-actions .messageContainer.hide:not(.show) {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-actions .messageContainer.show {
+	display: block !important;
+	margin: 8px 0 0;
+	text-align: center;
+	font-size: 13px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent .mk-opportunity-table-card > .col-sm-12,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent .mk-opportunity-table-card > .col-xs-12 {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Toolbar/table/footer layout: MkSalesListShared.css (mk-so-filter-row) */
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-pagination {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-pagination .mk-opportunity-page-btn,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-pagination .btn {
+	min-width: 40px;
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	color: #191c1e;
+	margin: 0 2px;
+	font-weight: 600;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-pagination .mk-opportunity-page-btn:hover:not(:disabled),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-pagination .btn:hover:not(:disabled) {
+	background: #fdbb2c !important;
+	border-color: #e5a820 !important;
+	color: #191c1e !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #table-content.table-container {
+	margin: 0;
+	border: none;
+	max-height: calc(100vh - 320px);
+	overflow-x: auto;
+	overflow-y: auto;
+	padding-bottom: 8px;
+	box-sizing: border-box;
+	-webkit-overflow-scrolling: touch;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table {
+	width: 100%;
+	min-width: 1450px;
+	border-collapse: collapse;
+	table-layout: fixed;
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+ * CONFLICT AUDIT FIXES — scoped neutralization of Vtiger base list skin
+ * Source: layouts/v7/skins/{marketing,sales,...}/style.css
+ * Properties pre-empted here so layout is stable from first paint (no JS race).
+ * -------------------------------------------------------------------------- */
+
+/* Neutralize base skin: `.listview-table tr td:first-child, .listview-table tr th:first-child { width: 130px }`
+ * Pre-size first column to our control width so floatThead / table-layout:fixed
+ * cannot commit a stale 130px before JS adds `.mk-col-control`. */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr td:first-child,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr th:first-child {
+	width: 152px;
+	min-width: 152px;
+	max-width: 152px;
+}
+
+/* Neutralize base skin: `.listview-table > tbody > tr > td .value { padding: 0 5px }`
+ * Inner `.value` div was adding a phantom 5px to each side, pinching content. */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table > tbody > tr > td .value,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table > tfoot > tr > td .value {
+	padding: 0;
+}
+
+/* Neutralize base skin: `.listview-table > * > tr > td .fieldValue { display: inline-block; width: 100% }`
+ * Keep block flow inside the cell so vertical alignment + clamping works. */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table > thead > tr > td .fieldValue,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table > tbody > tr > td .fieldValue,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table > tfoot > tr > td .fieldValue {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* Neutralize base skin: `.listview-table .table-actions { font-size: 15px; color: #555 }`
+ * (width/margin already overridden a few rules above; here we fix font + color leak). */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions {
+	font-size: 14px;
+	color: #2b2b2b;
+}
+
+/* Clamp overflowing content in narrow columns. Together with table-layout: fixed,
+ * this prevents text expansion from defeating our width:Xpx rules. */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-order-category,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-order-category,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-potentialname,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-potentialname,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-orgname,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-orgname,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-sales-stage,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-sales-stage,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-closing-date,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-closing-date,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-amount,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-amount,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-assigned-to,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-assigned-to,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-contact-name,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-contact-name,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-order-category,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-potentialname,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-orgname,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-sales-stage,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-closing-date,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-amount,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-assigned-to,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-contact-name,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-control {
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+/* Keep row action icons inside the control column (no bleed into category pill). */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.listViewRecordActions,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-control {
+	overflow: visible;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.listViewRecordActions .table-actions {
+	max-width: 100%;
+	overflow: visible;
+	flex-wrap: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="order_category"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-order-category .value {
+	overflow: hidden;
+	max-width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .value,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .fieldValue,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .referencefield-wrapper {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .referencefield-wrapper {
+	display: block;
+	overflow: hidden;
+}
+
+/* floatThead disabled in List.js for SALES; hide any clone left by Vtiger timing. */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .floatThead-container,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .floatThead-table.floatThead-table {
+	display: none !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+	height: 0 !important;
+	overflow: hidden !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th {
+	height: auto;
+	min-height: 48px;
+	border-bottom: 1px solid #d4c4ad;
+	background: #f7f9fb !important;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 13px;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #40627e !important;
+	padding: 10px 12px;
+	vertical-align: middle;
+	white-space: normal;
+	line-height: 1.25;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues {
+	white-space: normal;
+	line-height: 1.25;
+	color: #40627e !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th {
+	background: #fff;
+	border-bottom: 1px solid #ececec;
+	padding: 10px 12px !important;
+	vertical-align: middle;
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element) {
+	height: 40px;
+	min-height: 40px;
+	padding: 0 12px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	font-size: 14px;
+	width: 100%;
+	box-sizing: border-box;
+	text-align: left;
+}
+
+/* Filter row: Enter to search — hide legacy green Tìm / Xóa buttons */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn button,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn .btn,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn .searchAndClearButton {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn {
+	padding: 10px !important;
+	vertical-align: middle;
+	background: #fafbfc;
+	border-right: 1px solid #e8dfd0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tr.searchRow th.inline-search-btn .table-actions {
+	display: block;
+	min-height: 42px;
+	margin: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries td {
+	min-height: 64px;
+	border-bottom: 1px solid #ececec;
+	font-size: 14px;
+	vertical-align: middle;
+	padding: 10px 12px;
+	line-height: 1.35;
+	white-space: normal;
+	word-break: break-word;
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries td.listViewRecordActions,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries td.mk-col-control {
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions)) {
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues {
+	display: inline-block;
+	text-align: left;
+	width: auto;
+	max-width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries td .value,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries td .fieldValue,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries td .referencefield-wrapper {
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="sales_stage"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-sales-stage .value {
+	display: inline-flex;
+	justify-content: flex-start;
+	align-items: center;
+	text-align: left;
+}
+
+/* Override base skin .listview-table .table-actions { width:120px; margin-left:7px } */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions {
+	width: auto;
+	min-width: 0;
+	max-width: 100%;
+	margin-left: 0;
+}
+
+/* Stable column layout driven by classes (header + search + body share widths) */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-control,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-control,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-control {
+	width: 152px !important;
+	min-width: 152px !important;
+	max-width: 152px !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-order-category,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-order-category,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-order-category {
+	width: 140px;
+	min-width: 140px;
+	max-width: 140px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-potentialname,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-potentialname,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-potentialname {
+	width: 220px;
+	min-width: 220px;
+	max-width: 220px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-orgname,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-orgname,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-orgname {
+	width: 220px;
+	min-width: 220px;
+	max-width: 220px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-sales-stage,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-sales-stage,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-sales-stage {
+	width: 170px;
+	min-width: 170px;
+	max-width: 170px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-lead-source {
+	width: 140px;
+	min-width: 140px;
+	max-width: 140px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-closing-date,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-closing-date,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-closing-date {
+	width: 188px;
+	min-width: 188px;
+	max-width: 188px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-amount,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-amount,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-amount {
+	width: 120px;
+	min-width: 120px;
+	max-width: 120px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-assigned-to,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-assigned-to,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-assigned-to {
+	width: 170px;
+	min-width: 170px;
+	max-width: 170px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-contact-name,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-contact-name,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-contact-name {
+	width: 160px;
+	min-width: 160px;
+	max-width: 160px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries:hover {
+	background: #fafbfc;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="potentialname"] a {
+	font-size: 16px;
+	font-weight: 700;
+	color: #7c5800;
+	text-decoration: none;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	line-height: 1.35;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="potentialname"] a:hover {
+	text-decoration: underline;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-category-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-cat-project {
+	background: #dceeff;
+	color: #527ca4;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-cat-service {
+	background: #e3f7ec;
+	color: #2f7a53;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-cat-consulting {
+	background: #efe6ff;
+	color: #6a52a3;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-cat-default {
+	background: #eceff3;
+	color: #4a5565;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-cat-internal {
+	background: #e2e8f0;
+	color: #475569;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+	color: #1f2937;
+	line-height: 1.3;
+	flex-wrap: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage .dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 999px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage-qualification .dot {
+	background: #f4b122;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage-prospecting .dot {
+	background: #3b82f6;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage-needsanalysis .dot {
+	background: #8b5cf6;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage-valueprop .dot {
+	background: #06b6d4;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage-decision .dot {
+	background: #f97316;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage-perception .dot {
+	background: #ec4899;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage-proposal .dot {
+	background: #3b82f6;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage-negotiation .dot {
+	background: #22c55e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage-closedwon .dot {
+	background: #10b981;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-stage-closedlost .dot {
+	background: #ef4444;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="amount"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-amount {
+	text-align: left;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="amount"] .value {
+	font-size: 18px;
+	font-weight: 700;
+	color: #191c1e;
+}
+
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #scroller_wrapper.bottom-fixed-scroll {
+	display: none !important;
+}
+
+/* Clamp high-volume text columns for consistent row height */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="related_to"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="account_id"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="accountname"] .value {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	line-height: 1.35;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="closingdate"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="expectedclosedate"] {
+	white-space: nowrap;
+}
+
+/* Search row: always visible — never toggle off (MkSalesListShared) */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow.listViewSearchContainer,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
+	display: table-row !important;
+	background: #fafbfc;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow th {
+	border-bottom: 1px solid #d4c4ad;
+	padding: 10px 12px !important;
+	vertical-align: middle !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2_search_div {
+	width: 100%;
+	max-width: 100%;
+	position: relative;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2_input_element {
+	position: absolute !important;
+	left: -9999px !important;
+	width: 1px !important;
+	height: 1px !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow select.listSearchContributor.select2 {
+	display: none !important;
+}
+
+/* ---- Filter row: one unified field style (text, date, select2 single/multi) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow th {
+	overflow: visible !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .listSearchContributor.inputElement,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .listSearchContributor.inputElement,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow input.listSearchContributor:not(.select2_input_element),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow input.dateField,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow select.listSearchContributor {
+	display: block;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	text-align: left !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2_input_element {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	display: block !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2-container .select2-choice {
+	width: 100% !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	line-height: 38px !important;
+	padding: 0 12px !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	background-image: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container .select2-chosen,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2-container .select2-chosen {
+	text-align: left !important;
+	margin-right: 24px !important;
+	color: #191c1e !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container .select2-arrow,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2-container .select2-arrow {
+	width: 28px !important;
+	border-left: none !important;
+	background: transparent !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2-container-multi .select2-choices {
+	min-height: 40px !important;
+	padding: 4px 8px !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-field input,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2-container-multi .select2-search-field input {
+	height: 28px !important;
+	min-height: 28px !important;
+	margin: 0 !important;
+	padding: 0 4px !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	font-size: 14px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice {
+	margin: 2px 4px 2px 0 !important;
+	padding: 5px 10px 5px 26px !important;
+	position: relative !important;
+	border-radius: 6px !important;
+	font-size: 13px !important;
+	line-height: 1.35 !important;
+	border: 1px solid #e2d6c4 !important;
+	background: #f8fafc !important;
+	color: #334155 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close {
+	left: 7px !important;
+	right: auto !important;
+	top: 50% !important;
+	margin-top: -7px !important;
+	width: 12px !important;
+	height: 12px !important;
+	opacity: 0.65;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close:hover,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close:hover {
+	opacity: 1;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow li.select2-search-choice div,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow li.select2-search-choice div {
+	display: inline-block;
+	padding: 0 !important;
+	margin: 0 !important;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .inputElement.select2-container,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent tr.searchRow .inputElement.select2-container {
+	border: none !important;
+	padding: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #select2-drop {
+	min-width: 200px !important;
+}
+
+/* Hide decorative toolbar icons (grid / sort) if generic tpl still loads */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-toolbar-toggles,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-sort-hint {
+	display: none !important;
+}
+
+/* Column widths by field (stable first paint without JS mk-col-* classes) */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.listViewRecordActions,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(.table-actions),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has(.table-actions) {
+	width: 152px !important;
+	min-width: 152px !important;
+	max-width: 152px !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="order_category"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="order_category"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="order_category"]) {
+	width: 140px;
+	min-width: 140px;
+	max-width: 140px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="potentialname"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="potentialname"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="potentialname"]) {
+	width: 220px;
+	min-width: 220px;
+	max-width: 220px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="related_to"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="account_id"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="accountname"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="related_to"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="account_id"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="related_to"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="account_id"]) {
+	width: 220px;
+	min-width: 220px;
+	max-width: 220px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="sales_stage"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="sales_stage"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="sales_stage"]) {
+	width: 170px;
+	min-width: 170px;
+	max-width: 170px;
+	box-sizing: border-box;
+}
+
+/* Lead Source: hidden on SALES Opportunities list (unused / always empty) */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="leadsource"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="leadsource"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="leadsource"]) {
+	display: none !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="closingdate"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="expectedclosedate"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="closingdate"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="expectedclosedate"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="closingdate"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="expectedclosedate"]) {
+	width: 188px;
+	min-width: 188px;
+	max-width: 188px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="amount"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="amount"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="amount"]) {
+	width: 130px;
+	min-width: 130px;
+	max-width: 130px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="assigned_user_id"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="assigned_user_id"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="assigned_user_id"]) {
+	width: 170px;
+	min-width: 170px;
+	max-width: 170px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="contact_id"],
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="contact_id"]),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:has([name="contact_id"]) {
+	width: 160px;
+	min-width: 160px;
+	max-width: 160px;
+	box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+	body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table {
+		min-width: 1120px;
+	}
+}
+
+@media (max-width: 991px) {
+	body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-action-header {
+		flex-direction: column;
+	}
+}
+
+@media (max-width: 767px) {
+	body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-header {
+		padding: 10px 12px 0;
+	}
+
+	body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-action-header__actions {
+		width: 100%;
+	}
+
+	body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn {
+		flex: 1 1 100%;
+	}
+}
+
+/* =============================================================================
+ * Control column — compact rail (checkbox + actions, one row)
+ * ============================================================================= */
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th:first-child,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.inline-search-btn,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody td.listViewRecordActions,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table th.mk-col-control,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-control {
+	text-align: left !important;
+	vertical-align: middle !important;
+	padding-left: 12px !important;
+	padding-right: 14px !important;
+	background: #fafbfc;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th.inline-search-btn {
+	border-right: 1px solid #e8dfd0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody td.listViewRecordActions,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody td.mk-col-control {
+	background: #fcfcfd;
+	border-right: 1px solid #f0ebe3;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions:before,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions:after {
+	display: none !important;
+	content: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.listViewContentHeader th .table-actions,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries td .table-actions {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	gap: 6px !important;
+	flex-wrap: nowrap !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	margin: 0 !important;
+	padding: 0 2px 0 0 !important;
+	box-sizing: border-box !important;
+	font-size: 14px !important;
+	color: #40627e !important;
+	overflow: visible !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions > .input,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions > span,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions > .more {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex: 0 0 auto;
+	float: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	opacity: 1 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .listViewEntries .table-actions span {
+	float: none !important;
+	padding-right: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .dropdown {
+	float: none !important;
+	display: inline-flex !important;
+	align-items: center !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .fa.action,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .fa.icon,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .fa.fa-ellipsis-v {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 26px;
+	height: 26px;
+	border-radius: 8px;
+	font-size: 15px !important;
+	line-height: 1 !important;
+	color: #64748b !important;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions > .more {
+	margin-right: 0 !important;
+	padding-right: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .more .dropdown-toggle {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	min-width: 26px;
+	padding: 0 2px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .fa.action:hover,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .more .dropdown-toggle:hover .fa {
+	background: #f1f5f9;
+	color: #334155 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .fa-star.active {
+	color: #c98f12 !important;
+	background: rgba(253, 187, 44, 0.14);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .listColumnFilter {
+	width: 28px;
+	height: 28px;
+	line-height: 26px;
+	border-radius: 8px;
+	border: 1px solid #e2d6c4;
+	background: #fff;
+	color: #64748b;
+	text-align: center;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesCheckBox,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox {
+	-webkit-appearance: none !important;
+	appearance: none !important;
+	width: 18px !important;
+	height: 18px !important;
+	min-width: 18px !important;
+	min-height: 18px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	flex-shrink: 0;
+	cursor: pointer;
+	border: 2px solid #94a3b8 !important;
+	border-radius: 5px !important;
+	background: #ffffff !important;
+	box-shadow: none !important;
+	position: relative;
+	vertical-align: middle;
+	box-sizing: border-box !important;
+	opacity: 1 !important;
+	float: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:hover,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:hover {
+	border-color: #e5a820 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
+	background: #fdbb2c !important;
+	border-color: #c98f12 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked::after {
+	content: '' !important;
+	position: absolute;
+	left: 5px;
+	top: 1px;
+	width: 5px;
+	height: 10px;
+	border: solid #ffffff;
+	border-width: 0 2.5px 2.5px 0;
+	transform: rotate(45deg);
+	display: block;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries.mk-opp-row-selected {
+	background: rgba(253, 187, 44, 0.1) !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th .row-fluid,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th > div:not(.table-actions),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th .select2_search_div {
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	display: block;
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow .select2-container .select2-chosen {
+	text-align: left !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow input.dateField {
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="order_category"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-order-category .value {
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="potentialname"] a,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-table td.mk-col-potentialname a {
+	text-align: left;
+}
+
+/* Toolbar: hide grid + magnifying-glass (broken UX); search/columns remain in table header */
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-filter-row__right,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__right .mk-so-trigger-columns,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__right .mk-so-filter-trigger-search,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-trigger-columns,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-filter-trigger-search {
+	display: none !important;
+}
+
+/* Column-picker / list modals must sit above mk dashboard shell */
+html.mk-opportunity-list-sales .myModal,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .myModal {
+	z-index: 110005 !important;
+}
+html.mk-opportunity-list-sales .modal-backdrop,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .modal-backdrop {
+	z-index: 110000 !important;
+}
+
+/* Main shell padding: DashBoard.css (24px); keep class hook for module overrides */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-dash-main.mk-opportunity-list-main {
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-opportunity-list-page #modnavigator.module-nav,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-opportunity-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-opportunity-list-page #sidebar-essentials .sidebar-menu,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-opportunity-list-page #sidebar-essentials .lists-menu-container,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-opportunity-list-page .essentials-toggle,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-hide-legacy {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-opportunity-list-page {
+	position: relative !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-opportunity-list-page .listViewPageDiv.content-area,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-opportunity-list-page #listViewContent.listViewPageDiv,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-opportunity-list-page #listViewContent.listViewPageDiv.content-area,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-opportunity-list-page #listViewContent.listViewPageDiv.content-area.full-width {
+	padding: 0 !important;
+	padding-left: 0 !important;
+	margin: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	left: auto !important;
+	position: relative !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-page,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-list-sales-root {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-page > .col-sm-12,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-list-sales-root > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-header {
+	margin: 0 0 20px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-breadcrumb {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #6b6358;
+	margin: 0 0 10px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-breadcrumb a {
+	color: #504533;
+	text-decoration: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-breadcrumb__sep {
+	color: #a79a88;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-action-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 14px 22px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-action-header__title {
+	margin: 0;
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 38px;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+	font-weight: 700;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-action-header__subtitle {
+	margin: 6px 0 0;
+	font-size: 15px;
+	font-weight: 500;
+	color: #5d5246;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-action-header__actions {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 40px;
+	padding: 0 18px;
+	border-radius: 10px;
+	cursor: pointer;
+	border: 1px solid transparent;
+	box-sizing: border-box;
+	font-size: 14px;
+	font-weight: 600;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn--primary {
+	background: #fdbb2c;
+	border-color: #e5a820;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn--primary:hover {
+	background: #ffc85c;
+	border-color: #fdbb2c;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn--outline {
+	background: #ffffff;
+	border-color: #d4c4ad;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn--outline:hover {
+	background: #faf8f5;
+	border-color: #c4b49a;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn--icononly .mk-opportunity-btn__txt {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn--primary .mk-opportunity-btn__ic {
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn .mk-dash-topbar-svg {
+	width: 20px;
+	height: 20px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-settings-wrap {
+	position: relative;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-settings-menu {
+	min-width: 210px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card {
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+	box-sizing: border-box;
+	margin: 0;
+	width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-page .module-action-bar {
+	display: none !important;
+}
+
+/* ---- Filter row (server-rendered ListViewActions.tpl) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-actions.listview-actions-container.mk-opportunity-filter-row {
+	background: #eceef0 !important;
+	border: none !important;
+	border-bottom: 1px solid #d4c4ad !important;
+	border-radius: 0 !important;
+	min-height: 73px;
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	box-sizing: border-box !important;
+	position: relative !important;
+	left: auto !important;
+	display: flex;
+	flex-direction: column;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-filter-row__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: nowrap;
+	gap: 10px 14px;
+	min-height: 73px;
+	padding: 0 14px 0 12px;
+	box-sizing: border-box;
+	flex: 1 1 auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-filter-row__start {
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 12px 18px;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-toolbar-toggles {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-mass-actions {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 6px;
+	flex: 0 0 auto;
+	margin-left: 0;
+	padding-left: 12px;
+	border-left: 1px solid #d4c4ad;
+	pointer-events: auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-mass-actions .btn:not(:disabled),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .listViewEntriesCheckBox,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .listViewEntriesMainCheckBox,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow input,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow button,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container {
+	pointer-events: auto !important;
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container .select2-choice {
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-toolbar-count {
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-filter-row__right {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-left: auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-page-numbers {
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 500;
+	color: #504533;
+	line-height: 1.4;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-page-numbers .pageNumbersText {
+	font-weight: 600;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-icon-btn {
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	background: #ffffff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-sizing: border-box;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-icon-btn:hover:not(:disabled) {
+	background: #f2f4f6;
+	border-color: #c4b49a;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-icon-btn:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-icon-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-mass-btn {
+	min-width: 40px;
+	height: 40px;
+	padding: 0 10px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	opacity: 0.92;
+	box-shadow: none;
+	font-weight: 500;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-mass-more {
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-actions > .row {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-actions .messageContainer.hide:not(.show) {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-actions .messageContainer.show {
+	display: block !important;
+	margin: 8px 0 0;
+	text-align: center;
+	font-size: 13px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent .mk-opportunity-table-card > .col-sm-12,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent .mk-opportunity-table-card > .col-xs-12 {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Toolbar/table/footer layout: MkSalesListShared.css (mk-so-filter-row) */
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-pagination {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-pagination .mk-opportunity-page-btn,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-pagination .btn {
+	min-width: 40px;
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	color: #191c1e;
+	margin: 0 2px;
+	font-weight: 600;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-pagination .mk-opportunity-page-btn:hover:not(:disabled),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-pagination .btn:hover:not(:disabled) {
+	background: #fdbb2c !important;
+	border-color: #e5a820 !important;
+	color: #191c1e !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #table-content.table-container {
+	margin: 0;
+	border: none;
+	max-height: calc(100vh - 320px);
+	overflow-x: auto;
+	overflow-y: auto;
+	padding-bottom: 8px;
+	box-sizing: border-box;
+	-webkit-overflow-scrolling: touch;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table {
+	width: 100%;
+	min-width: 1450px;
+	border-collapse: collapse;
+	table-layout: fixed;
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+ * CONFLICT AUDIT FIXES — scoped neutralization of Vtiger base list skin
+ * Source: layouts/v7/skins/{marketing,sales,...}/style.css
+ * Properties pre-empted here so layout is stable from first paint (no JS race).
+ * -------------------------------------------------------------------------- */
+
+/* Neutralize base skin: `.listview-table tr td:first-child, .listview-table tr th:first-child { width: 130px }`
+ * Pre-size first column to our control width so floatThead / table-layout:fixed
+ * cannot commit a stale 130px before JS adds `.mk-col-control`. */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr td:first-child,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr th:first-child {
+	width: 152px;
+	min-width: 152px;
+	max-width: 152px;
+}
+
+/* Neutralize base skin: `.listview-table > tbody > tr > td .value { padding: 0 5px }`
+ * Inner `.value` div was adding a phantom 5px to each side, pinching content. */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table > tbody > tr > td .value,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table > tfoot > tr > td .value {
+	padding: 0;
+}
+
+/* Neutralize base skin: `.listview-table > * > tr > td .fieldValue { display: inline-block; width: 100% }`
+ * Keep block flow inside the cell so vertical alignment + clamping works. */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table > thead > tr > td .fieldValue,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table > tbody > tr > td .fieldValue,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table > tfoot > tr > td .fieldValue {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* Neutralize base skin: `.listview-table .table-actions { font-size: 15px; color: #555 }`
+ * (width/margin already overridden a few rules above; here we fix font + color leak). */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions {
+	font-size: 14px;
+	color: #2b2b2b;
+}
+
+/* Clamp overflowing content in narrow columns. Together with table-layout: fixed,
+ * this prevents text expansion from defeating our width:Xpx rules. */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-order-category,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-order-category,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-potentialname,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-potentialname,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-orgname,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-orgname,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-sales-stage,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-sales-stage,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-closing-date,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-closing-date,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-amount,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-amount,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-assigned-to,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-assigned-to,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-contact-name,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-contact-name,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-order-category,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-potentialname,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-orgname,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-sales-stage,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-closing-date,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-amount,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-assigned-to,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-contact-name,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-control {
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+/* Keep row action icons inside the control column (no bleed into category pill). */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.listViewRecordActions,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-control {
+	overflow: visible;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.listViewRecordActions .table-actions {
+	max-width: 100%;
+	overflow: visible;
+	flex-wrap: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="order_category"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-order-category .value {
+	overflow: hidden;
+	max-width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .value,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .fieldValue,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .referencefield-wrapper {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .referencefield-wrapper {
+	display: block;
+	overflow: hidden;
+}
+
+/* floatThead disabled in List.js for SALES; hide any clone left by Vtiger timing. */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .floatThead-container,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .floatThead-table.floatThead-table {
+	display: none !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+	height: 0 !important;
+	overflow: hidden !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th {
+	height: auto;
+	min-height: 48px;
+	border-bottom: 1px solid #d4c4ad;
+	background: #f7f9fb !important;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 13px;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #40627e !important;
+	padding: 10px 12px;
+	vertical-align: middle;
+	white-space: normal;
+	line-height: 1.25;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues {
+	white-space: normal;
+	line-height: 1.25;
+	color: #40627e !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th {
+	background: #fff;
+	border-bottom: 1px solid #ececec;
+	padding: 10px 12px !important;
+	vertical-align: middle;
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element) {
+	height: 40px;
+	min-height: 40px;
+	padding: 0 12px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	font-size: 14px;
+	width: 100%;
+	box-sizing: border-box;
+	text-align: left;
+}
+
+/* Filter row: Enter to search — hide legacy green Tìm / Xóa buttons */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr.searchRow th.inline-search-btn button,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr.searchRow th.inline-search-btn .btn,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr.searchRow th.inline-search-btn .searchAndClearButton {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr.searchRow th.inline-search-btn {
+	padding: 10px !important;
+	vertical-align: middle;
+	background: #fafbfc;
+	border-right: 1px solid #e8dfd0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tr.searchRow th.inline-search-btn .table-actions {
+	display: block;
+	min-height: 42px;
+	margin: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries td {
+	min-height: 64px;
+	border-bottom: 1px solid #ececec;
+	font-size: 14px;
+	vertical-align: middle;
+	padding: 10px 12px;
+	line-height: 1.35;
+	white-space: normal;
+	word-break: break-word;
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries td.listViewRecordActions,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries td.mk-col-control {
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions)) {
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues {
+	display: inline-block;
+	text-align: left;
+	width: auto;
+	max-width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries td .value,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries td .fieldValue,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries td .referencefield-wrapper {
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="sales_stage"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-sales-stage .value {
+	display: inline-flex;
+	justify-content: flex-start;
+	align-items: center;
+	text-align: left;
+}
+
+/* Override base skin .listview-table .table-actions { width:120px; margin-left:7px } */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions {
+	width: auto;
+	min-width: 0;
+	max-width: 100%;
+	margin-left: 0;
+}
+
+/* Stable column layout driven by classes (header + search + body share widths) */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-control,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-control,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-control {
+	width: 152px !important;
+	min-width: 152px !important;
+	max-width: 152px !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-order-category,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-order-category,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-order-category {
+	width: 140px;
+	min-width: 140px;
+	max-width: 140px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-potentialname,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-potentialname,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-potentialname {
+	width: 220px;
+	min-width: 220px;
+	max-width: 220px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-orgname,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-orgname,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-orgname {
+	width: 220px;
+	min-width: 220px;
+	max-width: 220px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-sales-stage,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-sales-stage,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-sales-stage {
+	width: 170px;
+	min-width: 170px;
+	max-width: 170px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-lead-source {
+	width: 140px;
+	min-width: 140px;
+	max-width: 140px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-closing-date,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-closing-date,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-closing-date {
+	width: 188px;
+	min-width: 188px;
+	max-width: 188px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-amount,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-amount,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-amount {
+	width: 120px;
+	min-width: 120px;
+	max-width: 120px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-assigned-to,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-assigned-to,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-assigned-to {
+	width: 170px;
+	min-width: 170px;
+	max-width: 170px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-contact-name,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-contact-name,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-contact-name {
+	width: 160px;
+	min-width: 160px;
+	max-width: 160px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries:hover {
+	background: #fafbfc;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="potentialname"] a {
+	font-size: 16px;
+	font-weight: 700;
+	color: #7c5800;
+	text-decoration: none;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	line-height: 1.35;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="potentialname"] a:hover {
+	text-decoration: underline;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-category-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-cat-project {
+	background: #dceeff;
+	color: #527ca4;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-cat-service {
+	background: #e3f7ec;
+	color: #2f7a53;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-cat-consulting {
+	background: #efe6ff;
+	color: #6a52a3;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-cat-default {
+	background: #eceff3;
+	color: #4a5565;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-cat-internal {
+	background: #e2e8f0;
+	color: #475569;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+	color: #1f2937;
+	line-height: 1.3;
+	flex-wrap: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage .dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 999px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage-qualification .dot {
+	background: #f4b122;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage-prospecting .dot {
+	background: #3b82f6;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage-needsanalysis .dot {
+	background: #8b5cf6;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage-valueprop .dot {
+	background: #06b6d4;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage-decision .dot {
+	background: #f97316;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage-perception .dot {
+	background: #ec4899;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage-proposal .dot {
+	background: #3b82f6;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage-negotiation .dot {
+	background: #22c55e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage-closedwon .dot {
+	background: #10b981;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-stage-closedlost .dot {
+	background: #ef4444;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="amount"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-amount {
+	text-align: left;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="amount"] .value {
+	font-size: 18px;
+	font-weight: 700;
+	color: #191c1e;
+}
+
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #scroller_wrapper.bottom-fixed-scroll {
+	display: none !important;
+}
+
+/* Clamp high-volume text columns for consistent row height */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="related_to"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="account_id"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="accountname"] .value {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	line-height: 1.35;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="closingdate"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="expectedclosedate"] {
+	white-space: nowrap;
+}
+
+/* Search row: always visible — never toggle off (MkSalesListShared) */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow.listViewSearchContainer,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
+	display: table-row !important;
+	background: #fafbfc;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow th {
+	border-bottom: 1px solid #d4c4ad;
+	padding: 10px 12px !important;
+	vertical-align: middle !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2_search_div {
+	width: 100%;
+	max-width: 100%;
+	position: relative;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2_input_element {
+	position: absolute !important;
+	left: -9999px !important;
+	width: 1px !important;
+	height: 1px !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow select.listSearchContributor.select2 {
+	display: none !important;
+}
+
+/* ---- Filter row: one unified field style (text, date, select2 single/multi) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow th {
+	overflow: visible !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .listSearchContributor.inputElement,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .listSearchContributor.inputElement,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow input.listSearchContributor:not(.select2_input_element),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow input.dateField,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow select.listSearchContributor {
+	display: block;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	text-align: left !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2_input_element {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	display: block !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2-container .select2-choice {
+	width: 100% !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	line-height: 38px !important;
+	padding: 0 12px !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	background-image: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container .select2-chosen,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2-container .select2-chosen {
+	text-align: left !important;
+	margin-right: 24px !important;
+	color: #191c1e !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container .select2-arrow,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2-container .select2-arrow {
+	width: 28px !important;
+	border-left: none !important;
+	background: transparent !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2-container-multi .select2-choices {
+	min-height: 40px !important;
+	padding: 4px 8px !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-field input,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2-container-multi .select2-search-field input {
+	height: 28px !important;
+	min-height: 28px !important;
+	margin: 0 !important;
+	padding: 0 4px !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	font-size: 14px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice {
+	margin: 2px 4px 2px 0 !important;
+	padding: 5px 10px 5px 26px !important;
+	position: relative !important;
+	border-radius: 6px !important;
+	font-size: 13px !important;
+	line-height: 1.35 !important;
+	border: 1px solid #e2d6c4 !important;
+	background: #f8fafc !important;
+	color: #334155 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close {
+	left: 7px !important;
+	right: auto !important;
+	top: 50% !important;
+	margin-top: -7px !important;
+	width: 12px !important;
+	height: 12px !important;
+	opacity: 0.65;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close:hover,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close:hover {
+	opacity: 1;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow li.select2-search-choice div,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow li.select2-search-choice div {
+	display: inline-block;
+	padding: 0 !important;
+	margin: 0 !important;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .inputElement.select2-container,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow .inputElement.select2-container {
+	border: none !important;
+	padding: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #select2-drop {
+	min-width: 200px !important;
+}
+
+/* Hide decorative toolbar icons (grid / sort) if generic tpl still loads */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-toolbar-toggles,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-sort-hint {
+	display: none !important;
+}
+
+/* Column widths by field (stable first paint without JS mk-col-* classes) */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.listViewRecordActions,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(.table-actions),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has(.table-actions) {
+	width: 152px !important;
+	min-width: 152px !important;
+	max-width: 152px !important;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="order_category"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="order_category"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="order_category"]) {
+	width: 140px;
+	min-width: 140px;
+	max-width: 140px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="potentialname"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="potentialname"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="potentialname"]) {
+	width: 220px;
+	min-width: 220px;
+	max-width: 220px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="related_to"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="account_id"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="accountname"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="related_to"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="account_id"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="related_to"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="account_id"]) {
+	width: 220px;
+	min-width: 220px;
+	max-width: 220px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="sales_stage"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="sales_stage"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="sales_stage"]) {
+	width: 170px;
+	min-width: 170px;
+	max-width: 170px;
+	box-sizing: border-box;
+}
+
+/* Lead Source: hidden on SALES Opportunities list (unused / always empty) */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.mk-col-lead-source,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="leadsource"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="leadsource"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="leadsource"]) {
+	display: none !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="closingdate"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="expectedclosedate"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="closingdate"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="expectedclosedate"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="closingdate"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="expectedclosedate"]) {
+	width: 188px;
+	min-width: 188px;
+	max-width: 188px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="amount"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="amount"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="amount"]) {
+	width: 130px;
+	min-width: 130px;
+	max-width: 130px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="assigned_user_id"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="assigned_user_id"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="assigned_user_id"]) {
+	width: 170px;
+	min-width: 170px;
+	max-width: 170px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="contact_id"],
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="contact_id"]),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:has([name="contact_id"]) {
+	width: 160px;
+	min-width: 160px;
+	max-width: 160px;
+	box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+	body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table {
+		min-width: 1120px;
+	}
+}
+
+@media (max-width: 991px) {
+	body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-action-header {
+		flex-direction: column;
+	}
+}
+
+@media (max-width: 767px) {
+	body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-header {
+		padding: 10px 12px 0;
+	}
+
+	body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-action-header__actions {
+		width: 100%;
+	}
+
+	body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn {
+		flex: 1 1 100%;
+	}
+}
+
+/* =============================================================================
+ * Control column — compact rail (checkbox + actions, one row)
+ * ============================================================================= */
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th:first-child,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.inline-search-btn,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody td.listViewRecordActions,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table th.mk-col-control,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-control {
+	text-align: left !important;
+	vertical-align: middle !important;
+	padding-left: 12px !important;
+	padding-right: 14px !important;
+	background: #fafbfc;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.inline-search-btn {
+	border-right: 1px solid #e8dfd0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody td.listViewRecordActions,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody td.mk-col-control {
+	background: #fcfcfd;
+	border-right: 1px solid #f0ebe3;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions:before,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions:after {
+	display: none !important;
+	content: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.listViewContentHeader th .table-actions,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries td .table-actions {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	gap: 6px !important;
+	flex-wrap: nowrap !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	margin: 0 !important;
+	padding: 0 2px 0 0 !important;
+	box-sizing: border-box !important;
+	font-size: 14px !important;
+	color: #40627e !important;
+	overflow: visible !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions > .input,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions > span,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions > .more {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex: 0 0 auto;
+	float: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	opacity: 1 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .listViewEntries .table-actions span {
+	float: none !important;
+	padding-right: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .dropdown {
+	float: none !important;
+	display: inline-flex !important;
+	align-items: center !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .fa.action,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .fa.icon,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .fa.fa-ellipsis-v {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 26px;
+	height: 26px;
+	border-radius: 8px;
+	font-size: 15px !important;
+	line-height: 1 !important;
+	color: #64748b !important;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions > .more {
+	margin-right: 0 !important;
+	padding-right: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .more .dropdown-toggle {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	min-width: 26px;
+	padding: 0 2px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .fa.action:hover,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .more .dropdown-toggle:hover .fa {
+	background: #f1f5f9;
+	color: #334155 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .fa-star.active {
+	color: #c98f12 !important;
+	background: rgba(253, 187, 44, 0.14);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .listColumnFilter {
+	width: 28px;
+	height: 28px;
+	line-height: 26px;
+	border-radius: 8px;
+	border: 1px solid #e2d6c4;
+	background: #fff;
+	color: #64748b;
+	text-align: center;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox {
+	-webkit-appearance: none !important;
+	appearance: none !important;
+	width: 18px !important;
+	height: 18px !important;
+	min-width: 18px !important;
+	min-height: 18px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	flex-shrink: 0;
+	cursor: pointer;
+	border: 2px solid #94a3b8 !important;
+	border-radius: 5px !important;
+	background: #ffffff !important;
+	box-shadow: none !important;
+	position: relative;
+	vertical-align: middle;
+	box-sizing: border-box !important;
+	opacity: 1 !important;
+	float: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:hover,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:hover {
+	border-color: #e5a820 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
+	background: #fdbb2c !important;
+	border-color: #c98f12 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked::after {
+	content: '' !important;
+	position: absolute;
+	left: 5px;
+	top: 1px;
+	width: 5px;
+	height: 10px;
+	border: solid #ffffff;
+	border-width: 0 2.5px 2.5px 0;
+	transform: rotate(45deg);
+	display: block;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries.mk-opp-row-selected {
+	background: rgba(253, 187, 44, 0.1) !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th .row-fluid,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th > div:not(.table-actions),
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th .select2_search_div {
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	display: block;
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow .select2-container .select2-chosen {
+	text-align: left !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow input.dateField {
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="order_category"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-order-category .value {
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="potentialname"] a,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-potentialname a {
+	text-align: left;
+}
+
+/* Toolbar: hide grid + magnifying-glass (broken UX); search/columns remain in table header */
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-filter-row__right,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__right .mk-so-trigger-columns,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__right .mk-so-filter-trigger-search,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-trigger-columns,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-filter-trigger-search {
+	display: none !important;
+}
+
+/* Column-picker / list modals must sit above mk dashboard shell */
+html.mk-opportunity-list-sales .myModal,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .myModal {
+	z-index: 110005 !important;
+}
+html.mk-opportunity-list-sales .modal-backdrop,
+body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .modal-backdrop {
+	z-index: 110000 !important;
+}

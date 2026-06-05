@@ -36,6 +36,50 @@
 		return params.get('view') === 'List' && params.get('app') === 'SUPPORT';
 	}
 
+	function isInvoiceMkList() {
+		var b = document.body;
+		if (!b || b.getAttribute('data-module') !== 'Invoice' || b.getAttribute('data-view') !== 'List') {
+			return false;
+		}
+		var appName = (b.getAttribute('data-app') || '').toUpperCase();
+		if (appName === 'SUPPORT' || appName === 'TOOLS') {
+			return true;
+		}
+		var params = new URLSearchParams(window.location.search || '');
+		var app = params.get('app');
+		return params.get('module') === 'Invoice' && params.get('view') === 'List' && (app === 'SUPPORT' || app === 'TOOLS');
+	}
+
+	function isSalesOrderToolsList() {
+		var b = document.body;
+		if (!b || b.getAttribute('data-module') !== 'SalesOrder' || b.getAttribute('data-view') !== 'List') {
+			return false;
+		}
+		var appName = (b.getAttribute('data-app') || '').toUpperCase();
+		if (appName === 'TOOLS') {
+			return true;
+		}
+		var params = new URLSearchParams(window.location.search || '');
+		return params.get('module') === 'SalesOrder' && params.get('view') === 'List' && params.get('app') === 'TOOLS';
+	}
+
+	function isRecycleBinToolsList() {
+		var b = document.body;
+		if (!b || b.getAttribute('data-module') !== 'RecycleBin' || b.getAttribute('data-view') !== 'List') {
+			return false;
+		}
+		var appName = (b.getAttribute('data-app') || '').toUpperCase();
+		if (appName === 'TOOLS') {
+			return true;
+		}
+		var params = new URLSearchParams(window.location.search || '');
+		return params.get('module') === 'RecycleBin' && params.get('view') === 'List' && params.get('app') === 'TOOLS';
+	}
+
+	function shouldRelocatePaginationFooter() {
+		return isMkEnhancedList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
+	}
+
 	function isManagementProjectTaskList() {
 		var b = document.body;
 		if (!b || b.getAttribute('data-module') !== 'ProjectTask' || b.getAttribute('data-view') !== 'List') {
@@ -78,7 +122,15 @@
 	}
 
 	function isSalesStyleTableList() {
-		return isSalesAppList() || isSupportAppList();
+		return isSalesAppList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
+	}
+
+	function needsSalesListSearchHooks() {
+		return isSalesAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
+	}
+
+	function shouldBootMkSalesListShared() {
+		return isMkEnhancedList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
 	}
 
 	function isMkEnhancedList() {
@@ -205,7 +257,7 @@
 	}
 
 	function relocatePaginationFooter() {
-		if (!isMkEnhancedList() && !isSupportAppList()) {
+		if (!shouldRelocatePaginationFooter()) {
 			return;
 		}
 		var $lv = getListViewContainer();
@@ -478,7 +530,7 @@
 	}
 
 	function applyCommonUi() {
-		if (!isMkEnhancedList() && !isSupportAppList()) {
+		if (!shouldRelocatePaginationFooter()) {
 			return;
 		}
 		if (isSalesStyleTableList()) {
@@ -509,7 +561,7 @@
 		var originalShowPagingInfo = Vtiger_List_Js.prototype.showPagingInfo;
 		Vtiger_List_Js.prototype.showPagingInfo = function () {
 			var listViewContainer = this.getListViewContainer();
-			if (!isMkEnhancedList() || !listViewContainer.find('.mk-so-page-numbers').length) {
+			if (!shouldRelocatePaginationFooter() || !listViewContainer.find('.mk-so-page-numbers').length) {
 				return originalShowPagingInfo.call(this);
 			}
 			var pageStartRange = jQuery('#pageStartRange', listViewContainer).val();
@@ -654,7 +706,7 @@
 		var originalPostLoad = Vtiger_List_Js.prototype.postLoadListViewRecords;
 		Vtiger_List_Js.prototype.postLoadListViewRecords = function (res) {
 			originalPostLoad.call(this, res);
-			if (isMkEnhancedList() || isSupportAppList()) {
+			if (shouldBootMkSalesListShared()) {
 				setTimeout(applyCommonUi, 0);
 			}
 		};
@@ -926,7 +978,7 @@
 	}
 
 	function patchSalesListTableHooks() {
-		if (!isSalesAppList() || salesTableHooksPatched || typeof Vtiger_List_Js === 'undefined') {
+		if (!needsSalesListSearchHooks() || salesTableHooksPatched || typeof Vtiger_List_Js === 'undefined') {
 			return;
 		}
 		if (Vtiger_List_Js.prototype.__mkSalesListTableHooks) {
@@ -937,14 +989,14 @@
 		if (!proto.__mkOppListHooks) {
 			var origGetSearch = proto.getListSearchParams;
 			proto.getListSearchParams = function (includeStarFilters) {
-				if (!isSalesAppList()) {
+				if (!needsSalesListSearchHooks()) {
 					return origGetSearch.apply(this, arguments);
 				}
 				return getListSearchParamsSafe(this, includeStarFilters);
 			};
 			var origLoad = proto.loadListViewRecords;
 			proto.loadListViewRecords = function (urlParams) {
-				if (isSalesAppList()) {
+				if (needsSalesListSearchHooks()) {
 					this.filterClick = false;
 					if (typeof urlParams === 'undefined') {
 						urlParams = {};
@@ -1003,7 +1055,7 @@
 	}
 
 	function init() {
-		if (!isMkEnhancedList() && !isSupportAppList()) {
+		if (!shouldBootMkSalesListShared()) {
 			return;
 		}
 		whenVtigerListReady(function () {
@@ -1015,7 +1067,7 @@
 			patchVtigerFloatingThead();
 			if (isSalesStyleTableList()) {
 				bindToolbarEvents();
-				if (isSalesAppList()) {
+				if (needsSalesListSearchHooks()) {
 					patchSalesListTableHooks();
 				}
 				bindSalesListTableEvents();
@@ -1033,6 +1085,9 @@
 	window.MkSalesListShared = {
 		isSalesAppList: isSalesAppList,
 		isSupportAppList: isSupportAppList,
+		isInvoiceMkList: isInvoiceMkList,
+		isSalesOrderToolsList: isSalesOrderToolsList,
+		isRecycleBinToolsList: isRecycleBinToolsList,
 		isSalesStyleTableList: isSalesStyleTableList,
 		isPotentialsSalesList: isPotentialsSalesList,
 		isManagementProjectTaskList: isManagementProjectTaskList,
@@ -1045,10 +1100,13 @@
 		getSavedLayoutMode: getSavedLayoutMode,
 		bindViewLayoutToggle: bindViewLayoutToggle,
 		relocatePaginationFooter: relocatePaginationFooter,
+		syncToolbarFromFragment: syncToolbarFromFragment,
 		dedupePaginationFooters: dedupePaginationFooters,
 		autoLoadTotalRecordCount: autoLoadTotalRecordCount,
 		ensureSalesListTableUi: ensureSalesListTableUi,
-		runSalesListSearch: runSalesListSearch
+		runSalesListSearch: runSalesListSearch,
+		patchSalesListTableHooks: patchSalesListTableHooks,
+		bindSalesListTableEvents: bindSalesListTableEvents
 	};
 
 	if (document.readyState === 'loading') {

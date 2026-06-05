@@ -1,0 +1,63 @@
+/**
+ * RecycleBin list (TOOLS) — hide legacy chrome + pagination footer placement.
+ */
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .app-nav,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] nav.app-nav {
+	display: none !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .main-container.mk-rb-list-page #modnavigator.module-nav,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .main-container.mk-rb-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .main-container.mk-rb-list-page .essentials-toggle {
+	display: none !important;
+	visibility: hidden !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .main-container.mk-rb-list-page .listViewPageDiv.content-area,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .main-container.mk-rb-list-page #listViewContent {
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listViewContent .floatThead-container,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listViewContent #scroller_wrapper.bottom-fixed-scroll {
+	display: none !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-page .module-action-bar {
+	display: none !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-actions .mk-so-filter-row__footer {
+	display: none !important;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #table-content + .mk-so-filter-row__footer,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-table-card .mk-so-filter-row__footer {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	min-height: 64px;
+	padding: 12px 16px;
+	border-top: 1px solid #d4c4ad;
+	background: #eceef0;
+	box-sizing: border-box;
+	border-radius: 0 0 11px 11px;
+	flex: 0 0 auto;
+	order: 3;
+	width: 100%;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-table-card > .col-sm-12 > #listview-actions,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-table-card > .col-xs-12 > #listview-actions {
+	order: 1;
+}
+
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-table-card > .col-sm-12 > #table-content,
+body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-table-card > .col-xs-12 > #table-content {
+	order: 2;
+	flex: 1 1 auto;
+	min-height: 0;
+}

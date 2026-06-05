@@ -65,6 +65,17 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		if ($this->isToolsOrdersContext($request)) {
+			parent::preProcess($request, false);
+			$viewer = $this->getViewer($request);
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'TOOLS');
+			$viewer->assign('VIEW', 'Edit');
+			$viewer->assign('MENU_SELECTED_MODULENAME', 'SalesOrder');
+			if ($display) {
+				$this->preProcessDisplay($request);
+			}
+			return;
+		}
 		if ($this->isMkModernSalesOrderCreate($request)) {
 			$this->redirectInventoryToSales($request);
 			parent::preProcess($request, false);
@@ -78,6 +89,9 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 	}
 
 	public function preProcessTplName(Vtiger_Request $request) {
+		if ($this->isToolsOrdersContext($request)) {
+			return 'ToolsOrdersEditPreProcess.tpl';
+		}
 		if ($this->isMkModernSalesOrderCreate($request)) {
 			return 'EditViewPreProcess.tpl';
 		}
@@ -85,6 +99,12 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 	}
 
 	public function postProcess(Vtiger_Request $request) {
+		if ($this->isToolsOrdersContext($request)) {
+			$viewer = $this->getViewer($request);
+			$viewer->view('ToolsOrdersEditPostProcess.tpl', $request->getModule());
+			Vtiger_Basic_View::postProcess($request);
+			return;
+		}
 		if ($this->isMkModernSalesOrderCreate($request)) {
 			$viewer = $this->getViewer($request);
 			$viewer->view('EditViewPostProcess.tpl', $request->getModule());
@@ -150,6 +170,13 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 
 	public function getHeaderCss(Vtiger_Request $request) {
 		$headerCssInstances = parent::getHeaderCss($request);
+		if ($this->isToolsOrdersContext($request)) {
+			$cssFileNames = array(
+				'~layouts/v7/modules/SalesOrder/resources/SalesOrderToolsEdit.css',
+			);
+			$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
+			return array_merge($headerCssInstances, $cssInstances);
+		}
 		if (!$this->isMkModernSalesOrderCreate($request)) {
 			return $headerCssInstances;
 		}
@@ -162,6 +189,13 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
+		if ($this->isToolsOrdersContext($request)) {
+			$jsFileNames = array(
+				'~layouts/v7/modules/SalesOrder/resources/SalesOrderToolsEdit.js',
+			);
+			$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+			return array_merge($headerScriptInstances, $jsScriptInstances);
+		}
 		if (!$this->isMkModernSalesOrderCreate($request)) {
 			return $headerScriptInstances;
 		}

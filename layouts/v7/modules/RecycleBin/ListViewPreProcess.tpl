@@ -1,41 +1,42 @@
-{*+**********************************************************************************
-* The contents of this file are subject to the vtiger CRM Public License Version 1.1
-* ("License"); You may not use this file except in compliance with the License
-* The Original Code is:  vtiger CRM Open Source
-* The Initial Developer of the Original Code is vtiger.
-* Portions created by vtiger are Copyright (C) vtiger.
-* All Rights Reserved.
-************************************************************************************}
-{* modules/Vtiger/views/List.php *}
-
-{* START YOUR IMPLEMENTATION FROM BELOW. Use {debug} for information *}
-{include file="modules/Vtiger/partials/Topbar.tpl"}
-
-<div class="container-fluid app-nav">
-    <div class="row">
-        {include file="modules/RecycleBin/partials/SidebarHeader.tpl"}
-        {include file="ModuleHeader.tpl"|vtemplate_path:$MODULE}
-    </div>
-</div>
-</nav>
-     <div id='overlayPageContent' class='fade modal overlayPageContent content-area overlay-container-60' tabindex='-1' role='dialog' aria-hidden='true'>
-        <div class="data">
-        </div>
-        <div class="modal-dialog">
-        </div>
-    </div>
-<div class="main-container main-container-{$MODULE}">
-		{assign var=LEFTPANELHIDE value=$CURRENT_USER_MODEL->get('leftpanelhide')}
-        <div id="modnavigator" class="module-nav">
-            <div class="mod-switcher-container">
-                {include file="modules/Vtiger/partials/Menubar.tpl"}
-            </div>
-        </div>
-        <div id="sidebar-essentials" class="sidebar-essentials {if $LEFTPANELHIDE eq '1'} hide {/if}">
-            {include file="modules/RecycleBin/partials/SidebarEssentials.tpl"}
-        </div>
-        <div class="listViewPageDiv content-area {if $LEFTPANELHIDE eq '1'} full-width {/if}" id="listViewContent">
-                
-    
-            
-    
+{* RecycleBin (TOOLS): dashboard split shell + topbar *}
+{assign var=MK_RB_TOOLS value=false}
+{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'TOOLS') || (isset($smarty.get.app) && $smarty.get.app eq 'TOOLS') || (isset($smarty.request.app) && $smarty.request.app eq 'TOOLS')}
+	{assign var=MK_RB_TOOLS value=true}
+{/if}
+{if $MK_RB_TOOLS}
+{strip}
+{include file="modules/Vtiger/Header.tpl"}
+<script type="text/javascript">document.documentElement.classList.add('mk-recyclebin-list-tools');</script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/RecycleBin/resources/RecycleBinToolsListContent.css')}?mk_v=20260605_rb4" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/RecycleBin/resources/RecycleBinToolsList.css')}?mk_v=20260605_rb4" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260605_rb4" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260605_rb4" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260605_rb4"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/RecycleBin/resources/ListToolsBoot.js')}?mk_v=20260605_rb4"></script>
+<div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-recyclebin-list="1">
+	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
+	<div class="mk-app-shell">
+		<header class="mk-topbar" role="banner">
+			{include file="partials/DashboardAppTopbar.tpl"|@vtemplate_path:'Vtiger'}
+		</header>
+		<div id="overlayPageContent" class="fade modal content-area overlayPageContent overlay-container-60" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="data"></div>
+			<div class="modal-dialog"></div>
+		</div>
+		<main class="mk-dash-main mk-content mk-rb-list-main" id="mk-dash-main" role="main">
+		<div class="main-container main-container-{$MODULE} mk-rb-list-page">
+			<div id="modnavigator" class="module-nav mk-rb-hide-legacy">
+				<div class="mod-switcher-container">
+					{include file="partials/Menubar.tpl"|vtemplate_path:$MODULE}
+				</div>
+			</div>
+			<div id="sidebar-essentials" class="sidebar-essentials hide mk-rb-hide-legacy">
+				{include file="partials/SidebarEssentials.tpl"|vtemplate_path:$MODULE}
+			</div>
+			<div class="listViewPageDiv content-area full-width mk-rb-list-content" id="listViewContent">
+{/strip}
+{else}
+{include file="ListViewPreProcess.tpl"|@vtemplate_path:'Vtiger'}
+{/if}

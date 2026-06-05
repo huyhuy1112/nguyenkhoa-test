@@ -41,7 +41,15 @@ class History_List_View extends Vtiger_Index_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
-		parent::preProcess($request, $display);
+		parent::preProcess($request, false);
+		$viewer = $this->getViewer($request);
+		$appName = $request->get('app');
+		if (!empty($appName)) {
+			$viewer->assign('SELECTED_MENU_CATEGORY', $appName);
+		}
+		if ($display) {
+			$this->preProcessDisplay($request);
+		}
 	}
 
 	public function postProcess(Vtiger_Request $request) {
@@ -388,9 +396,11 @@ class History_List_View extends Vtiger_Index_View {
 			}
 
 			$detailStr = implode('; ', $details);
+			$detailStr = html_entity_decode($detailStr, ENT_QUOTES, 'UTF-8');
 			if ($detailStr === '') $detailStr = '-';
 
 			$recordLabel = trim((string) ($br['record_label'] ?? ''));
+			$recordLabel = html_entity_decode($recordLabel, ENT_QUOTES, 'UTF-8');
 			if ($recordLabel === '') $recordLabel = '(Untitled Record)';
 
 			$changedOn = isset($br['changedon']) ? (string) $br['changedon'] : '';

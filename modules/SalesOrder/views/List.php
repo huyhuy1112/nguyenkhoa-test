@@ -198,6 +198,19 @@ class SalesOrder_List_View extends Inventory_List_View {
 		}
 
 		if (!$request->get('orderby')) {
+			if (!$request->isAjax()) {
+				$customView = new CustomView();
+				$cvId = $request->get('viewname');
+				if (empty($cvId)) {
+					$cvId = $customView->getViewId('SalesOrder');
+				}
+				if (empty($cvId)) {
+					$cvId = $customView->getViewIdByName('All', 'SalesOrder');
+				}
+				if (!empty($cvId)) {
+					Vtiger_ListView_Model::deleteParamsSession('SalesOrder_' . $cvId, array('orderby', 'sortorder'));
+				}
+			}
 			$defaultOrderBy = isset($availableFields['createdtime']) ? 'createdtime' : 'modifiedtime';
 			$request->set('orderby', $defaultOrderBy);
 			$request->set('sortorder', 'DESC');
@@ -209,9 +222,46 @@ class SalesOrder_List_View extends Inventory_List_View {
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		$this->applyToolsOrdersDefaults($request);
-		$this->assignSalesAppCategory($request, $this->getViewer($request));
+		parent::preProcess($request, false);
+		$viewer = $this->getViewer($request);
+		$appName = $request->get('app');
+		if (!empty($appName)) {
+			$viewer->assign('SELECTED_MENU_CATEGORY', $appName);
+		}
+		$this->assignSalesAppCategory($request, $viewer);
+		if ($this->isToolsOrdersContext($request)) {
+			$this->assignMkToolsListHeaderVars($request, $viewer);
+		}
 		$this->applySalesListHeaders($request);
-		parent::preProcess($request, $display);
+		if ($display) {
+			$this->preProcessDisplay($request);
+		}
+	}
+
+	protected function assignMkToolsListHeaderVars(Vtiger_Request $request, Vtiger_Viewer $viewer) {
+		$moduleName = $request->getModule();
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		if (!$moduleModel) {
+			return;
+		}
+
+		$basicLinks = array();
+		foreach ($moduleModel->getModuleBasicLinks() as $basicLink) {
+			$basicLinks[] = Vtiger_Link_Model::getInstanceFromValues($basicLink);
+		}
+		$viewer->assign('MODULE_BASIC_ACTIONS', $basicLinks);
+
+		$settingLinks = array();
+		foreach ($moduleModel->getSettingLinks() as $settingsLink) {
+			$settingLinks[] = Vtiger_Link_Model::getInstanceFromValues($settingsLink);
+		}
+		$viewer->assign('MODULE_SETTING_ACTIONS', $settingLinks);
+
+		$fieldsInfo = array();
+		foreach ($moduleModel->getFields() as $fieldName => $fieldModel) {
+			$fieldsInfo[$fieldName] = $fieldModel->getFieldInfo();
+		}
+		$viewer->assign('FIELDS_INFO', json_encode($fieldsInfo));
 	}
 
 	public function process(Vtiger_Request $request) {
