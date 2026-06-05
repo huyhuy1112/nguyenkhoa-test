@@ -243,8 +243,10 @@ class Vtiger_List_View extends Vtiger_Index_View {
                 if(empty($tagParams)){
 					$tagParams = isset($orderParams['tag_params']) ? $orderParams['tag_params'] : "";
 				}
-				if(empty($searchParams)) {
-					$searchParams = isset($orderParams['search_params']) ? $orderParams['search_params'] : ""; 
+				// Only restore column filters from session when search_params is in the request (AJAX/URL).
+				// Sidebar menu links omit search_params so the list opens unfiltered (full list).
+				if(empty($searchParams) && $request->has('search_params')) {
+					$searchParams = isset($orderParams['search_params']) ? $orderParams['search_params'] : "";
 				}
 
 				if(empty($starFilterMode)) {
@@ -259,6 +261,10 @@ class Vtiger_List_View extends Vtiger_Index_View {
 				$params['list_headers'] = $listHeaders;
 			}
 			$listViewModel->setSortParamsSession($listViewSessionKey, $params);
+		}
+		if (!$request->has('search_params') && is_array($orderParams)) {
+			$orderParams['search_params'] = '';
+			$listViewModel->setSortParamsSession($listViewSessionKey, $orderParams);
 		}
 		if($sortOrder == "ASC"){
 			$nextSortOrder = "DESC";
