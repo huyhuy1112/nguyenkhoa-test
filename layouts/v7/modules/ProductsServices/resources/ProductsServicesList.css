@@ -794,17 +794,14 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	border: 0;
 }
 
-/* Search row: collapsed until toolbar search icon */
+/* Filter row: always visible on modern SALES list */
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-ps-search-open) tr.searchRow.listViewSearchContainer {
-	display: none !important;
-}
-
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent.mk-ps-search-open tr.searchRow.listViewSearchContainer {
 	display: table-row !important;
 	background: #fafbfc;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent.mk-ps-search-open tr.searchRow th {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th {
 	border-bottom: 1px solid #d4c4ad;
 }
 

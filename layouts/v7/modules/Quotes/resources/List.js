@@ -250,6 +250,27 @@
 		applyLayoutMode(getSavedLayoutMode());
 	}
 
+	function refreshListRowsOnly() {
+		if (!isQuotesSalesList()) {
+			return;
+		}
+		markTable();
+		enhanceQuoteStage(document);
+		enhanceCreatedBy(document);
+		syncRowSelectedIfNeeded();
+	}
+
+	function syncRowSelectedIfNeeded() {
+		getSalesTableRoot().find('tbody tr.listViewEntries').each(function () {
+			var $row = $(this);
+			$row.toggleClass('mk-sales-row-selected', $row.find('.listViewEntriesCheckBox:checked').length > 0);
+		});
+	}
+
+	function getSalesTableRoot() {
+		return $('#listViewContent');
+	}
+
 	function afterListLayout() {
 		if (!isQuotesSalesList()) {
 			return;
@@ -327,6 +348,7 @@
 	window.__mkQuotesListUi = {
 		isQuotesSalesList: isQuotesSalesList,
 		afterListLayout: afterListLayout,
+		refreshListRowsOnly: refreshListRowsOnly,
 		bindViewLayoutToggle: bindViewLayoutToggle,
 		applyLayoutMode: applyLayoutMode
 	};

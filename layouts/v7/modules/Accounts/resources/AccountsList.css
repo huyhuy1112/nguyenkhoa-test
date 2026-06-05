@@ -959,22 +959,16 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 	border: 0;
 }
 
-/* Search row: collapsed until toolbar search icon (SALES/SUPPORT only; MARKETING uses MkMarketingListTable) */
+/* Filter row: always visible on modern SALES/SUPPORT list */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open):not(.mk-org-search-open) tr.searchRow.listViewSearchContainer,
-body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent:not(.mk-so-search-open):not(.mk-org-search-open) tr.searchRow.listViewSearchContainer
-{
-	display: none !important;
-}
-
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer,
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-org-search-open tr.searchRow.listViewSearchContainer,
-body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent.mk-org-search-open tr.searchRow.listViewSearchContainer
-{
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow.listViewSearchContainer,
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent:not(.mk-so-search-open):not(.mk-org-search-open) tr.searchRow.listViewSearchContainer {
 	display: table-row !important;
 	background: #fafbfc;
 }
 
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-org-search-open tr.searchRow th,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent.mk-org-search-open tr.searchRow th
 {
 	border-bottom: 1px solid #d4c4ad;

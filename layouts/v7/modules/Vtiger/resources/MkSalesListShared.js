@@ -121,6 +121,13 @@
 		return b && b.getAttribute('data-module') === 'Potentials' && isSalesAppList();
 	}
 
+	function isSalesShellList() {
+		if (!isSalesAppList()) {
+			return false;
+		}
+		return getListPageRoot(getListViewContainer()).length > 0;
+	}
+
 	function isSalesStyleTableList() {
 		return isSalesAppList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
 	}
@@ -389,6 +396,7 @@
 		if (!values) {
 			return;
 		}
+		values = mapSearchRowValuesToColumns(values);
 		for (name in values) {
 			if (!Object.prototype.hasOwnProperty.call(values, name)) {
 				continue;
@@ -414,8 +422,144 @@
 		}
 	}
 
+	function captureAllSearchRowValues($lv) {
+		var values = {};
+		$lv.find('tr.searchRow .listSearchContributor[name]').each(function () {
+			var $el = $(this);
+			if ($el.hasClass('select2_input_element') || $el.is('div')) {
+				return;
+			}
+			var name = $el.attr('name');
+			if (!name) {
+				return;
+			}
+			var val = $el.val();
+			if (typeof val === 'object') {
+				val = val == null ? '' : val.join(',');
+			}
+			values[name] = val == null ? '' : String(val);
+		});
+		return values;
+	}
+
+	function isSearchRowFocused() {
+		var el = document.activeElement;
+		if (!el || el === document.body) {
+			return false;
+		}
+		return $(el).closest('#listViewContent tr.searchRow').length > 0;
+	}
+
+	function shouldPreserveSearchRow(options) {
+		if (options && options.preserveSearchRow) {
+			return true;
+		}
+		return isSearchRowFocused();
+	}
+
+	function captureSearchFocusState($lv) {
+		var state = {
+			values: captureAllSearchRowValues($lv),
+			focusName: null,
+			selectionStart: null,
+			selectionEnd: null
+		};
+		var el = document.activeElement;
+		if (!el || !$(el).closest('#listViewContent tr.searchRow').length) {
+			return state;
+		}
+		var name = el.getAttribute && el.getAttribute('name');
+		if (name) {
+			state.focusName = name;
+			if (typeof el.selectionStart === 'number') {
+				state.selectionStart = el.selectionStart;
+				state.selectionEnd = el.selectionEnd;
+			}
+		}
+		return state;
+	}
+
+	function restoreSearchFocusState($lv, state) {
+		if (!state || !state.values) {
+			return;
+		}
+		restoreSearchRowValues($lv, state.values);
+		if (!state.focusName) {
+			return;
+		}
+		var $input = $lv.find(
+			'tr.searchRow input.listSearchContributor[name="' + state.focusName + '"]'
+		).not('.select2_input_element').first();
+		if (!$input.length) {
+			return;
+		}
+		var inputEl = $input[0];
+		try {
+			inputEl.focus();
+			if (typeof state.selectionStart === 'number' && inputEl.setSelectionRange) {
+				inputEl.setSelectionRange(state.selectionStart, state.selectionEnd);
+			}
+		} catch (focusErr) {
+			/* ignore */
+		}
+	}
+
+	function applySalesShellListBodyOnly($lv, $source, $page) {
+		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, .mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card').first();
+		var $oldTable = $lv.find('#listview-table').first();
+		var $newTable = $source.find('#listview-table').first();
+		if (!$oldTable.length || !$newTable.length) {
+			return false;
+		}
+		var $newBody = $newTable.find('> tbody').first();
+		var $oldBody = $oldTable.find('> tbody').first();
+		if ($newBody.length && $oldBody.length) {
+			$oldBody.replaceWith($newBody.clone(true, true));
+		}
+		var $newFoot = $newTable.find('> tfoot').first();
+		var $oldFoot = $oldTable.find('> tfoot').first();
+		if ($newFoot.length && $oldFoot.length) {
+			$oldFoot.replaceWith($newFoot.clone(true, true));
+		} else if ($newFoot.length && !$oldFoot.length) {
+			$oldTable.append($newFoot.clone(true, true));
+		} else if (!$newFoot.length && $oldFoot.length) {
+			$oldFoot.remove();
+		}
+		syncHiddenFieldsFromFragment($source, $lv);
+		syncToolbarFromFragment($source, $lv);
+		if ($card.length) {
+			$card.find('#table-content').nextAll('.mk-so-filter-row__footer').remove();
+			var $newFooter = $source.find('.mk-so-filter-row__footer').first();
+			var $oldFooter = $card.find('.mk-so-filter-row__footer').first();
+			if ($newFooter.length && $oldFooter.length) {
+				$oldFooter.replaceWith($newFooter.clone(true, true));
+			} else if ($newFooter.length && !$oldFooter.length) {
+				$card.append($newFooter.clone(true, true));
+			}
+		}
+		relocatePaginationFooter();
+		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+		if (listInstance && listInstance.showPagingInfo) {
+			listInstance.showPagingInfo();
+		}
+		return true;
+	}
+
+	function finalizeSalesListSearchUi(uiOpts, focusState) {
+		applyCommonUi(uiOpts || {});
+		if (focusState) {
+			restoreSearchFocusState(getListViewContainer(), focusState);
+		}
+		if (isSalesAppList() && typeof window.applySalesOrderListUi === 'function') {
+			window.applySalesOrderListUi();
+		}
+	}
+
 	function syncHiddenFieldsFromFragment($incoming, $lv) {
-		var $scope = isPotentialsSalesList() ? getListDataScope($lv) : $lv;
+		var $scope = isSalesShellList() || isPotentialsSalesList() ? getListDataScope($lv) : $lv;
+		if (!$scope.length) {
+			$scope = $lv;
+		}
 		var names = [
 			'pageNumber', 'pageLimit', 'orderBy', 'sortOrder', 'list_headers', 'totalCount', 'noOfEntries',
 			'pageStartRange', 'pageEndRange', 'previousPageExist', 'nextPageExist', 'viewname', 'cvid',
@@ -468,11 +612,12 @@
 	}
 
 	/**
-	 * Potentials (SALES): always replace the full table card from PJAX HTML.
+	 * SALES shell lists: always replace the full table card from PJAX HTML.
 	 * Partial #table-content swaps can leave stale tbody rows for text filters.
 	 */
-	function applyPotentialsListContents(contents) {
-		if (!isPotentialsSalesList()) {
+	function applySalesShellListContents(contents, options) {
+		options = options || {};
+		if (!isSalesShellList()) {
 			return false;
 		}
 		var $lv = getListViewContainer();
@@ -488,8 +633,11 @@
 		if (!$page.length) {
 			return false;
 		}
-		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card').first();
-		var $newCard = $source.find('.mk-so-table-card, .mk-opportunity-table-card').first();
+		if (shouldPreserveSearchRow(options) && applySalesShellListBodyOnly($lv, $source, $page)) {
+			return true;
+		}
+		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, .mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card').first();
+		var $newCard = $source.find('.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, .mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card').first();
 		syncHiddenFieldsFromFragment($source, $lv);
 		if ($card.length && $newCard.length) {
 			$card.html($newCard.html());
@@ -497,10 +645,14 @@
 			relocatePaginationFooter();
 			return true;
 		}
-		return potentialsSwapFallback($incoming, $lv);
+		return salesShellSwapFallback($incoming, $lv);
 	}
 
-	function potentialsSwapFallback($incoming, $lv) {
+	function applyPotentialsListContents(contents) {
+		return applySalesShellListContents(contents);
+	}
+
+	function salesShellSwapFallback($incoming, $lv) {
 		var $source = getIncomingRoot($incoming);
 		if (!$source.length) {
 			return false;
@@ -509,8 +661,8 @@
 		if (!$page.length) {
 			return false;
 		}
-		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card').first();
-		var $newCol = $source.find('.mk-so-table-card > .col-sm-12, .mk-opportunity-table-card > .col-sm-12').first();
+		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, .mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card').first();
+		var $newCol = $source.find('.mk-so-table-card > .col-sm-12, .mk-opportunity-table-card > .col-sm-12, .mk-qt-table-card > .col-sm-12, .mk-contact-table-card > .col-sm-12, .mk-org-table-card > .col-sm-12, .mk-sc-table-card > .col-sm-12, .mk-ps-table-card > .col-sm-12').first();
 		if (!$newCol.length) {
 			$newCol = $source.find('.col-sm-12').first();
 		}
@@ -535,7 +687,7 @@
 
 		// Last-resort: replace the card content (keep sidebar/topbar shell).
 		// This prevents the "3 dots then nothing changes" state when markup differs unexpectedly.
-		var $newCard = $source.find('.mk-so-table-card, .mk-opportunity-table-card').first();
+		var $newCard = $source.find('.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, .mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card').first();
 		if ($card.length && $newCard.length) {
 			$card.html($newCard.html());
 			syncHiddenFieldsFromFragment($source, $lv);
@@ -612,12 +764,13 @@
 		listInstance.totalNumOfRecords($totalEl);
 	}
 
-	function applyCommonUi() {
+	function applyCommonUi(options) {
+		options = options || {};
 		if (!shouldRelocatePaginationFooter()) {
 			return;
 		}
 		if (isSalesStyleTableList()) {
-			ensureSalesListTableUi();
+			ensureSalesListTableUi(options);
 		}
 		destroyFloatTheadArtifacts();
 		var $lv = getListViewContainer();
@@ -702,11 +855,22 @@
 		placeListContentsPatched = true;
 		var originalPlace = Vtiger_List_Js.prototype.placeListContents;
 		Vtiger_List_Js.prototype.placeListContents = function (contents) {
-			/* Potentials: never container.html() the whole shell (causes white page). */
-			if (isPotentialsSalesList()) {
-				if (applyPotentialsListContents(contents)) {
-					applyCommonUi();
-					if (typeof window.mkPotentialsListAfterAjax === 'function') {
+			/* SALES shell: full table-card replace (never partial #table-content swap). */
+			if (isSalesShellList()) {
+				var searchOpts = shouldPreserveSearchRow({}) ? { preserveSearchRow: true } : {};
+				var focusState = searchOpts.preserveSearchRow
+					? captureSearchFocusState(getListViewContainer())
+					: null;
+				if (applySalesShellListContents(contents, searchOpts)) {
+					finalizeSalesListSearchUi(
+						searchOpts.preserveSearchRow ? { skipSearchReinit: true } : {},
+						focusState
+					);
+					if (
+						isPotentialsSalesList() &&
+						!searchOpts.preserveSearchRow &&
+						typeof window.mkPotentialsListAfterAjax === 'function'
+					) {
 						window.mkPotentialsListAfterAjax();
 					}
 					return;
@@ -791,7 +955,43 @@
 	/* ========== SALES list table standard (Opportunities reference) ========== */
 	var salesTableHooksPatched = false;
 	var salesTableEventsBound = false;
+	var salesShellPostLoadPatched = false;
 	var autoSearchTimer = null;
+	var inflightSalesSearchId = 0;
+	var pendingSalesSearchRowState = null;
+
+	function normalizeSearchFieldNameForColumn(fieldName) {
+		if (!fieldName) {
+			return fieldName;
+		}
+		var matchName = String(fieldName);
+		if (matchName.length > 2 && matchName.charAt(0) === '(' && matchName.charAt(matchName.length - 1) === ')') {
+			matchName = matchName.slice(1, -1);
+		}
+		var match = matchName.match(/^(\w+) ; \((\w+)\) (\w+)$/);
+		if (match) {
+			return match[1];
+		}
+		return fieldName;
+	}
+
+	function mapSearchRowValuesToColumns(values) {
+		var mapped = {};
+		var name;
+		if (!values) {
+			return mapped;
+		}
+		for (name in values) {
+			if (!Object.prototype.hasOwnProperty.call(values, name)) {
+				continue;
+			}
+			var columnName = normalizeSearchFieldNameForColumn(name);
+			if (values[name] != null && String(values[name]).length) {
+				mapped[columnName] = values[name];
+			}
+		}
+		return mapped;
+	}
 
 	function getSalesTableRoot() {
 		return getListViewContainer();
@@ -833,6 +1033,67 @@
 		});
 		$root.find('tr.searchRow .select2_search_div').css({ width: '100%', maxWidth: '100%', position: 'relative' });
 		$root.find('tr.searchRow .select2-container').css({ width: '100%', maxWidth: '100%' });
+	}
+
+	/** Reference list columns: search related module name field (not crmentity.label). */
+	var REFERENCE_NAME_FIELD_BY_MODULE = {
+		Potentials: 'potentialname',
+		Accounts: 'accountname',
+		Contacts: 'lastname',
+		Leads: 'lastname',
+		Quotes: 'subject',
+		SalesOrder: 'subject',
+		Invoice: 'subject',
+		Products: 'productname',
+		Services: 'servicename',
+		Vendors: 'vendorname',
+		Project: 'projectname',
+		HelpDesk: 'ticket_title',
+		ProjectTask: 'projecttaskname'
+	};
+
+	/** SALES list columns — uimeta often omits type/referencemodules for reference fields. */
+	var REFERENCE_FIELD_FALLBACK = {
+		account_id: { module: 'Accounts', nameField: 'accountname' },
+		related_to: { module: 'Accounts', nameField: 'accountname' },
+		parent_id: { module: 'Accounts', nameField: 'accountname' },
+		contact_id: { module: 'Contacts', nameField: 'lastname' },
+		potential_id: { module: 'Potentials', nameField: 'potentialname' },
+		quote_id: { module: 'Quotes', nameField: 'subject' },
+		salesorder_id: { module: 'SalesOrder', nameField: 'subject' },
+		vendor_id: { module: 'Vendors', nameField: 'vendorname' }
+	};
+
+	function resolveReferenceSearchFieldName(fieldName, fieldInfo) {
+		if (!fieldName) {
+			return fieldName;
+		}
+		if (fieldName.indexOf(' ; (') !== -1) {
+			return fieldName;
+		}
+		var fallback = REFERENCE_FIELD_FALLBACK[fieldName];
+		if (fallback) {
+			return fieldName + ' ; (' + fallback.module + ') ' + fallback.nameField;
+		}
+		if (!fieldInfo || fieldInfo.type !== 'reference') {
+			return fieldName;
+		}
+		var modules = fieldInfo.referencemodules || fieldInfo.reference_module || fieldInfo.referenceModule;
+		if (!modules) {
+			return fieldName;
+		}
+		if (!Array.isArray(modules)) {
+			modules = String(modules).split(',');
+		}
+		var i;
+		for (i = 0; i < modules.length; i++) {
+			var mod = String(modules[i]).trim();
+			var nameField = REFERENCE_NAME_FIELD_BY_MODULE[mod];
+			if (nameField) {
+				return fieldName + ' ; (' + mod + ') ' + nameField;
+			}
+		}
+		return fieldName;
 	}
 
 	function reinitSearchRow() {
@@ -920,7 +1181,11 @@
 			if (storedOperator) {
 				searchOperator = storedOperator;
 			}
-			searchParams.push([fieldName, searchOperator, searchValue]);
+			searchParams.push([
+				resolveReferenceSearchFieldName(fieldName, fieldInfo),
+				searchOperator,
+				searchValue
+			]);
 		});
 		if (currentSearchParams) {
 			var i;
@@ -932,7 +1197,14 @@
 				if (!row || !row.fieldName) {
 					continue;
 				}
-				searchParams.push([row.fieldName, row.comparator, row.searchValue]);
+				var rowFieldInfo = (typeof uimeta !== 'undefined' && uimeta.field && uimeta.field.get)
+					? uimeta.field.get(row.fieldName)
+					: null;
+				searchParams.push([
+					resolveReferenceSearchFieldName(row.fieldName, rowFieldInfo || { type: 'string' }),
+					row.comparator,
+					row.searchValue
+				]);
 			}
 		}
 		var listSearchParams = searchParams.length > 0 ? [searchParams] : [];
@@ -942,18 +1214,113 @@
 		return listSearchParams;
 	}
 
-	function runSalesListSearch() {
+	function hideProgressSafe() {
+		try {
+			if (typeof app !== 'undefined' && app.helper && app.helper.hideProgress) {
+				app.helper.hideProgress();
+			}
+		} catch (e) {
+			/* ignore */
+		}
+	}
+
+	function applySalesShellListResponse(html, requestId, options) {
+		options = options || {};
+		if (requestId !== inflightSalesSearchId) {
+			return false;
+		}
+		var preserve = shouldPreserveSearchRow(options);
+		var focusState = null;
+		if (preserve) {
+			focusState = pendingSalesSearchRowState || captureSearchFocusState(getListViewContainer());
+			pendingSalesSearchRowState = null;
+		}
+		var applied = applySalesShellListContents(html, options);
+		if (applied) {
+			finalizeSalesListSearchUi(preserve ? { skipSearchReinit: true } : {}, focusState);
+			hideProgressSafe();
+			if (
+				preserve &&
+				document.body.getAttribute('data-module') === 'Quotes' &&
+				window.__mkQuotesListUi &&
+				typeof window.__mkQuotesListUi.refreshListRowsOnly === 'function'
+			) {
+				window.__mkQuotesListUi.refreshListRowsOnly();
+			}
+		}
+		return applied;
+	}
+
+	function syncUrlSearchParams(searchParams) {
+		if (!window.history || !window.history.replaceState) {
+			return;
+		}
+		try {
+			var url = new URL(window.location.href);
+			if (!searchParams || !searchParams.length || !searchParams[0] || !searchParams[0].length) {
+				url.searchParams.delete('search_params');
+			} else {
+				url.searchParams.set('search_params', JSON.stringify(searchParams));
+			}
+			url.searchParams.set('page', '1');
+			window.history.replaceState({}, '', url.toString());
+		} catch (urlErr) {
+			/* ignore */
+		}
+	}
+
+	function runSalesListSearch(options) {
+		options = options || {};
 		ensureSearchRowVisible();
 		syncSearchFieldMeta();
 		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
 		if (!listInstance || !listInstance.loadListViewRecords) {
 			return;
 		}
+		var requestId = ++inflightSalesSearchId;
 		listInstance.filterClick = false;
-		listInstance.loadListViewRecords({
-			page: '1',
-			search_params: JSON.stringify(getListSearchParamsSafe(listInstance, false))
-		});
+		if (options.preserveSearchRow) {
+			pendingSalesSearchRowState = captureSearchFocusState(getListViewContainer());
+		} else {
+			pendingSalesSearchRowState = null;
+		}
+		var searchParams = getListSearchParamsSafe(listInstance, false);
+		if (!searchParams.length || !searchParams[0] || !searchParams[0].length) {
+			getSalesTableRoot().find('#currentSearchParams').val('');
+			searchParams = [];
+		}
+		syncUrlSearchParams(searchParams);
+		if (!options.silent) {
+			try {
+				if (typeof app !== 'undefined' && app.helper && app.helper.showProgress) {
+					app.helper.showProgress();
+				}
+			} catch (progressErr) {
+				/* ignore */
+			}
+		}
+		listInstance
+			.loadListViewRecords({
+				page: '1',
+				search_params: JSON.stringify(searchParams),
+				nolistcache: '1'
+			})
+			.done(function (html) {
+				if (isSalesShellList()) {
+					applySalesShellListResponse(html, requestId, options);
+				}
+			})
+			.always(function () {
+				if (requestId !== inflightSalesSearchId) {
+					return;
+				}
+				if (requestId === inflightSalesSearchId) {
+					pendingSalesSearchRowState = null;
+				}
+				if (!options.silent) {
+					hideProgressSafe();
+				}
+			});
 	}
 
 	function hasActiveSearchFilters() {
@@ -1003,8 +1370,8 @@
 		}
 		autoSearchTimer = setTimeout(function () {
 			autoSearchTimer = null;
-			runSalesListSearch();
-		}, 160);
+			runSalesListSearch({ silent: true, preserveSearchRow: true });
+		}, 480);
 	}
 
 	function assignControlColumnClasses() {
@@ -1046,6 +1413,10 @@
 		}
 		salesTableEventsBound = true;
 		var root = getSalesTableRoot();
+		var listViewPageDiv = getListViewContainer();
+		listViewPageDiv.off('click', '[data-trigger="listSearch"]');
+		listViewPageDiv.off('click', '[data-trigger="clearListSearch"]');
+		listViewPageDiv.off('keyup', '.listSearchContributor');
 		root.off('keydown.mkSalesListSearch').on('keydown.mkSalesListSearch', 'tr.searchRow input.listSearchContributor', function (ev) {
 			if (ev.key === 'Enter') {
 				ev.preventDefault();
@@ -1088,6 +1459,10 @@
 			.on('click.mkSalesListClearBtn', 'tr.searchRow [data-trigger="clearListSearch"]', function (e) {
 				e.preventDefault();
 				e.stopImmediatePropagation();
+				if (autoSearchTimer) {
+					clearTimeout(autoSearchTimer);
+					autoSearchTimer = null;
+				}
 				root.find('tr.searchRow .listSearchContributor').each(function () {
 					var $el = $(this);
 					if ($el.hasClass('select2_input_element') || $el.is('div')) {
@@ -1110,6 +1485,41 @@
 		root.off('change.mkSalesMainCheck', '.listViewEntriesMainCheckBox').on('change.mkSalesMainCheck', '.listViewEntriesMainCheckBox', syncRowSelectedClass);
 	}
 
+	function patchSalesShellPostLoad() {
+		if (isPotentialsSalesList() || salesShellPostLoadPatched || typeof Vtiger_List_Js === 'undefined') {
+			return;
+		}
+		if (Vtiger_List_Js.prototype.__mkSalesShellPostLoad) {
+			salesShellPostLoadPatched = true;
+			return;
+		}
+		var proto = Vtiger_List_Js.prototype;
+		var origPostLoad = proto.postLoadListViewRecords;
+		proto.postLoadListViewRecords = function (res) {
+			if (!isSalesShellList()) {
+				return origPostLoad.apply(this, arguments);
+			}
+			if (inflightSalesSearchId > 0) {
+				/* DOM swap handled by applySalesShellListResponse after search completes. */
+				return;
+			}
+			var renderId = inflightSalesSearchId;
+			var self = this;
+			var origPlace = self.placeListContents;
+			self.placeListContents = function (contents) {
+				if (renderId !== inflightSalesSearchId) {
+					hideProgressSafe();
+					return;
+				}
+				return origPlace.call(self, contents);
+			};
+			origPostLoad.call(self, res);
+			self.placeListContents = origPlace;
+		};
+		proto.__mkSalesShellPostLoad = true;
+		salesShellPostLoadPatched = true;
+	}
+
 	function patchSalesListTableHooks() {
 		// Potentials list has its own search logic in `modules/Potentials/resources/List.js`.
 		// Prevent this shared file from overriding getListSearchParams/loadListViewRecords there.
@@ -1124,7 +1534,7 @@
 			return;
 		}
 		var proto = Vtiger_List_Js.prototype;
-		if (!proto.__mkOppListHooks) {
+		if (!proto.__mkSalesListSearchSafe) {
 			var origGetSearch = proto.getListSearchParams;
 			proto.getListSearchParams = function (includeStarFilters) {
 				if (!needsSalesListSearchHooks()) {
@@ -1132,9 +1542,12 @@
 				}
 				return getListSearchParamsSafe(this, includeStarFilters);
 			};
+			proto.__mkSalesListSearchSafe = true;
+		}
+		if (!proto.__mkSalesLoadListHooks) {
 			var origLoad = proto.loadListViewRecords;
 			proto.loadListViewRecords = function (urlParams) {
-				if (needsSalesListSearchHooks()) {
+				if (needsSalesListSearchHooks() && !isPotentialsSalesList()) {
 					this.filterClick = false;
 					if (typeof urlParams === 'undefined') {
 						urlParams = {};
@@ -1145,28 +1558,32 @@
 				}
 				return origLoad.apply(this, arguments);
 			};
+			proto.__mkSalesLoadListHooks = true;
 		}
 		Vtiger_List_Js.prototype.__mkSalesListTableHooks = true;
 		salesTableHooksPatched = true;
 	}
 
-	function ensureSalesListTableUi() {
+	function ensureSalesListTableUi(options) {
+		options = options || {};
 		if (!isSalesStyleTableList()) {
 			return;
 		}
 		ensureSearchRowVisible();
-		reinitSearchRow();
+		if (!options.skipSearchReinit) {
+			reinitSearchRow();
+		}
 		assignControlColumnClasses();
 		syncRowSelectedClass();
 		syncSearchButtonState();
 		bindSalesListTableEvents();
 	}
 
-	window.mkSalesListAfterAjax = function () {
+	window.mkSalesListAfterAjax = function (options) {
 		if (!isSalesStyleTableList()) {
 			return;
 		}
-		ensureSalesListTableUi();
+		ensureSalesListTableUi(options || {});
 	};
 
 	function scheduleApply() {
@@ -1208,6 +1625,7 @@
 				bindToolbarEvents();
 				if (needsSalesListSearchHooks()) {
 					patchSalesListTableHooks();
+					patchSalesShellPostLoad();
 				}
 				bindSalesListTableEvents();
 				ensureSalesListTableUi();
@@ -1248,7 +1666,12 @@
 		scheduleAutoSearch: scheduleAutoSearch,
 		patchSalesListTableHooks: patchSalesListTableHooks,
 		bindSalesListTableEvents: bindSalesListTableEvents,
-		applyPotentialsListContents: applyPotentialsListContents
+		applySalesShellListContents: applySalesShellListContents,
+		applyPotentialsListContents: applyPotentialsListContents,
+		isSearchRowFocused: isSearchRowFocused,
+		captureSearchFocusState: captureSearchFocusState,
+		restoreSearchFocusState: restoreSearchFocusState,
+		resolveReferenceSearchFieldName: resolveReferenceSearchFieldName
 	};
 
 	if (document.readyState === 'loading') {

@@ -1014,18 +1014,14 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewCo
 	border: 0;
 }
 
-/* Search row: collapsed until toolbar search icon (SALES only; MARKETING uses MkMarketingListTable) */
+/* Filter row: always visible on modern SALES list */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open):not(.mk-contact-search-open) tr.searchRow.listViewSearchContainer {
-	display: none !important;
-}
-
-body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer,
-body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent.mk-contact-search-open tr.searchRow.listViewSearchContainer {
 	display: table-row !important;
 	background: #fafbfc;
 }
 
-body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent.mk-contact-search-open tr.searchRow th {
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th {
 	border-bottom: 1px solid #d4c4ad;
 }
 

@@ -337,6 +337,14 @@ class Vtiger_List_View extends Vtiger_Index_View {
 				$fieldSearchInfo['searchValue'] = $fieldSearchInfo[2];
 				$fieldSearchInfo['fieldName'] = $fieldName = $fieldSearchInfo[0];
 				$fieldSearchInfo['comparator'] = $fieldSearchInfo[1];
+				$extendedRefFieldName = $fieldName;
+				if (strlen($extendedRefFieldName) > 2 && $extendedRefFieldName[0] === '(' && substr($extendedRefFieldName, -1) === ')') {
+					$extendedRefFieldName = substr($extendedRefFieldName, 1, -1);
+				}
+				preg_match('/(\w+) ; \((\w+)\) (\w+)/', $extendedRefFieldName, $refMatches);
+				if (php7_count($refMatches) >= 4) {
+					$fieldName = $refMatches[1];
+				}
 				$searchParams[$fieldName] = $fieldSearchInfo;
 			}
 		}

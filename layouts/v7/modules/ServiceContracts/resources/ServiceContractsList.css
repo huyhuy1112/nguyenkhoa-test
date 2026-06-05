@@ -626,17 +626,14 @@ body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listVi
 	border: 0;
 }
 
-/* Search row: collapsed until toolbar search icon */
+/* Filter row: always visible on modern SALES list */
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-sc-search-open) tr.searchRow.listViewSearchContainer {
-	display: none !important;
-}
-
-body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent.mk-sc-search-open tr.searchRow.listViewSearchContainer {
 	display: table-row !important;
 	background: #fafbfc;
 }
 
-body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent.mk-sc-search-open tr.searchRow th {
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th {
 	border-bottom: 1px solid #d4c4ad;
 }
 

@@ -395,7 +395,14 @@
 			if (storedOperator) {
 				searchOperator = storedOperator;
 			}
-			searchParams.push([fieldName, searchOperator, searchValue]);
+			var searchFieldName = fieldName;
+			if (
+				window.MkSalesListShared &&
+				typeof window.MkSalesListShared.resolveReferenceSearchFieldName === 'function'
+			) {
+				searchFieldName = window.MkSalesListShared.resolveReferenceSearchFieldName(fieldName, fieldInfo);
+			}
+			searchParams.push([searchFieldName, searchOperator, searchValue]);
 		});
 
 		if (currentSearchParams) {
@@ -411,7 +418,21 @@
 				if (!row || !row.fieldName) {
 					continue;
 				}
-				searchParams.push([row.fieldName, row.comparator, row.searchValue]);
+				var rowFieldInfo = null;
+				if (typeof uimeta !== 'undefined' && uimeta.field && uimeta.field.get) {
+					rowFieldInfo = uimeta.field.get(row.fieldName);
+				}
+				var rowSearchField = row.fieldName;
+				if (
+					window.MkSalesListShared &&
+					typeof window.MkSalesListShared.resolveReferenceSearchFieldName === 'function'
+				) {
+					rowSearchField = window.MkSalesListShared.resolveReferenceSearchFieldName(
+						row.fieldName,
+						rowFieldInfo || { type: 'string' }
+					);
+				}
+				searchParams.push([rowSearchField, row.comparator, row.searchValue]);
 			}
 		}
 

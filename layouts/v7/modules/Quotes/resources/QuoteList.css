@@ -684,17 +684,14 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent 
 	border: 0;
 }
 
-/* Search row: collapsed until toolbar search icon */
+/* Filter row: always visible on modern SALES list */
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-qt-search-open) tr.searchRow.listViewSearchContainer {
-	display: none !important;
-}
-
-body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent.mk-qt-search-open tr.searchRow.listViewSearchContainer {
 	display: table-row !important;
 	background: #fafbfc;
 }
 
-body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent.mk-qt-search-open tr.searchRow th {
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th {
 	border-bottom: 1px solid #d4c4ad;
 }
 

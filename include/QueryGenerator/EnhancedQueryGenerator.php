@@ -82,6 +82,147 @@ class EnhancedQueryGenerator extends QueryGenerator {
 		return isset($this->moduleFields) ? $this->moduleFields : null;
 	}
 
+	/**
+	 * Extended reference list-search keys are stored with outer parentheses in moduleFields.
+	 */
+	protected function resolveModuleFieldLookup($fieldName, $moduleFieldList = null) {
+		if ($moduleFieldList === null) {
+			$moduleFieldList = $this->getModuleFields();
+		}
+		if (!is_array($moduleFieldList)) {
+			return array($fieldName, null);
+		}
+		if (array_key_exists($fieldName, $moduleFieldList)) {
+			return array($fieldName, $moduleFieldList[$fieldName]);
+		}
+		if (strpos($fieldName, ' ; (') !== false) {
+			$wrappedFieldName = '(' . $fieldName . ')';
+			if (array_key_exists($wrappedFieldName, $moduleFieldList)) {
+				return array($wrappedFieldName, $moduleFieldList[$wrappedFieldName]);
+			}
+		}
+		return array($fieldName, null);
+	}
+
+	protected function parseExtendedReferenceFieldName($fieldName) {
+		$matchName = $fieldName;
+		if (strlen($matchName) > 2 && $matchName[0] === '(' && substr($matchName, -1) === ')') {
+			$matchName = substr($matchName, 1, -1);
+		}
+		$matches = array();
+		preg_match('/(\w+) ; \((\w+)\) (\w+)/', $matchName, $matches);
+		if (php7_count($matches) >= 4) {
+			return array(
+				'parentReferenceField' => $matches[1],
+				'referenceModule' => $matches[2],
+				'fieldName' => $matches[3],
+				'isExtended' => true,
+			);
+		}
+		return array(
+			'parentReferenceField' => '',
+			'referenceModule' => '',
+			'fieldName' => $fieldName,
+			'isExtended' => false,
+		);
+	}
+
+	protected function getReferenceFieldSearchColumnSql($baseFieldName, $parentReferenceField, $fieldName) {
+		$moduleList = $this->referenceFieldInfoList[$baseFieldName];
+		$trim = 'TRIM';
+		if (in_array('Users', $moduleList)) {
+			$columnSqlTable = 'vtiger_users' . $parentReferenceField . $fieldName;
+			return array(
+				'trim' => $trim,
+				'columnSql' => getSqlForNameInDisplayFormat(array(
+					'first_name' => $columnSqlTable . '.first_name',
+					'last_name' => $columnSqlTable . '.last_name',
+				), 'Users'),
+			);
+		}
+		if (in_array('DocumentFolders', $moduleList)) {
+			return array('trim' => $trim, 'columnSql' => 'vtiger_attachmentsfolder' . $fieldName . '.foldername');
+		}
+		if (in_array('Currency', $moduleList)) {
+			$columnSql = 'vtiger_currency_info' . $parentReferenceField . $fieldName . '.currency_name';
+			return array('trim' => $trim, 'columnSql' => $columnSql);
+		}
+		if ($baseFieldName == 'roleid') {
+			return array('trim' => $trim, 'columnSql' => 'vtiger_role.rolename');
+		}
+
+		$referenceFieldKey = $parentReferenceField ? $parentReferenceField : $baseFieldName;
+		$columnSqlParts = array();
+		foreach ($moduleList as $module) {
+			if ($module == 'Users' || $module == 'Currency' || $module == 'DocumentFolders') {
+				continue;
+			}
+			$meta = $this->getMeta($module);
+			$nameFieldList = explode(',', $meta->getNameFields());
+			foreach ($nameFieldList as $column) {
+				$referenceField = $meta->getFieldByColumnName($column);
+				$referenceTable = $referenceField->getTableName() . $parentReferenceField . $referenceFieldKey;
+				$columnSqlParts[] = $referenceTable . '.' . $column;
+			}
+			if (php7_count($nameFieldList) > 1) {
+				if ($module == 'Leads' || $module == 'Contacts') {
+					return array(
+						'trim' => $trim,
+						'columnSql' => getSqlForNameInDisplayFormat(array(
+							'firstname' => $columnSqlParts[0],
+							'lastname' => $columnSqlParts[1],
+						), $module),
+					);
+				}
+			}
+			if (php7_count($columnSqlParts) === 1) {
+				return array('trim' => $trim, 'columnSql' => $columnSqlParts[0]);
+			}
+		}
+
+		return array(
+			'trim' => '',
+			'columnSql' => 'vtiger_crmentity' . $parentReferenceField . $fieldName . '.label',
+		);
+	}
+
+	protected function addReferenceModuleJoinsForWhereField($fieldName, $field, &$tableList, &$tableJoinMapping, &$tableJoinCondition) {
+		$fieldTable = $field->getTableName();
+		if (empty($tableList[$fieldTable])) {
+			$tableList[$fieldTable] = $fieldTable;
+			$tableJoinMapping[$fieldTable] = $this->meta->getJoinClause($fieldTable);
+		}
+
+		$moduleList = $this->referenceFieldInfoList[$fieldName];
+		foreach ($moduleList as $module) {
+			if ($module == 'Users' && $this->getModule() != 'Users') {
+				$tableJoinMapping['vtiger_users' . $fieldName] = 'LEFT JOIN vtiger_users AS';
+				$tableJoinCondition[$fieldName]['vtiger_users' . $fieldName] = $fieldTable . '.' . $field->getColumnName() . ' = vtiger_users' . $fieldName . '.id';
+			} else if ($module == 'Currency') {
+				$tableJoinMapping['vtiger_currency_info' . $fieldName] = 'LEFT JOIN vtiger_currency_info AS';
+				$tableJoinCondition[$fieldName]['vtiger_currency_info' . $fieldName] = $fieldTable . '.' . $field->getColumnName() . ' = vtiger_currency_info' . $fieldName . '.id';
+			} else if ($module == 'DocumentFolders') {
+				continue;
+			} else {
+				$meta = $this->getMeta($module);
+				$nameFieldList = explode(',', $meta->getNameFields());
+				foreach ($nameFieldList as $column) {
+					$referenceField = $meta->getFieldByColumnName($column);
+					$referenceTable = $referenceField->getTableName();
+					$tableIndexList = $meta->getEntityTableIndexList();
+					$referenceTableIndex = $tableIndexList[$referenceTable];
+					$referenceTableAlias = $referenceTable . $fieldName;
+					$referenceTableName = $referenceTable . ' ' . $referenceTableAlias;
+					if (!array_key_exists($referenceTableAlias, $tableJoinMapping)) {
+						$tableJoinMapping[$referenceTableName] = 'LEFT JOIN';
+						$tableJoinCondition[$fieldName][$referenceTableName] = $fieldTable . '.' . $field->getColumnName() . ' = ' .
+							$referenceTableAlias . '.' . $referenceTableIndex;
+					}
+				}
+			}
+		}
+	}
+
 	public function parseAdvFilterList($advFilterList, $glue = '') {
 		if ($glue) {
 			$this->addConditionGlue($glue);
@@ -395,16 +536,16 @@ class EnhancedQueryGenerator extends QueryGenerator {
 			if (empty($fieldName))
 				continue;
 
-			$field = (isset($moduleFields) && array_key_exists($fieldName, $moduleFields)) ? $moduleFields[$fieldName] : null;
+			list($fieldName, $field) = $this->resolveModuleFieldLookup($fieldName, $moduleFields);
 			if (empty($field))
 				continue; // not accessible field.
 
 			$baseFieldName = $fieldName;
 			$referenceParentFieldName = '';
-			// for reference field do not add the table names to the list
-			preg_match('/(\w+) ; \((\w+)\) (\w+)/', $fieldName, $matches);
-			if (php7_count($matches) >= 4) {
-				list($full, $referenceParentFieldName, $referenceModuleName, $fieldName) = $matches;
+			$extendedReferenceInfo = $this->parseExtendedReferenceFieldName($fieldName);
+			if ($extendedReferenceInfo['isExtended']) {
+				$referenceParentFieldName = $extendedReferenceInfo['parentReferenceField'];
+				$fieldName = $extendedReferenceInfo['fieldName'];
 			}
 
 			$fieldType = $field->getFieldDataType();
@@ -419,20 +560,7 @@ class EnhancedQueryGenerator extends QueryGenerator {
 				}
 
 				if ($fieldType == 'reference') {
-					$moduleList = $field->getReferenceList();
-					foreach ($moduleList as $module) {
-						if ($module == 'Users' && $baseModule != 'Users') {
-							$tableJoinMapping['vtiger_users'.$fieldName] = 'LEFT JOIN vtiger_users AS';
-							$tableJoinCondition[$fieldName]['vtiger_users'.$fieldName] = $fieldTable.'.'.$field->getColumnName().' = vtiger_users'.$fieldName.'.id';
-						} else if ($module == 'Currency') {
-							$tableJoinMapping['vtiger_currency_info'.$fieldName] = 'LEFT JOIN vtiger_currency_info AS';
-							$tableJoinCondition[$fieldName]['vtiger_currency_info'.$fieldName] = $fieldTable.'.'.$field->getColumnName().' = vtiger_currency_info'.$fieldName.'.id';
-						} else {
-							$tableJoinMapping['vtiger_crmentity'.$fieldName] = 'LEFT JOIN vtiger_crmentity AS';
-							$tableJoinCondition[$fieldName]['vtiger_crmentity'.$fieldName] = 'vtiger_crmentity'.$fieldName.'.crmid' .
-									' = '.$fieldTable.'.'.$field->getColumnName();
-						}
-					}
+					$this->addReferenceModuleJoinsForWhereField($baseFieldName, $field, $tableList, $tableJoinMapping, $tableJoinCondition);
 					if ($fieldName == 'roleid' && $baseModule == 'Users') {
 						$tableJoinMapping['vtiger_role'] = 'INNER JOIN';
 						$tableList['vtiger_role'] = 'vtiger_role';
@@ -626,11 +754,23 @@ class EnhancedQueryGenerator extends QueryGenerator {
 			$baseFieldName = $fieldName = isset($conditionInfo['name']) ? $conditionInfo['name'] : '';
 			$parentReferenceField = $referenceModule = '';
 			$field = (isset($moduleFieldList) && array_key_exists($fieldName, $moduleFieldList)) ? $moduleFieldList[$fieldName] : null;
+			if (empty($field) && strpos($fieldName, ' ; (') !== false) {
+				$wrappedFieldName = '(' . $fieldName . ')';
+				if (!empty($moduleFieldList[$wrappedFieldName])) {
+					$field = $moduleFieldList[$wrappedFieldName];
+					$baseFieldName = $fieldName = $wrappedFieldName;
+				}
+			}
 
 			// if its a reference field then we need to add the fieldname to table name
 			$matches = array();
-			preg_match('/(\w+) ; \((\w+)\) (\w+)/', $baseFieldName, $matches);
-			if (php7_count($matches) >= 4) {
+			$extendedRefMatchName = $baseFieldName;
+			if (strlen($extendedRefMatchName) > 2 && $extendedRefMatchName[0] === '(' && substr($extendedRefMatchName, -1) === ')') {
+				$extendedRefMatchName = substr($extendedRefMatchName, 1, -1);
+			}
+			preg_match('/(\w+) ; \((\w+)\) (\w+)/', $extendedRefMatchName, $matches);
+			$isExtendedReferenceSubfield = (php7_count($matches) >= 4);
+			if ($isExtendedReferenceSubfield) {
 				list($full, $parentReferenceField, $referenceModule, $fieldName) = $matches;
 			}
 
@@ -668,26 +808,10 @@ class EnhancedQueryGenerator extends QueryGenerator {
 				$valueSqlList = array($valueSqlList);
 			}
 			foreach ($valueSqlList as $valueSql) {
-				if (in_array($baseFieldName, $this->referenceFieldList)) {
-                    			$trim = 'TRIM';
-					$moduleList = $this->referenceFieldInfoList[$baseFieldName];
-					if(in_array('Users', $moduleList)) {
-						$columnSqlTable = 'vtiger_users'.$parentReferenceField.$fieldName;
-						$columnSql = getSqlForNameInDisplayFormat(array('first_name'=>$columnSqlTable.'.first_name',
-																		'last_name'=>$columnSqlTable.'.last_name'),'Users');
-					} else if(in_array('DocumentFolders', $moduleList)) {
-						$columnSql = "vtiger_attachmentsfolder".$fieldName.".foldername";
-					} else if(in_array('Currency', $moduleList)) {
-						$columnSql = "vtiger_currency_info$parentReferenceField$fieldName.currency_name";
-						if($fieldName == 'currency_id' && is_numeric($conditionInfo['value'])){
-							$columnSql = "vtiger_currency_info$parentReferenceField$fieldName.id";
-						}
-					} else if ($baseFieldName == 'roleid'){
-						$columnSql = 'vtiger_role.rolename';
-					}else {
-                        			$trim = '';
-						$columnSql = 'vtiger_crmentity'.$parentReferenceField.$fieldName.'.label';
-					}
+				if (!$isExtendedReferenceSubfield && in_array($baseFieldName, $this->referenceFieldList)) {
+					$referenceColumnInfo = $this->getReferenceFieldSearchColumnSql($baseFieldName, $parentReferenceField, $fieldName);
+					$trim = $referenceColumnInfo['trim'];
+					$columnSql = $referenceColumnInfo['columnSql'];
 					if($conditionInfo['operator'] == 'y' || ($conditionInfo['operator'] == 'e' && $valueSql == "= ''")) {
 						$columnName = $field->getColumnName();
 						// We are checking for zero since many reference fields will be set to 0 if it doest not have any value

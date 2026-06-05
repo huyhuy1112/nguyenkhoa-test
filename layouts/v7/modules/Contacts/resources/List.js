@@ -242,13 +242,13 @@
 				if (typeof window.mkMarketingListAfterAjax === 'function') {
 					window.mkMarketingListAfterAjax();
 				}
-				var $row = root.find('tr.searchRow.listViewSearchContainer').first();
-				if ($row.length && $row[0].scrollIntoView) {
-					$row[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-				}
-				return;
+			} else if (typeof window.mkSalesListAfterAjax === 'function') {
+				window.mkSalesListAfterAjax();
 			}
-			root.toggleClass('mk-so-search-open mk-contact-search-open');
+			var $row = root.find('tr.searchRow.listViewSearchContainer').first();
+			if ($row.length && $row[0].scrollIntoView) {
+				$row[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+			}
 		});
 		$(document).on('click.mkContactsListUi', '#listViewContent #NextPageButton, #listViewContent #PreviousPageButton, #listViewContent #pageToJumpSubmit', function () {
 			scheduleApply();

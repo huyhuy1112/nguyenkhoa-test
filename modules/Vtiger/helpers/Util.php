@@ -626,7 +626,11 @@ class Vtiger_Util_Helper {
 			foreach($groupInfo as $fieldSearchInfo){
 				   $advFilterFieldInfoFormat = array();
 				   $fieldName = $fieldSearchInfo[0];
-				   preg_match('/(\w+) ; \((\w+)\) (\w+)/', $fieldName, $matches);
+				   $extendedRefFieldName = $fieldName;
+				   if (strlen($extendedRefFieldName) > 2 && $extendedRefFieldName[0] === '(' && substr($extendedRefFieldName, -1) === ')') {
+					   $extendedRefFieldName = substr($extendedRefFieldName, 1, -1);
+				   }
+				   preg_match('/(\w+) ; \((\w+)\) (\w+)/', $extendedRefFieldName, $matches);
 					if (php7_count($matches) != 0) {
 						list($full, $referenceParentField, $referenceModule, $referenceFieldName) = $matches;
 						$referenceModuleModel = Vtiger_Module_Model::getInstance($referenceModule);
