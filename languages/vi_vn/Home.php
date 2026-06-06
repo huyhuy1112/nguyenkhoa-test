@@ -45,4 +45,8 @@ $languageStrings = array(
 	'LBL_MK_ADD' => 'Thêm',
 	'LBL_MK_MANAGEMENT_DASHBOARD' => 'Bảng điều khiển quản trị',
 	'LBL_MK_FILTERS' => 'Lọc',
+	'LBL_SAVE_ORDER' => 'Lưu thứ tự',
+	'LBL_SAVE_DASHBOARD_LAYOUT' => 'Lưu vị trí các bảng trên dashboard',
+	'LBL_DASHBOARD_LAYOUT_SAVED' => 'Đã lưu vị trí các bảng trên dashboard.',
+	'LBL_DASHBOARD_TAB_ORDER_SAVED' => 'Đã lưu thứ tự tab dashboard.',
 );

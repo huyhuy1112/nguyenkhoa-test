@@ -86,7 +86,11 @@ Vtiger.Class(
       widgetContainer.data("url", url);
       var width = parseInt(element.data("width"), 10) || 1;
       var height = parseInt(element.data("height"), 10) || 1;
-      Vtiger_DashBoard_Js.gridster.add_widget(widgetContainer, width, height);
+      Vtiger_DashBoard_Js.currentInstance.mkAddWidgetAtTop(
+        widgetContainer,
+        width,
+        height
+      );
       var inst = Vtiger_DashBoard_Js.currentInstance;
       inst.loadWidget(widgetContainer);
       inst.mkRefitDashboardGrid(widgetContainer);
@@ -249,7 +253,11 @@ Vtiger.Class(
         widgetContainer.data("url", url);
         var width = parseInt(element.data("width"), 10) || 1;
         var height = parseInt(element.data("height"), 10) || 1;
-        Vtiger_DashBoard_Js.gridster.add_widget(widgetContainer, width, height);
+        Vtiger_DashBoard_Js.currentInstance.mkAddWidgetAtTop(
+        widgetContainer,
+        width,
+        height
+      );
         var inst = Vtiger_DashBoard_Js.currentInstance;
         inst.loadWidget(widgetContainer);
         inst.mkRefitDashboardGrid(widgetContainer);
@@ -310,7 +318,7 @@ Vtiger.Class(
                       widgetContainer.data("url", url);
                       var width = element.data("width");
                       var height = element.data("height");
-                      Vtiger_DashBoard_Js.gridster.add_widget(
+                      Vtiger_DashBoard_Js.currentInstance.mkAddWidgetAtTop(
                         widgetContainer,
                         width,
                         height
@@ -893,19 +901,18 @@ Vtiger.Class(
 
       // Constructing the grid based on window width
       var cols = this.getgridColumns();
-      var minRowsNeeded = 2;
-      items.each(function () {
-        var $w = jQuery(this);
-        var row = parseInt($w.attr("data-row"), 10) || 1;
-        var sizeY = parseInt($w.attr("data-sizey"), 10) || 1;
-        minRowsNeeded = Math.max(minRowsNeeded, row + sizeY - 1);
-      });
-      minRowsNeeded = Math.min(Math.max(minRowsNeeded, 2), 16);
+      var packResult = thisInstance.mkPackDashboardWidgets(items, cols);
+      var minRowsNeeded = Math.min(Math.max(packResult.maxRow || 2, 2), 24);
       $(".mainContainer").css("min-width", "500px");
+      var rightGutter = 28;
+      var $dashContents = activeGridster.closest(".dashBoardTabContents");
       var shellW =
-        jQuery(".mk-app-shell").width() ||
+        ($dashContents.length && $dashContents.width()) ||
+        jQuery(".mk-dash-widgets-zone").width() ||
         jQuery(".mk-dash-main").width() ||
+        jQuery(".mk-app-shell").width() ||
         jQuery(window).width();
+      shellW = Math.max(shellW - rightGutter, 320);
       var col_width =
         Math.floor((shellW - 30) / cols) - 2 * widgetMargin;
 
@@ -913,8 +920,8 @@ Vtiger.Class(
         .gridster({
           widget_margins: [widgetMargin, widgetMargin],
           widget_base_dimensions: [col_width, 300],
-          min_cols: 1,
-          max_cols: 4,
+          min_cols: cols,
+          max_cols: cols,
           min_rows: minRowsNeeded,
           resize: {
             enabled: true,
@@ -969,9 +976,7 @@ Vtiger.Class(
           },
           draggable: {
             stop: function (event, ui) {
-              thisInstance.savePositions(
-                activeGridster.find(".dashboardWidget")
-              );
+              thisInstance.flushDashboardPositionsSync();
               thisInstance.mkFitGridsterCanvas(activeGridster);
             },
           },
@@ -1002,14 +1007,17 @@ Vtiger.Class(
             ? cols
             : parseInt(item.attr("data-sizex"));
         var rows = parseInt(item.attr("data-sizey"));
-        if (item.attr("data-position") == "false") {
-          Vtiger_DashBoard_Js.gridster.add_widget(item, columns, rows);
-        } else {
-          Vtiger_DashBoard_Js.gridster.add_widget(item, columns, rows);
-        }
+        var col = parseInt(item.attr("data-col"), 10) || 1;
+        var row = parseInt(item.attr("data-row"), 10) || 1;
+        Vtiger_DashBoard_Js.gridster.add_widget(
+          item,
+          columns,
+          rows,
+          col,
+          row
+        );
       });
-      //used when after gridster is loaded
-      thisInstance.savePositions(activeGridster.find(".dashboardWidget"));
+      thisInstance.flushDashboardPositionsSync();
       thisInstance.mkFitGridsterCanvas(activeGridster);
       thisInstance.mkEnsureSinglePageScroll();
       thisInstance.syncAddWidgetsMenu();
@@ -1049,8 +1057,129 @@ Vtiger.Class(
       }
     },
 
+    mkFindTopSlotFromMatrix: function (matrix, sizeX, sizeY, maxCols) {
+      var r;
+      var c;
+      for (r = 1; r < 40; r++) {
+        for (c = 1; c <= maxCols - sizeX + 1; c++) {
+          if (this.mkGridCellsFree(matrix, r, c, sizeX, sizeY, maxCols)) {
+            return { row: r, col: c };
+          }
+        }
+      }
+      return { row: 1, col: 1 };
+    },
+
+    mkPackDashboardWidgets: function (items, maxCols) {
+      var result = { maxRow: 0, changed: false };
+      if (!items || !items.length) {
+        return result;
+      }
+      var list = [];
+      items.each(function () {
+        list.push(jQuery(this));
+      });
+      list.sort(function (a, b) {
+        var rowA = parseInt(a.attr("data-row"), 10) || 1;
+        var rowB = parseInt(b.attr("data-row"), 10) || 1;
+        if (rowA !== rowB) {
+          return rowA - rowB;
+        }
+        return (parseInt(a.attr("data-col"), 10) || 1) - (parseInt(b.attr("data-col"), 10) || 1);
+      });
+      var matrix = {};
+      var i;
+      for (i = 0; i < list.length; i++) {
+        var w = list[i];
+        var sizeX = Math.min(
+          maxCols,
+          Math.max(1, parseInt(w.attr("data-sizex"), 10) || 1)
+        );
+        var sizeY = Math.max(1, parseInt(w.attr("data-sizey"), 10) || 1);
+        var prevCol = parseInt(w.attr("data-col"), 10) || 1;
+        var prevRow = parseInt(w.attr("data-row"), 10) || 1;
+        var slot = this.mkFindTopSlotFromMatrix(matrix, sizeX, sizeY, maxCols);
+        if (slot.col !== prevCol || slot.row !== prevRow) {
+          result.changed = true;
+        }
+        w.attr({ "data-col": slot.col, "data-row": slot.row });
+        this.mkGridOccupy(matrix, slot.row, slot.col, sizeX, sizeY);
+        result.maxRow = Math.max(result.maxRow, slot.row + sizeY - 1);
+      }
+      return result;
+    },
+
+    mkPrepareWidgetSlots: function (items, maxCols) {
+      return this.mkPackDashboardWidgets(items, maxCols).changed;
+    },
+
+    mkLayoutNeedsCompact: function (items, maxCols) {
+      if (!this.mkIsDashboardView() || !items || !items.length) {
+        return false;
+      }
+      var list = [];
+      items.each(function () {
+        list.push(jQuery(this));
+      });
+      var i;
+      for (i = 0; i < list.length; i++) {
+        if (list[i].attr("data-position") === "false") {
+          return true;
+        }
+      }
+      return this.mkLayoutHasVerticalGaps(list, maxCols);
+    },
+
+    mkLayoutHasVerticalGaps: function (list, maxCols) {
+      var savedMaxRow = 0;
+      var i;
+      for (i = 0; i < list.length; i++) {
+        var w = list[i];
+        var row = parseInt(w.attr("data-row"), 10) || 1;
+        var sizeY = Math.max(1, parseInt(w.attr("data-sizey"), 10) || 1);
+        savedMaxRow = Math.max(savedMaxRow, row + sizeY - 1);
+      }
+      var compactMaxRow = this.mkEstimateCompactMaxRow(list, maxCols);
+      return savedMaxRow > compactMaxRow;
+    },
+
+    mkEstimateCompactMaxRow: function (list, maxCols) {
+      var sorted = list.slice().sort(function (a, b) {
+        var rowA = parseInt(a.attr("data-row"), 10) || 1;
+        var rowB = parseInt(b.attr("data-row"), 10) || 1;
+        if (rowA !== rowB) {
+          return rowA - rowB;
+        }
+        return (parseInt(a.attr("data-col"), 10) || 1) - (parseInt(b.attr("data-col"), 10) || 1);
+      });
+      var matrix = {};
+      var maxRow = 0;
+      var i;
+      for (i = 0; i < sorted.length; i++) {
+        var w = sorted[i];
+        var sizeX = Math.min(
+          maxCols,
+          Math.max(1, parseInt(w.attr("data-sizex"), 10) || 1)
+        );
+        var sizeY = Math.max(1, parseInt(w.attr("data-sizey"), 10) || 1);
+        var placed = false;
+        var r;
+        var c;
+        for (r = 1; r < 40 && !placed; r++) {
+          for (c = 1; c <= maxCols - sizeX + 1 && !placed; c++) {
+            if (this.mkGridCellsFree(matrix, r, c, sizeX, sizeY, maxCols)) {
+              this.mkGridOccupy(matrix, r, c, sizeX, sizeY);
+              maxRow = Math.max(maxRow, r + sizeY - 1);
+              placed = true;
+            }
+          }
+        }
+      }
+      return maxRow;
+    },
+
     mkNormalizeWidgetRows: function (items, maxCols) {
-      if (!this.mkIsHomeDashboardPage() || !items || !items.length) {
+      if (!this.mkIsDashboardView() || !items || !items.length) {
         return;
       }
       var list = [];
@@ -1065,20 +1194,8 @@ Vtiger.Class(
         }
         return (parseInt(a.attr("data-col"), 10) || 1) - (parseInt(b.attr("data-col"), 10) || 1);
       });
-      var maxSavedRow = 1;
-      var i;
-      for (i = 0; i < list.length; i++) {
-        maxSavedRow = Math.max(
-          maxSavedRow,
-          (parseInt(list[i].attr("data-row"), 10) || 1) +
-            (parseInt(list[i].attr("data-sizey"), 10) || 1) -
-            1
-        );
-      }
-      if (maxSavedRow <= list.length + 2) {
-        return;
-      }
       var matrix = {};
+      var i;
       for (i = 0; i < list.length; i++) {
         var w = list[i];
         var sizeX = Math.min(
@@ -1099,6 +1216,90 @@ Vtiger.Class(
           }
         }
       }
+    },
+
+    mkBuildOccupancyMatrix: function (maxCols, $widgets) {
+      var matrix = {};
+      var thisInstance = this;
+      if (!$widgets || !$widgets.length) {
+        return matrix;
+      }
+      $widgets.each(function () {
+        var $w = jQuery(this);
+        var row = parseInt($w.attr("data-row"), 10) || 1;
+        var col = parseInt($w.attr("data-col"), 10) || 1;
+        var sizeX = Math.min(
+          maxCols,
+          Math.max(1, parseInt($w.attr("data-sizex"), 10) || 1)
+        );
+        var sizeY = Math.max(1, parseInt($w.attr("data-sizey"), 10) || 1);
+        thisInstance.mkGridOccupy(matrix, row, col, sizeX, sizeY);
+      });
+      return matrix;
+    },
+
+    mkFindTopSlot: function (sizeX, sizeY, maxCols, $widgets) {
+      var matrix = this.mkBuildOccupancyMatrix(maxCols, $widgets);
+      var r;
+      var c;
+      for (r = 1; r < 40; r++) {
+        for (c = 1; c <= maxCols - sizeX + 1; c++) {
+          if (this.mkGridCellsFree(matrix, r, c, sizeX, sizeY, maxCols)) {
+            return { row: r, col: c };
+          }
+        }
+      }
+      return { row: 1, col: 1 };
+    },
+
+    mkAddWidgetAtTop: function (widgetContainer, width, height) {
+      var gridster = Vtiger_DashBoard_Js.gridster;
+      if (!gridster) {
+        return;
+      }
+      var cols = this.getgridColumns();
+      width = Math.min(cols, Math.max(1, parseInt(width, 10) || 1));
+      height = Math.max(1, parseInt(height, 10) || 1);
+      var slot = this.mkFindTopSlot(
+        width,
+        height,
+        cols,
+        gridster.$widgets
+      );
+      gridster.add_widget(
+        widgetContainer,
+        width,
+        height,
+        slot.col,
+        slot.row
+      );
+    },
+
+    mkCompactGridsterUp: function (gridster) {
+      if (!this.mkIsDashboardView() || !gridster || !gridster.$widgets) {
+        return false;
+      }
+      if (!gridster.$widgets.length) {
+        return false;
+      }
+      var changed = false;
+      var pass;
+      for (pass = 0; pass < 16; pass++) {
+        var moved = false;
+        gridster.$widgets.each(function () {
+          var $w = jQuery(this);
+          var before = parseInt($w.attr("data-row"), 10) || 1;
+          gridster.move_widget_up($w);
+          if ((parseInt($w.attr("data-row"), 10) || 1) < before) {
+            moved = true;
+            changed = true;
+          }
+        });
+        if (!moved) {
+          break;
+        }
+      }
+      return changed;
     },
 
     mkFitGridsterCanvas: function (gridsterEl) {
@@ -1133,7 +1334,7 @@ Vtiger.Class(
           ? widgetContainer.closest('[class^="gridster_"]')
           : thisInstance.getContainer();
         thisInstance.mkFitGridsterCanvas($gs);
-        thisInstance.savePositions($gs.find("li.dashboardWidget"));
+        thisInstance.flushDashboardPositionsSync();
       };
       run();
       setTimeout(run, 120);
@@ -1142,19 +1343,111 @@ Vtiger.Class(
 
     savePositions: function (widgets) {
       var widgetRowColPositions = {};
-      for (var index = 0, len = widgets.length; index < len; ++index) {
+      var index;
+      var len = widgets.length;
+      for (index = 0; index < len; ++index) {
         var widget = jQuery(widgets[index]);
         widgetRowColPositions[widget.attr("id")] = JSON.stringify({
           row: widget.attr("data-row"),
           col: widget.attr("data-col"),
         });
       }
+      if (!len) {
+        return jQuery.Deferred().resolve().promise();
+      }
       var params = {
         module: "Vtiger",
         action: "SaveWidgetPositions",
         positionsmap: widgetRowColPositions,
       };
-      app.request.post({ data: params }).then(function (err, data) {});
+      return app.request.post({ data: params });
+    },
+
+    flushDashboardPositionsSync: function () {
+      if (!this.mkIsDashboardView()) {
+        return;
+      }
+      var widgets = this.getDashboardWidgets();
+      if (!widgets.length) {
+        return;
+      }
+      var widgetRowColPositions = {};
+      widgets.each(function () {
+        var widget = jQuery(this);
+        var id = widget.attr("id");
+        if (!id) {
+          return;
+        }
+        widgetRowColPositions[id] = JSON.stringify({
+          row: widget.attr("data-row"),
+          col: widget.attr("data-col"),
+        });
+      });
+      if (jQuery.isEmptyObject(widgetRowColPositions)) {
+        return;
+      }
+      try {
+        var payload = {
+          module: "Vtiger",
+          action: "SaveWidgetPositions",
+          positionsmap: widgetRowColPositions,
+        };
+        if (
+          typeof csrfMagicName !== "undefined" &&
+          typeof csrfMagicToken !== "undefined"
+        ) {
+          payload[csrfMagicName] = csrfMagicToken;
+        }
+        jQuery.ajax({
+          url: "index.php",
+          type: "POST",
+          async: false,
+          data: payload,
+        });
+      } catch (flushErr) {
+        /* ignore navigation race */
+      }
+    },
+
+    registerDashboardPersistence: function () {
+      var thisInstance = this;
+      if (thisInstance.mkDashboardPersistenceBound) {
+        return;
+      }
+      thisInstance.mkDashboardPersistenceBound = true;
+
+      jQuery(document).on("click.mkDashPersist", "a[href]", function () {
+        if (!thisInstance.mkIsDashboardView()) {
+          return;
+        }
+        var href = jQuery(this).attr("href") || "";
+        if (
+          href.indexOf("javascript:") === 0 ||
+          href === "#" ||
+          href.indexOf("view=DashBoard") !== -1
+        ) {
+          return;
+        }
+        thisInstance.flushDashboardPositionsSync();
+      });
+
+      jQuery(window).on("beforeunload.mkDashPersist pagehide.mkDashPersist", function () {
+        thisInstance.flushDashboardPositionsSync();
+      });
+
+      var dashBoardContainer = this.getDashboardContainer();
+      dashBoardContainer.on("show.bs.tab", ".dashboardTab", function () {
+        thisInstance.flushDashboardPositionsSync();
+      });
+    },
+
+    saveDashboardLayout: function () {
+      this.mkFitGridsterCanvas(this.getContainer());
+      this.flushDashboardPositionsSync();
+      app.helper.showSuccessNotification({
+        message: app.vtranslate("LBL_DASHBOARD_LAYOUT_SAVED"),
+      });
+      return jQuery.Deferred().resolve().promise();
     },
 
     getDashboardWidgets: function () {
@@ -1294,6 +1587,10 @@ Vtiger.Class(
         jQuery("body").attr("data-view") === "DashBoard" &&
         jQuery("body").attr("data-module") === "Home"
       );
+    },
+
+    mkIsDashboardView: function () {
+      return jQuery("body").attr("data-view") === "DashBoard";
     },
 
     mkEnsureSinglePageScroll: function () {
@@ -2311,6 +2608,7 @@ Vtiger.Class(
     },
 
     registerRearrangeTabsEvent: function () {
+      var thisInstance = this;
       var dashBoardContainer = this.getDashboardContainer();
 
       // on click of Rearrange button
@@ -2327,7 +2625,6 @@ Vtiger.Class(
           currentEle.addClass("hide");
           dashBoardContainer.find(".deleteTab").addClass("hide");
           dashBoardContainer.find(".moveTab").removeClass("hide");
-          dashBoardContainer.find(".updateSequence").removeClass("hide");
 
           sortableEle.sortable({
             containment: sortableContainer,
@@ -2336,41 +2633,56 @@ Vtiger.Class(
         }
       );
 
-      // On click of save sequence
+      // Save widget layout and/or dashboard tab order
       dashBoardContainer.find(".updateSequence").on("click", function (e) {
-        var reArrangedList = {};
         var currEle = jQuery(e.currentTarget);
-        jQuery(".sortable li").each(function (i, el) {
-          var el = jQuery(el);
-          var tabid = el.data("tabid");
-          reArrangedList[tabid] = ++i;
-        });
+        var sortableEle = dashBoardContainer
+          .find(".tabContainer")
+          .find(".sortable");
+        var isTabRearrange = sortableEle.hasClass("ui-sortable");
 
-        var data = {
-          module: "Vtiger",
-          action: "DashBoardTab",
-          mode: "updateTabSequence",
-          sequence: JSON.stringify(reArrangedList),
+        var finishTabRearrange = function () {
+          dashBoardContainer.find(".moveTab").addClass("hide");
+          dashBoardContainer.find(".reArrangeTabs").removeClass("hide");
+          dashBoardContainer.find(".deleteTab").removeClass("hide");
+          dashBoardContainer.find(".dashBoardDropDown").removeClass("hide");
+          if (sortableEle.hasClass("ui-sortable")) {
+            sortableEle.sortable("destroy");
+          }
         };
 
-        app.request.post({ data: data }).then(function (err, data) {
-          if (err == null) {
-            currEle.addClass("hide");
-            dashBoardContainer.find(".moveTab").addClass("hide");
-            dashBoardContainer.find(".reArrangeTabs").removeClass("hide");
-            dashBoardContainer.find(".deleteTab").removeClass("hide");
-            dashBoardContainer.find(".dashBoardDropDown").removeClass("hide");
-
-            var sortableEle = dashBoardContainer
-              .find(".tabContainer")
-              .find(".sortable");
-            sortableEle.sortable("destroy");
-
-            app.helper.showSuccessNotification({ message: "" });
-          } else {
-            app.helper.showErrorNotification({ message: err });
-          }
-        });
+        thisInstance.saveDashboardLayout().then(
+          function () {
+            if (!isTabRearrange) {
+              return;
+            }
+            var reArrangedList = {};
+            jQuery(".sortable li.dashboardTab").each(function (i, el) {
+              var tabEl = jQuery(el);
+              var tabid = tabEl.data("tabid");
+              if (tabid) {
+                reArrangedList[tabid] = i + 1;
+              }
+            });
+            var data = {
+              module: "Vtiger",
+              action: "DashBoardTab",
+              mode: "updateTabSequence",
+              sequence: JSON.stringify(reArrangedList),
+            };
+            app.request.post({ data: data }).then(function (err) {
+              if (err == null) {
+                finishTabRearrange();
+                app.helper.showSuccessNotification({
+                  message: app.vtranslate("LBL_DASHBOARD_TAB_ORDER_SAVED"),
+                });
+              } else {
+                app.helper.showErrorNotification({ message: err });
+              }
+            });
+          },
+          function () {}
+        );
       });
     },
 
@@ -2382,6 +2694,7 @@ Vtiger.Class(
       this.registerDashBoardTabRename();
       this.registerDeleteDashboardTab();
       this.registerRearrangeTabsEvent();
+      this.registerDashboardPersistence();
       this.registerQtipMessage();
       app.event.off("post.DashBoardTab.load");
       app.event.on(

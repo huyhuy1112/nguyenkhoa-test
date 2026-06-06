@@ -24,6 +24,9 @@ $languageStrings = array(
 	'PA' => 'Pending Activities',
     'Home'=> 'Dashboard',
 	'LBL_SAVE_ORDER'=>'Save Order',
+	'LBL_SAVE_DASHBOARD_LAYOUT'=>'Save current widget layout',
+	'LBL_DASHBOARD_LAYOUT_SAVED'=>'Dashboard widget layout saved.',
+	'LBL_DASHBOARD_TAB_ORDER_SAVED'=>'Dashboard tab order saved.',
 	'LBL_ADD_NEW_DASHBOARD'=>'Add new dashboard',
 	'LBL_MAX_CHARACTERS_ALLOWED_DASHBOARD' => 'Maximum 30 characters are allowed for dashboard name.',
 

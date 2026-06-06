@@ -39,7 +39,7 @@
 									<div class="mk-dash-toolbar-add-wrap">
 										{include file="dashboards/DashBoardHeader.tpl"|vtemplate_path:$MODULE_NAME DASHBOARDHEADER_TITLE=vtranslate($MODULE, $MODULE)}
 									</div>
-									<button class="btn-success updateSequence hide mk-dash-save-tab-order mk-dash-figma-btn mk-dash-figma-btn--secondary">{vtranslate('LBL_SAVE_ORDER',$MODULE)}</button>
+									<button type="button" class="btn-success updateSequence mk-dash-save-tab-order mk-dash-figma-btn mk-dash-figma-btn--secondary" title="{vtranslate('LBL_SAVE_DASHBOARD_LAYOUT',$MODULE)}">{vtranslate('LBL_SAVE_ORDER',$MODULE)}</button>
 								</div>
 							</div>
 						</div>

@@ -764,7 +764,7 @@
 	 * Auto-fetch total record count (replaces click on "of ?").
 	 */
 	function autoLoadTotalRecordCount() {
-		if (!isSalesAppList() || typeof Vtiger_List_Js === 'undefined') {
+		if (!shouldRelocatePaginationFooter() || typeof Vtiger_List_Js === 'undefined') {
 			return;
 		}
 		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();

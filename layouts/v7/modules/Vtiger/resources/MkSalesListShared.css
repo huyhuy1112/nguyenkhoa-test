@@ -558,6 +558,17 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page
 	color: #191c1e;
 }
 
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .mk-so-page-numbers__prefix,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .mk-so-page-numbers__suffix {
+	color: #504533;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .totalNumberOfRecords,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .mk-so-total-count {
+	font-weight: 600;
+	color: #191c1e;
+}
+
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagination {
 	display: flex;
 	justify-content: center;

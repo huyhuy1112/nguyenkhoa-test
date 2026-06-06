@@ -540,6 +540,17 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page
 	color: #191c1e;
 }
 
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .mk-so-page-numbers__prefix,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .mk-so-page-numbers__suffix {
+	color: #504533;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .totalNumberOfRecords,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .mk-so-total-count {
+	font-weight: 600;
+	color: #191c1e;
+}
+
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-icon-btn {
 	width: 40px;
 	height: 40px;
@@ -1789,14 +1800,16 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-t
 	padding: 10px !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"] .mk-so-page-numbers,
-html.mk-project-list-management body[data-module="Project"][data-view="List"] .mk-so-page-numbers .mk-so-page-numbers__prefix,
-html.mk-project-list-management body[data-module="Project"][data-view="List"] .mk-so-page-numbers .mk-so-page-numbers__suffix,
+html[data-theme="dark"].mk-project-list-management body[data-module="Project"][data-view="List"] .mk-so-page-numbers,
+html[data-theme="dark"].mk-project-list-management body[data-module="Project"][data-view="List"] .mk-so-page-numbers .mk-so-page-numbers__prefix,
+html[data-theme="dark"].mk-project-list-management body[data-module="Project"][data-view="List"] .mk-so-page-numbers .mk-so-page-numbers__suffix,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers {
 	color: #cbd5e1 !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"] .mk-so-page-numbers .pageNumbersText,
+html[data-theme="dark"].mk-project-list-management body[data-module="Project"][data-view="List"] .mk-so-page-numbers .pageNumbersText,
+html[data-theme="dark"].mk-project-list-management body[data-module="Project"][data-view="List"] .mk-so-page-numbers .totalNumberOfRecords,
+html[data-theme="dark"].mk-project-list-management body[data-module="Project"][data-view="List"] .mk-so-page-numbers .mk-so-total-count,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-page-numbers .pageNumbersText {
 	color: #f1f5f9 !important;
 }
