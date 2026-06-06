@@ -45,7 +45,7 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project
 	margin: 0 !important;
 	padding: 0 !important;
 	box-sizing: border-box;
-	overflow: hidden;
+	overflow: visible;
 }
 
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-page > .col-sm-12,
@@ -276,7 +276,7 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project
 	border: 1px solid #d4c4ad;
 	border-radius: 12px;
 	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
-	overflow: hidden;
+	overflow: visible;
 	box-sizing: border-box;
 	margin: 0;
 	width: 100%;
@@ -653,6 +653,13 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #table-cont
 	padding-bottom: 8px;
 	box-sizing: border-box;
 	-webkit-overflow-scrolling: touch;
+	/* Allow datepicker popover (appended to body) — thead filter row stays visible */
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #table-content.table-container thead tr.searchRow th {
+	overflow: visible !important;
+	position: relative;
+	z-index: 3;
 }
 
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table {
@@ -820,8 +827,8 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-t
 	display: none !important;
 }
 
-body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element),
-body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow input.listSearchContributor.inputElement,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element):not(.mk-date-search-input),
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow input.listSearchContributor.inputElement:not(.mk-date-search-input),
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow select.listSearchContributor {
 	display: block;
 	height: 42px;
@@ -882,12 +889,37 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-t
 }
 
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice {
-	margin: 4px 4px 4px 0;
-	padding: 4px 8px;
-	border-radius: 6px;
-	font-size: 13px;
-	line-height: 1.2;
+	margin: 2px 4px 2px 0 !important;
+	padding: 5px 10px 5px 26px !important;
+	position: relative !important;
+	border-radius: 6px !important;
+	font-size: 13px !important;
+	line-height: 1.35 !important;
+	border: 1px solid #e2d6c4 !important;
+	background: #f8fafc !important;
+	color: #334155 !important;
 	max-width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .select2-container-multi .select2-search-choice .select2-search-choice-close {
+	left: 7px !important;
+	right: auto !important;
+	top: 50% !important;
+	margin-top: -7px !important;
+	width: 12px !important;
+	height: 12px !important;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow li.select2-search-choice div {
+	display: inline-block;
+	padding: 0 !important;
+	margin: 0 !important;
+	max-width: calc(100% - 4px);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	vertical-align: middle;
 }
 
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .inputElement.select2-container {
@@ -895,8 +927,116 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-t
 	padding: 0;
 }
 
-body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow input.dateField {
-	text-align: left;
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow th {
+	overflow: visible !important;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group {
+	display: flex !important;
+	align-items: stretch;
+	width: 100%;
+	margin: 0;
+	border-collapse: separate;
+	border-spacing: 0;
+	box-sizing: border-box;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-input,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group input.dateField {
+	display: block !important;
+	flex: 1 1 auto;
+	vertical-align: middle;
+	width: 100% !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-right: none !important;
+	border-radius: 10px 0 0 10px !important;
+	background: #fff !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	text-align: left !important;
+	box-shadow: none !important;
+	cursor: pointer;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-input::placeholder {
+	color: #94a3b8;
+	font-weight: 500;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-trigger {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 40px;
+	vertical-align: middle;
+	width: 40px !important;
+	min-width: 40px !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: 1px solid #d4c4ad !important;
+	border-left: none !important;
+	border-radius: 0 10px 10px 0 !important;
+	background: #f8fafc !important;
+	color: #64748b !important;
+	cursor: pointer;
+	box-sizing: border-box;
+	text-align: center;
+	white-space: nowrap;
+	float: none !important;
+	pointer-events: auto !important;
+	position: relative;
+	z-index: 2;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-input,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group input.dateField {
+	pointer-events: auto !important;
+	position: relative;
+	z-index: 2;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-trigger:hover {
+	background: #eef2ff !important;
+	color: #2563eb !important;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within .mk-date-search-input,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within .mk-date-search-trigger {
+	border-color: #2563eb !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"] .datepicker.datepicker-dropdown,
+html.mk-project-list-management body[data-module="Project"][data-view="List"] .datepicker.dropdown-menu,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .datepicker.datepicker-dropdown,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .datepicker.dropdown-menu {
+	z-index: 200000 !important;
+	pointer-events: auto !important;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .datepicker.dropdown-menu {
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+	padding: 10px 12px 8px;
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+	font-size: 13px;
+}
+
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .datepicker.dropdown-menu td.active.active,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .datepicker.dropdown-menu td.active.highlighted.active {
+	background: #2563eb !important;
+	background-image: none !important;
+	color: #fff !important;
+	border-radius: 8px;
 }
 
 /* Figma: column filters only — hide legacy green Search / Clear buttons */
@@ -996,27 +1136,27 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-t
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table th.mk-col-progress,
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table td.mk-col-progress,
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow th.mk-col-progress {
-	width: 200px;
-	min-width: 200px;
-	max-width: 200px;
+	width: 125px;
+	min-width: 125px;
+	max-width: 125px;
 	box-sizing: border-box;
 }
 
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table th.mk-col-start-date,
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table td.mk-col-start-date,
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow th.mk-col-start-date {
-	width: 140px;
-	min-width: 140px;
-	max-width: 140px;
+	width: 165px;
+	min-width: 165px;
+	max-width: 165px;
 	box-sizing: border-box;
 }
 
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table th.mk-col-end-date,
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table td.mk-col-end-date,
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow th.mk-col-end-date {
-	width: 140px;
-	min-width: 140px;
-	max-width: 140px;
+	width: 165px;
+	min-width: 165px;
+	max-width: 165px;
 	box-sizing: border-box;
 }
 
@@ -1063,7 +1203,7 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-t
 	align-items: center;
 	justify-content: center;
 	width: 100%;
-	max-width: 168px;
+	max-width: 100%;
 	margin: 0 auto;
 	height: 32px;
 	border-radius: 8px;
@@ -1226,9 +1366,9 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-t
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table td[data-name="progress"],
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.listViewContentHeader th:has(a[data-columnname="progress"]),
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow th:has([name="progress"]) {
-	width: 200px;
-	min-width: 200px;
-	max-width: 200px;
+	width: 125px;
+	min-width: 125px;
+	max-width: 125px;
 	box-sizing: border-box;
 }
 
@@ -1241,9 +1381,9 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-t
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow th:has([name="startdate"]),
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow th:has([name="targetenddate"]),
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow th:has([name="enddate"]) {
-	width: 140px;
-	min-width: 140px;
-	max-width: 140px;
+	width: 165px;
+	min-width: 165px;
+	max-width: 165px;
 	box-sizing: border-box;
 }
 

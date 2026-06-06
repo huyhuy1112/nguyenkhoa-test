@@ -216,12 +216,21 @@
 		$table.find('thead tr.searchRow .select2_search_div').css({ width: '100%', maxWidth: '100%' });
 	}
 
+	function initDateSearchPickers() {
+		if (window.MkSalesListShared && typeof MkSalesListShared.initManagementDateSearchPickers === 'function') {
+			MkSalesListShared.initManagementDateSearchPickers();
+		}
+	}
+
+	window.mkProjectTaskListInitDatePickers = initDateSearchPickers;
+
 	function postRender() {
 		if (!isManagementProjectTaskList()) {
 			return;
 		}
 		assignColumnClasses();
 		normalizeSearchFilters();
+		initDateSearchPickers();
 		renderPriorityPills();
 		renderProgressBars();
 		renderAssigneeAvatars();
@@ -233,19 +242,19 @@
 			return;
 		}
 		$(document).on('mkProjectTaskListPostLoad', function () {
+			if (window.mkSalesListAfterAjax) {
+				window.mkSalesListAfterAjax({ skipSearchReinit: true });
+			}
 			setTimeout(postRender, 0);
-			setTimeout(postRender, 120);
 		});
 		if (!window.app) {
 			return;
 		}
 		app.event.on('post.listViewFilter.click', function () {
 			setTimeout(postRender, 0);
-			setTimeout(postRender, 120);
 		});
 		app.event.on('post.listViewInlineSearch.click', function () {
 			setTimeout(postRender, 0);
-			setTimeout(postRender, 120);
 		});
 	}
 
@@ -260,22 +269,14 @@
 			return;
 		}
 		document.documentElement.classList.add('mk-projecttask-list-management');
+		bindListHooks();
 		relocatePaginationBelowTable();
 		postRender();
-		setTimeout(function () {
-			relocatePaginationBelowTable();
-			postRender();
-		}, 0);
-		setTimeout(function () {
-			relocatePaginationBelowTable();
-			postRender();
-		}, 250);
-		setTimeout(function () {
-			relocatePaginationBelowTable();
-			postRender();
-		}, 800);
-		bindListHooks();
+		setTimeout(postRender, 150);
 		$(document).on('mkProjectTaskListPostLoad', relocatePaginationBelowTable);
+		$(document).on('mkProjectTaskListPostLoad', function () {
+			setTimeout(postRender, 0);
+		});
 	});
 
 	window.__mkProjectTaskAudit = function () {

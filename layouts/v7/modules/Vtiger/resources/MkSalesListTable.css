@@ -353,3 +353,135 @@ body[data-view="List"][data-app="SALES"] #listview-table td.mk-col-control {
 body[data-view="List"][data-app="SALES"] #listview-table td.listViewRecordActions .table-actions {
 	overflow: visible !important;
 }
+
+/* MANAGEMENT ProjectTask list — same filter row / search chrome as SALES lists */
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listViewContent tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
+	display: table-row !important;
+	background: #fafbfc !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .listSearchContributor.inputElement:not(.mk-date-search-input),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element):not(.mk-date-search-input),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow input.dateField:not(.mk-date-search-input),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow select.listSearchContributor {
+	display: block;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	text-align: left !important;
+	box-shadow: none !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	display: block !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .select2-container .select2-choice {
+	width: 100% !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	line-height: 38px !important;
+	padding: 0 12px !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	background-image: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tbody tr.listViewEntries.mk-sales-row-selected {
+	background: rgba(253, 187, 44, 0.1) !important;
+}
+
+/* MANAGEMENT Project list — same filter row / search chrome as ProjectTask */
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listViewContent tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
+	display: table-row !important;
+	background: #fafbfc !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .listSearchContributor.inputElement:not(.mk-date-search-input),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element):not(.mk-date-search-input),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow input.dateField:not(.mk-date-search-input),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow select.listSearchContributor {
+	display: block;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	text-align: left !important;
+	box-shadow: none !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	display: block !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .select2-container .select2-choice {
+	width: 100% !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	line-height: 38px !important;
+	padding: 0 12px !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	background-image: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tbody tr.listViewEntries.mk-sales-row-selected,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tbody tr.listViewEntries.mk-project-row-selected {
+	background: rgba(253, 187, 44, 0.1) !important;
+}
+
+/* MANAGEMENT list date filters — no jump/lag when opening calendar */
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] .datepicker.datepicker-dropdown,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] .datepicker.datepicker-dropdown,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] .datepicker.dropdown-menu,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] .datepicker.dropdown-menu {
+	transition: none !important;
+	animation: none !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"]:not(.mk-mgmt-date-picker-open) .datepicker.datepicker-dropdown,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"]:not(.mk-mgmt-date-picker-open) .datepicker.datepicker-dropdown,
+body:not(.mk-mgmt-date-picker-open)[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] .datepicker.datepicker-dropdown,
+body:not(.mk-mgmt-date-picker-open)[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] .datepicker.datepicker-dropdown {
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
+
+body.mk-mgmt-date-picker-open .datepicker.datepicker-dropdown,
+body.mk-mgmt-date-picker-open .datepicker.dropdown-menu {
+	opacity: 1 !important;
+	pointer-events: auto !important;
+}

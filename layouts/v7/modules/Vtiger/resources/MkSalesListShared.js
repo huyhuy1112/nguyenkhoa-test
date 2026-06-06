@@ -128,12 +128,36 @@
 		return getListPageRoot(getListViewContainer()).length > 0;
 	}
 
+	function isManagementShellList() {
+		if (!isManagementProjectTaskList() && !isManagementProjectList() && !isManagementDocumentsList()) {
+			return false;
+		}
+		return getListPageRoot(getListViewContainer()).length > 0;
+	}
+
+	function isMkShellList() {
+		return isSalesShellList() || isManagementShellList();
+	}
+
+	var MK_TABLE_CARD_SEL =
+		'.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, ' +
+		'.mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card, .mk-projecttask-table-card, .mk-project-table-card';
+
 	function isSalesStyleTableList() {
-		return isSalesAppList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
+		return (
+			isSalesAppList() ||
+			isSupportAppList() ||
+			isInvoiceMkList() ||
+			isSalesOrderToolsList() ||
+			isRecycleBinToolsList() ||
+			isManagementProjectTaskList() ||
+			isManagementProjectList() ||
+			isManagementDocumentsList()
+		);
 	}
 
 	function needsSalesListSearchHooks() {
-		return isSalesAppList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
+		return isSalesStyleTableList();
 	}
 
 	function shouldBootMkSalesListShared() {
@@ -271,7 +295,7 @@
 		if (!$lv.length) {
 			return;
 		}
-		var $card = $lv.find('.mk-so-table-card, .mk-org-table-card, .mk-contact-table-card').first();
+		var $card = $lv.find(MK_TABLE_CARD_SEL).first();
 		var $scope = $card.length ? $card : $lv;
 		var $table = $scope.find('#table-content').first();
 		if (!$table.length) {
@@ -505,7 +529,7 @@
 	}
 
 	function applySalesShellListBodyOnly($lv, $source, $page) {
-		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, .mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card').first();
+		var $card = $page.find(MK_TABLE_CARD_SEL).first();
 		var $oldTable = $lv.find('#listview-table').first();
 		var $newTable = $source.find('#listview-table').first();
 		if (!$oldTable.length || !$newTable.length) {
@@ -556,7 +580,7 @@
 	}
 
 	function syncHiddenFieldsFromFragment($incoming, $lv) {
-		var $scope = isSalesShellList() || isPotentialsSalesList() ? getListDataScope($lv) : $lv;
+		var $scope = isMkShellList() || isPotentialsSalesList() ? getListDataScope($lv) : $lv;
 		if (!$scope.length) {
 			$scope = $lv;
 		}
@@ -617,7 +641,7 @@
 	 */
 	function applySalesShellListContents(contents, options) {
 		options = options || {};
-		if (!isSalesShellList()) {
+		if (!isMkShellList()) {
 			return false;
 		}
 		var $lv = getListViewContainer();
@@ -636,8 +660,8 @@
 		if (shouldPreserveSearchRow(options) && applySalesShellListBodyOnly($lv, $source, $page)) {
 			return true;
 		}
-		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, .mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card').first();
-		var $newCard = $source.find('.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, .mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card').first();
+		var $card = $page.find(MK_TABLE_CARD_SEL).first();
+		var $newCard = $source.find(MK_TABLE_CARD_SEL).first();
 		syncHiddenFieldsFromFragment($source, $lv);
 		if ($card.length && $newCard.length) {
 			$card.html($newCard.html());
@@ -661,8 +685,12 @@
 		if (!$page.length) {
 			return false;
 		}
-		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, .mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card').first();
-		var $newCol = $source.find('.mk-so-table-card > .col-sm-12, .mk-opportunity-table-card > .col-sm-12, .mk-qt-table-card > .col-sm-12, .mk-contact-table-card > .col-sm-12, .mk-org-table-card > .col-sm-12, .mk-sc-table-card > .col-sm-12, .mk-ps-table-card > .col-sm-12').first();
+		var $card = $page.find(MK_TABLE_CARD_SEL).first();
+		var $newCol = $source.find(
+			'.mk-so-table-card > .col-sm-12, .mk-opportunity-table-card > .col-sm-12, .mk-qt-table-card > .col-sm-12, ' +
+				'.mk-contact-table-card > .col-sm-12, .mk-org-table-card > .col-sm-12, .mk-sc-table-card > .col-sm-12, ' +
+				'.mk-ps-table-card > .col-sm-12, .mk-projecttask-table-card > .col-sm-12, .mk-project-table-card > .col-sm-12'
+		).first();
 		if (!$newCol.length) {
 			$newCol = $source.find('.col-sm-12').first();
 		}
@@ -687,7 +715,7 @@
 
 		// Last-resort: replace the card content (keep sidebar/topbar shell).
 		// This prevents the "3 dots then nothing changes" state when markup differs unexpectedly.
-		var $newCard = $source.find('.mk-so-table-card, .mk-opportunity-table-card, .mk-qt-table-card, .mk-contact-table-card, .mk-org-table-card, .mk-sc-table-card, .mk-ps-table-card').first();
+		var $newCard = $source.find(MK_TABLE_CARD_SEL).first();
 		if ($card.length && $newCard.length) {
 			$card.html($newCard.html());
 			syncHiddenFieldsFromFragment($source, $lv);
@@ -710,7 +738,7 @@
 			return false;
 		}
 		syncHiddenFieldsFromFragment($source, $lv);
-		var $card = $page.find('.mk-so-table-card, .mk-opportunity-table-card').first();
+		var $card = $page.find(MK_TABLE_CARD_SEL).first();
 		var $newTableContent = $source.find('#table-content').first();
 		if (!$newTableContent.length || !$card.length) {
 			return false;
@@ -774,7 +802,7 @@
 		}
 		destroyFloatTheadArtifacts();
 		var $lv = getListViewContainer();
-		var $card = $lv.find('.mk-so-table-card').first();
+		var $card = $lv.find(MK_TABLE_CARD_SEL).first();
 		if ($card.length) {
 			dedupePaginationFooters($card);
 		}
@@ -856,7 +884,7 @@
 		var originalPlace = Vtiger_List_Js.prototype.placeListContents;
 		Vtiger_List_Js.prototype.placeListContents = function (contents) {
 			/* SALES shell: full table-card replace (never partial #table-content swap). */
-			if (isSalesShellList()) {
+			if (isMkShellList()) {
 				var searchOpts = shouldPreserveSearchRow({}) ? { preserveSearchRow: true } : {};
 				var focusState = searchOpts.preserveSearchRow
 					? captureSearchFocusState(getListViewContainer())
@@ -866,6 +894,7 @@
 						searchOpts.preserveSearchRow ? { skipSearchReinit: true } : {},
 						focusState
 					);
+					hideProgressSafe();
 					if (
 						isPotentialsSalesList() &&
 						!searchOpts.preserveSearchRow &&
@@ -934,9 +963,6 @@
 		});
 		$(document).off('click.mkSalesList', '.mk-so-filter-trigger-search').on('click.mkSalesList', '.mk-so-filter-trigger-search', function (e) {
 			e.preventDefault();
-			if (isManagementProjectTaskList() || isManagementProjectList()) {
-				return;
-			}
 			if (isPotentialsSalesList()) {
 				return;
 			}
@@ -1056,6 +1082,7 @@
 	var REFERENCE_FIELD_FALLBACK = {
 		account_id: { module: 'Accounts', nameField: 'accountname' },
 		related_to: { module: 'Accounts', nameField: 'accountname' },
+		projectid: { module: 'Project', nameField: 'projectname' },
 		parent_id: { module: 'Accounts', nameField: 'accountname' },
 		contact_id: { module: 'Contacts', nameField: 'lastname' },
 		potential_id: { module: 'Potentials', nameField: 'potentialname' },
@@ -1096,17 +1123,291 @@
 		return fieldName;
 	}
 
+	function hasDatePickerPlugin() {
+		return !!(window.jQuery && $.fn && typeof $.fn.datepicker === 'function');
+	}
+
+	function destroyMkMgmtDatePicker($input) {
+		if (!$input || !$input.length) {
+			return;
+		}
+		var drp = $input.data('dateRangePicker');
+		if (drp && typeof drp.destroy === 'function') {
+			try {
+				drp.destroy();
+			} catch (destroyErr) {
+				/* ignore */
+			}
+		}
+		$input.removeData('dateRangePicker');
+		if ($input.data('datepicker')) {
+			try {
+				$input.datepicker('remove');
+			} catch (removeErr) {
+				/* ignore */
+			}
+		}
+		$input.removeData('mkMgmtDatePickerReady');
+	}
+
+	function getMkDatePickerLang() {
+		var lang = $('body').data('language');
+		if (lang && String(lang).length >= 2) {
+			return String(lang).substring(0, 2);
+		}
+		return 'en';
+	}
+
+	function calcMkDatePickerPosition($input) {
+		var $anchor = $input.closest('.mk-date-search-group');
+		if (!$anchor.length) {
+			$anchor = $input;
+		}
+		var rect = $anchor[0].getBoundingClientRect();
+		var pickerW = 280;
+		var pickerH = 280;
+		var gap = 6;
+		var top = rect.bottom + gap;
+		if (top + pickerH > window.innerHeight - 8) {
+			top = Math.max(8, rect.top - pickerH - gap);
+		}
+		var left = rect.left;
+		if (left + pickerW > window.innerWidth - 8) {
+			left = Math.max(8, window.innerWidth - pickerW - 8);
+		}
+		return { top: top, left: left };
+	}
+
+	function pinMkDatePickerVisible($input) {
+		var dp = $input && $input.data('datepicker');
+		var $picker = dp && dp.picker ? dp.picker : $();
+		if (!$picker.length) {
+			$picker = $('body > .datepicker.datepicker-dropdown:visible, body > .datepicker.dropdown-menu:visible').last();
+		}
+		if (!$picker.length || !$input || !$input.length) {
+			return;
+		}
+		var pos = calcMkDatePickerPosition($input);
+		$picker.css({
+			position: 'fixed',
+			top: pos.top + 'px',
+			left: pos.left + 'px',
+			right: 'auto',
+			bottom: 'auto',
+			zIndex: 200000,
+			display: 'block',
+			visibility: 'visible',
+			opacity: 1,
+			pointerEvents: 'auto',
+			transition: 'none',
+			animation: 'none'
+		});
+		$('body').addClass('mk-mgmt-date-picker-open');
+	}
+
+	function showMkMgmtDatePicker($input) {
+		if (!$input || !$input.length || !hasDatePickerPlugin()) {
+			return;
+		}
+		if (!$input.data('mkMgmtDatePickerReady')) {
+			initMkMgmtSingleDatePicker($input);
+		}
+		var dp = $input.data('datepicker');
+		if (dp && dp.picker && dp.picker.is(':visible')) {
+			pinMkDatePickerVisible($input);
+			return;
+		}
+		try {
+			$input.datepicker('show');
+			pinMkDatePickerVisible($input);
+		} catch (showErr) {
+			/* ignore */
+		}
+	}
+
+	function bindMgmtDatePickerDelegation() {
+		if (bindMgmtDatePickerDelegation._bound) {
+			return;
+		}
+		bindMgmtDatePickerDelegation._bound = true;
+		$(document)
+			.off('click.mkMgmtDateSearch', '#listview-table .mk-date-search-input, #listview-table .mk-date-search-trigger')
+			.on('click.mkMgmtDateSearch', '#listview-table .mk-date-search-input, #listview-table .mk-date-search-trigger', function (e) {
+				if (!isManagementProjectList() && !isManagementProjectTaskList()) {
+					return;
+				}
+				e.preventDefault();
+				e.stopPropagation();
+				var $input = $(this).is('input.dateField')
+					? $(this)
+					: $(this).closest('.mk-date-search-group').find('input.dateField').first();
+				showMkMgmtDatePicker($input);
+			});
+	}
+
+	function initMkMgmtSingleDatePicker($input) {
+		if (!$input || !$input.length || !hasDatePickerPlugin()) {
+			return;
+		}
+		if ($input.data('mkMgmtDatePickerReady') && $input.data('datepicker')) {
+			return;
+		}
+		destroyMkMgmtDatePicker($input);
+		$input.removeAttr('data-calendar-type');
+		$input.addClass('ignore-ui-registration mk-date-search-input mk-date-single-picker');
+		$input.attr('readonly', 'readonly');
+		$input.attr('autocomplete', 'off');
+
+		var fmt =
+			$input.data('dateFormat') ||
+			(window.app && app.getDateFormat ? app.getDateFormat() : 'dd-mm-yyyy');
+		var lang = getMkDatePickerLang();
+		var pickerOpts = {
+			autoclose: true,
+			todayBtn: 'linked',
+			todayHighlight: true,
+			clearBtn: true,
+			format: fmt,
+			orientation: 'bottom auto',
+			container: 'body',
+			enableOnReadonly: true
+		};
+		if (lang) {
+			pickerOpts.language = lang;
+		}
+		try {
+			$input.datepicker(pickerOpts);
+		} catch (initErr) {
+			try {
+				delete pickerOpts.language;
+				$input.datepicker(pickerOpts);
+			} catch (fallbackErr) {
+				return;
+			}
+		}
+
+		var dp = $input.data('datepicker');
+		if (dp && typeof dp.place === 'function' && !dp.__mkMgmtPlacePatched) {
+			dp.place = function () {
+				return this;
+			};
+			dp.__mkMgmtPlacePatched = true;
+		}
+
+		$input
+			.off('.mkMgmtDateSearch')
+			.on('keydown.mkMgmtDateSearch paste.mkMgmtDateSearch', function (e) {
+				e.preventDefault();
+			})
+			.on('show.mkMgmtDateSearch', function () {
+				pinMkDatePickerVisible($input);
+			})
+			.on('hide.mkMgmtDateSearch', function () {
+				$('body').removeClass('mk-mgmt-date-picker-open');
+			})
+			.on('changeDate.mkMgmtDateSearch clearDate.mkMgmtDateSearch', function () {
+				var $th = $input.closest('th');
+				var value = $.trim($input.val());
+				if (value) {
+					$th.find('.operatorValue').val('e');
+				} else {
+					$th.find('.operatorValue').val('');
+				}
+				scheduleAutoSearch();
+			});
+		$input.data('mkMgmtDatePickerReady', true);
+	}
+
+	function initManagementDateSearchPickers() {
+		if (!isManagementProjectList() && !isManagementProjectTaskList()) {
+			return;
+		}
+		if (!hasDatePickerPlugin()) {
+			return;
+		}
+		bindMgmtDatePickerDelegation();
+		var $row = $('#listview-table thead tr.searchRow');
+		if (!$row.length) {
+			return;
+		}
+		var $inputs = $row.find('input.dateField');
+		if (!$inputs.length) {
+			return;
+		}
+
+		$inputs.each(function () {
+			var $input = $(this);
+			if (!$input.closest('.mk-date-search-group').length) {
+				$input.wrap('<div class="input-group inputElement mk-date-search-group"></div>');
+				$input.after(
+					'<span class="input-group-addon mk-date-search-trigger" role="button" tabindex="-1">' +
+						'<i class="fa fa-calendar"></i>' +
+						'</span>'
+				);
+			}
+		});
+
+		$inputs.each(function () {
+			var $input = $(this);
+			if ($input.data('datepicker') && !$input.data('mkMgmtDatePickerReady')) {
+				destroyMkMgmtDatePicker($input);
+			}
+			if ($input.data('mkMgmtDatePickerReady') && $input.data('datepicker')) {
+				return;
+			}
+			initMkMgmtSingleDatePicker($input);
+		});
+	}
+
+	window.mkProjectListInitDatePickers = initManagementDateSearchPickers;
+	window.mkProjectTaskListInitDatePickers = initManagementDateSearchPickers;
+
+	window.__mkMgmtDatePickerAudit = function () {
+		var $inputs = $('#listview-table thead tr.searchRow input.dateField');
+		return {
+			module: (document.body && document.body.getAttribute('data-module')) || '',
+			hasPlugin: hasDatePickerPlugin(),
+			inputCount: $inputs.length,
+			readyCount: $inputs.filter(function () {
+				return !!$(this).data('mkMgmtDatePickerReady');
+			}).length,
+			visiblePickers: $('.datepicker:visible').length,
+			pickers: $('.datepicker')
+				.map(function () {
+					var $p = $(this);
+					return {
+						display: $p.css('display'),
+						visibility: $p.css('visibility'),
+						opacity: $p.css('opacity'),
+						zIndex: $p.css('z-index'),
+						top: $p.css('top'),
+						left: $p.css('left'),
+						rect: this.getBoundingClientRect
+							? this.getBoundingClientRect()
+							: null
+					};
+				})
+				.get()
+		};
+	};
+
 	function reinitSearchRow() {
 		var $row = getSalesTableRoot().find('tr.searchRow').first();
 		if ($row.length && window.vtUtils && vtUtils.applyFieldElementsView) {
 			try {
-				vtUtils.applyFieldElementsView($row);
+				if (isManagementProjectList() || isManagementProjectTaskList()) {
+					vtUtils.showSelect2ElementView($row.find('select.select2'));
+					vtUtils.registerEventForTimeFields($row.find('.timepicker-default'));
+				} else {
+					vtUtils.applyFieldElementsView($row);
+				}
 			} catch (e) {
 				/* ignore */
 			}
 		}
 		syncSearchFieldMeta();
 		fixSearchRowSelect2();
+		initManagementDateSearchPickers();
 	}
 
 	function getListSearchParamsSafe(listInstance, includeStarFilters) {
@@ -1216,6 +1517,9 @@
 
 	function hideProgressSafe() {
 		try {
+			if (typeof vtUtils !== 'undefined' && vtUtils.removeMask) {
+				vtUtils.removeMask();
+			}
 			if (typeof app !== 'undefined' && app.helper && app.helper.hideProgress) {
 				app.helper.hideProgress();
 			}
@@ -1306,20 +1610,21 @@
 				nolistcache: '1'
 			})
 			.done(function (html) {
-				if (isSalesShellList()) {
-					applySalesShellListResponse(html, requestId, options);
+				if (isMkShellList()) {
+					if (!applySalesShellListResponse(html, requestId, options)) {
+						hideProgressSafe();
+					}
+				} else {
+					hideProgressSafe();
 				}
 			})
 			.always(function () {
 				if (requestId !== inflightSalesSearchId) {
 					return;
 				}
-				if (requestId === inflightSalesSearchId) {
-					pendingSalesSearchRowState = null;
-				}
-				if (!options.silent) {
-					hideProgressSafe();
-				}
+				pendingSalesSearchRowState = null;
+				hideProgressSafe();
+				inflightSalesSearchId = 0;
 			});
 	}
 
@@ -1496,7 +1801,7 @@
 		var proto = Vtiger_List_Js.prototype;
 		var origPostLoad = proto.postLoadListViewRecords;
 		proto.postLoadListViewRecords = function (res) {
-			if (!isSalesShellList()) {
+			if (!isMkShellList()) {
 				return origPostLoad.apply(this, arguments);
 			}
 			if (inflightSalesSearchId > 0) {
@@ -1647,6 +1952,8 @@
 		isRecycleBinToolsList: isRecycleBinToolsList,
 		isSalesStyleTableList: isSalesStyleTableList,
 		isPotentialsSalesList: isPotentialsSalesList,
+		isManagementShellList: isManagementShellList,
+		isMkShellList: isMkShellList,
 		isManagementProjectTaskList: isManagementProjectTaskList,
 		isManagementProjectList: isManagementProjectList,
 		isManagementDocumentsList: isManagementDocumentsList,
@@ -1671,7 +1978,9 @@
 		isSearchRowFocused: isSearchRowFocused,
 		captureSearchFocusState: captureSearchFocusState,
 		restoreSearchFocusState: restoreSearchFocusState,
-		resolveReferenceSearchFieldName: resolveReferenceSearchFieldName
+		resolveReferenceSearchFieldName: resolveReferenceSearchFieldName,
+		initManagementDateSearchPickers: initManagementDateSearchPickers,
+		showMkMgmtDatePicker: showMkMgmtDatePicker
 	};
 
 	if (document.readyState === 'loading') {

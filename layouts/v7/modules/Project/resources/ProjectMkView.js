@@ -7,14 +7,14 @@
 
 	function isManagementProjectList() {
 		var body = document.body;
-		if (!body) {
+		if (!body || body.getAttribute('data-module') !== 'Project' || body.getAttribute('data-view') !== 'List') {
 			return false;
 		}
-		return (
-			body.getAttribute('data-module') === 'Project' &&
-			body.getAttribute('data-view') === 'List' &&
-			body.getAttribute('data-app') === 'MANAGEMENT'
-		);
+		if ((body.getAttribute('data-app') || '').toUpperCase() === 'MANAGEMENT') {
+			return true;
+		}
+		var params = new URLSearchParams(window.location.search || '');
+		return params.get('module') === 'Project' && params.get('view') === 'List' && params.get('app') === 'MANAGEMENT';
 	}
 
 	var COL_CLASS_BY_FIELD = {
@@ -252,6 +252,14 @@
 		});
 	}
 
+	function initDateSearchPickers() {
+		if (window.MkSalesListShared && typeof MkSalesListShared.initManagementDateSearchPickers === 'function') {
+			MkSalesListShared.initManagementDateSearchPickers();
+		}
+	}
+
+	window.mkProjectListInitDatePickers = initDateSearchPickers;
+
 	function postRender() {
 		if (!isManagementProjectList()) {
 			return;
@@ -260,6 +268,7 @@
 		syncCheckedRowHighlight();
 		assignColumnClasses();
 		normalizeSearchFilters();
+		initDateSearchPickers();
 		renderProgressBars();
 		renderStatusPills();
 		renderAssigneeAvatars();
@@ -271,19 +280,19 @@
 			return;
 		}
 		$(document).on('mkProjectListPostLoad', function () {
+			if (window.mkSalesListAfterAjax) {
+				window.mkSalesListAfterAjax({ skipSearchReinit: true });
+			}
 			setTimeout(postRender, 0);
-			setTimeout(postRender, 120);
 		});
 		if (!window.app) {
 			return;
 		}
 		app.event.on('post.listViewFilter.click', function () {
 			setTimeout(postRender, 0);
-			setTimeout(postRender, 120);
 		});
 		app.event.on('post.listViewInlineSearch.click', function () {
 			setTimeout(postRender, 0);
-			setTimeout(postRender, 120);
 		});
 	}
 
@@ -292,23 +301,15 @@
 			return;
 		}
 		document.documentElement.classList.add('mk-project-list-management');
+		bindCheckboxRowHighlight();
+		bindListHooks();
 		relocatePaginationBelowTable();
 		postRender();
-		setTimeout(function () {
-			relocatePaginationBelowTable();
-			postRender();
-		}, 0);
-		setTimeout(function () {
-			relocatePaginationBelowTable();
-			postRender();
-		}, 250);
-		setTimeout(function () {
-			relocatePaginationBelowTable();
-			postRender();
-		}, 800);
-		bindListHooks();
-		bindCheckboxRowHighlight();
+		setTimeout(postRender, 150);
 		$(document).on('mkProjectListPostLoad', relocatePaginationBelowTable);
 		$(document).on('mkProjectListPostLoad', syncCheckedRowHighlight);
+		$(document).on('mkProjectListPostLoad', function () {
+			setTimeout(postRender, 0);
+		});
 	});
 })();
