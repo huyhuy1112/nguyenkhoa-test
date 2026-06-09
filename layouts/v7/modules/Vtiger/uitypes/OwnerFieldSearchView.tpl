@@ -33,7 +33,7 @@
                     <option value="{$OWNER_NAME}" data-picklistvalue= '{$OWNER_NAME}' {if in_array(trim(decode_html($OWNER_NAME)),$SEARCH_VALUES)} selected {/if}
 						{if array_key_exists($OWNER_ID, $ACCESSIBLE_USER_LIST)} data-recordaccess=true {else} data-recordaccess=false {/if}
 						data-userId="{$CURRENT_USER_ID}">
-                    {$OWNER_NAME}
+                    {decode_html($OWNER_NAME)}
                     </option>
 			{/foreach}
 		</optgroup>
@@ -42,7 +42,7 @@
 			{foreach key=OWNER_ID item=OWNER_NAME from=$ALL_ACTIVEGROUP_LIST}
 				<option value="{$OWNER_NAME}" data-picklistvalue= '{$OWNER_NAME}' {if in_array(trim(decode_html($OWNER_NAME)),$SEARCH_VALUES)} selected {/if}
 					{if array_key_exists($OWNER_ID, $ACCESSIBLE_GROUP_LIST)} data-recordaccess=true {else} data-recordaccess=false {/if} >
-				{$OWNER_NAME}
+				{decode_html($OWNER_NAME)}
 				</option>
 			{/foreach}
 		</optgroup>

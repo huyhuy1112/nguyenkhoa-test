@@ -161,7 +161,7 @@ html[data-theme="dark"] body[data-app="SALES"] #listViewContent .listview-action
 	color: var(--mk-text-secondary) !important;
 }
 
-html[data-theme="dark"] body[data-app="SALES"] #listViewContent .mk-so-filter-row__footer {
+html[data-theme="dark"] body[data-app="SALES"] #table-content + .mk-so-filter-row__footer {
 	background: var(--mk-bg-elevated) !important;
 	border-top-color: var(--mk-border-color) !important;
 }

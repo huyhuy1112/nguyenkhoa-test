@@ -24,7 +24,7 @@ class Vtiger_Picklist_UIType extends Vtiger_Base_UIType {
 	 * @return <Object>
 	 */
 	public function getDisplayValue($value, $record=false, $recordInstance=false) {
-		return Vtiger_Language_Handler::getTranslatedString($value, $this->get('field')->getModuleName());
+		return decode_html(Vtiger_Language_Handler::getTranslatedString($value, $this->get('field')->getModuleName()));
 	}
     
     public function getListSearchTemplateName() {

@@ -18,7 +18,7 @@
         <input type="text" class="listSearchContributor inputElement select2_input_element"/>
         <select class="select2 listSearchContributor"  name="{$FIELD_MODEL->get('name')}" multiple data-fieldinfo='{$FIELD_INFO|escape}' style="display:none">
             {foreach item=PICKLIST_LABEL key=PICKLIST_KEY from=$PICKLIST_VALUES}
-                <option value="{$PICKLIST_KEY}" {if in_array($PICKLIST_KEY,$SEARCH_VALUES) && ($PICKLIST_KEY neq "")} selected{/if}>{$PICKLIST_LABEL}</option>
+                <option value="{$PICKLIST_KEY}" {if in_array($PICKLIST_KEY,$SEARCH_VALUES) && ($PICKLIST_KEY neq "")} selected{/if}>{decode_html($PICKLIST_LABEL)}</option>
             {/foreach}
         </select>
     </div>

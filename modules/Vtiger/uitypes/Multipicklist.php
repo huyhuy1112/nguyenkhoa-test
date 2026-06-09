@@ -28,7 +28,7 @@ class Vtiger_Multipicklist_UIType extends Vtiger_Base_UIType {
 		$moduleName = $this->get('field')->getModuleName();
 		$value = explode(' |##| ', $value);
 		foreach ($value as $key => $val) {
-			$value[$key] = vtranslate($val, $moduleName);
+			$value[$key] = decode_html(vtranslate($val, $moduleName));
 		}
 
 		if(is_array($value)){

@@ -154,8 +154,13 @@ body[data-view="List"][data-app="SALES"] .mk-so-mass-btn {
 	background: #fff !important;
 }
 
-body[data-view="List"][data-app="SALES"] #listViewContent .mk-so-filter-row__footer {
-	display: flex;
+/* Pagination footer: hidden inside toolbar until MkSalesListShared moves it below #table-content */
+body[data-view="List"][data-app="SALES"] #listview-actions .mk-so-filter-row__footer {
+	display: none !important;
+}
+
+body[data-view="List"][data-app="SALES"] #table-content + .mk-so-filter-row__footer {
+	display: flex !important;
 	align-items: center;
 	justify-content: center;
 	min-height: 64px;
@@ -164,6 +169,8 @@ body[data-view="List"][data-app="SALES"] #listViewContent .mk-so-filter-row__foo
 	background: #eceef0;
 	box-sizing: border-box;
 	border-radius: 0 0 11px 11px;
+	flex: 0 0 auto;
+	width: 100%;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-so-pagination {
@@ -306,7 +313,7 @@ body[data-view="List"][data-app="SALES"] .mk-so-table-card.mk-ps-table-card {
 	background: #ffffff !important;
 }
 
-body[data-view="List"][data-app="SALES"] #listViewContent .mk-so-filter-row__footer {
+body[data-view="List"][data-app="SALES"] #table-content + .mk-so-filter-row__footer {
 	border-radius: 0 0 11px 11px !important;
 }
 

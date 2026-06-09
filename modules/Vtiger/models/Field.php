@@ -351,7 +351,7 @@ class Vtiger_Field_Model extends Vtiger_Field {
             
             foreach ($picklistValues as $value) {
                 if (!is_numeric($value)) {
-                    $addValue = vtranslate($value, $this->getModuleName());
+                    $addValue = decode_html(vtranslate($value, $this->getModuleName()));
                 } else {
                     $addValue = $value;
                 }
@@ -392,7 +392,7 @@ class Vtiger_Field_Model extends Vtiger_Field {
             }
             
             foreach($picklistValues as $value) {
-                    $fieldPickListValues[$value] = vtranslate($value,$this->getModuleName());
+                    $fieldPickListValues[$value] = decode_html(vtranslate($value,$this->getModuleName()));
 			}
             return $fieldPickListValues;
 		}

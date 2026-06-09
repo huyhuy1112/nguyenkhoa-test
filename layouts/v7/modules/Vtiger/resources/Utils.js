@@ -31,6 +31,15 @@ var vtUtils = {
             ele.show();
         }
 
+		// Decode HTML entities in option labels (e.g. Vietnamese picklist values stored as &agrave;)
+		ele.find('option').each(function() {
+			var option = jQuery(this);
+			var label = option.text();
+			if (label && label.indexOf('&') !== -1 && typeof app !== 'undefined' && app.htmlDecode) {
+				option.text(app.htmlDecode(label));
+			}
+		});
+
 		// Sort DOM nodes alphabetically in select box.
 		if (typeof params['customSortOptGroup'] != 'undefined' && params['customSortOptGroup']) {
 			jQuery('optgroup', selectElement).each(function(){
