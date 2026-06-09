@@ -180,14 +180,19 @@
       { label: "Conv. Rate", value: kpis.conv + "%", trend: "+1.4%", up: true },
     ];
     var kpiIcons = (icons && icons.KPI) || [];
+    var kpiTones = (icons && icons.KPI_TONES) || ["blue", "violet", "emerald", "cyan", "amber", "rose", "indigo"];
     host.innerHTML = items
       .map(function (k, i) {
+        var tone = kpiTones[i] || "blue";
         return (
           '<div class="mk-leads-kpi-card">' +
           '<div class="mk-leads-kpi-card__top">' +
           '<span class="mk-leads-kpi-card__label">' +
+          '<span class="mk-leads-kpi-ic-wrap mk-leads-kpi-ic--' +
+          tone +
+          '">' +
           ic(kpiIcons[i] || "users") +
-          "<span>" +
+          "</span><span>" +
           esc(k.label) +
           "</span></span>" +
           '<span class="mk-leads-kpi-card__trend' +

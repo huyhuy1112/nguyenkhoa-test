@@ -48,5 +48,6 @@
       return ICONS[name] || "";
     },
     KPI: ["users", "clock", "check", "repeat", "crown", "alert", "trend"],
+    KPI_TONES: ["blue", "violet", "emerald", "cyan", "amber", "rose", "indigo"],
   };
 })(typeof window !== "undefined" ? window : this);
