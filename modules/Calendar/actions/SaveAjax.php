@@ -8,7 +8,7 @@
  * All Rights Reserved.
  *************************************************************************************/
 
-class Calendar_SaveAjax_Action extends Vtiger_SaveAjax_Action {
+class Calendar_SaveAjax_Action extends Calendar_Save_Action {
 
 	public function checkPermission(Vtiger_Request $request) {
 		$moduleName = $request->getModule();

@@ -90,8 +90,13 @@ class Vtiger_RelatedList_View extends Vtiger_Index_View {
 			$noOfEntries = php7_count($models);
 		}
 		$relationModel = $relationListView->getRelationModel();
-		$relatedModuleModel = $relationModel->getRelationModuleModel();
-		$relationField = $relationModel->getRelationField();
+		if ($relationModel) {
+			$relatedModuleModel = $relationModel->getRelationModuleModel();
+			$relationField = $relationModel->getRelationField();
+		} else {
+			$relatedModuleModel = $relationListView->getRelatedModuleModel();
+			$relationField = false;
+		}
         
         $fieldsInfo = array();
         foreach($moduleFields as $fieldName => $fieldModel){
@@ -136,8 +141,8 @@ class Vtiger_RelatedList_View extends Vtiger_Index_View {
         $viewer->assign('FASORT_IMAGE',$faSortImage);
 		$viewer->assign('COLUMN_NAME',$orderBy);
 
-		$viewer->assign('IS_EDITABLE', $relationModel->isEditable());
-		$viewer->assign('IS_DELETABLE', $relationModel->isDeletable());
+		$viewer->assign('IS_EDITABLE', $relationModel ? $relationModel->isEditable() : false);
+		$viewer->assign('IS_DELETABLE', $relationModel ? $relationModel->isDeletable() : false);
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
 		$viewer->assign('VIEW', $request->get('view'));
 		$viewer->assign('PARENT_ID', $parentId);

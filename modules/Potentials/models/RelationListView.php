@@ -7,7 +7,8 @@ require_once 'modules/Vtiger/models/RelationListView.php';
  */
 class Potentials_RelationListView_Model extends Vtiger_RelationListView_Model {
 	public function getHeaders() {
-		$relatedModuleName = $this->getRelatedModuleName();
+		$relatedModuleModel = $this->getRelatedModuleModel();
+		$relatedModuleName = $relatedModuleModel ? $relatedModuleModel->getName() : '';
 		if ($relatedModuleName !== 'ProductsServices') {
 			return parent::getHeaders();
 		}

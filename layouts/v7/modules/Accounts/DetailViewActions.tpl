@@ -38,21 +38,19 @@
 				</button>
 			{/foreach}
 			{if !empty($DETAILVIEW_LINKS['DETAILVIEW']) && ($DETAILVIEW_LINKS['DETAILVIEW']|@count gt 0)}
-				<button type="button" class="btn btn-default mk-acc-detail-btn mk-acc-detail-btn--ghost dropdown-toggle" data-toggle="dropdown" href="javascript:void(0);">
+				<button type="button" class="btn btn-default mk-acc-detail-btn mk-acc-detail-btn--ghost mk-acc-detail-btn--icon-only dropdown-toggle" data-toggle="dropdown" title="{vtranslate('LBL_MORE', $MODULE_NAME)}" aria-label="{vtranslate('LBL_MORE', $MODULE_NAME)}" aria-haspopup="true" aria-expanded="false">
 					<span class="mk-acc-detail-btn__ic" aria-hidden="true">{include file="partials/AccountsDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='MORE'}</span>
-					<span class="mk-acc-detail-btn__txt">{vtranslate('LBL_MORE', $MODULE_NAME)}</span>
-					<span class="caret"></span>
 				</button>
-				<ul class="dropdown-menu dropdown-menu-right">
+				<ul class="dropdown-menu dropdown-menu-right" role="menu">
 					{foreach item=DETAIL_VIEW_LINK from=$DETAILVIEW_LINKS['DETAILVIEW']}
 						{if $DETAIL_VIEW_LINK->getLabel() eq ""}
 							<li class="divider"></li>
 						{else}
-							<li id="{$MODULE_NAME}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_LINK->getLabel())}">
+							<li id="{$MODULE_NAME}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_LINK->getLabel())}" role="presentation">
 								{if $DETAIL_VIEW_LINK->getUrl()|strstr:"javascript"}
-									<a href="{$DETAIL_VIEW_LINK->getUrl()}">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
+									<a href="{$DETAIL_VIEW_LINK->getUrl()}" role="menuitem">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
 								{else}
-									<a href="{$DETAIL_VIEW_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
+									<a href="{$DETAIL_VIEW_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}" role="menuitem">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
 								{/if}
 							</li>
 						{/if}

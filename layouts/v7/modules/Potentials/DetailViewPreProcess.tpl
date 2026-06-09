@@ -6,9 +6,9 @@
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.css')}" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.css')}&mk_v=20260605_rel_panel_v17" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.js')}&mk_v=20260605_rel_panel_v17"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-opportunity-detail="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">
@@ -35,7 +35,7 @@
 				<div class="detailview-content mk-opportunity-detailview-content">
 					<input id="recordId" type="hidden" value="{$RECORD->getId()}" />
 					{include file="ModuleRelatedTabs.tpl"|vtemplate_path:$MODULE}
-					<div class="details mk-opportunity-detail-details-row">
+					<div class="details row mk-opportunity-detail-details-row">
 {/strip}
 {else}
 {include file="DetailViewPreProcess.tpl"|@vtemplate_path:'Vtiger'}

@@ -94,5 +94,27 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 
 		return $linkModelList;
 	}
+
+	/**
+	 * Quotes SALES: show ProductsServices tab with clear label (match Order detail).
+	 */
+	public function getDetailViewRelatedLinks() {
+		$links = parent::getDetailViewRelatedLinks();
+		$result = array();
+		foreach ($links as $link) {
+			$relatedModule = isset($link['relatedModuleName']) ? $link['relatedModuleName'] : null;
+			if ($relatedModule === 'Products') {
+				continue;
+			}
+			if ($relatedModule === 'Services') {
+				continue;
+			}
+			if ($relatedModule === 'ProductsServices') {
+				$link['linklabel'] = 'Product And Service';
+			}
+			$result[] = $link;
+		}
+		return $result;
+	}
 		
 }

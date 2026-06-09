@@ -192,7 +192,8 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] #mk-dash-spli
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
     position: relative;
     display: block;
@@ -212,7 +213,8 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-app-shell
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
     margin-left: var(--mk-dash-sidebar-w);
     width: calc(100% - var(--mk-dash-sidebar-w));
@@ -238,7 +240,8 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-app-shell
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav,
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-app-shell-subnav {
     flex: 0 0 auto;
 }
@@ -258,7 +261,7 @@ body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dash-main
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
 body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-dash-main.mk-camp-detail-main {
     flex: 1 1 auto;
@@ -323,7 +326,8 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-topbar,
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-topbar,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-topbar,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-topbar,
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-topbar,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-topbar,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-topbar {
     height: 0;
     margin: 0;
@@ -344,7 +348,8 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-topbar .m
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
     position: fixed;
     top: 0;
@@ -374,7 +379,8 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dash-app-
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-app-topbar .mk-dash-app-topbar-row > .mk-dash-app-navbar-header {
     flex: 0 0 auto !important;
     width: auto !important;
@@ -408,7 +414,8 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-dashboard
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar {
     top: 0;
     height: 100vh;
@@ -890,7 +897,8 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dash-side
         body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
         body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
     body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
-    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+    body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-sidebar-mobile-toggle {
         display: flex;
         align-items: center;
@@ -922,7 +930,8 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-das
         body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
         body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
     body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
-    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+    body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar {
         transform: translateX(-105%);
         transition: transform 0.22s ease;
@@ -942,7 +951,8 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-das
         body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
         body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
     body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
-    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+    body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open {
         transform: translateX(0);
     }
@@ -960,7 +970,8 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-das
         body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop,
         body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop,
     body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop,
-    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+    body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-drawer-backdrop {
         display: block;
         position: fixed;
@@ -985,7 +996,8 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"].mk-dash
         body[data-module="Contacts"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
         body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
     body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
-    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+    body[data-module="Potentials"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"].mk-dash-drawer-open .mk-dash-drawer-backdrop {
         opacity: 1;
         pointer-events: auto;
@@ -1003,7 +1015,8 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-app
         body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
         body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
     body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
-    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+    body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
         margin-left: 0 !important;
         width: 100% !important;
@@ -1023,7 +1036,8 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-top
         body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
         body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
     body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
-    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+    body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
         left: 0 !important;
         right: 0 !important;
@@ -1037,7 +1051,8 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-t
         body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
         body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
     body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
-    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"],
+    body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+    body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-main {
         padding: 8px 16px 24px;
     }

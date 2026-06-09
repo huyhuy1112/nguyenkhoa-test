@@ -55,6 +55,9 @@ class Vtiger_RelationListView_Model extends Vtiger_Base_Model {
 		if(in_array($relatedModel->getName(), getInventoryModules())){
 			$createViewUrl.='&relationOperation=true';
 		}
+		if($relatedModel->getName() === 'Calendar'){
+			$createViewUrl .= '&relationOperation=true&sourceModule='.$parentModule->getName().'&sourceRecord='.$parentRecordModule->getId();
+		}
 		//To keep the reference fieldname and record value in the url if it is direct relation
 		if($relationModel->isDirectRelation()) {
 			$relationField = $relationModel->getRelationField();
@@ -96,7 +99,8 @@ class Vtiger_RelationListView_Model extends Vtiger_Base_Model {
 		$createViewUrl = $relatedModel->getCreateEventRecordUrl().'&returnmode=showRelatedList&returntab_label='.$relationModel->get('label').
 							'&returnrecord='.$parentRecordModule->getId().'&returnmodule='.$parentModule->get('name').
 							'&returnview=Detail&returnrelatedModuleName=Calendar'.
-							'&returnrelationId='.$relationModel->getId();
+							'&returnrelationId='.$relationModel->getId().
+							'&relationOperation=true&sourceModule='.$parentModule->getName().'&sourceRecord='.$parentRecordModule->getId();
 		//To keep the reference fieldname and record value in the url if it is direct relation
 		if($relationModel->isDirectRelation()) {
 			$relationField = $relationModel->getRelationField();
@@ -114,7 +118,8 @@ class Vtiger_RelationListView_Model extends Vtiger_Base_Model {
 		$createViewUrl = $relatedModel->getCreateTaskRecordUrl().'&returnmode=showRelatedList&returntab_label='.$relationModel->get('label').
 							'&returnrecord='.$parentRecordModule->getId().'&returnmodule='.$parentModule->get('name').
 							'&returnview=Detail&returnrelatedModuleName=Calendar'.
-							'&returnrelationId='.$relationModel->getId();
+							'&returnrelationId='.$relationModel->getId().
+							'&relationOperation=true&sourceModule='.$parentModule->getName().'&sourceRecord='.$parentRecordModule->getId();
 
 		//To keep the reference fieldname and record value in the url if it is direct relation
 		if($relationModel->isDirectRelation()) {
@@ -176,7 +181,7 @@ class Vtiger_RelationListView_Model extends Vtiger_Base_Model {
 		}
 		$relatedModel = $relationModel->getRelationModuleModel();
 
-		if($relatedModel->get('label') == 'Calendar'){
+		if($relatedModel->getName() === 'Calendar'){
 			if($relatedModel->isPermitted('CreateView')) {
 				$addLinkList[] = array(
 					'linktype' => 'LISTVIEWBASIC',

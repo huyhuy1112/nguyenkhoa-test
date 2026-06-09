@@ -904,12 +904,18 @@
 					}
 					return;
 				}
-				try {
-					if (typeof app !== 'undefined' && app.helper && app.helper.hideProgress) {
-						app.helper.hideProgress();
-					}
-				} catch (eHide) {
-					/* ignore */
+				/* Mass delete / paging: shell swap can fail on unexpected PJAX markup — never leave blank list. */
+				originalPlace.call(this, contents);
+				finalizeSalesListSearchUi(
+					searchOpts.preserveSearchRow ? { skipSearchReinit: true } : {},
+					focusState
+				);
+				hideProgressSafe();
+				if (
+					isPotentialsSalesList() &&
+					typeof window.mkPotentialsListAfterAjax === 'function'
+				) {
+					window.mkPotentialsListAfterAjax();
 				}
 				return;
 			}

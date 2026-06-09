@@ -20,6 +20,10 @@
 <svg class="mk-acc-tab-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4h10v16H7V4z" stroke="currentColor" stroke-width="1.6"/><path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
 {elseif $MK_TAB_MOD eq 'Emails'}
 <svg class="mk-acc-tab-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16v12H4V6z" stroke="currentColor" stroke-width="1.6"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+{elseif $MK_TAB_MOD eq 'ServiceContracts'}
+<svg class="mk-acc-tab-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 4h12v16H6V4z" stroke="currentColor" stroke-width="1.6"/><path d="M9 8h6M9 12h5M9 16h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M14 4v3h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+{elseif $MK_TAB_MOD eq 'ProductsServices'}
+<svg class="mk-acc-tab-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9l8-4 8 4v6l-8 4-8-4V9z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 13v6M4 9l8 4 8-4" stroke="currentColor" stroke-width="1.6"/></svg>
 {elseif $MK_TAB_MOD eq 'Campaigns'}
 <svg class="mk-acc-tab-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 11V6l12-3v11" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 14a3 3 0 1 0 6 0v-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
 {else}

@@ -228,6 +228,9 @@ class Inventory_Detail_View extends Vtiger_Detail_View {
 			$viewer->assign('PAGING_MODEL', $pagingModel);
 			$viewer->assign('PAGE_NUMBER', $pageNumber);
 			$viewer->assign('ACTIVITIES', $relatedActivities);
+			if ($request->get('app')) {
+				$viewer->assign('SELECTED_MENU_CATEGORY', $request->get('app'));
+			}
 
 			return $viewer->view('RelatedActivities.tpl', $moduleName, true);
 		}

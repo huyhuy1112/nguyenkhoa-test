@@ -5,7 +5,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260606_search4';
+	var MK_BUILD = '20260606_massdel1';
 	var autoSearchTimer = null;
 	var inflightSearchId = 0;
 
@@ -644,7 +644,8 @@
 			var self = this;
 			var origPlace = self.placeListContents;
 			self.placeListContents = function (contents) {
-				if (renderId !== inflightSearchId) {
+				/* Only drop stale search responses — never block mass-delete / paging reloads. */
+				if (inflightSearchId > renderId) {
 					hideProgressSafe();
 					return;
 				}
@@ -654,6 +655,66 @@
 			self.placeListContents = origPlace;
 		};
 		proto.__mkOppPostLoad = true;
+	}
+
+	function patchPotentialsMassDelete() {
+		if (!window.Vtiger_List_Js || !Vtiger_List_Js.prototype || Vtiger_List_Js.prototype.__mkOppMassDelete) {
+			return;
+		}
+		var proto = Vtiger_List_Js.prototype;
+		var origMassDelete = proto.performMassDeleteRecords;
+		proto.performMassDeleteRecords = function (url) {
+			if (!isSalesOpportunityList()) {
+				return origMassDelete.apply(this, arguments);
+			}
+			if (autoSearchTimer) {
+				clearTimeout(autoSearchTimer);
+				autoSearchTimer = null;
+			}
+			var listInstance = this;
+			var params = {};
+			var paramArray = url.slice(url.indexOf('?') + 1).split('&');
+			var i;
+			for (i = 0; i < paramArray.length; i++) {
+				var param = paramArray[i].split('=');
+				params[param[0]] = param[1];
+			}
+			var listSelectParams = listInstance.getListSelectAllParams(true);
+			listSelectParams = $.extend(listSelectParams, params);
+			if (!listSelectParams) {
+				listInstance.noRecordSelectedAlert();
+				return;
+			}
+			var message = app.vtranslate('LBL_MASS_DELETE_CONFIRMATION');
+			app.helper.showConfirmationBox({ message: message }).then(function () {
+				var reloadId = ++inflightSearchId;
+				listSelectParams.module = app.getModuleName();
+				listSelectParams.action = 'MassDelete';
+				listSelectParams.search_params = JSON.stringify(listInstance.getListSearchParams());
+				app.helper.showProgress();
+				app.request.post({ data: listSelectParams }).then(function (error, result) {
+					app.helper.hideProgress();
+					if (error) {
+						app.helper.showErrorNotification();
+						return;
+					}
+					listInstance.clearList();
+					listInstance.getPageCount().then(function (data) {
+						var pageCount = parseInt(data.page, 10);
+						var container = listInstance.getListViewContainer();
+						var currentPageNumber = parseInt(container.find('#pageNumber').val(), 10);
+						var loadParams = {};
+						if (currentPageNumber > pageCount) {
+							loadParams.page = '1';
+						}
+						listInstance.loadListViewRecords(loadParams).done(function (html) {
+							applyPotentialsListResponse(html, reloadId);
+						});
+					});
+				});
+			});
+		};
+		proto.__mkOppMassDelete = true;
 	}
 
 	function patchVtigerListHooks() {
@@ -947,6 +1008,7 @@
 		whenReady(function () {
 			patchVtigerListHooks();
 			patchPotentialsPostLoad();
+			patchPotentialsMassDelete();
 			bindListEvents();
 			bindSelect2FilterDrop();
 			afterListLayout();

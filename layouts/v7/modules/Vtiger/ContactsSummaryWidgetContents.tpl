@@ -14,7 +14,7 @@
 	{foreach item=RELATED_RECORD from=$RELATED_RECORDS}
 		<div class="recentActivitiesContainer row">
 			<ul class="unstyled">
-				<li>
+				<li> 
 					<div class="">
 						<div class="textOverflowEllipsis">
 							<a href="{$RELATED_RECORD->getDetailViewUrl()}" id="{$MODULE}_{$RELATED_MODULE}_Related_Record_{$RELATED_RECORD->get('id')}" title="{Vtiger_Util_Helper::getRecordName($RELATED_RECORD->get('id'))}">

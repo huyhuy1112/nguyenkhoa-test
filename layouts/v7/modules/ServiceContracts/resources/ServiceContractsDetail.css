@@ -392,6 +392,21 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	align-items: center;
 	justify-content: flex-end;
 	gap: 8px;
+	position: relative;
+	z-index: 2;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-actions__group.open {
+	z-index: 120;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-actions__group .dropdown-menu {
+	z-index: 1300;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-hero-strip,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-hero__row {
+	overflow: visible;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-btn {
@@ -491,8 +506,8 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	flex-wrap: nowrap !important;
 	align-items: center;
 	width: 100%;
-	min-height: 44px;
-	height: 44px;
+	min-height: 48px;
+	height: 48px;
 	overflow-x: auto;
 	overflow-y: hidden;
 	gap: 0;
@@ -504,7 +519,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	flex: 1 1 8px;
 	min-width: 8px;
 	max-width: 9999px;
-	height: 44px;
+	height: 48px;
 	margin: 0;
 	padding: 0;
 	border: none;
@@ -515,15 +530,32 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.related-tab-more-element {
 	margin-left: auto;
 	flex: 0 0 auto;
+	position: relative;
+	z-index: 12;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) {
+	flex: 0 0 auto;
+	flex-shrink: 0;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) > a.mk-sc-detail-primary-tab-link,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) > a.mk-sc-detail-primary-tab-link .tab-label {
+	overflow: visible !important;
+	text-overflow: clip !important;
+	white-space: nowrap !important;
+	max-width: none !important;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) > a.mk-sc-detail-primary-tab-link {
+	flex-shrink: 0;
+	padding: 0 14px !important;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module],
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] {
 	flex: 0 0 auto;
-}
-
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) {
-	flex: 0 0 auto;
+	flex-shrink: 0;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-tab-icon .vicon,
@@ -532,20 +564,87 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	display: none !important;
 }
 
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-tab-svg {
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-tab-svg,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-tab-icon-svg .mk-contact-tab-svg {
 	display: block;
 	width: 20px;
 	height: 20px;
 	color: #64748b;
 }
 
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-tab-icon-svg {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	line-height: 0;
+	color: #64748b;
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-tab-icon-svg .mk-contact-tab-svg {
+	display: block;
+	width: 20px;
+	height: 20px;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .tab-icon .vicon {
+	display: none !important;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-tab-more-svg {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #6b6358;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element > a.dropdown-toggle {
+	cursor: pointer;
+	pointer-events: auto;
+	position: relative;
+	z-index: 13;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element > a .mk-sc-tab-more-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 34px;
+	min-height: 34px;
+	padding: 0;
+	pointer-events: none;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element .dropdown-menu {
+	z-index: 1300;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-btn--icon-only {
+	min-width: 40px;
+	padding-left: 10px !important;
+	padding-right: 10px !important;
+	cursor: pointer;
+	pointer-events: auto;
+	position: relative;
+	z-index: 3;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-btn--icon-only .mk-sc-detail-btn__ic {
+	pointer-events: none;
+}
+
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element {
-	margin-bottom: -1px !important;
+	margin-bottom: 0 !important;
 	margin-right: 4px;
 	float: none;
 	border: none !important;
+	display: flex;
+	align-items: center;
+	align-self: stretch;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item > a,
@@ -553,16 +652,29 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .rela
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element > a {
 	border: none !important;
 	border-radius: 0;
-	padding: 12px 14px 10px;
+	padding: 0 12px;
+	min-height: 48px;
+	height: 48px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
 	margin-bottom: 0;
 	font-weight: 600;
 	font-size: 13px;
+	line-height: 1.2;
 	color: #6b6358;
 	background: transparent;
 	border-bottom: none !important;
 	box-shadow: none !important;
 	text-decoration: none !important;
 	position: relative;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) > a .tab-label {
+	display: inline-flex;
+	align-items: center;
+	height: 100%;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
@@ -597,10 +709,19 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .rela
 }
 
 /* Related-module icon tabs (right side) */
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module],
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] {
+	display: flex;
+	align-items: center;
+	align-self: stretch;
+}
+
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a {
 	position: relative;
-	padding: 4px 4px !important;
+	padding: 0 4px !important;
+	min-height: 48px;
+	height: 48px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;

@@ -108,7 +108,7 @@
                     {foreach item=HEADER_FIELD from=$RELATED_HEADERS}
                     {* hide time_start,time_end columns in the list as they are merged with with Start Date and End Date fields *}
                         {if $HEADER_FIELD->get('column') eq 'time_start' or $HEADER_FIELD->get('column') eq 'time_end'}
-                            <th class="nowrap" style="width:15px">
+                            <th class="nowrap mk-rel-spacer-col" style="width:15px">
                         {else}
                         <th class="nowrap">
                             {if $HEADER_FIELD->get('column') eq "access_count" or $HEADER_FIELD->get('column') eq "idlists"}
@@ -137,9 +137,10 @@
                             <button class="btn btn-success btn-sm" data-trigger="relatedListSearch">{vtranslate("LBL_SEARCH",$MODULE)}</button>
                         </th>
                             {foreach item=HEADER_FIELD from=$RELATED_HEADERS}
+                                {if $HEADER_FIELD->get('column') eq 'time_start' or $HEADER_FIELD->get('column') eq 'time_end'}
+                                    <th class="mk-rel-spacer-col"></th>
+                                {else}
                                 <th>
-                                    {if $HEADER_FIELD->get('column') eq 'time_start' or $HEADER_FIELD->get('column') eq 'time_end' or $HEADER_FIELD->get('column') eq 'folderid' or $HEADER_FIELD->getFieldDataType() eq 'reference'}
-                                    {else}    
                                         {assign var=FIELD_UI_TYPE_MODEL value=$HEADER_FIELD->getUITypeModel()}
                                         {assign var=SEARCH_DETAILS_FIELD_INFO value=array('searchValue' => '', 'comparator' => '')}
                                         {if isset($SEARCH_DETAILS[$HEADER_FIELD->getName()])}
@@ -148,8 +149,8 @@
                                         {include file=vtemplate_path($FIELD_UI_TYPE_MODEL->getListSearchTemplateName(),$RELATED_MODULE_NAME)
                                         FIELD_MODEL= $HEADER_FIELD SEARCH_INFO=$SEARCH_DETAILS_FIELD_INFO USER_MODEL=$USER_MODEL}
                                         <input type="hidden" class="operatorValue" value="{$SEARCH_DETAILS_FIELD_INFO['comparator']}">
-                                    {/if}
                                 </th>
+                                {/if}
                             {/foreach}
                 </tr>
             </thead>
@@ -164,7 +165,7 @@
                                         {else}
                         data-recordUrl='{$RELATED_RECORD->getDetailViewUrl()}'
                                         {/if}>
-                    <td style="width:100px">&nbsp;&nbsp;&nbsp;
+                    <td class="related-list-actions">
                         <span class="actionImages">
                             <a name="relationEdit" data-url="{$RELATED_RECORD->getEditViewUrl()}"><i title="{vtranslate('LBL_EDIT', $MODULE)}" class="fa fa-pencil"></i></a> &nbsp;&nbsp;
                             {if $IS_DELETABLE}
@@ -190,7 +191,7 @@
                                 {assign var=IS_DOCUMENT_SOURCE_FIELD value=1}
                             {/if}
                         {/if}
-                       <td class="{$WIDTHTYPE} relatedListEntryValues " data-field-type="{$HEADER_FIELD->getFieldDataType()}" nowrap style="width:inherit;">
+                       <td class="relatedListEntryValues{if $RELATED_HEADERNAME eq 'time_start' or $RELATED_HEADERNAME eq 'time_end'} mk-rel-spacer-col{/if}" data-field-type="{$HEADER_FIELD->getFieldDataType()}" nowrap>
                             {if $RELATED_MODULE->get('name') eq 'Documents' && $RELATED_HEADERNAME eq 'document_source'}
 								<center>{$RELATED_RECORD->get($RELATED_HEADERNAME)}</center>
                             {else}

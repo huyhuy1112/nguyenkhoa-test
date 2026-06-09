@@ -38,12 +38,10 @@
 				</button>
 			{/foreach}
 			{if !empty($DETAILVIEW_LINKS['DETAILVIEW']) && ($DETAILVIEW_LINKS['DETAILVIEW']|@count gt 0)}
-				<button type="button" class="btn btn-default mk-sc-detail-btn mk-sc-detail-btn--ghost dropdown-toggle" data-toggle="dropdown" href="javascript:void(0);">
+				<button type="button" class="btn btn-default mk-sc-detail-btn mk-sc-detail-btn--ghost mk-sc-detail-btn--icon-only dropdown-toggle" data-toggle="dropdown" title="{vtranslate('LBL_MORE', $MODULE_NAME)}" aria-label="{vtranslate('LBL_MORE', $MODULE_NAME)}" aria-haspopup="true" aria-expanded="false">
 					<span class="mk-sc-detail-btn__ic" aria-hidden="true">{include file="partials/ContactDetailSvgIcon.tpl"|@vtemplate_path:'Contacts' ICON='MORE'}</span>
-					<span class="mk-sc-detail-btn__txt">{vtranslate('LBL_MORE', $MODULE_NAME)}</span>
-					<span class="caret"></span>
 				</button>
-				<ul class="dropdown-menu dropdown-menu-right">
+				<ul class="dropdown-menu dropdown-menu-right" role="menu">
 					{foreach item=DETAIL_VIEW_LINK from=$DETAILVIEW_LINKS['DETAILVIEW']}
 						{if $DETAIL_VIEW_LINK->getLabel() eq ""}
 							<li class="divider"></li>

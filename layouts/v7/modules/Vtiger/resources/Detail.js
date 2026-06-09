@@ -1711,6 +1711,12 @@ Vtiger.Class("Vtiger_Detail_Js",{
 				params['view'] = 'Detail';
 				params['module'] = module;
 				params['mode'] = 'getActivities';
+				if (typeof app !== 'undefined' && app && typeof app.getAppName === 'function') {
+					var appName = app.getAppName();
+					if (appName) {
+						params['app'] = appName;
+					}
+				}
 
 				app.request.post({"data":params}).then(
 					function(err,data) {

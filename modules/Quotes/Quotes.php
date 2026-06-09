@@ -440,6 +440,7 @@ class Quotes extends CRMEntity {
 			"Accounts" => array("vtiger_quotes"=>array("quoteid","accountid")),
 			"Contacts" => array("vtiger_quotes"=>array("quoteid","contactid")),
 			"Potentials" => array("vtiger_quotes"=>array("quoteid","potentialid")),
+			"ProductsServices" => array("vtiger_crmentityrel"=>array("crmid","relcrmid"),"vtiger_quotes"=>"quoteid"),
 		);
 		return $rel_tables[$secmodule];
 	}

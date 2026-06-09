@@ -12,7 +12,9 @@
 		<script type="{$jsModel->getType()}" src="{$jsModel->getSrc()}"></script>
 	{/foreach}
 	{if $MODULE eq 'Calendar' || $MODULE eq 'Events'}
-	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Calendar/resources/CalendarQuickCreateTask.css')}&mk_v=20260603_event_ui" />
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Calendar/resources/CalendarQuickCreateTask.css')}&mk_v=20260605_event_ui_v2" />
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesQuickCreate.css')}&mk_v=20260605_mk_qc_v2" />
+	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesQuickCreate.js')}&mk_v=20260605_mk_qc_v2"></script>
 	{/if}
 	<div class="modal-dialog modal-md{if $MODULE eq 'Calendar'} mk-qc-task-modal{elseif $MODULE eq 'Events'} mk-qc-event-modal{/if}">
 		<div class="modal-content">
@@ -22,7 +24,11 @@
 				{else}
 					{assign var=HEADER_TITLE value={vtranslate('LBL_QUICK_CREATE', $MODULE)}|cat:" "|cat:{vtranslate('SINGLE_'|cat:$MODULE, $MODULE)}}
 				{/if}
-				{include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$HEADER_TITLE}
+				{if $MODULE eq 'Events'}
+					{include file="partials/MkSalesQuickCreateModalHeader.tpl"|vtemplate_path:'Vtiger' TITLE=$HEADER_TITLE}
+				{else}
+					{include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$HEADER_TITLE}
+				{/if}
 
 				<div class="modal-body">
 					{if !empty($PICKIST_DEPENDENCY_DATASOURCE)}

@@ -1,5 +1,5 @@
 /**
- * Accounts Organizations Detail (Sales + Marketing): related-tab badge refresh; does not replace Vtiger Detail.js.
+ * Accounts Organizations Detail (Sales + Marketing): related-tab badge refresh; dropdown click fixes.
  */
 (function ($) {
 	'use strict';
@@ -28,12 +28,65 @@
 		}
 	}
 
+	function toggleDropdown($parent, open) {
+		if (!$parent || !$parent.length) {
+			return;
+		}
+		if (open) {
+			$parent.addClass('open');
+			$parent.find('.dropdown-toggle').attr('aria-expanded', 'true');
+		} else {
+			$parent.removeClass('open');
+			$parent.find('.dropdown-toggle').attr('aria-expanded', 'false');
+		}
+	}
+
+	function bindDropdownClicks() {
+		var $doc = $(document);
+
+		$doc.off('click.mkAccHeaderMore', '.mk-acc-detail-actions__group > .dropdown-toggle');
+		$doc.on('click.mkAccHeaderMore', '.mk-acc-detail-actions__group > .dropdown-toggle', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $group = $(this).closest('.mk-acc-detail-actions__group');
+			var shouldOpen = !$group.hasClass('open');
+			$('.mk-acc-detail-actions__group, .mk-acc-detail-related-tabs .related-tab-more-element').removeClass('open');
+			$('.mk-acc-detail-actions__group .dropdown-toggle, .mk-acc-detail-related-tabs .related-tab-more-element .dropdown-toggle').attr('aria-expanded', 'false');
+			if (shouldOpen) {
+				toggleDropdown($group, true);
+			}
+		});
+
+		$doc.off('click.mkAccTabMore', '.mk-acc-detail-related-tabs .related-tab-more-element > .dropdown-toggle');
+		$doc.on('click.mkAccTabMore', '.mk-acc-detail-related-tabs .related-tab-more-element > .dropdown-toggle', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $li = $(this).closest('.related-tab-more-element');
+			var shouldOpen = !$li.hasClass('open');
+			$('.mk-acc-detail-actions__group, .mk-acc-detail-related-tabs .related-tab-more-element').removeClass('open');
+			$('.mk-acc-detail-actions__group .dropdown-toggle, .mk-acc-detail-related-tabs .related-tab-more-element .dropdown-toggle').attr('aria-expanded', 'false');
+			if (shouldOpen) {
+				toggleDropdown($li, true);
+			}
+		});
+
+		$doc.off('click.mkAccDropdownClose');
+		$doc.on('click.mkAccDropdownClose', function (e) {
+			if ($(e.target).closest('.mk-acc-detail-actions__group, .related-tab-more-element').length) {
+				return;
+			}
+			$('.mk-acc-detail-actions__group, .mk-acc-detail-related-tabs .related-tab-more-element').removeClass('open');
+			$('.mk-acc-detail-actions__group .dropdown-toggle, .mk-acc-detail-related-tabs .related-tab-more-element .dropdown-toggle').attr('aria-expanded', 'false');
+		});
+	}
+
 	function boot() {
 		if (!isScopedBody()) {
 			return;
 		}
 		document.body.classList.add('mk-acc-detail-modern');
 		refreshRelatedBadges();
+		bindDropdownClicks();
 
 		var tabs = document.querySelector('.mk-acc-detail-related-tabs');
 		if (tabs && typeof MutationObserver !== 'undefined') {
