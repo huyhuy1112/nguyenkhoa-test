@@ -1,32 +1,24 @@
-{* All Leads — SALES app *}
+{* All Leads — matches b-ace.lovable.app/leads *}
 {strip}
 <div class="mk-leads-header">
-	<nav class="mk-leads-breadcrumb" aria-label="Breadcrumb">
-		<ol class="mk-leads-breadcrumb__list">
-			<li class="mk-leads-breadcrumb__item">
-				<a href="index.php?module=Home&amp;view=DashBoard&amp;app=SALES">{vtranslate('LBL_SALES', 'Vtiger')}</a>
-			</li>
-			<li class="mk-leads-breadcrumb__sep" aria-hidden="true">&gt;</li>
-			<li class="mk-leads-breadcrumb__item mk-leads-breadcrumb__item--current">
-				<span>{vtranslate('Leads', 'Leads')}</span>
-			</li>
-		</ol>
-	</nav>
-
 	<header class="mk-leads-action-header" role="region" aria-label="{vtranslate('Leads', 'Leads')}">
 		<div class="mk-leads-action-header__text">
 			<h1 class="mk-leads-action-header__title">All Leads</h1>
-			<p class="mk-leads-action-header__subtitle"><span>Tag-driven segmentation · </span><span id="mk-leads-count">21 of 21</span></p>
+			<p class="mk-leads-action-header__subtitle">Tag-driven CRM workspace — manage, segment, and accelerate every conversation.</p>
 		</div>
 		<div class="mk-leads-action-header__actions">
-			<div class="mk-leads-search">
-				<span class="mk-leads-search__ic" aria-hidden="true">
-					{include file="partials/DashboardTopbarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='SEARCH'}
-				</span>
-				<input class="mk-leads-search__input" id="mk-leads-search" type="search" placeholder="Search name or phone..." value="" />
+			<div class="mk-leads-export-wrap" id="mk-leads-export-wrap">
+				<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-export-btn" aria-haspopup="true" aria-expanded="false">
+					<span class="mk-leads-btn__ic" id="mk-leads-export-ic" aria-hidden="true"></span>
+					<span class="mk-leads-btn__txt">Export</span>
+				</button>
+				<div class="mk-leads-export-menu" id="mk-leads-export-menu" hidden>
+					<button type="button" data-export="csv">CSV</button>
+					<button type="button" data-export="print">PDF (print)</button>
+				</div>
 			</div>
 			<button type="button" class="mk-leads-btn mk-leads-btn--primary" onclick="window.location.href='index.php?module=Leads&amp;view=Edit&amp;app=SALES'">
-				<span class="mk-leads-btn__ic" aria-hidden="true">{include file="partials/DashboardTopbarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='PLUS'}</span>
+				<span class="mk-leads-btn__ic" id="mk-leads-create-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">Create Lead</span>
 			</button>
 		</div>

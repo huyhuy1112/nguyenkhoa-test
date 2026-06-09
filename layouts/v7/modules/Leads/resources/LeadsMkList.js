@@ -1,584 +1,694 @@
-/* Leads list — SALES modern UI (dummy data + client-side filters). */
+/* Leads list — b-ace.lovable.app/leads (localStorage cache, no DB) */
 (function () {
   "use strict";
+
+  var ANY = "__any__";
+  var PAGE_SIZE = 15;
+  var logic = window.LeadsLeadsLogic;
+  var ref = window.LeadsLovableRef;
+  var store = window.LeadsLocalStore;
+  var icons = window.LeadsMkIcons;
+
+  function ic(name) {
+    return icons && icons.get ? icons.get(name) : "";
+  }
+
+  var SOURCE_TAGS = ["facebook", "tiktok", "website", "zalo", "other"];
+  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"];
+  var PURCHASE_TAGS = ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"];
+  var TIER_TAGS = ["vang", "bac", "dong"];
+
+  var PRESET_SEGMENTS = (ref && ref.PRESET_SEGMENTS) || [
+    { id: "new", name: "Khách mới", filters: { purchase: "mua_lan_dau" } },
+    { id: "gold", name: "Khách vàng", filters: { tier: "vang" } },
+    { id: "repeat", name: "Khách mua lại", filters: { purchase: "mua_lai" } },
+    { id: "nobuy", name: "Khách không mua", filters: { purchase: "khong_mua" } },
+    { id: "chain", name: "Khách chuỗi (PCTH)", filters: { program: "pcth" } },
+    { id: "franchise", name: "Khách nhượng quyền", filters: { program: "nhuong_quyen" } },
+    { id: "cskh", name: "Khách cần CSKH", filters: { staleOnly: true } },
+  ];
+
+  var EMPTY = {
+    search: "",
+    source: ANY,
+    program: ANY,
+    purchase: ANY,
+    tier: ANY,
+    owner: ANY,
+    area: ANY,
+    segment: ANY,
+    touchRange: "any",
+    staleOnly: false,
+    hasNextAction: false,
+    hasOpenTicket: false,
+  };
+
+  var state = {
+    filters: Object.assign({}, EMPTY),
+    sortKey: "last_touch",
+    sortDir: "desc",
+    page: 1,
+    selected: {},
+    activeSegment: null,
+    filtersOpen: true,
+  };
 
   function $(id) {
     return document.getElementById(id);
   }
 
-  function formatVnd(n) {
-    try {
-      return new Intl.NumberFormat("vi-VN").format(n) + " ₫";
-    } catch (e) {
-      return String(n) + " ₫";
-    }
+  function tagMeta(t) {
+    return ref && ref.tagMeta ? ref.tagMeta(t) : { label: t, cls: "mk-tag" };
   }
 
-  function normalize(s) {
+  function esc(s) {
     return String(s || "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim();
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/"/g, "&quot;");
   }
 
-  var ALL = [
-    {
-      id: "L004",
-      name: "Phạm Quốc Dũng",
-      phone: "0978 111 222",
-      type: "Franchise",
-      stage: "New Purchase",
-      tier: "Gold",
-      owner: "Hà",
-      lastTouch: "Today",
-      nextAction: "Ký nhượng quyền khu vực",
-      value: 48000000,
-      priority: null,
-      stale: false,
-    },
-    {
-      name: "Cao Thanh Tùng",
-      phone: "0904 555 013",
-      type: "PCTH Program",
-      stage: "Repeat Purchase",
-      tier: "Gold",
-      owner: "Linh",
-      lastTouch: "Today",
-      nextAction: "Demo PCTH advanced",
-      value: 28400000,
-      priority: "HIGH",
-      stale: false,
-    },
-    {
-      name: "Nguyễn Văn An",
-      phone: "0901 234 567",
-      type: "Free Class",
-      stage: "New Purchase",
-      tier: "Gold",
-      owner: "Linh",
-      lastTouch: "1d ago",
-      nextAction: "Gọi tư vấn khoá nâng cao",
-      value: 12000000,
-      priority: null,
-      stale: false,
-    },
-    {
-      name: "Tô Quang Long",
-      phone: "0909 121 212",
-      type: "PCTH Program",
-      stage: "Repeat Purchase",
-      tier: "Gold",
-      owner: "Hà",
-      lastTouch: "1d ago",
-      nextAction: "Ký hợp đồng PCTH",
-      value: 19800000,
-      priority: "HIGH",
-      stale: false,
-    },
-    {
-      name: "Bùi Phương Mai",
-      phone: "0909 555 018",
-      type: "PCTH Program",
-      stage: "New Purchase",
-      tier: "Gold",
-      owner: "Hà",
-      lastTouch: "1d ago",
-      nextAction: "Demo onsite",
-      value: 11300000,
-      priority: null,
-      stale: false,
-    },
-    // Fill up to 21 rows (dummy, UI-only)
-    {
-      name: "Đỗ Thanh Giang",
-      phone: "0945 678 901",
-      type: "PCTH Program",
-      stage: "New Purchase",
-      tier: "Gold",
-      owner: "Linh",
-      lastTouch: "2d ago",
-      nextAction: "Tư vấn MKT package",
-      value: 15000000,
-      priority: null,
-      stale: false,
-    },
-    {
-      name: "Lý Thiên Hương",
-      phone: "0906 555 011",
-      type: "Franchise",
-      stage: "Not Buying",
-      tier: "Silver",
-      owner: "Minh",
-      lastTouch: "2d ago",
-      nextAction: "Tư vấn franchise",
-      value: 14200000,
-      priority: null,
-      stale: false,
-    },
-    {
-      name: "Lê Minh Châu",
-      phone: "0987 654 321",
-      type: "Free Class",
-      stage: "New Purchase",
-      tier: "Silver",
-      owner: "Linh",
-      lastTouch: "3d ago",
-      nextAction: "Gửi tài liệu free",
-      value: 3200000,
-      priority: null,
-      stale: false,
-    },
-    {
-      name: "Hà Bảo Trân",
-      phone: "0908 777 333",
-      type: "Franchise",
-      stage: "New Purchase",
-      tier: "Gold",
-      owner: "Hà",
-      lastTouch: "3d ago",
-      nextAction: "Chốt franchise quận 7",
-      value: 22000000,
-      priority: null,
-      stale: false,
-    },
-    {
-      name: "Mai Thu Hương",
-      phone: "0922 555 666",
-      type: "Franchise",
-      stage: "Repeat Purchase",
-      tier: "Gold",
-      owner: "Hà",
-      lastTouch: "4d ago",
-      nextAction: "Lên kế hoạch nhượng quyền",
-      value: 32000000,
-      priority: "HIGH",
-      stale: false,
-    },
-    {
-      name: "Ngô Quỳnh Anh",
-      phone: "0907 555 016",
-      type: "PCTH Program",
-      stage: "New Purchase",
-      tier: "Silver",
-      owner: "Linh",
-      lastTouch: "4d ago",
-      nextAction: "Tư vấn lớp vận hành",
-      value: 7800000,
-      priority: null,
-      stale: false,
-    },
-    {
-      name: "Vũ Hồng Phúc",
-      phone: "0966 222 333",
-      type: "PCTH Program",
-      stage: "Repeat Purchase",
-      tier: "Silver",
-      owner: "Hà",
-      lastTouch: "5d ago",
-      nextAction: "Demo lớp vận hành",
-      value: 8900000,
-      priority: null,
-      stale: false,
-    },
-    {
-      name: "Phan Văn Nam",
-      phone: "0901 555 010",
-      type: "PCTH Program",
-      stage: "New Purchase",
-      tier: "Silver",
-      owner: "Linh",
-      lastTouch: "6d ago",
-      nextAction: "Demo phần mềm vận hành",
-      value: 9500000,
-      priority: null,
-      stale: false,
-    },
-    {
-      name: "Ngô Việt Khôi",
-      phone: "0911 777 888",
-      type: "PCTH Program",
-      stage: "New Purchase",
-      tier: "Silver",
-      owner: "Linh",
-      lastTouch: "8d ago",
-      nextAction: "Mời học thử PCTH",
-      value: 6700000,
-      priority: null,
-      stale: true,
-    },
-    {
-      name: "Đinh Khả Vy",
-      phone: "0905 555 014",
-      type: "Free Class",
-      stage: "New Purchase",
-      tier: "Bronze",
-      owner: "Minh",
-      lastTouch: "9d ago",
-      nextAction: "Mời học miễn phí",
-      value: 2100000,
-      priority: null,
-      stale: true,
-    },
-    {
-      name: "Trần Thị Bình",
-      phone: "0912 345 678",
-      type: "PCTH Program",
-      stage: "Repeat Purchase",
-      tier: "Gold",
-      owner: "Minh",
-      lastTouch: "10d ago",
-      nextAction: "Chốt hợp đồng PCTH",
-      value: 25500000,
-      priority: "HIGH",
-      stale: true,
-    },
-    {
-      name: "Trịnh Hoàng Sơn",
-      phone: "0903 555 012",
-      type: "PCTH Program",
-      stage: "New Purchase",
-      tier: "Bronze",
-      owner: "Hà",
-      lastTouch: "11d ago",
-      nextAction: "Gửi báo giá MKT",
-      value: 5500000,
-      priority: null,
-      stale: true,
-    },
-    {
-      name: "Hoàng Thu Em",
-      phone: "0934 567 890",
-      type: "Free Class",
-      stage: "Stopped",
-      tier: "Bronze",
-      owner: "Minh",
-      lastTouch: "14d ago",
-      nextAction: "Follow-up sau 2 tuần",
-      value: 1500000,
-      priority: null,
-      stale: true,
-    },
-    {
-      name: "Lê Trọng Đạt",
-      phone: "0908 555 321",
-      type: "PCTH Program",
-      stage: "Repeat Purchase",
-      tier: "Silver",
-      owner: "Minh",
-      lastTouch: "15d ago",
-      nextAction: "Follow-up sau khóa thử",
-      value: 17500000,
-      priority: null,
-      stale: true,
-    },
-    {
-      name: "Bùi Khánh Hà",
-      phone: "0903 333 444",
-      type: "PCTH Program",
-      stage: "Stopped",
-      tier: "Bronze",
-      owner: "Minh",
-      lastTouch: "20d ago",
-      nextAction: "Khảo sát lý do ngưng",
-      value: 4500000,
-      priority: null,
-      stale: true,
-    },
-    {
-      name: "Đặng Thảo Linh",
-      phone: "0988 999 000",
-      type: "Free Class",
-      stage: "Not Buying",
-      tier: "Bronze",
-      owner: "Minh",
-      lastTouch: "30d ago",
-      nextAction: "Đóng lead",
-      value: 0,
-      priority: null,
-      stale: true,
-    },
-  ];
-
-  var SOURCE_POOL = ["Facebook", "TikTok", "Website", "Zalo", "Other"];
-
-  var FILTER_DEFS = {
-    source: { field: "source", label: "Source", options: ["All"].concat(SOURCE_POOL) },
-    purchase: {
-      field: "stage",
-      label: "Purchase",
-      options: ["All", "New Purchase", "Repeat Purchase", "Not Buying", "Stopped"],
-    },
-    tier: { field: "tier", label: "Tier", options: ["All", "Gold", "Silver", "Bronze"] },
-    program: {
-      field: "program",
-      label: "Program",
-      options: ["All", "Franchise", "PCTH Program", "Free Class"],
-    },
-    owner: { field: "owner", label: "Owner", options: ["All", "Hà", "Linh", "Minh"] },
-  };
-
-  var state = {
-    q: "",
-    staleOnly: false,
-    source: "All",
-    purchase: "All",
-    tier: "All",
-    program: "All",
-    owner: "All",
-  };
-
-  function chipClass(kind, val) {
-    var t = normalize(val);
-    if (kind === "type") return "mk-chip mk-chip--blue";
-    if (kind === "stage") return "mk-chip mk-chip--purple";
-    if (kind === "tier") {
-      if (t.indexOf("silver") >= 0) return "mk-chip mk-chip--silver";
-      if (t.indexOf("bronze") >= 0) return "mk-chip mk-chip--bronze";
-      return "mk-chip mk-chip--gold";
-    }
-    return "mk-chip";
+  function getLeads() {
+    return store ? store.getLeads() : [];
   }
-
-  ALL.forEach(function (x, i) {
-    if (!x.id) {
-      x.id = "L" + String(i + 1).padStart(3, "0");
-    }
-    if (!x.source) {
-      x.source = SOURCE_POOL[i % SOURCE_POOL.length];
-    }
-    if (!x.program) {
-      x.program = x.type;
-    }
-  });
 
   function detailUrl(id) {
-    return (
-      "index.php?module=Leads&view=Detail&record=" +
-      encodeURIComponent(id) +
-      "&app=SALES"
-    );
+    return "index.php?module=Leads&view=Detail&record=" + encodeURIComponent(id) + "&app=SALES&mkLeadId=" + encodeURIComponent(id);
   }
 
-  function rowHtml(x) {
-    var high = x.priority === "HIGH";
-    return (
-      '<div class="mk-leads-tr' +
-      (high ? " mk-leads-tr--high" : "") +
-      '">' +
-      '<div class="mk-leads-td mk-leads-lead">' +
-      (high
-        ? '<div class="mk-leads-priority"><span class="mk-fire" aria-hidden="true">♨</span> HIGH</div>'
-        : "") +
-      '<div class="mk-leads-lead__name">' +
-      '<a class="mk-leads-lead__link" href="' +
-      detailUrl(x.id) +
-      '">' +
-      x.name +
-      "</a></div>" +
-      '<div class="mk-leads-lead__sub">' +
-      x.phone +
-      "</div>" +
-      "</div>" +
-      '<div class="mk-leads-td"><span class="' +
-      chipClass("type", x.type) +
-      '">' +
-      x.type +
-      "</span></div>" +
-      '<div class="mk-leads-td"><span class="' +
-      chipClass("stage", x.stage) +
-      '">' +
-      x.stage +
-      "</span></div>" +
-      '<div class="mk-leads-td"><span class="' +
-      chipClass("tier", x.tier) +
-      '">' +
-      x.tier +
-      "</span></div>" +
-      '<div class="mk-leads-td">' +
-      x.owner +
-      "</div>" +
-      '<div class="mk-leads-td">' +
-      x.lastTouch +
-      "</div>" +
-      '<div class="mk-leads-td' +
-      (x.nextAction && x.nextAction.length > 22 ? " mk-leads-muted" : "") +
-      '">' +
-      x.nextAction +
-      "</div>" +
-      '<div class="mk-leads-td mk-leads-td--right">' +
-      formatVnd(x.value) +
-      "</div>" +
-      '<div class="mk-leads-td mk-leads-td--center">' +
-      (x.stale ? '<span class="mk-stale">Stale</span>' : '<span class="mk-dot mk-dot--ok"></span>') +
-      "</div>" +
-      "</div>"
-    );
+  function inTouchWindow(iso, range) {
+    if (range === "any") return true;
+    var days = logic.daysSince(iso);
+    var max = { "7d": 7, "30d": 30, "90d": 90 }[range];
+    return days <= max;
   }
 
-  function matchesFilter(key, row) {
-    var def = FILTER_DEFS[key];
-    var val = state[key];
-    if (!def || !val || val === "All") {
+  function filterLeads(leads) {
+    var f = state.filters;
+    var q = f.search.trim().toLowerCase();
+    return leads.filter(function (l) {
+      var d = logic.derive(l);
+      if (q) {
+        var hay = [l.name, l.phone, l.email || "", l.companyName || "", l.area || ""].join(" ").toLowerCase();
+        if (hay.indexOf(q) < 0) return false;
+      }
+      if (f.source !== ANY && (l.tags || []).indexOf(f.source) < 0) return false;
+      if (f.program !== ANY && (l.tags || []).indexOf(f.program) < 0) return false;
+      if (f.purchase !== ANY && (l.tags || []).indexOf(f.purchase) < 0) return false;
+      if (f.tier !== ANY && (l.tags || []).indexOf(f.tier) < 0) return false;
+      if (f.owner !== ANY && l.owner !== f.owner) return false;
+      if (f.area !== ANY && (l.area || "") !== f.area) return false;
+      if (f.segment !== ANY && (l.segment || "") !== f.segment) return false;
+      if (!inTouchWindow(l.last_touch, f.touchRange)) return false;
+      if (f.staleOnly && !d.stale) return false;
+      if (f.hasNextAction && !(l.next_action || "").trim()) return false;
+      if (f.hasOpenTicket && !(l.openTickets > 0)) return false;
       return true;
-    }
-    return String(row[def.field] || "") === val;
+    });
   }
 
-  function apply() {
-    var qn = normalize(state.q);
-    var list = ALL.filter(function (x) {
-      if (state.staleOnly && !x.stale) return false;
-      if (!matchesFilter("source", x)) return false;
-      if (!matchesFilter("purchase", x)) return false;
-      if (!matchesFilter("tier", x)) return false;
-      if (!matchesFilter("program", x)) return false;
-      if (!matchesFilter("owner", x)) return false;
-      if (!qn) return true;
-      var hay = normalize(x.name + " " + x.phone);
-      return hay.indexOf(qn) !== -1;
+  function sortLeads(list) {
+    var key = state.sortKey;
+    var dir = state.sortDir === "asc" ? 1 : -1;
+    return list.slice().sort(function (a, b) {
+      var av, bv;
+      if (key === "name") {
+        av = a.name;
+        bv = b.name;
+      } else if (key === "value") {
+        av = a.value || 0;
+        bv = b.value || 0;
+      } else {
+        av = new Date(a.last_touch).getTime();
+        bv = new Date(b.last_touch).getTime();
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
     });
+  }
 
-    var host = $("mk-leads-rows");
+  function computeKpis(leads) {
+    var todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    var newToday = 0;
+    var qualified = 0;
+    var repeat = 0;
+    var gold = 0;
+    var stale = 0;
+    leads.forEach(function (l) {
+      var tags = l.tags || [];
+      var d = logic.derive(l);
+      if (new Date(l.last_touch).getTime() >= todayStart.getTime()) newToday++;
+      if (tags.indexOf("mua_lan_dau") >= 0 || tags.indexOf("mua_lai") >= 0) qualified++;
+      if (tags.indexOf("mua_lai") >= 0) repeat++;
+      if (tags.indexOf("vang") >= 0) gold++;
+      if (d.stale) stale++;
+    });
+    var conv = leads.length ? Math.round((qualified / leads.length) * 100) : 0;
+    return { total: leads.length, newToday: newToday, qualified: qualified, repeat: repeat, gold: gold, stale: stale, conv: conv };
+  }
+
+  function activeFilterCount() {
+    var f = state.filters;
+    var n = 0;
+    if (f.source !== ANY) n++;
+    if (f.program !== ANY) n++;
+    if (f.purchase !== ANY) n++;
+    if (f.tier !== ANY) n++;
+    if (f.owner !== ANY) n++;
+    if (f.area !== ANY) n++;
+    if (f.segment !== ANY) n++;
+    if (f.touchRange !== "any") n++;
+    if (f.staleOnly) n++;
+    if (f.hasNextAction) n++;
+    if (f.hasOpenTicket) n++;
+    return n;
+  }
+
+  function renderKpi() {
+    var host = $("mk-leads-kpi");
     if (!host) return;
-    host.innerHTML = list.map(rowHtml).join("");
-
-    var count = $("mk-leads-count");
-    if (count) count.textContent = list.length + " of " + ALL.length;
+    var kpis = computeKpis(getLeads());
+    var items = [
+      { label: "Total Leads", value: kpis.total, trend: "+8%", up: true },
+      { label: "New Today", value: kpis.newToday, trend: "+12%", up: true },
+      { label: "Qualified", value: kpis.qualified, trend: "+5%", up: true },
+      { label: "Repeat", value: kpis.repeat, trend: "+3%", up: true },
+      { label: "Gold", value: kpis.gold, trend: "+2", up: true },
+      { label: "Stale", value: kpis.stale, trend: "-4%", up: false },
+      { label: "Conv. Rate", value: kpis.conv + "%", trend: "+1.4%", up: true },
+    ];
+    var kpiIcons = (icons && icons.KPI) || [];
+    host.innerHTML = items
+      .map(function (k, i) {
+        return (
+          '<div class="mk-leads-kpi-card">' +
+          '<div class="mk-leads-kpi-card__top">' +
+          '<span class="mk-leads-kpi-card__label">' +
+          ic(kpiIcons[i] || "users") +
+          "<span>" +
+          esc(k.label) +
+          "</span></span>" +
+          '<span class="mk-leads-kpi-card__trend' +
+          (k.up ? " is-up" : " is-down") +
+          '">' +
+          esc(k.trend) +
+          "</span></div>" +
+          '<div class="mk-leads-kpi-card__value">' +
+          esc(k.value) +
+          "</div></div>"
+        );
+      })
+      .join("");
   }
 
-  function setToggle(btn, on) {
-    btn.setAttribute("aria-checked", on ? "true" : "false");
-    btn.classList.toggle("is-on", on);
+  function renderSegments() {
+    var host = $("mk-leads-segments");
+    if (!host) return;
+    var saved = store ? store.getSegments() : [];
+    var html = PRESET_SEGMENTS.map(function (s) {
+      var on = state.activeSegment === s.id ? " is-active" : "";
+      return '<button type="button" class="mk-leads-segment-btn' + on + '" data-segment="' + esc(s.id) + '">' + esc(s.name) + "</button>";
+    }).join("");
+    html += saved
+      .map(function (s) {
+        var on = state.activeSegment === s.id ? " is-active" : "";
+        return (
+          '<span class="mk-leads-segment-chip' +
+          on +
+          '">' +
+          '<button type="button" class="mk-leads-segment-chip__main" data-segment="' +
+          esc(s.id) +
+          '" data-custom="1">' +
+          esc(s.name) +
+          "</button>" +
+          '<button type="button" class="mk-leads-segment-chip__del" data-del-segment="' +
+          esc(s.id) +
+          '" aria-label="Delete segment">' +
+          ic("close") +
+          "</button></span>"
+        );
+      })
+      .join("");
+    host.innerHTML = html;
   }
 
-  function closeAllFilterMenus(exceptWrap) {
-    document.querySelectorAll(".mk-leads-filter--dropdown.is-open").forEach(function (wrap) {
-      if (exceptWrap && wrap === exceptWrap) return;
-      wrap.classList.remove("is-open");
-      var btn = wrap.querySelector(".mk-leads-filter__btn");
-      var menu = wrap.querySelector(".mk-leads-filter__menu");
-      if (btn) btn.setAttribute("aria-expanded", "false");
-      if (menu) menu.hidden = true;
+  function selectOptions(pairs) {
+    return (
+      '<option value="' +
+      ANY +
+      '">All</option>' +
+      pairs
+        .map(function (p) {
+          return '<option value="' + esc(p[0]) + '">' + esc(p[1]) + "</option>";
+        })
+        .join("")
+    );
+  }
+
+  function renderFiltersPanel() {
+    var host = $("mk-leads-filters-panel");
+    if (!host) return;
+    var leads = getLeads();
+    var owners = [];
+    var areas = [];
+    leads.forEach(function (l) {
+      if (owners.indexOf(l.owner) < 0) owners.push(l.owner);
+      if (l.area && areas.indexOf(l.area) < 0) areas.push(l.area);
+    });
+    owners.sort();
+    areas.sort();
+    var f = state.filters;
+    host.innerHTML =
+      '<div class="mk-leads-filters-grid">' +
+      fieldSelect("Source", "source", f.source, SOURCE_TAGS.map(function (t) { return [t, tagMeta(t).label]; })) +
+      fieldSelect("Program", "program", f.program, PROGRAM_TAGS.map(function (t) { return [t, tagMeta(t).label]; })) +
+      fieldSelect("Purchase status", "purchase", f.purchase, PURCHASE_TAGS.map(function (t) { return [t, tagMeta(t).label]; })) +
+      fieldSelect("Tier", "tier", f.tier, TIER_TAGS.map(function (t) { return [t, tagMeta(t).label]; })) +
+      fieldSelect("Owner", "owner", f.owner, owners.map(function (o) { return [o, o]; })) +
+      fieldSelect("Area", "area", f.area, areas.map(function (a) { return [a, a]; })) +
+      fieldSelect("Customer Type", "segment", f.segment, Object.keys(logic.SEGMENT_LABELS).map(function (k) { return [k, logic.SEGMENT_LABELS[k]]; })) +
+      fieldTouch("Last touch", "touchRange", f.touchRange) +
+      toggleField("Stale only", "staleOnly", f.staleOnly, true) +
+      toggleField("Has next action", "hasNextAction", f.hasNextAction, false) +
+      toggleField("Has open ticket", "hasOpenTicket", f.hasOpenTicket, false) +
+      "</div>";
+    host.hidden = !state.filtersOpen;
+  }
+
+  function fieldSelect(label, key, val, pairs) {
+    return (
+      '<label class="mk-leads-filter-field"><span class="mk-leads-filter-field__label">' +
+      esc(label) +
+      '</span><select class="mk-leads-filter-field__select" data-fkey="' +
+      key +
+      '">' +
+      selectOptions(pairs) +
+      "</select></label>"
+    );
+  }
+
+  function fieldTouch(label, key, val) {
+    return (
+      '<label class="mk-leads-filter-field"><span class="mk-leads-filter-field__label">' +
+      esc(label) +
+      '</span><select class="mk-leads-filter-field__select" data-fkey="' +
+      key +
+      '"><option value="any">Anytime</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="90d">Last 90 days</option></select></label>'
+    );
+  }
+
+  function toggleField(label, key, on, warn) {
+    return (
+      '<label class="mk-leads-toggle-field' +
+      (warn ? " mk-leads-toggle-field--warn" : "") +
+      '"><span class="mk-leads-toggle-field__label">' +
+      (warn ? ic("alert") : "") +
+      esc(label) +
+      '</span><input type="checkbox" class="mk-leads-toggle-field__input" data-fkey="' +
+      key +
+      '"' +
+      (on ? " checked" : "") +
+      " /></label>"
+    );
+  }
+
+  function syncFilterControls() {
+    var f = state.filters;
+    document.querySelectorAll("[data-fkey]").forEach(function (el) {
+      var key = el.getAttribute("data-fkey");
+      if (el.type === "checkbox") el.checked = !!f[key];
+      else if (f[key] !== undefined) el.value = f[key];
     });
   }
 
-  function setFilterButtonLabel(wrap, value) {
-    var btn = wrap.querySelector(".mk-leads-filter__btn");
-    if (!btn) return;
-    var label = value === "All" ? "All" : value;
-    btn.innerHTML = label + ' <span class="mk-leads-filter__chev">▾</span>';
+  function tagBadgeHtml(tag) {
+    var m = tagMeta(tag);
+    return '<span class="mk-tag ' + m.cls + '">' + esc(m.label) + "</span>";
   }
 
-  function bindFilterDropdowns() {
-    document.querySelectorAll(".mk-leads-filter--dropdown").forEach(function (wrap) {
-      var key = wrap.getAttribute("data-filter");
-      var def = FILTER_DEFS[key];
-      if (!def) return;
+  function renderTable() {
+    var all = getLeads();
+    var rows = sortLeads(filterLeads(all));
+    var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+    if (state.page > totalPages) state.page = 1;
+    var start = (state.page - 1) * PAGE_SIZE;
+    var pageRows = rows.slice(start, start + PAGE_SIZE);
+    var tbody = $("mk-leads-tbody");
+    if (!tbody) return;
 
-      var menu = wrap.querySelector(".mk-leads-filter__menu");
-      var btn = wrap.querySelector(".mk-leads-filter__btn");
-      if (!menu || !btn) return;
-
-      menu.innerHTML = def.options
-        .map(function (opt) {
-          var active = state[key] === opt ? " is-active" : "";
+    if (!pageRows.length) {
+      tbody.innerHTML = '<tr><td colspan="15" class="mk-leads-empty">No leads match these filters.</td></tr>';
+    } else {
+      tbody.innerHTML = pageRows
+        .map(function (l) {
+          var d = logic.derive(l);
+          var src = (l.tags || []).find(function (t) {
+            return SOURCE_TAGS.indexOf(t) >= 0;
+          });
+          var custLabel = l.segment ? logic.SEGMENT_LABELS[l.segment] : d.type;
+          var tags = (l.tags || []).slice(0, 3);
+          var extra = (l.tags || []).length - tags.length;
+          var checked = state.selected[l.id] ? " checked" : "";
           return (
-            '<li role="presentation"><button type="button" class="mk-leads-filter__option' +
-            active +
-            '" data-value="' +
-            opt.replace(/"/g, "&quot;") +
+            '<tr class="mk-leads-row' +
+            (d.high ? " mk-leads-row--hot" : "") +
+            (state.selected[l.id] ? " mk-leads-row--selected" : "") +
+            '" data-id="' +
+            esc(l.id) +
             '">' +
-            opt +
-            "</button></li>"
+            '<td class="mk-leads-td mk-leads-td--check"><input type="checkbox" class="mk-leads-row-check" data-id="' +
+            esc(l.id) +
+            '"' +
+            checked +
+            " /></td>" +
+            '<td class="mk-leads-td mk-leads-td--lead">' +
+            '<span class="mk-leads-lead-cell">' +
+            (d.high ? '<span class="mk-leads-fire" title="High priority">&#9832;</span>' : ic("user")) +
+            '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' +
+            detailUrl(l.id) +
+            '">' +
+            esc(l.name) +
+            "</a>" +
+            (l.companyName ? '<div class="mk-leads-sub">' + esc(l.companyName) + "</div>" : "") +
+            "</span></span></td>" +
+            '<td class="mk-leads-td">' +
+            esc(l.phone) +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            (l.area ? esc(l.area) : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            (src ? tagBadgeHtml(src) : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td"><span class="mk-pill mk-pill--blue">' +
+            esc(custLabel) +
+            "</span></td>" +
+            '<td class="mk-leads-td"><span class="mk-pill mk-pill--purple">' +
+            esc(d.stage) +
+            "</span></td>" +
+            '<td class="mk-leads-td">' +
+            (d.tier ? '<span class="mk-pill mk-pill--tier mk-pill--' + d.tier.toLowerCase() + '">' + esc(d.tier) + "</span>" : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner"><span class="mk-owner-avatar" style="background:' +
+            logic.ownerColor(l.owner) +
+            '">' +
+            esc(logic.ownerInitials(l.owner)) +
+            '</span><span>' +
+            esc(l.owner) +
+            "</span></span></td>" +
+            '<td class="mk-leads-td' +
+            (d.stale ? " mk-leads-td--stale" : "") +
+            '">' +
+            logic.touchLabel(d.days) +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--next">' +
+            (l.next_action ? esc(l.next_action) : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--right">' +
+            logic.fmtVND(l.value) +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--tags"><div class="mk-leads-tags-stack">' +
+            tags.map(tagBadgeHtml).join("") +
+            (extra > 0 ? '<span class="mk-leads-tag-more">+' + extra + "</span>" : "") +
+            "</div></td>" +
+            '<td class="mk-leads-td mk-leads-td--center mk-leads-td--support">' +
+            (l.openTickets > 0
+              ? '<span class="mk-pill mk-pill--support">' + ic("ticket") + l.openTickets + " open</span>"
+              : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--center">' +
+            (d.stale
+              ? '<span class="mk-stale-pill"><span class="mk-dot mk-dot--stale"></span> Stale</span>'
+              : '<span class="mk-dot mk-dot--ok"></span>') +
+            "</td></tr>"
           );
         })
         .join("");
+    }
 
-      setFilterButtonLabel(wrap, state[key]);
+    var summary = $("mk-leads-filter-summary");
+    if (summary) summary.textContent = rows.length + " of " + all.length + " leads";
 
-      btn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        var open = wrap.classList.contains("is-open");
-        closeAllFilterMenus();
-        if (!open) {
-          wrap.classList.add("is-open");
-          menu.hidden = false;
-          btn.setAttribute("aria-expanded", "true");
-        }
-      });
+    var pag = $("mk-leads-pagination");
+    if (pag) {
+      var from = rows.length ? start + 1 : 0;
+      var to = start + pageRows.length;
+      pag.innerHTML =
+        '<span class="mk-leads-pagination__info">Showing ' +
+        from +
+        "\u2013" +
+        to +
+        " of " +
+        rows.length +
+        "</span>" +
+        '<div class="mk-leads-pagination__btns">' +
+        '<button type="button" class="mk-leads-page-btn" id="mk-leads-prev"' +
+        (state.page <= 1 ? " disabled" : "") +
+        ">Prev</button>" +
+        '<span class="mk-leads-page-num">' +
+        state.page +
+        " / " +
+        totalPages +
+        "</span>" +
+        '<button type="button" class="mk-leads-page-btn" id="mk-leads-next"' +
+        (state.page >= totalPages ? " disabled" : "") +
+        ">Next</button></div>";
+    }
 
-      menu.querySelectorAll(".mk-leads-filter__option").forEach(function (optBtn) {
-        optBtn.addEventListener("click", function (e) {
-          e.stopPropagation();
-          state[key] = optBtn.getAttribute("data-value") || "All";
-          menu.querySelectorAll(".mk-leads-filter__option").forEach(function (b) {
-            b.classList.toggle("is-active", b === optBtn);
-          });
-          setFilterButtonLabel(wrap, state[key]);
-          closeAllFilterMenus();
-          apply();
-        });
-      });
-    });
-
-    document.addEventListener("click", function () {
-      closeAllFilterMenus();
-    });
+    var badge = $("mk-leads-filter-count");
+    var reset = $("mk-leads-reset");
+    var n = activeFilterCount();
+    if (badge) {
+      badge.hidden = n === 0;
+      badge.textContent = String(n);
+    }
+    if (reset) reset.hidden = n === 0;
+    syncSortHeaders();
   }
 
-  function resetFilters() {
-    state.q = "";
-    state.staleOnly = false;
-    state.source = "All";
-    state.purchase = "All";
-    state.tier = "All";
-    state.program = "All";
-    state.owner = "All";
+  function renderAll() {
+    renderKpi();
+    renderSegments();
+    renderFiltersPanel();
+    syncFilterControls();
+    renderTable();
   }
 
-  function init() {
+  function applySegment(id, filters, isCustom) {
+    state.filters = Object.assign({}, EMPTY, filters || {});
+    state.activeSegment = id;
+    state.page = 1;
+    var search = $("mk-leads-search");
+    if (search) search.value = state.filters.search;
+    renderAll();
+  }
+
+  function exportCsv(rows) {
+    var lines = ["Name,Phone,Area,Owner,Value,Tags"];
+    rows.forEach(function (l) {
+      lines.push(
+        [
+          l.name,
+          l.phone,
+          l.area || "",
+          l.owner,
+          l.value,
+          (l.tags || []).join("|"),
+        ]
+          .map(function (v) {
+            return '"' + String(v).replace(/"/g, '""') + '"';
+          })
+          .join(","),
+      );
+    });
+    var blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "leads-" + new Date().toISOString().slice(0, 10) + ".csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function bindEvents() {
     var search = $("mk-leads-search");
     if (search) {
       search.addEventListener("input", function () {
-        state.q = search.value || "";
-        apply();
+        state.filters.search = search.value;
+        state.activeSegment = null;
+        state.page = 1;
+        renderTable();
       });
     }
 
-    var stale = $("mk-leads-toggle-stale");
-    if (stale) {
-      stale.addEventListener("click", function () {
-        state.staleOnly = !state.staleOnly;
-        setToggle(stale, state.staleOnly);
-        apply();
+    $("mk-leads-filters-toggle") &&
+      $("mk-leads-filters-toggle").addEventListener("click", function () {
+        state.filtersOpen = !state.filtersOpen;
+        this.setAttribute("aria-expanded", state.filtersOpen ? "true" : "false");
+        var panel = $("mk-leads-filters-panel");
+        if (panel) panel.hidden = !state.filtersOpen;
       });
-    }
 
-    var reset = $("mk-leads-reset");
-    if (reset) {
-      reset.addEventListener("click", function () {
-        resetFilters();
+    $("mk-leads-reset") &&
+      $("mk-leads-reset").addEventListener("click", function () {
+        state.filters = Object.assign({}, EMPTY);
+        state.activeSegment = null;
+        state.page = 1;
         if (search) search.value = "";
-        if (stale) setToggle(stale, false);
-        document.querySelectorAll(".mk-leads-filter--dropdown").forEach(function (wrap) {
-          var key = wrap.getAttribute("data-filter");
-          if (key && FILTER_DEFS[key]) {
-            setFilterButtonLabel(wrap, "All");
-            var menu = wrap.querySelector(".mk-leads-filter__menu");
-            if (menu) {
-              menu.querySelectorAll(".mk-leads-filter__option").forEach(function (b) {
-                b.classList.toggle("is-active", b.getAttribute("data-value") === "All");
-              });
-            }
-          }
-        });
-        apply();
+        renderAll();
       });
-    }
 
-    bindFilterDropdowns();
-    apply();
+    document.addEventListener("change", function (e) {
+      var t = e.target;
+      if (!t || !t.getAttribute) return;
+      var key = t.getAttribute("data-fkey");
+      if (!key) return;
+      if (t.type === "checkbox") state.filters[key] = t.checked;
+      else state.filters[key] = t.value;
+      state.activeSegment = null;
+      state.page = 1;
+      renderTable();
+    });
+
+    $("mk-leads-segments") &&
+      $("mk-leads-segments").addEventListener("click", function (e) {
+        var delBtn = e.target.closest("[data-del-segment]");
+        if (delBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          var delId = delBtn.getAttribute("data-del-segment");
+          if (store && delId) {
+            store.saveSegments(
+              store.getSegments().filter(function (s) {
+                return s.id !== delId;
+              }),
+            );
+            if (state.activeSegment === delId) {
+              state.activeSegment = null;
+            }
+            renderSegments();
+          }
+          return;
+        }
+        var btn = e.target.closest("[data-segment]");
+        if (!btn) return;
+        var id = btn.getAttribute("data-segment");
+        var custom = btn.getAttribute("data-custom");
+        if (custom && store) {
+          var seg = store.getSegments().find(function (s) { return s.id === id; });
+          if (seg) applySegment(id, seg.filters, true);
+          return;
+        }
+        var preset = PRESET_SEGMENTS.find(function (s) { return s.id === id; });
+        if (preset) applySegment(id, preset.filters, false);
+      });
+
+    $("mk-leads-save-segment") &&
+      $("mk-leads-save-segment").addEventListener("click", function () {
+        var name = prompt("Segment name");
+        if (!name || !store) return;
+        var list = store.getSegments();
+        list.push({ id: "seg_" + Date.now(), name: name, filters: Object.assign({}, state.filters) });
+        store.saveSegments(list);
+        renderSegments();
+      });
+
+    $("mk-leads-table") &&
+      $("mk-leads-table").addEventListener("click", function (e) {
+        var th = e.target.closest("[data-sort]");
+        if (th) {
+          var k = th.getAttribute("data-sort");
+          if (state.sortKey === k) state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+          else {
+            state.sortKey = k;
+            state.sortDir = "desc";
+          }
+          renderTable();
+          return;
+        }
+        if (e.target.classList.contains("mk-leads-row-check")) return;
+        var tr = e.target.closest("tr[data-id]");
+        if (tr && !e.target.closest("a")) {
+          window.location.href = detailUrl(tr.getAttribute("data-id"));
+        }
+      });
+
+    document.addEventListener("change", function (e) {
+      if (e.target.classList.contains("mk-leads-row-check")) {
+        var id = e.target.getAttribute("data-id");
+        if (e.target.checked) state.selected[id] = true;
+        else delete state.selected[id];
+        renderTable();
+      }
+      if (e.target.id === "mk-leads-check-all") {
+        var rows = sortLeads(filterLeads(getLeads())).slice((state.page - 1) * PAGE_SIZE, state.page * PAGE_SIZE);
+        rows.forEach(function (l) {
+          if (e.target.checked) state.selected[l.id] = true;
+          else delete state.selected[l.id];
+        });
+        renderTable();
+      }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (e.target.id === "mk-leads-prev") {
+        state.page = Math.max(1, state.page - 1);
+        renderTable();
+      }
+      if (e.target.id === "mk-leads-next") {
+        state.page += 1;
+        renderTable();
+      }
+      if (e.target.id === "mk-leads-export-btn") {
+        var menu = $("mk-leads-export-menu");
+        if (menu) menu.hidden = !menu.hidden;
+      }
+      if (e.target.closest && e.target.closest("[data-export]")) {
+        var kind = e.target.getAttribute("data-export");
+        var rows = sortLeads(filterLeads(getLeads()));
+        if (kind === "csv") exportCsv(rows);
+        if (kind === "print") window.print();
+        var menu = $("mk-leads-export-menu");
+        if (menu) menu.hidden = true;
+      }
+    });
+  }
+
+  function decorateStaticIcons() {
+    var map = {
+      "mk-leads-segments-icon": "bookmark",
+      "mk-leads-save-segment-ic": "save",
+      "mk-leads-search-ic": "search",
+      "mk-leads-filters-ic": "filter",
+      "mk-leads-filters-chev": "chevron",
+      "mk-leads-export-ic": "export",
+      "mk-leads-create-ic": "plus",
+    };
+    Object.keys(map).forEach(function (id) {
+      var el = $(id);
+      if (el) el.innerHTML = ic(map[id]);
+    });
+    document.querySelectorAll(".mk-leads-sort-ic").forEach(function (el) {
+      el.innerHTML = ic("sort");
+    });
+  }
+
+  function syncSortHeaders() {
+    document.querySelectorAll(".mk-leads-th--sort").forEach(function (th) {
+      var key = th.getAttribute("data-sort");
+      th.classList.toggle("is-sorted", state.sortKey === key);
+      th.classList.toggle("is-asc", state.sortKey === key && state.sortDir === "asc");
+      th.classList.toggle("is-desc", state.sortKey === key && state.sortDir === "desc");
+    });
+  }
+
+  function init() {
+    if (!logic || !store) return;
+    decorateStaticIcons();
+    bindEvents();
+    renderAll();
+    syncSortHeaders();
   }
 
   if (document.readyState === "loading") {
@@ -587,4 +697,3 @@
     init();
   }
 })();
-

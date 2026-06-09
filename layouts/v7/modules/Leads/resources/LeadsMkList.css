@@ -384,7 +384,7 @@ body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-so-page.mk-lea
     overflow: hidden;
 }
 
-.mk-leads-table {
+.mk-leads-page:not(.mk-leads-page--lovable) .mk-leads-table {
     display: grid;
     grid-auto-rows: minmax(48px, auto);
 }
