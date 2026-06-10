@@ -104,22 +104,23 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-suite-card {
 	width: 100%;
 }
 
-/* ---- Dark hero: filters + header + stats (design top block) ---- */
+/* ---- Hero: filters + header + stats (light mode default) ---- */
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-hero {
 	display: grid;
 	grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
 	gap: 20px;
 	padding: 20px;
-	background: #0b1218;
+	background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+	border-bottom: 1px solid #e2e8f0;
 	box-sizing: border-box;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-filter-sidebar {
 	padding: 18px 16px;
 	border-radius: 14px;
-	background: linear-gradient(165deg, #1a3344 0%, #243f52 55%, #2a4a5e 100%);
-	border: 1px solid rgba(148, 163, 184, 0.22);
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
 	box-sizing: border-box;
 	align-self: start;
 }
@@ -141,7 +142,7 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-field__label {
 	font-weight: 600;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
-	color: #bfdbfe;
+	color: #64748b;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-input,
@@ -149,9 +150,9 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-select {
 	min-height: 40px;
 	padding: 8px 12px;
 	border-radius: 10px;
-	border: 1px solid rgba(148, 163, 184, 0.45);
-	background: rgba(15, 23, 42, 0.55);
-	color: #f1f5f9;
+	border: 1px solid #d4c4ad;
+	background: #ffffff;
+	color: #0f172a;
 	font-size: 14px;
 	width: 100%;
 	box-sizing: border-box;
@@ -159,6 +160,13 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-select {
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-input::placeholder {
 	color: #94a3b8;
+}
+
+body[data-module="HelpDesk"][data-view="List"] .mk-hd-input:focus,
+body[data-module="HelpDesk"][data-view="List"] .mk-hd-select:focus {
+	border-color: #fdbb2c;
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.2);
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-select option {
@@ -173,7 +181,7 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-hero__main {
 	gap: 16px;
 }
 
-/* ---- Header (on dark hero) ---- */
+/* ---- Header (on hero) ---- */
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-header {
 	padding: 0;
 }
@@ -190,21 +198,21 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__list {
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__item a {
-	color: #94a3b8;
+	color: #64748b;
 	text-decoration: none;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__item a:hover {
-	color: #fdbb2c;
+	color: #d97706;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__item--current span {
-	color: #e2e8f0;
+	color: #0f172a;
 	font-weight: 500;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__sep {
-	color: #64748b;
+	color: #94a3b8;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-action-header {
@@ -238,11 +246,10 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-action-header__icon {
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-action-header__title {
 	margin: 0;
-	font-family: 'Space Grotesk', Inter, sans-serif;
 	font-size: 32px;
-	font-weight: 500;
+	font-weight: 600;
 	line-height: 1.15;
-	color: #f8fafc;
+	color: #0f172a;
 	letter-spacing: -0.02em;
 }
 
@@ -251,7 +258,7 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-action-header__subtitle {
 	font-size: 14px;
 	font-weight: 400;
 	line-height: 1.45;
-	color: #94a3b8;
+	color: #64748b;
 	max-width: 52ch;
 }
 
@@ -305,23 +312,23 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--filter:hover {
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--ghost {
-	background: transparent;
-	border: 1px solid rgba(212, 196, 173, 0.65);
-	color: #e2e8f0;
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	color: #40627e;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--ghost:hover {
-	background: rgba(255, 255, 255, 0.06);
-	border-color: #d4c4ad;
-	color: #fff;
+	background: #fffbeb;
+	border-color: #fdbb2c;
+	color: #0f172a;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--disabled,
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--disabled:hover {
-	opacity: 0.45;
+	opacity: 0.5;
 	cursor: not-allowed;
-	background: rgba(255, 255, 255, 0.06);
-	border-color: rgba(148, 163, 184, 0.35);
+	background: #f1f5f9;
+	border-color: #e2e8f0;
 	color: #94a3b8;
 }
 
@@ -331,7 +338,7 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn__ic {
 	justify-content: center;
 }
 
-/* ---- Stats (white cards on dark hero) ---- */
+/* ---- Stats ---- */
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-stats {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));

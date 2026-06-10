@@ -46,6 +46,77 @@ html[data-theme="dark"] body[data-module="HelpDesk"][data-view="Rules"][data-app
 /* HelpDesk — Tickets list                                                    */
 /* ========================================================================== */
 
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-hero {
+	background: #0b1218 !important;
+	border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-filter-sidebar {
+	background: linear-gradient(165deg, #1a3344 0%, #243f52 55%, #2a4a5e 100%) !important;
+	border-color: rgba(148, 163, 184, 0.22) !important;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-field__label {
+	color: #bfdbfe !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-input,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-select {
+	background: rgba(15, 23, 42, 0.55) !important;
+	border-color: rgba(148, 163, 184, 0.45) !important;
+	color: #f1f5f9 !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-input:focus,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-select:focus {
+	border-color: rgba(253, 187, 44, 0.55) !important;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15) !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__item a {
+	color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__item a:hover {
+	color: #fdbb2c !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__item--current span {
+	color: #e2e8f0 !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__sep {
+	color: #64748b !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-action-header__title {
+	color: #f8fafc !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-action-header__subtitle {
+	color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--ghost {
+	background: transparent !important;
+	border-color: rgba(212, 196, 173, 0.45) !important;
+	color: #e2e8f0 !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--ghost:hover {
+	background: rgba(255, 255, 255, 0.06) !important;
+	border-color: #d4c4ad !important;
+	color: #fff !important;
+}
+
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--disabled,
+html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--disabled:hover {
+	background: rgba(255, 255, 255, 0.06) !important;
+	border-color: rgba(148, 163, 184, 0.35) !important;
+	color: #94a3b8 !important;
+}
+
 html[data-theme="dark"] body[data-module="HelpDesk"][data-view="List"][data-app="SUPPORT"] .mk-hd-suite-card {
 	background: var(--mk-card-bg) !important;
 	border-color: var(--mk-border-color) !important;
