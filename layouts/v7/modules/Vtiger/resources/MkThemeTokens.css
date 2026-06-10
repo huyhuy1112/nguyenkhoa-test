@@ -8,6 +8,10 @@
 /* Light (default) — preserve current appearance                                */
 /* -------------------------------------------------------------------------- */
 :root {
+	--mk-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+		'Helvetica Neue', Arial, sans-serif;
+	--mk-font-display: var(--mk-font-family);
+
 	--mk-bg-primary: #f7f9fb;
 	--mk-bg-secondary: #ffffff;
 	--mk-bg-elevated: #ffffff;
