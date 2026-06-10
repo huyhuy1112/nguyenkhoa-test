@@ -13,69 +13,62 @@
 	{assign var="MODULE_NAME" value=$MODULE_MODEL->get('name')}
 	<input id="recordId" type="hidden" value="{$RECORD->getId()}" />
 	<div class="detailViewContainer bace-users-pref-detail">
-		<div class="detailViewTitle" id="prefPageHeader">
-			<div class="col-lg-12 col-sm-12 col-xs-12">
-				<div class="col-xs-8">
-					{assign var=IMAGE_DETAILS value=$RECORD->getImageDetails()}
-					{foreach key=ITER item=IMAGE_INFO from=$IMAGE_DETAILS}
+		<div class="mk-users-pref-hero" id="prefPageHeader">
+			<div class="mk-users-pref-hero__main">
+				<div class="mk-users-pref-hero__avatar" aria-hidden="true">
+					{assign var=MK_PREF_HAS_AVATAR value=false}
+					{foreach key=ITER item=IMAGE_INFO from=$RECORD->getImageDetails()}
 						{if !empty($IMAGE_INFO.url)}
-							<span class="logo col-xs-2">
-								<img height="75px" width="75px" src="{$IMAGE_INFO.url}" alt="{$IMAGE_INFO.orgname}" title="{$IMAGE_INFO.orgname}" data-image-id="{$IMAGE_INFO.id}">
-							</span>
+							{assign var=MK_PREF_HAS_AVATAR value=true}
+							<img src="{$IMAGE_INFO.url}" alt="{$IMAGE_INFO.orgname|escape}" title="{$IMAGE_INFO.orgname|escape}" data-image-id="{$IMAGE_INFO.id}">
 						{/if}
 					{/foreach}
-					{if $IMAGE_DETAILS[0]['id'] eq null}
-						<span class="logo col-xs-2">
-							<i class="fa fa-user" style="font-size: 75px"></i>
-						</span>
+					{if !$MK_PREF_HAS_AVATAR}
+						<span class="mk-users-pref-hero__initials">{$RECORD->getName()|substr:0:2}</span>
 					{/if}
-					<span class="col-xs-9">
-						<span id="myPrefHeading">
-							<h3>{vtranslate('LBL_MY_PREFERENCES', $MODULE_NAME)} </h3>
-						</span>
-						<span>
-							{vtranslate('LBL_USERDETAIL_INFO', $MODULE_NAME)}&nbsp;&nbsp;"<b>{$RECORD->getName()}</b>"
-						</span>
-					</span>
 				</div>
-				<div class="col-xs-4">
-					<div class="row detailViewButtoncontainer">
-						<div class="btn-group pull-right">
-							{foreach item=DETAIL_VIEW_BASIC_LINK from=$DETAILVIEW_LINKS['DETAILVIEWPREFERENCE']}
-								<button class="btn btn-default"
-									{if $DETAIL_VIEW_BASIC_LINK->isPageLoadLink()}
-										onclick="window.location.href='{$DETAIL_VIEW_BASIC_LINK->getUrl()}'"
-									{else}
-										onclick={$DETAIL_VIEW_BASIC_LINK->getUrl()}
-									{/if}>
-									{vtranslate($DETAIL_VIEW_BASIC_LINK->getLabel(), $MODULE_NAME)}
-								</button>
-							{/foreach}
-							{if $DETAILVIEW_LINKS['DETAILVIEW']|@count gt 0}
-								<button class="btn btn-default" data-toggle="dropdown" href="javascript:void(0);">
-									{vtranslate('LBL_MORE', $MODULE)}&nbsp;<i class="caret"></i>
-								</button>
-								<ul class="dropdown-menu pull-right">
-									{foreach item=DETAIL_VIEW_LINK from=$DETAILVIEW_LINKS['DETAILVIEW']}
-										{if $DETAIL_VIEW_LINK->getLabel() eq "Delete"}
-											{if $CURRENT_USER_MODEL->isAdminUser() && $CURRENT_USER_MODEL->getId() neq $RECORD->getId()}
-												<li id="{$MODULE}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_LINK->getLabel())}">
-													<a href={$DETAIL_VIEW_LINK->getUrl()} >{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE)}</a>
-												</li>
-											{/if}
-										{else}
-											<li id="{$MODULE}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_LINK->getLabel())}">
-												<a href={$DETAIL_VIEW_LINK->getUrl()} >{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE)}</a>
-											</li>
-										{/if}
-									{/foreach}
-								</ul>
-							{/if}
-						</div>
-					</div>
+				<div class="mk-users-pref-hero__text">
+					<h2 class="mk-users-pref-hero__title" id="myPrefHeading">{vtranslate('LBL_MY_PREFERENCES', $MODULE_NAME)}</h2>
+					<p class="mk-users-pref-hero__subtitle">
+						{vtranslate('LBL_USERDETAIL_INFO', $MODULE_NAME)} <strong>{$RECORD->getName()|escape}</strong>
+					</p>
 				</div>
 			</div>
-			<div class="detailViewInfo userPreferences">
-				<div class="details col-xs-12">
-					<br>
+			<div class="mk-users-pref-hero__actions detailViewButtoncontainer">
+				<div class="btn-group">
+					{foreach item=DETAIL_VIEW_BASIC_LINK from=$DETAILVIEW_LINKS['DETAILVIEWPREFERENCE']}
+						<button class="btn btn-default"
+							{if $DETAIL_VIEW_BASIC_LINK->isPageLoadLink()}
+								onclick="window.location.href='{$DETAIL_VIEW_BASIC_LINK->getUrl()}'"
+							{else}
+								onclick={$DETAIL_VIEW_BASIC_LINK->getUrl()}
+							{/if}>
+							{vtranslate($DETAIL_VIEW_BASIC_LINK->getLabel(), $MODULE_NAME)}
+						</button>
+					{/foreach}
+					{if $DETAILVIEW_LINKS['DETAILVIEW']|@count gt 0}
+						<button class="btn btn-default" data-toggle="dropdown" href="javascript:void(0);">
+							{vtranslate('LBL_MORE', $MODULE)}&nbsp;<i class="caret"></i>
+						</button>
+						<ul class="dropdown-menu pull-right">
+							{foreach item=DETAIL_VIEW_LINK from=$DETAILVIEW_LINKS['DETAILVIEW']}
+								{if $DETAIL_VIEW_LINK->getLabel() eq "Delete"}
+									{if $CURRENT_USER_MODEL->isAdminUser() && $CURRENT_USER_MODEL->getId() neq $RECORD->getId()}
+										<li id="{$MODULE}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_LINK->getLabel())}">
+											<a href={$DETAIL_VIEW_LINK->getUrl()} >{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE)}</a>
+										</li>
+									{/if}
+								{else}
+									<li id="{$MODULE}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_LINK->getLabel())}">
+										<a href={$DETAIL_VIEW_LINK->getUrl()} >{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE)}</a>
+									</li>
+								{/if}
+							{/foreach}
+						</ul>
+					{/if}
+				</div>
+			</div>
+		</div>
+		<div class="detailViewInfo userPreferences">
+			<div class="details col-xs-12">
 {/strip}

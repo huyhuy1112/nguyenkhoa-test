@@ -271,9 +271,86 @@ Vtiger_Detail_Js("Users_Detail_Js",{
 			e.preventDefault();
 		}
 	},
+	/**
+	 * Users pref/detail uses .mk-users-field__value (not table td) — wire inline edit.
+	 */
+	getInlineWrapper: function (element) {
+		var wrapperElement = jQuery(element).closest('.mk-users-field__value');
+		if (wrapperElement.length) {
+			return wrapperElement;
+		}
+		return this._super(element);
+	},
+
+	registerAjaxEditEvent: function () {
+		this._super();
+		var thisInstance = this;
+		var detailContentsHolder = this.getContentHolder();
+		detailContentsHolder.on('click.mkUsersFieldEdit', '.mk-users-field__value .editAction', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var editedLength =
+				jQuery('.mk-users-field__value .ajaxEdited').length +
+				jQuery('table.detailview-table td.fieldValue .ajaxEdited').length;
+			if (editedLength !== 0) {
+				return;
+			}
+			var selection = window.getSelection().toString();
+			if (selection.length !== 0) {
+				return;
+			}
+			var fieldValueEl = jQuery(e.currentTarget).closest('.mk-users-field__value');
+			if (fieldValueEl.length) {
+				thisInstance.ajaxEditHandling(fieldValueEl);
+			}
+		});
+	},
+
+	ajaxEditHandling: function (fieldValueEl) {
+		this._super(fieldValueEl);
+		if (fieldValueEl.hasClass('mk-users-field__value')) {
+			fieldValueEl.addClass('mk-users-field__value--editing');
+			app.helper.hideProgress();
+		}
+	},
+
+	registerMkUsersFieldEditEndEvents: function () {
+		var holder = this.getContentHolder();
+		var clearEditingState = function (wrap) {
+			if (wrap && wrap.length) {
+				wrap.removeClass('mk-users-field__value--editing');
+				wrap.find('.value').css('display', '');
+			}
+		};
+		var endEdit = function (e) {
+			clearEditingState(jQuery(e.currentTarget).closest('.mk-users-field__value'));
+		};
+		holder.on('click.mkUsersEditEnd', '.mk-users-field__value .inlineAjaxCancel', endEdit);
+		holder.on('click.mkUsersEditEndSave', '.mk-users-field__value .inlineAjaxSave', function (e) {
+			var wrap = jQuery(e.currentTarget).closest('.mk-users-field__value');
+			var previousValue = jQuery.trim(wrap.find('.fieldBasicData').data('displayvalue'));
+			var fieldName = wrap.find('.fieldBasicData').data('name');
+			var fieldElement = wrap.find('[name="' + fieldName + '"]');
+			var newValue = fieldElement.val();
+			if (fieldElement.is('input:checkbox')) {
+				newValue = fieldElement.is(':checked') ? '1' : '0';
+			}
+			if (previousValue == newValue) {
+				endEdit(e);
+			}
+		});
+		app.event.on(Vtiger_Detail_Js.PostAjaxSaveEvent + '.mkUsersField', function () {
+			holder.find('.mk-users-field__value--editing').each(function () {
+				clearEditingState(jQuery(this));
+			});
+		});
+	},
+
 	registerEvents: function () {
 		this._super();
 		this.registerAjaxPreSaveEvent();
+		this.registerMkUsersFieldEditEndEvents();
+		app.helper.hideProgress();
 	}
 });
 

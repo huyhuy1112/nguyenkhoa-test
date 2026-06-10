@@ -187,6 +187,15 @@ class Users_PreferenceDetail_View extends Vtiger_Detail_View {
 		return parent::process($request);
 	}
 
+	public function getHeaderCss(Vtiger_Request $request) {
+		$headerCssInstances = parent::getHeaderCss($request);
+		$cssFileNames = array(
+			'~layouts/v7/modules/Users/resources/UsersPrefDetailContent.css',
+		);
+		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
+		return array_merge($headerCssInstances, $cssInstances);
+	}
+
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$moduleName = $request->getModule();
