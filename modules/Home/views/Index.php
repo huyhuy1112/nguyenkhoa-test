@@ -10,6 +10,15 @@
 
 class Home_Index_View extends Vtiger_Index_View {
 
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		$app = strtoupper((string) $request->get('app'));
+		if ($app === 'MANAGEMENT') {
+			header('Location: index.php?module=Home&view=MainPage&app=MANAGEMENT');
+			exit;
+		}
+		parent::preProcess($request, $display);
+	}
+
 	function process (Vtiger_Request $request) {
 		$viewer = $this->getViewer ($request);
 		$moduleName = $request->getModule();
