@@ -5,16 +5,11 @@
  */
 
 class Campaigns_Edit_View extends Vtiger_Edit_View {
-	protected function isMarketingShellCreate(Vtiger_Request $request) {
+	protected function isMarketingModernShell(Vtiger_Request $request) {
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
-		$app = strtoupper((string) $request->get('app'));
-		if ($app !== 'MARKETING') {
-			return false;
-		}
-		// Only apply to Create (not Edit), per requested scope.
-		return empty($request->get('record')) || $request->get('isDuplicate');
+		return strtoupper((string) $request->get('app')) === 'MARKETING';
 	}
 
 	protected function assignMarketingContext(Vtiger_Request $request) {
@@ -29,7 +24,7 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
-		if ($this->isMarketingShellCreate($request)) {
+		if ($this->isMarketingModernShell($request)) {
 			parent::preProcess($request, false);
 			$this->assignMarketingContext($request);
 			if ($display) {
@@ -41,14 +36,14 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function preProcessTplName(Vtiger_Request $request) {
-		if ($this->isMarketingShellCreate($request)) {
+		if ($this->isMarketingModernShell($request)) {
 			return 'EditViewPreProcess.tpl';
 		}
 		return parent::preProcessTplName($request);
 	}
 
 	public function postProcess(Vtiger_Request $request) {
-		if ($this->isMarketingShellCreate($request)) {
+		if ($this->isMarketingModernShell($request)) {
 			$viewer = $this->getViewer($request);
 			$viewer->view('EditViewPostProcess.tpl', $request->getModule());
 			Vtiger_Basic_View::postProcess($request);
@@ -59,7 +54,7 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 
 	public function getHeaderCss(Vtiger_Request $request) {
 		$headerCssInstances = parent::getHeaderCss($request);
-		if ($this->isMarketingShellCreate($request)) {
+		if ($this->isMarketingModernShell($request)) {
 			$cssFileNames = array(
 				'~layouts/v7/modules/Campaigns/resources/CampaignsEnterprise.css',
 			);
@@ -70,7 +65,7 @@ class Campaigns_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function process(Vtiger_Request $request) {
-		if ($this->isMarketingShellCreate($request)) {
+		if ($this->isMarketingModernShell($request)) {
 			$this->assignMarketingContext($request);
 		}
 		$viewer = $this->getViewer($request);
