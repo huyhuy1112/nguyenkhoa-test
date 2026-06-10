@@ -40,12 +40,7 @@ class Teams_AddGroup_View extends Vtiger_Index_View {
 			$members[] = $row;
 		}
 
-		// Groups list for Assign Type = GROUPS
-		$existingGroups = array();
-		$resGroups = $db->pquery("SELECT groupid, group_name FROM vtiger_team_groups ORDER BY group_name", array());
-		while ($resGroups && ($row = $db->fetchByAssoc($resGroups))) {
-			$existingGroups[] = $row;
-		}
+		$existingGroups = Teams_Module_Model::getTeamGroupsList();
 
 		$viewer->assign('TEAM_MEMBERS', $members);
 		$viewer->assign('EXISTING_GROUPS', $existingGroups);
@@ -98,18 +93,9 @@ class Teams_AddGroup_View extends Vtiger_Index_View {
 			$members[] = $row;
 		}
 
-		// Groups list for Assign Type = GROUPS (exclude current group in edit mode)
-		$existingGroups = array();
-		$sqlGroups = "SELECT groupid, group_name FROM vtiger_team_groups";
-		$paramsGroups = array();
-		if ($isEdit) {
-			$sqlGroups .= " WHERE groupid != ?";
-			$paramsGroups[] = $groupId;
-		}
-		$sqlGroups .= " ORDER BY group_name";
-		$resGroups = $db->pquery($sqlGroups, $paramsGroups);
-		while ($resGroups && ($row = $db->fetchByAssoc($resGroups))) {
-			$existingGroups[] = $row;
+		$existingGroups = Teams_Module_Model::getTeamGroupsList($isEdit ? $groupId : null);
+		if ($groupData && !empty($groupData['group_name'])) {
+			$groupData['group_name'] = decode_html($groupData['group_name']);
 		}
 
 		$viewer->assign('TEAM_MEMBERS', $members);

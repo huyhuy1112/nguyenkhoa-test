@@ -30,9 +30,8 @@
 			<div id="mk-leads-filters-panel" class="mk-leads-filters-panel"></div>
 		</div>
 
-		<div id="mk-leads-bulk" class="mk-leads-bulk-bar" hidden></div>
-
 		<div class="mk-so-table-card mk-leads-table-card" role="region" aria-label="Leads table">
+			<div id="mk-leads-bulk" class="mk-leads-bulk-bar" hidden></div>
 			<div class="mk-leads-table-scroll">
 				<table class="mk-leads-table" id="mk-leads-table">
 					<colgroup>
@@ -54,7 +53,12 @@
 					</colgroup>
 					<thead>
 						<tr>
-							<th class="mk-leads-th mk-leads-th--check" scope="col"><input type="checkbox" id="mk-leads-check-all" aria-label="Select all" /></th>
+							<th class="mk-leads-th mk-leads-th--check" scope="col">
+								<label class="mk-leads-check">
+									<input type="checkbox" id="mk-leads-check-all" class="mk-leads-check__input" aria-label="Select all" />
+									<span class="mk-leads-check__ui" aria-hidden="true"></span>
+								</label>
+							</th>
 							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="name"><span class="mk-leads-th__inner">Lead<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th" scope="col">Phone</th>
 							<th class="mk-leads-th" scope="col">Area</th>

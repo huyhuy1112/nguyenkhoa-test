@@ -21,15 +21,15 @@
   ];
 
   var PALETTE_DARK = [
-    "#FDBB2C",
-    "#16D8FF",
-    "#22C55E",
-    "#6366F1",
-    "#F472B6",
-    "#F59E0B",
-    "#94A3B8",
-    "#38BDF8",
+    "#60A5FA",
+    "#FBBF24",
+    "#34D399",
     "#A78BFA",
+    "#FDBB2C",
+    "#38BDF8",
+    "#818CF8",
+    "#CBD5E1",
+    "#F472B6",
     "#FB7185",
   ];
 
@@ -47,11 +47,11 @@
   function getChartColors() {
     if (isDarkTheme()) {
       return {
-        gridLine: "rgba(255,255,255,0.06)",
-        border: "rgba(255,255,255,0.08)",
-        background: "#171B24",
-        axis: "#94A3B8",
-        pointLabel: "#94A3B8",
+        gridLine: "rgba(255,255,255,0.1)",
+        border: "rgba(255,255,255,0.12)",
+        background: "#0D1117",
+        axis: "#E2E8F0",
+        pointLabel: "#E8EDF5",
       };
     }
     return {
@@ -244,7 +244,7 @@
         {
           show: stacked ? false : sd.pointLabels ? sd.pointLabels.show !== false : true,
           hideZeros: true,
-          textColor: "#334155",
+          textColor: isDarkTheme() ? getChartColors().pointLabel : "#334155",
           fontSize: "10px",
           formatString: "%d",
         },

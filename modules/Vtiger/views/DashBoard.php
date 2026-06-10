@@ -131,6 +131,7 @@ class Vtiger_Dashboard_View extends Vtiger_Index_View {
 			'~/libraries/jquery/vtchart.js',
 			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/lib/jquery/gridster/jquery.gridster.min.js',
 			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/modules/Vtiger/resources/DashBoardChartsTheme.js',
+			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/modules/Vtiger/resources/DashBoardDarkChartsFix.js',
 			'~layouts/'.Vtiger_Viewer::getDefaultLayoutName().'/modules/Vtiger/resources/DashboardSidebarNav.js',
 			'modules.Vtiger.resources.DashBoard',
 			'modules.'.$moduleName.'.resources.DashBoard',

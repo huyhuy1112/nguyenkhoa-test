@@ -43,6 +43,16 @@
     hasOpenTicket: false,
   };
 
+  var BULK_OWNERS = ["Hà", "Linh", "Minh"];
+  var TAG_CAT_LABELS = {
+    source: "SOURCE",
+    learning: "LEARNING",
+    program: "PROGRAM",
+    purchase: "PURCHASE",
+    tier: "TIER",
+    other: "OTHER",
+  };
+
   var state = {
     filters: Object.assign({}, EMPTY),
     sortKey: "last_touch",
@@ -51,6 +61,7 @@
     selected: {},
     activeSegment: null,
     filtersOpen: true,
+    bulkMenu: null,
   };
 
   function $(id) {
@@ -363,11 +374,12 @@
             '" data-id="' +
             esc(l.id) +
             '">' +
-            '<td class="mk-leads-td mk-leads-td--check"><input type="checkbox" class="mk-leads-row-check" data-id="' +
+            '<td class="mk-leads-td mk-leads-td--check"><label class="mk-leads-check">' +
+            '<input type="checkbox" class="mk-leads-check__input mk-leads-row-check" data-id="' +
             esc(l.id) +
             '"' +
             checked +
-            " /></td>" +
+            ' /><span class="mk-leads-check__ui" aria-hidden="true"></span></label></td>' +
             '<td class="mk-leads-td mk-leads-td--lead">' +
             '<span class="mk-leads-lead-cell">' +
             (d.high ? '<span class="mk-leads-fire" title="High priority">&#9832;</span>' : ic("user")) +
@@ -470,7 +482,194 @@
       badge.textContent = String(n);
     }
     if (reset) reset.hidden = n === 0;
+
+    var checkAll = $("mk-leads-check-all");
+    if (checkAll) {
+      var allOnPage = pageRows.length > 0 && pageRows.every(function (l) {
+        return !!state.selected[l.id];
+      });
+      checkAll.checked = allOnPage;
+      checkAll.indeterminate = !allOnPage && pageRows.some(function (l) {
+        return !!state.selected[l.id];
+      });
+    }
     syncSortHeaders();
+    renderBulkBar();
+  }
+
+  function selectedCount() {
+    return Object.keys(state.selected).length;
+  }
+
+  function selectedLeads() {
+    var ids = Object.keys(state.selected);
+    return getLeads().filter(function (l) {
+      return state.selected[l.id];
+    });
+  }
+
+  function clearSelection() {
+    state.selected = {};
+    state.bulkMenu = null;
+    renderTable();
+  }
+
+  function getAllBulkTags() {
+    var meta = ref && ref.TAG_META ? ref.TAG_META : {};
+    return Object.keys(meta).map(function (k) {
+      var m = meta[k];
+      return { key: k, label: m.label, cat: m.cat, cls: m.cls };
+    });
+  }
+
+  function getSelectedLeadTags() {
+    var set = {};
+    selectedLeads().forEach(function (l) {
+      (l.tags || []).forEach(function (t) {
+        set[t] = true;
+      });
+    });
+    return Object.keys(set).sort();
+  }
+
+  function bulkMenuHtml(type) {
+    if (state.bulkMenu !== type) return "";
+    var html = '<div class="mk-leads-bulk-menu" role="menu">';
+    if (type === "assign") {
+      BULK_OWNERS.forEach(function (name) {
+        html +=
+          '<button type="button" class="mk-leads-bulk-menu__item" data-bulk-pick="owner" data-value="' +
+          esc(name) +
+          '">' +
+          '<span class="mk-owner-avatar mk-leads-bulk-menu__avatar" style="background:' +
+          logic.ownerColor(name) +
+          '">' +
+          esc(logic.ownerInitials(name)) +
+          "</span>" +
+          '<span class="mk-leads-bulk-menu__label">' +
+          esc(name) +
+          "</span></button>";
+      });
+    } else if (type === "add-tag") {
+      getAllBulkTags().forEach(function (t) {
+        html +=
+          '<button type="button" class="mk-leads-bulk-menu__item" data-bulk-pick="add-tag" data-value="' +
+          esc(t.key) +
+          '">' +
+          '<span class="mk-leads-bulk-dot ' +
+          esc(t.cls) +
+          '"></span>' +
+          '<span class="mk-leads-bulk-menu__label">' +
+          esc(t.label) +
+          '</span><span class="mk-leads-bulk-menu__cat">' +
+          esc(TAG_CAT_LABELS[t.cat] || String(t.cat || "").toUpperCase()) +
+          "</span></button>";
+      });
+    } else if (type === "remove-tag") {
+      var tags = getSelectedLeadTags();
+      if (!tags.length) {
+        html += '<div class="mk-leads-bulk-menu__empty">No tags on selected leads</div>';
+      } else {
+        tags.forEach(function (key) {
+          var m = tagMeta(key);
+          html +=
+            '<button type="button" class="mk-leads-bulk-menu__item" data-bulk-pick="remove-tag" data-value="' +
+            esc(key) +
+            '">' +
+            '<span class="mk-leads-bulk-dot ' +
+            esc(m.cls) +
+            '"></span>' +
+            '<span class="mk-leads-bulk-menu__label">' +
+            esc(m.label) +
+            "</span></button>";
+        });
+      }
+    }
+    html += "</div>";
+    return html;
+  }
+
+  function bulkActionWrap(action, label) {
+    var open = state.bulkMenu === action;
+    return (
+      '<div class="mk-leads-bulk-action">' +
+      '<button type="button" class="mk-leads-bulk-btn' +
+      (open ? " is-open" : "") +
+      '" data-bulk="' +
+      action +
+      '"><span>' +
+      label +
+      "</span></button>" +
+      bulkMenuHtml(action) +
+      "</div>"
+    );
+  }
+
+  function applyBulkOwner(owner) {
+    selectedLeads().forEach(function (l) {
+      store.update(l.id, { owner: owner });
+    });
+    state.bulkMenu = null;
+    renderAll();
+  }
+
+  function applyBulkAddTag(tagKey) {
+    selectedLeads().forEach(function (l) {
+      var tags = (l.tags || []).slice();
+      if (tags.indexOf(tagKey) < 0) tags.push(tagKey);
+      store.update(l.id, { tags: tags });
+    });
+    state.bulkMenu = null;
+    renderAll();
+  }
+
+  function applyBulkRemoveTag(tagKey) {
+    selectedLeads().forEach(function (l) {
+      var tags = (l.tags || []).filter(function (x) {
+        return x !== tagKey;
+      });
+      store.update(l.id, { tags: tags });
+    });
+    state.bulkMenu = null;
+    renderAll();
+  }
+
+  function renderBulkBar() {
+    var bar = $("mk-leads-bulk");
+    if (!bar) return;
+    var n = selectedCount();
+    if (!n) {
+      bar.hidden = true;
+      bar.innerHTML = "";
+      state.bulkMenu = null;
+      return;
+    }
+    bar.hidden = false;
+    bar.innerHTML =
+      '<div class="mk-leads-bulk-bar__inner">' +
+      '<div class="mk-leads-bulk-bar__left">' +
+      '<span class="mk-leads-bulk-badge" aria-hidden="true">' +
+      ic("bulkCheck") +
+      "</span>" +
+      '<span class="mk-leads-bulk-bar__count"><strong>' +
+      n +
+      "</strong> selected</span>" +
+      "</div>" +
+      '<div class="mk-leads-bulk-bar__actions">' +
+      bulkActionWrap("assign", "Assign owner") +
+      bulkActionWrap("add-tag", "Add tag") +
+      bulkActionWrap("remove-tag", "Remove tag") +
+      '<button type="button" class="mk-leads-bulk-btn" data-bulk="export">' +
+      '<span class="mk-leads-bulk-btn__ic">' +
+      ic("export") +
+      "</span><span>Export</span></button>" +
+      '<button type="button" class="mk-leads-bulk-btn mk-leads-bulk-btn--danger" data-bulk="archive">' +
+      '<span class="mk-leads-bulk-btn__ic">' +
+      ic("trash") +
+      "</span><span>Archive</span></button>" +
+      "</div>" +
+      '<button type="button" class="mk-leads-bulk-clear" data-bulk="clear">Clear</button>' +
+      "</div>";
   }
 
   function renderAll() {
@@ -612,7 +811,7 @@
           renderTable();
           return;
         }
-        if (e.target.classList.contains("mk-leads-row-check")) return;
+        if (e.target.closest && e.target.closest(".mk-leads-td--check")) return;
         var tr = e.target.closest("tr[data-id]");
         if (tr && !e.target.closest("a")) {
           window.location.href = detailUrl(tr.getAttribute("data-id"));
@@ -637,6 +836,24 @@
     });
 
     document.addEventListener("click", function (e) {
+      var pick = e.target.closest && e.target.closest("[data-bulk-pick]");
+      if (pick) {
+        e.preventDefault();
+        e.stopPropagation();
+        var pickType = pick.getAttribute("data-bulk-pick");
+        var val = pick.getAttribute("data-value");
+        if (!val || !store) return;
+        if (pickType === "owner") applyBulkOwner(val);
+        else if (pickType === "add-tag") applyBulkAddTag(val);
+        else if (pickType === "remove-tag") applyBulkRemoveTag(val);
+        return;
+      }
+
+      if (state.bulkMenu && !(e.target.closest && e.target.closest(".mk-leads-bulk-bar"))) {
+        state.bulkMenu = null;
+        renderBulkBar();
+      }
+
       if (e.target.id === "mk-leads-prev") {
         state.page = Math.max(1, state.page - 1);
         renderTable();
@@ -648,6 +865,36 @@
       if (e.target.id === "mk-leads-export-btn") {
         var menu = $("mk-leads-export-menu");
         if (menu) menu.hidden = !menu.hidden;
+      }
+      var bulkBtn = e.target.closest && e.target.closest("[data-bulk]");
+      if (bulkBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var action = bulkBtn.getAttribute("data-bulk");
+        var rows = selectedLeads();
+        if (!rows.length && action !== "clear") return;
+        if (action === "clear") {
+          clearSelection();
+          return;
+        }
+        if (action === "export") {
+          exportCsv(rows);
+          return;
+        }
+        if (action === "archive") {
+          if (!window.confirm("Archive " + rows.length + " selected lead(s)?")) return;
+          rows.forEach(function (l) {
+            store.remove(l.id);
+          });
+          clearSelection();
+          renderAll();
+          return;
+        }
+        if (action === "assign" || action === "add-tag" || action === "remove-tag") {
+          state.bulkMenu = state.bulkMenu === action ? null : action;
+          renderBulkBar();
+          return;
+        }
       }
       if (e.target.closest && e.target.closest("[data-export]")) {
         var kind = e.target.getAttribute("data-export");

@@ -99,7 +99,7 @@
 						<select name="team_groupid" class="form-control" required>
 							<option value="">{vtranslate('LBL_SELECT_OPTION','Vtiger')}</option>
 							{foreach item=G from=$TEAM_GROUPS_LIST}
-								<option value="{$G.groupid|escape}">{$G.group_name|escape}</option>
+								<option value="{$G.groupid|escape}">{$G.group_name|decode_html|escape}</option>
 							{/foreach}
 						</select>
 					</div>

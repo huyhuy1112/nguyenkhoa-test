@@ -41,6 +41,10 @@
       '<svg class="mk-leads-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
     ticket:
       '<svg class="mk-leads-ic" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5H5a2 2 0 0 0-2 2v3a2 2 0 0 1 0 4v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3a2 2 0 0 1 0-4V7a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+    trash:
+      '<svg class="mk-leads-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    bulkCheck:
+      '<svg class="mk-leads-ic mk-leads-ic--bulk-check" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   };
 
   root.LeadsMkIcons = {

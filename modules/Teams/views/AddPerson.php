@@ -38,22 +38,8 @@ class Teams_AddPerson_View extends Vtiger_Index_View {
 			$timezones[] = $row['time_zone'];
 		}
 
-		// Projects (optional)
-		$projects = array();
-		$tbl = $db->pquery("SHOW TABLES LIKE ?", array("vtiger_project"));
-		if ($tbl && $db->num_rows($tbl) > 0) {
-			$resProj = $db->pquery("SELECT projectid, projectname FROM vtiger_project ORDER BY projectname", array());
-			while ($resProj && ($row = $db->fetchByAssoc($resProj))) {
-				$projects[] = $row;
-			}
-		}
-
-		// Groups for selection (standalone; no team filtering)
-		$existingGroups = array();
-		$resGroups = $db->pquery("SELECT groupid, group_name FROM vtiger_team_groups ORDER BY createdtime DESC", array());
-		while ($resGroups && ($row = $db->fetchByAssoc($resGroups))) {
-			$existingGroups[] = $row;
-		}
+		$projects = Teams_Module_Model::getActiveProjectsList();
+		$existingGroups = Teams_Module_Model::getTeamGroupsList();
 		$viewer->assign('TEAM_GROUPS_LIST', $existingGroups);
 		$viewer->assign('ROLES', $roles);
 		$viewer->assign('TIMEZONES', $timezones);

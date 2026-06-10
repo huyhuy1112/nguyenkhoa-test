@@ -1,0 +1,174 @@
+/**
+ * Dashboard dark mode — beats HomeDashBoardCharts.css + DashBoard.css white shells.
+ * Load last via MkThemeStylesLast.tpl.
+ */
+
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget .dashboardWidgetHeader {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget .dashboardWidgetHeader .title,
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget .dashboardWidgetHeader .dashboardTitle {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-chart-col .widgetChartContainer.mk-chart-stage,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-chart-col .widgetChartContainer.mk-chart-multibar {
+	background: #0d1117 !important;
+	border-radius: 0 !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .mk-chart-col .mk-dash-chart-xlabels {
+	background: var(--mk-bg-elevated) !important;
+	border-top: 1px solid var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .mk-dash-chart-xlabel {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .mk-chart-col .mk-dash-chart-legend,
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer .mk-dash-chart-legend {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .widgetChartContainer .jqplot-table-legend-label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer .jqplot-xaxis-tick text,
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer .jqplot-yaxis-tick text,
+html[data-theme="dark"] body[data-view="DashBoard"] .fullscreenview .jqplot-xaxis-tick text,
+html[data-theme="dark"] body[data-view="DashBoard"] .fullscreenview .jqplot-yaxis-tick text {
+	fill: #e8edf5 !important;
+	font-size: 11px !important;
+	font-weight: 600 !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer .jqplot-axis-tick,
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer .jqplot-tick-label,
+html[data-theme="dark"] body[data-view="DashBoard"] .fullscreenview .jqplot-axis-tick,
+html[data-theme="dark"] body[data-view="DashBoard"] .fullscreenview .jqplot-tick-label {
+	color: #e8edf5 !important;
+}
+
+/* jqPlot stacks: grid → series (bars) → event (top). Only grid may be tinted; series/event MUST stay transparent or bars vanish. */
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer .jqplot-target,
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer canvas.jqplot-series-canvas,
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer canvas.jqplot-event-canvas {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer canvas.jqplot-grid-canvas {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer .jqplot-point-label,
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer .jqplot-bar-label {
+	color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-dash-chart-legend-label {
+	color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-dash-chart-legend-swatch {
+	box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* Activity / upcoming tasks list */
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData > div,
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="OverdueActivities"] .dashboardWidgetData > div {
+	border-bottom-color: var(--mk-border-color) !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData > div:hover,
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="OverdueActivities"] .dashboardWidgetData > div:hover {
+	background: rgba(253, 187, 44, 0.08) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData a,
+html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="OverdueActivities"] .dashboardWidgetData a {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetData,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .dashboardWidgetData {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetData .entryIcon,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetData .vicon-task,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetData .vicon-meeting {
+	color: var(--mk-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetData .pull-left > span {
+	background: var(--mk-bg-elevated) !important;
+	border: 1px solid var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData .pull-left > span,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidget[data-name="OverdueActivities"] .dashboardWidgetData .pull-left > span {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+}
+
+/* History feed icon tiles */
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-item > .col-lg-1 span,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-item--comment > .col-lg-1 span {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-item,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-item--comment {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-item a,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-item--comment a,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-feed .load-more {
+	color: var(--mk-text-link) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-item > p.pull-right.muted,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-item--comment > p.pull-right.muted {
+	color: var(--mk-text-muted) !important;
+}
+
+/* Mini list widgets */
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .miniListContent,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .miniListContent .row {
+	background: transparent !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .moreLinkDiv a {
+	color: var(--mk-text-link) !important;
+}
+
+/* Chart report / funnel empty shells */
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidget[data-name="FunnelAmount"] .dashboardWidgetContent,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidget[data-name="ChartReportWidget"] .dashboardWidgetContent,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidget[data-name="GroupedBySalesPerson"] .dashboardWidgetContent,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidget[data-name="PipelinedAmountPerSalesPerson"] .dashboardWidgetContent {
+	background: var(--mk-card-bg) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .slimScrollDiv,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .mCustomScrollBox,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .mk-dashboard-chart-row,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .mk-chart-col {
+	background: transparent !important;
+}

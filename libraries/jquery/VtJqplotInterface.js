@@ -16,6 +16,27 @@ var vtJqPlotInterface = function() {
         '#FDBB2C', '#0EA5E9', '#6366F1', '#64748B'
     ];
 
+    this.isDarkDashboardTheme = function() {
+        return !!(
+            document.documentElement &&
+            document.documentElement.getAttribute('data-theme') === 'dark'
+        );
+    };
+
+    this.getDashboardChartColors = function() {
+        if (this.isDarkDashboardTheme()) {
+            return [
+                '#60A5FA', '#FBBF24', '#34D399', '#A78BFA',
+                '#FDBB2C', '#38BDF8', '#818CF8', '#CBD5E1'
+            ];
+        }
+        return this.dashboardChartColors;
+    };
+
+    this.getDashboardAxisTickColor = function() {
+        return this.isDarkDashboardTheme() ? '#E2E8F0' : undefined;
+    };
+
     this.getDashboardLegendBottomPad = function(labelCount) {
         var n = labelCount || 0;
         var cols = n > 6 ? 4 : n > 4 ? 3 : 2;
@@ -63,7 +84,7 @@ var vtJqPlotInterface = function() {
         if (!labels || !labels.length) {
             return;
         }
-        var colors = this.dashboardChartColors;
+        var colors = this.getDashboardChartColors();
         var $wrap = jQuery('<div class="mk-dash-chart-legend"></div>');
         var i;
         for (i = 0; i < labels.length; i++) {
@@ -147,17 +168,27 @@ var vtJqPlotInterface = function() {
         if (this.isFullscreenChart()) {
             left = Math.max(left, 72);
         }
+        var dark = this.isDarkDashboardTheme();
         return {
             gridPadding: { top: 12, right: right, left: left, bottom: bottom },
-            grid: {
-                drawGridlines: true,
-                gridLineColor: '#f1f5f9',
-                borderColor: '#e2e8f0',
-                borderWidth: 0.5,
-                background: '#ffffff',
-                shadow: false
-            },
-            seriesColors: this.dashboardChartColors.slice()
+            grid: dark
+                ? {
+                    drawGridlines: true,
+                    gridLineColor: 'rgba(255,255,255,0.1)',
+                    borderColor: 'rgba(255,255,255,0.12)',
+                    borderWidth: 0.5,
+                    background: '#0D1117',
+                    shadow: false
+                }
+                : {
+                    drawGridlines: true,
+                    gridLineColor: '#f1f5f9',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 0.5,
+                    background: '#ffffff',
+                    shadow: false
+                },
+            seriesColors: this.getDashboardChartColors().slice()
         };
     };
 
@@ -294,10 +325,17 @@ var vtJqPlotInterface = function() {
                 yaxis: {
                     min:0,
                     max: this.data['yMaxValue'],
-                    tickOptions: {
-                        formatString: '%d',
-                        fontSize: fontSize + 'px'
-                    },
+                    tickOptions: (function(self, fs) {
+                        var opts = {
+                            formatString: '%d',
+                            fontSize: fs + 'px'
+                        };
+                        var tc = self.getDashboardAxisTickColor();
+                        if (tc) {
+                            opts.textColor = tc;
+                        }
+                        return opts;
+                    })(this, fontSize),
                     labelOptions: {
                         fontSize: axisLabelSize + 'px'
                     },
@@ -438,9 +476,14 @@ var vtJqPlotInterface = function() {
                 yaxis: {
                     padMin: 0,
                     min:0,
-                    tickOptions: {
-                        fontSize: fontSize + 'px'
-                    },
+                    tickOptions: (function(self, fs) {
+                        var opts = { fontSize: fs + 'px' };
+                        var tc = self.getDashboardAxisTickColor();
+                        if (tc) {
+                            opts.textColor = tc;
+                        }
+                        return opts;
+                    })(this, fontSize),
                     labelOptions: {
                         fontSize: axisLabelSize + 'px'
                     }

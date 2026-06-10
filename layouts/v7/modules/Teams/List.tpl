@@ -127,7 +127,7 @@
 	</div>
 </div>
 {/strip}
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Teams/resources/TeamsModal.js')}?v=3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Teams/resources/TeamsModal.js')}?v=4"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Teams/resources/Group.js')}?v=3"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Teams/resources/Person.js')}?v=3"></script>
 <script type="text/javascript">

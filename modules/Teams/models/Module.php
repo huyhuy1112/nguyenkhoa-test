@@ -130,6 +130,55 @@ class Teams_Module_Model extends Vtiger_Module_Model {
 	}
 
 	/**
+	 * Active (non-deleted) projects for Teams pickers.
+	 * @return array<int, array{projectid: mixed, projectname: string}>
+	 */
+	public static function getActiveProjectsList() {
+		$db = PearDatabase::getInstance();
+		$projects = array();
+		$tbl = $db->pquery("SHOW TABLES LIKE ?", array('vtiger_project'));
+		if (!$tbl || $db->num_rows($tbl) === 0) {
+			return $projects;
+		}
+		$res = $db->pquery(
+			"SELECT p.projectid, p.projectname
+			 FROM vtiger_project p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.projectid
+			 WHERE ce.deleted = 0 AND ce.setype = 'Project'
+			 ORDER BY p.projectname",
+			array()
+		);
+		while ($res && ($row = $db->fetchByAssoc($res))) {
+			$row['projectname'] = decode_html($row['projectname']);
+			$projects[] = $row;
+		}
+		return $projects;
+	}
+
+	/**
+	 * Team groups for dropdowns (decoded labels for UTF-8 / HTML entities).
+	 * @param int|null $excludeGroupId
+	 * @return array<int, array{groupid: mixed, group_name: string}>
+	 */
+	public static function getTeamGroupsList($excludeGroupId = null) {
+		$db = PearDatabase::getInstance();
+		$groups = array();
+		$sql = "SELECT groupid, group_name FROM vtiger_team_groups";
+		$params = array();
+		if ($excludeGroupId !== null && (int)$excludeGroupId > 0) {
+			$sql .= " WHERE groupid != ?";
+			$params[] = (int)$excludeGroupId;
+		}
+		$sql .= " ORDER BY group_name ASC";
+		$res = $db->pquery($sql, $params);
+		while ($res && ($row = $db->fetchByAssoc($res))) {
+			$row['group_name'] = decode_html($row['group_name']);
+			$groups[] = $row;
+		}
+		return $groups;
+	}
+
+	/**
 	 * Ensure user presence table exists.
 	 */
 	public static function ensureUserActivitySchema() {

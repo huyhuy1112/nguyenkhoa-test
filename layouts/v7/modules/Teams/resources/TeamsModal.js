@@ -15,9 +15,8 @@
 			// Disable body scroll
 			$('body').css('overflow', 'hidden');
 
-			// Create overlay with dark backdrop (like QuickCreate Event)
-			var $overlay = $('<div class="teams-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1050; opacity: 0; transition: opacity 0.3s;"></div>');
-			var $container = $('<div class="teams-modal-container" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); background: #fff; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; z-index: 1051; transition: transform 0.3s;"></div>');
+			var $overlay = $('<div class="teams-overlay" aria-hidden="true"></div>');
+			var $container = $('<div class="teams-modal-container teams-modal-shell" role="dialog" aria-modal="true"></div>');
 			var $close = $('<button type="button" class="teams-modal-close" aria-label="Close">&times;</button>');
 			
 			$container.append($close).append(html);
@@ -86,11 +85,11 @@
 					users.forEach(function(user){
 						var checked = allChecked ? 'checked' : '';
 						var fullName = (user.full_name || (user.first_name + ' ' + user.last_name) || user.user_name).trim();
-						html += '<div class="checkbox" style="margin: 8px 0;">';
+						html += '<div class="checkbox">';
 						html += '<label>';
 						html += '<input type="checkbox" name="userids[]" value="' + user.id + '" ' + checked + ' />';
-						html += '<strong>' + (fullName || user.user_name) + '</strong>';
-						html += ' <span class="text-muted">(' + user.user_name + ')</span>';
+						html += '<span class="teams-user-check-label"><strong>' + (fullName || user.user_name) + '</strong>';
+						html += ' <span class="text-muted">(' + user.user_name + ')</span></span>';
 						html += '</label>';
 						html += '</div>';
 					});
@@ -151,8 +150,7 @@
 
 			// Trigger animation by adding active class after a brief delay
 			setTimeout(function() {
-				$overlay.css('opacity', '1');
-				$container.css('transform', 'translate(-50%, -50%) scale(1)');
+				$overlay.addClass('teams-overlay-visible');
 				
 				// Focus first input after animation (optional, but helps UX)
 				setTimeout(function(){
@@ -170,8 +168,7 @@
 				currentModal = null;
 				
 				// Trigger exit animation
-				$modal.removeClass('teams-overlay-active');
-				$modal.find('.teams-modal-container').removeClass('teams-modal-container-active');
+				$modal.removeClass('teams-overlay-visible');
 				
 				// Remove after animation completes
 				setTimeout(function() {

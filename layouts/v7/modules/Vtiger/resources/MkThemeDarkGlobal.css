@@ -630,3 +630,77 @@ html[data-theme="dark"] body[data-view="DashBoard"] .dashBoardTabContents ul li.
 	background: var(--mk-bg-elevated) !important;
 	border-top-color: var(--mk-border-color) !important;
 }
+
+/* Chart sub-rows (DashBoard.css hardcodes #fff / #fafbfc) */
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-chart-col .mk-dash-chart-xlabels {
+	background: var(--mk-card-bg) !important;
+	border-top: 1px solid var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-dash-chart-xlabel {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-chart-col .mk-dash-chart-legend,
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer .mk-dash-chart-legend {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-dash-chart-legend-label {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashBoardTabContents ul li.dashboardWidget .dashBoardWidgetFooter .filterContainer {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .noDataMsg::before {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer table.jqplot-table-legend {
+	border-top-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer .jqplot-target,
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer canvas.jqplot-event-canvas,
+html[data-theme="dark"] body[data-view="DashBoard"] .widgetChartContainer canvas.jqplot-series-canvas {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .miniListContent,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .miniListContent .row,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent > div > .row {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent strong,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent a {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-title-cell .dashboardTitle b,
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-widget-header {
+	border-bottom-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .mk-history-title-cell .dashboardTitle b {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent table,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent .table,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent tbody,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent thead,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent tr,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent td,
+html[data-theme="dark"] body[data-view="DashBoard"] .dashboardWidgetContent th {
+	background: transparent !important;
+	color: var(--mk-text-primary) !important;
+	border-color: var(--mk-border-color) !important;
+}
