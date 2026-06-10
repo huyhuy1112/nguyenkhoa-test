@@ -4,15 +4,14 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260529_proj_create1';
+	var MK_BUILD = '20260605_proj_edit1';
 
 	function isScoped() {
 		return (
 			$('body').data('module') === 'Project' &&
 			$('body').data('view') === 'Edit' &&
 			($('body').data('app') === 'MANAGEMENT' || !$('body').data('app')) &&
-			$('#mkProjCreateWorkspace').length &&
-			!$('input[name="record"]').val()
+			$('#mkProjCreateWorkspace').length
 		);
 	}
 

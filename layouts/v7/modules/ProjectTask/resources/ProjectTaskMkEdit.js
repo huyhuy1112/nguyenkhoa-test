@@ -4,15 +4,14 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260529_ptask_create1';
+	var MK_BUILD = '20260605_ptask_edit1';
 
 	function isScoped() {
 		return (
 			$('body').data('module') === 'ProjectTask' &&
 			$('body').data('view') === 'Edit' &&
 			($('body').data('app') === 'MANAGEMENT' || !$('body').data('app')) &&
-			$('#mkPtaskCreateWorkspace').length &&
-			!$('input[name="record"]').val()
+			$('#mkPtaskCreateWorkspace').length
 		);
 	}
 

@@ -9,9 +9,6 @@ class ProjectTask_Edit_View extends Vtiger_Edit_View {
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
-		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
-			return false;
-		}
 		$app = strtoupper((string) $request->get('app'));
 		return $app === 'MANAGEMENT' || $app === '';
 	}

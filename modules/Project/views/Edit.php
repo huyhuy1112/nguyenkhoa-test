@@ -9,9 +9,6 @@ class Project_Edit_View extends Vtiger_Edit_View {
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
-		if (!empty($request->get('record')) && !$request->get('isDuplicate')) {
-			return false;
-		}
 		$app = strtoupper((string) $request->get('app'));
 		return $app === 'MANAGEMENT' || $app === '';
 	}
@@ -31,6 +28,7 @@ class Project_Edit_View extends Vtiger_Edit_View {
 	protected function ensureManagementApp(Vtiger_Request $request) {
 		if (empty($request->get('app'))) {
 			$request->set('app', 'MANAGEMENT');
+			$_REQUEST['app'] = 'MANAGEMENT';
 		}
 	}
 
