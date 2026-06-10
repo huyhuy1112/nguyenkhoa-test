@@ -105,20 +105,82 @@
 		});
 	}
 
+	function storeLeadToDemo(raw) {
+		var logic = window.LeadsLeadsLogic;
+		var ref = window.LeadsLovableRef;
+		var tags = raw.tags || [];
+		var d = logic && logic.derive ? logic.derive(raw) : {};
+		var sourceTag = null;
+		var i;
+		for (i = 0; i < tags.length; i++) {
+			if (['facebook', 'tiktok', 'website', 'zalo', 'other'].indexOf(tags[i]) >= 0) {
+				sourceTag = tags[i];
+				break;
+			}
+		}
+		var sourceLabel = sourceTag && ref && ref.tagMeta ? ref.tagMeta(sourceTag).label : 'Website';
+		return {
+			id: raw.id,
+			name: raw.name,
+			company: raw.companyName || '',
+			phone: raw.phone,
+			email: raw.email || '',
+			leadsource: sourceLabel,
+			leadstatus: d.stage || 'New Purchase',
+			owner: raw.owner,
+			value: raw.value || 0,
+			closeDate: '',
+			tags: tags.slice(),
+			comments: [],
+			activities: raw.next_action
+				? [{ subject: raw.next_action, when: logic && logic.touchLabel ? logic.touchLabel(d.days) : 'Today' }]
+				: [],
+			activityLog: (raw.activities || []).map(function (a) {
+				return {
+					type: a.type || 'note',
+					label: a.label || 'NOTE',
+					time: a.time || '',
+					text: a.text || '',
+				};
+			}),
+			purchases: [],
+			badges: {
+				contacts: 1,
+				comments: 0,
+				'activity-log': (raw.activities || []).length,
+				purchases: 0,
+				calendar: 0,
+				tasks: 0,
+				documents: 0,
+				emails: 0,
+			},
+		};
+	}
+
 	function resolveLead() {
 		var root = document.getElementById('mk-leads-detail-root');
 		var param = root && root.getAttribute('data-record-id');
+		var qs = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+		var mkId = qs ? qs.get('mkLeadId') : null;
+		var id = mkId || param;
+		var store = window.LeadsLocalStore;
+		if (store && id && typeof store.getLead === 'function') {
+			var cached = store.getLead(id);
+			if (cached) {
+				return cloneLeadData(storeLeadToDemo(cached));
+			}
+		}
 		var demo = typeof window !== 'undefined' ? window.MK_LEADS_DEMO : null;
 		if (demo && typeof demo.resolveLead === 'function') {
-			var found = demo.resolveLead(param);
+			var found = demo.resolveLead(id || param);
 			if (found) {
 				return cloneLeadData(found);
 			}
 		}
-		if (param) {
-			return defaultLead(String(param));
+		if (id || param) {
+			return defaultLead(String(id || param));
 		}
-		return defaultLead('L004');
+		return defaultLead('L-1001');
 	}
 
 	function kvRow(label, valueHtml) {
