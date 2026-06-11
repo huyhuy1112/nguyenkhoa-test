@@ -14,7 +14,8 @@
 {assign var=QUALIFIED_MODULE value='Settings:User'}
 {include file="SettingsMenuStart.tpl"|vtemplate_path:$QUALIFIED_MODULE}
 
-<div class="bodyContents">
+<div class="bodyContents mk-users-edit-page">
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Users/resources/UsersPrefEditContent.css')}&mk_v=20260605_users_edit_spacing1" />
 	<div class="mainContainer row-fluid">
 		
 {/strip}

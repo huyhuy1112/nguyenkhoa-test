@@ -706,7 +706,7 @@ class Vtiger_Functions {
 		}
 		
         //mime type check
-        if ($saveimage) {
+        if ($saveimage && function_exists('mime_content_type')) {
             $mimeType = mime_content_type($file_details['tmp_name']);
             $mimeTypeContents = explode('/', $mimeType);
             if (!$file_details['size'] || strtolower($mimeTypeContents[0]) !== 'image' || !in_array($mimeTypeContents[1], $mimeTypesList)) {
@@ -720,14 +720,20 @@ class Vtiger_Functions {
             $tmpFileName = $file_details['tmp_name'];
 
             if ($file_details['type'] == 'image/jpeg' || $file_details['type'] == 'image/tiff') {
-                $exifdata = @exif_read_data($file_details['tmp_name']);
+                $exifdata = false;
+                if (function_exists('exif_read_data')) {
+                    $exifdata = @exif_read_data($file_details['tmp_name']);
+                }
                 if ($exifdata && !self::validateImageMetadata($exifdata, $shortTagSupported)) {
                     $saveimage = false;
                 }
                 //131225968::remove sensitive information(like,GPS or camera information) from the image
-                if ($saveimage && ($file_details['type'] == 'image/jpeg' ) && extension_loaded('gd') && function_exists('gd_info')) {
+                if ($saveimage && ($file_details['type'] == 'image/jpeg' ) && function_exists('imagecreatefromjpeg') && function_exists('imagejpeg')) {
                     $img = imagecreatefromjpeg($tmpFileName);
-                    imagejpeg($img, $tmpFileName);
+                    if ($img) {
+                        imagejpeg($img, $tmpFileName);
+                        imagedestroy($img);
+                    }
                 }
             }
         }
@@ -1692,12 +1698,22 @@ class Vtiger_Functions {
 	 * @param <String> $fileName
 	 * @return <String> $sourceUrl
 	 */
+	public static function getAttachmentPublicKey($fileName) {
+		if ($fileName === null || $fileName === '') {
+			return '';
+		}
+		$decodedName = decode_html($fileName);
+		$upload_badext = vglobal('upload_badext');
+		$sanitizedName = sanitizeUploadFileName($decodedName, $upload_badext);
+		return md5($sanitizedName !== '' ? $sanitizedName : ($decodedName !== '' ? $decodedName : $fileName));
+	}
+
 	public static function getFilePublicURL($imageId, $imageName) {
 		$publicUrl = '';
         $fileId = $imageId;
-        $fileName = $imageName;
-		if ($fileId) {
-			$publicUrl = "public.php?fid=$fileId&key=".md5($fileName);
+		if ($fileId && $imageName) {
+			// vtiger default: md5 of DB filename (ShowFile.php validates multiple key variants)
+			$publicUrl = 'public.php?fid=' . $fileId . '&key=' . md5($imageName);
 		}
 		return $publicUrl;
 	}

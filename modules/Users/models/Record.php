@@ -374,43 +374,55 @@ class Users_Record_Model extends Vtiger_Record_Model {
 	}
 
 	/**
+	 * Reliable avatar URL (served via Users_ShowAvatar_Action).
+	 */
+	public function getAvatarUrl() {
+		$recordId = $this->getId();
+		if (!$recordId) {
+			return '';
+		}
+		global $site_URL;
+		return rtrim($site_URL, '/') . '/index.php?module=Users&action=ShowAvatar&record=' . (int) $recordId;
+	}
+
+	/**
 	 * Function to get Images Data
 	 * @return <Array> list of Image names and paths
 	 */
 	public function getImageDetails() {
-        global $site_URL;
 		$db = PearDatabase::getInstance();
 
 		$imageDetails = array();
 		$recordId = $this->getId();
 
 		if ($recordId) {
-                        // Not a good approach to get all the fields if not required(May lead to Performance issue)
-			$query = "SELECT vtiger_attachments.attachmentsid, vtiger_attachments.path, vtiger_attachments.name FROM vtiger_attachments
-                                  LEFT JOIN vtiger_salesmanattachmentsrel ON vtiger_salesmanattachmentsrel.attachmentsid = vtiger_attachments.attachmentsid
-                                  WHERE vtiger_salesmanattachmentsrel.smid=?";
+			$query = "SELECT vtiger_attachments.attachmentsid, vtiger_attachments.path, vtiger_attachments.name
+				FROM vtiger_attachments
+				INNER JOIN vtiger_salesmanattachmentsrel
+					ON vtiger_salesmanattachmentsrel.attachmentsid = vtiger_attachments.attachmentsid
+				WHERE vtiger_salesmanattachmentsrel.smid=?
+				ORDER BY vtiger_attachments.attachmentsid DESC
+				LIMIT 1";
 
 			$result = $db->pquery($query, array($recordId));
 
-			$imageId = $db->query_result($result, 0, 'attachmentsid');
-			$imagePath = $db->query_result($result, 0, 'path');
-			$imageName = $db->query_result($result, 0, 'name');
-            $url = \Vtiger_Functions::getFilePublicURL($imageId, $imageName);
+			if ($db->num_rows($result) > 0) {
+				$imageId = $db->query_result($result, 0, 'attachmentsid');
+				$imagePath = $db->query_result($result, 0, 'path');
+				$imageName = $db->query_result($result, 0, 'name');
+				$imageNameDecoded = decode_html($imageName);
+				$url = $this->getAvatarUrl();
 
-			//decode_html - added to handle UTF-8 characters in file names
-			$imageNameDecoded =decode_html($imageName);
-			$imageOriginalName = urlencode($imageNameDecoded ? $imageNameDecoded : "");
-            if($url) {
-                $url = $site_URL.$url;
-            }
-
-			$imageDetails[] = array(
-					'id' => $imageId,
-					'orgname' => $imageOriginalName,
-					'path' => $imagePath.$imageId,
-					'name' => $imageName,
-                    'url'  => $url
-			);
+				if (!empty($imageId) && !empty($imageName) && !empty($url)) {
+					$imageDetails[] = array(
+						'id' => $imageId,
+						'orgname' => $imageNameDecoded,
+						'path' => $imagePath . $imageId,
+						'name' => $imageName,
+						'url'  => $url
+					);
+				}
+			}
 		}
 		return $imageDetails;
 	}

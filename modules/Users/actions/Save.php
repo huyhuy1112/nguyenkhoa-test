@@ -132,7 +132,7 @@ class Users_Save_Action extends Vtiger_Save_Action {
 
 	public function process(Vtiger_Request $request) {
 		$result = Vtiger_Util_Helper::transformUploadedFiles($_FILES, true);
-		$_FILES = $result['imagename'];
+		$_FILES = !empty($result['imagename']) && is_array($result['imagename']) ? $result['imagename'] : array();
 
 		$recordId = $request->get('record');
 		if (!$recordId) {

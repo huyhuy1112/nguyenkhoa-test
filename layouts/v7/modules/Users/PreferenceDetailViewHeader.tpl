@@ -20,7 +20,8 @@
 					{foreach key=ITER item=IMAGE_INFO from=$RECORD->getImageDetails()}
 						{if !empty($IMAGE_INFO.url)}
 							{assign var=MK_PREF_HAS_AVATAR value=true}
-							<img src="{$IMAGE_INFO.url}" alt="{$IMAGE_INFO.orgname|escape}" title="{$IMAGE_INFO.orgname|escape}" data-image-id="{$IMAGE_INFO.id}">
+							<img class="mk-users-pref-hero__avatar-img" src="{$IMAGE_INFO.url}" alt="{$IMAGE_INFO.orgname|escape:'html'}" title="{$IMAGE_INFO.orgname|escape:'html'}" data-image-id="{$IMAGE_INFO.id}" onerror="this.style.display='none';var f=this.nextElementSibling;if(f)f.style.display='flex';">
+							<span class="mk-users-pref-hero__initials mk-users-pref-hero__initials--fallback" style="display:none;">{$RECORD->getName()|substr:0:2}</span>
 						{/if}
 					{/foreach}
 					{if !$MK_PREF_HAS_AVATAR}

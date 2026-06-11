@@ -7,22 +7,40 @@
 * All Rights Reserved.
 ************************************************************************************}
 
-<div class="editViewPageDiv detailViewContainer">
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Users/resources/UsersPrefEditContent.css')}&mk_v=20260605_users_edit_spacing1" />
+<div class="editViewPageDiv detailViewContainer {if $IS_PREFERENCE}bace-users-pref-edit{else}bace-users-settings-edit{/if}">
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <form class="form-horizontal recordEditView" id="EditView" name="EditView" method="post" action="index.php" enctype="multipart/form-data">
-            <div class="editViewHeader">
-                <div class='row'>
-                    <div class="col-lg-12 col-md-12 col-sm-12 ">
-                        {assign var=SINGLE_MODULE_NAME value='SINGLE_'|cat:$MODULE}
+            {assign var=SINGLE_MODULE_NAME value='SINGLE_'|cat:$MODULE}
+            <header class="mk-users-edit-hero" id="mkUsersEditHero">
+                <div class="mk-users-edit-hero__icon" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.75"/>
+                    </svg>
+                </div>
+                <div class="mk-users-edit-hero__text">
+                    {if $RECORD_ID neq ''}
+                        <h2 class="mk-users-edit-hero__title">{vtranslate('LBL_EDITING', $MODULE)} {vtranslate($SINGLE_MODULE_NAME, $MODULE)}</h2>
+                        <p class="mk-users-edit-hero__subtitle">{$RECORD_STRUCTURE_MODEL->getRecordName()|escape}</p>
+                    {else}
+                        <h2 class="mk-users-edit-hero__title">{vtranslate('LBL_CREATING_NEW', $MODULE)}</h2>
+                        <p class="mk-users-edit-hero__subtitle">{vtranslate($SINGLE_MODULE_NAME, $MODULE)}</p>
+                    {/if}
+                </div>
+            </header>
+            <div class="editViewHeader" hidden aria-hidden="true">
+                <div class="row">
+                    <div class="col-lg-12 col-md-12 col-sm-12">
                         {if $RECORD_ID neq ''}
-                            <h4 class="editHeader"  title="{vtranslate('LBL_EDITING', $MODULE)} {vtranslate($SINGLE_MODULE_NAME, $MODULE)} {$RECORD_STRUCTURE_MODEL->getRecordName()}">{vtranslate('LBL_EDITING', $MODULE)} {vtranslate($SINGLE_MODULE_NAME, $MODULE)} - {$RECORD_STRUCTURE_MODEL->getRecordName()}</h4>
+                            <h4 class="editHeader">{vtranslate('LBL_EDITING', $MODULE)} {vtranslate($SINGLE_MODULE_NAME, $MODULE)} - {$RECORD_STRUCTURE_MODEL->getRecordName()}</h4>
                         {else}
                             <h4 class="editHeader">{vtranslate('LBL_CREATING_NEW', $MODULE)} {vtranslate($SINGLE_MODULE_NAME, $MODULE)}</h4>
                         {/if}
                     </div>
                 </div>
             </div>
-            <hr>    
+            <hr style="display:none;">
             <div class="editViewBody">
                 <div class="editViewContents" >
                     {assign var=WIDTHTYPE value=$USER_MODEL->get('rowheight')}

@@ -41,17 +41,52 @@
 								{/foreach}
 
 							{elseif $FIELD_MODEL->get('uitype') eq "69" || $FIELD_MODEL->get('uitype') eq "105"}
-								<div class="mk-users-field mk-users-field--full {$WIDTHTYPE}">
-									<div class="mk-users-field__label fieldLabel">
-										<span class="muted">{vtranslate({$FIELD_MODEL->get('label')},{$MODULE_NAME})}</span>
-									</div>
-									<div class="mk-users-field__value fieldValue">
-										<div id="imageContainer">
-											{foreach key=ITER item=IMAGE_INFO from=$IMAGE_DETAILS}
-												{if !empty($IMAGE_INFO.url)}
-													<img src="{$IMAGE_INFO.url}" width="300" height="200" alt="">
-												{/if}
-											{/foreach}
+								{assign var=MK_USER_HAS_PHOTO value=false}
+								{assign var=MK_USER_PHOTO_URL value=''}
+								{assign var=MK_USER_PHOTO_ALT value=$RECORD->getName()|escape}
+								{if isset($IMAGE_DETAILS) && $IMAGE_DETAILS|@count gt 0}
+									{foreach key=ITER item=IMAGE_INFO from=$IMAGE_DETAILS}
+										{if !empty($IMAGE_INFO.url)}
+											{assign var=MK_USER_HAS_PHOTO value=true}
+											{assign var=MK_USER_PHOTO_URL value=$IMAGE_INFO.url}
+											{if !empty($IMAGE_INFO.orgname)}{assign var=MK_USER_PHOTO_ALT value=$IMAGE_INFO.orgname|escape}{/if}
+										{/if}
+									{/foreach}
+								{/if}
+								{if !$MK_USER_HAS_PHOTO}
+									{foreach key=ITER item=IMAGE_INFO from=$RECORD->getImageDetails()}
+										{if !empty($IMAGE_INFO.url)}
+											{assign var=MK_USER_HAS_PHOTO value=true}
+											{assign var=MK_USER_PHOTO_URL value=$IMAGE_INFO.url}
+											{if !empty($IMAGE_INFO.orgname)}{assign var=MK_USER_PHOTO_ALT value=$IMAGE_INFO.orgname|escape}{/if}
+										{/if}
+									{/foreach}
+								{/if}
+								{if (isset($VIEW) && $VIEW eq 'PreferenceDetail') || (isset($smarty.request.view) && $smarty.request.view eq 'PreferenceDetail')}
+									{assign var=MK_PHOTO_EDIT_URL value=$RECORD->getPreferenceEditViewUrl()}
+								{else}
+									{assign var=MK_PHOTO_EDIT_URL value=$RECORD->getEditViewUrl()}
+								{/if}
+								<div class="mk-users-field mk-users-field--image mk-users-field--full {$WIDTHTYPE}" id="{$MODULE_NAME}_detailView_fieldValue_{$FIELD_MODEL->getName()}">
+									<div class="mk-users-photo-card fieldValue">
+										{if $MK_USER_HAS_PHOTO}
+											<div class="mk-users-photo mk-users-photo--has-image">
+												<img class="mk-users-photo__img" src="{$MK_USER_PHOTO_URL}" alt="{$MK_USER_PHOTO_ALT|escape:'html'}" loading="lazy">
+											</div>
+										{else}
+											<div class="mk-users-photo mk-users-photo--empty">
+												<div class="mk-users-photo__placeholder" aria-hidden="true">
+													<span class="mk-users-photo__initials">{$RECORD->getName()|substr:0:2}</span>
+												</div>
+												<p class="mk-users-photo__empty-title">Chưa có ảnh đại diện</p>
+												<p class="mk-users-photo__empty-hint">Tải ảnh lên trong màn hình chỉnh sửa hồ sơ.</p>
+											</div>
+										{/if}
+										<div class="mk-users-photo__actions">
+											<a class="btn btn-default mk-users-photo__edit-btn" href="{$MK_PHOTO_EDIT_URL|escape:'html'}">
+												<i class="fa fa-pencil" aria-hidden="true"></i>
+												{if $MK_USER_HAS_PHOTO}{vtranslate('LBL_EDIT', $MODULE_NAME)}{else}{vtranslate('LBL_UPLOAD', 'Vtiger')}{/if}
+											</a>
 										</div>
 									</div>
 								</div>

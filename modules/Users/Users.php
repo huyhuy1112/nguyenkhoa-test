@@ -945,8 +945,11 @@ class Users extends CRMEntity {
 		$log->debug("Entering into insertIntoAttachment($id,$module) method.");
 
 		foreach($_FILES as $fileindex => $files) {
+			if (!is_array($files) || is_array($files['name'])) {
+				continue;
+			}
 			if($files['name'] != '' && $files['size'] > 0) {
-				$files['original_name'] = vtlib_purify($_REQUEST[$fileindex.'_hidden']);
+				$files['original_name'] = isset($_REQUEST[$fileindex.'_hidden']) ? vtlib_purify($_REQUEST[$fileindex.'_hidden']) : '';
 				$this->uploadAndSaveFile($id,$module,$files,'Image');
 			}
 		}
