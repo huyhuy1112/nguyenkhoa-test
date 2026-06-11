@@ -27,14 +27,26 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 	}
 
 	protected function assignModernContactDetailUi(Vtiger_Request $request) {
-		if ($this->isModernContactDetailUi($request)) {
-			$this->getViewer($request)->assign('MK_CONTACT_MODERN_UI', true);
+		if (!$this->isModernContactDetailUi($request)) {
+			return;
 		}
+		$viewer = $this->getViewer($request);
+		$appName = $request->get('app');
+		if (!empty($appName)) {
+			$viewer->assign('SELECTED_MENU_CATEGORY', $appName);
+		}
+		$viewer->assign('MK_CONTACT_MODERN_UI', true);
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'Contacts');
+		$viewer->assign('VIEW', 'Detail');
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		$this->assignModernContactDetailUi($request);
-		return parent::preProcess($request, $display);
+		parent::preProcess($request, false);
+		$this->assignModernContactDetailUi($request);
+		if ($display) {
+			$this->preProcessDisplay($request);
+		}
 	}
 
 	public function process(Vtiger_Request $request) {

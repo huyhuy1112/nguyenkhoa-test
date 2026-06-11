@@ -1046,13 +1046,19 @@ Vtiger.Class("Vtiger_Detail_Js",{
 	registerAjaxEditEvent : function(){
 		var thisInstance = this;
 		var detailContentsHolder = this.getContentHolder();
-		detailContentsHolder.on('click','table.detailview-table td.fieldValue .editAction', function(e) {
-			var editedLength = jQuery('table.detailview-table td.fieldValue .ajaxEdited').length;
+		var editSelector = 'table.detailview-table td.fieldValue .editAction, table.summary-table td.fieldValue .editAction';
+		detailContentsHolder.off('click.mkInlineEdit', editSelector);
+		detailContentsHolder.on('click.mkInlineEdit', editSelector, function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var editedLength = jQuery('table.detailview-table td.fieldValue .ajaxEdited, table.summary-table td.fieldValue .ajaxEdited').length;
 			if(editedLength === 0) { 
 				var selection = window.getSelection().toString(); 
 				if(selection.length == 0) {
-					var currentTdElement = jQuery(e.currentTarget).closest('td');
-					thisInstance.ajaxEditHandling(currentTdElement);
+					var currentTdElement = jQuery(e.currentTarget).closest('td.fieldValue');
+					if(currentTdElement.length) {
+						thisInstance.ajaxEditHandling(currentTdElement);
+					}
 				}
 			}
 		});
@@ -1143,10 +1149,18 @@ Vtiger.Class("Vtiger_Detail_Js",{
 		if(jQuery('.editElement',editElement).length === 0){
 			var fieldInfo;
 			if(self.getOverlayDetailMode() == true){
-				fieldInfo = related_uimeta.field.get(fieldName);
+				fieldInfo = (typeof related_uimeta !== 'undefined' && related_uimeta.field) ? related_uimeta.field.get(fieldName) : null;
 			}
 			else{
-				 fieldInfo = uimeta.field.get(fieldName);
+				fieldInfo = (typeof uimeta !== 'undefined' && uimeta.field) ? uimeta.field.get(fieldName) : null;
+			}
+			if(!fieldInfo || typeof fieldInfo !== 'object') {
+				fieldInfo = {
+					name: fieldName,
+					type: fieldType,
+					value: value,
+					mandatory: false
+				};
 			}
 			if(fieldType == "boolean"){
 				if(rawValue == 0){

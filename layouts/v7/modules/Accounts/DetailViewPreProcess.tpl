@@ -6,6 +6,8 @@
 {strip}
 {include file="partials/AccountsModernUiInit.tpl"|vtemplate_path:$MODULE}
 {include file="modules/Vtiger/Header.tpl"}
+{include file="partials/MkSalesUiMeta.tpl"|vtemplate_path:'Vtiger'}
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesDetailInlineEdit.css')}&mk_v=20260611_mk_inline_v3" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsDetail.css')}&mk_v=20260605_acc_tabs_v5" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.css')}&mk_v=20260605_mk_rel_v2" />

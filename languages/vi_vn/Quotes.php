@@ -11,6 +11,7 @@ $languageStrings = array(
 	'Accepted'=>'Chấp nhận',
 	'Inventory Manager'=>'Quản lý hàng tồn',
 	'LBL_ADD_RECORD' => 'Thêm báo giá',
+	'LBL_ADD_PRODUCTS_AND_SERVICES' => 'Thêm sản phẩm & dịch vụ',
 	'LBL_EXPORT_TO_PDF' => 'Xuất ra PDF',
 	'LBL_IS_DELETED_FROM_THE_SYSTEM_PLEASE_REMOVE_OR_REPLACE_THIS_ITEM' => 'đã bị xóa trong hệ thống. Hãy gỡ bỏ hoặc thay thế mục này',
 	'LBL_QUOTE_INFORMATION' => 'Chi tiết báo giá',

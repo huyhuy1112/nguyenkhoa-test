@@ -9,8 +9,8 @@
  *************************************************************************************/
 $languageStrings = array(
 	'Lead Source' => 'Nguồn Order',
-	'Giới thiệu' => 'Giới thiệu_D',
-	'Dự án liên quan' => 'Dự án liên quan_D',
+	'Giới thiệu' => 'Giới thiệu',
+	'Dự án liên quan' => 'Dự án liên quan',
 	'Type' => 'Loại Order',
 	'Potential Name' => 'Tiêu đề',
 "Amount" => "Giá trị dự kiến",
@@ -32,7 +32,7 @@ $languageStrings = array(
 "Needs Analysis" => "Phân tích nhu cầu",
 "Negotiation/Review" => "Đàm phán/Xem xét",
 "New Business" => "Doanh nghiệp mới",
-	'Next Step' => 'Bước tiếp theo_D',
+	'Next Step' => 'Bước tiếp theo',
 "--None--" => "--Không có--",
 "Perception Analysis" => "Phân tích nhận thức khách hàng",
 	'Potential No' => 'Mã Orders',

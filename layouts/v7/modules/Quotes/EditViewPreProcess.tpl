@@ -1,9 +1,11 @@
 {* Quotes Create (SALES): dashboard split shell — sidebar + topbar unchanged. *}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
+{include file="partials/MkSalesUiMeta.tpl"|vtemplate_path:'Vtiger'}
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesDetailInlineEdit.css')}&mk_v=20260611_mk_inline_v3" />
 <script type="text/javascript">document.documentElement.classList.add('mk-quote-create-ready');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260603_no_dup_footer" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}?mk_v=20260603_no_dup_footer" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}?mk_v=20260611_qt_subject_fix" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}?mk_v=20260527_quote_create2"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-quote-create="1">

@@ -85,17 +85,23 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
         };
 
         var subjectEl = form.find('[name="subject"]');
+        var userEditedSubject = false;
         if (subjectEl && subjectEl.length) {
             // Remove required validation (UI only). Backend will still set if empty.
             subjectEl.removeAttr('data-rule-required');
             subjectEl.removeClass('required');
-            // Lock subject: keep it submitted (readonly), but prevent user edits.
-            subjectEl.prop('readonly', true);
+            subjectEl.prop('readonly', false);
+            if ((subjectEl.val() || '').toString().trim().length) {
+                userEditedSubject = true;
+            }
+            subjectEl.on('input', function() {
+                userEditedSubject = true;
+            });
         }
 
         var potentialNameEl = form.find('[name="potential_id_display"]');
         var apply = function() {
-            if (!subjectEl || !subjectEl.length) return;
+            if (!subjectEl || !subjectEl.length || userEditedSubject) return;
             if (potentialNameEl && potentialNameEl.length) {
                 var oppName = potentialNameEl.val();
                 if (oppName && oppName.trim().length) {

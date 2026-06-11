@@ -19,6 +19,7 @@ $languageStrings = array(
 
 	//Basic strings
 	'LBL_ADD_RECORD' => 'Add Quote',
+	'LBL_ADD_PRODUCTS_AND_SERVICES' => 'Add Products & Services',
 	'LBL_RECORDS_LIST' => 'Quotes List',
 
 	// Blocks

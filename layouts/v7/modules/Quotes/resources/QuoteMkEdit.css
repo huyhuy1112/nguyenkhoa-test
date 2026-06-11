@@ -90,6 +90,11 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .editViewPageDiv.
 	max-width: none;
 }
 
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #overlayPageContent.fade:not(.in) {
+	pointer-events: none !important;
+	visibility: hidden !important;
+}
+
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-hide-legacy {
 	display: none !important;
 }
