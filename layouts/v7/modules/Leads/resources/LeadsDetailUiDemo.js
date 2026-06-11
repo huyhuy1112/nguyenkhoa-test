@@ -224,7 +224,6 @@
 	function renderKeyFields(lead) {
 		var host = byId('mk-ld-ui-key-fields');
 		if (!host) return;
-		var metrics = commerceMetrics(lead);
 		var rows = '';
 		rows += kvRow('Tên', esc(lead.name));
 		if (lead.company) rows += kvRow('Công ty', esc(lead.company));
@@ -234,18 +233,24 @@
 		rows += kvRow('Ngày dự kiến', esc(lead.closeDate || '—'));
 		rows += kvRow('Phụ trách', '<a href="javascript:void(0)">' + esc(lead.owner) + '</a>');
 		rows += kvRow('Giá trị', esc(formatVnd(lead.value)));
-		rows += kvRow('Tổng đơn hàng 1 tháng', '<strong>' + esc(String(metrics.monthlyOrders)) + '</strong>');
-		rows += kvRow('Tổng sản phẩm đã mua', '<strong>' + esc(String(metrics.totalProducts)) + '</strong>');
-		rows += kvRow(
-			'Giá trị đơn gần nhất',
-			metrics.recentOrder
-				? '<strong>' + esc(formatVnd(metrics.recentOrder)) + '</strong>'
-				: '<span class="mk-leads-muted">—</span>'
-		);
-		if (metrics.nextAction) {
-			rows += kvRow('Next action', esc(metrics.nextAction));
-		}
 		host.innerHTML = '<table class="summary-table"><tbody>' + rows + '</tbody></table>';
+	}
+
+	function purchaseStatsHtml(lead) {
+		var metrics = commerceMetrics(lead);
+		return (
+			'<div class="mk-lead-purchase__stats" aria-label="Purchase summary">' +
+			'<div class="mk-lead-purchase__stat">' +
+			'<span class="mk-lead-purchase__stat-label">Tổng đơn hàng 1 tháng</span>' +
+			'<span class="mk-lead-purchase__stat-value">' +
+			esc(String(metrics.monthlyOrders)) +
+			'</span></div>' +
+			'<div class="mk-lead-purchase__stat">' +
+			'<span class="mk-lead-purchase__stat-label">Tổng sản phẩm đã mua</span>' +
+			'<span class="mk-lead-purchase__stat-value">' +
+			esc(String(metrics.totalProducts)) +
+			'</span></div></div>'
+		);
 	}
 
 	function renderCommerceDetail(lead) {
@@ -415,11 +420,14 @@
 		var items = lead.purchases || [];
 		if (title) title.textContent = 'Lịch sử mua hàng (' + items.length + ')';
 		if (!host) return;
+		var stats = purchaseStatsHtml(lead);
 		if (!items.length) {
-			host.innerHTML = '<p class="mk-lead-activity-log__empty">Chưa có đơn mua hàng.</p>';
+			host.innerHTML =
+				stats + '<p class="mk-lead-activity-log__empty">Chưa có đơn mua hàng.</p>';
 			return;
 		}
 		var total = purchaseTotal(items);
+		var metrics = commerceMetrics(lead);
 		var rows = items
 			.map(function (p) {
 				return (
@@ -435,13 +443,24 @@
 				);
 			})
 			.join('');
+		var recentRow = '';
+		if (metrics.recentOrder) {
+			recentRow =
+				'<tr><td colspan="2" class="mk-lead-purchase__total-label">Đơn gần nhất:</td>' +
+				'<td class="mk-lead-purchase__total-value" colspan="2">' +
+				esc(formatVnd(metrics.recentOrder)) +
+				'</td></tr>';
+		}
 		host.innerHTML =
+			stats +
 			'<table class="mk-lead-purchase__table">' +
 			'<thead><tr><th>Sản phẩm</th><th>SL</th><th>Giá trị</th><th>Ngày</th></tr></thead>' +
 			'<tbody>' +
 			rows +
 			'</tbody>' +
-			'<tfoot><tr><td colspan="2" class="mk-lead-purchase__total-label">Tổng:</td>' +
+			'<tfoot>' +
+			recentRow +
+			'<tr><td colspan="2" class="mk-lead-purchase__total-label">Tổng:</td>' +
 			'<td class="mk-lead-purchase__total-value" colspan="2">' +
 			esc(formatVnd(total)) +
 			'</td></tr></tfoot></table>';

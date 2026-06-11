@@ -1979,6 +1979,38 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-purchas
 	overflow-x: auto;
 }
 
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-purchase__stats {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	margin: 0 0 16px;
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: linear-gradient(135deg, #fffbeb 0%, #f8fafc 100%);
+	border: 1px solid #f1ebde;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-purchase__stat {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-purchase__stat-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #94a3b8;
+	line-height: 1.35;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-purchase__stat-value {
+	font-size: 22px;
+	font-weight: 700;
+	color: #1f2937;
+	line-height: 1.2;
+}
+
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-purchase__table {
 	width: 100%;
 	border-collapse: collapse;
