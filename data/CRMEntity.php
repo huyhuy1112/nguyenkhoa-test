@@ -1606,6 +1606,14 @@ class CRMEntity {
 			$check = $adb->pquery("select cur_id,prefix from vtiger_modentity_num where semodule=? and active = 1", array($module));
 			$prefix = $adb->query_result($check, 0, 'prefix');
 			$curid = $adb->query_result($check, 0, 'cur_id');
+			require_once 'include/utils/MkEntityNumbering.php';
+			$paddingWidth = MkEntityNumbering::getPaddingWidth($module);
+			if ($paddingWidth > 0) {
+				$prev_inv_no = MkEntityNumbering::formatNumber($prefix, $curid, $paddingWidth);
+				$req_no = MkEntityNumbering::nextSequenceId($curid, $paddingWidth);
+				$adb->pquery("UPDATE vtiger_modentity_num SET cur_id=? where cur_id=? and active=1 AND semodule=?", array($req_no, $curid, $module));
+				return decode_html($prev_inv_no);
+			}
 			$prev_inv_no = $prefix . $curid;
 			$strip = strlen($curid) - strlen($curid + 1);
 			if ($strip < 0)
@@ -1694,8 +1702,12 @@ class CRMEntity {
 					$cur_id = $modseqinfo[1];
 
 					$old_cur_id = $cur_id;
+					require_once 'include/utils/MkEntityNumbering.php';
+					$paddingWidth = MkEntityNumbering::getPaddingWidth($module);
 					while ($recordinfo = $adb->fetch_array($records)) {
-						$value = "$prefix" . "$cur_id";
+						$value = ($paddingWidth > 0)
+							? MkEntityNumbering::formatNumber($prefix, $cur_id, $paddingWidth)
+							: "$prefix" . "$cur_id";
 						$adb->pquery("UPDATE $fld_table SET $fld_column = ? WHERE $this->table_index = ?", Array($value, $recordinfo['recordid']));
 						$cur_id = $this->getSequnceNumber($cur_id);
 						$returninfo['updatedrecords'] = $returninfo['updatedrecords'] + 1;
@@ -1712,6 +1724,12 @@ class CRMEntity {
 	}
     
     function getSequnceNumber($curid){
+        require_once 'include/utils/MkEntityNumbering.php';
+        $module = get_class($this);
+        $paddingWidth = MkEntityNumbering::getPaddingWidth($module);
+        if ($paddingWidth > 0) {
+            return MkEntityNumbering::nextSequenceId($curid, $paddingWidth);
+        }
         $strip = strlen($curid) - strlen($curid + 1);
         if ($strip < 0)
                 $strip = 0;
