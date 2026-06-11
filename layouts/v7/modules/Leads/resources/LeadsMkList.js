@@ -112,7 +112,8 @@
       if (f.segment !== ANY && (l.segment || "") !== f.segment) return false;
       if (!inTouchWindow(l.last_touch, f.touchRange)) return false;
       if (f.staleOnly && !d.stale) return false;
-      if (f.hasNextAction && !(l.next_action || "").trim()) return false;
+      if (f.hasNextAction && !(logic.deriveNextAction ? logic.deriveNextAction(l) : l.next_action || "").trim())
+        return false;
       if (f.hasOpenTicket && !(l.openTickets > 0)) return false;
       return true;
     });
@@ -421,7 +422,10 @@
             logic.touchLabel(d.days) +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--next">' +
-            (l.next_action ? esc(l.next_action) : '<span class="mk-leads-muted">—</span>') +
+            (function () {
+              var next = logic.deriveNextAction ? logic.deriveNextAction(l) : l.next_action || "";
+              return next ? esc(next) : '<span class="mk-leads-muted">—</span>';
+            })() +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--right">' +
             logic.fmtVND(l.value) +

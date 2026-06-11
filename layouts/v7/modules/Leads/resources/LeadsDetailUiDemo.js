@@ -68,6 +68,7 @@
 			activities: (lead.activities || []).slice(),
 			activityLog: (lead.activityLog || []).slice(),
 			purchases: (lead.purchases || []).slice(),
+			calendarTasks: (lead.calendarTasks || []).slice(),
 			badges: Object.assign(
 				{
 					contacts: 1,
@@ -132,9 +133,14 @@
 			closeDate: '',
 			tags: tags.slice(),
 			comments: [],
-			activities: raw.next_action
-				? [{ subject: raw.next_action, when: logic && logic.touchLabel ? logic.touchLabel(d.days) : 'Today' }]
-				: [],
+			activities:
+				logic && logic.openCalendarTasks
+					? logic.openCalendarTasks(raw).map(function (a) {
+							return { subject: a.subject, when: a.when };
+						})
+					: raw.next_action
+						? [{ subject: raw.next_action, when: logic && logic.touchLabel ? logic.touchLabel(d.days) : 'Today' }]
+						: [],
 			activityLog: (raw.activities || []).map(function (a) {
 				return {
 					type: a.type || 'note',
@@ -143,13 +149,14 @@
 					text: a.text || '',
 				};
 			}),
-			purchases: [],
+			purchases: (raw.purchases || []).slice(),
+			calendarTasks: (raw.calendarTasks || []).slice(),
 			badges: {
 				contacts: 1,
 				comments: 0,
 				'activity-log': (raw.activities || []).length,
-				purchases: 0,
-				calendar: 0,
+				purchases: (raw.purchases || []).length,
+				calendar: (raw.calendarTasks || []).length,
 				tasks: 0,
 				documents: 0,
 				emails: 0,
@@ -201,31 +208,128 @@
 		return sum;
 	}
 
+	function commerceMetrics(lead) {
+		var logic = window.LeadsLeadsLogic;
+		if (!logic) {
+			return { monthlyOrders: 0, totalProducts: 0, recentOrder: 0, nextAction: '' };
+		}
+		return {
+			monthlyOrders: logic.monthlyOrderCount(lead),
+			totalProducts: logic.totalProductsPurchased(lead),
+			recentOrder: logic.recentOrderValue(lead),
+			nextAction: logic.deriveNextAction(lead),
+		};
+	}
+
 	function renderKeyFields(lead) {
 		var host = byId('mk-ld-ui-key-fields');
 		if (!host) return;
+		var metrics = commerceMetrics(lead);
 		var rows = '';
 		rows += kvRow('Tên', esc(lead.name));
 		if (lead.company) rows += kvRow('Công ty', esc(lead.company));
 		rows += kvRow('Điện thoại', '<a href="tel:' + esc(lead.phone) + '">' + esc(lead.phone) + '</a>');
 		if (lead.email) rows += kvRow('Email', '<a href="mailto:' + esc(lead.email) + '">' + esc(lead.email) + '</a>');
 		rows += kvRow('Nguồn', esc(lead.leadsource));
-		rows += kvRow('Ngày dự kiến', esc(lead.closeDate));
+		rows += kvRow('Ngày dự kiến', esc(lead.closeDate || '—'));
 		rows += kvRow('Phụ trách', '<a href="javascript:void(0)">' + esc(lead.owner) + '</a>');
 		rows += kvRow('Giá trị', esc(formatVnd(lead.value)));
+		rows += kvRow('Tổng đơn hàng 1 tháng', '<strong>' + esc(String(metrics.monthlyOrders)) + '</strong>');
+		rows += kvRow('Tổng sản phẩm đã mua', '<strong>' + esc(String(metrics.totalProducts)) + '</strong>');
+		rows += kvRow(
+			'Giá trị đơn gần nhất',
+			metrics.recentOrder
+				? '<strong>' + esc(formatVnd(metrics.recentOrder)) + '</strong>'
+				: '<span class="mk-leads-muted">—</span>'
+		);
+		if (metrics.nextAction) {
+			rows += kvRow('Next action', esc(metrics.nextAction));
+		}
 		host.innerHTML = '<table class="summary-table"><tbody>' + rows + '</tbody></table>';
+	}
+
+	function renderCommerceDetail(lead) {
+		var logic = window.LeadsLeadsLogic;
+		var metrics = commerceMetrics(lead);
+		var recent = logic && logic.purchasesInLastDays ? logic.purchasesInLastDays(lead.purchases || [], 30) : [];
+		var ordersHost = byId('mk-ld-ui-commerce-orders-month');
+		var productsHost = byId('mk-ld-ui-commerce-products-total');
+		if (ordersHost) {
+			if (!recent.length) {
+				ordersHost.innerHTML =
+					'<p class="mk-lead-commerce-panel__empty">Không có đơn trong 30 ngày gần nhất (cache demo).</p>';
+			} else {
+				ordersHost.innerHTML =
+					'<p class="mk-lead-commerce-panel__kpi"><span class="mk-lead-commerce-panel__num">' +
+					esc(String(metrics.monthlyOrders)) +
+					'</span> đơn hàng</p><ul class="mk-lead-commerce-panel__list">' +
+					recent
+						.map(function (p) {
+							return (
+								'<li><strong>' +
+								esc(p.orderId || 'Đơn') +
+								'</strong> — ' +
+								esc(p.product) +
+								' · ' +
+								esc(formatVnd(p.value)) +
+								' · ' +
+								esc(p.date) +
+								'</li>'
+							);
+						})
+						.join('') +
+					'</ul>';
+			}
+		}
+		if (productsHost) {
+			var totalQty = metrics.totalProducts;
+			productsHost.innerHTML =
+				'<p class="mk-lead-commerce-panel__kpi"><span class="mk-lead-commerce-panel__num">' +
+				esc(String(totalQty)) +
+				'</span> sản phẩm (tổng SL)</p><p class="mk-lead-commerce-panel__hint">Backend: SUM(lineitem.quantity) từ SalesOrder/Invoice liên kết Lead.</p>';
+		}
+	}
+
+	function bindCommerceTabs() {
+		var tabs = document.querySelectorAll('[data-mk-commerce-tab]');
+		if (!tabs.length || tabs[0].getAttribute('data-mk-bound') === '1') return;
+		tabs[0].setAttribute('data-mk-bound', '1');
+		tabs.forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				var key = btn.getAttribute('data-mk-commerce-tab');
+				tabs.forEach(function (b) {
+					b.classList.toggle('is-active', b === btn);
+				});
+				document.querySelectorAll('[data-mk-commerce-panel]').forEach(function (panel) {
+					panel.classList.toggle('hide', panel.getAttribute('data-mk-commerce-panel') !== key);
+				});
+			});
+		});
 	}
 
 	function renderDetailFields(lead) {
 		var host = byId('mk-ld-ui-detail-fields');
 		if (!host) return;
+		var metrics = commerceMetrics(lead);
 		var rows = '';
 		rows += kvRow('Lead ID', esc(lead.id));
 		rows += kvRow('Trạng thái', esc(lead.leadstatus));
 		rows += kvRow('Nguồn', esc(lead.leadsource));
 		rows += kvRow('Phụ trách', esc(lead.owner));
 		rows += kvRow('Giá trị', esc(formatVnd(lead.value)));
+		rows += kvRow('Giá trị đơn gần nhất', metrics.recentOrder ? esc(formatVnd(metrics.recentOrder)) : '—');
 		host.innerHTML = '<table class="summary-table"><tbody>' + rows + '</tbody></table>';
+		renderCommerceDetail(lead);
+	}
+
+	function persistLeadCache(lead) {
+		var store = window.LeadsLocalStore;
+		if (!store || !lead || !lead.id || typeof store.update !== 'function') return;
+		store.update(lead.id, {
+			purchases: lead.purchases || [],
+			calendarTasks: lead.calendarTasks || [],
+			next_action: window.LeadsLeadsLogic ? window.LeadsLeadsLogic.deriveNextAction(lead) : lead.next_action,
+		});
 	}
 
 	function renderHeroMeta(lead) {
@@ -630,9 +734,19 @@
 			var logType =
 				kind === 'meeting' ? 'meeting' : kind === 'call' ? 'call' : kind === 'note' ? 'note' : 'task';
 			addActivityLogEntry(lead, logType, text);
-			if (kind === 'task' || kind === 'meeting') {
+			if (kind === 'task' || kind === 'meeting' || kind === 'call') {
+				if (!lead.calendarTasks) lead.calendarTasks = [];
+				lead.calendarTasks.unshift({
+					type: kind === 'meeting' ? 'meeting' : kind === 'call' ? 'call' : 'task',
+					subject: text,
+					status: 'open',
+					dueAt: new Date().toISOString(),
+					dueLabel: 'Today',
+				});
 				lead.activities.unshift({ subject: text, when: nowLabel() });
 				renderActivities(lead);
+				renderKeyFields(lead);
+				persistLeadCache(lead);
 			}
 			syncBadges(lead);
 		});
@@ -878,6 +992,7 @@
 		renderHeroMeta(lead);
 		renderKeyFields(lead);
 		renderDetailFields(lead);
+		bindCommerceTabs();
 		renderTags(lead);
 		renderActivityLog(lead);
 		renderPurchases(lead);

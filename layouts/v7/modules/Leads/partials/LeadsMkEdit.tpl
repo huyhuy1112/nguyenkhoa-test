@@ -121,7 +121,7 @@
 						<span class="mk-td-card__num">02</span>
 						<div>
 							<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">〰</span> Customer Intent</h2>
-							<p class="mk-td-card__desc">Nhóm nhu cầu khách</p>
+							<p class="mk-td-card__desc">Nhóm nhu cầu khách <span class="mk-td-optional">(không bắt buộc)</span></p>
 						</div>
 					</header>
 					<div class="mk-td-card__body">
@@ -140,7 +140,7 @@
 						<span class="mk-td-card__num">03</span>
 						<div>
 							<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">⎇</span> Entry Program</h2>
-							<p class="mk-td-card__desc">Khách vào từ đâu trong hành trình</p>
+							<p class="mk-td-card__desc">Khách vào từ đâu trong hành trình <span class="mk-td-optional">(không bắt buộc — khóa học / nguyên liệu)</span></p>
 						</div>
 					</header>
 					<div class="mk-td-card__body">

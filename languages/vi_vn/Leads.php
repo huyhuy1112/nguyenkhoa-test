@@ -31,6 +31,7 @@ $languageStrings = array(
 	'LBL_MK_OPEN_ACTIVITY_MENU' => 'Mở menu hoạt động',
 	'LBL_MK_LOG_ACTIVITY' => 'Ghi hoạt động',
 	'LBL_MK_LOG_PLACEHOLDER' => 'Thêm ghi chú / ghi cuộc gọi / tạo việc...',
+	'LBL_MK_CACHE_BACKEND_HINT' => 'UI demo dùng cache trình duyệt (localStorage). Backend: thay purchases + calendarTasks bằng API — xem modules/Leads/docs/LEADS_CACHE_BACKEND_SPEC.md',
 	'LBL_CONVERT_LEAD' => 'Chuyển đổi Khách tiềm năng',
 	'LBL_CONVERT_LEAD_ERROR_TITLE' => 'Modules đã bị vô hiệu hóa',
 	'LBL_CONVERT_LEAD_ERROR' => 'Bạn phải kích hoạt đồng thời tổ chức hoặc liên hệ để chuyển đổi sang Khách tiềm năng',

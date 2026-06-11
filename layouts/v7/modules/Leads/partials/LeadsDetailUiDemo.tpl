@@ -273,6 +273,15 @@
 				<div class="mk-lead-detail-card__head">
 					<h2 class="mk-lead-detail-card__title">{vtranslate('LBL_DETAILS', $MODULE_NAME)}</h2>
 				</div>
+				<div class="mk-lead-commerce-tabs" role="tablist" aria-label="Commerce metrics">
+					<button type="button" class="mk-lead-commerce-tabs__btn is-active" role="tab" aria-selected="true" data-mk-commerce-tab="orders-month">Tổng đơn hàng 1 tháng</button>
+					<button type="button" class="mk-lead-commerce-tabs__btn" role="tab" aria-selected="false" data-mk-commerce-tab="products-total">Tổng sản phẩm đã mua</button>
+				</div>
+				<div class="mk-lead-commerce-panels">
+					<div id="mk-ld-ui-commerce-orders-month" class="mk-lead-commerce-panel" data-mk-commerce-panel="orders-month" role="tabpanel"></div>
+					<div id="mk-ld-ui-commerce-products-total" class="mk-lead-commerce-panel hide" data-mk-commerce-panel="products-total" role="tabpanel"></div>
+				</div>
+				<p class="mk-lead-backend-hint">{vtranslate('LBL_MK_CACHE_BACKEND_HINT', $MODULE_NAME)}</p>
 				<div class="mk-lead-detail-overview-body detailview-table" id="mk-ld-ui-detail-fields"></div>
 			</div>
 		</div>

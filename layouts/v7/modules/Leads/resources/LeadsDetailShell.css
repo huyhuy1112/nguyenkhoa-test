@@ -2056,3 +2056,71 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-ld-ui-sectio
 	0% { box-shadow: 0 0 0 0 rgba(201, 143, 18, 0.45); }
 	100% { box-shadow: 0 0 0 8px rgba(201, 143, 18, 0); }
 }
+
+/* Commerce metrics tabs (Detail panel — cache spec) */
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding: 0 20px 12px;
+	border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-tabs__btn {
+	border: 1px solid rgba(31, 41, 55, 0.12);
+	background: #fff;
+	color: #475569;
+	border-radius: 999px;
+	padding: 6px 14px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-tabs__btn.is-active {
+	background: linear-gradient(135deg, #ffcc33, #f4b400);
+	border-color: #e8c56a;
+	color: #1f2937;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-panels {
+	padding: 16px 20px 8px;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-panel__kpi {
+	margin: 0 0 12px;
+	font-size: 14px;
+	color: #64748b;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-panel__num {
+	font-size: 28px;
+	font-weight: 700;
+	color: #1f2937;
+	margin-right: 6px;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-panel__list {
+	margin: 0;
+	padding-left: 18px;
+	font-size: 13px;
+	color: #334155;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-panel__empty,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-panel__hint {
+	font-size: 13px;
+	color: #64748b;
+	margin: 0;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-backend-hint {
+	margin: 0 20px 12px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #f8fafc;
+	border: 1px dashed #cbd5e1;
+	font-size: 12px;
+	color: #64748b;
+	line-height: 1.45;
+}

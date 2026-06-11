@@ -158,6 +158,12 @@ body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell .con
     opacity: 0.7;
 }
 
+.mk-td-optional {
+	font-size: 12px;
+	font-weight: 500;
+	color: #94a3b8;
+}
+
 .mk-td-card__desc {
     margin: 4px 0 0;
     font-size: 12px;

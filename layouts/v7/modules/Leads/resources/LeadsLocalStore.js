@@ -34,8 +34,13 @@
   }
 
   function normalizeLead(lead) {
-    var row = Object.assign({ tags: [], activities: [], openTickets: 0 }, lead);
+    var row = Object.assign(
+      { tags: [], activities: [], purchases: [], calendarTasks: [], openTickets: 0 },
+      lead,
+    );
     if (!row.activities) row.activities = [];
+    if (!row.purchases) row.purchases = [];
+    if (!row.calendarTasks) row.calendarTasks = [];
     return row;
   }
 
