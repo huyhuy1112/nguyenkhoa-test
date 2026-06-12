@@ -149,6 +149,8 @@
 					text: a.text || '',
 				};
 			}),
+			cccd: raw.cccd || '',
+			segment: raw.segment || '',
 			purchases: (raw.purchases || []).slice(),
 			calendarTasks: (raw.calendarTasks || []).slice(),
 			badges: {
@@ -228,7 +230,15 @@
 		rows += kvRow('Tên', esc(lead.name));
 		if (lead.company) rows += kvRow('Công ty', esc(lead.company));
 		rows += kvRow('Điện thoại', '<a href="tel:' + esc(lead.phone) + '">' + esc(lead.phone) + '</a>');
+		if (lead.cccd) rows += kvRow('CCCD', esc(lead.cccd));
 		if (lead.email) rows += kvRow('Email', '<a href="mailto:' + esc(lead.email) + '">' + esc(lead.email) + '</a>');
+		if (lead.segment) {
+			var segLabel =
+				window.LeadsLeadsLogic && window.LeadsLeadsLogic.SEGMENT_LABELS
+					? window.LeadsLeadsLogic.SEGMENT_LABELS[lead.segment] || lead.segment
+					: lead.segment;
+			rows += kvRow('Trạng thái khách', esc(segLabel));
+		}
 		rows += kvRow('Nguồn', esc(lead.leadsource));
 		rows += kvRow('Ngày dự kiến', esc(lead.closeDate || '—'));
 		rows += kvRow('Phụ trách', '<a href="javascript:void(0)">' + esc(lead.owner) + '</a>');

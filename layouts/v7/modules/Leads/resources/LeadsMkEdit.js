@@ -1,22 +1,34 @@
 /**
- * Tag-Driven Create Lead — UI only (tags preview + mock save).
+ * Tag-Driven Create / Edit Lead — cache UI (LeadsLocalStore) + tags preview.
  */
 (function () {
   "use strict";
 
   var LIST_URL = "index.php?module=Leads&view=List&app=SALES";
 
+  var TAG_POOLS = {
+    customerType: ["individual", "company"],
+    leadSource: ["facebook", "tiktok", "website", "zalo", "other_source"],
+    intent: ["chua_hoc", "da_hoc", "nguyen_lieu_chuoi"],
+    entry: ["mien_phi_online", "mien_phi_offline", "pcth"],
+    entryBranch: ["van_hanh", "mkt", "lop_khac", "nhuong_quyen"],
+    purchaseStatus: ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"],
+    tier: ["vang", "bac", "dong"],
+  };
+
   function detailUrl(recordId) {
     return (
       "index.php?module=Leads&view=Detail&record=" +
       encodeURIComponent(recordId || "") +
-      "&app=SALES"
+      "&app=SALES&mkLeadId=" +
+      encodeURIComponent(recordId || "")
     );
   }
 
   var state = {
     customerType: null,
     leadSource: null,
+    customerStatus: null,
     intent: null,
     entry: null,
     entryBranch: null,
@@ -27,6 +39,14 @@
 
   function $(id) {
     return document.getElementById(id);
+  }
+
+  function findTag(tags, pool) {
+    if (!tags || !tags.length) return null;
+    for (var i = 0; i < tags.length; i++) {
+      if (pool.indexOf(tags[i]) >= 0) return tags[i];
+    }
+    return null;
   }
 
   function collectTags() {
@@ -60,9 +80,7 @@
     if (trigger) {
       var n = tags.length;
       trigger.textContent =
-        "WORKFLOW TRIGGER: " +
-        n +
-        " tag(s) → khớp script & automation tương ứng.";
+        "WORKFLOW TRIGGER: " + n + " tag(s) → khớp script & automation tương ứng.";
     }
   }
 
@@ -73,12 +91,10 @@
       panel.hidden = !isCompany;
     }
     if (!isCompany) {
-      ["mk-td-company-name", "mk-td-company-tax", "mk-td-company-rep", "mk-td-company-address"].forEach(
-        function (id) {
-          var el = $(id);
-          if (el) el.value = "";
-        }
-      );
+      ["mk-td-company-name", "mk-td-company-tax", "mk-td-company-rep"].forEach(function (id) {
+        var el = $(id);
+        if (el) el.value = "";
+      });
     }
   }
 
@@ -91,11 +107,21 @@
       state.customerType = tag;
       syncCustomerTypePanel();
     } else if (group === "lead-source") state.leadSource = tag;
-    else if (group === "purchase-status") {
+    else if (group === "customer-status") {
+      state.customerStatus = btn.getAttribute("data-segment") || null;
+    } else if (group === "purchase-status") {
       state.purchaseStatus = tag;
       syncPurchaseReasonPanel(btn);
     } else if (group === "customer-tier") state.tier = tag;
     renderTags();
+  }
+
+  function activateChoice(group, tag) {
+    if (!tag) return;
+    var btn = document.querySelector(
+      '.mk-td-choice[data-group="' + group + '"][data-tag="' + tag + '"]'
+    );
+    if (btn) setChoiceGroup(group, btn);
   }
 
   function syncPurchaseReasonPanel(btn) {
@@ -126,6 +152,18 @@
     }
     el.addEventListener("change", sync);
     sync();
+  }
+
+  function setSelectByTag(id, tag) {
+    var el = $(id);
+    if (!el || !tag) return;
+    for (var i = 0; i < el.options.length; i++) {
+      if (el.options[i].getAttribute("data-tag") === tag) {
+        el.selectedIndex = i;
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+        break;
+      }
+    }
   }
 
   function renderEntryTagFoot() {
@@ -202,11 +240,97 @@
     onEntryChange();
   }
 
+  function activateSegment(segment) {
+    if (!segment) return;
+    var btn = document.querySelector(
+      '.mk-td-choice[data-group="customer-status"][data-segment="' + segment + '"]'
+    );
+    if (btn) setChoiceGroup("customer-status", btn);
+  }
+
+  function applyTagsFromLead(tags, lead) {
+    activateChoice("customer-type", findTag(tags, TAG_POOLS.customerType) || "individual");
+    if (lead && lead.segment) activateSegment(lead.segment);
+    activateChoice("lead-source", findTag(tags, TAG_POOLS.leadSource));
+    activateChoice("purchase-status", findTag(tags, TAG_POOLS.purchaseStatus));
+    activateChoice("customer-tier", findTag(tags, TAG_POOLS.tier));
+    setSelectByTag("mk-td-intent", findTag(tags, TAG_POOLS.intent));
+    var entryTag = findTag(tags, TAG_POOLS.entry);
+    setSelectByTag("mk-td-entry", entryTag);
+    if (entryTag === "pcth") {
+      setSelectByTag("mk-td-entry-branch", findTag(tags, TAG_POOLS.entryBranch));
+    }
+    renderTags();
+  }
+
+  function hydrateFromStore(recordId) {
+    var store = window.LeadsLocalStore;
+    if (!store || !recordId || typeof store.getLead !== "function") return;
+    var lead = store.getLead(recordId);
+    if (!lead) return;
+
+    if ($("mk-td-name")) $("mk-td-name").value = lead.name || "";
+    if ($("mk-td-phone")) $("mk-td-phone").value = lead.phone || "";
+    if ($("mk-td-cccd")) $("mk-td-cccd").value = lead.cccd || "";
+    if ($("mk-td-email")) $("mk-td-email").value = lead.email || "";
+    if ($("mk-td-area")) $("mk-td-area").value = lead.area || "";
+    if ($("mk-td-notes")) $("mk-td-notes").value = lead.notes || "";
+    if ($("mk-td-company-name")) $("mk-td-company-name").value = lead.companyName || "";
+    if ($("mk-td-owner") && lead.owner) {
+      var ownerEl = $("mk-td-owner");
+      var found = false;
+      for (var i = 0; i < ownerEl.options.length; i++) {
+        if (ownerEl.options[i].value === lead.owner) {
+          ownerEl.selectedIndex = i;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        var opt = document.createElement("option");
+        opt.value = lead.owner;
+        opt.textContent = lead.owner;
+        opt.selected = true;
+        ownerEl.appendChild(opt);
+      }
+    }
+
+    var crumb = $("mk-td-crumb-record");
+    if (crumb && lead.name) {
+      crumb.textContent = lead.name;
+      crumb.title = lead.name;
+    }
+
+    applyTagsFromLead(lead.tags || [], lead);
+  }
+
+  function buildLeadPatch() {
+    var name = ($("mk-td-name") && $("mk-td-name").value) || "";
+    var phone = ($("mk-td-phone") && $("mk-td-phone").value) || "";
+    var ownerEl = $("mk-td-owner");
+    return {
+      name: name.trim(),
+      phone: phone.trim(),
+      cccd: ($("mk-td-cccd") && $("mk-td-cccd").value.trim()) || "",
+      email: ($("mk-td-email") && $("mk-td-email").value.trim()) || "",
+      segment: state.customerStatus || "",
+      area: ($("mk-td-area") && $("mk-td-area").value.trim()) || "",
+      notes: ($("mk-td-notes") && $("mk-td-notes").value.trim()) || "",
+      companyName:
+        state.customerType === "company"
+          ? (($("mk-td-company-name") && $("mk-td-company-name").value.trim()) || "")
+          : "",
+      owner: ownerEl ? ownerEl.value : "Linh",
+      tags: collectTags(),
+      last_touch: new Date().toISOString(),
+    };
+  }
+
   function mockSave() {
     var name = ($("mk-td-name") && $("mk-td-name").value) || "";
     var phone = ($("mk-td-phone") && $("mk-td-phone").value) || "";
     if (!name.trim() || !phone.trim()) {
-      alert("Vui lòng nhập Họ tên và SĐT (UI demo).");
+      alert("Vui lòng nhập Họ tên và Số điện thoại.");
       return;
     }
     if (state.customerType === "company") {
@@ -234,39 +358,27 @@
         return;
       }
     }
-    var tags = collectTags();
+
     var root = $("mk-td-create");
     var recordId = root && root.getAttribute("data-record-id");
     var isEdit = root && root.getAttribute("data-mode") === "edit";
+    var patch = buildLeadPatch();
+    var store = window.LeadsLocalStore;
+    var savedId = recordId;
 
-    alert(
-      (isEdit ? "Lead đã cập nhật (UI demo).\n\n" : "Lead đã lưu (UI demo).\n\n") +
-        "Tên: " +
-        name.trim() +
-        "\nTags: " +
-        (tags.length ? tags.map(function (t) { return "#" + t; }).join(", ") : "(none)") +
-        (state.purchaseReason ? "\nLý do: " + state.purchaseReason : "")
-    );
-    window.location.href = isEdit && recordId ? detailUrl(recordId) : LIST_URL;
-  }
+    if (store) {
+      if (isEdit && recordId && typeof store.update === "function") {
+        store.update(recordId, patch);
+      } else if (typeof store.create === "function") {
+        var created = store.create(patch);
+        savedId = created && created.id ? created.id : savedId;
+      }
+    }
 
-  function initStockEdit() {
-    var topSave = $("mkTdStockSaveTop");
-    if (!topSave) return;
-    topSave.addEventListener("click", function () {
-      var form = document.querySelector("#mkTdStockFormHost form#EditView, #mkTdStockFormHost form[name='edit']");
-      if (!form) return;
-      var btn = form.querySelector("button.saveButton, .saveButton");
-      if (btn) btn.click();
-    });
+    window.location.href = savedId ? detailUrl(savedId) : LIST_URL;
   }
 
   function init() {
-    if (document.getElementById("mkTdEditStockWorkspace")) {
-      initStockEdit();
-      return;
-    }
-
     var root = $("mk-td-create");
     if (!root) return;
 
@@ -296,7 +408,13 @@
       state.customerType = initialType.getAttribute("data-tag");
     }
     syncCustomerTypePanel();
-    renderTags();
+
+    var recordId = root.getAttribute("data-record-id");
+    if (recordId && root.getAttribute("data-mode") === "edit") {
+      hydrateFromStore(recordId);
+    } else {
+      renderTags();
+    }
   }
 
   if (document.readyState === "loading") {

@@ -24,7 +24,7 @@
 		<div class="mk-td-create__head-row">
 			<div>
 				<h1 class="mk-td-create__title">{if $MK_IS_EDIT}Edit Lead{else}Create Lead{/if}</h1>
-				<p class="mk-td-create__subtitle">{if $MK_IS_EDIT}Form trống — Backend gắn dữ liệu record <code>{$MK_LEAD_RECORD_ID|escape}</code> vào các field.{else}Mỗi lựa chọn sẽ tự động gắn tag để hệ thống chạy đúng workflow, journey &amp; script bán hàng.{/if}</p>
+				<p class="mk-td-create__subtitle">Mỗi lựa chọn sẽ tự động gắn tag để hệ thống chạy đúng workflow, journey &amp; script bán hàng.</p>
 			</div>
 			<div class="mk-td-create__head-actions">
 				<a class="mk-td-btn mk-td-btn--ghost" href="{$MK_CANCEL_URL}">Cancel</a>
@@ -72,10 +72,61 @@
 								<label for="mk-td-company-rep">Người đại diện</label>
 								<input type="text" id="mk-td-company-rep" class="mk-td-input" placeholder="Họ tên người liên hệ" />
 							</div>
-							<div class="mk-td-field mk-td-field--full">
-								<label for="mk-td-company-address">Địa chỉ</label>
-								<input type="text" id="mk-td-company-address" class="mk-td-input" placeholder="Số nhà, phường, quận, tỉnh/thành" />
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="mk-td-card mk-td-card--basic" data-section="basic-info">
+				<header class="mk-td-card__head">
+					<span class="mk-td-card__num">01</span>
+					<div>
+						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">📋</span> Thông tin cơ bản</h2>
+						<p class="mk-td-card__desc">Họ tên, liên hệ &amp; địa chỉ — dữ liệu lõi của lead</p>
+					</div>
+				</header>
+				<div class="mk-td-card__body">
+					<div class="mk-td-fields mk-td-fields--basic">
+						<div class="mk-td-field">
+							<label for="mk-td-name">Họ tên <span class="mk-td-req">*</span></label>
+							<input type="text" id="mk-td-name" class="mk-td-input" placeholder="Nguyễn Văn A" autocomplete="name" />
+						</div>
+						<div class="mk-td-field">
+							<label for="mk-td-phone">Số điện thoại <span class="mk-td-req">*</span></label>
+							<input type="tel" id="mk-td-phone" class="mk-td-input" placeholder="09xx xxx xxx" autocomplete="tel" />
+						</div>
+						<div class="mk-td-field">
+							<label for="mk-td-cccd">CCCD</label>
+							<input type="text" id="mk-td-cccd" class="mk-td-input" placeholder="Số CCCD / CMND" inputmode="numeric" maxlength="12" />
+						</div>
+						<div class="mk-td-field">
+							<label for="mk-td-email">Email</label>
+							<input type="email" id="mk-td-email" class="mk-td-input" placeholder="name@email.com" autocomplete="email" />
+						</div>
+						<div class="mk-td-field">
+							<label for="mk-td-owner">Phụ trách</label>
+							<select id="mk-td-owner" class="mk-td-select">
+								<option value="Linh">Linh</option>
+								<option value="Hà">Hà</option>
+								<option value="Minh">Minh</option>
+								<option value="{$USER_MODEL->getName()|escape:'html'}">{$USER_MODEL->getName()}</option>
+							</select>
+						</div>
+						<div class="mk-td-field mk-td-field--full">
+							<label class="mk-td-label mk-td-label--block">Trạng thái khách</label>
+							<div class="mk-td-choice-row mk-td-choice-row--3 mk-td-choice-row--status" role="group" aria-label="Trạng thái khách">
+								<button type="button" class="mk-td-choice mk-td-choice--wide" data-group="customer-status" data-value="co_quan" data-segment="co_quan">Đã có quán</button>
+								<button type="button" class="mk-td-choice mk-td-choice--wide" data-group="customer-status" data-value="chuan_bi_mo" data-segment="chuan_bi_mo">Chưa có quán</button>
+								<button type="button" class="mk-td-choice mk-td-choice--wide" data-group="customer-status" data-value="gia_dinh" data-segment="gia_dinh">Gia đình</button>
 							</div>
+						</div>
+						<div class="mk-td-field mk-td-field--full">
+							<label for="mk-td-area">Khu vực / Địa chỉ</label>
+							<input type="text" id="mk-td-area" class="mk-td-input" placeholder="Quận 1, TP.HCM hoặc số nhà, phường, quận, tỉnh/thành" />
+						</div>
+						<div class="mk-td-field mk-td-field--full">
+							<label for="mk-td-notes">Ghi chú nội bộ</label>
+							<textarea id="mk-td-notes" class="mk-td-textarea" rows="3" placeholder="Ghi chú cho team sales / CS…"></textarea>
 						</div>
 					</div>
 				</div>
@@ -83,7 +134,7 @@
 
 			<section class="mk-td-card mk-td-card--highlight" data-section="lead-source">
 				<header class="mk-td-card__head">
-					<span class="mk-td-card__num">01</span>
+					<span class="mk-td-card__num">02</span>
 					<div>
 						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">◎</span> Lead Source</h2>
 						<p class="mk-td-card__desc"><strong>QUAN TRỌNG NHẤT</strong> — quyết định kênh</p>
@@ -118,7 +169,7 @@
 			<div class="mk-td-create__row-2">
 				<section class="mk-td-card" data-section="customer-intent">
 					<header class="mk-td-card__head">
-						<span class="mk-td-card__num">02</span>
+						<span class="mk-td-card__num">03</span>
 						<div>
 							<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">〰</span> Customer Intent</h2>
 							<p class="mk-td-card__desc">Nhóm nhu cầu khách <span class="mk-td-optional">(không bắt buộc)</span></p>
@@ -137,10 +188,10 @@
 
 				<section class="mk-td-card" data-section="entry-program">
 					<header class="mk-td-card__head">
-						<span class="mk-td-card__num">03</span>
+						<span class="mk-td-card__num">04</span>
 						<div>
 							<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">⎇</span> Entry Program</h2>
-							<p class="mk-td-card__desc">Khách vào từ đâu trong hành trình <span class="mk-td-optional">(không bắt buộc — khóa học / nguyên liệu)</span></p>
+							<p class="mk-td-card__desc">Khách vào từ đâu trong hành trình <span class="mk-td-optional">(không bắt buộc)</span></p>
 						</div>
 					</header>
 					<div class="mk-td-card__body">
@@ -168,7 +219,7 @@
 
 			<section class="mk-td-card" data-section="purchase-status">
 				<header class="mk-td-card__head">
-					<span class="mk-td-card__num">04</span>
+					<span class="mk-td-card__num">05</span>
 					<div>
 						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">🛍</span> Purchase Status</h2>
 						<p class="mk-td-card__desc">Xương sống của flow</p>
@@ -191,7 +242,7 @@
 
 			<section class="mk-td-card" data-section="customer-tier">
 				<header class="mk-td-card__head">
-					<span class="mk-td-card__num">05</span>
+					<span class="mk-td-card__num">06</span>
 					<div>
 						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">👑</span> Customer Tier</h2>
 						<p class="mk-td-card__desc">Vàng / Bạc / Đồng</p>
@@ -218,44 +269,6 @@
 				</div>
 			</section>
 
-			<section class="mk-td-card" data-section="basic-info">
-				<header class="mk-td-card__head">
-					<span class="mk-td-card__num">06</span>
-					<div>
-						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">📋</span> Thông tin cơ bản</h2>
-						<p class="mk-td-card__desc">Hồ sơ liên hệ</p>
-					</div>
-				</header>
-				<div class="mk-td-card__body">
-					<div class="mk-td-fields">
-						<div class="mk-td-field">
-							<label for="mk-td-name">Họ tên <span class="mk-td-req">*</span></label>
-							<input type="text" id="mk-td-name" class="mk-td-input" placeholder="Nguyễn Văn A" />
-						</div>
-						<div class="mk-td-field">
-							<label for="mk-td-phone">SĐT (unique) <span class="mk-td-req">*</span></label>
-							<input type="tel" id="mk-td-phone" class="mk-td-input" placeholder="09xxxxxxxx" />
-						</div>
-						<div class="mk-td-field">
-							<label for="mk-td-email">Email</label>
-							<input type="email" id="mk-td-email" class="mk-td-input" placeholder="name@email.com" />
-						</div>
-						<div class="mk-td-field">
-							<label for="mk-td-owner">Owner</label>
-							<select id="mk-td-owner" class="mk-td-select">
-								<option value="linh">Linh</option>
-								<option value="ha">Hà</option>
-								<option value="minh">Minh</option>
-								<option value="{$USER_MODEL->getName()|escape:'html'}">{$USER_MODEL->getName()}</option>
-							</select>
-						</div>
-						<div class="mk-td-field mk-td-field--full">
-							<label for="mk-td-notes">Ghi chú</label>
-							<textarea id="mk-td-notes" class="mk-td-textarea" rows="3" placeholder="Ghi chú nội bộ cho team sales..."></textarea>
-						</div>
-					</div>
-				</div>
-			</section>
 		</div>
 
 		<aside class="mk-td-create__aside" aria-label="Tags preview">

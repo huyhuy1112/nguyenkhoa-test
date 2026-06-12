@@ -26,8 +26,8 @@
 
   var SEGMENT_LABELS = {
     gia_dinh: "Gia đình",
-    chuan_bi_mo: "Chuẩn bị mở",
-    co_quan: "Có quán",
+    chuan_bi_mo: "Chưa có quán",
+    co_quan: "Đã có quán",
   };
 
   var ACTIVITY_TYPES = ["task", "call", "meeting"];

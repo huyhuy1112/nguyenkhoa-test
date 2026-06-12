@@ -35,7 +35,19 @@
 
   function normalizeLead(lead) {
     var row = Object.assign(
-      { tags: [], activities: [], purchases: [], calendarTasks: [], openTickets: 0 },
+      {
+        tags: [],
+        activities: [],
+        purchases: [],
+        calendarTasks: [],
+        openTickets: 0,
+        email: "",
+        cccd: "",
+        area: "",
+        notes: "",
+        companyName: "",
+        segment: "",
+      },
       lead,
     );
     if (!row.activities) row.activities = [];
