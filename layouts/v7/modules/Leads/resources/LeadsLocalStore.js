@@ -43,6 +43,8 @@
         openTickets: 0,
         email: "",
         cccd: "",
+        district: "",
+        address: "",
         area: "",
         notes: "",
         companyName: "",

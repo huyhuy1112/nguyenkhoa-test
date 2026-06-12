@@ -109,6 +109,60 @@
     return items[0].value || 0;
   }
 
+  /** Group line items by order — for tab UI (order names, not products). */
+  function groupOrders(purchases) {
+    var map = {};
+    (purchases || []).forEach(function (p) {
+      var id = p.orderId || p.orderName || p.product || "order";
+      if (!map[id]) {
+        map[id] = {
+          orderId: id,
+          orderName: p.orderName || p.orderId || "Đơn hàng",
+          value: 0,
+          qty: 0,
+          date: p.date,
+          dateTs: parsePurchaseDate(p.date) ? parsePurchaseDate(p.date).getTime() : 0,
+        };
+      }
+      map[id].value += p.value || 0;
+      map[id].qty += parseInt(p.qty, 10) || 0;
+      var ts = parsePurchaseDate(p.date) ? parsePurchaseDate(p.date).getTime() : 0;
+      if (ts >= map[id].dateTs) {
+        map[id].dateTs = ts;
+        map[id].date = p.date;
+      }
+    });
+    return Object.keys(map)
+      .map(function (k) {
+        return map[k];
+      })
+      .sort(function (a, b) {
+        return b.dateTs - a.dateTs;
+      });
+  }
+
+  function ordersInLastDays(lead, days) {
+    var recentIds = {};
+    var recent = purchasesInLastDays(lead.purchases || [], days);
+    recent.forEach(function (p) {
+      recentIds[p.orderId || p.orderName || p.product] = true;
+    });
+    return groupOrders(lead.purchases || []).filter(function (o) {
+      return recentIds[o.orderId];
+    });
+  }
+
+  /** Orders older than rolling window — excludes monthly tab list. */
+  function ordersOutsideLastDays(lead, days) {
+    var recentIds = {};
+    purchasesInLastDays(lead.purchases || [], days).forEach(function (p) {
+      recentIds[p.orderId || p.orderName || p.product] = true;
+    });
+    return groupOrders(lead.purchases || []).filter(function (o) {
+      return !recentIds[o.orderId];
+    });
+  }
+
   function activityTypePrefix(type) {
     if (type === "call") return "Gọi: ";
     if (type === "meeting") return "Họp: ";
@@ -194,6 +248,9 @@
     monthlyOrderCount: monthlyOrderCount,
     totalProductsPurchased: totalProductsPurchased,
     recentOrderValue: recentOrderValue,
+    groupOrders: groupOrders,
+    ordersInLastDays: ordersInLastDays,
+    ordersOutsideLastDays: ordersOutsideLastDays,
     deriveNextAction: deriveNextAction,
     openCalendarTasks: openCalendarTasks,
     purchasesInLastDays: purchasesInLastDays,

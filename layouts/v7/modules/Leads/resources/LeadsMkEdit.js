@@ -263,6 +263,42 @@
     renderTags();
   }
 
+  function setSelectValue(id, value) {
+    var el = $(id);
+    if (!el) return;
+    var found = false;
+    for (var i = 0; i < el.options.length; i++) {
+      if (el.options[i].value === value) {
+        el.selectedIndex = i;
+        found = true;
+        break;
+      }
+    }
+    if (!found && value) {
+      var opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = value;
+      opt.selected = true;
+      el.appendChild(opt);
+    }
+  }
+
+  function hydrateDistrictAddress(lead) {
+    var district = lead.district || "";
+    var address = lead.address || "";
+    if (!district && lead.area) {
+      var match = String(lead.area).match(/^(Quận [^,]+|Huyện [^,]+)/);
+      if (match) {
+        district = match[1];
+        address = address || String(lead.area).replace(match[1], "").replace(/^,\s*TP\.?HCM\s*$/i, "").trim();
+      } else {
+        address = address || lead.area;
+      }
+    }
+    setSelectValue("mk-td-district", district);
+    if ($("mk-td-address")) $("mk-td-address").value = address;
+  }
+
   function hydrateFromStore(recordId) {
     var store = window.LeadsLocalStore;
     if (!store || !recordId || typeof store.getLead !== "function") return;
@@ -273,7 +309,7 @@
     if ($("mk-td-phone")) $("mk-td-phone").value = lead.phone || "";
     if ($("mk-td-cccd")) $("mk-td-cccd").value = lead.cccd || "";
     if ($("mk-td-email")) $("mk-td-email").value = lead.email || "";
-    if ($("mk-td-area")) $("mk-td-area").value = lead.area || "";
+    hydrateDistrictAddress(lead);
     if ($("mk-td-notes")) $("mk-td-notes").value = lead.notes || "";
     if ($("mk-td-company-name")) $("mk-td-company-name").value = lead.companyName || "";
     if ($("mk-td-owner") && lead.owner) {
@@ -314,7 +350,14 @@
       cccd: ($("mk-td-cccd") && $("mk-td-cccd").value.trim()) || "",
       email: ($("mk-td-email") && $("mk-td-email").value.trim()) || "",
       segment: state.customerStatus || "",
-      area: ($("mk-td-area") && $("mk-td-area").value.trim()) || "",
+      district: ($("mk-td-district") && $("mk-td-district").value) || "",
+      address: ($("mk-td-address") && $("mk-td-address").value.trim()) || "",
+      area: (function () {
+        var district = ($("mk-td-district") && $("mk-td-district").value) || "";
+        var address = ($("mk-td-address") && $("mk-td-address").value.trim()) || "";
+        if (district && address) return district + ", " + address;
+        return district || address;
+      })(),
       notes: ($("mk-td-notes") && $("mk-td-notes").value.trim()) || "",
       companyName:
         state.customerType === "company"

@@ -96,6 +96,16 @@
 						<a href="javascript:void(0)" class="textOverflowEllipsis"><span class="tab-label"><strong>{vtranslate('LBL_UPDATES', $MODULE_NAME)}</strong></span></a>
 					</li>
 					<li class="mk-lead-detail-tabs-spacer" role="presentation" aria-hidden="true"></li>
+					<li class="tab-item mk-lead-detail-tab--commerce-icon" data-mk-ui-tab="orders-month" data-label-key="OrdersMonth" title="Tổng đơn hàng 1 tháng">
+						<a href="javascript:void(0)" class="textOverflowEllipsis" aria-label="Tổng đơn hàng 1 tháng">
+							<span class="tab-icon mk-lead-tab-icon mk-lead-tab-icon--orders-month">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='OrdersMonth'}</span>
+						</a>
+					</li>
+					<li class="tab-item mk-lead-detail-tab--commerce-icon" data-mk-ui-tab="products-total" data-label-key="ProductsTotal" title="Tổng sản phẩm đã mua">
+						<a href="javascript:void(0)" class="textOverflowEllipsis" aria-label="Tổng sản phẩm đã mua">
+							<span class="tab-icon mk-lead-tab-icon mk-lead-tab-icon--products-purchased">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='ProductsPurchased'}</span>
+						</a>
+					</li>
 					<li class="tab-item" data-module="Calendar" data-mk-scroll="activities" title="{vtranslate('LBL_ACTIVITIES', 'Calendar')}">
 						<a href="javascript:void(0)" class="textOverflowEllipsis">
 							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='Calendar'}</span>
@@ -273,16 +283,25 @@
 				<div class="mk-lead-detail-card__head">
 					<h2 class="mk-lead-detail-card__title">{vtranslate('LBL_DETAILS', $MODULE_NAME)}</h2>
 				</div>
-				<div class="mk-lead-commerce-tabs" role="tablist" aria-label="Commerce metrics">
-					<button type="button" class="mk-lead-commerce-tabs__btn is-active" role="tab" aria-selected="true" data-mk-commerce-tab="orders-month">Tổng đơn hàng 1 tháng</button>
-					<button type="button" class="mk-lead-commerce-tabs__btn" role="tab" aria-selected="false" data-mk-commerce-tab="products-total">Tổng sản phẩm đã mua</button>
-				</div>
-				<div class="mk-lead-commerce-panels">
-					<div id="mk-ld-ui-commerce-orders-month" class="mk-lead-commerce-panel" data-mk-commerce-panel="orders-month" role="tabpanel"></div>
-					<div id="mk-ld-ui-commerce-products-total" class="mk-lead-commerce-panel hide" data-mk-commerce-panel="products-total" role="tabpanel"></div>
-				</div>
-				<p class="mk-lead-backend-hint">{vtranslate('LBL_MK_CACHE_BACKEND_HINT', $MODULE_NAME)}</p>
 				<div class="mk-lead-detail-overview-body detailview-table" id="mk-ld-ui-detail-fields"></div>
+			</div>
+		</div>
+
+		<div id="mk-ld-ui-panel-orders-month" class="mk-ld-ui-panel hide">
+			<div class="mk-lead-detail-card">
+				<div class="mk-lead-detail-card__head">
+					<h2 class="mk-lead-detail-card__title">Tổng đơn hàng 1 tháng</h2>
+				</div>
+				<div class="mk-lead-commerce-panel" id="mk-ld-ui-commerce-orders-month" role="tabpanel"></div>
+			</div>
+		</div>
+
+		<div id="mk-ld-ui-panel-products-total" class="mk-ld-ui-panel hide">
+			<div class="mk-lead-detail-card">
+				<div class="mk-lead-detail-card__head">
+					<h2 class="mk-lead-detail-card__title">Tổng sản phẩm đã mua</h2>
+				</div>
+				<div class="mk-lead-commerce-panel" id="mk-ld-ui-commerce-products-total" role="tabpanel"></div>
 			</div>
 		</div>
 

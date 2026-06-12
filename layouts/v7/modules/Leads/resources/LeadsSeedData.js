@@ -16,6 +16,19 @@
     return day + "/" + mon + "/" + d.getFullYear();
   }
 
+  var MONTH_ORDER_NAMES = [
+    "Đơn tháng — nguyên liệu mới",
+    "Đơn tháng — bổ sung syrup",
+    "Đơn tháng — PCTH trial",
+  ];
+
+  var HISTORY_ORDER_NAMES = [
+    "Đơn cũ — combo khởi nghiệp",
+    "Đơn cũ — franchise đợt 1",
+    "Đơn cũ — vận hành quán",
+    "Đơn cũ — nguyên liệu bulk",
+  ];
+
   var PRODUCTS = [
     "Syrup Caramel B-ACE 750ml",
     "Bột trà sữa B-ACE 1kg",
@@ -28,17 +41,31 @@
     var purchases = [];
     var baseId = String(lead.id || "L").replace("L-", "");
     if ((lead.value || 0) > 0 && idx % 6 !== 5) {
-      var orderLines = 1 + (idx % 3);
+      var monthLines = 1 + (idx % 2);
+      var historyLines = 1 + (idx % 2);
       var i;
-      for (i = 0; i < orderLines; i++) {
-        var daysAgo = i * 4 + (idx % 12);
+      for (i = 0; i < monthLines; i++) {
+        var daysAgo = i * 5 + (idx % 10);
         var qty = 4 + ((idx + i) % 9);
         purchases.push({
-          orderId: "SO-" + baseId + "-" + (i + 1),
+          orderId: "SO-" + baseId + "-M" + (i + 1),
+          orderName: MONTH_ORDER_NAMES[(idx + i) % MONTH_ORDER_NAMES.length],
           product: PRODUCTS[(idx + i) % PRODUCTS.length],
           qty: qty,
-          value: Math.max(500000, Math.round(((lead.value || 0) / orderLines) * (0.6 + i * 0.2))),
+          value: Math.max(500000, Math.round(((lead.value || 0) / (monthLines + historyLines)) * (0.7 + i * 0.15))),
           date: purchaseDate(daysAgo),
+        });
+      }
+      for (i = 0; i < historyLines; i++) {
+        var histDays = 35 + i * 25 + (idx % 20);
+        var histQty = 2 + ((idx + i) % 6);
+        purchases.push({
+          orderId: "SO-" + baseId + "-H" + (i + 1),
+          orderName: HISTORY_ORDER_NAMES[(idx + i) % HISTORY_ORDER_NAMES.length],
+          product: PRODUCTS[(idx + i + 2) % PRODUCTS.length],
+          qty: histQty,
+          value: Math.max(400000, Math.round(((lead.value || 0) / (monthLines + historyLines)) * 0.5)),
+          date: purchaseDate(histDays),
         });
       }
     }
@@ -59,6 +86,20 @@
       purchases: purchases,
       calendarTasks: calendarTasks,
     });
+  }
+
+  function splitAreaFields(lead) {
+    var row = Object.assign({}, lead);
+    if (row.district || row.address) return row;
+    if (!row.area) return row;
+    var match = String(row.area).match(/^(Quận [^,]+|Huyện [^,]+)/);
+    if (match) {
+      row.district = match[1];
+      row.address = String(row.area).replace(match[1], "").replace(/^,\s*TP\.?HCM\s*$/i, "").trim();
+    } else {
+      row.address = row.area;
+    }
+    return row;
   }
 
   var RAW_LEADS = [
@@ -86,7 +127,9 @@
   ];
 
   root.LeadsSeedData = {
-    VERSION: "20260611_leads_spec_v1",
-    leads: RAW_LEADS.map(enrichLead),
+    VERSION: "20260612_leads_ba_v3",
+    leads: RAW_LEADS.map(function (l, idx) {
+      return splitAreaFields(enrichLead(l, idx));
+    }),
   };
 })(typeof window !== "undefined" ? window : this);

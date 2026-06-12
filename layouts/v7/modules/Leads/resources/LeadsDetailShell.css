@@ -616,7 +616,9 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .related-tabs .n
 	background: rgba(253, 187, 44, 0.08);
 }
 
-/* Related-module icon tabs (right side) */
+/* Commerce icon tabs on main nav row */
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"] > a,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"] > a,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a {
 	position: relative;
@@ -629,6 +631,8 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	overflow: visible;
 }
 
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"] > a .tab-icon,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"] > a .tab-icon,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon {
 	display: inline-flex;
@@ -654,23 +658,53 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-tab-svg
 	color: currentColor;
 }
 
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"] > a:hover .tab-icon,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"] > a:hover .tab-icon,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon {
 	background: rgba(253, 187, 44, 0.12);
 	color: #2b2b2b;
 }
 
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"] > a:hover .tab-icon {
+	background: rgba(245, 158, 11, 0.18);
+	color: #b45309;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"] > a:hover .tab-icon {
+	background: rgba(16, 185, 129, 0.16);
+	color: #047857;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"].active > a .tab-icon,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"].active > a .tab-icon,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon {
 	background: rgba(253, 187, 44, 0.2);
 	color: #2b2b2b;
 }
 
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"].active > a .tab-icon {
+	background: linear-gradient(135deg, rgba(251, 191, 36, 0.35), rgba(245, 158, 11, 0.28));
+	color: #92400e;
+	box-shadow: 0 2px 8px rgba(245, 158, 11, 0.22);
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"].active > a .tab-icon {
+	background: linear-gradient(135deg, rgba(52, 211, 153, 0.32), rgba(16, 185, 129, 0.24));
+	color: #065f46;
+	box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"].active > a::after,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"].active > a::after,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a::after,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a::after {
 	display: none;
 }
 
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"] > a .numberCircle,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"] > a .numberCircle,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle {
 	display: inline-flex !important;
@@ -694,15 +728,27 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	pointer-events: none;
 }
 
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"] > a .numberCircle.hide,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"] > a .numberCircle.hide,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle.hide,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle.hide {
 	display: inline-flex !important;
 }
 
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"] > a .numberCircle[data-count="0"],
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"] > a .numberCircle[data-count="0"],
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"],
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"] {
 	background: #cbd5e1;
 	color: #475569;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="orders-month"] > a .numberCircle:not([data-count="0"]) {
+	background: #f59e0b;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-related-tabs .nav.nav-tabs > li.tab-item[data-mk-ui-tab="products-total"] > a .numberCircle:not([data-count="0"]) {
+	background: #10b981;
 }
 
 /* ============================================================================
@@ -2087,6 +2133,41 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-ld-ui-sectio
 @keyframes mk-lead-section-flash {
 	0% { box-shadow: 0 0 0 0 rgba(201, 143, 18, 0.45); }
 	100% { box-shadow: 0 0 0 8px rgba(201, 143, 18, 0); }
+}
+
+/* Commerce order list panels */
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-order-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-order-list__item {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 12px 0;
+	border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-order-list__item:last-child {
+	border-bottom: none;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-order-list__name {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1f2937;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-order-list__meta {
+	font-size: 13px;
+	color: #64748b;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #mk-ld-ui-panel-orders-month .mk-lead-commerce-panel,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #mk-ld-ui-panel-products-total .mk-lead-commerce-panel {
+	padding: 8px 20px 20px;
 }
 
 /* Commerce metrics tabs (Detail panel — cache spec) */

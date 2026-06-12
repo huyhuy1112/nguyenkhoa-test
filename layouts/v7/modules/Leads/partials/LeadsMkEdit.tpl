@@ -120,9 +120,37 @@
 								<button type="button" class="mk-td-choice mk-td-choice--wide" data-group="customer-status" data-value="gia_dinh" data-segment="gia_dinh">Gia đình</button>
 							</div>
 						</div>
-						<div class="mk-td-field mk-td-field--full">
-							<label for="mk-td-area">Khu vực / Địa chỉ</label>
-							<input type="text" id="mk-td-area" class="mk-td-input" placeholder="Quận 1, TP.HCM hoặc số nhà, phường, quận, tỉnh/thành" />
+						<div class="mk-td-field">
+							<label for="mk-td-district">Khu vực</label>
+							<select id="mk-td-district" class="mk-td-select">
+								<option value="">Chọn khu vực (TP.HCM)</option>
+								<option value="Quận 1">Quận 1</option>
+								<option value="Quận 3">Quận 3</option>
+								<option value="Quận 4">Quận 4</option>
+								<option value="Quận 5">Quận 5</option>
+								<option value="Quận 6">Quận 6</option>
+								<option value="Quận 7">Quận 7</option>
+								<option value="Quận 8">Quận 8</option>
+								<option value="Quận 10">Quận 10</option>
+								<option value="Quận 11">Quận 11</option>
+								<option value="Quận 12">Quận 12</option>
+								<option value="Quận Bình Thạnh">Quận Bình Thạnh</option>
+								<option value="Quận Bình Tân">Quận Bình Tân</option>
+								<option value="Quận Gò Vấp">Quận Gò Vấp</option>
+								<option value="Quận Phú Nhuận">Quận Phú Nhuận</option>
+								<option value="Quận Tân Bình">Quận Tân Bình</option>
+								<option value="Quận Tân Phú">Quận Tân Phú</option>
+								<option value="Quận Thủ Đức">Quận Thủ Đức</option>
+								<option value="Huyện Bình Chánh">Huyện Bình Chánh</option>
+								<option value="Huyện Cần Giờ">Huyện Cần Giờ</option>
+								<option value="Huyện Củ Chi">Huyện Củ Chi</option>
+								<option value="Huyện Hóc Môn">Huyện Hóc Môn</option>
+								<option value="Huyện Nhà Bè">Huyện Nhà Bè</option>
+							</select>
+						</div>
+						<div class="mk-td-field">
+							<label for="mk-td-address">Địa chỉ</label>
+							<input type="text" id="mk-td-address" class="mk-td-input" placeholder="Số nhà, đường, phường…" autocomplete="street-address" />
 						</div>
 						<div class="mk-td-field mk-td-field--full">
 							<label for="mk-td-notes">Ghi chú nội bộ</label>
