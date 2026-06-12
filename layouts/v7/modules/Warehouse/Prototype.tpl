@@ -125,7 +125,7 @@
 									<th>NCC</th>
 									<th>Mặt hàng</th>
 									<th>Lô</th>
-									<th>HSD</th>
+									<th>NSX / HSD</th>
 									<th>SL</th>
 									<th class="mk-wh-proto-td-right">QC</th>
 								</tr>
@@ -136,6 +136,36 @@
 				</div>
 
 				<div class="mk-wh-proto-pane hide" id="mkWhProtoPaneStock">
+					<div class="mk-wh-proto-filters" id="mkWhProtoStockFilters" aria-label="Bộ lọc tồn kho">
+						<div class="mk-wh-proto-filters__row">
+							<label class="mk-wh-proto-filter">
+								<span class="mk-wh-proto-filter__label">HSD</span>
+								<select class="mk-wh-proto-filter__control" id="mkWhProtoFilterHsd">
+									<option value="all">Tất cả</option>
+									<option value="soon">Sắp hết hạn (&lt;90 ngày)</option>
+									<option value="valid">Còn hạn</option>
+									<option value="expired">Quá hạn</option>
+								</select>
+							</label>
+							<label class="mk-wh-proto-filter">
+								<span class="mk-wh-proto-filter__label">Tên sản phẩm</span>
+								<select class="mk-wh-proto-filter__control" id="mkWhProtoFilterName">
+									<option value="az">A → Z</option>
+									<option value="za">Z → A</option>
+								</select>
+							</label>
+							<label class="mk-wh-proto-filter">
+								<span class="mk-wh-proto-filter__label">Giá</span>
+								<select class="mk-wh-proto-filter__control" id="mkWhProtoFilterPrice">
+									<option value="all">Tất cả</option>
+									<option value="asc">Thấp → Cao</option>
+									<option value="desc">Cao → Thấp</option>
+								</select>
+							</label>
+							<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost mk-wh-proto-filter-reset" id="mkWhProtoFilterReset">Xóa lọc</button>
+						</div>
+						<p class="mk-wh-proto-filters__summary" id="mkWhProtoFilterSummary" aria-live="polite"></p>
+					</div>
 					<div class="mk-wh-proto-table-wrap">
 						<table class="mk-wh-proto-table" role="table">
 							<thead>
@@ -144,6 +174,7 @@
 									<th>Tên hàng</th>
 									<th>Lô</th>
 									<th>HSD</th>
+									<th class="mk-wh-proto-td-right">Giá</th>
 									<th class="mk-wh-proto-td-right">Vị trí</th>
 									<th class="mk-wh-proto-td-right">Tồn</th>
 								</tr>
@@ -159,6 +190,7 @@
 							<thead>
 								<tr>
 									<th>Mã phiếu</th>
+									<th>Loại xuất</th>
 									<th>Khách hàng</th>
 									<th>SO</th>
 									<th>Ngày tạo</th>

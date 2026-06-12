@@ -3,6 +3,7 @@
  * Tham chiếu state machine: https://github.com/tangchanhungit/b-ace/tree/main/src/routes/warehouse-prototype.tsx
  *
  * Nhập kho (Receipt): draft → pending_qc → qc_passed|qc_failed → approved → stored (+ cộng tồn)
+ * Hoặc: không cần QC → stored ngay (+ cộng tồn)
  * Xuất kho (Issue): draft → pending_approval → approved → shipped | rejected (trừ tồn khi shipped)
  * Tồn kho (StockLot): sku+lot, qty, expiry, location — cập nhật khi stored / shipped
  */
@@ -42,6 +43,61 @@
 		return Math.round(t / 86400000);
 	}
 
+	function fmtPrice(n) {
+		var v = Number(n);
+		if (!isFinite(v)) return '—';
+		return v.toLocaleString('vi-VN') + ' ₫';
+	}
+
+	function getStockFilterState() {
+		var hsdEl = qs('#mkWhProtoFilterHsd');
+		var nameEl = qs('#mkWhProtoFilterName');
+		var priceEl = qs('#mkWhProtoFilterPrice');
+		return {
+			hsd: hsdEl ? hsdEl.value : 'all',
+			name: nameEl ? nameEl.value : 'az',
+			price: priceEl ? priceEl.value : 'all',
+		};
+	}
+
+	function resetStockFilters() {
+		var hsdEl = qs('#mkWhProtoFilterHsd');
+		var nameEl = qs('#mkWhProtoFilterName');
+		var priceEl = qs('#mkWhProtoFilterPrice');
+		if (hsdEl) hsdEl.value = 'all';
+		if (nameEl) nameEl.value = 'az';
+		if (priceEl) priceEl.value = 'all';
+	}
+
+	function matchesHsdFilter(expiry, hsdFilter) {
+		var days = daysUntil(expiry);
+		if (hsdFilter === 'soon') return days >= 0 && days < 90;
+		if (hsdFilter === 'valid') return days >= 0;
+		if (hsdFilter === 'expired') return days < 0;
+		return true;
+	}
+
+	function applyStockFilters(rows) {
+		var filters = getStockFilterState();
+		var list = (rows || []).filter(function (s) {
+			return (Number(s.qty) || 0) > 0 && matchesHsdFilter(s.expiry, filters.hsd);
+		});
+
+		list.sort(function (a, b) {
+			if (filters.price === 'asc' || filters.price === 'desc') {
+				var pa = Number(a.price) || 0;
+				var pb = Number(b.price) || 0;
+				if (pa !== pb) return filters.price === 'asc' ? pa - pb : pb - pa;
+			}
+			var na = String(a.name || '').toLocaleLowerCase('vi');
+			var nb = String(b.name || '').toLocaleLowerCase('vi');
+			var cmp = na.localeCompare(nb, 'vi');
+			return filters.name === 'za' ? -cmp : cmp;
+		});
+
+		return { rows: list, filters: filters };
+	}
+
 	function addTimeline(list, ev) {
 		if (!list) return;
 		list.push(ev);
@@ -60,8 +116,8 @@
 						createdAt: '15:30 28/5/26',
 						status: 'stored', // draft | pending_qc | qc_passed | qc_failed | approved | stored
 						items: [
-							{ name: 'Paracetamol 500mg', sku: 'MED-001', lot: 'LOT-2605A', exp: '2027-05-01', qty: 1000, qc: 'pass' },
-							{ name: 'Amoxicillin 250mg', sku: 'MED-002', lot: 'LOT-2605B', exp: '2027-03-15', qty: 500, qc: 'pass' },
+							{ name: 'Paracetamol 500mg', sku: 'MED-001', lot: 'LOT-2605A', mfg: '2025-05-01', exp: '2027-05-01', qty: 1000, qc: 'pass' },
+							{ name: 'Amoxicillin 250mg', sku: 'MED-002', lot: 'LOT-2605B', mfg: '2025-03-01', exp: '2027-03-15', qty: 500, qc: 'pass' },
 						],
 						timeline: [
 							{ at: '15:30 28/5/26', by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu nhập' },
@@ -76,7 +132,7 @@
 						po: 'PO-2026-0151',
 						createdAt: '14:20 1/6/26',
 						status: 'pending_qc',
-						items: [{ name: 'Sữa tươi 1L', sku: 'FMC-010', lot: 'LOT-0106', exp: '2026-08-30', qty: 300, qc: 'none' }],
+						items: [{ name: 'Sữa tươi 1L', sku: 'FMC-010', lot: 'LOT-0106', mfg: '2026-06-01', exp: '2026-08-30', qty: 300, qc: 'none' }],
 						timeline: [
 							{ at: '14:20 1/6/26', by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu nhập' },
 							{ at: '14:45 1/6/26', by: 'Thủ kho Hà', role: 'keeper', action: 'Gửi QC kiểm tra' },
@@ -88,13 +144,14 @@
 						po: 'PO-2026-0155',
 						createdAt: '16:00 2/6/26',
 						status: 'draft',
-						items: [{ name: 'Aspirin 100mg', sku: 'MED-004', lot: 'LOT-2504X', exp: '2026-07-10', qty: 150, qc: 'none' }],
+						items: [{ name: 'Aspirin 100mg', sku: 'MED-004', lot: 'LOT-2504X', mfg: '2026-04-01', exp: '2026-07-10', qty: 150, qc: 'none' }],
 						timeline: [{ at: '16:00 2/6/26', by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu nhập (nháp)' }],
 					},
 				],
 				issues: [
 					{
 						code: 'GIN-0001',
+						outboundType: 'sale',
 						customer: 'Bệnh viện Bạch Mai',
 						so: 'SO-2026-0088',
 						status: 'shipped',
@@ -109,6 +166,7 @@
 					},
 					{
 						code: 'GIN-0002',
+						outboundType: 'sale',
 						customer: 'Nhà thuốc Quận 1',
 						so: 'SO-2026-0101',
 						status: 'pending_approval',
@@ -119,9 +177,9 @@
 					},
 				],
 				stock: [
-					{ sku: 'MED-001', name: 'Paracetamol 500mg', lot: 'LOT-2605A', expiry: '2027-05-01', qty: 800, location: 'A1-02' },
-					{ sku: 'MED-002', name: 'Amoxicillin 250mg', lot: 'LOT-2604B', expiry: '2026-08-15', qty: 120, location: 'B2-01' },
-					{ sku: 'MED-003', name: 'Vitamin C 1000mg', lot: 'LOT-2603C', expiry: '2026-06-01', qty: 45, location: 'C1-03' },
+					{ sku: 'MED-001', name: 'Paracetamol 500mg', lot: 'LOT-2605A', expiry: '2027-05-01', qty: 800, location: 'A1-02', price: 25000 },
+					{ sku: 'MED-002', name: 'Amoxicillin 250mg', lot: 'LOT-2604B', expiry: '2026-08-15', qty: 120, location: 'B2-01', price: 45000 },
+					{ sku: 'MED-003', name: 'Vitamin C 1000mg', lot: 'LOT-2603C', expiry: '2026-06-01', qty: 45, location: 'C1-03', price: 120000 },
 				],
 			};
 		}
@@ -137,10 +195,58 @@
 		rejected: { label: 'Từ chối', cls: 'warn' },
 	};
 
+	var OUTBOUND_TYPES = {
+		sale: {
+			label: 'Xuất bán (từ invoice)',
+			short: 'Xuất bán',
+			customerLabel: 'Khách hàng',
+			soLabel: 'Mã invoice / SO',
+			soPlaceholder: 'INV-2026-...',
+		},
+		internal: {
+			label: 'Xuất nội bộ (test)',
+			short: 'Xuất nội bộ',
+			customerLabel: 'Bộ phận / mục đích',
+			soLabel: 'Mã tham chiếu',
+			soPlaceholder: 'IT-TEST-...',
+		},
+		transfer: {
+			label: 'Xuất chuyển kho',
+			short: 'Chuyển kho',
+			customerLabel: 'Kho đích',
+			soLabel: 'Mã chuyển kho',
+			soPlaceholder: 'TRF-...',
+		},
+		scrap: {
+			label: 'Xuất huỷ',
+			short: 'Xuất huỷ',
+			customerLabel: 'Lý do huỷ',
+			soLabel: 'Mã phiếu huỷ',
+			soPlaceholder: 'SCR-...',
+		},
+	};
+
+	function getOutboundTypeMeta(type) {
+		return OUTBOUND_TYPES[type] || OUTBOUND_TYPES.sale;
+	}
+
+	function outboundTypePill(type) {
+		var meta = getOutboundTypeMeta(type);
+		return '<span class="mk-wh-proto-pill mk-wh-proto-pill--blue">' + escapeHtml(meta.short) + '</span>';
+	}
+
 	function findStockLot(sku, lot) {
 		return (getState().stock || []).filter(function (s) {
 			return s.sku === sku && s.lot === lot;
 		})[0];
+	}
+
+	function receiptNeedsQc(rec) {
+		if (!rec) return true;
+		if (rec.needsQc === false) return false;
+		return !(rec.items || []).some(function (it) {
+			return it.needsQc === false || it.qc === 'skip';
+		});
 	}
 
 	function addStockFromReceipt(rec) {
@@ -159,6 +265,7 @@
 					expiry: it.exp || it.expiry,
 					qty: Number(it.qty) || 0,
 					location: 'A1-02',
+					price: Number(it.price) || 0,
 				});
 			}
 		});
@@ -205,7 +312,8 @@
 			.map(function (r) {
 				var pill =
 					r.status === 'stored'
-						? '<span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đã nhập kho</span>'
+						? '<span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đã nhập kho</span>' +
+							(!receiptNeedsQc(r) ? ' <span class="mk-wh-proto-pill mk-wh-proto-pill--blue">Không QC</span>' : '')
 						: r.status === 'pending_qc'
 							? '<span class="mk-wh-proto-pill mk-wh-proto-pill--warn">Chờ QC</span>'
 							: r.status === 'qc_passed'
@@ -268,6 +376,8 @@
 					escapeHtml(it.lot || '—') +
 					'</td>' +
 					'<td>' +
+					(it.mfg ? '<span class="mk-wh-proto-muted">NSX: ' + escapeHtml(it.mfg) + '</span><br/>' : '') +
+					'HSD: ' +
 					escapeHtml(it.exp || '—') +
 					'</td>' +
 					'<td>' +
@@ -311,6 +421,9 @@
 					escapeHtml(i.code) +
 					'</strong></td>' +
 					'<td>' +
+					outboundTypePill(i.outboundType || 'sale') +
+					'</td>' +
+					'<td>' +
 					escapeHtml(i.customer) +
 					'</td>' +
 					'<td>' +
@@ -336,10 +449,22 @@
 		var st = getState();
 		var tbody = qs('#mkWhProtoStockTbody');
 		if (!tbody) return;
-		tbody.innerHTML = (st.stock || [])
-			.filter(function (s) {
-				return (Number(s.qty) || 0) > 0;
-			})
+		var inStock = (st.stock || []).filter(function (s) {
+			return (Number(s.qty) || 0) > 0;
+		});
+		var result = applyStockFilters(inStock);
+		var rows = result.rows;
+		var summary = qs('#mkWhProtoFilterSummary');
+		if (summary) {
+			if (!rows.length && inStock.length) {
+				summary.textContent = 'Không có mặt hàng phù hợp bộ lọc (đang có ' + inStock.length + ' dòng tồn).';
+			} else if (!inStock.length) {
+				summary.textContent = 'Chưa có tồn kho.';
+			} else {
+				summary.textContent = 'Hiển thị ' + rows.length + ' / ' + inStock.length + ' mặt hàng';
+			}
+		}
+		tbody.innerHTML = rows
 			.map(function (s) {
 				var days = daysUntil(s.expiry);
 				var expLabel = days < 0 ? 'Quá hạn' : 'Còn ' + days + ' ngày';
@@ -369,6 +494,9 @@
 					escapeHtml(expLabel) +
 					')</span></td>' +
 					'<td class="mk-wh-proto-td-right">' +
+					escapeHtml(fmtPrice(s.price)) +
+					'</td>' +
+					'<td class="mk-wh-proto-td-right">' +
 					escapeHtml(s.location || '—') +
 					'</td>' +
 					'<td class="mk-wh-proto-td-right' +
@@ -381,6 +509,21 @@
 			})
 			.join('');
 		updateKpis();
+	}
+
+	function bindStockFilters() {
+		['#mkWhProtoFilterHsd', '#mkWhProtoFilterName', '#mkWhProtoFilterPrice'].forEach(function (sel) {
+			var el = qs(sel);
+			if (!el) return;
+			el.addEventListener('change', renderStock);
+		});
+		var resetBtn = qs('#mkWhProtoFilterReset');
+		if (resetBtn) {
+			resetBtn.addEventListener('click', function () {
+				resetStockFilters();
+				renderStock();
+			});
+		}
 	}
 
 	function renderAll() {
@@ -487,6 +630,14 @@
 		var form = qs('#mkWhProtoModalForm');
 		if (!modal || !title || !fields || !form) return;
 
+		var dialog = modal.querySelector('.mk-wh-proto-modal__dialog');
+		if (dialog) {
+			dialog.classList.toggle(
+				'mk-wh-proto-modal__dialog--compact',
+				opts.tabKey === 'inbound' || opts.tabKey === 'outbound-type' || opts.tabKey === 'outbound'
+			);
+		}
+
 		title.textContent = opts.title || 'Tạo phiếu';
 		if (submit) submit.textContent = opts.submitLabel || 'Tạo phiếu';
 
@@ -494,6 +645,36 @@
 			.map(function (f) {
 				var full = f.full ? ' mk-wh-proto-field--full' : '';
 				var req = f.required ? ' *' : '';
+				if (f.type === 'section') {
+					return '<div class="mk-wh-proto-form-section' + full + '">' + escapeHtml(f.label || '') + '</div>';
+				}
+				if (f.type === 'hint') {
+					return '<p class="mk-wh-proto-form-hint' + full + '">' + escapeHtml(f.text || '') + '</p>';
+				}
+				if (f.type === 'checkbox') {
+					return (
+						'<div class="mk-wh-proto-field mk-wh-proto-field--check' +
+						full +
+						'">' +
+						'<label class="mk-wh-proto-check">' +
+						'<span class="mk-wh-proto-check__box">' +
+						'<input class="mk-wh-proto-check__input" type="checkbox" name="' +
+						escapeHtml(f.name) +
+						'" value="1"' +
+						(f.checked ? ' checked="checked"' : '') +
+						' />' +
+						'<span class="mk-wh-proto-check__visual" aria-hidden="true">' +
+						'<svg class="mk-wh-proto-check__icon" width="12" height="12" viewBox="0 0 12 12" fill="none">' +
+						'<path d="M2.2 6.1 4.8 8.7 9.8 3.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>' +
+						'</svg></span></span>' +
+						'<span class="mk-wh-proto-check__text">' +
+						'<span class="mk-wh-proto-check__label">' +
+						escapeHtml(f.label || '') +
+						'</span>' +
+						(f.hint ? '<span class="mk-wh-proto-check__hint">' + escapeHtml(f.hint) + '</span>' : '') +
+						'</span></label></div>'
+					);
+				}
 				var input;
 				if (f.type === 'select') {
 					input =
@@ -504,7 +685,8 @@
 						'>' +
 						(f.options || [])
 							.map(function (o) {
-								return '<option value="' + o.value + '">' + o.label + '</option>';
+								var selected = o.selected ? ' selected="selected"' : '';
+								return '<option value="' + escapeHtml(o.value) + '"' + selected + '>' + escapeHtml(o.label) + '</option>';
 							})
 							.join('') +
 						'</select>';
@@ -536,11 +718,29 @@
 		modal.classList.add('is-open');
 		modal.setAttribute('aria-hidden', 'false');
 
+		var sendQcCheckbox = form.querySelector('[name="sendQc"]');
+		function syncInboundSubmitLabel() {
+			if (!submit || !sendQcCheckbox || opts.tabKey !== 'inbound') return;
+			submit.textContent = sendQcCheckbox.checked ? opts.submitLabel || 'Tạo phiếu' : 'Tạo & nhập kho';
+		}
+		if (sendQcCheckbox) {
+			sendQcCheckbox.addEventListener('change', syncInboundSubmitLabel);
+			syncInboundSubmitLabel();
+		}
+
 		form.onsubmit = function (e) {
 			e.preventDefault();
 			var fd = new FormData(form);
 			var st = getState();
 			var tabKey = opts.tabKey || 'inbound';
+
+			if (tabKey === 'outbound-type') {
+				var pickedType = String(fd.get('outboundType') || '');
+				if (!pickedType || !OUTBOUND_TYPES[pickedType]) return;
+				var pickerRole = qs('#mkWhProtoRole');
+				openModal(modalSchema('outbound', pickerRole ? pickerRole.value : 'stock', pickedType));
+				return;
+			}
 
 			if (tabKey === 'outbound') {
 				var lotKey = String(fd.get('lotKey') || '');
@@ -550,18 +750,29 @@
 				var stockLot = findStockLot(sku, lot);
 				var qtyOut = Number(fd.get('qty') || 0) || 0;
 				if (!stockLot || !qtyOut || qtyOut <= 0) return;
+				var outboundType = opts.outboundType || 'sale';
+				var typeMeta = getOutboundTypeMeta(outboundType);
 				var seqOut = st.nextOutboundSeq++;
 				var codeOut = 'GIN-' + String(seqOut).padStart(4, '0');
+				var nowOut = fmtNow();
 				st.issues = st.issues || [];
 				st.issues.unshift({
 					code: codeOut,
+					outboundType: outboundType,
 					customer: String(fd.get('customer') || ''),
 					so: String(fd.get('so') || '—'),
 					status: 'draft',
-					createdAt: fmtNow(),
+					createdAt: nowOut,
 					createdBy: 'Thủ kho Hà',
 					items: [{ sku: stockLot.sku, name: stockLot.name, lot: stockLot.lot, qty: qtyOut }],
-					timeline: [{ at: fmtNow(), by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu xuất' }],
+					timeline: [
+						{
+							at: nowOut,
+							by: 'Thủ kho Hà',
+							role: 'keeper',
+							action: 'Tạo phiếu xuất — ' + typeMeta.short,
+						},
+					],
 				});
 				renderOutbound();
 				closeModal();
@@ -578,6 +789,7 @@
 					expiry: String(fd.get('exp') || ''),
 					qty: Number(fd.get('qty') || 0) || 0,
 					location: 'A1-02',
+					price: Number(fd.get('price') || 0) || 0,
 				});
 				renderStock();
 				closeModal();
@@ -591,20 +803,52 @@
 			var skuIn = fd.get('sku') || 'SKU';
 			var product = fd.get('product') || 'Hàng hóa';
 			var lotIn = fd.get('lot') || 'LOT';
+			var mfg = fd.get('mfg') || '';
 			var exp = fd.get('exp') || '';
 			var qty = Number(fd.get('qty') || 0) || 0;
-
-			st.receipts.unshift({
+			var sendQc = fd.has('sendQc');
+			var skipQc = !sendQc;
+			var now = fmtNow();
+			var item = {
+				name: String(product),
+				sku: String(skuIn),
+				lot: String(lotIn),
+				mfg: String(mfg),
+				exp: String(exp),
+				qty: qty,
+				qc: skipQc ? 'skip' : 'none',
+				needsQc: sendQc,
+			};
+			var receipt = {
 				code: code,
 				supplier: String(supplier),
 				po: String(po),
-				createdAt: fmtNow(),
-				status: 'draft',
-				items: [{ name: String(product), sku: String(skuIn), lot: String(lotIn), exp: String(exp), qty: qty, qc: 'none' }],
-				timeline: [{ at: fmtNow(), by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu nhập (nháp)' }],
-			});
-			renderInbounds();
-			renderQcQueue();
+				createdAt: now,
+				needsQc: sendQc,
+				status: skipQc ? 'stored' : 'pending_qc',
+				items: [item],
+				timeline: skipQc
+					? [
+							{ at: now, by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu nhập' },
+							{
+								at: now,
+								by: 'Thủ kho Hà',
+								role: 'keeper',
+								action: 'Nhập thẳng tồn kho',
+								note: 'Không gửi QC — cộng tồn ngay',
+							},
+						]
+					: [
+							{ at: now, by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu nhập' },
+							{ at: now, by: 'Thủ kho Hà', role: 'keeper', action: 'Gửi QC kiểm tra' },
+						],
+			};
+
+			st.receipts.unshift(receipt);
+			if (skipQc) {
+				addStockFromReceipt(receipt);
+			}
+			renderAll();
 			closeModal();
 			openDialog(inboundDialog(code));
 		};
@@ -665,7 +909,15 @@
 			if (isPassed) return '<span class="mk-wh-proto-pill mk-wh-proto-pill--ok">QC đạt</span>';
 			if (isFailed) return '<span class="mk-wh-proto-pill mk-wh-proto-pill--warn">QC không đạt</span>';
 			if (isApproved) return '<span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đã duyệt</span>';
-			if (isStored) return '<span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đã nhập kho</span>';
+			if (isStored) {
+				if (!receiptNeedsQc(rec)) {
+					return (
+						'<span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đã nhập kho</span> ' +
+						'<span class="mk-wh-proto-pill mk-wh-proto-pill--blue">Không QC</span>'
+					);
+				}
+				return '<span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đã nhập kho</span>';
+			}
 			return '';
 		}
 
@@ -691,7 +943,7 @@
 			'</div>';
 
 		var primaryActions = '';
-		if (isDraft && role === 'stock') {
+		if (isDraft && role === 'stock' && receiptNeedsQc(rec)) {
 			primaryActions =
 				'<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="send-qc" data-code="' +
@@ -736,7 +988,7 @@
 				'<div class="mk-wh-proto-dialog-grid">' +
 				'<div>' +
 				'<div class="mk-wh-proto-dialog-section-title">Chi tiết hàng hóa</div>' +
-				'<table class="mk-wh-proto-dialog-table"><thead><tr><th>SKU</th><th>Lô / HSD</th><th>SL</th><th>QC</th></tr></thead><tbody>' +
+				'<table class="mk-wh-proto-dialog-table"><thead><tr><th>SKU</th><th>Lô / NSX / HSD</th><th>SL</th><th>QC</th></tr></thead><tbody>' +
 				(rec.items || [])
 					.map(function (it) {
 						var qcPill =
@@ -744,7 +996,9 @@
 								? '<span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đạt</span>'
 								: it.qc === 'fail'
 									? '<span class="mk-wh-proto-pill mk-wh-proto-pill--warn">Không đạt</span>'
-									: '—';
+									: it.qc === 'skip'
+										? '<span class="mk-wh-proto-pill mk-wh-proto-pill--blue">Không cần QC</span>'
+										: '—';
 						return (
 							'<tr><td><strong>' +
 							escapeHtml(it.name || '') +
@@ -752,7 +1006,8 @@
 							escapeHtml(it.sku || '') +
 							'</div></td><td>' +
 							escapeHtml(it.lot || '') +
-							'<br/><span class="mk-wh-proto-muted">' +
+							(it.mfg ? '<br/><span class="mk-wh-proto-muted">NSX: ' + escapeHtml(it.mfg) + '</span>' : '') +
+							'<br/><span class="mk-wh-proto-muted">HSD: ' +
 							escapeHtml(it.exp || '') +
 							'</span></td><td>' +
 							escapeHtml(it.qty) +
@@ -868,9 +1123,19 @@
 			? '<div class="mk-wh-proto-banner" style="margin:10px 0;background:#fff7ed;border-color:#fed7aa;">Cảnh báo: tồn kho không đủ cho ít nhất 1 dòng.</div>'
 			: '';
 
+		var typeMeta = getOutboundTypeMeta(issue.outboundType || 'sale');
 		return {
 			title: 'Phiếu xuất ' + issue.code,
-			metaHtml: 'Khách hàng: ' + escapeHtml(issue.customer) + ' · SO: ' + escapeHtml(issue.so),
+			metaHtml:
+				outboundTypePill(issue.outboundType || 'sale') +
+				' · ' +
+				escapeHtml(typeMeta.customerLabel) +
+				': ' +
+				escapeHtml(issue.customer) +
+				' · ' +
+				escapeHtml(typeMeta.soLabel) +
+				': ' +
+				escapeHtml(issue.so),
 			bodyHtml:
 				'<div style="margin-bottom:10px;">' +
 				issueStatusPill(issue.status) +
@@ -896,21 +1161,57 @@
 		return inboundDialog(code);
 	}
 
-	function modalSchema(tabKey, role) {
+	function modalSchema(tabKey, role, outboundType) {
 		// Keep schemas minimal but similar to prototype screenshot (UI-only).
+		if (tabKey === 'outbound-type') {
+			return {
+				tabKey: 'outbound-type',
+				title: 'Tạo phiếu xuất kho',
+				submitLabel: 'Tiếp theo',
+				fields: [
+					{
+						type: 'hint',
+						full: true,
+						text: 'Chọn loại xuất kho. Bước tiếp theo bạn điền chi tiết phiếu xuất.',
+					},
+					{
+						name: 'outboundType',
+						label: 'Xuất kho loại nào?',
+						type: 'select',
+						required: true,
+						full: true,
+						options: [
+							{ value: 'sale', label: OUTBOUND_TYPES.sale.label, selected: true },
+							{ value: 'internal', label: OUTBOUND_TYPES.internal.label },
+							{ value: 'transfer', label: OUTBOUND_TYPES.transfer.label },
+							{ value: 'scrap', label: OUTBOUND_TYPES.scrap.label },
+						],
+					},
+				],
+			};
+		}
 		if (tabKey === 'inbound') {
 			return {
 				tabKey: 'inbound',
 				title: 'Tạo phiếu nhập kho',
 				submitLabel: 'Tạo phiếu',
 				fields: [
-					{ name: 'supplier', label: 'Nhà cung cấp', required: true, full: true, placeholder: '' },
-					{ name: 'po', label: 'Mã PO', required: true, full: true, placeholder: '' },
+					{ name: 'supplier', label: 'Nhà cung cấp', required: true, placeholder: '' },
+					{ name: 'po', label: 'Mã PO', required: true, placeholder: '' },
 					{ name: 'sku', label: 'SKU', required: true, placeholder: '' },
 					{ name: 'product', label: 'Tên hàng', required: true, placeholder: '' },
 					{ name: 'lot', label: 'Lô', required: true, placeholder: '' },
+					{ name: 'qty', label: 'Số lượng', required: true, type: 'number', placeholder: '' },
+					{ name: 'mfg', label: 'NSX', required: true, type: 'date', placeholder: '' },
 					{ name: 'exp', label: 'HSD', required: true, type: 'date', placeholder: '' },
-					{ name: 'qty', label: 'Số lượng', required: true, type: 'number', full: true, placeholder: '' },
+					{
+						type: 'checkbox',
+						name: 'sendQc',
+						label: 'Gửi QC',
+						checked: true,
+						full: true,
+						hint: 'Bỏ chọn nếu hàng không cần QC — nhập thẳng tồn kho',
+					},
 				],
 			};
 		}
@@ -940,13 +1241,20 @@
 		if (!lotOptions.length) {
 			lotOptions = [{ value: '', label: '(Chưa có tồn — nhập kho trước)' }];
 		}
+		var outMeta = getOutboundTypeMeta(outboundType || 'sale');
 		return {
 			tabKey: 'outbound',
-			title: 'Tạo phiếu xuất kho',
+			outboundType: outboundType || 'sale',
+			title: 'Tạo phiếu xuất — ' + outMeta.short,
 			submitLabel: 'Tạo phiếu',
 			fields: [
-				{ name: 'customer', label: 'Khách hàng', required: true, full: true, placeholder: '' },
-				{ name: 'so', label: 'Mã SO', full: true, placeholder: 'SO-...' },
+				{
+					type: 'hint',
+					full: true,
+					text: 'Loại: ' + outMeta.label + '. Điền thông tin phiếu xuất bên dưới.',
+				},
+				{ name: 'customer', label: outMeta.customerLabel, required: true, full: true, placeholder: '' },
+				{ name: 'so', label: outMeta.soLabel, full: true, placeholder: outMeta.soPlaceholder },
 				{
 					name: 'lotKey',
 					label: 'Chọn lô hàng',
@@ -960,8 +1268,13 @@
 		};
 	}
 
+	function openOutboundTypePicker() {
+		openModal(modalSchema('outbound-type'));
+	}
+
 	function boot() {
 		if (!qs('#mkWhPrototypeRoot')) return;
+		bindStockFilters();
 		qsa('.mk-wh-proto-tab').forEach(function (b) {
 			b.addEventListener('click', function () {
 				setActiveTab(b.getAttribute('data-tab'));
@@ -983,6 +1296,10 @@
 				var tabKey = active ? active.getAttribute('data-tab') : 'inbound';
 				var role = roleSel ? roleSel.value : 'qc';
 				if (role !== 'stock' || tabKey === 'qc' || tabKey === 'stock') return;
+				if (tabKey === 'outbound') {
+					openOutboundTypePicker();
+					return;
+				}
 				var schema = modalSchema(tabKey, role);
 				if (schema) openModal(schema);
 			});
@@ -1070,7 +1387,7 @@
 					var rec = st.receipts.filter(function (r) {
 						return r.code === code;
 					})[0];
-					if (rec) {
+					if (rec && receiptNeedsQc(rec)) {
 						rec.status = 'pending_qc';
 						rec.timeline = rec.timeline || [];
 						rec.timeline.push({ at: fmtNow(), by: 'Thủ kho Hà', role: 'keeper', action: 'Gửi QC kiểm tra' });

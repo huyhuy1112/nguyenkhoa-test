@@ -490,6 +490,49 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 	overflow: hidden;
 }
 
+.mk-wh-proto-modal__dialog--compact {
+	width: min(520px, calc(100vw - 24px));
+	margin: 32px auto;
+	max-height: calc(100vh - 48px);
+	display: flex;
+	flex-direction: column;
+}
+
+.mk-wh-proto-modal__dialog--compact .mk-wh-proto-modal__body {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: 12px 16px 10px;
+}
+
+.mk-wh-proto-modal__dialog--compact .mk-wh-proto-form-grid {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	gap: 8px 10px;
+}
+
+.mk-wh-proto-modal__dialog--compact .mk-wh-proto-modal__head {
+	padding: 12px 16px;
+}
+
+.mk-wh-proto-modal__dialog--compact .mk-wh-proto-field label {
+	font-size: 11px;
+}
+
+.mk-wh-proto-modal__dialog--compact .mk-wh-proto-field input,
+.mk-wh-proto-modal__dialog--compact .mk-wh-proto-field select,
+.mk-wh-proto-modal__dialog--compact .mk-wh-proto-field textarea {
+	padding: 8px 10px;
+	font-size: 13px;
+}
+
+.mk-wh-proto-modal__dialog--compact .mk-wh-proto-modal__foot {
+	padding-top: 8px;
+	flex-shrink: 0;
+}
+
 .mk-wh-proto-modal__head {
 	display: flex;
 	align-items: center;
@@ -531,6 +574,164 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 
 .mk-wh-proto-field--full {
 	grid-column: 1 / -1;
+}
+
+.mk-wh-proto-form-section {
+	grid-column: 1 / -1;
+	margin: 8px 0 2px;
+	padding-top: 12px;
+	border-top: 1px solid var(--mk-proto-border);
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #64748b;
+}
+
+.mk-wh-proto-form-section:first-child {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: none;
+}
+
+.mk-wh-proto-form-hint {
+	grid-column: 1 / -1;
+	margin: 0 0 4px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	font-size: 12px;
+	line-height: 1.5;
+	color: #64748b;
+}
+
+.mk-wh-proto-field--check {
+	justify-content: center;
+}
+
+.mk-wh-proto-check {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin: 2px 0 0;
+	padding: 10px 12px;
+	border-radius: 10px;
+	border: 1px solid #e2e8f0;
+	background: #f8fafc;
+	cursor: pointer;
+	user-select: none;
+}
+
+.mk-wh-proto-check__box {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	margin-top: 1px;
+	flex-shrink: 0;
+}
+
+.mk-wh-proto-check__input {
+	position: absolute !important;
+	inset: 0;
+	width: 100% !important;
+	height: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	cursor: pointer;
+	z-index: 2;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	opacity: 0 !important;
+	-webkit-appearance: none !important;
+	appearance: none !important;
+}
+
+/* TODC bootstrap draws a second tick at top:-6px; left:-5px on :checked::after */
+.mk-wh-proto-check__input::before,
+.mk-wh-proto-check__input::after,
+.mk-wh-proto-check__input:checked::before,
+.mk-wh-proto-check__input:checked::after {
+	content: none !important;
+	display: none !important;
+	background: none !important;
+	background-image: none !important;
+	border: none !important;
+	width: 0 !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	position: absolute !important;
+	left: 0 !important;
+	top: 0 !important;
+	transform: none !important;
+	box-shadow: none !important;
+}
+
+.mk-wh-proto-check__visual {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	border: 2px solid #94a3b8;
+	border-radius: 4px;
+	background: #ffffff;
+	color: #ffffff;
+	pointer-events: none;
+	transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mk-wh-proto-check__icon {
+	display: block;
+	opacity: 0;
+	transform: scale(0.85);
+	transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.mk-wh-proto-check__input:checked ~ .mk-wh-proto-check__visual {
+	background: #111827;
+	border-color: #111827;
+	box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.12);
+}
+
+.mk-wh-proto-check__input:checked ~ .mk-wh-proto-check__visual .mk-wh-proto-check__icon {
+	opacity: 1;
+	transform: scale(1);
+}
+
+.mk-wh-proto-check__input:focus-visible ~ .mk-wh-proto-check__visual {
+	outline: 2px solid #111827;
+	outline-offset: 2px;
+}
+
+.mk-wh-proto-check:hover .mk-wh-proto-check__visual {
+	border-color: #64748b;
+}
+
+.mk-wh-proto-check__text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.mk-wh-proto-check__label {
+	font-size: 13px;
+	font-weight: 700;
+	color: #0f172a;
+	line-height: 1.3;
+}
+
+.mk-wh-proto-check__hint {
+	font-size: 11px;
+	font-weight: 500;
+	color: #64748b;
+	line-height: 1.4;
 }
 
 .mk-wh-proto-field label {
@@ -603,6 +804,66 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 	margin: 0;
 	font-size: 14px;
 	font-weight: 800;
+}
+
+/* Bộ lọc tồn kho — BA: HSD, tên SP (A-Z/Z-A), giá */
+.mk-wh-proto-filters {
+	margin: 0 0 12px;
+	padding: 12px 14px;
+	background: #f8fafc;
+	border: 1px solid var(--mk-proto-border);
+	border-radius: 12px;
+}
+
+.mk-wh-proto-filters__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 12px 16px;
+}
+
+.mk-wh-proto-filter {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 160px;
+	flex: 1 1 160px;
+	max-width: 220px;
+}
+
+.mk-wh-proto-filter__label {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #64748b;
+}
+
+.mk-wh-proto-filter__control {
+	width: 100%;
+	border: 1px solid var(--mk-proto-border);
+	border-radius: 10px;
+	padding: 9px 12px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #0f172a;
+	background: #fff;
+	box-sizing: border-box;
+}
+
+.mk-wh-proto-filter-reset {
+	flex: 0 0 auto;
+	height: 38px;
+	padding: 0 14px;
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.mk-wh-proto-filters__summary {
+	margin: 10px 0 0;
+	font-size: 12px;
+	color: var(--mk-proto-muted);
 }
 
 .mk-wh-proto-muted {
