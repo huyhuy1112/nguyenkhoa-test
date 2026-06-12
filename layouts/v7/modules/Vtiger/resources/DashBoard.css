@@ -406,6 +406,15 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-d
     background: #ffffff;
     border-right: 1px solid #e2e8f0;
     box-shadow: none;
+    /* Đồng bộ typography với list view / nội dung trang */
+    --mk-sidebar-nav-fs: 15px;
+    --mk-sidebar-nav-lh: 22px;
+    --mk-sidebar-sub-fs: 14px;
+    --mk-sidebar-sub-lh: 20px;
+    --mk-sidebar-item-py: 11px;
+    --mk-sidebar-item-px: 18px;
+    font-size: var(--mk-sidebar-nav-fs);
+    line-height: var(--mk-sidebar-nav-lh);
 }
 
 body[data-view="DashBoard"] .mk-dashboard-sidebar,
@@ -437,8 +446,9 @@ body[data-view="ModernDashboard"] .mk-dashboard-sidebar {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 16px 16px 0;
-    margin-bottom: 16px;
+    padding: 10px 14px 0;
+    margin: 0 0 12px;
+    min-height: 0;
     border: none;
     border-bottom: none;
     box-shadow: none;
@@ -446,12 +456,30 @@ body[data-view="ModernDashboard"] .mk-dashboard-sidebar {
     box-sizing: border-box;
 }
 
+/* Bootstrap .row inside brand — tránh margin âm đẩy logo lệch */
+.mk-dash-sidebar-brand .row,
+.mk-dash-sidebar-brand .app-navigator.row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: auto;
+    min-height: 0;
+}
+
+.mk-dash-sidebar-brand .app-switcher-container {
+    width: auto;
+    height: auto;
+    min-height: 0;
+    line-height: 0;
+}
+
 .mk-dash-sidebar-brand #appnavigator.mk-dash-appnavigator {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
+    min-height: 0;
+    flex-shrink: 0;
     margin: 0;
     padding: 0;
     border: none !important;
@@ -506,11 +534,12 @@ body[data-view="ModernDashboard"] .mk-dashboard-sidebar {
 .mk-dash-bace-logo {
     display: block;
     width: auto;
-    max-width: min(218px, 100%);
+    max-width: min(200px, calc(100% - 4px));
     height: auto;
-    max-height: 40px;
+    max-height: 34px;
     object-fit: contain;
     object-position: left center;
+    vertical-align: middle;
 }
 
 .mk-dash-bace-logo--dark {
@@ -525,9 +554,9 @@ html[data-theme="dark"] .mk-dash-bace-logo--light {
 html[data-theme="dark"] .mk-dash-bace-logo--dark {
     display: block !important;
     width: auto;
-    max-width: min(218px, 100%);
+    max-width: min(200px, calc(100% - 4px));
     height: auto;
-    max-height: 40px;
+    max-height: 34px;
     object-fit: contain;
     object-position: left center;
     filter: brightness(0.82) saturate(1.05) contrast(1.08);
@@ -536,14 +565,26 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 .mk-dash-sidebar-logo {
     flex: 1 1 auto;
     min-width: 0;
+    display: flex;
+    align-items: center;
+    padding-top: 0;
 }
 
 .mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo {
     display: inline-flex;
     align-items: center;
-    height: auto;
-    max-height: none;
-    padding: 0;
+    height: 34px !important;
+    max-height: 34px !important;
+    width: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 0;
+}
+
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo img {
+    height: auto !important;
+    max-height: 34px !important;
+    width: auto !important;
 }
 
 .mk-dash-sidebar-scroll {
@@ -556,8 +597,7 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 }
 
 .mk-dash-sidebar-nav {
-    /* Figma: 32px gap from logo block to first nav item — no horizontal rules */
-    padding: 32px 12px 20px;
+    padding: 16px 14px 24px;
     overflow-y: auto;
     overflow-x: visible;
     flex: 1 1 auto;
@@ -575,7 +615,7 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px;
     box-sizing: border-box;
     overflow: visible;
 }
@@ -587,10 +627,10 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 }
 
 .mk-dash-svg--designer {
-    width: 20px;
-    height: 20px;
-    max-width: 20px;
-    max-height: 20px;
+    width: 22px;
+    height: 22px;
+    max-width: 22px;
+    max-height: 22px;
 }
 
 .mk-dash-nav-ic .mk-dash-svg--designer,
@@ -610,18 +650,18 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
     gap: 12px;
     width: 100%;
     max-width: 100%;
-    min-height: 44px;
-    height: 44px;
+    min-height: 46px;
+    height: auto;
     box-sizing: border-box;
-    padding: 12px 16px;
+    padding: var(--mk-sidebar-item-py) var(--mk-sidebar-item-px);
     margin: 0;
     border-radius: 8px;
     text-decoration: none !important;
     color: #475569 !important;
     border: none;
     background: transparent;
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--mk-sidebar-nav-fs);
+    line-height: var(--mk-sidebar-nav-lh);
     font-weight: 500;
     position: relative;
     overflow: visible;
@@ -647,8 +687,8 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 }
 
 .mk-dash-nav-ic {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -657,13 +697,13 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 
 .mk-dash-nav-label {
     font-weight: inherit;
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--mk-sidebar-nav-fs);
+    line-height: var(--mk-sidebar-nav-lh);
     color: inherit;
 }
 
 .mk-dash-sidebar-footer {
-    padding: 20px 16px 20px;
+    padding: 20px 18px 22px;
     margin-top: auto;
     border: none;
     border-top: 1px solid #e2e8f0;
@@ -716,19 +756,19 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 
 .mk-dash-user-name {
     font-weight: 700;
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--mk-sidebar-nav-fs);
+    line-height: var(--mk-sidebar-nav-lh);
     color: #0f172a;
 }
 
 .mk-dash-user-role {
-    font-size: 12px;
-    line-height: 16px;
+    font-size: var(--mk-sidebar-sub-fs);
+    line-height: var(--mk-sidebar-sub-lh);
     color: #64748b;
     margin-top: 2px;
 }
 
-/* Accordion: breathing room below logo (brand margin-bottom) + nav track; do not zero top padding */
+/* Accordion: khoảng cách dưới logo */
 .mk-dashboard-sidebar .mk-dash-sidebar-nav.mk-dash-sidebar-nav--accordion {
     padding-top: 8px;
 }
@@ -744,10 +784,10 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
     gap: 12px;
     width: 100%;
     max-width: 100%;
-    min-height: 44px;
-    height: 44px;
+    min-height: 46px;
+    height: auto;
     box-sizing: border-box;
-    padding: 12px 16px;
+    padding: var(--mk-sidebar-item-py) var(--mk-sidebar-item-px);
     margin: 0;
     border: none;
     border-radius: 8px;
@@ -756,8 +796,8 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
     text-align: left;
     color: #475569;
     font-weight: 500;
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--mk-sidebar-nav-fs);
+    line-height: var(--mk-sidebar-nav-lh);
     letter-spacing: 0;
     text-transform: none;
     transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
@@ -806,8 +846,8 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 }
 
 .mk-dash-app-ic {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -845,22 +885,23 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    padding: 0 0 0 8px;
+    padding: 0 0 0 12px;
     transition: max-height 0.22s ease, opacity 0.2s ease;
 }
 
 .mk-dash-app-group--open .mk-dash-app-panel {
     max-height: min(70vh, 560px);
     opacity: 1;
-    padding-bottom: 6px;
+    padding-bottom: 8px;
 }
 
 .mk-dash-mod-link {
     display: block;
-    padding: 8px 12px 8px 14px;
-    margin: 2px 0;
+    padding: 10px 16px 10px 18px;
+    margin: 3px 0;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: var(--mk-sidebar-sub-fs);
+    line-height: var(--mk-sidebar-sub-lh);
     font-weight: 500;
     color: #475569 !important;
     text-decoration: none !important;
@@ -3244,7 +3285,13 @@ body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-topbar
     background: #ffffff !important;
 }
 
-body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-dashboard-sidebar {
+body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-dashboard-sidebar,
+body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-dashboard-sidebar,
+body[data-module="Warehouse"][data-view="WhDashboard"][data-app="INVENTORY"] .mk-dashboard-sidebar,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-dashboard-sidebar,
+body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mk-dashboard-sidebar,
+body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-dashboard-sidebar,
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-dashboard-sidebar {
     top: 0;
     height: 100vh;
 }
