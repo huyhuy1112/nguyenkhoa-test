@@ -252,54 +252,79 @@
 		host.innerHTML = '<table class="summary-table"><tbody>' + rows + '</tbody></table>';
 	}
 
-	function orderListHtml(orders, emptyMsg) {
+	function orderTotal(orders) {
+		var sum = 0;
+		var i;
+		for (i = 0; i < orders.length; i++) {
+			sum += orders[i].value || 0;
+		}
+		return sum;
+	}
+
+	function orderTableHtml(orders, metrics, emptyMsg) {
 		if (!orders.length) {
-			return '<p class="mk-lead-commerce-panel__empty">' + esc(emptyMsg) + '</p>';
+			return '<p class="mk-lead-activity-log__empty">' + esc(emptyMsg || 'Chưa có đơn mua hàng.') + '</p>';
+		}
+		var total = orderTotal(orders);
+		var rows = orders
+			.map(function (o) {
+				return (
+					'<tr><td>' +
+					esc(o.orderName || o.orderId || 'Đơn hàng') +
+					'</td><td>' +
+					esc(o.qty) +
+					'</td><td>' +
+					esc(formatVnd(o.value)) +
+					'</td><td>' +
+					esc(o.date) +
+					'</td></tr>'
+				);
+			})
+			.join('');
+		var recentRow = '';
+		if (metrics.recentOrder) {
+			recentRow =
+				'<tr><td colspan="2" class="mk-lead-purchase__total-label">Đơn gần nhất:</td>' +
+				'<td class="mk-lead-purchase__total-value" colspan="2">' +
+				esc(formatVnd(metrics.recentOrder)) +
+				'</td></tr>';
 		}
 		return (
-			'<ul class="mk-lead-order-list">' +
-			orders
-				.map(function (o) {
-					return (
-						'<li class="mk-lead-order-list__item">' +
-						'<span class="mk-lead-order-list__name">' +
-						esc(o.orderName) +
-						'</span>' +
-						'<span class="mk-lead-order-list__meta">' +
-						esc(formatVnd(o.value)) +
-						' · ' +
-						esc(o.date) +
-						'</span></li>'
-					);
-				})
-				.join('') +
-			'</ul>'
+			'<table class="mk-lead-purchase__table">' +
+			'<thead><tr><th>Đơn hàng</th><th>SL</th><th>Giá trị</th><th>Ngày</th></tr></thead>' +
+			'<tbody>' +
+			rows +
+			'</tbody>' +
+			'<tfoot>' +
+			recentRow +
+			'<tr><td colspan="2" class="mk-lead-purchase__total-label">Tổng:</td>' +
+			'<td class="mk-lead-purchase__total-value" colspan="2">' +
+			esc(formatVnd(total)) +
+			'</td></tr></tfoot></table>'
 		);
 	}
 
 	function renderCommercePanels(lead) {
 		var logic = window.LeadsLeadsLogic;
 		var metrics = commerceMetrics(lead);
+		var title = byId('mk-ld-ui-purchase-title');
 		var ordersHost = byId('mk-ld-ui-commerce-orders-month');
 		var productsHost = byId('mk-ld-ui-commerce-products-total');
+		var allItems = lead.purchases || [];
+		var allOrders = logic && logic.groupOrders ? logic.groupOrders(allItems) : [];
 		var monthOrders =
-			logic && logic.ordersInLastDays ? logic.ordersInLastDays(lead, 30) : [];
-		var historyOrders =
-			logic && logic.ordersOutsideLastDays ? logic.ordersOutsideLastDays(lead, 30) : [];
+			logic && logic.ordersInLastDays ? logic.ordersInLastDays(lead, 30) : allOrders.slice();
 
+		if (title) title.textContent = 'Lịch sử mua hàng (' + allOrders.length + ')';
 		if (ordersHost) {
-			ordersHost.innerHTML =
-				'<p class="mk-lead-commerce-panel__kpi"><span class="mk-lead-commerce-panel__num">' +
-				esc(String(metrics.monthlyOrders)) +
-				'</span> đơn hàng trong 30 ngày</p>' +
-				orderListHtml(monthOrders, 'Không có đơn trong 30 ngày gần nhất.');
+			ordersHost.innerHTML = orderTableHtml(
+				monthOrders,
+				metrics,
+				'Không có đơn trong 30 ngày gần nhất.'
+			);
 		}
 		if (productsHost) {
-			productsHost.innerHTML =
-				'<p class="mk-lead-commerce-panel__kpi"><span class="mk-lead-commerce-panel__num">' +
-				esc(String(metrics.totalProducts)) +
-				'</span> sản phẩm (tổng SL)</p>' +
-				orderListHtml(historyOrders, 'Không có đơn mua trước 30 ngày (lịch sử).');
+			productsHost.innerHTML = orderTableHtml(allOrders, metrics, 'Chưa có đơn mua hàng.');
 		}
 	}
 
@@ -406,55 +431,6 @@
 			.join('');
 	}
 
-	function renderPurchases(lead) {
-		var host = byId('mk-ld-ui-purchases');
-		var title = byId('mk-ld-ui-purchase-title');
-		var items = lead.purchases || [];
-		if (title) title.textContent = 'Lịch sử mua hàng (' + items.length + ')';
-		if (!host) return;
-		if (!items.length) {
-			host.innerHTML = '<p class="mk-lead-activity-log__empty">Chưa có đơn mua hàng.</p>';
-			return;
-		}
-		var total = purchaseTotal(items);
-		var metrics = commerceMetrics(lead);
-		var rows = items
-			.map(function (p) {
-				return (
-					'<tr><td>' +
-					esc(p.product) +
-					'</td><td>' +
-					esc(p.qty) +
-					'</td><td>' +
-					esc(formatVnd(p.value)) +
-					'</td><td>' +
-					esc(p.date) +
-					'</td></tr>'
-				);
-			})
-			.join('');
-		var recentRow = '';
-		if (metrics.recentOrder) {
-			recentRow =
-				'<tr><td colspan="2" class="mk-lead-purchase__total-label">Đơn gần nhất:</td>' +
-				'<td class="mk-lead-purchase__total-value" colspan="2">' +
-				esc(formatVnd(metrics.recentOrder)) +
-				'</td></tr>';
-		}
-		host.innerHTML =
-			'<table class="mk-lead-purchase__table">' +
-			'<thead><tr><th>Sản phẩm</th><th>SL</th><th>Giá trị</th><th>Ngày</th></tr></thead>' +
-			'<tbody>' +
-			rows +
-			'</tbody>' +
-			'<tfoot>' +
-			recentRow +
-			'<tr><td colspan="2" class="mk-lead-purchase__total-label">Tổng:</td>' +
-			'<td class="mk-lead-purchase__total-value" colspan="2">' +
-			esc(formatVnd(total)) +
-			'</td></tr></tfoot></table>';
-	}
-
 	function renderActivities(lead) {
 		var host = byId('mk-ld-ui-activities');
 		if (!host) return;
@@ -535,23 +511,28 @@
 	}
 
 	function activateCommerceSubTab(key) {
+		var root = byId('mk-ld-ui-section-purchases');
+		if (!root) return;
 		var subKey = key || 'orders-month';
-		document.querySelectorAll('[data-mk-commerce-tab]').forEach(function (btn) {
+		root.querySelectorAll('[data-mk-commerce-tab]').forEach(function (btn) {
 			var active = btn.getAttribute('data-mk-commerce-tab') === subKey;
 			btn.classList.toggle('is-active', active);
 			btn.setAttribute('aria-selected', active ? 'true' : 'false');
 		});
-		document.querySelectorAll('[data-mk-commerce-panel]').forEach(function (panel) {
+		root.querySelectorAll('[data-mk-commerce-panel]').forEach(function (panel) {
 			panel.classList.toggle('hide', panel.getAttribute('data-mk-commerce-panel') !== subKey);
 		});
 	}
 
 	function bindCommerceSubTabs() {
-		document.querySelectorAll('[data-mk-commerce-tab]').forEach(function (btn) {
+		var root = byId('mk-ld-ui-section-purchases');
+		if (!root) return;
+		root.querySelectorAll('[data-mk-commerce-tab]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				activateCommerceSubTab(btn.getAttribute('data-mk-commerce-tab'));
 			});
 		});
+		activateCommerceSubTab('orders-month');
 	}
 
 	function bindTabs() {
@@ -560,7 +541,6 @@
 			summary: byId('mk-ld-ui-panel-summary'),
 			detail: byId('mk-ld-ui-panel-detail'),
 			updates: byId('mk-ld-ui-panel-updates'),
-			'purchase-history': byId('mk-ld-ui-panel-purchase-history'),
 		};
 		var i;
 		for (i = 0; i < textTabs.length; i++) {
@@ -573,7 +553,6 @@
 				Object.keys(panels).forEach(function (name) {
 					if (panels[name]) panels[name].classList.toggle('hide', name !== key);
 				});
-				if (key === 'purchase-history') activateCommerceSubTab('orders-month');
 			});
 		}
 
@@ -1026,7 +1005,6 @@
 		renderCommercePanels(lead);
 		renderTags(lead);
 		renderActivityLog(lead);
-		renderPurchases(lead);
 		renderActivities(lead);
 		renderComments(lead);
 		syncBadges(lead);

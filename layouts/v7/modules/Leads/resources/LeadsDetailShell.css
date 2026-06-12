@@ -2014,9 +2014,18 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-purchas
 	color: #2b2b2b;
 }
 
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--purchases .mk-lead-purchase__tabs {
+	padding: 0 24px 12px;
+	border-bottom: 1px solid #f1ebde;
+}
+
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-purchase__body {
 	padding: 4px 24px 20px;
 	overflow-x: auto;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--purchases .mk-lead-commerce-panel {
+	padding: 0;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-purchase__stats {
@@ -2159,17 +2168,11 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-order-l
 	color: #64748b;
 }
 
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #mk-ld-ui-panel-purchase-history .mk-lead-commerce-panel {
-	padding: 0;
-}
-
-/* Commerce metrics tabs (Detail panel — cache spec) */
+/* Commerce sub-tabs inside purchase history card */
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-tabs {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
-	padding: 0 20px 12px;
-	border-bottom: 1px solid rgba(31, 41, 55, 0.08);
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-commerce-tabs__btn {

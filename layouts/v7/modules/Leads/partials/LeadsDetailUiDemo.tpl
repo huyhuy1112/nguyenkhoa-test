@@ -95,11 +95,6 @@
 					<li class="tab-item" data-mk-ui-tab="updates" data-label-key="Updates">
 						<a href="javascript:void(0)" class="textOverflowEllipsis"><span class="tab-label"><strong>{vtranslate('LBL_UPDATES', $MODULE_NAME)}</strong></span></a>
 					</li>
-					<li class="tab-item" data-mk-ui-tab="purchase-history" data-label-key="PurchaseHistory">
-						<a href="javascript:void(0)" class="textOverflowEllipsis" title="Lịch sử mua hàng">
-							<span class="tab-label"><strong>Lịch sử mua hàng</strong></span>
-						</a>
-					</li>
 					<li class="mk-lead-detail-tabs-spacer" role="presentation" aria-hidden="true"></li>
 					<li class="tab-item" data-module="Calendar" data-mk-scroll="activities" title="{vtranslate('LBL_ACTIVITIES', 'Calendar')}">
 						<a href="javascript:void(0)" class="textOverflowEllipsis">
@@ -111,6 +106,12 @@
 						<a href="javascript:void(0)" class="textOverflowEllipsis">
 							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='ModComments'}</span>
 							&nbsp;<span class="numberCircle" data-count="0" data-badge="comments">0</span>
+						</a>
+					</li>
+					<li class="tab-item" data-module="PurchaseHistory" data-mk-scroll="purchases" title="Lịch sử mua hàng">
+						<a href="javascript:void(0)" class="textOverflowEllipsis">
+							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='PurchaseHistory'}</span>
+							&nbsp;<span class="numberCircle" data-count="0" data-badge="purchases">0</span>
 						</a>
 					</li>
 				</ul>
@@ -187,7 +188,14 @@
 								</span>
 								<h2 class="mk-lead-detail-card__title" id="mk-ld-ui-purchase-title">Lịch sử mua hàng (0)</h2>
 							</div>
-							<div class="mk-lead-purchase__body" id="mk-ld-ui-purchases"></div>
+							<div class="mk-lead-commerce-tabs mk-lead-purchase__tabs" role="tablist" aria-label="Lịch sử mua hàng">
+								<button type="button" class="mk-lead-commerce-tabs__btn is-active" data-mk-commerce-tab="orders-month" role="tab" aria-selected="true">Đơn hàng trong 1 tháng</button>
+								<button type="button" class="mk-lead-commerce-tabs__btn" data-mk-commerce-tab="products-total" role="tab" aria-selected="false">Tổng sản phẩm mua hàng</button>
+							</div>
+							<div class="mk-lead-purchase__body">
+								<div class="mk-lead-commerce-panel" id="mk-ld-ui-commerce-orders-month" data-mk-commerce-panel="orders-month" role="tabpanel"></div>
+								<div class="mk-lead-commerce-panel hide" id="mk-ld-ui-commerce-products-total" data-mk-commerce-panel="products-total" role="tabpanel"></div>
+							</div>
 						</section>
 
 						<section class="mk-lead-detail-card mk-lead-detail-card--activities mk-lead-detail-grid__activities" id="mk-ld-ui-section-activities">
@@ -243,22 +251,6 @@
 					<h2 class="mk-lead-detail-card__title">{vtranslate('LBL_DETAILS', $MODULE_NAME)}</h2>
 				</div>
 				<div class="mk-lead-detail-overview-body detailview-table" id="mk-ld-ui-detail-fields"></div>
-			</div>
-		</div>
-
-		<div id="mk-ld-ui-panel-purchase-history" class="mk-ld-ui-panel hide">
-			<div class="mk-lead-detail-card">
-				<div class="mk-lead-detail-card__head">
-					<h2 class="mk-lead-detail-card__title">Lịch sử mua hàng</h2>
-				</div>
-				<div class="mk-lead-commerce-tabs" role="tablist" aria-label="Lịch sử mua hàng">
-					<button type="button" class="mk-lead-commerce-tabs__btn is-active" data-mk-commerce-tab="orders-month" role="tab" aria-selected="true">Đơn hàng trong 1 tháng</button>
-					<button type="button" class="mk-lead-commerce-tabs__btn" data-mk-commerce-tab="products-total" role="tab" aria-selected="false">Tổng sản phẩm mua hàng</button>
-				</div>
-				<div class="mk-lead-commerce-panels">
-					<div class="mk-lead-commerce-panel" id="mk-ld-ui-commerce-orders-month" data-mk-commerce-panel="orders-month" role="tabpanel"></div>
-					<div class="mk-lead-commerce-panel hide" id="mk-ld-ui-commerce-products-total" data-mk-commerce-panel="products-total" role="tabpanel"></div>
-				</div>
 			</div>
 		</div>
 
