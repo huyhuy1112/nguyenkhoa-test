@@ -95,57 +95,27 @@
 					<li class="tab-item" data-mk-ui-tab="updates" data-label-key="Updates">
 						<a href="javascript:void(0)" class="textOverflowEllipsis"><span class="tab-label"><strong>{vtranslate('LBL_UPDATES', $MODULE_NAME)}</strong></span></a>
 					</li>
+					<li class="tab-item mk-lead-detail-tab--commerce-text" data-mk-ui-tab="orders-month" data-label-key="OrdersMonth">
+						<a href="javascript:void(0)" title="Đơn hàng trong 1 tháng">
+							<span class="tab-label"><strong>Đơn hàng trong 1 tháng</strong></span>
+						</a>
+					</li>
+					<li class="tab-item mk-lead-detail-tab--commerce-text" data-mk-ui-tab="products-total" data-label-key="ProductsTotal">
+						<a href="javascript:void(0)" title="Tổng sản phẩm mua hàng">
+							<span class="tab-label"><strong>Tổng sản phẩm mua hàng</strong></span>
+						</a>
+					</li>
 					<li class="mk-lead-detail-tabs-spacer" role="presentation" aria-hidden="true"></li>
-					<li class="tab-item mk-lead-detail-tab--commerce-icon" data-mk-ui-tab="orders-month" data-label-key="OrdersMonth" title="Tổng đơn hàng 1 tháng">
-						<a href="javascript:void(0)" class="textOverflowEllipsis" aria-label="Tổng đơn hàng 1 tháng">
-							<span class="tab-icon mk-lead-tab-icon mk-lead-tab-icon--orders-month">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='OrdersMonth'}</span>
-						</a>
-					</li>
-					<li class="tab-item mk-lead-detail-tab--commerce-icon" data-mk-ui-tab="products-total" data-label-key="ProductsTotal" title="Tổng sản phẩm đã mua">
-						<a href="javascript:void(0)" class="textOverflowEllipsis" aria-label="Tổng sản phẩm đã mua">
-							<span class="tab-icon mk-lead-tab-icon mk-lead-tab-icon--products-purchased">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='ProductsPurchased'}</span>
-						</a>
-					</li>
 					<li class="tab-item" data-module="Calendar" data-mk-scroll="activities" title="{vtranslate('LBL_ACTIVITIES', 'Calendar')}">
 						<a href="javascript:void(0)" class="textOverflowEllipsis">
 							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='Calendar'}</span>
 							&nbsp;<span class="numberCircle" data-count="0" data-badge="calendar">0</span>
 						</a>
 					</li>
-					<li class="tab-item" data-module="Contacts" data-mk-scroll="key" title="{vtranslate('Contacts', 'Contacts')}">
-						<a href="javascript:void(0)" class="textOverflowEllipsis">
-							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='Contacts'}</span>
-							&nbsp;<span class="numberCircle" data-count="1" data-badge="contacts">1</span>
-						</a>
-					</li>
-					<li class="tab-item" data-module="Documents" data-mk-scroll="documents" title="{vtranslate('SINGLE_Documents', 'Documents')}">
-						<a href="javascript:void(0)" class="textOverflowEllipsis">
-							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='Documents'}</span>
-							&nbsp;<span class="numberCircle" data-count="0" data-badge="documents">0</span>
-						</a>
-					</li>
-					<li class="tab-item" data-module="HelpDesk" data-mk-scroll="activities" title="Tasks">
-						<a href="javascript:void(0)" class="textOverflowEllipsis">
-							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='HelpDesk'}</span>
-							&nbsp;<span class="numberCircle" data-count="0" data-badge="tasks">0</span>
-						</a>
-					</li>
 					<li class="tab-item" data-module="ModComments" data-mk-scroll="comments" title="{vtranslate('ModComments', 'ModComments')}">
 						<a href="javascript:void(0)" class="textOverflowEllipsis">
 							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='ModComments'}</span>
 							&nbsp;<span class="numberCircle" data-count="0" data-badge="comments">0</span>
-						</a>
-					</li>
-					<li class="tab-item" data-module="ActivityLog" data-mk-scroll="activity-log" title="Activity log">
-						<a href="javascript:void(0)" class="textOverflowEllipsis">
-							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='ActivityLog'}</span>
-							&nbsp;<span class="numberCircle" data-count="0" data-badge="activity-log">0</span>
-						</a>
-					</li>
-					<li class="tab-item" data-module="Emails" data-mk-scroll="activity-log" title="{vtranslate('Emails', 'Emails')}">
-						<a href="javascript:void(0)" class="textOverflowEllipsis">
-							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='Emails'}</span>
-							&nbsp;<span class="numberCircle" data-count="0" data-badge="emails">0</span>
 						</a>
 					</li>
 					<li class="tab-item" data-module="PurchaseHistory" data-mk-scroll="purchases" title="Lịch sử mua hàng">
@@ -290,7 +260,7 @@
 		<div id="mk-ld-ui-panel-orders-month" class="mk-ld-ui-panel hide">
 			<div class="mk-lead-detail-card">
 				<div class="mk-lead-detail-card__head">
-					<h2 class="mk-lead-detail-card__title">Tổng đơn hàng 1 tháng</h2>
+					<h2 class="mk-lead-detail-card__title">Đơn hàng trong 1 tháng</h2>
 				</div>
 				<div class="mk-lead-commerce-panel" id="mk-ld-ui-commerce-orders-month" role="tabpanel"></div>
 			</div>
@@ -299,7 +269,7 @@
 		<div id="mk-ld-ui-panel-products-total" class="mk-ld-ui-panel hide">
 			<div class="mk-lead-detail-card">
 				<div class="mk-lead-detail-card__head">
-					<h2 class="mk-lead-detail-card__title">Tổng sản phẩm đã mua</h2>
+					<h2 class="mk-lead-detail-card__title">Tổng sản phẩm mua hàng</h2>
 				</div>
 				<div class="mk-lead-commerce-panel" id="mk-ld-ui-commerce-products-total" role="tabpanel"></div>
 			</div>
