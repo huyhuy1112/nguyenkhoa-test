@@ -13,11 +13,15 @@
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
 	margin-left: var(--mk-dash-sidebar-w, 256px);
-	width: calc(100vw - var(--mk-dash-sidebar-w, 256px));
-	max-width: calc(100vw - var(--mk-dash-sidebar-w, 256px));
+	width: calc(100% - var(--mk-dash-sidebar-w, 256px));
+	max-width: calc(100% - var(--mk-dash-sidebar-w, 256px));
 	min-width: 0;
 	box-sizing: border-box;
 	overflow-x: hidden;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #page > .app-footer {
+	margin-top: auto;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-dash-main,

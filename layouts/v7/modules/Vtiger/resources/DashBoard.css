@@ -215,7 +215,9 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-a
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-app-shell,
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell {
     margin-left: var(--mk-dash-sidebar-w);
     width: calc(100% - var(--mk-dash-sidebar-w));
     max-width: calc(100% - var(--mk-dash-sidebar-w));
@@ -263,7 +265,11 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dash-ma
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
 body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
-body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-dash-main.mk-camp-detail-main {
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-dash-main.mk-camp-detail-main,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-dash-main.mk-lead-detail-main,
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-dash-main,
+body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-leads-edit-main {
     flex: 1 1 auto;
     min-height: 0;
     display: block;
@@ -6239,4 +6245,69 @@ html.mk-documents-detail-management body[data-module="Documents"][data-view="Det
 html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] #modnavigator,
 html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] #sidebar-essentials {
     display: none !important;
+}
+
+/* ============================================================================
+ * STICKY APP FOOTER — split shell pages (.app-footer sibling of .mk-dash-split-root)
+ * ========================================================================== */
+
+body:has(#page > .mk-dash-split-root .mk-app-shell) #page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+body:has(#page > .mk-dash-split-root .mk-app-shell) #page > .mk-dash-split-root {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    min-height: 0;
+}
+
+body:has(#page > .mk-dash-split-root .mk-app-shell) .mk-app-shell {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    display: flex;
+    flex-direction: column;
+}
+
+body:has(#page > .mk-dash-split-root .mk-app-shell) .mk-dash-main {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+body:has(#page > .mk-dash-split-root .mk-app-shell) .main-container {
+    min-height: 0 !important;
+}
+
+body:has(#page > .mk-dash-split-root .mk-app-shell) #page > .app-footer {
+    flex: 0 0 auto;
+    margin-top: auto;
+    margin-left: var(--mk-dash-sidebar-w, 256px);
+    width: calc(100% - var(--mk-dash-sidebar-w, 256px));
+    max-width: calc(100% - var(--mk-dash-sidebar-w, 256px));
+    box-sizing: border-box;
+}
+
+body:has(#page > .mk-dash-split-root .mk-app-shell) #page > .app-footer p {
+    margin: 0 !important;
+    padding: 10px 16px 12px !important;
+    border-top: 1px solid #e2e8f0 !important;
+    background: transparent !important;
+    font-size: 11px !important;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: #94a3b8 !important;
+    text-align: center;
+}
+
+@media (max-width: 991px) {
+    body:has(#page > .mk-dash-split-root .mk-app-shell) #page > .app-footer {
+        margin-left: 0;
+        width: 100%;
+        max-width: 100%;
+    }
 }
