@@ -2159,9 +2159,8 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-order-l
 	color: #64748b;
 }
 
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #mk-ld-ui-panel-orders-month .mk-lead-commerce-panel,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #mk-ld-ui-panel-products-total .mk-lead-commerce-panel {
-	padding: 8px 20px 20px;
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #mk-ld-ui-panel-purchase-history .mk-lead-commerce-panel {
+	padding: 0;
 }
 
 /* Commerce metrics tabs (Detail panel — cache spec) */

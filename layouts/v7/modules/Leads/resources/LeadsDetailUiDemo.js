@@ -534,14 +534,33 @@
 		}
 	}
 
+	function activateCommerceSubTab(key) {
+		var subKey = key || 'orders-month';
+		document.querySelectorAll('[data-mk-commerce-tab]').forEach(function (btn) {
+			var active = btn.getAttribute('data-mk-commerce-tab') === subKey;
+			btn.classList.toggle('is-active', active);
+			btn.setAttribute('aria-selected', active ? 'true' : 'false');
+		});
+		document.querySelectorAll('[data-mk-commerce-panel]').forEach(function (panel) {
+			panel.classList.toggle('hide', panel.getAttribute('data-mk-commerce-panel') !== subKey);
+		});
+	}
+
+	function bindCommerceSubTabs() {
+		document.querySelectorAll('[data-mk-commerce-tab]').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				activateCommerceSubTab(btn.getAttribute('data-mk-commerce-tab'));
+			});
+		});
+	}
+
 	function bindTabs() {
 		var textTabs = document.querySelectorAll('#mk-ld-ui-related-tabs [data-mk-ui-tab]');
 		var panels = {
 			summary: byId('mk-ld-ui-panel-summary'),
 			detail: byId('mk-ld-ui-panel-detail'),
 			updates: byId('mk-ld-ui-panel-updates'),
-			'orders-month': byId('mk-ld-ui-panel-orders-month'),
-			'products-total': byId('mk-ld-ui-panel-products-total'),
+			'purchase-history': byId('mk-ld-ui-panel-purchase-history'),
 		};
 		var i;
 		for (i = 0; i < textTabs.length; i++) {
@@ -554,8 +573,11 @@
 				Object.keys(panels).forEach(function (name) {
 					if (panels[name]) panels[name].classList.toggle('hide', name !== key);
 				});
+				if (key === 'purchase-history') activateCommerceSubTab('orders-month');
 			});
 		}
+
+		bindCommerceSubTabs();
 
 		document.querySelectorAll('#mk-ld-ui-related-tabs [data-mk-scroll]').forEach(function (li) {
 			li.addEventListener('click', function () {

@@ -2,7 +2,7 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260612_footer_v1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsDetailShell.css')}&mk_v=20260612_leads_commerce_text_v3" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsDetailShell.css')}&mk_v=20260612_leads_purchase_history_v1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Calendar/resources/CalendarQuickCreateTask.css')}&mk_v=20260603_event_ui" />
 <script type="text/javascript">document.body.classList.add('mk-lead-detail-ui-loading');</script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>

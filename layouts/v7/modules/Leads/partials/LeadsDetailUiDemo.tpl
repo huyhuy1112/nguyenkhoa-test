@@ -95,14 +95,9 @@
 					<li class="tab-item" data-mk-ui-tab="updates" data-label-key="Updates">
 						<a href="javascript:void(0)" class="textOverflowEllipsis"><span class="tab-label"><strong>{vtranslate('LBL_UPDATES', $MODULE_NAME)}</strong></span></a>
 					</li>
-					<li class="tab-item mk-lead-detail-tab--commerce-text" data-mk-ui-tab="orders-month" data-label-key="OrdersMonth">
-						<a href="javascript:void(0)" title="Đơn hàng trong 1 tháng">
-							<span class="tab-label"><strong>Đơn hàng trong 1 tháng</strong></span>
-						</a>
-					</li>
-					<li class="tab-item mk-lead-detail-tab--commerce-text" data-mk-ui-tab="products-total" data-label-key="ProductsTotal">
-						<a href="javascript:void(0)" title="Tổng sản phẩm mua hàng">
-							<span class="tab-label"><strong>Tổng sản phẩm mua hàng</strong></span>
+					<li class="tab-item" data-mk-ui-tab="purchase-history" data-label-key="PurchaseHistory">
+						<a href="javascript:void(0)" class="textOverflowEllipsis" title="Lịch sử mua hàng">
+							<span class="tab-label"><strong>Lịch sử mua hàng</strong></span>
 						</a>
 					</li>
 					<li class="mk-lead-detail-tabs-spacer" role="presentation" aria-hidden="true"></li>
@@ -116,12 +111,6 @@
 						<a href="javascript:void(0)" class="textOverflowEllipsis">
 							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='ModComments'}</span>
 							&nbsp;<span class="numberCircle" data-count="0" data-badge="comments">0</span>
-						</a>
-					</li>
-					<li class="tab-item" data-module="PurchaseHistory" data-mk-scroll="purchases" title="Lịch sử mua hàng">
-						<a href="javascript:void(0)" class="textOverflowEllipsis">
-							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='PurchaseHistory'}</span>
-							&nbsp;<span class="numberCircle" data-count="0" data-badge="purchases">0</span>
 						</a>
 					</li>
 				</ul>
@@ -257,21 +246,19 @@
 			</div>
 		</div>
 
-		<div id="mk-ld-ui-panel-orders-month" class="mk-ld-ui-panel hide">
+		<div id="mk-ld-ui-panel-purchase-history" class="mk-ld-ui-panel hide">
 			<div class="mk-lead-detail-card">
 				<div class="mk-lead-detail-card__head">
-					<h2 class="mk-lead-detail-card__title">Đơn hàng trong 1 tháng</h2>
+					<h2 class="mk-lead-detail-card__title">Lịch sử mua hàng</h2>
 				</div>
-				<div class="mk-lead-commerce-panel" id="mk-ld-ui-commerce-orders-month" role="tabpanel"></div>
-			</div>
-		</div>
-
-		<div id="mk-ld-ui-panel-products-total" class="mk-ld-ui-panel hide">
-			<div class="mk-lead-detail-card">
-				<div class="mk-lead-detail-card__head">
-					<h2 class="mk-lead-detail-card__title">Tổng sản phẩm mua hàng</h2>
+				<div class="mk-lead-commerce-tabs" role="tablist" aria-label="Lịch sử mua hàng">
+					<button type="button" class="mk-lead-commerce-tabs__btn is-active" data-mk-commerce-tab="orders-month" role="tab" aria-selected="true">Đơn hàng trong 1 tháng</button>
+					<button type="button" class="mk-lead-commerce-tabs__btn" data-mk-commerce-tab="products-total" role="tab" aria-selected="false">Tổng sản phẩm mua hàng</button>
 				</div>
-				<div class="mk-lead-commerce-panel" id="mk-ld-ui-commerce-products-total" role="tabpanel"></div>
+				<div class="mk-lead-commerce-panels">
+					<div class="mk-lead-commerce-panel" id="mk-ld-ui-commerce-orders-month" data-mk-commerce-panel="orders-month" role="tabpanel"></div>
+					<div class="mk-lead-commerce-panel hide" id="mk-ld-ui-commerce-products-total" data-mk-commerce-panel="products-total" role="tabpanel"></div>
+				</div>
 			</div>
 		</div>
 
