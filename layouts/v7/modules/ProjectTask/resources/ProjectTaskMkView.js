@@ -28,6 +28,42 @@
 		assigned_user_id: 'mk-col-assigned'
 	};
 
+	var GRID_FIELD_LABELS = {
+		projecttaskname: 'Tên nhiệm vụ',
+		projectid: 'Dự án',
+		projecttaskpriority: 'Ưu tiên',
+		projecttaskprogress: 'Tiến độ',
+		startdate: 'Ngày bắt đầu',
+		enddate: 'Ngày kết thúc',
+		assigned_user_id: 'Phụ trách'
+	};
+
+	function isGridView() {
+		return (
+			$('#listViewContent').hasClass('mk-so-is-view-grid') ||
+			document.body.classList.contains('mk-so-is-view-grid')
+		);
+	}
+
+	function priorityKeyFromText(text) {
+		var t = String(text || '')
+			.toLowerCase()
+			.trim();
+		if (!t) {
+			return 'default';
+		}
+		if (t.indexOf('cao') >= 0 || t.indexOf('high') >= 0) {
+			return 'high';
+		}
+		if (t.indexOf('trung') >= 0 || t.indexOf('medium') >= 0 || t.indexOf('normal') >= 0) {
+			return 'medium';
+		}
+		if (t.indexOf('thấp') >= 0 || t.indexOf('low') >= 0) {
+			return 'low';
+		}
+		return 'default';
+	}
+
 	function initialsFromName(name) {
 		var parts = String(name || '')
 			.trim()
@@ -102,15 +138,21 @@
 		$('#listview-table tbody tr.listViewEntries').each(function () {
 			var $row = $(this);
 			var $cell = $row.find('td[data-name="projecttaskpriority"] .value').first();
-			if (!$cell.length || $cell.find('.mk-projecttask-priority-pill').length) {
+			if (!$cell.length) {
+				return;
+			}
+			if ($cell.find('.mk-projecttask-priority-pill').length) {
 				return;
 			}
 			var raw = $.trim($cell.text());
 			if (!raw) {
 				return;
 			}
+			var key = priorityKeyFromText(raw);
 			$cell.html(
-				'<span class="mk-projecttask-priority-pill">' +
+				'<span class="mk-projecttask-priority-pill mk-projecttask-priority-pill--' +
+					key +
+					'">' +
 					$('<div/>').text(raw).html() +
 					'</span>'
 			);
@@ -148,14 +190,42 @@
 	}
 
 	function renderProgressBars() {
+		var grid = isGridView();
 		$('#listview-table tbody tr.listViewEntries').each(function () {
 			var $row = $(this);
 			var $cell = $row.find('td[data-name="projecttaskprogress"] .value').first();
-			if (!$cell.length || $cell.find('.mk-projecttask-progress').length) {
+			if (!$cell.length) {
 				return;
 			}
-			var info = parseProgress($cell.text());
+			var rawText = $.trim($cell.text());
+			var $existing = $cell.find('.mk-projecttask-progress, .mk-projecttask-progress-grid').first();
+			if ($existing.length) {
+				var existingGrid = $existing.hasClass('mk-projecttask-progress-grid');
+				if (existingGrid === grid) {
+					return;
+				}
+				$cell.empty();
+			}
+			var info = parseProgress(rawText);
 			var label = info.label || (info.pct > 0 ? info.pct + '%' : '');
+			if (grid) {
+				$cell.html(
+					'<div class="mk-projecttask-progress-grid mk-projecttask-progress-grid--' +
+						info.tone +
+						'">' +
+						'<div class="mk-projecttask-progress-grid__track">' +
+						'<div class="mk-projecttask-progress-grid__fill" style="width:' +
+						info.pct +
+						'%"></div></div>' +
+						(label
+							? '<span class="mk-projecttask-progress-grid__label">' +
+								$('<span/>').text(label).html() +
+								'</span>'
+							: '') +
+						'</div>'
+				);
+				return;
+			}
 			$cell.html(
 				'<div class="mk-projecttask-progress mk-projecttask-progress--' +
 					info.tone +
@@ -204,6 +274,49 @@
 		});
 	}
 
+	function applyGridFieldLabels() {
+		var $table = $('#listview-table');
+		if (!$table.length) {
+			return;
+		}
+		var labels = $.extend({}, GRID_FIELD_LABELS);
+		$table.find('thead tr.listViewContentHeader th').each(function () {
+			var $th = $(this);
+			var field = fieldFromHeaderTh($th);
+			if (!field) {
+				return;
+			}
+			var headerText = $.trim($th.find('a.listViewContentHeaderValues').text());
+			if (headerText) {
+				labels[field] = headerText;
+			}
+		});
+		$table.find('tbody td.listViewEntryValue[data-name]').each(function () {
+			var $td = $(this);
+			var name = $td.data('name');
+			if (name && labels[name]) {
+				$td.attr('data-field-label', labels[name]);
+			}
+		});
+	}
+
+	function hideEmptyRelatedInGrid() {
+		if (!isGridView()) {
+			return;
+		}
+		$('#listview-table tbody tr.listViewEntries td[data-name="projectid"]').each(function () {
+			var $td = $(this);
+			var text = $.trim($td.find('.value').text());
+			$td.toggleClass('mk-projecttask-grid-empty-related', !text);
+		});
+	}
+
+	function syncGridModeClass() {
+		var isGrid = isGridView();
+		document.documentElement.classList.toggle('mk-projecttask-grid-active', isGrid);
+		$('#listViewContent').toggleClass('mk-projecttask-grid-active', isGrid);
+	}
+
 	function normalizeSearchFilters() {
 		var $table = $('#listview-table');
 		if (!$table.length) {
@@ -228,13 +341,16 @@
 		if (!isManagementProjectTaskList()) {
 			return;
 		}
+		syncGridModeClass();
 		assignColumnClasses();
+		applyGridFieldLabels();
 		normalizeSearchFilters();
 		initDateSearchPickers();
 		renderPriorityPills();
 		renderProgressBars();
 		renderAssigneeAvatars();
 		enhanceTaskNameLinks();
+		hideEmptyRelatedInGrid();
 	}
 
 	function bindListHooks() {
@@ -255,6 +371,9 @@
 		});
 		app.event.on('post.listViewInlineSearch.click', function () {
 			setTimeout(postRender, 0);
+		});
+		$(document).on('click.mkProjectTaskLayoutEnhance', '.mk-so-toggle-layout', function () {
+			setTimeout(postRender, 60);
 		});
 	}
 

@@ -1590,3 +1590,259 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 	transform: rotate(45deg);
 	display: block;
 }
+
+/* ---- Grid card view — Plans-style stacked rows (label / value) ---- */
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid {
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table {
+	display: block !important;
+	width: 100% !important;
+	min-width: 0 !important;
+	max-width: 100% !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #table-content.table-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	max-height: none !important;
+	overflow-y: visible !important;
+	overflow-x: hidden !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+	gap: 14px !important;
+	padding: 14px !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries {
+	display: flex !important;
+	flex-direction: column !important;
+	width: 100% !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	margin: 0 !important;
+	height: auto !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 12px !important;
+	background: #fff !important;
+	box-shadow: 0 2px 8px rgba(25, 28, 30, 0.06) !important;
+	overflow: hidden;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries:hover {
+	background: #fffdf8 !important;
+	border-color: #c4a882 !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody td.listViewRecordActions {
+	order: -1 !important;
+	display: block !important;
+	padding: 10px 12px !important;
+	border-bottom: 1px solid #eceef0 !important;
+	background: #f7f9fb !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody td.listViewRecordActions .table-actions {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	gap: 6px;
+	margin: 0 !important;
+	width: 100% !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue {
+	display: block !important;
+	height: auto !important;
+	min-height: 0 !important;
+	padding: 10px 14px !important;
+	border-bottom: 1px solid #eceef0 !important;
+	border-right: none !important;
+	border-top: none !important;
+	background: #fff !important;
+	white-space: normal !important;
+	text-align: left !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue:last-of-type {
+	border-bottom: none !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue::before {
+	content: attr(data-field-label);
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	text-transform: capitalize;
+	color: #40627e;
+	margin-bottom: 4px;
+	text-align: left;
+	font-family: Inter, system-ui, sans-serif;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue .fieldValue,
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue .value {
+	display: block !important;
+	text-align: left !important;
+	width: 100% !important;
+	margin: 0 !important;
+	font-family: Inter, system-ui, sans-serif !important;
+	font-size: 14px;
+	font-weight: 500;
+	color: #334155;
+	line-height: 1.45;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectid'].mk-projecttask-grid-empty-related {
+	display: none !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskname'] .value,
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskname'] a.mk-projecttask-name-link,
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskname'] a {
+	font-size: 15px !important;
+	font-weight: 600 !important;
+	color: #1d6fdc !important;
+	text-decoration: none !important;
+	line-height: 1.4;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskname'] a:hover {
+	text-decoration: underline !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectid'] .value,
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectid'] a {
+	font-size: 14px;
+	font-weight: 500;
+	color: #334155 !important;
+	text-decoration: none;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='startdate'] .value,
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='enddate'] .value {
+	font-size: 14px;
+	font-weight: 500;
+	color: #334155 !important;
+	font-variant-numeric: tabular-nums;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskpriority'] .mk-projecttask-priority-pill {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: flex-start;
+	min-height: 26px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 13px;
+	font-weight: 600;
+	margin: 0 !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskpriority'] .mk-projecttask-priority-pill--low {
+	background: #e8f0f6;
+	color: #5a7289;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskpriority'] .mk-projecttask-priority-pill--medium {
+	background: #bbdeff;
+	color: #41627f;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskpriority'] .mk-projecttask-priority-pill--high {
+	background: #ffe4b8;
+	color: #7c5800;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskprogress'] .mk-projecttask-progress-grid {
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	gap: 10px;
+	width: 100%;
+	max-width: 100%;
+	margin: 0 !important;
+	height: auto !important;
+	background: transparent !important;
+	border-radius: 0 !important;
+	overflow: visible !important;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskprogress'] .mk-projecttask-progress-grid__track {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 6px;
+	border-radius: 999px;
+	background: #e2e8f0;
+	overflow: hidden;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskprogress'] .mk-projecttask-progress-grid__fill {
+	height: 100%;
+	border-radius: 999px;
+	min-width: 0;
+	transition: width 0.2s ease;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskprogress'] .mk-projecttask-progress-grid--default .mk-projecttask-progress-grid__fill,
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskprogress'] .mk-projecttask-progress-grid--calculating .mk-projecttask-progress-grid__fill {
+	background: #bbdeff;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskprogress'] .mk-projecttask-progress-grid--done .mk-projecttask-progress-grid__fill {
+	background: #fdbb2c;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskprogress'] .mk-projecttask-progress-grid__label {
+	position: static !important;
+	transform: none !important;
+	flex: 0 0 auto;
+	font-size: 13px;
+	font-weight: 600;
+	color: #334155;
+	text-transform: none;
+	letter-spacing: normal;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries .mk-projecttask-assignee {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 8px;
+	margin: 0 !important;
+	justify-content: flex-start;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries .mk-projecttask-assignee__avatar {
+	width: 24px;
+	height: 24px;
+	border-radius: 6px;
+	background: #fff8eb;
+	border: 1px solid #f0d9a8;
+	color: #c98f12;
+	font-size: 10px;
+	font-weight: 700;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries .mk-projecttask-assignee__name {
+	font-size: 14px;
+	font-weight: 500;
+	color: #334155;
+}
+
+html.mk-projecttask-list-management body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.mk-so-is-view-grid #table-content.table-container {
+	max-height: none !important;
+	overflow-y: visible !important;
+}
