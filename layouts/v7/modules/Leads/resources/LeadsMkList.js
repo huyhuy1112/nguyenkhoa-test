@@ -365,8 +365,11 @@
             return SOURCE_TAGS.indexOf(t) >= 0;
           });
           var custLabel = l.segment ? logic.SEGMENT_LABELS[l.segment] : d.type;
-          var tags = (l.tags || []).slice(0, 3);
-          var extra = (l.tags || []).length - tags.length;
+          var nonSourceTags = (l.tags || []).filter(function (t) {
+            return SOURCE_TAGS.indexOf(t) < 0;
+          });
+          var tags = nonSourceTags.slice(0, 3);
+          var extra = nonSourceTags.length - tags.length;
           var checked = state.selected[l.id] ? " checked" : "";
           return (
             '<tr class="mk-leads-row' +
@@ -416,6 +419,10 @@
             '</span><span>' +
             esc(l.owner) +
             "</span></span></td>" +
+            '<td class="mk-leads-td mk-leads-td--tags"><div class="mk-leads-tags-stack">' +
+            (tags.length ? tags.map(tagBadgeHtml).join("") : '<span class="mk-leads-muted">—</span>') +
+            (extra > 0 ? '<span class="mk-leads-tag-more">+' + extra + "</span>" : "") +
+            "</div></td>" +
             '<td class="mk-leads-td' +
             (d.stale ? " mk-leads-td--stale" : "") +
             '">' +
@@ -430,10 +437,6 @@
             '<td class="mk-leads-td mk-leads-td--right">' +
             logic.fmtVND(l.value) +
             "</td>" +
-            '<td class="mk-leads-td mk-leads-td--tags"><div class="mk-leads-tags-stack">' +
-            tags.map(tagBadgeHtml).join("") +
-            (extra > 0 ? '<span class="mk-leads-tag-more">+' + extra + "</span>" : "") +
-            "</div></td>" +
             '<td class="mk-leads-td mk-leads-td--center mk-leads-td--support">' +
             (l.openTickets > 0
               ? '<span class="mk-pill mk-pill--support">' + ic("ticket") + l.openTickets + " open</span>"

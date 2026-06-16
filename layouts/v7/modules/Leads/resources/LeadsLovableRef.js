@@ -53,7 +53,7 @@
 
   var LIST_COLUMNS = [
     "checkbox", "lead", "phone", "area", "source", "customerType", "stage", "tier",
-    "owner", "lastTouch", "nextAction", "value", "tags", "support", "stale",
+    "owner", "tags", "lastTouch", "nextAction", "value", "support", "stale",
   ];
 
   var KPI_KEYS = ["total", "newToday", "qualified", "repeat", "gold", "stale", "conv"];
