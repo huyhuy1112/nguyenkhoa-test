@@ -128,7 +128,7 @@
 		}
 		var upper = text.toUpperCase();
 		var isDone = upper.indexOf('DONE') >= 0 || pct >= 100;
-		var isCalc = upper.indexOf('CALCULATING') >= 0 || (pct > 0 && pct < 100 && upper.indexOf('DONE') < 0);
+		var isCalc = upper.indexOf('CALCULATING') >= 0;
 		var tone = 'default';
 		if (isDone) {
 			tone = 'done';

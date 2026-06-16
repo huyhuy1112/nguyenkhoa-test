@@ -122,12 +122,6 @@
                 <button type="button" class="mk-so-icon-btn mk-so-trigger-columns" title="{vtranslate('LBL_CLICK_HERE_TO_MANAGE_LIST_COLUMNS',$MODULE)}" aria-label="{vtranslate('LBL_CLICK_HERE_TO_MANAGE_LIST_COLUMNS',$MODULE)}">
                     <span class="mk-so-icon-btn__ic" aria-hidden="true"><span class="fa fa-th-large"></span></span>
                 </button>
-                <button type="button" class="mk-so-icon-btn mk-so-sort-hint" disabled="disabled" title="Sort" aria-hidden="true">
-                    <span class="mk-so-icon-btn__ic" aria-hidden="true"><span class="fa fa-sort"></span></span>
-                </button>
-                <button type="button" class="mk-so-icon-btn mk-so-filter-trigger-search" title="{vtranslate('LBL_SEARCH',$MODULE)}" aria-label="{vtranslate('LBL_SEARCH',$MODULE)}">
-                    <span class="mk-so-icon-btn__ic" aria-hidden="true"><span class="fa fa-search"></span></span>
-                </button>
             </div>
         </div>
 

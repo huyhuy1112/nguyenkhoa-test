@@ -84,6 +84,57 @@
 		});
 	}
 
+	var GRID_FIELD_LABELS = {
+		projectname: 'Tên dự án',
+		linktoaccountscontacts: 'Liên quan tới',
+		startdate: 'Ngày bắt đầu',
+		targetenddate: 'Ngày kết thúc dự kiến',
+		progress: 'Mức độ hoàn thành',
+		projectstatus: 'Trạng thái',
+		assigned_user_id: 'Phụ trách'
+	};
+
+	function slugify(text) {
+		return String(text || '')
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '');
+	}
+
+	function statusKeyFromText(text) {
+		var t = String(text || '')
+			.toLowerCase()
+			.trim();
+		if (!t) {
+			return 'default';
+		}
+		if (t.indexOf('đang thực hiện') >= 0 || t.indexOf('in progress') >= 0) {
+			return 'in-progress';
+		}
+		if (t.indexOf('tạm dừng') >= 0 || t.indexOf('on hold') >= 0) {
+			return 'on-hold';
+		}
+		if (t.indexOf('chờ') >= 0 && t.indexOf('phản hồi') >= 0) {
+			return 'waiting';
+		}
+		if (t.indexOf('kickoff') >= 0 || t.indexOf('initiated') >= 0 || t.indexOf('đã kickoff') >= 0) {
+			return 'initiated';
+		}
+		if (t.indexOf('dự kiến') >= 0 || t.indexOf('prospect') >= 0) {
+			return 'prospecting';
+		}
+		if (t.indexOf('bàn giao') >= 0 || t.indexOf('delivered') >= 0) {
+			return 'delivered';
+		}
+		if (t.indexOf('hoàn thành') >= 0 || t.indexOf('completed') >= 0) {
+			return 'completed';
+		}
+		if (t.indexOf('archived') >= 0) {
+			return 'archived';
+		}
+		return slugify(t) || 'default';
+	}
+
 	function parseProgress(raw) {
 		var s = String(raw || '').trim();
 		if (!s) {
@@ -104,35 +155,53 @@
 		if (pct >= 100) {
 			return 'done';
 		}
-		if (pct > 0) {
-			return 'calculating';
+		if (pct >= 71) {
+			return 'high';
 		}
-		return 'default';
+		if (pct >= 31) {
+			return 'mid';
+		}
+		if (pct > 0) {
+			return 'low';
+		}
+		return 'empty';
+	}
+
+	function getProgressFromCell($cell, $td) {
+		var raw = $.trim($cell.text());
+		if (!raw && $td && $td.length) {
+			raw = $.trim(String($td.data('rawvalue') || ''));
+		}
+		var pct = parseProgress(raw);
+		if (pct === null) {
+			return null;
+		}
+		var label = raw.indexOf('%') >= 0 ? raw : pct + '%';
+		return { pct: pct, label: label, variant: progressVariant(pct) };
 	}
 
 	function renderProgressBars() {
 		$('#listview-table tbody tr.listViewEntries').each(function () {
 			var $row = $(this);
-			var $cell = $row.find('td[data-name="progress"] .value').first();
+			var $td = $row.find('td[data-name="progress"]').first();
+			var $cell = $td.find('.value').first();
 			if (!$cell.length || $cell.find('.mk-project-progress').length) {
 				return;
 			}
-			var raw = $.trim($cell.text());
-			var pct = parseProgress(raw);
-			if (pct === null) {
+			var info = getProgressFromCell($cell, $td);
+			if (!info) {
 				return;
 			}
-			var variant = progressVariant(pct);
-			var label = raw.indexOf('%') >= 0 ? raw : pct + '%';
 			$cell.html(
 				'<div class="mk-project-progress mk-project-progress--' +
-					variant +
+					info.variant +
 					'">' +
+					'<div class="mk-project-progress__track">' +
 					'<div class="mk-project-progress__fill" style="width:' +
-					pct +
-					'%"></div>' +
+					info.pct +
+					'%"></div></div>' +
 					'<span class="mk-project-progress__label">' +
-					$('<div/>').text(label).html() +
+					$('<div/>').text(info.label).html() +
 					'</span></div>'
 			);
 		});
@@ -141,17 +210,55 @@
 	function renderStatusPills() {
 		$('#listview-table tbody tr.listViewEntries').each(function () {
 			var $row = $(this);
-			var $cell = $row.find('td[data-name="projectstatus"] .value').first();
+			var $td = $row.find('td[data-name="projectstatus"]').first();
+			var $cell = $td.find('.value').first();
 			if (!$cell.length || $cell.find('.mk-project-status-pill').length) {
 				return;
 			}
+			$td.addClass('mk-project-status-cell');
 			var raw = $.trim($cell.text());
+			if (!raw && $td.length) {
+				raw = $.trim(String($td.data('rawvalue') || ''));
+			}
 			if (!raw) {
 				return;
 			}
+			var key = statusKeyFromText(raw);
 			$cell.html(
-				'<span class="mk-project-status-pill">' + $('<div/>').text(raw).html() + '</span>'
+				'<span class="mk-project-status-pill mk-project-status-pill--' +
+					key +
+					'">' +
+					'<span class="mk-project-status-pill__dot" aria-hidden="true"></span>' +
+					'<span class="mk-project-status-pill__text">' +
+					$('<div/>').text(raw).html() +
+					'</span></span>'
 			);
+		});
+	}
+
+	function applyGridFieldLabels() {
+		var $table = $('#listview-table');
+		if (!$table.length) {
+			return;
+		}
+		var labels = $.extend({}, GRID_FIELD_LABELS);
+		$table.find('thead tr.listViewContentHeader th').each(function () {
+			var $th = $(this);
+			var field = fieldFromHeaderTh($th);
+			if (!field) {
+				return;
+			}
+			var headerText = $.trim($th.find('a.listViewContentHeaderValues').text());
+			if (headerText) {
+				labels[field] = headerText;
+			}
+		});
+		$table.find('tbody td.listViewEntryValue[data-name]').each(function () {
+			var $td = $(this);
+			var name = $td.data('name');
+			if (name && labels[name]) {
+				$td.attr('data-field-label', labels[name]);
+			}
 		});
 	}
 
@@ -194,6 +301,17 @@
 
 	function enhanceProjectNameLinks() {
 		$('#listview-table td[data-name="projectname"] a').addClass('mk-project-name-link');
+	}
+
+	function hideEmptyRelatedInGrid() {
+		if (!$('#listViewContent').hasClass('mk-so-is-view-grid')) {
+			return;
+		}
+		$('#listview-table tbody tr.listViewEntries td[data-name="linktoaccountscontacts"]').each(function () {
+			var $td = $(this);
+			var text = $.trim($td.find('.value').text());
+			$td.toggleClass('mk-project-grid-empty-related', !text);
+		});
 	}
 
 	function normalizeSearchFilters() {
@@ -260,19 +378,30 @@
 
 	window.mkProjectListInitDatePickers = initDateSearchPickers;
 
+	function syncGridModeClass() {
+		var isGrid =
+			$('#listViewContent').hasClass('mk-so-is-view-grid') ||
+			document.body.classList.contains('mk-so-is-view-grid');
+		document.documentElement.classList.toggle('mk-project-grid-active', isGrid);
+		$('#listViewContent').toggleClass('mk-project-grid-active', isGrid);
+	}
+
 	function postRender() {
 		if (!isManagementProjectList()) {
 			return;
 		}
+		syncGridModeClass();
 		fixListGridTogglePlacement();
 		syncCheckedRowHighlight();
 		assignColumnClasses();
+		applyGridFieldLabels();
 		normalizeSearchFilters();
 		initDateSearchPickers();
 		renderProgressBars();
 		renderStatusPills();
 		renderAssigneeAvatars();
 		enhanceProjectNameLinks();
+		hideEmptyRelatedInGrid();
 	}
 
 	function bindListHooks() {
@@ -293,6 +422,9 @@
 		});
 		app.event.on('post.listViewInlineSearch.click', function () {
 			setTimeout(postRender, 0);
+		});
+		$(document).on('click.mkProjectLayoutEnhance', '.mk-so-toggle-layout', function () {
+			setTimeout(postRender, 60);
 		});
 	}
 

@@ -209,10 +209,9 @@
 							</div>
 						{/if}
 					</div>
-					<div class="clearfix">
-						<div class="widget_filter clearfix">
+					<div class="widget_filter mk-proj-tasks-filter clearfix">
 							{if $PROGRESS_FIELD_MODEL->isViewableInDetailView()}
-								<div class="pull-left marginRight15">
+								<div class="mk-proj-tasks-filter__item">
 									{assign var=FIELD_INFO value=$PROGRESS_FIELD_MODEL->getFieldInfo()}
 									{assign var=PICKLIST_VALUES value=$FIELD_INFO['picklistvalues']}
 									{assign var=FIELD_INFO value=Vtiger_Util_Helper::toSafeHTML(Zend_Json::encode($FIELD_INFO))}
@@ -225,9 +224,8 @@
 									</select>
 								</div>
 							{/if}
-							&nbsp;&nbsp;
 							{if $STATUS_FIELD_MODEL->isViewableInDetailView()}
-								<div class="pull-left marginRight15">
+								<div class="mk-proj-tasks-filter__item">
 									{assign var=FIELD_INFO value=$STATUS_FIELD_MODEL->getFieldInfo()}
 									{assign var=PICKLIST_VALUES value=$FIELD_INFO['picklistvalues']}
 									{assign var=FIELD_INFO value=Vtiger_Util_Helper::toSafeHTML(Zend_Json::encode($FIELD_INFO))}
@@ -241,7 +239,6 @@
 								</div>
 							{/if}
 						</div>
-					</div>
 					<div class="widget_contents"></div>
 				</div>
 			</div>

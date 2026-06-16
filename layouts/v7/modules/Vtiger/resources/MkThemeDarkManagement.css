@@ -1228,8 +1228,7 @@ html[data-theme="dark"].mk-cal-ui-ready .mk-cal-action-btn:hover {
 	background: rgba(253, 187, 44, 0.24) !important;
 }
 
-/* ---- Project / ProjectTask — list/grid toggle (toolbar only, separate dark buttons) ---- */
-html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-actions .mk-so-toolbar-toggles,
+/* ---- Project / ProjectTask — list/grid toggle (dark mode only) ---- */
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles,
 html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles,
 html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles {
@@ -1244,7 +1243,6 @@ html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMEN
 	box-shadow: none !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn,
 html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn,
 html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn {
@@ -1261,7 +1259,6 @@ html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMEN
 	line-height: 1 !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic,
 html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic,
 html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic {
@@ -1269,7 +1266,6 @@ html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMEN
 	line-height: 1 !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout[aria-pressed="true"],
 html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
@@ -1279,7 +1275,6 @@ html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMEN
 	box-shadow: inset 0 0 0 1px rgba(253, 187, 44, 0.35) !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active .mk-so-icon-btn__ic,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active .mk-so-icon-btn__ic,
 html.dark-mode body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active .mk-so-icon-btn__ic {
 	color: #fdbb2c !important;
@@ -1432,8 +1427,7 @@ html[data-theme="dark"] body[data-module="Documents"][data-view="List"][data-app
 	color: var(--mk-text-primary) !important;
 }
 
-/* ---- Project: list/grid toggle — toolbar only ---- */
-html.mk-project-list-management body[data-module="Project"][data-view="List"] #listViewContent #listview-actions .mk-so-toolbar-toggles,
+/* ---- Project: list/grid toggle — dark mode only ---- */
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles,
 html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles {
 	display: inline-flex !important;
@@ -1447,7 +1441,6 @@ html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-a
 	box-shadow: none !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn.mk-so-toggle-layout,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn.mk-so-toggle-layout,
 html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn.mk-so-toggle-layout {
 	width: 38px !important;
@@ -1465,7 +1458,6 @@ html[data-theme="dark"] body[data-module="ProjectTask"][data-view="List"][data-a
 	appearance: none !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout[aria-pressed="true"] {
 	background: rgba(253, 187, 44, 0.18) !important;
@@ -1473,13 +1465,11 @@ html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="
 	box-shadow: inset 0 0 0 1px rgba(253, 187, 44, 0.35) !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-icon-btn__ic {
 	color: #cbd5e1 !important;
 	line-height: 1 !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active .mk-so-icon-btn__ic,
 html[data-theme="dark"] body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active .mk-so-icon-btn__ic {
 	color: #fdbb2c !important;
 }

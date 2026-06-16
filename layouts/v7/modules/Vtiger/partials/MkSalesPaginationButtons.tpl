@@ -6,7 +6,7 @@
     {assign var=CLASS_VIEW_BASIC_ACTION value='listViewBasicAction'}
 {/if}
 <div class="{$CLASS_VIEW_ACTION} mk-so-pagination__btns">
-	<div class="btn-group">
+	<div class="btn-group dropup mk-so-pagejump-group">
 		<button type="button" id="PreviousPageButton" class="btn btn-default mk-so-page-btn" {if !$PAGING_MODEL->isPrevPageExists()} disabled {/if}><i class="fa fa-caret-left"></i></button>
 		{if $SHOWPAGEJUMP}
 			<button type="button" id="PageJump" data-toggle="dropdown" class="btn btn-default mk-so-page-btn">

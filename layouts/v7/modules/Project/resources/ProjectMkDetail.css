@@ -17,11 +17,12 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] {
 /* ---- App shell — mirror Accounts Organizations Detail (SUPPORT) ---- */
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
 	margin-left: var(--mk-dash-sidebar-w, 256px);
-	width: calc(100vw - var(--mk-dash-sidebar-w, 256px));
-	max-width: calc(100vw - var(--mk-dash-sidebar-w, 256px));
+	width: calc(100% - var(--mk-dash-sidebar-w, 256px));
+	max-width: calc(100% - var(--mk-dash-sidebar-w, 256px));
 	min-width: 0;
 	box-sizing: border-box;
 	overflow-x: hidden;
+	overflow-y: visible;
 }
 
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page,
@@ -47,16 +48,16 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-
 	background: transparent;
 }
 
-/* Outer gutters — identical to Organizations Detail (SUPPORT) */
+/* Outer gutters — full width within dashboard shell */
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .main-container.mk-project-detail-page {
 	width: 100%;
-	max-width: 1232px;
+	max-width: none;
 	margin-left: auto !important;
 	margin-right: auto !important;
 	padding-top: 24px !important;
 	padding-bottom: 32px !important;
-	padding-left: 48px !important;
-	padding-right: 32px !important;
+	padding-left: 28px !important;
+	padding-right: 28px !important;
 	box-sizing: border-box;
 	position: relative !important;
 	min-height: 0 !important;
@@ -626,7 +627,7 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-
 	border-radius: 10px;
 	background: transparent;
 	color: #94a3b8;
-	transition: background 0.12s ease, color 0.12s ease;
+	transition: none !important;
 	opacity: 1;
 }
 
@@ -638,9 +639,10 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-
 }
 
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
-body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon {
-	background: rgba(253, 187, 44, 0.12);
-	color: #0f172a;
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon {
+	background: transparent;
+	color: #94a3b8;
 }
 
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
@@ -687,10 +689,10 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-
 /* Summary layout — 3-column grid (balanced like Organizations Detail) */
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-summary-layout {
 	display: grid;
-	grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
-	gap: 28px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 32px;
 	margin: 0;
-	align-items: start;
+	align-items: stretch;
 	width: 100%;
 	min-width: 0;
 }
@@ -1155,8 +1157,8 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedC
 	border-top: 1px solid #e2e8f0;
 }
 
-/* Related list content area */
-body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer {
+/* Related list content area — legacy reset only before luxury panel init */
+body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer:not(.mk-luxury-related-panel) {
 	padding: 0 !important;
 	background: transparent !important;
 	border: none !important;
@@ -1475,4 +1477,2291 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .commentInfoContent a {
 	color: var(--mk-proj-accent-text) !important;
+}
+
+/* ========================================================================== */
+/* Detail luxury polish v15 — balanced layout, elevated cards, clear hierarchy */
+/* ========================================================================== */
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main.mk-project-detail-main {
+	background: #f4f7fa;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView.mk-project-detail-metrics,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView.mk-project-detail-keyfields,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer.mk-project-detail-widget,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer {
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06) !important;
+	border: 1px solid #e2e8f0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-summary-layout {
+	gap: 24px;
+	align-items: stretch;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col > * + * {
+	margin-top: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--middle .summaryWidgetContainer.widgetContainer_comments {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	min-height: 420px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .widget_contents {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Metrics — white tiles with accent top bar */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .well {
+	background: #ffffff !important;
+	border: 1px solid #e8edf2 !important;
+	border-radius: 12px !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+	min-height: 92px !important;
+	padding: 14px 12px 12px !important;
+	position: relative;
+	overflow: hidden;
+	transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .well::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: #94a3b8;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .well:hover {
+	box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08) !important;
+	transform: translateY(-1px);
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(1) .well::before { background: linear-gradient(90deg, #38bdf8, #0ea5e9); }
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(2) .well::before { background: linear-gradient(90deg, #4ade80, #22c55e); }
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(3) .well::before { background: linear-gradient(90deg, #fb923c, #f97316); }
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(4) .well::before { background: linear-gradient(90deg, #2dd4bf, #14b8a6); }
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(5) .well::before { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(6) .well::before { background: linear-gradient(90deg, #34d399, #10b981); }
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(7) .well::before { background: linear-gradient(90deg, #fdbb2c, #e5a820); }
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3:nth-child(8) .well::before { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .font-x-small {
+	color: #64748b !important;
+	letter-spacing: 0.05em;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .font-x-x-large {
+	font-size: 24px !important;
+	letter-spacing: -0.02em;
+}
+
+/* Key fields card */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields .summaryViewHeader {
+	background: linear-gradient(90deg, rgba(253, 187, 44, 0.12) 0%, transparent 100%);
+	border-left: 4px solid #fdbb2c;
+	border-radius: 0 8px 8px 0;
+	padding: 14px 16px !important;
+	margin: 0 18px 8px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue .picklist-color {
+	background: #dbeafe !important;
+	color: #1d4ed8 !important;
+	border: 1px solid #93c5fd;
+	padding: 5px 12px !important;
+}
+
+/* Related tabs — pill bar */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-related-tabs .nav.nav-tabs,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs {
+	background: #ffffff !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	padding: 6px 10px !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Task widget — readable rows + status pills */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .listview-table tbody tr.listViewEntries td {
+	padding: 12px 10px !important;
+	vertical-align: middle !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .listview-table .picklist-color {
+	display: inline-flex;
+	align-items: center;
+	min-height: 26px;
+	padding: 4px 12px !important;
+	border-radius: 999px !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	background: #dbeafe !important;
+	color: #1d4ed8 !important;
+	border: 1px solid #93c5fd !important;
+	line-height: 1.2;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .listview-table tbody tr.listViewEntries:hover {
+	background: #f8fafc !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_header {
+	border-bottom: 1px solid #f1f5f9 !important;
+	padding: 14px 18px 12px !important;
+	margin-bottom: 4px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_header h4,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-card-title {
+	font-size: 14px !important;
+	letter-spacing: 0.02em;
+}
+
+/* Comments composer */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-comment-composer textarea,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments textarea {
+	border-radius: 10px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fafbfc !important;
+	min-height: 88px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_comments .noDataMsg,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .emptyRecordsDiv {
+	padding: 20px 16px !important;
+	text-align: center;
+	color: #94a3b8 !important;
+	font-size: 13px;
+	border-radius: 8px;
+	background: #f8fafc;
+	margin: 8px 0;
+}
+
+/* ========================================================================== */
+/* Detail polish v16 — Inter tabs, icons right, equal widgets & metric tiles  */
+/* ========================================================================== */
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-content,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer {
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Tabs: Inter + text left / module icons right */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	gap: 2px 4px !important;
+	width: 100% !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) > a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab:not([data-module]) > a {
+	font-family: Inter, system-ui, sans-serif !important;
+	font-weight: 500 !important;
+	font-size: 14px !important;
+	letter-spacing: -0.01em;
+	color: #64748b !important;
+	padding: 10px 14px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]).active > a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab:not([data-module]).active > a {
+	font-weight: 600 !important;
+	color: #0f172a !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) + li.tab-item[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab:not([data-module]) + li.tab-item[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) + li.more-tab[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module]:first-child {
+	margin-left: auto !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab[data-module] {
+	margin-right: 0 !important;
+	margin-left: 4px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .dropdown.related-tab-more-element {
+	margin-left: 4px !important;
+}
+
+/* Metric tiles — uniform height */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .row {
+	align-items: stretch !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .col-lg-3 {
+	display: flex !important;
+	align-items: stretch !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .well {
+	flex: 1 1 auto !important;
+	width: 100% !important;
+	min-height: 108px !important;
+	height: 108px !important;
+	max-height: 108px !important;
+	padding: 12px 10px 10px !important;
+	box-sizing: border-box !important;
+	justify-content: center !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .font-x-small {
+	display: -webkit-box !important;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	line-height: 1.3 !important;
+	max-height: 2.6em;
+	min-height: 2.6em;
+	margin-bottom: 4px !important;
+	font-family: Inter, system-ui, sans-serif !important;
+	font-size: 10px !important;
+	font-weight: 600 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .font-x-x-large {
+	font-family: Inter, system-ui, sans-serif !important;
+	font-size: 26px !important;
+	font-weight: 700 !important;
+	letter-spacing: -0.03em;
+	line-height: 1.1 !important;
+}
+
+/* Widgets — equal min height (key fields, documents, helpdesk, events, tasks) */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] {
+	--mk-proj-widget-min-h: 300px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--left .summaryWidgetContainer,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--right .summaryWidgetContainer {
+	display: flex !important;
+	flex-direction: column !important;
+	min-height: var(--mk-proj-widget-min-h) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_contents {
+	flex: 1 1 auto !important;
+	min-height: 200px !important;
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--right {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 24px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--right .summaryWidgetContainer {
+	flex: 1 1 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_documents,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_mileStone,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks {
+	display: flex !important;
+	flex-direction: column !important;
+	flex: 1 1 auto !important;
+	min-height: 100% !important;
+}
+
+/* Key fields — edit icon far right */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue > div {
+	justify-content: flex-start !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue .value {
+	flex: 1 1 auto !important;
+	text-align: left !important;
+	font-family: Inter, system-ui, sans-serif !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue .action {
+	margin-left: auto !important;
+}
+
+/* Widget headers — actions right */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_header {
+	display: flex !important;
+	align-items: center !important;
+	flex-wrap: wrap !important;
+	gap: 8px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_header .pull-right {
+	margin-left: auto !important;
+	float: none !important;
+}
+
+/* ========================================================================== */
+/* Detail polish v17 — full width, larger cards & widgets                   */
+/* ========================================================================== */
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] {
+	--mk-proj-widget-min-h: 360px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-summary-layout {
+	gap: 32px !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--left,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--middle,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--right {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 28px !important;
+	min-width: 0;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col > * + * {
+	margin-top: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView.mk-project-detail-metrics,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView.mk-project-detail-keyfields,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer.mk-project-detail-widget {
+	width: 100% !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-card-title,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryViewHeader h4 {
+	font-size: 16px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .well {
+	min-height: 118px !important;
+	height: 118px !important;
+	max-height: 118px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .font-x-x-large {
+	font-size: 30px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldLabel label {
+	font-size: 13px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue .value {
+	font-size: 15px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_contents {
+	min-height: 240px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--middle .summaryWidgetContainer.widgetContainer_comments {
+	min-height: 520px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-hero__title {
+	font-size: 26px !important;
+}
+
+/* ========================================================================== */
+/* Detail polish v18 — single scroll, widget layout, task rows               */
+/* ========================================================================== */
+
+/* One vertical scroll: document only (not mk-app-shell / mk-dash-main) */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
+	min-height: 0 !important;
+	height: auto !important;
+	overflow: visible !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main.mk-project-detail-main,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .main-container.mk-project-detail-page,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-inner.detailViewContainer,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-content,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView {
+	overflow: visible !important;
+	max-height: none !important;
+	height: auto !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .table-container {
+	overflow: visible !important;
+	max-height: none !important;
+	border: none !important;
+	margin-top: 0 !important;
+	padding-top: 0 !important;
+}
+
+/* Widget body — fill card, center empty state */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .widget_contents,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_mileStone .widget_contents,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .widget_contents {
+	flex: 1 1 auto !important;
+	display: flex !important;
+	flex-direction: column !important;
+	justify-content: flex-start !important;
+	min-height: 200px !important;
+	overflow: visible !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .widget_contents:has(.emptyRecordsDiv),
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_mileStone .widget_contents:has(.emptyRecordsDiv),
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .widget_contents:has(.emptyRecordsDiv) {
+	justify-content: center !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .emptyRecordsDiv,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_mileStone .emptyRecordsDiv {
+	flex: 1 1 auto !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	min-height: 200px !important;
+	margin: 0 !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+/* Filter dropdown — full width under header */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .widget_filter,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_mileStone .widget_filter {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 10px !important;
+	width: 100% !important;
+	margin: 0 18px 14px !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .widget_filter .select2-container {
+	flex: 1 1 160px !important;
+	min-width: 140px !important;
+	max-width: 100% !important;
+}
+
+/* Tasks widget — legacy row rules removed; see mk-proj-tasks-widget premium block below */
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .moreRecentTickets {
+	display: inline-block !important;
+	margin-top: 8px !important;
+	padding: 0 18px 4px !important;
+	text-align: right !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+	font-weight: 600 !important;
+	color: var(--mk-proj-accent-text) !important;
+}
+
+/* HelpDesk rows — readable list */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .recentActivitiesContainer {
+	border: 1px solid #eef2f6 !important;
+	border-radius: 10px !important;
+	padding: 12px 14px !important;
+	margin-bottom: 10px !important;
+	background: #fff !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .recentActivitiesContainer .width27em {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .recentActivitiesContainer a {
+	color: var(--mk-proj-accent-text) !important;
+	font-weight: 600 !important;
+}
+
+/* ========================================================================== */
+/* Detail luxury v19 — modern shell, glass cards, motion, layout repair       */
+/* ========================================================================== */
+
+@keyframes mkProjLuxFadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes mkProjLuxShimmer {
+	0% { background-position: 200% 0; }
+	100% { background-position: -200% 0; }
+}
+
+@keyframes mkProjLuxGlow {
+	0%, 100% { box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06), 0 0 0 0 rgba(253, 187, 44, 0); }
+	50% { box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08), 0 0 0 4px rgba(253, 187, 44, 0.08); }
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] {
+	--mk-proj-accent: #e5a820;
+	--mk-proj-accent-hover: #fdbb2c;
+	--mk-proj-accent-text: #7c5800;
+	--mk-proj-border: #e4eaf0;
+	--mk-proj-card-bg: #ffffff;
+	--mk-proj-page-bg: #f4f7fb;
+	--mk-proj-muted: #64748b;
+	--mk-proj-title: #0f172a;
+	--mk-proj-radius: 16px;
+	--mk-proj-shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 8px 28px rgba(15, 23, 42, 0.06);
+	--mk-proj-shadow-hover: 0 8px 20px rgba(15, 23, 42, 0.08), 0 20px 48px rgba(15, 23, 42, 0.1);
+}
+
+/* Page canvas */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main.mk-project-detail-main {
+	background:
+		radial-gradient(ellipse 80% 50% at 10% -10%, rgba(253, 187, 44, 0.08), transparent 55%),
+		radial-gradient(ellipse 60% 40% at 95% 0%, rgba(56, 189, 248, 0.06), transparent 50%),
+		linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .main-container.mk-project-detail-page {
+	padding-top: 20px !important;
+	padding-bottom: 40px !important;
+}
+
+/* Hero — glass card with gold accent */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-header-block.mk-project-detail-hero-strip,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-lux-hero {
+	background: rgba(255, 255, 255, 0.92) !important;
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	border: 1px solid rgba(255, 255, 255, 0.9) !important;
+	border-radius: var(--mk-proj-radius) !important;
+	box-shadow: var(--mk-proj-shadow) !important;
+	padding: 20px 24px !important;
+	margin: 0 0 20px !important;
+	position: relative;
+	overflow: hidden;
+	animation: mkProjLuxFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-hero-strip::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, #fdbb2c, #f59e0b, #fcd34d, #fdbb2c);
+	background-size: 200% 100%;
+	animation: mkProjLuxShimmer 5s linear infinite;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-hero__avatar.recordImage,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-hero__avatar {
+	width: 60px !important;
+	height: 60px !important;
+	min-width: 60px;
+	border-radius: 14px !important;
+	background: linear-gradient(135deg, #fdbb2c 0%, #e5a820 100%) !important;
+	box-shadow: 0 4px 14px rgba(229, 168, 32, 0.35) !important;
+	transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-hero__identity:hover .mk-project-detail-hero__avatar {
+	transform: scale(1.04);
+	box-shadow: 0 6px 20px rgba(229, 168, 32, 0.45) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-hero__title {
+	font-size: 24px !important;
+	font-weight: 700 !important;
+	letter-spacing: -0.02em;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-btn {
+	border-radius: 12px !important;
+	transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-btn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Tabs — floating pill bar */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-related-tabs .nav.nav-tabs,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs {
+	background: rgba(255, 255, 255, 0.95) !important;
+	border: 1px solid var(--mk-proj-border) !important;
+	border-radius: 14px !important;
+	padding: 6px 10px !important;
+	box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+	margin-bottom: 4px !important;
+	animation: mkProjLuxFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab:not(.active) > a:hover {
+	background: rgba(253, 187, 44, 0.1) !important;
+	border-radius: 10px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab.active > a {
+	color: var(--mk-proj-title) !important;
+	font-weight: 600 !important;
+}
+
+/* Summary grid */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-summary-layout {
+	gap: 24px !important;
+}
+
+/* Unified luxury cards */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView.mk-project-detail-metrics,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView.mk-project-detail-keyfields,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer.mk-project-detail-widget,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-lux-card {
+	background: var(--mk-proj-card-bg) !important;
+	border: 1px solid var(--mk-proj-border) !important;
+	border-radius: var(--mk-proj-radius) !important;
+	box-shadow: var(--mk-proj-shadow) !important;
+	padding: 0 0 16px !important;
+	margin-bottom: 0 !important;
+	min-height: auto !important;
+	height: auto !important;
+	display: flex !important;
+	flex-direction: column !important;
+	transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease !important;
+	animation: mkProjLuxFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView.mk-project-detail-metrics:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryView.mk-project-detail-keyfields:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryWidgetContainer.mk-project-detail-widget:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-lux-card:hover {
+	transform: translateY(-3px);
+	box-shadow: var(--mk-proj-shadow-hover) !important;
+	border-color: #d8e0ea !important;
+}
+
+/* Card headers */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-card-title,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .summaryViewHeader h4,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_header h4 {
+	font-size: 13px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.06em !important;
+	text-transform: uppercase !important;
+	color: #475569 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_header,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics .summaryViewHeader,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields .summaryViewHeader {
+	padding: 16px 20px 12px !important;
+	border-bottom: 1px solid #f1f5f9 !important;
+	margin-bottom: 0 !important;
+	background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+	border-radius: var(--mk-proj-radius) var(--mk-proj-radius) 0 0;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields .summaryViewHeader {
+	border-left: none !important;
+	padding-left: 20px !important;
+}
+
+/* KPI metric tiles */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .well {
+	background: #ffffff !important;
+	border: 1px solid #eef2f6 !important;
+	border-radius: 12px !important;
+	min-height: 96px !important;
+	height: auto !important;
+	max-height: none !important;
+	padding: 14px 10px !important;
+	transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+	cursor: default;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .well:hover {
+	transform: translateY(-2px) scale(1.02);
+	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08) !important;
+	border-color: #e2e8f0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-metrics-grid .font-x-x-large {
+	font-size: 22px !important;
+	font-weight: 700 !important;
+	background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+/* Key fields — clean rows */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldLabel,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body .fieldValue {
+	padding: 11px 12px !important;
+	font-size: 13px !important;
+	transition: background 0.15s ease;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body tr:hover .fieldLabel,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body tr:hover .fieldValue {
+	background: #f8fafc;
+}
+
+/* Widget body — repair v16/v17/v18 stretch bugs */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--left .summaryWidgetContainer,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--right .summaryWidgetContainer {
+	min-height: auto !important;
+	flex: 0 1 auto !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-keyfields-body,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .widget_contents {
+	flex: 1 1 auto !important;
+	min-height: 120px !important;
+	padding: 12px 20px 16px !important;
+	overflow: visible !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-col--middle .summaryWidgetContainer.widgetContainer_comments {
+	min-height: auto !important;
+	flex: 1 1 auto !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_documents,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_mileStone,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks {
+	min-height: auto !important;
+	height: auto !important;
+	flex: 1 1 auto !important;
+}
+
+/* Empty states */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .emptyRecordsDiv,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .noDataMsg {
+	background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+	border: 1px dashed #cbd5e1 !important;
+	border-radius: 12px !important;
+	color: #94a3b8 !important;
+	font-size: 13px !important;
+	min-height: 160px !important;
+}
+
+/* Add buttons — gold accent */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .btn.addButton,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .createRecord {
+	background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%) !important;
+	border: 1px solid #e5a820 !important;
+	color: var(--mk-proj-accent-text) !important;
+	border-radius: 10px !important;
+	font-weight: 600 !important;
+	transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .btn.addButton:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .createRecord:hover {
+	background: linear-gradient(135deg, #fdbb2c 0%, #e5a820 100%) !important;
+	color: #ffffff !important;
+	border-color: #e5a820 !important;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(229, 168, 32, 0.3) !important;
+}
+
+/* Select2 filters */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .select2-container .select2-choice {
+	border-radius: 10px !important;
+	border-color: #e2e8f0 !important;
+	min-height: 36px !important;
+	line-height: 34px !important;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-widget .select2-container.select2-container-active .select2-choice {
+	border-color: #fdbb2c !important;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15) !important;
+}
+
+/* Comments composer */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-comment-composer {
+	border-radius: 12px !important;
+	border: 1px solid #e2e8f0 !important;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-comment-composer:focus-within {
+	border-color: #fdbb2c !important;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.12) !important;
+}
+
+/* Task / ticket rows — subtle hover */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .recentActivitiesContainer,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .recentActivitiesContainer {
+	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .recentActivitiesContainer:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_troubleTickets .recentActivitiesContainer:hover {
+	transform: translateX(3px);
+	border-color: #e2e8f0 !important;
+	box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Kill legacy purple chrome from custom.css */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-content .details.row,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-details-row.details {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-content.container-fluid,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detailview-content.detailview-content.container-fluid {
+	margin-top: 0 !important;
+	padding: 0 0 24px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+/* Footer trong mk-app-shell — không bị sidebar / layout ngoài che */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page > .app-footer {
+	display: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
+	display: flex !important;
+	flex-direction: column !important;
+	min-height: 100vh !important;
+	height: auto !important;
+	overflow: visible !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main.mk-project-detail-main {
+	flex: 1 1 auto !important;
+	min-height: 0 !important;
+	overflow: visible !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .main-container.mk-project-detail-page {
+	min-height: 0 !important;
+	padding-bottom: 8px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell > .mk-project-shell-footer.app-footer {
+	display: block !important;
+	flex: 0 0 auto !important;
+	margin-top: auto !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin-left: 0 !important;
+	box-sizing: border-box !important;
+	position: relative !important;
+	z-index: 5 !important;
+	background: rgba(255, 255, 255, 0.96) !important;
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell > .mk-project-shell-footer.app-footer p {
+	margin: 0 !important;
+	padding: 14px 24px 18px !important;
+	min-height: 48px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	border-top: 1px solid #e4eaf0 !important;
+	background: transparent !important;
+	font-family: Inter, system-ui, sans-serif !important;
+	font-size: 11px !important;
+	font-weight: 500 !important;
+	letter-spacing: 0.08em !important;
+	text-transform: uppercase;
+	color: #94a3b8 !important;
+	text-align: center;
+	line-height: 1.4 !important;
+	box-sizing: border-box !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .footer:not(.app-footer) {
+	display: none !important;
+}
+
+@media (max-width: 991px) {
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell > .mk-project-shell-footer.app-footer p {
+		padding: 12px 16px 16px !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-lux-card,
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-lux-hero,
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs {
+		animation: none !important;
+		transition: none !important;
+	}
+}
+
+/* ========================================================================== */
+/* v21 — icon tabs sát mép phải thanh tab                                     */
+/* ========================================================================== */
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .navbar-collapse,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-related-tabs .navbar-collapse {
+	width: 100% !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-related-tabs .nav.nav-tabs,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs {
+	display: flex !important;
+	flex-wrap: nowrap !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	width: 100% !important;
+	padding-left: 8px !important;
+	padding-right: 8px !important;
+	box-sizing: border-box !important;
+	overflow-x: auto !important;
+	overflow-y: hidden !important;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: thin;
+}
+
+/* Tab chữ — bên trái */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]),
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab:not([data-module]) {
+	flex: 0 0 auto !important;
+}
+
+/* Icon đầu tiên sau tab chữ → đẩy cả nhóm icon sang phải */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) + li.tab-item[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab:not([data-module]) + li.tab-item[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) + li.more-tab[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module]:first-child {
+	margin-left: auto !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.dropdown.related-tab-more-element {
+	flex: 0 0 auto !important;
+	margin-left: 4px !important;
+	margin-right: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) + li.tab-item[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab:not([data-module]) + li.tab-item[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) + li.more-tab[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module]:first-child {
+	margin-left: auto !important;
+}
+
+@media (max-width: 767px) {
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs {
+		flex-wrap: wrap !important;
+	}
+
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) + li.tab-item[data-module],
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module]:first-child {
+		margin-left: 0 !important;
+	}
+}
+
+/* ========================================================================== */
+/* v23 — remove ghost footer + premium Tasks widget                             */
+/* ========================================================================== */
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page {
+	display: block !important;
+	min-height: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page > footer.app-footer,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page > .app-footer:not(.mk-project-shell-footer) {
+	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	max-height: 0 !important;
+	overflow: hidden !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	line-height: 0 !important;
+	font-size: 0 !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page > footer.app-footer *,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #page > .app-footer:not(.mk-project-shell-footer) * {
+	display: none !important;
+}
+
+/* ---- Tasks widget (Nhiệm vụ) — premium ---- */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget.summaryWidgetContainer {
+	border: 1px solid #e8e2d4 !important;
+	box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 0 rgba(229, 168, 32, 0.15) inset !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .widget_header {
+	background: linear-gradient(90deg, rgba(253, 187, 44, 0.14) 0%, rgba(255, 255, 255, 0) 72%) !important;
+	border-left: 4px solid #d4a012 !important;
+	border-bottom: 1px solid #f1f5f9 !important;
+	padding: 16px 20px 12px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .widget_header h4,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-project-detail-card-title {
+	color: #5c4a1a !important;
+	letter-spacing: 0.08em !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .btn.addButton,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .createRecord {
+	background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%) !important;
+	border: 1px solid #d4a012 !important;
+	color: #7c5800 !important;
+	font-weight: 700 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .mk-proj-tasks-filter,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .widget_filter,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-filter {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	align-items: center !important;
+	gap: 10px !important;
+	background: #f8fafc !important;
+	border: 1px solid #e8edf2 !important;
+	border-radius: 12px !important;
+	padding: 10px 12px !important;
+	margin: 0 16px 14px !important;
+	width: auto !important;
+	box-sizing: border-box !important;
+	float: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .mk-proj-tasks-filter__item,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-filter__item {
+	float: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	min-width: 0 !important;
+	width: 100% !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .mk-proj-tasks-filter__item .select2-container,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-filter__item .select2-container {
+	display: block !important;
+	width: 100% !important;
+	min-width: 0 !important;
+	max-width: none !important;
+	flex: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .mk-proj-tasks-filter__item .select2-container .select2-choice,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-filter__item .select2-container .select2-choice {
+	display: flex !important;
+	align-items: center !important;
+	min-height: 38px !important;
+	height: 38px !important;
+	line-height: normal !important;
+	padding: 0 12px !important;
+	border-radius: 10px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #ffffff !important;
+	box-shadow: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .mk-proj-tasks-filter__item .select2-container .select2-choice > .select2-chosen,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-filter__item .select2-container .select2-choice > .select2-chosen {
+	display: block !important;
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
+	line-height: 1.35 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	white-space: nowrap !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	color: #334155 !important;
+	font-size: 13px !important;
+	font-weight: 500 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .mk-proj-tasks-filter__item .select2-container .select2-choice .select2-arrow,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-filter__item .select2-container .select2-choice .select2-arrow {
+	position: static !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 18px !important;
+	height: 18px !important;
+	margin-left: 6px !important;
+	background: transparent !important;
+	border: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .mk-proj-tasks-filter__item .select2-container .select2-choice .select2-arrow b,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-filter__item .select2-container .select2-choice .select2-arrow b {
+	margin: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .mk-proj-tasks-filter__item .select2-container.select2-container-active .select2-choice,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .mk-proj-tasks-filter__item .select2-container.select2-dropdown-open .select2-choice,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-filter__item .select2-container.select2-container-active .select2-choice,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-filter__item .select2-container.select2-dropdown-open .select2-choice {
+	border-color: #d4a012 !important;
+	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.12) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .widget_contents {
+	padding: 4px 16px 16px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-card.recentActivitiesContainer {
+	border: 1px solid #e8edf2 !important;
+	border-left: 4px solid #d4a012 !important;
+	border-radius: 14px !important;
+	padding: 14px 16px 12px !important;
+	margin-bottom: 12px !important;
+	background: linear-gradient(135deg, #fffdf8 0%, #ffffff 58%) !important;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-card.recentActivitiesContainer:hover {
+	transform: translateY(-1px);
+	border-color: #d8e0ea !important;
+	border-left-color: #e5a820 !important;
+	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-progress-bar {
+	height: 4px;
+	border-radius: 999px;
+	background: #f1f5f9;
+	margin: 0 0 12px;
+	overflow: hidden;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-progress-bar span {
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: linear-gradient(90deg, #e5a820, #fdbb2c);
+	transition: width 0.35s ease;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-card .mk-proj-task-card__name,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-card .textOverflowEllipsis {
+	width: 100% !important;
+	max-width: 100% !important;
+	margin-bottom: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-card__fields {
+	display: grid !important;
+	grid-template-columns: 1fr 1fr !important;
+	gap: 10px !important;
+	margin: 0 !important;
+	padding: 10px 12px !important;
+	background: #f8fafc !important;
+	border: 1px solid #eef2f6 !important;
+	border-radius: 10px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-meta {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: flex-start !important;
+	gap: 6px !important;
+	min-width: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-meta__label {
+	font-size: 10px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.07em !important;
+	text-transform: uppercase !important;
+	color: #94a3b8 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-meta__value {
+	width: 100% !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-meta__value .dropdown {
+	display: block !important;
+	width: 100% !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-card .mk-proj-task-card__name a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-card .textOverflowEllipsis a {
+	font-size: 15px !important;
+	font-weight: 700 !important;
+	color: #0f172a !important;
+	letter-spacing: -0.01em;
+	text-decoration: none !important;
+	background: none !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-card .mk-proj-task-card__name a:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-card .textOverflowEllipsis a:hover {
+	color: #7c5800 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-pill.dropdown-toggle,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-pill.mk-proj-task-pill--progress,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-pill.mk-proj-task-pill--status {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	padding: 6px 12px !important;
+	border-radius: 999px !important;
+	text-decoration: none !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	border: 1px solid transparent !important;
+	background: #ffffff !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-pill--progress {
+	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+	color: #92400e !important;
+	border-color: #fcd34d !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-pill--status.mk-proj-task-pill--completed {
+	background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important;
+	color: #047857 !important;
+	border-color: #6ee7b7 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-pill--status.mk-proj-task-pill--in-progress {
+	background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+	color: #1d4ed8 !important;
+	border-color: #93c5fd !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-pill--status.mk-proj-task-pill--not-started {
+	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+	color: #475569 !important;
+	border-color: #cbd5e1 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-pill--status.mk-proj-task-pill--on-hold {
+	background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%) !important;
+	color: #c2410c !important;
+	border-color: #fdba74 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-pill .caret {
+	border-top-color: currentColor !important;
+	opacity: 0.75;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-more-footer {
+	display: flex !important;
+	justify-content: flex-end !important;
+	padding: 4px 0 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .moreRecentTasks {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	margin: 8px 16px 4px auto !important;
+	padding: 8px 16px !important;
+	border-radius: 10px !important;
+	background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%) !important;
+	border: 1px solid #d4a012 !important;
+	color: #7c5800 !important;
+	font-weight: 700 !important;
+	font-size: 12px !important;
+	text-decoration: none !important;
+	transition: background 0.18s ease, transform 0.18s ease !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .moreRecentTasks:hover {
+	background: linear-gradient(135deg, #fdbb2c 0%, #e5a820 100%) !important;
+	color: #ffffff !important;
+	transform: translateY(-1px);
+}
+
+@media (max-width: 767px) {
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .widgetContainer_tasks .mk-proj-tasks-filter,
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .widget_filter,
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-tasks-widget .mk-proj-tasks-filter {
+		grid-template-columns: 1fr !important;
+	}
+}
+
+@media (max-width: 767px) {
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-task-card__fields {
+		grid-template-columns: 1fr !important;
+	}
+}
+
+/* ========================================================================== */
+/* Update history tab (Lịch sử cập nhật) — readable premium timeline           */
+/* ========================================================================== */
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer:has(.mk-proj-updates-panel) {
+	padding: 8px 4px 24px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer .mk-proj-updates-panel {
+	padding: 0 !important;
+	margin: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	width: 100% !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-panel__body {
+	padding: 20px 22px 24px !important;
+	background: #ffffff !important;
+	border: 1px solid #e4eaf0 !important;
+	border-radius: 16px !important;
+	box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 10px 32px rgba(15, 23, 42, 0.05) !important;
+	min-height: 280px !important;
+	box-sizing: border-box !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-timeline {
+	list-style: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 16px !important;
+	position: static !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-timeline:before {
+	display: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-item {
+	display: grid !important;
+	grid-template-columns: 124px 44px minmax(0, 1fr) !important;
+	gap: 16px 18px !important;
+	align-items: start !important;
+	position: relative !important;
+	top: auto !important;
+	left: auto !important;
+	min-height: 76px !important;
+	margin: 0 !important;
+	padding: 18px 20px !important;
+	background: #ffffff !important;
+	border: 1px solid #e8edf2 !important;
+	border-left: 4px solid #c9a227 !important;
+	border-radius: 14px !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+	z-index: auto !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-item:hover {
+	border-color: #d5dde8 !important;
+	border-left-color: #d4a012 !important;
+	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-time {
+	position: static !important;
+	width: auto !important;
+	margin: 0 !important;
+	padding: 6px 0 0 !important;
+	text-align: right !important;
+	background: transparent !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-time small {
+	display: block !important;
+	font-size: 13px !important;
+	font-style: normal !important;
+	font-weight: 500 !important;
+	color: #64748b !important;
+	line-height: 1.5 !important;
+	letter-spacing: 0.02em !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon {
+	position: static !important;
+	top: auto !important;
+	left: auto !important;
+	width: 44px !important;
+	height: 44px !important;
+	min-width: 44px !important;
+	margin: 2px 0 0 !important;
+	border-radius: 12px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	overflow: hidden !important;
+	line-height: 1 !important;
+	border: 1px solid rgba(15, 23, 42, 0.06) !important;
+	box-shadow: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon.bg-info {
+	background: #fef9ee !important;
+	color: #a16207 !important;
+	border-color: #fde68a !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon.bg-info-modcomments {
+	background: #eff6ff !important;
+	color: #1d4ed8 !important;
+	border-color: #bfdbfe !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon.bg-info-projecttask {
+	background: #eef2ff !important;
+	color: #4338ca !important;
+	border-color: #c7d2fe !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon.bg-info-documents {
+	background: #f0fdf4 !important;
+	color: #15803d !important;
+	border-color: #bbf7d0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon.bg-info-helpdesk,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon.bg-info-troubletickets {
+	background: #fff7ed !important;
+	color: #c2410c !important;
+	border-color: #fed7aa !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon[class*="bg-info-"]:not(.bg-info-modcomments):not(.bg-info-projecttask):not(.bg-info-documents):not(.bg-info-helpdesk) {
+	background: #f8fafc !important;
+	color: #475569 !important;
+	border-color: #e2e8f0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon .update_image,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon .update_image i,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon i {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 100% !important;
+	height: 100% !important;
+	line-height: 1 !important;
+	font-size: 18px !important;
+	color: inherit !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon img,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-icon .update_image img {
+	position: static !important;
+	left: auto !important;
+	width: 24px !important;
+	height: 24px !important;
+	max-width: 24px !important;
+	max-height: 24px !important;
+	border-radius: 6px !important;
+	object-fit: contain !important;
+	filter: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-info {
+	position: static !important;
+	top: auto !important;
+	margin: 0 !important;
+	padding: 2px 0 0 !important;
+	line-height: 1.6 !important;
+	min-width: 0 !important;
+	letter-spacing: 0.01em !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-title {
+	margin: 0 0 10px !important;
+	font-size: 15px !important;
+	font-weight: 500 !important;
+	color: #334155 !important;
+	line-height: 1.55 !important;
+	letter-spacing: 0.01em !important;
+	word-spacing: 0.04em !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-title .field-name {
+	font-weight: 700 !important;
+	color: #0f172a !important;
+	letter-spacing: 0.005em !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change {
+	margin: 0 0 10px !important;
+	padding: 12px 14px !important;
+	background: #f8fafc !important;
+	border: 1px solid #e8edf2 !important;
+	border-radius: 12px !important;
+	font-size: 13px !important;
+	color: #475569 !important;
+	line-height: 1.65 !important;
+	letter-spacing: 0.015em !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change:last-child {
+	margin-bottom: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change__name {
+	margin-bottom: 4px !important;
+	line-height: 1.5 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change__name .field-name {
+	font-weight: 700 !important;
+	color: #64748b !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.08em !important;
+	font-size: 11px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change__name > span:not(.field-name) {
+	color: #475569 !important;
+	font-weight: 500 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change__from,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change__to {
+	margin-top: 8px !important;
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: baseline !important;
+	gap: 6px 8px !important;
+	line-height: 1.6 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change__from .field-name,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change__to .field-name {
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	color: #94a3b8 !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.07em !important;
+	flex-shrink: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change em {
+	font-style: normal !important;
+	font-weight: 500 !important;
+	color: #1e293b !important;
+	letter-spacing: 0.02em !important;
+	line-height: 1.6 !important;
+	word-break: break-word !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change__to em {
+	color: #0f766e !important;
+	font-weight: 600 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change__from em {
+	color: #64748b !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change del {
+	color: #94a3b8 !important;
+	text-decoration: line-through !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change strong {
+	color: #1d4ed8 !important;
+	font-weight: 600 !important;
+	text-decoration: none !important;
+	letter-spacing: 0.01em !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-change a:hover {
+	color: #1e40af !important;
+	text-decoration: underline !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-more-item {
+	display: block !important;
+	grid-template-columns: none !important;
+	padding: 8px 0 0 !important;
+	margin: 4px 0 0 !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	min-height: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-more-footer {
+	display: flex !important;
+	justify-content: flex-end !important;
+	padding: 4px 0 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-more-btn,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-panel .moreRecentUpdates {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	margin: 0 !important;
+	padding: 10px 20px !important;
+	border-radius: 10px !important;
+	background: #ffffff !important;
+	border: 1px solid #d4a012 !important;
+	color: #7c5800 !important;
+	font-weight: 600 !important;
+	font-size: 13px !important;
+	letter-spacing: 0.03em !important;
+	box-shadow: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-more-btn:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-panel .moreRecentUpdates:hover {
+	background: #fffbeb !important;
+	color: #92400e !important;
+	border-color: #e5a820 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-empty {
+	padding: 56px 28px !important;
+	text-align: center !important;
+	font-size: 14px !important;
+	line-height: 1.6 !important;
+	letter-spacing: 0.02em !important;
+	color: #64748b !important;
+	background: #f8fafc !important;
+	border: 1px dashed #d8e0ea !important;
+	border-radius: 14px !important;
+}
+
+@media (max-width: 767px) {
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-updates-panel__body {
+		padding: 16px 14px 20px !important;
+	}
+
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-item {
+		grid-template-columns: 1fr !important;
+		gap: 12px !important;
+		padding: 16px !important;
+		min-height: 0 !important;
+	}
+
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-update-time {
+		text-align: left !important;
+		padding-top: 0 !important;
+	}
+}
+
+/* ========================================================================== */
+/* v28 — related icon dock + sticky footer                                     */
+/* ========================================================================== */
+
+html.mk-project-detail-management,
+html.mk-project-detail-management body {
+	min-height: 100% !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+	min-height: 100vh !important;
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: stretch !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
+	min-height: 100vh !important;
+	flex: 1 1 auto !important;
+	width: calc(100% - var(--mk-dash-sidebar-w, 256px)) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-dash-main.mk-project-detail-main {
+	flex: 1 1 auto !important;
+	display: flex !important;
+	flex-direction: column !important;
+	min-height: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .main-container.mk-project-detail-page {
+	flex: 1 1 auto !important;
+	display: flex !important;
+	flex-direction: column !important;
+	min-height: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-detail-inner.detailViewContainer {
+	flex: 1 1 auto !important;
+	min-height: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell > .mk-project-shell-footer.app-footer {
+	margin-top: auto !important;
+	flex-shrink: 0 !important;
+	width: 100% !important;
+	border-top: 1px solid #e4eaf0 !important;
+	background: #ffffff !important;
+}
+
+/* Icon dock — nhóm icon liên quan bên phải tab bar */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs {
+	gap: 0 !important;
+	padding-right: 10px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item:not([data-module]) + li.tab-item[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab:not([data-module]) + li.tab-item[data-module],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module]:first-child {
+	margin-left: auto !important;
+	padding-left: 12px !important;
+	border-left: 1px solid #e4eaf0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.mk-proj-related-icon-tab {
+	margin: 0 3px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.mk-proj-related-icon-tab > a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a {
+	padding: 0 !important;
+	margin: 0 !important;
+	min-width: 0 !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a::after,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a::after {
+	display: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon {
+	width: 40px !important;
+	height: 40px !important;
+	border-radius: 12px !important;
+	background: #ffffff !important;
+	border: 1px solid #e4eaf0 !important;
+	color: #64748b !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+	transition: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon i,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon i {
+	font-size: 17px !important;
+	color: inherit !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a:active .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a:active .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a:focus .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a:focus .tab-icon {
+	background: #ffffff !important;
+	border-color: #e4eaf0 !important;
+	color: #64748b !important;
+	transform: none !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module].active > a:hover .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module].active > a:hover .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module].active > a:active .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module].active > a:active .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module].active > a:focus .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module].active > a:focus .tab-icon {
+	background: linear-gradient(135deg, #fff7e0 0%, #fffbeb 100%) !important;
+	border-color: #d4a012 !important;
+	color: #7c5800 !important;
+	transform: none !important;
+	box-shadow: 0 2px 8px rgba(229, 168, 32, 0.18) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon {
+	background: linear-gradient(135deg, #fff7e0 0%, #fffbeb 100%) !important;
+	border-color: #d4a012 !important;
+	color: #7c5800 !important;
+	box-shadow: 0 2px 8px rgba(229, 168, 32, 0.18) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle {
+	top: -4px !important;
+	right: -4px !important;
+	min-width: 17px !important;
+	height: 17px !important;
+	padding: 0 4px !important;
+	font-size: 10px !important;
+	font-weight: 700 !important;
+	line-height: 1 !important;
+	color: #ffffff !important;
+	background: #dc2626 !important;
+	border: 2px solid #ffffff !important;
+	border-radius: 999px !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+	pointer-events: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.mk-proj-related-icon-tab {
+	position: relative;
+	z-index: 1;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.mk-proj-related-icon-tab.active {
+	z-index: 2;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle.hide,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle.hide,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"] {
+	display: none !important;
+	visibility: hidden !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .dropdown.related-tab-more-element > a {
+	width: 40px !important;
+	height: 40px !important;
+	padding: 0 !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	border-radius: 12px !important;
+	background: #ffffff !important;
+	border: 1px solid #e4eaf0 !important;
+	color: #64748b !important;
+	transition: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a:active,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a:active,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module] > a:focus,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.more-tab[data-module] > a:focus {
+	outline: none !important;
+	box-shadow: none !important;
+	-webkit-tap-highlight-color: transparent !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .dropdown.related-tab-more-element > a:hover,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .dropdown.related-tab-more-element > a:active,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .dropdown.related-tab-more-element > a:focus {
+	background: #ffffff !important;
+	border-color: #e4eaf0 !important;
+	color: #64748b !important;
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+@media (max-width: 991px) {
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+}
+
+@media (max-width: 767px) {
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item:not([data-module]) + li.tab-item[data-module],
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-related-icon-tabs .nav.nav-tabs > li.tab-item[data-module]:first-child {
+		margin-left: 0 !important;
+		padding-left: 0 !important;
+		border-left: none !important;
+	}
+}
+
+/* ========================================================================== */
+/* Comments related tab (ShowAllComments) — premium panel + filter           */
+/* ========================================================================== */
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer .mk-proj-comments-panel,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer .commentsRelatedContainer.mk-proj-comments-panel {
+	margin: 0 !important;
+	padding: 18px 20px 22px !important;
+	background: #ffffff !important;
+	border: 1px solid #e4eaf0 !important;
+	border-radius: 16px !important;
+	box-shadow: 0 8px 28px rgba(25, 28, 30, 0.06) !important;
+	position: relative;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer .mk-proj-comments-panel::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	border-radius: 16px 16px 0 0;
+	background: linear-gradient(90deg, #e8c56a 0%, #fdbb2c 45%, #e59a0f 100%);
+	pointer-events: none;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .commentTitle {
+	margin: 0 0 16px !important;
+	padding: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 0 0 14px !important;
+	padding: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-header .mk-proj-comments-title {
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 18px !important;
+	font-weight: 700 !important;
+	color: #1e293b !important;
+	text-transform: none !important;
+	letter-spacing: -0.01em !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-header__right {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 12px 16px;
+	float: none !important;
+	width: auto !important;
+	padding: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-filter {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 200px;
+	max-width: 280px;
+	flex: 1 1 200px;
+	padding: 0 12px;
+	height: 40px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	box-sizing: border-box;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-filter__icon {
+	color: #94a3b8;
+	font-size: 14px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-filter__input {
+	flex: 1 1 auto;
+	width: 100% !important;
+	min-width: 0;
+	height: 38px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	font-size: 13px !important;
+	color: #1e293b !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-filter__input:focus {
+	outline: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-rollup {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	color: #64748b;
+	white-space: nowrap;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .showcomments > hr,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel hr {
+	display: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .commentDetails {
+	margin-bottom: 12px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .singleComment {
+	background: #f8fafc !important;
+	border: 1px solid #e8edf2 !important;
+	border-radius: 12px !important;
+	padding: 14px 16px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .recordImage.commentInfoHeader {
+	width: 40px !important;
+	height: 40px !important;
+	border-radius: 10px !important;
+	background: linear-gradient(135deg, #fff7e0, #fffbeb) !important;
+	border: 1px solid #fcd34d !important;
+	color: #7c5800 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .creatorName {
+	font-weight: 700 !important;
+	color: #1e293b !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .commentTime {
+	color: #94a3b8 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .summarycommemntActionblock a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .commentActionsContainer a {
+	color: #40627e !important;
+	font-weight: 600 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .commentInfoContent {
+	color: #334155 !important;
+	line-height: 1.55 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer .mk-proj-comments-panel .saveComment,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer .mk-proj-comments-panel .detailViewSaveComment {
+	min-width: 72px;
+	min-height: 36px;
+	padding: 8px 20px !important;
+	background: #ffb82e !important;
+	border: 1px solid #e59a0f !important;
+	color: #2a241c !important;
+	border-radius: 8px !important;
+	font-weight: 700 !important;
+	box-shadow: none !important;
+}
+
+/* ========================================================================== */
+/* Comments — avatar, list layout, no bullets (v32)                            */
+/* ========================================================================== */
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-list,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel ul.unstyled {
+	list-style: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-list .mk-proj-comment-list-item,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .commentDetails {
+	list-style: none !important;
+	margin: 0 0 12px !important;
+	padding: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item .singleComment,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .singleComment {
+	background: #f8fafc !important;
+	border: 1px solid #e8edf2 !important;
+	border-radius: 12px !important;
+	padding: 14px 16px !important;
+	margin: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item hr,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .commentDiv > hr {
+	display: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item__row,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .media.mk-proj-comment-item__row {
+	display: flex !important;
+	align-items: flex-start !important;
+	gap: 12px !important;
+	margin: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-avatar {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex: 0 0 44px !important;
+	width: 44px !important;
+	height: 44px !important;
+	min-width: 44px !important;
+	max-width: 44px !important;
+	border-radius: 12px !important;
+	overflow: hidden !important;
+	background: linear-gradient(135deg, #fff7e0 0%, #fffbeb 100%) !important;
+	border: 1px solid #e8c56a !important;
+	box-sizing: border-box !important;
+	padding: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-avatar__photo {
+	display: block !important;
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: cover !important;
+	border: none !important;
+	border-radius: 12px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-avatar__initials {
+	display: block !important;
+	font-size: 14px !important;
+	font-weight: 700 !important;
+	line-height: 1 !important;
+	letter-spacing: 0.04em !important;
+	text-transform: uppercase !important;
+	color: #7c5800 !important;
+	text-shadow: none !important;
+	white-space: nowrap !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item__body,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .mk-proj-comment-item__body {
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
+	width: auto !important;
+	padding: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item__meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 10px;
+	margin-bottom: 8px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item__meta .creatorName {
+	font-weight: 700 !important;
+	color: #1e293b !important;
+	font-size: 14px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item__meta .commentTime {
+	color: #94a3b8 !important;
+	font-size: 12px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item .commentInfoContent {
+	color: #334155 !important;
+	font-size: 14px !important;
+	line-height: 1.55 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item .commentActionsContainer {
+	margin-top: 10px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item .commentActionsContainer a,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item .summarycommemntActionblock a {
+	color: #40627e !important;
+	font-weight: 600 !important;
+	font-size: 13px !important;
+	text-decoration: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item .commentActionsContainer a:hover {
+	text-decoration: underline !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .singleComment:not(:has(.mk-proj-comment-avatar)) .recordImage.commentInfoHeader,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .media-left .recordImage.commentInfoHeader {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex: 0 0 44px !important;
+	width: 44px !important;
+	height: 44px !important;
+	min-width: 44px !important;
+	max-width: 44px !important;
+	border-radius: 12px !important;
+	overflow: hidden !important;
+	background: linear-gradient(135deg, #fff7e0 0%, #fffbeb 100%) !important;
+	border: 1px solid #e8c56a !important;
+	box-sizing: border-box !important;
+	margin-right: 12px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .singleComment:not(:has(.mk-proj-comment-avatar)) .media {
+	display: flex !important;
+	align-items: flex-start !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .singleComment:not(:has(.mk-proj-comment-avatar)) .media-left {
+	padding: 0 !important;
+	width: auto !important;
+	float: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comment-item__row .recordImage.commentInfoHeader {
+	display: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-empty {
+	padding: 28px 16px !important;
+	border: 1px dashed #e2e8f0 !important;
+	border-radius: 12px !important;
+	background: #f8fafc !important;
+	color: #94a3b8 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .commentHeader,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .recentCommentsHeader.row {
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .bootstrap-switch {
+	margin: 0 !important;
 }

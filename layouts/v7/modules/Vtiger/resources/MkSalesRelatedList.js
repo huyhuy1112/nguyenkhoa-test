@@ -1,5 +1,6 @@
 /**
- * Shared luxury related-list UI for SALES detail pages (Accounts, Contacts, SalesOrder, etc.).
+ * Shared luxury related-list UI for SALES detail pages (Accounts, Contacts, SalesOrder, etc.)
+ * and Project MANAGEMENT detail related tabs (milestones, calendar, documents, …).
  * Quotes and Potentials use module-specific Detail.js — skipped here to avoid double init.
  */
 (function ($) {
@@ -7,13 +8,23 @@
 
 	var SKIP_MODULES = { Quotes: true, Potentials: true };
 
-	function isSalesDetailUi() {
+	function isLuxuryRelatedDetailUi() {
 		var b = document.body;
-		return !!(b && b.getAttribute('data-app') === 'SALES' && b.getAttribute('data-view') === 'Detail');
+		if (!b || b.getAttribute('data-view') !== 'Detail') {
+			return false;
+		}
+		var appName = b.getAttribute('data-app');
+		if (appName === 'SALES') {
+			return true;
+		}
+		if (appName === 'MANAGEMENT' && b.getAttribute('data-module') === 'Project') {
+			return document.documentElement.classList.contains('mk-project-detail-management');
+		}
+		return false;
 	}
 
 	function shouldRun() {
-		if (!isSalesDetailUi()) {
+		if (!isLuxuryRelatedDetailUi()) {
 			return false;
 		}
 		if (typeof app !== 'undefined' && app && typeof app.getModuleName === 'function') {
@@ -23,6 +34,16 @@
 			}
 		}
 		return true;
+	}
+
+	function isListRelatedContainer($related) {
+		if (!$related || !$related.length) {
+			return false;
+		}
+		if ($related.find('.listview-table').length) {
+			return true;
+		}
+		return false;
 	}
 
 	function getContainers(container) {
@@ -38,7 +59,9 @@
 		if (!$nodes.length) {
 			$nodes = $('.detailViewContainer .relatedContainer, .detailview-content .relatedContainer, #detailView .relatedContainer, .details .relatedContainer');
 		}
-		return $nodes;
+		return $nodes.filter(function () {
+			return isListRelatedContainer($(this));
+		});
 	}
 
 	function wrapLuxuryRelatedDateInputs($searchRow) {
@@ -95,6 +118,35 @@
 		});
 	}
 
+	function ensureMissingRelatedFilters(container) {
+		getContainers(container).each(function () {
+			var $related = $(this);
+			var $headerCells = $related.find('thead tr.listViewHeaders th').not(':first').not('.mk-rel-spacer-col');
+			var $searchCells = $related.find('thead tr.searchRow th').not('.inline-search-btn').not('.mk-rel-spacer-col');
+			$headerCells.each(function (idx) {
+				var $searchTh = $searchCells.eq(idx);
+				if (!$searchTh.length) {
+					return;
+				}
+				if ($searchTh.find('.listSearchContributor, .select2-container').length) {
+					return;
+				}
+				if ($searchTh.find('input:not(.operatorValue), select, textarea').length) {
+					return;
+				}
+				var fieldName = $(this).find('a.listViewContentHeaderValues').data('fieldname');
+				if (!fieldName) {
+					return;
+				}
+				var $input = $('<input type="text" class="listSearchContributor inputElement" />').attr({
+					name: fieldName,
+					'data-field-type': 'string'
+				});
+				$searchTh.empty().append($input).append('<input type="hidden" class="operatorValue" value="">');
+			});
+		});
+	}
+
 	function centerLuxuryRelatedFilters(container) {
 		getContainers(container).each(function () {
 			var $searchRow = $(this).find('.searchRow').first();
@@ -102,6 +154,8 @@
 				return;
 			}
 			$searchRow.addClass('mk-rel-filter-row-centered');
+
+			ensureMissingRelatedFilters(container);
 
 			if (typeof vtUtils !== 'undefined' && typeof vtUtils.applyFieldElementsView === 'function') {
 				vtUtils.applyFieldElementsView($searchRow);
@@ -147,6 +201,9 @@
 	function decorateLuxuryRelatedPanel(container) {
 		getContainers(container).each(function () {
 			var $related = $(this);
+			if (!isListRelatedContainer($related)) {
+				return;
+			}
 			$related.addClass('mk-luxury-related-panel');
 			$related.find('#PageJump, #PageJumpDropDown').remove();
 			$related.find('.relatedViewActions').remove();

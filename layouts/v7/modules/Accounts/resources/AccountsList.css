@@ -542,6 +542,26 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-mass-
 	border: 1px solid #d4c4ad !important;
 }
 
+/* ---- Pagination footer: hide in toolbar, show below table after JS relocate ---- */
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-actions .mk-so-filter-row__footer {
+	display: none !important;
+}
+
+body[data-module="Accounts"][data-view="List"] #listViewContent #table-content + .mk-so-filter-row__footer {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	min-height: 65px;
+	padding: 10px 16px;
+	border-top: 1px solid #d4c4ad;
+	background: #eceef0;
+	box-sizing: border-box;
+	pointer-events: auto;
+	border-radius: 0 0 11px 11px;
+	flex: 0 0 auto;
+	width: 100%;
+}
+
 /* ---- Pagination footer (centered, below table after JS relocate; also works if still inside #listview-actions) ---- */
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent .mk-org-filter-row__footer,
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent .mk-org-filter-row__footer,

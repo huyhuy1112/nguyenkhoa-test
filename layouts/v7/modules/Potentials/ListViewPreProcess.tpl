@@ -5,15 +5,30 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-opportunity-list-sales');</script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/OpportunityList.css')}&mk_v=20260603_list10" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}&mk_v=20260606_pagingflash1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}&mk_v=20260606_sales_search9" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}&mk_v=20260606_massdel1"></script>
+<style type="text/css">
+html.mk-opportunity-list-sales:not(.mk-opp-list-ready) #listViewContent { visibility: hidden; }
+html.mk-opportunity-list-sales.mk-opp-list-ready #listViewContent { visibility: visible; }
+html.mk-opportunity-list-sales #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+html.mk-opportunity-list-sales #listViewContent .bottom-fixed-scroll {
+	display: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	width: 0 !important;
+	pointer-events: none !important;
+}
+</style>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260607_unified1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/List.js')}&mk_v=20260606_massdel1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/List.js')}?mk_v=20260607_opp_bundle1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/InternalOrderProtection.js')}"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-opportunity-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/OpportunityList.css')}?mk_v=20260607_pagejump2" onload="document.documentElement.classList.add('mk-opp-list-ready')" />
 	<div class="mk-app-shell">
 		<header class="mk-topbar" role="banner">
 			{include file="partials/DashboardAppTopbar.tpl"|@vtemplate_path:'Vtiger'}

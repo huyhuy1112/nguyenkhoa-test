@@ -1,0 +1,514 @@
+/* ============================================================================
+ * Project MANAGEMENT detail — Gantt chart (luxury panel)
+ * ========================================================================== */
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel {
+	--mk-chart-accent: #c98f12;
+	--mk-chart-accent-soft: #fdbb2c;
+	--mk-chart-accent-pale: #fff7e0;
+	--mk-chart-border: #e5dfd4;
+	--mk-chart-surface: #ffffff;
+	--mk-chart-muted: #94a3b8;
+	--mk-chart-text: #0f172a;
+	--mk-chart-subtext: #64748b;
+	--mk-chart-header: #f8fafc;
+	--mk-chart-grid: #f1f5f9;
+	--mk-chart-row-hover: #fafbfc;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	min-width: 0;
+	margin-top: 8px;
+	padding: 0 0 18px;
+	background: var(--mk-chart-surface);
+	border: 1px solid var(--mk-chart-border);
+	border-radius: 16px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 32px rgba(15, 23, 42, 0.06);
+	overflow: hidden;
+	box-sizing: border-box;
+	position: relative;
+	font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel::before {
+	content: "";
+	display: block;
+	height: 3px;
+	background: linear-gradient(90deg, var(--mk-chart-accent) 0%, var(--mk-chart-accent-soft) 55%, #ffe8a8 100%);
+}
+
+/* ---- Header + toolbar ---- */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 12px 16px;
+	padding: 16px 20px 14px;
+	border-bottom: 1px solid #eef2f6;
+	background: linear-gradient(180deg, #fff 0%, #fcfdfe 100%);
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-head__title {
+	margin: 0;
+	font-size: 17px;
+	font-weight: 700;
+	color: var(--mk-chart-text);
+	letter-spacing: -0.02em;
+	line-height: 1.2;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-head__meta {
+	margin: 4px 0 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	color: var(--mk-chart-subtext);
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-head__badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 24px;
+	height: 24px;
+	padding: 0 8px;
+	border-radius: 999px;
+	background: var(--mk-chart-accent-pale);
+	border: 1px solid #f3d37a;
+	color: #7c5800;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-toolbar {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding: 0;
+	border: none;
+	background: transparent;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-toolbar__group {
+	display: inline-flex;
+	align-items: center;
+	padding: 3px;
+	border: 1px solid #e2e8f0;
+	border-radius: 11px;
+	background: #f8fafc;
+	gap: 2px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-btn {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 6px;
+	min-width: 34px !important;
+	height: 34px !important;
+	padding: 0 10px !important;
+	border: none !important;
+	border-radius: 8px !important;
+	background: transparent !important;
+	color: #475569 !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	box-shadow: none !important;
+	transition: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-toolbar__group .mk-proj-chart-btn {
+	min-width: 32px !important;
+	width: 32px !important;
+	padding: 0 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-btn--print {
+	border: 1px solid #e2e8f0 !important;
+	background: #fff !important;
+	padding: 0 14px !important;
+	min-width: auto !important;
+	height: 36px !important;
+	color: #40627e !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-btn .teamworkIcon {
+	display: none !important;
+}
+
+/* ---- Chart workspace ---- */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-workspace-wrap {
+	margin: 16px 20px 0;
+	border: 1px solid #e8edf2;
+	border-radius: 14px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	background: #fff;
+	min-height: 380px;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+	-webkit-overflow-scrolling: touch;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel.mk-proj-chart-ready .mk-proj-chart-workspace-wrap {
+	border-color: #dfe6ee;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel #workSpace {
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	border-radius: 0 !important;
+	width: 100% !important;
+	min-width: 720px;
+	min-height: 380px;
+	background: #fff;
+	overflow: visible !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .ganttButtonBar {
+	display: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .splitterContainer {
+	position: relative !important;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .splitBox1 {
+	overflow-x: auto !important;
+	overflow-y: hidden !important;
+	-webkit-overflow-scrolling: touch;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .splitBox2 {
+	overflow-x: scroll !important;
+	overflow-y: auto !important;
+	-webkit-overflow-scrolling: touch;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .gdfWrapper {
+	width: auto !important;
+	max-width: none !important;
+	min-width: max-content;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-workspace-wrap::-webkit-scrollbar,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .splitBox1::-webkit-scrollbar,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .splitBox2::-webkit-scrollbar {
+	height: 10px;
+	width: 10px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-workspace-wrap::-webkit-scrollbar-thumb,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .splitBox1::-webkit-scrollbar-thumb,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .splitBox2::-webkit-scrollbar-thumb {
+	background: #cbd5e1;
+	border-radius: 999px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-workspace-wrap::-webkit-scrollbar-track,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .splitBox1::-webkit-scrollbar-track,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .splitBox2::-webkit-scrollbar-track {
+	background: #f1f5f9;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .vSplitBar {
+	width: 5px;
+	background: #e2e8f0;
+	border-left: 1px solid #f8fafc;
+	border-right: 1px solid #cbd5e1;
+	cursor: col-resize;
+}
+
+/* Left grid */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .gdfTable {
+	table-layout: fixed !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .gdfColHeader {
+	height: 44px !important;
+	min-height: 44px !important;
+	padding: 0 12px !important;
+	background: var(--mk-chart-header) !important;
+	color: var(--mk-chart-subtext) !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	border-color: #e8edf2 !important;
+	box-sizing: border-box;
+	vertical-align: middle !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .gdfColHeader[data-name="name"] {
+	min-width: 170px !important;
+	text-transform: none;
+	letter-spacing: 0;
+	font-size: 12px !important;
+	color: var(--mk-chart-text) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .gdfColHeader[data-name="startdate"],
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .gdfColHeader[data-name="enddate"] {
+	min-width: 100px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .gdfColHeader[data-name="duration"] {
+	min-width: 72px !important;
+	white-space: nowrap !important;
+	text-overflow: clip !important;
+	overflow: visible !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .gdfCell {
+	padding: 0 12px !important;
+	font-size: 13px !important;
+	color: #334155 !important;
+	border-color: var(--mk-chart-grid) !important;
+	vertical-align: middle !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .taskEditRow,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .emptyRow {
+	height: 36px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .taskEditRow:nth-child(even) .gdfCell {
+	background: #fcfdfe;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .taskEditRow:hover .gdfCell {
+	background: var(--mk-chart-row-hover) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .taskEditRow .gdfCell.noClip {
+	text-align: center !important;
+	padding: 0 8px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .taskEditRow .taskStatus.cvcColorSquare,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .cvcColorSquare.taskStatus {
+	width: 12px !important;
+	height: 12px !important;
+	min-width: 12px !important;
+	min-height: 12px !important;
+	border-radius: 4px !important;
+	box-shadow: none !important;
+	text-indent: -9999px !important;
+	overflow: hidden !important;
+	display: inline-block !important;
+	vertical-align: middle !important;
+	position: static !important;
+	border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .emptyRow .taskStatus.cvcColorSquare {
+	opacity: 0 !important;
+	visibility: hidden !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .emptyRow .gdfCell {
+	background: transparent !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .taskRowIndex {
+	color: var(--mk-chart-muted);
+	font-size: 11px;
+	font-weight: 600;
+}
+
+/* Timeline */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .ganttHead1 th,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .ganttHead2 th {
+	background: var(--mk-chart-header) !important;
+	color: #64748b !important;
+	font-size: 11px !important;
+	font-weight: 600 !important;
+	border-color: #e8edf2 !important;
+	height: 22px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .holyH {
+	background-color: #f1f5f9 !important;
+	color: #94a3b8 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .holy {
+	background-color: #fafbfc !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .ganttLines {
+	border-top-color: var(--mk-chart-grid) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .ganttToday {
+	border-left-color: var(--mk-chart-accent-soft) !important;
+	border-left-width: 2px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .taskBoxDiv {
+	height: 28px !important;
+	margin-top: 4px !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .taskBoxDiv .layout {
+	border-radius: 6px !important;
+	border: none !important;
+	background: #e2e8f0 !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+	overflow: hidden;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .taskBoxDiv .taskProgress {
+	height: 100% !important;
+	top: 0 !important;
+	border-radius: 6px;
+	opacity: 0.85;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .taskBoxDiv .taskLabel {
+	font-size: 11px;
+	font-weight: 600;
+	color: #334155;
+}
+
+/* ---- Footer: legend + tips ---- */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-footer {
+	display: grid;
+	grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+	gap: 14px;
+	padding: 16px 20px 0;
+	align-items: stretch;
+}
+
+@media (max-width: 991px) {
+	html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-footer {
+		grid-template-columns: 1fr;
+	}
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-legend,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-info {
+	background: #f8fafc;
+	border: 1px solid #e8edf2;
+	border-radius: 14px;
+	padding: 14px 16px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-legend__title,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-info__title {
+	margin: 0 0 12px;
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--mk-chart-text);
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-legend__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 8px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-legend__item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 28px;
+	padding: 4px 8px;
+	border-radius: 8px;
+	background: #fff;
+	border: 1px solid #eef2f6;
+	font-size: 13px;
+	color: #475569;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-legend__item .taskStatus {
+	flex: 0 0 14px;
+	width: 14px !important;
+	height: 14px !important;
+	min-width: 14px !important;
+	border-radius: 4px !important;
+	box-shadow: none !important;
+	text-indent: -9999px !important;
+	border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-legend__label {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-legend__edit {
+	flex: 0 0 auto;
+	color: #94a3b8;
+	font-size: 12px;
+	text-decoration: none;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-info {
+	background: linear-gradient(135deg, #fffbeb 0%, #f8fafc 100%);
+	border-color: #f3e8c8;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-info__title {
+	color: #7c5800;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-info__tips {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-tip {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.72);
+	border: 1px solid rgba(243, 211, 122, 0.35);
+	color: #334155;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-tip__icon {
+	flex: 0 0 28px;
+	width: 28px;
+	height: 28px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 8px;
+	background: var(--mk-chart-accent-pale);
+	color: #7c5800;
+	font-size: 13px;
+}
+
+/* Empty state */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .emptyRecordsDiv {
+	margin: 28px 20px;
+	padding: 36px 24px;
+	text-align: center;
+	background: #f8fafc;
+	border: 1px dashed #e2e8f0;
+	border-radius: 14px;
+	color: #64748b;
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .emptyRecordsDiv a {
+	color: #7c5800;
+	font-weight: 600;
+}

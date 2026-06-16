@@ -409,9 +409,15 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-mass-mo
 	border: 1px solid #d4c4ad !important;
 }
 
-/* ---- Pagination footer (centered, below table after JS relocate; also works if still inside #listview-actions) ---- */
-body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent .mk-so-filter-row__footer {
-	display: flex;
+/* ---- Pagination footer (relocated to end of card column by MkMarketingListShared.js) ---- */
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listview-actions .mk-so-filter-row__footer {
+	display: none !important;
+}
+
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-table-card > .col-sm-12 > .mk-so-filter-row__footer:last-child,
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-table-card > .col-xs-12 > .mk-so-filter-row__footer:last-child,
+body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #table-content + .mk-so-filter-row__footer {
+	display: flex !important;
 	align-items: center;
 	justify-content: center;
 	min-height: 65px;
@@ -421,6 +427,7 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewConte
 	box-sizing: border-box;
 	pointer-events: auto;
 	border-radius: 0 0 11px 11px;
+	width: 100%;
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-pagination {

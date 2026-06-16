@@ -73,18 +73,16 @@
 							{assign var=CHILD_COMMENTS_MODEL value=$COMMENT->getChildComments()}
 							<div class="row">
 								<div class="col-lg-12">
-									<div class="media">
-										<div class="media-left title">
-											<div class="col-lg-2 recordImage commentInfoHeader" data-commentid="{$COMMENT->getId()}" data-parentcommentid="{$COMMENT->get('parent_comments')}" data-relatedto = "{$COMMENT->get('related_to')}">
-												{assign var=IMAGE_PATH value=$COMMENT->getImagePath()}
-												{if !empty($IMAGE_PATH)}
-													<img src="{$IMAGE_PATH}" width="100%" height="100%" align="left">
-												{else}
-													<div class="name"><span><strong> {$CREATOR_NAME|mb_substr:0:2|escape:"html"} </strong></span></div>
-												{/if}
-											</div>
-										</div>
-										<div class="media-body" style="width:100%">
+											<div class="media mk-proj-comment-item__row">
+												<div class="mk-proj-comment-avatar" aria-hidden="true">
+													{assign var=IMAGE_PATH value=$COMMENT->getImagePath()}
+													{if !empty($IMAGE_PATH)}
+														<img class="mk-proj-comment-avatar__photo" src="{$IMAGE_PATH}" alt="{$CREATOR_NAME|escape:'html'}">
+													{else}
+														<span class="mk-proj-comment-avatar__initials">{$CREATOR_NAME|mb_substr:0:2|escape:"html"}</span>
+													{/if}
+												</div>
+												<div class="media-body mk-proj-comment-item__body" style="width:100%">
 											<div class="comment" style="line-height:1;">
 												<span class="creatorName">
 													{$CREATOR_NAME}

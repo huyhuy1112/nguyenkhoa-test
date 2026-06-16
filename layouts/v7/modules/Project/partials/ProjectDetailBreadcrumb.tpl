@@ -3,7 +3,7 @@
 <nav class="mk-project-detail-breadcrumb" aria-label="Breadcrumb">
 	<ol class="mk-project-detail-breadcrumb__list">
 		<li class="mk-project-detail-breadcrumb__item">
-			<a href="index.php?module=ProjectTask&amp;view=List&amp;app=MANAGEMENT">{vtranslate('ProjectTask', 'ProjectTask')}</a>
+			<a href="index.php?module=Project&amp;view=List&amp;app=MANAGEMENT">{vtranslate($MODULE, $MODULE)}</a>
 		</li>
 		<li class="mk-project-detail-breadcrumb__sep" aria-hidden="true">&gt;</li>
 		<li class="mk-project-detail-breadcrumb__item">

@@ -251,6 +251,7 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-table-card
 }
 
 /* ---- Filter row ---- */
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row,
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent #listview-actions.listview-actions-container.mk-qt-filter-row {
 	background: #eceef0 !important;
 	border: none !important;
@@ -396,7 +397,8 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-mass-more 
 	border: 1px solid #d4c4ad !important;
 }
 
-/* ---- Pagination footer (centered, below table after JS relocate; also works if still inside #listview-actions) ---- */
+/* ---- Pagination footer (mk-so class = DOM; mk-qt kept for legacy) ---- */
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent .mk-so-filter-row__footer,
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent .mk-qt-filter-row__footer {
 	display: flex;
 	align-items: center;

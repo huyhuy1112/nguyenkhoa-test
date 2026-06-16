@@ -17,39 +17,49 @@
     {/foreach}
 </style>
 {if !empty($PROJECT_TASKS['tasks'])}
-    <div class="pull-right" style="margin-right: 5px;">
-        <span style="margin: 2px;">
-            <button class="btn textual zoomOut" title="zoom out">
-                <span class="teamworkIcon">)</span>
-            </button>
-        </span>
-        <span style="margin: 2px;">
-            <button class="btn textual zoomIn" title="zoom in">
-                <span class="teamworkIcon">(</span>
-            </button>
-        </span>
-        <span style="margin: 2px;">
-            <a href="index.php?module=Project&view=ExportChart&record={$PARENT_ID}" target="_blank" class="btn reportActions btn-default">
-                {vtranslate('LBL_REPORT_PRINT', 'Reports')}
-            </a>
-        </span>
-    </div>
-    <br />
-    <br />
-    <input id="projecttasks"  type="hidden" value="{Vtiger_Util_Helper::toSafeHTML(Zend_Json::encode($PROJECT_TASKS))}">
-    <input id="originalprojecttasks" type="hidden" value="{Vtiger_Util_Helper::toSafeHTML(Zend_Json::encode($PROJECT_TASKS))}">
-    <input id="userDateFormat" type="hidden" value="{$USER_DATE_FORMAT}">
-    <div id="workSpace" style="padding:0px;border:1px solid #e5e5e5;position:relative;margin:0 5px"></div>
+    {assign var=MK_CHART_TASK_COUNT value=$PROJECT_TASKS['tasks']|@count}
+    <div class="relatedContainer mk-proj-chart-panel">
+        <div class="mk-proj-chart-head">
+            <div class="mk-proj-chart-head__main">
+                <h3 class="mk-proj-chart-head__title">{vtranslate('LBL_CHART', $MODULE)}</h3>
+                <p class="mk-proj-chart-head__meta">
+                    <span class="mk-proj-chart-head__badge">{$MK_CHART_TASK_COUNT}</span>
+                    {vtranslate('LBL_GANTT_TASK_COUNT', $MODULE)}
+                </p>
+            </div>
+            <div class="mk-proj-chart-toolbar">
+                <div class="mk-proj-chart-toolbar__group" role="group" aria-label="Zoom">
+                    <button class="btn textual zoomOut mk-proj-chart-btn" title="Thu nhỏ" type="button">
+                        <i class="fa fa-search-minus" aria-hidden="true"></i>
+                    </button>
+                    <button class="btn textual zoomIn mk-proj-chart-btn" title="Phóng to" type="button">
+                        <i class="fa fa-search-plus" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <a href="index.php?module=Project&view=ExportChart&record={$PARENT_ID}" target="_blank" class="btn reportActions btn-default mk-proj-chart-btn mk-proj-chart-btn--print">
+                    <i class="fa fa-print" aria-hidden="true"></i>
+                    <span>{vtranslate('LBL_REPORT_PRINT', 'Reports')}</span>
+                </a>
+            </div>
+        </div>
+
+        <input id="projecttasks" type="hidden" value="{Vtiger_Util_Helper::toSafeHTML(Zend_Json::encode($PROJECT_TASKS))}">
+        <input id="originalprojecttasks" type="hidden" value="{Vtiger_Util_Helper::toSafeHTML(Zend_Json::encode($PROJECT_TASKS))}">
+        <input id="userDateFormat" type="hidden" value="{$USER_DATE_FORMAT}">
+
+        <div class="mk-proj-chart-workspace-wrap">
+            <div id="workSpace" style="padding:0;border:0;position:relative;"></div>
+        </div>
     <div id="gantEditorTemplates" style="display:none;">
         <div class="__template__" type="TASKSEDITHEAD"><!--
         <table class="gdfTable" cellspacing="0" cellpadding="0">
           <thead>
           <tr style='height:50px'>
-            <th class="gdfColHeader" style="width:35px;"></th>
-            <th class="gdfColHeader" style="width:50px;" >{vtranslate('LBL_STATUS', $MODULE)}</th>
-            <th class="gdfColHeader cursorPointer" style="width:80px;" data-name="name" data-text="{vtranslate('LBL_TASK_NAME', $MODULE)}">{vtranslate('LBL_TASK_NAME', $MODULE)}</th>
-            <th class="gdfColHeader cursorPointer" style="width:80px;" data-name="startdate" data-text="{vtranslate('LBL_START_DATE', $MODULE)}" >{vtranslate('LBL_START_DATE', $MODULE)}</th>
-            <th class="gdfColHeader cursorPointer" style="width:80px;" data-name="enddate" data-text="{vtranslate('LBL_END_DATE', $MODULE)}" >{vtranslate('LBL_END_DATE', $MODULE)}</th>
+            <th class="gdfColHeader" style="width:36px;"></th>
+            <th class="gdfColHeader" style="width:56px;" >{vtranslate('LBL_STATUS', $MODULE)}</th>
+            <th class="gdfColHeader cursorPointer" style="width:180px;" data-name="name" data-text="{vtranslate('LBL_TASK_NAME', $MODULE)}">{vtranslate('LBL_TASK_NAME', $MODULE)}</th>
+            <th class="gdfColHeader cursorPointer" style="width:104px;" data-name="startdate" data-text="{vtranslate('LBL_START_DATE', $MODULE)}" >{vtranslate('LBL_START_DATE', $MODULE)}</th>
+            <th class="gdfColHeader cursorPointer" style="width:104px;" data-name="enddate" data-text="{vtranslate('LBL_END_DATE', $MODULE)}" >{vtranslate('LBL_END_DATE', $MODULE)}</th>
             <th class="gdfColHeader cursorPointer" style="width:80px;" data-name="duration" data-text="{vtranslate('LBL_DURATION', $MODULE)}">{vtranslate('LBL_DURATION', $MODULE)}</th>
           </tr>
           </thead>
@@ -190,51 +200,41 @@
         </tr>
         --></div>
     </div>
-    <div class="row" style="margin-top: 10px; padding: 5px;">
-        <div class="col-lg-4">
-            <table class="table table-condensed table-striped table-bordered ">
-                <thead>
-                    <tr>
-                        <td></td>
-                        <td><b>{vtranslate('LBL_STATUS', $MODULE)}</b></td>
-                    </tr>
-                </thead>
-                <tbody>
-                    {foreach from=$TASK_STATUS item=STATUS_NAME}
-                        {assign var=STATUS_NAME value=trim($STATUS_NAME)}
-                        <tr>
-                            <td>
-                                <div class="row">
-                                    <div class="col-lg-3"> &nbsp; </div>
-                                    <div class="col-lg-3">
-                                        <div status="{Project_Record_Model::getGanttStatus($STATUS_NAME)}" class="taskStatus cvcColorSquare"></div>
-                                    </div>
-                                    {if $STATUS_FIELD_MODEL->isEditable()}
-                                        <div class="col-lg-3">
-                                            <a onclick="javascript:Project_Detail_Js.showEditColorModel('index.php?module={$MODULE}&view=EditAjax&mode=editColor&status={$STATUS_NAME}', this)" data-status="{$STATUS_NAME}" data-color="{$TASK_STATUS_COLOR[$STATUS_NAME]}"><i title="{vtranslate('LBL_EDIT_COLOR', $MODULE)}" class="fa fa-pencil alignMiddle"></i></a>&nbsp;
-                                        </div>
-                                    {/if}
-                                </div>
-                            </td>
-                            <td>{vtranslate($STATUS_NAME,'ProjectTask')}</td>
-                        </tr>
-                    {/foreach}
-                </tbody>
-            </table>
+    <div class="mk-proj-chart-footer">
+        <div class="mk-proj-chart-legend">
+            <div class="mk-proj-chart-legend__title">{vtranslate('LBL_GANTT_LEGEND', $MODULE)}</div>
+            <ul class="mk-proj-chart-legend__list">
+                {foreach from=$TASK_STATUS item=STATUS_NAME}
+                    {assign var=STATUS_NAME value=trim($STATUS_NAME)}
+                    <li class="mk-proj-chart-legend__item">
+                        <div status="{Project_Record_Model::getGanttStatus($STATUS_NAME)}" class="taskStatus cvcColorSquare"></div>
+                        <span class="mk-proj-chart-legend__label">{vtranslate($STATUS_NAME,'ProjectTask')}</span>
+                        {if $STATUS_FIELD_MODEL->isEditable()}
+                            <a class="mk-proj-chart-legend__edit" onclick="javascript:Project_Detail_Js.showEditColorModel('index.php?module={$MODULE}&view=EditAjax&mode=editColor&status={$STATUS_NAME}', this)" data-status="{$STATUS_NAME}" data-color="{$TASK_STATUS_COLOR[$STATUS_NAME]}">
+                                <i title="{vtranslate('LBL_EDIT_COLOR', $MODULE)}" class="fa fa-pencil"></i>
+                            </a>
+                        {/if}
+                    </li>
+                {/foreach}
+            </ul>
         </div>
-        <div class="col-lg-8"> 
-            <div style="position: relative;width:93%" class="row alert-info well">
-                <span class="span alert-info">
-                    <span style="padding: 1%"><b>{vtranslate('LBL_INFO',$MODULE)}</b></span>
-                    <ul>
-                        <li>{vtranslate('LBL_GANTT_INFO1', $MODULE)}</li>
-                        <li>{vtranslate('LBL_GANTT_INFO2', $MODULE)}</li>
-                    </ul>
-                </span>
+        <div class="mk-proj-chart-info">
+            <div class="mk-proj-chart-info__title">{vtranslate('LBL_INFO',$MODULE)}</div>
+            <div class="mk-proj-chart-info__tips">
+                <div class="mk-proj-chart-tip">
+                    <span class="mk-proj-chart-tip__icon"><i class="fa fa-arrows-h" aria-hidden="true"></i></span>
+                    <span class="mk-proj-chart-tip__text">{vtranslate('LBL_GANTT_INFO1', $MODULE)}</span>
+                </div>
+                <div class="mk-proj-chart-tip">
+                    <span class="mk-proj-chart-tip__icon"><i class="fa fa-hand-rock-o" aria-hidden="true"></i></span>
+                    <span class="mk-proj-chart-tip__text">{vtranslate('LBL_GANTT_INFO2', $MODULE)}</span>
+                </div>
             </div>
         </div>
     </div>
-{else} 
+    </div>
+{else}
+    <div class="relatedContainer mk-proj-chart-panel">
     <table class="emptyRecordsDiv">
 		<tbody>
 			<tr>
@@ -247,5 +247,6 @@
 			</tr>
 		</tbody>
 	</table>
+    </div>
 {/if}
 {/strip}

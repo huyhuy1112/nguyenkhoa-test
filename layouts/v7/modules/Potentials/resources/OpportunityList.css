@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('../../Vtiger/resources/MkSalesListShared.css?mk_v=20260607_unified1');
+@import url('../../Vtiger/resources/MkSalesListTable.css?mk_v=20260606_sales_search9');
 
 /* Main shell padding: DashBoard.css (24px); keep class hook for module overrides */
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-opportunity-list-main {
@@ -1429,4 +1431,160 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] .myModal {
 html.mk-opportunity-list-sales .modal-backdrop,
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .modal-backdrop {
 	z-index: 110000 !important;
+}
+
+/* =============================================================================
+ * Table card frame — rounded vertical edges (overflow:hidden clips corners)
+ * Pagination dropdown uses body portal (MkSalesListShared.js); safe to clip card.
+ * ============================================================================= */
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-table-card.mk-opportunity-table-card,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card {
+	overflow: hidden !important;
+	border-radius: 12px !important;
+	border: 1px solid #d4c4ad !important;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06) !important;
+	background: #ffffff !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card > .col-sm-12,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card > .col-xs-12 {
+	overflow: hidden !important;
+	border-radius: 12px !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-page,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-list-sales-root {
+	overflow-x: hidden;
+	overflow-y: visible;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-list-content {
+	padding-bottom: 56px;
+	box-sizing: border-box;
+}
+
+/* Control rail — vertical divider (first column border-right) */
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.inline-search-btn {
+	border-right: 1px solid #e8dfd0 !important;
+	background: #fafbfc !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody td.listViewRecordActions,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody td.mk-col-control {
+	border-right: 1px solid #f0ebe3 !important;
+	background: #fcfcfd !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent .bottom-fixed-scroll {
+	display: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	width: 0 !important;
+	pointer-events: none !important;
+	visibility: hidden !important;
+}
+
+body[data-module="Potentials"][data-view="List"] #listViewContent #listview-actions .mk-so-filter-row__footer {
+	display: none !important;
+}
+
+body[data-module="Potentials"][data-view="List"] #listViewContent .mk-opportunity-table-card .mk-so-filter-row__footer,
+body[data-module="Potentials"][data-view="List"] #listViewContent #table-content + .mk-so-filter-row__footer,
+body[data-module="Potentials"][data-view="List"] #listViewContent .col-sm-12 > .mk-so-filter-row__footer:last-child {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	min-height: 68px;
+	padding: 14px 16px 16px;
+	border-top: 1px solid #d4c4ad;
+	background: #eceef0;
+	box-sizing: border-box;
+	border-radius: 0 0 11px 11px;
+	flex: 0 0 auto;
+	width: 100%;
+	position: relative;
+	z-index: 5;
+	overflow: visible;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-pagination,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-pagination {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	overflow: visible;
+	min-height: 44px;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-pagination .btn-group,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-pagination .btn-group {
+	overflow: visible;
+	display: inline-flex;
+	align-items: center;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-pagination .btn {
+	overflow: visible;
+	line-height: 1;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-pagination #PageJump.mk-so-page-btn,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-pagination #PageJump {
+	min-width: 48px;
+	height: 40px;
+	padding: 0 12px;
+	overflow: visible;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-pagination #PageJump .fa-ellipsis-h,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-pagination #PageJump .fa-ellipsis-h {
+	display: block;
+	font-size: 16px;
+	line-height: 1;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .btn-group.dropup.open #PageJumpDropDown {
+	display: block !important;
+	z-index: 12050 !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump input,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump button {
+	pointer-events: auto;
+}
+
+/* Control column: room for checkbox + view + star + ⋮ without clipping */
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th:first-child,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.inline-search-btn,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table th.mk-col-control,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-control,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.listViewRecordActions,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow th.mk-col-control {
+	width: 168px !important;
+	min-width: 168px !important;
+	max-width: 168px !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody td.listViewRecordActions,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table tbody td.mk-col-control {
+	padding-right: 10px !important;
+	overflow: visible !important;
+}
+
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table .table-actions > .more {
+	margin-right: 2px !important;
 }

@@ -31,15 +31,42 @@
 		if (!isMarketingAppList()) {
 			return;
 		}
-		var footer = document.querySelector('#listViewContent .mk-so-filter-row__footer');
-		var table = document.getElementById('table-content');
-		if (!footer || !table || !table.parentNode) {
+		var $lv = getListViewContainer();
+		if (!$lv.length) {
 			return;
 		}
-		if (table.nextSibling === footer) {
+		var $card = $lv.find('.mk-so-table-card').first();
+		var $scope = $card.length ? $card : $lv;
+		var $table = $scope.find('#table-content').first();
+		if (!$table.length) {
 			return;
 		}
-		table.parentNode.insertBefore(footer, table.nextSibling);
+		var $inner = $table.parent();
+		var $footer = $scope.find('#listview-actions .mk-so-filter-row__footer').first();
+		if (!$footer.length) {
+			$footer = $scope.find('#table-content + .mk-so-filter-row__footer').first();
+		}
+		if (!$footer.length) {
+			$footer = $scope.find('.mk-so-filter-row__footer').first();
+		}
+		if (!$footer.length) {
+			return;
+		}
+		$footer = $footer.detach();
+		$scope.find('.mk-so-filter-row__footer').remove();
+		if ($inner.length && ($inner.is('.col-sm-12') || $inner.is('.col-xs-12'))) {
+			$inner.append($footer);
+			return;
+		}
+		$table.after($footer);
+	}
+
+	function bindPageJumpDropdownFix() {
+		$(document)
+			.off('click.mkMktPageJump mousedown.mkMktPageJump', '#PageJumpDropDown, #PageJumpDropDown *')
+			.on('click.mkMktPageJump mousedown.mkMktPageJump', '#PageJumpDropDown, #PageJumpDropDown *', function (e) {
+				e.stopPropagation();
+			});
 	}
 
 	function destroyFloatTheadArtifacts() {
@@ -684,6 +711,7 @@
 			bindToolbarEvents();
 			bindMarketingListTableEvents();
 			bindViewLayoutToggle();
+			bindPageJumpDropdownFix();
 			ensureMarketingListTableUi();
 			scheduleApply();
 			if (typeof app !== 'undefined' && app.event && app.event.on) {

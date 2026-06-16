@@ -905,21 +905,74 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .datepi
 	font-weight: 600;
 }
 
-/* Figma: column filters only — hide legacy green Search / Clear buttons */
-body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn button,
-body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn .btn,
-body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn .searchAndClearButton {
+/* Inline filter-row search (green) + clear (X) — match SALES lists */
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn .table-actions {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 6px !important;
+	min-height: 40px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"],
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 40px !important;
+	height: 40px !important;
+	min-width: 40px !important;
+	min-height: 40px !important;
+	padding: 0 !important;
+	border-radius: 10px !important;
+	font-size: 0 !important;
+	line-height: 1 !important;
+	box-shadow: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] {
+	background: #2e7d32 !important;
+	border: 1px solid #2e7d32 !important;
+	color: #fff !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"]:hover,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"]:focus {
+	background: #256628 !important;
+	border-color: #256628 !important;
+	color: #fff !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] {
+	background: #fff !important;
+	border: 1px solid #d4c4ad !important;
+	color: #5c4a3a !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"]:hover,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"]:focus {
+	background: #fff8f0 !important;
+	border-color: #c4a882 !important;
+	color: #3d3028 !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] i,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] i {
+	font-size: 14px !important;
+	line-height: 1 !important;
+	margin: 0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] .s2-btn-text {
 	display: none !important;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn {
 	padding: 10px 8px !important;
 	vertical-align: middle;
-}
-
-body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow th.inline-search-btn .table-actions {
-	display: block;
-	min-height: 42px;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tbody tr.listViewEntries td {
@@ -1346,11 +1399,6 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 	color: #191c1e !important;
 }
 
-body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow .btn-success,
-body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table tr.searchRow .btn-danger {
-	display: none !important;
-}
-
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .app-nav .addButton.module-buttons,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-btn--primary,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--primary {
@@ -1368,9 +1416,177 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opp
 	box-shadow: none !important;
 }
 
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__right .mk-so-sort-hint,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__right .mk-so-filter-trigger-search {
+	display: none !important;
+}
+
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-btn,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-more {
+	width: 40px !important;
+	min-width: 40px !important;
+	height: 40px !important;
+	min-height: 40px !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
 	background: #ffffff !important;
+	background-image: none !important;
 	border-color: #d4c4ad !important;
 	color: #40627e !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-shadow: none !important;
+	text-shadow: none !important;
+	line-height: 1 !important;
+	font-size: 14px !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-more {
+	min-width: 72px !important;
+	width: auto !important;
+	padding: 0 12px !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-btn:disabled,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-more:disabled {
+	opacity: 0.55;
+	cursor: default;
+	background: #ffffff !important;
+	color: #94a3b8 !important;
+}
+
+/* =============================================================================
+ * Toolbar alignment — straight row, even gaps (light mode)
+ * ============================================================================= */
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-filter-row__inner {
+	align-items: center !important;
+	justify-content: space-between !important;
+	flex-wrap: nowrap !important;
+	gap: 12px 16px !important;
+	min-height: 72px !important;
+	padding: 0 16px !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-filter-row__start {
+	align-items: center !important;
+	gap: 14px !important;
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-actions {
+	display: inline-flex !important;
+	align-items: center !important;
+	flex-wrap: nowrap !important;
+	gap: 6px !important;
+	flex: 0 0 auto !important;
+	margin: 0 0 0 8px !important;
+	padding: 0 0 0 12px !important;
+	border-left: 1px solid #d4c4ad;
+	vertical-align: middle;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-actions .btn-group {
+	display: inline-flex !important;
+	align-items: center !important;
+	margin: 0 !important;
+	float: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-mass-actions .btn-group > .btn {
+	float: none !important;
+	border-radius: 10px !important;
+	margin: 0 !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__right {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	flex: 0 0 auto !important;
+	margin-left: auto !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-icon-btn,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-icon-btn {
+	width: 40px !important;
+	height: 40px !important;
+	min-width: 40px !important;
+	min-height: 40px !important;
+	padding: 0 !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 10px !important;
+	background: #ffffff !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-sizing: border-box !important;
+	box-shadow: none !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout:not(.is-active):not([aria-pressed="true"]) {
+	background: #ffffff !important;
+	border-color: #d4c4ad !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout:not(.is-active):not([aria-pressed="true"]) .mk-so-icon-btn__ic {
+	color: #40627e !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout[aria-pressed="true"] {
+	background: #fff8eb !important;
+	border-color: #e5a820 !important;
+}
+
+/* Progress bar — light fill for in-progress (not dark "calculating" navy) */
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table .mk-projecttask-progress--calculating .mk-projecttask-progress__fill {
+	background: #bbdeff !important;
+}
+
+/* Checkboxes — white/light (dark mode uses MkThemeDarkManagement.css) */
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox {
+	-webkit-appearance: none !important;
+	appearance: none !important;
+	width: 18px !important;
+	height: 18px !important;
+	min-width: 18px !important;
+	min-height: 18px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	flex-shrink: 0;
+	cursor: pointer;
+	border: 2px solid #94a3b8 !important;
+	border-radius: 5px !important;
+	background: #ffffff !important;
+	box-shadow: none !important;
+	position: relative;
+	vertical-align: middle;
+	box-sizing: border-box !important;
+	opacity: 1 !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
+	background: #fdbb2c !important;
+	border-color: #c98f12 !important;
+}
+
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked::after {
+	content: '' !important;
+	position: absolute;
+	left: 5px;
+	top: 1px;
+	width: 5px;
+	height: 10px;
+	border: solid #ffffff;
+	border-width: 0 2.5px 2.5px 0;
+	transform: rotate(45deg);
+	display: block;
 }

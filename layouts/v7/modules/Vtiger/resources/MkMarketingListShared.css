@@ -157,7 +157,9 @@ body[data-view="List"][data-app="MARKETING"] #listview-actions .mk-so-filter-row
 	display: none !important;
 }
 
-body[data-view="List"][data-app="MARKETING"] #table-content + .mk-so-filter-row__footer {
+body[data-view="List"][data-app="MARKETING"] #table-content + .mk-so-filter-row__footer,
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card > .col-sm-12 > .mk-so-filter-row__footer:last-child,
+body[data-view="List"][data-app="MARKETING"] .mk-so-table-card > .col-xs-12 > .mk-so-filter-row__footer:last-child {
 	display: flex !important;
 	align-items: center;
 	justify-content: center;
@@ -192,6 +194,38 @@ body[data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-so-page-btn:h
 body[data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
 	background: #fdbb2c !important;
 	border-color: #e5a820 !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__footer,
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__footer .mk-so-pagination,
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__footer .mk-so-pagination__btns,
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__footer .btn-group {
+	overflow: visible !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__footer .btn-group.dropup {
+	position: relative;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__footer #PageJumpDropDown {
+	z-index: 12050 !important;
+	min-width: 220px;
+	padding: 10px 12px 12px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	box-shadow: 0 8px 24px rgba(25, 28, 30, 0.14);
+	background: #fff;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__footer .btn-group.dropup #PageJumpDropDown {
+	top: auto !important;
+	bottom: 100% !important;
+	margin-bottom: 8px;
+}
+
+body[data-view="List"][data-app="MARKETING"] .mk-so-filter-row__footer .btn-group.dropup.open #PageJumpDropDown {
+	display: block !important;
+	z-index: 12050 !important;
 }
 
 body[data-view="List"][data-app="MARKETING"] .mk-so-toggle-layout.is-active,

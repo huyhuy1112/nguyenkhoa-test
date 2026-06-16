@@ -7,6 +7,9 @@
 			</div>
 		</div>
 		</main>
+		<footer class="app-footer mk-project-shell-footer" role="contentinfo">
+			<p>B-ACE developed by TDB SOLUTION 2025</p>
+		</footer>
 	</div>
 </div>
 {else}

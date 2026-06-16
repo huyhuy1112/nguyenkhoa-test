@@ -83,6 +83,7 @@ class Project_Detail_View extends Vtiger_Detail_View {
 		}
 		
 		$models = $relationListView->getEntries($pagingModel);
+		$totalCount = $relationListView->getRelatedEntriesCount();
 		$header = $relationListView->getHeaders();
 		//ProjectTask Progress and Status should show in Projects summary view 
 		if($relatedModuleName == 'ProjectTask') {
@@ -103,8 +104,25 @@ class Project_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('RELATED_MODULE' , $relatedModuleName);
 		$viewer->assign('RELATED_MODULE_MODEL', $relatedModuleInstance);
 		$viewer->assign('PAGING_MODEL', $pagingModel);
+		$viewer->assign('TOTAL_RELATED_ENTRIES', $totalCount);
 
 		return $viewer->view('SummaryWidgets.tpl', $moduleName, 'true');
+	}
+
+	/**
+	 * Updates tab — limit 5 per page + total count for "Xem thêm" logic.
+	 */
+	function showRecentActivities(Vtiger_Request $request) {
+		if (empty($request->get('limit'))) {
+			$request->set('limit', 5);
+		}
+		$this->_showRecentActivities($request);
+		$viewer = $this->getViewer($request);
+		$viewer->assign(
+			'TOTAL_UPDATES_COUNT',
+			ModTracker_Record_Model::getTotalRecordCount($request->get('record'))
+		);
+		echo $viewer->view('RecentActivities.tpl', $request->getModule(), true);
 	}
 
 	/**

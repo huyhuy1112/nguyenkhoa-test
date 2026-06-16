@@ -5,7 +5,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260606_massdel1';
+	var MK_BUILD = '20260607_opp_bundle1';
 	var autoSearchTimer = null;
 	var inflightSearchId = 0;
 
@@ -958,6 +958,27 @@
 			var w = Math.max($container.outerWidth() || 0, 200);
 			$drop.css({ minWidth: w + 'px', width: 'auto' });
 		});
+	}
+
+	function earlySalesListShell() {
+		if (!isSalesOpportunityList()) {
+			return;
+		}
+		document.documentElement.classList.add('mk-opp-list-ready');
+		if (window.MkSalesListShared) {
+			if (typeof MkSalesListShared.relocatePaginationFooter === 'function') {
+				MkSalesListShared.relocatePaginationFooter();
+			}
+			if (typeof MkSalesListShared.applyCommonUi === 'function') {
+				MkSalesListShared.applyCommonUi();
+			}
+		}
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', earlySalesListShell);
+	} else {
+		earlySalesListShell();
 	}
 
 	function whenReady(callback) {

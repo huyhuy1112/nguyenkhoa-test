@@ -59,4 +59,12 @@ $languageStrings = array(
 	'low' => 'Thấp',
 	'normal' => 'Trung bình',
 	'high' => 'Cao',
+	'LBL_CHART' => 'Biểu đồ Gantt',
+	'LBL_INFO' => 'Hướng dẫn sử dụng',
+	'LBL_TASK_NAME' => 'Tên nhiệm vụ',
+	'LBL_DURATION' => 'Thời lượng',
+	'LBL_GANTT_INFO1' => 'Kéo cạnh phải thanh nhiệm vụ để thay đổi thời lượng.',
+	'LBL_GANTT_INFO2' => 'Kéo cạnh trái hoặc giữa thanh nhiệm vụ để đổi ngày bắt đầu và kết thúc.',
+	'LBL_GANTT_LEGEND' => 'Chú giải trạng thái',
+	'LBL_GANTT_TASK_COUNT' => 'nhiệm vụ',
 );

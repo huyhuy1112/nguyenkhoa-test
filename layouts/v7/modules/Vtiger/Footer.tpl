@@ -7,7 +7,11 @@
 * All Rights Reserved.
 ************************************************************************************}
 
-{if !($MODULE_NAME eq 'Home' && $VIEW eq 'DashBoard')}
+{assign var=MK_SKIP_GLOBAL_APP_FOOTER value=false}
+{if $MODULE_NAME eq 'Project' && ($VIEW eq 'Detail' || $VIEW eq 'List') && ((isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'MANAGEMENT') || (isset($smarty.get.app) && $smarty.get.app eq 'MANAGEMENT'))}
+	{assign var=MK_SKIP_GLOBAL_APP_FOOTER value=true}
+{/if}
+{if !($MODULE_NAME eq 'Home' && $VIEW eq 'DashBoard') && !$MK_SKIP_GLOBAL_APP_FOOTER}
 <footer class="app-footer">
 	<p>B-ACE developed by TDB SOLUTION 2025</p>
 </footer>

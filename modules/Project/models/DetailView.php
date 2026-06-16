@@ -93,6 +93,13 @@ class Project_DetailView_Model extends Vtiger_DetailView_Model {
 		$recordModel = $this->getRecord();
 		$moduleName = $recordModel->getModuleName();
 
+		foreach ($relatedLinks as $key => $link) {
+			if (isset($link['linklabel']) && $link['linklabel'] === 'LBL_UPDATES') {
+				$relatedLinks[$key]['linkurl'] = $recordModel->getDetailViewUrl()
+					. '&mode=showRecentActivities&page=1&limit=5';
+			}
+		}
+
 		/* Bỏ tab ProjectTask cũ (related list bảng) – đã thay bằng Task Board */
 		$relatedLinks = array_filter($relatedLinks, function($link) {
 			if (isset($link['relatedModuleName']) && $link['relatedModuleName'] === 'ProjectTask') {

@@ -222,6 +222,7 @@
 		} catch (e2) {
 			/* ignore */
 		}
+		notifyMkMgmtListUpdated();
 	}
 
 	function bindViewLayoutToggle() {
@@ -301,19 +302,29 @@
 		if (!$table.length) {
 			return;
 		}
-		/* Orphan footers left below table from a previous relocate */
-		$table.nextAll('.mk-so-filter-row__footer').remove();
-		var $footer = dedupePaginationFooters($scope);
+		var $inner = $table.parent();
+		var $footer = $scope.find('#listview-actions .mk-so-filter-row__footer').first();
 		if (!$footer.length) {
-			$footer = $scope.find('#listview-actions .mk-so-filter-row__footer').first().detach();
+			$footer = $scope.find('#table-content + .mk-so-filter-row__footer').first();
+		}
+		if (!$footer.length) {
+			$footer = dedupePaginationFooters($scope);
+			if ($footer.length && $footer.parent().length) {
+				$footer = $footer.detach();
+			}
+		} else {
+			$footer = $footer.detach();
 		}
 		if (!$footer.length) {
 			return;
 		}
-		$scope.find('.mk-so-filter-row__footer').not($footer).remove();
-		if ($table[0].nextElementSibling !== $footer[0]) {
-			$table.after($footer);
+		$scope.find('.mk-so-filter-row__footer').remove();
+		/* Append last inside card column — after #scroller_wrapper (top:-19px in custom.css overlaps footer if placed before it) */
+		if ($inner.length && ($inner.is('.col-sm-12') || $inner.is('.col-xs-12'))) {
+			$inner.append($footer);
+			return;
 		}
+		$table.after($footer);
 	}
 
 	/** Update toolbar counts + pagination controls without replacing #listview-actions (Potentials). */
@@ -956,6 +967,15 @@
 				}, 0);
 			}
 		};
+	}
+
+	function bindPageJumpDropdownFix() {
+		/* Keep menu in DOM (no body portal) — stop Bootstrap document-click from closing while interacting */
+		$(document)
+			.off('click.mkSalesPageJump mousedown.mkSalesPageJump', '#PageJumpDropDown, #PageJumpDropDown *')
+			.on('click.mkSalesPageJump mousedown.mkSalesPageJump', '#PageJumpDropDown, #PageJumpDropDown *', function (e) {
+				e.stopPropagation();
+			});
 	}
 
 	function bindToolbarEvents() {
@@ -1942,6 +1962,7 @@
 				ensureSalesListTableUi();
 			}
 			bindViewLayoutToggle();
+			bindPageJumpDropdownFix();
 			scheduleApply();
 			if (typeof app !== 'undefined' && app.event && app.event.on) {
 				app.event.on('post.listViewFilter.click', applyCommonUi);

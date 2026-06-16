@@ -155,11 +155,17 @@ body[data-view="List"][data-app="SALES"] .mk-so-mass-btn {
 }
 
 /* Pagination footer: hidden inside toolbar until MkSalesListShared moves it below #table-content */
-body[data-view="List"][data-app="SALES"] #listview-actions .mk-so-filter-row__footer {
+body[data-view="List"][data-app="SALES"] #listview-actions .mk-so-filter-row__footer,
+body[data-view="List"] #listViewContent .mk-so-table-card #listview-actions .mk-so-filter-row__footer,
+body[data-view="List"] #listViewContent .mk-org-table-card #listview-actions .mk-so-filter-row__footer {
 	display: none !important;
 }
 
-body[data-view="List"][data-app="SALES"] #table-content + .mk-so-filter-row__footer {
+body[data-view="List"][data-app="SALES"] #table-content + .mk-so-filter-row__footer,
+body[data-view="List"] #listViewContent .mk-so-table-card #table-content + .mk-so-filter-row__footer,
+body[data-view="List"] #listViewContent .mk-org-table-card #table-content + .mk-so-filter-row__footer,
+body[data-view="List"][data-app="SALES"] .mk-so-table-card > .col-sm-12 > .mk-so-filter-row__footer:last-child,
+body[data-view="List"][data-app="SALES"] .mk-so-table-card > .col-xs-12 > .mk-so-filter-row__footer:last-child {
 	display: flex !important;
 	align-items: center;
 	justify-content: center;
@@ -194,6 +200,39 @@ body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:hover
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
 	background: #fdbb2c !important;
 	border-color: #e5a820 !important;
+}
+
+/* Footer pagination: menu opens upward / floats above overflow containers */
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer,
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-pagination,
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-pagination__btns,
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .btn-group {
+	overflow: visible !important;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .btn-group.dropup {
+	position: relative;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown {
+	z-index: 12050 !important;
+	min-width: 220px;
+	padding: 10px 12px 12px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	box-shadow: 0 8px 24px rgba(25, 28, 30, 0.14);
+	background: #fff;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .btn-group.dropup #PageJumpDropDown {
+	top: auto !important;
+	bottom: 100% !important;
+	margin-bottom: 8px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .btn-group.dropup.open #PageJumpDropDown {
+	display: block !important;
+	z-index: 12050 !important;
 }
 
 /* Filter row visibility + table chrome: MkSalesListTable.css (loaded after this file) */
@@ -403,6 +442,8 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #table-content + .mk-so-filter-row__footer,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-table-card > .col-sm-12 > .mk-so-filter-row__footer:last-child,
+body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-table-card > .col-xs-12 > .mk-so-filter-row__footer:last-child,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-table-card .mk-so-filter-row__footer {
 	display: flex !important;
 	align-items: center;
@@ -515,6 +556,8 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listview-a
 }
 
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #table-content + .mk-so-filter-row__footer,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-table-card > .col-sm-12 > .mk-so-filter-row__footer:last-child,
+body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-table-card > .col-xs-12 > .mk-so-filter-row__footer:last-child,
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-project-table-card .mk-so-filter-row__footer {
 	display: flex !important;
 	align-items: center;
@@ -598,6 +641,97 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagi
 	background: #fdbb2c !important;
 	border-color: #d4c4ad !important;
 	color: #6d4d00 !important;
+}
+
+/* MANAGEMENT lists — Jump To dropup + footer overflow (Project, ProjectTask, Documents) */
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer,
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer .mk-so-pagination,
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer .mk-so-pagination__btns,
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer .btn-group {
+	overflow: visible !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer .btn-group.dropup {
+	position: relative;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJumpDropDown {
+	z-index: 12050 !important;
+	min-width: 220px;
+	padding: 10px 12px 12px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	box-shadow: 0 8px 24px rgba(25, 28, 30, 0.14);
+	background: #fff;
+	list-style: none;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJumpDropDown > li {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagenum {
+	text-align: center;
+	white-space: nowrap;
+	padding: 0 0 8px;
+	margin: 0 0 8px;
+	font-size: 13px;
+	color: #504533;
+	border-bottom: 1px solid #eceef0;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 0;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump input.listViewPagingInput,
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump input {
+	width: 72px;
+	height: 36px;
+	padding: 0 8px;
+	border: 1px solid #d4c4ad;
+	border-radius: 8px;
+	background: #fff;
+	color: #191c1e;
+	text-align: center;
+	box-sizing: border-box;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump button.listViewPagingInputSubmit,
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump #pageToJumpSubmit {
+	min-width: 48px;
+	height: 36px;
+	padding: 0 12px;
+	border-radius: 8px;
+	border: 1px solid #c98f12;
+	background: #fdbb2c;
+	color: #6d4d00;
+	font-weight: 600;
+	box-shadow: none;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer .btn-group.dropup #PageJumpDropDown {
+	top: auto !important;
+	bottom: 100% !important;
+	margin-bottom: 8px;
+	left: 50% !important;
+	transform: translateX(-50%);
+}
+
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer .btn-group.dropup.open #PageJumpDropDown {
+	display: block !important;
+	z-index: 12050 !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump input,
+body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump button {
+	pointer-events: auto;
 }
 
 /* ========== Documents List (MANAGEMENT) — table card + toolbar footer ========== */

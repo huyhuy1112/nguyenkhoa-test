@@ -9,6 +9,9 @@
 {strip}
 	<input type="hidden" name="page" value="{$PAGING_MODEL->get('page')}" />
 	<input type="hidden" name="pageLimit" value="{$PAGING_MODEL->get('limit')}" />
+	{if isset($TOTAL_RELATED_ENTRIES)}
+		<input type="hidden" name="totalRelatedEntries" value="{$TOTAL_RELATED_ENTRIES}" />
+	{/if}
 	<input type="hidden" name="relatedModule" value="{$RELATED_MODULE}" />
 	{if $RELATED_MODULE && $RELATED_RECORDS}
 		{assign var=FILENAME value=$RELATED_MODULE|cat:"SummaryWidgetContents.tpl"}

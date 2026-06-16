@@ -10,7 +10,7 @@
 <link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkSales.css')}?mk_v=dark_global_v43" media="screen" />
 <link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkInventory.css')}?mk_v=dark_global_v43" media="screen" />
 <link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkSupport.css')}?mk_v=dark_support_hd_v1" media="screen" />
-<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkManagement.css')}?mk_v=dark_global_v43" media="screen" />
+<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkManagement.css')}?mk_v=20260607_proj_light1" media="screen" />
 <link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkEdit.css')}?mk_v=dark_global_v43" media="screen" />
 <link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDarkDashboard.css')}?mk_v=dark_dash_v3" media="screen" />
 <link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeFonts.css')}?mk_v=inter_global_v1" media="screen" id="mk-theme-styles-last" />

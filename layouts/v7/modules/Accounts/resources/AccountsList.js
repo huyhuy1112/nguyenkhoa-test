@@ -141,7 +141,6 @@
 		if (!isModernAccountsList()) {
 			return;
 		}
-		relocateOrgPagination();
 		markOrgTable();
 		fixListScrollContainer();
 		if (isSalesStyleAccountsList() && typeof window.mkSalesListAfterAjax === 'function') {
@@ -150,6 +149,7 @@
 		if (isMarketingAccountsList() && typeof window.mkMarketingListAfterAjax === 'function') {
 			window.mkMarketingListAfterAjax();
 		}
+		relocateOrgPagination();
 	}
 
 	function init() {
