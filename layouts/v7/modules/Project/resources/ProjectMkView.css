@@ -2080,12 +2080,13 @@ html.mk-project-list-management:not([data-theme="dark"]):not(.dark-mode) body[da
 	color: #7c5800 !important;
 }
 
-/* ---- Grid card view v2 — CSS grid layout, Inter, actions right ---- */
+/* ---- Grid card view — Plans-style stacked rows (label / value) ---- */
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid {
 	font-family: Inter, system-ui, -apple-system, sans-serif !important;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table {
+	display: block !important;
 	width: 100% !important;
 	min-width: 0 !important;
 	max-width: 100% !important;
@@ -2099,87 +2100,80 @@ html.mk-project-list-management #listViewContent.mk-so-is-view-grid #table-conte
 	overflow-x: hidden !important;
 }
 
-/* Flex + justify-center: cards căn giữa vùng trống (1 hoặc nhiều item) */
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody {
 	display: grid !important;
-	grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important;
-	gap: 20px !important;
-	padding: 20px 24px 28px !important;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+	gap: 14px !important;
+	padding: 14px !important;
 	width: 100% !important;
 	box-sizing: border-box !important;
-	align-items: stretch !important;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries {
+	display: flex !important;
+	flex-direction: column !important;
 	width: 100% !important;
 	max-width: none !important;
 	min-width: 0 !important;
-	flex: unset !important;
 	margin: 0 !important;
-	grid-template-columns: 1fr 1fr;
-	grid-template-areas:
-		'actions actions'
-		'title title'
-		'related related'
-		'startdate targetenddate'
-		'progress status'
-		'assigned assigned';
-	border-radius: 16px !important;
-	border: 1px solid #e5dfd4 !important;
-	border-top: 3px solid #fdbb2c !important;
-	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06) !important;
+	height: auto !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 12px !important;
+	background: #fff !important;
+	box-shadow: 0 2px 8px rgba(25, 28, 30, 0.06) !important;
 	overflow: hidden;
-	background: #ffffff !important;
 	font-family: Inter, system-ui, -apple-system, sans-serif !important;
-	display: grid !important;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries:hover {
-	box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.12) !important;
-	border-color: #d4c4ad !important;
+	background: #fffdf8 !important;
+	border-color: #c4a882 !important;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody td.listViewRecordActions {
-	grid-area: actions;
-	order: unset !important;
-	display: flex !important;
-	justify-content: space-between !important;
-	align-items: center !important;
-	text-align: left !important;
-	background: #fafbfc !important;
-	border-bottom: 1px solid #eef2f6 !important;
-	padding: 10px 14px !important;
-	min-height: 44px;
+	order: -1 !important;
+	display: block !important;
+	padding: 10px 12px !important;
+	border-bottom: 1px solid #eceef0 !important;
+	background: #f7f9fb !important;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody td.listViewRecordActions .table-actions {
-	justify-content: flex-end !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	gap: 6px;
 	margin: 0 !important;
-	width: auto !important;
-	gap: 4px;
+	width: 100% !important;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue {
-	display: flex !important;
-	flex-direction: column !important;
-	align-items: flex-start !important;
-	justify-content: center !important;
-	border-bottom: none !important;
-	padding: 12px 18px !important;
-	text-align: left !important;
+	display: block !important;
+	height: auto !important;
 	min-height: 0 !important;
+	padding: 10px 14px !important;
+	border-bottom: 1px solid #eceef0 !important;
+	border-right: none !important;
+	border-top: none !important;
+	background: #fff !important;
+	white-space: normal !important;
+	text-align: left !important;
 	width: 100% !important;
 	box-sizing: border-box !important;
+}
+
+html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue:last-of-type {
+	border-bottom: none !important;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue::before {
 	content: attr(data-field-label);
 	display: block;
-	font-size: 10px;
+	font-size: 11px;
 	font-weight: 600;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
-	color: #94a3b8;
+	letter-spacing: 0.03em;
+	text-transform: capitalize;
+	color: #40627e;
 	margin-bottom: 4px;
 	text-align: left;
 	font-family: Inter, system-ui, sans-serif;
@@ -2187,108 +2181,47 @@ html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-ta
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue .fieldValue,
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue .value {
-	display: flex !important;
-	justify-content: flex-start !important;
-	align-items: center !important;
+	display: block !important;
 	text-align: left !important;
 	width: 100% !important;
+	margin: 0 !important;
 	font-family: Inter, system-ui, sans-serif !important;
-}
-
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectname'] {
-	grid-area: title;
-	order: unset !important;
-	padding: 16px 18px 12px !important;
-	background: linear-gradient(180deg, #fffbeb 0%, #ffffff 72%) !important;
-	border-bottom: 1px solid #f1f5f9 !important;
-}
-
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectname']::before {
-	display: none !important;
+	font-size: 14px;
+	font-weight: 500;
+	color: #334155;
+	line-height: 1.45;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='linktoaccountscontacts'].mk-project-grid-empty-related {
 	display: none !important;
 }
 
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='linktoaccountscontacts'] {
-	grid-area: related;
-	order: unset !important;
-	padding-top: 8px !important;
-	padding-bottom: 8px !important;
-}
-
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='linktoaccountscontacts']:empty,
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='linktoaccountscontacts'] .value:empty {
-	display: none !important;
-}
-
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='startdate'] {
-	grid-area: startdate;
-	order: unset !important;
-	border-right: 1px solid #f1f5f9;
-	background: #fafbfc;
-}
-
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='targetenddate'] {
-	grid-area: targetenddate;
-	order: unset !important;
-	background: #fafbfc;
-}
-
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='progress'] {
-	grid-area: progress;
-	order: unset !important;
-	background: #fff !important;
-	border-right: 1px solid #f1f5f9;
-	border-top: 1px solid #f1f5f9;
-	padding: 12px 14px !important;
-}
-
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectstatus'] {
-	grid-area: status;
-	order: unset !important;
-	background: #fff !important;
-	border-top: 1px solid #f1f5f9;
-	padding: 12px 14px !important;
-}
-
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='assigned_user_id'] {
-	grid-area: assigned;
-	order: unset !important;
-	padding: 12px 18px 16px !important;
-	background: #f8fafc;
-	border-top: 1px solid #f1f5f9;
-}
-
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectname'] .value,
+html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectname'] a.mk-project-name-link,
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectname'] a {
-	font-size: 18px;
-	font-weight: 700;
-	letter-spacing: -0.02em;
-	color: #0f172a !important;
-	font-family: Inter, system-ui, sans-serif !important;
-	line-height: 1.3;
+	font-size: 15px !important;
+	font-weight: 600 !important;
+	color: #1d6fdc !important;
+	text-decoration: none !important;
+	line-height: 1.4;
 }
 
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='linktoaccountscontacts'] .value {
-	font-size: 13px;
-	font-weight: 500;
-	color: #64748b !important;
-	line-height: 1.45;
+html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectname'] a:hover {
+	text-decoration: underline !important;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='startdate'] .value,
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='targetenddate'] .value {
-	font-size: 13px;
-	font-weight: 600;
+	font-size: 14px;
+	font-weight: 500;
 	color: #334155 !important;
 	font-variant-numeric: tabular-nums;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='progress'] .mk-project-progress {
-	flex-direction: row;
-	align-items: center;
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
 	gap: 10px;
 	width: 100%;
 	max-width: 100%;
@@ -2297,58 +2230,68 @@ html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-ta
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='progress'] .mk-project-progress__track {
 	flex: 1 1 auto;
-	width: auto;
 	min-width: 0;
 	height: 6px;
 	border-radius: 999px;
 	background: #e2e8f0;
 }
 
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='progress'] .mk-project-progress__fill {
-	border-radius: 999px;
-}
-
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='progress'] .mk-project-progress__label {
 	flex: 0 0 auto;
-	font-size: 12px;
-	font-weight: 700;
-	color: #0369a1;
-	min-width: 36px;
-	text-align: right;
+	font-size: 13px;
+	font-weight: 600;
+	color: #334155;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='progress'] .value:not(:has(.mk-project-progress)) {
-	display: inline-flex !important;
-	margin: 0 !important;
-	font-weight: 700;
-	font-size: 13px;
-	color: #0369a1 !important;
-	background: #e0f2fe !important;
-	border-radius: 8px;
-	padding: 4px 10px !important;
+	display: inline !important;
+	font-weight: 600;
+	color: #334155 !important;
+	background: transparent !important;
+	padding: 0 !important;
+	border-radius: 0 !important;
 }
 
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectstatus'] .mk-project-status-pill,
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectstatus'] .picklist-color {
+html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectstatus'] .mk-project-status-pill {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 8px;
 	margin: 0 !important;
-	font-family: Inter, system-ui, sans-serif !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectstatus'] .mk-project-status-pill__text {
+	color: #334155 !important;
+}
+
+html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projectstatus'] .mk-project-status-pill__dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	flex: 0 0 10px;
+	background: currentColor;
+	opacity: 1;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries .mk-project-assignee {
-	justify-content: flex-start !important;
-	margin: 0 !important;
-	font-family: Inter, system-ui, sans-serif !important;
+	display: inline-flex !important;
+	align-items: center;
 	gap: 8px;
+	margin: 0 !important;
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries .mk-project-assignee__avatar {
-	width: 28px;
-	height: 28px;
-	border-radius: 8px;
-	background: linear-gradient(135deg, #fff7e0, #fffbeb);
-	border: 1px solid #f3d37a;
-	color: #7c5800;
-	font-size: 11px;
+	width: 24px;
+	height: 24px;
+	border-radius: 6px;
+	background: #f1f5f9;
+	border: 1px solid #e2e8f0;
+	color: #475569;
+	font-size: 10px;
 	font-weight: 700;
 	display: inline-flex;
 	align-items: center;
@@ -2356,24 +2299,9 @@ html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-ta
 }
 
 html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries .mk-project-assignee__name {
-	font-size: 13px;
+	font-size: 14px;
 	font-weight: 500;
-	color: #475569;
-}
-
-/* Grid v4 — listViewEntryValue centered in cell; single page scroll in grid mode */
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue .fieldValue,
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue .value,
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue .dropdown {
-	margin-left: 0 !important;
-	margin-right: 0 !important;
-	text-align: left !important;
-}
-
-html.mk-project-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td.listViewEntryValue .dropdown.pull-left {
-	float: none !important;
-	display: inline-flex !important;
-	justify-content: flex-start !important;
+	color: #334155;
 }
 
 html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #listViewContent.mk-so-is-view-grid #table-content.table-container {

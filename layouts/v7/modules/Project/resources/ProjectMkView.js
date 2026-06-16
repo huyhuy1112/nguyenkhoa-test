@@ -215,7 +215,6 @@
 			if (!$cell.length || $cell.find('.mk-project-status-pill').length) {
 				return;
 			}
-			$td.addClass('mk-project-status-cell');
 			var raw = $.trim($cell.text());
 			if (!raw && $td.length) {
 				raw = $.trim(String($td.data('rawvalue') || ''));
@@ -224,6 +223,20 @@
 				return;
 			}
 			var key = statusKeyFromText(raw);
+			var isGrid = $('#listViewContent').hasClass('mk-so-is-view-grid');
+			if (isGrid) {
+				$cell.html(
+					'<span class="mk-project-status-pill mk-project-status-pill--' +
+						key +
+						'">' +
+						'<span class="mk-project-status-pill__dot" aria-hidden="true"></span>' +
+						'<span class="mk-project-status-pill__text">' +
+						$('<div/>').text(raw).html() +
+						'</span></span>'
+				);
+				return;
+			}
+			$td.addClass('mk-project-status-cell');
 			$cell.html(
 				'<span class="mk-project-status-pill mk-project-status-pill--' +
 					key +
