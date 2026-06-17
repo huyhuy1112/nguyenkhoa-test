@@ -76,6 +76,23 @@
 		{* cv = cache-bust: dùng filemtime hoặc thời điểm hiện tại để menu/custom CSS luôn mới sau chuyển trang hoặc refresh *}
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/custom.css')}&amp;cv={$CUSTOM_CSS_VERSION|default:$smarty.now}" media="screen" />
 		{include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkReferencePopup.css')}?mk_v=20260617_refpopup4" media="screen" />
+		<style type="text/css" id="mk-ref-popup-critical">
+			/* FOUC guard: popup styles apply the instant #popupModal exists */
+			body.mk-ref-popup-open .modal-backdrop.in {
+				background: rgba(15, 23, 42, 0.38) !important;
+				opacity: 1 !important;
+				backdrop-filter: blur(10px);
+				-webkit-backdrop-filter: blur(10px);
+			}
+			#popupModal .modal-header {
+				background: #1a1c1e !important;
+				color: #fff !important;
+				border: none !important;
+			}
+			#popupModal .modal-header h4 { color: #fff !important; }
+			#popupModal #popupPageContainer tr.searchRow { display: none !important; }
+		</style>
 
 		{* For making pages - print friendly *}
 		<style type="text/css">
