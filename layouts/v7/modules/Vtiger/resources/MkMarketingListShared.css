@@ -20,6 +20,28 @@ body[data-view="List"][data-app="SALES"] .mk-leads-page {
 	box-sizing: border-box !important;
 }
 
+/* MARKETING list shell: ensure consistent 24px gutter (prevents left-shift) */
+body[data-view="List"][data-app="MARKETING"] .mk-dash-main,
+body[data-view="List"][data-app="MARKETING"] #mk-dash-main {
+	padding: 24px !important;
+	box-sizing: border-box !important;
+}
+
+/* Some modules override mk-dash-main padding; pin via full selector. */
+body[data-view="List"][data-app="MARKETING"] .mk-app-shell > main#mk-dash-main.mk-dash-main {
+	padding: 24px !important;
+	padding-left: 24px !important;
+	padding-right: 24px !important;
+	box-sizing: border-box !important;
+}
+
+@media (max-width: 767px) {
+	body[data-view="List"][data-app="MARKETING"] .mk-dash-main,
+	body[data-view="List"][data-app="MARKETING"] #mk-dash-main {
+		padding: 16px !important;
+	}
+}
+
 body[data-view="List"][data-app="MARKETING"] .mk-so-table-card,
 body[data-view="List"][data-app="MARKETING"] .mk-contact-table-card,
 body[data-view="List"][data-app="MARKETING"] .mk-org-table-card,
@@ -246,6 +268,15 @@ body[data-view="List"][data-app="MARKETING"] .mk-so-toggle-layout {
 	justify-content: center;
 	cursor: pointer;
 	box-sizing: border-box;
+}
+
+/* Prevent first-paint CSS flash: keep list content hidden until MARKETING list JS boots. */
+html:not(.mk-mkt-ui-ready) body[data-view="List"][data-app="MARKETING"] #listViewContent {
+	visibility: hidden !important;
+}
+
+html.mk-mkt-ui-ready body[data-view="List"][data-app="MARKETING"] #listViewContent {
+	visibility: visible !important;
 }
 
 /* Filter row: always visible (Opportunities reference) */

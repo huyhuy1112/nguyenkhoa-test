@@ -17,6 +17,72 @@ body[data-view="List"][data-app="MARKETING"] #listViewContent:not(.mk-org-search
 	background: #fafbfc !important;
 }
 
+/* Global quick search enabled: hide legacy per-column search row (all variants) */
+body[data-view="List"][data-app="MARKETING"] #listViewContent.mk-mkt-global-search-enabled #listview-table thead tr.searchRow,
+body[data-view="List"][data-app="MARKETING"] #listViewContent.mk-mkt-global-search-enabled tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="MARKETING"] #listViewContent.mk-mkt-global-search-enabled #listview-table tr.searchRow {
+	display: none !important;
+}
+
+/* Global quick search input (Leads-style) */
+body[data-view="List"][data-app="MARKETING"] #listview-actions .mk-mkt-global-search {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 40px;
+	min-height: 40px;
+	padding: 0 10px;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	background: #ffffff;
+	box-sizing: border-box;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listview-actions .mk-mkt-global-search__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #94a3b8;
+	font-size: 14px;
+	line-height: 1;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listview-actions input.mk-mkt-global-search__input {
+	width: 260px;
+	max-width: 42vw;
+	border: none !important;
+	outline: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+	height: 100% !important;
+	min-height: 38px !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	background: transparent !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listview-actions input.mk-mkt-global-search__input::placeholder {
+	color: #94a3b8;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listview-actions .mk-mkt-global-search__clear {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border: none;
+	background: transparent;
+	color: #64748b;
+	border-radius: 8px;
+	padding: 0;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listview-actions .mk-mkt-global-search__clear:hover {
+	background: #f1f5f9;
+}
+
 body[data-view="List"][data-app="MARKETING"] #listview-table tr td:first-child,
 body[data-view="List"][data-app="MARKETING"] #listview-table tr th:first-child {
 	width: 152px !important;
@@ -361,4 +427,53 @@ body[data-view="List"][data-app="MARKETING"] #listview-table td.mk-col-control {
 
 body[data-view="List"][data-app="MARKETING"] #listview-table td.listViewRecordActions .table-actions {
 	overflow: visible !important;
+}
+
+/* ---- Column alignment: headers + cells left-aligned (beats module list CSS) ---- */
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions)) {
+	text-align: left !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues {
+	display: inline-block !important;
+	text-align: left !important;
+	justify-content: flex-start !important;
+	width: auto !important;
+	max-width: 100%;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td.listViewEntryValue,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td {
+	text-align: left !important;
+}
+
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .value,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tfoot > tr > td .value,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .fieldValue,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tfoot > tr > td .fieldValue,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .listViewEntries .listViewEntryValue .fieldValue .value {
+	display: block !important;
+	text-align: left !important;
+	justify-content: flex-start !important;
+	align-items: flex-start !important;
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+/* Pills, badges, owner chips — inline-flex but start-aligned under header */
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name] .value:has([class*="-pill"]),
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name="assigned_user_id"] .value,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name="created_user_id"] .value,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name="smcreatorid"] .value,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name="campaigntype"] .value,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name="campaignstatus"] .value,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td[data-name="plan_status"] .value,
+body[data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td .value[class*="-has-creator"] {
+	display: inline-flex !important;
+	justify-content: flex-start !important;
+	align-items: center !important;
+	text-align: left !important;
 }

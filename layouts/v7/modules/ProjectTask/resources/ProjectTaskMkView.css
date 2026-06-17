@@ -665,10 +665,10 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow input.listSearchContributor.inputElement,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow select.listSearchContributor {
 	display: block;
-	height: 42px;
-	min-height: 42px;
-	padding: 0 14px;
-	border-radius: 10px;
+	height: 40px;
+	min-height: 40px;
+	padding: 0 12px;
+	border-radius: 8px;
 	border: 1px solid #d4c4ad !important;
 	background: #ffffff;
 	font-size: 14px;
@@ -690,9 +690,9 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .select2-container .select2-choice {
-	height: 42px;
-	line-height: 40px;
-	border-radius: 10px;
+	height: 40px;
+	line-height: 38px;
+	border-radius: 8px;
 	border: 1px solid #d4c4ad;
 	background: #ffffff;
 	width: 100%;
@@ -700,9 +700,9 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices {
-	min-height: 42px;
-	padding: 4px 8px;
-	border-radius: 10px;
+	min-height: 40px;
+	padding: 3px 8px;
+	border-radius: 8px;
 	border: 1px solid #d4c4ad !important;
 	background: #ffffff !important;
 	width: 100% !important;
@@ -778,8 +778,8 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group {
-	display: table !important;
-	table-layout: fixed;
+	display: flex !important;
+	align-items: stretch;
 	width: 100%;
 	margin: 0;
 	border-collapse: separate;
@@ -789,7 +789,8 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-input,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group input.dateField {
-	display: table-cell !important;
+	display: block !important;
+	flex: 1 1 auto;
 	vertical-align: middle;
 	width: 100% !important;
 	min-width: 0 !important;
@@ -800,7 +801,7 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 	box-sizing: border-box !important;
 	border: 1px solid #d4c4ad !important;
 	border-right: none !important;
-	border-radius: 10px 0 0 10px !important;
+	border-radius: 8px 0 0 8px !important;
 	background: #fff !important;
 	font-size: 14px !important;
 	font-family: Inter, system-ui, -apple-system, sans-serif !important;
@@ -812,11 +813,14 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-input::placeholder {
 	color: #94a3b8;
-	font-weight: 500;
+	font-weight: 400;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-trigger {
-	display: table-cell !important;
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 40px;
 	vertical-align: middle;
 	width: 40px !important;
 	min-width: 40px !important;
@@ -826,13 +830,17 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 	margin: 0 !important;
 	border: 1px solid #d4c4ad !important;
 	border-left: none !important;
-	border-radius: 0 10px 10px 0 !important;
+	border-radius: 0 8px 8px 0 !important;
 	background: #f8fafc !important;
 	color: #64748b !important;
 	cursor: pointer;
 	box-sizing: border-box;
 	text-align: center;
 	white-space: nowrap;
+	float: none !important;
+	pointer-events: auto !important;
+	position: relative;
+	z-index: 2;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-trigger:hover {
@@ -1111,11 +1119,11 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow {
-	display: table-row !important;
+	display: none !important;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table thead tr.searchRow th {
-	display: table-cell !important;
+	display: none !important;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table .mk-projecttask-priority-pill {
@@ -1251,8 +1259,7 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] tr.searchRow.listViewSearchContainer {
-	display: table-row !important;
-	background: #fafbfc;
+	display: none !important;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] tr.searchRow th {

@@ -338,6 +338,22 @@
 		$table.find('thead tr.searchRow .select2_search_div').css({ width: '100%', maxWidth: '100%' });
 	}
 
+	function ensureProgressSearchPlaceholder() {
+		var $table = $('#listview-table');
+		if (!$table.length) {
+			return;
+		}
+		$table.find('thead tr.searchRow th.mk-col-progress, thead tr.searchRow th:has([name="progress"])').each(function () {
+			var $th = $(this);
+			if ($th.find('input, select, .select2-container, .mk-search-no-filter').length) {
+				return;
+			}
+			$th.append(
+				'<input type="text" class="mk-search-no-filter" disabled readonly tabindex="-1" value="" aria-hidden="true" />'
+			);
+		});
+	}
+
 	function relocatePaginationBelowTable() {
 		if (window.MkSalesListShared && typeof window.MkSalesListShared.relocatePaginationFooter === 'function') {
 			window.MkSalesListShared.relocatePaginationFooter();
@@ -409,6 +425,7 @@
 		assignColumnClasses();
 		applyGridFieldLabels();
 		normalizeSearchFilters();
+		ensureProgressSearchPlaceholder();
 		initDateSearchPickers();
 		renderProgressBars();
 		renderStatusPills();

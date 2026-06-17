@@ -391,9 +391,157 @@
 	var marketingTableHooksPatched = false;
 	var marketingTableEventsBound = false;
 	var autoSearchTimer = null;
+	var globalQuickSearchBound = false;
+	var globalQuickSearchTimer = null;
 
 	function getMarketingTableRoot() {
 		return getListViewContainer();
+	}
+
+	/* ====================================================================== */
+	/* Global quick search (Leads-style single search input)                   */
+	/* ====================================================================== */
+	function shouldUseGlobalQuickSearch() {
+		return isMarketingAppList();
+	}
+
+	function getGlobalQuickSearchQuery() {
+		var $input = $('#mk-mkt-global-search');
+		return $input.length ? $.trim($input.val()) : '';
+	}
+
+	function normalizeText(s) {
+		return String(s || '')
+			.toLowerCase()
+			.replace(/\s+/g, ' ')
+			.trim();
+	}
+
+	function rowTextForFilter(rowEl) {
+		if (!rowEl) {
+			return '';
+		}
+		var t = rowEl.getAttribute('data-mk-rowtext');
+		if (t != null) {
+			return t;
+		}
+		var parts = [];
+		$(rowEl)
+			.children('td')
+			.not('.listViewRecordActions, .mk-col-control')
+			.each(function () {
+				var text = $(this).text();
+				if (text) {
+					parts.push(text);
+				}
+			});
+		t = normalizeText(parts.join(' '));
+		rowEl.setAttribute('data-mk-rowtext', t);
+		return t;
+	}
+
+	function clearRowTextCache() {
+		getMarketingTableRoot()
+			.find('#listview-table tbody tr.listViewEntries[data-mk-rowtext]')
+			.removeAttr('data-mk-rowtext');
+	}
+
+	function applyGlobalQuickSearchFilter() {
+		var $root = getMarketingTableRoot();
+		if (!$root.length) {
+			return;
+		}
+		var q = normalizeText(getGlobalQuickSearchQuery());
+		var $rows = $root.find('#listview-table tbody tr.listViewEntries');
+		if (!q) {
+			$rows.show();
+			$root.removeClass('mk-mkt-global-search-active');
+			return;
+		}
+		$root.addClass('mk-mkt-global-search-active');
+		$rows.each(function () {
+			var hit = rowTextForFilter(this).indexOf(q) >= 0;
+			$(this).toggle(hit);
+		});
+	}
+
+	function scheduleGlobalQuickSearch() {
+		if (globalQuickSearchTimer) {
+			clearTimeout(globalQuickSearchTimer);
+		}
+		globalQuickSearchTimer = setTimeout(function () {
+			globalQuickSearchTimer = null;
+			applyGlobalQuickSearchFilter();
+		}, 40);
+	}
+
+	function injectGlobalQuickSearchUi() {
+		var $root = getMarketingTableRoot();
+		if (!$root.length) {
+			return;
+		}
+		var $bar = $root.find('#listview-actions .mk-so-filter-row__start').first();
+		if (!$bar.length) {
+			$bar = $root.find('#listview-actions').first();
+		}
+		if (!$bar.length || $bar.find('#mk-mkt-global-search').length) {
+			return;
+		}
+		var html =
+			'<div class="mk-mkt-global-search" role="search">' +
+			'<span class="mk-mkt-global-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>' +
+			'<input id="mk-mkt-global-search" class="mk-mkt-global-search__input" type="search" placeholder="Search…" autocomplete="off" />' +
+			'<button type="button" class="mk-mkt-global-search__clear" id="mk-mkt-global-search-clear" aria-label="Clear" hidden>' +
+			'<i class="fa fa-times"></i></button>' +
+			'</div>';
+		$bar.prepend(html);
+	}
+
+	function bindGlobalQuickSearchEvents() {
+		if (globalQuickSearchBound) {
+			return;
+		}
+		globalQuickSearchBound = true;
+		$(document)
+			.off('input.mkMktGlobalSearch', '#mk-mkt-global-search')
+			.on('input.mkMktGlobalSearch', '#mk-mkt-global-search', function () {
+				var val = $.trim($(this).val());
+				$('#mk-mkt-global-search-clear').prop('hidden', !val);
+				scheduleGlobalQuickSearch();
+			})
+			.off('keydown.mkMktGlobalSearch', '#mk-mkt-global-search')
+			.on('keydown.mkMktGlobalSearch', '#mk-mkt-global-search', function (ev) {
+				if (ev.key === 'Escape') {
+					ev.preventDefault();
+					$(this).val('');
+					$('#mk-mkt-global-search-clear').prop('hidden', true);
+					clearRowTextCache();
+					applyGlobalQuickSearchFilter();
+				}
+			});
+		$(document)
+			.off('click.mkMktGlobalSearchClear', '#mk-mkt-global-search-clear')
+			.on('click.mkMktGlobalSearchClear', '#mk-mkt-global-search-clear', function (e) {
+				e.preventDefault();
+				$('#mk-mkt-global-search').val('').trigger('input').focus();
+				clearRowTextCache();
+				applyGlobalQuickSearchFilter();
+			});
+	}
+
+	function ensureGlobalQuickSearch() {
+		if (!shouldUseGlobalQuickSearch()) {
+			return;
+		}
+		var $root = getMarketingTableRoot();
+		if (!$root.length) {
+			return;
+		}
+		$root.addClass('mk-mkt-global-search-enabled');
+		injectGlobalQuickSearchUi();
+		bindGlobalQuickSearchEvents();
+		clearRowTextCache();
+		applyGlobalQuickSearchFilter();
 	}
 
 	function ensureSearchRowVisible() {
@@ -665,6 +813,7 @@
 		assignControlColumnClasses();
 		syncRowSelectedClass();
 		bindMarketingListTableEvents();
+		ensureGlobalQuickSearch();
 	}
 
 	window.mkMarketingListAfterAjax = function () {
@@ -701,6 +850,12 @@
 	function init() {
 		if (!isMarketingAppList()) {
 			return;
+		}
+		// Avoid first-paint style flash (module CSS overrides arrive after base skin).
+		try {
+			document.documentElement.classList.add('mk-mkt-ui-ready');
+		} catch (e0) {
+			/* ignore */
 		}
 		whenVtigerListReady(function () {
 			patchShowPagingInfo();

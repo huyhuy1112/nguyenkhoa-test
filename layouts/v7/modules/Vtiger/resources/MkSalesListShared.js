@@ -1011,6 +1011,8 @@
 	var autoSearchTimer = null;
 	var inflightSalesSearchId = 0;
 	var pendingSalesSearchRowState = null;
+	var globalQuickSearchBound = false;
+	var globalQuickSearchTimer = null;
 
 	function normalizeSearchFieldNameForColumn(fieldName) {
 		if (!fieldName) {
@@ -1908,6 +1910,7 @@
 		syncRowSelectedClass();
 		syncSearchButtonState();
 		bindSalesListTableEvents();
+		ensureGlobalQuickSearch();
 	}
 
 	window.mkSalesListAfterAjax = function (options) {
@@ -1916,6 +1919,162 @@
 		}
 		ensureSalesListTableUi(options || {});
 	};
+
+	/* ====================================================================== */
+	/* Global quick search (Leads-style single search input)                   */
+	/* ====================================================================== */
+	function shouldUseGlobalQuickSearch() {
+		// Leads list is a bespoke UI (LeadsMkList.js) — don't inject here.
+		var mod = (document.body && document.body.getAttribute('data-module')) || '';
+		if (String(mod).toLowerCase() === 'leads') {
+			return false;
+		}
+		return isSalesStyleTableList();
+	}
+
+	function getGlobalQuickSearchQuery() {
+		var $input = $('#mk-so-global-search');
+		return $input.length ? $.trim($input.val()) : '';
+	}
+
+	function normalizeText(s) {
+		return String(s || '')
+			.toLowerCase()
+			.replace(/\s+/g, ' ')
+			.trim();
+	}
+
+	function rowTextForFilter(rowEl) {
+		if (!rowEl) {
+			return '';
+		}
+		var t = rowEl.getAttribute('data-mk-rowtext');
+		if (t != null) {
+			return t;
+		}
+		// Exclude action/control cell to avoid noisy icons.
+		var parts = [];
+		$(rowEl)
+			.children('td')
+			.not('.listViewRecordActions, .mk-col-control')
+			.each(function () {
+				var text = $(this).text();
+				if (text) {
+					parts.push(text);
+				}
+			});
+		t = normalizeText(parts.join(' '));
+		rowEl.setAttribute('data-mk-rowtext', t);
+		return t;
+	}
+
+	function clearRowTextCache() {
+		getSalesTableRoot()
+			.find('#listview-table tbody tr.listViewEntries[data-mk-rowtext]')
+			.removeAttr('data-mk-rowtext');
+	}
+
+	function applyGlobalQuickSearchFilter() {
+		var $root = getSalesTableRoot();
+		if (!$root.length) {
+			return;
+		}
+		var q = normalizeText(getGlobalQuickSearchQuery());
+		var $rows = $root.find('#listview-table tbody tr.listViewEntries');
+		if (!q) {
+			$rows.show();
+			$root.removeClass('mk-so-global-search-active');
+			return;
+		}
+		$root.addClass('mk-so-global-search-active');
+		$rows.each(function () {
+			var hit = rowTextForFilter(this).indexOf(q) >= 0;
+			$(this).toggle(hit);
+		});
+	}
+
+	function scheduleGlobalQuickSearch() {
+		if (globalQuickSearchTimer) {
+			clearTimeout(globalQuickSearchTimer);
+		}
+		// Very small debounce to feel instant but avoid layout thrash.
+		globalQuickSearchTimer = setTimeout(function () {
+			globalQuickSearchTimer = null;
+			applyGlobalQuickSearchFilter();
+		}, 40);
+	}
+
+	function injectGlobalQuickSearchUi() {
+		var $root = getSalesTableRoot();
+		if (!$root.length) {
+			return;
+		}
+		var $bar = $root.find('#listview-actions .mk-so-filter-row__start').first();
+		if (!$bar.length) {
+			// Fallback: place inside actions container.
+			$bar = $root.find('#listview-actions').first();
+		}
+		if (!$bar.length || $bar.find('#mk-so-global-search').length) {
+			return;
+		}
+
+		var html =
+			'<div class="mk-so-global-search" role="search">' +
+			'<span class="mk-so-global-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>' +
+			'<input id="mk-so-global-search" class="mk-so-global-search__input" type="search" placeholder="Search…" autocomplete="off" />' +
+			'<button type="button" class="mk-so-global-search__clear" id="mk-so-global-search-clear" aria-label="Clear" hidden>' +
+			'<i class="fa fa-times"></i></button>' +
+			'</div>';
+		$bar.prepend(html);
+	}
+
+	function bindGlobalQuickSearchEvents() {
+		if (globalQuickSearchBound) {
+			return;
+		}
+		globalQuickSearchBound = true;
+		$(document)
+			.off('input.mkSoGlobalSearch', '#mk-so-global-search')
+			.on('input.mkSoGlobalSearch', '#mk-so-global-search', function () {
+				var val = $.trim($(this).val());
+				$('#mk-so-global-search-clear').prop('hidden', !val);
+				scheduleGlobalQuickSearch();
+			})
+			.off('keydown.mkSoGlobalSearch', '#mk-so-global-search')
+			.on('keydown.mkSoGlobalSearch', '#mk-so-global-search', function (ev) {
+				if (ev.key === 'Escape') {
+					ev.preventDefault();
+					$(this).val('');
+					$('#mk-so-global-search-clear').prop('hidden', true);
+					clearRowTextCache();
+					applyGlobalQuickSearchFilter();
+				}
+			});
+		$(document)
+			.off('click.mkSoGlobalSearchClear', '#mk-so-global-search-clear')
+			.on('click.mkSoGlobalSearchClear', '#mk-so-global-search-clear', function (e) {
+				e.preventDefault();
+				$('#mk-so-global-search').val('').trigger('input').focus();
+				clearRowTextCache();
+				applyGlobalQuickSearchFilter();
+			});
+	}
+
+	function ensureGlobalQuickSearch() {
+		if (!shouldUseGlobalQuickSearch()) {
+			return;
+		}
+		var $root = getSalesTableRoot();
+		if (!$root.length) {
+			return;
+		}
+		$root.addClass('mk-so-global-search-enabled');
+		injectGlobalQuickSearchUi();
+		bindGlobalQuickSearchEvents();
+		// After PJAX swaps, rows are new → clear cache and reapply current query.
+		clearRowTextCache();
+		applyGlobalQuickSearchFilter();
+	}
 
 	function scheduleApply() {
 		var delays = [0, 50, 150, 400, 800];

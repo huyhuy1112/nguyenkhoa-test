@@ -891,6 +891,13 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewCont
 	background: #fafbfc;
 }
 
+/* Global quick search: remove legacy per-column filters (prevent first-paint flash) */
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table thead tr.searchRow,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow {
+	display: none !important;
+}
+
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th {
 	border-bottom: 1px solid #d4c4ad;
 	padding: 10px 12px !important;

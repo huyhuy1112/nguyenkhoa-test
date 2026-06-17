@@ -23,8 +23,8 @@ html.mk-plans-list-marketing #listViewContent .bottom-fixed-scroll {
 </style>
 <script type="text/javascript">document.documentElement.classList.add('mk-plans-list-marketing');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListShared.css')}?mk_v=20260607_plans1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListTable.css')}?mk_v=20260603_mkt_std1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Plans/resources/PlansList.css')}?mk_v=20260607_plans1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListTable.css')}?mk_v=20260617_mkt_align1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Plans/resources/PlansList.css')}?mk_v=20260617_align1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListShared.js')}?mk_v=20260607_plans1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Plans/resources/List.js')}?mk_v=20260607_plans1"></script>

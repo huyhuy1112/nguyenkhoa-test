@@ -15,6 +15,177 @@ body[data-view="List"][data-app="SALES"] #listViewContent:not(.mk-org-search-ope
 	background: #fafbfc !important;
 }
 
+/* Global quick search enabled: hide legacy per-column search row (all variants) */
+body[data-view="List"][data-app="SALES"] #listViewContent.mk-so-global-search-enabled #listview-table thead tr.searchRow,
+body[data-view="List"][data-app="SALES"] #listViewContent.mk-so-global-search-enabled tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="SALES"] #listViewContent.mk-so-global-search-enabled #listview-table tr.searchRow {
+	display: none !important;
+}
+
+/* Global quick search input (Leads-style) */
+body[data-view="List"][data-app="SALES"] #listview-actions .mk-so-global-search {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 40px;
+	min-height: 40px;
+	padding: 0 10px;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	background: #ffffff;
+	box-sizing: border-box;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-actions .mk-so-global-search__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #94a3b8;
+	font-size: 14px;
+	line-height: 1;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-actions input.mk-so-global-search__input {
+	width: 260px;
+	max-width: 42vw;
+	border: none !important;
+	outline: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+	height: 100% !important;
+	min-height: 38px !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	background: transparent !important;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-actions input.mk-so-global-search__input::placeholder {
+	color: #94a3b8;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-actions .mk-so-global-search__clear {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border: none;
+	background: transparent;
+	color: #64748b;
+	border-radius: 8px;
+	padding: 0;
+}
+
+body[data-view="List"][data-app="SALES"] #listview-actions .mk-so-global-search__clear:hover {
+	background: #f1f5f9;
+}
+
+/* MANAGEMENT Project / ProjectTask — toolbar global quick search (Leads-style) */
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-actions .mk-so-global-search,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-actions .mk-so-global-search {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 40px;
+	min-height: 40px;
+	padding: 0 12px;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	background: #ffffff;
+	box-sizing: border-box;
+	flex: 0 1 auto;
+	min-width: 0;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-actions .mk-so-global-search__ic,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-actions .mk-so-global-search__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	color: #94a3b8;
+	font-size: 14px;
+	line-height: 1;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-actions input.mk-so-global-search__input,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-actions input.mk-so-global-search__input {
+	width: 240px;
+	max-width: 38vw;
+	min-width: 120px;
+	border: none !important;
+	outline: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	height: 100% !important;
+	min-height: 38px !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	background: transparent !important;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-actions input.mk-so-global-search__input::placeholder,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-actions input.mk-so-global-search__input::placeholder {
+	color: #94a3b8;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-actions input.mk-so-global-search__input:focus,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-actions input.mk-so-global-search__input:focus {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-actions .mk-so-global-search:focus-within,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-actions .mk-so-global-search:focus-within {
+	border-color: #c98f12;
+	box-shadow: 0 0 0 2px rgba(253, 187, 44, 0.2);
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-actions .mk-so-global-search__clear,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-actions .mk-so-global-search__clear {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	width: 28px;
+	height: 28px;
+	border: none;
+	background: transparent;
+	color: #64748b;
+	border-radius: 8px;
+	padding: 0;
+	cursor: pointer;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-actions .mk-so-global-search__clear:hover,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-actions .mk-so-global-search__clear:hover {
+	background: #f1f5f9;
+	color: #334155;
+}
+
+/* Hide per-column filter row — use toolbar search only */
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listViewContent.mk-so-global-search-enabled #listview-table thead tr.searchRow,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listViewContent.mk-so-global-search-enabled #listview-table thead tr.searchRow,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listViewContent.mk-so-global-search-enabled tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listViewContent.mk-so-global-search-enabled tr.searchRow.listViewSearchContainer,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listViewContent.mk-so-global-search-enabled #listview-table tr.searchRow,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listViewContent.mk-so-global-search-enabled #listview-table tr.searchRow {
+	display: none !important;
+}
+
+/* Anti-FOUC: hide filter row on MANAGEMENT Project/Task until global search boots */
+html.mk-project-list-management body[data-module="Project"][data-view="List"] #listview-table thead tr.searchRow,
+html.mk-projecttask-list-management body[data-module="ProjectTask"][data-view="List"] #listview-table thead tr.searchRow,
+html.mk-project-list-management body[data-module="Project"][data-view="List"] tr.searchRow.listViewSearchContainer,
+html.mk-projecttask-list-management body[data-module="ProjectTask"][data-view="List"] tr.searchRow.listViewSearchContainer {
+	display: none !important;
+}
+
 body[data-view="List"][data-app="SALES"] #listview-table tr td:first-child,
 body[data-view="List"][data-app="SALES"] #listview-table tr th:first-child {
 	width: 152px !important;
@@ -354,11 +525,9 @@ body[data-view="List"][data-app="SALES"] #listview-table td.listViewRecordAction
 	overflow: visible !important;
 }
 
-/* MANAGEMENT ProjectTask list — same filter row / search chrome as SALES lists */
-body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listViewContent tr.searchRow.listViewSearchContainer,
-body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
-	display: table-row !important;
-	background: #fafbfc !important;
+/* MANAGEMENT ProjectTask list — legacy filter row hidden (toolbar global search) */
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listViewContent:not(.mk-so-global-search-enabled) tr.searchRow.listViewSearchContainer {
+	display: none !important;
 }
 
 body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .listSearchContributor.inputElement:not(.mk-date-search-input),
@@ -408,11 +577,9 @@ body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listvi
 	background: rgba(253, 187, 44, 0.1) !important;
 }
 
-/* MANAGEMENT Project list — same filter row / search chrome as ProjectTask */
-body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listViewContent tr.searchRow.listViewSearchContainer,
-body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listViewContent:not(.mk-so-search-open) tr.searchRow.listViewSearchContainer {
-	display: table-row !important;
-	background: #fafbfc !important;
+/* MANAGEMENT Project list — legacy filter row hidden (toolbar global search) */
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listViewContent:not(.mk-so-global-search-enabled) tr.searchRow.listViewSearchContainer {
+	display: none !important;
 }
 
 body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .listSearchContributor.inputElement:not(.mk-date-search-input),
@@ -484,4 +651,281 @@ body.mk-mgmt-date-picker-open .datepicker.datepicker-dropdown,
 body.mk-mgmt-date-picker-open .datepicker.dropdown-menu {
 	opacity: 1 !important;
 	pointer-events: auto !important;
+}
+
+/* ===== MANAGEMENT Project / ProjectTask — polished inline filter row ===== */
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow {
+	background: #fafbfc !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow th,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow th {
+	padding: 8px 10px !important;
+	vertical-align: middle !important;
+	background: #fafbfc !important;
+	border-bottom: 1px solid #e8dfd0 !important;
+	box-sizing: border-box;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow th .row-fluid,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow th .row-fluid,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow th > div:not(.table-actions),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow th > div:not(.table-actions),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow th .select2_search_div,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow th .select2_search_div {
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	display: block !important;
+	box-sizing: border-box;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .listSearchContributor.inputElement:not(.mk-date-search-input),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .listSearchContributor.inputElement:not(.mk-date-search-input),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element):not(.mk-date-search-input),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element):not(.mk-date-search-input),
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow select.listSearchContributor,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow select.listSearchContributor {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 8px !important;
+	background: #fff !important;
+	font-size: 14px !important;
+	font-family: Inter, system-ui, -apple-system, sans-serif !important;
+	color: #191c1e !important;
+	text-align: left !important;
+	box-shadow: none !important;
+	line-height: 38px !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .select2-container,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .select2-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	display: block !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .select2-container .select2-choice,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .select2-container .select2-choice {
+	width: 100% !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	line-height: 38px !important;
+	padding: 0 12px !important;
+	border: 1px solid #d4c4ad !important;
+	border-radius: 8px !important;
+	background: #fff !important;
+	background-image: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .select2-container .select2-chosen,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .select2-container .select2-chosen {
+	font-size: 14px !important;
+	color: #191c1e !important;
+	padding-right: 24px !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .select2-container .select2-arrow,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .select2-container .select2-arrow {
+	width: 28px !important;
+	border-left: none !important;
+	background: transparent !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .select2-container .select2-arrow b,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .select2-container .select2-arrow b {
+	border-color: #64748b transparent transparent transparent !important;
+	margin-top: -2px !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .select2-container-multi .select2-choices {
+	min-height: 40px !important;
+	height: auto !important;
+	padding: 3px 8px !important;
+	border-radius: 8px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .mk-date-search-group,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group {
+	display: flex !important;
+	align-items: stretch !important;
+	width: 100% !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-input,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-input,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .mk-date-search-group input.dateField,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group input.dateField {
+	display: block !important;
+	flex: 1 1 auto !important;
+	width: auto !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+	border: 1px solid #d4c4ad !important;
+	border-right: none !important;
+	border-radius: 8px 0 0 8px !important;
+	background: #fff !important;
+	font-size: 14px !important;
+	line-height: 38px !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-input::placeholder,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-input::placeholder,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .mk-date-search-group input.dateField::placeholder,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group input.dateField::placeholder {
+	color: #94a3b8 !important;
+	font-weight: 400 !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-trigger,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group .mk-date-search-trigger {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex: 0 0 40px !important;
+	width: 40px !important;
+	min-width: 40px !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: 1px solid #d4c4ad !important;
+	border-left: none !important;
+	border-radius: 0 8px 8px 0 !important;
+	background: #f8fafc !important;
+	color: #64748b !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within .mk-date-search-input,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within .mk-date-search-input,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within input.dateField,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within input.dateField,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within .mk-date-search-trigger,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within .mk-date-search-trigger {
+	border-color: #c98f12 !important;
+}
+
+/* Progress column — no server filter; keep row height aligned */
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow th.mk-col-progress .mk-search-no-filter,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow th.mk-col-progress .mk-search-no-filter,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow th:has([name="progress"]) .mk-search-no-filter,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow th:has([name="projecttaskprogress"]) .mk-search-no-filter {
+	display: block !important;
+	width: 100% !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+	border: 1px dashed #e2d6c4 !important;
+	border-radius: 8px !important;
+	background: #f8fafc !important;
+	color: #94a3b8 !important;
+	font-size: 14px !important;
+	line-height: 38px !important;
+	cursor: not-allowed !important;
+	opacity: 1 !important;
+}
+
+/* Search / clear — brand gold, same height as inputs */
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn {
+	padding: 8px 10px !important;
+	vertical-align: middle !important;
+	background: #fafbfc !important;
+	border-right: 1px solid #e8dfd0 !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn .table-actions,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn .table-actions {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 6px !important;
+	min-height: 40px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"],
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"],
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"],
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 40px !important;
+	height: 40px !important;
+	min-width: 40px !important;
+	min-height: 40px !important;
+	padding: 0 !important;
+	border-radius: 8px !important;
+	font-size: 0 !important;
+	line-height: 1 !important;
+	box-shadow: none !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"],
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] {
+	background: #fdbb2c !important;
+	border: 1px solid #c98f12 !important;
+	color: #3d3028 !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"]:hover,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"]:hover,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"]:focus,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"]:focus {
+	background: #f5ad1a !important;
+	border-color: #b8840f !important;
+	color: #2a2118 !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"],
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] {
+	background: #fff !important;
+	border: 1px solid #d4c4ad !important;
+	color: #64748b !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"]:hover,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"]:hover {
+	background: #fff8f0 !important;
+	border-color: #c4a882 !important;
+	color: #3d3028 !important;
+}
+
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] i,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] i,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] i,
+body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] i {
+	font-size: 14px !important;
+	line-height: 1 !important;
+	margin: 0 !important;
 }
