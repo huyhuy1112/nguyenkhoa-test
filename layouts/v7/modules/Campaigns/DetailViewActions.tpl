@@ -2,8 +2,8 @@
 {strip}
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'MARKETING') || (isset($smarty.get.app) && $smarty.get.app eq 'MARKETING')}
 	<div class="detailViewButtoncontainer mk-camp-detail-actions mk-camp-detail-hero__actions">
-		<div class="pull-right btn-toolbar mk-camp-detail-actions__toolbar">
-			<div class="btn-group mk-camp-detail-actions__group">
+		<div class="mk-camp-detail-actions__toolbar">
+			<div class="mk-camp-detail-actions__group">
 			{assign var=STARRED value=$RECORD->get('starred')}
 			{if $MODULE_MODEL->isStarredEnabled()}
 				<button type="button" class="btn btn-default mk-camp-detail-btn mk-camp-detail-btn--ghost markStar {if $STARRED} active {/if}" id="starToggle">
@@ -23,7 +23,7 @@
 				{if $MK_BASIC_LBL eq 'LBL_DUPLICATE'}{assign var=MK_BASIC_ICON value='DUPLICATE'}{/if}
 				{if $MK_BASIC_LBL eq 'LBL_DELETE'}{assign var=MK_BASIC_ICON value='DELETE'}{/if}
 				{if $MK_BASIC_LBL eq 'LBL_EDIT'}{continue}{/if}
-				<button type="button" class="btn btn-default mk-camp-detail-btn mk-camp-detail-btn--ghost" id="{$MODULE_NAME}_detailView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_BASIC_LBL)}"
+				<button type="button" class="btn btn-default mk-camp-detail-btn mk-camp-detail-btn--ghost{if $MK_BASIC_LBL eq 'LBL_DELETE'} mk-camp-detail-btn--danger{/if}" id="{$MODULE_NAME}_detailView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_BASIC_LBL)}"
 						{if $DETAIL_VIEW_BASIC_LINK->isPageLoadLink()}
 							onclick="window.location.href = '{$DETAIL_VIEW_BASIC_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}'"
 						{else}
@@ -58,7 +58,7 @@
 			{/if}
 			</div>
 			{if !{$NO_PAGINATION}}
-			<div class="btn-group pull-right mk-camp-detail-actions__pager">
+			<div class="mk-camp-detail-actions__pager">
 				<button type="button" class="btn btn-default mk-camp-detail-btn mk-camp-detail-btn--ghost" id="detailViewPreviousRecordButton" {if empty($PREVIOUS_RECORD_URL)} disabled="disabled" {else} onclick="window.location.href = '{$PREVIOUS_RECORD_URL}&app={$SELECTED_MENU_CATEGORY}'" {/if}>
 					<i class="fa fa-chevron-left"></i>
 				</button>

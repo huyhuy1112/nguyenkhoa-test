@@ -35,6 +35,37 @@ body.mk-ref-popup-open .modal-backdrop.in {
 #popupModal {
 	background: transparent !important;
 	overflow-x: hidden !important;
+	z-index: 2000 !important;
+}
+
+body.mk-ref-popup-open .modal-backdrop.in {
+	z-index: 1990 !important;
+}
+
+#popupModal button.select {
+	min-height: 38px;
+	padding: 8px 18px !important;
+	border-radius: 10px !important;
+	border: none !important;
+	background: linear-gradient(135deg, #fdbb2c 0%, #f59e0b 100%) !important;
+	color: #1a1c1e !important;
+	font-weight: 700 !important;
+	box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+#popupModal button.select:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+	box-shadow: none;
+}
+
+#popupModal .listViewEntriesTable tr.listViewEntries {
+	cursor: pointer;
+}
+
+#popupModal .listViewEntriesTable tr.listViewEntries.highlightBackgroundColor,
+#popupModal .listViewEntriesTable tr.listViewEntries:has(input.entryCheckBox:checked) {
+	background: linear-gradient(90deg, rgba(253, 187, 44, 0.18), rgba(255, 255, 255, 0)) !important;
 }
 
 #popupModal.mk-ref-popup-visible .modal-dialog {

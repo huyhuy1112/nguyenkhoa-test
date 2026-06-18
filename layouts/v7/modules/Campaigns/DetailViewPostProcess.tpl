@@ -10,6 +10,7 @@
 	</div>
 </div>
 {include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Campaigns/resources/CampaignsReferenceFix.js')}?mk_v=20260618_ref2"></script>
 
 {else}
 {include file="DetailViewPostProcess.tpl"|@vtemplate_path:'Vtiger'}

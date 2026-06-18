@@ -38,6 +38,9 @@ foreach ($profileIds as $profileid) {
 	if ($adb->num_rows($chk) == 0) {
 		$adb->pquery("INSERT INTO vtiger_profile2tab (profileid, tabid, permissions) VALUES (?,?,?)",
 			array($profileid, $tabId, 0));
+	} else {
+		$adb->pquery("UPDATE vtiger_profile2tab SET permissions = 0 WHERE profileid = ? AND tabid = ?",
+			array($profileid, $tabId));
 	}
 }
 echo "Tab assigned to all profiles.\n";
@@ -56,9 +59,22 @@ foreach ($profileIds as $profileid) {
 		if ($adb->num_rows($chk) == 0) {
 			$adb->pquery("INSERT INTO vtiger_profile2standardpermissions (profileid, tabid, operation, permissions) VALUES (?,?,?,?)",
 				array($profileid, $tabId, $actionid, 0));
+		} else {
+			$adb->pquery("UPDATE vtiger_profile2standardpermissions SET permissions = 0 WHERE profileid = ? AND tabid = ? AND operation = ?",
+				array($profileid, $tabId, $actionid));
 		}
 	}
 }
 echo "Standard permissions (create/edit/view/delete) set for all profiles.\n";
+
+// 5) Rebuild cached user privilege files (isPermitted reads these, not DB directly)
+require_once 'modules/Users/CreateUserPrivilegeFile.php';
+$userRes = $adb->pquery("SELECT id FROM vtiger_users WHERE deleted = 0", array());
+for ($u = 0; $u < $adb->num_rows($userRes); $u++) {
+	$userId = $adb->query_result($userRes, $u, 'id');
+	createUserPrivilegesfile($userId);
+	createUserSharingPrivilegesfile($userId);
+}
+echo "Rebuilt user_privileges for all active users.\n";
 
 echo "=== Done ===\n";

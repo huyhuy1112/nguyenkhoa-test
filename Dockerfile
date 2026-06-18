@@ -17,4 +17,12 @@ RUN apt-get update && apt-get install -y \
 
 RUN a2enmod rewrite
 
+# Campaign attachments + large form saves (default PHP 8M post limit breaks uploads)
+RUN { \
+    echo 'upload_max_filesize = 64M'; \
+    echo 'post_max_size = 64M'; \
+    echo 'memory_limit = 256M'; \
+    echo 'max_execution_time = 300'; \
+} > /usr/local/etc/php/conf.d/99-uploads.ini
+
 WORKDIR /var/www/html

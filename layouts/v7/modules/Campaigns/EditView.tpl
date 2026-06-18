@@ -15,4 +15,4 @@
 {else}
 	{include file="layouts/v7/modules/Vtiger/EditView.tpl"}
 {/if}
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Campaigns/resources/Edit.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Campaigns/resources/Edit.js')}?mk_v=20260618_camp_create_lux8"></script>

@@ -1012,6 +1012,12 @@ Vtiger.Class('Vtiger_Index_Js', {
 	openPopUp : function(e) {
 		var thisInstance = this;
 		var parentElem = thisInstance.getParentElement(jQuery(e.target));
+		if (!parentElem.hasClass('referencefield-wrapper')) {
+			var $refWrap = parentElem.find('.referencefield-wrapper').first();
+			if ($refWrap.length) {
+				parentElem = $refWrap;
+			}
+		}
 
 		var params = this.getPopUpParams(parentElem);
 		params.view = 'Popup';
@@ -1021,7 +1027,10 @@ Vtiger.Class('Vtiger_Index_Js', {
 			isMultiple = true;
 		}
 
-		var sourceFieldElement = jQuery('input[class="sourceField"]',parentElem);
+		var sourceFieldElement = jQuery('input.sourceField', parentElem);
+		if (!sourceFieldElement.length) {
+			sourceFieldElement = jQuery('input[class="sourceField"]', parentElem);
+		}
 
 		var prePopupOpenEvent = jQuery.Event(Vtiger_Edit_Js.preReferencePopUpOpenEvent);
 		sourceFieldElement.trigger(prePopupOpenEvent);
@@ -1186,9 +1195,9 @@ Vtiger.Class('Vtiger_Index_Js', {
 		var popupReferenceModuleElement = jQuery('input[name="popupReferenceModule"]',container).length ?
 			jQuery('input[name="popupReferenceModule"]',container) : jQuery('input.popupReferenceModule',container);
 		var popupReferenceModule = popupReferenceModuleElement.val();
-		var sourceFieldElement = jQuery('input[class="sourceField"]',container);
+		var sourceFieldElement = jQuery('input.sourceField',container);
 		if(!sourceFieldElement.length) {
-			sourceFieldElement = jQuery('input.sourceField',container);
+			sourceFieldElement = jQuery('input[class="sourceField"]',container);
 		}
 		var sourceField = sourceFieldElement.attr('name');
 		var sourceRecordElement = jQuery('input[name="record"]');
@@ -1215,8 +1224,18 @@ Vtiger.Class('Vtiger_Index_Js', {
 		}
 
 		// TODO : Need to recheck. We don't have reference field module name if that module is disabled
-		if(typeof popupReferenceModule == "undefined"){
-			popupReferenceModule = "undefined";
+		if(typeof popupReferenceModule == "undefined" || popupReferenceModule === '' || popupReferenceModule === 'undefined'){
+			var refModuleByField = {
+				productsservices_id: 'ProductsServices',
+				plans_id: 'Plans',
+				plan_id: 'Plans',
+				plan: 'Plans'
+			};
+			if (sourceField && refModuleByField[sourceField]) {
+				popupReferenceModule = refModuleByField[sourceField];
+			} else {
+				popupReferenceModule = "undefined";
+			}
 		}
 
 		var params = {
@@ -1368,6 +1387,10 @@ Vtiger.Class('Vtiger_Index_Js', {
 	 * Function to get Field parent element
 	 */
 	getParentElement : function(element) {
+		var $ref = element.closest('.referencefield-wrapper');
+		if ($ref.length) {
+			return $ref;
+		}
 		var parent = element.closest('td');
 		// added to support from all views which may not be table format
 		if(parent.length === 0) {

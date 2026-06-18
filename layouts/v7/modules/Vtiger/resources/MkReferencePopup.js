@@ -273,6 +273,7 @@
 	}
 
 	function revealModal() {
+		setSearchLoading(false);
 		getModal().removeClass('mk-ref-popup-booting').addClass('mk-ref-popup-visible');
 	}
 
@@ -374,6 +375,28 @@
 		eventsBound = true;
 
 		$(document)
+			.off('click.mkRefPopupRow', '#popupModal .listViewEntries')
+			.on('click.mkRefPopupRow', '#popupModal .listViewEntries', function (e) {
+				if ($(e.target).closest('input.entryCheckBox, a, button').length) {
+					return;
+				}
+				var popup = getPopupInstance();
+				if (!popup) {
+					return;
+				}
+				if (popup.isMultiSelectMode && popup.isMultiSelectMode()) {
+					var $cb = $(this).find('input.entryCheckBox').first();
+					if ($cb.length) {
+						e.preventDefault();
+						e.stopPropagation();
+						$cb.trigger('click');
+					}
+					return;
+				}
+				if (typeof popup.getListViewEntries === 'function') {
+					popup.getListViewEntries(e);
+				}
+			})
 			.off('input.mkRefPopup', '#mk-ref-global-search')
 			.on('input.mkRefPopup', '#mk-ref-global-search', function () {
 				savedSearchQuery = $.trim($(this).val());

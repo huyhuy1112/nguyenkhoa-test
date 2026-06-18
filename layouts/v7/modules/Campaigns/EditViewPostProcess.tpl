@@ -6,6 +6,8 @@
 		</main>
 	</div>
 </div>
+{include file='JSResources.tpl'|@vtemplate_path:'Vtiger'}
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Campaigns/resources/CampaignsReferenceFix.js')}?mk_v=20260618_ref2"></script>
 {include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}
 {else}
 {include file="IndexPostProcess.tpl"|@vtemplate_path:'Vtiger'}

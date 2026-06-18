@@ -266,6 +266,14 @@ body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp
 body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-actions.mk-camp-detail-hero__actions {
 	flex: 0 0 auto;
 	align-self: center;
+	margin: 0;
+	padding: 0;
+	float: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-actions .detailViewButtoncontainer,
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .detailViewButtoncontainer.mk-camp-detail-actions {
+	width: auto;
 }
 
 body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-actions__toolbar {
@@ -273,29 +281,129 @@ body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp
 	flex-wrap: wrap;
 	align-items: center;
 	justify-content: flex-end;
-	gap: 8px;
+	gap: 10px;
+	float: none !important;
+	margin: 0;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-actions__group {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+	float: none !important;
+}
+
+/* Undo Bootstrap btn-group merged borders — each action is its own pill */
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-actions__group > .btn,
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-actions__pager > .btn {
+	float: none;
+	margin: 0;
+	border-radius: 10px !important;
+	position: relative;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-actions__pager {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-left: 4px;
 }
 
 body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
-	padding: 8px 14px;
-	border-radius: 8px;
+	justify-content: center;
+	gap: 8px;
+	min-height: 38px;
+	padding: 0 16px;
+	border-radius: 10px !important;
 	font-size: 12px;
 	font-weight: 700;
-	letter-spacing: 0.04em;
+	letter-spacing: 0.05em;
 	text-transform: uppercase;
 	border: 1px solid #d4c4ad;
 	background: #fff;
 	color: #504533;
-	box-shadow: none;
+	box-shadow: 0 1px 2px rgba(25, 28, 30, 0.04);
+	transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+	white-space: nowrap;
+	line-height: 1.2;
 }
 
-body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn:hover {
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	line-height: 0;
+	color: inherit;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn__ic .mk-camp-detail-svg {
+	display: block;
+	width: 16px;
+	height: 16px;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn__txt {
+	display: inline-block;
+	line-height: 1.2;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn:hover,
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn:focus {
 	border-color: #c98f12;
 	color: #7c5800;
 	background: #fffbeb;
+	outline: none;
+	box-shadow: 0 2px 8px rgba(201, 143, 18, 0.12);
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn.markStar.active,
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn.markStar.active:hover {
+	border-color: #f59e0b;
+	background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+	color: #92400e;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn.markStar .starredStatus,
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn.markStar .unstarredStatus {
+	display: inline-flex;
+	align-items: center;
+	margin: 0;
+	padding: 0;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn.markStar.active .unstarredStatus {
+	display: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn.markStar.active .starredStatus {
+	display: inline-flex !important;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn.markStar:not(.active) .starredStatus {
+	display: none !important;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn--danger {
+	border-color: #e8c4c4;
+	color: #9f1239;
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn--danger:hover,
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-btn--danger:focus {
+	border-color: #f87171;
+	background: #fff1f2;
+	color: #be123c;
+	box-shadow: 0 2px 8px rgba(190, 18, 60, 0.1);
+}
+
+body[data-module="Campaigns"][data-view="Detail"][data-app="MARKETING"] .mk-camp-detail-actions__pager .mk-camp-detail-btn {
+	min-width: 38px;
+	padding: 0 10px;
 }
 
 /* Tabs — chỉ gạch cam dưới tab active (không gạch đen/full-width) */

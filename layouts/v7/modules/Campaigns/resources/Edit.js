@@ -1,6 +1,18 @@
 /* Campaigns Edit: ROI + phase slots + description file attachments (no Documents module) */
 
-Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
+// This file can be loaded before core Edit.js on some custom layouts.
+// Delay module class definition until Vtiger_Edit_Js exists.
+(function () {
+	function defineOnce() {
+		if (window.__mkCampaignsEditJsDefined) {
+			return true;
+		}
+		if (typeof window.Vtiger_Edit_Js === 'undefined') {
+			return false;
+		}
+		window.__mkCampaignsEditJsDefined = true;
+
+		Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 
 	/** @returns {jQuery} */
 	_getActualRevenueField: function () {
@@ -33,9 +45,11 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 			if (!$roi.length || $roi.closest('.campaigns-roi-wrap').length) {
 				return;
 			}
-			var $wrap = jQuery('<div class="campaigns-roi-wrap input-group" style="max-width:280px;" />');
-			$roi.before($wrap);
-			$wrap.append($roi);
+			var $group = $roi.closest('.input-group');
+			var $move = $group.length ? $group : $roi;
+			var $wrap = jQuery('<div class="campaigns-roi-wrap input-group" />');
+			$move.before($wrap);
+			$wrap.append($move);
 			var $btn = jQuery(
 				'<span class="input-group-btn">' +
 					'<button type="button" class="btn btn-default campaigns-roi-info" title="ROI">' +
@@ -230,6 +244,10 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 	_effectivePhaseCountFromDom: function () {
 		var $cf = this._getPhaseCountInput();
 		var s = parseInt($cf.val(), 10);
+		if (!isNaN(s) && s >= 2 && s <= 5) {
+			// Respect explicit slot count (Add/Remove phase buttons).
+			return s;
+		}
 		if (isNaN(s) || s < 2) {
 			s = this._getInitialPhaseCount();
 		}
@@ -243,9 +261,6 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		var N = Math.max(2, s, h);
 		if (N > 5) {
 			N = 5;
-		}
-		while (N > 2 && !this._phaseMeaningfulFromDom(N) && N > h) {
-			N--;
 		}
 		return N;
 	},
@@ -315,12 +330,18 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 
 	registerPhaseSlots: function () {
 		var self = this;
+		var isEnterprise = jQuery('#mkCampEnterpriseRoot').length > 0;
 		var $countField = self._getPhaseCountInput();
 		var count = self._effectivePhaseCountFromDom();
 		$countField.val(String(count));
 
 		self._applyPhaseRowsVisibility(count);
 		jQuery('[name="campaign_phase_count"]').closest('tr').hide();
+
+		if (isEnterprise) {
+			self._updatePhaseToolbarButtons(count);
+			return;
+		}
 
 		var $anchor = jQuery('[name="phase1_expected"]').closest('.fieldBlockContainer');
 		if (!$anchor.length) {
@@ -402,7 +423,12 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 	 */
 	registerCampaignDescriptionFiles: function () {
 		var self = this;
-		if (jQuery('#campaign-files-edit-box').length) {
+		var $collab = jQuery('#mkCampXCollab');
+		var $existingBox = jQuery('#campaign-files-edit-box');
+		if ($existingBox.length) {
+			if ($collab.length && !$collab.find('#campaign-files-edit-box').length) {
+				$collab.append($existingBox);
+			}
 			return;
 		}
 		var $str = jQuery('#campaign-files-edit-strings');
@@ -413,7 +439,7 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		var $ta = jQuery('textarea[name="description"]').first();
 		var anchorIsTextarea = $ta.length > 0;
 		var $anchor = anchorIsTextarea ? $ta : $str;
-		if (!$anchor.length || $anchor.data('campaignFilesEditInit')) {
+		if (!$anchor.length) {
 			return;
 		}
 
@@ -451,7 +477,10 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 		);
 		$box.append($input);
 
-		if (anchorIsTextarea) {
+		// Enterprise layout: always show inside the "Notes & attachments" card.
+		if ($collab.length) {
+			$collab.append($box);
+		} else if (anchorIsTextarea) {
 			var $cell = $ta.closest('td');
 			if ($cell.length) {
 				$cell.append($box);
@@ -502,4 +531,18 @@ Vtiger_Edit_Js("Campaigns_Edit_Js", {}, {
 			self.adjustPhaseLayout();
 		}, 800);
 	}
-});
+		});
+
+		return true;
+	}
+
+	if (!defineOnce()) {
+		var tries = 0;
+		var t = window.setInterval(function () {
+			tries++;
+			if (defineOnce() || tries > 200) {
+				window.clearInterval(t);
+			}
+		}, 50);
+	}
+})();
