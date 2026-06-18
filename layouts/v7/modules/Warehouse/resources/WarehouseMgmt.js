@@ -103,7 +103,7 @@
 				'<div><span class="mk-wh-mgmt-card__stat-label">Tồn</span><span class="mk-wh-mgmt-card__stat-value">' + stock.toLocaleString('vi-VN') + '</span></div>' +
 				'</div>' +
 				'<div class="mk-wh-mgmt-card__actions">' +
-				'<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--primary mk-wh-mgmt-btn--enter" href="' + detailUrl(w.id) + '"><span>Vào kho</span><span class="mk-wh-mgmt-btn__chev" aria-hidden="true">→</span></a>' +
+				'<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--enter" href="' + detailUrl(w.id) + '"><span>Vào kho</span><span class="mk-wh-mgmt-btn__chev" aria-hidden="true">→</span></a>' +
 				'<div class="mk-wh-mgmt-card__actions-secondary">' +
 				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon" title="Sửa" data-mk-wh-edit="' + escapeHtml(w.id) + '">' + ICON.pencil + '</button>' +
 				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon" title="Lưu trữ" data-mk-wh-archive="' + escapeHtml(w.id) + '">' + ICON.archive + '</button>' +
