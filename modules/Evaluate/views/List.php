@@ -18,6 +18,27 @@ class Evaluate_List_View extends Vtiger_Index_View {
 		return 'ListViewPreProcess.tpl';
 	}
 
+	public function requiresPermission(\Vtiger_Request $request) {
+		$permissions = parent::requiresPermission($request);
+		// Non-entity dashboard: allow List access via module index permission.
+		$permissions[] = array('module_parameter' => 'module', 'action' => 'Index');
+		return $permissions;
+	}
+
+	public function checkPermission(Vtiger_Request $request) {
+		$moduleName = $request->getModule();
+		if (!Users_Privileges_Model::isPermitted($moduleName, 'Index')) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		return true;
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		parent::preProcess($request, $display);
+		$viewer = $this->getViewer($request);
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'MARKETING');
+	}
+
 	public function postProcess(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$viewer->view('ListViewPostProcess.tpl', $request->getModule());

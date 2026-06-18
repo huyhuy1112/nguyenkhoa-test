@@ -42,7 +42,9 @@ body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] .main-conta
 	left: auto !important;
 }
 
-body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] .mk-eval-content {
+body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] .mk-eval-content,
+html.mk-evaluate-ui-ready body[data-module="Evaluate"][data-view="List"][data-app="MARKETING"] #listViewContent {
+	visibility: visible !important;
 	padding: 0 !important;
 	width: 100% !important;
 	max-width: none !important;

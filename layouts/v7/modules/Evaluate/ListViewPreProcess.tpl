@@ -4,7 +4,7 @@
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'MARKETING') || (isset($smarty.get.app) && $smarty.get.app eq 'MARKETING')}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
-<script type="text/javascript">document.documentElement.classList.add('mk-evaluate-ui-ready');</script>
+<script type="text/javascript">document.documentElement.classList.add('mk-evaluate-ui-ready', 'mk-mkt-ui-ready');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListShared.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Evaluate/resources/EvaluateDashboard.css')}" />
