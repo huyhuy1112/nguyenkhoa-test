@@ -17,6 +17,7 @@ html.mk-wh-proto-ready body {
 
 body[data-module="Warehouse"][data-view="Prototype"] .mk-dash-main.mk-wh-proto-main,
 body[data-module="Warehouse"][data-view="PrototypeDetail"] .mk-dash-main.mk-wh-proto-main,
+body[data-module="Warehouse"][data-view="WhDetail"] .mk-dash-main.mk-wh-proto-main,
 html.mk-wh-proto-ready .mk-dash-main.mk-wh-proto-main {
 	padding: 14px !important;
 	background: var(--mk-proto-surface) !important;
@@ -24,7 +25,8 @@ html.mk-wh-proto-ready .mk-dash-main.mk-wh-proto-main {
 
 /* Ensure Inventory shell behavior matches Inbound (DashBoard.css rules are for List/Detail only) */
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"],
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"],
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] {
 	/* Slightly larger to avoid overlap from extra chrome */
 	--mk-dash-sidebar-w: 239px;
 	--mk-dash-topbar-h: 72px;
@@ -33,7 +35,8 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 /* Layout: rely on mk-app-shell offset only (avoid double left gap) */
 
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-app-shell,
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-app-shell {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-app-shell,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-app-shell {
 	margin-left: var(--mk-dash-sidebar-w) !important;
 	width: calc(100% - var(--mk-dash-sidebar-w)) !important;
 	max-width: calc(100% - var(--mk-dash-sidebar-w)) !important;
@@ -46,7 +49,8 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 }
 
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
 	left: var(--mk-dash-sidebar-w) !important;
 	right: 0 !important;
 	min-height: var(--mk-dash-topbar-h) !important;
@@ -55,7 +59,8 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 
 /* Main already sits below topbar via .mk-app-shell padding-top */
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-dash-main.mk-wh-proto-main,
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-dash-main.mk-wh-proto-main {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-dash-main.mk-wh-proto-main,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-dash-main.mk-wh-proto-main {
 	flex: 1 1 auto !important;
 	min-height: 0 !important;
 	padding: 10px 14px 18px 10px !important; /* closer to sidebar */
@@ -63,7 +68,8 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 
 /* Apply the same topbar shell rules as DashBoard.css (Prototype views are custom) */
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-topbar,
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-topbar {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-topbar,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-topbar {
 	height: 0 !important;
 	margin: 0 !important;
 	padding: 0 !important;
@@ -72,7 +78,8 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 }
 
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
 	position: fixed !important;
 	top: 0 !important;
 	left: var(--mk-dash-sidebar-w) !important;
@@ -87,16 +94,94 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 	background: #ffffff !important;
 }
 
+/* Multi-line inbound receipt rows */
+body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-wh-proto-lines,
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-wh-proto-lines,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-lines {
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	border-radius: 12px;
+	background: #fff;
+	overflow: hidden;
+}
+
+body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-wh-proto-lines__head,
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__head,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 12px;
+	background: #f8fafc;
+	border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+	gap: 10px;
+}
+
+body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-wh-proto-lines__ttl,
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__ttl,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__ttl {
+	font-size: 12px;
+	font-weight: 700;
+	color: rgba(15, 23, 42, 0.75);
+}
+
+body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-wh-proto-lines__tableWrap,
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__tableWrap,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__tableWrap {
+	overflow: auto;
+}
+
+body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-wh-proto-lines__table,
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__table,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-wh-proto-lines__table th,
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__table th,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__table th {
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: rgba(15, 23, 42, 0.6);
+	padding: 10px 10px;
+	background: #fff;
+	border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+	white-space: nowrap;
+}
+
+body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-wh-proto-lines__table td,
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__table td,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__table td {
+	padding: 8px 10px;
+	border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+	vertical-align: middle;
+}
+
+body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .mk-wh-proto-lines__table input,
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__table input,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-lines__table input {
+	width: 100%;
+	min-height: 36px;
+	border: 1px solid rgba(15, 23, 42, 0.12);
+	border-radius: 10px;
+	padding: 6px 10px;
+	background: #fff;
+}
+
 /* Match Inventory Inbound shell spacing/reset */
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] #page,
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] #page.container-fluid,
 body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] #page,
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] #page.container-fluid {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] #page.container-fluid,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] #page,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] #page.container-fluid {
 	padding-top: 0 !important;
 }
 
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] #page > .container-fluid.app-nav,
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] #page > .container-fluid.app-nav {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] #page > .container-fluid.app-nav,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] #page > .container-fluid.app-nav {
 	display: none !important;
 	height: 0 !important;
 	margin: 0 !important;
@@ -106,7 +191,8 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 }
 
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .main-container.mk-wh-proto-page,
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page {
 	position: relative !important;
 	width: 100% !important;
 	max-width: none !important;
@@ -119,7 +205,9 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #modnavigator,
 body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #sidebar-essentials,
 body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #modnavigator,
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #sidebar-essentials {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #sidebar-essentials,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #modnavigator,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #sidebar-essentials {
 	display: none !important;
 	visibility: hidden !important;
 	width: 0 !important;
@@ -137,7 +225,11 @@ body[data-module="Warehouse"][data-view="Prototype"][data-app="INVENTORY"] .main
 body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page .content-area,
 body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page .viewContent,
 body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #sidebar-essentials.sidebar-essentials.hide + .content-area,
-body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #sidebar-essentials.sidebar-essentials.hide + .viewContent {
+body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #sidebar-essentials.sidebar-essentials.hide + .viewContent,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page .content-area,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page .viewContent,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #sidebar-essentials.sidebar-essentials.hide + .content-area,
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-container.mk-wh-proto-page #sidebar-essentials.sidebar-essentials.hide + .viewContent {
 	padding-left: 0 !important;
 	padding-right: 0 !important;
 	margin-left: 0 !important;
@@ -491,11 +583,12 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 }
 
 .mk-wh-proto-modal__dialog--compact {
-	width: min(520px, calc(100vw - 24px));
-	margin: 32px auto;
-	max-height: calc(100vh - 48px);
+	width: min(840px, calc(100vw - 48px));
+	margin: 96px auto 28px;
+	max-height: calc(100vh - 124px);
 	display: flex;
 	flex-direction: column;
+	box-shadow: 0 24px 80px rgba(15, 23, 42, 0.45);
 }
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-modal__body {
@@ -503,22 +596,25 @@ body[data-module="Warehouse"][data-view="PrototypeDetail"][data-app="INVENTORY"]
 	flex-direction: column;
 	flex: 1 1 auto;
 	min-height: 0;
-	padding: 12px 16px 10px;
+	padding: 18px 22px 14px;
 }
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-form-grid {
 	flex: 1 1 auto;
 	min-height: 0;
 	overflow-y: auto;
-	gap: 8px 10px;
+	gap: 10px 14px;
 }
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-modal__head {
-	padding: 12px 16px;
+	padding: 16px 22px;
+	background: linear-gradient(90deg, #0f172a, #6366f1);
+	color: #f9fafb;
 }
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-field label {
-	font-size: 11px;
+	font-size: 12px;
+	color: #0f172a;
 }
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-field input,

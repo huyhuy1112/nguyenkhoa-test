@@ -651,6 +651,35 @@
 				if (f.type === 'hint') {
 					return '<p class="mk-wh-proto-form-hint' + full + '">' + escapeHtml(f.text || '') + '</p>';
 				}
+				if (f.type === 'lines') {
+					return (
+						'<div class="mk-wh-proto-field mk-wh-proto-field--full">' +
+						'<label>' +
+						escapeHtml(f.label || 'Danh sách hàng') +
+						'</label>' +
+						'<div class="mk-wh-proto-lines" data-mk-lines="1">' +
+						'<div class="mk-wh-proto-lines__head">' +
+						'<span class="mk-wh-proto-lines__ttl">Thêm nhiều dòng hàng trong 1 phiếu</span>' +
+						'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost mk-wh-proto-lines__add" data-mk-lines-add="1">+ Thêm dòng</button>' +
+						'</div>' +
+						'<div class="mk-wh-proto-lines__tableWrap">' +
+						'<table class="mk-wh-proto-lines__table" role="table">' +
+						'<thead><tr>' +
+						'<th>SKU *</th>' +
+						'<th>Tên hàng *</th>' +
+						'<th>Lô *</th>' +
+						'<th class="mk-wh-proto-td-right">SL *</th>' +
+						'<th>NSX</th>' +
+						'<th>HSD</th>' +
+						'<th style="width:44px;"></th>' +
+						'</tr></thead>' +
+						'<tbody data-mk-lines-body="1"></tbody>' +
+						'</table>' +
+						'</div>' +
+						'</div>' +
+						'</div>'
+					);
+				}
 				if (f.type === 'checkbox') {
 					return (
 						'<div class="mk-wh-proto-field mk-wh-proto-field--check' +
@@ -717,6 +746,52 @@
 
 		modal.classList.add('is-open');
 		modal.setAttribute('aria-hidden', 'false');
+
+		// Inbound: initialize multi-line rows
+		if ((opts.tabKey || '') === 'inbound') {
+			var bodyEl = form.querySelector('[data-mk-lines-body="1"]');
+			function addRow(preset) {
+				if (!bodyEl) return;
+				var p = preset || {};
+				var tr =
+					'<tr class="mk-wh-proto-lines__row" data-mk-line="1">' +
+					'<td><input type="text" data-mk-line-sku="1" value="' + escapeHtml(p.sku || '') + '" required /></td>' +
+					'<td><input type="text" data-mk-line-name="1" value="' + escapeHtml(p.name || '') + '" required /></td>' +
+					'<td><input type="text" data-mk-line-lot="1" value="' + escapeHtml(p.lot || '') + '" required /></td>' +
+					'<td><input type="number" min="0" step="1" data-mk-line-qty="1" value="' + escapeHtml(p.qty != null ? p.qty : '') + '" required /></td>' +
+					'<td><input type="date" data-mk-line-mfg="1" value="' + escapeHtml(p.mfg || '') + '" /></td>' +
+					'<td><input type="date" data-mk-line-exp="1" value="' + escapeHtml(p.exp || '') + '" /></td>' +
+					'<td><button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-lines-del="1" title="Xóa dòng">×</button></td>' +
+					'</tr>';
+				bodyEl.insertAdjacentHTML('beforeend', tr);
+			}
+
+			if (bodyEl && !bodyEl.children.length) {
+				addRow();
+				addRow();
+			}
+
+			var addBtn = form.querySelector('[data-mk-lines-add="1"]');
+			if (addBtn) {
+				addBtn.onclick = function () {
+					addRow();
+				};
+			}
+
+			form.addEventListener(
+				'click',
+				function (ev) {
+					var del = ev.target && ev.target.getAttribute && ev.target.getAttribute('data-mk-lines-del');
+					if (del !== '1') return;
+					ev.preventDefault();
+					var row = ev.target.closest('[data-mk-line="1"]');
+					if (row && bodyEl && bodyEl.children.length > 1) {
+						row.remove();
+					}
+				},
+				{ once: true }
+			);
+		}
 
 		var sendQcCheckbox = form.querySelector('[name="sendQc"]');
 		function syncInboundSubmitLabel() {
@@ -800,25 +875,31 @@
 			var code = 'GRN-' + String(seq);
 			var supplier = fd.get('supplier') || 'NCC';
 			var po = fd.get('po') || 'PO';
-			var skuIn = fd.get('sku') || 'SKU';
-			var product = fd.get('product') || 'Hàng hóa';
-			var lotIn = fd.get('lot') || 'LOT';
-			var mfg = fd.get('mfg') || '';
-			var exp = fd.get('exp') || '';
-			var qty = Number(fd.get('qty') || 0) || 0;
 			var sendQc = fd.has('sendQc');
 			var skipQc = !sendQc;
 			var now = fmtNow();
-			var item = {
-				name: String(product),
-				sku: String(skuIn),
-				lot: String(lotIn),
-				mfg: String(mfg),
-				exp: String(exp),
-				qty: qty,
-				qc: skipQc ? 'skip' : 'none',
-				needsQc: sendQc,
-			};
+			var items = [];
+			var rows = Array.prototype.slice.call(form.querySelectorAll('[data-mk-line="1"]'));
+			rows.forEach(function (row) {
+				var skuIn = row.querySelector('[data-mk-line-sku="1"]') ? row.querySelector('[data-mk-line-sku="1"]').value.trim() : '';
+				var nameIn = row.querySelector('[data-mk-line-name="1"]') ? row.querySelector('[data-mk-line-name="1"]').value.trim() : '';
+				var lotIn = row.querySelector('[data-mk-line-lot="1"]') ? row.querySelector('[data-mk-line-lot="1"]').value.trim() : '';
+				var qtyIn = row.querySelector('[data-mk-line-qty="1"]') ? Number(row.querySelector('[data-mk-line-qty="1"]').value || 0) || 0 : 0;
+				var mfg = row.querySelector('[data-mk-line-mfg="1"]') ? row.querySelector('[data-mk-line-mfg="1"]').value : '';
+				var exp = row.querySelector('[data-mk-line-exp="1"]') ? row.querySelector('[data-mk-line-exp="1"]').value : '';
+				if (!skuIn || !nameIn || !lotIn || qtyIn <= 0) return;
+				items.push({
+					name: String(nameIn),
+					sku: String(skuIn),
+					lot: String(lotIn),
+					mfg: String(mfg || ''),
+					exp: String(exp || ''),
+					qty: qtyIn,
+					qc: skipQc ? 'skip' : 'none',
+					needsQc: sendQc,
+				});
+			});
+			if (!items.length) return;
 			var receipt = {
 				code: code,
 				supplier: String(supplier),
@@ -826,7 +907,7 @@
 				createdAt: now,
 				needsQc: sendQc,
 				status: skipQc ? 'stored' : 'pending_qc',
-				items: [item],
+				items: items,
 				timeline: skipQc
 					? [
 							{ at: now, by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu nhập' },
@@ -1198,12 +1279,7 @@
 				fields: [
 					{ name: 'supplier', label: 'Nhà cung cấp', required: true, placeholder: '' },
 					{ name: 'po', label: 'Mã PO', required: true, placeholder: '' },
-					{ name: 'sku', label: 'SKU', required: true, placeholder: '' },
-					{ name: 'product', label: 'Tên hàng', required: true, placeholder: '' },
-					{ name: 'lot', label: 'Lô', required: true, placeholder: '' },
-					{ name: 'qty', label: 'Số lượng', required: true, type: 'number', placeholder: '' },
-					{ name: 'mfg', label: 'NSX', required: true, type: 'date', placeholder: '' },
-					{ name: 'exp', label: 'HSD', required: true, type: 'date', placeholder: '' },
+					{ type: 'lines', name: 'lines', label: 'Danh sách hàng nhập', full: true },
 					{
 						type: 'checkbox',
 						name: 'sendQc',

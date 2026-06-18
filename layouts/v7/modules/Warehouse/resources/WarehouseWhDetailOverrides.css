@@ -1,0 +1,60 @@
+/**
+ * WhDetail: keep Prototype look, with minimal overrides.
+ * - Do NOT import full WarehouseMgmt.css (it overrides Prototype styles heavily).
+ * - Keep only the multi-line receipt create form + wide sticky modal behavior.
+ */
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-mgmt-modal__panel--wide {
+	width: min(980px, 100%);
+	max-height: 86vh;
+	overflow: hidden;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-mgmt-modal__head {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: #fff;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-mgmt-modal__body {
+	max-height: calc(86vh - 64px - 72px);
+	overflow: auto;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-mgmt-modal__foot {
+	position: sticky;
+	bottom: 0;
+	z-index: 2;
+	background: #fff;
+	margin-top: 0;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-rc-sectionTitle {
+	display: block;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: rgba(15, 23, 42, 0.65);
+	margin-bottom: 8px;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-rc-lines .mk-wh-proto-lines__tableWrap {
+	max-height: 360px;
+	overflow: auto;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-rc-lines .mk-wh-proto-lines__table {
+	min-width: 820px;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-rc-input {
+	font-size: 14px;
+	min-height: 40px;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-rc-input--num {
+	text-align: right;
+}
+
