@@ -5,7 +5,7 @@
 (function (global) {
 	'use strict';
 
-	var KEY = 'bace_multi_warehouse_v1';
+	var KEY = 'bace_multi_warehouse_v2';
 
 	var SEED_WH = [
 		{ id: 'WH-001', code: 'WH-001', name: 'Kho Hồ Chí Minh', type: 'central', address: 'Q.7, TP.HCM', manager: 'QL Tuấn', status: 'active', createdAt: '2026-01-15T08:00:00Z' },
@@ -33,28 +33,37 @@
 				{
 					id: 'GRN-0002', supplier: 'Vinamilk Logistics', poRef: 'PO-2026-0151',
 					createdAt: '2026-06-01T07:20:00Z', createdBy: 'Thủ kho Hà', status: 'pending_qc',
-					lines: [{ sku: 'FMC-010', name: 'Sữa tươi 1L', lot: 'LOT-0106', expiry: '2026-08-30', qty: 300 }],
+					lines: [{ sku: 'FMC-010', name: 'Sữa tươi 1L', lot: 'LOT-0106', mfg: '2026-06-01', expiry: '2026-08-30', qty: 300 }],
 					timeline: [
 						{ at: '2026-06-01T07:20:00Z', by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu nhập' },
-						{ at: '2026-06-01T07:45:00Z', by: 'Thủ kho Hà', role: 'keeper', action: 'Gửi QC' },
+						{ at: '2026-06-01T07:45:00Z', by: 'Thủ kho Hà', role: 'keeper', action: 'Gửi QC kiểm tra' },
 					],
 				},
 			],
 			issues: [
 				{
-					id: 'GIN-0001', customer: 'Bệnh viện Bạch Mai', soRef: 'SO-2026-0088',
+					id: 'GIN-0001', outboundType: 'internal', customer: 'Bệnh viện Bạch Mai', soRef: 'SO-2026-0088',
 					createdAt: '2026-05-30T14:00:00Z', createdBy: 'Thủ kho Hà', status: 'shipped',
 					lines: [{ sku: 'MED-001', name: 'Paracetamol 500mg', lot: 'LOT-2605A', qty: 200 }],
 					timeline: [
-						{ at: '2026-05-30T14:00:00Z', by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu xuất' },
-						{ at: '2026-05-30T15:00:00Z', by: 'Thủ kho Hà', role: 'keeper', action: 'Đã giao' },
+						{ at: '2026-05-30T14:00:00Z', by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu xuất — Xuất nội bộ' },
+						{ at: '2026-05-30T15:00:00Z', by: 'QL Tuấn', role: 'manager', action: 'Duyệt phiếu' },
+						{ at: '2026-05-30T15:30:00Z', by: 'Thủ kho Hà', role: 'keeper', action: 'Soạn hàng & giao' },
+					],
+				},
+				{
+					id: 'GIN-0002', outboundType: 'transfer', customer: 'Nhà thuốc Quận 1', soRef: 'SO-2026-0101',
+					createdAt: '2026-05-30T15:10:00Z', createdBy: 'Thủ kho Hà', status: 'pending_approval',
+					lines: [{ sku: 'MED-002', name: 'Amoxicillin 250mg', lot: 'LOT-2604B', qty: 50 }],
+					timeline: [
+						{ at: '2026-05-30T15:10:00Z', by: 'Thủ kho Hà', role: 'keeper', action: 'Gửi duyệt' },
 					],
 				},
 			],
 			stock: [
-				{ sku: 'MED-001', name: 'Paracetamol 500mg', lot: 'LOT-2605A', expiry: '2027-05-01', qty: 800, location: 'A1-02' },
-				{ sku: 'MED-002', name: 'Amoxicillin 250mg', lot: 'LOT-2605B', expiry: '2027-03-15', qty: 500, location: 'A1-03' },
-				{ sku: 'MED-004', name: 'Aspirin 100mg', lot: 'LOT-2504X', expiry: '2026-07-10', qty: 150, location: 'A2-01' },
+				{ sku: 'MED-001', name: 'Paracetamol 500mg', lot: 'LOT-2605A', expiry: '2027-05-01', qty: 800, location: 'A1-02', price: 25000 },
+				{ sku: 'MED-002', name: 'Amoxicillin 250mg', lot: 'LOT-2604B', expiry: '2026-08-15', qty: 120, location: 'B2-01', price: 45000 },
+				{ sku: 'MED-003', name: 'Vitamin C 1000mg', lot: 'LOT-2603C', expiry: '2026-06-01', qty: 45, location: 'C1-03', price: 120000 },
 			],
 		},
 		'WH-002': {

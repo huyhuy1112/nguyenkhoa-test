@@ -33,6 +33,9 @@ class Warehouse_WhDetail_View extends Vtiger_Index_View {
 		$viewer = $this->getViewer($request);
 		$whId = trim((string) $request->get('whId'));
 		if ($whId === '') {
+			$whId = trim((string) $request->get('whid'));
+		}
+		if ($whId === '') {
 			$whId = trim((string) $request->get('warehouseId'));
 		}
 		$viewer->assign('MK_WH_ID', $whId);

@@ -98,6 +98,60 @@
 		rejected: { label: 'Từ chối', cls: 'mk-wh-proto-pill mk-wh-proto-pill--warn' },
 	};
 
+	var OUTBOUND_TYPES = {
+		internal: {
+			label: 'Xuất nội bộ (test)',
+			short: 'Xuất nội bộ',
+			customerLabel: 'Bộ phận / mục đích',
+			soLabel: 'Mã tham chiếu',
+			soPlaceholder: 'IT-TEST-...',
+		},
+		transfer: {
+			label: 'Xuất chuyển kho',
+			short: 'Chuyển kho',
+			customerLabel: 'Kho đích',
+			soLabel: 'Mã chuyển kho',
+			soPlaceholder: 'TRF-...',
+		},
+		scrap: {
+			label: 'Xuất huỷ',
+			short: 'Xuất huỷ',
+			customerLabel: 'Lý do huỷ',
+			soLabel: 'Mã phiếu huỷ',
+			soPlaceholder: 'SCR-...',
+		},
+		sale: {
+			label: 'Xuất bán (từ invoice)',
+			short: 'Xuất bán',
+			customerLabel: 'Khách hàng',
+			soLabel: 'Mã invoice / SO',
+			soPlaceholder: 'INV-2026-...',
+		},
+	};
+
+	var OUTBOUND_TYPE_PICKER = ['internal', 'transfer', 'scrap'];
+
+	function getOutboundTypeMeta(type) {
+		return OUTBOUND_TYPES[type] || OUTBOUND_TYPES.internal;
+	}
+
+	function outboundTypePill(type) {
+		var meta = getOutboundTypeMeta(type);
+		return '<span class="mk-wh-proto-pill mk-wh-proto-pill--blue">' + escapeHtml(meta.short) + '</span>';
+	}
+
+	function issueStatusPill(status) {
+		var st = ISSUE_STATUS[status] || ISSUE_STATUS.draft;
+		return '<span class="' + escapeHtml(st.cls) + '">' + escapeHtml(st.label) + '</span>';
+	}
+
+	function findStockLot(whId, sku, lot) {
+		var d = S.ensureData(whId);
+		return (d.stock || []).find(function (s) {
+			return s.sku === sku && s.lot === lot;
+		});
+	}
+
 	function nextId(prefix, existing) {
 		var max = 0;
 		(existing || []).forEach(function (x) {
@@ -219,7 +273,10 @@
 				'<td>' + escapeHtml(r.supplier) + '</td>' +
 				'<td>' + escapeHtml(it.name || '—') + ' <span class="mk-wh-proto-muted">(' + escapeHtml(it.sku || '') + ')</span></td>' +
 				'<td>' + escapeHtml(it.lot || '—') + '</td>' +
-				'<td>HSD: ' + escapeHtml(it.expiry || '—') + '</td>' +
+				'<td>' +
+					(it.mfg ? '<span class="mk-wh-proto-muted">NSX: ' + escapeHtml(it.mfg) + '</span><br/>' : '') +
+					'HSD: ' + escapeHtml(it.expiry || '—') +
+				'</td>' +
 				'<td>' + escapeHtml(it.qty || '—') + '</td>' +
 				'<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="qc-record" data-id="' + escapeHtml(r.id) + '"' +
 					(getRole() !== 'qc' ? ' disabled' : '') +
@@ -269,7 +326,15 @@
 		var result = applyStockFilters(inStock);
 		var rows = result.rows;
 		var summary = qs('#mkWhProtoFilterSummary');
-		if (summary) summary.textContent = rows.length ? ('Hiển thị ' + rows.length + ' dòng tồn') : 'Chưa có tồn kho phù hợp bộ lọc.';
+		if (summary) {
+			if (!rows.length && inStock.length) {
+				summary.textContent = 'Không có mặt hàng phù hợp bộ lọc (đang có ' + inStock.length + ' dòng tồn).';
+			} else if (!inStock.length) {
+				summary.textContent = 'Chưa có tồn kho.';
+			} else {
+				summary.textContent = 'Hiển thị ' + rows.length + ' / ' + inStock.length + ' mặt hàng';
+			}
+		}
 		tbody.innerHTML = rows.map(function (s) {
 			var days = daysUntil(s.expiry);
 			var expLabel = days < 0 ? 'Quá hạn' : 'Còn ' + days + ' ngày';
@@ -296,10 +361,11 @@
 			var st = ISSUE_STATUS[i.status] || { label: i.status, cls: 'mk-wh-proto-pill' };
 			return '<tr>' +
 				'<td><strong>' + escapeHtml(i.id) + '</strong></td>' +
+				'<td>' + outboundTypePill(i.outboundType || 'internal') + '</td>' +
 				'<td>' + escapeHtml(i.customer) + '</td>' +
 				'<td>' + escapeHtml(i.soRef || '—') + '</td>' +
 				'<td>' + escapeHtml(fmtDateTime(i.createdAt)) + '</td>' +
-				'<td><span class="' + escapeHtml(st.cls) + '">' + escapeHtml(st.label) + '</span></td>' +
+				'<td>' + issueStatusPill(i.status) + '</td>' +
 				'<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="outbound-detail" data-id="' + escapeHtml(i.id) + '">Chi tiết</button></td>' +
 			'</tr>';
 		}).join('');
@@ -453,7 +519,9 @@
 
 		return {
 			title: 'Phiếu xuất ' + issue.id,
-			meta: 'KH: ' + escapeHtml(issue.customer) + ' · SO: ' + escapeHtml(issue.soRef || '—'),
+			meta: outboundTypePill(issue.outboundType || 'internal') + ' · ' +
+				escapeHtml(getOutboundTypeMeta(issue.outboundType).customerLabel) + ': ' + escapeHtml(issue.customer) +
+				' · ' + escapeHtml(getOutboundTypeMeta(issue.outboundType).soLabel) + ': ' + escapeHtml(issue.soRef || '—'),
 			body:
 				'<div style="margin-bottom:10px;"><span class="' + escapeHtml(st.cls || 'mk-wh-proto-pill') + '">' + escapeHtml(st.label) + '</span></div>' +
 				'<div class="mk-wh-proto-dialog-grid">' +
@@ -538,8 +606,209 @@
 		S.warehouseDataActions.setStock(whId, stock);
 	}
 
-	/* ===== Create receipt/issue modal: reuse existing multi-line modal for inbound for now ===== */
-	function openCreateInbound() {
+	/* ===== Create receipt/issue modal (Prototype UI) ===== */
+	function closeModal() {
+		var modal = qs('#mkWhProtoModal');
+		if (!modal) return;
+		modal.classList.remove('is-open');
+		modal.setAttribute('aria-hidden', 'true');
+	}
+
+	function modalSchema(tabKey, outboundType) {
+		if (tabKey === 'outbound-type') {
+			return {
+				tabKey: 'outbound-type',
+				title: 'Tạo phiếu xuất kho',
+				submitLabel: 'Tiếp theo',
+				fields: [
+					{ type: 'hint', full: true, text: 'Chọn loại xuất kho. Bước tiếp theo bạn điền chi tiết phiếu xuất.' },
+					{
+						name: 'outboundType',
+						label: 'Xuất kho loại nào?',
+						type: 'select',
+						required: true,
+						full: true,
+						options: OUTBOUND_TYPE_PICKER.map(function (key, idx) {
+							return { value: key, label: OUTBOUND_TYPES[key].label, selected: idx === 0 };
+						}),
+					},
+				],
+			};
+		}
+		if (tabKey === 'inbound') {
+			return {
+				tabKey: 'inbound',
+				title: 'Tạo phiếu nhập kho',
+				submitLabel: 'Tạo phiếu',
+				fields: [
+					{ name: 'supplier', label: 'Nhà cung cấp', required: true, placeholder: 'VD: CTY Dược Hậu Giang' },
+					{ name: 'po', label: 'Mã PO', required: true, placeholder: 'VD: PO-2026-0155' },
+					{ type: 'lines', label: 'Danh sách hàng nhập', full: true },
+					{
+						type: 'checkbox',
+						name: 'sendQc',
+						label: 'Gửi QC',
+						checked: true,
+						full: true,
+						hint: 'Bỏ chọn nếu hàng không cần QC — nhập thẳng tồn kho',
+					},
+				],
+			};
+		}
+		var whId = getWhId();
+		var d = whId ? S.ensureData(whId) : { stock: [] };
+		var lotOptions = (d.stock || [])
+			.filter(function (s) { return (Number(s.qty) || 0) > 0; })
+			.map(function (s) {
+				return { value: s.sku + '|' + s.lot, label: s.name + ' · ' + s.lot + ' · còn ' + s.qty };
+			});
+		if (!lotOptions.length) {
+			lotOptions = [{ value: '', label: '(Chưa có tồn — nhập kho trước)' }];
+		}
+		var outMeta = getOutboundTypeMeta(outboundType || 'internal');
+		return {
+			tabKey: 'outbound',
+			outboundType: outboundType || 'internal',
+			title: 'Tạo phiếu xuất — ' + outMeta.short,
+			submitLabel: 'Tạo phiếu',
+			fields: [
+				{ type: 'hint', full: true, text: 'Loại: ' + outMeta.label + '. Điền thông tin phiếu xuất bên dưới.' },
+				{ name: 'customer', label: outMeta.customerLabel, required: true, full: true, placeholder: '' },
+				{ name: 'so', label: outMeta.soLabel, full: true, placeholder: outMeta.soPlaceholder },
+				{ name: 'lotKey', label: 'Chọn lô hàng', type: 'select', required: true, full: true, options: lotOptions },
+				{ name: 'qty', label: 'Số lượng', required: true, type: 'number', full: true, placeholder: '' },
+			],
+		};
+	}
+
+	function renderModalFields(fields) {
+		return (fields || []).map(function (f) {
+			var full = f.full ? ' mk-wh-proto-field--full' : '';
+			var req = f.required ? ' *' : '';
+			if (f.type === 'hint') {
+				return '<p class="mk-wh-proto-form-hint' + full + '">' + escapeHtml(f.text || '') + '</p>';
+			}
+			if (f.type === 'lines') {
+				return '<div class="mk-wh-proto-field mk-wh-proto-field--full"><label>' + escapeHtml(f.label || 'Danh sách hàng') + '</label>' +
+					'<div class="mk-wh-proto-lines mk-wh-proto-lines--catalog" data-mk-lines="1">' +
+					'<div class="mk-wh-proto-lines__head"><span class="mk-wh-proto-lines__ttl">Chọn sản phẩm từ tồn kho — SKU tự động điền</span>' +
+					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost mk-wh-proto-lines__add" data-mk-lines-add="1">+ Thêm dòng</button></div>' +
+					'<div class="mk-wh-proto-lines__tableWrap"><table class="mk-wh-proto-lines__table" role="table"><thead><tr>' +
+					'<th class="mk-wh-proto-col-name">Tên hàng *</th><th class="mk-wh-proto-col-sku">SKU</th>' +
+					'<th class="mk-wh-proto-col-lot">Lô *</th><th class="mk-wh-proto-col-qty">SL *</th>' +
+					'<th class="mk-wh-proto-col-date">NSX</th><th class="mk-wh-proto-col-date">HSD</th><th style="width:44px;"></th>' +
+					'</tr></thead><tbody data-mk-lines-body="1"></tbody></table></div></div></div>';
+			}
+			if (f.type === 'checkbox') {
+				return '<div class="mk-wh-proto-field mk-wh-proto-field--check' + full + '"><label class="mk-wh-proto-check">' +
+					'<span class="mk-wh-proto-check__box"><input class="mk-wh-proto-check__input" type="checkbox" name="' + escapeHtml(f.name) + '" value="1"' +
+					(f.checked ? ' checked="checked"' : '') + ' />' +
+					'<span class="mk-wh-proto-check__visual" aria-hidden="true"><svg class="mk-wh-proto-check__icon" width="12" height="12" viewBox="0 0 12 12" fill="none">' +
+					'<path d="M2.2 6.1 4.8 8.7 9.8 3.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>' +
+					'<span class="mk-wh-proto-check__text"><span class="mk-wh-proto-check__label">' + escapeHtml(f.label || '') + '</span>' +
+					(f.hint ? '<span class="mk-wh-proto-check__hint">' + escapeHtml(f.hint) + '</span>' : '') +
+					'</span></label></div>';
+			}
+			var input;
+			if (f.type === 'select') {
+				input = '<select name="' + escapeHtml(f.name) + '"' + (f.required ? ' required' : '') + '>' +
+					(f.options || []).map(function (o) {
+						return '<option value="' + escapeHtml(o.value) + '"' + (o.selected ? ' selected="selected"' : '') + '>' + escapeHtml(o.label) + '</option>';
+					}).join('') + '</select>';
+			} else {
+				input = '<input type="' + escapeHtml(f.type || 'text') + '" name="' + escapeHtml(f.name) + '"' +
+					(f.required ? ' required' : '') + ' placeholder="' + escapeHtml(f.placeholder || '') + '" />';
+			}
+			return '<div class="mk-wh-proto-field' + full + '"><label>' + escapeHtml(f.label) + req + '</label>' + input + '</div>';
+		}).join('');
+	}
+
+	function guessSkuFromName(name, idx) {
+		var clean = String(name || '').trim();
+		if (!clean) return 'SKU-' + String(idx).padStart(2, '0');
+		var words = clean.split(/\s+/).filter(Boolean);
+		var initials = words.slice(0, 2).map(function (w) { return (w[0] || '').toUpperCase(); }).join('');
+		var digits = (clean.match(/\d+/) || [])[0] || '';
+		return (initials || 'SP') + (digits ? '-' + digits : '') + '-' + String(idx).padStart(2, '0');
+	}
+
+	function getStockProductCatalog(whId) {
+		var d = S.ensureData(whId);
+		var seen = {};
+		var list = [];
+		(d.stock || []).forEach(function (s) {
+			if (!s.sku || seen[s.sku]) return;
+			if ((Number(s.qty) || 0) <= 0) return;
+			seen[s.sku] = true;
+			list.push({ sku: s.sku, name: s.name || s.sku });
+		});
+		list.sort(function (a, b) {
+			return String(a.name).localeCompare(String(b.name), 'vi');
+		});
+		return list;
+	}
+
+	function productSelectHtml(catalog, selectedSku) {
+		var opts = '<option value="">— Chọn sản phẩm từ tồn kho —</option>' +
+			catalog.map(function (p) {
+				var sel = p.sku === selectedSku ? ' selected="selected"' : '';
+				return '<option value="' + escapeHtml(p.sku) + '" data-name="' + escapeHtml(p.name) + '"' + sel + '>' +
+					escapeHtml(p.name) + ' · ' + escapeHtml(p.sku) + '</option>';
+			}).join('');
+		return '<select class="mk-wh-proto-product-select" data-mk-line-product="1" required>' + opts + '</select>';
+	}
+
+	function bindInboundLineRows(form) {
+		var bodyEl = form.querySelector('[data-mk-lines-body="1"]');
+		if (!bodyEl) return;
+		var whId = getWhId();
+		var catalog = whId ? getStockProductCatalog(whId) : [];
+
+		function addRow(preset) {
+			var p = preset || {};
+			var skuVal = p.sku || '';
+			bodyEl.insertAdjacentHTML('beforeend',
+				'<tr class="mk-wh-proto-lines__row" data-mk-line="1">' +
+				'<td>' + productSelectHtml(catalog, skuVal) + '</td>' +
+				'<td class="mk-wh-proto-col-sku"><input type="text" data-mk-line-sku="1" value="' + escapeHtml(skuVal) + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" placeholder="SKU" /></td>' +
+				'<td class="mk-wh-proto-col-lot"><input type="text" data-mk-line-lot="1" value="' + escapeHtml(p.lot || '') + '" required placeholder="LOT-2605A" /></td>' +
+				'<td class="mk-wh-proto-col-qty"><input type="number" min="1" step="1" data-mk-line-qty="1" value="' + escapeHtml(p.qty != null ? p.qty : '') + '" required placeholder="100" /></td>' +
+				'<td class="mk-wh-proto-col-date"><input type="date" data-mk-line-mfg="1" value="' + escapeHtml(p.mfg || '') + '" /></td>' +
+				'<td class="mk-wh-proto-col-date"><input type="date" data-mk-line-exp="1" value="' + escapeHtml(p.expiry || '') + '" /></td>' +
+				'<td><button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost mk-wh-proto-lines__del" data-mk-lines-del="1" title="Xóa dòng">×</button></td>' +
+				'</tr>');
+		}
+
+		var linesHead = form.querySelector('.mk-wh-proto-lines__ttl');
+		var addBtn = form.querySelector('[data-mk-lines-add="1"]');
+		if (!catalog.length) {
+			if (linesHead) {
+				linesHead.innerHTML = '<span class="mk-wh-proto-lines__warn">Chưa có sản phẩm trong tồn kho — cần nhập kho trước để chọn tên hàng.</span>';
+			}
+			if (addBtn) addBtn.disabled = true;
+		} else {
+			if (linesHead) linesHead.textContent = 'Chọn sản phẩm từ tồn kho — SKU tự động điền';
+			if (!bodyEl.children.length) {
+				addRow();
+				addRow();
+			}
+			if (addBtn) {
+				addBtn.disabled = false;
+				addBtn.onclick = function () { addRow(); };
+			}
+		}
+
+		form.onchange = function (e) {
+			var t = e.target;
+			if (!t || !(t.getAttribute && t.getAttribute('data-mk-line-product') === '1')) return;
+			var row = t.closest('[data-mk-line="1"]');
+			if (!row) return;
+			var skuEl = row.querySelector('[data-mk-line-sku="1"]');
+			if (skuEl) skuEl.value = t.value || '';
+		};
+	}
+
+	function openModal(opts) {
 		var modal = qs('#mkWhProtoModal');
 		var title = qs('#mkWhProtoModalTitle');
 		var fields = qs('#mkWhProtoFormFields');
@@ -548,153 +817,110 @@
 		if (!modal || !title || !fields || !form) return;
 
 		var dialog = modal.querySelector('.mk-wh-proto-modal__dialog');
-		if (dialog) dialog.classList.add('mk-wh-proto-modal__dialog--compact');
-
-		title.textContent = 'Tạo phiếu nhập kho';
-		if (submit) submit.textContent = 'Tạo phiếu';
-
-		fields.innerHTML =
-			'<div class="mk-wh-proto-field"><label>Nhà cung cấp *</label><input type="text" name="supplier" required placeholder="VD: CTY Dược Hậu Giang" /></div>' +
-			'<div class="mk-wh-proto-field"><label>Mã PO *</label><input type="text" name="po" required placeholder="VD: PO-2026-0155" /></div>' +
-			'<div class="mk-wh-proto-field mk-wh-proto-field--full">' +
-				'<label>Danh sách hàng nhập</label>' +
-				'<div class="mk-wh-proto-lines" data-mk-lines="1">' +
-					'<div class="mk-wh-proto-lines__head">' +
-						'<span class="mk-wh-proto-lines__ttl">Thêm nhiều dòng hàng trong 1 phiếu</span>' +
-						'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost mk-wh-proto-lines__add" data-mk-lines-add="1">+ Thêm dòng</button>' +
-					'</div>' +
-					'<div class="mk-wh-proto-lines__tableWrap">' +
-						'<table class="mk-wh-proto-lines__table" role="table">' +
-							'<thead><tr>' +
-								'<th style="min-width:220px;">Tên hàng *</th>' +
-								'<th style="min-width:130px;">SKU</th>' +
-								'<th>Lô *</th>' +
-								'<th class="mk-wh-proto-td-right">SL *</th>' +
-								'<th>NSX</th>' +
-								'<th>HSD</th>' +
-								'<th style="width:44px;"></th>' +
-							'</tr></thead>' +
-							'<tbody data-mk-lines-body="1"></tbody>' +
-						'</table>' +
-					'</div>' +
-				'</div>' +
-			'</div>' +
-			'<div class="mk-wh-proto-field mk-wh-proto-field--check mk-wh-proto-field--full">' +
-				'<label class="mk-wh-proto-check">' +
-					'<span class="mk-wh-proto-check__box">' +
-						'<input class="mk-wh-proto-check__input" type="checkbox" name="sendQc" value="1" checked="checked" />' +
-						'<span class="mk-wh-proto-check__visual" aria-hidden="true">' +
-							'<svg class="mk-wh-proto-check__icon" width="12" height="12" viewBox="0 0 12 12" fill="none">' +
-								'<path d="M2.2 6.1 4.8 8.7 9.8 3.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>' +
-							'</svg>' +
-						'</span>' +
-					'</span>' +
-					'<span class="mk-wh-proto-check__text">' +
-						'<span class="mk-wh-proto-check__label">Gửi QC</span>' +
-						'<span class="mk-wh-proto-check__hint">Bỏ chọn nếu hàng không cần QC — nhập thẳng tồn kho</span>' +
-					'</span>' +
-				'</label>' +
-			'</div>';
-
-		var bodyEl = form.querySelector('[data-mk-lines-body="1"]');
-
-		function guessSkuFromName(name, idx) {
-			var clean = String(name || '').trim();
-			if (!clean) return 'SKU-' + String(idx).padStart(2, '0');
-			var words = clean.split(/\s+/).filter(Boolean);
-			var initials = words.slice(0, 2).map(function (w) { return (w[0] || '').toUpperCase(); }).join('');
-			var digits = (clean.match(/\d+/) || [])[0] || '';
-			var base = initials || 'SP';
-			return base + (digits ? '-' + digits : '') + '-' + String(idx).padStart(2, '0');
+		if (dialog) {
+			dialog.classList.toggle('mk-wh-proto-modal__dialog--compact',
+				opts.tabKey === 'inbound' || opts.tabKey === 'outbound-type' || opts.tabKey === 'outbound');
+			dialog.classList.toggle('mk-wh-proto-modal__dialog--lux',
+				opts.tabKey === 'inbound' || opts.tabKey === 'outbound-type' || opts.tabKey === 'outbound');
 		}
 
-		function addRow(preset) {
-			if (!bodyEl) return;
-			var p = preset || {};
-			var idx = bodyEl.children.length + 1;
-			var skuVal = p.sku || guessSkuFromName(p.name || '', idx);
-			var tr =
-				'<tr class="mk-wh-proto-lines__row" data-mk-line="1">' +
-					'<td><input type="text" data-mk-line-name="1" value="' + escapeHtml(p.name || '') + '" required placeholder="VD: Paracetamol 500mg" /></td>' +
-					'<td><input type="text" data-mk-line-sku="1" value="' + escapeHtml(skuVal) + '" readonly /></td>' +
-					'<td><input type="text" data-mk-line-lot="1" value="' + escapeHtml(p.lot || '') + '" required /></td>' +
-					'<td><input type="number" min="1" step="1" data-mk-line-qty="1" value="' + escapeHtml(p.qty != null ? p.qty : '') + '" required /></td>' +
-					'<td><input type="date" data-mk-line-mfg="1" value="' + escapeHtml(p.mfg || '') + '" /></td>' +
-					'<td><input type="date" data-mk-line-exp="1" value="' + escapeHtml(p.expiry || '') + '" /></td>' +
-					'<td><button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-lines-del="1" title="Xóa dòng">×</button></td>' +
-				'</tr>';
-			bodyEl.insertAdjacentHTML('beforeend', tr);
-		}
-		if (bodyEl && !bodyEl.children.length) {
-			addRow();
-			addRow();
+		title.textContent = opts.title || 'Tạo phiếu';
+		if (submit) submit.textContent = opts.submitLabel || 'Tạo phiếu';
+		fields.innerHTML = renderModalFields(opts.fields || []);
+
+		if (opts.tabKey === 'inbound') {
+			bindInboundLineRows(form);
 		}
 
-		var addBtn = form.querySelector('[data-mk-lines-add="1"]');
-		if (addBtn) addBtn.onclick = function () { addRow(); };
-
-		function closeModal() {
-			modal.classList.remove('is-open');
-			modal.setAttribute('aria-hidden', 'true');
+		var sendQcCheckbox = form.querySelector('[name="sendQc"]');
+		function syncInboundSubmitLabel() {
+			if (!submit || !sendQcCheckbox || opts.tabKey !== 'inbound') return;
+			submit.textContent = sendQcCheckbox.checked ? (opts.submitLabel || 'Tạo phiếu') : 'Tạo & nhập kho';
 		}
-
-		modal.onclick = function (e) {
-			var t = e.target;
-			if (t && t.getAttribute && t.getAttribute('data-mk-close') === '1') closeModal();
-		};
-
-		form.onclick = function (e) {
-			var t = e.target;
-			if (t && t.getAttribute && t.getAttribute('data-mk-lines-del') === '1') {
-				e.preventDefault();
-				var row = t.closest('[data-mk-line="1"]');
-				if (row && bodyEl && bodyEl.children.length > 1) row.remove();
-			}
-		};
-
-		form.oninput = function (e) {
-			var t = e.target;
-			if (!t || !(t.getAttribute && t.getAttribute('data-mk-line-name') === '1')) return;
-			var row = t.closest('[data-mk-line="1"]');
-			if (!row) return;
-			var skuEl = row.querySelector('[data-mk-line-sku="1"]');
-			if (!skuEl) return;
-			var idx = Array.prototype.indexOf.call(bodyEl.children, row) + 1;
-			skuEl.value = guessSkuFromName(t.value, idx);
-		};
+		if (sendQcCheckbox) {
+			sendQcCheckbox.addEventListener('change', syncInboundSubmitLabel);
+			syncInboundSubmitLabel();
+		}
 
 		form.onsubmit = function (e) {
 			e.preventDefault();
 			var whId = getWhId();
 			if (!whId) return;
+			var fd = new FormData(form);
+			var tabKey = opts.tabKey || 'inbound';
 			var d = S.ensureData(whId);
 
-			var supplier = String((form.querySelector('[name="supplier"]') || {}).value || '').trim();
-			var poRef = String((form.querySelector('[name="po"]') || {}).value || '').trim();
-			var sendQc = !!(form.querySelector('[name="sendQc"]') && form.querySelector('[name="sendQc"]').checked);
+			if (tabKey === 'outbound-type') {
+				var pickedType = String(fd.get('outboundType') || '');
+				if (!pickedType || OUTBOUND_TYPE_PICKER.indexOf(pickedType) < 0) return;
+				openModal(modalSchema('outbound', pickedType));
+				return;
+			}
+
+			if (tabKey === 'outbound') {
+				var lotKey = String(fd.get('lotKey') || '');
+				var parts = lotKey.split('|');
+				var sku = parts[0];
+				var lot = parts[1];
+				var stockLot = findStockLot(whId, sku, lot);
+				var qtyOut = Number(fd.get('qty') || 0) || 0;
+				if (!stockLot || !qtyOut || qtyOut <= 0) return;
+				var outboundType = opts.outboundType || 'internal';
+				var typeMeta = getOutboundTypeMeta(outboundType);
+				var id = nextId('GIN', d.issues || []);
+				var now = S.nowISO();
+				var issue = {
+					id: id,
+					outboundType: outboundType,
+					customer: String(fd.get('customer') || '').trim(),
+					soRef: String(fd.get('so') || '—').trim() || '—',
+					status: 'draft',
+					createdAt: now,
+					createdBy: 'Thủ kho Hà',
+					lines: [{ sku: stockLot.sku, name: stockLot.name, lot: stockLot.lot, qty: qtyOut }],
+					timeline: [],
+				};
+				addTimeline(issue.timeline, 'Tạo phiếu xuất — ' + typeMeta.short, 'keeper');
+				var issues = (d.issues || []).slice();
+				issues.unshift(issue);
+				S.warehouseDataActions.setIssues(whId, issues);
+				closeModal();
+				var dlg = issueDialog(issue);
+				openDialog(dlg.title, dlg.meta, dlg.body);
+				return;
+			}
+
+			var supplier = String(fd.get('supplier') || '').trim();
+			var poRef = String(fd.get('po') || '').trim();
+			var sendQc = fd.has('sendQc');
 			if (!supplier || !poRef) return;
 
 			var rows = Array.prototype.slice.call(form.querySelectorAll('[data-mk-line="1"]'));
 			var lines = [];
 			rows.forEach(function (row) {
-				var sku = row.querySelector('[data-mk-line-sku="1"]') ? row.querySelector('[data-mk-line-sku="1"]').value.trim() : '';
-				var name = row.querySelector('[data-mk-line-name="1"]') ? row.querySelector('[data-mk-line-name="1"]').value.trim() : '';
+				var productSel = row.querySelector('[data-mk-line-product="1"]');
+				var sku = productSel ? String(productSel.value || '').trim() : '';
+				var name = '';
+				if (productSel && productSel.selectedIndex > 0) {
+					var opt = productSel.options[productSel.selectedIndex];
+					name = (opt && opt.getAttribute('data-name')) || '';
+				}
 				var lot = row.querySelector('[data-mk-line-lot="1"]') ? row.querySelector('[data-mk-line-lot="1"]').value.trim() : '';
 				var qty = row.querySelector('[data-mk-line-qty="1"]') ? (parseInt(row.querySelector('[data-mk-line-qty="1"]').value, 10) || 0) : 0;
 				var mfg = row.querySelector('[data-mk-line-mfg="1"]') ? row.querySelector('[data-mk-line-mfg="1"]').value : '';
 				var expiry = row.querySelector('[data-mk-line-exp="1"]') ? row.querySelector('[data-mk-line-exp="1"]').value : '';
-				if (!name || !lot || qty <= 0) return;
-				lines.push({ sku: sku || guessSkuFromName(name, lines.length + 1), name: name, lot: lot, mfg: mfg || '', expiry: expiry || '—', qty: qty });
+				if (!sku || !name || !lot || qty <= 0) return;
+				lines.push({ sku: sku, name: name, lot: lot, mfg: mfg || '', expiry: expiry || '—', qty: qty });
 			});
 			if (!lines.length) return;
 
-			var now = S.nowISO();
-			var id = nextId('GRN', (d.receipts || []));
+			var nowIn = S.nowISO();
+			var rid = nextId('GRN', d.receipts || []);
 			var receipt = {
-				id: id,
+				id: rid,
 				supplier: supplier,
 				poRef: poRef,
-				createdAt: now,
+				createdAt: nowIn,
 				createdBy: 'Thủ kho Hà',
 				status: sendQc ? 'pending_qc' : 'stored',
 				lines: lines,
@@ -707,14 +933,33 @@
 			var receipts = (d.receipts || []).slice();
 			receipts.unshift(receipt);
 			S.warehouseDataActions.setReceipts(whId, receipts);
-
 			if (!sendQc) addStockFromReceiptLines(whId, lines);
 
 			closeModal();
+			var rDlg = receiptDialog(receipt);
+			openDialog(rDlg.title, rDlg.meta, rDlg.body);
+		};
+
+		form.onclick = function (e) {
+			var t = e.target;
+			if (t && t.getAttribute && t.getAttribute('data-mk-lines-del') === '1') {
+				e.preventDefault();
+				var row = t.closest('[data-mk-line="1"]');
+				var bodyEl = form.querySelector('[data-mk-lines-body="1"]');
+				if (row && bodyEl && bodyEl.children.length > 1) row.remove();
+			}
 		};
 
 		modal.classList.add('is-open');
 		modal.setAttribute('aria-hidden', 'false');
+	}
+
+	function openCreateInbound() {
+		openModal(modalSchema('inbound'));
+	}
+
+	function openOutboundTypePicker() {
+		openModal(modalSchema('outbound-type'));
 	}
 
 	function boot() {
@@ -722,9 +967,7 @@
 		S.hydrate();
 		if (!renderHeader()) return;
 
-		// Ensure role select uses Prototype UI options (qc/stock/manager)
-		// If current value is keeper, map to stock for UI.
-		setRoleUI(getRole());
+		// Role select uses Prototype keys: qc / stock / manager
 		updateRoleBanner();
 
 		qsa('.mk-wh-proto-tab').forEach(function (b) {
@@ -762,8 +1005,20 @@
 			var tabKey = active ? active.getAttribute('data-tab') : 'inbound';
 			if (tabKey === 'inbound') {
 				openCreateInbound();
+			} else if (tabKey === 'outbound') {
+				openOutboundTypePicker();
 			}
 		});
+
+		var modal = qs('#mkWhProtoModal');
+		if (modal) {
+			modal.addEventListener('click', function (e) {
+				var target = e.target;
+				if (target && target.getAttribute && target.getAttribute('data-mk-close') === '1') {
+					closeModal();
+				}
+			});
+		}
 
 		document.addEventListener('click', function (e) {
 			var t = e.target;

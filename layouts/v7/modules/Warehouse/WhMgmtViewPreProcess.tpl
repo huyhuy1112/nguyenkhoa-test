@@ -12,14 +12,18 @@
 </script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryListShared.css')}?mk_v=20260612_wh_mgmt7" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.css')}?mk_v=20260612_wh_mgmt7" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.css')}?mk_v=20260612_wh_mgmt7" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseLocalStore.js')}?mk_v=20260617_wh_detail_proto2"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.css')}?mk_v=20260618_wh_detail_lux3" />
 {if $VIEW eq 'WhDetail'}
-	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailPrototype.js')}?mk_v=20260617_wh_detail_proto2"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailOverrides.css')}?mk_v=20260618_wh_detail_lux3" />
 {else}
-	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.js')}?mk_v=20260617_wh_detail_proto2"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.css')}?mk_v=20260618_wh_detail_lux3" />
+{/if}
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseLocalStore.js')}?mk_v=20260618_wh_detail_lux3"></script>
+{if $VIEW eq 'WhDetail'}
+	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailPrototype.js')}?mk_v=20260618_wh_detail_lux3"></script>
+{else}
+	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.js')}?mk_v=20260618_wh_detail_lux3"></script>
 {/if}
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-warehouse-mgmt="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
@@ -31,8 +35,8 @@
 			<div class="data"></div>
 			<div class="modal-dialog"></div>
 		</div>
-		<main class="mk-dash-main mk-content mk-wh-mgmt-main" id="mk-dash-main" role="main">
-		<div class="main-container main-container-{$MODULE} mk-wh-mgmt-page">
+		<main class="mk-dash-main mk-content{if $VIEW eq 'WhDetail'} mk-wh-proto-main{else} mk-wh-mgmt-main{/if}" id="mk-dash-main" role="main">
+		<div class="main-container main-container-{$MODULE}{if $VIEW eq 'WhDetail'} mk-wh-proto-page{else} mk-wh-mgmt-page{/if}">
 			<div class="viewContent mk-wh-mgmt-inner" id="mkWhMgmtRoot" data-mk-wh-view="{$VIEW|escape:'html'}">
 {/strip}
 {else}

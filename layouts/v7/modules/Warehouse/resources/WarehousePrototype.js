@@ -227,7 +227,7 @@
 	};
 
 	function getOutboundTypeMeta(type) {
-		return OUTBOUND_TYPES[type] || OUTBOUND_TYPES.sale;
+		return OUTBOUND_TYPES[type] || OUTBOUND_TYPES.internal;
 	}
 
 	function outboundTypePill(type) {
@@ -239,6 +239,31 @@
 		return (getState().stock || []).filter(function (s) {
 			return s.sku === sku && s.lot === lot;
 		})[0];
+	}
+
+	function getStockProductCatalog() {
+		var seen = {};
+		var list = [];
+		(getState().stock || []).forEach(function (s) {
+			if (!s.sku || seen[s.sku]) return;
+			if ((Number(s.qty) || 0) <= 0) return;
+			seen[s.sku] = true;
+			list.push({ sku: s.sku, name: s.name || s.sku });
+		});
+		list.sort(function (a, b) {
+			return String(a.name).localeCompare(String(b.name), 'vi');
+		});
+		return list;
+	}
+
+	function productSelectHtml(catalog, selectedSku) {
+		var opts = '<option value="">— Chọn sản phẩm từ tồn kho —</option>' +
+			catalog.map(function (p) {
+				var sel = p.sku === selectedSku ? ' selected="selected"' : '';
+				return '<option value="' + escapeHtml(p.sku) + '" data-name="' + escapeHtml(p.name) + '"' + sel + '>' +
+					escapeHtml(p.name) + ' · ' + escapeHtml(p.sku) + '</option>';
+			}).join('');
+		return '<select class="mk-wh-proto-product-select" data-mk-line-product="1" required>' + opts + '</select>';
 	}
 
 	function receiptNeedsQc(rec) {
@@ -421,7 +446,7 @@
 					escapeHtml(i.code) +
 					'</strong></td>' +
 					'<td>' +
-					outboundTypePill(i.outboundType || 'sale') +
+					outboundTypePill(i.outboundType || 'internal') +
 					'</td>' +
 					'<td>' +
 					escapeHtml(i.customer) +
@@ -636,6 +661,10 @@
 				'mk-wh-proto-modal__dialog--compact',
 				opts.tabKey === 'inbound' || opts.tabKey === 'outbound-type' || opts.tabKey === 'outbound'
 			);
+			dialog.classList.toggle(
+				'mk-wh-proto-modal__dialog--lux',
+				opts.tabKey === 'inbound' || opts.tabKey === 'outbound-type' || opts.tabKey === 'outbound'
+			);
 		}
 
 		title.textContent = opts.title || 'Tạo phiếu';
@@ -657,20 +686,20 @@
 						'<label>' +
 						escapeHtml(f.label || 'Danh sách hàng') +
 						'</label>' +
-						'<div class="mk-wh-proto-lines" data-mk-lines="1">' +
+						'<div class="mk-wh-proto-lines mk-wh-proto-lines--catalog" data-mk-lines="1">' +
 						'<div class="mk-wh-proto-lines__head">' +
-						'<span class="mk-wh-proto-lines__ttl">Thêm nhiều dòng hàng trong 1 phiếu</span>' +
+						'<span class="mk-wh-proto-lines__ttl">Chọn sản phẩm từ tồn kho — SKU tự động điền</span>' +
 						'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost mk-wh-proto-lines__add" data-mk-lines-add="1">+ Thêm dòng</button>' +
 						'</div>' +
 						'<div class="mk-wh-proto-lines__tableWrap">' +
 						'<table class="mk-wh-proto-lines__table" role="table">' +
 						'<thead><tr>' +
-						'<th>SKU *</th>' +
-						'<th>Tên hàng *</th>' +
-						'<th>Lô *</th>' +
-						'<th class="mk-wh-proto-td-right">SL *</th>' +
-						'<th>NSX</th>' +
-						'<th>HSD</th>' +
+						'<th class="mk-wh-proto-col-name">Tên hàng *</th>' +
+						'<th class="mk-wh-proto-col-sku">SKU</th>' +
+						'<th class="mk-wh-proto-col-lot">Lô *</th>' +
+						'<th class="mk-wh-proto-col-qty">SL *</th>' +
+						'<th class="mk-wh-proto-col-date">NSX</th>' +
+						'<th class="mk-wh-proto-col-date">HSD</th>' +
 						'<th style="width:44px;"></th>' +
 						'</tr></thead>' +
 						'<tbody data-mk-lines-body="1"></tbody>' +
@@ -747,36 +776,54 @@
 		modal.classList.add('is-open');
 		modal.setAttribute('aria-hidden', 'false');
 
-		// Inbound: initialize multi-line rows
+		// Inbound: initialize multi-line rows (product from stock catalog)
 		if ((opts.tabKey || '') === 'inbound') {
 			var bodyEl = form.querySelector('[data-mk-lines-body="1"]');
+			var catalog = getStockProductCatalog();
+			var linesHead = form.querySelector('.mk-wh-proto-lines__ttl');
+			var addBtnInbound = form.querySelector('[data-mk-lines-add="1"]');
+
 			function addRow(preset) {
 				if (!bodyEl) return;
 				var p = preset || {};
+				var skuVal = p.sku || '';
 				var tr =
 					'<tr class="mk-wh-proto-lines__row" data-mk-line="1">' +
-					'<td><input type="text" data-mk-line-sku="1" value="' + escapeHtml(p.sku || '') + '" required /></td>' +
-					'<td><input type="text" data-mk-line-name="1" value="' + escapeHtml(p.name || '') + '" required /></td>' +
-					'<td><input type="text" data-mk-line-lot="1" value="' + escapeHtml(p.lot || '') + '" required /></td>' +
-					'<td><input type="number" min="0" step="1" data-mk-line-qty="1" value="' + escapeHtml(p.qty != null ? p.qty : '') + '" required /></td>' +
-					'<td><input type="date" data-mk-line-mfg="1" value="' + escapeHtml(p.mfg || '') + '" /></td>' +
-					'<td><input type="date" data-mk-line-exp="1" value="' + escapeHtml(p.exp || '') + '" /></td>' +
-					'<td><button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-lines-del="1" title="Xóa dòng">×</button></td>' +
+					'<td>' + productSelectHtml(catalog, skuVal) + '</td>' +
+					'<td class="mk-wh-proto-col-sku"><input type="text" data-mk-line-sku="1" value="' + escapeHtml(skuVal) + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" placeholder="SKU" /></td>' +
+					'<td class="mk-wh-proto-col-lot"><input type="text" data-mk-line-lot="1" value="' + escapeHtml(p.lot || '') + '" required placeholder="LOT-2605A" /></td>' +
+					'<td class="mk-wh-proto-col-qty"><input type="number" min="1" step="1" data-mk-line-qty="1" value="' + escapeHtml(p.qty != null ? p.qty : '') + '" required placeholder="100" /></td>' +
+					'<td class="mk-wh-proto-col-date"><input type="date" data-mk-line-mfg="1" value="' + escapeHtml(p.mfg || '') + '" /></td>' +
+					'<td class="mk-wh-proto-col-date"><input type="date" data-mk-line-exp="1" value="' + escapeHtml(p.exp || '') + '" /></td>' +
+					'<td><button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost mk-wh-proto-lines__del" data-mk-lines-del="1" title="Xóa dòng">×</button></td>' +
 					'</tr>';
 				bodyEl.insertAdjacentHTML('beforeend', tr);
 			}
 
-			if (bodyEl && !bodyEl.children.length) {
-				addRow();
-				addRow();
+			if (!catalog.length) {
+				if (linesHead) {
+					linesHead.innerHTML = '<span class="mk-wh-proto-lines__warn">Chưa có sản phẩm trong tồn kho — cần nhập kho trước để chọn tên hàng.</span>';
+				}
+				if (addBtnInbound) addBtnInbound.disabled = true;
+			} else {
+				if (linesHead) linesHead.textContent = 'Chọn sản phẩm từ tồn kho — SKU tự động điền';
+				if (bodyEl && !bodyEl.children.length) {
+					addRow();
+					addRow();
+				}
+				if (addBtnInbound) {
+					addBtnInbound.disabled = false;
+					addBtnInbound.onclick = function () { addRow(); };
+				}
 			}
 
-			var addBtn = form.querySelector('[data-mk-lines-add="1"]');
-			if (addBtn) {
-				addBtn.onclick = function () {
-					addRow();
-				};
-			}
+			form.addEventListener('change', function (ev) {
+				var t = ev.target;
+				if (!t || t.getAttribute('data-mk-line-product') !== '1') return;
+				var row = t.closest('[data-mk-line="1"]');
+				var skuEl = row && row.querySelector('[data-mk-line-sku="1"]');
+				if (skuEl) skuEl.value = t.value || '';
+			});
 
 			form.addEventListener(
 				'click',
@@ -811,7 +858,7 @@
 
 			if (tabKey === 'outbound-type') {
 				var pickedType = String(fd.get('outboundType') || '');
-				if (!pickedType || !OUTBOUND_TYPES[pickedType]) return;
+				if (!pickedType || !OUTBOUND_TYPES[pickedType] || pickedType === 'sale') return;
 				var pickerRole = qs('#mkWhProtoRole');
 				openModal(modalSchema('outbound', pickerRole ? pickerRole.value : 'stock', pickedType));
 				return;
@@ -825,7 +872,7 @@
 				var stockLot = findStockLot(sku, lot);
 				var qtyOut = Number(fd.get('qty') || 0) || 0;
 				if (!stockLot || !qtyOut || qtyOut <= 0) return;
-				var outboundType = opts.outboundType || 'sale';
+				var outboundType = opts.outboundType || 'internal';
 				var typeMeta = getOutboundTypeMeta(outboundType);
 				var seqOut = st.nextOutboundSeq++;
 				var codeOut = 'GIN-' + String(seqOut).padStart(4, '0');
@@ -881,8 +928,13 @@
 			var items = [];
 			var rows = Array.prototype.slice.call(form.querySelectorAll('[data-mk-line="1"]'));
 			rows.forEach(function (row) {
-				var skuIn = row.querySelector('[data-mk-line-sku="1"]') ? row.querySelector('[data-mk-line-sku="1"]').value.trim() : '';
-				var nameIn = row.querySelector('[data-mk-line-name="1"]') ? row.querySelector('[data-mk-line-name="1"]').value.trim() : '';
+				var productSel = row.querySelector('[data-mk-line-product="1"]');
+				var skuIn = productSel ? String(productSel.value || '').trim() : '';
+				var nameIn = '';
+				if (productSel && productSel.selectedIndex > 0) {
+					var opt = productSel.options[productSel.selectedIndex];
+					nameIn = (opt && opt.getAttribute('data-name')) || '';
+				}
 				var lotIn = row.querySelector('[data-mk-line-lot="1"]') ? row.querySelector('[data-mk-line-lot="1"]').value.trim() : '';
 				var qtyIn = row.querySelector('[data-mk-line-qty="1"]') ? Number(row.querySelector('[data-mk-line-qty="1"]').value || 0) || 0 : 0;
 				var mfg = row.querySelector('[data-mk-line-mfg="1"]') ? row.querySelector('[data-mk-line-mfg="1"]').value : '';
@@ -1204,11 +1256,11 @@
 			? '<div class="mk-wh-proto-banner" style="margin:10px 0;background:#fff7ed;border-color:#fed7aa;">Cảnh báo: tồn kho không đủ cho ít nhất 1 dòng.</div>'
 			: '';
 
-		var typeMeta = getOutboundTypeMeta(issue.outboundType || 'sale');
+		var typeMeta = getOutboundTypeMeta(issue.outboundType || 'internal');
 		return {
 			title: 'Phiếu xuất ' + issue.code,
 			metaHtml:
-				outboundTypePill(issue.outboundType || 'sale') +
+				outboundTypePill(issue.outboundType || 'internal') +
 				' · ' +
 				escapeHtml(typeMeta.customerLabel) +
 				': ' +
@@ -1262,8 +1314,7 @@
 						required: true,
 						full: true,
 						options: [
-							{ value: 'sale', label: OUTBOUND_TYPES.sale.label, selected: true },
-							{ value: 'internal', label: OUTBOUND_TYPES.internal.label },
+							{ value: 'internal', label: OUTBOUND_TYPES.internal.label, selected: true },
 							{ value: 'transfer', label: OUTBOUND_TYPES.transfer.label },
 							{ value: 'scrap', label: OUTBOUND_TYPES.scrap.label },
 						],
@@ -1317,10 +1368,10 @@
 		if (!lotOptions.length) {
 			lotOptions = [{ value: '', label: '(Chưa có tồn — nhập kho trước)' }];
 		}
-		var outMeta = getOutboundTypeMeta(outboundType || 'sale');
+		var outMeta = getOutboundTypeMeta(outboundType || 'internal');
 		return {
 			tabKey: 'outbound',
-			outboundType: outboundType || 'sale',
+			outboundType: outboundType || 'internal',
 			title: 'Tạo phiếu xuất — ' + outMeta.short,
 			submitLabel: 'Tạo phiếu',
 			fields: [

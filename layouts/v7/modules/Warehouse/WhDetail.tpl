@@ -2,7 +2,7 @@
 {strip}
 <div class="mk-gi-page">
 	<div class="mk-gi-suite-card mk-wh-proto-suite" id="mkWhPrototypeRoot">
-	<section class="mk-wh-proto mk-wh-mgmt" id="mkWhDetailRoot" data-wh-id="{$MK_WH_ID|escape:'html'}">
+	<section class="mk-wh-proto" id="mkWhDetailRoot" data-wh-id="{$MK_WH_ID|escape:'html'}">
 		<header class="mk-wh-proto-head">
 			<div class="mk-wh-proto-title">
 				<div class="mk-wh-mgmt-breadcrumb">
@@ -18,8 +18,8 @@
 							<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="1.6"/><path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
 						</span>
 						<select class="mk-wh-proto-select" id="mkWhDetailRole">
-							<option value="keeper">Thủ kho — Thủ kho Hà</option>
 							<option value="qc">QC — QC Minh</option>
+							<option value="stock" selected="selected">Thủ kho — Thủ kho Hà</option>
 							<option value="manager">Quản lý kho — QL Tuấn</option>
 						</select>
 					</div>
@@ -127,7 +127,7 @@
 									<th>NCC</th>
 									<th>Mặt hàng</th>
 									<th>Lô</th>
-									<th>HSD</th>
+									<th>NSX / HSD</th>
 									<th>SL</th>
 									<th class="mk-wh-proto-td-right">QC</th>
 								</tr>
@@ -176,6 +176,7 @@
 									<th>Tên hàng</th>
 									<th>Lô</th>
 									<th>HSD</th>
+									<th class="mk-wh-proto-td-right">Giá</th>
 									<th class="mk-wh-proto-td-right">Vị trí</th>
 									<th class="mk-wh-proto-td-right">Tồn</th>
 								</tr>
@@ -191,6 +192,7 @@
 							<thead>
 								<tr>
 									<th>Mã phiếu</th>
+									<th>Loại xuất</th>
 									<th>Khách hàng</th>
 									<th>SO</th>
 									<th>Ngày tạo</th>
@@ -243,16 +245,4 @@
 	</div>
 </div>
 
-{* Modal tạo phiếu nhập/xuất hiện tại vẫn dùng mkWhDetailModal (giữ nguyên cho form multi-line) *}
-<div class="mk-wh-mgmt-modal hide" id="mkWhDetailModal" role="dialog" aria-modal="true">
-	<div class="mk-wh-mgmt-modal__backdrop" data-mk-wh-detail-close="1"></div>
-	<div class="mk-wh-mgmt-modal__panel mk-wh-mgmt-modal__panel--wide">
-		<header class="mk-wh-mgmt-modal__head">
-			<h3 id="mkWhDetailModalTitle">Chi tiết</h3>
-			<button type="button" class="mk-wh-mgmt-modal__close" data-mk-wh-detail-close="1">&times;</button>
-		</header>
-		<div id="mkWhDetailModalBody" class="mk-wh-mgmt-modal__body"></div>
-		<footer class="mk-wh-mgmt-modal__foot" id="mkWhDetailModalFoot"></footer>
-	</div>
-</div>
 {/strip}

@@ -543,7 +543,13 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 .mk-wh-proto-btn--ghost {
 	background: #ffffff;
 	border: 1px solid var(--mk-proto-border);
-	color: #111827;
+	color: #334155;
+}
+
+.mk-wh-proto-btn--ghost:hover:not(:disabled) {
+	background: #f8fafc;
+	border-color: rgba(99, 102, 241, 0.25);
+	color: #1e293b;
 }
 
 .mk-wh-proto-btn--primary {
@@ -608,8 +614,110 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-modal__head {
 	padding: 16px 22px;
-	background: linear-gradient(90deg, #0f172a, #6366f1);
-	color: #f9fafb;
+	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 48%, #fde68a 100%);
+	color: #78350f;
+	border-bottom: 1px solid rgba(251, 191, 36, 0.35);
+}
+
+.mk-wh-proto-modal__dialog--lux {
+	border: 1px solid rgba(251, 191, 36, 0.35);
+}
+
+.mk-wh-proto-modal__dialog--lux .mk-wh-proto-modal__close {
+	color: #92400e;
+}
+
+.mk-wh-proto-modal__dialog--lux .mk-wh-proto-modal__title {
+	font-size: 15px;
+	font-weight: 800;
+	color: #78350f;
+}
+
+.mk-wh-proto-lines--catalog .mk-wh-proto-lines__head {
+	background: linear-gradient(90deg, #f8fafc, #fefce8);
+}
+
+.mk-wh-proto-lines__warn {
+	color: #b45309;
+	font-weight: 700;
+}
+
+.mk-wh-proto-lines--catalog .mk-wh-proto-lines__table th {
+	background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
+	color: #4338ca;
+	border-bottom: 1px solid rgba(99, 102, 241, 0.14);
+}
+
+.mk-wh-proto-lines--catalog .mk-wh-proto-lines__table {
+	min-width: 920px;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-name {
+	min-width: 200px;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-sku {
+	min-width: 108px;
+	width: 112px;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-lot {
+	min-width: 132px;
+	width: 136px;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-qty {
+	min-width: 96px;
+	width: 100px;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-date {
+	min-width: 138px;
+	width: 142px;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-lot input,
+.mk-wh-proto-lines__table .mk-wh-proto-col-qty input {
+	width: 100%;
+	min-width: 0;
+	min-height: 42px;
+	padding: 8px 12px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #0f172a;
+	box-sizing: border-box;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-qty input {
+	text-align: right;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-lot input:focus,
+.mk-wh-proto-lines__table .mk-wh-proto-col-qty input:focus {
+	border-color: rgba(251, 191, 36, 0.75);
+	box-shadow: 0 0 0 3px rgba(253, 224, 71, 0.28);
+}
+
+.mk-wh-proto-product-select {
+	width: 100%;
+	min-width: 0;
+	font-weight: 600;
+}
+
+.mk-wh-proto-sku-readonly {
+	background: #f1f5f9 !important;
+	color: #4338ca !important;
+	font-weight: 800;
+	text-align: center;
+}
+
+.mk-wh-proto-lines__del {
+	color: #dc2626;
+	font-weight: 700;
+}
+
+.mk-wh-proto-modal__backdrop {
+	backdrop-filter: blur(3px);
 }
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-field label {
@@ -1253,13 +1361,48 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	border-radius: 10px;
 	padding: 8px 12px;
 	font-weight: 800;
-	background: #6b7280;
-	color: #fff;
 	cursor: pointer;
 }
 
-.mk-wh-proto-btn:hover {
+.mk-wh-proto-btn:not(.mk-wh-proto-btn--ghost):not(.mk-wh-proto-btn--primary) {
+	background: #6b7280;
+	color: #fff;
+}
+
+.mk-wh-proto-btn:not(.mk-wh-proto-btn--ghost):not(.mk-wh-proto-btn--primary):hover {
 	background: #4b5563;
+}
+
+.mk-wh-proto-lines__add {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	padding: 8px 16px;
+	border-radius: 999px;
+	border: 1px solid rgba(99, 102, 241, 0.28) !important;
+	background: linear-gradient(135deg, #ffffff 0%, #eef2ff 55%, #e0e7ff 100%) !important;
+	color: #4f46e5 !important;
+	font-weight: 800;
+	font-size: 12px;
+	letter-spacing: 0.02em;
+	box-shadow: 0 2px 10px rgba(99, 102, 241, 0.14);
+	transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.mk-wh-proto-lines__add:hover:not(:disabled) {
+	background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 60%, #c7d2fe 100%) !important;
+	border-color: rgba(79, 70, 229, 0.45) !important;
+	color: #3730a3 !important;
+	box-shadow: 0 4px 16px rgba(99, 102, 241, 0.22);
+	transform: translateY(-1px);
+}
+
+.mk-wh-proto-lines__add:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .mk-wh-proto-table-wrap {
