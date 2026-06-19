@@ -105,11 +105,10 @@
 						</div>
 						<div class="mk-td-field">
 							<label for="mk-td-owner">Phụ trách</label>
-							<select id="mk-td-owner" class="mk-td-select">
-								<option value="Linh">Linh</option>
-								<option value="Hà">Hà</option>
-								<option value="Minh">Minh</option>
-								<option value="{$USER_MODEL->getName()|escape:'html'}">{$USER_MODEL->getName()}</option>
+							<select id="mk-td-owner" class="mk-td-select" data-default-user="{$MK_LEADS_CURRENT_USER_NAME|escape:'html'}">
+								{foreach from=$MK_LEADS_ASSIGNABLE_USERS item=MK_USER}
+									<option value="{$MK_USER.user_name|escape:'html'}" data-user-id="{$MK_USER.id|escape:'html'}"{if $MK_USER.user_name eq $MK_LEADS_CURRENT_USER_NAME} selected="selected"{/if}>{$MK_USER.label|escape:'html'}</option>
+								{/foreach}
 							</select>
 						</div>
 						<div class="mk-td-field mk-td-field--full">

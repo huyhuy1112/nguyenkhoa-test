@@ -40,6 +40,26 @@
 			</div>
 		</section>
 
+		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--purchases mk-opportunity-detail-grid__purchases" id="mk-opp-section-purchases" aria-labelledby="mk-opp-purchase-title">
+			<div class="mk-opportunity-detail-card__head mk-opp-purchase__head">
+				<span class="mk-opp-purchase__cart-ic" aria-hidden="true">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-1.5 9h-12L6 6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="17" cy="20" r="1.5" fill="currentColor"/></svg>
+				</span>
+				<h2 id="mk-opp-purchase-title" class="mk-opportunity-detail-card__title">Lịch sử mua hàng (0)</h2>
+				<div class="mk-opportunity-detail-card__actions pull-right">
+					<button type="button" class="btn btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost" id="mk-opp-link-order">Liên kết đơn hàng</button>
+				</div>
+			</div>
+			<div class="mk-opp-commerce-tabs mk-opp-purchase__tabs" role="tablist" aria-label="Lịch sử mua hàng">
+				<button type="button" class="mk-opp-commerce-tabs__btn is-active" data-mk-commerce-tab="orders-month" role="tab" aria-selected="true">Đơn hàng trong 1 tháng</button>
+				<button type="button" class="mk-opp-commerce-tabs__btn" data-mk-commerce-tab="products-total" role="tab" aria-selected="false">Tổng sản phẩm mua hàng</button>
+			</div>
+			<div class="mk-opp-purchase__body">
+				<div class="mk-opp-commerce-panel" id="mk-opp-commerce-orders-month" data-mk-commerce-panel="orders-month" role="tabpanel"></div>
+				<div class="mk-opp-commerce-panel hide" id="mk-opp-commerce-products-total" data-mk-commerce-panel="products-total" role="tabpanel"></div>
+			</div>
+		</section>
+
 		{if $DOCUMENT_WIDGET_MODEL}
 		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--documents mk-opportunity-detail-grid__documents" aria-labelledby="mk-opportunity-detail-documents-title">
 			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">

@@ -129,6 +129,67 @@
 		return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 	}
 
+	function decodeHtmlEntities(str) {
+		if (!str || str.indexOf('&') < 0) {
+			return str;
+		}
+		var ta = document.createElement('textarea');
+		var prev = String(str);
+		var i;
+		for (i = 0; i < 3; i++) {
+			ta.innerHTML = prev;
+			var next = ta.value;
+			if (next === prev) {
+				break;
+			}
+			prev = next;
+		}
+		return prev;
+	}
+
+	function decodeTextNode($target) {
+		if (!$target || !$target.length) {
+			return false;
+		}
+		var text = $.trim($target.text());
+		if (!text || text.indexOf('&') < 0) {
+			return false;
+		}
+		var decoded = decodeHtmlEntities(text);
+		if (decoded === text) {
+			return false;
+		}
+		$target.text(decoded);
+		return true;
+	}
+
+	function fixEncodedNameCells(context) {
+		var fields = ['firstname', 'lastname', 'account_id'];
+		fields.forEach(function (field) {
+			$(context)
+				.find('td[data-name="' + field + '"]')
+				.each(function () {
+					var $td = $(this);
+					if ($td.attr('data-mk-decoded') === '1') {
+						return;
+					}
+					var $link = $td.find('a').first();
+					var changed = false;
+					if ($link.length) {
+						changed = decodeTextNode($link);
+					} else {
+						var $value = $td.find('.value').first();
+						if ($value.length && !$value.find('a').length) {
+							changed = decodeTextNode($value);
+						}
+					}
+					if (changed) {
+						$td.attr('data-mk-decoded', '1');
+					}
+				});
+		});
+	}
+
 	function enhanceTitlePills(context) {
 		$(context).find('td[data-name="title"] .value').each(function () {
 			var $value = $(this);
@@ -181,13 +242,17 @@
 			return $(this).find('.mk-contact-avatar').length === 0 && $.trim($(this).text()) !== '';
 		}).length > 0;
 
+		var needsDecode = $('td[data-name="firstname"], td[data-name="lastname"], td[data-name="account_id"]').filter(function () {
+			return $(this).attr('data-mk-decoded') !== '1' && $.trim($(this).text()).indexOf('&') >= 0;
+		}).length > 0;
+
 		var footer = document.querySelector('#listViewContent .mk-so-filter-row__footer');
 		var table = document.getElementById('table-content');
 		var paginationNeedsMove = footer && table && table.nextSibling !== footer;
 
 		var tableUnmarked = !$('#listview-table').hasClass('mk-contact-table');
 
-		return needsTitle || needsCreator || paginationNeedsMove || tableUnmarked;
+		return needsTitle || needsCreator || needsDecode || paginationNeedsMove || tableUnmarked;
 	}
 
 	function applyUi() {
@@ -203,6 +268,7 @@
 		applyInProgress = true;
 		try {
 			markContactTable();
+			fixEncodedNameCells(document);
 			enhanceTitlePills(document);
 			enhanceCreatedBy(document);
 			relocatePagination();

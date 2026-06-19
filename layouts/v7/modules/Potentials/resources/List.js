@@ -5,7 +5,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260607_opp_bundle1';
+	var MK_BUILD = '20260619_opp_decode_v2';
 	var autoSearchTimer = null;
 	var inflightSearchId = 0;
 
@@ -104,6 +104,67 @@
 
 	function normalizeToken(value) {
 		return (value || '').toString().toLowerCase().replace(/[^a-z0-9]+/g, '');
+	}
+
+	function decodeHtmlEntities(str) {
+		if (!str || str.indexOf('&') < 0) {
+			return str;
+		}
+		var ta = document.createElement('textarea');
+		var prev = String(str);
+		var i;
+		for (i = 0; i < 3; i++) {
+			ta.innerHTML = prev;
+			var next = ta.value;
+			if (next === prev) {
+				break;
+			}
+			prev = next;
+		}
+		return prev;
+	}
+
+	function decodeTextNode($target) {
+		if (!$target || !$target.length) {
+			return false;
+		}
+		var text = $.trim($target.text());
+		if (!text || text.indexOf('&') < 0) {
+			return false;
+		}
+		var decoded = decodeHtmlEntities(text);
+		if (decoded === text) {
+			return false;
+		}
+		$target.text(decoded);
+		return true;
+	}
+
+	function fixEncodedNameCells(context) {
+		var fields = ['potentialname', 'related_to', 'account_id', 'contact_id'];
+		fields.forEach(function (field) {
+			$(context)
+				.find('td[data-name="' + field + '"]')
+				.each(function () {
+					var $td = $(this);
+					if ($td.attr('data-mk-decoded') === '1') {
+						return;
+					}
+					var $link = $td.find('a').first();
+					var changed = false;
+					if ($link.length) {
+						changed = decodeTextNode($link);
+					} else {
+						var $value = $td.find('.value').first();
+						if ($value.length && !$value.find('a').length) {
+							changed = decodeTextNode($value);
+						}
+					}
+					if (changed) {
+						$td.attr('data-mk-decoded', '1');
+					}
+				});
+		});
 	}
 
 	function renderCategoryPills(context) {
@@ -780,6 +841,7 @@
 		if (!isSalesOpportunityList()) {
 			return;
 		}
+		fixEncodedNameCells(context || document);
 		renderCategoryPills(context || document);
 		renderSalesStages(context || document);
 	}

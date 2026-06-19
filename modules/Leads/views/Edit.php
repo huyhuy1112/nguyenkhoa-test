@@ -49,6 +49,35 @@ class Leads_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('MK_LEAD_RECORD_ID', $recordId);
 		$viewer->assign('MK_LEADS_EDIT_MODE', !empty($recordId));
 		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
+
+		$userModel = Users_Record_Model::getCurrentUserModel();
+		$assignableUsers = $userModel->getAccessibleUsersForModule($moduleName);
+		if (!is_array($assignableUsers)) {
+			$assignableUsers = array();
+		}
+		$userOptions = array();
+		foreach ($assignableUsers as $userId => $label) {
+			$userId = (int)$userId;
+			if ($userId <= 0) {
+				continue;
+			}
+			try {
+				$userRecord = Users_Record_Model::getInstanceById($userId, 'Users');
+				$userName = (string)$userRecord->get('user_name');
+				if ($userName === '') {
+					continue;
+				}
+				$userOptions[] = array(
+					'id' => $userId,
+					'user_name' => $userName,
+					'label' => decode_html($label),
+				);
+			} catch (Exception $e) {
+				continue;
+			}
+		}
+		$viewer->assign('MK_LEADS_ASSIGNABLE_USERS', $userOptions);
+		$viewer->assign('MK_LEADS_CURRENT_USER_NAME', (string)$userModel->get('user_name'));
 	}
 
 	public function requiresPermission(\Vtiger_Request $request) {

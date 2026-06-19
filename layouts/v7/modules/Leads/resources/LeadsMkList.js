@@ -613,32 +613,44 @@
   }
 
   function applyBulkOwner(owner) {
-    selectedLeads().forEach(function (l) {
-      store.update(l.id, { owner: owner });
+    var rows = selectedLeads();
+    Promise.all(
+      rows.map(function (l) {
+        return store.update(l.id, { owner: owner });
+      }),
+    ).then(function () {
+      state.bulkMenu = null;
+      renderAll();
     });
-    state.bulkMenu = null;
-    renderAll();
   }
 
   function applyBulkAddTag(tagKey) {
-    selectedLeads().forEach(function (l) {
-      var tags = (l.tags || []).slice();
-      if (tags.indexOf(tagKey) < 0) tags.push(tagKey);
-      store.update(l.id, { tags: tags });
+    var rows = selectedLeads();
+    Promise.all(
+      rows.map(function (l) {
+        var tags = (l.tags || []).slice();
+        if (tags.indexOf(tagKey) < 0) tags.push(tagKey);
+        return store.update(l.id, { tags: tags });
+      }),
+    ).then(function () {
+      state.bulkMenu = null;
+      renderAll();
     });
-    state.bulkMenu = null;
-    renderAll();
   }
 
   function applyBulkRemoveTag(tagKey) {
-    selectedLeads().forEach(function (l) {
-      var tags = (l.tags || []).filter(function (x) {
-        return x !== tagKey;
-      });
-      store.update(l.id, { tags: tags });
+    var rows = selectedLeads();
+    Promise.all(
+      rows.map(function (l) {
+        var tags = (l.tags || []).filter(function (x) {
+          return x !== tagKey;
+        });
+        return store.update(l.id, { tags: tags });
+      }),
+    ).then(function () {
+      state.bulkMenu = null;
+      renderAll();
     });
-    state.bulkMenu = null;
-    renderAll();
   }
 
   function renderBulkBar() {
@@ -770,15 +782,18 @@
           e.stopPropagation();
           var delId = delBtn.getAttribute("data-del-segment");
           if (store && delId) {
-            store.saveSegments(
-              store.getSegments().filter(function (s) {
-                return s.id !== delId;
-              }),
-            );
-            if (state.activeSegment === delId) {
-              state.activeSegment = null;
-            }
-            renderSegments();
+            store
+              .saveSegments(
+                store.getSegments().filter(function (s) {
+                  return s.id !== delId;
+                }),
+              )
+              .then(function () {
+                if (state.activeSegment === delId) {
+                  state.activeSegment = null;
+                }
+                renderSegments();
+              });
           }
           return;
         }
@@ -801,8 +816,9 @@
         if (!name || !store) return;
         var list = store.getSegments();
         list.push({ id: "seg_" + Date.now(), name: name, filters: Object.assign({}, state.filters) });
-        store.saveSegments(list);
-        renderSegments();
+        store.saveSegments(list).then(function () {
+          renderSegments();
+        });
       });
 
     $("mk-leads-table") &&
@@ -890,11 +906,14 @@
         }
         if (action === "archive") {
           if (!window.confirm("Archive " + rows.length + " selected lead(s)?")) return;
-          rows.forEach(function (l) {
-            store.remove(l.id);
+          Promise.all(
+            rows.map(function (l) {
+              return store.remove(l.id);
+            }),
+          ).then(function () {
+            clearSelection();
+            renderAll();
           });
-          clearSelection();
-          renderAll();
           return;
         }
         if (action === "assign" || action === "add-tag" || action === "remove-tag") {
@@ -944,10 +963,21 @@
 
   function init() {
     if (!logic || !store) return;
-    decorateStaticIcons();
-    bindEvents();
-    renderAll();
-    syncSortHeaders();
+    var boot = store.ready ? store.ready() : Promise.resolve();
+    boot
+      .then(function () {
+        decorateStaticIcons();
+        bindEvents();
+        renderAll();
+        syncSortHeaders();
+      })
+      .catch(function (err) {
+        console.error("Leads API bootstrap failed", err);
+        decorateStaticIcons();
+        bindEvents();
+        renderAll();
+        syncSortHeaders();
+      });
   }
 
   if (document.readyState === "loading") {
