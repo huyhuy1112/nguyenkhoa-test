@@ -220,6 +220,18 @@
     return fetchLead(id, true);
   }
 
+  function refreshLeadsList() {
+    if (!useApi()) {
+      ensureSeeded();
+      return Promise.resolve(getLeads());
+    }
+    return apiRequest("list").then(function (res) {
+      _memLeads = (res.leads || []).map(normalizeLead);
+      _bootstrapped = true;
+      return _memLeads;
+    });
+  }
+
   function create(patch) {
     if (useApi()) {
       return apiRequest("save", { payload: JSON.stringify(patch || {}) }).then(function (res) {
@@ -339,6 +351,7 @@
     getLead: getLead,
     fetchLead: fetchLead,
     reloadLead: reloadLead,
+    refreshLeadsList: refreshLeadsList,
     create: create,
     update: update,
     remove: remove,

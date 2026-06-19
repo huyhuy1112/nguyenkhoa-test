@@ -175,6 +175,7 @@
    * Fallback: legacy next_action string in cache.
    */
   function deriveNextAction(lead) {
+    var stored = String(lead.next_action || "").trim();
     var tasks = (lead.calendarTasks || []).filter(function (t) {
       if (!t || ACTIVITY_TYPES.indexOf(t.type) < 0) return false;
       var status = String(t.status || "open").toLowerCase();
@@ -187,9 +188,12 @@
         return da - db;
       });
       var top = tasks[0];
-      return activityTypePrefix(top.type) + String(top.subject || "").trim();
+      var derived = activityTypePrefix(top.type) + String(top.subject || "").trim();
+      if (derived) {
+        return derived;
+      }
     }
-    return String(lead.next_action || "").trim();
+    return stored;
   }
 
   function openCalendarTasks(lead) {

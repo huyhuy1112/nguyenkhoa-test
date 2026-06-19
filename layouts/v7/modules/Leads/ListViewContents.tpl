@@ -47,7 +47,6 @@
 						<col class="mk-leads-col mk-leads-col--tags" />
 						<col class="mk-leads-col mk-leads-col--touch" />
 						<col class="mk-leads-col mk-leads-col--next" />
-						<col class="mk-leads-col mk-leads-col--value" />
 						<col class="mk-leads-col mk-leads-col--support" />
 						<col class="mk-leads-col mk-leads-col--stale" />
 					</colgroup>
@@ -70,7 +69,6 @@
 							<th class="mk-leads-th" scope="col">Tags</th>
 							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="last_touch"><span class="mk-leads-th__inner">Last touch<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th" scope="col">Next action</th>
-							<th class="mk-leads-th mk-leads-th--sort mk-leads-th--right" scope="col" data-sort="value"><span class="mk-leads-th__inner">Value<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th mk-leads-th--center" scope="col">Support</th>
 							<th class="mk-leads-th mk-leads-th--center" scope="col">Stale</th>
 						</tr>
