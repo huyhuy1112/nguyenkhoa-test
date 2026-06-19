@@ -1435,6 +1435,10 @@ html.mk-opportunity-list-sales .myModal,
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .myModal {
 	z-index: 110005 !important;
 }
+html.mk-opportunity-list-sales .bootbox.modal,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .bootbox.modal {
+	z-index: 110010 !important;
+}
 html.mk-opportunity-list-sales .modal-backdrop,
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .modal-backdrop {
 	z-index: 110000 !important;
