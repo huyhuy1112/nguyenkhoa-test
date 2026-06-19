@@ -60,7 +60,66 @@ class Leads_CommerceService {
 				array($leadId, $activityId)
 			);
 		}
+		self::syncNextActionForLead($leadId);
 		return true;
+	}
+
+	public static function deriveNextActionLabel(array $calendarTasks, $fallback = '') {
+		$open = array();
+		foreach ($calendarTasks as $task) {
+			if (!is_array($task)) {
+				continue;
+			}
+			$type = isset($task['type']) ? strtolower(trim((string)$task['type'])) : '';
+			if (!in_array($type, array('task', 'call', 'meeting'), true)) {
+				continue;
+			}
+			$status = strtolower(trim((string)($task['status'] ?? 'open')));
+			if (in_array($status, array('done', 'completed', 'closed'), true)) {
+				continue;
+			}
+			$open[] = $task;
+		}
+		if (empty($open)) {
+			return trim((string)$fallback);
+		}
+		usort($open, function ($a, $b) {
+			$da = !empty($a['dueAt']) ? strtotime($a['dueAt']) : PHP_INT_MAX;
+			$db = !empty($b['dueAt']) ? strtotime($b['dueAt']) : PHP_INT_MAX;
+			if ($da === $db) {
+				return 0;
+			}
+			return ($da < $db) ? -1 : 1;
+		});
+		$top = $open[0];
+		$prefixMap = array(
+			'call' => 'Gọi: ',
+			'meeting' => 'Họp: ',
+			'task' => 'Việc: ',
+		);
+		$type = isset($top['type']) ? strtolower(trim((string)$top['type'])) : 'task';
+		$prefix = $prefixMap[$type] ?? '';
+		return $prefix . trim((string)($top['subject'] ?? ''));
+	}
+
+	public static function syncNextActionForLead($leadId) {
+		$leadId = (int)self::resolveLeadIdSimple($leadId);
+		if ($leadId <= 0) {
+			return '';
+		}
+		$adb = PearDatabase::getInstance();
+		$fallback = '';
+		$res = $adb->pquery('SELECT next_action FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+		if ($res && $adb->num_rows($res) > 0) {
+			$fallback = self::decodeText($adb->query_result($res, 0, 'next_action'));
+		}
+		$tasksByLead = self::getCalendarTasksForLeadIds(array($leadId));
+		$label = self::deriveNextActionLabel($tasksByLead[$leadId] ?? array(), $fallback);
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET next_action = ?, modified_at = ? WHERE leadid = ?',
+			array($label, date('Y-m-d H:i:s'), $leadId)
+		);
+		return $label;
 	}
 
 	protected static function mergeCalendarTaskLists(array $primary, array $secondary) {
@@ -458,6 +517,25 @@ class Leads_CommerceService {
 	}
 
 	protected static function fetchLiveCalendarTasks(array $leadIds) {
+		$fromSe = self::fetchLiveCalendarTasksFromSeactivityrel($leadIds);
+		$fromCr = self::fetchLiveCalendarTasksFromCrmentityrel($leadIds);
+		return self::mergeCalendarTasksByLead($fromSe, $fromCr);
+	}
+
+	protected static function mergeCalendarTasksByLead(array $primary, array $secondary) {
+		$out = $primary;
+		foreach ($secondary as $leadId => $tasks) {
+			$leadId = (int)$leadId;
+			if (!isset($out[$leadId])) {
+				$out[$leadId] = $tasks;
+				continue;
+			}
+			$out[$leadId] = self::mergeCalendarTaskLists($out[$leadId], $tasks);
+		}
+		return $out;
+	}
+
+	protected static function fetchLiveCalendarTasksFromSeactivityrel(array $leadIds) {
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery(
 			"SELECT rel.crmid AS leadid, a.activityid, a.activitytype, a.subject, a.status, a.eventstatus,
@@ -470,7 +548,38 @@ class Leads_CommerceService {
 			 ORDER BY rel.crmid ASC, a.due_date ASC, a.date_start ASC, a.activityid ASC",
 			$leadIds
 		);
+		return self::mapActivityResultSet($adb, $res);
+	}
+
+	protected static function fetchLiveCalendarTasksFromCrmentityrel(array $leadIds) {
+		$adb = PearDatabase::getInstance();
+		$marks = generateQuestionMarks($leadIds);
+		$sql = "(SELECT rel.crmid AS leadid, a.activityid, a.activitytype, a.subject, a.status, a.eventstatus,
+				a.date_start, a.time_start, a.due_date, a.time_end
+			 FROM vtiger_crmentityrel rel
+			 INNER JOIN vtiger_activity a ON a.activityid = rel.relcrmid
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.activityid AND ce.deleted = 0
+			 WHERE rel.module = 'Leads' AND rel.relmodule IN ('Calendar', 'Events')
+			   AND rel.crmid IN (" . $marks . ")
+			   AND a.activitytype NOT IN ('Emails'))
+			UNION
+			(SELECT rel.relcrmid AS leadid, a.activityid, a.activitytype, a.subject, a.status, a.eventstatus,
+				a.date_start, a.time_start, a.due_date, a.time_end
+			 FROM vtiger_crmentityrel rel
+			 INNER JOIN vtiger_activity a ON a.activityid = rel.crmid
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.activityid AND ce.deleted = 0
+			 WHERE rel.relmodule = 'Leads' AND rel.module IN ('Calendar', 'Events')
+			   AND rel.relcrmid IN (" . $marks . ")
+			   AND a.activitytype NOT IN ('Emails'))";
+		$res = $adb->pquery($sql, array_merge($leadIds, $leadIds));
+		return self::mapActivityResultSet($adb, $res);
+	}
+
+	protected static function mapActivityResultSet(PearDatabase $adb, $res) {
 		$out = array();
+		if (!$res) {
+			return $out;
+		}
 		for ($i = 0; $i < $adb->num_rows($res); $i++) {
 			$leadId = (int)$adb->query_result($res, $i, 'leadid');
 			$row = self::mapActivityRow($adb, $res, $i);

@@ -224,7 +224,12 @@
     var host = $("mk-leads-segments");
     if (!host) return;
     var saved = store ? store.getSegments() : [];
-    var html = PRESET_SEGMENTS.map(function (s) {
+    var allOn = !state.activeSegment ? " is-active" : "";
+    var html =
+      '<button type="button" class="mk-leads-segment-btn' +
+      allOn +
+      '" data-segment="__all__">Tất cả</button>';
+    html += PRESET_SEGMENTS.map(function (s) {
       var on = state.activeSegment === s.id ? " is-active" : "";
       return '<button type="button" class="mk-leads-segment-btn' + on + '" data-segment="' + esc(s.id) + '">' + esc(s.name) + "</button>";
     }).join("");
@@ -356,7 +361,7 @@
     if (!tbody) return;
 
     if (!pageRows.length) {
-      tbody.innerHTML = '<tr><td colspan="15" class="mk-leads-empty">No leads match these filters.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="14" class="mk-leads-empty">No leads match these filters.</td></tr>';
     } else {
       tbody.innerHTML = pageRows
         .map(function (l) {
@@ -433,9 +438,6 @@
               var next = logic.deriveNextAction ? logic.deriveNextAction(l) : l.next_action || "";
               return next ? esc(next) : '<span class="mk-leads-muted">—</span>';
             })() +
-            "</td>" +
-            '<td class="mk-leads-td mk-leads-td--right">' +
-            logic.fmtVND(l.value) +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--center mk-leads-td--support">' +
             (l.openTickets > 0
@@ -699,6 +701,15 @@
     renderTable();
   }
 
+  function clearSegmentFilters() {
+    state.filters = Object.assign({}, EMPTY);
+    state.activeSegment = null;
+    state.page = 1;
+    var search = $("mk-leads-search");
+    if (search) search.value = "";
+    renderAll();
+  }
+
   function applySegment(id, filters, isCustom) {
     state.filters = Object.assign({}, EMPTY, filters || {});
     state.activeSegment = id;
@@ -800,14 +811,30 @@
         var btn = e.target.closest("[data-segment]");
         if (!btn) return;
         var id = btn.getAttribute("data-segment");
+        if (id === "__all__") {
+          clearSegmentFilters();
+          return;
+        }
         var custom = btn.getAttribute("data-custom");
         if (custom && store) {
           var seg = store.getSegments().find(function (s) { return s.id === id; });
-          if (seg) applySegment(id, seg.filters, true);
+          if (seg) {
+            if (state.activeSegment === id) {
+              clearSegmentFilters();
+              return;
+            }
+            applySegment(id, seg.filters, true);
+          }
           return;
         }
         var preset = PRESET_SEGMENTS.find(function (s) { return s.id === id; });
-        if (preset) applySegment(id, preset.filters, false);
+        if (preset) {
+          if (state.activeSegment === id) {
+            clearSegmentFilters();
+            return;
+          }
+          applySegment(id, preset.filters, false);
+        }
       });
 
     $("mk-leads-save-segment") &&
@@ -963,7 +990,11 @@
 
   function init() {
     if (!logic || !store) return;
-    var boot = store.ready ? store.ready() : Promise.resolve();
+    var boot = store.refreshLeadsList
+      ? store.refreshLeadsList()
+      : store.ready
+        ? store.ready()
+        : Promise.resolve();
     boot
       .then(function () {
         decorateStaticIcons();

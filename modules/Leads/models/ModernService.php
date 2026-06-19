@@ -373,6 +373,8 @@ class Leads_ModernService {
 		$id = !empty($row['mk_cache_id']) ? $row['mk_cache_id'] : (string)$leadId;
 		$lastTouch = !empty($row['last_touch']) ? date('c', strtotime($row['last_touch'])) : date('c');
 		$company = self::decodeText(isset($row['company']) ? $row['company'] : '');
+		$storedNext = self::decodeText(isset($row['next_action']) ? $row['next_action'] : '');
+		$nextAction = Leads_CommerceService::deriveNextActionLabel($calendarTasks, $storedNext);
 
 		return array(
 			'id' => $id,
@@ -388,7 +390,7 @@ class Leads_ModernService {
 			'owner_username' => self::getUsername((int)$row['smownerid']),
 			'value' => (float)$row['lead_value'],
 			'last_touch' => $lastTouch,
-			'next_action' => self::decodeText(isset($row['next_action']) ? $row['next_action'] : ''),
+			'next_action' => $nextAction,
 			'segment' => self::decodeText(isset($row['segment']) ? $row['segment'] : ''),
 			'district' => self::decodeText(isset($row['district']) ? $row['district'] : ''),
 			'address' => self::decodeText(isset($row['address_line']) ? $row['address_line'] : ''),
