@@ -27,6 +27,25 @@
 		return d.innerHTML;
 	}
 
+	function leadCrmId(lead) {
+		if (!lead) return null;
+		if (lead.crmid != null && String(lead.crmid) !== '') return String(lead.crmid);
+		if (/^\d+$/.test(String(lead.id || ''))) return String(lead.id);
+		return null;
+	}
+
+	function activityDetailUrl(activityId) {
+		return 'index.php?module=Calendar&view=Detail&record=' + encodeURIComponent(activityId) + '&app=SALES';
+	}
+
+	function calendarListUrl() {
+		return 'index.php?module=Calendar&view=Calendar&app=SALES';
+	}
+
+	function potentialDetailUrl(potentialId) {
+		return 'index.php?module=Potentials&view=Detail&record=' + encodeURIComponent(potentialId) + '&app=SALES';
+	}
+
 	function formatVnd(n) {
 		try {
 			return new Intl.NumberFormat('vi-VN').format(n) + ' đ';
@@ -65,6 +84,7 @@
 			closeDate: lead.closeDate,
 			tags: (lead.tags || []).slice(),
 			comments: (lead.comments || []).slice(),
+			modUpdates: (lead.modUpdates || []).slice(),
 			activities: (lead.activities || []).slice(),
 			activityLog: (lead.activityLog || []).slice(),
 			purchases: (lead.purchases || []).slice(),
@@ -99,6 +119,7 @@
 			closeDate: '01-06-2026',
 			tags: ['demo'],
 			comments: [],
+			modUpdates: [],
 			activities: [],
 			activityLog: [],
 			purchases: [],
@@ -122,6 +143,8 @@
 		var sourceLabel = sourceTag && ref && ref.tagMeta ? ref.tagMeta(sourceTag).label : 'Website';
 		return {
 			id: raw.id,
+			crmid: raw.crmid,
+			potentialId: raw.potentialId,
 			name: raw.name,
 			company: raw.companyName || '',
 			phone: raw.phone,
@@ -132,15 +155,35 @@
 			value: raw.value || 0,
 			closeDate: '',
 			tags: tags.slice(),
-			comments: [],
-			activities:
-				logic && logic.openCalendarTasks
-					? logic.openCalendarTasks(raw).map(function (a) {
-							return { subject: a.subject, when: a.when };
-						})
-					: raw.next_action
-						? [{ subject: raw.next_action, when: logic && logic.touchLabel ? logic.touchLabel(d.days) : 'Today' }]
-						: [],
+			comments: (raw.comments || []).map(function (c) {
+				return {
+					id: c.id,
+					text: c.text || '',
+					html: c.html || '',
+					author: c.author || '',
+					when: c.timeLabel || c.time || '',
+				};
+			}),
+			modUpdates: (raw.modUpdates || []).slice(),
+			activities: (function () {
+				var open = logic && logic.openCalendarTasks ? logic.openCalendarTasks(raw) : [];
+				if (open.length) {
+					return open.map(function (a) {
+						return { id: a.id, subject: a.subject, when: a.when };
+					});
+				}
+				var tasks = (raw.calendarTasks || []).filter(function (t) {
+					var status = String((t && t.status) || 'open').toLowerCase();
+					return status !== 'done' && status !== 'completed' && status !== 'closed';
+				});
+				return tasks.map(function (t) {
+					return {
+						id: t.id,
+						subject: t.subject,
+						when: t.dueLabel || (logic && logic.touchLabel ? logic.touchLabel(0) : 'Today'),
+					};
+				});
+			})(),
 			activityLog: (raw.activities || []).map(function (a) {
 				return {
 					type: a.type || 'note',
@@ -158,10 +201,16 @@
 			calendarTasks: (raw.calendarTasks || []).slice(),
 			badges: {
 				contacts: 1,
-				comments: 0,
+				comments: (raw.comments || []).length,
 				'activity-log': (raw.activities || []).length,
 				purchases: (raw.purchases || []).length,
-				calendar: (raw.calendarTasks || []).length,
+				calendar: (function () {
+					var logic = window.LeadsLeadsLogic;
+					if (logic && logic.openCalendarTasks) {
+						return logic.openCalendarTasks(raw).length;
+					}
+					return (raw.calendarTasks || []).length;
+				})(),
 				tasks: 0,
 				documents: 0,
 				emails: 0,
@@ -204,26 +253,94 @@
 		);
 	}
 
-	function purchaseTotal(items) {
-		var sum = 0;
-		var i;
-		for (i = 0; i < items.length; i++) {
-			sum += items[i].value || 0;
-		}
-		return sum;
+	function detailField(label, valueHtml, full) {
+		return (
+			'<div class="mk-lead-detail-field' +
+			(full ? ' mk-lead-detail-field--full' : '') +
+			'"><dt class="mk-lead-detail-field__label">' +
+			esc(label) +
+			'</dt><dd class="mk-lead-detail-field__value">' +
+			valueHtml +
+			'</dd></div>'
+		);
 	}
 
-	function commerceMetrics(lead) {
-		var logic = window.LeadsLeadsLogic;
-		if (!logic) {
-			return { monthlyOrders: 0, totalProducts: 0, recentOrder: 0, nextAction: '' };
+	function detailSection(title, fieldsHtml) {
+		if (!fieldsHtml) return '';
+		return (
+			'<section class="mk-lead-detail-details-section">' +
+			'<h3 class="mk-lead-detail-details-section__title">' +
+			esc(title) +
+			'</h3>' +
+			'<dl class="mk-lead-detail-details-section__grid">' +
+			fieldsHtml +
+			'</dl></section>'
+		);
+	}
+
+	function renderDetailFields(lead) {
+		var host = byId('mk-ld-ui-detail-fields');
+		if (!host) return;
+
+		var segLabel = lead.segment;
+		if (segLabel && window.LeadsLeadsLogic && window.LeadsLeadsLogic.SEGMENT_LABELS) {
+			segLabel = window.LeadsLeadsLogic.SEGMENT_LABELS[lead.segment] || lead.segment;
 		}
-		return {
-			monthlyOrders: logic.monthlyOrderCount(lead),
-			totalProducts: logic.totalProductsPurchased(lead),
-			recentOrder: logic.recentOrderValue(lead),
-			nextAction: logic.deriveNextAction(lead),
-		};
+
+		var tags = lead.tags || [];
+		var tagsHtml =
+			tags.length > 0
+				? tags
+						.map(function (t) {
+							return '<span class="mk-lead-detail-tag-chip">' + esc(t) + '</span>';
+						})
+						.join('')
+				: '<span class="mk-lead-detail-field__muted">—</span>';
+
+		var contactFields =
+			detailField('Tên', esc(lead.name)) +
+			detailField(
+				'Điện thoại',
+				lead.phone
+					? '<a href="tel:' + esc(lead.phone) + '">' + esc(lead.phone) + '</a>'
+					: '<span class="mk-lead-detail-field__muted">—</span>'
+			) +
+			detailField(
+				'Email',
+				lead.email
+					? '<a href="mailto:' + esc(lead.email) + '">' + esc(lead.email) + '</a>'
+					: '<span class="mk-lead-detail-field__muted">—</span>'
+			) +
+			(lead.cccd ? detailField('CCCD', esc(lead.cccd)) : '') +
+			(lead.company ? detailField('Công ty', esc(lead.company)) : '');
+
+		var classifyFields =
+			detailField('Lead ID', esc(lead.id || lead.crmid || '—')) +
+			detailField('Trạng thái', esc(lead.leadstatus || '—')) +
+			detailField('Nguồn', esc(lead.leadsource || '—')) +
+			(segLabel ? detailField('Phân khúc', esc(segLabel)) : '') +
+			detailField('Tags', tagsHtml, true);
+
+		var addressFields = '';
+		if (lead.district || lead.address || lead.area) {
+			if (lead.district) addressFields += detailField('Quận / Huyện', esc(lead.district));
+			if (lead.address) addressFields += detailField('Địa chỉ', esc(lead.address));
+			else if (lead.area) addressFields += detailField('Khu vực', esc(lead.area));
+		}
+
+		var manageFields =
+			detailField('Phụ trách', esc(lead.owner || '—')) +
+			detailField('Giá trị', esc(formatVnd(lead.value))) +
+			detailField('Ngày dự kiến', esc(lead.closeDate || '—')) +
+			detailField('Chạm cuối', esc(lead.last_touch || '—')) +
+			(lead.next_action ? detailField('Hành động tiếp', esc(lead.next_action), true) : '') +
+			(lead.notes ? detailField('Ghi chú', esc(lead.notes), true) : '');
+
+		host.innerHTML =
+			detailSection('Thông tin liên hệ', contactFields) +
+			detailSection('Phân loại', classifyFields) +
+			(addressFields ? detailSection('Địa chỉ', addressFields) : '') +
+			detailSection('Quản lý', manageFields);
 	}
 
 	function renderKeyFields(lead) {
@@ -252,107 +369,21 @@
 		host.innerHTML = '<table class="summary-table"><tbody>' + rows + '</tbody></table>';
 	}
 
-	function orderTotal(orders) {
-		var sum = 0;
-		var i;
-		for (i = 0; i < orders.length; i++) {
-			sum += orders[i].value || 0;
-		}
-		return sum;
-	}
-
-	function orderTableHtml(orders, metrics, emptyMsg) {
-		if (!orders.length) {
-			return '<p class="mk-lead-activity-log__empty">' + esc(emptyMsg || 'Chưa có đơn mua hàng.') + '</p>';
-		}
-		var total = orderTotal(orders);
-		var rows = orders
-			.map(function (o) {
-				return (
-					'<tr><td>' +
-					esc(o.orderName || o.orderId || 'Đơn hàng') +
-					'</td><td>' +
-					esc(o.qty) +
-					'</td><td>' +
-					esc(formatVnd(o.value)) +
-					'</td><td>' +
-					esc(o.date) +
-					'</td></tr>'
-				);
-			})
-			.join('');
-		var recentRow = '';
-		if (metrics.recentOrder) {
-			recentRow =
-				'<tr><td colspan="2" class="mk-lead-purchase__total-label">Đơn gần nhất:</td>' +
-				'<td class="mk-lead-purchase__total-value" colspan="2">' +
-				esc(formatVnd(metrics.recentOrder)) +
-				'</td></tr>';
-		}
-		return (
-			'<table class="mk-lead-purchase__table">' +
-			'<thead><tr><th>Đơn hàng</th><th>SL</th><th>Giá trị</th><th>Ngày</th></tr></thead>' +
-			'<tbody>' +
-			rows +
-			'</tbody>' +
-			'<tfoot>' +
-			recentRow +
-			'<tr><td colspan="2" class="mk-lead-purchase__total-label">Tổng:</td>' +
-			'<td class="mk-lead-purchase__total-value" colspan="2">' +
-			esc(formatVnd(total)) +
-			'</td></tr></tfoot></table>'
-		);
-	}
-
-	function renderCommercePanels(lead) {
-		var logic = window.LeadsLeadsLogic;
-		var metrics = commerceMetrics(lead);
-		var title = byId('mk-ld-ui-purchase-title');
-		var ordersHost = byId('mk-ld-ui-commerce-orders-month');
-		var productsHost = byId('mk-ld-ui-commerce-products-total');
-		var allItems = lead.purchases || [];
-		var allOrders = logic && logic.groupOrders ? logic.groupOrders(allItems) : [];
-		var monthOrders =
-			logic && logic.ordersInLastDays ? logic.ordersInLastDays(lead, 30) : allOrders.slice();
-
-		if (title) title.textContent = 'Lịch sử mua hàng (' + allOrders.length + ')';
-		if (ordersHost) {
-			ordersHost.innerHTML = orderTableHtml(
-				monthOrders,
-				metrics,
-				'Không có đơn trong 30 ngày gần nhất.'
-			);
-		}
-		if (productsHost) {
-			productsHost.innerHTML = orderTableHtml(allOrders, metrics, 'Chưa có đơn mua hàng.');
-		}
-	}
-
-	function renderDetailFields(lead) {
-		var host = byId('mk-ld-ui-detail-fields');
-		if (!host) return;
-		var metrics = commerceMetrics(lead);
-		var rows = '';
-		rows += kvRow('Lead ID', esc(lead.id));
-		rows += kvRow('Trạng thái', esc(lead.leadstatus));
-		rows += kvRow('Nguồn', esc(lead.leadsource));
-		rows += kvRow('Phụ trách', esc(lead.owner));
-		rows += kvRow('Giá trị', esc(formatVnd(lead.value)));
-		if (lead.district) rows += kvRow('Khu vực', esc(lead.district));
-		if (lead.address) rows += kvRow('Địa chỉ', esc(lead.address));
-		rows += kvRow('Giá trị đơn gần nhất', metrics.recentOrder ? esc(formatVnd(metrics.recentOrder)) : '—');
-		host.innerHTML = '<table class="summary-table"><tbody>' + rows + '</tbody></table>';
-	}
-
-	function persistLeadCache(lead) {
-		var store = window.LeadsLocalStore;
-		if (!store || !lead || !lead.id || typeof store.update !== 'function') return;
-		store.update(lead.id, {
-			purchases: lead.purchases || [],
-			calendarTasks: lead.calendarTasks || [],
-			next_action: window.LeadsLeadsLogic ? window.LeadsLeadsLogic.deriveNextAction(lead) : lead.next_action,
-		});
-	}
+  function persistLeadCache(lead) {
+    var store = window.LeadsLocalStore;
+    if (!store || !lead || !lead.id) return Promise.resolve(lead);
+    if (store.reloadLead) {
+      return store.reloadLead(lead.id).then(function (fresh) {
+        return fresh ? storeLeadToDemo(fresh) : lead;
+      }).catch(function () {
+        return lead;
+      });
+    }
+    if (typeof store.update !== "function") return Promise.resolve(lead);
+    return store.update(lead.id, {
+      next_action: window.LeadsLeadsLogic ? window.LeadsLeadsLogic.deriveNextAction(lead) : lead.next_action,
+    });
+  }
 
 	function renderHeroMeta(lead) {
 		var host = byId('mk-ld-ui-meta');
@@ -441,9 +472,12 @@
 		}
 		host.innerHTML = items
 			.map(function (a) {
+				var href = a.id ? activityDetailUrl(a.id) : 'javascript:void(0)';
 				return (
 					'<div class="activityEntries">' +
-					'<div class="summaryViewEntries"><a href="javascript:void(0)">' +
+					'<div class="summaryViewEntries"><a href="' +
+					href +
+					'">' +
 					esc(a.subject) +
 					'</a></div><span><strong>' +
 					esc(a.when) +
@@ -458,26 +492,138 @@
 		if (!host) return;
 		var items = lead.comments || [];
 		if (!items.length) {
-			host.innerHTML = '';
+			host.innerHTML = '<div class="noContent"><p>Chưa có bình luận</p></div>';
 			return;
 		}
 		host.innerHTML = items
 			.map(function (c) {
+				var body = c.html || esc(c.text);
+				var meta = esc(c.author || '');
+				if (c.when) {
+					meta += meta ? ' · ' : '';
+					meta += esc(c.when);
+				}
 				return (
-					'<div class="commentDetails"><p>' +
-					esc(c.text) +
-					'</p><small>' +
-					esc(c.when) +
-					'</small></div>'
+					'<div class="commentDetails">' +
+					'<div class="mk-lead-comment__body">' +
+					body +
+					'</div>' +
+					(meta ? '<small class="mk-lead-comment__meta">' + meta + '</small>' : '') +
+					'</div>'
 				);
 			})
 			.join('');
 	}
 
+	function renderUpdateChange(change) {
+		var html =
+			'<div class="mk-lead-update-change">' +
+			'<span class="mk-lead-update-change__field">' +
+			esc(change.field) +
+			'</span>';
+		if (change.action === 'removed') {
+			html += ' <span class="mk-lead-update-change__action">đã xóa</span> <del>' + esc(change.from) + '</del>';
+		} else if (change.action === 'added') {
+			html += ' <span class="mk-lead-update-change__action">đã thêm</span> <em>' + esc(change.to) + '</em>';
+		} else {
+			html +=
+				' <span class="mk-lead-update-change__action">đổi từ</span> <span class="mk-lead-update-change__from">' +
+				esc(change.from) +
+				'</span> <span class="mk-lead-update-change__action">thành</span> <em>' +
+				esc(change.to) +
+				'</em>';
+		}
+		html += '</div>';
+		return html;
+	}
+
+	function renderUpdates(lead) {
+		var host = byId('mk-ld-ui-updates');
+		if (!host) return;
+		var items = lead.modUpdates || [];
+		if (!items.length) {
+			host.innerHTML = '<div class="noContent"><p>Chưa có lịch sử cập nhật</p></div>';
+			return;
+		}
+		host.innerHTML =
+			'<ul class="mk-lead-updates-timeline">' +
+			items
+				.map(function (u) {
+					var changesHtml = (u.changes || []).map(renderUpdateChange).join('');
+					var relationHtml = '';
+					if (u.relation && u.relation.url) {
+						var relAction = u.relation.action === 'unlinked' ? 'đã gỡ liên kết' : 'đã liên kết';
+						relationHtml =
+							'<div class="mk-lead-update-relation">' +
+							relAction +
+							' <a href="' +
+							esc(u.relation.url) +
+							'">' +
+							esc(u.relation.label || u.title) +
+							'</a></div>';
+					}
+					return (
+						'<li class="mk-lead-update-item mk-lead-update-item--' +
+						esc(u.kind || 'update') +
+						'">' +
+						'<time class="mk-lead-update-item__time" title="' +
+						esc(u.time || '') +
+						'">' +
+						esc(u.timeLabel || u.time || '') +
+						'</time>' +
+						'<div class="mk-lead-update-item__icon" aria-hidden="true"></div>' +
+						'<div class="mk-lead-update-item__body">' +
+						'<h5 class="mk-lead-update-item__title">' +
+						esc(u.title || u.user || 'Cập nhật') +
+						'</h5>' +
+						changesHtml +
+						relationHtml +
+						'</div></li>'
+					);
+				})
+				.join('') +
+			'</ul>';
+	}
+
+	function saveCommentApi(lead, text) {
+		if (!window.MK_LEADS_API_READY || !lead || !lead.id || typeof app === 'undefined' || !app.request) {
+			return Promise.resolve(null);
+		}
+		return app.request
+			.post({
+				data: {
+					module: 'Leads',
+					action: 'ModernApi',
+					mode: 'comment_save',
+					id: lead.id,
+					text: text,
+				},
+			})
+			.then(function (err, res) {
+				if (err || !res || res.success === false) {
+					throw err || new Error((res && res.error) || 'Không lưu được bình luận');
+				}
+				return res;
+			});
+	}
+
+	function clearIconTabActive() {
+		document.querySelectorAll('#mk-ld-ui-related-tabs [data-mk-scroll]').forEach(function (node) {
+			node.classList.remove('active');
+		});
+	}
+
+	function setIconTabActive(scrollKey) {
+		clearIconTabActive();
+		var iconTab = document.querySelector('#mk-ld-ui-related-tabs [data-mk-scroll="' + scrollKey + '"]');
+		if (iconTab) {
+			iconTab.classList.add('active');
+		}
+	}
+
 	function syncBadges(lead) {
 		lead.badges.comments = (lead.comments || []).length;
 		lead.badges['activity-log'] = (lead.activityLog || []).length;
-		lead.badges.purchases = (lead.purchases || []).length;
 		lead.badges.calendar = (lead.activities || []).length;
 
 		document.querySelectorAll('.mk-lead-detail-related-tabs .numberCircle[data-badge]').forEach(function (node) {
@@ -510,67 +656,46 @@
 		}
 	}
 
-	function activateCommerceSubTab(key) {
-		var root = byId('mk-ld-ui-section-purchases');
-		if (!root) return;
-		var subKey = key || 'orders-month';
-		root.querySelectorAll('[data-mk-commerce-tab]').forEach(function (btn) {
-			var active = btn.getAttribute('data-mk-commerce-tab') === subKey;
-			btn.classList.toggle('is-active', active);
-			btn.setAttribute('aria-selected', active ? 'true' : 'false');
-		});
-		root.querySelectorAll('[data-mk-commerce-panel]').forEach(function (panel) {
-			panel.classList.toggle('hide', panel.getAttribute('data-mk-commerce-panel') !== subKey);
-		});
-	}
-
-	function bindCommerceSubTabs() {
-		var root = byId('mk-ld-ui-section-purchases');
-		if (!root) return;
-		root.querySelectorAll('[data-mk-commerce-tab]').forEach(function (btn) {
-			btn.addEventListener('click', function () {
-				activateCommerceSubTab(btn.getAttribute('data-mk-commerce-tab'));
-			});
-		});
-		activateCommerceSubTab('orders-month');
-	}
-
 	function bindTabs() {
 		var textTabs = document.querySelectorAll('#mk-ld-ui-related-tabs [data-mk-ui-tab]');
+		var scrollTabs = document.querySelectorAll('#mk-ld-ui-related-tabs [data-mk-scroll]');
 		var panels = {
 			summary: byId('mk-ld-ui-panel-summary'),
 			detail: byId('mk-ld-ui-panel-detail'),
 			updates: byId('mk-ld-ui-panel-updates'),
 		};
 		var i;
-		for (i = 0; i < textTabs.length; i++) {
-			textTabs[i].addEventListener('click', function (e) {
-				var li = e.currentTarget;
-				var key = li.getAttribute('data-mk-ui-tab');
-				var k;
-				for (k = 0; k < textTabs.length; k++) textTabs[k].classList.remove('active');
-				li.classList.add('active');
-				Object.keys(panels).forEach(function (name) {
-					if (panels[name]) panels[name].classList.toggle('hide', name !== key);
-				});
+
+		function activateTextTab(key) {
+			for (i = 0; i < textTabs.length; i++) {
+				textTabs[i].classList.toggle('active', textTabs[i].getAttribute('data-mk-ui-tab') === key);
+			}
+			clearIconTabActive();
+			Object.keys(panels).forEach(function (name) {
+				if (panels[name]) {
+					panels[name].classList.toggle('hide', name !== key);
+				}
 			});
 		}
 
-		bindCommerceSubTabs();
-
-		document.querySelectorAll('#mk-ld-ui-related-tabs [data-mk-scroll]').forEach(function (li) {
-			li.addEventListener('click', function () {
-				var panel = byId('mk-ld-ui-panel-summary');
-				if (panel) panel.classList.remove('hide');
-				Object.keys(panels).forEach(function (name) {
-					if (name !== 'summary' && panels[name]) panels[name].classList.add('hide');
-				});
-				textTabs.forEach(function (t) {
-					t.classList.toggle('active', t.getAttribute('data-mk-ui-tab') === 'summary');
-				});
-				scrollToSection(li.getAttribute('data-mk-scroll'));
+		for (i = 0; i < textTabs.length; i++) {
+			textTabs[i].addEventListener('click', function (e) {
+				var key = e.currentTarget.getAttribute('data-mk-ui-tab');
+				activateTextTab(key);
 			});
-		});
+		}
+
+		for (i = 0; i < scrollTabs.length; i++) {
+			scrollTabs[i].addEventListener('click', function (e) {
+				var li = e.currentTarget;
+				var scrollKey = li.getAttribute('data-mk-scroll');
+				activateTextTab('summary');
+				setIconTabActive(scrollKey);
+				window.setTimeout(function () {
+					scrollToSection(scrollKey);
+				}, 60);
+			});
+		}
 	}
 
 	function addActivityLogEntry(lead, type, text) {
@@ -674,21 +799,105 @@
 		return $frag.html();
 	}
 
-	function initQuickCreateModal(container, subject) {
-		if (!$jq || !container || !container.length) {
-			return;
-		}
-		var form = container.find('form[name="QuickCreate"]');
-		if (!form.length) {
-			form = $jq('form[name="QuickCreate"]').last();
-		}
-		if (!form.length) {
-			return;
-		}
+  function extractQuickCreateUiMeta(html) {
+    if (!html || typeof html !== "string") return null;
+    var marker = "var quickcreate_uimeta =";
+    var idx = html.indexOf(marker);
+    if (idx < 0) return null;
+    var start = html.indexOf("{", idx);
+    if (start < 0) return null;
+    var depth = 0;
+    for (var i = start; i < html.length; i++) {
+      var ch = html.charAt(i);
+      if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        if (depth === 0) {
+          var chunk = html.substring(start, i + 1);
+          try {
+            return JSON.parse(chunk);
+          } catch (e1) {
+            try {
+              return new Function("return " + chunk)();
+            } catch (e2) {
+              return null;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
 
-		if (typeof app.event !== 'undefined' && app.event.trigger) {
-			app.event.trigger('post.QuickCreateForm.show', form);
-		}
+  function registerLeadQuickCreateSave(form) {
+    if (!$jq || !form || !form.length || typeof app === "undefined" || !app.request) return;
+
+    form.off("submit.mkLeadQc");
+
+    var validationMeta = typeof quickcreate_uimeta !== "undefined" ? quickcreate_uimeta : {};
+    var moduleName = form.find('[name="module"]').val();
+    var calendarEdit =
+      typeof Calendar_Edit_Js !== "undefined" && (moduleName === "Calendar" || moduleName === "Events")
+        ? Calendar_Edit_Js.getInstance()
+        : null;
+
+    var params = {
+      submitHandler: function (formEl) {
+        var $form = $jq(formEl);
+        $jq("button[name='saveButton']").attr("disabled", "disabled");
+        if (calendarEdit && typeof calendarEdit.syncQuickCreateAllDayPayload === "function") {
+          calendarEdit.syncQuickCreateAllDayPayload(formEl);
+        }
+        var formData = $form.serialize();
+        app.helper.showProgress();
+        app.request.post({ data: formData }).then(function (err, data) {
+          app.helper.hideProgress();
+          $jq("button[name='saveButton']").removeAttr("disabled");
+          if (err === null) {
+            $jq(".vt-notification").remove();
+            app.helper.hideModal();
+            app.event.trigger("post.QuickCreateForm.save", data, $form.serializeFormData());
+            var message =
+              typeof app.vtranslate === "function"
+                ? app.vtranslate("JS_RECORD_CREATED")
+                : "Đã lưu";
+            app.helper.showSuccessNotification({ message: message }, { delay: 3000 });
+          } else {
+            app.event.trigger("post.save.failed", err);
+            var msg = typeof err === "string" ? err : (err && err.message) || "Lưu thất bại";
+            if (app.helper.showErrorNotification) {
+              app.helper.showErrorNotification({ message: msg });
+            } else {
+              window.alert(msg);
+            }
+          }
+        });
+        return false;
+      },
+    };
+    if (validationMeta && Object.keys(validationMeta).length) {
+      params.validationMeta = validationMeta;
+    }
+    form.vtValidate(params);
+  }
+
+  function initQuickCreateModal(container, subject, lead, kind) {
+    if (!$jq || !container || !container.length) {
+      return;
+    }
+    var form = container.find('form[name="QuickCreate"]');
+    if (!form.length) {
+      form = $jq('form[name="QuickCreate"]').last();
+    }
+    if (!form.length) {
+      return;
+    }
+
+    applyQuickCreateLeadContext(form, lead, kind);
+
+    if (typeof app.event !== "undefined" && app.event.trigger) {
+      app.event.trigger("post.QuickCreateForm.show", form);
+    }
 
 		var sub = form.find('[name="subject"]');
 		if (sub.length && subject) {
@@ -714,56 +923,80 @@
 		if (targetInstance && typeof targetInstance.registerBasicEvents === 'function') {
 			targetInstance.registerBasicEvents(form);
 		}
-		if (targetInstance && typeof targetInstance.quickCreateSave === 'function') {
-			targetInstance.quickCreateSave(form, {});
-		}
+		registerLeadQuickCreateSave(form);
 
-		if (moduleName === 'Events') {
-			form.find('input[name="activitytype"]').val('Meeting');
-			form.find('select[name="activitytype"]').val('Meeting').trigger('change');
-		}
+    if (moduleName === "Events") {
+      form.find('input[name="activitytype"]').val("Meeting");
+      form.find('select[name="activitytype"]').val("Meeting").trigger("change");
+    }
 
-		if (typeof CalendarQuickCreate !== 'undefined') {
-			if (CalendarQuickCreate.reset) {
-				CalendarQuickCreate.reset();
-			}
-			if (CalendarQuickCreate.init) {
-				setTimeout(function () {
-					CalendarQuickCreate.init();
-				}, 150);
-			}
-		}
-	}
+    if (typeof CalendarQuickCreate !== "undefined") {
+      if (CalendarQuickCreate.reset) {
+        CalendarQuickCreate.reset();
+      }
+      if (CalendarQuickCreate.init) {
+        setTimeout(function () {
+          CalendarQuickCreate.init();
+        }, 150);
+      }
+    }
+  }
+
+  function applyQuickCreateLeadContext(form, lead, kind) {
+    if (!$jq || !form || !form.length) return;
+    var crmId = leadCrmId(lead);
+    if (!crmId) return;
+    form.find('input[name="parent_id"]').val(crmId);
+    form.find('select[name="parent_id"]').val(crmId).trigger("change");
+    var display = lead.name || "Lead #" + crmId;
+    form.find('input[name="parent_id_display"]').val(display);
+    form.find('input[name="returnmodule"]').val("Leads");
+    form.find('input[name="returnrecord"]').val(crmId);
+    if (kind === "call") {
+      form.find('input[name="activitytype"]').val("Call");
+      form.find('select[name="activitytype"]').val("Call").trigger("change");
+    } else if (kind === "task") {
+      form.find('input[name="activitytype"]').val("Task");
+      form.find('select[name="activitytype"]').val("Task").trigger("change");
+    }
+  }
 
 	function bindQuickCreateSave(kind, lead, subject) {
 		if (typeof app.event === 'undefined' || !app.event.one) {
 			return;
 		}
-		app.event.one('post.QuickCreateForm.save', function () {
+		app.event.one('post.QuickCreateForm.save', function (event, data) {
 			var text = subject || 'Activity';
 			var logType =
 				kind === 'meeting' ? 'meeting' : kind === 'call' ? 'call' : kind === 'note' ? 'note' : 'task';
 			addActivityLogEntry(lead, logType, text);
-			if (kind === 'task' || kind === 'meeting' || kind === 'call') {
-				if (!lead.calendarTasks) lead.calendarTasks = [];
-				lead.calendarTasks.unshift({
-					type: kind === 'meeting' ? 'meeting' : kind === 'call' ? 'call' : 'task',
-					subject: text,
-					status: 'open',
-					dueAt: new Date().toISOString(),
-					dueLabel: 'Today',
+			var activityId = data && (data._recordId || data.id || data.record);
+			if (activityId && app.helper && app.helper.showSuccessNotification) {
+				app.helper.showSuccessNotification({
+					message:
+						'Đã lưu activity. <a href="' +
+						activityDetailUrl(activityId) +
+						'" target="_blank" rel="noopener">Mở Calendar</a> · <a href="' +
+						calendarListUrl() +
+						'" target="_blank" rel="noopener">Xem lịch</a>',
 				});
-				lead.activities.unshift({ subject: text, when: nowLabel() });
-				renderActivities(lead);
-				renderKeyFields(lead);
-				persistLeadCache(lead);
 			}
-			syncBadges(lead);
+			persistLeadCache(lead).then(function (fresh) {
+				var row = fresh ? storeLeadToDemo(fresh) : lead;
+				render(cloneLeadData(row));
+			});
 		});
 	}
 
 	function fetchQuickCreateForm(qcModule, subject, lead, kind, triggerBtn, tryFallback) {
 		var requestData = { module: qcModule, view: 'QuickCreateAjax' };
+		var crmId = leadCrmId(lead);
+		if (crmId) {
+			requestData.parentModule = 'Leads';
+			requestData.parent_id = crmId;
+			requestData.returnmodule = 'Leads';
+			requestData.returnrecord = crmId;
+		}
 		app.helper.showProgress();
 		app.request.post({ data: requestData }).then(function (err, data) {
 			app.helper.hideProgress();
@@ -792,12 +1025,16 @@
 			}
 			bindQuickCreateSave(kind, lead, subject);
 			loadQuickCreateScripts(data, function () {
+				var meta = extractQuickCreateUiMeta(data);
+				if (meta) {
+					window.quickcreate_uimeta = meta;
+				}
 				var modalHtml = stripScriptTags(data);
 				app.helper.showModal(modalHtml, {
 					backdrop: 'static',
 					keyboard: false,
 					cb: function (container) {
-						initQuickCreateModal(container, subject);
+						initQuickCreateModal(container, subject, lead, kind);
 						if ($jq && container && container.length) {
 							var $dlg = container.find('.modal-dialog');
 							if ($dlg.hasClass('mk-qc-event-modal')) {
@@ -905,6 +1142,100 @@
 		});
 	}
 
+	function runConvertLead(lead, orderCategory) {
+		if (!window.app || !app.request || !lead || !lead.id) return;
+		app.helper.showProgress();
+		app.request
+			.post({
+				data: {
+					module: 'Leads',
+					action: 'ModernApi',
+					mode: 'convert',
+					id: lead.id,
+					order_category: orderCategory,
+				},
+			})
+			.then(function (err, res) {
+				app.helper.hideProgress();
+				if (err || !res || res.success === false) {
+					window.alert((err && err.message) || (res && res.error) || 'Convert thất bại');
+					return;
+				}
+				if (res.redirect) {
+					window.location.href = res.redirect;
+					return;
+				}
+				if (res.potentialId) {
+					window.location.href = potentialDetailUrl(res.potentialId);
+				}
+			});
+	}
+
+	function openConvertLeadModal(lead) {
+		if (!lead || !lead.id) return;
+		if (!$jq || typeof app === 'undefined' || !app.helper || !app.helper.showModal) {
+			var fallback = window.prompt('Loại Opportunity: gõ Internal hoặc Project', 'Internal');
+			if (fallback === null) return;
+			var cat = String(fallback).trim();
+			if (cat !== 'Internal' && cat !== 'Project') {
+				window.alert('Chỉ chấp nhận Internal hoặc Project.');
+				return;
+			}
+			runConvertLead(lead, cat);
+			return;
+		}
+
+		var modalHtml =
+			'<div class="modal-dialog mk-lead-convert-modal">' +
+			'<div class="modal-content">' +
+			'<div class="modal-header">' +
+			'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+			'<h4 class="modal-title">Convert Lead</h4>' +
+			'</div>' +
+			'<div class="modal-body">' +
+			'<p class="mk-lead-convert-modal__intro">Chuyển sang <strong>Contact + Account + Opportunity</strong>. Chọn loại đơn hàng cho Opportunity:</p>' +
+			'<div class="mk-lead-convert-modal__choices" role="radiogroup" aria-label="Order category">' +
+			'<label class="mk-lead-convert-modal__choice is-selected">' +
+			'<input type="radio" name="mk_lead_convert_order_category" value="Internal" checked />' +
+			'<span class="mk-lead-convert-modal__choice-body">' +
+			'<span class="mk-lead-convert-modal__choice-title">Internal</span>' +
+			'<span class="mk-lead-convert-modal__choice-desc">Đơn nội bộ / bán hàng thông thường</span>' +
+			'</span></label>' +
+			'<label class="mk-lead-convert-modal__choice">' +
+			'<input type="radio" name="mk_lead_convert_order_category" value="Project" />' +
+			'<span class="mk-lead-convert-modal__choice-body">' +
+			'<span class="mk-lead-convert-modal__choice-title">Project</span>' +
+			'<span class="mk-lead-convert-modal__choice-desc">Đơn dự án / triển khai theo project</span>' +
+			'</span></label>' +
+			'</div></div>' +
+			'<div class="modal-footer">' +
+			'<button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>' +
+			'<button type="button" class="btn btn-primary mk-lead-convert-modal__submit">Convert</button>' +
+			'</div></div></div>';
+
+		app.helper.showModal(modalHtml, {
+			backdrop: 'static',
+			keyboard: false,
+			cb: function (container) {
+				var $root = container.find('.mk-lead-convert-modal');
+				$root.find('.mk-lead-convert-modal__choice').on('click', function () {
+					$root.find('.mk-lead-convert-modal__choice').removeClass('is-selected');
+					$jq(this).addClass('is-selected');
+					$jq(this).find('input[type="radio"]').prop('checked', true);
+				});
+				$root.find('.mk-lead-convert-modal__submit').on('click', function () {
+					var cat = $root.find('input[name="mk_lead_convert_order_category"]:checked').val();
+					if (cat !== 'Internal' && cat !== 'Project') {
+						window.alert('Vui lòng chọn Internal hoặc Project.');
+						return;
+					}
+					app.helper.hideModal();
+					runConvertLead(lead, cat);
+				});
+			},
+		});
+	}
+
 	function bindDemoActions(lead) {
 		document.querySelectorAll('[data-mk-demo-action]').forEach(function (btn) {
 			btn.addEventListener('click', function (e) {
@@ -912,13 +1243,19 @@
 				var action = btn.getAttribute('data-mk-demo-action') || '';
 				if (action === 'edit' && lead && lead.id) {
 					e.preventDefault();
+					var editId = leadCrmId(lead) || lead.id;
 					window.location.href =
-						'index.php?module=Leads&view=Edit&record=' +
-						encodeURIComponent(lead.id) +
-						'&app=SALES';
+						'index.php?module=Leads&view=Edit&record=' + encodeURIComponent(editId) + '&app=SALES';
 					return;
 				}
-				window.alert(action + ' (UI demo).');
+				if (action === 'convert') {
+					e.preventDefault();
+					openConvertLeadModal(lead);
+					return;
+				}
+				if (action !== 'duplicate' && action !== 'delete') {
+					window.alert(action + ' (UI demo).');
+				}
 			});
 		});
 
@@ -953,10 +1290,35 @@
 					ta.focus();
 					return;
 				}
-				lead.comments.unshift({ text: text, when: 'Vừa xong' });
-				ta.value = '';
-				renderComments(lead);
-				syncBadges(lead);
+				post.disabled = true;
+				saveCommentApi(lead, text)
+					.then(function (res) {
+						if (res && res.comments) {
+							lead.comments = res.comments.map(function (c) {
+								return {
+									id: c.id,
+									text: c.text || '',
+									html: c.html || '',
+									author: c.author || '',
+									when: c.timeLabel || c.time || '',
+								};
+							});
+						} else {
+							lead.comments.unshift({ text: text, when: 'Vừa xong' });
+						}
+						ta.value = '';
+						renderComments(lead);
+						syncBadges(lead);
+					})
+					.catch(function () {
+						lead.comments.unshift({ text: text, when: 'Vừa xong' });
+						ta.value = '';
+						renderComments(lead);
+						syncBadges(lead);
+					})
+					.finally(function () {
+						post.disabled = false;
+					});
 			});
 		}
 
@@ -1002,11 +1364,11 @@
 		renderHeroMeta(lead);
 		renderKeyFields(lead);
 		renderDetailFields(lead);
-		renderCommercePanels(lead);
 		renderTags(lead);
 		renderActivityLog(lead);
 		renderActivities(lead);
 		renderComments(lead);
+		renderUpdates(lead);
 		syncBadges(lead);
 	}
 
@@ -1017,11 +1379,36 @@
 
 	function boot() {
 		if (!document.getElementById('mk-leads-detail-root')) return;
-		var lead = resolveLead();
-		render(lead);
-		bindTabs();
-		bindDemoActions(lead);
-		markReady();
+		var root = document.getElementById('mk-leads-detail-root');
+		var param = root && root.getAttribute('data-record-id');
+		var qs = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+		var mkId = qs ? qs.get('mkLeadId') : null;
+		var id = mkId || param;
+		var store = window.LeadsLocalStore;
+		var bootStore = store && store.ready ? store.ready() : Promise.resolve();
+
+		bootStore
+			.then(function () {
+				if (store && store.fetchLead && id) {
+					return store.fetchLead(id, true);
+				}
+				return null;
+			})
+			.then(function () {
+				var lead = cloneLeadData(resolveLead());
+				render(lead);
+				bindTabs();
+				bindDemoActions(lead);
+				markReady();
+			})
+			.catch(function (err) {
+				console.error('Leads detail bootstrap failed', err);
+				var lead = cloneLeadData(resolveLead());
+				render(lead);
+				bindTabs();
+				bindDemoActions(lead);
+				markReady();
+			});
 	}
 
 	if ($jq) {

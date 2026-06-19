@@ -24,7 +24,7 @@ html.mk-opportunity-list-sales #listViewContent .bottom-fixed-scroll {
 </style>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260607_unified1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/List.js')}?mk_v=20260607_opp_bundle1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/List.js')}?mk_v=20260619_opp_decode_v2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/InternalOrderProtection.js')}"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-opportunity-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

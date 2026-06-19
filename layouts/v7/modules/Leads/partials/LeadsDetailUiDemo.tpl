@@ -108,12 +108,6 @@
 							&nbsp;<span class="numberCircle" data-count="0" data-badge="comments">0</span>
 						</a>
 					</li>
-					<li class="tab-item" data-module="PurchaseHistory" data-mk-scroll="purchases" title="Lịch sử mua hàng">
-						<a href="javascript:void(0)" class="textOverflowEllipsis">
-							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='PurchaseHistory'}</span>
-							&nbsp;<span class="numberCircle" data-count="0" data-badge="purchases">0</span>
-						</a>
-					</li>
 				</ul>
 			</div>
 		</nav>
@@ -181,23 +175,6 @@
 						</div>
 
 						<div class="mk-lead-detail-summary-stack mk-lead-detail-summary-stack--right">
-						<section class="mk-lead-detail-card mk-lead-detail-card--purchases mk-lead-detail-grid__purchases" id="mk-ld-ui-section-purchases">
-							<div class="mk-lead-detail-card__head">
-								<span class="mk-lead-purchase__cart-ic" aria-hidden="true">
-									<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-1.5 9h-12L6 6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="17" cy="20" r="1.5" fill="currentColor"/></svg>
-								</span>
-								<h2 class="mk-lead-detail-card__title" id="mk-ld-ui-purchase-title">Lịch sử mua hàng (0)</h2>
-							</div>
-							<div class="mk-lead-commerce-tabs mk-lead-purchase__tabs" role="tablist" aria-label="Lịch sử mua hàng">
-								<button type="button" class="mk-lead-commerce-tabs__btn is-active" data-mk-commerce-tab="orders-month" role="tab" aria-selected="true">Đơn hàng trong 1 tháng</button>
-								<button type="button" class="mk-lead-commerce-tabs__btn" data-mk-commerce-tab="products-total" role="tab" aria-selected="false">Tổng sản phẩm mua hàng</button>
-							</div>
-							<div class="mk-lead-purchase__body">
-								<div class="mk-lead-commerce-panel" id="mk-ld-ui-commerce-orders-month" data-mk-commerce-panel="orders-month" role="tabpanel"></div>
-								<div class="mk-lead-commerce-panel hide" id="mk-ld-ui-commerce-products-total" data-mk-commerce-panel="products-total" role="tabpanel"></div>
-							</div>
-						</section>
-
 						<section class="mk-lead-detail-card mk-lead-detail-card--activities mk-lead-detail-grid__activities" id="mk-ld-ui-section-activities">
 							<div id="relatedActivities" class="mk-lead-detail-related-activities">
 								<div class="summaryWidgetContainer">
@@ -246,12 +223,7 @@
 		</div>
 
 		<div id="mk-ld-ui-panel-detail" class="mk-ld-ui-panel hide">
-			<div class="mk-lead-detail-card">
-				<div class="mk-lead-detail-card__head">
-					<h2 class="mk-lead-detail-card__title">{vtranslate('LBL_DETAILS', $MODULE_NAME)}</h2>
-				</div>
-				<div class="mk-lead-detail-overview-body detailview-table" id="mk-ld-ui-detail-fields"></div>
-			</div>
+			<div class="mk-lead-detail-details-grid" id="mk-ld-ui-detail-fields"></div>
 		</div>
 
 		<div id="mk-ld-ui-panel-updates" class="mk-ld-ui-panel hide">
@@ -260,7 +232,7 @@
 					<h2 class="mk-lead-detail-card__title">{vtranslate('LBL_UPDATES', $MODULE_NAME)}</h2>
 				</div>
 				<div class="widget_contents" id="mk-ld-ui-updates">
-					<div class="noContent"><p>Chưa có lịch sử cập nhật (UI demo).</p></div>
+					<div class="noContent"><p>Đang tải lịch sử cập nhật…</p></div>
 				</div>
 			</div>
 		</div>

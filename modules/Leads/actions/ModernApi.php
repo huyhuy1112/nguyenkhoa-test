@@ -1,0 +1,217 @@
+<?php
+/*+***********************************************************************************
+ * Modern Leads API — list / get / save / delete / segments (Phase 1).
+ *************************************************************************************/
+
+require_once 'modules/Leads/models/ModernService.php';
+require_once 'modules/Leads/models/CommerceService.php';
+require_once 'modules/Leads/models/ConvertService.php';
+require_once 'modules/Leads/models/DetailFeedService.php';
+
+class Leads_ModernApi_Action extends Vtiger_Action_Controller {
+
+	public function requiresPermission(Vtiger_Request $request) {
+		return array(
+			array('module_parameter' => 'module', 'action' => 'index'),
+		);
+	}
+
+	public function checkPermission(Vtiger_Request $request) {
+		$moduleName = $request->getModule();
+		if (!Users_Privileges_Model::isPermitted($moduleName, 'index')) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		return true;
+	}
+
+	public function validateRequest(Vtiger_Request $request) {
+		$mode = strtolower((string)$request->get('mode'));
+		if (in_array($mode, array('save', 'delete', 'segments_save', 'seed', 'link_order', 'convert', 'comment_save'), true)) {
+			$request->validateWriteAccess();
+		}
+	}
+
+	public function process(Vtiger_Request $request) {
+		global $current_user;
+		$response = new Vtiger_Response();
+		$mode = strtolower((string)$request->get('mode'));
+		$userId = (int)$current_user->id;
+
+		try {
+			if (!Leads_ModernService::isInstalled(PearDatabase::getInstance())) {
+				Leads_ModernService::installSchema(PearDatabase::getInstance());
+			}
+
+			switch ($mode) {
+				case 'list':
+					$seedInfo = array('seeded' => false);
+					try {
+						$seedInfo = Leads_ModernService::ensureDemoSeeded();
+					} catch (Exception $seedEx) {
+						$seedInfo = array('seeded' => false, 'seed_error' => $seedEx->getMessage());
+					}
+					$response->setResult(array(
+						'success' => true,
+						'leads' => Leads_ModernService::listLeads($userId),
+						'seed' => $seedInfo,
+					));
+					break;
+
+				case 'get':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					$lead = Leads_ModernService::getLead($id, $userId);
+					if (!$lead) {
+						throw new Exception('Lead not found.');
+					}
+					if ($request->get('with_feed')) {
+						$leadId = (int)$lead['crmid'];
+						$lead['comments'] = Leads_DetailFeedService::getComments($leadId);
+						$lead['modUpdates'] = Leads_DetailFeedService::getUpdates($leadId);
+					}
+					$response->setResult(array('success' => true, 'lead' => $lead));
+					break;
+
+				case 'updates':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					$response->setResult(array(
+						'success' => true,
+						'updates' => Leads_DetailFeedService::getUpdates($id),
+					));
+					break;
+
+				case 'comments':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					$response->setResult(array(
+						'success' => true,
+						'comments' => Leads_DetailFeedService::getComments($id),
+					));
+					break;
+
+				case 'comment_save':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					$text = $request->get('text');
+					if ($text === null || $text === '') {
+						$payload = $this->decodePayload($request);
+						$text = isset($payload['text']) ? $payload['text'] : '';
+					}
+					$comment = Leads_DetailFeedService::saveComment($id, $text);
+					$response->setResult(array(
+						'success' => true,
+						'comment' => $comment,
+						'comments' => Leads_DetailFeedService::getComments($id),
+					));
+					break;
+
+				case 'save':
+					$payload = $this->decodePayload($request);
+					$recordId = $request->get('record');
+					if (!$recordId && isset($payload['id'])) {
+						$recordId = $payload['id'];
+					}
+					$lead = Leads_ModernService::saveLead($payload, $recordId);
+					$response->setResult(array('success' => true, 'lead' => $lead));
+					break;
+
+				case 'delete':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					Leads_ModernService::deleteLead($id);
+					$response->setResult(array('success' => true));
+					break;
+
+				case 'segments_list':
+					$response->setResult(array(
+						'success' => true,
+						'segments' => Leads_ModernService::getSegments($userId),
+					));
+					break;
+
+				case 'segments_save':
+					$payload = $this->decodePayload($request);
+					$segments = isset($payload['segments']) && is_array($payload['segments']) ? $payload['segments'] : array();
+					$response->setResult(array(
+						'success' => true,
+						'segments' => Leads_ModernService::saveSegments($userId, $segments),
+					));
+					break;
+
+				case 'seed':
+					$force = (bool)$request->get('force');
+					$result = Leads_ModernService::seedDemoLeads($force);
+					$response->setResult(array('success' => true) + $result);
+					break;
+
+				case 'link_order':
+					$leadId = $request->get('id');
+					if ($leadId === null || $leadId === '') {
+						$leadId = $request->get('record');
+					}
+					$salesOrderId = $request->get('salesorder_id');
+					if (!$salesOrderId) {
+						$salesOrderId = $request->get('salesorderid');
+					}
+					Leads_CommerceService::linkSalesOrderToLead($leadId, $salesOrderId);
+					$response->setResult(array(
+						'success' => true,
+						'lead' => Leads_ModernService::getLead($leadId, $userId),
+					));
+					break;
+
+				case 'search_orders':
+					$query = trim((string)$request->get('q'));
+					$response->setResult(array(
+						'success' => true,
+						'orders' => Leads_CommerceService::searchSalesOrders($query),
+					));
+					break;
+
+				case 'convert':
+					$leadId = $request->get('id');
+					if ($leadId === null || $leadId === '') {
+						$leadId = $request->get('record');
+					}
+					$createAccount = (bool)$request->get('create_account');
+					$result = Leads_ConvertService::convertLead($leadId, array(
+						'create_account' => $createAccount,
+						'order_category' => $request->get('order_category'),
+					));
+					$response->setResult(array('success' => true) + $result);
+					break;
+
+				default:
+					throw new Exception('Unknown mode: ' . $mode);
+			}
+		} catch (Exception $e) {
+			$response->setError($e->getMessage());
+		}
+
+		$response->emit();
+	}
+
+	protected function decodePayload(Vtiger_Request $request) {
+		$raw = $request->getRaw('payload');
+		if ($raw) {
+			$decoded = json_decode($raw, true);
+			if (is_array($decoded)) {
+				return $decoded;
+			}
+		}
+		$all = $request->getAll();
+		unset($all['module'], $all['action'], $all['mode'], $all['__vtrftk']);
+		return is_array($all) ? $all : array();
+	}
+}

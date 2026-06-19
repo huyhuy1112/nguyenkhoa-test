@@ -303,6 +303,15 @@
     var store = window.LeadsLocalStore;
     if (!store || !recordId || typeof store.getLead !== "function") return;
     var lead = store.getLead(recordId);
+    if (!lead && store.getLeads) {
+      var all = store.getLeads();
+      for (var i = 0; i < all.length; i++) {
+        if (String(all[i].crmid) === String(recordId) || String(all[i].id) === String(recordId)) {
+          lead = all[i];
+          break;
+        }
+      }
+    }
     if (!lead) return;
 
     if ($("mk-td-name")) $("mk-td-name").value = lead.name || "";
@@ -314,18 +323,22 @@
     if ($("mk-td-company-name")) $("mk-td-company-name").value = lead.companyName || "";
     if ($("mk-td-owner") && lead.owner) {
       var ownerEl = $("mk-td-owner");
+      var ownerVal = lead.owner_username || lead.owner;
       var found = false;
       for (var i = 0; i < ownerEl.options.length; i++) {
-        if (ownerEl.options[i].value === lead.owner) {
+        if (
+          ownerEl.options[i].value === ownerVal ||
+          ownerEl.options[i].textContent === lead.owner
+        ) {
           ownerEl.selectedIndex = i;
           found = true;
           break;
         }
       }
-      if (!found) {
+      if (!found && ownerVal) {
         var opt = document.createElement("option");
-        opt.value = lead.owner;
-        opt.textContent = lead.owner;
+        opt.value = ownerVal;
+        opt.textContent = lead.owner || ownerVal;
         opt.selected = true;
         ownerEl.appendChild(opt);
       }
@@ -363,7 +376,7 @@
         state.customerType === "company"
           ? (($("mk-td-company-name") && $("mk-td-company-name").value.trim()) || "")
           : "",
-      owner: ownerEl ? ownerEl.value : "Linh",
+      owner: ownerEl ? ownerEl.value : "",
       tags: collectTags(),
       last_touch: new Date().toISOString(),
     };
@@ -407,23 +420,30 @@
     var isEdit = root && root.getAttribute("data-mode") === "edit";
     var patch = buildLeadPatch();
     var store = window.LeadsLocalStore;
-    var savedId = recordId;
+    var savePromise;
 
     if (store) {
       if (isEdit && recordId && typeof store.update === "function") {
-        store.update(recordId, patch);
+        savePromise = store.update(recordId, patch);
       } else if (typeof store.create === "function") {
-        var created = store.create(patch);
-        savedId = created && created.id ? created.id : savedId;
+        savePromise = store.create(patch);
       }
     }
 
-    window.location.href = savedId ? detailUrl(savedId) : LIST_URL;
+    Promise.resolve(savePromise)
+      .then(function (lead) {
+        var savedId = lead && lead.id ? lead.id : recordId;
+        window.location.href = savedId ? detailUrl(savedId) : LIST_URL;
+      })
+      .catch(function (err) {
+        alert(err && err.message ? err.message : String(err || "Save failed"));
+      });
   }
 
   function init() {
     var root = $("mk-td-create");
     if (!root) return;
+    var store = window.LeadsLocalStore;
 
     root.querySelectorAll(".mk-td-choice[data-group]").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -453,11 +473,27 @@
     syncCustomerTypePanel();
 
     var recordId = root.getAttribute("data-record-id");
-    if (recordId && root.getAttribute("data-mode") === "edit") {
-      hydrateFromStore(recordId);
-    } else {
+    var boot = store && store.ready ? store.ready() : Promise.resolve();
+    boot.then(function () {
+      if (recordId && root.getAttribute("data-mode") === "edit") {
+        var load =
+          store && store.reloadLead
+            ? store.reloadLead(recordId)
+            : store && store.fetchLead
+              ? store.fetchLead(recordId, true)
+              : Promise.resolve();
+        load
+          .then(function () {
+            hydrateFromStore(recordId);
+          })
+          .catch(function (err) {
+            console.error("Lead edit hydrate failed", err);
+            renderTags();
+          });
+        return;
+      }
       renderTags();
-    }
+    });
   }
 
   if (document.readyState === "loading") {

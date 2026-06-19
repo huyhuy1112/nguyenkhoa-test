@@ -67,6 +67,15 @@ class Calendar_QuickCreateAjax_View extends Vtiger_QuickCreateAjax_View {
 				$contactRecordModel = Vtiger_Record_Model::getInstanceById($relContactId);
 				$requestFieldList['parent_id'] = $contactRecordModel->get('account_id');
 			}
+			if ($request->get('parentModule') == 'Leads' || $request->get('returnmodule') == 'Leads') {
+				$leadId = $request->get('parent_id');
+				if (!$leadId) {
+					$leadId = $request->get('returnrecord');
+				}
+				if ($leadId) {
+					$requestFieldList['parent_id'] = $leadId;
+				}
+			}
 
 			foreach($requestFieldList as $fieldName => $fieldValue) {
 				$fieldModel = $fieldList[$fieldName];

@@ -200,6 +200,7 @@
       })
       .map(function (t) {
         return {
+          id: t.id,
           type: t.type,
           subject: t.subject,
           when: t.dueLabel || touchLabel(daysSince(t.dueAt)),
