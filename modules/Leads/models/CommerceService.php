@@ -30,7 +30,52 @@ class Leads_CommerceService {
 		$mock = self::fetchMockCalendarTasks($leadIds);
 		$out = array();
 		foreach ($leadIds as $leadId) {
-			$out[$leadId] = !empty($live[$leadId]) ? $live[$leadId] : ($mock[$leadId] ?? array());
+			$liveItems = $live[$leadId] ?? array();
+			$mockItems = $mock[$leadId] ?? array();
+			if (empty($liveItems)) {
+				$out[$leadId] = $mockItems;
+			} elseif (empty($mockItems)) {
+				$out[$leadId] = $liveItems;
+			} else {
+				$out[$leadId] = self::mergeCalendarTaskLists($liveItems, $mockItems);
+			}
+		}
+		return $out;
+	}
+
+	public static function linkActivityToLead($leadId, $activityId) {
+		$leadId = (int)self::resolveLeadIdSimple($leadId);
+		$activityId = (int)$activityId;
+		if ($leadId <= 0 || $activityId <= 0) {
+			throw new Exception('Invalid lead or activity id.');
+		}
+		$adb = PearDatabase::getInstance();
+		$exists = $adb->pquery(
+			'SELECT 1 FROM vtiger_seactivityrel WHERE crmid = ? AND activityid = ?',
+			array($leadId, $activityId)
+		);
+		if (!$exists || $adb->num_rows($exists) < 1) {
+			$adb->pquery(
+				'INSERT INTO vtiger_seactivityrel (crmid, activityid) VALUES (?, ?)',
+				array($leadId, $activityId)
+			);
+		}
+		return true;
+	}
+
+	protected static function mergeCalendarTaskLists(array $primary, array $secondary) {
+		$seen = array();
+		$out = array();
+		foreach (array_merge($primary, $secondary) as $task) {
+			if (!is_array($task)) {
+				continue;
+			}
+			$key = !empty($task['id']) ? 'id:' . (int)$task['id'] : 's:' . strtolower(trim((string)($task['subject'] ?? '')));
+			if (isset($seen[$key])) {
+				continue;
+			}
+			$seen[$key] = true;
+			$out[] = $task;
 		}
 		return $out;
 	}
@@ -525,6 +570,9 @@ class Leads_CommerceService {
 
 	protected static function mapActivityType($activityType) {
 		$key = strtolower(trim((string)$activityType));
+		if ($key === '' || $key === '--none--') {
+			return 'task';
+		}
 		if ($key === 'task') {
 			return 'task';
 		}
@@ -534,7 +582,7 @@ class Leads_CommerceService {
 		if ($key === 'meeting' || $key === 'events' || $key === 'event') {
 			return 'meeting';
 		}
-		return null;
+		return 'task';
 	}
 
 	protected static function isActivityClosed($activityType, $status, $eventStatus) {

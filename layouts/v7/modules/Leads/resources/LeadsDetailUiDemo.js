@@ -63,6 +63,178 @@
 		return h + ':' + m + ' ' + day + '/' + mon + '/' + d.getFullYear();
 	}
 
+	function activityLogLabel(type) {
+		var map = {
+			note: leadLabel('LBL_MK_ADD_NOTE', 'Ghi chú'),
+			call: leadLabel('LBL_MK_LOG_CALL', 'Cuộc gọi'),
+			meeting: leadLabel('LBL_MK_LOG_MEETING', 'Cuộc họp'),
+			task: leadLabel('LBL_MK_CREATE_TASK', 'Công việc'),
+		};
+		return map[type] || map.task;
+	}
+
+	function activityLogSortKey(entry) {
+		if (entry.dueAt) {
+			var t = new Date(entry.dueAt).getTime();
+			if (!isNaN(t)) {
+				return t;
+			}
+		}
+		if (entry.time) {
+			var parts = String(entry.time).match(/(\d{2}):(\d{2})\s+(\d{2})\/(\d{2})\/(\d{4})/);
+			if (parts) {
+				return new Date(
+					parseInt(parts[5], 10),
+					parseInt(parts[4], 10) - 1,
+					parseInt(parts[3], 10),
+					parseInt(parts[1], 10),
+					parseInt(parts[2], 10)
+				).getTime();
+			}
+		}
+		return Date.now();
+	}
+
+	function formatActivityLogTime(dueAt) {
+		if (!dueAt) return '';
+		var d = new Date(dueAt);
+		if (isNaN(d.getTime())) return '';
+		var h = String(d.getHours()).padStart(2, '0');
+		var m = String(d.getMinutes()).padStart(2, '0');
+		var day = String(d.getDate()).padStart(2, '0');
+		var mon = String(d.getMonth() + 1).padStart(2, '0');
+		return h + ':' + m + ' ' + day + '/' + mon + '/' + d.getFullYear();
+	}
+
+	function taskSubjectText(subject) {
+		if (subject == null || subject === '') return '';
+		if (typeof subject === 'string') return subject;
+		if (typeof subject === 'object') {
+			if (subject.display_value) return String(subject.display_value);
+			if (subject.value) return String(subject.value);
+		}
+		return String(subject);
+	}
+
+	function quickCreateSubject(data, fallback) {
+		if (!data) return fallback || '';
+		if (data._recordLabel) return taskSubjectText(data._recordLabel) || fallback || '';
+		return taskSubjectText(data.subject) || fallback || '';
+	}
+	function mergeCalendarTasks(serverTasks, localTasks) {
+		var seen = {};
+		var out = [];
+		function push(task) {
+			if (!task) return;
+			var id = task.id != null ? String(task.id) : '';
+			var key = id || (task.type || '') + '|' + taskSubjectText(task.subject);
+			if (seen[key]) return;
+			seen[key] = true;
+			out.push(task);
+		}
+		(serverTasks || []).forEach(push);
+		(localTasks || []).forEach(push);
+		return out;
+	}
+
+	function activityFromQuickCreate(kind, text, activityId) {
+		if (!activityId) return null;
+		var logType =
+			kind === 'meeting' ? 'meeting' : kind === 'call' ? 'call' : kind === 'note' ? 'note' : 'task';
+		return {
+			id: parseInt(activityId, 10) || activityId,
+			type: logType === 'note' ? 'task' : logType,
+			subject: text,
+			status: 'open',
+			dueAt: new Date().toISOString(),
+			dueLabel: nowLabel(),
+			source: 'calendar',
+		};
+	}
+
+	function mergeLeadActivityState(serverRow, localLead, pendingTask) {
+		var row = cloneLeadData(serverRow);
+		if (pendingTask) {
+			pendingTask.subject = taskSubjectText(pendingTask.subject);
+		}
+		row.calendarTasks = mergeCalendarTasks(row.calendarTasks, pendingTask ? [pendingTask] : []);
+		row.activityLog = buildActivityLogFromRaw(row);
+		row.badges = row.badges || {};
+		row.badges['activity-log'] = row.activityLog.length;
+		var logic = window.LeadsLeadsLogic;
+		if (logic && logic.openCalendarTasks) {
+			row.badges.calendar = logic.openCalendarTasks(row).length;
+		} else {
+			row.badges.calendar = row.calendarTasks.length;
+		}
+		return row;
+	}
+
+	function syncLeadObject(target, source) {
+		if (!target || !source) return target;
+		var copy = cloneLeadData(source);
+		Object.keys(copy).forEach(function (key) {
+			target[key] = copy[key];
+		});
+		return target;
+	}
+
+	function linkActivityToLead(leadStoreId, activityId) {
+		return new Promise(function (resolve) {
+			if (!activityId || !leadStoreId || !window.app || !app.request) {
+				resolve(false);
+				return;
+			}
+			app.request
+				.post({
+					data: {
+						module: 'Leads',
+						action: 'ModernApi',
+						mode: 'link_activity',
+						id: leadStoreId,
+						activity_id: activityId,
+					},
+				})
+				.then(function (err, res) {
+					resolve(!err && res && res.success !== false);
+				});
+		});
+	}
+
+	function calendarTasksToActivityLog(calendarTasks) {
+		return (calendarTasks || [])
+			.map(function (t) {
+				var type = t.type || 'task';
+				return {
+					id: t.id,
+					type: type,
+					label: activityLogLabel(type),
+					time: formatActivityLogTime(t.dueAt) || t.dueLabel || '',
+					text: taskSubjectText(t.subject),
+					dueAt: t.dueAt || null,
+				};
+			})
+			.sort(function (a, b) {
+				return activityLogSortKey(b) - activityLogSortKey(a);
+			});
+	}
+
+	function buildActivityLogFromRaw(raw) {
+		var fromCalendar = calendarTasksToActivityLog(raw.calendarTasks);
+		if (fromCalendar.length) {
+			return fromCalendar;
+		}
+		return (raw.activities || []).map(function (a) {
+			return {
+				id: a.id,
+				type: a.type || 'note',
+				label: a.label || activityLogLabel(a.type || 'note'),
+				time: a.time || '',
+				text: a.text || '',
+			};
+		});
+	}
+
 	function stageKey(raw) {
 		return String(raw || '')
 			.toLowerCase()
@@ -141,6 +313,7 @@
 			}
 		}
 		var sourceLabel = sourceTag && ref && ref.tagMeta ? ref.tagMeta(sourceTag).label : 'Website';
+		var activityLog = buildActivityLogFromRaw(raw);
 		return {
 			id: raw.id,
 			crmid: raw.crmid,
@@ -184,14 +357,7 @@
 					};
 				});
 			})(),
-			activityLog: (raw.activities || []).map(function (a) {
-				return {
-					type: a.type || 'note',
-					label: a.label || 'NOTE',
-					time: a.time || '',
-					text: a.text || '',
-				};
-			}),
+			activityLog: activityLog,
 			cccd: raw.cccd || '',
 			segment: raw.segment || '',
 			district: raw.district || '',
@@ -202,7 +368,7 @@
 			badges: {
 				contacts: 1,
 				comments: (raw.comments || []).length,
-				'activity-log': (raw.activities || []).length,
+				'activity-log': activityLog.length,
 				purchases: (raw.purchases || []).length,
 				calendar: (function () {
 					var logic = window.LeadsLeadsLogic;
@@ -699,13 +865,10 @@
 	}
 
 	function addActivityLogEntry(lead, type, text) {
-		var map = {
-			note: { label: leadLabel('LBL_MK_ADD_NOTE', 'Ghi chú'), type: 'note' },
-			call: { label: leadLabel('LBL_MK_LOG_CALL', 'Cuộc gọi'), type: 'call' },
-			meeting: { label: leadLabel('LBL_MK_LOG_MEETING', 'Cuộc họp'), type: 'meeting' },
-			task: { label: leadLabel('LBL_MK_CREATE_TASK', 'Công việc'), type: 'task' },
+		var meta = {
+			type: type,
+			label: activityLogLabel(type),
 		};
-		var meta = map[type] || map.note;
 		lead.activityLog.unshift({
 			type: meta.type,
 			label: meta.label,
@@ -829,10 +992,14 @@
     return null;
   }
 
-  function registerLeadQuickCreateSave(form) {
+  function registerLeadQuickCreateSave(form, lead, kind) {
     if (!$jq || !form || !form.length || typeof app === "undefined" || !app.request) return;
 
     form.off("submit.mkLeadQc");
+    if (lead) {
+      form.data("mkLeadQcLead", lead);
+      form.data("mkLeadQcKind", kind || "");
+    }
 
     var validationMeta = typeof quickcreate_uimeta !== "undefined" ? quickcreate_uimeta : {};
     var moduleName = form.find('[name="module"]').val();
@@ -844,6 +1011,11 @@
     var params = {
       submitHandler: function (formEl) {
         var $form = $jq(formEl);
+        var qcLead = $form.data("mkLeadQcLead") || lead;
+        var qcKind = $form.data("mkLeadQcKind") || kind || "";
+        if (qcLead) {
+          applyQuickCreateLeadContext($form, qcLead, qcKind);
+        }
         $jq("button[name='saveButton']").attr("disabled", "disabled");
         if (calendarEdit && typeof calendarEdit.syncQuickCreateAllDayPayload === "function") {
           calendarEdit.syncQuickCreateAllDayPayload(formEl);
@@ -923,7 +1095,7 @@
 		if (targetInstance && typeof targetInstance.registerBasicEvents === 'function') {
 			targetInstance.registerBasicEvents(form);
 		}
-		registerLeadQuickCreateSave(form);
+		registerLeadQuickCreateSave(form, lead, kind);
 
     if (moduleName === "Events") {
       form.find('input[name="activitytype"]').val("Meeting");
@@ -937,6 +1109,7 @@
       if (CalendarQuickCreate.init) {
         setTimeout(function () {
           CalendarQuickCreate.init();
+          applyQuickCreateLeadContext(form, lead, kind);
         }, 150);
       }
     }
@@ -946,10 +1119,15 @@
     if (!$jq || !form || !form.length) return;
     var crmId = leadCrmId(lead);
     if (!crmId) return;
-    form.find('input[name="parent_id"]').val(crmId);
-    form.find('select[name="parent_id"]').val(crmId).trigger("change");
     var display = lead.name || "Lead #" + crmId;
-    form.find('input[name="parent_id_display"]').val(display);
+    form.find('input[name="popupReferenceModule"]').val("Leads");
+    var $parent = form.find('input[name="parent_id"]');
+    if ($parent.length) {
+      $parent.val(crmId);
+      $parent.attr("data-displayvalue", display);
+    }
+    form.find('input[name="parent_id_display"]').val(display).prop("disabled", false);
+    form.find('select[name="parent_id"]').val(crmId).trigger("change");
     form.find('input[name="returnmodule"]').val("Leads");
     form.find('input[name="returnrecord"]').val(crmId);
     if (kind === "call") {
@@ -966,11 +1144,11 @@
 			return;
 		}
 		app.event.one('post.QuickCreateForm.save', function (event, data) {
-			var text = subject || 'Activity';
-			var logType =
-				kind === 'meeting' ? 'meeting' : kind === 'call' ? 'call' : kind === 'note' ? 'note' : 'task';
-			addActivityLogEntry(lead, logType, text);
+			var text =
+				quickCreateSubject(data, subject) ||
+				leadLabel('LBL_MK_LOG_ACTIVITY', 'Hoạt động');
 			var activityId = data && (data._recordId || data.id || data.record);
+			var pendingTask = activityFromQuickCreate(kind, text, activityId);
 			if (activityId && app.helper && app.helper.showSuccessNotification) {
 				app.helper.showSuccessNotification({
 					message:
@@ -981,10 +1159,18 @@
 						'" target="_blank" rel="noopener">Xem lịch</a>',
 				});
 			}
-			persistLeadCache(lead).then(function (fresh) {
-				var row = fresh ? storeLeadToDemo(fresh) : lead;
-				render(cloneLeadData(row));
-			});
+			var refreshAfterSave = function () {
+				persistLeadCache(lead).then(function (fresh) {
+					var row = mergeLeadActivityState(fresh ? storeLeadToDemo(fresh) : lead, lead, pendingTask);
+					syncLeadObject(lead, row);
+					render(cloneLeadData(lead));
+				});
+			};
+			if (activityId && lead.id) {
+				linkActivityToLead(lead.id, activityId).then(refreshAfterSave);
+			} else {
+				refreshAfterSave();
+			}
 		});
 	}
 
