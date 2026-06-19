@@ -26,7 +26,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string)$request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'segments_save', 'seed', 'link_order', 'convert', 'comment_save'), true)) {
+		if (in_array($mode, array('save', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'convert', 'comment_save'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -165,6 +165,22 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						$salesOrderId = $request->get('salesorderid');
 					}
 					Leads_CommerceService::linkSalesOrderToLead($leadId, $salesOrderId);
+					$response->setResult(array(
+						'success' => true,
+						'lead' => Leads_ModernService::getLead($leadId, $userId),
+					));
+					break;
+
+				case 'link_activity':
+					$leadId = $request->get('id');
+					if ($leadId === null || $leadId === '') {
+						$leadId = $request->get('record');
+					}
+					$activityId = $request->get('activity_id');
+					if ($activityId === null || $activityId === '') {
+						$activityId = $request->get('activityid');
+					}
+					Leads_CommerceService::linkActivityToLead($leadId, $activityId);
 					$response->setResult(array(
 						'success' => true,
 						'lead' => Leads_ModernService::getLead($leadId, $userId),
