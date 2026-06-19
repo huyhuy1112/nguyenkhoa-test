@@ -7,9 +7,9 @@ class MkEntityNumbering {
 
 	/** @var array<string, array{prefix: string, width: int, start: string}> */
 	public static $PADDED_MODULES = array(
-		'Potentials' => array('prefix' => 'KH', 'width' => 5, 'start' => '00001'),
-		'Contacts'   => array('prefix' => 'LH', 'width' => 5, 'start' => '00001'),
-		'Accounts'   => array('prefix' => 'TC', 'width' => 5, 'start' => '00001'),
+		'Potentials' => array('prefix' => 'CH', 'width' => 5, 'start' => '00001'), // Cơ hội (Opportunity)
+		'Contacts'   => array('prefix' => 'LH', 'width' => 5, 'start' => '00001'), // Liên hệ
+		'Accounts'   => array('prefix' => 'KH', 'width' => 5, 'start' => '00001'), // Khách hàng / Tổ chức
 	);
 
 	public static function getPaddingWidth($module) {

@@ -1932,10 +1932,10 @@ Should any need arise,please do give us a call.';
 		 */
 		$modseq = array(
 			'Leads' => 'LEA',
-			'Accounts' => 'TC',
+			'Accounts' => 'KH',
 			'Campaigns' => 'CAM',
 			'Contacts' => 'LH',
-			'Potentials' => 'KH',
+			'Potentials' => 'CH',
 			'HelpDesk' => 'TT',
 			'Quotes' => 'QUO',
 			'SalesOrder' => 'SO',

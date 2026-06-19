@@ -1,7 +1,7 @@
 <?php
 /**
  * Reset entity numbering for Order (Potentials), Contact, Organization (Accounts).
- * Formats: KH00001, LH00001, TC00001 — next new records use these prefixes.
+ * Formats: KH00001 (Organization), LH00001 (Contact), CH00001 (Opportunity).
  *
  * Usage (from CRM root): php scripts/ResetSalesEntityCodes.php
  */
