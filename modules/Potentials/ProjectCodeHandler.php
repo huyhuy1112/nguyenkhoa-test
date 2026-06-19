@@ -65,6 +65,30 @@ function slugifyVietnamese(string $string): string
     return !empty($result) ? $result : 'project';
 }
 
+/**
+ * Compact org segment for Opportunity / Project Code name.
+ * Drops entity prefix (KH, TC, …) and leading zeros from account_no, then appends year index.
+ * Example: TC00001 + 01 => 0101 | KH00012 + 02 => 1202
+ */
+function compactOrganizationIndex(string $accountNo, string $indexInYear): string
+{
+	$accountNo = trim($accountNo);
+	$indexDigits = preg_replace('/\D/', '', $indexInYear);
+	$indexInYear = str_pad($indexDigits === '' ? '1' : $indexDigits, 2, '0', STR_PAD_LEFT);
+
+	$numeric = preg_replace('/^[A-Za-z]{2}/', '', $accountNo);
+	if ($numeric === $accountNo) {
+		$numeric = preg_replace('/^[A-Za-z]+/', '', $accountNo);
+	}
+	$numeric = ltrim((string) $numeric, '0');
+	if ($numeric === '') {
+		$numeric = '0';
+	}
+	$orgSeq = str_pad($numeric, 2, '0', STR_PAD_LEFT);
+
+	return $orgSeq . $indexInYear;
+}
+
 class ProjectCodeHandler extends VTEventHandler {
 
 	function handleEvent($eventName, $entityData) {
@@ -156,9 +180,8 @@ class ProjectCodeHandler extends VTEventHandler {
 			}
 		}
 
-		// 2. ORGANIZATION_NO and INDEX_IN_YEAR: Get account_no and calculate index per Organization per year
-		// Format: {ACCOUNT_NO}{INDEX_IN_YEAR} (e.g., ACC101 = Organization ACC1, index 01)
-		// CRITICAL: Use account_no directly from vtiger_account.account_no, DO NOT use accountid
+		// 2. ORG INDEX segment: numeric org sequence + index-in-year (no KH/TC prefix)
+		// Format: {ORG_SEQ}{INDEX_IN_YEAR} (e.g. 0101 = org #01, 1st opp this year)
 		$organizationWithIndex = '';
 		$indexInYear = '01'; // Default to 01 if calculation fails
 		try {
@@ -211,9 +234,8 @@ class ProjectCodeHandler extends VTEventHandler {
 				$indexInYear = str_pad($indexNumber, 2, '0', STR_PAD_LEFT); // Pad to 2 digits (01, 02, 03...)
 			}
 
-			// CRITICAL: Use account_no directly - DO NOT extract digits, DO NOT prefix ORG, DO NOT use accountid
-			// Format: {ACCOUNT_NO}{INDEX_IN_YEAR} (e.g., "ACC101" if account_no is "ACC1" and index is "01")
-			$organizationWithIndex = "{$accountNo}{$indexInYear}";
+			// Compact: drop prefix/padding from account_no, append 2-digit year index
+			$organizationWithIndex = compactOrganizationIndex($accountNo, $indexInYear);
 
 			if ($log) {
 				$log->debug("[ProjectCodeHandler] Organization with index: $organizationWithIndex (from account_no: $accountNo, index: $indexInYear, Year: $createdYear, Organization ID: $accountId)");
@@ -232,7 +254,7 @@ class ProjectCodeHandler extends VTEventHandler {
 				if ($adb->num_rows($accountResult) > 0) {
 					$accountNo = $adb->query_result($accountResult, 0, 'account_no');
 					if (!empty($accountNo)) {
-						$organizationWithIndex = "{$accountNo}01"; // Use account_no directly with default index 01
+						$organizationWithIndex = compactOrganizationIndex($accountNo, '01');
 					} else {
 						return; // Cannot proceed without account_no
 					}
@@ -359,10 +381,9 @@ class ProjectCodeHandler extends VTEventHandler {
 			}
 		}
 
-		// Generate Project Code: {CREATE_DATE}-{ACCOUNT_NO}{INDEX_IN_YEAR}-{COMPANY_CODE}-{PROJECT_NAME}
-		// Format: YYMMDD-{ACCOUNT_NO}{INDEX_IN_YEAR}-{COMPANY_CODE}-{PROJECT_NAME}
-		// Example: 260108-ACC406-abc-cầu lông
-		// CRITICAL: account_no comes directly from vtiger_account.account_no, NOT from accountid
+		// Generate Project Code: {CREATE_DATE}-{ORG_SEQ}{INDEX}-{COMPANY_CODE}-{PROJECT_NAME}
+		// Format: YYMMDD-{ORG_SEQ}{INDEX}-{COMPANY_CODE}-{PROJECT_NAME}
+		// Example: 260619-0101-751-bít cồ bôn
 		$projectCode = "$createDate-$organizationWithIndex-$companyCode-$projectName";
 
 			// Update directly in database (no save() to avoid recursion)
