@@ -1,0 +1,3 @@
+{strip}
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Import/resources/ImportMkModern.css')}?mk_v=20260618_import_ui1" />
+{/strip}

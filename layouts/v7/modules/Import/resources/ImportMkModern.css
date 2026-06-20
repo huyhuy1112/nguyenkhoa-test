@@ -1,0 +1,577 @@
+/**
+ * Modern Import wizard UI — all modules (SALES + MARKETING + legacy shell).
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap');
+
+/* ---- Overlay shell (list pages with mk dashboard) ---- */
+body[data-view="List"] #overlayPageContent.fade:not(.in) {
+	pointer-events: none !important;
+}
+
+body[data-view="List"] #overlayPageContent.fade.in {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	pointer-events: auto !important;
+	z-index: 110010 !important;
+	position: fixed !important;
+	top: var(--mk-dash-topbar-h, 64px) !important;
+	left: var(--mk-dash-sidebar-w, 256px) !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	width: auto !important;
+	max-width: none !important;
+	margin-left: 0 !important;
+	overflow: auto !important;
+	background: #f4f6f9 !important;
+}
+
+body[data-view="List"].modal-open .modal-backdrop.in,
+body[data-view="List"] .modal-backdrop.in {
+	z-index: 110000 !important;
+}
+
+body[data-view="List"] #overlayPageContent.fade.in .data {
+	min-height: 320px;
+	overflow-y: auto;
+}
+
+/* ---- Root modal ---- */
+.mk-import-modern.fc-overlay-modal,
+.mk-import-modern .modal-content {
+	font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	color: #1e293b;
+	background: #f4f6f9;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.mk-import-modern .overlayHeader {
+	background: #fff;
+	border-bottom: 1px solid #e2e8f0;
+	padding: 0;
+}
+
+.mk-import-modern .overlayHeader .modal-header {
+	padding: 20px 28px 16px;
+	border: none;
+	margin: 0;
+}
+
+.mk-import-modern .overlayHeader .modal-header h4,
+.mk-import-modern .overlayHeader .modal-title {
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 20px;
+	font-weight: 600;
+	color: #0f172a;
+	letter-spacing: -0.02em;
+	margin: 0;
+}
+
+.mk-import-modern .importview-content .modal-body,
+.mk-import-modern > .modal-body {
+	padding: 24px 28px 28px;
+	background: #f4f6f9;
+	max-height: calc(100vh - 180px);
+	overflow-y: auto;
+}
+
+/* ---- Step breadcrumb ---- */
+.mk-import-modern #navigation_links.breadcrumb,
+.mk-import-modern .breadcrumb {
+	background: transparent;
+	border: none;
+	margin: 0 0 24px;
+	padding: 0;
+}
+
+.mk-import-modern #navigation_links .crumbs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.mk-import-modern #navigation_links .crumbs li.step {
+	flex: 1 1 0;
+	min-width: 120px;
+	position: relative;
+	float: none;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 0;
+	margin: 0;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.mk-import-modern #navigation_links .crumbs li.step a {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 14px;
+	text-decoration: none;
+	color: #64748b;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.mk-import-modern #navigation_links .crumbs li.step .stepNum {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	border-radius: 999px;
+	background: #f1f5f9;
+	color: #64748b;
+	font-size: 12px;
+	font-weight: 700;
+	flex-shrink: 0;
+}
+
+.mk-import-modern #navigation_links .crumbs li.step.active {
+	border-color: #40627e;
+	background: linear-gradient(135deg, #40627e 0%, #2c4a66 100%);
+	box-shadow: 0 4px 14px rgba(64, 98, 126, 0.25);
+}
+
+.mk-import-modern #navigation_links .crumbs li.step.active a,
+.mk-import-modern #navigation_links .crumbs li.step.active .stepText {
+	color: #fff;
+}
+
+.mk-import-modern #navigation_links .crumbs li.step.active .stepNum {
+	background: rgba(255, 255, 255, 0.2);
+	color: #fff;
+}
+
+/* ---- Panels / cards ---- */
+.mk-import-modern .importBlockContainer,
+.mk-import-modern .mk-import-panel {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	padding: 24px 26px;
+	margin-bottom: 20px;
+	box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+}
+
+.mk-import-modern .mk-import-panel__head {
+	margin-bottom: 20px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #f1f5f9;
+}
+
+.mk-import-modern .mk-import-panel__title {
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 17px;
+	font-weight: 600;
+	color: #0f172a;
+	margin: 0 0 6px;
+}
+
+.mk-import-modern .mk-import-panel__sub {
+	font-size: 13px;
+	color: #64748b;
+	margin: 0;
+	line-height: 1.5;
+}
+
+.mk-import-modern .importBlockContainer > span > h4,
+.mk-import-modern .importBlockContainer > h4,
+.mk-import-modern #importStep2Conatiner > span > h4,
+.mk-import-modern .importBlockContainer span h4 {
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 17px;
+	font-weight: 600;
+	color: #0f172a;
+	margin: 0 0 4px;
+	padding: 0;
+}
+
+.mk-import-modern hr {
+	border: none;
+	border-top: 1px solid #f1f5f9;
+	margin: 16px 0 20px;
+}
+
+/* ---- Form rows (table → grid) ---- */
+.mk-import-modern #uploadFileContainer > table,
+.mk-import-modern #importStep2Conatiner > table,
+.mk-import-modern .importBlockContainer > table.table-borderless {
+	width: 100%;
+	border: none;
+	margin: 0;
+}
+
+.mk-import-modern #uploadFileContainer > table > tbody,
+.mk-import-modern #importStep2Conatiner > table > tbody {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+.mk-import-modern #uploadFileContainer tr,
+.mk-import-modern #importStep2Conatiner > table > tbody > tr {
+	display: grid;
+	grid-template-columns: minmax(160px, 220px) 1fr;
+	gap: 12px 20px;
+	align-items: start;
+	border: none;
+	background: #f8fafc;
+	border-radius: 10px;
+	padding: 14px 16px;
+	margin: 0;
+}
+
+.mk-import-modern #uploadFileContainer tr td:first-child,
+.mk-import-modern #importStep2Conatiner > table > tbody > tr > td:first-child {
+	font-size: 13px;
+	font-weight: 600;
+	color: #475569;
+	padding: 4px 0 0;
+	vertical-align: top;
+}
+
+.mk-import-modern #uploadFileContainer tr td:last-child,
+.mk-import-modern #importStep2Conatiner > table > tbody > tr > td:last-child {
+	padding: 0;
+}
+
+.mk-import-modern #importStep2Conatiner #duplicates_merge_configuration > tbody > tr {
+	display: block;
+	background: transparent;
+	padding: 0;
+	margin-bottom: 12px;
+}
+
+/* ---- File upload ---- */
+.mk-import-modern .fileUploadBtn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	background: linear-gradient(135deg, #40627e 0%, #2c4a66 100%) !important;
+	border: none !important;
+	border-radius: 10px !important;
+	padding: 10px 18px !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	color: #fff !important;
+	box-shadow: 0 4px 12px rgba(64, 98, 126, 0.28);
+	transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.mk-import-modern .fileUploadBtn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 6px 16px rgba(64, 98, 126, 0.32);
+}
+
+.mk-import-modern #importFileDetails {
+	margin-top: 10px;
+	font-size: 13px;
+	color: #334155;
+	background: #fff;
+	border: 1px dashed #cbd5e1;
+	border-radius: 8px;
+	padding: 10px 12px;
+}
+
+.mk-import-modern .mk-import-sample-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 9px 16px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	background: #fff;
+	color: #40627e;
+	font-size: 13px;
+	font-weight: 600;
+	text-decoration: none !important;
+	transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.mk-import-modern .mk-import-sample-link:hover {
+	background: #fffbeb;
+	border-color: #e8c56a;
+	color: #92400e;
+}
+
+.mk-import-modern .mk-import-hint {
+	margin-top: 8px;
+	font-size: 12px;
+	color: #64748b;
+	line-height: 1.5;
+}
+
+/* ---- Inputs ---- */
+.mk-import-modern .select2-container .select2-choice,
+.mk-import-modern select.select2,
+.mk-import-modern .form-control,
+.mk-import-modern input[type="text"].form-control {
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 10px !important;
+	min-height: 40px;
+	font-size: 13px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.mk-import-modern input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+	accent-color: #40627e;
+}
+
+.mk-import-modern label.radio-group {
+	font-size: 13px;
+	font-weight: 500;
+	color: #475569;
+	margin-right: 16px;
+}
+
+/* ---- Mapping table ---- */
+.mk-import-modern .mk-import-map-wrap {
+	overflow-x: auto;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fff;
+	margin-top: 12px;
+}
+
+.mk-import-modern .mk-import-map-table,
+.mk-import-modern table.table-bordered {
+	width: 100%;
+	margin: 0;
+	border: none !important;
+	border-collapse: separate;
+	border-spacing: 0;
+}
+
+.mk-import-modern .mk-import-map-table thead th,
+.mk-import-modern table.table-bordered thead th {
+	background: #f8fafc;
+	color: #475569;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	padding: 12px 14px;
+	border: none !important;
+	border-bottom: 1px solid #e2e8f0 !important;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+
+.mk-import-modern .mk-import-map-table tbody td,
+.mk-import-modern table.table-bordered tbody td {
+	padding: 12px 14px;
+	border: none !important;
+	border-bottom: 1px solid #f1f5f9 !important;
+	vertical-align: middle;
+	font-size: 13px;
+	color: #334155;
+}
+
+.mk-import-modern .mk-import-map-table tbody tr:hover td,
+.mk-import-modern table.table-bordered tbody tr.fieldIdentifier:hover td {
+	background: #fafbfc;
+}
+
+.mk-import-modern .mk-import-map-table span[name="header_name"] {
+	font-weight: 600;
+	color: #0f172a;
+	word-break: break-word;
+}
+
+.mk-import-modern .select2-container {
+	max-width: 100%;
+}
+
+/* ---- Mapping section title ---- */
+.mk-import-modern .mk-import-section-title {
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 16px;
+	font-weight: 600;
+	color: #0f172a;
+	margin: 0 0 4px;
+}
+
+.mk-import-modern .mk-import-section-sub {
+	font-size: 13px;
+	color: #64748b;
+	margin: 0 0 16px;
+}
+
+/* ---- Alerts / banners ---- */
+.mk-import-modern .alert-success {
+	background: #ecfdf5;
+	border: 1px solid #a7f3d0;
+	color: #065f46;
+	border-radius: 10px;
+	font-size: 13px;
+}
+
+.mk-import-modern .alert-danger {
+	border-radius: 10px;
+	font-size: 13px;
+}
+
+/* ---- Footer ---- */
+.mk-import-modern .modal-overlay-footer {
+	background: #fff;
+	border-top: 1px solid #e2e8f0;
+	padding: 16px 28px;
+	margin: 0;
+}
+
+.mk-import-modern .modal-overlay-footer .btn-success,
+.mk-import-modern .modal-overlay-footer .btn-primary.btn-lg {
+	background: linear-gradient(135deg, #40627e 0%, #2c4a66 100%) !important;
+	border: none !important;
+	border-radius: 10px !important;
+	font-weight: 600;
+	padding: 10px 22px;
+	box-shadow: 0 4px 12px rgba(64, 98, 126, 0.22);
+}
+
+.mk-import-modern .modal-overlay-footer .btn-default,
+.mk-import-modern .modal-overlay-footer .btn-primary:not(.btn-success) {
+	border-radius: 10px !important;
+	font-weight: 600;
+	padding: 10px 18px;
+}
+
+.mk-import-modern .modal-overlay-footer .cancelLink {
+	font-size: 13px;
+	font-weight: 600;
+	color: #64748b;
+	text-decoration: none;
+}
+
+.mk-import-modern .modal-overlay-footer .cancelLink:hover {
+	color: #40627e;
+}
+
+/* ---- Landing page (Contacts / Calendar) ---- */
+.mk-import-modern .importServiceSelectionContainer {
+	padding: 8px 0;
+}
+
+.mk-import-modern .importServiceSelectionContainer > .col-lg-12:first-child {
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 15px;
+	font-weight: 600;
+	color: #0f172a;
+	padding: 0 0 8px;
+}
+
+.mk-import-modern .importServiceSelectionContainer .menu-item.app-item {
+	background: #fff !important;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	padding: 28px 20px;
+	text-align: center;
+	cursor: pointer;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+	min-height: 140px;
+}
+
+.mk-import-modern .importServiceSelectionContainer .menu-item.app-item:hover {
+	border-color: #40627e;
+	box-shadow: 0 8px 24px rgba(64, 98, 126, 0.12);
+	transform: translateY(-2px);
+}
+
+.mk-import-modern .importServiceSelectionContainer .menu-item .fa {
+	font-size: 32px;
+	color: #40627e;
+	margin-bottom: 12px;
+	display: block;
+}
+
+.mk-import-modern .importServiceSelectionContainer .menu-item h4 {
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 15px;
+	font-weight: 600;
+	color: #0f172a;
+	margin: 0;
+}
+
+/* ---- Result summary ---- */
+.mk-import-modern .summaryWidgetContainer {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	padding: 24px 26px;
+	box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+}
+
+.mk-import-modern .summaryWidgetContainer > h4 {
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 15px;
+	font-weight: 600;
+	color: #0f172a;
+	margin: 0 0 16px;
+}
+
+.mk-import-modern .mk-import-stat-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.mk-import-modern .mk-import-stat {
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 14px 16px;
+}
+
+.mk-import-modern .mk-import-stat__label {
+	font-size: 12px;
+	color: #64748b;
+	margin-bottom: 4px;
+}
+
+.mk-import-modern .mk-import-stat__value {
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 20px;
+	font-weight: 600;
+	color: #0f172a;
+}
+
+/* ---- Status running ---- */
+.mk-import-modern #scheduleImportStatus .modal-body {
+	padding: 24px 28px;
+}
+
+.mk-import-modern #importStatusDiv .col-lg-12 {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	gap: 8px;
+	align-items: center;
+	padding: 10px 0;
+	border-bottom: 1px solid #f1f5f9;
+	float: none;
+	width: 100%;
+}
+
+@media (max-width: 768px) {
+	body[data-view="List"] #overlayPageContent.fade.in {
+		left: 0 !important;
+		top: 0 !important;
+	}
+
+	.mk-import-modern #uploadFileContainer tr,
+	.mk-import-modern #navigation_links .crumbs li.step {
+		grid-template-columns: 1fr;
+		min-width: 100%;
+	}
+}

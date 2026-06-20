@@ -178,5 +178,9 @@ $default_layout = 'v7';
 //Maximum Listview Fields Selection Size
 $maxListFieldsSelectionSize = 15;
 
+/** Modern Leads SALES UI — set AUTO_SEED false on production */
+$MK_LEADS_AUTO_SEED_DEMO = true;
+$MK_LEADS_AUTO_OPPORTUNITY = false;
+
 include_once 'config.security.php';
 ?>

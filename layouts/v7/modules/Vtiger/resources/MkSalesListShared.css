@@ -908,6 +908,39 @@ body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-t
 	margin: 0 !important;
 }
 
+/* Import overlay — above mk shell; undo stuck failsafe hides (backdrop only, no panel) */
+body[data-view="List"][data-app="SALES"] #overlayPageContent.fade:not(.in) {
+	pointer-events: none !important;
+}
+
+body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	pointer-events: auto !important;
+	z-index: 110010 !important;
+	position: fixed !important;
+	top: var(--mk-dash-topbar-h, 64px) !important;
+	left: var(--mk-dash-sidebar-w, 256px) !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	width: auto !important;
+	max-width: none !important;
+	margin-left: 0 !important;
+	overflow: auto !important;
+	background: #fff !important;
+}
+
+body[data-view="List"][data-app="SALES"].modal-open .modal-backdrop.in,
+body[data-view="List"][data-app="SALES"] .modal-backdrop.in {
+	z-index: 110000 !important;
+}
+
+body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in .data {
+	min-height: 320px;
+	overflow-y: auto;
+}
+
 body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] .s2-btn-text {
 	display: none !important;
 }

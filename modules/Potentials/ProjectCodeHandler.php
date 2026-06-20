@@ -165,6 +165,11 @@ class ProjectCodeHandler extends VTEventHandler {
 
 		// 1. CREATE_DATE: Format createdtime as YYMMDD (2-digit year)
 		$createDate = '';
+		$userPotentialName = trim(html_entity_decode((string) $potentialRow['potentialname'], ENT_QUOTES, 'UTF-8'));
+		$userDatePrefix = null;
+		if (preg_match('/^(\d{6})-/', $userPotentialName, $dateMatch)) {
+			$userDatePrefix = $dateMatch[1];
+		}
 		try {
 			if (!empty($createdTime)) {
 				$dateObj = new DateTime($createdTime);
@@ -177,6 +182,12 @@ class ProjectCodeHandler extends VTEventHandler {
 			$createDate = date('ymd'); // y = 2-digit year
 			if ($log) {
 				$log->error("[ProjectCodeHandler] DateTime error (using current date): " . $e->getMessage());
+			}
+		}
+		if ($userDatePrefix !== null) {
+			$createDate = $userDatePrefix;
+			if ($log) {
+				$log->debug("[ProjectCodeHandler] Using user date prefix from Opportunity Name: $createDate (ID: $recordId)");
 			}
 		}
 

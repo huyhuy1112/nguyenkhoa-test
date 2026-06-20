@@ -212,8 +212,27 @@ class Import_Utils_Helper {
 
 		if ($request->get('type') == "ics" || $request->get('type') == "vcf") {
 			$fileCopied = move_uploaded_file($_FILES['import_file']['tmp_name'], $temporaryFileName);
-		}else{
-			$fileCopied = self::neutralizeAndMoveFile($_FILES['import_file']['tmp_name'], $temporaryFileName, $request->get('delimiter'));
+		} else {
+			require_once 'modules/Import/helpers/ExcelConverter.php';
+			$uploadedPath = $_FILES['import_file']['tmp_name'];
+			$uploadedName = $_FILES['import_file']['name'];
+			if (Import_ExcelConverter_Helper::isExcelUpload($uploadedName)) {
+				$csvTemp = $uploadedPath . '.csv';
+				$converted = Import_ExcelConverter_Helper::convertToCsv(
+					$uploadedPath,
+					$csvTemp,
+					$request->get('delimiter') ? $request->get('delimiter') : ','
+				);
+				if (!$converted) {
+					$request->set('error_message', vtranslate('LBL_INVALID_FILE', 'Import'));
+					return false;
+				}
+				$request->set('type', 'csv');
+				$fileCopied = self::neutralizeAndMoveFile($csvTemp, $temporaryFileName, $request->get('delimiter'));
+				@unlink($csvTemp);
+			} else {
+				$fileCopied = self::neutralizeAndMoveFile($uploadedPath, $temporaryFileName, $request->get('delimiter'));
+			}
 		}
 		if(!$fileCopied) {
 			$request->set('error_message', vtranslate('LBL_IMPORT_FILE_COPY_FAILED', 'Import'));

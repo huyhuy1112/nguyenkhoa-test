@@ -10,11 +10,11 @@
 ********************************************************************************/
 -->*}
 
-<div class = "importBlockContainer hide" id="importStep2Conatiner">
-    <span>
-        <h4>&nbsp;&nbsp;&nbsp;{'LBL_DUPLICATE_RECORD_HANDLING'|@vtranslate:$MODULE}</h4>
-    </span>
-    <hr>
+<div class = "importBlockContainer hide mk-import-panel" id="importStep2Conatiner">
+    <div class="mk-import-panel__head">
+        <h3 class="mk-import-panel__title">{'LBL_DUPLICATE_RECORD_HANDLING'|@vtranslate:$MODULE}</h3>
+        <p class="mk-import-panel__sub">{'LBL_SPECIFY_MERGE_TYPE'|@vtranslate:$MODULE}</p>
+    </div>
     <table class = "table table-borderless" id="duplicates_merge_configuration">
         <tr>
             <td>

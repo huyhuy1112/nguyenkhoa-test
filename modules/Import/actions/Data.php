@@ -107,6 +107,9 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		}
 		$className = get_class($moduleMeta);
 		if ($className != 'VtigerLineItemMeta') {
+			if ($this->module === 'Potentials' && empty($defaultValues['order_category'])) {
+				$defaultValues['order_category'] = 'Internal';
+			}
 			$cachedDefaultValues[$this->module] = $defaultValues;
 		}
 		return $defaultValues;

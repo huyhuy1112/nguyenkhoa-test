@@ -9,7 +9,8 @@
 *
 ********************************************************************************/
 -->*}
-<div class='fc-overlay-modal modal-content'>
+{include file='ImportStyles.tpl'|@vtemplate_path:'Import'}
+<div class='fc-overlay-modal modal-content mk-import-modern'>
     <div class="overlayHeader">
         {assign var=TITLE value="{'LBL_IMPORT'|@vtranslate:$MODULE} - {'LBL_ERROR'|@vtranslate:$MODULE}"}
         {include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$TITLE} 

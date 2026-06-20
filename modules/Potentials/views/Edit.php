@@ -101,7 +101,7 @@ class Potentials_Edit_View extends Vtiger_Edit_View {
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
-			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/Potentials/resources/EditLockAutoFields.js',
+			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/Potentials/resources/EditLockAutoFields.js?v=20260618_opp_name_edit1',
 		);
 		if ($this->isMkModernOpportunityCreate($request)) {
 			$jsFileNames[] = '~layouts/v7/modules/Potentials/resources/OpportunityMkEdit.js';

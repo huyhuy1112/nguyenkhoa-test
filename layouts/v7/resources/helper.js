@@ -411,6 +411,9 @@ jQuery.Class(
 
       var overlayPageContent = $("#overlayPageContent");
 
+      // Boot failsafe may leave inline display/visibility — clear before Bootstrap modal show.
+      overlayPageContent.css({ display: "", visibility: "", opacity: "" });
+
       if (
         (jQuery(".content-area").length &&
           jQuery(".content-area").hasClass("full-width")) ||

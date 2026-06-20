@@ -70,9 +70,9 @@
             if (om) { om.classList.add('hide'); om.style.display = 'none'; om.style.visibility = 'hidden'; }
 
             var opc = document.getElementById('overlayPageContent');
-            if (opc) { opc.classList.remove('in'); opc.style.display = 'none'; opc.style.visibility = 'hidden'; }
+            if (opc) { opc.classList.remove('in'); opc.style.display = ''; opc.style.visibility = ''; opc.style.opacity = ''; }
             var op = document.getElementById('overlayPage');
-            if (op) { op.classList.remove('in'); op.style.display = 'none'; op.style.visibility = 'hidden'; }
+            if (op) { op.classList.remove('in'); op.style.display = ''; op.style.visibility = ''; op.style.opacity = ''; }
           } catch (e) {}
         }
 
@@ -89,7 +89,8 @@
       })();
     </script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Calendar/resources/TaskManagement.js')}"></script>
-    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Import/resources/Import.js')}?v=FORCE_RELOAD_2"></script>
+    <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Import/resources/ImportMkModern.css')}?mk_v=20260618_import_ui1" />
+    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Import/resources/Import.js')}?v=FORCE_RELOAD_4"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Emails/resources/EmailPreview.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/Base.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Google/resources/Settings.js')}"></script>

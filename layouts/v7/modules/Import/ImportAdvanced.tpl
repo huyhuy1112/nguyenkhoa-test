@@ -10,7 +10,8 @@
 
 {* START YOUR IMPLEMENTATION FROM BELOW. Use {debug} for information *}
 
-<div class='fc-overlay-modal modal-content'>
+{include file='ImportStyles.tpl'|@vtemplate_path:'Import'}
+<div class='fc-overlay-modal modal-content mk-import-modern'>
     <div class="overlayHeader">
         {assign var=TITLE value="{'LBL_IMPORT'|@vtranslate:$MODULE} {$FOR_MODULE|@vtranslate:$FOR_MODULE}"}
         {include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$TITLE}
