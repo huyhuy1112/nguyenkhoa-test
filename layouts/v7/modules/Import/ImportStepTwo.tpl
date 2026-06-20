@@ -27,7 +27,7 @@
 							<i class="fa fa-list-ul" aria-hidden="true"></i>
 							{'LBL_AVAILABLE_FIELDS'|@vtranslate:$MODULE}
 						</div>
-						<select id="available_fields" multiple size="10" name="available_fields" class="mk-import-dual-list__select">
+						<select id="available_fields" multiple size="14" name="available_fields" class="mk-import-dual-list__select">
 							{foreach key=_FIELD_NAME item=_FIELD_INFO from=$AVAILABLE_FIELDS}
 								{if $_FIELD_NAME eq 'tags'} {continue} {/if}
 								<option value="{$_FIELD_NAME}">{$_FIELD_INFO->getFieldLabelKey()|@vtranslate:$FOR_MODULE}</option>
@@ -48,7 +48,7 @@
 							{'LBL_SELECTED_FIELDS'|@vtranslate:$MODULE}
 						</div>
 						<input type="hidden" id="merge_fields" size="10" name="merge_fields" value="" />
-						<select id="selected_merge_fields" size="10" name="selected_merge_fields" multiple class="mk-import-dual-list__select">
+						<select id="selected_merge_fields" size="14" name="selected_merge_fields" multiple class="mk-import-dual-list__select">
 							{foreach key=_FIELD_NAME item=_FIELD_INFO from=$ENTITY_FIELDS}
 								<option value="{$_FIELD_NAME}">{$_FIELD_INFO->getFieldLabelKey()|@vtranslate:$FOR_MODULE}</option>
 							{/foreach}

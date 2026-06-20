@@ -89,8 +89,8 @@
       })();
     </script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Calendar/resources/TaskManagement.js')}"></script>
-    <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Import/resources/ImportMkModern.css')}?mk_v=20260620_import_lux1" />
-    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Import/resources/Import.js')}?v=20260620_import_lux1"></script>
+    <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Import/resources/ImportMkModern.css')}?mk_v=20260620_import_lux7" />
+    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Import/resources/Import.js')}?v=20260620_import_lux7"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Emails/resources/EmailPreview.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/Base.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Google/resources/Settings.js')}"></script>

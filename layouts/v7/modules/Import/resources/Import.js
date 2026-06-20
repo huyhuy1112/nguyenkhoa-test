@@ -27,7 +27,8 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 			} catch (e2) {}
 			try {
 				jQuery('.modal-backdrop').remove();
-				jQuery('body').removeClass('modal-open');
+				jQuery('body').removeClass('modal-open mk-import-page');
+				jQuery('#overlayPageContent').removeClass('mk-import-overlay-open');
 			} catch (e3) {}
 		},
 
@@ -83,18 +84,75 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 			window.location.href = url;
 		},
 
+		syncImportBreadcrumb: function (activeStep) {
+			try {
+				activeStep = parseInt(activeStep, 10) || 1;
+				jQuery('#navigation_links .crumbs li.step, #navigation_links .crumbs li').each(function (idx) {
+					var stepIndex = idx + 1;
+					jQuery(this).removeClass('active completed');
+					if (stepIndex < activeStep) {
+						jQuery(this).addClass('completed');
+					} else if (stepIndex === activeStep) {
+						jQuery(this).addClass('active');
+					}
+				});
+			} catch (e) {}
+		},
+
 		applyImportPageShell: function () {
 			try {
-				if (!Vtiger_Import_Js.isFullPageImport()) {
+				var $root = jQuery('.mk-import-modern');
+				if (!$root.length) {
 					return;
 				}
 				document.body.classList.add('mk-import-page');
-				jQuery('.mk-import-modern').each(function () {
-					jQuery(this).find('select.select2, select[name="merge_type"]').select2({
-						width: '100%',
-						minimumResultsForSearch: 8
-					});
+				$root.addClass('mk-import-liquid');
+				jQuery('#overlayPageContent').addClass('mk-import-overlay-open');
+
+				var rowIcons = {
+					file_type_container: 'fa-cloud-upload',
+					campaigns_sample_file_container: 'fa-download',
+					plans_sample_file_container: 'fa-download',
+					contacts_sample_file_container: 'fa-download',
+					potentials_sample_file_container: 'fa-download',
+					accounts_sample_file_container: 'fa-download',
+					has_header_container: 'fa-list-alt',
+					file_encoding_container: 'fa-font',
+					delimiter_container: 'fa-columns',
+					lineitem_currency_container: 'fa-money'
+				};
+
+				jQuery('#uploadFileContainer tr[id]').each(function () {
+					var id = this.id;
+					var icon = rowIcons[id] || 'fa-sliders';
+					var $label = jQuery(this).find('td:first');
+					if (!$label.find('.mk-import-row-icon').length) {
+						$label.prepend(
+							'<span class="mk-import-row-icon" aria-hidden="true"><i class="fa ' + icon + '"></i></span>'
+						);
+					}
 				});
+
+				$root.find('select.select2, select[name="merge_type"], select[name="file_encoding"], select[name="lineitem_currency"]').each(function () {
+					var $sel = jQuery(this);
+					if ($sel.data('select2')) {
+						return;
+					}
+					$sel.select2({ width: '100%', minimumResultsForSearch: 8 });
+				});
+
+				jQuery('.mk-import-dual-list__select').each(function () {
+					var count = this.options ? this.options.length : 0;
+					this.size = Math.min(Math.max(count, 10), 14);
+				});
+
+				var activeStep = 1;
+				if (jQuery('#importStep2Conatiner').hasClass('show') && !jQuery('#importStep2Conatiner').hasClass('hide')) {
+					activeStep = 2;
+				} else if (jQuery("form[name='importAdvanced']").length) {
+					activeStep = 3;
+				}
+				Vtiger_Import_Js.syncImportBreadcrumb(activeStep);
 			} catch (e) {}
 		},
 
@@ -455,8 +513,9 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
                     return;
                 }
                 Vtiger_Import_Js.resetImportOverlayShell();
-                app.helper.loadPageContentOverlay(data).then(function() {
+                app.helper.loadPageContentOverlay(data).then(function () {
                     Vtiger_Import_Js.registerEvents();
+                    try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
                 });
             });
             return false;
@@ -474,6 +533,7 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
             jQuery('#importStepTwoButtonsDiv').removeClass('show');
             jQuery('#importStepTwoButtonsDiv').addClass('hide');
 
+            try { Vtiger_Import_Js.syncImportBreadcrumb(1); } catch (eCrumb) {}
             return false;
         },
         importActionStep2: function() {
@@ -485,13 +545,15 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				jQuery('#step2').addClass('active');
 
 				jQuery('#importStep2Conatiner').addClass('show');
+				jQuery('#importStep2Conatiner').removeClass('hide');
 
 				jQuery('#importStepTwoButtonsDiv').removeClass('hide');
 				jQuery('#importStepTwoButtonsDiv').addClass('show');
 
 				jQuery('#importStepOneButtonsDiv').removeClass('show');
 				jQuery('#importStepOneButtonsDiv').addClass('hide');
-				try { Vtiger_Import_Js.applyImportPageShell(); } catch (eStep2) {}
+				try { Vtiger_Import_Js.syncImportBreadcrumb(2); } catch (eStep2) {}
+				try { Vtiger_Import_Js.applyImportPageShell(); } catch (eStep2b) {}
 			}
 			return false;
         },
@@ -507,7 +569,9 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
                 };
                 app.helper.showProgress();
                 app.request.post(postParams).then(function(err, response) {
-                    app.helper.loadPageContentOverlay(response);
+                    app.helper.loadPageContentOverlay(response).then(function () {
+                        try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
+                    });
 					Vtiger_Import_Js.loadDefaultValueWidgetForMappedFields();
 					Vtiger_Import_Js.scheduleCampaignsAutoMap();
 					Vtiger_Import_Js.scheduleSalesImportAutoMap();
@@ -531,7 +595,9 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
                 var formData = jQuery("form[name='importAdvanced']").serialize();
                 app.helper.showProgress();
                 app.request.post({data: formData}).then(function(err, response) {
-                    app.helper.loadPageContentOverlay(response);
+                    app.helper.loadPageContentOverlay(response).then(function () {
+                        try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
+                    });
                     app.helper.hideProgress();
                     if(!err){
                         if (jQuery('#scheduleImportStatus').length > 0) {
@@ -1066,7 +1132,9 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
         showOverLayModal: function(params) {
             app.helper.showProgress();
             app.request.get({data: params}).then(function(err, data) {
-                app.helper.loadPageContentOverlay(data);
+                app.helper.loadPageContentOverlay(data).then(function () {
+                    try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
+                });
                 app.helper.hideProgress();
             });
         },
@@ -1083,7 +1151,9 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 			};
 			app.request.post(postParams).then(function(err, response) {
 				if(!Vtiger_Import_Js.isReloadStatusPageStopped) {
-					app.helper.loadPageContentOverlay(response);
+					app.helper.loadPageContentOverlay(response).then(function () {
+                        try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
+                    });
 					if (jQuery('#scheduleImportStatus').length > 0) {
 						if (!Vtiger_Import_Js.isReloadStatusPageStopped) {
 							Vtiger_Import_Js.timer = setTimeout(Vtiger_Import_Js.scheduledImportRunning, 50000);
@@ -1245,7 +1315,9 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
                     return;
                 }
                 Vtiger_Import_Js.resetImportOverlayShell();
-                app.helper.loadPageContentOverlay(data);
+                app.helper.loadPageContentOverlay(data).then(function () {
+                    try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
+                });
 				// Campaigns: if Import completed and user returns to Step 1, show a clear success toast again.
 				try {
 					if (window.sessionStorage && sessionStorage.getItem('vtiger.CampaignsImport.success') === '1') {
