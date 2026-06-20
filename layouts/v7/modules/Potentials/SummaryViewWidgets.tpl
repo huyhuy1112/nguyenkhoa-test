@@ -21,7 +21,7 @@
 		{/if}
 	{/foreach}
 
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+{if $MODULE eq 'Potentials' || (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY|trim eq 'SALES')) || (isset($smarty.get.app) && ($smarty.get.app|trim eq 'SALES'))}
 	<div class="mk-opportunity-detail-summary-grid">
 		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--key mk-opportunity-detail-grid__key" aria-labelledby="mk-opportunity-detail-keyfields-title">
 			<div class="mk-opportunity-detail-card__head">

@@ -58,11 +58,74 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 	init : function() {
 		this._super();
 		Potentials_Detail_Js.detailCurrentInstance = this;
+		this.ensureSalesAppOnDetail();
 		if (this.isSalesOpportunityDetailUi()) {
 			document.body.classList.add('mk-opportunity-detail-sales');
+			document.body.setAttribute('data-app', 'SALES');
 			document.body.classList.remove('mk-opportunity-detail-ui-loading');
 			document.body.classList.add('mk-opportunity-detail-ui-ready');
+			this.decodeSummaryKeyFields();
 		}
+	},
+
+	ensureSalesAppOnDetail : function() {
+		var body = document.body;
+		if (!body || body.getAttribute('data-module') !== 'Potentials' || body.getAttribute('data-view') !== 'Detail') {
+			return;
+		}
+		var app = (body.getAttribute('data-app') || '').trim().toUpperCase();
+		if (app !== 'SALES') {
+			try {
+				var u = new URL(window.location.href);
+				u.searchParams.set('app', 'SALES');
+				window.location.replace(u.toString());
+			} catch (e) {
+				window.location.replace(window.location.pathname + window.location.search + (window.location.search ? '&' : '?') + 'app=SALES');
+			}
+		}
+	},
+
+	decodeHtmlEntities : function(str) {
+		if (!str || String(str).indexOf('&') < 0) {
+			return str;
+		}
+		var ta = document.createElement('textarea');
+		var prev = String(str);
+		var i;
+		for (i = 0; i < 3; i++) {
+			ta.innerHTML = prev;
+			var next = ta.value;
+			if (next === prev) {
+				break;
+			}
+			prev = next;
+		}
+		return prev;
+	},
+
+	decodeSummaryKeyFields : function() {
+		var self = this;
+		jQuery('.mk-opportunity-detail-kv-wrap .fieldValue').each(function() {
+			var $val = jQuery(this);
+			var $targets = $val.find('a, .value').addBack().filter(function() {
+				return jQuery(this).children('a, .value').length === 0;
+			});
+			$targets.each(function() {
+				var $t = jQuery(this);
+				if ($t.attr('data-mk-decoded') === '1') {
+					return;
+				}
+				var text = jQuery.trim($t.text());
+				if (!text || text.indexOf('&') < 0) {
+					return;
+				}
+				var decoded = self.decodeHtmlEntities(text);
+				if (decoded !== text) {
+					$t.text(decoded);
+					$t.attr('data-mk-decoded', '1');
+				}
+			});
+		});
 	},
 
 	isSalesOpportunityDetailUi : function() {
@@ -71,7 +134,6 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			body
 			&& body.getAttribute('data-module') === 'Potentials'
 			&& body.getAttribute('data-view') === 'Detail'
-			&& body.getAttribute('data-app') === 'SALES'
 		);
 	},
 

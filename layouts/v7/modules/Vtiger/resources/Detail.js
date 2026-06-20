@@ -877,8 +877,34 @@ Vtiger.Class("Vtiger_Detail_Js",{
 				function(err,data){
 					if(err === null){
 						if(typeof data !== 'object'){
-							var appName = app.getAppName();
-							window.location.href = data+'&app='+appName;
+							var redirectUrl = String(data || '').trim();
+							var appName = '';
+							try {
+								if (typeof app !== 'undefined' && app.getAppName) {
+									appName = String(app.getAppName() || '').trim();
+								}
+							} catch (e0) {}
+							if (!appName) {
+								try {
+									appName = String(jQuery('body').data('app') || jQuery('body').attr('data-app') || '').trim();
+								} catch (e1) {}
+							}
+							if (!appName) {
+								try {
+									var q = app.convertUrlToDataParams(window.location.search.substring(1));
+									appName = String(q.app || '').trim();
+								} catch (e2) {}
+							}
+							if (!appName) {
+								var mod = (app && app.getModuleName) ? app.getModuleName() : '';
+								if (mod === 'Potentials' || mod === 'Leads' || mod === 'Accounts' || mod === 'Contacts') {
+									appName = 'SALES';
+								}
+							}
+							if (appName && redirectUrl.indexOf('app=') === -1) {
+								redirectUrl += (redirectUrl.indexOf('?') >= 0 ? '&' : '?') + 'app=' + encodeURIComponent(appName);
+							}
+							window.location.href = redirectUrl;
 						}else {
 							app.helper.showAlertBox({'message' : data.prototype.message});
 						}

@@ -15,6 +15,25 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		parent::__construct();
 		$this->exposeMethod('showRelatedRecords');
 	}
+
+	protected function ensureSalesApp(Vtiger_Request $request) {
+		require_once 'modules/Potentials/helpers/SalesAppGuard.php';
+		Potentials_SalesAppGuard::enforce($request);
+	}
+
+	protected function assignSalesApp(Vtiger_Request $request) {
+		require_once 'modules/Potentials/helpers/SalesAppGuard.php';
+		Potentials_SalesAppGuard::assignViewer($request, $this->getViewer($request));
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		$this->ensureSalesApp($request);
+		parent::preProcess($request, false);
+		$this->assignSalesApp($request);
+		if ($display) {
+			$this->preProcessDisplay($request);
+		}
+	}
 	/**
 	 * Function to get activities
 	 * @param Vtiger_Request $request

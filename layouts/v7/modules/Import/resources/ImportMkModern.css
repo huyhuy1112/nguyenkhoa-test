@@ -3,6 +3,43 @@
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap');
 
+:root {
+	--mk-import-navy: #1a2744;
+	--mk-import-navy-soft: #2c4a66;
+	--mk-import-gold: #c9a227;
+	--mk-import-gold-soft: #f5e6b8;
+	--mk-import-surface: #ffffff;
+	--mk-import-bg: #eef1f6;
+	--mk-import-border: #e2e8f0;
+	--mk-import-text: #0f172a;
+	--mk-import-muted: #64748b;
+}
+
+/* ---- Full-page Import (view=Import) ---- */
+body[data-view="Import"] #page {
+	background: var(--mk-import-bg) !important;
+}
+
+body[data-view="Import"] .contents,
+body[data-view="Import"] .mainContainer {
+	background: transparent !important;
+}
+
+body[data-view="Import"] .mk-import-modern.fc-overlay-modal,
+body[data-view="Import"] .mk-import-modern.modal-content {
+	max-width: 980px;
+	margin: 20px auto 32px;
+	border-radius: 18px;
+	overflow: hidden;
+	box-shadow: 0 24px 64px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(226, 232, 240, 0.8);
+	background: var(--mk-import-surface);
+}
+
+body[data-view="Import"] .module-action-content,
+body[data-view="Import"] .moduleTitle {
+	display: none;
+}
+
 /* ---- Overlay shell (list pages with mk dashboard) ---- */
 body[data-view="List"] #overlayPageContent.fade:not(.in) {
 	pointer-events: none !important;
@@ -48,13 +85,13 @@ body[data-view="List"] #overlayPageContent.fade.in .data {
 }
 
 .mk-import-modern .overlayHeader {
-	background: #fff;
-	border-bottom: 1px solid #e2e8f0;
+	background: linear-gradient(135deg, var(--mk-import-navy) 0%, var(--mk-import-navy-soft) 100%);
+	border-bottom: none;
 	padding: 0;
 }
 
 .mk-import-modern .overlayHeader .modal-header {
-	padding: 20px 28px 16px;
+	padding: 22px 28px 20px;
 	border: none;
 	margin: 0;
 }
@@ -62,17 +99,28 @@ body[data-view="List"] #overlayPageContent.fade.in .data {
 .mk-import-modern .overlayHeader .modal-header h4,
 .mk-import-modern .overlayHeader .modal-title {
 	font-family: 'Space Grotesk', Inter, sans-serif;
-	font-size: 20px;
+	font-size: 21px;
 	font-weight: 600;
-	color: #0f172a;
+	color: #fff;
 	letter-spacing: -0.02em;
 	margin: 0;
 }
 
+.mk-import-modern .overlayHeader .close,
+.mk-import-modern .overlayHeader [data-dismiss="modal"] {
+	color: rgba(255, 255, 255, 0.85);
+	opacity: 1;
+	text-shadow: none;
+}
+
+.mk-import-modern .overlayHeader .close:hover {
+	color: var(--mk-import-gold-soft);
+}
+
 .mk-import-modern .importview-content .modal-body,
 .mk-import-modern > .modal-body {
-	padding: 24px 28px 28px;
-	background: #f4f6f9;
+	padding: 26px 28px 30px;
+	background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 	max-height: calc(100vh - 180px);
 	overflow-y: auto;
 }
@@ -134,9 +182,19 @@ body[data-view="List"] #overlayPageContent.fade.in .data {
 }
 
 .mk-import-modern #navigation_links .crumbs li.step.active {
-	border-color: #40627e;
-	background: linear-gradient(135deg, #40627e 0%, #2c4a66 100%);
-	box-shadow: 0 4px 14px rgba(64, 98, 126, 0.25);
+	border-color: var(--mk-import-gold);
+	background: linear-gradient(135deg, var(--mk-import-navy) 0%, var(--mk-import-navy-soft) 100%);
+	box-shadow: 0 6px 20px rgba(26, 39, 68, 0.28);
+}
+
+.mk-import-modern #navigation_links .crumbs li.step.completed {
+	border-color: #cbd5e1;
+	background: #fff;
+}
+
+.mk-import-modern #navigation_links .crumbs li.step.completed .stepNum {
+	background: var(--mk-import-gold-soft);
+	color: var(--mk-import-navy);
 }
 
 .mk-import-modern #navigation_links .crumbs li.step.active a,
@@ -152,12 +210,12 @@ body[data-view="List"] #overlayPageContent.fade.in .data {
 /* ---- Panels / cards ---- */
 .mk-import-modern .importBlockContainer,
 .mk-import-modern .mk-import-panel {
-	background: #fff;
-	border: 1px solid #e2e8f0;
-	border-radius: 14px;
-	padding: 24px 26px;
+	background: var(--mk-import-surface);
+	border: 1px solid var(--mk-import-border);
+	border-radius: 16px;
+	padding: 26px 28px;
 	margin-bottom: 20px;
-	box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+	box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06);
 }
 
 .mk-import-modern .mk-import-panel__head {
@@ -424,26 +482,47 @@ body[data-view="List"] #overlayPageContent.fade.in .data {
 /* ---- Footer ---- */
 .mk-import-modern .modal-overlay-footer {
 	background: #fff;
-	border-top: 1px solid #e2e8f0;
-	padding: 16px 28px;
+	border-top: 1px solid var(--mk-import-border);
+	padding: 18px 28px;
 	margin: 0;
+	position: sticky;
+	bottom: 0;
+	z-index: 5;
+	box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.06);
 }
 
 .mk-import-modern .modal-overlay-footer .btn-success,
 .mk-import-modern .modal-overlay-footer .btn-primary.btn-lg {
-	background: linear-gradient(135deg, #40627e 0%, #2c4a66 100%) !important;
+	background: linear-gradient(135deg, var(--mk-import-navy) 0%, var(--mk-import-navy-soft) 100%) !important;
 	border: none !important;
-	border-radius: 10px !important;
+	border-radius: 12px !important;
 	font-weight: 600;
-	padding: 10px 22px;
-	box-shadow: 0 4px 12px rgba(64, 98, 126, 0.22);
+	padding: 11px 24px;
+	min-width: 120px;
+	box-shadow: 0 6px 18px rgba(26, 39, 68, 0.22);
+	transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.mk-import-modern .modal-overlay-footer .btn-success:hover,
+.mk-import-modern .modal-overlay-footer .btn-primary.btn-lg:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 8px 22px rgba(26, 39, 68, 0.28);
 }
 
 .mk-import-modern .modal-overlay-footer .btn-default,
 .mk-import-modern .modal-overlay-footer .btn-primary:not(.btn-success) {
-	border-radius: 10px !important;
+	border-radius: 12px !important;
 	font-weight: 600;
-	padding: 10px 18px;
+	padding: 11px 20px;
+	border: 1px solid var(--mk-import-border) !important;
+	background: #fff !important;
+	color: var(--mk-import-navy) !important;
+}
+
+.mk-import-modern .modal-overlay-footer #skipDuplicateMerge {
+	background: linear-gradient(135deg, #fff 0%, #f8fafc 100%) !important;
+	border: 1px solid var(--mk-import-gold) !important;
+	color: #92400e !important;
 }
 
 .mk-import-modern .modal-overlay-footer .cancelLink {
@@ -563,10 +642,148 @@ body[data-view="List"] #overlayPageContent.fade.in .data {
 	width: 100%;
 }
 
+/* ---- Step 2: duplicate handling ---- */
+.mk-import-modern .mk-import-dup-table {
+	width: 100%;
+	margin: 0;
+	border: none;
+}
+
+.mk-import-modern .mk-import-dup-row > td {
+	padding: 0;
+	border: none;
+	background: transparent;
+}
+
+.mk-import-modern .mk-import-dup-row--merge {
+	margin-bottom: 24px;
+}
+
+.mk-import-modern .mk-import-label {
+	display: block;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--mk-import-text);
+	margin: 0 0 8px;
+}
+
+.mk-import-modern .mk-import-field-hint {
+	margin: 8px 0 0;
+	font-size: 12px;
+	color: var(--mk-import-muted);
+	line-height: 1.5;
+}
+
+.mk-import-modern .mk-import-select {
+	max-width: 420px;
+}
+
+.mk-import-modern .mk-import-dual-list {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	gap: 16px;
+	align-items: stretch;
+	margin-top: 12px;
+}
+
+.mk-import-modern .mk-import-dual-list__col {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.mk-import-modern .mk-import-dual-list__title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--mk-import-muted);
+	margin-bottom: 10px;
+}
+
+.mk-import-modern .mk-import-dual-list__title .fa {
+	color: var(--mk-import-gold);
+}
+
+.mk-import-modern .mk-import-dual-list__select {
+	width: 100%;
+	min-height: 240px;
+	border: 1px solid var(--mk-import-border) !important;
+	border-radius: 12px !important;
+	padding: 8px;
+	font-size: 13px;
+	color: var(--mk-import-text);
+	background: #f8fafc;
+	box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.mk-import-modern .mk-import-dual-list__select option {
+	padding: 8px 10px;
+	border-radius: 6px;
+}
+
+.mk-import-modern .mk-import-dual-list__select option:checked {
+	background: linear-gradient(135deg, var(--mk-import-navy) 0%, var(--mk-import-navy-soft) 100%);
+	color: #fff;
+}
+
+.mk-import-modern .mk-import-dual-list__actions {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 10px;
+	padding-top: 28px;
+}
+
+.mk-import-modern .mk-import-dual-list__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	border: 1px solid var(--mk-import-border);
+	background: #fff;
+	color: var(--mk-import-navy);
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+	transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.mk-import-modern .mk-import-dual-list__btn:hover {
+	transform: translateY(-1px);
+	border-color: var(--mk-import-gold);
+	background: var(--mk-import-gold-soft);
+	color: #92400e;
+}
+
+.mk-import-modern #importStep2Conatiner > table > tbody {
+	display: block;
+}
+
+.mk-import-modern #importStep2Conatiner #duplicates_merge_configuration > tbody > tr {
+	display: block;
+	padding: 0;
+	margin: 0 0 20px;
+	background: transparent;
+}
+
 @media (max-width: 768px) {
 	body[data-view="List"] #overlayPageContent.fade.in {
 		left: 0 !important;
 		top: 0 !important;
+	}
+
+	.mk-import-modern .mk-import-dual-list {
+		grid-template-columns: 1fr;
+	}
+
+	.mk-import-modern .mk-import-dual-list__actions {
+		flex-direction: row;
+		justify-content: center;
+		padding-top: 0;
 	}
 
 	.mk-import-modern #uploadFileContainer tr,

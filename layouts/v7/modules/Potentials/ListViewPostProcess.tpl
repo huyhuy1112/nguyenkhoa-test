@@ -1,7 +1,7 @@
 {*+**********************************************************************************
  * Potentials List (Sales app): close split shell opened in ListViewPreProcess.tpl
  ************************************************************************************}
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+{if $MODULE eq 'Potentials' || (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY|trim eq 'SALES')) || (isset($smarty.get.app) && ($smarty.get.app|trim eq 'SALES'))}
 	</div>
 </div>
 </main>

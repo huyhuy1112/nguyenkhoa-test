@@ -51,7 +51,7 @@ abstract class Vtiger_Basic_View extends Vtiger_Footer_View {
 		$supportGroup = $menuGroupedByParent['SUPPORT'];
 		unset($menuGroupedByParent['SUPPORT']);
 		$menuGroupedByParent['SUPPORT'] = $supportGroup;
-        $parentApp = $request->get('app');
+        $parentApp = trim((string)$request->get('app'));
 
 		foreach ($menuGroupedByParent as $parentCategory => $menuList) {
 			if($parentCategory == 'ANALYTICS' || $parentCategory == 'SETTINGS') continue;

@@ -41,6 +41,63 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 			} catch (e) {}
 		},
 
+		resolveSalesAppName: function () {
+			var appName = '';
+			try {
+				if (typeof app !== 'undefined' && app.getAppName) {
+					appName = String(app.getAppName() || '').trim();
+				}
+			} catch (e0) {}
+			if (!appName) {
+				try {
+					appName = String(jQuery('body').data('app') || jQuery('body').attr('data-app') || '').trim();
+				} catch (e1) {}
+			}
+			if (!appName) {
+				try {
+					var q = app.convertUrlToDataParams(window.location.search.substring(1));
+					appName = String(q.app || '').trim();
+				} catch (e2) {}
+			}
+			return appName;
+		},
+
+		isFullPageImport: function () {
+			try {
+				return jQuery('body').attr('data-view') === 'Import';
+			} catch (e) {
+				return false;
+			}
+		},
+
+		redirectToModuleList: function (moduleName, appName) {
+			moduleName = String(moduleName || '').trim();
+			appName = String(appName || Vtiger_Import_Js.resolveSalesAppName() || '').trim();
+			if (!moduleName) {
+				return;
+			}
+			var url = 'index.php?module=' + encodeURIComponent(moduleName) + '&view=List';
+			if (appName) {
+				url += '&app=' + encodeURIComponent(appName);
+			}
+			window.location.href = url;
+		},
+
+		applyImportPageShell: function () {
+			try {
+				if (!Vtiger_Import_Js.isFullPageImport()) {
+					return;
+				}
+				document.body.classList.add('mk-import-page');
+				jQuery('.mk-import-modern').each(function () {
+					jQuery(this).find('select.select2, select[name="merge_type"]').select2({
+						width: '100%',
+						minimumResultsForSearch: 8
+					});
+				});
+			} catch (e) {}
+		},
+
 		enforceCampaignsMapping: function () {
 			var currentModule = '';
 			try { currentModule = app.getModuleName(); } catch (e) {}
@@ -434,6 +491,7 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 
 				jQuery('#importStepOneButtonsDiv').removeClass('show');
 				jQuery('#importStepOneButtonsDiv').addClass('hide');
+				try { Vtiger_Import_Js.applyImportPageShell(); } catch (eStep2) {}
 			}
 			return false;
         },
@@ -1280,6 +1338,22 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
             Vtiger_Import_Js.loadListRecords();
         },
         loadListRecords : function(){
+			var forModule = '';
+			try {
+				forModule = String(jQuery('[name="module"]').first().val() || '').trim();
+			} catch (e0) {}
+			if (!forModule) {
+				try { forModule = app.getModuleName(); } catch (e1) {}
+			}
+			if (Vtiger_Import_Js.isFullPageImport() && forModule && forModule !== 'Import') {
+				var appName = Vtiger_Import_Js.resolveSalesAppName();
+				if (!appName && (forModule === 'Potentials' || forModule === 'Leads' || forModule === 'Accounts' || forModule === 'Contacts')) {
+					appName = 'SALES';
+				}
+				Vtiger_Import_Js.redirectToModuleList(forModule, appName);
+				return;
+			}
+
 			var listInstance;
 			if(app.getModuleName() == 'Users') {
 				listInstance = new Settings_Users_List_Js();
@@ -1296,6 +1370,7 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
         }
     }
     jQuery(document).ready(function() {
+		try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
 		try { console.log('[IMPORT DEBUG] Import.js loaded', new Date().toISOString()); } catch (e0) {}
         Vtiger_Import_Js.loadDefaultValueWidgetForMappedFields();
 		// Campaigns: enforce deterministic mapping on Step 3 initial render.
