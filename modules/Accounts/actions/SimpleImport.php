@@ -1,0 +1,115 @@
+<?php
+/*+***********************************************************************************
+ * Accounts one-step CSV/Excel import with auto column mapping.
+ *************************************************************************************/
+
+require_once 'modules/Accounts/helpers/SimpleImport.php';
+require_once 'modules/Import/views/Main.php';
+require_once 'modules/Import/actions/Data.php';
+require_once 'modules/Import/actions/Queue.php';
+require_once 'modules/Import/actions/Lock.php';
+
+class Accounts_SimpleImport_Action extends Vtiger_Action_Controller {
+
+	public function checkPermission(Vtiger_Request $request) {
+		$moduleName = $request->getModule();
+		if (!Users_Privileges_Model::isPermitted($moduleName, 'Import')) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+	}
+
+	public function validateRequest(Vtiger_Request $request) {
+		$request->validateWriteAccess();
+	}
+
+	public function process(Vtiger_Request $request) {
+		global $VTIGER_BULK_SAVE_MODE;
+		$response = new Vtiger_Response();
+		$response->setEmitType(Vtiger_Response::$EMIT_JSON);
+
+		$previousBulkSaveMode = $VTIGER_BULK_SAVE_MODE;
+		$VTIGER_BULK_SAVE_MODE = true;
+
+		try {
+			if ($request->getModule() !== 'Accounts') {
+				throw new Exception('Invalid module');
+			}
+
+			if (empty($_FILES['import_file']) || empty($_FILES['import_file']['tmp_name'])) {
+				throw new Exception('Chưa chọn file hoặc trình duyệt không gửi được file. Chọn lại file CSV rồi bấm Import ngay.');
+			}
+
+			$user = Users_Record_Model::getCurrentUserModel();
+			Import_Utils_Helper::clearUserImportInfo($user);
+
+			if (!$request->get('delimiter')) {
+				$request->set('delimiter', ',');
+			}
+			if (!$request->get('has_header')) {
+				$request->set('has_header', 'on');
+			}
+			$request->set('merge_type', 0);
+			$request->set('auto_merge', 0);
+			$request->set('merge_fields', '');
+
+			if (!Import_Utils_Helper::validateFileUpload($request)) {
+				$errorMessage = $request->get('error_message');
+				throw new Exception($errorMessage ? $errorMessage : vtranslate('LBL_FILE_UPLOAD_FAILED', 'Import'));
+			}
+
+			$fieldMapping = Accounts_SimpleImport_Helper::buildFieldMapping($request, $user);
+			if (!array_key_exists('accountname', $fieldMapping)) {
+				throw new Exception('Không nhận diện được cột tên tổ chức. File cần header "Organization Name" hoặc "Tên".');
+			}
+
+			$request->set('field_mapping', $fieldMapping);
+			$request->set('default_values', array());
+
+			$importController = new Import_Main_View($request, $user);
+			$importController->saveMap();
+			if (!$importController->copyFromFileToDB()) {
+				throw new Exception('Không đọc được dữ liệu từ file CSV. Kiểm tra file có header + ít nhất 1 dòng dữ liệu.');
+			}
+			$importController->queueDataImport();
+
+			$importInfo = Import_Queue_Action::getImportInfo('Accounts', $user);
+			if ($importInfo == null) {
+				throw new Exception('Không thể khởi tạo import.');
+			}
+
+			$importDataController = new Import_Data_Action($importInfo, $user);
+			if (!$importDataController->initializeImport()) {
+				throw new Exception(vtranslate('ERR_FAILED_TO_LOCK_MODULE', 'Import'));
+			}
+
+			$importDataController->importData();
+			$importStatusCount = $importDataController->getImportStatusCount();
+			$failedSamples = Accounts_SimpleImport_Helper::getFailedRowSamples($user);
+			$importDataController->finishImport();
+
+			$imported = (int)$importStatusCount['IMPORTED'];
+			$failed = (int)$importStatusCount['FAILED'];
+			$skipped = (int)$importStatusCount['SKIPPED'];
+			$total = (int)$importStatusCount['TOTAL'];
+			$message = Accounts_SimpleImport_Helper::buildResultMessage($importStatusCount, $failedSamples);
+
+			$result = array(
+				'success' => ($imported > 0),
+				'imported' => $imported,
+				'failed' => $failed,
+				'skipped' => $skipped,
+				'total' => $total,
+				'mapped_columns' => count($fieldMapping),
+				'failed_samples' => $failedSamples,
+				'message' => $message,
+			);
+
+			$response->setResult($result);
+		} catch (Throwable $e) {
+			$response->setError($e->getMessage());
+		}
+
+		$VTIGER_BULK_SAVE_MODE = $previousBulkSaveMode;
+		$response->emit();
+	}
+}

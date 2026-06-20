@@ -26,18 +26,17 @@
 }
 
 /* ---- Ambient background (photo + navy glass) ---- */
-body.mk-import-page[data-view="List"].modal-open .modal-backdrop.in,
-body[data-view="List"].modal-open .modal-backdrop.in {
+body.mk-import-page[data-view="List"].modal-open .modal-backdrop.in {
 	background: rgba(8, 14, 28, 0.62) !important;
 	backdrop-filter: blur(14px) saturate(1.15);
 	-webkit-backdrop-filter: blur(14px) saturate(1.15);
 }
 
 body[data-view="Import"] #page,
-body[data-view="List"] #overlayPageContent.fade.in,
-body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in,
-body[data-view="List"] #overlayPageContent.fade.in.mk-import-overlay-open,
-body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in.mk-import-overlay-open {
+body[data-view="List"] #overlayPageContent.fade.in:has(.data .mk-import-modern),
+body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in:has(.data .mk-import-modern),
+body[data-view="List"] #overlayPageContent.fade.in.mk-import-overlay-open:has(.data .mk-import-modern),
+body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in.mk-import-overlay-open:has(.data .mk-import-modern) {
 	background:
 		linear-gradient(135deg, rgba(12, 20, 38, 0.82) 0%, rgba(21, 34, 56, 0.68) 42%, rgba(30, 51, 82, 0.74) 100%),
 		url('import-header-bg.jpg') center center / cover no-repeat fixed !important;
@@ -97,8 +96,7 @@ body[data-view="List"] #overlayPageContent.fade.in {
 	padding: 20px 24px 32px;
 }
 
-body[data-view="List"].modal-open .modal-backdrop.in,
-body[data-view="List"] .modal-backdrop.in {
+body.mk-import-page[data-view="List"].modal-open .modal-backdrop.in {
 	z-index: 110000 !important;
 }
 

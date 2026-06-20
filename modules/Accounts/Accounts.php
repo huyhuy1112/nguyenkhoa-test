@@ -118,6 +118,23 @@ class Accounts extends CRMEntity {
 
 	}
 
+	/** Import: assigned_user_id defaults to current user on import. */
+	function getMandatoryImportableFields() {
+		$moduleModel = Vtiger_Module_Model::getInstance('Accounts');
+		$moduleFields = $moduleModel->getFields();
+		$mandatoryFields = array();
+		$skipFields = array('assigned_user_id', 'createdtime', 'modifiedtime');
+		foreach ($moduleFields as $fieldName => $fieldInstance) {
+			if (in_array($fieldName, $skipFields, true)) {
+				continue;
+			}
+			if ($fieldInstance->isMandatory()) {
+				$mandatoryFields[$fieldName] = vtranslate($fieldInstance->getFieldLabelKey(), 'Accounts');
+			}
+		}
+		return $mandatoryFields;
+	}
+
 
 	// Mike Crowe Mod --------------------------------------------------------Default ordering for us
 	/** Returns a list of the associated Campaigns

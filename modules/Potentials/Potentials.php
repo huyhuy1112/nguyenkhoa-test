@@ -106,6 +106,26 @@ class Potentials extends CRMEntity {
 	{
 	}
 
+	/**
+	 * Import only requires fields that cannot be auto-filled.
+	 * order_category defaults to Internal; assigned_user_id defaults to current user.
+	 */
+	function getMandatoryImportableFields() {
+		$moduleModel = Vtiger_Module_Model::getInstance('Potentials');
+		$moduleFields = $moduleModel->getFields();
+		$mandatoryFields = array();
+		$skipFields = array('assigned_user_id', 'order_category', 'closingdate', 'createdtime', 'modifiedtime');
+		foreach ($moduleFields as $fieldName => $fieldInstance) {
+			if (in_array($fieldName, $skipFields, true)) {
+				continue;
+			}
+			if ($fieldInstance->isMandatory()) {
+				$mandatoryFields[$fieldName] = vtranslate($fieldInstance->getFieldLabelKey(), 'Potentials');
+			}
+		}
+		return $mandatoryFields;
+	}
+
 	/** Function to create list query
 	* @param reference variable - where condition is passed when the query is executed
 	* Returns Query.

@@ -1,10 +1,10 @@
 /**
- * Accounts Create (SALES) — dashboard shell + stock Inventory #EditView unchanged.
+ * Accounts Create/Edit (SALES) — dashboard shell + stock #EditView save flow.
  */
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260527_account_create1';
+	var MK_BUILD = '20260620_account_edit_save1';
 
 	var BLOCK_ICONS = {
 		LBL_ACCOUNT_INFORMATION: 'fa-building',
@@ -23,8 +23,7 @@
 				$('body').data('app') === 'MARKETING' ||
 				!$('body').data('app')
 			) &&
-			$('#mkAcCreateWorkspace').length &&
-			!$('#mkAcFormHost input[name="record"]').val()
+			$('#mkAcCreateWorkspace').length
 		);
 	}
 

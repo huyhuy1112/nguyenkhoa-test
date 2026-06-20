@@ -28,8 +28,242 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 			try {
 				jQuery('.modal-backdrop').remove();
 				jQuery('body').removeClass('modal-open mk-import-page');
-				jQuery('#overlayPageContent').removeClass('mk-import-overlay-open');
+				jQuery('#overlayPageContent')
+					.removeClass('mk-import-overlay-open in')
+					.attr('aria-hidden', 'true')
+					.css({ display: '', visibility: '', opacity: '' });
+				jQuery('#overlayPageContent .data').empty();
 			} catch (e3) {}
+		},
+
+		isImportOverlayResponse: function (response) {
+			if (response === null || typeof response === 'undefined') {
+				return false;
+			}
+			var html = (typeof response === 'string') ? response : String(response);
+			if (jQuery.trim(html) === '') {
+				return false;
+			}
+			return html.indexOf('mk-import-modern') !== -1 ||
+				html.indexOf('name="importAdvanced"') !== -1 ||
+				html.indexOf("name='importAdvanced'") !== -1 ||
+				html.indexOf('name="importBasic"') !== -1 ||
+				html.indexOf("name='importBasic'") !== -1 ||
+				html.indexOf('importMappingTable') !== -1 ||
+				html.indexOf('fieldIdentifier') !== -1;
+		},
+
+		appendImportCsrfToFormData: function (formData) {
+			if (!(formData instanceof FormData)) {
+				return formData;
+			}
+			var csrf = Vtiger_Import_Js.getCsrfParams();
+			if (!csrf) {
+				return formData;
+			}
+			try {
+				if (typeof formData.has === 'function' && formData.has(csrf.name)) {
+					return formData;
+				}
+			} catch (eHas) {}
+			formData.append(csrf.name, csrf.token);
+			return formData;
+		},
+
+		getCsrfParams: function () {
+			if (typeof csrfMagicName !== 'undefined' && typeof csrfMagicToken !== 'undefined' &&
+				csrfMagicName && csrfMagicToken) {
+				return { name: csrfMagicName, token: csrfMagicToken };
+			}
+			var $input = jQuery('input[name="__vtrftk"]').first();
+			if ($input.length && $input.val()) {
+				return { name: '__vtrftk', token: $input.val() };
+			}
+			return null;
+		},
+
+		ensureImportFormCsrf: function (formSelector) {
+			var csrf = Vtiger_Import_Js.getCsrfParams();
+			if (!csrf) {
+				return;
+			}
+			var $form = jQuery(formSelector || "form[name='importBasic'], form[name='importAdvanced']");
+			if (!$form.length) {
+				return;
+			}
+			$form.each(function () {
+				var $existing = jQuery(this).find('input[name="' + csrf.name + '"]');
+				if ($existing.length) {
+					$existing.val(csrf.token);
+				} else {
+					jQuery(this).append(jQuery('<input/>', {
+						type: 'hidden',
+						name: csrf.name,
+						value: csrf.token
+					}));
+				}
+			});
+		},
+
+		SIMPLE_IMPORT_MODULES: ['Accounts', 'Potentials'],
+
+		isSimpleImportModule: function (moduleName) {
+			moduleName = String(moduleName || Vtiger_Import_Js.getImportTargetModule() || '').trim();
+			return Vtiger_Import_Js.SIMPLE_IMPORT_MODULES.indexOf(moduleName) !== -1;
+		},
+
+		customizeSimpleImportUi: function () {
+			var moduleName = Vtiger_Import_Js.getImportTargetModule();
+			if (!Vtiger_Import_Js.isSimpleImportModule(moduleName)) {
+				return;
+			}
+			try {
+				jQuery('#importStepOneButtonsDiv .mk-import-btn-primary').text('Import ngay');
+				if (moduleName === 'Accounts') {
+					jQuery('#accounts_sample_file_container .mk-import-hint').html(
+						'Chọn file Organizations.csv. Tự map <strong>Organization Name</strong>, <strong>Billing Address</strong>, <strong>Company Code</strong>. Bấm <strong>Import ngay</strong>.'
+					);
+				} else if (moduleName === 'Potentials') {
+					jQuery('#potentials_sample_file_container .mk-import-hint').html(
+						'Chọn file Opportunities.csv. Tự map: <strong>Project Name</strong>, <strong>Organization Name</strong>, <strong>Contact Name</strong>. Bấm <strong>Import ngay</strong>.'
+					);
+				}
+			} catch (eUi) {}
+		},
+
+		parseSimpleImportResponse: function (err, response) {
+			if (err) {
+				if (typeof err === 'string') {
+					return err;
+				}
+				return err.message || err.code || (err.error && err.error.message) || 'Import thất bại.';
+			}
+			if (typeof response === 'string') {
+				var trimmed = jQuery.trim(response);
+				if (trimmed === 'Invalid request') {
+					return 'Phiên làm việc hết hạn. Tải lại trang (Ctrl+F5) rồi thử Import lại.';
+				}
+				try {
+					response = JSON.parse(response);
+				} catch (eParse) {
+					return trimmed ? trimmed.substring(0, 300) : 'Import thất bại (phản hồi không hợp lệ từ server).';
+				}
+			}
+			if (response && response.message) {
+				return response.message;
+			}
+			return 'Import thất bại.';
+		},
+
+		runSimpleImport: function (moduleName) {
+			moduleName = String(moduleName || Vtiger_Import_Js.getImportTargetModule() || '').trim();
+			if (!moduleName || !Vtiger_Import_Js.validateFilePath()) {
+				return false;
+			}
+
+			var form = jQuery("form[name='importBasic']");
+			Vtiger_Import_Js.ensureImportFormCsrf("form[name='importBasic']");
+
+			var data = new FormData();
+			data.append('module', moduleName);
+			data.append('action', 'SimpleImport');
+
+			var fileInput = form.find('#import_file')[0];
+			if (fileInput && fileInput.files && fileInput.files[0]) {
+				data.append('import_file', fileInput.files[0]);
+			} else {
+				app.helper.showErrorNotification({ message: 'Chưa chọn file CSV. Vui lòng chọn file rồi bấm Import ngay.' });
+				return false;
+			}
+
+			var delimiter = form.find('[name=delimiter]:checked').val();
+			if (!delimiter) {
+				delimiter = ',';
+			}
+			data.append('delimiter', delimiter);
+			if (form.find('[name=has_header]').is(':checked')) {
+				data.append('has_header', 'on');
+			}
+			data.append('type', jQuery('#type').val() || 'csv');
+
+			data = Vtiger_Import_Js.appendImportCsrfToFormData(data);
+
+			app.helper.showProgress();
+			jQuery.ajax({
+				url: 'index.php',
+				type: 'POST',
+				data: data,
+				contentType: false,
+				processData: false,
+				dataType: 'json'
+			}).done(function (payload) {
+				app.helper.hideProgress();
+				var result = payload && payload.result ? payload.result : null;
+				if (payload && payload.success && result && result.success && result.imported > 0) {
+					try {
+						if (moduleName === 'Accounts') {
+							window.sessionStorage && sessionStorage.setItem('vtiger.AccountsImport.success', '1');
+						} else if (moduleName === 'Potentials') {
+							window.sessionStorage && sessionStorage.setItem('vtiger.PotentialsImport.success', '1');
+						}
+					} catch (eFlag) {}
+					var defaultMsg = (moduleName === 'Potentials') ? 'Import Orders hoàn tất.' : 'Import Tổ chức hoàn tất.';
+					app.helper.showSuccessNotification({ message: result.message || defaultMsg });
+					try { Vtiger_Import_Js.cleanupImportOverlay(); } catch (eClean) {}
+					Vtiger_Import_Js.redirectToModuleList(moduleName, Vtiger_Import_Js.resolveSalesAppName() || 'SALES');
+					return;
+				}
+				var errMsg = (payload && payload.error && payload.error.message) ? payload.error.message : '';
+				if (!errMsg && result && result.message) {
+					errMsg = result.message;
+				}
+				if (!errMsg) {
+					errMsg = 'Import thất bại.';
+				}
+				if (result && result.failed_samples && result.failed_samples.length) {
+					errMsg += ' Ví dụ: ' + result.failed_samples.slice(0, 3).join(', ');
+				}
+				app.helper.showErrorNotification({ message: errMsg });
+			}).fail(function (xhr) {
+				app.helper.hideProgress();
+				var errMsg = 'Import thất bại.';
+				if (xhr && xhr.responseText) {
+					try {
+						var parsed = JSON.parse(xhr.responseText);
+						if (parsed.error && parsed.error.message) {
+							errMsg = parsed.error.message;
+						}
+					} catch (eJson) {
+						errMsg = Vtiger_Import_Js.parseSimpleImportResponse(null, xhr.responseText);
+					}
+				}
+				app.helper.showErrorNotification({ message: errMsg });
+			});
+			return false;
+		},
+
+		extractImportErrorMessage: function (response) {
+			var html = (typeof response === 'string') ? response : String(response || '');
+			if (!html) {
+				return '';
+			}
+			if (jQuery.trim(html) === 'Invalid request') {
+				return 'Phiên làm việc hết hạn hoặc thiếu CSRF token. Tải lại trang (Ctrl+F5) rồi thử Import lại.';
+			}
+			var tmp = document.createElement('div');
+			tmp.innerHTML = html;
+			var text = jQuery(tmp).find('.alert-danger, .alert-warning, .errorMessage, #uploadFileContainer td').first().text();
+			text = jQuery.trim(text || '');
+			if (text) {
+				return text;
+			}
+			if (/OperationNotPermitted|permission denied/i.test(html)) {
+				return 'Bạn không có quyền Import module này.';
+			}
+			if (/ImportError|ERR_/i.test(html)) {
+				return 'Import thất bại. Vui lòng kiểm tra file CSV và thử lại.';
+			}
+			return '';
 		},
 
 		resetImportOverlayShell: function () {
@@ -40,6 +274,26 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				}
 				$overlay.css({ display: '', visibility: '', opacity: '' });
 			} catch (e) {}
+		},
+
+		getImportTargetModule: function () {
+			var moduleName = '';
+			try {
+				moduleName = String(jQuery('form[name="importAdvanced"] [name="module"], form[name="importBasic"] [name="module"]').first().val() || '').trim();
+			} catch (e0) {}
+			if (!moduleName) {
+				try {
+					var href = window.location && window.location.href ? window.location.href : '';
+					var match = href.match(/[?&]module=([^&]+)/);
+					if (match && match[1]) {
+						moduleName = decodeURIComponent(match[1]);
+					}
+				} catch (e1) {}
+			}
+			if (!moduleName) {
+				try { moduleName = String(app.getModuleName() || '').trim(); } catch (e2) {}
+			}
+			return moduleName;
 		},
 
 		resolveSalesAppName: function () {
@@ -100,6 +354,10 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 		},
 
 		applyImportPageShell: function () {
+			try {
+				Vtiger_Import_Js.ensureImportFormCsrf();
+				Vtiger_Import_Js.customizeSimpleImportUi();
+			} catch (eCsrf) {}
 			try {
 				var $root = jQuery('.mk-import-modern');
 				if (!$root.length) {
@@ -359,6 +617,7 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				'tên ngắn gọn thường gọi': 'accountname',
 				'account name': 'accountname',
 				'organization name': 'accountname',
+				'organization number': 'account_no',
 				'tên đầy đủ': 'fullname',
 				'fullname': 'fullname',
 				'full name': 'fullname',
@@ -369,8 +628,10 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				'billing address': 'bill_street',
 				'số điện thoại liên hệ': 'phone',
 				'phone': 'phone',
+				'primary phone': 'phone',
 				'email liên lạc': 'email1',
 				'email': 'email1',
+				'primary email': 'email1',
 				'trang web': 'website',
 				'website': 'website',
 				'ngành nghề kinh doanh': 'industry',
@@ -379,7 +640,10 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				'phụ trách': 'assigned_user_id',
 				'assigned to': 'assigned_user_id',
 				'số hiệu tổ chức': 'account_no',
-				'account no': 'account_no'
+				'account no': 'account_no',
+				'description': 'description',
+				'mô tả': 'description',
+				'ghi chú': 'description'
 			},
 			Contacts: {
 				'họ': 'firstname',
@@ -435,13 +699,49 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 		},
 
 		isImportModule: function (moduleName) {
-			var currentModule = '';
-			try { currentModule = app.getModuleName(); } catch (e) {}
-			if (currentModule === moduleName) {
-				return true;
+			return Vtiger_Import_Js.getImportTargetModule() === moduleName;
+		},
+
+		SALES_IMPORT_MANDATORY_DEFAULTS: {
+			Potentials: {
+				order_category: 'Internal',
+				sales_stage: 'Prospecting'
+			},
+			Accounts: {},
+			Contacts: {},
+			Plans: {
+				plan_status: 'Planning'
 			}
-			var href = window.location && window.location.href ? window.location.href : '';
-			return href.indexOf('module=' + moduleName) !== -1;
+		},
+
+		syncMappedFieldSelects: function () {
+			jQuery('select[name="mapped_fields"]').each(function () {
+				var $select = jQuery(this);
+				try {
+					if ($select.data('select2')) {
+						$select.trigger('change.select2');
+					}
+				} catch (e0) {}
+				$select.trigger('change');
+			});
+		},
+
+		applySalesImportMandatoryDefaults: function (mappedFields, mappedDefaultValues, moduleName) {
+			var defaults = Vtiger_Import_Js.SALES_IMPORT_MANDATORY_DEFAULTS[moduleName];
+			if (!defaults) {
+				return;
+			}
+			for (var fieldName in defaults) {
+				if (!Object.prototype.hasOwnProperty.call(defaults, fieldName)) {
+					continue;
+				}
+				if (!(fieldName in mappedFields) && !(fieldName in mappedDefaultValues)) {
+					mappedDefaultValues[fieldName] = defaults[fieldName];
+				}
+			}
+			if (moduleName === 'Potentials' && mappedFields.order_category !== undefined && !mappedDefaultValues.order_category) {
+				mappedDefaultValues.order_category = 'Internal';
+			}
 		},
 
 		enforceSalesImportMapping: function (moduleName) {
@@ -558,24 +858,49 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 			return false;
         },
         uploadAndParse: function(auto_merge) {
+            var targetModule = Vtiger_Import_Js.getImportTargetModule();
+            if (Vtiger_Import_Js.isSimpleImportModule(targetModule)) {
+                return Vtiger_Import_Js.runSimpleImport(targetModule);
+            }
             if (Vtiger_Import_Js.validateFilePath() && Vtiger_Import_Js.validateMergeCriteria(auto_merge)) {
                 jQuery("#auto_merge").val(auto_merge);
                 var form = jQuery("form[name='importBasic']");
+                Vtiger_Import_Js.ensureImportFormCsrf("form[name='importBasic']");
                 var data = new FormData(form[0]);
+                data = Vtiger_Import_Js.appendImportCsrfToFormData(data);
                 var postParams = {
+                    url: 'index.php',
                     data: data,
                     contentType: false,
                     processData: false
                 };
                 app.helper.showProgress();
                 app.request.post(postParams).then(function(err, response) {
+                    app.helper.hideProgress();
+                    if (err) {
+                        app.helper.showErrorNotification({message: err.message || 'Không đọc được file. Kiểm tra định dạng CSV/Excel và thử lại.'});
+                        return;
+                    }
+                    if (!Vtiger_Import_Js.isImportOverlayResponse(response)) {
+                        var serverErr = Vtiger_Import_Js.extractImportErrorMessage(response);
+                        app.helper.showErrorNotification({
+                            message: serverErr || 'Không mở được bước map cột. Kiểm tra file CSV có header + ít nhất 1 dòng dữ liệu, thư mục cache/import ghi được.'
+                        });
+                        try { Vtiger_Import_Js.cleanupImportOverlay(); } catch (eClean) {}
+                        return;
+                    }
+                    if (String(response).indexOf('name="importBasic"') !== -1 && String(response).indexOf('name="importAdvanced"') === -1) {
+                        var step1Err = Vtiger_Import_Js.extractImportErrorMessage(response);
+                        if (step1Err) {
+                            app.helper.showErrorNotification({message: step1Err});
+                        }
+                    }
                     app.helper.loadPageContentOverlay(response).then(function () {
                         try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
+                        Vtiger_Import_Js.loadDefaultValueWidgetForMappedFields();
+                        Vtiger_Import_Js.scheduleCampaignsAutoMap();
+                        Vtiger_Import_Js.scheduleSalesImportAutoMap();
                     });
-					Vtiger_Import_Js.loadDefaultValueWidgetForMappedFields();
-					Vtiger_Import_Js.scheduleCampaignsAutoMap();
-					Vtiger_Import_Js.scheduleSalesImportAutoMap();
-                    app.helper.hideProgress();
                 });
             }
             return false;
@@ -585,6 +910,7 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
             return false;
         },
         sanitizeAndSubmit: function() {
+            try { Vtiger_Import_Js.syncMappedFieldSelects(); } catch (eSync) {}
             // Campaigns: enforce deterministic mapping before submit.
             try { Vtiger_Import_Js.enforceCampaignsMapping(); } catch (e) {}
             try { Vtiger_Import_Js.enforceSalesImportMapping('Potentials'); } catch (eP) {}
@@ -592,6 +918,7 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
             try { Vtiger_Import_Js.enforceSalesImportMapping('Contacts'); } catch (eC) {}
             try { Vtiger_Import_Js.enforceSalesImportMapping('Plans'); } catch (ePl) {}
             if (Vtiger_Import_Js.guardCampaignsMapping() && Vtiger_Import_Js.sanitizeFieldMapping() && Vtiger_Import_Js.validateCustomMap()) {
+                Vtiger_Import_Js.ensureImportFormCsrf("form[name='importAdvanced']");
                 var formData = jQuery("form[name='importAdvanced']").serialize();
                 app.helper.showProgress();
                 app.request.post({data: formData}).then(function(err, response) {
@@ -600,6 +927,7 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
                     });
                     app.helper.hideProgress();
                     if(!err){
+                        var importModule = Vtiger_Import_Js.getImportTargetModule();
                         if (jQuery('#scheduleImportStatus').length > 0) {
                             app.event.one('post.overlayPageContent.hide', function(container) {
                                 clearTimeout(Vtiger_Import_Js.timer);
@@ -608,23 +936,25 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
                             Vtiger_Import_Js.isReloadStatusPageStopped = false;
                             Vtiger_Import_Js.timer = setTimeout(Vtiger_Import_Js.scheduledImportRunning, 5000);
                         } else {
-							if (window.app && app.getModuleName && app.getModuleName() === 'Campaigns') {
+							if (importModule === 'Campaigns') {
 								try { window.sessionStorage && sessionStorage.setItem('vtiger.CampaignsImport.success', '1'); } catch (e) {}
 								app.helper.showSuccessNotification({message:'Campaign import succeeded.'});
-							} else if (window.app && app.getModuleName && app.getModuleName() === 'Plans') {
+							} else if (importModule === 'Plans') {
 								try { window.sessionStorage && sessionStorage.setItem('vtiger.PlansImport.success', '1'); } catch (e) {}
 								app.helper.showSuccessNotification({message:'Plans import succeeded.'});
-							} else if (window.app && app.getModuleName && app.getModuleName() === 'Contacts') {
+							} else if (importModule === 'Contacts') {
 								try { window.sessionStorage && sessionStorage.setItem('vtiger.ContactsImport.success', '1'); } catch (e) {}
 								app.helper.showSuccessNotification({message:'Contacts import succeeded.'});
-							} else if (window.app && app.getModuleName && app.getModuleName() === 'Potentials') {
+							} else if (importModule === 'Potentials') {
 								app.helper.showSuccessNotification({message:'Import Orders hoàn tất.'});
-							} else if (window.app && app.getModuleName && app.getModuleName() === 'Accounts') {
+							} else if (importModule === 'Accounts') {
 								app.helper.showSuccessNotification({message:'Import Tổ chức hoàn tất.'});
 							} else {
 								app.helper.showSuccessNotification({message:'Import Completed.'});
 							}
                         }
+                    } else {
+                        app.helper.showErrorNotification({message: err.message || 'Import thất bại. Vui lòng kiểm tra map cột và thử lại.'});
                     }
                 });
             }
@@ -746,10 +1076,12 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
             }
 
             var mandatoryFields = JSON.parse(jQuery('#mandatory_fields').val());
-            var moduleName = app.getModuleName();
+            var moduleName = Vtiger_Import_Js.getImportTargetModule();
             if (moduleName == 'PurchaseOrder' || moduleName == 'Invoice' || moduleName == 'Quotes' || moduleName == 'SalesOrder') {
                 mandatoryFields.hdnTaxType = app.vtranslate('Tax Type');
             }
+
+			Vtiger_Import_Js.applySalesImportMandatoryDefaults(mappedFields, mappedDefaultValues, moduleName);
 
 			// Campaigns BA requirement: do not allow import without Campaign Status mapping/provision.
 			if (moduleName === 'Campaigns') {
@@ -764,14 +1096,20 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 
             var missingMandatoryFields = [];
             for (var mandatoryFieldName in mandatoryFields) {
-                if (mandatoryFieldName in mappedFields) {
+                if (mandatoryFieldName in mappedFields || mandatoryFieldName in mappedDefaultValues) {
                     continue;
                 } else {
                     missingMandatoryFields.push('"' + mandatoryFields[mandatoryFieldName] + '"');
                 }
             }
             if (missingMandatoryFields.length > 0) {
-                errorMessage = app.vtranslate('JS_MAP_MANDATORY_FIELDS') + missingMandatoryFields.join(',');
+                if (moduleName === 'Potentials') {
+                    errorMessage = 'Thiếu map trường bắt buộc: ' + missingMandatoryFields.join(', ') + '. Hãy map cột hoặc chọn giá trị mặc định (ví dụ Phân loại Order = Internal).';
+                } else if (moduleName === 'Accounts') {
+                    errorMessage = 'Thiếu map trường bắt buộc: ' + missingMandatoryFields.join(', ') + '. Hãy map cột Tên tổ chức trước khi import.';
+                } else {
+                    errorMessage = app.vtranslate('JS_MAP_MANDATORY_FIELDS') + missingMandatoryFields.join(',');
+                }
                 app.helper.showErrorNotification({'message': errorMessage});
                 return false;
             }
@@ -1143,7 +1481,9 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 		isReloadStatusPageStopped : false,
         scheduledImportRunning: function() {
 			var form = jQuery("#importStatusForm");
+			Vtiger_Import_Js.ensureImportFormCsrf('#importStatusForm');
 			var data = new FormData(form[0]);
+			data = Vtiger_Import_Js.appendImportCsrfToFormData(data);
 			var postParams = {
 				data: data,
 				contentType: false,
@@ -1415,14 +1755,22 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				forModule = String(jQuery('[name="module"]').first().val() || '').trim();
 			} catch (e0) {}
 			if (!forModule) {
-				try { forModule = app.getModuleName(); } catch (e1) {}
+				try { forModule = Vtiger_Import_Js.getImportTargetModule(); } catch (e1) {}
 			}
+			try { Vtiger_Import_Js.cleanupImportOverlay(); } catch (eClean) {}
 			if (Vtiger_Import_Js.isFullPageImport() && forModule && forModule !== 'Import') {
 				var appName = Vtiger_Import_Js.resolveSalesAppName();
 				if (!appName && (forModule === 'Potentials' || forModule === 'Leads' || forModule === 'Accounts' || forModule === 'Contacts')) {
 					appName = 'SALES';
 				}
 				Vtiger_Import_Js.redirectToModuleList(forModule, appName);
+				return;
+			}
+
+			// Modern SALES lists use custom shells — full reload avoids blank page after import overlay.
+			if (forModule === 'Accounts' || forModule === 'Potentials' || forModule === 'Contacts' || forModule === 'Leads') {
+				var appNameReload = Vtiger_Import_Js.resolveSalesAppName() || 'SALES';
+				Vtiger_Import_Js.redirectToModuleList(forModule, appNameReload);
 				return;
 			}
 
@@ -1462,13 +1810,15 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 					}
 				} catch (ex2) {}
 				try {
-					var m = (app && app.getModuleName) ? app.getModuleName() : '';
+					var m = Vtiger_Import_Js.getImportTargetModule();
 					if (m === 'Campaigns') {
 						window.location.href = 'index.php?module=Campaigns&view=List&app=MARKETING';
 					} else if (m === 'Plans') {
 						window.location.href = 'index.php?module=Plans&view=List&app=MARKETING';
 					} else if (m === 'Contacts') {
-						window.location.href = 'index.php?module=Contacts&view=List&app=MARKETING';
+						window.location.href = 'index.php?module=Contacts&view=List&app=SALES';
+					} else if (m === 'Accounts' || m === 'Potentials' || m === 'Leads') {
+						Vtiger_Import_Js.redirectToModuleList(m, Vtiger_Import_Js.resolveSalesAppName() || 'SALES');
 					} else {
 						Vtiger_Import_Js.loadListRecords();
 					}

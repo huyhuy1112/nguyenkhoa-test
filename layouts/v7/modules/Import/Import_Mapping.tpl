@@ -95,12 +95,13 @@
 					{elseif $_HEADER_NORM eq 'tên đầy đủ' || $_HEADER_NORM eq 'fullname' || $_HEADER_NORM eq 'full name'}{assign var="_SELECTED_FIELD_NAME" value="fullname"}
 					{elseif $_HEADER_NORM eq 'mã số thuế' || $_HEADER_NORM eq 'sic code' || $_HEADER_NORM eq 'tax id'}{assign var="_SELECTED_FIELD_NAME" value="siccode"}
 					{elseif $_HEADER_NORM eq 'địa chỉ trụ sở chính' || $_HEADER_NORM eq 'địa chỉ' || $_HEADER_NORM eq 'billing address' || $_HEADER_NORM eq 'bill street'}{assign var="_SELECTED_FIELD_NAME" value="bill_street"}
-					{elseif $_HEADER_NORM eq 'số điện thoại liên hệ' || $_HEADER_NORM eq 'phone' || $_HEADER_NORM eq 'mobile'}{assign var="_SELECTED_FIELD_NAME" value="phone"}
+					{elseif $_HEADER_NORM eq 'số điện thoại liên hệ' || $_HEADER_NORM eq 'phone' || $_HEADER_NORM eq 'mobile' || $_HEADER_NORM eq 'primary phone'}{assign var="_SELECTED_FIELD_NAME" value="phone"}
 					{elseif $_HEADER_NORM eq 'email liên lạc' || $_HEADER_NORM eq 'email' || $_HEADER_NORM eq 'primary email'}{assign var="_SELECTED_FIELD_NAME" value="email1"}
 					{elseif $_HEADER_NORM eq 'trang web' || $_HEADER_NORM eq 'website'}{assign var="_SELECTED_FIELD_NAME" value="website"}
 					{elseif $_HEADER_NORM eq 'ngành nghề kinh doanh' || $_HEADER_NORM eq 'industry' || $_HEADER_NORM eq 'ngành'}{assign var="_SELECTED_FIELD_NAME" value="industry"}
 					{elseif $_HEADER_NORM eq 'phụ trách' || $_HEADER_NORM eq 'assigned to'}{assign var="_SELECTED_FIELD_NAME" value="assigned_user_id"}
-					{elseif $_HEADER_NORM eq 'số hiệu tổ chức' || $_HEADER_NORM eq 'account no'}{assign var="_SELECTED_FIELD_NAME" value="account_no"}
+					{elseif $_HEADER_NORM eq 'số hiệu tổ chức' || $_HEADER_NORM eq 'account no' || $_HEADER_NORM eq 'organization number'}{assign var="_SELECTED_FIELD_NAME" value="account_no"}
+					{elseif $_HEADER_NORM eq 'description' || $_HEADER_NORM eq 'mô tả' || $_HEADER_NORM eq 'ghi chú'}{assign var="_SELECTED_FIELD_NAME" value="description"}
 					{/if}
 				{/if}
 

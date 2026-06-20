@@ -12,7 +12,7 @@
 			<h3 class="mk-import-panel__title">{'LBL_IMPORT_FROM_ICS_FILE'|@vtranslate:$MODULE}</h3>
 		{else}
 			<h3 class="mk-import-panel__title">{'LBL_IMPORT_FROM_CSV_FILE'|@vtranslate:$MODULE}</h3>
-			<p class="mk-import-panel__sub">Hỗ trợ CSV và Excel (.xlsx, .xls). Cột tiếng Việt sẽ được map tự động ở bước 3.</p>
+			<p class="mk-import-panel__sub">Hỗ trợ CSV và Excel (.xlsx, .xls). Tiếng Việt được tự nhận encoding (UTF-8 / Windows). Map cột tự động ở bước 2.</p>
 		{/if}
 	</div>
 
@@ -48,7 +48,6 @@
 			{/if}
 			<td data-import-upload-size="{$IMPORT_UPLOAD_SIZE}" data-import-upload-size-mb="{$IMPORT_UPLOAD_SIZE_MB}">
 				<input type="hidden" id="type" name="type" value="csv" />
-				<input type="hidden" name="is_scheduled" value="1" />
 				<div class="fileUploadBtn btn btn-primary">
 					<span><i class="fa fa-cloud-upload"></i> {vtranslate('Select from My Computer', $MODULE)}</span>
 					<input type="file" name="import_file" id="import_file" onchange="Vtiger_Import_Js.checkFileType(event)" data-file-formats="{if $FORMAT eq ''}csv|xlsx|xls{else}{$FORMAT}{/if}" />
@@ -103,7 +102,7 @@
 					<a class="mk-import-sample-link" href="index.php?module=Potentials&action=DownloadImportSample">
 						<i class="fa fa-download"></i> Tải file mẫu Orders
 					</a>
-					<div class="mk-import-hint">Hỗ trợ CSV hoặc Excel (.xlsx). Cột tiếng Việt map tự động ở bước 3.</div>
+					<div class="mk-import-hint">Chọn file Opportunities.csv. Tự map <strong>Project Name</strong>, <strong>Organization Name</strong>, <strong>Contact Name</strong>. Bấm <strong>Import ngay</strong>.</div>
 				</td>
 			</tr>
 		{/if}
@@ -114,7 +113,7 @@
 					<a class="mk-import-sample-link" href="index.php?module=Accounts&action=DownloadImportSample">
 						<i class="fa fa-download"></i> Tải file mẫu Tổ chức
 					</a>
-					<div class="mk-import-hint">Hỗ trợ CSV hoặc Excel (.xlsx). Cột tiếng Việt map tự động ở bước 3.</div>
+					<div class="mk-import-hint">Chọn file Organizations.csv. Tự map <strong>Organization Name</strong>, <strong>Billing Address</strong>, <strong>Company Code</strong>. Bấm <strong>Import ngay</strong>.</div>
 				</td>
 			</tr>
 		{/if}
