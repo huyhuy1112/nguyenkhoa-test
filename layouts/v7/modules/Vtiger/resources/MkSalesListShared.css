@@ -932,8 +932,16 @@ body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in {
 }
 
 body[data-view="List"][data-app="SALES"].modal-open .modal-backdrop.in,
-body[data-view="List"][data-app="SALES"] .modal-backdrop.in {
+body[data-view="List"][data-app="SALES"] .modal-backdrop.in,
+body[data-view="List"][data-app="MARKETING"].modal-open:not(.mk-import-page) .modal-backdrop.in,
+body[data-view="List"][data-app="SUPPORT"].modal-open:not(.mk-import-page) .modal-backdrop.in,
+body[data-module="Accounts"][data-view="List"].modal-open:not(.mk-import-page) .modal-backdrop.in,
+body.mk-list-confirm-open .modal-backdrop.in {
 	z-index: 110000 !important;
+	background: rgba(8, 14, 28, 0.55) !important;
+	opacity: 1 !important;
+	backdrop-filter: blur(8px) saturate(1.1);
+	-webkit-backdrop-filter: blur(8px) saturate(1.1);
 }
 
 /* Confirm / bootbox must sit above backdrop so Yes/No stays clickable */

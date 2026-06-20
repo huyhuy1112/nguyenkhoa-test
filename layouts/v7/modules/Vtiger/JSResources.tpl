@@ -54,7 +54,7 @@
       (function () {
         function cleanupStuckOverlays() {
           try {
-            var hasActiveModal = document.querySelector('.modal.in, .fc-overlay-modal, .overlayDetail, .overlayEdit');
+            var hasActiveModal = document.querySelector('.modal.in, .modal.show, .bootbox.modal, .fc-overlay-modal, .overlayDetail, .overlayEdit');
             var hasOverlayPage = document.querySelector('#overlayPage.in, #overlayPageContent.in, #overlayPageContent.fade.in');
             if (hasActiveModal || hasOverlayPage) return;
 

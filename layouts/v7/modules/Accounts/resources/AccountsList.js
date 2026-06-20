@@ -152,7 +152,14 @@
 		relocateOrgPagination();
 	}
 
+	function hasActiveConfirmModal() {
+		return $('.bootbox.modal.in, .bootbox.modal.show, .myModal.in').length > 0;
+	}
+
 	function cleanupStuckOverlays() {
+		if (hasActiveConfirmModal()) {
+			return;
+		}
 		var $overlay = $('#overlayPageContent');
 		if (!$overlay.length) {
 			return;
@@ -162,8 +169,10 @@
 		if ($overlay.hasClass('in') && !dataHtml) {
 			$overlay.removeClass('in mk-import-overlay-open').attr('aria-hidden', 'true')
 				.css({ display: '', visibility: '', opacity: '' });
-			$('body').removeClass('modal-open mk-import-page');
-			$('.modal-backdrop').remove();
+			$('body').removeClass('modal-open mk-import-page mk-list-confirm-open');
+			if (!$('.bootbox.modal, .myModal').length) {
+				$('.modal-backdrop').remove();
+			}
 		} else if ($overlay.hasClass('in') && !hasImport && !dataHtml) {
 			$overlay.removeClass('in mk-import-overlay-open');
 			$('body').removeClass('mk-import-page');
@@ -171,10 +180,12 @@
 	}
 
 	function ensureModalStacking() {
+		var hasBootbox = $('.bootbox.modal.in, .bootbox.modal.show').length > 0;
+		$('body').toggleClass('mk-list-confirm-open', hasBootbox);
 		$('.bootbox.modal.in, .bootbox.modal.show').css('z-index', 110020);
 		$('.modal-backdrop.in').each(function () {
 			var $bd = $(this);
-			if (!$bd.data('mk-import-backdrop')) {
+			if (!$bd.data('mk-import-backdrop') && hasBootbox) {
 				$bd.css('z-index', 110000);
 			}
 		});
@@ -246,13 +257,22 @@
 		setTimeout(cleanupStuckOverlays, 500);
 
 		$(document).on('click.mkOrgModalFix', '[data-trigger="listDelete"], .listViewMassActions a, .listViewMassActions button', function () {
-			cleanupStuckOverlays();
+			setTimeout(ensureModalStacking, 0);
 			setTimeout(ensureModalStacking, 50);
 			setTimeout(ensureModalStacking, 300);
 		});
 
+		$(document).on('shown.bs.modal.mkOrgList hidden.bs.modal.mkOrgList', '.bootbox.modal', function () {
+			ensureModalStacking();
+		});
+		$(document).on('hidden.bs.modal.mkOrgList', '.bootbox.modal', function () {
+			if (!hasActiveConfirmModal()) {
+				$('body').removeClass('mk-list-confirm-open');
+			}
+		});
+
 		var modalObserver = window.MutationObserver ? new MutationObserver(function () {
-			if ($('.bootbox.modal.in, .bootbox.modal.show').length) {
+			if ($('.bootbox.modal, .modal-backdrop.in').length) {
 				ensureModalStacking();
 			}
 		}) : null;
