@@ -1,0 +1,7 @@
+---
+# cPanel Git deploy — repository root is the site document root.
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/nhtdbus8/nguyenkhoa-test.tdbsolution.com
+    - /bin/chmod -R 775 $DEPLOYPATH/cache $DEPLOYPATH/storage $DEPLOYPATH/test/templates_c 2>/dev/null || true
+    - /bin/find $DEPLOYPATH/cache -type f -name "*.php" -delete 2>/dev/null || true
