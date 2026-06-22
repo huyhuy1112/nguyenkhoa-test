@@ -376,10 +376,15 @@ class Leads_ModernService {
 		$storedNext = self::decodeText(isset($row['next_action']) ? $row['next_action'] : '');
 		$nextAction = Leads_CommerceService::deriveNextActionLabel($calendarTasks, $storedNext);
 
+		$conversion = Leads_ConvertService::getConversionStatus($leadId);
+
 		return array(
 			'id' => $id,
 			'crmid' => $leadId,
-			'potentialId' => Leads_ConvertService::getLinkedPotentialId($leadId),
+			'potentialId' => $conversion['potentialId'],
+			'converted' => $conversion['converted'],
+			'canConvert' => $conversion['canConvert'],
+			'potentialUrl' => $conversion['potentialUrl'],
 			'name' => $name,
 			'phone' => self::decodeText(isset($row['phone']) ? $row['phone'] : ''),
 			'email' => self::decodeText(isset($row['email']) ? $row['email'] : ''),

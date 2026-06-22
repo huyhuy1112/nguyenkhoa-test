@@ -63,14 +63,18 @@ class Leads_ConvertService {
 			throw new Exception('Invalid lead id.');
 		}
 
-		$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
-		if (method_exists($recordModel, 'isLeadConverted') && $recordModel->isLeadConverted()) {
-			$potentialId = self::getLinkedPotentialId($leadId);
+		$status = self::getConversionStatus($leadId);
+		if (!$status['canConvert']) {
 			return array(
 				'already_converted' => true,
-				'potentialId' => $potentialId,
-				'redirect' => self::potentialDetailUrl($potentialId),
+				'potentialId' => $status['potentialId'],
+				'redirect' => $status['potentialUrl'],
 			);
+		}
+
+		$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
+		if (method_exists($recordModel, 'isLeadConverted') && $recordModel->isLeadConverted()) {
+			self::resetConvertedFlagIfNeeded($leadId);
 		}
 
 		$modules = isset($options['modules']) && is_array($options['modules'])
@@ -249,16 +253,62 @@ class Leads_ConvertService {
 		return $lead->get($fieldName);
 	}
 
-	public static function getLinkedPotentialId($leadId) {
+	public static function getLinkedPotentialId($leadId, $verifyExists = true) {
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery("SELECT potential_id FROM bace_lead_profile WHERE leadid = ?", array((int)$leadId));
 		if ($res && $adb->num_rows($res) > 0) {
 			$potentialId = (int)$adb->query_result($res, 0, 'potential_id');
 			if ($potentialId > 0) {
+				if ($verifyExists && !self::potentialRecordExists($potentialId)) {
+					self::clearPotentialId($leadId);
+					self::resetConvertedFlagIfNeeded($leadId);
+					return null;
+				}
 				return $potentialId;
 			}
 		}
 		return null;
+	}
+
+	public static function getConversionStatus($leadId) {
+		$leadId = (int)$leadId;
+		$potentialId = self::getLinkedPotentialId($leadId, true);
+		$canConvert = ($potentialId === null);
+		return array(
+			'converted' => !$canConvert,
+			'canConvert' => $canConvert,
+			'potentialId' => $potentialId,
+			'potentialUrl' => self::potentialDetailUrl($potentialId),
+		);
+	}
+
+	public static function potentialRecordExists($potentialId) {
+		$potentialId = (int)$potentialId;
+		if ($potentialId <= 0) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			"SELECT 1 FROM vtiger_crmentity WHERE crmid = ? AND setype = 'Potentials' AND deleted = 0",
+			array($potentialId)
+		);
+		return $res && $adb->num_rows($res) > 0;
+	}
+
+	public static function clearPotentialId($leadId) {
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			"UPDATE bace_lead_profile SET potential_id = NULL WHERE leadid = ?",
+			array((int)$leadId)
+		);
+	}
+
+	public static function resetConvertedFlagIfNeeded($leadId) {
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			"UPDATE vtiger_leaddetails SET converted = 0 WHERE leadid = ? AND converted = 1",
+			array((int)$leadId)
+		);
 	}
 
 	public static function storePotentialId($leadId, $potentialId) {
