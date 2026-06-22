@@ -63,6 +63,154 @@
 		return h + ':' + m + ' ' + day + '/' + mon + '/' + d.getFullYear();
 	}
 
+	var CALL_ATTEMPT_TAGS = ['goi_lan_1', 'goi_lan_2', 'goi_lan_3'];
+
+	function callAttemptTags() {
+		var ref = window.LeadsLovableRef;
+		return ref && ref.CALL_ATTEMPT_TAGS ? ref.CALL_ATTEMPT_TAGS : CALL_ATTEMPT_TAGS;
+	}
+
+	function tagDisplayMeta(tagKey) {
+		var ref = window.LeadsLovableRef;
+		if (ref && ref.tagMeta) {
+			return ref.tagMeta(tagKey);
+		}
+		return { label: tagKey, cls: '' };
+	}
+
+	function tagChipLabel(tagKey) {
+		return tagDisplayMeta(tagKey).label || tagKey;
+	}
+
+	function tagChipClass(tagKey) {
+		var meta = tagDisplayMeta(tagKey);
+		if (meta.cls) {
+			return 'mk-lead-detail-tag-chip ' + meta.cls.replace('mk-tag--', 'mk-lead-detail-tag-chip--');
+		}
+		return 'mk-lead-detail-tag-chip';
+	}
+
+	function getCallAttemptTagFromTags(tags) {
+		var list = callAttemptTags();
+		var tagsArr = tags || [];
+		var i;
+		for (i = list.length - 1; i >= 0; i--) {
+			if (tagsArr.indexOf(list[i]) >= 0) {
+				return list[i];
+			}
+		}
+		return null;
+	}
+
+	function isCallActivity(task) {
+		if (!task) {
+			return false;
+		}
+		return String(task.type || '').toLowerCase() === 'call';
+	}
+
+	function countLoggedCalls(lead, pendingTask) {
+		var tasks = mergeCalendarTasks((lead && lead.calendarTasks) || [], pendingTask ? [pendingTask] : []);
+		var seen = {};
+		var n = 0;
+		tasks.forEach(function (t) {
+			if (!isCallActivity(t)) {
+				return;
+			}
+			var key =
+				t.id != null
+					? 'id:' + t.id
+					: 'tmp:' + String(t.subject || '') + '|' + String(t.dueAt || t.dueLabel || '');
+			if (seen[key]) {
+				return;
+			}
+			seen[key] = true;
+			n++;
+		});
+		return n;
+	}
+
+	function callAttemptTagForCount(callCount) {
+		var list = callAttemptTags();
+		var n = Math.min(Math.max(callCount, 0), 3);
+		if (n <= 0) {
+			return null;
+		}
+		return list[n - 1];
+	}
+
+	function tagsForCallCount(tags, callCount) {
+		var list = callAttemptTags();
+		var tag = callAttemptTagForCount(callCount);
+		var out = (tags || []).filter(function (t) {
+			return list.indexOf(t) < 0;
+		});
+		if (tag) {
+			out.push(tag);
+		}
+		return out;
+	}
+
+	function isCallAttemptsLocked(lead, pendingTask) {
+		return countLoggedCalls(lead, pendingTask) >= 3;
+	}
+
+	function syncCallAttemptTagsFromLog(lead) {
+		var callCount = countLoggedCalls(lead);
+		if (callCount <= 0) {
+			return Promise.resolve(lead);
+		}
+		var expected = callAttemptTagForCount(callCount);
+		if (getCallAttemptTagFromTags(lead.tags) === expected) {
+			return Promise.resolve(lead);
+		}
+		return persistLeadTags(lead, tagsForCallCount(lead.tags || [], callCount)).then(function (updated) {
+			if (updated) {
+				syncLeadObject(lead, updated);
+			}
+			return lead;
+		});
+	}
+
+	function persistLeadTags(lead, tags) {
+		var store = window.LeadsLocalStore;
+		if (!store || !lead || !lead.id || typeof store.update !== 'function') {
+			lead.tags = tags.slice();
+			return Promise.resolve(lead);
+		}
+		return store
+			.update(lead.id, { tags: tags.slice() })
+			.then(function (updated) {
+				return updated ? storeLeadToDemo(updated) : lead;
+			});
+	}
+
+	function syncCallLogUiState(lead) {
+		var count = countLoggedCalls(lead);
+		var locked = count >= 3;
+		document.querySelectorAll('[data-mk-log="call"]').forEach(function (btn) {
+			if (locked) {
+				btn.setAttribute('disabled', 'disabled');
+				btn.classList.add('mk-lead-activity-log__menu-btn--locked');
+				btn.setAttribute(
+					'title',
+					leadLabel(
+						'LBL_MK_CALL_LOCKED',
+						'Đã ghi ' + count + '/3 cuộc gọi. Không thể ghi thêm.'
+					)
+				);
+			} else if (count > 0) {
+				btn.removeAttribute('disabled');
+				btn.classList.remove('mk-lead-activity-log__menu-btn--locked');
+				btn.setAttribute('title', 'Đã ghi ' + count + '/3 cuộc gọi');
+			} else {
+				btn.removeAttribute('disabled');
+				btn.classList.remove('mk-lead-activity-log__menu-btn--locked');
+				btn.removeAttribute('title');
+			}
+		});
+	}
+
 	function activityLogLabel(type) {
 		var map = {
 			note: leadLabel('LBL_MK_ADD_NOTE', 'Ghi chú'),
@@ -143,7 +291,7 @@
 			kind === 'meeting' ? 'meeting' : kind === 'call' ? 'call' : kind === 'note' ? 'note' : 'task';
 		return {
 			id: parseInt(activityId, 10) || activityId,
-			type: logType === 'note' ? 'task' : logType,
+			type: logType,
 			subject: text,
 			status: 'open',
 			dueAt: new Date().toISOString(),
@@ -153,11 +301,14 @@
 	}
 
 	function mergeLeadActivityState(serverRow, localLead, pendingTask) {
-		var row = cloneLeadData(serverRow);
+		var row = cloneLeadData(serverRow || localLead);
 		if (pendingTask) {
 			pendingTask.subject = taskSubjectText(pendingTask.subject);
 		}
-		row.calendarTasks = mergeCalendarTasks(row.calendarTasks, pendingTask ? [pendingTask] : []);
+		row.calendarTasks = mergeCalendarTasks(
+			mergeCalendarTasks(localLead && localLead.calendarTasks, row.calendarTasks),
+			pendingTask ? [pendingTask] : []
+		);
 		row.activityLog = buildActivityLogFromRaw(row);
 		row.badges = row.badges || {};
 		row.badges['activity-log'] = row.activityLog.length;
@@ -182,7 +333,7 @@
 	function linkActivityToLead(leadStoreId, activityId) {
 		return new Promise(function (resolve) {
 			if (!activityId || !leadStoreId || !window.app || !app.request) {
-				resolve(false);
+				resolve(null);
 				return;
 			}
 			app.request
@@ -196,7 +347,11 @@
 					},
 				})
 				.then(function (err, res) {
-					resolve(!err && res && res.success !== false);
+					if (!err && res && res.success !== false && res.lead) {
+						resolve(res.lead);
+						return;
+					}
+					resolve(null);
 				});
 		});
 	}
@@ -220,19 +375,9 @@
 	}
 
 	function buildActivityLogFromRaw(raw) {
-		var fromCalendar = calendarTasksToActivityLog(raw.calendarTasks);
-		if (fromCalendar.length) {
-			return fromCalendar;
-		}
-		return (raw.activities || []).map(function (a) {
-			return {
-				id: a.id,
-				type: a.type || 'note',
-				label: a.label || activityLogLabel(a.type || 'note'),
-				time: a.time || '',
-				text: a.text || '',
-			};
-		});
+		// Activity log = full history from calendarTasks only.
+		// Do NOT use raw.activities — that field powers the open-tasks widget, not the log.
+		return calendarTasksToActivityLog(raw && raw.calendarTasks);
 	}
 
 	function stageKey(raw) {
@@ -461,7 +606,13 @@
 			tags.length > 0
 				? tags
 						.map(function (t) {
-							return '<span class="mk-lead-detail-tag-chip">' + esc(t) + '</span>';
+							return (
+								'<span class="' +
+								tagChipClass(t) +
+								'">' +
+								esc(tagChipLabel(t)) +
+								'</span>'
+							);
 						})
 						.join('')
 				: '<span class="mk-lead-detail-field__muted">—</span>';
@@ -582,7 +733,7 @@
 			.map(function (t) {
 				return (
 					'<span class="tag">' +
-					esc(t) +
+					esc(tagChipLabel(t)) +
 					' <a href="javascript:void(0)" class="mk-ld-ui-tag-remove" data-tag="' +
 					esc(t) +
 					'" aria-label="Remove">×</a></span>'
@@ -1254,17 +1405,44 @@
 				});
 			}
 			var refreshAfterSave = function () {
-				persistLeadCache(lead).then(function (fresh) {
-					var row = mergeLeadActivityState(fresh ? storeLeadToDemo(fresh) : lead, lead, pendingTask);
-					syncLeadObject(lead, row);
-					render(cloneLeadData(lead));
-				});
+				var localSnapshot = cloneLeadData(lead);
+				var optimistic = mergeLeadActivityState(lead, lead, pendingTask);
+				syncLeadObject(lead, optimistic);
+				render(cloneLeadData(lead));
+
+				var flow = Promise.resolve();
+				if (kind === 'call') {
+					var callCount = countLoggedCalls(lead, pendingTask);
+					flow = persistLeadTags(lead, tagsForCallCount(lead.tags || [], callCount)).then(function (updated) {
+						if (updated) {
+							syncLeadObject(lead, updated);
+						}
+					});
+				}
+				flow
+					.then(function () {
+						if (activityId && lead.id) {
+							return linkActivityToLead(lead.id, activityId);
+						}
+						return null;
+					})
+					.then(function (linkedRaw) {
+						if (linkedRaw) {
+							return linkedRaw;
+						}
+						return persistLeadCache(lead);
+					})
+					.then(function (freshRaw) {
+						var row = mergeLeadActivityState(
+							freshRaw ? storeLeadToDemo(freshRaw) : lead,
+							localSnapshot,
+							pendingTask
+						);
+						syncLeadObject(lead, row);
+						render(cloneLeadData(lead));
+					});
 			};
-			if (activityId && lead.id) {
-				linkActivityToLead(lead.id, activityId).then(refreshAfterSave);
-			} else {
-				refreshAfterSave();
-			}
+			refreshAfterSave();
 		});
 	}
 
@@ -1321,6 +1499,17 @@
 	function openQuickCreateModal(kind, lead, triggerBtn) {
 		if (typeof app === 'undefined' || !app.request || !app.helper) {
 			showToast('Đang tải hệ thống… Vui lòng thử lại sau vài giây.');
+			return;
+		}
+
+		if (kind === 'call' && isCallAttemptsLocked(lead)) {
+			setButtonBusy(triggerBtn, false);
+			showToast(
+				leadLabel(
+					'LBL_MK_CALL_LOCKED',
+					'Đã ghi ' + countLoggedCalls(lead) + '/3 cuộc gọi. Không thể ghi thêm.'
+				)
+			);
 			return;
 		}
 
@@ -1763,6 +1952,7 @@
 		renderUpdates(lead);
 		syncBadges(lead);
 		syncConvertButtonState(lead);
+		syncCallLogUiState(lead);
 	}
 
 	function markReady() {
@@ -1790,10 +1980,12 @@
 			.then(function () {
 				var lead = cloneLeadData(resolveLead());
 				return refreshConversionStatus(lead).then(function (refreshed) {
-					render(refreshed);
-					bindTabs();
-					bindDemoActions(refreshed);
-					markReady();
+					return syncCallAttemptTagsFromLog(refreshed).then(function (synced) {
+						render(synced);
+						bindTabs();
+						bindDemoActions(synced);
+						markReady();
+					});
 				});
 			})
 			.catch(function (err) {

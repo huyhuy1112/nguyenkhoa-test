@@ -28,7 +28,12 @@
     vang: { label: "Gold", cat: "tier", cls: "mk-tag--vang" },
     bac: { label: "Silver", cat: "tier", cls: "mk-tag--bac" },
     dong: { label: "Bronze", cat: "tier", cls: "mk-tag--dong" },
+    goi_lan_1: { label: "Gọi lần 1", cat: "call", cls: "mk-tag--goi-lan-1" },
+    goi_lan_2: { label: "Gọi lần 2", cat: "call", cls: "mk-tag--goi-lan-2" },
+    goi_lan_3: { label: "Gọi lần 3", cat: "call", cls: "mk-tag--goi-lan-3" },
   };
+
+  var CALL_ATTEMPT_TAGS = ["goi_lan_1", "goi_lan_2", "goi_lan_3"];
 
   var SOURCE_TAGS = ["facebook", "tiktok", "website", "zalo", "other"];
   var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"];
@@ -91,6 +96,7 @@
     PROGRAM_TAGS: PROGRAM_TAGS,
     PURCHASE_TAGS: PURCHASE_TAGS,
     TIER_TAGS: TIER_TAGS,
+    CALL_ATTEMPT_TAGS: CALL_ATTEMPT_TAGS,
     PRESET_SEGMENTS: PRESET_SEGMENTS,
     SEGMENT_LABELS: SEGMENT_LABELS,
     LIST_COLUMNS: LIST_COLUMNS,

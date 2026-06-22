@@ -1579,6 +1579,27 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	color: #94a3b8;
 }
 
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-1 {
+	background: #dbeafe;
+	color: #1d4ed8;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-2 {
+	background: #fef3c7;
+	color: #b45309;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-3 {
+	background: #ffedd5;
+	color: #c2410c;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-activity-log__menu-btn--locked,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-activity-log__menu-btn--locked:hover {
+	opacity: 0.45;
+	cursor: not-allowed !important;
+	pointer-events: none;
+	text-decoration: line-through;
+}
+
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip {
 	display: inline-block;
 	margin: 0 6px 6px 0;

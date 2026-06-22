@@ -648,6 +648,9 @@
 .mk-tag--vang { background: #fef3c7; color: #92400e; }
 .mk-tag--bac { background: #f1f5f9; color: #475569; }
 .mk-tag--dong { background: #ffedd5; color: #9a3412; }
+.mk-tag--goi-lan-1 { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.mk-tag--goi-lan-2 { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+.mk-tag--goi-lan-3 { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
 
 .mk-pill {
     display: inline-flex;
