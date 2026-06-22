@@ -12,6 +12,8 @@ class Leads_ModernService {
 
 	const MODULE = 'Leads';
 
+	const MAX_CALLS_PER_DAY = 10;
+
 	protected static $sourceTags = array('facebook', 'tiktok', 'website', 'zalo', 'other', 'other_source');
 
 	protected static $purchaseMap = array(
@@ -128,6 +130,10 @@ class Leads_ModernService {
 
 	public static function getLead($idOrCacheId, $userId = null) {
 		$leadId = self::resolveLeadId($idOrCacheId);
+		if (!$leadId && is_numeric($idOrCacheId) && self::vtigerLeadExists((int)$idOrCacheId)) {
+			$leadId = (int)$idOrCacheId;
+			self::ensureModernProfile($leadId);
+		}
 		if (!$leadId) {
 			return null;
 		}
@@ -145,17 +151,109 @@ class Leads_ModernService {
 			array($leadId)
 		);
 		if (!$res || $adb->num_rows($res) < 1) {
+			if (self::vtigerLeadExists($leadId)) {
+				self::ensureModernProfile($leadId);
+				$res = $adb->pquery(
+					"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
+						p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
+						ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
+						la.phone, ce.smownerid
+					FROM bace_lead_profile p
+					INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
+					INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
+					LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
+					WHERE p.leadid = ? AND p.is_modern = 1",
+					array($leadId)
+				);
+			}
+		}
+		if (!$res || $adb->num_rows($res) < 1) {
 			return null;
 		}
 		$row = $adb->query_result_rowdata($res, 0);
 		$tags = self::getTagsForLeadIds(array($leadId), $userId);
+		$tagList = $tags[$leadId] ?? array();
+		$tagList = self::syncCallAttemptTagsIfNeeded($leadId, $tagList, $userId);
 		$purchases = self::getPurchasesForLeadIds(array($leadId));
 		$tasks = self::getCalendarTasksForLeadIds(array($leadId));
 		return self::composeCacheRow(
 			$row,
-			$tags[$leadId] ?? array(),
+			$tagList,
 			$purchases[$leadId] ?? array(),
 			$tasks[$leadId] ?? array()
+		);
+	}
+
+	public static function syncCallAttemptTagsForLead($leadId, $userId = null) {
+		global $current_user;
+		if ($userId === null) {
+			$userId = (int)$current_user->id;
+		}
+		$resolved = self::resolveLeadId($leadId);
+		if (!$resolved) {
+			return;
+		}
+		$tagsByLead = self::getTagsForLeadIds(array($resolved), $userId);
+		self::syncCallAttemptTagsIfNeeded($resolved, $tagsByLead[$resolved] ?? array(), $userId);
+	}
+
+	public static function applyCallAttemptTags(array $tags, $todayCallCount) {
+		$out = array();
+		foreach ($tags as $tag) {
+			if (strpos((string)$tag, 'goi_lan_') !== 0) {
+				$out[] = $tag;
+			}
+		}
+		$todayCallCount = (int)$todayCallCount;
+		if ($todayCallCount > 0) {
+			$n = min($todayCallCount, self::MAX_CALLS_PER_DAY);
+			$out[] = 'goi_lan_' . $n;
+		}
+		return array_values(array_unique($out));
+	}
+
+	protected static function syncCallAttemptTagsIfNeeded($leadId, array $tags, $userId = null) {
+		global $current_user;
+		if ($userId === null) {
+			$userId = (int)$current_user->id;
+		}
+		$todayCalls = Leads_CommerceService::countTodayCallsForLead($leadId);
+		$expected = self::applyCallAttemptTags($tags, $todayCalls);
+		$current = array_values(array_unique(array_map('strval', $tags)));
+		sort($current);
+		$next = array_values(array_unique(array_map('strval', $expected)));
+		sort($next);
+		if ($current !== $next) {
+			self::syncTags($leadId, $expected, $userId);
+		}
+		return $expected;
+	}
+
+	protected static function vtigerLeadExists($leadId) {
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			"SELECT 1 FROM vtiger_crmentity ce
+			 INNER JOIN vtiger_leaddetails ld ON ld.leadid = ce.crmid
+			 WHERE ce.crmid = ? AND ce.deleted = 0 AND ce.setype = ?",
+			array((int)$leadId, self::MODULE)
+		);
+		return ($res && $adb->num_rows($res) > 0);
+	}
+
+	protected static function ensureModernProfile($leadId) {
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$exists = $adb->pquery("SELECT leadid FROM bace_lead_profile WHERE leadid = ?", array((int)$leadId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			return;
+		}
+		if (!self::vtigerLeadExists($leadId)) {
+			return;
+		}
+		$now = date('Y-m-d H:i:s');
+		$adb->pquery(
+			"INSERT INTO bace_lead_profile(leadid, is_modern, created_at, modified_at) VALUES(?,?,?,?)",
+			array((int)$leadId, 1, $now, $now)
 		);
 	}
 
@@ -163,6 +261,23 @@ class Leads_ModernService {
 		global $current_user;
 		$adb = PearDatabase::getInstance();
 		$userId = (int)$current_user->id;
+		$leadId = self::resolveLeadId($recordId);
+		if (!$leadId && isset($payload['id'])) {
+			$leadId = self::resolveLeadId($payload['id']);
+		}
+		if (!$leadId) {
+			$existingId = self::findExistingLeadIdByPhoneOrEmail(
+				isset($payload['phone']) ? $payload['phone'] : '',
+				isset($payload['email']) ? $payload['email'] : ''
+			);
+			if ($existingId) {
+				$leadId = $existingId;
+			}
+		}
+		if ($leadId) {
+			$payload = self::hydratePayloadForExistingLead($leadId, $payload, $userId);
+		}
+
 		$ownerId = self::resolveUserId(isset($payload['owner']) ? $payload['owner'] : '', $userId);
 		$name = trim((string)(isset($payload['name']) ? $payload['name'] : ''));
 		$phone = trim((string)(isset($payload['phone']) ? $payload['phone'] : ''));
@@ -177,7 +292,6 @@ class Leads_ModernService {
 			$company = '-';
 		}
 
-		$leadId = self::resolveLeadId($recordId);
 		$isNew = !$leadId;
 		if ($leadId) {
 			$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
@@ -223,6 +337,8 @@ class Leads_ModernService {
 			'purchase_reason' => isset($payload['purchaseReason']) ? $payload['purchaseReason'] : '',
 		);
 		self::upsertProfile($leadId, $profile);
+		$todayCalls = Leads_CommerceService::countTodayCallsForLead($leadId);
+		$tags = self::applyCallAttemptTags($tags, $todayCalls);
 		self::syncTags($leadId, $tags, $userId);
 
 		if ($isNew && empty($mkCacheId)) {
@@ -459,6 +575,179 @@ class Leads_ModernService {
 				)
 			);
 		}
+	}
+
+	public static function syncCalendarTasks($idOrCacheId, array $tasks, $userId = null) {
+		global $current_user;
+		if ($userId === null) {
+			$userId = (int)$current_user->id;
+		}
+		$leadId = self::resolveLeadId($idOrCacheId);
+		if (!$leadId) {
+			throw new Exception('Lead not found.');
+		}
+		self::replaceCalendarTasks($leadId, $tasks);
+		Leads_CommerceService::syncNextActionForLead($leadId);
+		return self::getLead((string)$idOrCacheId, $userId);
+	}
+
+	public static function persistCalendarTasksOnly($leadId, array $tasks) {
+		$leadId = (int)$leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		self::replaceCalendarTasks($leadId, $tasks);
+	}
+
+	protected static function hydratePayloadForExistingLead($leadId, array $payload, $userId = null) {
+		$existing = self::getLead((string)$leadId, $userId);
+		if ($existing) {
+			foreach (array('name', 'phone', 'email', 'owner', 'value', 'last_touch', 'next_action', 'segment', 'district', 'address', 'area', 'cccd', 'companyName', 'purchaseReason', 'openTickets') as $field) {
+				if ((!isset($payload[$field]) || $payload[$field] === '' || $payload[$field] === null) && isset($existing[$field]) && $existing[$field] !== '' && $existing[$field] !== null) {
+					$payload[$field] = $existing[$field];
+				}
+			}
+			if ((!isset($payload['tags']) || !is_array($payload['tags']) || empty($payload['tags'])) && !empty($existing['tags'])) {
+				$payload['tags'] = $existing['tags'];
+			}
+			if (!isset($payload['id']) || $payload['id'] === '') {
+				$payload['id'] = $existing['id'];
+			}
+			return $payload;
+		}
+		try {
+			$recordModel = Vtiger_Record_Model::getInstanceById((int)$leadId, self::MODULE);
+		} catch (Exception $e) {
+			return $payload;
+		}
+		if (empty($payload['name'])) {
+			$payload['name'] = self::composeDisplayName($recordModel->get('firstname'), $recordModel->get('lastname'));
+		}
+		if (empty($payload['phone'])) {
+			$payload['phone'] = self::decodeText($recordModel->get('phone'));
+		}
+		if (empty($payload['email'])) {
+			$payload['email'] = self::decodeText($recordModel->get('email'));
+		}
+		if (empty($payload['companyName'])) {
+			$company = self::decodeText($recordModel->get('company'));
+			if ($company !== '' && $company !== '-') {
+				$payload['companyName'] = $company;
+			}
+		}
+		return $payload;
+	}
+
+	protected static function normalizePhone($phone) {
+		return preg_replace('/\D+/', '', (string)$phone);
+	}
+
+	public static function findExistingLeadIdByPhoneOrEmail($phone, $email = '', $excludeLeadId = null) {
+		$adb = PearDatabase::getInstance();
+		$phoneNorm = self::normalizePhone($phone);
+		$email = strtolower(trim((string)$email));
+		if ($phoneNorm === '' && $email === '') {
+			return null;
+		}
+		$conds = array();
+		$params = array();
+		if ($phoneNorm !== '') {
+			$conds[] = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(la.phone,''),' ',''),'-',''),'.',''),'+',''),' ','') = ?";
+			$params[] = $phoneNorm;
+		}
+		if ($email !== '') {
+			$conds[] = "LOWER(TRIM(IFNULL(ld.email,''))) = ?";
+			$params[] = $email;
+		}
+		$sql = "SELECT p.leadid
+			FROM bace_lead_profile p
+			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
+			INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
+			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
+			WHERE p.is_modern = 1 AND (" . implode(' OR ', $conds) . ")";
+		if ($excludeLeadId) {
+			$sql .= " AND p.leadid != ?";
+			$params[] = (int)$excludeLeadId;
+		}
+		$sql .= " ORDER BY p.last_touch DESC, p.leadid DESC LIMIT 1";
+		$res = $adb->pquery($sql, $params);
+		if ($res && $adb->num_rows($res) > 0) {
+			return (int)$adb->query_result($res, 0, 'leadid');
+		}
+		return null;
+	}
+
+	public static function dedupeModernLeadsByPhone($dryRun = true) {
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			"SELECT p.leadid, la.phone, ld.email, p.last_touch
+			 FROM bace_lead_profile p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
+			 INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
+			 WHERE p.is_modern = 1
+			 ORDER BY p.leadid ASC",
+			array()
+		);
+		$groups = array();
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			$row = $adb->query_result_rowdata($res, $i);
+			$leadId = (int)$row['leadid'];
+			$phoneNorm = self::normalizePhone($row['phone'] ?? '');
+			$email = strtolower(trim((string)($row['email'] ?? '')));
+			$key = $phoneNorm !== '' ? 'p:' . $phoneNorm : ($email !== '' ? 'e:' . $email : 'id:' . $leadId);
+			if (!isset($groups[$key])) {
+				$groups[$key] = array();
+			}
+			$groups[$key][] = array(
+				'leadid' => $leadId,
+				'last_touch' => $row['last_touch'] ?? null,
+			);
+		}
+
+		$deleted = 0;
+		$kept = 0;
+		$report = array();
+		foreach ($groups as $key => $items) {
+			if (count($items) < 2) {
+				continue;
+			}
+			usort($items, function ($a, $b) use ($adb) {
+				$actA = self::countLeadActivities((int)$a['leadid'], $adb);
+				$actB = self::countLeadActivities((int)$b['leadid'], $adb);
+				if ($actA !== $actB) {
+					return $actB - $actA;
+				}
+				$ta = !empty($a['last_touch']) ? strtotime($a['last_touch']) : 0;
+				$tb = !empty($b['last_touch']) ? strtotime($b['last_touch']) : 0;
+				if ($ta !== $tb) {
+					return $tb - $ta;
+				}
+				return (int)$b['leadid'] - (int)$a['leadid'];
+			});
+			$keeper = (int)$items[0]['leadid'];
+			$kept++;
+			for ($j = 1; $j < count($items); $j++) {
+				$dupId = (int)$items[$j]['leadid'];
+				$report[] = array('keep' => $keeper, 'delete' => $dupId, 'group' => $key);
+				if (!$dryRun) {
+					self::deleteLead($dupId);
+				}
+				$deleted++;
+			}
+		}
+		return array('groups' => $kept, 'deleted' => $deleted, 'dry_run' => $dryRun, 'report' => $report);
+	}
+
+	protected static function countLeadActivities($leadId, PearDatabase $adb = null) {
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		$res = $adb->pquery(
+			"SELECT COUNT(*) AS c FROM vtiger_seactivityrel WHERE crmid = ?",
+			array((int)$leadId)
+		);
+		return ($res && $adb->num_rows($res) > 0) ? (int)$adb->query_result($res, 0, 'c') : 0;
 	}
 
 	protected static function replaceCalendarTasks($leadId, array $tasks) {

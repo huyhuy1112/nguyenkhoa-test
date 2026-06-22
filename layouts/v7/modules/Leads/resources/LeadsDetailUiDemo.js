@@ -34,6 +34,30 @@
 		return null;
 	}
 
+	function leadStoreId(lead) {
+		return leadCrmId(lead) || (lead && lead.id) || null;
+	}
+
+	function leadToStorePayload(lead, patch) {
+		var base = {
+			name: lead.name,
+			phone: lead.phone,
+			email: lead.email || '',
+			owner: lead.owner,
+			value: lead.value,
+			last_touch: lead.last_touch,
+			next_action: lead.next_action,
+			tags: (lead.tags || []).slice(),
+			companyName: lead.company || lead.companyName || '',
+			segment: lead.segment || '',
+			district: lead.district || '',
+			address: lead.address || '',
+			area: lead.area || '',
+			cccd: lead.cccd || '',
+		};
+		return Object.assign(base, patch || {});
+	}
+
 	function activityDetailUrl(activityId) {
 		return 'index.php?module=Calendar&view=Detail&record=' + encodeURIComponent(activityId) + '&app=SALES';
 	}
@@ -63,11 +87,50 @@
 		return h + ':' + m + ' ' + day + '/' + mon + '/' + d.getFullYear();
 	}
 
-	var CALL_ATTEMPT_TAGS = ['goi_lan_1', 'goi_lan_2', 'goi_lan_3'];
+	var CALL_ATTEMPT_MAX = 10;
 
 	function callAttemptTags() {
 		var ref = window.LeadsLovableRef;
-		return ref && ref.CALL_ATTEMPT_TAGS ? ref.CALL_ATTEMPT_TAGS : CALL_ATTEMPT_TAGS;
+		if (ref && ref.CALL_ATTEMPT_TAGS && ref.CALL_ATTEMPT_TAGS.length) {
+			return ref.CALL_ATTEMPT_TAGS;
+		}
+		var out = [];
+		var i;
+		for (i = 1; i <= CALL_ATTEMPT_MAX; i++) {
+			out.push('goi_lan_' + i);
+		}
+		return out;
+	}
+
+	function callAttemptMax() {
+		var ref = window.LeadsLovableRef;
+		return ref && ref.CALL_ATTEMPT_MAX ? ref.CALL_ATTEMPT_MAX : CALL_ATTEMPT_MAX;
+	}
+
+	function localTodayKey() {
+		var d = new Date();
+		return (
+			d.getFullYear() +
+			'-' +
+			String(d.getMonth() + 1).padStart(2, '0') +
+			'-' +
+			String(d.getDate()).padStart(2, '0')
+		);
+	}
+
+	function taskLocalDayKey(task) {
+		if (!task) return '';
+		var iso = task.createdAt || task.dueAt;
+		if (!iso) return '';
+		var d = new Date(iso);
+		if (isNaN(d.getTime())) return '';
+		return (
+			d.getFullYear() +
+			'-' +
+			String(d.getMonth() + 1).padStart(2, '0') +
+			'-' +
+			String(d.getDate()).padStart(2, '0')
+		);
 	}
 
 	function tagDisplayMeta(tagKey) {
@@ -109,7 +172,8 @@
 		return String(task.type || '').toLowerCase() === 'call';
 	}
 
-	function countLoggedCalls(lead, pendingTask) {
+	function countTodayLoggedCalls(lead, pendingTask) {
+		var today = localTodayKey();
 		var tasks = mergeCalendarTasks((lead && lead.calendarTasks) || [], pendingTask ? [pendingTask] : []);
 		var seen = {};
 		var n = 0;
@@ -117,10 +181,13 @@
 			if (!isCallActivity(t)) {
 				return;
 			}
+			if (taskLocalDayKey(t) !== today) {
+				return;
+			}
 			var key =
 				t.id != null
 					? 'id:' + t.id
-					: 'tmp:' + String(t.subject || '') + '|' + String(t.dueAt || t.dueLabel || '');
+					: 'tmp:' + String(t.subject || '') + '|' + String(t.createdAt || t.dueAt || '');
 			if (seen[key]) {
 				return;
 			}
@@ -130,13 +197,17 @@
 		return n;
 	}
 
+	function countLoggedCalls(lead, pendingTask) {
+		return countTodayLoggedCalls(lead, pendingTask);
+	}
+
 	function callAttemptTagForCount(callCount) {
-		var list = callAttemptTags();
-		var n = Math.min(Math.max(callCount, 0), 3);
+		var max = callAttemptMax();
+		var n = Math.min(Math.max(callCount, 0), max);
 		if (n <= 0) {
 			return null;
 		}
-		return list[n - 1];
+		return 'goi_lan_' + n;
 	}
 
 	function tagsForCallCount(tags, callCount) {
@@ -152,42 +223,30 @@
 	}
 
 	function isCallAttemptsLocked(lead, pendingTask) {
-		return countLoggedCalls(lead, pendingTask) >= 3;
-	}
-
-	function syncCallAttemptTagsFromLog(lead) {
-		var callCount = countLoggedCalls(lead);
-		if (callCount <= 0) {
-			return Promise.resolve(lead);
-		}
-		var expected = callAttemptTagForCount(callCount);
-		if (getCallAttemptTagFromTags(lead.tags) === expected) {
-			return Promise.resolve(lead);
-		}
-		return persistLeadTags(lead, tagsForCallCount(lead.tags || [], callCount)).then(function (updated) {
-			if (updated) {
-				syncLeadObject(lead, updated);
-			}
-			return lead;
-		});
+		return countTodayLoggedCalls(lead, pendingTask) >= callAttemptMax();
 	}
 
 	function persistLeadTags(lead, tags) {
 		var store = window.LeadsLocalStore;
-		if (!store || !lead || !lead.id || typeof store.update !== 'function') {
+		var storeId = leadStoreId(lead);
+		if (!store || !lead || !storeId || typeof store.update !== 'function') {
 			lead.tags = tags.slice();
 			return Promise.resolve(lead);
 		}
 		return store
-			.update(lead.id, { tags: tags.slice() })
+			.update(storeId, leadToStorePayload(lead, { tags: tags.slice() }))
 			.then(function (updated) {
 				return updated ? storeLeadToDemo(updated) : lead;
+			})
+			.catch(function () {
+				return lead;
 			});
 	}
 
 	function syncCallLogUiState(lead) {
-		var count = countLoggedCalls(lead);
-		var locked = count >= 3;
+		var max = callAttemptMax();
+		var count = countTodayLoggedCalls(lead);
+		var locked = count >= max;
 		document.querySelectorAll('[data-mk-log="call"]').forEach(function (btn) {
 			if (locked) {
 				btn.setAttribute('disabled', 'disabled');
@@ -196,13 +255,13 @@
 					'title',
 					leadLabel(
 						'LBL_MK_CALL_LOCKED',
-						'Đã ghi ' + count + '/3 cuộc gọi. Không thể ghi thêm.'
+						'Đã ghi ' + count + '/' + max + ' cuộc gọi hôm nay. Không thể ghi thêm.'
 					)
 				);
 			} else if (count > 0) {
 				btn.removeAttribute('disabled');
 				btn.classList.remove('mk-lead-activity-log__menu-btn--locked');
-				btn.setAttribute('title', 'Đã ghi ' + count + '/3 cuộc gọi');
+				btn.setAttribute('title', 'Hôm nay: ' + count + '/' + max + ' cuộc gọi');
 			} else {
 				btn.removeAttribute('disabled');
 				btn.classList.remove('mk-lead-activity-log__menu-btn--locked');
@@ -289,12 +348,14 @@
 		if (!activityId) return null;
 		var logType =
 			kind === 'meeting' ? 'meeting' : kind === 'call' ? 'call' : kind === 'note' ? 'note' : 'task';
+		var nowIso = new Date().toISOString();
 		return {
 			id: parseInt(activityId, 10) || activityId,
 			type: logType,
 			subject: text,
 			status: 'open',
-			dueAt: new Date().toISOString(),
+			dueAt: nowIso,
+			createdAt: nowIso,
 			dueLabel: nowLabel(),
 			source: 'calendar',
 		};
@@ -390,6 +451,11 @@
 	function cloneLeadData(lead) {
 		return {
 			id: lead.id,
+			crmid: lead.crmid,
+			potentialId: lead.potentialId,
+			converted: lead.converted,
+			canConvert: lead.canConvert,
+			potentialUrl: lead.potentialUrl,
 			name: lead.name,
 			company: lead.company,
 			phone: lead.phone,
@@ -406,6 +472,13 @@
 			activityLog: (lead.activityLog || []).slice(),
 			purchases: (lead.purchases || []).slice(),
 			calendarTasks: (lead.calendarTasks || []).slice(),
+			cccd: lead.cccd,
+			segment: lead.segment,
+			district: lead.district,
+			address: lead.address,
+			area: lead.area,
+			next_action: lead.next_action,
+			last_touch: lead.last_touch,
 			badges: Object.assign(
 				{
 					contacts: 1,
@@ -532,6 +605,119 @@
 		};
 	}
 
+	function ensureLeadHydrated(lead) {
+		if (!lead) return lead;
+		if (!lead.calendarTasks) {
+			lead.calendarTasks = [];
+		}
+		if (!lead.tags) {
+			lead.tags = [];
+		}
+		if (!lead.activityLog || !lead.activityLog.length) {
+			lead.activityLog = buildActivityLogFromRaw(lead);
+		}
+		if (!lead.badges) {
+			lead.badges = {};
+		}
+		lead.badges['activity-log'] = (lead.activityLog || []).length;
+		return lead;
+	}
+
+	function leadIdsToTry(mkId, param) {
+		var ids = [];
+		if (mkId) ids.push(mkId);
+		if (param && ids.indexOf(param) < 0) ids.push(param);
+		return ids;
+	}
+
+	function fetchLeadRecordFromApi(recordId) {
+		return new Promise(function (resolve, reject) {
+			if (!recordId || typeof app === 'undefined' || !app.request) {
+				reject(new Error('API unavailable'));
+				return;
+			}
+			app.request
+				.post({
+					data: {
+						module: 'Leads',
+						action: 'ModernApi',
+						mode: 'get',
+						id: recordId,
+						with_feed: 1,
+					},
+				})
+				.then(function (err, res) {
+					if (!err && res && res.lead) {
+						var store = window.LeadsLocalStore;
+						if (store && typeof store.importLead === 'function') {
+							store.importLead(res.lead);
+						}
+						resolve(res.lead);
+						return;
+					}
+					reject(err || new Error((res && res.error) || 'Lead not found'));
+				});
+		});
+	}
+
+	function reloadLeadFromApi(lead) {
+		var id = leadStoreId(lead) || (lead && lead.id);
+		if (!id) {
+			return Promise.resolve(lead);
+		}
+		return fetchLeadRecordFromApi(id)
+			.then(function (raw) {
+				return storeLeadToDemo(raw);
+			})
+			.catch(function () {
+				return lead;
+			});
+	}
+
+	function loadDetailLead(mkId, param) {
+		var store = window.LeadsLocalStore;
+		var ids = leadIdsToTry(mkId, param);
+		if (!store || !ids.length) {
+			return Promise.resolve(ensureLeadHydrated(cloneLeadData(resolveLead())));
+		}
+
+		function fromStoreRow(row) {
+			if (!row) return null;
+			return ensureLeadHydrated(cloneLeadData(storeLeadToDemo(row)));
+		}
+
+		function tryFetch(index) {
+			if (index >= ids.length) {
+				var cached = null;
+				var i;
+				for (i = 0; i < ids.length; i++) {
+					cached = store.getLead(ids[i]);
+					if (cached) break;
+				}
+				return fromStoreRow(cached) || ensureLeadHydrated(cloneLeadData(resolveLead()));
+			}
+			return fetchLeadRecordFromApi(ids[index])
+				.then(function (raw) {
+					return fromStoreRow(raw);
+				})
+				.catch(function () {
+					return store.fetchLead
+						? store.fetchLead(ids[index], true, false).then(function (row) {
+								return fromStoreRow(row);
+							})
+						: null;
+				})
+				.then(function (lead) {
+					if (lead) {
+						return lead;
+					}
+					return tryFetch(index + 1);
+				});
+		}
+
+		return Promise.resolve(tryFetch(0));
+	}
+
 	function resolveLead() {
 		var root = document.getElementById('mk-leads-detail-root');
 		var param = root && root.getAttribute('data-record-id');
@@ -539,13 +725,20 @@
 		var mkId = qs ? qs.get('mkLeadId') : null;
 		var id = mkId || param;
 		var store = window.LeadsLocalStore;
-		if (store && id && typeof store.getLead === 'function') {
-			var cached = store.getLead(id);
-			if (cached) {
-				return cloneLeadData(storeLeadToDemo(cached));
+		if (store && typeof store.getLead === 'function') {
+			var tryIds = [];
+			if (mkId) tryIds.push(mkId);
+			if (param && tryIds.indexOf(param) < 0) tryIds.push(param);
+			if (!tryIds.length && id) tryIds.push(id);
+			for (var i = 0; i < tryIds.length; i++) {
+				var cached = store.getLead(tryIds[i]);
+				if (cached) {
+					return cloneLeadData(storeLeadToDemo(cached));
+				}
 			}
 		}
-		var demo = typeof window !== 'undefined' ? window.MK_LEADS_DEMO : null;
+		var demo =
+			!window.MK_LEADS_API_READY && typeof window !== 'undefined' ? window.MK_LEADS_DEMO : null;
 		if (demo && typeof demo.resolveLead === 'function') {
 			var found = demo.resolveLead(id || param);
 			if (found) {
@@ -1410,34 +1603,17 @@
 				syncLeadObject(lead, optimistic);
 				render(cloneLeadData(lead));
 
+				var linkId = leadStoreId(lead);
 				var flow = Promise.resolve();
-				if (kind === 'call') {
-					var callCount = countLoggedCalls(lead, pendingTask);
-					flow = persistLeadTags(lead, tagsForCallCount(lead.tags || [], callCount)).then(function (updated) {
-						if (updated) {
-							syncLeadObject(lead, updated);
-						}
-					});
+				if (activityId && linkId) {
+					flow = linkActivityToLead(linkId, activityId);
 				}
 				flow
 					.then(function () {
-						if (activityId && lead.id) {
-							return linkActivityToLead(lead.id, activityId);
-						}
-						return null;
+						return reloadLeadFromApi(lead);
 					})
-					.then(function (linkedRaw) {
-						if (linkedRaw) {
-							return linkedRaw;
-						}
-						return persistLeadCache(lead);
-					})
-					.then(function (freshRaw) {
-						var row = mergeLeadActivityState(
-							freshRaw ? storeLeadToDemo(freshRaw) : lead,
-							localSnapshot,
-							pendingTask
-						);
+					.then(function (freshRow) {
+						var row = mergeLeadActivityState(freshRow || lead, localSnapshot, pendingTask);
 						syncLeadObject(lead, row);
 						render(cloneLeadData(lead));
 					});
@@ -1507,7 +1683,11 @@
 			showToast(
 				leadLabel(
 					'LBL_MK_CALL_LOCKED',
-					'Đã ghi ' + countLoggedCalls(lead) + '/3 cuộc gọi. Không thể ghi thêm.'
+					'Đã ghi ' +
+						countTodayLoggedCalls(lead) +
+						'/' +
+						callAttemptMax() +
+						' cuộc gọi hôm nay. Không thể ghi thêm.'
 				)
 			);
 			return;
@@ -1930,6 +2110,7 @@
 	}
 
 	function render(lead) {
+		lead = ensureLeadHydrated(lead);
 		setText('mk-ld-ui-crumb-name', lead.name);
 		setText('mk-ld-ui-title', lead.name);
 		var sub = byId('mk-ld-ui-subtitle');
@@ -1972,25 +2153,19 @@
 
 		bootStore
 			.then(function () {
-				if (store && store.fetchLead && id) {
-					return store.fetchLead(id, true);
-				}
-				return null;
+				return loadDetailLead(mkId, param);
 			})
-			.then(function () {
-				var lead = cloneLeadData(resolveLead());
+			.then(function (lead) {
 				return refreshConversionStatus(lead).then(function (refreshed) {
-					return syncCallAttemptTagsFromLog(refreshed).then(function (synced) {
-						render(synced);
-						bindTabs();
-						bindDemoActions(synced);
-						markReady();
-					});
+					render(refreshed);
+					bindTabs();
+					bindDemoActions(refreshed);
+					markReady();
 				});
 			})
 			.catch(function (err) {
 				console.error('Leads detail bootstrap failed', err);
-				var lead = cloneLeadData(resolveLead());
+				var lead = ensureLeadHydrated(cloneLeadData(resolveLead()));
 				render(lead);
 				bindTabs();
 				bindDemoActions(lead);

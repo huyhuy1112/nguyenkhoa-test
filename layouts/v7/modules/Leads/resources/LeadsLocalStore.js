@@ -201,7 +201,7 @@
     return row;
   }
 
-  function fetchLead(id, force) {
+  function fetchLead(id, force, withFeed) {
     if (!useApi()) {
       return Promise.resolve(getLead(id));
     }
@@ -211,7 +211,11 @@
         return Promise.resolve(cached);
       }
     }
-    return apiRequest("get", { id: id, with_feed: 1 }).then(function (res) {
+    var feedFlag = withFeed === false ? 0 : 1;
+    return apiRequest("get", { id: id, with_feed: feedFlag }).then(function (res) {
+      if (!res || !res.lead) {
+        return getLead(id);
+      }
       return upsertMemLead(res.lead);
     });
   }
@@ -263,12 +267,21 @@
   function update(id, patch) {
     if (useApi()) {
       var existing = getLead(id);
-      var merged = Object.assign({}, existing || {}, patch || {}, { id: existing ? existing.id : id });
-      return apiRequest("save", {
-        record: id,
-        payload: JSON.stringify(merged),
-      }).then(function (res) {
-        return upsertMemLead(res.lead);
+      var ensureExisting = existing
+        ? Promise.resolve(existing)
+        : fetchLead(id, true).catch(function () {
+            return null;
+          });
+      return ensureExisting.then(function (existingRow) {
+        var merged = Object.assign({}, existingRow || {}, patch || {}, {
+          id: existingRow ? existingRow.id : id,
+        });
+        return apiRequest("save", {
+          record: id,
+          payload: JSON.stringify(merged),
+        }).then(function (res) {
+          return upsertMemLead(res.lead);
+        });
       });
     }
     var leads = getLeads();
@@ -279,6 +292,18 @@
     leads[idx] = Object.assign({}, leads[idx], patch, { id: leads[idx].id });
     setLeads(leads);
     return Promise.resolve(leads[idx]);
+  }
+
+  function syncCalendarTasks(id, calendarTasks) {
+    if (!useApi()) {
+      return update(id, { calendarTasks: calendarTasks || [] });
+    }
+    return apiRequest("calendar_tasks_sync", {
+      id: id,
+      payload: JSON.stringify({ calendarTasks: calendarTasks || [] }),
+    }).then(function (res) {
+      return upsertMemLead(res.lead);
+    });
   }
 
   function remove(id) {
@@ -351,9 +376,11 @@
     getLead: getLead,
     fetchLead: fetchLead,
     reloadLead: reloadLead,
+    importLead: upsertMemLead,
     refreshLeadsList: refreshLeadsList,
     create: create,
     update: update,
+    syncCalendarTasks: syncCalendarTasks,
     remove: remove,
     getSegments: getSegments,
     saveSegments: saveSegments,

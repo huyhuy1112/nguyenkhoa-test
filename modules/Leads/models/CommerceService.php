@@ -26,21 +26,53 @@ class Leads_CommerceService {
 			return array();
 		}
 		$leadIds = array_values(array_unique(array_map('intval', $leadIds)));
-		$live = self::fetchLiveCalendarTasks($leadIds);
-		$mock = self::fetchMockCalendarTasks($leadIds);
-		$out = array();
-		foreach ($leadIds as $leadId) {
-			$liveItems = $live[$leadId] ?? array();
-			$mockItems = $mock[$leadId] ?? array();
-			if (empty($liveItems)) {
-				$out[$leadId] = $mockItems;
-			} elseif (empty($mockItems)) {
-				$out[$leadId] = $liveItems;
-			} else {
-				$out[$leadId] = self::mergeCalendarTaskLists($liveItems, $mockItems);
+		return self::fetchLiveCalendarTasks($leadIds);
+	}
+
+	const MAX_CALLS_PER_DAY = 10;
+
+	public static function countTodayCallsForLead($leadId) {
+		$leadId = (int)$leadId;
+		if ($leadId <= 0) {
+			return 0;
+		}
+		$tasksByLead = self::fetchLiveCalendarTasks(array($leadId));
+		return self::countTodayCalls($tasksByLead[$leadId] ?? array());
+	}
+
+	public static function countTodayCalls(array $tasks) {
+		$tz = new DateTimeZone('Asia/Ho_Chi_Minh');
+		$today = (new DateTime('now', $tz))->format('Y-m-d');
+		$seen = array();
+		$count = 0;
+		foreach ($tasks as $task) {
+			if (!is_array($task) || strtolower((string)($task['type'] ?? '')) !== 'call') {
+				continue;
+			}
+			$key = !empty($task['id']) ? 'id:' . (int)$task['id'] : 's:' . md5(json_encode($task));
+			if (isset($seen[$key])) {
+				continue;
+			}
+			$seen[$key] = true;
+			if (self::taskLocalDay($task, $tz) === $today) {
+				$count++;
 			}
 		}
-		return $out;
+		return min($count, self::MAX_CALLS_PER_DAY);
+	}
+
+	protected static function taskLocalDay(array $task, DateTimeZone $tz) {
+		$iso = !empty($task['createdAt']) ? $task['createdAt'] : ($task['dueAt'] ?? null);
+		if (!$iso) {
+			return '';
+		}
+		try {
+			$dt = new DateTime($iso);
+			$dt->setTimezone($tz);
+			return $dt->format('Y-m-d');
+		} catch (Exception $e) {
+			return '';
+		}
 	}
 
 	public static function linkActivityToLead($leadId, $activityId) {
@@ -61,6 +93,7 @@ class Leads_CommerceService {
 			);
 		}
 		self::syncNextActionForLead($leadId);
+		Leads_ModernService::syncCallAttemptTagsForLead($leadId);
 		return true;
 	}
 
@@ -539,13 +572,13 @@ class Leads_CommerceService {
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery(
 			"SELECT rel.crmid AS leadid, a.activityid, a.activitytype, a.subject, a.status, a.eventstatus,
-				a.date_start, a.time_start, a.due_date, a.time_end
+				a.date_start, a.time_start, a.due_date, a.time_end, ce.createdtime
 			 FROM vtiger_seactivityrel rel
 			 INNER JOIN vtiger_activity a ON a.activityid = rel.activityid
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.activityid AND ce.deleted = 0
 			 WHERE rel.crmid IN (" . generateQuestionMarks($leadIds) . ")
 			   AND a.activitytype NOT IN ('Emails')
-			 ORDER BY rel.crmid ASC, a.due_date ASC, a.date_start ASC, a.activityid ASC",
+			 ORDER BY rel.crmid ASC, ce.createdtime DESC, a.activityid DESC",
 			$leadIds
 		);
 		return self::mapActivityResultSet($adb, $res);
@@ -555,7 +588,7 @@ class Leads_CommerceService {
 		$adb = PearDatabase::getInstance();
 		$marks = generateQuestionMarks($leadIds);
 		$sql = "(SELECT rel.crmid AS leadid, a.activityid, a.activitytype, a.subject, a.status, a.eventstatus,
-				a.date_start, a.time_start, a.due_date, a.time_end
+				a.date_start, a.time_start, a.due_date, a.time_end, ce.createdtime
 			 FROM vtiger_crmentityrel rel
 			 INNER JOIN vtiger_activity a ON a.activityid = rel.relcrmid
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.activityid AND ce.deleted = 0
@@ -564,7 +597,7 @@ class Leads_CommerceService {
 			   AND a.activitytype NOT IN ('Emails'))
 			UNION
 			(SELECT rel.relcrmid AS leadid, a.activityid, a.activitytype, a.subject, a.status, a.eventstatus,
-				a.date_start, a.time_start, a.due_date, a.time_end
+				a.date_start, a.time_start, a.due_date, a.time_end, ce.createdtime
 			 FROM vtiger_crmentityrel rel
 			 INNER JOIN vtiger_activity a ON a.activityid = rel.crmid
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.activityid AND ce.deleted = 0
@@ -610,6 +643,14 @@ class Leads_CommerceService {
 			$adb->query_result($res, $i, 'date_start'),
 			$adb->query_result($res, $i, 'time_start')
 		);
+		$createdRaw = $adb->query_result($res, $i, 'createdtime');
+		$createdAt = null;
+		if ($createdRaw && $createdRaw !== '0000-00-00 00:00:00') {
+			$createdTs = strtotime($createdRaw);
+			if ($createdTs !== false) {
+				$createdAt = date('c', $createdTs);
+			}
+		}
 		return array(
 			'id' => (int)$adb->query_result($res, $i, 'activityid'),
 			'type' => $uiType,
@@ -617,6 +658,7 @@ class Leads_CommerceService {
 			'status' => $isClosed ? 'completed' : 'open',
 			'dueAt' => $dueAt,
 			'dueLabel' => self::dueLabel($dueAt),
+			'createdAt' => $createdAt,
 			'source' => 'calendar',
 		);
 	}

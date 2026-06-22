@@ -23,7 +23,7 @@ $languageStrings = array(
 	'LBL_MK_OPEN_ACTIVITY_MENU' => 'Open activity menu',
 	'LBL_MK_LOG_ACTIVITY' => 'Log activity',
 	'LBL_MK_LOG_PLACEHOLDER' => 'Add note / log call / add task...',
-	'LBL_MK_CALL_LOCKED' => 'Maximum 3/3 calls logged. Cannot log another call.',
+	'LBL_MK_CALL_LOCKED' => 'Maximum 10/10 calls logged today. Resets on a new day.',
 	'LBL_MK_CACHE_BACKEND_HINT' => 'UI demo uses browser cache (localStorage). Backend: replace purchases + calendarTasks with API — see modules/Leads/docs/LEADS_CACHE_BACKEND_SPEC.md',
 
 	// Blocks

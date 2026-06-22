@@ -26,7 +26,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string)$request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'convert', 'comment_save'), true)) {
+		if (in_array($mode, array('save', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -44,16 +44,9 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 			switch ($mode) {
 				case 'list':
-					$seedInfo = array('seeded' => false);
-					try {
-						$seedInfo = Leads_ModernService::ensureDemoSeeded();
-					} catch (Exception $seedEx) {
-						$seedInfo = array('seeded' => false, 'seed_error' => $seedEx->getMessage());
-					}
 					$response->setResult(array(
 						'success' => true,
 						'leads' => Leads_ModernService::listLeads($userId),
-						'seed' => $seedInfo,
 					));
 					break;
 
@@ -68,8 +61,13 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					if ($request->get('with_feed')) {
 						$leadId = (int)$lead['crmid'];
-						$lead['comments'] = Leads_DetailFeedService::getComments($leadId);
-						$lead['modUpdates'] = Leads_DetailFeedService::getUpdates($leadId);
+						try {
+							$lead['comments'] = Leads_DetailFeedService::getComments($leadId);
+							$lead['modUpdates'] = Leads_DetailFeedService::getUpdates($leadId);
+						} catch (Exception $feedEx) {
+							$lead['comments'] = array();
+							$lead['modUpdates'] = array();
+						}
 					}
 					$response->setResult(array('success' => true, 'lead' => $lead));
 					break;
@@ -185,6 +183,17 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						'success' => true,
 						'lead' => Leads_ModernService::getLead($leadId, $userId),
 					));
+					break;
+
+				case 'calendar_tasks_sync':
+					$leadId = $request->get('id');
+					if ($leadId === null || $leadId === '') {
+						$leadId = $request->get('record');
+					}
+					$payload = $this->decodePayload($request);
+					$tasks = isset($payload['calendarTasks']) && is_array($payload['calendarTasks']) ? $payload['calendarTasks'] : array();
+					$lead = Leads_ModernService::syncCalendarTasks($leadId, $tasks, $userId);
+					$response->setResult(array('success' => true, 'lead' => $lead));
 					break;
 
 				case 'search_orders':
