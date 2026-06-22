@@ -7,6 +7,11 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] {
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+}
+
 /* ============================================================================
  * APP SHELL: offset past fixed dashboard sidebar / topbar
  * ========================================================================== */
@@ -67,10 +72,47 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .main-conta
 	min-height: 0 !important;
 }
 
-/* Shell: không kéo giãn chiều cao viewport — footer sát nội dung */
+/* Keep flex shell so fixed SALES topbar stays aligned after Lead convert redirect */
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
 	min-height: auto !important;
-	display: block !important;
+	display: flex !important;
+	flex-direction: column !important;
+	padding-top: var(--mk-dash-topbar-h) !important;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-topbar {
+	height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+	flex-shrink: 0;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+	position: fixed;
+	top: 0;
+	left: var(--mk-dash-sidebar-w);
+	right: 0;
+	width: auto;
+	min-height: var(--mk-dash-topbar-h);
+	height: var(--mk-dash-topbar-h);
+	z-index: 1030;
+	box-sizing: border-box;
+	border: none;
+	border-bottom: 1px solid #e2e8f0;
+	border-radius: 0;
+	box-shadow: none;
+	background: #ffffff !important;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dashboard-sidebar {
+	top: 0;
+	height: 100vh;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dash-main.mk-opportunity-detail-main {
+	flex: 1 1 auto;
+	min-height: 0;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] #page {
@@ -126,6 +168,10 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 		margin-left: 0 !important;
 		width: 100% !important;
 		max-width: 100% !important;
+	}
+
+	body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+		left: 0;
 	}
 
 	body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .main-container.mk-opportunity-detail-page {
@@ -205,9 +251,12 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-breadcrumb__item--current .mk-opportunity-detail-breadcrumb__text {
 	color: #8a7d6e;
-	max-width: 360px;
+	max-width: min(520px, 55vw);
 	display: inline-block;
 	vertical-align: bottom;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-breadcrumb__sep {
@@ -235,12 +284,12 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__row {
 	display: flex;
-	flex-wrap: nowrap;
-	align-items: center;
+	flex-wrap: wrap;
+	align-items: flex-start;
 	justify-content: space-between;
 	gap: 16px 24px;
 	margin: 0;
-	min-height: 96px;
+	min-height: 0;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__row::before,
@@ -319,9 +368,13 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__title .recordLabel {
-	white-space: normal;
-	max-width: none;
-	overflow: visible;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	word-break: break-word;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__meta {
@@ -457,9 +510,10 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-actions {
 	flex: 0 0 auto;
-	align-self: center;
+	align-self: flex-start;
 	padding: 0;
 	margin: 0;
+	margin-left: auto;
 	width: auto;
 	float: none;
 }
