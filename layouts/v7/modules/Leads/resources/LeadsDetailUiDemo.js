@@ -317,7 +317,10 @@
 		return {
 			id: raw.id,
 			crmid: raw.crmid,
-			potentialId: raw.potentialId,
+			potentialId: raw.potentialId || null,
+			converted: typeof raw.converted === 'boolean' ? raw.converted : !!raw.potentialId,
+			canConvert: typeof raw.canConvert === 'boolean' ? raw.canConvert : !raw.potentialId,
+			potentialUrl: raw.potentialUrl || '',
 			name: raw.name,
 			company: raw.companyName || '',
 			phone: raw.phone,
@@ -890,6 +893,91 @@
 		return map[kind] || leadLabel('LBL_MK_LOG_ACTIVITY', 'Hoạt động');
 	}
 
+	function quickCreateModalTitle(kind) {
+		return defaultSubjectForKind(kind, '');
+	}
+
+	function escapeHtmlText(text) {
+		return String(text || '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
+	}
+
+	/** Replace server title in AJAX HTML before modal is shown — prevents Quick Create Task flash. */
+	function patchQuickCreateHtmlTitle(html, kind) {
+		if (!html) {
+			return html;
+		}
+		var title = quickCreateModalTitle(kind);
+		var safe = escapeHtmlText(title);
+		var out = html;
+		out = out.replace(
+			/(<h4[^>]*class="[^"]*mk-qc-sales-header__title[^"]*"[^>]*>)([\s\S]*?)(<\/h4>)/i,
+			'$1' + safe + '$3'
+		);
+		out = out.replace(
+			/(<h4[^>]*class="[^"]*pull-left[^"]*"[^>]*>)([\s\S]*?)(<\/h4>)/i,
+			'$1' + safe + '$3'
+		);
+		out = out.replace(
+			/(<h4[^>]*class="[^"]*modal-title[^"]*"[^>]*>)([\s\S]*?)(<\/h4>)/i,
+			'$1' + safe + '$3'
+		);
+		return out;
+	}
+
+	function applyQuickCreateModalTitle(container, kind) {
+		if (!$jq || !container || !container.length) {
+			return;
+		}
+		var title = quickCreateModalTitle(kind);
+		container
+			.find(
+				'.mk-qc-sales-header__title, .modal-title, .modal-header h4, h4.modal-title, h4.pull-left'
+			)
+			.text(title);
+	}
+
+	function showLeadQuickCreateModal(modalHtml, kind, subject, lead) {
+		if (!$jq || !app || !app.helper) {
+			return;
+		}
+		var patchedHtml = patchQuickCreateHtmlTitle(modalHtml, kind);
+		var container = $jq('.myModal');
+		try {
+			app.helper.hideModal();
+		} catch (hideErr) {
+			/* ignore */
+		}
+		container.off('hidden.bs.modal.mkLeadQc');
+		container.on('hidden.bs.modal.mkLeadQc', function () {
+			container.html('');
+			window.onbeforeunload = null;
+		});
+		container.html(patchedHtml);
+		if (typeof vtUtils !== 'undefined' && vtUtils.applyFieldElementsView) {
+			vtUtils.applyFieldElementsView(container);
+		}
+		initQuickCreateModal(container, subject, lead, kind);
+		if (container.find('.mk-qc-event-modal').length) {
+			container.addClass('mk-qc-event-modal-host');
+			var $body = container.find('.modal-body');
+			if ($body.length && app.helper.showVerticalScroll) {
+				app.helper.showVerticalScroll($body, {
+					scrollInertia: 200,
+					autoHideScrollbar: true,
+				});
+			}
+		}
+		container.modal({
+			backdrop: 'static',
+			keyboard: false,
+			show: true,
+		});
+	}
+
 	function setButtonBusy(btn, busy) {
 		if (!btn) return;
 		if (busy) {
@@ -1067,6 +1155,8 @@
 
     applyQuickCreateLeadContext(form, lead, kind);
 
+    applyQuickCreateModalTitle(container, kind);
+
     if (typeof app.event !== "undefined" && app.event.trigger) {
       app.event.trigger("post.QuickCreateForm.show", form);
     }
@@ -1110,6 +1200,7 @@
         setTimeout(function () {
           CalendarQuickCreate.init();
           applyQuickCreateLeadContext(form, lead, kind);
+          applyQuickCreateModalTitle(container, kind);
         }, 150);
       }
     }
@@ -1133,6 +1224,9 @@
     if (kind === "call") {
       form.find('input[name="activitytype"]').val("Call");
       form.find('select[name="activitytype"]').val("Call").trigger("change");
+    } else if (kind === "note") {
+      form.find('input[name="activitytype"]').val("Task");
+      form.find('select[name="activitytype"]').val("Task").trigger("change");
     } else if (kind === "task") {
       form.find('input[name="activitytype"]').val("Task");
       form.find('select[name="activitytype"]').val("Task").trigger("change");
@@ -1216,26 +1310,7 @@
 					window.quickcreate_uimeta = meta;
 				}
 				var modalHtml = stripScriptTags(data);
-				app.helper.showModal(modalHtml, {
-					backdrop: 'static',
-					keyboard: false,
-					cb: function (container) {
-						initQuickCreateModal(container, subject, lead, kind);
-						if ($jq && container && container.length) {
-							var $dlg = container.find('.modal-dialog');
-							if ($dlg.hasClass('mk-qc-event-modal')) {
-								container.addClass('mk-qc-event-modal-host');
-								var $body = container.find('.modal-body');
-								if ($body.length && app.helper.showVerticalScroll) {
-									app.helper.showVerticalScroll($body, {
-										scrollInertia: 200,
-										autoHideScrollbar: true,
-									});
-								}
-							}
-						}
-					},
-				});
+				showLeadQuickCreateModal(modalHtml, kind, subject, lead);
 			});
 		});
 	}
@@ -1328,6 +1403,107 @@
 		});
 	}
 
+	function refreshConversionStatus(lead) {
+		return new Promise(function (resolve) {
+			if (!lead || !window.app || !app.request) {
+				resolve(lead);
+				return;
+			}
+			var crmId = leadCrmId(lead);
+			if (!crmId) {
+				resolve(lead);
+				return;
+			}
+			app.request
+				.post({
+					data: {
+						module: 'Leads',
+						action: 'ModernApi',
+						mode: 'get',
+						id: crmId,
+						record: crmId,
+					},
+				})
+				.then(function (err, res) {
+					if (!err && res && res.lead) {
+						lead.potentialId = res.lead.potentialId || null;
+						lead.converted = !!res.lead.converted || !!lead.potentialId;
+						lead.canConvert =
+							res.lead.canConvert !== false && !lead.potentialId && !lead.converted;
+						lead.potentialUrl = res.lead.potentialUrl || '';
+					}
+					resolve(lead);
+				});
+		});
+	}
+
+	function showAlreadyConvertedNotice(leadOrRes) {
+		var potentialId = leadOrRes && leadOrRes.potentialId;
+		var url =
+			(leadOrRes && leadOrRes.potentialUrl) ||
+			(potentialId ? potentialDetailUrl(potentialId) : '');
+		var msg = leadLabel(
+			'LBL_MK_ALREADY_CONVERTED',
+			'Lead này đã được convert sang Opportunity.'
+		);
+		if (url && app.helper && app.helper.showConfirmationBox) {
+			app.helper
+				.showConfirmationBox({
+					message:
+						msg +
+						'<br><br><a href="' +
+						url +
+						'" class="btn btn-primary btn-sm">Mở Opportunity</a>',
+					htmlSupportEnable: true,
+					buttons: {
+						cancel: {
+							label: leadLabel('LBL_CLOSE', 'Đóng'),
+							className: 'btn-default confirm-box-btn-pad pull-right',
+						},
+						confirm: {
+							label: leadLabel('LBL_VIEW_OPPORTUNITY', 'Xem Opportunity'),
+							className: 'confirm-box-ok confirm-box-btn-pad btn-primary',
+						},
+					},
+				})
+				.then(function () {
+					window.location.href = url;
+				});
+			return;
+		}
+		if (app.helper && app.helper.showAlertBox) {
+			app.helper.showAlertBox({ message: msg });
+		} else {
+			window.alert(msg);
+		}
+	}
+
+	function syncConvertButtonState(lead) {
+		var converted = !!(lead && (lead.converted || lead.potentialId));
+		var canConvert = lead && lead.canConvert !== false && !converted;
+		document.querySelectorAll('[data-mk-demo-action="convert"]').forEach(function (btn) {
+			var txt = btn.querySelector('.mk-lead-detail-btn__txt');
+			if (!canConvert && converted) {
+				btn.classList.add('mk-lead-detail-btn--converted');
+				btn.setAttribute('aria-disabled', 'true');
+				btn.setAttribute(
+					'title',
+					leadLabel('LBL_MK_ALREADY_CONVERTED', 'Đã convert sang Opportunity')
+				);
+				if (txt) {
+					txt.textContent = leadLabel('LBL_MK_ALREADY_CONVERTED_SHORT', 'Đã convert');
+				}
+			} else {
+				btn.classList.remove('mk-lead-detail-btn--converted');
+				btn.removeAttribute('aria-disabled');
+				btn.removeAttribute('title');
+				if (txt) {
+					txt.textContent = leadLabel('LBL_CONVERT_LEAD', 'Convert Lead');
+				}
+			}
+		});
+	}
+
 	function runConvertLead(lead, orderCategory) {
 		if (!window.app || !app.request || !lead || !lead.id) return;
 		app.helper.showProgress();
@@ -1347,6 +1523,20 @@
 					window.alert((err && err.message) || (res && res.error) || 'Convert thất bại');
 					return;
 				}
+				if (res.already_converted) {
+					lead.converted = true;
+					lead.potentialId = res.potentialId || lead.potentialId;
+					lead.canConvert = false;
+					lead.potentialUrl = res.redirect || lead.potentialUrl;
+					syncConvertButtonState(lead);
+					showAlreadyConvertedNotice(res);
+					return;
+				}
+				lead.converted = true;
+				lead.potentialId = res.potentialId;
+				lead.canConvert = false;
+				lead.potentialUrl = res.redirect || potentialDetailUrl(res.potentialId);
+				syncConvertButtonState(lead);
 				if (res.redirect) {
 					window.location.href = res.redirect;
 					return;
@@ -1358,6 +1548,18 @@
 	}
 
 	function openConvertLeadModal(lead) {
+		if (!lead || !lead.id) return;
+		refreshConversionStatus(lead).then(function () {
+			if (!lead.canConvert && (lead.converted || lead.potentialId)) {
+				syncConvertButtonState(lead);
+				showAlreadyConvertedNotice(lead);
+				return;
+			}
+			openConvertLeadModalInner(lead);
+		});
+	}
+
+	function openConvertLeadModalInner(lead) {
 		if (!lead || !lead.id) return;
 		if (!$jq || typeof app === 'undefined' || !app.helper || !app.helper.showModal) {
 			var fallback = window.prompt('Loại Opportunity: gõ Internal hoặc Project', 'Internal');
@@ -1436,6 +1638,10 @@
 				}
 				if (action === 'convert') {
 					e.preventDefault();
+					if (lead.converted && lead.potentialId) {
+						showAlreadyConvertedNotice(lead);
+						return;
+					}
 					openConvertLeadModal(lead);
 					return;
 				}
@@ -1556,6 +1762,7 @@
 		renderComments(lead);
 		renderUpdates(lead);
 		syncBadges(lead);
+		syncConvertButtonState(lead);
 	}
 
 	function markReady() {
@@ -1582,10 +1789,12 @@
 			})
 			.then(function () {
 				var lead = cloneLeadData(resolveLead());
-				render(lead);
-				bindTabs();
-				bindDemoActions(lead);
-				markReady();
+				return refreshConversionStatus(lead).then(function (refreshed) {
+					render(refreshed);
+					bindTabs();
+					bindDemoActions(refreshed);
+					markReady();
+				});
 			})
 			.catch(function (err) {
 				console.error('Leads detail bootstrap failed', err);
