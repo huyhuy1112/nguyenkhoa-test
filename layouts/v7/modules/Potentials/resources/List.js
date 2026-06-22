@@ -5,7 +5,37 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260619_opp_decode_v2';
+	function enforcePotentialsSalesApp() {
+		var b = document.body;
+		if (!b || b.getAttribute('data-module') !== 'Potentials') {
+			return false;
+		}
+		var view = (b.getAttribute('data-view') || '').trim();
+		if (view !== 'List' && view !== 'Detail' && view !== 'Edit') {
+			return false;
+		}
+		var app = (b.getAttribute('data-app') || '').trim().toUpperCase();
+		if (app === 'SALES') {
+			return false;
+		}
+		try {
+			var u = new URL(window.location.href);
+			u.searchParams.set('app', 'SALES');
+			window.location.replace(u.toString());
+		} catch (e) {
+			window.location.replace(
+				'index.php?module=Potentials&view=' + encodeURIComponent(view) + '&app=SALES' +
+				(window.location.search ? '&' + window.location.search.replace(/^\?/, '') : '')
+			);
+		}
+		return true;
+	}
+
+	if (enforcePotentialsSalesApp()) {
+		return;
+	}
+
+	var MK_BUILD = '20260620_opp_sales_guard1';
 	var autoSearchTimer = null;
 	var inflightSearchId = 0;
 
@@ -92,10 +122,7 @@
 
 	function isSalesOpportunityList() {
 		var b = document.body;
-		if (!b || b.getAttribute('data-module') !== 'Potentials' || b.getAttribute('data-view') !== 'List') {
-			return false;
-		}
-		return (b.getAttribute('data-app') || '').toUpperCase() === 'SALES';
+		return !!(b && b.getAttribute('data-module') === 'Potentials' && b.getAttribute('data-view') === 'List');
 	}
 
 	function getRoot() {

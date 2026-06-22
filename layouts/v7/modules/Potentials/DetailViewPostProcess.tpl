@@ -1,7 +1,7 @@
 {*+**********************************************************************************
  * Potentials Detail (Sales): close the split shell opened in DetailViewPreProcess.tpl.
  ************************************************************************************}
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+{if $MODULE eq 'Potentials' || (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY|trim eq 'SALES')) || (isset($smarty.get.app) && ($smarty.get.app|trim eq 'SALES'))}
 					</div>
 				</div>
 			</div>

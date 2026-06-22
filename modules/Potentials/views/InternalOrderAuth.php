@@ -27,7 +27,7 @@ class Potentials_InternalOrderAuth_View extends Vtiger_Index_View {
 
                 // Redirect back to List with same viewname (Internal Orders)
                 $redirectUrl = 'index.php?module=' . urlencode($moduleName)
-                    . '&view=List';
+                    . '&view=List&app=SALES';
                 if (!empty($viewId)) {
                     $redirectUrl .= '&viewname=' . urlencode($viewId);
                 }
@@ -69,7 +69,7 @@ class Potentials_InternalOrderAuth_View extends Vtiger_Index_View {
         }
 
         echo '<button type="submit" class="btn btn-primary">Submit</button> ';
-        echo '<a href="index.php?module=' . urlencode($moduleName) . '&view=List" class="btn btn-default">Cancel</a>';
+        echo '<a href="index.php?module=' . urlencode($moduleName) . '&view=List&app=SALES" class="btn btn-default">Cancel</a>';
         echo '</form>';
 
         echo '</body></html>';

@@ -8,8 +8,9 @@
 ************************************************************************************}
 {* modules/Vtiger/views/Import.php *}
 
-<div class='fc-overlay-modal'>
-	<div class = "modal-content">
+{include file='ImportStyles.tpl'|@vtemplate_path:'Import'}
+<div class='fc-overlay-modal mk-import-modern'>
+	<div class="modal-content">
 		<div class="overlayHeader">
 			{assign var=TITLE value="{'LBL_IMPORT'|@vtranslate:$MODULE} {$FOR_MODULE|@vtranslate:$FOR_MODULE}"}
 			{include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$TITLE}

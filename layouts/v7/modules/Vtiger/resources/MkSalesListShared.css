@@ -908,6 +908,74 @@ body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-t
 	margin: 0 !important;
 }
 
+/* Import overlay — above mk shell; undo stuck failsafe hides (backdrop only, no panel) */
+body[data-view="List"][data-app="SALES"] #overlayPageContent.fade:not(.in) {
+	pointer-events: none !important;
+}
+
+body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	pointer-events: auto !important;
+	z-index: 110010 !important;
+	position: fixed !important;
+	top: var(--mk-dash-topbar-h, 64px) !important;
+	left: var(--mk-dash-sidebar-w, 256px) !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	width: auto !important;
+	max-width: none !important;
+	margin-left: 0 !important;
+	overflow: auto !important;
+	background: #fff !important;
+}
+
+body[data-view="List"][data-app="SALES"].modal-open .modal-backdrop.in,
+body[data-view="List"][data-app="SALES"] .modal-backdrop.in,
+body[data-view="List"][data-app="MARKETING"].modal-open:not(.mk-import-page) .modal-backdrop.in,
+body[data-view="List"][data-app="SUPPORT"].modal-open:not(.mk-import-page) .modal-backdrop.in,
+body[data-module="Accounts"][data-view="List"].modal-open:not(.mk-import-page) .modal-backdrop.in,
+body.mk-list-confirm-open .modal-backdrop.in {
+	z-index: 110000 !important;
+	background: rgba(8, 14, 28, 0.55) !important;
+	opacity: 1 !important;
+	backdrop-filter: blur(8px) saturate(1.1);
+	-webkit-backdrop-filter: blur(8px) saturate(1.1);
+}
+
+/* Confirm / bootbox must sit above backdrop so Yes/No stays clickable */
+body[data-view="List"][data-app="SALES"] .bootbox.modal,
+body[data-view="List"][data-app="SALES"] .myModal,
+body[data-view="List"][data-app="MARKETING"] .bootbox.modal,
+body[data-view="List"][data-app="MARKETING"] .myModal,
+body[data-view="List"][data-app="SUPPORT"] .bootbox.modal,
+body[data-view="List"][data-app="SUPPORT"] .myModal,
+body[data-module="Accounts"][data-view="List"] .bootbox.modal,
+body[data-module="Accounts"][data-view="List"] .myModal {
+	z-index: 110020 !important;
+}
+
+body[data-view="List"][data-app="SALES"] .bootbox.modal .modal-dialog,
+body[data-module="Accounts"][data-view="List"] .bootbox.modal .modal-dialog {
+	pointer-events: auto !important;
+}
+
+/* Stuck empty import overlay must not block list actions */
+body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in:not(.mk-import-overlay-open) .data:empty {
+	display: none !important;
+}
+body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in:not(.mk-import-overlay-open):has(.data:empty) {
+	display: none !important;
+	pointer-events: none !important;
+	visibility: hidden !important;
+}
+
+body[data-view="List"][data-app="SALES"] #overlayPageContent.fade.in .data {
+	min-height: 320px;
+	overflow-y: auto;
+}
+
 body[data-view="List"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] .s2-btn-text {
 	display: none !important;
 }

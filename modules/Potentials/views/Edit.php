@@ -5,12 +5,16 @@
 
 class Potentials_Edit_View extends Vtiger_Edit_View {
 
+	protected function ensureSalesApp(Vtiger_Request $request) {
+		require_once 'modules/Potentials/helpers/SalesAppGuard.php';
+		Potentials_SalesAppGuard::enforce($request);
+	}
+
 	protected function isMkModernOpportunityCreate(Vtiger_Request $request) {
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
-		$app = strtoupper((string)$request->get('app'));
-		return $app === 'SALES' || $app === '';
+		return true;
 	}
 
 	protected function assignModernContext(Vtiger_Request $request) {
@@ -50,6 +54,9 @@ class Potentials_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		if ($request->get('displayMode') !== 'overlay') {
+			$this->ensureSalesApp($request);
+		}
 		if ($this->isMkModernOpportunityCreate($request)) {
 			$this->redirectMarketingToSales($request);
 			parent::preProcess($request, false);
@@ -101,7 +108,7 @@ class Potentials_Edit_View extends Vtiger_Edit_View {
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
-			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/Potentials/resources/EditLockAutoFields.js',
+			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/Potentials/resources/EditLockAutoFields.js?v=20260618_opp_name_edit1',
 		);
 		if ($this->isMkModernOpportunityCreate($request)) {
 			$jsFileNames[] = '~layouts/v7/modules/Potentials/resources/OpportunityMkEdit.js';

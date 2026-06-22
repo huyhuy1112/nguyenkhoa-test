@@ -10,8 +10,9 @@
 ********************************************************************************/
 -->*}
 
-<div class='fc-overlay-modal' id="scheduleImportStatus">
-    <div class = "modal-content">
+{include file='ImportStyles.tpl'|@vtemplate_path:'Import'}
+<div class='fc-overlay-modal mk-import-modern' id="scheduleImportStatus">
+    <div class="modal-content">
         <div class="overlayHeader">
             {assign var=TITLE value="{'LBL_IMPORT'|@vtranslate:$MODULE} {$FOR_MODULE|@vtranslate:$FOR_MODULE} -
                     <span style = 'color:red'>{'LBL_RUNNING'|@vtranslate:$MODULE} ... </span>"}

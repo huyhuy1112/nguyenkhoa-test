@@ -3,15 +3,15 @@
  * Inner DOM matches stock Vtiger Detail (.detailViewContainer, .detailview-content,
  * #recordId, .related-tabs) so Vtiger Detail.js / Detail-AJAX continues to work.
  ************************************************************************************}
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+{if $MODULE eq 'Potentials' || (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY|trim eq 'SALES')) || (isset($smarty.get.app) && ($smarty.get.app|trim eq 'SALES'))}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 {include file="partials/MkSalesUiMeta.tpl"|vtemplate_path:'Vtiger'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesDetailInlineEdit.css')}&mk_v=20260611_mk_inline_v3" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.css')}&mk_v=20260619_opp_layout_v2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.css')}&mk_v=20260620_opp_keyfields_v1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLeadsLogic.js')}&mk_v=20260619_opp_commerce1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.js')}&mk_v=20260619_opp_commerce1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.js')}&mk_v=20260620_opp_keyfields_v1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/OpportunityDetailCommerce.js')}&mk_v=20260619_opp_commerce1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-opportunity-detail="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

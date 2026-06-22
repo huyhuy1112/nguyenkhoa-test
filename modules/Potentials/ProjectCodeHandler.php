@@ -91,18 +91,268 @@ function compactOrganizationIndex(string $accountNo, string $indexInYear): strin
 
 class ProjectCodeHandler extends VTEventHandler {
 
-	function handleEvent($eventName, $entityData) {
+	/**
+	 * Build Project Code + sync Opportunity Name.
+	 * Format: YYMMDD-{ORG_SEQ}{INDEX}-{COMPANY_CODE}-{PROJECT_NAME}
+	 *
+	 * @param int $recordId
+	 * @param array $options force => regenerate even if cf_859 exists
+	 * @return string|false Generated code or false on failure
+	 */
+	public static function generateForPotential($recordId, $options = array()) {
 		global $log, $adb;
 
-		// CRITICAL: Catch ALL errors including fatal errors (Throwable includes Error and Exception)
+		$recordId = (int)$recordId;
+		$force = !empty($options['force']);
+		if ($recordId <= 0) {
+			return false;
+		}
+
 		try {
-			// STRICT: Handle ONLY vtiger.entity.aftersave (NOT final to avoid recursion)
+			if (!$force) {
+				$codeCheck = $adb->pquery(
+					"SELECT cf_859 FROM vtiger_potentialscf WHERE potentialid = ?",
+					array($recordId)
+				);
+				if ($adb->num_rows($codeCheck) > 0) {
+					$existingCode = $adb->query_result($codeCheck, 0, 'cf_859');
+					if (!empty($existingCode)) {
+						return $existingCode;
+					}
+				}
+			}
+
+			$potentialResult = $adb->pquery(
+				"SELECT p.potentialid, p.potentialname, p.related_to, ce.createdtime
+				 FROM vtiger_potential p
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid
+				 WHERE p.potentialid = ? AND ce.deleted = 0",
+				array($recordId)
+			);
+
+			if ($adb->num_rows($potentialResult) == 0) {
+				return false;
+			}
+
+			$potentialRow = $adb->fetchByAssoc($potentialResult);
+			$accountId = $potentialRow['related_to'];
+			$createdTime = $potentialRow['createdtime'];
+
+			if (empty($accountId) || $accountId == 0) {
+				return false;
+			}
+
+			$createDate = '';
+			$userPotentialName = trim(html_entity_decode((string)$potentialRow['potentialname'], ENT_QUOTES, 'UTF-8'));
+			$userDatePrefix = null;
+			if (preg_match('/^(\d{6})-/', $userPotentialName, $dateMatch)) {
+				$userDatePrefix = $dateMatch[1];
+			}
+			try {
+				if (!empty($createdTime)) {
+					$dateObj = new DateTime($createdTime);
+					$createDate = $dateObj->format('ymd');
+				} else {
+					$createDate = date('ymd');
+				}
+			} catch (Throwable $e) {
+				$createDate = date('ymd');
+			}
+			if ($userDatePrefix !== null) {
+				$createDate = $userDatePrefix;
+			}
+
+			$organizationWithIndex = '';
+			$indexInYear = '01';
+			try {
+				$accountResult = $adb->pquery(
+					"SELECT account_no FROM vtiger_account WHERE accountid = ?",
+					array($accountId)
+				);
+
+				if ($adb->num_rows($accountResult) == 0) {
+					return false;
+				}
+
+				$accountNo = $adb->query_result($accountResult, 0, 'account_no');
+				if (empty($accountNo)) {
+					return false;
+				}
+
+				$createdYear = '';
+				if (!empty($createdTime)) {
+					$dateObj = new DateTime($createdTime);
+					$createdYear = $dateObj->format('Y');
+				} else {
+					$createdYear = date('Y');
+				}
+
+				$indexQuery = $adb->pquery(
+					"SELECT COUNT(*) as index_count
+					 FROM vtiger_potential p
+					 INNER JOIN vtiger_crmentity e ON e.crmid = p.potentialid
+					 WHERE p.related_to = ?
+					 AND YEAR(e.createdtime) = ?
+					 AND e.deleted = 0
+					 AND p.potentialid != ?",
+					array($accountId, $createdYear, $recordId)
+				);
+
+				if ($adb->num_rows($indexQuery) > 0) {
+					$existingCount = $adb->query_result($indexQuery, 0, 'index_count');
+					$indexInYear = str_pad((int)$existingCount + 1, 2, '0', STR_PAD_LEFT);
+				}
+
+				$organizationWithIndex = compactOrganizationIndex($accountNo, $indexInYear);
+			} catch (Throwable $e) {
+				try {
+					$accountResult = $adb->pquery(
+						"SELECT account_no FROM vtiger_account WHERE accountid = ?",
+						array($accountId)
+					);
+					if ($adb->num_rows($accountResult) > 0) {
+						$accountNo = $adb->query_result($accountResult, 0, 'account_no');
+						if (!empty($accountNo)) {
+							$organizationWithIndex = compactOrganizationIndex($accountNo, '01');
+						} else {
+							return false;
+						}
+					} else {
+						return false;
+					}
+				} catch (Throwable $e2) {
+					return false;
+				}
+			}
+
+			$companyCodeResult = $adb->pquery(
+				"SELECT acf.cf_855, a.account_no
+				 FROM vtiger_account a
+				 LEFT JOIN vtiger_accountscf acf ON acf.accountid = a.accountid
+				 WHERE a.accountid = ?",
+				array($accountId)
+			);
+
+			if ($adb->num_rows($companyCodeResult) == 0) {
+				return false;
+			}
+
+			$accountRow = $adb->fetchByAssoc($companyCodeResult);
+			$companyCode = $accountRow['cf_855'];
+			if (empty($companyCode)) {
+				return false;
+			}
+
+			try {
+				$companyCode = html_entity_decode($companyCode, ENT_QUOTES, 'UTF-8');
+			} catch (Throwable $e) {
+			}
+
+			try {
+				$companyCode = slugifyVietnamese($companyCode);
+			} catch (Throwable $e) {
+				$companyCode = strtolower(preg_replace('/[^a-z0-9]+/', '-', $companyCode));
+				$companyCode = trim($companyCode, '-');
+			}
+
+			if (empty($companyCode)) {
+				return false;
+			}
+
+			$rawProjectName = '';
+			$projectNameResult = $adb->pquery(
+				"SELECT cf_857 FROM vtiger_potentialscf WHERE potentialid = ?",
+				array($recordId)
+			);
+
+			if ($adb->num_rows($projectNameResult) > 0) {
+				$rawProjectName = $adb->query_result($projectNameResult, 0, 'cf_857');
+			}
+
+			if (empty($rawProjectName)) {
+				$rawProjectName = $potentialRow['potentialname'];
+			}
+
+			if (empty($rawProjectName)) {
+				$rawProjectName = 'project-' . $recordId;
+			}
+
+			try {
+				$rawProjectName = html_entity_decode($rawProjectName, ENT_QUOTES, 'UTF-8');
+			} catch (Throwable $e) {
+			}
+
+			$projectName = trim($rawProjectName);
+			if (empty($projectName)) {
+				$projectName = 'project-' . $recordId;
+			}
+
+			$projectCode = "$createDate-$organizationWithIndex-$companyCode-$projectName";
+
+			$checkRow = $adb->pquery(
+				"SELECT potentialid FROM vtiger_potentialscf WHERE potentialid = ?",
+				array($recordId)
+			);
+
+			if ($adb->num_rows($checkRow) == 0) {
+				$adb->pquery(
+					"INSERT INTO vtiger_potentialscf (potentialid) VALUES (?)",
+					array($recordId)
+				);
+			}
+
+			$adb->pquery(
+				"UPDATE vtiger_potentialscf SET cf_859 = ? WHERE potentialid = ?",
+				array($projectCode, $recordId)
+			);
+			if (!empty($projectName)) {
+				$adb->pquery(
+					"UPDATE vtiger_potentialscf SET cf_857 = ? WHERE potentialid = ? AND (cf_857 IS NULL OR cf_857 = '')",
+					array($projectName, $recordId)
+				);
+			}
+
+			$currentNameCheck = $adb->pquery(
+				"SELECT potentialname FROM vtiger_potential WHERE potentialid = ?",
+				array($recordId)
+			);
+
+			if ($adb->num_rows($currentNameCheck) > 0) {
+				$currentName = $adb->query_result($currentNameCheck, 0, 'potentialname');
+				if ($currentName !== $projectCode) {
+					$adb->pquery(
+						"UPDATE vtiger_potential SET potentialname = ? WHERE potentialid = ?",
+						array($projectCode, $recordId)
+					);
+					$adb->pquery(
+						'UPDATE vtiger_crmentity SET label = ? WHERE crmid = ?',
+						array($projectCode, $recordId)
+					);
+				}
+			}
+
+			if ($log) {
+				$log->debug("[ProjectCodeHandler] Generated Project Code: $projectCode for Opportunity ID: $recordId");
+			}
+
+			return $projectCode;
+		} catch (Throwable $e) {
+			if (isset($log) && $log) {
+				$log->error("[ProjectCodeHandler] generateForPotential error: " . $e->getMessage());
+			}
+			return false;
+		}
+	}
+
+	function handleEvent($eventName, $entityData) {
+		global $log;
+
+		try {
 			if ($eventName !== 'vtiger.entity.aftersave') {
 				return;
 			}
 
-			$moduleName = $entityData->getModuleName();
-			if ($moduleName !== 'Potentials') {
+			if ($entityData->getModuleName() !== 'Potentials') {
 				return;
 			}
 
@@ -111,7 +361,6 @@ class ProjectCodeHandler extends VTEventHandler {
 				return;
 			}
 
-			// CRITICAL: Only process NEW records
 			if (!$entityData->isNew()) {
 				if ($log) {
 					$log->debug("[ProjectCodeHandler] Skipping - not a new record (ID: $recordId)");
@@ -119,341 +368,11 @@ class ProjectCodeHandler extends VTEventHandler {
 				return;
 			}
 
-			// Check if Project Code already exists
-			$codeCheck = $adb->pquery(
-				"SELECT cf_859 FROM vtiger_potentialscf WHERE potentialid = ?",
-				array($recordId)
-			);
-			
-			if ($adb->num_rows($codeCheck) > 0) {
-				$existingCode = $adb->query_result($codeCheck, 0, 'cf_859');
-				if (!empty($existingCode)) {
-					if ($log) {
-						$log->debug("[ProjectCodeHandler] Project Code already exists: $existingCode (ID: $recordId)");
-					}
-					return; // Already generated, skip
-				}
-			}
-
-			// Get Opportunity data
-			$potentialResult = $adb->pquery(
-			"SELECT p.potentialid, p.potentialname, p.related_to, ce.createdtime
-				 FROM vtiger_potential p
-				 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid
-				 WHERE p.potentialid = ?",
-				array($recordId)
-			);
-			
-			if ($adb->num_rows($potentialResult) == 0) {
-				if ($log) {
-					$log->debug("[ProjectCodeHandler] Opportunity not found (ID: $recordId)");
-				}
-				return;
-			}
-			
-			$potentialRow = $adb->fetchByAssoc($potentialResult);
-			$accountId = $potentialRow['related_to'];
-			$createdTime = $potentialRow['createdtime'];
-			
-		// MANDATORY: Validate Organization (Account) - REQUIRED for Project Code generation
-			if (empty($accountId) || $accountId == 0) {
-				if ($log) {
-				$log->error("[ProjectCodeHandler] No Organization (Account) linked - Project Code will NOT be generated (ID: $recordId). User must select an Organization when creating Opportunity.");
-			}
-			return; // Exit - Organization is mandatory
-			}
-
-		// 1. CREATE_DATE: Format createdtime as YYMMDD (2-digit year)
-		$createDate = '';
-		try {
-			if (!empty($createdTime)) {
-				$dateObj = new DateTime($createdTime);
-				$createDate = $dateObj->format('ymd'); // y = 2-digit year (e.g., 26 for 2026)
-			} else {
-				$createDate = date('ymd'); // y = 2-digit year
-			}
+			self::generateForPotential($recordId);
 		} catch (Throwable $e) {
-			// Fallback to current date if DateTime fails
-			$createDate = date('ymd'); // y = 2-digit year
-			if ($log) {
-				$log->error("[ProjectCodeHandler] DateTime error (using current date): " . $e->getMessage());
-			}
-		}
-
-		// 2. ORG INDEX segment: numeric org sequence + index-in-year (no KH/TC prefix)
-		// Format: {ORG_SEQ}{INDEX_IN_YEAR} (e.g. 0101 = org #01, 1st opp this year)
-		$organizationWithIndex = '';
-		$indexInYear = '01'; // Default to 01 if calculation fails
-		try {
-			// Get account_no from Organization (Account) - this is the Organization Number
-			$accountResult = $adb->pquery(
-				"SELECT account_no FROM vtiger_account WHERE accountid = ?",
-				array($accountId)
-			);
-			
-			if ($adb->num_rows($accountResult) == 0) {
-				if ($log) {
-					$log->error("[ProjectCodeHandler] Organization (Account) not found (accountid: $accountId) - Project Code will NOT be generated (ID: $recordId)");
-				}
-				return; // Exit - Organization not found
-			}
-			
-			$accountNo = $adb->query_result($accountResult, 0, 'account_no');
-			if (empty($accountNo)) {
-				if ($log) {
-					$log->error("[ProjectCodeHandler] Organization account_no is empty (accountid: $accountId) - Project Code will NOT be generated (ID: $recordId)");
-				}
-				return; // Exit - account_no is required
-			}
-
-			// Get year from createdtime for INDEX_IN_YEAR calculation
-			$createdYear = '';
-			if (!empty($createdTime)) {
-				$dateObj = new DateTime($createdTime);
-				$createdYear = $dateObj->format('Y');
-			} else {
-				$createdYear = date('Y');
-			}
-
-			// Calculate INDEX_IN_YEAR: Count existing Opportunities for the SAME Organization in the SAME year
-			// Exclude current record (recordId) and deleted records
-			$indexQuery = $adb->pquery(
-				"SELECT COUNT(*) as index_count
-				 FROM vtiger_potential p
-				 INNER JOIN vtiger_crmentity e ON e.crmid = p.potentialid
-				 WHERE p.related_to = ?
-				 AND YEAR(e.createdtime) = ?
-				 AND e.deleted = 0
-				 AND p.potentialid != ?",
-				array($accountId, $createdYear, $recordId)
-			);
-
-			if ($adb->num_rows($indexQuery) > 0) {
-				$existingCount = $adb->query_result($indexQuery, 0, 'index_count');
-				$indexNumber = intval($existingCount) + 1; // Add 1 for current record
-				$indexInYear = str_pad($indexNumber, 2, '0', STR_PAD_LEFT); // Pad to 2 digits (01, 02, 03...)
-			}
-
-			// Compact: drop prefix/padding from account_no, append 2-digit year index
-			$organizationWithIndex = compactOrganizationIndex($accountNo, $indexInYear);
-
-			if ($log) {
-				$log->debug("[ProjectCodeHandler] Organization with index: $organizationWithIndex (from account_no: $accountNo, index: $indexInYear, Year: $createdYear, Organization ID: $accountId)");
-			}
-		} catch (Throwable $e) {
-			// If calculation fails, use default
-			if ($log) {
-				$log->error("[ProjectCodeHandler] Organization/Index calculation error (using default): " . $e->getMessage());
-			}
-			// Try to get at least account_no for fallback
-			try {
-				$accountResult = $adb->pquery(
-					"SELECT account_no FROM vtiger_account WHERE accountid = ?",
-					array($accountId)
-				);
-				if ($adb->num_rows($accountResult) > 0) {
-					$accountNo = $adb->query_result($accountResult, 0, 'account_no');
-					if (!empty($accountNo)) {
-						$organizationWithIndex = compactOrganizationIndex($accountNo, '01');
-					} else {
-						return; // Cannot proceed without account_no
-					}
-				} else {
-					return; // Cannot proceed without account_no
-				}
-			} catch (Throwable $e2) {
-				if ($log) {
-					$log->error("[ProjectCodeHandler] Fallback account_no retrieval failed: " . $e2->getMessage());
-				}
-				return; // Cannot proceed
-			}
-		}
-
-		// 3. COMPANY_CODE: Get from Account's cf_855 (Organization level - single source of truth)
-		// CRITICAL: Company Code MUST come from Account, NOT from Opportunity
-		$companyCodeResult = $adb->pquery(
-			"SELECT acf.cf_855, a.account_no
-				 FROM vtiger_account a
-				 LEFT JOIN vtiger_accountscf acf ON acf.accountid = a.accountid
-				 WHERE a.accountid = ?",
-				array($accountId)
-			);
-			
-		if ($adb->num_rows($companyCodeResult) == 0) {
-				if ($log) {
-				$log->error("[ProjectCodeHandler] Account not found (accountid: $accountId) - Project Code will NOT be generated (ID: $recordId)");
-			}
-			return; // Exit - Account not found
-		}
-		
-		$accountRow = $adb->fetchByAssoc($companyCodeResult);
-			$companyCode = $accountRow['cf_855'];
-		
-		// MANDATORY RULE: If Account's Company Code is empty → DO NOT generate Project Code
-			if (empty($companyCode)) {
-			if ($log) {
-				$log->error("[ProjectCodeHandler] Account (ID: $accountId) has no Company Code (cf_855 is empty) - Project Code will NOT be generated for Opportunity (ID: $recordId)");
-			}
-			return; // Exit - Company Code is required at Account level
-		}
-		
-		// CRITICAL: Decode HTML entities before slugify
-		// Vtiger's query_result() and fetchByAssoc() apply to_html() which encodes UTF-8 to HTML entities
-		// Example: "chế" → "ch&eacute;" - we need raw UTF-8 for proper Unicode normalization
-		try {
-			$companyCode = html_entity_decode($companyCode, ENT_QUOTES, 'UTF-8');
-		} catch (Throwable $e) {
-			// If decode fails, continue with original (might already be UTF-8)
-			if ($log) {
-				$log->error("[ProjectCodeHandler] html_entity_decode error for Company Code: " . $e->getMessage());
-			}
-		}
-		
-		// Sanitize company code using slugifyVietnamese() - ONE SOURCE OF TRUTH
-		// Safe: slugifyVietnamese() never throws, always returns valid string
-		try {
-			$companyCode = slugifyVietnamese($companyCode);
-		} catch (Throwable $e) {
-			// Extra safety: if slugify fails, use basic sanitization
-			$companyCode = strtolower(preg_replace('/[^a-z0-9]+/', '-', $companyCode));
-			$companyCode = trim($companyCode, '-');
-			if ($log) {
-				$log->error("[ProjectCodeHandler] slugifyVietnamese error for Company Code (using fallback): " . $e->getMessage());
-			}
-		}
-		
-			if (empty($companyCode)) {
-				if ($log) {
-				$log->error("[ProjectCodeHandler] Account's Company Code (cf_855) is empty after sanitization - Project Code will NOT be generated (ID: $recordId)");
-			}
-			return; // Exit if sanitization resulted in empty
-		}
-		
-		if ($log) {
-			$log->debug("[ProjectCodeHandler] Company Code resolved from Account (ID: $accountId): $companyCode (Opportunity ID: $recordId)");
-			}
-
-			// 4. PROJECT_NAME: Get from vtiger_potentialscf.cf_857 or fallback to potentialname
-		$rawProjectName = '';
-			$projectNameResult = $adb->pquery(
-				"SELECT cf_857 FROM vtiger_potentialscf WHERE potentialid = ?",
-				array($recordId)
-			);
-			
-			if ($adb->num_rows($projectNameResult) > 0) {
-			$rawProjectName = $adb->query_result($projectNameResult, 0, 'cf_857');
-		}
-		
-		if (empty($rawProjectName)) {
-			$rawProjectName = $potentialRow['potentialname'];
-		}
-		
-		// MANDATORY: Always generate code, even if project name is empty
-		if (empty($rawProjectName)) {
-			$rawProjectName = 'project-' . $recordId; // Fallback to record ID
-			if ($log) {
-				$log->debug("[ProjectCodeHandler] Project name is empty, using fallback: $rawProjectName (ID: $recordId)");
-			}
-		}
-
-		// CRITICAL: Decode HTML entities to get raw UTF-8
-		// Vtiger's query_result() and fetchByAssoc() apply to_html() which encodes UTF-8 to HTML entities
-		// Example: "chế lá cà" → "ch&eacute; l&aacute; c&agrave;" - we need raw UTF-8
-		try {
-			$rawProjectName = html_entity_decode($rawProjectName, ENT_QUOTES, 'UTF-8');
-		} catch (Throwable $e) {
-			// If decode fails, continue with original (might already be UTF-8)
-			if ($log) {
-				$log->error("[ProjectCodeHandler] html_entity_decode error for Project Name: " . $e->getMessage());
-			}
-		}
-
-		// REQUIREMENT: Keep original Vietnamese Project Name (UTF-8)
-		// DO NOT slugify, DO NOT remove accents, DO NOT transform characters
-		// Project Code is now for display, not URL usage
-		$projectName = trim($rawProjectName);
-		
-		// Ensure project name is not empty
-			if (empty($projectName)) {
-			$projectName = 'project-' . $recordId;
-				if ($log) {
-				$log->debug("[ProjectCodeHandler] Project name is empty, using fallback: $projectName (ID: $recordId)");
-			}
-		}
-
-		// Generate Project Code: {CREATE_DATE}-{ORG_SEQ}{INDEX}-{COMPANY_CODE}-{PROJECT_NAME}
-		// Format: YYMMDD-{ORG_SEQ}{INDEX}-{COMPANY_CODE}-{PROJECT_NAME}
-		// Example: 260619-0101-751-bít cồ bôn
-		$projectCode = "$createDate-$organizationWithIndex-$companyCode-$projectName";
-
-			// Update directly in database (no save() to avoid recursion)
-		// SAFETY: Wrap database operations in try/catch
-		try {
-			// First ensure row exists in vtiger_potentialscf
-			$checkRow = $adb->pquery(
-				"SELECT potentialid FROM vtiger_potentialscf WHERE potentialid = ?",
-				array($recordId)
-			);
-			
-			if ($adb->num_rows($checkRow) == 0) {
-				// Insert row if doesn't exist
-				$adb->pquery(
-					"INSERT INTO vtiger_potentialscf (potentialid) VALUES (?)",
-					array($recordId)
-				);
-			}
-			
-			// Update Project Code
-			$adb->pquery(
-				"UPDATE vtiger_potentialscf SET cf_859 = ? WHERE potentialid = ?",
-				array($projectCode, $recordId)
-			);
-
-			// SYNC Opportunity Name with Project Code
-			// CRITICAL: Update potentialname directly using SQL to avoid recursion
-			// Since we're in aftersave event, direct SQL update will NOT trigger another save event
-			// Check if potentialname already equals projectCode to avoid unnecessary update
-			$currentNameCheck = $adb->pquery(
-				"SELECT potentialname FROM vtiger_potential WHERE potentialid = ?",
-				array($recordId)
-			);
-			
-			if ($adb->num_rows($currentNameCheck) > 0) {
-				$currentName = $adb->query_result($currentNameCheck, 0, 'potentialname');
-				// Only update if different (avoid unnecessary database writes)
-				if ($currentName !== $projectCode) {
-					$adb->pquery(
-						"UPDATE vtiger_potential SET potentialname = ? WHERE potentialid = ?",
-						array($projectCode, $recordId)
-					);
-					
-					if ($log) {
-						$log->debug("[ProjectCodeHandler] Synchronized Opportunity Name with Project Code: $projectCode (ID: $recordId)");
-					}
-				}
-			}
-		} catch (Throwable $e) {
-			// Database error - log but don't break save flow
-			if ($log) {
-				$log->error("[ProjectCodeHandler] Database update error: " . $e->getMessage() . " (ID: $recordId)");
-			}
-			// Silent return - save flow continues
-			return;
-		}
-
-		if ($log) {
-			$log->debug("[ProjectCodeHandler] Generated Project Code: $projectCode for Opportunity ID: $recordId (Organization ID: $accountId, Index: $indexInYear)");
-		}
-
-		} catch (Throwable $e) {
-			// CRITICAL: Catch ALL errors (Error, Exception, etc.) to prevent white screen
-			// NEVER break Vtiger save flow - silent failure with logging
 			if (isset($log) && $log) {
-				$log->error("[ProjectCodeHandler] Fatal error prevented: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+				$log->error("[ProjectCodeHandler] Fatal error prevented: " . $e->getMessage());
 			}
-			// Silent return - do NOT throw, do NOT exit, do NOT die
-			// This ensures Vtiger save flow continues normally
-			return;
 		}
 	}
 }

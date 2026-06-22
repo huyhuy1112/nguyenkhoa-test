@@ -40,6 +40,11 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 
 		$mode = $request->getMode();
 		if(!empty($mode)) {
+			// Fresh upload should not be blocked by stale import table from a prior attempt.
+			if ($mode == 'uploadAndParse') {
+				$user = Users_Record_Model::getCurrentUserModel();
+				Import_Utils_Helper::clearUserImportInfo($user);
+			}
 			// Added to check the status of import
 			if($mode == 'continueImport' || $mode == 'uploadAndParse' || $mode == 'importBasicStep') {
 				$this->checkImportStatus($request);
@@ -124,6 +129,11 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 		if(in_array($moduleName, $duplicateHandlingNotSupportedModules)){
 			$viewer->assign('DUPLICATE_HANDLING_NOT_SUPPORTED', true);
 		}
+		// SALES modules: skip duplicate-handling step for simpler import flow
+		$simplifiedImportModules = array('Potentials', 'Accounts', 'Contacts', 'Plans');
+		if (in_array($moduleName, $simplifiedImportModules, true)) {
+			$viewer->assign('DUPLICATE_HANDLING_NOT_SUPPORTED', true);
+		}
 		//End
 
 		$fileFormat = $request->get('fileFormat');
@@ -152,14 +162,15 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
 		$duplicateHandlingNotSupportedModules = $this->getUnsupportedDuplicateHandlingModules();
-		if(in_array($moduleName, $duplicateHandlingNotSupportedModules)){
+		$simplifiedImportModules = array('Potentials', 'Accounts', 'Contacts', 'Plans');
+		if(in_array($moduleName, $duplicateHandlingNotSupportedModules) || in_array($moduleName, $simplifiedImportModules, true)){
 			$viewer->assign('DUPLICATE_HANDLING_NOT_SUPPORTED', true);
 		}
 		try{
 			$this->initializeMappingParameters($request);
 			return $viewer->view('ImportAdvanced.tpl', 'Import');
 		} catch(Exception $e) {
-			$this->importBasicStep($request);
+			return $this->importBasicStep($request);
 		}
 	}
 
@@ -325,6 +336,11 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 		$moduleName = $request->getModule();
 		$user = Users_Record_Model::getCurrentUserModel();
 		$mode = $request->getMode();
+
+		// Fresh file upload clears stale state in process(); do not block mapping step.
+		if ($mode == 'uploadAndParse') {
+			return;
+		}
 
 		// Check if import on the module is locked
 		$lockInfo = Import_Lock_Action::isLockedForModule($moduleName);

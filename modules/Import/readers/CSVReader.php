@@ -38,11 +38,16 @@ class Import_CSVReader_Reader extends Import_FileReader_Reader {
 			if($currentRow == 0 || ($currentRow == 1 && $hasHeader)) {
 				if($hasHeader && $currentRow == 0) {
 					foreach($data as $key => $value) {
-						$headers[$key] = trim($this->convertCharacterEncoding(strip_tags(decode_html($value)), $this->request->get('file_encoding'), $default_charset));
+						$value = Import_Utils_Helper::normalizeCsvCell($value);
+						$value = trim($this->convertCharacterEncoding(strip_tags(decode_html($value)), $this->request->get('file_encoding'), $default_charset));
+						$value = Import_Utils_Helper::repairVietnameseExportText($value);
+						$headers[$key] = $value;
 					}
 				} else {
 					foreach($data as $key => $value) {
-						$firstRowData[$key] = trim($this->convertCharacterEncoding(strip_tags(decode_html($value)), $this->request->get('file_encoding'), $default_charset));
+						$value = trim($this->convertCharacterEncoding(strip_tags(decode_html($value)), $this->request->get('file_encoding'), $default_charset));
+						$value = Import_Utils_Helper::repairVietnameseExportText($value);
+						$firstRowData[$key] = $value;
 					}
 					break;
 				}
@@ -95,6 +100,7 @@ class Import_CSVReader_Reader extends Import_FileReader_Reader {
 				if($fileEncoding != $default_charset) {
 					$mappedData[$fieldName] = $this->convertCharacterEncoding($fieldValue, $fileEncoding, $default_charset);
 				}
+				$mappedData[$fieldName] = Import_Utils_Helper::repairVietnameseExportText($mappedData[$fieldName]);
 				if(!empty($fieldValue)) $allValuesEmpty = false;
 			}
 			if($allValuesEmpty) continue;

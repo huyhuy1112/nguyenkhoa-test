@@ -106,7 +106,7 @@
 		<script src="{vresource_url('layouts/v7/lib/jquery/jquery-migrate-1.4.1.js')}"></script>
 		<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkTheme.js')}"></script>
 		<script type="text/javascript">
-			var _META = { 'module': "{$MODULE}", view: "{$VIEW}", 'parent': "{$PARENT_MODULE}", 'notifier':"{$NOTIFIER_URL}", 'app':"{if isset($SELECTED_MENU_CATEGORY)} {$SELECTED_MENU_CATEGORY}{/if}" };
+			var _META = { 'module': "{$MODULE}", view: "{$VIEW}", 'parent': "{$PARENT_MODULE}", 'notifier':"{$NOTIFIER_URL}", 'app':"{if isset($SELECTED_MENU_CATEGORY)}{$SELECTED_MENU_CATEGORY|trim}{/if}" };
             {if $EXTENSION_MODULE}
                 var _EXTENSIONMETA = { 'module': "{$EXTENSION_MODULE}", view: "{$EXTENSION_VIEW}"};
             {/if}

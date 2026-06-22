@@ -107,6 +107,18 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		}
 		$className = get_class($moduleMeta);
 		if ($className != 'VtigerLineItemMeta') {
+			if ($this->module === 'Potentials') {
+				if (empty($defaultValues['order_category'])) {
+					$defaultValues['order_category'] = 'Internal';
+				}
+				if (empty($defaultValues['sales_stage'])) {
+					$defaultValues['sales_stage'] = 'Prospecting';
+				}
+				if (empty($defaultValues['closingdate'])) {
+					require_once 'modules/Potentials/helpers/SimpleImport.php';
+					$defaultValues['closingdate'] = Potentials_SimpleImport_Helper::getDefaultClosingDate();
+				}
+			}
 			$cachedDefaultValues[$this->module] = $defaultValues;
 		}
 		return $defaultValues;
@@ -525,8 +537,11 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 				$entityInfo['status'] = self::$IMPORT_RECORD_CREATED;
 			}
 			if ($createRecord || $mergeType == Import_Utils_Helper::$AUTO_MERGE_MERGEFIELDS || $mergeType == Import_Utils_Helper::$AUTO_MERGE_OVERWRITE) {
-				$entityIdComponents = vtws_getIdComponents($entityInfo['id']);
-				$recordId = isset($entityIdComponents[1]) ? $entityIdComponents[1] : '';
+				$recordId = '';
+				if (!empty($entityInfo['id'])) {
+					$entityIdComponents = vtws_getIdComponents($entityInfo['id']);
+					$recordId = isset($entityIdComponents[1]) ? $entityIdComponents[1] : '';
+				}
 				if (!empty($recordId)) {
 					$entityfields = getEntityFieldNames($this->module);
 					switch ($this->module) {
@@ -698,6 +713,11 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 								$referenceEntityId = getCurrencyId($entityLabel);
 							} else {
 								$referenceEntityId = getEntityId($referenceModule, decode_html($entityLabel));
+								if ($referenceModule == 'Contacts' && $this->module == 'Potentials' && empty($referenceEntityId)) {
+									require_once 'modules/Potentials/helpers/SimpleImport.php';
+									$accountId = isset($fieldData['related_to']) ? $fieldData['related_to'] : null;
+									$referenceEntityId = Potentials_SimpleImport_Helper::lookupContactId($entityLabel, $accountId);
+								}
 							}
 							if ($referenceEntityId != 0) {
 								$entityId = $referenceEntityId;

@@ -10,7 +10,8 @@
 
 {* START YOUR IMPLEMENTATION FROM BELOW. Use {debug} for information *}
 
-<div class='fc-overlay-modal modal-content'>
+{include file='ImportStyles.tpl'|@vtemplate_path:'Import'}
+<div class='fc-overlay-modal modal-content mk-import-modern'>
     <div class="overlayHeader">
         {assign var=TITLE value="{'LBL_IMPORT'|@vtranslate:$MODULE} {$FOR_MODULE|@vtranslate:$FOR_MODULE}"}
         {include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$TITLE}
@@ -65,7 +66,7 @@
                         <div class='textAlignCenter col-lg-12 col-md-12 col-sm-12 '>
                         <button type="submit" name="import" id="importButton" class="btn btn-success btn-lg" onclick="return Vtiger_Import_Js.sanitizeAndSubmit()"
                                 >{'LBL_IMPORT_BUTTON_LABEL'|@vtranslate:$MODULE}</button>
-                        &nbsp;&nbsp;&nbsp;<a class='cancelLink' data-dismiss="modal" href="#">{vtranslate('LBL_CANCEL', $MODULE)}</a></div>
+                        &nbsp;&nbsp;&nbsp;<a class='cancelLink mk-import-cancel-btn' data-dismiss="modal" href="#">{vtranslate('LBL_CANCEL', $MODULE)}</a></div>
                 </div>
             </div>
         </form>

@@ -8,6 +8,16 @@
 
 class Potentials_List_View extends Vtiger_List_View {
 
+    protected function ensureSalesApp(Vtiger_Request $request) {
+        require_once 'modules/Potentials/helpers/SalesAppGuard.php';
+        Potentials_SalesAppGuard::enforce($request);
+    }
+
+    protected function assignSalesApp(Vtiger_Request $request) {
+        require_once 'modules/Potentials/helpers/SalesAppGuard.php';
+        Potentials_SalesAppGuard::assignViewer($request, $this->getViewer($request));
+    }
+
     /**
      * Remove deprecated Project/Internal toggle injector.
      * The toggle is injected client-side by OrderCategoryFilter.js which may be registered
@@ -41,13 +51,18 @@ class Potentials_List_View extends Vtiger_List_View {
      * Check before rendering list.
      */
     public function preProcess(Vtiger_Request $request, $display = true) {
+        $this->ensureSalesApp($request);
         if ($this->shouldBlockInternalOrders($request)) {
             $this->redirectToInternalOrderAuth($request);
             // Do not call parent::preProcess; we are redirecting.
             exit;
         }
 
-        parent::preProcess($request, $display);
+        parent::preProcess($request, false);
+        $this->assignSalesApp($request);
+        if ($display) {
+            $this->preProcessDisplay($request);
+        }
     }
 
     /**
@@ -114,7 +129,8 @@ class Potentials_List_View extends Vtiger_List_View {
         $viewId     = $request->get('viewname');
 
         $url = 'index.php?module=' . urlencode($moduleName)
-            . '&view=InternalOrderAuth';
+            . '&view=InternalOrderAuth'
+            . '&app=SALES';
         if (!empty($viewId)) {
             $url .= '&viewname=' . urlencode($viewId);
         }

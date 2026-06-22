@@ -10,6 +10,16 @@
 
 class Potentials_Module_Model extends Vtiger_Module_Model {
 
+	public function getListViewUrl() {
+		require_once 'modules/Potentials/helpers/SalesAppGuard.php';
+		return Potentials_SalesAppGuard::appendAppToUrl(parent::getListViewUrl());
+	}
+
+	public function getListViewUrlWithAllFilter() {
+		require_once 'modules/Potentials/helpers/SalesAppGuard.php';
+		return Potentials_SalesAppGuard::appendAppToUrl(parent::getListViewUrlWithAllFilter());
+	}
+
 	/**
 	 * Function to get the Quick Links for the module
 	 * @param <Array> $linkParams
