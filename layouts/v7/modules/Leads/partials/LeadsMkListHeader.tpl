@@ -3,14 +3,14 @@
 <div class="mk-leads-header">
 	<header class="mk-leads-action-header" role="region" aria-label="{vtranslate('Leads', 'Leads')}">
 		<div class="mk-leads-action-header__text">
-			<h1 class="mk-leads-action-header__title">All Leads</h1>
-			<p class="mk-leads-action-header__subtitle">Tag-driven CRM workspace — manage, segment, and accelerate every conversation.</p>
+			<h1 class="mk-leads-action-header__title">{vtranslate('LBL_MK_ALL_LEADS', 'Leads')}</h1>
+			<p class="mk-leads-action-header__subtitle">{vtranslate('LBL_MK_LEADS_SUBTITLE', 'Leads')}</p>
 		</div>
 		<div class="mk-leads-action-header__actions">
 			<div class="mk-leads-export-wrap" id="mk-leads-export-wrap">
 				<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-export-btn" aria-haspopup="true" aria-expanded="false">
 					<span class="mk-leads-btn__ic" id="mk-leads-export-ic" aria-hidden="true"></span>
-					<span class="mk-leads-btn__txt">Export</span>
+					<span class="mk-leads-btn__txt">{vtranslate('LBL_EXPORT', 'Vtiger')}</span>
 				</button>
 				<div class="mk-leads-export-menu" id="mk-leads-export-menu" hidden>
 					<button type="button" data-export="csv">CSV</button>
@@ -19,7 +19,7 @@
 			</div>
 			<button type="button" class="mk-leads-btn mk-leads-btn--primary" onclick="window.location.href='index.php?module=Leads&amp;view=Edit&amp;app=SALES'">
 				<span class="mk-leads-btn__ic" id="mk-leads-create-ic" aria-hidden="true"></span>
-				<span class="mk-leads-btn__txt">Create Lead</span>
+				<span class="mk-leads-btn__txt">{vtranslate('LBL_ADD_RECORD', 'Leads')}</span>
 			</button>
 		</div>
 	</header>

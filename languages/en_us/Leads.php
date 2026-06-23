@@ -26,6 +26,28 @@ $languageStrings = array(
 	'LBL_MK_CALL_LOCKED' => 'Maximum 10/10 calls logged today. Resets on a new day.',
 	'LBL_MK_CACHE_BACKEND_HINT' => 'UI demo uses browser cache (localStorage). Backend: replace purchases + calendarTasks with API — see modules/Leads/docs/LEADS_CACHE_BACKEND_SPEC.md',
 
+	// Leads List (Lovable)
+	'LBL_MK_ALL_LEADS' => 'All Leads',
+	'LBL_MK_LEADS_SUBTITLE' => 'Tag-driven CRM workspace — manage, segment, and accelerate every conversation.',
+	'LBL_MK_SEGMENTS' => 'Segments',
+	'LBL_MK_SAVE_CURRENT' => 'Save current',
+	'LBL_MK_LEAD_METRICS' => 'Lead metrics',
+	'LBL_MK_LEADS_SEARCH_PLACEHOLDER' => 'Search by name, phone, email, or company…',
+	'LBL_MK_LEADS_TABLE' => 'Leads table',
+	'LBL_MK_COL_LEAD' => 'Lead',
+	'LBL_MK_COL_PHONE' => 'Phone',
+	'LBL_MK_COL_AREA' => 'Area',
+	'LBL_MK_COL_SOURCE' => 'Source',
+	'LBL_MK_COL_CUSTOMER_TYPE' => 'Customer Type',
+	'LBL_MK_COL_STAGE' => 'Stage',
+	'LBL_MK_COL_TIER' => 'Tier',
+	'LBL_MK_COL_OWNER' => 'Owner',
+	'LBL_MK_COL_TAGS' => 'Tags',
+	'LBL_MK_COL_LAST_TOUCH' => 'Last touch',
+	'LBL_MK_COL_NEXT_ACTION' => 'Next action',
+	'LBL_MK_COL_SUPPORT' => 'Support',
+	'LBL_MK_COL_STALE' => 'Stale',
+
 	// Blocks
 	'LBL_LEAD_INFORMATION' => 'Lead Details',
 
