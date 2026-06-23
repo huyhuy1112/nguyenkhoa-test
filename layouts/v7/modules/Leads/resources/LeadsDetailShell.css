@@ -1016,6 +1016,17 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	margin-left: 2px;
 }
 
+/* Dark mode: tag chips should be colorful and readable */
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag {
+	background: rgba(148, 163, 184, 0.14) !important;
+	border-color: rgba(148, 163, 184, 0.22) !important;
+	color: rgba(226, 232, 240, 0.88) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag a {
+	color: rgba(226, 232, 240, 0.6) !important;
+}
+
 /* ============================================================================
  * ACTIVITIES
  * ========================================================================== */
@@ -1651,6 +1662,16 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	font-size: 12px;
 	font-weight: 600;
 }
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip {
+	background: rgba(99, 102, 241, 0.14) !important;
+	border-color: rgba(99, 102, 241, 0.32) !important;
+	color: rgba(199, 210, 254, 0.95) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-1 { background: rgba(37, 99, 235, 0.14) !important; border-color: rgba(37, 99, 235, 0.32) !important; color: #93c5fd !important; }
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-2 { background: rgba(245, 158, 11, 0.16) !important; border-color: rgba(245, 158, 11, 0.36) !important; color: #fde68a !important; }
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-3 { background: rgba(249, 115, 22, 0.16) !important; border-color: rgba(249, 115, 22, 0.36) !important; color: #fed7aa !important; }
 
 /* Convert Lead modal — order category picker */
 .mk-lead-convert-modal {

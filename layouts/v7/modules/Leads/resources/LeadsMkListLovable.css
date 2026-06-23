@@ -766,6 +766,32 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-search__input::pl
 .mk-tag--goi-lan-2 { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
 .mk-tag--goi-lan-3 { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
 
+/* Dark mode: make tags/pills vibrant (not washed out) */
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag,
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill {
+	border-color: rgba(148, 163, 184, 0.22);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--facebook { background: rgba(37, 99, 235, 0.16); color: #93c5fd; border-color: rgba(37, 99, 235, 0.35); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--tiktok { background: rgba(219, 39, 119, 0.16); color: #fbcfe8; border-color: rgba(219, 39, 119, 0.35); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--website { background: rgba(79, 70, 229, 0.16); color: #c7d2fe; border-color: rgba(79, 70, 229, 0.35); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--zalo { background: rgba(2, 132, 199, 0.16); color: #bae6fd; border-color: rgba(2, 132, 199, 0.35); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--other { background: rgba(148, 163, 184, 0.14); color: rgba(226, 232, 240, 0.86); border-color: rgba(148, 163, 184, 0.22); }
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--mua-lan-dau { background: rgba(30, 64, 175, 0.18); color: #bfdbfe; border-color: rgba(30, 64, 175, 0.38); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--mua-lai { background: rgba(5, 150, 105, 0.16); color: #a7f3d0; border-color: rgba(5, 150, 105, 0.36); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--khong-mua { background: rgba(234, 88, 12, 0.18); color: #fed7aa; border-color: rgba(234, 88, 12, 0.38); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--ngung-mua { background: rgba(185, 28, 28, 0.18); color: #fecaca; border-color: rgba(185, 28, 28, 0.38); }
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--goi-lan-1 { background: rgba(37, 99, 235, 0.14); color: #93c5fd; border-color: rgba(37, 99, 235, 0.32); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--goi-lan-2 { background: rgba(245, 158, 11, 0.16); color: #fde68a; border-color: rgba(245, 158, 11, 0.36); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--goi-lan-3 { background: rgba(249, 115, 22, 0.16); color: #fed7aa; border-color: rgba(249, 115, 22, 0.36); }
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--gold { background: rgba(245, 158, 11, 0.16); color: #fde68a; border-color: rgba(245, 158, 11, 0.36); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--silver { background: rgba(148, 163, 184, 0.16); color: rgba(226, 232, 240, 0.86); border-color: rgba(148, 163, 184, 0.30); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--bronze { background: rgba(234, 88, 12, 0.16); color: #fed7aa; border-color: rgba(234, 88, 12, 0.36); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--support { background: rgba(234, 88, 12, 0.14); color: #fed7aa; border-color: rgba(234, 88, 12, 0.32); }
+
 .mk-pill {
     display: inline-flex;
     padding: 3px 8px;
