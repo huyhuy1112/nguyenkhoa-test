@@ -289,6 +289,7 @@ $languageStrings = array(
 	'LBL_FEEDBACK' => 'Phản hồi',
 	'LBL_FIELDS' => 'Trường',
 	'LBL_FILTER' => 'Lọc',
+	'LBL_FILTERS' => 'Bộ lọc',
 	'LBL_FILTER_CONDITIONS' => 'Điều kiện lọc',
 	'LBL_FILTER_ON_DATE' => 'Lọc theo ngày',
 	'LBL_FINAL_DISCOUNT_AMOUNT' => 'Số tiền giảm giá cuối cùng',

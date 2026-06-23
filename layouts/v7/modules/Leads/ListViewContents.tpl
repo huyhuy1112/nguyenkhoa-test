@@ -24,7 +24,7 @@
 					<span id="mk-leads-filters-chev" aria-hidden="true"></span>
 					<span id="mk-leads-filter-count" class="mk-leads-filter-badge" hidden>0</span>
 				</button>
-				<button type="button" class="mk-leads-reset" id="mk-leads-reset" hidden>{vtranslate('LBL_RESET', 'Vtiger')}</button>
+				<button type="button" class="mk-leads-reset" id="mk-leads-reset" hidden>{vtranslate('LBL_CLEAR', 'Vtiger')}</button>
 				<div class="mk-leads-filters-count" id="mk-leads-filter-summary"></div>
 			</div>
 			<div id="mk-leads-filters-panel" class="mk-leads-filters-panel"></div>

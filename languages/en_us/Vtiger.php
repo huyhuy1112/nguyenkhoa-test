@@ -384,6 +384,7 @@ $languageStrings = array(
 	'LBL_PERMISSION_DENIED' => 'Permission denied',
 	'LBL_HANDLER_NOT_FOUND' => 'Handler not found',
 	'LBL_FILTER' => 'List',
+	'LBL_FILTERS' => 'Filters',
 	'LBL_DUE' => 'due in',
 	'LBL_DAYS' => 'days',
 	'LBL_COMPLETED' => 'completed',
