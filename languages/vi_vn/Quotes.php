@@ -10,6 +10,9 @@
 $languageStrings = array(
 	'Accepted'=>'Chấp nhận',
 	'Inventory Manager'=>'Quản lý hàng tồn',
+	'LBL_EXPORT_TO_EXCEL' => 'Xuất Excel',
+	'LBL_EXPORT_TO_EXCEL_FOR_SALE' => 'Xuất Excel bán hàng',
+	'LBL_EXPORT_TO_EXCEL_FOR_PROJECT' => 'Xuất Excel dự án',
 	'LBL_ADD_RECORD' => 'Thêm báo giá',
 	'LBL_ADD_PRODUCTS_AND_SERVICES' => 'Thêm sản phẩm & dịch vụ',
 	'LBL_EXPORT_TO_PDF' => 'Xuất ra PDF',
@@ -27,6 +30,7 @@ $languageStrings = array(
 	'Quotes'=>'Báo giá',
 	'LINE_DETAILS' => 'Chi tiết',
 
+	'LBL_MK_QUOTE_SUMMARY' => 'Tóm tắt báo giá',
 	'LBL_MK_QUOTE_VAT' => 'Tổng tiền & VAT',
 	'Quote Date' => 'Ngày báo giá',
 	'Customer Phone' => 'SĐT khách hàng',

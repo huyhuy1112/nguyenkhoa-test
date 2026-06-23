@@ -29,6 +29,7 @@ $languageStrings = array(
 	'LBL_MORE' => 'Công cụ',	
 	'last' => 'Cuối cùng',
 	'LBL_ACTIVITY_TYPES' => 'Các loại công việc',
+	'LBL_ACTIVITIES' => 'Công việc',
 	'LBL_ADD_CALENDAR_VIEW' => 'Thêm dịch theo dõi',
 	'LBL_ADDED_CALENDARS' => 'Đã thêm công việc',
 	'LBL_ADD_EVENT' => 'Thêm sự kiện',

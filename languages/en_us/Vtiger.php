@@ -220,6 +220,7 @@ $languageStrings = array(
 	'LBL_RECORDS_LIST' => 'Records List',
 	'LBL_RECORD_SUMMARY' => 'Module Summary',
 	'LBL_RECORD_SUMMARY' => 'Module Details',
+	'LBL_RECORD_DETAILS' => 'Details',
 	'LBL_ACCESS_DENIED_FOR' => 'Access Denied for',
 	'LBL_GO_BACK' => 'Go back',
 	'LBL_NO_DATA_AVAILABLE' => 'No data available',

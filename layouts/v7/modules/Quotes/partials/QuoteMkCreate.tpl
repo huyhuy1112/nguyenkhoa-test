@@ -120,7 +120,7 @@
 			<div class="mk-qt-rail-card mk-qt-rail-card--summary">
 				<div class="mk-qt-rail-card__head">
 					<span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-file-text-o"></i></span>
-					<h2 class="mk-qt-rail-card__title">Quote Summary</h2>
+					<h2 class="mk-qt-rail-card__title">{vtranslate('LBL_MK_QUOTE_SUMMARY', $MODULE)}</h2>
 				</div>
 				<dl class="mk-qt-summary-list">
 					<div class="mk-qt-summary-list__row">
