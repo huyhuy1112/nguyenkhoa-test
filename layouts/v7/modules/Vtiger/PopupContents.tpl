@@ -98,9 +98,9 @@
                     {if isset($RECORD_DATA[$LISTVIEW_HEADERNAME])}
                         {assign var=RECORD_DATA_LISTVIEW_HEADERNAME value=$RECORD_DATA[$LISTVIEW_HEADERNAME]}
                     {/if}
-                    <td class="listViewEntryValue value textOverflowEllipsis {$WIDTHTYPE}" title="{$RECORD_DATA_LISTVIEW_HEADERNAME}">
+                    <td class="listViewEntryValue value textOverflowEllipsis {$WIDTHTYPE}" title="{decode_html($RECORD_DATA_LISTVIEW_HEADERNAME)}">
                         {if $LISTVIEW_HEADER->isNameField() eq true or $LISTVIEW_HEADER->get('uitype') eq '4'}
-                            <a>{$LISTVIEW_ENTRY->get($LISTVIEW_HEADERNAME)}</a>
+                            <a>{decode_html($LISTVIEW_ENTRY->get($LISTVIEW_HEADERNAME))}</a>
                         {else if $LISTVIEW_HEADER->get('uitype') eq '72'}
                             {assign var=CURRENCY_SYMBOL_PLACEMENT value={$CURRENT_USER_MODEL->get('currency_symbol_placement')}}
                             {if $CURRENCY_SYMBOL_PLACEMENT eq '1.0$'}
@@ -119,7 +119,7 @@
                                 <span {if !empty($LISTVIEW_ENTRY_VALUE)} class="picklist-color picklist-{$LISTVIEW_HEADER->getId()}-{Vtiger_Util_Helper::convertSpaceToHyphen(trim($MULTI_PICKLIST_VALUE))}" {/if}> {trim($MULTI_PICKLIST_VALUES[$MULTI_PICKLIST_INDEX])} </span>
                             {/foreach}
                         {else}
-                            {$LISTVIEW_ENTRY->get($LISTVIEW_HEADERNAME)}
+                            {decode_html($LISTVIEW_ENTRY->get($LISTVIEW_HEADERNAME))}
                         {/if}
                     </td>
                     {/foreach}

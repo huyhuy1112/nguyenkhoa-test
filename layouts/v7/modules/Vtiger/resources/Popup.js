@@ -950,7 +950,46 @@ jQuery.Class("Vtiger_Popup_Js",{
 		}
 	},
         
+    fixPopupDisplayEncoding : function(container) {
+        container = container || this.getPopupPageContainer();
+        if (!container || !container.length) {
+            return;
+        }
+        var decodeText = function(value) {
+            if (!value || typeof value !== 'string' || value.indexOf('&') === -1) {
+                return value;
+            }
+            if (typeof app !== 'undefined' && app.htmlDecode) {
+                return app.htmlDecode(value);
+            }
+            var el = document.createElement('textarea');
+            el.innerHTML = value;
+            return el.value;
+        };
+        container.find('td.listViewEntryValue').each(function() {
+            var $td = jQuery(this);
+            var text = $td.text();
+            var decoded = decodeText(text);
+            if (decoded !== text) {
+                var $link = $td.find('a');
+                if ($link.length) {
+                    $link.text(decoded);
+                } else {
+                    $td.text(decoded);
+                }
+            }
+            var title = $td.attr('title');
+            if (title) {
+                var decodedTitle = decodeText(title);
+                if (decodedTitle !== title) {
+                    $td.attr('title', decodedTitle);
+                }
+            }
+        });
+    },
+
     registerPostPopupLoadEvents : function(){
+        this.fixPopupDisplayEncoding();
         var popupContainer = jQuery('#popupModal');
         var Options= {
             axis:"yx",

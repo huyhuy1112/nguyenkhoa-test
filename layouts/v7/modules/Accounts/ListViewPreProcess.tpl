@@ -4,17 +4,40 @@
 {if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'SUPPORT')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'SUPPORT'))}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
+<script type="text/javascript">document.documentElement.classList.add('mk-accounts-list-modern');</script>
+<style type="text/css">
+html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #listViewContent { visibility: hidden; }
+html.mk-accounts-list-modern.mk-accounts-list-ready #listViewContent { visibility: visible; }
+html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #listViewContent .bottom-fixed-scroll {
+	display: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	width: 0 !important;
+	pointer-events: none !important;
+}
+html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #modnavigator,
+html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #sidebar-essentials,
+html.mk-accounts-list-modern:not(.mk-accounts-list-ready) .essentials-toggle {
+	display: none !important;
+}
+</style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.css')}" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.css')}?mk_v=20260622_org_list_cols1" />
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SUPPORT') || (isset($smarty.get.app) && $smarty.get.app eq 'SUPPORT')}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsMkSalesListSupport.css')}?mk_v=20260603_support1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSupportListTable.css')}?mk_v=20260603_support1" />
 {/if}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260620_delete_backdrop1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" onload="document.documentElement.classList.add('mk-accounts-list-ready')" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260607_sales_footer1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.js')}?mk_v=20260620_delete_backdrop1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.js')}?mk_v=20260622_org_list_cols1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-accounts-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">
@@ -42,12 +65,22 @@
 {* MARKETING branch unchanged — uses MkMarketingListShared *}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.css')}" />
+<script type="text/javascript">document.documentElement.classList.add('mk-accounts-list-modern');</script>
+<style type="text/css">
+html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #listViewContent { visibility: hidden; }
+html.mk-accounts-list-modern.mk-accounts-list-ready #listViewContent { visibility: visible; }
+html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #modnavigator,
+html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #sidebar-essentials,
+html.mk-accounts-list-modern:not(.mk-accounts-list-ready) .essentials-toggle {
+	display: none !important;
+}
+</style>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.css')}?mk_v=20260622_org_list_cols1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListShared.css')}?mk_v=20260606_pagingflash1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListTable.css')}?mk_v=20260617_mkt_align1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListTable.css')}?mk_v=20260617_mkt_align1" onload="document.documentElement.classList.add('mk-accounts-list-ready')" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListShared.js')}?mk_v=20260603_mkt_std1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.js')}?mk_v=20260620_delete_backdrop1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.js')}?mk_v=20260622_org_list_cols1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-accounts-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

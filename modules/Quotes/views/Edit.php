@@ -23,6 +23,8 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
 		$user = Users_Record_Model::getCurrentUserModel();
+		require_once 'modules/Quotes/helpers/QuoteBaService.php';
+		$baContext = Quotes_QuoteBaService_Helper::getBaContext();
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
@@ -32,6 +34,7 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('MK_MODERN_QUOTE_CREATE', true);
 		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
 		$viewer->assign('MK_QUOTE_OWNER_NAME', trim($user->getName()));
+		$viewer->assign('MK_QUOTE_BA_CONFIG_JSON', Zend_Json::encode($baContext));
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
@@ -88,6 +91,7 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 			return $headerScriptInstances;
 		}
 		$jsFileNames = array(
+			'~layouts/v7/modules/Quotes/resources/QuoteMkBa.js',
 			'~layouts/v7/modules/Quotes/resources/QuoteMkEdit.js',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);

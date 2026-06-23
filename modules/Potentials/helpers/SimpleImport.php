@@ -18,13 +18,25 @@ class Potentials_SimpleImport_Helper {
 
 	public static function normalizeHeader($header) {
 		$header = preg_replace('/^\xEF\xBB\xBF/', '', (string)$header);
+		$header = str_replace(array("\xC2\xA0", "\t"), ' ', $header);
 		$header = trim($header);
 		if (strlen($header) >= 2 && $header[0] === '"' && substr($header, -1) === '"') {
 			$header = substr($header, 1, -1);
 		}
 		$header = str_replace('"', '', $header);
 		$header = preg_replace('/\s+/', ' ', $header);
-		return mb_strtolower(trim($header), 'UTF-8');
+		$header = mb_strtolower(trim($header), 'UTF-8');
+		static $aliases = array(
+			'organisation name' => 'organization name',
+			'organisation' => 'organization name',
+			'org name' => 'organization name',
+			'account name' => 'organization name',
+			'projectname' => 'project name',
+			'opportunityname' => 'opportunity name',
+			'potentialname' => 'potential name',
+			'contactname' => 'contact name',
+		);
+		return isset($aliases[$header]) ? $aliases[$header] : $header;
 	}
 
 	public static function getHeaderFieldMap() {
@@ -34,10 +46,14 @@ class Potentials_SimpleImport_Helper {
 			'tiêu đề' => 'potentialname',
 			'project name' => 'cf_857',
 			'tên dự án' => 'cf_857',
+			'project code' => 'description',
+			'mã dự án' => 'description',
+			'order name' => 'potentialname',
 			'opportunity number' => 'potential_no',
 			'potential no' => 'potential_no',
 			'mã orders' => 'potential_no',
 			'organization name' => 'related_to',
+			'organisation name' => 'related_to',
 			'tên khách hàng' => 'related_to',
 			'related to' => 'related_to',
 			'contact name' => 'contact_id',
@@ -71,6 +87,7 @@ class Potentials_SimpleImport_Helper {
 	}
 
 	public static function filterFieldMapping($fieldMapping, $moduleName = 'Potentials') {
+		$projectNameIndex = isset($fieldMapping['cf_857']) ? $fieldMapping['cf_857'] : null;
 		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
 		if (!$moduleModel) {
 			return $fieldMapping;
@@ -89,7 +106,30 @@ class Potentials_SimpleImport_Helper {
 			}
 			$filtered[$fieldName] = $index;
 		}
+		if ($projectNameIndex !== null && !isset($filtered['cf_857']) && !isset($filtered['potentialname'])) {
+			$filtered['potentialname'] = $projectNameIndex;
+		}
 		return $filtered;
+	}
+
+	public static function assertRequiredMapping($fieldMapping, $headerIndex) {
+		$missing = array();
+		if (!array_key_exists('cf_857', $fieldMapping) && !array_key_exists('potentialname', $fieldMapping)) {
+			$missing[] = 'Project Name / Opportunity Name / Tiêu đề';
+		}
+		if (!array_key_exists('related_to', $fieldMapping)) {
+			$missing[] = 'Organization Name / Tên khách hàng';
+		}
+		if (empty($missing)) {
+			return;
+		}
+		$found = array_keys($headerIndex);
+		$foundText = $found ? implode(' | ', array_slice($found, 0, 12)) : '(trống — kiểm tra dấu phẩy hoặc chấm phẩy)';
+		throw new Exception(
+			'Không map được cột ' . implode(' và ', $missing) . '. '
+			. 'Header đọc được: [' . $foundText . ']. '
+			. 'Dòng 1 file cần đúng tên cột (Project Name, Organization Name, …) và lưu CSV UTF-8.'
+		);
 	}
 
 	public static function getColumnValueByHeaderKey($headerIndex, $headerKey, $headers, $firstRowData) {
@@ -129,6 +169,225 @@ class Potentials_SimpleImport_Helper {
 			}
 		}
 		return $fieldMapping;
+	}
+
+	public static function isPlaceholderHeaderName($header) {
+		$header = self::normalizeHeader($header);
+		if ($header === '' || ctype_digit($header)) {
+			return true;
+		}
+		$compact = preg_replace('/\s+/', '', $header);
+		if (preg_match('/^(?:cột|cot|column|col|field)\d+$/iu', $compact)) {
+			return true;
+		}
+		$header = preg_replace('/\p{M}/u', '', $header);
+		if (function_exists('iconv')) {
+			$ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $header);
+			if (is_string($ascii) && $ascii !== '') {
+				$header = strtolower($ascii);
+			}
+		}
+		return (bool)preg_match('/^(?:column|col|field|cot)\s*\d+$/i', $header);
+	}
+
+	public static function headersLookLikePlaceholders(array $headers) {
+		if (empty($headers)) {
+			return false;
+		}
+		$placeholder = 0;
+		foreach ($headers as $header) {
+			if (self::isPlaceholderHeaderName($header)) {
+				$placeholder++;
+			}
+		}
+		return $placeholder >= max(3, (int)floor(php7_count($headers) * 0.75));
+	}
+
+	/**
+	 * English CRM export (Project Name, Project Code, …, Organization Name, Contact Name).
+	 */
+	public static function getEnglishExportPositionalOrder() {
+		return array(
+			'cf_857',
+			'description',
+			null,
+			'potentialname',
+			'potential_no',
+			'related_to',
+			'contact_id',
+		);
+	}
+
+	/**
+	 * SALES export / sample CSV column order (Vietnamese headers in DownloadImportSample).
+	 */
+	public static function getPositionalFieldOrder() {
+		return array(
+			'description',
+			'potentialname',
+			'potential_no',
+			'related_to',
+			'contact_id',
+			'opportunity_type',
+			'amount',
+			'leadsource',
+			'closingdate',
+			'assigned_user_id',
+			'nextstep',
+			'campaignid',
+			'sales_stage',
+			'probability',
+			'forecast_amount',
+			'order_category',
+		);
+	}
+
+	public static function buildPositionalFieldMapping($columnCount) {
+		$mapping = array();
+		$englishOrder = self::getEnglishExportPositionalOrder();
+		if ($columnCount <= 12) {
+			foreach ($englishOrder as $index => $fieldName) {
+				if ($index >= $columnCount || $fieldName === null) {
+					continue;
+				}
+				if (in_array($fieldName, self::$skipFieldNames, true)) {
+					continue;
+				}
+				$mapping[$fieldName] = $index;
+			}
+		}
+		if (empty($mapping)) {
+			$order = self::getPositionalFieldOrder();
+			foreach ($order as $index => $fieldName) {
+				if ($index >= $columnCount) {
+					break;
+				}
+				if (in_array($fieldName, self::$skipFieldNames, true)) {
+					continue;
+				}
+				$mapping[$fieldName] = $index;
+			}
+		}
+		if (!isset($mapping['cf_857']) && isset($mapping['potentialname'])) {
+			$mapping['cf_857'] = $mapping['potentialname'];
+		}
+		return self::sortFieldMappingForImport($mapping);
+	}
+
+	public static function countKnownHeaderCells(array $cells) {
+		$known = array_keys(self::getHeaderFieldMap());
+		$matched = 0;
+		foreach ($cells as $cell) {
+			$normalized = self::normalizeHeader(Import_Utils_Helper::normalizeCsvCell((string)$cell));
+			if ($normalized !== '' && in_array($normalized, $known, true)) {
+				$matched++;
+			}
+		}
+		return $matched;
+	}
+
+	public static function rowLooksLikeHeaderLabels(array $cells) {
+		return self::countKnownHeaderCells($cells) >= 3;
+	}
+
+	/**
+	 * Numbers/Excel often exports row1 = Column1..N and row2 = real headers.
+	 */
+	public static function normalizeImportFile(Vtiger_Request $request, $user) {
+		$filePath = Import_Utils_Helper::getImportFilePath($user);
+		if (!$filePath || !is_readable($filePath)) {
+			return false;
+		}
+		$delimiter = $request->get('delimiter') ? $request->get('delimiter') : ',';
+		$handle = fopen($filePath, 'r');
+		if (!$handle) {
+			return false;
+		}
+		$rows = array();
+		while (($data = fgetcsv($handle, 0, $delimiter)) !== false) {
+			$rows[] = $data;
+		}
+		fclose($handle);
+		if (php7_count($rows) < 2) {
+			return false;
+		}
+
+		$row0 = $rows[0];
+		$row1 = $rows[1];
+		if (!self::headersLookLikePlaceholders($row0) || !self::rowLooksLikeHeaderLabels($row1)) {
+			return false;
+		}
+
+		$newRows = array($row1);
+		for ($i = 2, $n = php7_count($rows); $i < $n; $i++) {
+			if (self::rowLooksLikeHeaderLabels($rows[$i])) {
+				continue;
+			}
+			$newRows[] = $rows[$i];
+		}
+
+		$tmpPath = $filePath . '.mknorm.csv';
+		$out = fopen($tmpPath, 'w');
+		if (!$out) {
+			return false;
+		}
+		fwrite($out, "\xEF\xBB\xBF");
+		foreach ($newRows as $row) {
+			fputcsv($out, $row, $delimiter);
+		}
+		fclose($out);
+		if (!@rename($tmpPath, $filePath)) {
+			@unlink($tmpPath);
+			return false;
+		}
+		return true;
+	}
+
+	public static function sortFieldMappingForImport(array $fieldMapping) {
+		$priority = array(
+			'related_to' => 10,
+			'contact_id' => 20,
+		);
+		uksort($fieldMapping, function ($a, $b) use ($priority) {
+			$pa = isset($priority[$a]) ? $priority[$a] : 50;
+			$pb = isset($priority[$b]) ? $priority[$b] : 50;
+			if ($pa === $pb) {
+				return 0;
+			}
+			return ($pa < $pb) ? -1 : 1;
+		});
+		return $fieldMapping;
+	}
+
+	public static function tryRebuildHeaderIndexFromRawRow(Vtiger_Request $request, $user) {
+		$filePath = Import_Utils_Helper::getImportFilePath($user);
+		if (!$filePath || !is_readable($filePath)) {
+			return null;
+		}
+		$delimiter = $request->get('delimiter') ? $request->get('delimiter') : ',';
+		$handle = fopen($filePath, 'r');
+		if (!$handle) {
+			return null;
+		}
+		$headerCells = fgetcsv($handle, 0, $delimiter);
+		fclose($handle);
+		if (!is_array($headerCells) || empty($headerCells)) {
+			return null;
+		}
+		$headerIndex = array();
+		$known = array_keys(self::getHeaderFieldMap());
+		$matched = 0;
+		foreach ($headerCells as $index => $cell) {
+			$cell = self::normalizeHeader(Import_Utils_Helper::normalizeCsvCell($cell));
+			if ($cell === '') {
+				continue;
+			}
+			$headerIndex[$cell] = $index;
+			if (in_array($cell, $known, true)) {
+				$matched++;
+			}
+		}
+		return ($matched >= 2) ? $headerIndex : null;
 	}
 
 	/**
@@ -249,6 +508,22 @@ class Potentials_SimpleImport_Helper {
 			$headerIndex[self::normalizeHeader($header)] = $index;
 		}
 
+		$usePositional = self::headersLookLikePlaceholders($headers);
+		if (!$usePositional) {
+			$rebuilt = self::tryRebuildHeaderIndexFromRawRow($request, $user);
+			if (is_array($rebuilt) && !empty($rebuilt)) {
+				$headerIndex = $rebuilt;
+				$usePositional = false;
+			}
+		}
+
+		if ($usePositional) {
+			$fieldMapping = self::buildPositionalFieldMapping(php7_count($headers));
+			$fieldMapping = self::filterFieldMapping($fieldMapping, $request->getModule());
+			self::assertRequiredMapping($fieldMapping, $headerIndex);
+			return $fieldMapping;
+		}
+
 		$headerMap = self::getHeaderFieldMap();
 		$fieldMapping = array();
 		foreach ($headerMap as $headerKey => $fieldName) {
@@ -262,7 +537,10 @@ class Potentials_SimpleImport_Helper {
 
 		$fieldMapping = self::resolveProjectNameMapping($headerIndex, $fieldMapping);
 		$fieldMapping = self::resolvePotentialNameMapping($headerIndex, $fieldMapping, $headers, $firstRow);
-		return self::filterFieldMapping($fieldMapping, $request->getModule());
+		$fieldMapping = self::filterFieldMapping($fieldMapping, $request->getModule());
+		$fieldMapping = self::sortFieldMappingForImport($fieldMapping);
+		self::assertRequiredMapping($fieldMapping, $headerIndex);
+		return $fieldMapping;
 	}
 
 	public static function getFailedRowSamples($user, $limit = 5) {

@@ -11,6 +11,43 @@
 class Accounts_ListView_Model extends Vtiger_ListView_Model {
 
 	/**
+	 * Modern Organizations list (Sales / Marketing / Support): fixed column set.
+	 */
+	private function isModernOrganizationsListRequest() {
+		$app = '';
+		if (!empty($_REQUEST['app'])) {
+			$app = strtoupper((string) $_REQUEST['app']);
+		}
+		return in_array($app, array('SALES', 'MARKETING', 'SUPPORT'), true);
+	}
+
+	private function getModernOrganizationsListFieldOrder() {
+		return array('accountname', 'website', 'phone', 'assigned_user_id');
+	}
+
+	public function getListViewHeaders() {
+		$headers = parent::getListViewHeaders();
+		if (!$this->isModernOrganizationsListRequest()) {
+			return $headers;
+		}
+
+		$module = $this->getModule();
+		$filtered = array();
+		foreach ($this->getModernOrganizationsListFieldOrder() as $fieldName) {
+			if (isset($headers[$fieldName])) {
+				$filtered[$fieldName] = $headers[$fieldName];
+				continue;
+			}
+			$fieldInstance = Vtiger_Field_Model::getInstance($fieldName, $module);
+			if ($fieldInstance && in_array($fieldInstance->getPresence(), array(0, 2), true)) {
+				$fieldInstance->set('listViewRawFieldName', $fieldInstance->get('column'));
+				$filtered[$fieldName] = $fieldInstance;
+			}
+		}
+		return $filtered;
+	}
+
+	/**
 	 * Function to get the list of Mass actions for the module
 	 * @param <Array> $linkParams
 	 * @return <Array> - Associative array of Link type to List of  Vtiger_Link_Model instances for Mass Actions

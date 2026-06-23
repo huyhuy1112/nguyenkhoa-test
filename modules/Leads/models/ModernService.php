@@ -339,6 +339,7 @@ class Leads_ModernService {
 		self::upsertProfile($leadId, $profile);
 		$todayCalls = Leads_CommerceService::countTodayCallsForLead($leadId);
 		$tags = self::applyCallAttemptTags($tags, $todayCalls);
+		$tags = self::applyRegionTags($tags, isset($payload['district']) ? $payload['district'] : '');
 		self::syncTags($leadId, $tags, $userId);
 
 		if ($isNew && empty($mkCacheId)) {
@@ -939,6 +940,37 @@ class Leads_ModernService {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Khu vực 1/2/3 → tag KV1/KV2/KV3 on saved lead profile.
+	 */
+	protected static function mapDistrictToRegionTag($district) {
+		$district = trim((string)$district);
+		if ($district === '') {
+			return null;
+		}
+		if (preg_match('/^khu\s*vực\s*([123])$/iu', $district, $m)) {
+			return 'KV' . $m[1];
+		}
+		if (preg_match('/^kv([123])$/i', $district, $m)) {
+			return 'KV' . $m[1];
+		}
+		return null;
+	}
+
+	protected static function applyRegionTags(array $tags, $district) {
+		$regionTag = self::mapDistrictToRegionTag($district);
+		if (!$regionTag) {
+			$regionTag = self::findTag($tags, array('KV1', 'KV2', 'KV3'));
+		}
+		$tags = array_values(array_filter($tags, function ($tag) {
+			return !preg_match('/^KV[123]$/i', (string)$tag);
+		}));
+		if ($regionTag) {
+			$tags[] = strtoupper($regionTag);
+		}
+		return $tags;
 	}
 
 	protected static function mapLeadsource(array $tags) {

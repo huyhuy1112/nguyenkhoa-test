@@ -4,10 +4,45 @@
 {include file="partials/MkSalesUiMeta.tpl"|vtemplate_path:'Vtiger'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesDetailInlineEdit.css')}&mk_v=20260611_mk_inline_v3" />
 <script type="text/javascript">document.documentElement.classList.add('mk-quote-create-ready');</script>
+<style type="text/css">
+	/* Anti-FOUC: hide legacy vtiger form chrome before JS enhances */
+	html.mk-quote-create-ready #mkQtFormHost #modnavigator,
+	html.mk-quote-create-ready #mkQtFormHost .editViewModNavigator,
+	html.mk-quote-create-ready #mkQtFormHost .module-nav,
+	html.mk-quote-create-ready #mkQtFormHost .editViewHeader,
+	html.mk-quote-create-ready #mkQtFormHost .modal-overlay-footer,
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="carrier"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="shipping"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="inventorymanager"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="assigned_user_id1"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="description"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="bill_pobox"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="bill_city"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="bill_state"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="bill_code"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="bill_country"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="ship_pobox"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="ship_city"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="ship_state"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="ship_code"]),
+	html.mk-quote-create-ready #mkQtFormHost tr:has([name="ship_country"]) {
+		display: none !important;
+	}
+	html.mk-quote-create-ready:not(.mk-quote-create-enhanced) #mkQtFormHost {
+		visibility: hidden;
+	}
+	html.mk-quote-create-enhanced #mkQtFormHost {
+		visibility: visible;
+	}
+</style>
+{if !empty($MK_QUOTE_BA_CONFIG_JSON)}
+<script type="text/javascript">window.__MK_QUOTE_BA_CONFIG = {$MK_QUOTE_BA_CONFIG_JSON nofilter};</script>
+{/if}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260603_no_dup_footer" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}?mk_v=20260611_qt_subject_fix" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}?mk_v=20260622_quote_excel_v1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}?mk_v=20260527_quote_create2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}?mk_v=20260622_quote_excel_v1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}?mk_v=20260622_quote_excel_v1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-quote-create="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

@@ -71,9 +71,10 @@
 				{* Potentials / Orders: Vietnamese + English export headers *}
 				{if $FOR_MODULE eq 'Potentials'}
 					{if $_HEADER_NORM eq 'ghi chú' || $_HEADER_NORM eq 'description'}{assign var="_SELECTED_FIELD_NAME" value="description"}
-					{elseif $_HEADER_NORM eq 'tiêu đề' || $_HEADER_NORM eq 'potential name' || $_HEADER_NORM eq 'potential'}{assign var="_SELECTED_FIELD_NAME" value="potentialname"}
+					{elseif $_HEADER_NORM eq 'tiêu đề' || $_HEADER_NORM eq 'potential name' || $_HEADER_NORM eq 'potential' || $_HEADER_NORM eq 'opportunity name'}{assign var="_SELECTED_FIELD_NAME" value="potentialname"}
+					{elseif $_HEADER_NORM eq 'project name' || $_HEADER_NORM eq 'tên dự án' || $_HEADER_NORM eq 'projectname'}{assign var="_SELECTED_FIELD_NAME" value="cf_857"}
 					{elseif $_HEADER_NORM eq 'mã orders' || $_HEADER_NORM eq 'potential no' || $_HEADER_NORM eq 'order code'}{assign var="_SELECTED_FIELD_NAME" value="potential_no"}
-					{elseif $_HEADER_NORM eq 'tên khách hàng' || $_HEADER_NORM eq 'organization name' || $_HEADER_NORM eq 'related to'}{assign var="_SELECTED_FIELD_NAME" value="related_to"}
+					{elseif $_HEADER_NORM eq 'tên khách hàng' || $_HEADER_NORM eq 'organization name' || $_HEADER_NORM eq 'organisation name' || $_HEADER_NORM eq 'related to'}{assign var="_SELECTED_FIELD_NAME" value="related_to"}
 					{elseif $_HEADER_NORM eq 'tên liên hệ' || $_HEADER_NORM eq 'contact name'}{assign var="_SELECTED_FIELD_NAME" value="contact_id"}
 					{elseif $_HEADER_NORM eq 'loại order' || $_HEADER_NORM eq 'type' || $_HEADER_NORM eq 'opportunity type'}{assign var="_SELECTED_FIELD_NAME" value="opportunity_type"}
 					{elseif $_HEADER_NORM eq 'giá trị dự kiến' || $_HEADER_NORM eq 'amount'}{assign var="_SELECTED_FIELD_NAME" value="amount"}

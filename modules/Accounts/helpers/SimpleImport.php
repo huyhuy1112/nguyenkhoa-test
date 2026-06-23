@@ -14,13 +14,236 @@ class Accounts_SimpleImport_Helper {
 
 	public static function normalizeHeader($header) {
 		$header = preg_replace('/^\xEF\xBB\xBF/', '', (string)$header);
+		$header = str_replace(array("\xC2\xA0", "\t"), ' ', $header);
 		$header = trim($header);
 		if (strlen($header) >= 2 && $header[0] === '"' && substr($header, -1) === '"') {
 			$header = substr($header, 1, -1);
 		}
 		$header = str_replace('"', '', $header);
 		$header = preg_replace('/\s+/', ' ', $header);
-		return mb_strtolower(trim($header), 'UTF-8');
+		$header = mb_strtolower(trim($header), 'UTF-8');
+		if (class_exists('Normalizer')) {
+			$normalized = Normalizer::normalize($header, Normalizer::FORM_C);
+			if (is_string($normalized) && $normalized !== '') {
+				$header = $normalized;
+			}
+		}
+		static $aliases = array(
+			'organisation name' => 'organization name',
+			'organisation' => 'organization name',
+			'org name' => 'organization name',
+			'account name' => 'organization name',
+			'company code' => 'company code',
+			'tên khách hàng' => 'organization name',
+			'ten khach hang' => 'organization name',
+		);
+		return isset($aliases[$header]) ? $aliases[$header] : $header;
+	}
+
+	public static function foldHeaderForMatch($header) {
+		$header = self::normalizeHeader($header);
+		$header = preg_replace('/\p{M}/u', '', $header);
+		if (function_exists('iconv')) {
+			$ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $header);
+			if (is_string($ascii) && $ascii !== '') {
+				$header = strtolower($ascii);
+			}
+		}
+		return $header;
+	}
+
+	public static function isPlaceholderHeaderName($header) {
+		$normalized = self::normalizeHeader($header);
+		if ($normalized === '' || ctype_digit($normalized)) {
+			return true;
+		}
+		$compact = preg_replace('/\s+/', '', $normalized);
+		if (preg_match('/^(?:cột|cot|column|col|field)\d+$/iu', $compact)) {
+			return true;
+		}
+		$folded = self::foldHeaderForMatch($header);
+		return (bool)preg_match('/^(?:column|col|field|cot)\s*\d+$/i', $folded);
+	}
+
+	public static function headersLookLikePlaceholders(array $headers) {
+		if (empty($headers)) {
+			return false;
+		}
+		$placeholder = 0;
+		foreach ($headers as $header) {
+			if (self::isPlaceholderHeaderName($header)) {
+				$placeholder++;
+			}
+		}
+		return $placeholder >= max(3, (int)floor(php7_count($headers) * 0.75));
+	}
+
+	public static function countKnownHeaderCells(array $cells) {
+		$known = array_keys(self::getHeaderFieldMap());
+		$matched = 0;
+		foreach ($cells as $cell) {
+			$normalized = self::normalizeHeader(Import_Utils_Helper::normalizeCsvCell((string)$cell));
+			if ($normalized !== '' && in_array($normalized, $known, true)) {
+				$matched++;
+			}
+		}
+		return $matched;
+	}
+
+	public static function rowLooksLikeHeaderLabels(array $cells) {
+		return self::countKnownHeaderCells($cells) >= 2;
+	}
+
+	/**
+	 * English vtiger Accounts export column order (Organization Name, Organization Number, …).
+	 */
+	public static function getEnglishExportPositionalOrder() {
+		return array(
+			'accountname',
+			'account_no',
+			'website',
+			'phone',
+			'otherphone',
+			'fax',
+			'tickersymbol',
+			'email1',
+			'email2',
+			'ownership',
+			'industry',
+			'rating',
+			'accounttype',
+			'siccode',
+			'emailoptout',
+			'annualrevenue',
+			'employees',
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			'cf_855',
+			null,
+			'bill_street',
+			'bill_pobox',
+			'bill_city',
+			'bill_state',
+			'bill_code',
+			'bill_country',
+			'ship_street',
+			'ship_pobox',
+			'ship_city',
+			'ship_state',
+			'ship_code',
+			'ship_country',
+			'description',
+		);
+	}
+
+	public static function buildPositionalFieldMapping($columnCount) {
+		$mapping = array();
+		$order = self::getEnglishExportPositionalOrder();
+		foreach ($order as $index => $fieldName) {
+			if ($index >= $columnCount || $fieldName === null) {
+				continue;
+			}
+			if (in_array($fieldName, self::$skipFieldNames, true)) {
+				continue;
+			}
+			$mapping[$fieldName] = $index;
+		}
+		return $mapping;
+	}
+
+	/**
+	 * Numbers/Excel: row1 = Cột1..N / Column1..N, row2 = Organization Name, …
+	 */
+	public static function normalizeImportFile(Vtiger_Request $request, $user) {
+		$filePath = Import_Utils_Helper::getImportFilePath($user);
+		if (!$filePath || !is_readable($filePath)) {
+			return false;
+		}
+		$delimiter = $request->get('delimiter') ? $request->get('delimiter') : ',';
+		$handle = fopen($filePath, 'r');
+		if (!$handle) {
+			return false;
+		}
+		$rows = array();
+		while (($data = fgetcsv($handle, 0, $delimiter)) !== false) {
+			$rows[] = $data;
+		}
+		fclose($handle);
+		if (php7_count($rows) < 2) {
+			return false;
+		}
+
+		$row0 = $rows[0];
+		$row1 = $rows[1];
+		if (!self::headersLookLikePlaceholders($row0) || !self::rowLooksLikeHeaderLabels($row1)) {
+			return false;
+		}
+
+		$newRows = array($row1);
+		for ($i = 2, $n = php7_count($rows); $i < $n; $i++) {
+			if (self::rowLooksLikeHeaderLabels($rows[$i])) {
+				continue;
+			}
+			$newRows[] = $rows[$i];
+		}
+
+		$tmpPath = $filePath . '.mknorm.csv';
+		$out = fopen($tmpPath, 'w');
+		if (!$out) {
+			return false;
+		}
+		fwrite($out, "\xEF\xBB\xBF");
+		foreach ($newRows as $row) {
+			fputcsv($out, $row, $delimiter);
+		}
+		fclose($out);
+		if (!@rename($tmpPath, $filePath)) {
+			@unlink($tmpPath);
+			return false;
+		}
+		return true;
+	}
+
+	public static function tryRebuildHeaderIndexFromRawRow(Vtiger_Request $request, $user, $rowOffset = 0) {
+		$filePath = Import_Utils_Helper::getImportFilePath($user);
+		if (!$filePath || !is_readable($filePath)) {
+			return null;
+		}
+		$delimiter = $request->get('delimiter') ? $request->get('delimiter') : ',';
+		$handle = fopen($filePath, 'r');
+		if (!$handle) {
+			return null;
+		}
+		$line = null;
+		for ($i = 0; $i <= $rowOffset; $i++) {
+			$line = fgetcsv($handle, 0, $delimiter);
+			if ($line === false) {
+				break;
+			}
+		}
+		fclose($handle);
+		if (!is_array($line) || empty($line)) {
+			return null;
+		}
+		$headerIndex = array();
+		$known = array_keys(self::getHeaderFieldMap());
+		$matched = 0;
+		foreach ($line as $index => $cell) {
+			$cell = self::normalizeHeader(Import_Utils_Helper::normalizeCsvCell((string)$cell));
+			if ($cell === '') {
+				continue;
+			}
+			$headerIndex[$cell] = $index;
+			if (in_array($cell, $known, true)) {
+				$matched++;
+			}
+		}
+		return ($matched >= 2) ? $headerIndex : null;
 	}
 
 	public static function getHeaderFieldMap() {
@@ -115,19 +338,44 @@ class Accounts_SimpleImport_Helper {
 		}
 
 		$headers = array_keys($firstRow);
-		$headerMap = self::getHeaderFieldMap();
-		$fieldMapping = array();
-
+		$headerIndex = array();
 		foreach ($headers as $index => $header) {
-			$normalized = self::normalizeHeader($header);
-			if ($normalized === '' || !isset($headerMap[$normalized])) {
-				continue;
-			}
-			$fieldName = $headerMap[$normalized];
-			$fieldMapping[$fieldName] = $index;
+			$headerIndex[self::normalizeHeader($header)] = $index;
 		}
 
-		return self::filterFieldMapping($fieldMapping, $request->getModule());
+		$usePositional = self::headersLookLikePlaceholders($headers);
+		if ($usePositional) {
+			$rebuilt = self::tryRebuildHeaderIndexFromRawRow($request, $user, 1);
+			if (is_array($rebuilt) && !empty($rebuilt)) {
+				$headerIndex = $rebuilt;
+				$usePositional = false;
+			}
+		}
+
+		if ($usePositional) {
+			$fieldMapping = self::buildPositionalFieldMapping(php7_count($headers));
+			$fieldMapping = self::filterFieldMapping($fieldMapping, $request->getModule());
+		} else {
+			$headerMap = self::getHeaderFieldMap();
+			$fieldMapping = array();
+			foreach ($headerMap as $headerKey => $fieldName) {
+				if (!isset($headerIndex[$headerKey])) {
+					continue;
+				}
+				$fieldMapping[$fieldName] = $headerIndex[$headerKey];
+			}
+			$fieldMapping = self::filterFieldMapping($fieldMapping, $request->getModule());
+		}
+
+		if (!isset($fieldMapping['accountname'])) {
+			$found = array_keys($headerIndex);
+			$foundText = $found ? implode(' | ', array_slice($found, 0, 12)) : '(trống — kiểm tra dấu phẩy hoặc chấm phẩy)';
+			throw new Exception(
+				'Không map được cột Organization Name / Tên. Header đọc được: [' . $foundText . ']. '
+				. 'Lưu file CSV UTF-8 với dòng header đúng (hoặc xuất lại từ Numbers: dòng 2 phải là Organization Name, Organization Number, …).'
+			);
+		}
+		return $fieldMapping;
 	}
 
 	public static function getFailedRowSamples($user, $limit = 5) {

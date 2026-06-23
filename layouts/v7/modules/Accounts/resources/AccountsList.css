@@ -12,6 +12,7 @@ body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-dash-ma
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-dash-main.mk-accounts-list-main
 {
 	box-sizing: border-box;
+	padding: 24px 24px 32px !important;
 }
 
 /* ---- Legacy LISTS column + module strip: remove from layout ---- */
@@ -667,7 +668,7 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 {
 	margin-bottom: 0;
 	width: 100%;
-	min-width: 1230px;
+	min-width: 900px;
 	box-sizing: border-box;
 	border-collapse: collapse;
 	border-spacing: 0;
@@ -700,29 +701,25 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 	color: #40627e !important;
 	white-space: normal;
 	line-height: 1.25;
-	text-align: center;
+	text-align: left;
 }
 
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions)),
-body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions)),
-body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions))
-{
-	text-align: center;
-}
-
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th a.listViewContentHeaderValues,
-body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead th a.listViewContentHeaderValues,
-body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table thead th a.listViewContentHeaderValues
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues,
+body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues,
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table thead tr.listViewContentHeader th a.listViewContentHeaderValues
 {
 	display: inline-flex;
 	align-items: center;
-	justify-content: center;
-	width: 100%;
+	justify-content: flex-start;
+	gap: 4px;
+	width: auto;
+	max-width: 100%;
 	color: #40627e !important;
 	font-weight: 500;
 	font-family: 'Space Grotesk', system-ui, sans-serif;
 	white-space: normal;
 	line-height: 1.25;
+	text-align: left;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td,
@@ -730,16 +727,17 @@ body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewCo
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table tbody tr.listViewEntries td
 {
 	box-sizing: border-box;
-	min-height: 64px;
+	min-height: 56px;
 	height: auto;
-	padding: 12px 12px;
+	padding: 10px 12px !important;
 	vertical-align: middle !important;
 	border-bottom: 1px solid #ececec;
 	font-size: 14px;
 	font-weight: 400;
 	line-height: 1.35;
 	color: #191c1e;
-	text-align: center;
+	text-align: left !important;
+	word-break: break-word;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .value,
@@ -750,9 +748,7 @@ body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewCo
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .listViewEntries .listViewEntryValue .fieldValue .value,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table .listViewEntries .listViewEntryValue .fieldValue .value
 {
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	display: block;
 	width: 100%;
 	max-width: 100%;
 	margin: 0;
@@ -760,7 +756,7 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 	box-sizing: border-box;
 	vertical-align: middle;
 	line-height: 1.35;
-	text-align: center;
+	text-align: left !important;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td.listViewRecordActions,
@@ -831,15 +827,16 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 	vertical-align: middle;
 }
 
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr td:first-child,
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr th:first-child,
-body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr td:first-child,
-body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr th:first-child,
-body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table tr th:first-child
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table th.mk-col-control,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table td.mk-col-control,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.inline-search-btn,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table tbody td.listViewRecordActions
 {
-	width: 134px;
-	min-width: 134px;
-	max-width: 134px;
+	width: 152px !important;
+	min-width: 152px !important;
+	max-width: 152px !important;
+	box-sizing: border-box;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent .floatThead-container,
@@ -1054,4 +1051,85 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .main-contain
 	left: auto !important;
 	width: 100% !important;
 	max-width: none !important;
+}
+
+/* ---- Column widths + alignment (stable header/body grid) ---- */
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table th.mk-col-org-name,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table td.mk-col-org-name,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-org-name {
+	width: 34%;
+	min-width: 240px;
+}
+
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table th.mk-col-website,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table td.mk-col-website,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-website {
+	width: 22%;
+	min-width: 180px;
+}
+
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table th.mk-col-phone,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table td.mk-col-phone,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-phone {
+	width: 18%;
+	min-width: 150px;
+}
+
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table th.mk-col-assigned,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table td.mk-col-assigned,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-assigned {
+	width: 18%;
+	min-width: 160px;
+}
+
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader th:not(.mk-col-control),
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries td:not(.mk-col-control) {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th {
+	text-align: left !important;
+	background: #fff;
+	overflow: visible !important;
+	vertical-align: middle !important;
+}
+
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th .row-fluid,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th > div:not(.table-actions),
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th .select2_search_div {
+	display: block;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow .listSearchContributor.inputElement,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element),
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow input.dateField,
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow select.listSearchContributor {
+	display: block;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	min-height: 40px !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	margin: 0 !important;
+	box-sizing: border-box !important;
+	text-align: left !important;
+}
+
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow .select2-container {
+	display: block;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries.mk-org-row-selected {
+	background: #fff8eb;
 }

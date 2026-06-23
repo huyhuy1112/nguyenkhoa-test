@@ -453,10 +453,42 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	grid-template-columns: 1fr 1fr;
 }
 
+/* Address block: copy-from radios + billing/shipping street only */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px 24px;
+	margin-bottom: 8px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child > td.fieldLabel {
+	padding-bottom: 4px !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child .radio {
+	margin: 0 0 8px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child .radio label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	color: #334155;
+	cursor: pointer;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock textarea[name="bill_street"],
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock textarea[name="ship_street"] {
+	min-height: 96px !important;
+}
+
 /* Inputs */
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > input.inputElement,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > select.inputElement,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea.inputElement,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .mk-qt-terms-preview.inputElement,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .form-control {
 	width: 100% !important;
 	min-height: 46px !important;
@@ -641,5 +673,147 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td {
 		grid-column: 1 !important;
 		grid-row: auto !important;
+	}
+}
+
+/* Terms rich-text: preview replaces textarea visually; layout unchanged */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host textarea.mk-qt-terms-source {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
+	min-height: 0 !important;
+	resize: none !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview {
+	min-height: 120px !important;
+	resize: vertical;
+	cursor: pointer;
+	overflow: auto;
+	white-space: normal;
+	word-break: break-word;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview__placeholder {
+	color: var(--mk-qt-muted, #64748b);
+	font-style: italic;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview .mk-quote-signature-block,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview .mk-quote-signature-block table {
+	display: none !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview p:empty {
+	display: none;
+}
+
+/* Modal editor — only visible after click */
+#mkQtTermsModal .mk-qt-terms-modal-dialog {
+	width: min(960px, 94vw);
+}
+
+#mkQtTermsModal .modal-body {
+	padding-top: 12px;
+}
+
+#mkQtTermsModal .cke_editable strong,
+#mkQtTermsModal .cke_editable b {
+	font-weight: 700 !important;
+}
+
+#mkQtTermsModal .cke_editable em,
+#mkQtTermsModal .cke_editable i {
+	font-style: italic !important;
+}
+
+#mkQtTermsModal .cke_editable u {
+	text-decoration: underline !important;
+}
+
+#mkQtTermsModal .cke_editable s,
+#mkQtTermsModal .cke_editable strike {
+	text-decoration: line-through !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview strong,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview b {
+	font-weight: 700;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview em,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview i {
+	font-style: italic;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview u {
+	text-decoration: underline;
+}
+
+/* BA: company read-only strip — same visual language as form fields */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro {
+	margin-bottom: 16px;
+	padding: 14px 16px;
+	border-radius: 12px;
+	border: 1px solid #e2e8f0;
+	background: #fafafa;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__title {
+	margin: 0 0 10px;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--mk-qt-ink, #1f2937);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__hint {
+	font-weight: 400;
+	color: var(--mk-qt-muted, #64748b);
+	font-size: 12px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px 16px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__label {
+	display: block;
+	font-size: 12px;
+	color: var(--mk-qt-muted, #64748b);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__value {
+	display: block;
+	font-size: 14px;
+	color: var(--mk-qt-ink, #1f2937);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-wrap {
+	margin-bottom: 10px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-label {
+	display: block;
+	font-size: 12px;
+	color: var(--mk-qt-muted, #64748b);
+	margin-bottom: 4px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-select {
+	width: 100%;
+	max-width: 420px;
+}
+
+@media (max-width: 768px) {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__grid {
+		grid-template-columns: 1fr;
 	}
 }

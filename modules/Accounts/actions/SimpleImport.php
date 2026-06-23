@@ -57,10 +57,9 @@ class Accounts_SimpleImport_Action extends Vtiger_Action_Controller {
 				throw new Exception($errorMessage ? $errorMessage : vtranslate('LBL_FILE_UPLOAD_FAILED', 'Import'));
 			}
 
+			Accounts_SimpleImport_Helper::normalizeImportFile($request, $user);
+
 			$fieldMapping = Accounts_SimpleImport_Helper::buildFieldMapping($request, $user);
-			if (!array_key_exists('accountname', $fieldMapping)) {
-				throw new Exception('Không nhận diện được cột tên tổ chức. File cần header "Organization Name" hoặc "Tên".');
-			}
 
 			$request->set('field_mapping', $fieldMapping);
 			$request->set('default_values', array());

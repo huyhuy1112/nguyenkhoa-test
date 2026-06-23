@@ -14,6 +14,7 @@
     entryBranch: ["van_hanh", "mkt", "lop_khac", "nhuong_quyen"],
     purchaseStatus: ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"],
     tier: ["vang", "bac", "dong"],
+    region: ["KV1", "KV2", "KV3"],
   };
 
   function detailUrl(recordId) {
@@ -58,6 +59,7 @@
     if (state.entryBranch) tags.push(state.entryBranch);
     if (state.purchaseStatus) tags.push(state.purchaseStatus);
     if (state.tier) tags.push(state.tier);
+    if (state.regionTag) tags.push(state.regionTag);
     return tags;
   }
 
@@ -254,6 +256,7 @@
     activateChoice("lead-source", findTag(tags, TAG_POOLS.leadSource));
     activateChoice("purchase-status", findTag(tags, TAG_POOLS.purchaseStatus));
     activateChoice("customer-tier", findTag(tags, TAG_POOLS.tier));
+    setSelectByTag("mk-td-district", findTag(tags, TAG_POOLS.region));
     setSelectByTag("mk-td-intent", findTag(tags, TAG_POOLS.intent));
     var entryTag = findTag(tags, TAG_POOLS.entry);
     setSelectByTag("mk-td-entry", entryTag);
@@ -286,16 +289,23 @@
   function hydrateDistrictAddress(lead) {
     var district = lead.district || "";
     var address = lead.address || "";
+    var regionTag = lead.tags ? findTag(lead.tags, TAG_POOLS.region) : null;
+    if (!district && regionTag) {
+      district = "Khu vực " + regionTag.replace(/^KV/i, "");
+    }
     if (!district && lead.area) {
-      var match = String(lead.area).match(/^(Quận [^,]+|Huyện [^,]+)/);
-      if (match) {
-        district = match[1];
-        address = address || String(lead.area).replace(match[1], "").replace(/^,\s*TP\.?HCM\s*$/i, "").trim();
+      var kvMatch = String(lead.area).match(/^Khu vực\s*([123])/i);
+      if (kvMatch) {
+        district = "Khu vực " + kvMatch[1];
       } else {
         address = address || lead.area;
       }
     }
-    setSelectValue("mk-td-district", district);
+    if (regionTag) {
+      setSelectByTag("mk-td-district", regionTag);
+    } else {
+      setSelectValue("mk-td-district", district);
+    }
     if ($("mk-td-address")) $("mk-td-address").value = address;
   }
 
@@ -452,6 +462,7 @@
     });
 
     bindSelect("mk-td-intent", "intent");
+    bindSelect("mk-td-district", "regionTag");
     bindEntryProgram();
 
     var reasonTa = $("mk-td-purchase-reason-text");

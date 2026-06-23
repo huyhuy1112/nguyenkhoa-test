@@ -57,11 +57,9 @@ class Potentials_SimpleImport_Action extends Vtiger_Action_Controller {
 				throw new Exception($errorMessage ? $errorMessage : vtranslate('LBL_FILE_UPLOAD_FAILED', 'Import'));
 			}
 
-			$fieldMapping = Potentials_SimpleImport_Helper::buildFieldMapping($request, $user);
-			if (!array_key_exists('cf_857', $fieldMapping) && !array_key_exists('potentialname', $fieldMapping)) {
-				throw new Exception('Không nhận diện được cột Project Name hoặc Opportunity Name trong file CSV.');
-			}
+			Potentials_SimpleImport_Helper::normalizeImportFile($request, $user);
 
+			$fieldMapping = Potentials_SimpleImport_Helper::buildFieldMapping($request, $user);
 			$request->set('field_mapping', $fieldMapping);
 			$request->set('default_values', array(
 				'order_category' => 'Internal',

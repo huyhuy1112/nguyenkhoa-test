@@ -35,7 +35,7 @@
 		return;
 	}
 
-	var MK_BUILD = '20260620_opp_sales_guard1';
+	var MK_BUILD = '20260622_opp_bulk_delete_v1';
 	var autoSearchTimer = null;
 	var inflightSearchId = 0;
 
@@ -830,9 +830,6 @@
 
 		var origShowSelectAll = proto.showSelectAll;
 		proto.showSelectAll = function () {
-			if (isSalesOpportunityList()) {
-				return;
-			}
 			return origShowSelectAll.apply(this, arguments);
 		};
 
@@ -1013,6 +1010,14 @@
 			});
 
 		root.off('change.mkOppRowCheck', '.listViewEntriesCheckBox').on('change.mkOppRowCheck', '.listViewEntriesCheckBox', function () {
+			var $cb = $(this);
+			var $row = $cb.closest('.listViewEntries');
+			var id = $row.data('id');
+			if ($cb.is(':checked')) {
+				$row.trigger('Post.ListRow.Checked', { id: id });
+			} else {
+				$row.trigger('Post.ListRow.UnChecked', { id: id });
+			}
 			syncRowSelectedClass();
 			var listInstance = getListInstance();
 			if (listInstance && listInstance.registerPostLoadListViewActions) {
@@ -1024,12 +1029,34 @@
 
 		root.off('change.mkOppMainCheck', '.listViewEntriesMainCheckBox').on('change.mkOppMainCheck', '.listViewEntriesMainCheckBox', function () {
 			hideProgressSafe();
+			var checked = $(this).is(':checked');
+			var rows = root.find('tr.listViewEntries');
+			if (getListInstance() && getListInstance().isStarFilterMode && getListInstance().isStarFilterMode()) {
+				rows = getListInstance().getStarRecordRows();
+			} else if (getListInstance() && getListInstance().isUnStarFilterMode && getListInstance().isUnStarFilterMode()) {
+				rows = getListInstance().getUnStarRecordRows();
+			}
+			rows.find('.listViewEntriesCheckBox').each(function () {
+				var $cb = $(this);
+				$cb.prop('checked', checked);
+				var $row = $cb.closest('.listViewEntries');
+				$row.trigger(checked ? 'Post.ListRow.Checked' : 'Post.ListRow.UnChecked', {
+					id: $row.data('id'),
+				});
+			});
 			syncRowSelectedClass();
 			var listInstance = getListInstance();
-			if (listInstance && listInstance.registerPostLoadListViewActions) {
-				setTimeout(function () {
-					listInstance.registerPostLoadListViewActions();
-				}, 50);
+			if (listInstance) {
+				if (checked && listInstance.showSelectAll) {
+					listInstance.showSelectAll();
+				} else if (!checked && listInstance.deSelectAllWithNoMessage) {
+					listInstance.deSelectAllWithNoMessage();
+				}
+				if (listInstance.registerPostLoadListViewActions) {
+					setTimeout(function () {
+						listInstance.registerPostLoadListViewActions();
+					}, 50);
+				}
 			}
 		});
 	}

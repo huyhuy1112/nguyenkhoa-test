@@ -562,10 +562,9 @@ body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell .con
 .mk-td-tag-pill[data-tag="mien_phi_online"],
 .mk-td-tag-pill[data-tag="mien_phi_offline"] { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
 .mk-td-tag-pill[data-tag="pcth"] { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
-.mk-td-tag-pill[data-tag="van_hanh"],
-.mk-td-tag-pill[data-tag="mkt"],
-.mk-td-tag-pill[data-tag="lop_khac"],
-.mk-td-tag-pill[data-tag="nhuong_quyen"] { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
+.mk-td-tag-pill[data-tag="KV1"],
+.mk-td-tag-pill[data-tag="KV2"],
+.mk-td-tag-pill[data-tag="KV3"] { background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
 
 #mk-td-entry-pcth-wrap.mk-td-nested-box {
     display: none;

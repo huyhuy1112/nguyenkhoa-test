@@ -183,6 +183,40 @@ class Import_Utils_Helper {
 		return false;
 	}
 
+	/**
+	 * Guess CSV delimiter from the first non-empty lines (Excel VN often uses semicolon).
+	 */
+	public static function guessCsvDelimiterFromPath($filePath) {
+		if (!is_readable($filePath)) {
+			return ',';
+		}
+		$handle = @fopen($filePath, 'r');
+		if (!$handle) {
+			return ',';
+		}
+		$sample = '';
+		$lines = 0;
+		while ($lines < 6 && ($line = fgets($handle)) !== false) {
+			$sample .= $line;
+			$lines++;
+		}
+		fclose($handle);
+		if ($sample === '') {
+			return ',';
+		}
+		$candidates = array(';', ',', '|', "\t");
+		$best = ',';
+		$bestScore = -1;
+		foreach ($candidates as $delim) {
+			$score = substr_count($sample, $delim);
+			if ($score > $bestScore) {
+				$bestScore = $score;
+				$best = $delim;
+			}
+		}
+		return $best;
+	}
+
 	public static function validateFileUpload($request) {
 		$current_user = Users_Record_Model::getCurrentUserModel();
 
@@ -220,6 +254,14 @@ class Import_Utils_Helper {
 			require_once 'modules/Import/helpers/ExcelConverter.php';
 			$uploadedPath = $_FILES['import_file']['tmp_name'];
 			$uploadedName = $_FILES['import_file']['name'];
+			$delimiter = $request->get('delimiter');
+			if ($delimiter === null || $delimiter === '' || $delimiter === ',') {
+				$guessed = self::guessCsvDelimiterFromPath($uploadedPath);
+				if ($guessed !== '') {
+					$request->set('delimiter', $guessed);
+					$delimiter = $guessed;
+				}
+			}
 			if (Import_ExcelConverter_Helper::isExcelUpload($uploadedName)) {
 				$csvTemp = $uploadedPath . '.csv';
 				$converted = Import_ExcelConverter_Helper::convertToCsv(

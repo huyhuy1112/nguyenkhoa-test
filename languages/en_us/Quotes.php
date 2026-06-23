@@ -41,6 +41,16 @@ $languageStrings = array(
 	'LBL_IS_DELETED_FROM_THE_SYSTEM_PLEASE_REMOVE_OR_REPLACE_THIS_ITEM' => 'is deleted from the system.please remove or replace this item',
 	'LBL_THIS_LINE_ITEM_IS_DELETED_FROM_THE_SYSTEM_PLEASE_REMOVE_THIS_LINE_ITEM' => 'This line item is deleted from the system,please remove this line items',
 
+	'LBL_MK_QUOTE_VAT' => 'Totals & VAT',
+	'Quote Date' => 'Quote Date',
+	'Customer Phone' => 'Customer Phone',
+	'Customer Email' => 'Customer Email',
+	'Client Company' => 'Client Company',
+	'Product Information' => 'Product Information',
+	'VAT Percent' => 'VAT (%)',
+	'VAT Amount' => 'VAT Amount',
+	'Amount In Words' => 'Amount In Words',
+
 );
 
 $jsLanguageStrings = array(

@@ -109,6 +109,130 @@
 		$('#listViewContent #listview-table').addClass('mk-org-table');
 	}
 
+	var MK_COL_CLASS_NAMES =
+		'mk-col-control mk-col-org-name mk-col-company-code mk-col-website mk-col-phone mk-col-email mk-col-address mk-col-assigned mk-col-industry mk-col-type';
+
+	var COL_CLASS_BY_FIELD = {
+		accountname: 'mk-col-org-name',
+		account_no: 'mk-col-company-code',
+		cf_855: 'mk-col-company-code',
+		website: 'mk-col-website',
+		phone: 'mk-col-phone',
+		otherphone: 'mk-col-phone',
+		email1: 'mk-col-email',
+		email2: 'mk-col-email',
+		bill_street: 'mk-col-address',
+		ship_street: 'mk-col-address',
+		assigned_user_id: 'mk-col-assigned',
+		industry: 'mk-col-industry',
+		accounttype: 'mk-col-type'
+	};
+
+	function fieldFromHeaderTh($th) {
+		var $a = $th.find('a.listViewContentHeaderValues').first();
+		if ($a.length) {
+			return $a.data('columnname') || '';
+		}
+		return '';
+	}
+
+	function assignColumnClasses() {
+		var $table = $('#listViewContent #listview-table');
+		if (!$table.length) {
+			return;
+		}
+		$table.find('th, td').removeClass(MK_COL_CLASS_NAMES);
+		var $headerCells = $table.find('thead tr.listViewContentHeader th');
+		$headerCells.each(function () {
+			var $th = $(this);
+			var field = fieldFromHeaderTh($th);
+			if (field && COL_CLASS_BY_FIELD[field]) {
+				$th.addClass(COL_CLASS_BY_FIELD[field]);
+			}
+			if ($th.find('.table-actions').length) {
+				$th.addClass('mk-col-control');
+			}
+		});
+		$table.find('thead tr.searchRow th').each(function (idx) {
+			var $th = $(this);
+			if ($th.hasClass('inline-search-btn') || $th.find('.table-actions').length) {
+				$th.addClass('mk-col-control');
+				return;
+			}
+			var field = $th.find('.listSearchContributor[name]').first().attr('name');
+			if (!field && $headerCells.eq(idx).length) {
+				field = fieldFromHeaderTh($headerCells.eq(idx));
+			}
+			if (field && COL_CLASS_BY_FIELD[field]) {
+				$th.addClass(COL_CLASS_BY_FIELD[field]);
+			}
+		});
+		$table.find('tbody tr.listViewEntries').each(function () {
+			$(this)
+				.children('td')
+				.each(function () {
+					var $td = $(this);
+					var field = $td.data('name');
+					if (field && COL_CLASS_BY_FIELD[field]) {
+						$td.addClass(COL_CLASS_BY_FIELD[field]);
+					}
+					if ($td.hasClass('listViewRecordActions')) {
+						$td.addClass('mk-col-control');
+					}
+				});
+		});
+	}
+
+	function decodeHtmlEntities(str) {
+		if (!str || str.indexOf('&') < 0) {
+			return str;
+		}
+		var ta = document.createElement('textarea');
+		var prev = String(str);
+		var i;
+		for (i = 0; i < 3; i++) {
+			ta.innerHTML = prev;
+			var next = ta.value;
+			if (next === prev) {
+				break;
+			}
+			prev = next;
+		}
+		return prev;
+	}
+
+	function fixEncodedNameCells(context) {
+		$(context)
+			.find('td[data-name="accountname"]')
+			.each(function () {
+				var $td = $(this);
+				if ($td.attr('data-mk-decoded') === '1') {
+					return;
+				}
+				var $link = $td.find('a').first();
+				var $target = $link.length ? $link : $td.find('.value').first();
+				if (!$target.length) {
+					return;
+				}
+				var text = $.trim($target.text());
+				if (!text || text.indexOf('&') < 0) {
+					return;
+				}
+				var decoded = decodeHtmlEntities(text);
+				if (decoded !== text) {
+					$target.text(decoded);
+					$td.attr('data-mk-decoded', '1');
+				}
+			});
+	}
+
+	function syncRowSelectedClass() {
+		$('#listViewContent tbody tr.listViewEntries').each(function () {
+			var $row = $(this);
+			$row.toggleClass('mk-org-row-selected', $row.find('.listViewEntriesCheckBox:checked').length > 0);
+		});
+	}
+
 	function isMarketingAccountsList() {
 		var b = document.body;
 		if (!b || b.getAttribute('data-module') !== 'Accounts' || b.getAttribute('data-view') !== 'List') {
@@ -137,20 +261,67 @@
 			(app === 'SALES' || app === 'SUPPORT');
 	}
 
+	function refreshAccountsTableUi() {
+		if (!isModernAccountsList()) {
+			return;
+		}
+		document.documentElement.classList.add('mk-accounts-list-ready');
+		markOrgTable();
+		assignColumnClasses();
+		fixEncodedNameCells(document);
+		syncRowSelectedClass();
+		fixListScrollContainer();
+		relocateOrgPagination();
+	}
+
 	function afterListLayout() {
 		if (!isModernAccountsList()) {
 			return;
 		}
-		markOrgTable();
-		fixListScrollContainer();
 		if (isSalesStyleAccountsList() && typeof window.mkSalesListAfterAjax === 'function') {
 			window.mkSalesListAfterAjax();
+			return;
 		}
 		if (isMarketingAccountsList() && typeof window.mkMarketingListAfterAjax === 'function') {
 			window.mkMarketingListAfterAjax();
+			return;
 		}
-		relocateOrgPagination();
+		refreshAccountsTableUi();
 	}
+
+	function installAccountsSalesAjaxHook() {
+		if (window.__mkAccountsListAjaxHooked) {
+			return;
+		}
+		window.__mkAccountsListAjaxHooked = true;
+		var sharedAfterAjax = window.mkSalesListAfterAjax;
+		window.mkSalesListAfterAjax = function (options) {
+			if (typeof sharedAfterAjax === 'function') {
+				sharedAfterAjax(options);
+			}
+			if (isModernAccountsList()) {
+				refreshAccountsTableUi();
+			}
+		};
+	}
+
+	function installAccountsMarketingAjaxHook() {
+		if (window.__mkAccountsMktAjaxHooked) {
+			return;
+		}
+		window.__mkAccountsMktAjaxHooked = true;
+		var marketingAfterAjax = window.mkMarketingListAfterAjax;
+		window.mkMarketingListAfterAjax = function () {
+			if (typeof marketingAfterAjax === 'function') {
+				marketingAfterAjax();
+			}
+			if (isModernAccountsList()) {
+				refreshAccountsTableUi();
+			}
+		};
+	}
+
+	window.mkAccountsListAfterAjax = refreshAccountsTableUi;
 
 	function hasActiveConfirmModal() {
 		return $('.bootbox.modal.in, .bootbox.modal.show, .myModal.in').length > 0;
@@ -200,12 +371,19 @@
 			return;
 		}
 
+		installAccountsSalesAjaxHook();
+		installAccountsMarketingAjaxHook();
+
 		$(document).on('click.mkOrgList', '.mk-so-trigger-columns, .mk-org-trigger-columns', function (e) {
 			e.preventDefault();
 			var col = root.find('.listColumnFilter').first();
 			if (col.length) {
 				col.trigger('click');
 			}
+		});
+
+		$(document).on('change.mkOrgList', '#listViewContent .listViewEntriesCheckBox, #listViewContent .listViewEntriesMainCheckBox', function () {
+			syncRowSelectedClass();
 		});
 
 		$(document).on('click.mkOrgList', '.mk-so-filter-trigger-search, .mk-org-filter-trigger-search', function (e) {

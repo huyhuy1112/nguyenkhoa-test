@@ -27,6 +27,16 @@ $languageStrings = array(
 	'Quotes'=>'Báo giá',
 	'LINE_DETAILS' => 'Chi tiết',
 
+	'LBL_MK_QUOTE_VAT' => 'Tổng tiền & VAT',
+	'Quote Date' => 'Ngày báo giá',
+	'Customer Phone' => 'SĐT khách hàng',
+	'Customer Email' => 'Email khách hàng',
+	'Client Company' => 'Công ty khách hàng',
+	'Product Information' => 'Nội dung sản phẩm',
+	'VAT Percent' => 'VAT (%)',
+	'VAT Amount' => 'Tiền VAT',
+	'Amount In Words' => 'Bằng chữ',
+
 );
 
 $jsLanguageStrings = array(

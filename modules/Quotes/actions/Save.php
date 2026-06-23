@@ -47,6 +47,9 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 			// If anything goes wrong, fall back to default save behavior.
 		}
 
+		require_once 'modules/Quotes/helpers/QuoteBaService.php';
+		Quotes_QuoteBaService_Helper::applySaveDefaults($request);
+
 		return parent::saveRecord($request);
 	}
 }

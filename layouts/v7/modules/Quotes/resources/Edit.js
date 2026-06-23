@@ -104,6 +104,9 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
             if (!subjectEl || !subjectEl.length || userEditedSubject) return;
             if (potentialNameEl && potentialNameEl.length) {
                 var oppName = potentialNameEl.val();
+                if (typeof app !== 'undefined' && app.htmlDecode && oppName) {
+                    oppName = app.htmlDecode(oppName);
+                }
                 if (oppName && oppName.trim().length) {
                     subjectEl.val(normalizeOppName(oppName));
                 }
@@ -149,6 +152,7 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
                 var row = data && data.data ? data.data : null;
                 if (!row) return;
                 var name = row.accountname || '';
+                name = (typeof app !== 'undefined' && app.htmlDecode) ? app.htmlDecode(name) : name;
                 if (accountIdEl && accountIdEl.length) accountIdEl.val(accountId);
                 if (accountDisplayEl && accountDisplayEl.length) accountDisplayEl.val(name);
                 if (accountDisplayEl && accountDisplayEl.length) {
@@ -168,6 +172,9 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
                 if (!row) return;
                 var name = ((row.firstname || '') + ' ' + (row.lastname || '')).trim();
                 if (!name) name = row.label || '';
+                if (typeof app !== 'undefined' && app.htmlDecode) {
+                    name = app.htmlDecode(name);
+                }
                 if (contactIdEl && contactIdEl.length) contactIdEl.val(contactId);
                 if (contactDisplayEl && contactDisplayEl.length) contactDisplayEl.val(name);
                 if (contactDisplayEl && contactDisplayEl.length) {

@@ -43,6 +43,77 @@
 			<div class="mk-qt-form-host" id="mkQtFormHost">
 				{include file="partials/QuoteMkInventoryForm.tpl"|vtemplate_path:$MODULE}
 			</div>
+			<script type="text/javascript">
+			(function () {
+				var host = document.getElementById('mkQtFormHost');
+				if (!host) {
+					return;
+				}
+				var icons = {
+					LBL_QUOTE_INFORMATION: 'fa-info-circle',
+					LBL_ADDRESS_INFORMATION: 'fa-map-marker',
+					LBL_ITEM_DETAILS: 'fa-cubes',
+					LBL_DESCRIPTION_INFORMATION: 'fa-align-left',
+					LBL_TERMS_INFORMATION: 'fa-file-text-o',
+					LBL_MK_QUOTE_VAT: 'fa-calculator'
+				};
+				host.querySelectorAll('.fieldBlockContainer[data-block]').forEach(function (block) {
+					block.classList.add('mk-qt-block');
+					var key = block.getAttribute('data-block') || '';
+					var header = block.querySelector('.fieldBlockHeader');
+					if (header) {
+						header.classList.add('mk-qt-block__header');
+						if (!header.querySelector('.mk-qt-block__icon') && icons[key]) {
+							var icon = document.createElement('span');
+							icon.className = 'mk-qt-block__icon';
+							icon.setAttribute('aria-hidden', 'true');
+							icon.innerHTML = '<i class="fa ' + icons[key] + '"></i>';
+							header.insertBefore(icon, header.firstChild);
+						}
+					}
+					block.querySelectorAll('table.table-borderless').forEach(function (table) {
+						table.classList.add('mk-qt-fields-table');
+					});
+					var hr = block.querySelector('hr');
+					if (hr) {
+						hr.classList.add('mk-qt-hide-legacy');
+					}
+				});
+				var lineTab = host.querySelector('#lineItemTab');
+				if (lineTab) {
+					var lineBlock = lineTab.closest('.fieldBlockContainer');
+					if (lineBlock) {
+						lineBlock.classList.add('mk-qt-block', 'mk-qt-block--line-items');
+					}
+				}
+				var lineResult = host.querySelector('#lineItemResult');
+				if (lineResult) {
+					var totalBlock = lineResult.closest('.fieldBlockContainer');
+					if (totalBlock) {
+						totalBlock.classList.add('mk-qt-block', 'mk-qt-block--totals');
+					}
+				}
+				var hideFieldNames = [
+					'carrier', 'shipping', 'inventorymanager', 'assigned_user_id1', 'description',
+					'bill_pobox', 'bill_city', 'bill_state', 'bill_code', 'bill_country',
+					'ship_pobox', 'ship_city', 'ship_state', 'ship_code', 'ship_country'
+				];
+				hideFieldNames.forEach(function (name) {
+					var field = host.querySelector('[name="' + name + '"]');
+					if (field) {
+						var row = field.closest('tr');
+						if (row) {
+							row.classList.add('mk-qt-hide-legacy');
+						}
+					}
+				});
+				var addrBlock = host.querySelector('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]');
+				if (addrBlock) {
+					addrBlock.classList.add('mk-qt-address-simplified');
+				}
+				document.documentElement.classList.add('mk-quote-create-enhanced');
+			})();
+			</script>
 		</div>
 
 		<aside class="mk-qt-rail" id="mkQtQuoteRail" aria-label="Quote summary">
