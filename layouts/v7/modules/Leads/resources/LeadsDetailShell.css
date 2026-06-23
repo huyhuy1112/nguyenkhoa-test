@@ -1027,6 +1027,19 @@ html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="
 	color: rgba(226, 232, 240, 0.6) !important;
 }
 
+/* Some pages toggle dark theme on BODY (no html[data-theme]) */
+body[data-theme="dark"][data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag,
+body.theme-dark[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag {
+	background: rgba(148, 163, 184, 0.14) !important;
+	border-color: rgba(148, 163, 184, 0.22) !important;
+	color: rgba(226, 232, 240, 0.88) !important;
+}
+
+body[data-theme="dark"][data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag a,
+body.theme-dark[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag a {
+	color: rgba(226, 232, 240, 0.6) !important;
+}
+
 /* ============================================================================
  * ACTIVITIES
  * ========================================================================== */
@@ -1346,6 +1359,20 @@ html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="
 	background: rgba(15, 23, 42, 0.86) !important;
 	border-color: rgba(148, 163, 184, 0.18) !important;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
+}
+
+body[data-theme="dark"][data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card,
+body.theme-dark[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card {
+	background: rgba(15, 23, 42, 0.86) !important;
+	border-color: rgba(148, 163, 184, 0.18) !important;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* Icons: reduce glare, keep readable */
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-actions__toolbar .btn i,
+body[data-theme="dark"][data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-actions__toolbar .btn i,
+body.theme-dark[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-actions__toolbar .btn i {
+	color: rgba(226, 232, 240, 0.82) !important;
 }
 
 html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card__title {

@@ -95,6 +95,15 @@
 .mk-leads-kpi-ic--amber { background: #fef3c7; color: #d97706; }
 .mk-leads-kpi-ic--rose { background: #ffe4e6; color: #e11d48; }
 .mk-leads-kpi-ic--indigo { background: #e0e7ff; color: #4f46e5; }
+
+/* Dark mode: KPI icons should be crisp (avoid light glow) */
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--blue { background: rgba(37, 99, 235, 0.16); color: #93c5fd; }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--violet { background: rgba(124, 58, 237, 0.16); color: #ddd6fe; }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--emerald { background: rgba(5, 150, 105, 0.16); color: #a7f3d0; }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--cyan { background: rgba(8, 145, 178, 0.16); color: #a5f3fc; }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--amber { background: rgba(245, 158, 11, 0.16); color: #fde68a; }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--rose { background: rgba(225, 29, 72, 0.16); color: #fecdd3; }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--indigo { background: rgba(79, 70, 229, 0.16); color: #c7d2fe; }
 .mk-leads-kpi-card__trend.is-up { color: #059669; font-size: 10px; font-weight: 600; }
 .mk-leads-kpi-card__trend.is-down { color: #dc2626; font-size: 10px; font-weight: 600; }
 .mk-leads-kpi-card__value {
