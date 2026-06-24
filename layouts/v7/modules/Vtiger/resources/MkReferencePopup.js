@@ -46,13 +46,14 @@
 		var q = getSearchQuery().toLowerCase();
 		var $rows = getDataRows();
 		if (!q) {
-			$rows.show();
+			$rows.removeClass('mk-ref-row-hidden');
 			getPageContainer().removeClass('mk-ref-client-filter-active');
 			return;
 		}
 		getPageContainer().addClass('mk-ref-client-filter-active');
 		$rows.each(function () {
-			$(this).toggle(rowTextForFilter(this).indexOf(q) >= 0);
+			var match = rowTextForFilter(this).indexOf(q) >= 0;
+			$(this).toggleClass('mk-ref-row-hidden', !match);
 		});
 	}
 
@@ -108,51 +109,46 @@
 		});
 	}
 
-	function getSearchableFieldNames() {
-		var names = [];
-		getPageContainer().find('tr.searchRow input.listSearchContributor[name]').each(function () {
+	function getPrimarySearchFieldInput() {
+		var preferred = [
+			'potentialname',
+			'accountname',
+			'contactname',
+			'productname',
+			'subject',
+			'lastname',
+			'vendorname',
+			'campaignname'
+		];
+		var $inputs = getPageContainer().find('tr.searchRow input.listSearchContributor[name]');
+		var $fallback = null;
+		var i;
+		for (i = 0; i < preferred.length; i++) {
+			var $match = $inputs.filter('[name="' + preferred[i] + '"]');
+			if ($match.length) {
+				return $match.first();
+			}
+		}
+		$inputs.each(function () {
 			var $el = $(this);
 			if ($el.hasClass('select2_input_element')) {
 				return;
 			}
-			var name = $el.attr('name');
-			if (name && names.indexOf(name) < 0) {
-				names.push(name);
-			}
+			$fallback = $el;
+			return false;
 		});
-		if (!names.length) {
-			getPageContainer().find('thead .listViewHeaderValues').each(function () {
-				var name = $(this).data('columnname');
-				if (name && name !== 'listprice' && names.indexOf(name) < 0) {
-					names.push(name);
-				}
-			});
-		}
-		return names;
-	}
-
-	function buildGlobalOrSearchParams(query) {
-		var q = $.trim(query);
-		if (!q) {
-			return new Array([]);
-		}
-		var conditions = [];
-		var fields = getSearchableFieldNames();
-		var i;
-		for (i = 0; i < fields.length; i++) {
-			conditions.push([fields[i], 'c', q]);
-		}
-		if (!conditions.length) {
-			return new Array([]);
-		}
-		// Vtiger: group 0 = AND, group 1 = OR between columns — empty group 0 + OR group for global match.
-		return [[], conditions];
+		return $fallback || $();
 	}
 
 	function applyQueryToHiddenRow(query) {
 		clearHiddenSearchRow();
 		var q = $.trim(query);
 		if (!q) {
+			return;
+		}
+		var $primary = getPrimarySearchFieldInput();
+		if ($primary.length) {
+			$primary.val(q);
 			return;
 		}
 		var $first = getPageContainer().find('tr.searchRow input.listSearchContributor[name]').first();
@@ -205,9 +201,7 @@
 		var query = getSearchQuery();
 		setSearchLoading(true);
 		clearHiddenSearchRow();
-		if (!query) {
-			// Empty query: use stock popup params (full list).
-		} else if (!getSearchableFieldNames().length) {
+		if (query) {
 			applyQueryToHiddenRow(query);
 		}
 		popup.searchHandler().then(
@@ -295,7 +289,7 @@
 		if (options.preserveSearch) {
 			setSearchQuery(savedSearchQuery);
 		} else {
-			getDataRows().show();
+			getDataRows().removeClass('mk-ref-row-hidden');
 		}
 
 		applyClientFilter();
@@ -312,14 +306,6 @@
 			return;
 		}
 		proto._mkRefPopupPatched = true;
-
-		var origGetPopupListSearchParams = proto.getPopupListSearchParams;
-		proto.getPopupListSearchParams = function () {
-			if ($('#popupPageContainer').length && getSearchQuery()) {
-				return buildGlobalOrSearchParams(getSearchQuery());
-			}
-			return origGetPopupListSearchParams.call(this);
-		};
 
 		var origGetPageRecords = proto.getPageRecords;
 		proto.getPageRecords = function (params) {
@@ -426,7 +412,7 @@
 					ev.preventDefault();
 					savedSearchQuery = '';
 					setSearchQuery('');
-					getDataRows().show();
+					getDataRows().removeClass('mk-ref-row-hidden');
 					runPopupServerSearch();
 				}
 			})

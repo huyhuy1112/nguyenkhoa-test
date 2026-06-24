@@ -1044,3 +1044,248 @@ html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-ap
 	background: transparent !important;
 	border: none !important;
 }
+
+/* ========================================================================== */
+/* SALES detail — Updates tab (History / recent activities)                   */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .detailViewContainer .HistoryContainer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .detailViewContainer .recentActivitiesContainer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .HistoryContainer .data-body,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .recentActivitiesContainer .history,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs.row,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs.row .details.row,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .detailViewContainer .HistoryContainer,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .detailViewContainer .recentActivitiesContainer,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .related-tabs.row,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .related-tabs.row .details.row {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .HistoryContainer .historyButtons .btn,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .HistoryContainer .historyButtons .btn {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .HistoryContainer .historyButtons .btn.btn-success,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .HistoryContainer .historyButtons .btn.btn-success {
+	background: rgba(253, 187, 44, 0.2) !important;
+	border-color: rgba(253, 187, 44, 0.45) !important;
+	color: #fde68a !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline:before,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .updates_timeline:before {
+	background: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_time,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_time small,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_time {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info h5,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info h5 .field-name,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info .updateInfoContainer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info .updateInfoContainer .field-name,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info .updateInfoContainer em,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info h5 {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info .updateInfoContainer .update-from,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info .updateInfoContainer .update-to,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_info .updateInfoContainer .update-from {
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline #more_button .update_icon,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .updates_timeline #more_button .update_icon {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline #more_button .update_icon .moreRecentUpdates,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .updates_timeline .moreRecentUpdates {
+	background: var(--mk-bg-hover) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_icon.bg-info,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .updates_timeline > li .update_icon.bg-info {
+	background: rgba(94, 233, 255, 0.18) !important;
+	color: var(--mk-primary) !important;
+}
+
+/* ========================================================================== */
+/* SALES detail — related lists (mk-luxury-related-panel)                     */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContainer.mk-luxury-related-panel,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContainer.mk-luxury-related-panel,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContainer.mk-luxury-related-panel {
+	--mk-rel-surface: var(--mk-card-bg);
+	--mk-rel-border: var(--mk-border-color);
+	--mk-rel-muted: var(--mk-text-muted);
+	--mk-rel-text: var(--mk-text-primary);
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+	box-shadow: var(--mk-shadow-card) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .detailview-content .details.row .relatedHeader,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedHeader,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .relatedHeader,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedHeader {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .detailview-content .details.row .relatedContents,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .relatedContents,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContents .listview-table,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .listview-table {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.listViewHeaders th,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.listViewHeaders th a,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContents .listview-table thead tr.listViewHeaders th,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContents .listview-table thead tr.listViewHeaders th a,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.listViewHeaders th,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.listViewHeaders th a {
+	background: var(--mk-bg-elevated) !important;
+	border-bottom-color: var(--mk-border-color) !important;
+	color: var(--mk-text-secondary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table tbody tr.listViewEntries td,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContents .listview-table tbody tr.listViewEntries td,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .listview-table tbody tr.listViewEntries td {
+	background: transparent !important;
+	border-color: var(--mk-border-subtle) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table tbody tr.listViewEntries:hover td,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .listview-table tbody tr.listViewEntries:hover td {
+	background: var(--mk-bg-hover) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow th,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContents .listview-table thead tr.searchRow th,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow th {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element):not(.dateField),
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow .select2-container .select2-choice,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow .select2-container-multi .select2-choices,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContents .listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element):not(.dateField),
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContents .listview-table thead tr.searchRow .select2-container .select2-choice,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow input.listSearchContributor:not(.select2_input_element) {
+	background: var(--mk-input-bg) !important;
+	background-color: var(--mk-input-bg) !important;
+	border-color: var(--mk-input-border) !important;
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow .select2-container .select2-chosen,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContents .listview-table thead tr.searchRow .select2-container .select2-chosen,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow .select2-container .select2-chosen {
+	color: var(--mk-input-text) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow th.inline-search-btn [data-trigger="relatedListSearch"],
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContents .listview-table thead tr.searchRow th.inline-search-btn [data-trigger="relatedListSearch"],
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow [data-trigger="relatedListSearch"] {
+	background: rgba(253, 187, 44, 0.18) !important;
+	border-color: rgba(253, 187, 44, 0.4) !important;
+	color: #fde68a !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedHeader .btn,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedHeader button.addButton,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedHeader button.selectRelation,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedHeader .btn {
+	background: var(--mk-btn-secondary-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .mk-luxury-related-empty,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-luxury-related-empty,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .mk-luxury-related-empty {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .mk-luxury-related-empty__title,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .mk-luxury-related-empty__title {
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .mk-luxury-related-empty__hint,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .mk-luxury-related-empty__hint {
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .bottomscroll-div::-webkit-scrollbar-track,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .bottomscroll-div::-webkit-scrollbar-track {
+	background: var(--mk-bg-elevated) !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .bottomscroll-div::-webkit-scrollbar-thumb,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .bottomscroll-div::-webkit-scrollbar-thumb {
+	background: var(--mk-border-color) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card,
+body[data-theme="dark"][data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card {
+	background: var(--mk-card-bg) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-primary) !important;
+}
+
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card__head,
+html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card__title,
+body[data-theme="dark"][data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card__title {
+	color: var(--mk-text-primary) !important;
+}
+
+/* ========================================================================== */
+/* SALES detail — sticky app footer (dark mode)                                 */
+/* ========================================================================== */
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] #page > .app-footer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .app-footer,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] #page > .app-footer {
+	background: transparent !important;
+}
+
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] #page > .app-footer p,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .app-footer p,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] #page > .app-footer p {
+	background: var(--mk-bg-elevated) !important;
+	border-top-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}

@@ -390,6 +390,182 @@ html[data-theme="dark"] body .mk-leads-page--lovable #mk-leads-search::placehold
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-search__input::placeholder {
     color: rgba(226, 232, 240, 0.45);
 }
+
+/* Dark mode: filter selects, toggles, pagination, export icon */
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-filter-field__label,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-filter-field__label,
+body.theme-dark .mk-leads-page--lovable .mk-leads-filter-field__label {
+    color: rgba(226, 232, 240, 0.62);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-filter-field__select,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-filter-field__select,
+body.theme-dark .mk-leads-page--lovable .mk-leads-filter-field__select {
+    background: rgba(15, 23, 42, 0.72);
+    border-color: rgba(148, 163, 184, 0.24);
+    color: rgba(226, 232, 240, 0.94);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-filter-field__select option,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-filter-field__select option,
+body.theme-dark .mk-leads-page--lovable .mk-leads-filter-field__select option {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-toggle-field,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-toggle-field,
+body.theme-dark .mk-leads-page--lovable .mk-leads-toggle-field {
+    background: rgba(15, 23, 42, 0.72);
+    border-color: rgba(148, 163, 184, 0.24);
+    color: rgba(226, 232, 240, 0.9);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-toggle-field--warn .mk-leads-toggle-field__label,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-toggle-field--warn .mk-leads-toggle-field__label,
+body.theme-dark .mk-leads-page--lovable .mk-leads-toggle-field--warn .mk-leads-toggle-field__label,
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-toggle-field--warn .mk-leads-ic,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-toggle-field--warn .mk-leads-ic,
+body.theme-dark .mk-leads-page--lovable .mk-leads-toggle-field--warn .mk-leads-ic {
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-pagination,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-pagination,
+body.theme-dark .mk-leads-page--lovable .mk-leads-pagination {
+    background: rgba(2, 6, 23, 0.55);
+    border-top-color: rgba(148, 163, 184, 0.16);
+    color: rgba(226, 232, 240, 0.74);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-page-btn,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-page-btn,
+body.theme-dark .mk-leads-page--lovable .mk-leads-page-btn {
+    background: rgba(15, 23, 42, 0.72);
+    border-color: rgba(148, 163, 184, 0.24);
+    color: rgba(226, 232, 240, 0.94);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-page-btn:hover:not(:disabled),
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-page-btn:hover:not(:disabled),
+body.theme-dark .mk-leads-page--lovable .mk-leads-page-btn:hover:not(:disabled) {
+    background: rgba(99, 102, 241, 0.14);
+    border-color: rgba(99, 102, 241, 0.45);
+    color: rgba(248, 250, 252, 0.98);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-page-num,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-page-num,
+body.theme-dark .mk-leads-page--lovable .mk-leads-page-num {
+    color: rgba(226, 232, 240, 0.82);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-btn--outline .mk-leads-btn__ic,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-btn--outline .mk-leads-btn__ic,
+body.theme-dark .mk-leads-page--lovable .mk-leads-btn--outline .mk-leads-btn__ic {
+    background: rgba(99, 102, 241, 0.24);
+    color: #c7d2fe;
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-filters-toggle #mk-leads-filters-ic,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-filters-toggle #mk-leads-filters-ic,
+body.theme-dark .mk-leads-page--lovable .mk-leads-filters-toggle #mk-leads-filters-ic {
+    background: rgba(124, 58, 237, 0.22);
+    color: #ddd6fe;
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-filter-badge,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-filter-badge,
+body.theme-dark .mk-leads-page--lovable .mk-leads-filter-badge {
+    background: rgba(99, 102, 241, 0.28);
+    color: rgba(248, 250, 252, 0.96);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-reset,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-reset,
+body.theme-dark .mk-leads-page--lovable .mk-leads-reset {
+    color: rgba(147, 197, 253, 0.92);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-reset:hover,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-reset:hover,
+body.theme-dark .mk-leads-page--lovable .mk-leads-reset:hover {
+    color: #bfdbfe;
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-table tbody td,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-table tbody td,
+body.theme-dark .mk-leads-page--lovable .mk-leads-table tbody td {
+    border-bottom-color: rgba(148, 163, 184, 0.12);
+    color: rgba(226, 232, 240, 0.9);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-name,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-name,
+body.theme-dark .mk-leads-page--lovable .mk-leads-name {
+    color: rgba(248, 250, 252, 0.96);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-name:hover,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-name:hover,
+body.theme-dark .mk-leads-page--lovable .mk-leads-name:hover {
+    color: #93c5fd;
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-sub,
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-muted,
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-td--next,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-sub,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-muted,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-td--next,
+body.theme-dark .mk-leads-page--lovable .mk-leads-sub,
+body.theme-dark .mk-leads-page--lovable .mk-leads-muted,
+body.theme-dark .mk-leads-page--lovable .mk-leads-td--next {
+    color: rgba(226, 232, 240, 0.58);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-bulk-bar,
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-bulk-bar__inner,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-bulk-bar,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-bulk-bar__inner,
+body.theme-dark .mk-leads-page--lovable .mk-leads-bulk-bar,
+body.theme-dark .mk-leads-page--lovable .mk-leads-bulk-bar__inner {
+    background: rgba(15, 23, 42, 0.86);
+    border-bottom-color: rgba(148, 163, 184, 0.14);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-bulk-bar__count,
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-bulk-bar__count strong,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-bulk-bar__count,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-bulk-bar__count strong,
+body.theme-dark .mk-leads-page--lovable .mk-leads-bulk-bar__count,
+body.theme-dark .mk-leads-page--lovable .mk-leads-bulk-bar__count strong {
+    color: rgba(226, 232, 240, 0.9);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-bulk-btn,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-bulk-btn,
+body.theme-dark .mk-leads-page--lovable .mk-leads-bulk-btn {
+    background: rgba(15, 23, 42, 0.65);
+    border-color: rgba(148, 163, 184, 0.22);
+    color: rgba(226, 232, 240, 0.9);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-check__ui,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-check__ui,
+body.theme-dark .mk-leads-page--lovable .mk-leads-check__ui {
+    background: rgba(15, 23, 42, 0.55);
+    border-color: rgba(148, 163, 184, 0.35);
+}
+
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-search,
+body[data-theme="dark"] .mk-leads-page--lovable .mk-leads-search,
+body.theme-dark .mk-leads-page--lovable .mk-leads-search {
+    background: rgba(15, 23, 42, 0.72);
+    border-color: rgba(148, 163, 184, 0.24);
+    box-shadow: none;
+}
+
 .mk-leads-filters-toggle #mk-leads-filters-ic {
     color: #7c3aed;
     background: #ede9fe;
