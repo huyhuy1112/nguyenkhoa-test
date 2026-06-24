@@ -1,36 +1,45 @@
 /**
  * B-ACE CRM — global Inter typography (load last).
- * Unifies body copy, headings, forms, tables; preserves icon fonts.
+ * Use inheritance on body; never force Inter on body * (breaks Vtiger-icons / FA / display fonts).
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
 	--mk-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-		'Helvetica Neue', Arial, sans-serif;
+		'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
 	--mk-font-display: var(--mk-font-family);
 }
 
 html {
-	font-family: var(--mk-font-family) !important;
+	font-family: var(--mk-font-family);
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
 }
 
 body {
-	font-family: var(--mk-font-family) !important;
+	font-family: var(--mk-font-family);
 }
 
-/* Universal Inter — loaded after module/skins CSS */
-body,
-body * {
-	font-family: var(--mk-font-family) !important;
+/* Bootstrap / vtiger controls sometimes reset font-family */
+input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file']),
+textarea,
+select,
+button,
+.btn,
+.inputElement,
+.select2-container .select2-choice,
+.select2-container .select2-chosen,
+.select2-search__field {
+	font-family: var(--mk-font-family);
 }
 
-/* Icon fonts — must stay unchanged */
+/* Icon fonts — element + ::before (PUA glyphs must not inherit Inter) */
 body .fa,
 body .fa::before,
 body i.fa,
 body i[class*='fa-'],
+body i[class*='fa-']::before,
 body span.fa,
 body span[class*='fa-'],
 body .glyphicon,
@@ -38,22 +47,37 @@ body .glyphicon::before {
 	font-family: 'FontAwesome' !important;
 }
 
+body [class^='vicon-'],
+body [class*=' vicon-'],
+body [class^='vicon-']::before,
+body [class*=' vicon-']::before,
 body .vicon,
-body [class*='vicon-'],
+body [class*='vicon-'] {
+	font-family: 'Vtiger-icons' !important;
+}
+
 body .vticon,
-body [class*='vticon-'] {
+body [class*='vticon-'],
+body .vticon::before,
+body [class*='vticon-']::before {
 	font-family: 'Vtiger-icons' !important;
 }
 
-body .vicon::before,
-body [class*='vicon-']::before {
-	font-family: 'Vtiger-icons' !important;
-}
-
-/* Font Awesome 5 labels in custom.css */
-body [style*='Font Awesome 5'],
 body .fa-solid,
 body .fa-regular,
-body .fa-brands {
+body .fa-brands,
+body [style*='Font Awesome 5'] {
 	font-family: 'Font Awesome 5 Free', 'FontAwesome' !important;
+}
+
+/* Rich text / code — keep editor & mono stacks from module CSS */
+code,
+pre,
+kbd,
+samp,
+.cke_editable,
+.cke_wysiwyg_frame,
+.cke_contents,
+.font-monospace {
+	font-family: inherit;
 }
