@@ -158,18 +158,26 @@ class Quotes_QuoteExcelExport_Helper {
 	}
 
 	protected static function addCompanyLogo(PHPExcel_Worksheet $sheet, $logoPath) {
-		if ($logoPath === '' || !is_readable($logoPath)) {
+		if (!Quotes_QuoteBaService_Helper::isValidQuoteLogoImage($logoPath)) {
+			$logoPath = Quotes_QuoteBaService_Helper::resolveQuoteLogoPath('');
+		}
+		if ($logoPath === '') {
 			return;
 		}
-		$drawing = new PHPExcel_Worksheet_Drawing();
-		$drawing->setName('TDB Logo');
-		$drawing->setDescription('TDB Solution');
-		$drawing->setPath($logoPath);
-		$drawing->setHeight(44);
-		$drawing->setCoordinates('F1');
-		$drawing->setOffsetX(8);
-		$drawing->setOffsetY(2);
-		$drawing->setWorksheet($sheet);
+		try {
+			$drawing = new PHPExcel_Worksheet_Drawing();
+			$drawing->setName('TDB Logo');
+			$drawing->setDescription('TDB Solution');
+			$drawing->setPath($logoPath);
+			$drawing->setHeight(44);
+			$drawing->setCoordinates('F1');
+			$drawing->setOffsetX(8);
+			$drawing->setOffsetY(2);
+			$drawing->setWorksheet($sheet);
+			$sheet->getRowDimension(1)->setRowHeight(52);
+		} catch (Exception $e) {
+			// Skip logo if PHPExcel cannot embed the image on this server.
+		}
 	}
 
 	protected static function writeCompanyHeader(PHPExcel_Worksheet $sheet, array $company) {

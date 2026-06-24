@@ -29,19 +29,47 @@ class Quotes_QuoteBaService_Helper {
 		return false;
 	}
 
-	public static function resolveQuoteLogoPath($logoname = '') {
+	protected static function getProjectRootPaths() {
 		global $root_directory;
-		$root = rtrim((string) $root_directory, "/\\");
-		$candidates = array();
+		$roots = array();
+		if (!empty($root_directory)) {
+			$roots[] = rtrim((string) $root_directory, "/\\");
+		}
+		$moduleRoot = realpath(dirname(__FILE__) . '/../../..');
+		if ($moduleRoot) {
+			$roots[] = $moduleRoot;
+		}
+		$cwd = getcwd();
+		if ($cwd) {
+			$roots[] = rtrim((string) $cwd, "/\\");
+		}
+		return array_values(array_unique(array_filter($roots)));
+	}
+
+	public static function isValidQuoteLogoImage($absolutePath) {
+		if ($absolutePath === '' || !is_readable($absolutePath)) {
+			return false;
+		}
+		$info = @getimagesize($absolutePath);
+		if (!$info || empty($info[0]) || empty($info[1])) {
+			return false;
+		}
+		$type = isset($info[2]) ? (int) $info[2] : 0;
+		return in_array($type, array(IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF), true);
+	}
+
+	public static function resolveQuoteLogoPath($logoname = '') {
+		$relativeCandidates = array(self::QUOTE_LOGO_REL_PATH);
 		$logoname = trim((string) $logoname);
 		if ($logoname !== '') {
-			$candidates[] = 'test/logo/' . $logoname;
+			$relativeCandidates[] = 'test/logo/' . $logoname;
 		}
-		$candidates[] = self::QUOTE_LOGO_REL_PATH;
-		foreach ($candidates as $relativePath) {
-			$absolutePath = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
-			if (is_readable($absolutePath)) {
-				return $absolutePath;
+		foreach ($relativeCandidates as $relativePath) {
+			foreach (self::getProjectRootPaths() as $root) {
+				$absolutePath = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+				if (self::isValidQuoteLogoImage($absolutePath)) {
+					return $absolutePath;
+				}
 			}
 		}
 		return '';
