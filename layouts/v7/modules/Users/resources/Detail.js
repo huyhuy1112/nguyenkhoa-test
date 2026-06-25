@@ -8,6 +8,16 @@
  *************************************************************************************/
 
 Vtiger_Detail_Js("Users_Detail_Js",{
+	/**
+	 * Users is a Settings module. Some UI contexts may set app.getModuleName() to "Settings",
+	 * which breaks Users ajax actions (EntityName becomes empty). Force correct routing params.
+	 */
+	getUsersAjaxBaseData: function () {
+		return {
+			module: 'Users',
+			parent: 'Settings'
+		};
+	},
 	
 	triggerChangePassword : function (url, module){
 		app.request.get({'url' :url}).then(
@@ -32,7 +42,8 @@ Vtiger_Detail_Js("Users_Detail_Js",{
                                                             if(new_password.val() === confirm_password.val()){
                                                                     var params = {
                                                                             'data' : {
-                                                                                    'module': app.getModuleName(),
+												'module': 'Users',
+												'parent': 'Settings',
                                                                                     'action' : "SaveAjax",
                                                                                     'mode' : 'savePassword',
                                                                                     'old_password' : old_password.val(),
@@ -124,7 +135,8 @@ Vtiger_Detail_Js("Users_Detail_Js",{
 		
 		var params = {
 			'data' : {
-				'module': app.getModuleName(),
+				'module': 'Users',
+				'parent': 'Settings',
 				'action' : "DeleteAjax",
 				'transfer_user_id' : transferUserId,
 				'userid' : userid,
@@ -207,7 +219,8 @@ Vtiger_Detail_Js("Users_Detail_Js",{
 		app.helper.showProgress(app.vtranslate('JS_PLEASE_WAIT'));
 		
 		var params = {
-			module: app.getModuleName(),
+			module: 'Users',
+			parent: 'Settings',
 			action: 'SaveAjax',
 			mode: 'changeUsername',
 			newUsername: newUsername.val(),
