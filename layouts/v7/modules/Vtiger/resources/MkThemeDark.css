@@ -147,6 +147,19 @@ html[data-theme="dark"] .mk-dash-user-avatar--fallback {
 	color: var(--mk-text-secondary) !important;
 }
 
+html[data-theme="dark"] .mk-dash-sidebar-logout {
+	background: var(--mk-bg-elevated) !important;
+	border-color: var(--mk-border-color) !important;
+	color: var(--mk-text-muted) !important;
+}
+
+html[data-theme="dark"] .mk-dash-sidebar-logout:hover,
+html[data-theme="dark"] .mk-dash-sidebar-logout:focus {
+	background: rgba(220, 38, 38, 0.12) !important;
+	border-color: rgba(248, 113, 113, 0.45) !important;
+	color: #fca5a5 !important;
+}
+
 /* Accordion / app groups in sidebar */
 html[data-theme="dark"] .mk-dash-app-toggle,
 html[data-theme="dark"] .mk-dash-app-group-label {

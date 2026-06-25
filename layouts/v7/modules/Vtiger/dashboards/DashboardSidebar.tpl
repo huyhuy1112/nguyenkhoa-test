@@ -188,6 +188,9 @@
 					{/if}
 				</div>
 			</div>
+			<a class="mk-dash-sidebar-logout" href="index.php?module=Users&amp;action=Logout" title="{vtranslate('LBL_SIGN_OUT','Vtiger')}" aria-label="{vtranslate('LBL_SIGN_OUT','Vtiger')}">
+				<span class="fa fa-sign-out" aria-hidden="true"></span>
+			</a>
 		</div>
 </aside>
 {/strip}
