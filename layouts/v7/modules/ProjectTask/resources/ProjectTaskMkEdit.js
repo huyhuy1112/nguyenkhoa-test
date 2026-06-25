@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260605_ptask_edit1';
+	var MK_BUILD = '20260625_ptask_save1';
 
 	function isScoped() {
 		return (
@@ -43,15 +43,44 @@
 	}
 
 	function triggerSave() {
-		var $save = $form().find('.saveButton').first();
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
+		var $save = $editForm.find('.saveButton').first();
+		var $top = $('#mkPtaskSaveTop');
+		$save.prop('disabled', false);
+		$top.prop('disabled', false);
+
+		var formEl = $editForm.get(0);
+		if ($save.length && formEl && typeof formEl.requestSubmit === 'function') {
+			try {
+				formEl.requestSubmit($save.get(0));
+				return;
+			} catch (err) {
+				/* fall through to click */
+			}
+		}
 		if ($save.length) {
 			$save.trigger('click');
 			return;
 		}
-		$form().trigger('submit');
+		$editForm.trigger('submit');
+	}
+
+	function bindSaveValidationRecovery() {
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
+		$editForm.off('invalid-form.validate.mkPtaskSave').on('invalid-form.validate.mkPtaskSave', function () {
+			$editForm.find('.saveButton').prop('disabled', false);
+			$('#mkPtaskSaveTop').prop('disabled', false);
+		});
 	}
 
 	function bindActions() {
+		bindSaveValidationRecovery();
 		$('#mkPtaskSaveTop')
 			.off('click.mkPtaskSave')
 			.on('click.mkPtaskSave', function (e) {

@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260605_proj_edit1';
+	var MK_BUILD = '20260625_proj_save1';
 
 	function isScoped() {
 		return (
@@ -43,15 +43,44 @@
 	}
 
 	function triggerSave() {
-		var $save = $form().find('.saveButton').first();
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
+		var $save = $editForm.find('.saveButton').first();
+		var $top = $('#mkProjSaveTop');
+		$save.prop('disabled', false);
+		$top.prop('disabled', false);
+
+		var formEl = $editForm.get(0);
+		if ($save.length && formEl && typeof formEl.requestSubmit === 'function') {
+			try {
+				formEl.requestSubmit($save.get(0));
+				return;
+			} catch (err) {
+				/* fall through to click */
+			}
+		}
 		if ($save.length) {
 			$save.trigger('click');
 			return;
 		}
-		$form().trigger('submit');
+		$editForm.trigger('submit');
+	}
+
+	function bindSaveValidationRecovery() {
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
+		$editForm.off('invalid-form.validate.mkProjSave').on('invalid-form.validate.mkProjSave', function () {
+			$editForm.find('.saveButton').prop('disabled', false);
+			$('#mkProjSaveTop').prop('disabled', false);
+		});
 	}
 
 	function bindActions() {
+		bindSaveValidationRecovery();
 		$('#mkProjSaveTop')
 			.off('click.mkProjSave')
 			.on('click.mkProjSave', function (e) {

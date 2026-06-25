@@ -8,8 +8,6 @@
  * All Rights Reserved.
  *************************************************************************************/
 vimport('~~/include/Webservices/Custom/ChangePassword.php');
-vimport('~~/include/simplehtmldom/simple_html_dom.php');
-vimport('~~/libraries/InStyle/InStyle.php');
 
 class Users_SaveAjax_Action extends Vtiger_SaveAjax_Action {
 
@@ -162,8 +160,23 @@ class Users_SaveAjax_Action extends Vtiger_SaveAjax_Action {
 			}
 			if($fieldName == 'signature'){
 				$requestData = $request->getAll();
-				$instyle = new InStyle();
-				$signature = $instyle->convertStylesToInlineCss($requestData['value']);
+				$signature = $requestData['value'];
+				// Production safety: these helper libraries may be missing on some deployments.
+				// If unavailable, we still allow saving and just purify the input.
+				if (!class_exists('InStyle')) {
+					$instylePath = 'libraries/InStyle/InStyle.php';
+					if (file_exists($instylePath)) {
+						require_once $instylePath;
+					}
+				}
+				if (class_exists('InStyle')) {
+					try {
+						$instyle = new InStyle();
+						$signature = $instyle->convertStylesToInlineCss($requestData['value']);
+					} catch (Exception $e) {
+						$signature = $requestData['value'];
+					}
+				}
 				//#4823970 - Added to remove any action tags like <form>, <input>, <button>..
 				$fieldValue = vtlib_purify($signature);
 				// Purify malicious html event attributes

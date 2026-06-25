@@ -14,10 +14,18 @@
 			return;
 		}
 		var app = (b.getAttribute('data-app') || '').toUpperCase();
-		if (app !== 'SALES' && app !== 'SUPPORT') {
-			var params = new URLSearchParams(window.location.search || '');
+		var params = new URLSearchParams(window.location.search || '');
+		if (app !== 'SALES' && app !== 'SUPPORT' && app !== 'MANAGEMENT') {
 			app = (params.get('app') || '').toUpperCase();
-			if (app !== 'SALES' && app !== 'SUPPORT') {
+		}
+		var isAllowedApp = app === 'SALES' || app === 'SUPPORT' || app === 'MANAGEMENT';
+		if (!isAllowedApp) {
+			return;
+		}
+		// Safety: only reveal on modules we explicitly handle in MANAGEMENT.
+		if (app === 'MANAGEMENT') {
+			var m = b.getAttribute('data-module') || params.get('module') || '';
+			if (m !== 'Project' && m !== 'ProjectTask' && m !== 'Documents') {
 				return;
 			}
 		}
