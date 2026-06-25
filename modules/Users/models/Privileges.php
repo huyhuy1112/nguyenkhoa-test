@@ -116,7 +116,23 @@ class Users_Privileges_Model extends Users_Record_Model {
 			return null;
 
 		$acl = Vtiger_AccessControl::loadUserPrivileges($userId);
-		require("user_privileges/sharing_privileges_$userId.php");
+		$sharingFile = "user_privileges/sharing_privileges_$userId.php";
+		if (!file_exists($sharingFile)) {
+			$genFile = 'modules/Users/CreateUserPrivilegeFile.php';
+			if (file_exists($genFile)) {
+				require_once $genFile;
+				if (function_exists('createUserSharingPrivilegesfile')) {
+					@createUserSharingPrivilegesfile($userId);
+				}
+			}
+		}
+		if (file_exists($sharingFile)) {
+			require($sharingFile);
+		} else {
+			// Fallback so detail views don't fatal if file cannot be created.
+			$defaultOrgSharingPermission = array();
+			$related_module_share = array();
+		}
 
 		$valueMap = array();
 		$valueMap['id'] = $userId;

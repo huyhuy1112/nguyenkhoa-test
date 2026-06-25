@@ -22,8 +22,20 @@ class Vtiger_AccessControl {
 
 	protected function loadUserPrivilegesWithId($id) {
 		if (!isset($this->privileges[$id])) {
-			checkFileAccessForInclusion('user_privileges/user_privileges_'.$id.'.php');
-			require('user_privileges/user_privileges_'.$id.'.php');
+			$privFile = 'user_privileges/user_privileges_'.$id.'.php';
+			if (!file_exists($privFile)) {
+				// Production safety: privilege flat files might not be generated yet (or were cleaned).
+				// Try to generate them on demand instead of fatalling on require().
+				$genFile = 'modules/Users/CreateUserPrivilegeFile.php';
+				if (file_exists($genFile)) {
+					require_once $genFile;
+					if (function_exists('createUserPrivilegesfile')) {
+						@createUserPrivilegesfile($id);
+					}
+				}
+			}
+			checkFileAccessForInclusion($privFile);
+			require($privFile);
 			$vars = get_defined_vars();
 			$privilege = new stdClass;
 			foreach (self::$PRIVILEGE_ATTRS as $attr) {
