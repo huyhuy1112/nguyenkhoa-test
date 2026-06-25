@@ -118,6 +118,139 @@
 		$('#listViewContent #listview-table').addClass('mk-contact-table');
 	}
 
+	var MK_COL_CLASS_NAMES =
+		'mk-col-control mk-col-contact-first mk-col-contact-last mk-col-contact-title mk-col-contact-org ' +
+		'mk-col-contact-email mk-col-contact-phone mk-col-contact-assigned mk-col-contact-address';
+
+	var COL_CLASS_BY_FIELD = {
+		firstname: 'mk-col-contact-first',
+		lastname: 'mk-col-contact-last',
+		title: 'mk-col-contact-title',
+		account_id: 'mk-col-contact-org',
+		email: 'mk-col-contact-email',
+		secondaryemail: 'mk-col-contact-email',
+		phone: 'mk-col-contact-phone',
+		mobile: 'mk-col-contact-phone',
+		homephone: 'mk-col-contact-phone',
+		assigned_user_id: 'mk-col-contact-assigned',
+		created_user_id: 'mk-col-contact-assigned',
+		smcreatorid: 'mk-col-contact-assigned',
+		mailingstreet: 'mk-col-contact-address',
+		otherstreet: 'mk-col-contact-address',
+		mailingcity: 'mk-col-contact-address'
+	};
+
+	var COL_WIDTH_BY_CLASS = {
+		'mk-col-control': '152px',
+		'mk-col-contact-first': '130px',
+		'mk-col-contact-last': '168px',
+		'mk-col-contact-title': '140px',
+		'mk-col-contact-org': '200px',
+		'mk-col-contact-email': '200px',
+		'mk-col-contact-phone': '140px',
+		'mk-col-contact-assigned': '168px',
+		'mk-col-contact-address': '180px'
+	};
+
+	function fieldFromHeaderTh($th) {
+		var $a = $th.find('a.listViewContentHeaderValues').first();
+		if ($a.length) {
+			return $a.data('columnname') || '';
+		}
+		return '';
+	}
+
+	function assignColumnClasses() {
+		var $table = $('#listViewContent #listview-table');
+		if (!$table.length) {
+			return;
+		}
+		$table.find('th, td').removeClass(MK_COL_CLASS_NAMES);
+		var $headerCells = $table.find('thead tr.listViewContentHeader th');
+		$headerCells.each(function () {
+			var $th = $(this);
+			var field = fieldFromHeaderTh($th);
+			if (field && COL_CLASS_BY_FIELD[field]) {
+				$th.addClass(COL_CLASS_BY_FIELD[field]);
+			}
+			if ($th.find('.table-actions').length) {
+				$th.addClass('mk-col-control');
+			}
+		});
+		$table.find('thead tr.searchRow th').each(function (idx) {
+			var $th = $(this);
+			if ($th.hasClass('inline-search-btn') || $th.find('.table-actions').length) {
+				$th.addClass('mk-col-control');
+				return;
+			}
+			var field = $th.find('.listSearchContributor[name]').first().attr('name');
+			if (!field && $headerCells.eq(idx).length) {
+				field = fieldFromHeaderTh($headerCells.eq(idx));
+			}
+			if (field && COL_CLASS_BY_FIELD[field]) {
+				$th.addClass(COL_CLASS_BY_FIELD[field]);
+			}
+		});
+		$table.find('tbody tr.listViewEntries').each(function () {
+			$(this)
+				.children('td')
+				.each(function () {
+					var $td = $(this);
+					var field = $td.data('name');
+					if (field && COL_CLASS_BY_FIELD[field]) {
+						$td.addClass(COL_CLASS_BY_FIELD[field]);
+					}
+					if ($td.hasClass('listViewRecordActions')) {
+						$td.addClass('mk-col-control');
+					}
+				});
+		});
+	}
+
+	function widthForHeaderTh($th) {
+		var cls;
+		for (cls in COL_WIDTH_BY_CLASS) {
+			if ($th.hasClass(cls)) {
+				return COL_WIDTH_BY_CLASS[cls];
+			}
+		}
+		return '';
+	}
+
+	function applyColgroup() {
+		var $table = $('#listViewContent #listview-table');
+		if (!$table.length) {
+			return;
+		}
+		var $headerCells = $table.find('thead tr.listViewContentHeader th');
+		if (!$headerCells.length) {
+			return;
+		}
+		$table.find('colgroup').remove();
+		var $colgroup = $('<colgroup>');
+		$headerCells.each(function () {
+			var $th = $(this);
+			var width = widthForHeaderTh($th);
+			var $col = $('<col>');
+			if (width) {
+				$col.attr('style', 'width:' + width);
+			}
+			$colgroup.append($col);
+		});
+		$table.prepend($colgroup);
+	}
+
+	function refreshContactsTableLayout() {
+		if (!isSalesContactsList()) {
+			return;
+		}
+		markContactTable();
+		assignColumnClasses();
+		applyColgroup();
+		relocatePagination();
+		fixListScrollContainer();
+	}
+
 	function initialsFromName(name) {
 		var parts = (name || '').trim().split(/\s+/).filter(Boolean);
 		if (!parts.length) {
@@ -262,21 +395,19 @@
 		if (applyInProgress) {
 			return;
 		}
-		if (!hasWorkToApply()) {
-			document.documentElement.classList.add('mk-sales-list-ready');
-			if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
-				window.MkSalesListShared.revealSalesListUi();
-			}
-			return;
-		}
 		applyInProgress = true;
 		try {
-			markContactTable();
+			refreshContactsTableLayout();
+			if (!hasWorkToApply()) {
+				document.documentElement.classList.add('mk-sales-list-ready');
+				if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
+					window.MkSalesListShared.revealSalesListUi();
+				}
+				return;
+			}
 			fixEncodedNameCells(document);
 			enhanceTitlePills(document);
 			enhanceCreatedBy(document);
-			relocatePagination();
-			fixListScrollContainer();
 			if (isMarketingContactsList() && typeof window.mkMarketingListAfterAjax === 'function') {
 				window.mkMarketingListAfterAjax();
 			}
@@ -332,10 +463,27 @@
 		});
 	}
 
+	function installContactsSalesAjaxHook() {
+		if (window.__mkContactsListAjaxHooked) {
+			return;
+		}
+		window.__mkContactsListAjaxHooked = true;
+		var sharedAfterAjax = window.mkSalesListAfterAjax;
+		window.mkSalesListAfterAjax = function (options) {
+			if (typeof sharedAfterAjax === 'function') {
+				sharedAfterAjax(options);
+			}
+			if (isSalesContactsList()) {
+				scheduleApply();
+			}
+		};
+	}
+
 	function init() {
 		if (!isSalesContactsList()) {
 			return;
 		}
+		installContactsSalesAjaxHook();
 		applyUi();
 		bindSafeEvents();
 

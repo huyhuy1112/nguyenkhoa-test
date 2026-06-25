@@ -567,7 +567,7 @@ body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewConten
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table {
 	margin-bottom: 0;
 	width: 100%;
-	min-width: 1230px;
+	min-width: 1300px;
 	box-sizing: border-box;
 	border-collapse: collapse;
 	border-spacing: 0;
@@ -596,20 +596,20 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewCo
 	color: #40627e !important;
 	white-space: normal;
 	line-height: 1.25;
-	text-align: center;
+	text-align: left;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions)),
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th:not(:has(.table-actions)) {
-	text-align: center;
+	text-align: left;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th a.listViewContentHeaderValues,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
+	display: inline-block;
+	text-align: left;
+	width: auto;
+	max-width: 100%;
 	color: #40627e !important;
 	font-weight: 500;
 	font-family: 'Space Grotesk', system-ui, sans-serif;
@@ -629,7 +629,7 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewCo
 	font-weight: 400;
 	line-height: 1.35;
 	color: #191c1e;
-	text-align: center;
+	text-align: left;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover,
@@ -728,7 +728,7 @@ body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewConten
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table td[data-name="assigned_user_id"] .value.mk-contact-has-creator {
 	display: inline-flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-start;
 	gap: 8px;
 	flex-wrap: nowrap;
 	max-width: 100%;
@@ -778,14 +778,116 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewCo
 	white-space: normal;
 }
 
-/* Base skin first-child 130px — pre-empt for control column */
+/* Control column: checkbox + row actions (match MkSalesListTable 152px rail) */
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr td:first-child,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr td:first-child,
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr th:first-child,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr th:first-child {
-	width: 134px;
-	min-width: 134px;
-	max-width: 134px;
+	width: 152px;
+	min-width: 152px;
+	max-width: 152px;
+	box-sizing: border-box;
+}
+
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th.mk-col-control,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td.mk-col-control,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.inline-search-btn,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader th:first-child,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table tbody td.listViewRecordActions {
+	width: 152px !important;
+	min-width: 152px !important;
+	max-width: 152px !important;
+	box-sizing: border-box;
+	overflow: visible;
+}
+
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th.mk-col-contact-first,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td.mk-col-contact-first,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-contact-first,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="firstname"]),
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td[data-name="firstname"] {
+	width: 130px;
+	min-width: 130px;
+	max-width: 130px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th.mk-col-contact-last,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td.mk-col-contact-last,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-contact-last,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="lastname"]),
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td[data-name="lastname"] {
+	width: 168px;
+	min-width: 168px;
+	max-width: 168px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th.mk-col-contact-title,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td.mk-col-contact-title,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-contact-title,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="title"]),
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td[data-name="title"] {
+	width: 140px;
+	min-width: 140px;
+	max-width: 140px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th.mk-col-contact-org,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td.mk-col-contact-org,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-contact-org,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="account_id"]),
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td[data-name="account_id"] {
+	width: 200px;
+	min-width: 200px;
+	max-width: 200px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th.mk-col-contact-email,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td.mk-col-contact-email,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-contact-email,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="email"]),
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td[data-name="email"] {
+	width: 200px;
+	min-width: 200px;
+	max-width: 200px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th.mk-col-contact-phone,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td.mk-col-contact-phone,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-contact-phone,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="phone"]),
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td[data-name="phone"] {
+	width: 140px;
+	min-width: 140px;
+	max-width: 140px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th.mk-col-contact-assigned,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td.mk-col-contact-assigned,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-contact-assigned,
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="assigned_user_id"]),
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table td[data-name="assigned_user_id"] {
+	width: 168px;
+	min-width: 168px;
+	max-width: 168px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader th:not(.mk-col-control),
+body[data-module="Contacts"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries td:not(.mk-col-control) {
+	text-overflow: ellipsis;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions,
@@ -844,29 +946,24 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewCo
 	text-align: left;
 }
 
-/* Cell content — vertically + horizontally centered like Opportunities list */
-body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .value,
-body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .value,
+/* Cell content — left-aligned grid (match MkSalesListTable) */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr.listViewEntries > td:not(.mk-col-control) .value,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tbody > tr.listViewEntries > td:not(.mk-col-control) .value,
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tfoot > tr > td .value,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tfoot > tr > td .value,
-body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .fieldValue,
-body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tbody > tr.listViewEntries > td .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr.listViewEntries > td:not(.mk-col-control) .fieldValue,
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tbody > tr.listViewEntries > td:not(.mk-col-control) .fieldValue,
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tfoot > tr > td .fieldValue,
-body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tfoot > tr > td .fieldValue,
-body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .listViewEntries .listViewEntryValue .fieldValue .value,
-body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .listViewEntries .listViewEntryValue .fieldValue .value {
-	display: flex;
-	align-items: center;
-	justify-content: center;
+body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table > tfoot > tr > td .fieldValue {
+	display: block;
 	width: 100%;
 	max-width: 100%;
 	min-height: 0;
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
-	vertical-align: middle;
+	text-align: left;
 	line-height: 1.35;
-	text-align: center;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > thead > tr > td .fieldValue,
