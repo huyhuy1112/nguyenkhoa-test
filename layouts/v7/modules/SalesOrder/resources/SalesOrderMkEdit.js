@@ -4,14 +4,15 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260527_so_create1';
+	var MK_BUILD = '20260624_so_save1';
 
 	var BLOCK_ICONS = {
 		LBL_SO_INFORMATION: 'fa-info-circle',
 		LBL_ITEM_DETAILS: 'fa-cubes',
 		LBL_ADDRESS_INFORMATION: 'fa-map-marker',
 		LBL_DESCRIPTION_INFORMATION: 'fa-align-left',
-		LBL_TERMS_INFORMATION: 'fa-file-text-o'
+		LBL_TERMS_INFORMATION: 'fa-file-text-o',
+		'Recurring Invoice Information': 'fa-refresh'
 	};
 
 	function isScoped() {
@@ -19,8 +20,7 @@
 			$('body').data('module') === 'SalesOrder' &&
 			$('body').data('view') === 'Edit' &&
 			($('body').data('app') === 'SALES' || !$('body').data('app')) &&
-			$('#mkSoCreateWorkspace').length &&
-			!$('#mkSoFormHost input[name="record"]').val()
+			$('#mkSoCreateWorkspace').length
 		);
 	}
 
@@ -34,6 +34,39 @@
 		$host.find('.editViewHeader').addClass('mk-so-hide-legacy');
 		$host.find('.modal-overlay-footer').addClass('mk-so-form-footer');
 		$host.find('.main-container').first().addClass('mk-so-form-container');
+	}
+
+	function markRecurringBlockCells($scope) {
+		var depNames = ['recurring_frequency', 'start_period', 'end_period', 'payment_duration', 'invoicestatus'];
+		var markCells = function (fieldName, cellClass) {
+			var $field = $scope.find('[name="' + fieldName + '"]');
+			if (!$field.length) {
+				return;
+			}
+			var $valueCell = $field.closest('td.fieldValue');
+			if ($valueCell.length) {
+				$valueCell.addClass(cellClass);
+				var $labelCell = $valueCell.prev('td.fieldLabel');
+				if ($labelCell.length) {
+					$labelCell.addClass(cellClass);
+				}
+			}
+		};
+		depNames.forEach(function (name) {
+			markCells(name, 'mk-so-recurring-dependent');
+		});
+		markCells('enable_recurring', 'mk-so-recurring-toggle');
+	}
+
+	function initRecurringBlockUi() {
+		var $block = $form().find('.fieldBlockContainer[data-block="Recurring Invoice Information"]');
+		if (!$block.length) {
+			return;
+		}
+		$block.addClass('mk-so-recurring-block');
+		markRecurringBlockCells($form());
+		var $enable = $form().find('[name="enable_recurring"]');
+		$block.toggleClass('mk-so-recurring-on', $enable.is(':checked'));
 	}
 
 	function styleFieldBlocks() {
@@ -61,18 +94,83 @@
 
 		$form().find('#lineItemTab').closest('.fieldBlockContainer').addClass('mk-so-block mk-so-block--line-items');
 		$form().find('#lineItemResult').closest('.fieldBlockContainer').addClass('mk-so-block mk-so-block--totals');
+		initRecurringBlockUi();
+	}
+
+	function notifySaveError(message) {
+		if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
+			app.helper.showErrorNotification({ message: message });
+		} else {
+			window.alert(message);
+		}
+	}
+
+	function prepRecurringForSave($editForm) {
+		var enableRec = $editForm.find('[name="enable_recurring"]');
+		if (!enableRec.length || enableRec.is(':checked')) {
+			return;
+		}
+		['recurring_frequency', 'start_period', 'end_period', 'payment_duration', 'invoicestatus'].forEach(function (name) {
+			$editForm
+				.find('[name="' + name + '"]')
+				.addClass('ignore-validation')
+				.removeAttr('data-rule-required')
+				.prop('disabled', true);
+		});
 	}
 
 	function triggerSave() {
-		var $save = $form().find('.saveButton').first();
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
+
+		prepRecurringForSave($editForm);
+
+		if ($editForm.find('.deletedItem').length) {
+			notifySaveError(app.vtranslate('JS_PLEASE_REMOVE_LINE_ITEM_THAT_IS_DELETED'));
+			return;
+		}
+		if ($editForm.find('.lineItemRow').length <= 0) {
+			notifySaveError(app.vtranslate('JS_NO_LINE_ITEM'));
+			return;
+		}
+
+		var $save = $editForm.find('.saveButton').first();
+		var $top = $('#mkSoSaveTop');
+		$save.prop('disabled', false);
+		$top.prop('disabled', false);
+
+		var formEl = $editForm.get(0);
+		if ($save.length && formEl && typeof formEl.requestSubmit === 'function') {
+			try {
+				formEl.requestSubmit($save.get(0));
+				return;
+			} catch (err) {
+				/* fall through to click */
+			}
+		}
+
 		if ($save.length) {
 			$save.trigger('click');
 			return;
 		}
-		$form().trigger('submit');
+		$editForm.trigger('submit');
+	}
+
+	function bindSaveValidationRecovery() {
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
+		$editForm.off('invalid-form.validate.mkSoSave').on('invalid-form.validate.mkSoSave', function () {
+			$editForm.find('.saveButton').prop('disabled', false);
+			$('#mkSoSaveTop').prop('disabled', false);
+		});
 	}
 
 	function bindActions() {
+		bindSaveValidationRecovery();
 		$('#mkSoSaveTop')
 			.off('click.mkSoSave')
 			.on('click.mkSoSave', function (e) {

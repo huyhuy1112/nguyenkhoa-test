@@ -8,7 +8,111 @@
  *************************************************************************************/
 
 Inventory_Edit_Js("SalesOrder_Edit_Js",{},{
-    
+
+	/**
+	 * When Opportunity (potential_id) is selected, sync Organization and Contact
+	 * from the opportunity record. Empty opportunity fields clear the targets.
+	 */
+	registerAutoOrgContactFromOpportunity : function() {
+		var self = this;
+		var form = this.getForm();
+		if (!form || !form.length) {
+			return;
+		}
+
+		var accountIdEl = form.find('[name="account_id"]');
+		var accountDisplayEl = form.find('[name="account_id_display"]');
+		var contactIdEl = form.find('[name="contact_id"]');
+		var contactDisplayEl = form.find('[name="contact_id_display"]');
+
+		var clearReferenceField = function(idEl, displayEl) {
+			if (idEl && idEl.length) {
+				idEl.val('');
+			}
+			if (displayEl && displayEl.length) {
+				displayEl.val('');
+				displayEl.trigger('change');
+			}
+		};
+
+		var setReferenceField = function(idEl, displayEl, recordId, sourceModule, nameResolver) {
+			recordId = parseInt(recordId, 10) || 0;
+			if (!recordId) {
+				clearReferenceField(idEl, displayEl);
+				return;
+			}
+			self.getRecordDetails({record: recordId, source_module: sourceModule}).then(function(data) {
+				var row = data && data.data ? data.data : null;
+				if (!row) {
+					clearReferenceField(idEl, displayEl);
+					return;
+				}
+				var name = nameResolver(row);
+				if (typeof app !== 'undefined' && app.htmlDecode && name) {
+					name = app.htmlDecode(name);
+				}
+				if (idEl && idEl.length) {
+					idEl.val(recordId);
+				}
+				if (displayEl && displayEl.length) {
+					displayEl.val(name || '');
+					displayEl.trigger('change');
+					displayEl.trigger(Vtiger_Edit_Js.postReferenceSelectionEvent);
+				}
+			});
+		};
+
+		var applyFromPotentialId = function(potentialId) {
+			potentialId = parseInt(potentialId, 10) || 0;
+			if (!potentialId) {
+				return;
+			}
+
+			self.getRecordDetails({record: potentialId, source_module: 'Potentials'}).then(function(data) {
+				var row = data && data.data ? data.data : null;
+				if (!row) {
+					return;
+				}
+
+				var accountId = parseInt(row.related_to, 10) || 0;
+				var contactId = parseInt(row.contact_id, 10) || 0;
+
+				if (accountId) {
+					setReferenceField(accountIdEl, accountDisplayEl, accountId, 'Accounts', function(r) {
+						return r.accountname || '';
+					});
+				} else {
+					clearReferenceField(accountIdEl, accountDisplayEl);
+				}
+
+				if (contactId) {
+					setReferenceField(contactIdEl, contactDisplayEl, contactId, 'Contacts', function(r) {
+						var name = ((r.firstname || '') + ' ' + (r.lastname || '')).trim();
+						return name || r.label || '';
+					});
+				} else {
+					clearReferenceField(contactIdEl, contactDisplayEl);
+				}
+			});
+		};
+
+		form.on(Vtiger_Edit_Js.referenceSelectionEvent, '[name="potential_id"]', function() {
+			applyFromPotentialId(form.find('[name="potential_id"]').val());
+		});
+		form.on('change.mkSoOppAutofill', '[name="potential_id"]', function() {
+			applyFromPotentialId(jQuery(this).val());
+		});
+
+		var initialPotentialId = parseInt(form.find('[name="potential_id"]').val(), 10) || 0;
+		if (initialPotentialId > 0) {
+			var accountEmpty = !(parseInt(accountIdEl.val(), 10) || 0);
+			var contactEmpty = !(parseInt(contactIdEl.val(), 10) || 0);
+			if (accountEmpty || contactEmpty) {
+				applyFromPotentialId(initialPotentialId);
+			}
+		}
+	},
+
     
     /**
 	 * Function to get popup params
@@ -93,49 +197,132 @@ Inventory_Edit_Js("SalesOrder_Edit_Js",{},{
         }
         var selectorString = selectors.join(',');
         var validationToggleFields = form.find(selectorString);
-		enableRecurrenceField.on('change',function(e){
-			var element = jQuery(e.currentTarget);
-			var addValidation;
-			if(element.is(':checked')){
-				addValidation = true;
-			}else{
-				addValidation = false;
+
+		var markRecurringFieldCells = function (fieldName, cellClass) {
+			var $field = form.find('[name="' + fieldName + '"]');
+			if (!$field.length) {
+				return;
 			}
-			
-			//If validation need to be added for new elements,then we need to detach and attach validation
-			//to form
+			var $valueCell = $field.closest('td.fieldValue');
+			if ($valueCell.length) {
+				$valueCell.addClass(cellClass);
+				var $labelCell = $valueCell.prev('td.fieldLabel');
+				if ($labelCell.length) {
+					$labelCell.addClass(cellClass);
+				}
+			}
+		};
+
+		jQuery(fieldNamesForValidation).each(function (_idx, fieldName) {
+			markRecurringFieldCells(fieldName, 'mk-so-recurring-dependent');
+		});
+		markRecurringFieldCells('enable_recurring', 'mk-so-recurring-toggle');
+
+		var recurringBlock = enableRecurrenceField.closest('.fieldBlockContainer');
+		if (recurringBlock.length) {
+			recurringBlock.addClass('mk-so-recurring-block');
+		}
+
+		var syncRecurringBlockUi = function (enabled) {
+			if (recurringBlock.length) {
+				recurringBlock.toggleClass('mk-so-recurring-on', !!enabled);
+				recurringBlock.removeClass('mk-so-recurring-off');
+				var $hint = recurringBlock.find('.mk-so-recurring-hint');
+				if (!$hint.length) {
+					$hint = jQuery(
+						'<p class="mk-so-recurring-hint" role="note">' +
+						'Bật <strong>Enable Recurring</strong> để cấu hình tần suất, thời hạn và trạng thái hóa đơn định kỳ.' +
+						'</p>'
+					);
+					recurringBlock.find('table').first().before($hint);
+				}
+			}
+		};
+
+		var applyRecurringDefaults = function () {
+			var today = new Date();
+			var pad = function (n) {
+				return n < 10 ? '0' + n : String(n);
+			};
+			var todayStr = pad(today.getDate()) + '-' + pad(today.getMonth() + 1) + '-' + today.getFullYear();
+			var end = new Date(today.getTime());
+			end.setFullYear(end.getFullYear() + 1);
+			var endStr = pad(end.getDate()) + '-' + pad(end.getMonth() + 1) + '-' + end.getFullYear();
+
+			jQuery.each(fieldNamesForValidation, function (_i, fieldName) {
+				var $field = form.find('[name="' + fieldName + '"]');
+				if (!$field.length || jQuery.trim($field.val() || '') !== '') {
+					return;
+				}
+				if (fieldName === 'start_period') {
+					$field.val(todayStr).trigger('change');
+				} else if (fieldName === 'end_period') {
+					$field.val(endStr).trigger('change');
+				} else if ($field.is('select')) {
+					var $opt = $field.find('option[value!=""]').first();
+					if ($opt.length) {
+						$field.val($opt.val()).trigger('change');
+					}
+				}
+			});
+		};
+
+		enableRecurrenceField.off('change.mkSoRecurring').on('change.mkSoRecurring', function(e){
+			var element = jQuery(e.currentTarget);
+			var addValidation = element.is(':checked');
+			syncRecurringBlockUi(addValidation);
 			if(addValidation){
 				thisInstance.AddOrRemoveRequiredValidation(validationToggleFields, true);
+				applyRecurringDefaults();
 			}else{
 				thisInstance.AddOrRemoveRequiredValidation(validationToggleFields, false);
 			}
-		})
+		});
+
+		var isNewRecord = !jQuery.trim(form.find('[name="record"]').val() || '');
+		if (isNewRecord && enableRecurrenceField.is(':checked')) {
+			enableRecurrenceField.prop('checked', false);
+		}
+
 		if(!enableRecurrenceField.is(":checked")){
 			thisInstance.AddOrRemoveRequiredValidation(validationToggleFields, false);
+			syncRecurringBlockUi(false);
 		}else if(enableRecurrenceField.is(":checked")){
 			thisInstance.AddOrRemoveRequiredValidation(validationToggleFields, true);
+			syncRecurringBlockUi(true);
 		}
+
+		form.off('submit.mkSoRecurring').on('submit.mkSoRecurring', function () {
+			if (!enableRecurrenceField.is(':checked')) {
+				thisInstance.AddOrRemoveRequiredValidation(validationToggleFields, false);
+			}
+		});
 	},
 	
 	AddOrRemoveRequiredValidation : function(dependentFieldsForValidation, addValidation) {
 		jQuery(dependentFieldsForValidation).each(function(key,value){
 			var relatedField = jQuery(value);
 			if(addValidation) {
-				relatedField.removeClass('ignore-validation').data('rule-required', true);
-				if(relatedField.is("select")) {
-					relatedField.attr('disabled',false);
-				}else {
-					relatedField.removeAttr('disabled');
+				relatedField.removeClass('ignore-validation').attr('data-rule-required', 'true');
+				relatedField.prop('disabled', false);
+				if(relatedField.is("select") && relatedField.hasClass('select2')) {
+					try {
+						relatedField.select2('enable', true);
+					} catch (e1) {
+						/* select2 may not be initialized yet */
+					}
 				}
 			} else if(!addValidation) {
-				relatedField.addClass('ignore-validation').removeAttr('data-rule-required');
+				relatedField.addClass('ignore-validation').removeAttr('data-rule-required').removeData('rule-required');
 				if(relatedField.is("select")) {
-					relatedField.attr('disabled',true).trigger("change");
+					relatedField.val('').prop('disabled', true).trigger("change");
 					var select2Element = app.helper.getSelect2FromSelect(relatedField);
-					select2Element.trigger('Vtiger.Validation.Hide.Messsage');
-					select2Element.find('a').removeClass('input-error');
+					if (select2Element && select2Element.length) {
+						select2Element.trigger('Vtiger.Validation.Hide.Messsage');
+						select2Element.find('a').removeClass('input-error');
+					}
 				}else {
-					relatedField.attr('disabled','disabled').trigger('Vtiger.Validation.Hide.Messsage').removeClass('input-error');
+					relatedField.val('').prop('disabled', true).trigger('Vtiger.Validation.Hide.Messsage').removeClass('input-error');
 				}
 			}
 		});
@@ -199,6 +386,7 @@ Inventory_Edit_Js("SalesOrder_Edit_Js",{},{
 	},
         registerBasicEvents: function(container){
             this._super(container);
+            this.registerAutoOrgContactFromOpportunity();
             this.registerEventForEnablingRecurrence();
             this.registerForTogglingBillingandShippingAddress();
             this.registerEventForCopyAddress();

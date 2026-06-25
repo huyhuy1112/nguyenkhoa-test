@@ -226,11 +226,29 @@
 		});
 	}
 
+	function refreshPurchaseHistory() {
+		return fetchPurchases().then(renderPanels);
+	}
+
+	function bindRefreshEvents() {
+		if (typeof app !== 'undefined' && app.event && typeof app.event.on === 'function') {
+			app.event.on('post.summaryview.load', refreshPurchaseHistory);
+			app.event.on('post.detailedview.load', refreshPurchaseHistory);
+		}
+		window.addEventListener('pageshow', function (event) {
+			if (event.persisted || (window.performance && performance.navigation && performance.navigation.type === 2)) {
+				refreshPurchaseHistory();
+			}
+		});
+	}
+
 	function init() {
 		if (!byId('mk-opp-section-purchases')) return;
 		bindCommerceSubTabs();
 		bindLinkOrder();
-		fetchPurchases().then(renderPanels);
+		bindRefreshEvents();
+		window.mkOppRefreshPurchaseHistory = refreshPurchaseHistory;
+		refreshPurchaseHistory();
 	}
 
 	if (document.readyState === 'loading') {

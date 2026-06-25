@@ -111,6 +111,55 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 		return null;
 	}
 
+	/**
+	 * When creating a Sales Order from an Opportunity, keep commerce purchase history in sync.
+	 */
+	protected function ensurePotentialCommerceLink(Vtiger_Request $request, Vtiger_Record_Model $recordModel) {
+		if ($this->isToolsOrdersContext($request)) {
+			return;
+		}
+		$potentialId = $this->resolvePotentialIdFromRequest($request, $recordModel);
+		$salesOrderId = (int) $recordModel->getId();
+		if ($potentialId <= 0 || $salesOrderId <= 0) {
+			return;
+		}
+		require_once 'modules/Leads/models/CommerceService.php';
+		try {
+			Leads_CommerceService::linkSalesOrderToPotential($potentialId, $salesOrderId);
+		} catch (Exception $e) {
+			global $log;
+			if ($log) {
+				$log->error('SalesOrder ensurePotentialCommerceLink: ' . $e->getMessage());
+			}
+		}
+	}
+
+	protected function resolvePotentialIdFromRequest(Vtiger_Request $request, Vtiger_Record_Model $recordModel) {
+		foreach (array('potential_id', 'potentialid') as $fieldName) {
+			$value = (int) $recordModel->get($fieldName);
+			if ($value > 0) {
+				return $value;
+			}
+		}
+		$value = (int) $request->get('potential_id');
+		if ($value > 0) {
+			return $value;
+		}
+		if (strcasecmp((string) $request->get('sourceModule'), 'Potentials') === 0) {
+			$value = (int) $request->get('sourceRecord');
+			if ($value > 0) {
+				return $value;
+			}
+		}
+		return 0;
+	}
+
+	public function saveRecord($request) {
+		$recordModel = parent::saveRecord($request);
+		$this->ensurePotentialCommerceLink($request, $recordModel);
+		return $recordModel;
+	}
+
 	public function process(Vtiger_Request $request) {
 		$validationError = $this->getToolsOrdersValidationError($request);
 		if ($validationError !== null) {
@@ -139,6 +188,10 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 	protected function getRecordModelFromRequest(Vtiger_Request $request) {
 		$recordModel = parent::getRecordModelFromRequest($request);
 		if (!$this->isToolsOrdersContext($request)) {
+			$potentialId = $this->resolvePotentialIdFromRequest($request, $recordModel);
+			if ($potentialId > 0 && (int) $recordModel->get('potential_id') <= 0) {
+				$recordModel->set('potential_id', $potentialId);
+			}
 			return $recordModel;
 		}
 

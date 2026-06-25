@@ -1448,3 +1448,37 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 	border-radius: 10px !important;
 	font-weight: 600;
 }
+
+/* Recurring invoice block — hide dependent field cells until Enable Recurring is checked */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-recurring-block:not(.mk-so-recurring-on) .mk-so-recurring-dependent {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-recurring-block.mk-so-recurring-on .mk-so-recurring-dependent {
+	display: block !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-recurring-block .mk-so-recurring-toggle {
+	display: block !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-recurring-block .mk-so-recurring-hint {
+	margin: 0 0 8px;
+	padding: 10px 14px;
+	font-size: 13px;
+	line-height: 1.45;
+	color: var(--mk-so-muted);
+	background: rgba(64, 98, 126, 0.06);
+	border-radius: var(--mk-so-radius-sm);
+	border: 1px dashed var(--mk-so-border);
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-recurring-block.mk-so-recurring-on .mk-so-recurring-hint {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-recurring-block.mk-so-recurring-on .mk-so-recurring-dependent select:disabled,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-recurring-block.mk-so-recurring-on .mk-so-recurring-dependent input:disabled {
+	opacity: 1;
+	pointer-events: auto;
+}

@@ -12,7 +12,7 @@
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLeadsLogic.js')}&mk_v=20260619_opp_commerce1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.js')}&mk_v=20260620_opp_keyfields_v1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/OpportunityDetailCommerce.js')}&mk_v=20260619_opp_commerce1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/OpportunityDetailCommerce.js')}&mk_v=20260624_opp_commerce_link1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-opportunity-detail="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">
