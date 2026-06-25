@@ -814,6 +814,30 @@ class Users_Record_Model extends Vtiger_Record_Model {
 
 		$sql = "DELETE FROM vtiger_users WHERE id=?";
 		$db->pquery($sql, array($userId));
+
+		// Clean up privilege flat files for deleted user (best-effort).
+		// These files are caches and may remain, but removing avoids confusion in deployments.
+		global $root_directory;
+		$roots = array();
+		if (!empty($root_directory)) {
+			$mainRoot = rtrim($root_directory, "/\\") . DIRECTORY_SEPARATOR;
+			$roots[] = $mainRoot;
+			$testRoot = $mainRoot . 'test' . DIRECTORY_SEPARATOR;
+			if (is_dir($testRoot)) {
+				$roots[] = $testRoot;
+			}
+		}
+		$roots = array_values(array_unique($roots));
+		foreach ($roots as $root) {
+			$userPriv = $root . 'user_privileges' . DIRECTORY_SEPARATOR . 'user_privileges_' . $userId . '.php';
+			$userShare = $root . 'user_privileges' . DIRECTORY_SEPARATOR . 'sharing_privileges_' . $userId . '.php';
+			if (is_file($userPriv)) {
+				@unlink($userPriv);
+			}
+			if (is_file($userShare)) {
+				@unlink($userShare);
+			}
+		}
 	}
 
 	/**
