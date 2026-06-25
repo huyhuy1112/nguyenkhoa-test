@@ -34,13 +34,33 @@ class Vtiger_AccessControl {
 					}
 				}
 			}
-			checkFileAccessForInclusion($privFile);
-			require($privFile);
-			$vars = get_defined_vars();
 			$privilege = new stdClass;
-			foreach (self::$PRIVILEGE_ATTRS as $attr) {
-				if (isset($attr) && isset($vars[$attr]))
-					$privilege->$attr = $vars[$attr];
+			if (file_exists($privFile)) {
+				checkFileAccessForInclusion($privFile);
+				require($privFile);
+				$vars = get_defined_vars();
+				foreach (self::$PRIVILEGE_ATTRS as $attr) {
+					if (isset($attr) && isset($vars[$attr])) {
+						$privilege->$attr = $vars[$attr];
+					}
+				}
+			} else {
+				// Last-resort fallback: avoid fatal 500 if server cannot write user_privileges directory.
+				// We populate minimal attributes from DB so detail view can still render.
+				$privilege->is_admin = false;
+				$privilege->user_info = array();
+				if (class_exists('PearDatabase')) {
+					$db = PearDatabase::getInstance();
+					$res = $db->pquery('SELECT is_admin, userlabel, roleid FROM vtiger_users WHERE id = ?', array((int)$id));
+					if ($res && $db->num_rows($res) > 0) {
+						$isAdminFlag = $db->query_result($res, 0, 'is_admin');
+						$privilege->is_admin = ($isAdminFlag === 'on' || $isAdminFlag === '1' || $isAdminFlag === 1);
+						$privilege->current_user_roles = $db->query_result($res, 0, 'roleid');
+						$privilege->user_info = array(
+							'userlabel' => $db->query_result($res, 0, 'userlabel'),
+						);
+					}
+				}
 			}
 
 			$this->privileges[$id] = $privilege;
