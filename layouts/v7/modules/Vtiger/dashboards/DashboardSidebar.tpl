@@ -9,8 +9,12 @@
 {assign var=USER_PRIVILEGES_MODEL value=Users_Privileges_Model::getCurrentUserPrivilegesModel()}
 {assign var=DASHBOARD_MODULE_MODEL value=Vtiger_Module_Model::getInstance('Dashboard')}
 {assign var=APP_GROUPED_MENU value=Settings_MenuEditor_Module_Model::getAllVisibleModules()}
-{* Demo nguyenkhoa-test: gói khách không có Marketing / Tools *}
-{assign var=MK_SIDEBAR_APPS value=','|explode:'SALES,INVENTORY,SUPPORT,MANAGEMENT'}
+{assign var=MK_SIDEBAR_APPS value=','|explode:'MARKETING,SALES,INVENTORY,SUPPORT,MANAGEMENT,TOOLS'}
+{assign var=_mkHost value=$smarty.server.HTTP_HOST|default:$smarty.server.SERVER_NAME|default:''|lower}
+{if $_mkHost|strstr:'nguyenkhoa-test'}
+	{* Demo nguyenkhoa-test only — gói khách không có Marketing / Tools *}
+	{assign var=MK_SIDEBAR_APPS value=','|explode:'SALES,INVENTORY,SUPPORT,MANAGEMENT'}
+{/if}
 {assign var=_dashViewActive value=($VIEW eq 'DashBoard' || $VIEW eq 'ModernDashboard')}
 {assign var=_settingsActive value=(isset($PARENT_MODULE) && $PARENT_MODULE eq 'Settings')}
 {assign var=_userImgs value=$USER_MODEL->getImageDetails()}

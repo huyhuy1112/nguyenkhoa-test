@@ -117,6 +117,116 @@
 		$('#listViewContent #listview-table').addClass('mk-ps-table');
 	}
 
+	var MK_COL_CLASS_NAMES =
+		'mk-col-control mk-col-ps-name mk-col-ps-type mk-col-ps-price mk-col-ps-wholesale mk-col-ps-warranty';
+
+	var COL_CLASS_BY_FIELD = {
+		productsservicesname: 'mk-col-ps-name',
+		item_type: 'mk-col-ps-type',
+		type: 'mk-col-ps-type',
+		product_type: 'mk-col-ps-type',
+		price: 'mk-col-ps-price',
+		wholesale_price: 'mk-col-ps-wholesale',
+		warranty: 'mk-col-ps-warranty'
+	};
+
+	var COL_WIDTH_BY_CLASS = {
+		'mk-col-control': '152px',
+		'mk-col-ps-name': '220px',
+		'mk-col-ps-type': '96px',
+		'mk-col-ps-price': '120px',
+		'mk-col-ps-wholesale': '168px',
+		'mk-col-ps-warranty': '96px'
+	};
+
+	function fieldFromHeaderTh($th) {
+		var $a = $th.find('a.listViewContentHeaderValues').first();
+		if ($a.length) {
+			return $a.data('columnname') || '';
+		}
+		return '';
+	}
+
+	function assignColumnClasses() {
+		var $table = $('#listViewContent #listview-table');
+		if (!$table.length) {
+			return;
+		}
+		$table.find('th, td').removeClass(MK_COL_CLASS_NAMES);
+		var $headerCells = $table.find('thead tr.listViewContentHeader th');
+		$headerCells.each(function () {
+			var $th = $(this);
+			var field = fieldFromHeaderTh($th);
+			if (field && COL_CLASS_BY_FIELD[field]) {
+				$th.addClass(COL_CLASS_BY_FIELD[field]);
+			}
+			if ($th.find('.table-actions').length) {
+				$th.addClass('mk-col-control');
+			}
+		});
+		$table.find('thead tr.searchRow th').each(function (idx) {
+			var $th = $(this);
+			if ($th.hasClass('inline-search-btn') || $th.find('.table-actions').length) {
+				$th.addClass('mk-col-control');
+				return;
+			}
+			var field = $th.find('.listSearchContributor[name]').first().attr('name');
+			if (!field && $headerCells.eq(idx).length) {
+				field = fieldFromHeaderTh($headerCells.eq(idx));
+			}
+			if (field && COL_CLASS_BY_FIELD[field]) {
+				$th.addClass(COL_CLASS_BY_FIELD[field]);
+			}
+		});
+		$table.find('tbody tr.listViewEntries').each(function () {
+			$(this)
+				.children('td')
+				.each(function () {
+					var $td = $(this);
+					var field = $td.data('name');
+					if (field && COL_CLASS_BY_FIELD[field]) {
+						$td.addClass(COL_CLASS_BY_FIELD[field]);
+					}
+					if ($td.hasClass('listViewRecordActions')) {
+						$td.addClass('mk-col-control');
+					}
+				});
+		});
+	}
+
+	function widthForHeaderTh($th) {
+		var cls;
+		for (cls in COL_WIDTH_BY_CLASS) {
+			if ($th.hasClass(cls)) {
+				return COL_WIDTH_BY_CLASS[cls];
+			}
+		}
+		return '';
+	}
+
+	function applyColgroup() {
+		var $table = $('#listViewContent #listview-table');
+		if (!$table.length) {
+			return;
+		}
+		var $headerCells = $table.find('thead tr.listViewContentHeader th');
+		if (!$headerCells.length) {
+			return;
+		}
+		$table.find('colgroup').remove();
+		var $colgroup = $('<colgroup>');
+		$headerCells.each(function () {
+			var $th = $(this);
+			var width = widthForHeaderTh($th);
+			var $col = $('<col>');
+			if (width) {
+				$col.attr('style', 'width:' + width);
+			}
+			$colgroup.append($col);
+		});
+		$table.prepend($colgroup);
+	}
+
 	function initialsFromName(name) {
 		var parts = (name || '').trim().split(/\s+/).filter(Boolean);
 		if (!parts.length) {
@@ -166,6 +276,7 @@
 
 	function enhancePriceCells(context) {
 		$(context).find('td[data-name="price"]').addClass('mk-ps-price-cell');
+		$(context).find('td[data-name="wholesale_price"]').addClass('mk-col-ps-wholesale');
 	}
 
 	function enhanceCreatedBy(context) {
@@ -215,6 +326,7 @@
 		document.body.classList.remove('mk-ps-ui-loading');
 		document.body.classList.add('mk-ps-ui-ready');
 		document.documentElement.classList.add('mk-ps-ui-ready');
+		document.documentElement.classList.add('mk-ps-list-ready');
 	}
 
 	var eventsBound = false;
@@ -225,6 +337,8 @@
 		}
 		relocatePagination();
 		markTable();
+		assignColumnClasses();
+		applyColgroup();
 		enhanceTypePills(document);
 		enhancePriceCells(document);
 		enhanceCreatedBy(document);
@@ -249,6 +363,9 @@
 		if (!eventsBound && typeof app !== 'undefined' && app.event && app.event.on) {
 			eventsBound = true;
 			app.event.on('post.listViewFilter.click', function () {
+				setTimeout(afterListLayout, 200);
+			});
+			app.event.on('post.listViewSort.click', function () {
 				setTimeout(afterListLayout, 200);
 			});
 			app.event.on('Vtiger.Post.MenuToggle', function () {

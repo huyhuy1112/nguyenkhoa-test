@@ -4,13 +4,43 @@
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}" />
+<script type="text/javascript">document.documentElement.classList.add('mk-ps-list-sales');</script>
+<style type="text/css">
+html.mk-ps-list-sales:not(.mk-ps-list-ready) #listViewContent { visibility: hidden; }
+html.mk-ps-list-sales.mk-ps-list-ready #listViewContent { visibility: visible; }
+html.mk-ps-list-sales #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+html.mk-ps-list-sales #listViewContent .bottom-fixed-scroll {
+	display: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	width: 0 !important;
+	pointer-events: none !important;
+}
+html.mk-ps-list-sales #listview-table {
+	table-layout: fixed;
+	width: 100%;
+	border-collapse: collapse;
+}
+html.mk-ps-list-sales #listview-table tr th:first-child,
+html.mk-ps-list-sales #listview-table tr td:first-child {
+	width: 152px;
+	min-width: 152px;
+	max-width: 152px;
+	box-sizing: border-box;
+}
+</style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260607_sales_footer1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260607_sales_footer1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260624_ps_cols3"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-ps-list="1">
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260624_ps_cols3" />
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">
 		<header class="mk-topbar" role="banner">
