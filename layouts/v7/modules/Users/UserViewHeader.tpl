@@ -9,6 +9,7 @@
 {* modules/Users/views/Detail.php *}
 
 {strip}
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Users/resources/UsersPrefDetailContent.css')}&mk_v=20260625_users_detail_ui2" />
 <div class="detailViewContainer bace-users-settings-detail">
     <div class="col-sm-12 col-xs-12">
         <div class="mk-users-pref-hero" id="userPageHeader">
