@@ -196,6 +196,10 @@
 		document.body.classList.remove('mk-quotes-list-ui-loading');
 		document.body.classList.add('mk-quotes-list-ui-ready');
 		document.documentElement.classList.add('mk-quotes-list-ui-ready');
+		document.documentElement.classList.add('mk-sales-list-ready');
+		if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
+			window.MkSalesListShared.revealSalesListUi();
+		}
 	}
 
 	function getSavedLayoutMode() {

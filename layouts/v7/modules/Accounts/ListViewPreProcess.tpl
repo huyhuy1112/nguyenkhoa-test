@@ -5,25 +5,11 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-accounts-list-modern');</script>
+{include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
 <style type="text/css">
-html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #listViewContent { visibility: hidden; }
-html.mk-accounts-list-modern.mk-accounts-list-ready #listViewContent { visibility: visible; }
-html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #listViewContent #scroller_wrapper.bottom-fixed-scroll,
-html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #listViewContent .bottom-fixed-scroll {
-	display: none !important;
-	height: 0 !important;
-	margin: 0 !important;
-	padding: 0 !important;
-	border: none !important;
-	overflow: hidden !important;
-	position: absolute !important;
-	left: -9999px !important;
-	width: 0 !important;
-	pointer-events: none !important;
-}
-html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #modnavigator,
-html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #sidebar-essentials,
-html.mk-accounts-list-modern:not(.mk-accounts-list-ready) .essentials-toggle {
+html.mk-sales-list-guard:not(.mk-sales-list-ready) #modnavigator,
+html.mk-sales-list-guard:not(.mk-sales-list-ready) #sidebar-essentials,
+html.mk-sales-list-guard:not(.mk-sales-list-ready) .essentials-toggle {
 	display: none !important;
 }
 </style>
@@ -33,11 +19,11 @@ html.mk-accounts-list-modern:not(.mk-accounts-list-ready) .essentials-toggle {
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsMkSalesListSupport.css')}?mk_v=20260603_support1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSupportListTable.css')}?mk_v=20260603_support1" />
 {/if}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260620_delete_backdrop1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" onload="document.documentElement.classList.add('mk-accounts-list-ready')" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260607_sales_footer1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260624_sales_antifouc1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260624_sales_antifouc1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.js')}?mk_v=20260622_org_list_cols1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.js')}?mk_v=20260624_sales_antifouc1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-accounts-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

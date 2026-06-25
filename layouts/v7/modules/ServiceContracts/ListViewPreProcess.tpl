@@ -4,13 +4,13 @@
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
-<script type="text/javascript">document.documentElement.classList.add('mk-service-contracts-ui-ready');</script>
+{include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsList.css')}?mk_v=20260603_sc_pad" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260607_sales_footer1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260624_sales_antifouc1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260607_sales_footer1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260624_sales_antifouc1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/List.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/List.js')}?mk_v=20260624_sales_antifouc1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-service-contracts-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

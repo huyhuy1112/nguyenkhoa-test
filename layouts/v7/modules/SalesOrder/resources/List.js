@@ -368,6 +368,10 @@
 
 		var $table = getPrimaryTable();
 		if (!$table.length) {
+			document.documentElement.classList.add('mk-sales-list-ready');
+			if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
+				window.MkSalesListShared.revealSalesListUi();
+			}
 			return;
 		}
 
@@ -383,6 +387,10 @@
 			if (hasQuoteInHeaders) {
 				hideQuoteColumns($table);
 			}
+		}
+		document.documentElement.classList.add('mk-sales-list-ready');
+		if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
+			window.MkSalesListShared.revealSalesListUi();
 		}
 	}
 

@@ -176,6 +176,10 @@
 		document.body.classList.remove('mk-service-contracts-ui-loading');
 		document.body.classList.add('mk-service-contracts-ui-ready');
 		document.documentElement.classList.add('mk-service-contracts-ui-ready');
+		document.documentElement.classList.add('mk-sales-list-ready');
+		if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
+			window.MkSalesListShared.revealSalesListUi();
+		}
 	}
 
 	function afterListLayout() {

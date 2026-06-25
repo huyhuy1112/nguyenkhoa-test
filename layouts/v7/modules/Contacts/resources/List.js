@@ -263,6 +263,10 @@
 			return;
 		}
 		if (!hasWorkToApply()) {
+			document.documentElement.classList.add('mk-sales-list-ready');
+			if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
+				window.MkSalesListShared.revealSalesListUi();
+			}
 			return;
 		}
 		applyInProgress = true;
@@ -275,6 +279,10 @@
 			fixListScrollContainer();
 			if (isMarketingContactsList() && typeof window.mkMarketingListAfterAjax === 'function') {
 				window.mkMarketingListAfterAjax();
+			}
+			document.documentElement.classList.add('mk-sales-list-ready');
+			if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
+				window.MkSalesListShared.revealSalesListUi();
 			}
 		} finally {
 			applyInProgress = false;

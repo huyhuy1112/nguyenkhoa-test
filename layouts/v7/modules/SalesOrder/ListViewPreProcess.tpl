@@ -19,10 +19,11 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_search2" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260607_sales_footer1"></script>
 {else}
+{include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderList.css')}?mk_v=20260606_sales_search9" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260607_sales_footer1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260624_sales_antifouc1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260607_sales_footer1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260624_sales_antifouc1"></script>
 {/if}
 {assign var=mk_so_mod value=Vtiger_Module_Model::getInstance($MODULE)}
 {assign var=mk_so_status_fm value=Vtiger_Field_Model::getInstance('sostatus', $mk_so_mod)}
@@ -57,7 +58,7 @@ window.__mkSoToolsListConfig.statusHeaderLabel = window.__mkSoSalesListConfig.st
 {if $MK_SO_IS_TOOLS}
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/ListToolsBoot.js')}?mk_v=20260605_so_tools2"></script>
 {else}
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/List.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/List.js')}?mk_v=20260624_sales_antifouc1"></script>
 {/if}
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-sales-order-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

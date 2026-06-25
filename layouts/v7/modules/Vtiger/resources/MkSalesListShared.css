@@ -3,6 +3,14 @@
  * Scope: body[data-view="List"][data-app="SALES"]
  */
 
+html.mk-sales-list-guard:not(.mk-sales-list-ready) #listViewContent {
+	visibility: hidden;
+}
+
+html.mk-sales-list-guard.mk-sales-list-ready #listViewContent {
+	visibility: visible;
+}
+
 body[data-view="List"][data-app="SALES"] .mk-so-page,
 body[data-view="List"][data-app="SALES"] .mk-so-list-sales-root,
 body[data-view="List"][data-app="SALES"] .mk-contact-page,

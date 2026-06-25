@@ -4,6 +4,29 @@
 (function ($) {
 	'use strict';
 
+	if (document.documentElement) {
+		document.documentElement.classList.add('mk-sales-list-guard');
+	}
+
+	function revealSalesListUi() {
+		var b = document.body;
+		if (!b || b.getAttribute('data-view') !== 'List') {
+			return;
+		}
+		var app = (b.getAttribute('data-app') || '').toUpperCase();
+		if (app !== 'SALES' && app !== 'SUPPORT') {
+			var params = new URLSearchParams(window.location.search || '');
+			app = (params.get('app') || '').toUpperCase();
+			if (app !== 'SALES' && app !== 'SUPPORT') {
+				return;
+			}
+		}
+		if (!document.getElementById('listViewContent')) {
+			return;
+		}
+		document.documentElement.classList.add('mk-sales-list-ready');
+	}
+
 	var placeListContentsPatched = false;
 	var floatTheadPatched = false;
 	var postLoadPatched = false;
@@ -823,6 +846,7 @@
 			applyLayoutMode(getSavedLayoutMode());
 		}
 		notifyMkMgmtListUpdated();
+		revealSalesListUi();
 	}
 
 	/**
@@ -2146,6 +2170,7 @@
 		isMkEnhancedList: isMkEnhancedList,
 		supportsLayoutToggle: supportsLayoutToggle,
 		applyCommonUi: applyCommonUi,
+		revealSalesListUi: revealSalesListUi,
 		applyLayoutMode: applyLayoutMode,
 		getSavedLayoutMode: getSavedLayoutMode,
 		bindViewLayoutToggle: bindViewLayoutToggle,

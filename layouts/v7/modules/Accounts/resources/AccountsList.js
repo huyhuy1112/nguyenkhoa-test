@@ -266,6 +266,10 @@
 			return;
 		}
 		document.documentElement.classList.add('mk-accounts-list-ready');
+		document.documentElement.classList.add('mk-sales-list-ready');
+		if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
+			window.MkSalesListShared.revealSalesListUi();
+		}
 		markOrgTable();
 		assignColumnClasses();
 		fixEncodedNameCells(document);
