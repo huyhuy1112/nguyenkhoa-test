@@ -121,7 +121,7 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				jQuery('#importStepOneButtonsDiv .mk-import-btn-primary').text('Import ngay');
 				if (moduleName === 'Accounts') {
 					jQuery('#accounts_sample_file_container .mk-import-hint').html(
-						'Chọn file Organizations.csv. Tự map <strong>Organization Name</strong>, <strong>Billing Address</strong>, <strong>Company Code</strong>. Bấm <strong>Import ngay</strong>.'
+						'Chọn file Organizations Excel/CSV. Tự map <strong>Customer Code</strong> → <code>KH00013</code>, <strong>Organization Name</strong>, <strong>Company Code</strong>, <strong>Billing Address</strong>. Bấm <strong>Import ngay</strong>.'
 					);
 				} else if (moduleName === 'Potentials') {
 					jQuery('#potentials_sample_file_container .mk-import-hint').html(
@@ -629,6 +629,12 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				'order category': 'order_category'
 			},
 			Accounts: {
+				'customer code': 'account_no',
+				'khách hàng': 'account_no',
+				'mã khách hàng': 'account_no',
+				'company code': 'cf_855',
+				'mã công ty': 'cf_855',
+				'mã company': 'cf_855',
 				'tên': 'accountname',
 				'tên ngắn gọn thường gọi': 'accountname',
 				'account name': 'accountname',

@@ -34,8 +34,12 @@ class Accounts_SimpleImport_Helper {
 			'org name' => 'organization name',
 			'account name' => 'organization name',
 			'company code' => 'company code',
-			'tên khách hàng' => 'organization name',
-			'ten khach hang' => 'organization name',
+			'customer code' => 'customer code',
+			'mã khách hàng' => 'customer code',
+			'ma khach hang' => 'customer code',
+			'khách hàng' => 'customer code',
+			'khach hang' => 'customer code',
+			'member of' => 'member of',
 		);
 		return isset($aliases[$header]) ? $aliases[$header] : $header;
 	}
@@ -95,6 +99,50 @@ class Accounts_SimpleImport_Helper {
 	}
 
 	/**
+	 * BA / CRM export: Customer Code first, then Organization Name, … Company Code, Billing Address.
+	 */
+	public static function getBaExportPositionalOrder() {
+		return array(
+			'account_no',
+			'accountname',
+			'website',
+			'tickersymbol',
+			'phone',
+			'fax',
+			null,
+			'industry',
+			'employees',
+			'annualrevenue',
+			'email2',
+			'ownership',
+			'rating',
+			'accounttype',
+			'siccode',
+			'emailoptout',
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			'cf_855',
+			'description',
+			'bill_street',
+			'ship_street',
+			'bill_pobox',
+			'ship_pobox',
+			'bill_city',
+			'ship_city',
+			'bill_state',
+			'ship_state',
+			'bill_code',
+			'ship_code',
+			'bill_country',
+			'ship_country',
+		);
+	}
+
+	/**
 	 * English vtiger Accounts export column order (Organization Name, Organization Number, …).
 	 */
 	public static function getEnglishExportPositionalOrder() {
@@ -143,7 +191,7 @@ class Accounts_SimpleImport_Helper {
 
 	public static function buildPositionalFieldMapping($columnCount) {
 		$mapping = array();
-		$order = self::getEnglishExportPositionalOrder();
+		$order = ($columnCount >= 20) ? self::getBaExportPositionalOrder() : self::getEnglishExportPositionalOrder();
 		foreach ($order as $index => $fieldName) {
 			if ($index >= $columnCount || $fieldName === null) {
 				continue;
@@ -156,9 +204,41 @@ class Accounts_SimpleImport_Helper {
 		return $mapping;
 	}
 
+	public static function normalizeExcelCellNumber($value) {
+		$value = trim((string) $value);
+		if ($value === '') {
+			return '';
+		}
+		if (preg_match('/^\d+\.0+$/', $value)) {
+			return preg_replace('/\.0+$/', '', $value);
+		}
+		return $value;
+	}
+
 	/**
-	 * Numbers/Excel: row1 = Cột1..N / Column1..N, row2 = Organization Name, …
+	 * Customer Code 13 → số hiệu tổ chức KH00013 (khớp import Opp).
 	 */
+	public static function formatCustomerAccountNo($customerCode) {
+		$raw = trim((string) $customerCode);
+		if ($raw === '') {
+			return '';
+		}
+		if (preg_match('/^KH\d+/i', $raw)) {
+			return strtoupper($raw);
+		}
+		$digits = preg_replace('/\D/', '', self::normalizeExcelCellNumber($raw));
+		if ($digits === '') {
+			return '';
+		}
+		return 'KH' . str_pad($digits, 5, '0', STR_PAD_LEFT);
+	}
+
+	public static function normalizeImportRow(array &$fieldData) {
+		if (!empty($fieldData['account_no'])) {
+			$fieldData['account_no'] = self::formatCustomerAccountNo($fieldData['account_no']);
+		}
+	}
+
 	public static function normalizeImportFile(Vtiger_Request $request, $user) {
 		$filePath = Import_Utils_Helper::getImportFilePath($user);
 		if (!$filePath || !is_readable($filePath)) {
@@ -248,6 +328,9 @@ class Accounts_SimpleImport_Helper {
 
 	public static function getHeaderFieldMap() {
 		return array(
+			'customer code' => 'account_no',
+			'khách hàng' => 'account_no',
+			'mã khách hàng' => 'account_no',
 			'organization name' => 'accountname',
 			'account name' => 'accountname',
 			'tên' => 'accountname',

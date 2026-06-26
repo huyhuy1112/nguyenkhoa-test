@@ -380,6 +380,10 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 				Potentials_SimpleImport_Helper::resolveImportReferences($fieldData, $rowId);
 				$fieldData = Potentials_SimpleImport_Helper::stripImportMetaFields($fieldData);
 			}
+			if ($moduleName === 'Accounts') {
+				require_once 'modules/Accounts/helpers/SimpleImport.php';
+				Accounts_SimpleImport_Helper::normalizeImportRow($fieldData);
+			}
 
 			$campaignsValidation = $this->validateCampaignsRequiredFields($fieldData);
 			if ($campaignsValidation !== true) {
