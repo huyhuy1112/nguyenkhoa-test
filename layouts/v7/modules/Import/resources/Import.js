@@ -172,7 +172,7 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 			if (fileInput && fileInput.files && fileInput.files[0]) {
 				data.append('import_file', fileInput.files[0]);
 			} else {
-				app.helper.showErrorNotification({ message: 'Chưa chọn file CSV. Vui lòng chọn file rồi bấm Import ngay.' });
+				app.helper.showErrorNotification({ message: 'Chưa chọn file. Vui lòng chọn CSV hoặc Excel (.xlsx, .xls) rồi bấm Import ngay.' });
 				return false;
 			}
 

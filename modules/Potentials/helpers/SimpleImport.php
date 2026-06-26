@@ -144,9 +144,20 @@ class Potentials_SimpleImport_Helper {
 		return 0;
 	}
 
+	public static function normalizeExcelCellNumber($value) {
+		$value = trim((string) $value);
+		if ($value === '') {
+			return '';
+		}
+		if (preg_match('/^\d+\.0+$/', $value)) {
+			return preg_replace('/\.0+$/', '', $value);
+		}
+		return $value;
+	}
+
 	public static function stashImportMetaForStagingRow($stagingRowId, array $row) {
-		$customerCode = isset($row[self::META_CUSTOMER_CODE]) ? trim((string) $row[self::META_CUSTOMER_CODE]) : '';
-		$projectOrder = isset($row[self::META_PROJECT_ORDER]) ? trim((string) $row[self::META_PROJECT_ORDER]) : '';
+		$customerCode = isset($row[self::META_CUSTOMER_CODE]) ? self::normalizeExcelCellNumber($row[self::META_CUSTOMER_CODE]) : '';
+		$projectOrder = isset($row[self::META_PROJECT_ORDER]) ? self::normalizeExcelCellNumber($row[self::META_PROJECT_ORDER]) : '';
 		if ($customerCode === '' && $projectOrder === '') {
 			return;
 		}

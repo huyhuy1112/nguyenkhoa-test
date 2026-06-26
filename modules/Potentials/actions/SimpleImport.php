@@ -36,7 +36,7 @@ class Potentials_SimpleImport_Action extends Vtiger_Action_Controller {
 			}
 
 			if (empty($_FILES['import_file']) || empty($_FILES['import_file']['tmp_name'])) {
-				throw new Exception('Chưa chọn file hoặc trình duyệt không gửi được file. Chọn lại file CSV rồi bấm Import ngay.');
+				throw new Exception('Chưa chọn file hoặc trình duyệt không gửi được file. Chọn file CSV hoặc Excel (.xlsx, .xls) rồi bấm Import ngay.');
 			}
 
 			$user = Users_Record_Model::getCurrentUserModel();

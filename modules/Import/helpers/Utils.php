@@ -267,10 +267,11 @@ class Import_Utils_Helper {
 				$converted = Import_ExcelConverter_Helper::convertToCsv(
 					$uploadedPath,
 					$csvTemp,
-					$request->get('delimiter') ? $request->get('delimiter') : ','
+					$request->get('delimiter') ? $request->get('delimiter') : ',',
+					$uploadedName
 				);
 				if (!$converted) {
-					$request->set('error_message', vtranslate('LBL_INVALID_FILE', 'Import'));
+					$request->set('error_message', 'Không đọc được file Excel (.xlsx / .xls). Thử lưu lại file dạng CSV UTF-8 hoặc kiểm tra sheet đầu tiên có đủ header + dữ liệu.');
 					return false;
 				}
 				$request->set('type', 'csv');

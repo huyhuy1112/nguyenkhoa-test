@@ -10,16 +10,24 @@ class Import_ExcelConverter_Helper {
 		return in_array($ext, array('xlsx', 'xls'), true);
 	}
 
-	public static function convertToCsv($sourcePath, $destPath, $delimiter = ',') {
+	public static function convertToCsv($sourcePath, $destPath, $delimiter = ',', $originalFileName = null) {
 		if (!is_readable($sourcePath)) {
 			return false;
 		}
 		require_once 'libraries/PHPExcel/PHPExcel.php';
-		$ext = strtolower(pathinfo((string)$sourcePath, PATHINFO_EXTENSION));
-		$readerType = ($ext === 'xls') ? 'Excel5' : 'Excel2007';
-		$reader = PHPExcel_IOFactory::createReader($readerType);
-		$reader->setReadDataOnly(true);
-		$book = $reader->load($sourcePath);
+		$nameForExt = $originalFileName ? (string) $originalFileName : (string) $sourcePath;
+		$ext = strtolower(pathinfo($nameForExt, PATHINFO_EXTENSION));
+		if ($ext === '') {
+			$ext = 'xlsx';
+		}
+		try {
+			$readerType = ($ext === 'xls') ? 'Excel5' : 'Excel2007';
+			$reader = PHPExcel_IOFactory::createReader($readerType);
+			$reader->setReadDataOnly(true);
+			$book = $reader->load($sourcePath);
+		} catch (Exception $e) {
+			return false;
+		}
 		$sheet = $book->getSheet(0);
 		$handle = fopen($destPath, 'w');
 		if (!$handle) {
