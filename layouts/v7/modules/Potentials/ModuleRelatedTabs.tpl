@@ -47,6 +47,16 @@
 												{assign var=RELATEDMODULENAME value=$RELATED_LINK->getRelatedModuleName()}
 												{assign var=RELATEDFIELDNAME value=$RELATED_LINK->get('linkFieldName')}
 												{assign var="DETAILVIEWRELATEDLINKLBL" value= vtranslate($RELATED_LINK->getLabel(),$RELATEDMODULENAME)}
+												{if ((isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')) && $RELATEDMODULENAME eq 'ModComments'}
+												<li class="tab-item mk-opp-service-contracts-tab" data-module="ServiceContracts" data-mk-opp-summary-tab="1" data-label-key="ServiceContracts" title="Hợp đồng dịch vụ">
+													<a href="javascript:void(0)" class="textOverflowEllipsis" displaylabel="Hợp đồng dịch vụ" recordsCount="">
+														<span class="tab-icon mk-opportunity-tab-icon">
+															{include file="partials/OpportunityDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='ServiceContracts'}
+														</span>
+														&nbsp;<span class="numberCircle hide">0</span>
+													</a>
+												</li>
+												{else}
 												<li class="tab-item {if (trim($RELATED_LINK->getLabel())== trim($SELECTED_TAB_LABEL)) && ($RELATED_LINK->getId() == $SELECTED_RELATION_ID)}active{/if}" data-url="{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" data-label-key="{$RELATED_LINK->getLabel()}"
 														data-module="{$RELATEDMODULENAME}" data-relation-id="{$RELATED_LINK->getId()}" {if $RELATEDMODULENAME eq "ModComments"} title {else} title="{$DETAILVIEWRELATEDLINKLBL}"{/if} {if $RELATEDFIELDNAME}data-relatedfield ="{$RELATEDFIELDNAME}"{/if}>
 													<a href="index.php?{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" class="textOverflowEllipsis" displaylabel="{$DETAILVIEWRELATEDLINKLBL}" recordsCount="" >
@@ -67,6 +77,7 @@
 														&nbsp;<span class="numberCircle hide">0</span>
 													</a>
 												</li>
+												{/if}
 												{if ($RELATED_LINK->getId() == {$REQ->get('relationId')})}
 													{assign var=MORE_TAB_ACTIVE value='true'}
 												{/if}
@@ -113,6 +124,8 @@
 														{for $j = $COUNT1 to $COUNT-1}
 															{assign var=RELATED_LINK value=$RELATEDTABS[$j]}
 															{assign var=RELATEDMODULENAME value=$RELATED_LINK->getRelatedModuleName()}
+															{if ((isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')) && $RELATEDMODULENAME eq 'ModComments'}
+															{else}
 															{assign var=RELATEDFIELDNAME value=$RELATED_LINK->get('linkFieldName')}
 															{assign var="DETAILVIEWRELATEDLINKLBL" value= vtranslate($RELATED_LINK->getLabel(),$RELATEDMODULENAME)}
 															<li class="more-tab {if (trim($RELATED_LINK->getLabel())== trim($SELECTED_TAB_LABEL)) && ($RELATED_LINK->getId() == $SELECTED_RELATION_ID)}active{/if}" data-url="{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" data-label-key="{$RELATED_LINK->getLabel()}"
@@ -132,6 +145,7 @@
 																	&nbsp;<span class="numberCircle hide">0</span>
 																</a>
 															</li>
+															{/if}
 														{/for}
 													</ul>
 												</li>

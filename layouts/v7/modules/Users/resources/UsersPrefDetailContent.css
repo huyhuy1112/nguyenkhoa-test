@@ -2,6 +2,39 @@
  * Users Preference / Settings Detail — content area only.
  * Scope: .bodyContents .bace-users-pref-detail | .bace-users-settings-detail
  */
+
+/* Settings shell: avoid double card padding from SettingsUi.css */
+body[data-parent="Settings"] .mk-settings-subpage .bodyContents.mk-users-detail-page {
+	background: #f7f9fb;
+	padding: 0;
+	border: 0;
+	box-shadow: none;
+}
+
+body[data-parent="Settings"] .mk-settings-subpage .bodyContents.mk-users-detail-page > .detailViewContainer.bace-users-settings-detail {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	padding: 18px 18px 28px;
+}
+
+/* Kill legacy floated field columns inside Users detail grid */
+.bodyContents .bace-users-settings-detail .mk-users-fields-grid .fieldLabel,
+.bodyContents .bace-users-settings-detail .mk-users-fields-grid .fieldValue,
+.bodyContents .bace-users-pref-detail .mk-users-fields-grid .fieldLabel,
+.bodyContents .bace-users-pref-detail .mk-users-fields-grid .fieldValue {
+	float: none !important;
+	width: auto !important;
+	max-width: none !important;
+	display: block !important;
+}
+
+.bodyContents .bace-users-settings-detail .mk-users-fields-grid .mk-users-field,
+.bodyContents .bace-users-pref-detail .mk-users-fields-grid .mk-users-field {
+	float: none !important;
+	clear: none !important;
+}
+
 .bodyContents .bace-users-pref-detail,
 .bodyContents .bace-users-settings-detail {
 	--mk-u-accent: #4f46e5;
@@ -404,10 +437,10 @@
 .bodyContents .bace-users-settings-detail .mk-users-field__label .muted {
 	display: block;
 	color: var(--mk-u-muted);
-	font-size: 11px;
-	font-weight: 700;
-	letter-spacing: 0.05em;
-	text-transform: uppercase;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	text-transform: none;
 	line-height: 1.4;
 	white-space: normal !important;
 	overflow: visible !important;

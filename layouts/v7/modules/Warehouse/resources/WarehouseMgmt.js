@@ -352,26 +352,7 @@
 	}
 
 	function renderDetailPerms() {
-		var role = getRole();
-		var me = ROLES[role];
-		if (!me) return;
-
-		// Prototype layout perms/banner IDs
-		var permRole = qs('#mkWhProtoPermRole');
-		var permItems = qs('#mkWhProtoPermItems');
-		var badge = qs('#mkWhProtoRoleBadge');
-		var hint = qs('#mkWhProtoRoleHint');
-		if (permRole) permRole.textContent = me.label;
-		if (permItems) permItems.textContent = me.perms;
-		if (badge) badge.textContent = me.label;
-		if (hint) hint.textContent = 'Quyền: ' + me.perms;
-
-		// Backward compat (old WhDetail perms container)
-		var el = qs('#mkWhDetailPerms');
-		if (el) {
-			el.innerHTML = '<span class="mk-wh-proto-perms__pill">' + escapeHtml(me.label) + '</span>' +
-				'<span class="mk-wh-proto-perms__label">Quyền:</span> ' + escapeHtml(me.perms);
-		}
+		/* Permission summary rows removed from WhDetail UI */
 	}
 
 	function daysUntil(expiry) {

@@ -146,6 +146,10 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 		);
 		for (var i = 0; i < nodes.length; i++) {
 			var el = nodes[i];
+			var tabLi = el.closest('li[data-module]');
+			if (tabLi && tabLi.getAttribute('data-module') === 'ServiceContracts') {
+				continue;
+			}
 			el.classList.remove('hide');
 			var raw = (el.textContent || '').trim();
 			var count = parseInt(raw, 10);
@@ -157,6 +161,38 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 				el.textContent = '0';
 			}
 		}
+	},
+
+	registerServiceContractsTabShortcut : function() {
+		if (!this.isSalesOpportunityDetailUi()) {
+			return;
+		}
+		var $tabs = jQuery('.mk-opportunity-detail-related-tabs');
+		$tabs.off('click.mkServiceContractsTab', 'li.mk-opp-service-contracts-tab');
+		$tabs.on('click.mkServiceContractsTab', 'li.mk-opp-service-contracts-tab', function(e) {
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			var $summaryTab = jQuery('.related-tabs li.tab-item[data-link-key="LBL_RECORD_SUMMARY"]').first();
+			if (!$summaryTab.length) {
+				$summaryTab = jQuery('.related-tabs li.tab-item').filter(function() {
+					return jQuery(this).data('label-key') === 'Summary';
+				}).first();
+			}
+			if ($summaryTab.length && !$summaryTab.hasClass('active')) {
+				$summaryTab.trigger('click');
+			}
+			jQuery('.related-tabs li.tab-item, .related-tabs li.more-tab').removeClass('active');
+			jQuery(e.currentTarget).addClass('active');
+			window.setTimeout(function() {
+				var target = document.getElementById('mk-opp-section-service-contracts');
+				if (target) {
+					target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				}
+				if (typeof window.mkOppRefreshPurchaseHistory === 'function') {
+					window.mkOppRefreshPurchaseHistory();
+				}
+			}, 350);
+		});
 	},
 
 	/**
@@ -559,6 +595,48 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 	},
 
 	/**
+	 * Summary tab PJAX does not fire post.summaryview.load in core — refresh commerce widgets when switching tabs.
+	 */
+	loadSelectedTabContents: function(tabElement, urlAttributes) {
+		var thisInstance = this;
+		var promise = this._super(tabElement, urlAttributes);
+		if (!this.isSalesOpportunityDetailUi()) {
+			return promise;
+		}
+		promise.then(function() {
+			var linkKey = tabElement.data('linkKey');
+			var labelKey = tabElement.data('labelKey');
+			var relatedModule = tabElement.data('module');
+			var isSummary = linkKey === thisInstance.detailViewSummaryTabLabel || labelKey === 'Summary';
+			if (isSummary) {
+				if (typeof app !== 'undefined' && app.event && typeof app.event.trigger === 'function') {
+					app.event.trigger('post.summaryview.load');
+				}
+				window.setTimeout(function() {
+					if (typeof window.mkOppCommerceOnSummaryLoad === 'function') {
+						window.mkOppCommerceOnSummaryLoad();
+					}
+				}, 200);
+				window.setTimeout(function() {
+					if (typeof window.mkOppCommerceOnSummaryLoad === 'function') {
+						window.mkOppCommerceOnSummaryLoad();
+					}
+				}, 700);
+			} else if (relatedModule === 'SalesOrder') {
+				try {
+					var id = thisInstance.getRecordId();
+					if (id) {
+						sessionStorage.setItem('mkOppCommerceRefresh', String(id));
+					}
+				} catch (e) {
+					/* ignore */
+				}
+			}
+		});
+		return promise;
+	},
+
+	/**
 	 * Function which will register all the events
 	 */
 	registerEvents : function() {
@@ -567,6 +645,7 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 		var thisInstance = this;
 
 		this.refreshRelatedTabBadges();
+		this.registerServiceContractsTabShortcut();
 		this.registerLuxuryRelatedListEmptyState();
 		if (typeof app !== 'undefined' && app && app.event && typeof app.event.on === 'function') {
 			app.event.on('post.summaryview.load', function() {

@@ -75,12 +75,6 @@
 		if (sel.value !== uiVal) sel.value = uiVal;
 	}
 
-	var ROLE_UI = {
-		keeper: { badge: 'Thủ kho', hint: 'Quyền: Tạo/sửa phiếu nhập • Gửi QC • Soạn & giao hàng • Tạo phiếu xuất', perms: 'Tạo/sửa phiếu nhập • Gửi QC • Soạn & giao hàng • Tạo phiếu xuất' },
-		qc: { badge: 'QC', hint: 'Quyền: Chỉnh sửa kết quả QC (đạt/không đạt) • Ghi chú kiểm tra', perms: 'Ghi nhận kết quả QC (Đạt/Không đạt) • Ghi chú kiểm tra' },
-		manager: { badge: 'Quản lý kho', hint: 'Quyền: Duyệt phiếu nhập sau QC • Duyệt/Từ chối phiếu xuất • Xem toàn bộ tồn kho', perms: 'Duyệt phiếu nhập sau QC • Duyệt/Từ chối phiếu xuất • Xem toàn bộ tồn kho' },
-	};
-
 	var RECEIPT_STATUS = {
 		draft: { label: 'Nháp', cls: 'mk-wh-proto-pill mk-wh-proto-pill--draft' },
 		pending_qc: { label: 'Chờ QC', cls: 'mk-wh-proto-pill mk-wh-proto-pill--warn' },
@@ -181,16 +175,6 @@
 
 	function updateRoleBanner() {
 		var role = getRole();
-		var meta = ROLE_UI[role] || ROLE_UI.keeper;
-		var badge = qs('#mkWhProtoRoleBadge');
-		var hint = qs('#mkWhProtoRoleHint');
-		var permRole = qs('#mkWhProtoPermRole');
-		var permItems = qs('#mkWhProtoPermItems');
-		if (badge) badge.textContent = meta.badge;
-		if (hint) hint.textContent = meta.hint;
-		if (permRole) permRole.textContent = meta.badge;
-		if (permItems) permItems.textContent = meta.perms;
-
 		var active = qs('.mk-wh-proto-tab.is-active');
 		var tabKey = active ? active.getAttribute('data-tab') : 'inbound';
 		var btn = qs('#mkWhProtoCreateBtn');

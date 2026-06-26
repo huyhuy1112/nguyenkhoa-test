@@ -169,8 +169,34 @@
 		});
 	}
 
+	function markOppCommerceRefreshOnSubmit() {
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
+		$editForm.off('submit.mkOppCommerceFlag').on('submit.mkOppCommerceFlag', function () {
+			var src = ($editForm.find('input[name="sourceModule"]').val() || '').trim();
+			var srcId = ($editForm.find('input[name="sourceRecord"]').val() || '').trim();
+			var potId = ($editForm.find('input[name="potential_id"], input[name="potentialid"]').val() || '').trim();
+			var refreshId = '';
+			if (src === 'Potentials' && srcId) {
+				refreshId = srcId;
+			} else if (potId) {
+				refreshId = potId;
+			}
+			if (refreshId) {
+				try {
+					sessionStorage.setItem('mkOppCommerceRefresh', refreshId);
+				} catch (e) {
+					/* ignore */
+				}
+			}
+		});
+	}
+
 	function bindActions() {
 		bindSaveValidationRecovery();
+		markOppCommerceRefreshOnSubmit();
 		$('#mkSoSaveTop')
 			.off('click.mkSoSave')
 			.on('click.mkSoSave', function (e) {

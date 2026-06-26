@@ -274,6 +274,13 @@ class Leads_ModernService {
 				$leadId = $existingId;
 			}
 		}
+		$requestedId = ($recordId !== null && $recordId !== '') ? $recordId : null;
+		if ($requestedId === null && isset($payload['id']) && $payload['id'] !== '') {
+			$requestedId = $payload['id'];
+		}
+		if ($requestedId !== null && $requestedId !== '' && !$leadId) {
+			throw new Exception('Lead not found.');
+		}
 		if ($leadId) {
 			$payload = self::hydratePayloadForExistingLead($leadId, $payload, $userId);
 		}
@@ -347,6 +354,47 @@ class Leads_ModernService {
 		}
 
 		return self::getLead((string)$leadId, $userId);
+	}
+
+	/**
+	 * Update assigned_user_id only — never creates a new Lead record.
+	 */
+	public static function assignOwnerToLeads(array $idsOrCacheIds, $ownerUserId) {
+		global $current_user;
+		$userId = (int)$current_user->id;
+		$ownerId = self::resolveUserId($ownerUserId, $userId);
+		if ($ownerId <= 0) {
+			throw new Exception('Invalid owner.');
+		}
+		$updated = array();
+		$failed = array();
+		foreach ($idsOrCacheIds as $idOrCacheId) {
+			if ($idOrCacheId === null || $idOrCacheId === '') {
+				continue;
+			}
+			$leadId = self::resolveLeadId($idOrCacheId);
+			if (!$leadId) {
+				$failed[] = $idOrCacheId;
+				continue;
+			}
+			try {
+				$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
+				$recordModel->set('id', $leadId);
+				$recordModel->set('mode', 'edit');
+				$recordModel->set('assigned_user_id', $ownerId);
+				$recordModel->save();
+				$lead = self::getLead((string)$leadId, $userId);
+				if ($lead) {
+					$updated[] = $lead;
+				}
+			} catch (Exception $e) {
+				$failed[] = $idOrCacheId;
+			}
+		}
+		if (empty($updated) && !empty($failed)) {
+			throw new Exception('Could not update owner for selected lead(s).');
+		}
+		return $updated;
 	}
 
 	public static function deleteLead($idOrCacheId) {
@@ -483,7 +531,7 @@ class Leads_ModernService {
 			isset($row['firstname']) ? $row['firstname'] : '',
 			isset($row['lastname']) ? $row['lastname'] : ''
 		);
-		$ownerName = self::getUsername((int)$row['smownerid']);
+		$ownerName = self::getOwnerLabel((int)$row['smownerid']);
 		if ($ownerName === '') {
 			$ownerName = self::getUserDisplayName((int)$row['smownerid']);
 		}
@@ -696,7 +744,19 @@ class Leads_ModernService {
 			$leadId = (int)$row['leadid'];
 			$phoneNorm = self::normalizePhone($row['phone'] ?? '');
 			$email = strtolower(trim((string)($row['email'] ?? '')));
-			$key = $phoneNorm !== '' ? 'p:' . $phoneNorm : ($email !== '' ? 'e:' . $email : 'id:' . $leadId);
+			$name = strtolower(trim(preg_replace('/\s+/', ' ', self::composeDisplayName(
+				isset($row['firstname']) ? $row['firstname'] : '',
+				isset($row['lastname']) ? $row['lastname'] : ''
+			))));
+			if ($phoneNorm !== '') {
+				$key = 'p:' . $phoneNorm;
+			} elseif ($email !== '') {
+				$key = 'e:' . $email;
+			} elseif ($name !== '') {
+				$key = 'n:' . $name;
+			} else {
+				$key = 'id:' . $leadId;
+			}
 			if (!isset($groups[$key])) {
 				$groups[$key] = array();
 			}
@@ -851,14 +911,49 @@ class Leads_ModernService {
 			return null;
 		}
 		if (is_numeric($idOrCacheId)) {
-			return (int)$idOrCacheId;
+			$leadId = (int)$idOrCacheId;
+			return self::vtigerLeadExists($leadId) ? $leadId : null;
 		}
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery("SELECT leadid FROM bace_lead_profile WHERE mk_cache_id = ?", array($idOrCacheId));
 		if ($res && $adb->num_rows($res) > 0) {
-			return (int)$adb->query_result($res, 0, 'leadid');
+			$leadId = (int)$adb->query_result($res, 0, 'leadid');
+			return self::vtigerLeadExists($leadId) ? $leadId : null;
 		}
 		return null;
+	}
+
+	/**
+	 * Active CRM users the current user may assign Leads to (SALES list / edit).
+	 */
+	public static function listAssignableUsers() {
+		$userModel = Users_Record_Model::getCurrentUserModel();
+		$assignableUsers = $userModel->getAccessibleUsersForModule(self::MODULE);
+		if (!is_array($assignableUsers)) {
+			$assignableUsers = array();
+		}
+		$userOptions = array();
+		foreach ($assignableUsers as $userId => $label) {
+			$userId = (int)$userId;
+			if ($userId <= 0) {
+				continue;
+			}
+			try {
+				$userRecord = Users_Record_Model::getInstanceById($userId, 'Users');
+				$userName = (string)$userRecord->get('user_name');
+				if ($userName === '') {
+					continue;
+				}
+				$userOptions[] = array(
+					'id' => $userId,
+					'user_name' => $userName,
+					'label' => decode_html($label),
+				);
+			} catch (Exception $e) {
+				continue;
+			}
+		}
+		return $userOptions;
 	}
 
 	public static function resolveUserId($owner, $fallbackUserId) {
@@ -888,6 +983,47 @@ class Leads_ModernService {
 			}
 		}
 		return (int)$fallbackUserId;
+	}
+
+	protected static function getOwnerLabel($userId) {
+		$userId = (int)$userId;
+		if ($userId <= 0) {
+			return '';
+		}
+		try {
+			$userRecord = Users_Record_Model::getInstanceById($userId, 'Users');
+			if (method_exists($userRecord, 'getName')) {
+				$name = trim(decode_html($userRecord->getName()));
+				if ($name !== '') {
+					return $name;
+				}
+			}
+			$label = trim(decode_html((string)$userRecord->get('userlabel')));
+			if ($label !== '') {
+				return $label;
+			}
+		} catch (Exception $e) {
+			// fall through to SQL
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			"SELECT userlabel, first_name, last_name, user_name FROM vtiger_users WHERE id = ?",
+			array($userId)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$userlabel = self::decodeText($adb->query_result($res, 0, 'userlabel'));
+			if ($userlabel !== '') {
+				return $userlabel;
+			}
+			$first = self::decodeText($adb->query_result($res, 0, 'first_name'));
+			$last = self::decodeText($adb->query_result($res, 0, 'last_name'));
+			$full = trim($first . ' ' . $last);
+			if ($full !== '') {
+				return $full;
+			}
+			return self::decodeText($adb->query_result($res, 0, 'user_name'));
+		}
+		return '';
 	}
 
 	protected static function getUserDisplayName($userId) {

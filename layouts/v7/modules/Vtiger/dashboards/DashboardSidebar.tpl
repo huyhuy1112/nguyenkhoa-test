@@ -99,6 +99,8 @@
 							{if $moduleName eq 'ExtensionStore'}{continue}{/if}
 							{* SALES: keep ProductsServices; hide legacy Products/Services entries *}
 							{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
+							{* INVENTORY: ẩn Inbound / Storage / Outbound — dùng Danh sách kho thay thế *}
+							{if $APP_NAME eq 'INVENTORY' && ($moduleName eq 'GoodsReceipt' || $moduleName eq 'GoodsIssue' || $moduleName eq 'Warehouse')}{continue}{/if}
 							{if $moduleModel}
 								{assign var=_mkModActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq $moduleName)}
 								{* INVENTORY: Warehouse mgmt/prototype uses module=Warehouse but should not highlight Storage (Warehouse List) *}

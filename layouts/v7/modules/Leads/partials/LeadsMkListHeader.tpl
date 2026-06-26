@@ -7,6 +7,10 @@
 			<p class="mk-leads-action-header__subtitle">{vtranslate('LBL_MK_LEADS_SUBTITLE', 'Leads')}</p>
 		</div>
 		<div class="mk-leads-action-header__actions">
+			<a class="mk-leads-btn mk-leads-btn--outline" href="index.php?module=Leads&amp;view=Import&amp;app=SALES" id="mk-leads-import-btn">
+				<span class="mk-leads-btn__ic" id="mk-leads-import-ic" aria-hidden="true"></span>
+				<span class="mk-leads-btn__txt">{vtranslate('LBL_IMPORT', 'Vtiger')}</span>
+			</a>
 			<div class="mk-leads-export-wrap" id="mk-leads-export-wrap">
 				<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-export-btn" aria-haspopup="true" aria-expanded="false">
 					<span class="mk-leads-btn__ic" id="mk-leads-export-ic" aria-hidden="true"></span>

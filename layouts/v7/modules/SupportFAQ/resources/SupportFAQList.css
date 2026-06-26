@@ -490,6 +490,108 @@ body[data-module="SupportFAQ"][data-view="List"] .module-breadcrumb-SupportFAQ {
 	overflow-x: auto;
 }
 
+/* ---- Grid view ---- */
+.mk-sf-faq-page--grid .mk-sf-faq-list-view {
+	display: none;
+}
+
+.mk-sf-faq-page--list .mk-sf-faq-grid-view {
+	display: none;
+}
+
+.mk-sf-faq-grid-view[hidden] {
+	display: none !important;
+}
+
+.mk-sf-faq-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 16px;
+	padding: 16px;
+}
+
+.mk-sf-faq-grid-card {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	min-height: 180px;
+	transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.mk-sf-faq-grid-card:hover {
+	border-color: #d4c4ad;
+	box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+.mk-sf-faq-grid-card__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.mk-sf-faq-grid-card__question {
+	color: #191c1e;
+	text-decoration: none;
+	font-weight: 600;
+	font-size: 15px;
+	line-height: 1.45;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	flex: 1 1 auto;
+}
+
+.mk-sf-faq-grid-card__question:hover {
+	color: #40627e;
+	text-decoration: underline;
+}
+
+.mk-sf-faq-grid-card__meta {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px 12px;
+	margin: 0;
+}
+
+.mk-sf-faq-grid-card__meta-item {
+	margin: 0;
+}
+
+.mk-sf-faq-grid-card__meta-item dt {
+	margin: 0 0 2px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #64748b;
+}
+
+.mk-sf-faq-grid-card__meta-item dd {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 700;
+	color: #40627e;
+	font-variant-numeric: tabular-nums;
+}
+
+.mk-sf-faq-grid-card__creator {
+	margin-top: auto;
+}
+
+.mk-sf-faq-grid-empty {
+	margin: 0;
+	padding: 48px 16px;
+	text-align: center;
+	color: #94a3b8;
+}
+
 .mk-sf-faq-table {
 	width: 100%;
 	border-collapse: collapse;

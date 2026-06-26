@@ -26,17 +26,6 @@
 				</div>
 			</header>
 
-			<div class="mk-wh-proto-perms" id="mkWhProtoPerms" role="status" aria-live="polite">
-				<span class="mk-wh-proto-perms__pill" id="mkWhProtoPermRole">Thủ kho</span>
-				<span class="mk-wh-proto-perms__label">Quyền:</span>
-				<span class="mk-wh-proto-perms__items" id="mkWhProtoPermItems"></span>
-			</div>
-
-			<div class="mk-wh-proto-banner" role="status" id="mkWhProtoBanner">
-				<span class="mk-wh-proto-badge" id="mkWhProtoRoleBadge">Thủ kho</span>
-				<span class="mk-wh-proto-banner__text" id="mkWhProtoRoleHint"></span>
-			</div>
-
 		<section class="mk-wh-proto-kpis" aria-label="Warehouse KPIs">
 			<article class="mk-wh-proto-kpi">
 				<div class="mk-wh-proto-kpi__label">

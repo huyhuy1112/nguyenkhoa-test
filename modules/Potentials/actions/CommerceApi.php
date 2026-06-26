@@ -78,6 +78,21 @@ class Potentials_CommerceApi_Action extends Vtiger_Action_Controller {
 					));
 					break;
 
+				case 'get_service_contracts':
+					$id = (int)$request->get('record');
+					if ($id <= 0) {
+						$id = (int)$request->get('id');
+					}
+					if ($id <= 0) {
+						throw new Exception('Opportunity id is required.');
+					}
+					$map = Leads_CommerceService::getServiceContractsForPotentialIds(array($id));
+					$response->setResult(array(
+						'success' => true,
+						'contracts' => $map[$id] ?? array(),
+					));
+					break;
+
 				default:
 					throw new Exception('Unknown mode: ' . $mode);
 			}

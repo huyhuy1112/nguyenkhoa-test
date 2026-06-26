@@ -57,11 +57,13 @@ class Leads_List_View extends Vtiger_Index_View {
 
 	public function process(Vtiger_Request $request) {
 		$this->redirectMarketingToSales($request);
+		require_once 'modules/Leads/models/ModernService.php';
 		$viewer = $this->getViewer($request);
 		$this->assignModernContext($request);
 		$viewer->assign('CURRENT_USER_MODEL', Users_Record_Model::getCurrentUserModel());
 		$viewer->assign('MODULE_BASIC_ACTIONS', array());
 		$viewer->assign('MODULE_SETTING_ACTIONS', array());
+		$viewer->assign('MK_LEADS_ASSIGNABLE_USERS', Leads_ModernService::listAssignableUsers());
 		$viewer->view('ListViewContents.tpl', $request->getModule());
 	}
 

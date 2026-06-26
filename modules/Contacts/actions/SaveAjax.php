@@ -9,4 +9,11 @@
  *************************************************************************************/
 
 class Contacts_SaveAjax_Action extends Vtiger_SaveAjax_Action {
+
+	public function process(Vtiger_Request $request) {
+		require_once 'modules/Contacts/helpers/PhoneField.php';
+		Contacts_PhoneField_Helper::sanitizeRequest($request);
+		Contacts_PhoneField_Helper::validateRequest($request);
+		parent::process($request);
+	}
 }

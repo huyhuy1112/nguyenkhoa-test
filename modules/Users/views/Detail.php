@@ -105,6 +105,15 @@ class Users_Detail_View extends Users_PreferenceDetail_View {
 		return $headerScriptInstances;
 	}
 
+	public function getHeaderCss(Vtiger_Request $request) {
+		$headerCssInstances = parent::getHeaderCss($request);
+		$cssFileNames = array(
+			'~layouts/v7/modules/Users/resources/UsersPrefDetailContent.css',
+		);
+		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
+		return array_merge($headerCssInstances, $cssInstances);
+	}
+
 	/**
 	 * Function to get Ajax is enabled or not
 	 * @param Vtiger_Record_Model record model

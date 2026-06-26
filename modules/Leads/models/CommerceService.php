@@ -945,4 +945,77 @@ class Leads_CommerceService {
 
 		return $out;
 	}
+
+	/**
+	 * Service contracts linked to an opportunity (entity rel + account/contact).
+	 */
+	public static function getServiceContractsForPotentialIds(array $potentialIds) {
+		if (empty($potentialIds)) {
+			return array();
+		}
+		$potentialIds = array_values(array_unique(array_map('intval', $potentialIds)));
+		$adb = PearDatabase::getInstance();
+		$out = array();
+		foreach ($potentialIds as $potentialId) {
+			$out[(int)$potentialId] = array();
+		}
+
+		$metaRes = $adb->pquery(
+			'SELECT potentialid, related_to, contact_id FROM vtiger_potential WHERE potentialid IN (' . generateQuestionMarks($potentialIds) . ')',
+			$potentialIds
+		);
+		$accountByPotential = array();
+		$contactByPotential = array();
+		for ($i = 0; $i < $adb->num_rows($metaRes); $i++) {
+			$pid = (int)$adb->query_result($metaRes, $i, 'potentialid');
+			$accountByPotential[$pid] = (int)$adb->query_result($metaRes, $i, 'related_to');
+			$contactByPotential[$pid] = (int)$adb->query_result($metaRes, $i, 'contact_id');
+		}
+
+		foreach ($potentialIds as $potentialId) {
+			$potentialId = (int)$potentialId;
+			$relatedIds = array($potentialId);
+			if (!empty($accountByPotential[$potentialId])) {
+				$relatedIds[] = $accountByPotential[$potentialId];
+			}
+			if (!empty($contactByPotential[$potentialId])) {
+				$relatedIds[] = $contactByPotential[$potentialId];
+			}
+			$relatedIds = array_values(array_unique(array_filter($relatedIds)));
+
+			$sql = "SELECT DISTINCT sc.servicecontractsid, sc.subject, sc.contract_no, sc.start_date, sc.end_date, sc.contract_status
+				FROM vtiger_servicecontracts sc
+				INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
+				LEFT JOIN vtiger_crmentityrel rel1 ON rel1.relcrmid = sc.servicecontractsid AND rel1.relmodule = 'ServiceContracts' AND rel1.crmid = ?
+				LEFT JOIN vtiger_crmentityrel rel2 ON rel2.crmid = sc.servicecontractsid AND rel2.module = 'ServiceContracts' AND rel2.relcrmid = ?
+				WHERE rel1.crmid IS NOT NULL OR rel2.relcrmid IS NOT NULL";
+			$params = array($potentialId, $potentialId);
+
+			if (count($relatedIds) > 0) {
+				$sql .= ' OR sc.sc_related_to IN (' . generateQuestionMarks($relatedIds) . ')';
+				$params = array_merge($params, $relatedIds);
+			}
+			$sql .= ' ORDER BY sc.start_date DESC, sc.subject ASC';
+
+			$res = $adb->pquery($sql, $params);
+			$seen = array();
+			for ($i = 0; $i < $adb->num_rows($res); $i++) {
+				$scId = (int)$adb->query_result($res, $i, 'servicecontractsid');
+				if (isset($seen[$scId])) {
+					continue;
+				}
+				$seen[$scId] = true;
+				$out[$potentialId][] = array(
+					'id' => $scId,
+					'subject' => self::decodeText($adb->query_result($res, $i, 'subject')),
+					'contractNo' => self::decodeText($adb->query_result($res, $i, 'contract_no')),
+					'startDate' => self::decodeText($adb->query_result($res, $i, 'start_date')),
+					'endDate' => self::decodeText($adb->query_result($res, $i, 'end_date')),
+					'status' => self::decodeText($adb->query_result($res, $i, 'contract_status')),
+					'detailUrl' => 'index.php?module=ServiceContracts&view=Detail&record=' . $scId . '&app=SALES',
+				);
+			}
+		}
+		return $out;
+	}
 }

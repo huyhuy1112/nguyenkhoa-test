@@ -48,7 +48,7 @@
 		<div class="mk-sf-faq-card__toolbar">
 			<div class="mk-sf-faq-card__toolbar-left">
 				<div class="mk-sf-faq-view-toggle" role="group" aria-label="View mode">
-					<button type="button" class="mk-sf-faq-view-toggle__btn is-active" data-view-mode="grid" title="Grid view" aria-pressed="true">
+					<button type="button" class="mk-sf-faq-view-toggle__btn" data-view-mode="grid" title="Grid view" aria-pressed="false">
 						{include file='partials/SupportFAQListSvgIcon.tpl'|vtemplate_path:'SupportFAQ' ICON='grid'}
 					</button>
 					<button type="button" class="mk-sf-faq-view-toggle__btn" data-view-mode="list" title="List view" aria-pressed="false">
@@ -69,6 +69,8 @@
 			</div>
 		</div>
 
+		<div class="mk-sf-faq-card__body">
+		<div class="mk-sf-faq-list-view">
 		<div class="mk-sf-faq-table-wrap">
 			<table class="mk-sf-faq-table" role="grid">
 				<colgroup>
@@ -87,7 +89,7 @@
 						<th scope="col" class="mk-sf-faq-th mk-sf-faq-th--actions">Actions</th>
 						<th scope="col" class="mk-sf-faq-th mk-sf-faq-th--question">QUESTION</th>
 						<th scope="col" class="mk-sf-faq-th mk-sf-faq-th--triggered">TRIGGERED</th>
-						<th scope="col" class="mk-sf-faq-th mk-sf-faq-th--ticket">REALATED TICKET</th>
+						<th scope="col" class="mk-sf-faq-th mk-sf-faq-th--ticket">RELATED TICKET</th>
 						<th scope="col" class="mk-sf-faq-th mk-sf-faq-th--creator">CREATED BY</th>
 					</tr>
 				</thead>
@@ -133,6 +135,52 @@
 					{/if}
 				</tbody>
 			</table>
+		</div>
+		</div>
+
+		<div class="mk-sf-faq-grid-view" hidden>
+			{if $FAQ_RECORDS|@count gt 0}
+			<div class="mk-sf-faq-grid" role="list">
+				{foreach from=$FAQ_RECORDS item=ROW}
+				<article class="mk-sf-faq-grid-card" role="listitem">
+					<div class="mk-sf-faq-grid-card__head">
+						<input type="checkbox" class="mk-sf-faq-row-check" value="{$ROW.supportfaqid}" aria-label="Select FAQ" />
+						<div class="mk-sf-faq-row-actions">
+							<button type="button" class="mk-sf-faq-row-action" title="Favorite" aria-label="Favorite">
+								{include file='partials/SupportFAQListSvgIcon.tpl'|vtemplate_path:'SupportFAQ' ICON='star'}
+							</button>
+							<a href="index.php?module=SupportFAQ&amp;view=Detail&amp;record={$ROW.supportfaqid}&amp;app=SUPPORT" class="mk-sf-faq-row-action" title="View" aria-label="View">
+								{include file='partials/SupportFAQListSvgIcon.tpl'|vtemplate_path:'SupportFAQ' ICON='eye'}
+							</a>
+							<button type="button" class="mk-sf-faq-row-action" title="More" aria-label="More actions">
+								{include file='partials/SupportFAQListSvgIcon.tpl'|vtemplate_path:'SupportFAQ' ICON='more'}
+							</button>
+						</div>
+					</div>
+					<a href="index.php?module=SupportFAQ&amp;view=Detail&amp;record={$ROW.supportfaqid}&amp;app=SUPPORT" class="mk-sf-faq-grid-card__question" title="{decode_html($ROW.question)|escape:'html'}">
+						{decode_html($ROW.question)|escape:'html'}
+					</a>
+					<dl class="mk-sf-faq-grid-card__meta">
+						<div class="mk-sf-faq-grid-card__meta-item">
+							<dt>Triggered</dt>
+							<dd>{$ROW.occurrence_count|default:0}</dd>
+						</div>
+						<div class="mk-sf-faq-grid-card__meta-item">
+							<dt>Related ticket</dt>
+							<dd>{$ROW.related_ticket_id|default:0}</dd>
+						</div>
+					</dl>
+					<div class="mk-sf-faq-creator mk-sf-faq-grid-card__creator">
+						<span class="mk-sf-faq-creator__avatar" aria-hidden="true">{$ROW.created_by_initials|escape}</span>
+						<span class="mk-sf-faq-creator__name">{$ROW.created_by_name|escape}</span>
+					</div>
+				</article>
+				{/foreach}
+			</div>
+			{else}
+			<p class="mk-sf-faq-grid-empty">No FAQs found.</p>
+			{/if}
+		</div>
 		</div>
 
 		{if $FAQ_PAGES|default:1 gt 1}

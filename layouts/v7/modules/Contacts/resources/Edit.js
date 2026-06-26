@@ -7,6 +7,77 @@
  * All Rights Reserved.
  *************************************************************************************/
 Vtiger_Edit_Js("Contacts_Edit_Js",{},{
+
+	PHONE_MAX_DIGITS: 10,
+	PHONE_FIELD_SELECTOR: 'input[data-fieldtype="phone"], input[name="phone"], input[name="mobile"], input[name="homephone"], input[name="otherphone"], input[name="fax"], input[name="assistantphone"]',
+
+	sanitizePhoneValue: function (value) {
+		var digits = String(value || '').replace(/\D/g, '');
+		return digits.slice(0, this.PHONE_MAX_DIGITS);
+	},
+
+	registerPhoneDigitLimit: function (container) {
+		var thisInstance = this;
+		if (!container || !container.length) {
+			container = this.getForm();
+		}
+		container.find(thisInstance.PHONE_FIELD_SELECTOR).each(function () {
+			var $input = jQuery(this);
+			if ($input.data('mkPhoneLimit')) {
+				return;
+			}
+			$input.data('mkPhoneLimit', true);
+			$input.attr('maxlength', thisInstance.PHONE_MAX_DIGITS);
+			$input.attr('inputmode', 'numeric');
+			var current = thisInstance.sanitizePhoneValue($input.val());
+			if ($input.val() !== current) {
+				$input.val(current);
+			}
+			$input.on('input.mkPhoneLimit paste.mkPhoneLimit', function () {
+				var sanitized = thisInstance.sanitizePhoneValue(this.value);
+				if (this.value !== sanitized) {
+					this.value = sanitized;
+				}
+			});
+		});
+	},
+
+	validatePhoneFields: function (container) {
+		var thisInstance = this;
+		if (!container || !container.length) {
+			container = this.getForm();
+		}
+		var invalidField = null;
+		container.find(thisInstance.PHONE_FIELD_SELECTOR).each(function () {
+			var val = jQuery(this).val();
+			if (!val) {
+				return;
+			}
+			var digits = String(val).replace(/\D/g, '');
+			if (digits.length > thisInstance.PHONE_MAX_DIGITS) {
+				invalidField = this;
+				return false;
+			}
+		});
+		if (invalidField) {
+			app.helper.showErrorNotification({ message: 'Số điện thoại chỉ được nhập tối đa 10 số.' });
+			jQuery(invalidField).focus();
+			return false;
+		}
+		return true;
+	},
+
+	registerQuickCreatePhoneLimit: function () {
+		var thisInstance = this;
+		app.event.off('post.QuickCreateForm.show.mkContactPhone');
+		app.event.on('post.QuickCreateForm.show.mkContactPhone', function (event, form) {
+			var $form = jQuery(form);
+			if ($form.find('input[name="module"]').val() !== 'Contacts') {
+				return;
+			}
+			thisInstance.registerPhoneDigitLimit($form);
+		});
+	},
 	
 	//Will have the mapping of address fields based on the modules
 	addressFieldsMapping : {'Accounts' :
@@ -182,6 +253,10 @@ Vtiger_Edit_Js("Contacts_Edit_Js",{},{
 			var result = thisInstance.checkForPortalUser(form);
 			if (!result) {
 				e.preventDefault();
+				return;
+			}
+			if (!thisInstance.validatePhoneFields(form)) {
+				e.preventDefault();
 			}
 		});
 
@@ -192,5 +267,11 @@ Vtiger_Edit_Js("Contacts_Edit_Js",{},{
 		this.registerEventForCopyingAddress(container);
 		this.registerRecordPreSaveEvent(container);
 		this.registerReferenceSelectionEvent(container);
+		this.registerPhoneDigitLimit(container);
+	},
+
+	init: function () {
+		this._super();
+		this.registerQuickCreatePhoneLimit();
 	}
 })

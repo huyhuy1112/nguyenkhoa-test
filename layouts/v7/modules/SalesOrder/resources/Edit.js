@@ -384,6 +384,31 @@ Inventory_Edit_Js("SalesOrder_Edit_Js",{},{
 			self.referenceSelectionEventHandler(data, container);
 		});
 	},
+        registerOppCommerceRefreshFlag: function(container) {
+            var form = this.getForm();
+            if (!form || !form.length) {
+                return;
+            }
+            form.off('submit.mkOppCommerceFlag').on('submit.mkOppCommerceFlag', function() {
+                var src = (form.find('input[name="sourceModule"]').val() || '').trim();
+                var srcId = (form.find('input[name="sourceRecord"]').val() || '').trim();
+                var potId = (form.find('input[name="potential_id"], input[name="potentialid"]').val() || '').trim();
+                var refreshId = '';
+                if (src === 'Potentials' && srcId) {
+                    refreshId = srcId;
+                } else if (potId) {
+                    refreshId = potId;
+                }
+                if (refreshId) {
+                    try {
+                        sessionStorage.setItem('mkOppCommerceRefresh', refreshId);
+                    } catch (e) {
+                        /* ignore */
+                    }
+                }
+            });
+        },
+
         registerBasicEvents: function(container){
             this._super(container);
             this.registerAutoOrgContactFromOpportunity();
@@ -391,6 +416,7 @@ Inventory_Edit_Js("SalesOrder_Edit_Js",{},{
             this.registerForTogglingBillingandShippingAddress();
             this.registerEventForCopyAddress();
             this.registerAddProductsServicesButton();
+            this.registerOppCommerceRefreshFlag(container);
         },
 
         /**

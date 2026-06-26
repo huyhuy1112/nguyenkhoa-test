@@ -17,6 +17,9 @@ class Contacts_Save_Action extends Vtiger_Save_Action {
 		if ($salutationType === '--None--') {
 			$request->set('salutationtype', '');
 		}
+		require_once 'modules/Contacts/helpers/PhoneField.php';
+		Contacts_PhoneField_Helper::sanitizeRequest($request);
+		Contacts_PhoneField_Helper::validateRequest($request);
 		parent::process($request);
 	}
 }

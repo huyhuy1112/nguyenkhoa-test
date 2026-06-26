@@ -235,9 +235,20 @@
   }
 
   var OWNER_COLORS = { Linh: "#8b5cf6", Minh: "#10b981", Hà: "#f97316", Ha: "#f97316" };
+  var OWNER_PALETTE = ["#6366f1", "#8b5cf6", "#0ea5e9", "#10b981", "#f97316", "#ec4899", "#14b8a6", "#e11d48"];
 
-  function ownerColor(name) {
-    return OWNER_COLORS[name] || "#64748b";
+  function ownerColor(name, index) {
+    if (OWNER_COLORS[name]) return OWNER_COLORS[name];
+    var s = String(name || "");
+    if (!s) return "#64748b";
+    var hash = 0;
+    for (var i = 0; i < s.length; i++) {
+      hash = s.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    if (typeof index === "number" && index >= 0) {
+      return OWNER_PALETTE[index % OWNER_PALETTE.length];
+    }
+    return OWNER_PALETTE[Math.abs(hash) % OWNER_PALETTE.length];
   }
 
   root.LeadsLeadsLogic = {

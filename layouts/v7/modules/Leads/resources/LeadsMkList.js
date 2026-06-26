@@ -43,7 +43,37 @@
     hasOpenTicket: false,
   };
 
-  var BULK_OWNERS = ["Hà", "Linh", "Minh"];
+  var BULK_OWNER_PALETTE = ["#6366f1", "#8b5cf6", "#0ea5e9", "#10b981", "#f97316", "#ec4899", "#14b8a6", "#e11d48"];
+
+  function getBulkOwners() {
+    var users = store && store.getAssignableUsers ? store.getAssignableUsers() : [];
+    if (users.length) {
+      return users;
+    }
+    if (typeof window !== "undefined" && window.MK_LEADS_ASSIGNABLE_USERS && window.MK_LEADS_ASSIGNABLE_USERS.length) {
+      return window.MK_LEADS_ASSIGNABLE_USERS.slice();
+    }
+    return [];
+  }
+
+  function ownerDisplayName(user) {
+    if (!user) return "";
+    return user.label || user.user_name || String(user.id || "");
+  }
+
+  function ownerAssignValue(user) {
+    if (!user) return "";
+    if (user.id != null && user.id !== "") return String(user.id);
+    return user.user_name || "";
+  }
+
+  function ownerMenuColor(user, index) {
+    var key = ownerAssignValue(user) || ownerDisplayName(user);
+    if (logic && logic.ownerColor) {
+      return logic.ownerColor(key, index);
+    }
+    return BULK_OWNER_PALETTE[(index || 0) % BULK_OWNER_PALETTE.length];
+  }
   var TAG_CAT_LABELS = {
     source: "SOURCE",
     learning: "LEARNING",
@@ -545,20 +575,29 @@
     if (state.bulkMenu !== type) return "";
     var html = '<div class="mk-leads-bulk-menu" role="menu">';
     if (type === "assign") {
-      BULK_OWNERS.forEach(function (name) {
-        html +=
-          '<button type="button" class="mk-leads-bulk-menu__item" data-bulk-pick="owner" data-value="' +
-          esc(name) +
-          '">' +
-          '<span class="mk-owner-avatar mk-leads-bulk-menu__avatar" style="background:' +
-          logic.ownerColor(name) +
-          '">' +
-          esc(logic.ownerInitials(name)) +
-          "</span>" +
-          '<span class="mk-leads-bulk-menu__label">' +
-          esc(name) +
-          "</span></button>";
-      });
+      var owners = getBulkOwners();
+      if (!owners.length) {
+        html += '<div class="mk-leads-bulk-menu__empty">No assignable users</div>';
+      } else {
+        owners.forEach(function (user, idx) {
+          var label = ownerDisplayName(user);
+          var value = ownerAssignValue(user);
+          html +=
+            '<button type="button" class="mk-leads-bulk-menu__item" data-bulk-pick="owner" data-value="' +
+            esc(value) +
+            '" data-owner-label="' +
+            esc(label) +
+            '">' +
+            '<span class="mk-owner-avatar mk-leads-bulk-menu__avatar" style="background:' +
+            ownerMenuColor(user, idx) +
+            '">' +
+            esc(logic.ownerInitials(label)) +
+            "</span>" +
+            '<span class="mk-leads-bulk-menu__label">' +
+            esc(label) +
+            "</span></button>";
+        });
+      }
     } else if (type === "add-tag") {
       getAllBulkTags().forEach(function (t) {
         html +=
@@ -614,16 +653,33 @@
     );
   }
 
-  function applyBulkOwner(owner) {
+  function applyBulkOwner(ownerValue, ownerLabel) {
     var rows = selectedLeads();
-    Promise.all(
-      rows.map(function (l) {
-        return store.update(l.id, { owner: owner });
-      }),
-    ).then(function () {
-      state.bulkMenu = null;
-      renderAll();
+    var assignValue = ownerValue || "";
+    if (!assignValue || !rows.length || !store) return;
+    var ids = rows.map(function (l) {
+      return l.crmid != null && l.crmid !== "" ? String(l.crmid) : l.id;
     });
+    var keepIds = ids.slice();
+
+    (store.assignOwner ? store.assignOwner(ids, assignValue) : Promise.reject(new Error("assignOwner unavailable")))
+      .then(function () {
+        state.bulkMenu = null;
+        state.selected = {};
+        keepIds.forEach(function (id) {
+          var lead = store.getLead(id);
+          if (lead) state.selected[lead.id] = true;
+        });
+        renderAll();
+      })
+      .catch(function (err) {
+        console.error("Assign owner failed", err);
+        if (store.refreshLeadsList) {
+          store.refreshLeadsList().then(function () {
+            renderAll();
+          });
+        }
+      });
   }
 
   function applyBulkAddTag(tagKey) {
@@ -893,8 +949,9 @@
         var pickType = pick.getAttribute("data-bulk-pick");
         var val = pick.getAttribute("data-value");
         if (!val || !store) return;
-        if (pickType === "owner") applyBulkOwner(val);
-        else if (pickType === "add-tag") applyBulkAddTag(val);
+        if (pickType === "owner") {
+          applyBulkOwner(val, pick.getAttribute("data-owner-label") || val);
+        } else if (pickType === "add-tag") applyBulkAddTag(val);
         else if (pickType === "remove-tag") applyBulkRemoveTag(val);
         return;
       }
@@ -967,6 +1024,7 @@
       "mk-leads-search-ic": "search",
       "mk-leads-filters-ic": "filter",
       "mk-leads-filters-chev": "chevron",
+      "mk-leads-import-ic": "import",
       "mk-leads-export-ic": "export",
       "mk-leads-create-ic": "plus",
     };

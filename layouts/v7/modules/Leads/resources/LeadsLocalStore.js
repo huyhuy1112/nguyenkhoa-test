@@ -12,6 +12,7 @@
 
   var _memLeads = null;
   var _memSegments = null;
+  var _assignableUsers = null;
   var _readyPromise = null;
   var _bootstrapped = false;
 
@@ -92,9 +93,31 @@
 
   function bootstrapFromApi() {
     return apiRequest("list").then(function (res) {
-      _memLeads = (res.leads || []).map(normalizeLead);
+      _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
+      _assignableUsers = Array.isArray(res.assignable_users) ? res.assignable_users.slice() : null;
       _bootstrapped = true;
       return _memLeads;
+    }).then(function () {
+      var dedupeKey = "mk_leads_deduped_v3";
+      if (read(dedupeKey, false)) {
+        return _memLeads;
+      }
+      return apiRequest("dedupe_leads", { apply: 1 }).then(function (dedupeRes) {
+        write(dedupeKey, true);
+        if (dedupeRes && dedupeRes.deleted > 0) {
+          return apiRequest("list").then(function (res2) {
+            _memLeads = dedupeLeadsByCrmid((res2.leads || []).map(normalizeLead));
+            if (Array.isArray(res2.assignable_users)) {
+              _assignableUsers = res2.assignable_users.slice();
+            }
+            return _memLeads;
+          });
+        }
+        return _memLeads;
+      }).catch(function () {
+        write(dedupeKey, true);
+        return _memLeads;
+      });
     }).then(function () {
       return apiRequest("segments_list").then(function (segRes) {
         _memSegments = segRes.segments || [];
@@ -171,6 +194,30 @@
     return false;
   }
 
+  function dedupeLeadsByCrmid(leads) {
+    var seen = {};
+    var out = [];
+    (leads || []).forEach(function (l) {
+      var key = l.crmid != null && l.crmid !== "" ? "c:" + l.crmid : "i:" + l.id;
+      if (seen[key]) return;
+      seen[key] = true;
+      out.push(l);
+    });
+    return out;
+  }
+
+  function findLeadIndex(leads, lead) {
+    if (!lead || !leads || !leads.length) return -1;
+    for (var i = 0; i < leads.length; i++) {
+      var a = leads[i];
+      if (matchLeadId(a, lead.id)) return i;
+      if (lead.crmid != null && matchLeadId(a, lead.crmid)) return i;
+      if (a.crmid != null && matchLeadId(a, lead.id)) return i;
+      if (a.crmid != null && lead.crmid != null && String(a.crmid) === String(lead.crmid)) return i;
+    }
+    return -1;
+  }
+
   function getLead(id) {
     var leads = getLeads();
     for (var i = 0; i < leads.length; i++) {
@@ -184,20 +231,14 @@
   function upsertMemLead(lead) {
     if (!lead) return null;
     var leads = _memLeads ? _memLeads.slice() : [];
-    var idx = -1;
-    for (var i = 0; i < leads.length; i++) {
-      if (matchLeadId(leads[i], lead.id) || (lead.crmid && matchLeadId(leads[i], lead.crmid))) {
-        idx = i;
-        break;
-      }
-    }
     var row = normalizeLead(lead);
+    var idx = findLeadIndex(leads, row);
     if (idx >= 0) {
       leads[idx] = row;
     } else {
       leads.unshift(row);
     }
-    _memLeads = leads;
+    _memLeads = dedupeLeadsByCrmid(leads);
     return row;
   }
 
@@ -230,7 +271,10 @@
       return Promise.resolve(getLeads());
     }
     return apiRequest("list").then(function (res) {
-      _memLeads = (res.leads || []).map(normalizeLead);
+      _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
+      if (Array.isArray(res.assignable_users)) {
+        _assignableUsers = res.assignable_users.slice();
+      }
       _bootstrapped = true;
       return _memLeads;
     });
@@ -262,6 +306,38 @@
     leads.unshift(lead);
     setLeads(leads);
     return Promise.resolve(lead);
+  }
+
+  function assignOwner(ids, ownerUserId) {
+    if (useApi()) {
+      return apiRequest("bulk_assign_owner", {
+        payload: JSON.stringify({ ids: ids || [], owner: ownerUserId }),
+      }).then(function (res) {
+        var leads = (res.leads || []).map(normalizeLead);
+        leads.forEach(upsertMemLead);
+        return leads;
+      });
+    }
+    var leads = getLeads();
+    var ownerLabel = String(ownerUserId || "");
+    var users = root.LeadsLocalStore && root.LeadsLocalStore.getAssignableUsers
+      ? root.LeadsLocalStore.getAssignableUsers()
+      : [];
+    users.forEach(function (u) {
+      if (String(u.id) === ownerLabel) {
+        ownerLabel = u.label || u.user_name || ownerLabel;
+      }
+    });
+    (ids || []).forEach(function (id) {
+      var idx = leads.findIndex(function (l) {
+        return matchLeadId(l, id);
+      });
+      if (idx >= 0) {
+        leads[idx] = Object.assign({}, leads[idx], { owner: ownerLabel });
+      }
+    });
+    setLeads(leads);
+    return Promise.resolve(leads);
   }
 
   function update(id, patch) {
@@ -372,12 +448,22 @@
     KEYS: KEYS,
     ready: ready,
     getLeads: getLeads,
+    getAssignableUsers: function () {
+      if (_assignableUsers && _assignableUsers.length) {
+        return _assignableUsers.slice();
+      }
+      if (root.MK_LEADS_ASSIGNABLE_USERS && root.MK_LEADS_ASSIGNABLE_USERS.length) {
+        return root.MK_LEADS_ASSIGNABLE_USERS.slice();
+      }
+      return [];
+    },
     setLeads: setLeads,
     getLead: getLead,
     fetchLead: fetchLead,
     reloadLead: reloadLead,
     importLead: upsertMemLead,
     refreshLeadsList: refreshLeadsList,
+    assignOwner: assignOwner,
     create: create,
     update: update,
     syncCalendarTasks: syncCalendarTasks,

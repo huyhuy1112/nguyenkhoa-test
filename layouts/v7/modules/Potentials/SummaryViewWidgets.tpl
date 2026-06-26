@@ -60,6 +60,19 @@
 			</div>
 		</section>
 
+		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--service-contracts mk-opportunity-detail-grid__service-contracts" id="mk-opp-section-service-contracts" aria-labelledby="mk-opp-service-contracts-title">
+			<div class="mk-opportunity-detail-card__head mk-opp-service-contracts__head">
+				<span class="mk-opp-service-contracts__ic" aria-hidden="true">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 4h10v16H7z" stroke="currentColor" stroke-width="1.6"/><path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+				</span>
+				<h2 id="mk-opp-service-contracts-title" class="mk-opportunity-detail-card__title">Hợp đồng dịch vụ (0)</h2>
+				<div class="mk-opportunity-detail-card__actions pull-right">
+					<a class="btn btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost" id="mk-opp-add-service-contract" href="index.php?module=ServiceContracts&amp;view=Edit&amp;app=SALES">+ Tạo hợp đồng</a>
+				</div>
+			</div>
+			<div class="mk-opp-service-contracts__body" id="mk-opp-service-contracts-body"></div>
+		</section>
+
 		{if $DOCUMENT_WIDGET_MODEL}
 		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--documents mk-opportunity-detail-grid__documents" aria-labelledby="mk-opportunity-detail-documents-title">
 			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">

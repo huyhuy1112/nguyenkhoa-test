@@ -26,7 +26,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string)$request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save'), true)) {
+		if (in_array($mode, array('save', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner', 'dedupe_leads'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -47,6 +47,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					$response->setResult(array(
 						'success' => true,
 						'leads' => Leads_ModernService::listLeads($userId),
+						'assignable_users' => Leads_ModernService::listAssignableUsers(),
 					));
 					break;
 
@@ -110,6 +111,20 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						'comment' => $comment,
 						'comments' => Leads_DetailFeedService::getComments($id),
 					));
+					break;
+
+				case 'bulk_assign_owner':
+					$payload = $this->decodePayload($request);
+					$ids = isset($payload['ids']) && is_array($payload['ids']) ? $payload['ids'] : array();
+					$owner = isset($payload['owner']) ? $payload['owner'] : $request->get('owner');
+					$leads = Leads_ModernService::assignOwnerToLeads($ids, $owner);
+					$response->setResult(array('success' => true, 'leads' => $leads));
+					break;
+
+				case 'dedupe_leads':
+					$apply = (bool)$request->get('apply');
+					$result = Leads_ModernService::dedupeModernLeadsByPhone(!$apply);
+					$response->setResult(array('success' => true) + $result);
 					break;
 
 				case 'save':

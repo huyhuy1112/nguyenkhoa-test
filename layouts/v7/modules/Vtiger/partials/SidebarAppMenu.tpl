@@ -71,6 +71,8 @@
 								{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Calendar' || $moduleName eq 'Schedule')}{continue}{/if}
 								{* SALES: keep ProductsServices; hide legacy Products/Services *}
 								{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
+								{* INVENTORY: ẩn Inbound / Storage / Outbound *}
+								{if $APP_NAME eq 'INVENTORY' && ($moduleName eq 'GoodsReceipt' || $moduleName eq 'GoodsIssue' || $moduleName eq 'Warehouse')}{continue}{/if}
 								{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}
 								{* Calendar: MANAGEMENT = Schedule, SUPPORT = Activities *}
 								{if $moduleName eq 'Calendar' && $APP_NAME eq 'MANAGEMENT'}
