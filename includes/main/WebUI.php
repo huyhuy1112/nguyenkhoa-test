@@ -103,6 +103,11 @@ class Vtiger_WebUI extends Vtiger_EntryPoint {
 		// common utils api called, depend on this variable right now
 		$currentUser = $this->getLogin();
 		vglobal('current_user', $currentUser);
+
+		if ($currentUser) {
+			require_once 'modules/Users/helpers/LanguagePreference.php';
+			Users_LanguagePreference_Helper::applyForCurrentUser();
+		}
 		
 		// Check we are being connected to on the right host and protocol
 		global $site_URL;

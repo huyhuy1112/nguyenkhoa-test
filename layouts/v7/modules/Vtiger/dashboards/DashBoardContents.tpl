@@ -9,7 +9,7 @@
 {* modules/Vtiger/views/DashBoard.php *}
     
 {strip}
-{assign var=MK_DASH_HEADER_TITLE value='My Dashboard'}
+{assign var=MK_DASH_HEADER_TITLE value=""}
 {foreach from=$DASHBOARD_TABS item=TAB_DATA}
 	{if $TAB_DATA["id"] eq $SELECTED_TAB}
 		{assign var=MK_DASH_HEADER_TITLE value=$TAB_DATA["tabname"]}
@@ -23,13 +23,13 @@
 					<div class="mk-dashboard-figma-header-row">
 						<div class="mk-dashboard-title-block">
 							<div class="mk-dashboard-kicker">TDB SOLUTION</div>
-							<h1 class="mk-dashboard-title">{$MK_DASH_HEADER_TITLE|escape:'html'}</h1>
+							<h1 class="mk-dashboard-title">{if $MK_DASH_HEADER_TITLE neq ""}{vtranslate($MK_DASH_HEADER_TITLE, 'Home')}{else}{vtranslate('LBL_MY_DASHBOARD', 'Home')}{/if}</h1>
 						</div>
 						<div class="mk-dashboard-figma-header-actions">
 							<div class="mk-dashboard-tab-toolbar mk-dashboard-tab-toolbar--figma clearfix">
 								<div class="mk-dashboard-tab-toolbar-actions mk-dashboard-tab-toolbar-actions--figma">
 									<div class="dropdown dashBoardDropDown mk-dash-modify-dropdown">
-										<button class="btn btn-default dropdown-toggle mk-dash-figma-btn" type="button" data-toggle="dropdown">Modify Dashboard
+										<button class="btn btn-default dropdown-toggle mk-dash-figma-btn" type="button" data-toggle="dropdown">{vtranslate('LBL_MODIFY_DASHBOARD', $MODULE)}
 											&nbsp;&nbsp;<span class="caret"></span></button>
 										<ul class="dropdown-menu dropdown-menu-right moreDashBoards">
 											<li id="newDashBoardLi"{if php7_count($DASHBOARD_TABS) eq $DASHBOARD_TABS_LIMIT} class="disabled"{/if}><a class="addNewDashBoard" href="#">{vtranslate('LBL_ADD_NEW_DASHBOARD',$MODULE)}</a></li>
@@ -52,7 +52,7 @@
                         <a data-toggle="tab" href="#tab_{$TAB_DATA["id"]}">
                             <div>
                                 <span class="name textOverflowEllipsis" value="{$TAB_DATA["tabname"]}" style="width:10%">
-                                    <strong>{$TAB_DATA["tabname"]}</strong>
+                                    <strong>{vtranslate($TAB_DATA["tabname"], 'Home')}</strong>
                                 </span>
                                 <span class="editTabName hide">
                                     <input type="text" name="tabName"/>

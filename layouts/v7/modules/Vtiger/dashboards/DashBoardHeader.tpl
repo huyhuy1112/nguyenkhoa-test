@@ -15,7 +15,7 @@
 		<div class="btn-group">
 			{if $SELECTABLE_WIDGETS|count gt 0}
 				<button class='btn btn-default addButton dropdown-toggle mk-dash-figma-btn' data-toggle='dropdown' type="button">
-					Add Widgets&nbsp;&nbsp;<i class="caret"></i>
+					{vtranslate('LBL_ADD_WIDGETS', 'Vtiger')}&nbsp;&nbsp;<i class="caret"></i>
 				</button>
 
 				<ul class="dropdown-menu dropdown-menu-right widgetsList pull-right" style="min-width:100%;text-align:left;">

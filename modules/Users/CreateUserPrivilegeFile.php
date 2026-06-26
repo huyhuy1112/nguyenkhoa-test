@@ -41,6 +41,8 @@ function createUserPrivilegesfile($userid)
         	{
                		if (property_exists($user_focus, $field)) {
 						$userInfo[$field]= $user_focus->$field;
+					} else {
+						$userInfo[$field] = $value_iter;
 					}
         	}
 

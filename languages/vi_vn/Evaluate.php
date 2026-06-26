@@ -9,9 +9,8 @@
  *************************************************************************************/
 
 $languageStrings = array(
-	'Plans' => 'Kế hoạch',
-	'SINGLE_Plans' => 'Kế hoạch',
-	'LBL_ADD_RECORD' => 'Thêm kế hoạch',
-	'LBL_RECORDS_LIST' => 'Danh sách kế hoạch',
+	'Evaluate' => 'Đánh giá',
+	'SINGLE_Evaluate' => 'Đánh giá',
+	'LBL_ADD_RECORD' => 'Thêm đánh giá',
+	'LBL_RECORDS_LIST' => 'Danh sách đánh giá',
 );
-

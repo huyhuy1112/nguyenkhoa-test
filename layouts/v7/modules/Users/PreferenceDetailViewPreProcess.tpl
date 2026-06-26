@@ -13,7 +13,7 @@
 {strip}
 {include file="SettingsMenuStart.tpl"|vtemplate_path:$QUALIFIED_MODULE}
 
-<div class="bodyContents">
+<div class="bodyContents mk-users-detail-page">
 	<div class="">
 {include file="PreferenceDetailViewHeader.tpl"|vtemplate_path:$MODULE}
 

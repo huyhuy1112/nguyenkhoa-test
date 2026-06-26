@@ -78,6 +78,7 @@ class Users_SaveAjax_Action extends Vtiger_SaveAjax_Action {
 		}
 
 		$recordModel = $this->saveRecord($request);
+		$this->syncLanguagePreferenceAfterSave($request, $recordModel);
 
 		$fieldModelList = $recordModel->getModule()->getFields();
 		$result = array();
@@ -332,5 +333,18 @@ class Users_SaveAjax_Action extends Vtiger_SaveAjax_Action {
 			$response->setError($ex->getMessage());
 		}
 		$response->emit();
+	}
+
+	protected function syncLanguagePreferenceAfterSave(Vtiger_Request $request, Vtiger_Record_Model $recordModel) {
+		$languageChanged = ($request->get('field') === 'language' || $request->has('language'));
+		if (!$languageChanged) {
+			return;
+		}
+		$lang = trim((string)$recordModel->get('language'));
+		if ($lang === '') {
+			return;
+		}
+		require_once 'modules/Users/helpers/LanguagePreference.php';
+		Users_LanguagePreference_Helper::applyLanguage($lang);
 	}
 }

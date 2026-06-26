@@ -43,6 +43,8 @@ class Users_PreferenceDetail_View extends Vtiger_Detail_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display=true) {
+		require_once 'modules/Users/helpers/LanguagePreference.php';
+		Users_LanguagePreference_Helper::applyForCurrentUser();
 		if($this->checkPermission($request)) {
 			$qualifiedModuleName = $request->getModule(false);
 			$currentUser = Users_Record_Model::getCurrentUserModel();
@@ -185,6 +187,10 @@ class Users_PreferenceDetail_View extends Vtiger_Detail_View {
                 $password_regex = $runtime_configs->getValidationRegex('password_regex');
                 $viewer->assign('PWD_REGEX', $password_regex);
 		return parent::process($request);
+	}
+
+	public function getPageTitle(Vtiger_Request $request) {
+		return vtranslate('LBL_MY_PREFERENCES', 'Users');
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {

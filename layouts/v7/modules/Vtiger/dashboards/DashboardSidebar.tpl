@@ -50,7 +50,7 @@
 				<img class="mk-dash-bace-logo mk-dash-bace-logo--dark" src="layouts/v7/resources/Images/bace-logo-figma-transparent.png?v=20260530_logo9" width="218" height="40" alt="B-ACE">
 			</a>
 			{if $_settingsActive}
-				<p class="mk-settings-site-kicker">SITE SETTINGS</p>
+				<p class="mk-settings-site-kicker">{vtranslate('LBL_SITE_SETTINGS','Vtiger')}</p>
 			{/if}
 		</div>
 	</div>
@@ -71,7 +71,7 @@
 				<div class="mk-dash-app-group{if $_app_expand_initial} mk-dash-app-group--open{/if}{if $_app_route_active} mk-dash-app-group--active{/if}" data-mk-app="{$APP_NAME|escape:'html'}">
 					<button type="button" class="mk-dash-app-toggle" id="mk-dash-app-btn-{$APP_NAME}" aria-expanded="{if $_app_expand_initial}true{else}false{/if}" aria-controls="mk-dash-app-panel-{$APP_NAME}">
 						<span class="mk-dash-app-ic" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON=$APP_NAME}</span>
-						<span class="mk-dash-app-label">{vtranslate("LBL_$APP_NAME")}</span>
+						<span class="mk-dash-app-label">{vtranslate("LBL_$APP_NAME",'Vtiger')}</span>
 						<span class="mk-dash-app-chevron" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='CHEVRON'}</span>
 					</button>
 					<div class="mk-dash-app-panel" id="mk-dash-app-panel-{$APP_NAME}" role="region" aria-labelledby="mk-dash-app-btn-{$APP_NAME}">
@@ -79,7 +79,7 @@
 						{if $APP_NAME eq 'MANAGEMENT'}
 							{assign var=_mkMainPageActive value=(!$_settingsActive && $MODULE eq 'Home' && ($VIEW eq 'MainPage' || $VIEW eq 'DashBoard'))}
 							<a class="mk-dash-mod-link{if $_mkMainPageActive} mk-dash-mod-link--active{/if}" href="index.php?module=Home&amp;view=MainPage&amp;app=MANAGEMENT">
-								<span class="mk-dash-mod-label">Main Page</span>
+								<span class="mk-dash-mod-label">{vtranslate('LBL_MAIN_PAGE','Home')}</span>
 							</a>
 						{/if}
 						{assign var=_mkHasLeads value=false}
@@ -154,7 +154,7 @@
 							</a>
 							{assign var=_mkWhDashActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'WhDashboard')}
 							<a class="mk-dash-mod-link{if $_mkWhDashActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhDashboard&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">Dashboard kho</span>
+								<span class="mk-dash-mod-label">Bảng điều khiển kho</span>
 							</a>
 							{assign var=_mkWhTrfActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'WhTransfer')}
 							<a class="mk-dash-mod-link{if $_mkWhTrfActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhTransfer&amp;app=INVENTORY">
@@ -162,7 +162,7 @@
 							</a>
 							{assign var=_mkProtoActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'Prototype' || $VIEW eq 'PrototypeDetail'))}
 							<a class="mk-dash-mod-link{if $_mkProtoActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=Prototype&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">Prototype kho</span>
+								<span class="mk-dash-mod-label">Mẫu thử kho</span>
 							</a>
 						{/if}
 					</div>

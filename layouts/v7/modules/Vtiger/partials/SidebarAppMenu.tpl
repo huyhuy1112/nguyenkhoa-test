@@ -52,7 +52,7 @@
 								{else}
 									<span class="app-icon-list fa {$APP_IMAGE_MAP.$APP_NAME}"></span>
 								{/if}
-								<span class="app-name textOverflowEllipsis"> {vtranslate("LBL_$APP_NAME")|upper}</span>
+								<span class="app-name textOverflowEllipsis"> {vtranslate("LBL_$APP_NAME",'Vtiger')|upper}</span>
 								<span class="fa fa-chevron-right pull-right"></span>
 							</div>
 						</div>
@@ -60,9 +60,9 @@
 							{* Custom: Management shortcuts (Main Page + Task Board) *}
 							{if $APP_NAME eq 'MANAGEMENT'}
 								<li>
-									<a href="index.php?module=Home&view=MainPage&app=MANAGEMENT" title="Main Page">
+									<a href="index.php?module=Home&view=MainPage&app=MANAGEMENT" title="{vtranslate('LBL_MAIN_PAGE','Home')}">
 										<span class="mk-icon module-icon module-icon-lg"><i class="fa fa-home"></i></span>
-										<span class="module-name textOverflowEllipsis"> Main Page</span>
+										<span class="module-name textOverflowEllipsis"> {vtranslate('LBL_MAIN_PAGE','Home')}</span>
 									</a>
 								</li>
 							{/if}

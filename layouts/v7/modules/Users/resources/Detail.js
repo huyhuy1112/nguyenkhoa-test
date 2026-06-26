@@ -359,6 +359,18 @@ Vtiger_Detail_Js("Users_Detail_Js",{
 		});
 	},
 
+	saveFieldValues: function (fieldDetailList) {
+		var promise = this._super(fieldDetailList);
+		if (fieldDetailList && fieldDetailList.field === 'language') {
+			promise.then(function (err) {
+				if (err === null) {
+					window.location.reload();
+				}
+			});
+		}
+		return promise;
+	},
+
 	registerEvents: function () {
 		this._super();
 		this.registerAjaxPreSaveEvent();

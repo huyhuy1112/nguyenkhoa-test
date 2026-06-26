@@ -33,11 +33,18 @@ class Vtiger_Language_Handler {
 			$key = decode_html($key);
 		$translatedString = self::getLanguageTranslatedString($currentLanguage, $key, $module);
 
-		// label not found in users language pack, then check in the default language pack(config.inc.php)
+		// Fallback only when it does not mix English UI with Vietnamese site default.
 		if ($translatedString === null) {
 			$defaultLanguage = vglobal('default_language');
 			if (!empty($defaultLanguage) && strcasecmp($defaultLanguage, $currentLanguage) !== 0) {
-				$translatedString = self::getLanguageTranslatedString($defaultLanguage, $key, $module);
+				if (strcasecmp($currentLanguage, 'en_us') !== 0) {
+					$translatedString = self::getLanguageTranslatedString($defaultLanguage, $key, $module);
+				}
+				if ($translatedString === null
+					&& strcasecmp($currentLanguage, 'en_us') !== 0
+					&& strcasecmp($defaultLanguage, 'en_us') !== 0) {
+					$translatedString = self::getLanguageTranslatedString('en_us', $key, $module);
+				}
 			}
 		}
 
@@ -173,6 +180,10 @@ class Vtiger_Language_Handler {
 		if (self::$userLanguage) {
 			return self::$userLanguage;
 		}
+		if (!empty($_SESSION['authenticated_user_language'])) {
+			self::$userLanguage = $_SESSION['authenticated_user_language'];
+			return self::$userLanguage;
+		}
 		$userModel = Users_Record_Model::getCurrentUserModel();
 		$language = '';
 		if (!empty($userModel) && $userModel->has('language')) {
@@ -181,6 +192,13 @@ class Vtiger_Language_Handler {
 		$userLang = empty($language) ? vglobal('default_language') : $language;
 		self::$userLanguage = $userLang;
 		return $userLang;
+	}
+
+	/**
+	 * Clear cached language after preference updates.
+	 */
+	public static function resetCachedLanguage() {
+		self::$userLanguage = null;
 	}
 
 	/**
@@ -202,9 +220,12 @@ class Vtiger_Language_Handler {
 		$userSelectedLanguage = self::getLanguage();
 		$defaultLanguage = vglobal('default_language');
 		$languages = array($userSelectedLanguage);
-		//To merge base language and user selected language translations
-		if ($userSelectedLanguage != $defaultLanguage) {
+		// Merge fallback packs for non-English UI only — never merge vi_vn into en_us UI.
+		if ($userSelectedLanguage != $defaultLanguage && strcasecmp($userSelectedLanguage, 'en_us') !== 0) {
 			array_push($languages, $defaultLanguage);
+		}
+		if (strcasecmp($userSelectedLanguage, 'en_us') !== 0 && strcasecmp($defaultLanguage, 'en_us') !== 0) {
+			array_push($languages, 'en_us');
 		}
 
 

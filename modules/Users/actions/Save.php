@@ -149,6 +149,13 @@ class Users_Save_Action extends Vtiger_Save_Action {
 
 		$recordModel = $this->saveRecord($request);
 
+		$currentUserModel = Users_Record_Model::getCurrentUserModel();
+		if ($currentUserModel && (int)$currentUserModel->getId() === (int)$recordModel->getId()
+			&& ($request->has('language') || $request->get('field') === 'language')) {
+			require_once 'modules/Users/helpers/LanguagePreference.php';
+			Users_LanguagePreference_Helper::applyLanguage($recordModel->get('language'));
+		}
+
 		if ($request->get('relationOperation')) {
 			$parentRecordModel = Vtiger_Record_Model::getInstanceById($request->get('sourceRecord'), $request->get('sourceModule'));
 			$loadUrl = $parentRecordModel->getDetailViewUrl();

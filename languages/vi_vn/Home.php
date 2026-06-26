@@ -25,6 +25,7 @@ $languageStrings = array(
     'Key Metrics' => 'Từ khóa chỉ số',
 
 	// Main Page (Management dashboard)
+	'LBL_MAIN_PAGE' => 'Trang chính',
 	'LBL_MK_MY_SHORTCUTS' => 'Lối tắt của tôi',
 	'LBL_MK_SHORTCUT_MY_TASKS' => 'Nhiệm vụ của tôi',
 	'LBL_MK_SHORTCUT_EVENTS' => 'Sự kiện & mốc quan trọng',
@@ -45,6 +46,10 @@ $languageStrings = array(
 	'LBL_MK_ADD' => 'Thêm',
 	'LBL_MK_MANAGEMENT_DASHBOARD' => 'Bảng điều khiển quản trị',
 	'LBL_MK_FILTERS' => 'Lọc',
+	'LBL_MY_DASHBOARD' => 'Bảng điều khiển của tôi',
+	'LBL_MODIFY_DASHBOARD' => 'Chỉnh sửa bảng điều khiển',
+	'LBL_ADD_NEW_DASHBOARD' => 'Thêm dashboard mới',
+	'My Dashboard' => 'Bảng điều khiển của tôi',
 	'LBL_SAVE_ORDER' => 'Lưu thứ tự',
 	'LBL_SAVE_DASHBOARD_LAYOUT' => 'Lưu vị trí các bảng trên dashboard',
 	'LBL_DASHBOARD_LAYOUT_SAVED' => 'Đã lưu vị trí các bảng trên dashboard.',

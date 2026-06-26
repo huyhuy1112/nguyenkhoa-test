@@ -13,11 +13,11 @@
 
 <div id="modules-menu" class="modules-menu">
 	{if $SELECTED_MENU_CATEGORY eq 'MANAGEMENT'}
-		<ul title="Main Page" class="module-qtip">
+		<ul title="{vtranslate('LBL_MAIN_PAGE','Home')}" class="module-qtip">
 			<li{if $MODULE eq 'Home' && ($VIEW eq 'MainPage' || $VIEW eq 'DashBoard')} class="active"{/if}>
 				<a href="index.php?module=Home&amp;view=MainPage&amp;app=MANAGEMENT">
 					<span class="mk-icon menubar-module-icon"><i class="fa fa-home"></i></span>
-					<span>Main Page</span>
+					<span>{vtranslate('LBL_MAIN_PAGE','Home')}</span>
 				</a>
 			</li>
 		</ul>

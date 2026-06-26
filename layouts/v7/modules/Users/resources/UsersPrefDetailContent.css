@@ -11,11 +11,13 @@ body[data-parent="Settings"] .mk-settings-subpage .bodyContents.mk-users-detail-
 	box-shadow: none;
 }
 
-body[data-parent="Settings"] .mk-settings-subpage .bodyContents.mk-users-detail-page > .detailViewContainer.bace-users-settings-detail {
-	background: transparent;
-	border: 0;
-	box-shadow: none;
-	padding: 18px 18px 28px;
+body[data-parent="Settings"] .mk-settings-subpage .bodyContents.mk-users-detail-page > .detailViewContainer.bace-users-settings-detail,
+body[data-parent="Settings"] .mk-settings-subpage .detailViewContainer.bace-users-pref-detail,
+body[data-parent="Settings"] .mk-settings-subpage .bodyContents > .detailViewContainer.bace-users-pref-detail {
+	background: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	padding: 18px 18px 28px !important;
 }
 
 /* Kill legacy floated field columns inside Users detail grid */
@@ -62,6 +64,16 @@ body[data-parent="Settings"] .mk-settings-subpage .bodyContents.mk-users-detail-
 	margin-right: auto;
 }
 
+/* Settings: hide duplicate legacy module title on My Preferences */
+body[data-parent="Settings"][data-view="PreferenceDetail"] .module-action-bar.coloredBorderTop,
+body[data-parent="Settings"][data-view="PreferenceDetail"] .mk-settings-subpage > .module-action-bar {
+	display: none !important;
+}
+
+body[data-parent="Settings"][data-view="PreferenceDetail"] .mk-settings-subpage .bodyContents.mk-users-detail-page {
+	padding-top: 4px;
+}
+
 /* ── Profile hero ── */
 .bodyContents .mk-users-pref-hero {
 	display: flex;
@@ -69,12 +81,13 @@ body[data-parent="Settings"] .mk-settings-subpage .bodyContents.mk-users-detail-
 	justify-content: space-between;
 	gap: 20px;
 	flex-wrap: wrap;
-	background: var(--mk-u-card);
-	border: 1px solid var(--mk-u-border);
-	border-radius: var(--mk-u-radius);
-	box-shadow: var(--mk-u-shadow);
-	padding: 16px 18px;
-	margin: 0 0 14px;
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	padding: 4px 0 18px;
+	margin: 0 0 8px;
+	border-bottom: 1px solid var(--mk-u-border);
 }
 
 .bodyContents .mk-users-pref-hero__main {
@@ -128,18 +141,18 @@ body[data-parent="Settings"] .mk-settings-subpage .bodyContents.mk-users-detail-
 }
 
 .bodyContents .mk-users-pref-hero__title {
-	margin: 0 0 6px;
-	font-size: 18px;
+	margin: 0 0 4px;
+	font-size: 22px;
 	font-weight: 800;
 	letter-spacing: -0.02em;
 	color: var(--mk-u-text);
-	line-height: 1.25;
+	line-height: 1.2;
 }
 
 .bodyContents .mk-users-pref-hero__subtitle {
 	margin: 0;
-	font-size: 12.5px;
-	line-height: 1.5;
+	font-size: 13px;
+	line-height: 1.45;
 	color: var(--mk-u-muted);
 }
 
@@ -269,17 +282,19 @@ body[data-parent="Settings"] .mk-settings-subpage .bodyContents.mk-users-detail-
 .bodyContents .bace-users-settings-detail .mk-users-field {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 5px;
 	min-width: 0;
-	padding: 12px 14px;
-	background: #f9fafb;
-	border: 1px solid var(--mk-u-border);
-	border-radius: 12px;
+	padding: 10px 12px;
+	background: #fff;
+	border: 1px solid rgba(15, 23, 42, 0.06);
+	border-radius: 10px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .bodyContents .bace-users-pref-detail .mk-users-field:hover,
 .bodyContents .bace-users-settings-detail .mk-users-field:hover {
-	border-color: rgba(79, 70, 229, 0.22);
+	border-color: rgba(79, 70, 229, 0.18);
+	box-shadow: 0 2px 8px rgba(79, 70, 229, 0.06);
 }
 
 @media (min-width: 1200px) {
@@ -436,12 +451,12 @@ body[data-parent="Settings"] .mk-settings-subpage .bodyContents.mk-users-detail-
 .bodyContents .bace-users-pref-detail .mk-users-field__label .muted,
 .bodyContents .bace-users-settings-detail .mk-users-field__label .muted {
 	display: block;
-	color: var(--mk-u-muted);
-	font-size: 12px;
-	font-weight: 600;
-	letter-spacing: 0.01em;
-	text-transform: none;
-	line-height: 1.4;
+	color: #94a3b8;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	line-height: 1.35;
 	white-space: normal !important;
 	overflow: visible !important;
 	text-overflow: unset !important;

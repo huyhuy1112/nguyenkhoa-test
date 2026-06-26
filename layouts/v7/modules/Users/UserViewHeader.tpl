@@ -9,7 +9,7 @@
 {* modules/Users/views/Detail.php *}
 
 {strip}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Users/resources/UsersPrefDetailContent.css')}&mk_v=20260625_users_detail_ui3" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Users/resources/UsersPrefDetailContent.css')}&mk_v=20260625_users_detail_ui5" />
 <div class="bodyContents mk-users-detail-page">
 <div class="detailViewContainer bace-users-settings-detail">
     <div class="col-sm-12 col-xs-12">

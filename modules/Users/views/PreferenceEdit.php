@@ -37,6 +37,8 @@ Class Users_PreferenceEdit_View extends Vtiger_Edit_View {
 
 
 	public function preProcess (Vtiger_Request $request, $display=true) {
+		require_once 'modules/Users/helpers/LanguagePreference.php';
+		Users_LanguagePreference_Helper::applyForCurrentUser();
 		if($this->checkPermission($request)) {
 			$currentUser = Users_Record_Model::getCurrentUserModel();
 			$viewer = $this->getViewer($request);
