@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * Potentials (Orders) import sample — Vietnamese headers matching SALES export.
+ * Potentials (Orders) import sample — BA template (Khách hàng + Thứ tự dự án + Project).
  *************************************************************************************/
 
 class Potentials_DownloadImportSample_Action extends Vtiger_Action_Controller {
@@ -16,44 +16,62 @@ class Potentials_DownloadImportSample_Action extends Vtiger_Action_Controller {
 		}
 
 		$headers = array(
-			'Ghi chú',
-			'Tiêu đề',
-			'Mã Orders',
-			'Tên Khách hàng',
-			'Tên Liên hệ',
-			'Loại Order',
-			'Giá trị dự kiến',
-			'Nguồn Order',
-			'Ngày dự kiến kết thúc',
-			'Phụ trách',
-			'Bước tiếp theo_D',
-			'Nguồn chiến dịch',
-			'Trạng thái Order',
-			'Xác suất',
-			'Dự đoán giá trị',
-			'Phân loại Order',
+			'Khách hàng',
+			'Thứ tự dự án',
+			'Project Name',
+			'Project Code',
+			'Description',
+			'Opportunity Name',
+			'Opportunity No',
+			'Organization Name',
+			'Contact Name',
+			'Amount',
+			'Type',
+			'Model',
+			'Close Date',
+			'Source',
+			'Next Step',
+			'Assigned To',
+			'Sales Stage',
+			'Campaign Source',
+			'Probability',
+			'Modified Time',
+			'Created Time',
+			'Modified By',
+			'Created By',
+			'Source',
+			'Order Category',
 		);
 
 		$row1 = array(
-			'Order demo 1',
-			'Dự án pha chế Q1',
+			'13',
+			'01',
+			'Triển khai ERP',
 			'',
-			'Công ty TNHH Demo',
-			'Nguyễn Văn A',
-			'New Business',
-			'15000000',
-			'Website',
-			'30-06-2026',
-			'Administrator',
-			'Gọi xác nhận nhu cầu',
+			'',
+			'',
+			'',
+			'CÔNG TY TNHH GIẢI PHÁP VÀ DỊCH VỤ SSPACE',
+			'Xuân Phúc',
+			'',
+			'',
+			'',
+			'',
+			'',
+			'',
 			'',
 			'Prospecting',
-			'30',
-			'15000000',
-			'Internal',
+			'',
+			'',
+			'',
+			'',
+			'',
+			'',
+			'',
+			'Project',
 		);
 
-		$filename = 'Orders_Import_Mau.csv';
+		$filename = 'Opportunities_Import_Mau.csv';
 		header('Content-Type: text/csv; charset=UTF-8');
 		header('Content-Disposition: attachment; filename="' . $filename . '"');
 		header('Pragma: public');

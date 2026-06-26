@@ -58,11 +58,12 @@ class Potentials_SimpleImport_Action extends Vtiger_Action_Controller {
 			}
 
 			Potentials_SimpleImport_Helper::normalizeImportFile($request, $user);
+			Potentials_SimpleImport_Helper::resetImportMetaState();
 
 			$fieldMapping = Potentials_SimpleImport_Helper::buildFieldMapping($request, $user);
 			$request->set('field_mapping', $fieldMapping);
 			$request->set('default_values', array(
-				'order_category' => 'Internal',
+				'order_category' => 'Project',
 				'sales_stage' => 'Prospecting',
 				'closingdate' => Potentials_SimpleImport_Helper::getDefaultClosingDate(),
 			));

@@ -112,10 +112,19 @@ class Import_FileReader_Reader {
 		$moduleFields = $this->moduleModel->getFields();
 		$moduleImportableFields = $this->moduleModel->getAdditionalImportFields();
 		$moduleFields = array_merge($moduleFields, $moduleImportableFields);
+		if ($this->moduleModel->getName() === 'Potentials') {
+			require_once 'modules/Potentials/helpers/SimpleImport.php';
+		}
 
 		$columnsListQuery = 'id INT PRIMARY KEY AUTO_INCREMENT, status INT DEFAULT 0, recordid INT';
 		$fieldTypes = $this->getModuleFieldDBColumnType();
 		foreach($fieldMapping as $fieldName => $index) {
+			if ($this->moduleModel->getName() === 'Potentials'
+				&& class_exists('Potentials_SimpleImport_Helper')
+				&& Potentials_SimpleImport_Helper::isImportMetaField($fieldName)) {
+				$columnsListQuery .= ','.$fieldName.' varchar(250)';
+				continue;
+			}
 			$fieldObject = $moduleFields[$fieldName];
 			$columnsListQuery .= $this->getDBColumnType($fieldObject, $fieldTypes);
 		}

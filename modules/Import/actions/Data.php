@@ -109,7 +109,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		if ($className != 'VtigerLineItemMeta') {
 			if ($this->module === 'Potentials') {
 				if (empty($defaultValues['order_category'])) {
-					$defaultValues['order_category'] = 'Internal';
+					$defaultValues['order_category'] = 'Project';
 				}
 				if (empty($defaultValues['sales_stage'])) {
 					$defaultValues['sales_stage'] = 'Prospecting';
@@ -286,6 +286,10 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			$entityIdComponents = vtws_getIdComponents($entityInfo['id']);
 			$recordId = $entityIdComponents[1];
 		}
+		if ($this->module === 'Potentials' && !empty($recordId)) {
+			require_once 'modules/Potentials/helpers/SimpleImport.php';
+			Potentials_SimpleImport_Helper::attachImportMetaToRecord($entryId, $recordId);
+		}
 		$adb->pquery('UPDATE '.Import_Utils_Helper::getDbTableName($this->user).' SET status=?, recordid=? WHERE id=?', array($entityInfo['status'], $recordId, $entryId));
 	}
 
@@ -368,6 +372,13 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			$fieldData = array();
 			foreach ($fieldMapping as $fieldName => $index) {
 				$fieldData[$fieldName] = trim($row[$fieldName]);
+			}
+
+			if ($moduleName === 'Potentials') {
+				require_once 'modules/Potentials/helpers/SimpleImport.php';
+				Potentials_SimpleImport_Helper::stashImportMetaForStagingRow($rowId, $row);
+				Potentials_SimpleImport_Helper::resolveImportReferences($fieldData, $rowId);
+				$fieldData = Potentials_SimpleImport_Helper::stripImportMetaFields($fieldData);
 			}
 
 			$campaignsValidation = $this->validateCampaignsRequiredFields($fieldData);

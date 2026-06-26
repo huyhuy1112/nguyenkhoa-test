@@ -125,7 +125,7 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 					);
 				} else if (moduleName === 'Potentials') {
 					jQuery('#potentials_sample_file_container .mk-import-hint').html(
-						'Chọn file Opportunities.csv. Tự map: <strong>Project Name</strong>, <strong>Organization Name</strong>, <strong>Contact Name</strong>. Bấm <strong>Import ngay</strong>.'
+						'Chọn file Opportunities.csv (BA). Tự map: <strong>Khách hàng</strong>, <strong>Thứ tự dự án</strong>, <strong>Project Name</strong>, <strong>Organization Name</strong>. Mã Opp: <code>YYMMDD-01301-mãCTY-tên dự án</code>. Bấm <strong>Import ngay</strong>.'
 					);
 				}
 			} catch (eUi) {}
@@ -576,6 +576,11 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 
 		SALES_IMPORT_HEADER_MAPS: {
 			Potentials: {
+				'khách hàng': 'mk_import_customer_code',
+				'mã khách hàng': 'mk_import_customer_code',
+				'customer code': 'mk_import_customer_code',
+				'thứ tự dự án': 'mk_import_project_order',
+				'project order': 'mk_import_project_order',
 				'ghi chú': 'description',
 				'description': 'description',
 				'tiêu đề': 'potentialname',
@@ -585,8 +590,11 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				'project name': 'cf_857',
 				'tên dự án': 'cf_857',
 				'projectname': 'cf_857',
+				'project code': 'cf_859',
+				'mã dự án': 'cf_859',
 				'mã orders': 'potential_no',
 				'potential no': 'potential_no',
+				'opportunity no': 'potential_no',
 				'tên khách hàng': 'related_to',
 				'organization name': 'related_to',
 				'organisation name': 'related_to',
@@ -595,12 +603,15 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				'contact name': 'contact_id',
 				'loại order': 'opportunity_type',
 				'type': 'opportunity_type',
+				'model': 'opportunity_type',
 				'giá trị dự kiến': 'amount',
 				'amount': 'amount',
 				'nguồn order': 'leadsource',
 				'lead source': 'leadsource',
+				'source': 'leadsource',
 				'ngày dự kiến kết thúc': 'closingdate',
 				'expected close date': 'closingdate',
+				'close date': 'closingdate',
 				'phụ trách': 'assigned_user_id',
 				'assigned to': 'assigned_user_id',
 				'bước tiếp theo_d': 'nextstep',

@@ -9,6 +9,15 @@ class Potentials_SimpleImport_Helper {
 		'assigned_user_id',
 	);
 
+	/** Staging-row import meta (customer code + project order from BA template). */
+	public static $importMetaByStagingId = array();
+
+	/** Resolved meta keyed by created potential record id. */
+	public static $importMetaByRecordId = array();
+
+	const META_CUSTOMER_CODE = 'mk_import_customer_code';
+	const META_PROJECT_ORDER = 'mk_import_project_order';
+
 	/**
 	 * Export CSV often leaves Expected Close Date empty; closingdate is mandatory in CRM.
 	 */
@@ -35,21 +44,30 @@ class Potentials_SimpleImport_Helper {
 			'opportunityname' => 'opportunity name',
 			'potentialname' => 'potential name',
 			'contactname' => 'contact name',
+			'close date' => 'expected close date',
+			'customer code' => 'khách hàng',
+			'mã khách hàng' => 'khách hàng',
+			'ma khach hang' => 'khách hàng',
+			'project order' => 'thứ tự dự án',
+			'thu tu du an' => 'thứ tự dự án',
 		);
 		return isset($aliases[$header]) ? $aliases[$header] : $header;
 	}
 
 	public static function getHeaderFieldMap() {
 		return array(
+			'khách hàng' => self::META_CUSTOMER_CODE,
+			'thứ tự dự án' => self::META_PROJECT_ORDER,
 			'opportunity name' => 'potentialname',
 			'potential name' => 'potentialname',
 			'tiêu đề' => 'potentialname',
 			'project name' => 'cf_857',
 			'tên dự án' => 'cf_857',
-			'project code' => 'description',
-			'mã dự án' => 'description',
+			'project code' => 'cf_859',
+			'mã dự án' => 'cf_859',
 			'order name' => 'potentialname',
 			'opportunity number' => 'potential_no',
+			'opportunity no' => 'potential_no',
 			'potential no' => 'potential_no',
 			'mã orders' => 'potential_no',
 			'organization name' => 'related_to',
@@ -63,9 +81,12 @@ class Potentials_SimpleImport_Helper {
 			'type' => 'opportunity_type',
 			'loại order' => 'opportunity_type',
 			'opportunity type' => 'opportunity_type',
+			'model' => 'opportunity_type',
 			'expected close date' => 'closingdate',
+			'close date' => 'closingdate',
 			'ngày dự kiến kết thúc' => 'closingdate',
 			'lead source' => 'leadsource',
+			'source' => 'leadsource',
 			'nguồn order' => 'leadsource',
 			'next step' => 'nextstep',
 			'bước tiếp theo' => 'nextstep',
@@ -77,6 +98,7 @@ class Potentials_SimpleImport_Helper {
 			'xác suất' => 'probability',
 			'order category' => 'order_category',
 			'phân loại order' => 'order_category',
+			'source(2)' => 'order_category',
 			'description' => 'description',
 			'mô tả' => 'description',
 			'ghi chú' => 'description',
@@ -84,6 +106,100 @@ class Potentials_SimpleImport_Helper {
 			'forecast amount' => 'forecast_amount',
 			'dự đoán giá trị' => 'forecast_amount',
 		);
+	}
+
+	public static function isImportMetaField($fieldName) {
+		return $fieldName === self::META_CUSTOMER_CODE || $fieldName === self::META_PROJECT_ORDER;
+	}
+
+	public static function formatCustomerAccountNo($customerCode) {
+		$digits = preg_replace('/\D/', '', (string) $customerCode);
+		if ($digits === '') {
+			return '';
+		}
+		return 'KH' . str_pad($digits, 5, '0', STR_PAD_LEFT);
+	}
+
+	public static function lookupAccountIdByCustomerCode($customerCode, $orgNameHint = null) {
+		global $adb;
+		$accountNo = self::formatCustomerAccountNo($customerCode);
+		if ($accountNo === '') {
+			return 0;
+		}
+		$result = $adb->pquery(
+			'SELECT a.accountid FROM vtiger_account a
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.accountid
+			 WHERE ce.deleted = 0 AND a.account_no = ? LIMIT 1',
+			array($accountNo)
+		);
+		if ($result && $adb->num_rows($result) > 0) {
+			return (int) $adb->query_result($result, 0, 'accountid');
+		}
+		if (!empty($orgNameHint)) {
+			$byName = getEntityId('Accounts', decode_html(trim((string) $orgNameHint)));
+			if (!empty($byName)) {
+				return (int) $byName;
+			}
+		}
+		return 0;
+	}
+
+	public static function stashImportMetaForStagingRow($stagingRowId, array $row) {
+		$customerCode = isset($row[self::META_CUSTOMER_CODE]) ? trim((string) $row[self::META_CUSTOMER_CODE]) : '';
+		$projectOrder = isset($row[self::META_PROJECT_ORDER]) ? trim((string) $row[self::META_PROJECT_ORDER]) : '';
+		if ($customerCode === '' && $projectOrder === '') {
+			return;
+		}
+		self::$importMetaByStagingId[(int) $stagingRowId] = array(
+			'customer_code' => $customerCode,
+			'project_order' => $projectOrder,
+		);
+	}
+
+	public static function attachImportMetaToRecord($stagingRowId, $recordId) {
+		$stagingRowId = (int) $stagingRowId;
+		$recordId = (int) $recordId;
+		if ($recordId <= 0 || !isset(self::$importMetaByStagingId[$stagingRowId])) {
+			return;
+		}
+		self::$importMetaByRecordId[$recordId] = self::$importMetaByStagingId[$stagingRowId];
+		unset(self::$importMetaByStagingId[$stagingRowId]);
+	}
+
+	public static function stripImportMetaFields(array $fieldData) {
+		unset($fieldData[self::META_CUSTOMER_CODE], $fieldData[self::META_PROJECT_ORDER]);
+		return $fieldData;
+	}
+
+	public static function resolveImportReferences(array &$fieldData, $stagingRowId = null) {
+		$customerCode = '';
+		$projectOrder = '';
+		if ($stagingRowId !== null && isset(self::$importMetaByStagingId[(int) $stagingRowId])) {
+			$meta = self::$importMetaByStagingId[(int) $stagingRowId];
+			$customerCode = isset($meta['customer_code']) ? $meta['customer_code'] : '';
+			$projectOrder = isset($meta['project_order']) ? $meta['project_order'] : '';
+		}
+
+		$orgLabel = isset($fieldData['related_to']) ? trim((string) $fieldData['related_to']) : '';
+		$accountId = 0;
+		if ($orgLabel !== '' && ctype_digit($orgLabel)) {
+			$accountId = (int) $orgLabel;
+		} elseif ($orgLabel !== '') {
+			$accountId = (int) getEntityId('Accounts', decode_html($orgLabel));
+		}
+		if ($accountId <= 0 && $customerCode !== '') {
+			$accountId = self::lookupAccountIdByCustomerCode($customerCode, $orgLabel);
+		}
+		if ($accountId > 0) {
+			global $adb;
+			$nameResult = $adb->pquery(
+				'SELECT accountname FROM vtiger_account WHERE accountid = ? LIMIT 1',
+				array($accountId)
+			);
+			if ($nameResult && $adb->num_rows($nameResult) > 0) {
+				$fieldData['related_to'] = $adb->query_result($nameResult, 0, 'accountname');
+			}
+		}
 	}
 
 	public static function filterFieldMapping($fieldMapping, $moduleName = 'Potentials') {
@@ -98,6 +214,10 @@ class Potentials_SimpleImport_Helper {
 
 		$filtered = array();
 		foreach ($fieldMapping as $fieldName => $index) {
+			if (self::isImportMetaField($fieldName)) {
+				$filtered[$fieldName] = $index;
+				continue;
+			}
 			if (in_array($fieldName, self::$skipFieldNames, true)) {
 				continue;
 			}
@@ -117,8 +237,10 @@ class Potentials_SimpleImport_Helper {
 		if (!array_key_exists('cf_857', $fieldMapping) && !array_key_exists('potentialname', $fieldMapping)) {
 			$missing[] = 'Project Name / Opportunity Name / Tiêu đề';
 		}
-		if (!array_key_exists('related_to', $fieldMapping)) {
-			$missing[] = 'Organization Name / Tên khách hàng';
+		$hasOrg = array_key_exists('related_to', $fieldMapping);
+		$hasCustomerCode = array_key_exists(self::META_CUSTOMER_CODE, $fieldMapping);
+		if (!$hasOrg && !$hasCustomerCode) {
+			$missing[] = 'Organization Name hoặc Khách hàng (mã KH)';
 		}
 		if (empty($missing)) {
 			return;
@@ -204,12 +326,45 @@ class Potentials_SimpleImport_Helper {
 	}
 
 	/**
+	 * BA / CRM export template (Khách hàng, Thứ tự dự án, Project Name, …).
+	 */
+	public static function getBaExportPositionalOrder() {
+		return array(
+			self::META_CUSTOMER_CODE,
+			self::META_PROJECT_ORDER,
+			'cf_857',
+			'cf_859',
+			'description',
+			'potentialname',
+			'potential_no',
+			'related_to',
+			'contact_id',
+			'amount',
+			'opportunity_type',
+			null,
+			'closingdate',
+			'leadsource',
+			'nextstep',
+			'assigned_user_id',
+			'sales_stage',
+			'campaignid',
+			'probability',
+			null,
+			null,
+			null,
+			null,
+			'leadsource',
+			'order_category',
+		);
+	}
+
+	/**
 	 * English CRM export (Project Name, Project Code, …, Organization Name, Contact Name).
 	 */
 	public static function getEnglishExportPositionalOrder() {
 		return array(
 			'cf_857',
-			'description',
+			'cf_859',
 			null,
 			'potentialname',
 			'potential_no',
@@ -244,8 +399,20 @@ class Potentials_SimpleImport_Helper {
 
 	public static function buildPositionalFieldMapping($columnCount) {
 		$mapping = array();
+		$baOrder = self::getBaExportPositionalOrder();
+		if ($columnCount >= 20) {
+			foreach ($baOrder as $index => $fieldName) {
+				if ($index >= $columnCount || $fieldName === null) {
+					continue;
+				}
+				if ($fieldName === 'assigned_user_id' && in_array($fieldName, self::$skipFieldNames, true)) {
+					continue;
+				}
+				$mapping[$fieldName] = $index;
+			}
+		}
 		$englishOrder = self::getEnglishExportPositionalOrder();
-		if ($columnCount <= 12) {
+		if (empty($mapping) && $columnCount <= 12) {
 			foreach ($englishOrder as $index => $fieldName) {
 				if ($index >= $columnCount || $fieldName === null) {
 					continue;
@@ -462,10 +629,21 @@ class Potentials_SimpleImport_Helper {
 			return array('updated' => 0, 'failed' => 0);
 		}
 
-		$result = $adb->pquery(
-			'SELECT recordid FROM ' . $tableName . ' WHERE status = ? AND recordid IS NOT NULL AND recordid != ? ORDER BY id ASC',
-			array(Import_Data_Action::$IMPORT_RECORD_CREATED, '')
-		);
+		$hasMetaColumns = self::stagingTableHasImportMetaColumns($tableName);
+		if ($hasMetaColumns) {
+			$result = $adb->pquery(
+				'SELECT recordid, ' . self::META_CUSTOMER_CODE . ', ' . self::META_PROJECT_ORDER . '
+				 FROM ' . $tableName . '
+				 WHERE status = ? AND recordid IS NOT NULL AND recordid != ?
+				 ORDER BY id ASC',
+				array(Import_Data_Action::$IMPORT_RECORD_CREATED, '')
+			);
+		} else {
+			$result = $adb->pquery(
+				'SELECT recordid FROM ' . $tableName . ' WHERE status = ? AND recordid IS NOT NULL AND recordid != ? ORDER BY id ASC',
+				array(Import_Data_Action::$IMPORT_RECORD_CREATED, '')
+			);
+		}
 
 		$updated = 0;
 		$failed = 0;
@@ -479,7 +657,19 @@ class Potentials_SimpleImport_Helper {
 			if ($recordId <= 0) {
 				continue;
 			}
-			$code = ProjectCodeHandler::generateForPotential($recordId, array('force' => true));
+			$projectOrder = '';
+			if ($hasMetaColumns) {
+				$projectOrder = trim((string) $adb->query_result($result, $i, self::META_PROJECT_ORDER));
+			}
+			if ($projectOrder === '') {
+				$meta = isset(self::$importMetaByRecordId[$recordId]) ? self::$importMetaByRecordId[$recordId] : array();
+				$projectOrder = isset($meta['project_order']) ? trim((string) $meta['project_order']) : '';
+			}
+			$options = array('force' => true);
+			if ($projectOrder !== '') {
+				$options['project_order'] = $projectOrder;
+			}
+			$code = ProjectCodeHandler::generateForPotential($recordId, $options);
 			if ($code) {
 				$updated++;
 			} else {
@@ -597,5 +787,20 @@ class Potentials_SimpleImport_Helper {
 			$message .= sprintf('. %d Order chưa tạo được mã tên (thiếu Company Code hoặc Organization Number).', (int)$codeStats['failed']);
 		}
 		return $message;
+	}
+
+	public static function resetImportMetaState() {
+		self::$importMetaByStagingId = array();
+		self::$importMetaByRecordId = array();
+	}
+
+	public static function stagingTableHasImportMetaColumns($tableName) {
+		$adb = PearDatabase::getInstance();
+		$tableName = preg_replace('/[^a-zA-Z0-9_]/', '', (string) $tableName);
+		if ($tableName === '') {
+			return false;
+		}
+		$result = $adb->pquery('SHOW COLUMNS FROM `' . $tableName . '` LIKE ?', array(self::META_PROJECT_ORDER));
+		return ($result && $adb->num_rows($result) > 0);
 	}
 }

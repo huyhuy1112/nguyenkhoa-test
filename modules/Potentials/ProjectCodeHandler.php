@@ -66,9 +66,8 @@ function slugifyVietnamese(string $string): string
 }
 
 /**
- * Compact org segment for Opportunity / Project Code name.
- * Drops entity prefix (KH, TC, …) and leading zeros from account_no, then appends year index.
- * Example: TC00001 + 01 => 0101 | KH00012 + 02 => 1202
+ * Middle segment for Opportunity / Project Code: {CUSTOMER_3}{PROJECT_ORDER_2}.
+ * Example: KH00013 + 01 => 01301 | KH00328 + 06 => 32806
  */
 function compactOrganizationIndex(string $accountNo, string $indexInYear): string
 {
@@ -84,16 +83,19 @@ function compactOrganizationIndex(string $accountNo, string $indexInYear): strin
 	if ($numeric === '') {
 		$numeric = '0';
 	}
-	$orgSeq = str_pad($numeric, 2, '0', STR_PAD_LEFT);
+	$customerSeq = str_pad($numeric, 3, '0', STR_PAD_LEFT);
+	if (strlen($customerSeq) > 3) {
+		$customerSeq = substr($customerSeq, -3);
+	}
 
-	return $orgSeq . $indexInYear;
+	return $customerSeq . $indexInYear;
 }
 
 class ProjectCodeHandler extends VTEventHandler {
 
 	/**
 	 * Build Project Code + sync Opportunity Name.
-	 * Format: YYMMDD-{ORG_SEQ}{INDEX}-{COMPANY_CODE}-{PROJECT_NAME}
+	 * Format: YYMMDD-{CUSTOMER_3}{ORDER_2}-{COMPANY_CODE}-{PROJECT_NAME}
 	 *
 	 * @param int $recordId
 	 * @param array $options force => regenerate even if cf_859 exists
@@ -164,6 +166,9 @@ class ProjectCodeHandler extends VTEventHandler {
 
 			$organizationWithIndex = '';
 			$indexInYear = '01';
+			if (!empty($options['project_order'])) {
+				$indexInYear = (string) $options['project_order'];
+			}
 			try {
 				$accountResult = $adb->pquery(
 					"SELECT account_no FROM vtiger_account WHERE accountid = ?",
@@ -179,28 +184,30 @@ class ProjectCodeHandler extends VTEventHandler {
 					return false;
 				}
 
-				$createdYear = '';
-				if (!empty($createdTime)) {
-					$dateObj = new DateTime($createdTime);
-					$createdYear = $dateObj->format('Y');
-				} else {
-					$createdYear = date('Y');
-				}
+				if (empty($options['project_order'])) {
+					$createdYear = '';
+					if (!empty($createdTime)) {
+						$dateObj = new DateTime($createdTime);
+						$createdYear = $dateObj->format('Y');
+					} else {
+						$createdYear = date('Y');
+					}
 
-				$indexQuery = $adb->pquery(
-					"SELECT COUNT(*) as index_count
-					 FROM vtiger_potential p
-					 INNER JOIN vtiger_crmentity e ON e.crmid = p.potentialid
-					 WHERE p.related_to = ?
-					 AND YEAR(e.createdtime) = ?
-					 AND e.deleted = 0
-					 AND p.potentialid != ?",
-					array($accountId, $createdYear, $recordId)
-				);
+					$indexQuery = $adb->pquery(
+						"SELECT COUNT(*) as index_count
+						 FROM vtiger_potential p
+						 INNER JOIN vtiger_crmentity e ON e.crmid = p.potentialid
+						 WHERE p.related_to = ?
+						 AND YEAR(e.createdtime) = ?
+						 AND e.deleted = 0
+						 AND p.potentialid != ?",
+						array($accountId, $createdYear, $recordId)
+					);
 
-				if ($adb->num_rows($indexQuery) > 0) {
-					$existingCount = $adb->query_result($indexQuery, 0, 'index_count');
-					$indexInYear = str_pad((int)$existingCount + 1, 2, '0', STR_PAD_LEFT);
+					if ($adb->num_rows($indexQuery) > 0) {
+						$existingCount = $adb->query_result($indexQuery, 0, 'index_count');
+						$indexInYear = str_pad((int)$existingCount + 1, 2, '0', STR_PAD_LEFT);
+					}
 				}
 
 				$organizationWithIndex = compactOrganizationIndex($accountNo, $indexInYear);
