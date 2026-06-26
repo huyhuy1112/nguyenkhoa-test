@@ -362,6 +362,7 @@ class Vtiger_Detail_View extends Vtiger_Index_View {
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
 
 		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('IS_AJAX_ENABLED', $this->isAjaxEnabled($recordModel));
 		$viewer->assign('SUMMARY_RECORD_STRUCTURE', $recordStrucure->getStructure());
 		$viewer->assign('RELATED_ACTIVITIES', $this->getActivities($request));
@@ -401,6 +402,7 @@ class Vtiger_Detail_View extends Vtiger_Index_View {
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
 		$viewer->assign('IS_AJAX_ENABLED', $this->isAjaxEnabled($recordModel));
 		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE', $moduleName);
 
 		$recordStrucure = Vtiger_RecordStructure_Model::getInstanceFromRecordModel($recordModel, Vtiger_RecordStructure_Model::RECORD_STRUCTURE_MODE_DETAIL);
 		$structuredValues = $recordStrucure->getStructure();

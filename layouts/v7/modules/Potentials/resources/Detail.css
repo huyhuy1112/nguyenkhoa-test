@@ -1189,6 +1189,47 @@ body.mk-opportunity-detail-sales .mk-opportunity-detail-kv-wrap .summary-table t
 	text-decoration: underline;
 }
 
+/* Inline edit: keep save/cancel clickable inside the grid key-fields card */
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue:has(.ajaxEdited),
+body.mk-opportunity-detail-sales .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue:has(.ajaxEdited) {
+	overflow: visible !important;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue .edit .editElement,
+body.mk-opportunity-detail-sales .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue .edit .editElement {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	max-width: 100%;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue .edit .inputElement,
+body.mk-opportunity-detail-sales .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue .edit .inputElement {
+	flex: 1 1 180px;
+	min-width: 0;
+	max-width: 100%;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue .input-save-wrap,
+body.mk-opportunity-detail-sales .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue .input-save-wrap {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 6px;
+	float: none !important;
+	position: relative;
+	z-index: 6;
+	pointer-events: auto !important;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue .inlineAjaxSave,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue .inlineAjaxCancel,
+body.mk-opportunity-detail-sales .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue .inlineAjaxSave,
+body.mk-opportunity-detail-sales .mk-opportunity-detail-kv-wrap .summary-table td.fieldValue .inlineAjaxCancel {
+	pointer-events: auto !important;
+	cursor: pointer;
+}
+
 /* ============================================================================
  * ACTIVITIES
  * ========================================================================== */
