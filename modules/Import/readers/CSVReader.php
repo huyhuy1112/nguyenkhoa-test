@@ -103,6 +103,14 @@ class Import_CSVReader_Reader extends Import_FileReader_Reader {
 				$mappedData[$fieldName] = Import_Utils_Helper::repairVietnameseExportText($mappedData[$fieldName]);
 				if(!empty($fieldValue)) $allValuesEmpty = false;
 			}
+			if ($this->moduleModel->getName() === 'Accounts') {
+				require_once 'modules/Accounts/helpers/SimpleImport.php';
+				$ccCol = (int) $this->request->get('accounts_customer_code_col');
+				if ($ccCol < 0) {
+					$ccCol = Accounts_SimpleImport_Helper::resolveCustomerCodeColumnIndex($fieldMapping);
+				}
+				$mappedData = Accounts_SimpleImport_Helper::injectCustomerCodeFromRawCsvRow($mappedData, $data, $ccCol);
+			}
 			if($allValuesEmpty) continue;
 			$fieldNames = array_keys($mappedData);
 			$fieldValues = array_values($mappedData);

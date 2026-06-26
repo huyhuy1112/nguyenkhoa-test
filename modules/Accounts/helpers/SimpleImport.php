@@ -5,6 +5,15 @@
 
 class Accounts_SimpleImport_Helper {
 
+	/** Staging column: raw Customer Code from BA Excel (before KH formatting). */
+	const META_CUSTOMER_CODE = 'mk_import_customer_code';
+
+	/** @var array<int, string> staging row id => raw customer code from file */
+	public static $customerCodeByStagingId = array();
+
+	/** @var array<int, string> created account id => formatted account_no */
+	public static $customerCodeByRecordId = array();
+
 	/** Fields to skip: use CRM defaults or need manual reference lookup. */
 	public static $skipFieldNames = array(
 		'assigned_user_id',
@@ -39,6 +48,9 @@ class Accounts_SimpleImport_Helper {
 			'ma khach hang' => 'customer code',
 			'khách hàng' => 'customer code',
 			'khach hang' => 'customer code',
+			'ma kh' => 'customer code',
+			'mã kh' => 'customer code',
+			'code' => 'customer code',
 			'member of' => 'member of',
 		);
 		return isset($aliases[$header]) ? $aliases[$header] : $header;
@@ -83,7 +95,7 @@ class Accounts_SimpleImport_Helper {
 	}
 
 	public static function countKnownHeaderCells(array $cells) {
-		$known = array_keys(self::getHeaderFieldMap());
+		$known = array_merge(array_keys(self::getHeaderFieldMap()), self::getCustomerCodeHeaderKeys());
 		$matched = 0;
 		foreach ($cells as $cell) {
 			$normalized = self::normalizeHeader(Import_Utils_Helper::normalizeCsvCell((string)$cell));
@@ -101,9 +113,236 @@ class Accounts_SimpleImport_Helper {
 	/**
 	 * BA / CRM export: Customer Code first, then Organization Name, … Company Code, Billing Address.
 	 */
+	/** Deleted customer slots — never auto-assign these numbers. */
+	public static function getReservedSkipCustomerCodes() {
+		return array(12, 37, 39, 48);
+	}
+
+	public static function bumpCustomerCodeNumber($num) {
+		$num = max(1, (int) $num);
+		while (in_array($num, self::getReservedSkipCustomerCodes(), true)) {
+			$num++;
+		}
+		return $num;
+	}
+
+	public static function extractNumericCustomerCode($raw) {
+		$raw = self::normalizeExcelCellNumber(trim((string) $raw));
+		if ($raw === '') {
+			return null;
+		}
+		if (preg_match('/^KH(\d+)/i', $raw, $matches)) {
+			return (int) $matches[1];
+		}
+		if (ctype_digit($raw)) {
+			return (int) $raw;
+		}
+		return null;
+	}
+
+	public static function resolveCustomerCodeColumnIndex(array $fieldMapping) {
+		if (isset($fieldMapping[self::META_CUSTOMER_CODE])) {
+			return (int) $fieldMapping[self::META_CUSTOMER_CODE];
+		}
+		if (isset($fieldMapping['account_no'])) {
+			return (int) $fieldMapping['account_no'];
+		}
+		return 0;
+	}
+
+	public static function getMinimalTwoColumnMapping() {
+		return array(
+			self::META_CUSTOMER_CODE => 0,
+			'account_no' => 0,
+			'accountname' => 1,
+		);
+	}
+
+	public static function finalizeFieldMapping(Vtiger_Request $request, array $fieldMapping) {
+		$ccIndex = self::resolveCustomerCodeColumnIndex($fieldMapping);
+		$fieldMapping[self::META_CUSTOMER_CODE] = $ccIndex;
+		$fieldMapping['account_no'] = $ccIndex;
+		$request->set('accounts_customer_code_col', $ccIndex);
+		return $fieldMapping;
+	}
+
+	public static function injectCustomerCodeFromRawCsvRow(array $mappedData, array $rawCsvRow, $columnIndex) {
+		$columnIndex = (int) $columnIndex;
+		$cell = isset($rawCsvRow[$columnIndex]) ? Import_Utils_Helper::normalizeCsvCell($rawCsvRow[$columnIndex]) : '';
+		$cell = self::normalizeExcelCellNumber(trim((string) $cell));
+		if ($cell !== '' && self::looksLikeCustomerCodeValue($cell)) {
+			$mappedData[self::META_CUSTOMER_CODE] = $cell;
+			$mappedData['account_no'] = $cell;
+		}
+		return $mappedData;
+	}
+
+	public static function isImportMetaField($fieldName) {
+		return $fieldName === self::META_CUSTOMER_CODE;
+	}
+
+	public static function getCustomerCodeHeaderKeys() {
+		return array(
+			'customer code',
+			'mã khách hàng',
+			'ma khach hang',
+			'khách hàng',
+			'khach hang',
+			'ma kh',
+			'mã kh',
+			'code',
+			'no',
+			'no.',
+		);
+	}
+
+	public static function looksLikeCustomerCodeValue($value) {
+		$value = self::normalizeExcelCellNumber(trim((string) $value));
+		if ($value === '') {
+			return false;
+		}
+		if (preg_match('/^KH\d+/i', $value)) {
+			return true;
+		}
+		if (!ctype_digit($value)) {
+			return false;
+		}
+		$num = (int) $value;
+		return $num > 0 && $num < 100000;
+	}
+
+	public static function extractRawCustomerCodeFromRow(array $row) {
+		if (!empty($row[self::META_CUSTOMER_CODE])) {
+			return self::normalizeExcelCellNumber($row[self::META_CUSTOMER_CODE]);
+		}
+		if (!empty($row['account_no'])) {
+			return self::normalizeExcelCellNumber($row['account_no']);
+		}
+		return '';
+	}
+
+	public static function stashCustomerCodeForStagingRow($stagingRowId, array $row) {
+		$raw = self::extractRawCustomerCodeFromRow($row);
+		if ($raw === '') {
+			return;
+		}
+		self::$customerCodeByStagingId[(int) $stagingRowId] = $raw;
+	}
+
+	public static function resetImportMetaState() {
+		self::$customerCodeByStagingId = array();
+		self::$customerCodeByRecordId = array();
+	}
+
+	public static function persistAccountNoToRecord($recordId, $stagingRowId = null, array $row = null, array $fieldData = array()) {
+		global $adb;
+		$recordId = (int) $recordId;
+		if ($recordId <= 0) {
+			return '';
+		}
+
+		$raw = '';
+		if ($stagingRowId !== null && isset(self::$customerCodeByStagingId[(int) $stagingRowId])) {
+			$raw = self::$customerCodeByStagingId[(int) $stagingRowId];
+		} elseif (is_array($row)) {
+			$raw = self::extractRawCustomerCodeFromRow($row);
+		}
+		if ($raw === '' && !empty($fieldData)) {
+			if (!empty($fieldData[self::META_CUSTOMER_CODE])) {
+				$raw = self::normalizeExcelCellNumber($fieldData[self::META_CUSTOMER_CODE]);
+			} elseif (!empty($fieldData['account_no']) && !preg_match('/^KH/i', trim((string) $fieldData['account_no']))) {
+				$raw = self::normalizeExcelCellNumber($fieldData['account_no']);
+			}
+		}
+
+		$numeric = self::extractNumericCustomerCode($raw);
+		if ($numeric === null) {
+			return '';
+		}
+		$accountNo = self::formatCustomerAccountNo((string) $numeric);
+		if ($accountNo === '') {
+			return '';
+		}
+
+		$adb->pquery(
+			'UPDATE vtiger_account SET account_no = ? WHERE accountid = ?',
+			array($accountNo, $recordId)
+		);
+		self::$customerCodeByRecordId[$recordId] = $accountNo;
+		return $accountNo;
+	}
+
+	public static function ensureCustomerCodeColumnMapping(array $headerIndex, array $fieldMapping, array $firstRow) {
+		if (isset($fieldMapping[self::META_CUSTOMER_CODE]) || isset($fieldMapping['account_no'])) {
+			return $fieldMapping;
+		}
+
+		foreach (self::getCustomerCodeHeaderKeys() as $headerKey) {
+			if (isset($headerIndex[$headerKey])) {
+				$index = $headerIndex[$headerKey];
+				$fieldMapping[self::META_CUSTOMER_CODE] = $index;
+				$fieldMapping['account_no'] = $index;
+				return $fieldMapping;
+			}
+		}
+
+		foreach ($headerIndex as $headerKey => $index) {
+			if (preg_match('/customer|khach|khách|client|mã|ma\\b|code|kh\\b/i', $headerKey)) {
+				$fieldMapping[self::META_CUSTOMER_CODE] = $index;
+				$fieldMapping['account_no'] = $index;
+				return $fieldMapping;
+			}
+		}
+
+		$firstValue = '';
+		foreach ($firstRow as $value) {
+			$firstValue = trim((string) $value);
+			break;
+		}
+		if (self::looksLikeCustomerCodeValue($firstValue)) {
+			$fieldMapping[self::META_CUSTOMER_CODE] = 0;
+			$fieldMapping['account_no'] = 0;
+		}
+		return $fieldMapping;
+	}
+
+	public static function importHasCustomerCodesInStaging($user) {
+		$adb = PearDatabase::getInstance();
+		$tableName = Import_Utils_Helper::getDbTableName($user);
+		if (!Vtiger_Utils::CheckTable($tableName)) {
+			return !empty(self::$customerCodeByStagingId);
+		}
+		if (!empty(self::$customerCodeByStagingId)) {
+			return true;
+		}
+		if (self::stagingTableHasImportMetaColumns($tableName)) {
+			$result = $adb->pquery(
+				'SELECT 1 FROM ' . $tableName . ' WHERE TRIM(' . self::META_CUSTOMER_CODE . ") != '' LIMIT 1",
+				array()
+			);
+			if ($result && $adb->num_rows($result) > 0) {
+				return true;
+			}
+		}
+		$result = $adb->pquery(
+			"SELECT account_no FROM " . $tableName . " WHERE TRIM(account_no) != '' LIMIT 5",
+			array()
+		);
+		if ($result) {
+			$rows = $adb->num_rows($result);
+			for ($i = 0; $i < $rows; $i++) {
+				$cell = $adb->query_result($result, $i, 'account_no');
+				if (self::looksLikeCustomerCodeValue($cell)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	public static function getBaExportPositionalOrder() {
 		return array(
-			'account_no',
+			self::META_CUSTOMER_CODE,
 			'accountname',
 			'website',
 			'tickersymbol',
@@ -190,6 +429,9 @@ class Accounts_SimpleImport_Helper {
 	}
 
 	public static function buildPositionalFieldMapping($columnCount) {
+		if ($columnCount >= 2 && $columnCount < 20) {
+			return self::getMinimalTwoColumnMapping();
+		}
 		$mapping = array();
 		$order = ($columnCount >= 20) ? self::getBaExportPositionalOrder() : self::getEnglishExportPositionalOrder();
 		foreach ($order as $index => $fieldName) {
@@ -197,6 +439,11 @@ class Accounts_SimpleImport_Helper {
 				continue;
 			}
 			if (in_array($fieldName, self::$skipFieldNames, true)) {
+				continue;
+			}
+			if ($fieldName === self::META_CUSTOMER_CODE) {
+				$mapping[self::META_CUSTOMER_CODE] = $index;
+				$mapping['account_no'] = $index;
 				continue;
 			}
 			$mapping[$fieldName] = $index;
@@ -233,10 +480,111 @@ class Accounts_SimpleImport_Helper {
 		return 'KH' . str_pad($digits, 5, '0', STR_PAD_LEFT);
 	}
 
-	public static function normalizeImportRow(array &$fieldData) {
-		if (!empty($fieldData['account_no'])) {
-			$fieldData['account_no'] = self::formatCustomerAccountNo($fieldData['account_no']);
+	public static function resolveAccountNoFromImportData(array $fieldData) {
+		$raw = '';
+		if (!empty($fieldData[self::META_CUSTOMER_CODE])) {
+			$raw = $fieldData[self::META_CUSTOMER_CODE];
+		} elseif (!empty($fieldData['account_no'])) {
+			$raw = $fieldData['account_no'];
 		}
+		return self::formatCustomerAccountNo($raw);
+	}
+
+	public static function normalizeImportRow(array &$fieldData) {
+		$accountNo = self::resolveAccountNoFromImportData($fieldData);
+		if ($accountNo !== '') {
+			$fieldData['account_no'] = $accountNo;
+		}
+		unset($fieldData[self::META_CUSTOMER_CODE]);
+	}
+
+	public static function resolveCustomerCodeMapping(array $headerIndex, array $fieldMapping) {
+		foreach (self::getCustomerCodeHeaderKeys() as $headerKey) {
+			if (!isset($headerIndex[$headerKey])) {
+				continue;
+			}
+			$index = $headerIndex[$headerKey];
+			$fieldMapping[self::META_CUSTOMER_CODE] = $index;
+			$fieldMapping['account_no'] = $index;
+			return $fieldMapping;
+		}
+		return $fieldMapping;
+	}
+
+	public static function resolveAccountNoForStagingRow(array $row, &$runningNum) {
+		$raw = self::extractRawCustomerCodeFromRow($row);
+		$numeric = self::extractNumericCustomerCode($raw);
+		if ($numeric !== null) {
+			$runningNum = $numeric;
+			return self::formatCustomerAccountNo((string) $numeric);
+		}
+		if ($runningNum !== null) {
+			$runningNum = self::bumpCustomerCodeNumber($runningNum + 1);
+		} else {
+			$runningNum = self::bumpCustomerCodeNumber(1);
+		}
+		return self::formatCustomerAccountNo((string) $runningNum);
+	}
+
+	public static function stagingTableHasImportMetaColumns($tableName) {
+		$adb = PearDatabase::getInstance();
+		$result = $adb->pquery('SHOW COLUMNS FROM ' . $tableName . ' LIKE ?', array(self::META_CUSTOMER_CODE));
+		return ($result && $adb->num_rows($result) > 0);
+	}
+
+	/**
+	 * After bulk create CRM may auto-fill account_no — restore codes from staging Customer Code.
+	 */
+	public static function applyAccountNumbersAfterImport($user) {
+		$adb = PearDatabase::getInstance();
+		$tableName = Import_Utils_Helper::getDbTableName($user);
+		if (!Vtiger_Utils::CheckTable($tableName)) {
+			return array('updated' => 0, 'skipped' => 0);
+		}
+
+		$hasMeta = self::stagingTableHasImportMetaColumns($tableName);
+		$select = $hasMeta
+			? 'recordid, account_no, ' . self::META_CUSTOMER_CODE
+			: 'recordid, account_no';
+		$result = $adb->pquery(
+			'SELECT ' . $select . ' FROM ' . $tableName . '
+			 WHERE status = ? AND recordid IS NOT NULL AND recordid != ?
+			 ORDER BY id ASC',
+			array(Import_Data_Action::$IMPORT_RECORD_CREATED, '')
+		);
+
+		$updated = 0;
+		$skipped = 0;
+		if (!$result) {
+			return array('updated' => 0, 'skipped' => 0);
+		}
+
+		$rows = $adb->num_rows($result);
+		$runningNum = null;
+		for ($i = 0; $i < $rows; $i++) {
+			$recordId = (int) $adb->query_result($result, $i, 'recordid');
+			if ($recordId <= 0) {
+				continue;
+			}
+			$row = array();
+			if ($hasMeta) {
+				$row[self::META_CUSTOMER_CODE] = $adb->query_result($result, $i, self::META_CUSTOMER_CODE);
+			}
+			$row['account_no'] = $adb->query_result($result, $i, 'account_no');
+			$accountNo = self::resolveAccountNoForStagingRow($row, $runningNum);
+			if ($accountNo === '') {
+				$skipped++;
+				continue;
+			}
+			$adb->pquery(
+				'UPDATE vtiger_account SET account_no = ? WHERE accountid = ?',
+				array($accountNo, $recordId)
+			);
+			self::$customerCodeByRecordId[$recordId] = $accountNo;
+			$updated++;
+		}
+
+		return array('updated' => $updated, 'skipped' => $skipped);
 	}
 
 	public static function normalizeImportFile(Vtiger_Request $request, $user) {
@@ -311,7 +659,7 @@ class Accounts_SimpleImport_Helper {
 			return null;
 		}
 		$headerIndex = array();
-		$known = array_keys(self::getHeaderFieldMap());
+		$known = array_merge(array_keys(self::getHeaderFieldMap()), self::getCustomerCodeHeaderKeys());
 		$matched = 0;
 		foreach ($line as $index => $cell) {
 			$cell = self::normalizeHeader(Import_Utils_Helper::normalizeCsvCell((string)$cell));
@@ -328,16 +676,10 @@ class Accounts_SimpleImport_Helper {
 
 	public static function getHeaderFieldMap() {
 		return array(
-			'customer code' => 'account_no',
-			'khách hàng' => 'account_no',
-			'mã khách hàng' => 'account_no',
 			'organization name' => 'accountname',
 			'account name' => 'accountname',
 			'tên' => 'accountname',
 			'tên ngắn gọn thường gọi' => 'accountname',
-			'organization number' => 'account_no',
-			'account no' => 'account_no',
-			'số hiệu tổ chức' => 'account_no',
 			'company code' => 'cf_855',
 			'mã công ty' => 'cf_855',
 			'mã company' => 'cf_855',
@@ -397,6 +739,14 @@ class Accounts_SimpleImport_Helper {
 
 		$filtered = array();
 		foreach ($fieldMapping as $fieldName => $index) {
+			if (self::isImportMetaField($fieldName)) {
+				$filtered[$fieldName] = $index;
+				continue;
+			}
+			if ($moduleName === 'Accounts' && $fieldName === 'account_no') {
+				$filtered[$fieldName] = $index;
+				continue;
+			}
 			if (in_array($fieldName, self::$skipFieldNames, true)) {
 				continue;
 			}
@@ -421,6 +771,15 @@ class Accounts_SimpleImport_Helper {
 		}
 
 		$headers = array_keys($firstRow);
+		if (php7_count($headers) <= 3) {
+			$fieldMapping = self::getMinimalTwoColumnMapping();
+			$fieldMapping = self::filterFieldMapping($fieldMapping, $request->getModule());
+			if (!isset($fieldMapping['accountname'])) {
+				$fieldMapping['accountname'] = 1;
+			}
+			return self::finalizeFieldMapping($request, $fieldMapping);
+		}
+
 		$headerIndex = array();
 		foreach ($headers as $index => $header) {
 			$headerIndex[self::normalizeHeader($header)] = $index;
@@ -434,9 +793,16 @@ class Accounts_SimpleImport_Helper {
 				$usePositional = false;
 			}
 		}
+		if (!$usePositional) {
+			$rebuilt = self::tryRebuildHeaderIndexFromRawRow($request, $user, 0);
+			if (is_array($rebuilt) && !empty($rebuilt)) {
+				$headerIndex = $rebuilt;
+			}
+		}
 
 		if ($usePositional) {
 			$fieldMapping = self::buildPositionalFieldMapping(php7_count($headers));
+			$fieldMapping = self::ensureCustomerCodeColumnMapping($headerIndex, $fieldMapping, $firstRow);
 			$fieldMapping = self::filterFieldMapping($fieldMapping, $request->getModule());
 		} else {
 			$headerMap = self::getHeaderFieldMap();
@@ -447,6 +813,8 @@ class Accounts_SimpleImport_Helper {
 				}
 				$fieldMapping[$fieldName] = $headerIndex[$headerKey];
 			}
+			$fieldMapping = self::resolveCustomerCodeMapping($headerIndex, $fieldMapping);
+			$fieldMapping = self::ensureCustomerCodeColumnMapping($headerIndex, $fieldMapping, $firstRow);
 			$fieldMapping = self::filterFieldMapping($fieldMapping, $request->getModule());
 		}
 
@@ -458,7 +826,7 @@ class Accounts_SimpleImport_Helper {
 				. 'Lưu file CSV UTF-8 với dòng header đúng (hoặc xuất lại từ Numbers: dòng 2 phải là Organization Name, Organization Number, …).'
 			);
 		}
-		return $fieldMapping;
+		return self::finalizeFieldMapping($request, $fieldMapping);
 	}
 
 	public static function getFailedRowSamples($user, $limit = 5) {

@@ -35,6 +35,8 @@ class Accounts_SimpleImport_Action extends Vtiger_Action_Controller {
 				throw new Exception('Invalid module');
 			}
 
+			Accounts_SimpleImport_Helper::resetImportMetaState();
+
 			if (empty($_FILES['import_file']) || empty($_FILES['import_file']['tmp_name'])) {
 				throw new Exception('Chưa chọn file hoặc trình duyệt không gửi được file. Chọn file CSV hoặc Excel (.xlsx, .xls) rồi bấm Import ngay.');
 			}
@@ -83,6 +85,7 @@ class Accounts_SimpleImport_Action extends Vtiger_Action_Controller {
 
 			$importDataController->importData();
 			$importStatusCount = $importDataController->getImportStatusCount();
+			Accounts_SimpleImport_Helper::applyAccountNumbersAfterImport($user);
 			$failedSamples = Accounts_SimpleImport_Helper::getFailedRowSamples($user);
 			$importDataController->finishImport();
 

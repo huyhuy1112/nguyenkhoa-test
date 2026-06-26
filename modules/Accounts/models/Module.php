@@ -10,6 +10,15 @@
 
 class Accounts_Module_Model extends Vtiger_Module_Model {
 
+	public function getAdditionalImportFields() {
+		$fields = parent::getAdditionalImportFields();
+		$accountNoField = Vtiger_Field_Model::getInstance('account_no', $this);
+		if ($accountNoField) {
+			$fields['account_no'] = $accountNoField;
+		}
+		return $fields;
+	}
+
 	/**
 	 * Function to get the Quick Links for the module
 	 * @param <Array> $linkParams

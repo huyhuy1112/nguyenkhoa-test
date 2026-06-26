@@ -382,6 +382,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			}
 			if ($moduleName === 'Accounts') {
 				require_once 'modules/Accounts/helpers/SimpleImport.php';
+				Accounts_SimpleImport_Helper::stashCustomerCodeForStagingRow($rowId, $row);
 				Accounts_SimpleImport_Helper::normalizeImportRow($fieldData);
 			}
 
@@ -558,6 +559,18 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 					$recordId = isset($entityIdComponents[1]) ? $entityIdComponents[1] : '';
 				}
 				if (!empty($recordId)) {
+					if ($this->module === 'Accounts') {
+						require_once 'modules/Accounts/helpers/SimpleImport.php';
+						$accountNo = Accounts_SimpleImport_Helper::persistAccountNoToRecord(
+							$recordId,
+							$rowId,
+							$row,
+							$fieldData
+						);
+						if ($accountNo !== '') {
+							$fieldData['account_no'] = $accountNo;
+						}
+					}
 					$entityfields = getEntityFieldNames($this->module);
 					switch ($this->module) {
 						case 'HelpDesk'	: $entityfields['fieldname'] = array('ticket_title');	break;
@@ -596,9 +609,14 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			$this->updateImportStatus($rowId, $entityInfo);
 		}
 
-		//Update missing seq numbers
-		$focus = CRMEntity::getInstance($moduleName);
-		$focus->updateMissingSeqNumber($moduleName);
+		// Accounts: never auto-sequence — use Excel customer code (gaps 12,37,39,48 stay empty).
+		if ($moduleName === 'Accounts') {
+			require_once 'modules/Accounts/helpers/SimpleImport.php';
+			Accounts_SimpleImport_Helper::applyAccountNumbersAfterImport($this->user);
+		} else {
+			$focus = CRMEntity::getInstance($moduleName);
+			$focus->updateMissingSeqNumber($moduleName);
+		}
 
 		//Creating entity data of created records for post save events 
 		if (!empty($createdRecords)) {

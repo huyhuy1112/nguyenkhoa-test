@@ -115,6 +115,9 @@ class Import_FileReader_Reader {
 		if ($this->moduleModel->getName() === 'Potentials') {
 			require_once 'modules/Potentials/helpers/SimpleImport.php';
 		}
+		if ($this->moduleModel->getName() === 'Accounts') {
+			require_once 'modules/Accounts/helpers/SimpleImport.php';
+		}
 
 		$columnsListQuery = 'id INT PRIMARY KEY AUTO_INCREMENT, status INT DEFAULT 0, recordid INT';
 		$fieldTypes = $this->getModuleFieldDBColumnType();
@@ -122,6 +125,12 @@ class Import_FileReader_Reader {
 			if ($this->moduleModel->getName() === 'Potentials'
 				&& class_exists('Potentials_SimpleImport_Helper')
 				&& Potentials_SimpleImport_Helper::isImportMetaField($fieldName)) {
+				$columnsListQuery .= ','.$fieldName.' varchar(250)';
+				continue;
+			}
+			if ($this->moduleModel->getName() === 'Accounts'
+				&& class_exists('Accounts_SimpleImport_Helper')
+				&& Accounts_SimpleImport_Helper::isImportMetaField($fieldName)) {
 				$columnsListQuery .= ','.$fieldName.' varchar(250)';
 				continue;
 			}

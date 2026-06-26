@@ -113,7 +113,14 @@ class Potentials_SimpleImport_Helper {
 	}
 
 	public static function formatCustomerAccountNo($customerCode) {
-		$digits = preg_replace('/\D/', '', (string) $customerCode);
+		$raw = trim((string) $customerCode);
+		if ($raw === '') {
+			return '';
+		}
+		if (preg_match('/^KH\d+/i', $raw)) {
+			return strtoupper($raw);
+		}
+		$digits = preg_replace('/\D/', '', self::normalizeExcelCellNumber($raw));
 		if ($digits === '') {
 			return '';
 		}
@@ -193,13 +200,14 @@ class Potentials_SimpleImport_Helper {
 
 		$orgLabel = isset($fieldData['related_to']) ? trim((string) $fieldData['related_to']) : '';
 		$accountId = 0;
-		if ($orgLabel !== '' && ctype_digit($orgLabel)) {
-			$accountId = (int) $orgLabel;
-		} elseif ($orgLabel !== '') {
-			$accountId = (int) getEntityId('Accounts', decode_html($orgLabel));
-		}
-		if ($accountId <= 0 && $customerCode !== '') {
+
+		if ($customerCode !== '') {
 			$accountId = self::lookupAccountIdByCustomerCode($customerCode, $orgLabel);
+		}
+		if ($accountId <= 0 && $orgLabel !== '' && ctype_digit($orgLabel)) {
+			$accountId = (int) $orgLabel;
+		} elseif ($accountId <= 0 && $orgLabel !== '') {
+			$accountId = (int) getEntityId('Accounts', decode_html($orgLabel));
 		}
 		if ($accountId > 0) {
 			global $adb;

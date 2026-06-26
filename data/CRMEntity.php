@@ -543,10 +543,15 @@ class CRMEntity {
 			}
 
 			if ($uitype == 4 && $insertion_mode != 'edit') {
+				$importedSeq = isset($this->column_fields[$fieldname])
+					? trim($this->column_fields[$fieldname]) : '';
 				$fldvalue = '';
-				// Bulk Save Mode: Avoid generation of module sequence number, take care later.
-				if (!CRMEntity::isBulkSaveMode())
+				// Bulk Save Mode: keep imported sequence (e.g. Customer Code); fill blanks later.
+				if (!CRMEntity::isBulkSaveMode()) {
 					$fldvalue = $this->setModuleSeqNumber("increment", $module);
+				} elseif ($importedSeq !== '') {
+					$fldvalue = $importedSeq;
+				}
 				$this->column_fields[$fieldname] = $fldvalue;
 			}
 			if (isset($this->column_fields[$fieldname])) {
