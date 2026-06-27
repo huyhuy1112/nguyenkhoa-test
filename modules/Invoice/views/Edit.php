@@ -10,14 +10,17 @@ class Invoice_Edit_View extends Inventory_Edit_View {
 			return false;
 		}
 		$app = strtoupper((string) $request->get('app'));
-		return $app === 'TOOLS' || $app === 'SUPPORT';
+		return $app === 'TOOLS' || $app === 'SUPPORT' || $app === 'SALES';
 	}
 
 	protected function assignModernContext(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
 		$app = strtoupper((string) $request->get('app'));
-		if ($app !== 'TOOLS' && $app !== 'SUPPORT') {
+		if ($app !== 'TOOLS' && $app !== 'SUPPORT' && $app !== 'SALES') {
+			$app = 'TOOLS';
+		}
+		if ($app === 'SALES') {
 			$app = 'TOOLS';
 		}
 		$viewer->assign('MODULE', $moduleName);

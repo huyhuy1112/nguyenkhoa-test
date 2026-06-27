@@ -9,6 +9,33 @@
  *************************************************************************************/
 
 class Project_Detail_View extends Vtiger_Detail_View {
+
+	protected function isManagementShell(Vtiger_Request $request) {
+		$app = strtoupper((string) $request->get('app'));
+		return $app === 'MANAGEMENT' || $app === '';
+	}
+
+	protected function assignManagementContext(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'MANAGEMENT');
+		$viewer->assign('SELECTED_MENU_CATEGORY_LABEL', vtranslate('LBL_MANAGEMENT', 'Vtiger'));
+		$menuGroupedByParent = Settings_MenuEditor_Module_Model::getAllVisibleModules();
+		if (isset($menuGroupedByParent['MANAGEMENT'])) {
+			$viewer->assign('SELECTED_CATEGORY_MENU_LIST', $menuGroupedByParent['MANAGEMENT']);
+		}
+		$viewer->assign('MENU_SELECTED_MODULENAME', 'Project');
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		if ($this->isManagementShell($request) && empty($request->get('app'))) {
+			$request->set('app', 'MANAGEMENT');
+			$_REQUEST['app'] = 'MANAGEMENT';
+		}
+		parent::preProcess($request, $display);
+		if ($this->isManagementShell($request)) {
+			$this->assignManagementContext($request);
+		}
+	}
 	
 	function __construct() {
 		parent::__construct();

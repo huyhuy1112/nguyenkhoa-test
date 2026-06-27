@@ -49,6 +49,8 @@ $languageStrings = array(
 "Total Revenue" => "Doanh thu theo nhân viên bán hàng",
 "Value Proposition" => "Giá trị được đề xuất",
 	'Expected Close Date' => 'Ngày dự kiến kết thúc',
+	'LBL_CREATE_PROJECT' => 'Tạo dự án',
+	'LBL_VIEW_PROJECT' => 'Xem dự án',
 "Description" => "Ghi chú",
 "Người giới thiệu" => "Người giới thiệu",
 );

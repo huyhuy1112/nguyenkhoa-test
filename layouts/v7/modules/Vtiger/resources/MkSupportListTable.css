@@ -353,3 +353,32 @@ body[data-view="List"][data-app="SUPPORT"] #listview-table td.mk-col-control {
 body[data-view="List"][data-app="SUPPORT"] #listview-table td.listViewRecordActions .table-actions {
 	overflow: visible !important;
 }
+
+/* Inline search / clear — center in control column (Organizations, Tickets, etc.) */
+body[data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.inline-search-btn {
+	padding: 8px 6px !important;
+	text-align: center !important;
+	vertical-align: middle !important;
+}
+
+body[data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.inline-search-btn .table-actions {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 8px !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	min-height: 40px;
+	flex-wrap: nowrap !important;
+}
+
+body[data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.inline-search-btn .table-actions > .input,
+body[data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.inline-search-btn .table-actions > span,
+body[data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.inline-search-btn .table-actions > .more,
+body[data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.inline-search-btn [data-trigger="listSearch"],
+body[data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th.inline-search-btn [data-trigger="clearListSearch"] {
+	flex: 0 0 auto;
+	float: none !important;
+}

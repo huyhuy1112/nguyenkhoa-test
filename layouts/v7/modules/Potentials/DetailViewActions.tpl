@@ -22,9 +22,12 @@
                 {assign var=MK_BASIC_LBL value=$DETAIL_VIEW_BASIC_LINK->getLabel()}
                 {assign var=MK_BASIC_ICON value='EDIT'}
                 {if $MK_BASIC_LBL eq 'LBL_SEND_EMAIL'}{assign var=MK_BASIC_ICON value='EMAIL'}{/if}
+                {if $MK_BASIC_LBL eq 'LBL_CREATE_PROJECT' or $MK_BASIC_LBL eq 'LBL_VIEW_PROJECT'}{assign var=MK_BASIC_ICON value='EDIT'}{/if}
                 <button type="button" class="btn btn-default mk-opportunity-detail-btn {if $MK_BASIC_LBL eq 'LBL_SEND_EMAIL'}mk-opportunity-detail-btn--primary{else}mk-opportunity-detail-btn--ghost{/if}" id="{$MODULE_NAME}_detailView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_BASIC_LBL)}"
-                        {if $DETAIL_VIEW_BASIC_LINK->isPageLoadLink()}
+                        {if $DETAIL_VIEW_BASIC_LINK->isPageLoadLink() && !$DETAIL_VIEW_BASIC_LINK->getUrl()|strstr:'app='}
                             onclick="window.location.href = '{$DETAIL_VIEW_BASIC_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}'"
+                        {elseif $DETAIL_VIEW_BASIC_LINK->isPageLoadLink()}
+                            onclick="window.location.href = '{$DETAIL_VIEW_BASIC_LINK->getUrl()}'"
                         {else}
                             onclick="{$DETAIL_VIEW_BASIC_LINK->getUrl()}"
                         {/if}
@@ -43,16 +46,18 @@
                     <span class="mk-opportunity-detail-btn__txt">{vtranslate('LBL_MORE', $MODULE_NAME)}</span>
                     <span class="caret"></span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-right">
+                <ul class="dropdown-menu dropdown-menu-right mk-opportunity-detail-menu">
                     {foreach item=DETAIL_VIEW_LINK from=$DETAILVIEW_LINKS['DETAILVIEW']}
                         {if $DETAIL_VIEW_LINK->getLabel() eq ""}
-                            <li class="divider"></li>
+                            <li class="divider mk-opportunity-detail-menu__divider" role="separator"></li>
                         {else}
-                            <li id="{$MODULE_NAME}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_LINK->getLabel())}">
+                            <li id="{$MODULE_NAME}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_LINK->getLabel())}" class="mk-opportunity-detail-menu__item">
                                 {if $DETAIL_VIEW_LINK->getUrl()|strstr:"javascript"}
-                                    <a href="{$DETAIL_VIEW_LINK->getUrl()}">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
+                                    <a href="{$DETAIL_VIEW_LINK->getUrl()}" class="mk-opportunity-detail-menu__link">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
+                                {elseif $DETAIL_VIEW_LINK->getUrl()|strstr:'app='}
+                                    <a href="{$DETAIL_VIEW_LINK->getUrl()}" class="mk-opportunity-detail-menu__link">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
                                 {else}
-                                    <a href="{$DETAIL_VIEW_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
+                                    <a href="{$DETAIL_VIEW_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}" class="mk-opportunity-detail-menu__link">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
                                 {/if}
                             </li>
                         {/if}

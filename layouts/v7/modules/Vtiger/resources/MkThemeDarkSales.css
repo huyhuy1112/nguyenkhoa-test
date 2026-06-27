@@ -1276,16 +1276,8 @@ body[data-theme="dark"][data-module="Quotes"][data-view="Detail"][data-app="SALE
 /* SALES detail — sticky app footer (dark mode)                                 */
 /* ========================================================================== */
 
-html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] #page > .app-footer,
-html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .app-footer,
-body[data-theme="dark"][data-app="SALES"][data-view="Detail"] #page > .app-footer {
-	background: transparent !important;
-}
-
-html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] #page > .app-footer p,
-html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .app-footer p,
-body[data-theme="dark"][data-app="SALES"][data-view="Detail"] #page > .app-footer p {
-	background: var(--mk-bg-elevated) !important;
-	border-top-color: var(--mk-border-color) !important;
-	color: var(--mk-text-muted) !important;
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] #page > .app-footer.mk-app-footer,
+html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .app-footer.mk-app-footer,
+body[data-theme="dark"][data-app="SALES"][data-view="Detail"] #page > .app-footer.mk-app-footer {
+	background: linear-gradient(180deg, rgba(22, 27, 34, 0.98) 0%, rgba(15, 20, 26, 0.98) 100%) !important;
 }

@@ -487,6 +487,8 @@ jQuery.Class(
       var overlayPageContent = $("#helpPageOverlay");
       overlayPageContent.one("hidden.bs.modal", function () {
         overlayPageContent.find(".data").html("");
+        overlayPageContent.removeClass("mk-quick-preview-open");
+        jQuery("body").removeClass("mk-quick-preview-open");
             aDeferred.resolve();
       });
       $("#helpPageOverlay").modal("hide");

@@ -74,7 +74,8 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .main-conta
 
 /* Keep flex shell so fixed SALES topbar stays aligned after Lead convert redirect */
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
-	min-height: auto !important;
+	min-height: 0 !important;
+	flex: 1 1 auto;
 	display: flex !important;
 	flex-direction: column !important;
 	padding-top: var(--mk-dash-topbar-h) !important;
@@ -116,22 +117,13 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dash-ma
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] #page {
-	min-height: auto !important;
+	min-height: 100vh !important;
+	display: flex;
+	flex-direction: column;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .app-footer {
-	margin-top: 0 !important;
-}
-
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .app-footer p {
-	margin: 0 !important;
-	padding: 10px 16px 12px !important;
-	background: transparent !important;
-	border-top: 1px solid #e8e0d2 !important;
-	font-size: 11px !important;
-	font-weight: 500;
-	letter-spacing: 0.04em;
-	color: #a89882 !important;
+	margin-top: auto !important;
 }
 
 @media (max-width: 1199px) {
@@ -186,13 +178,18 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] {
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root {
-	min-height: auto !important;
+	flex: 1 1 auto;
+	min-height: 0 !important;
 	height: auto !important;
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-main {
-	min-height: auto !important;
+	flex: 1 1 auto;
+	min-height: 0 !important;
 	height: auto !important;
 	padding-bottom: 0 !important;
 }
@@ -2942,4 +2939,491 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ser
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-service-contracts__table a:hover {
 	text-decoration: underline;
+}
+
+/* ============================================================================
+ * UPDATES TAB — modern timeline for Opportunity detail
+ * ========================================================================== */
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-details-row .recentActivitiesContainer,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .detailview-content .recentActivitiesContainer {
+	background: #fff;
+	border: 1px solid #e9ddc4;
+	border-radius: 14px;
+	padding: 20px 24px 12px;
+	margin: 0;
+	box-shadow: 0 1px 2px rgba(43, 33, 24, 0.04);
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .recentActivitiesContainer .history {
+	margin: 0;
+	padding: 0;
+	max-width: none;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline {
+	position: relative;
+	padding: 4px 0 0;
+	margin: 0;
+	list-style: none;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline:before {
+	content: '';
+	position: absolute;
+	top: 8px;
+	bottom: 8px;
+	left: 118px;
+	width: 2px;
+	background: linear-gradient(180deg, #e8c56a 0%, #f1ebde 100%);
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li {
+	position: relative;
+	display: grid;
+	grid-template-columns: 100px 36px minmax(0, 1fr);
+	gap: 0 16px;
+	align-items: start;
+	padding: 16px 0;
+	border-bottom: 1px solid #f5efe3;
+	min-height: 0;
+	top: auto !important;
+	z-index: auto;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li:last-child {
+	border-bottom: none;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li .update_time {
+	position: static !important;
+	width: auto !important;
+	margin: 0 !important;
+	padding: 4px 0 0 !important;
+	text-align: right;
+	font-size: 12px;
+	font-style: normal !important;
+	color: #a89882;
+	background: transparent !important;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li .update_time small {
+	font-size: 12px;
+	color: inherit;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li .update_icon {
+	position: static !important;
+	left: auto !important;
+	top: auto !important;
+	margin: 0 !important;
+	width: 32px;
+	height: 32px;
+	line-height: 32px;
+	border-radius: 50%;
+	background: #fff7e0;
+	border: 1px solid #e8c56a;
+	color: #b8860b;
+	box-shadow: none;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li .update_icon .update_image {
+	font-size: 14px;
+	line-height: 32px;
+	position: static !important;
+	left: auto !important;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li .update_icon img.update_image {
+	position: static !important;
+	left: auto !important;
+	width: 32px;
+	height: 32px;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li .update_info {
+	position: static !important;
+	top: auto !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	line-height: 1.5;
+	display: block;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li .update_info h5 {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #2b2118;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li .update_info .field-name {
+	color: #2b2118;
+	font-weight: 600;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li .updateInfoContainer {
+	font-size: 13px;
+	color: #5c5348;
+	line-height: 1.55;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline > li .updateInfoContainer em {
+	color: #2563eb;
+	font-style: normal;
+	font-weight: 500;
+	word-break: break-word;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline #more_button {
+	display: block;
+	grid-column: 1 / -1;
+	padding-top: 8px;
+	text-align: center;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline #more_button .update_icon {
+	position: static;
+	margin: 0 auto;
+	width: auto;
+	height: auto;
+	line-height: normal;
+	background: transparent;
+	border: none;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .updates_timeline #more_button .moreRecentUpdates {
+	background: #fff;
+	border: 1px solid #e2d6bc;
+	color: #6b6358;
+	border-radius: 999px;
+	padding: 8px 20px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .recentActivitiesContainer .summaryWidgetContainer p.textAlignCenter {
+	margin: 24px 0;
+	color: #94a3b8;
+	font-size: 14px;
+}
+
+/* ============================================================================
+ * MORE MENU — modern dropdown (Opportunity detail actions)
+ * ========================================================================== */
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-menu {
+	min-width: 220px;
+	padding: 8px;
+	margin-top: 8px;
+	border: 1px solid #e8dfd0;
+	border-radius: 14px;
+	background: #fff;
+	box-shadow: 0 16px 40px rgba(43, 33, 24, 0.12);
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-menu__item {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-menu__link {
+	display: block;
+	padding: 10px 14px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: 500;
+	color: #2b2118;
+	text-decoration: none;
+	line-height: 1.35;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-menu__link:hover,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-menu__link:focus {
+	background: #fff8eb;
+	color: #7a5c1e;
+	text-decoration: none;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-menu__divider {
+	height: 1px;
+	margin: 6px 4px;
+	background: #f0ebe3;
+	border: none;
+}
+
+/* ============================================================================
+ * CONVERT OPPORTUNITY MODAL — Create Project
+ * ========================================================================== */
+
+.mk-convert-potential-modal .modal-content,
+.mk-convert-potential-modal .mk-convert-potential {
+	border: none;
+	border-radius: 18px;
+	overflow: hidden;
+	box-shadow: 0 24px 64px rgba(43, 33, 24, 0.18);
+	background: #fff;
+}
+
+.mk-convert-potential-modal .modal-dialog.mk-convert-potential-dialog {
+	width: 560px;
+	max-width: calc(100vw - 32px);
+	margin: 48px auto;
+}
+
+.mk-convert-potential__header {
+	padding: 20px 24px 16px;
+	border-bottom: 1px solid #f0ebe3;
+	background: linear-gradient(180deg, #fffdf8 0%, #ffffff 100%);
+}
+
+.mk-convert-potential__header-inner {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.mk-convert-potential__eyebrow {
+	display: block;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: #a89882;
+	margin-bottom: 4px;
+}
+
+.mk-convert-potential__title {
+	margin: 0;
+	font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+	font-size: 18px;
+	font-weight: 700;
+	color: #2b2118;
+	line-height: 1.35;
+	word-break: break-word;
+}
+
+.mk-convert-potential__close {
+	margin: 0;
+	padding: 4px;
+	opacity: 0.55;
+	font-size: 16px;
+}
+
+.mk-convert-potential__close:hover {
+	opacity: 1;
+}
+
+.mk-convert-potential__body {
+	padding: 20px 24px;
+	background: #faf9f7;
+	max-height: min(62vh, 520px);
+	overflow: auto;
+}
+
+.mk-convert-potential__card {
+	background: #fff;
+	border: 1px solid #e9ddc4;
+	border-radius: 14px;
+	padding: 16px 18px;
+	margin-bottom: 14px;
+	box-shadow: 0 1px 2px rgba(43, 33, 24, 0.04);
+}
+
+.mk-convert-potential__card:last-child {
+	margin-bottom: 0;
+}
+
+.mk-convert-potential__card-head {
+	display: flex;
+	align-items: center;
+	margin: 0;
+	cursor: pointer;
+}
+
+.mk-convert-potential__module-toggle {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 0;
+	cursor: pointer;
+	font-weight: 600;
+	color: #2b2118;
+}
+
+.mk-convert-potential__module-toggle input[type="checkbox"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.mk-convert-potential__check {
+	flex: 0 0 auto;
+	width: 20px;
+	height: 20px;
+	border-radius: 6px;
+	border: 2px solid #d4c4ad;
+	background: #fff;
+	position: relative;
+	transition: all 0.15s ease;
+}
+
+.mk-convert-potential__module-toggle input:checked + .mk-convert-potential__check {
+	background: #22c55e;
+	border-color: #22c55e;
+}
+
+.mk-convert-potential__module-toggle input:checked + .mk-convert-potential__check:after {
+	content: '';
+	position: absolute;
+	left: 6px;
+	top: 2px;
+	width: 5px;
+	height: 10px;
+	border: solid #fff;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+}
+
+.mk-convert-potential__module-label {
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.mk-convert-potential__fields {
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid #f5efe3;
+}
+
+.mk-convert-potential__fields hr {
+	display: none;
+}
+
+.mk-convert-potential__field-row {
+	margin-bottom: 14px;
+}
+
+.mk-convert-potential__field-row:last-child {
+	margin-bottom: 0;
+}
+
+.mk-convert-potential__label {
+	display: block;
+	margin: 0;
+	padding-top: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #5c5348;
+	text-align: right;
+}
+
+.mk-convert-potential__req {
+	color: #dc2626;
+}
+
+.mk-convert-potential__card--assign .mk-convert-potential__assign-head {
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #a89882;
+	margin-bottom: 12px;
+}
+
+.mk-convert-potential__fields .inputElement,
+.mk-convert-potential__fields input[type="text"],
+.mk-convert-potential__fields select,
+.mk-convert-potential__card--assign .inputElement,
+.mk-convert-potential__card--assign input[type="text"],
+.mk-convert-potential__card--assign select {
+	width: 100%;
+	min-height: 40px;
+	border: 1px solid #e2d6bc;
+	border-radius: 10px;
+	padding: 8px 12px;
+	font-size: 14px;
+	box-shadow: none;
+	background: #fff;
+}
+
+.mk-convert-potential__fields .inputElement:focus,
+.mk-convert-potential__card--assign .inputElement:focus {
+	border-color: #c9a227;
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(232, 197, 106, 0.22);
+}
+
+.mk-convert-potential__footer {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 12px;
+	padding: 16px 24px 20px;
+	border-top: 1px solid #f0ebe3;
+	background: #fff;
+	text-align: right;
+}
+
+.mk-convert-potential__footer center {
+	display: contents;
+}
+
+.mk-convert-potential__btn-save {
+	min-width: 108px;
+	min-height: 42px;
+	padding: 0 22px;
+	border: none;
+	border-radius: 10px;
+	background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+	box-shadow: 0 2px 8px rgba(22, 163, 74, 0.28);
+}
+
+.mk-convert-potential__btn-save:hover,
+.mk-convert-potential__btn-save:focus {
+	background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+	color: #fff;
+}
+
+.mk-convert-potential__btn-cancel {
+	min-height: 42px;
+	padding: 0 18px;
+	border: 1px solid #e2d6bc;
+	border-radius: 10px;
+	background: #fff;
+	color: #6b5348;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.mk-convert-potential__btn-cancel:hover,
+.mk-convert-potential__btn-cancel:focus {
+	background: #fff8f0;
+	border-color: #c9a227;
+	color: #2b2118;
+}
+
+@media (max-width: 767px) {
+	.mk-convert-potential-modal .modal-dialog.mk-convert-potential-dialog {
+		margin: 16px auto;
+	}
+
+	.mk-convert-potential__label {
+		text-align: left;
+		padding-top: 0;
+		margin-bottom: 6px;
+	}
+
+	.mk-convert-potential__field-row .fieldLabel,
+	.mk-convert-potential__field-row .fieldValue {
+		width: 100%;
+		float: none;
+	}
 }

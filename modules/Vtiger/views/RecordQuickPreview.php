@@ -38,12 +38,19 @@ class Vtiger_RecordQuickPreview_View extends Vtiger_Index_View {
 		$viewer->assign('BLOCK_LIST', $moduleModel->getBlocks());
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
 		$viewer->assign('MODULE_NAME', $moduleName);
+		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('SUMMARY_RECORD_STRUCTURE', $recordStrucure->getStructure());
 		$viewer->assign('$SOCIAL_ENABLED', false);
 		$viewer->assign('LIST_PREVIEW', true);
 		$appName = $request->get('app');
-		if(!empty($appName)){
-			$viewer->assign('SELECTED_MENU_CATEGORY',$appName);
+		if (!empty($appName)) {
+			$viewer->assign('SELECTED_MENU_CATEGORY', $appName);
+		} elseif ($moduleName === 'Potentials') {
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
+		} elseif ($moduleName === 'ServiceContracts') {
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
+		} elseif ($moduleName === 'Project' || $moduleName === 'ProjectTask') {
+			$viewer->assign('SELECTED_MENU_CATEGORY', 'MANAGEMENT');
 		}
 		$pageNumber = 1;
 		$limit = 5;

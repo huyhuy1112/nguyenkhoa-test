@@ -62,6 +62,7 @@ $languageStrings = array(
     //Convert Potentials
     'LBL_CONVERT_POTENTIAL' => 'Convert Opportunity',
 	'LBL_CREATE_PROJECT' => 'Create Project',
+	'LBL_VIEW_PROJECT' => 'View Project',
     'LBL_POTENTIALS_FIELD_MAPPING' => 'Opportunities Field Mapping',
     'LBL_CONVERT_POTENTIALS_ERROR' => 'You have to enable Project to convert the Opportunity',
     'LBL_POTENTIALS_FIELD_MAPPING_INCOMPLETE' => 'Opportunities Field Mapping is incomplete(Settings > Module Manager > Opportunities > Opportunities Field Mapping)',

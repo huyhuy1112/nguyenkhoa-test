@@ -219,8 +219,4 @@
 		</nav>
 		{/if}
 	</div>
-
-	<footer class="mk-sf-faq-footer">
-		<p>B-ACE developed by TDB SOLUTION 2025</p>
-	</footer>
 </div>

@@ -86,14 +86,27 @@ class Potentials_DetailView_Model extends Vtiger_DetailView_Model {
 			);
 		}
 
-		if($projectModuleModel && $currentUserModel->hasModuleActionPermission($projectModuleModel->getId(), 'CreateView') && !$recordModel->isPotentialConverted()) {
-			$basicActionLink = array(
-				'linktype' => 'DETAILVIEWBASIC',
-				'linklabel' => vtranslate('LBL_CREATE_PROJECT', $recordModel->getModuleName()),
-				'linkurl' => 'Javascript:Potentials_Detail_Js.convertPotential("'.$recordModel->getConvertPotentialUrl().'",this);',
-				'linkicon' => ''
-			);
-			$linkModelList['DETAILVIEWBASIC'][] = Vtiger_Link_Model::getInstanceFromValues($basicActionLink);
+		if($projectModuleModel && $currentUserModel->hasModuleActionPermission($projectModuleModel->getId(), 'CreateView')) {
+			if (!$recordModel->isPotentialConverted()) {
+				$basicActionLink = array(
+					'linktype' => 'DETAILVIEWBASIC',
+					'linklabel' => vtranslate('LBL_CREATE_PROJECT', $recordModel->getModuleName()),
+					'linkurl' => 'Javascript:Potentials_Detail_Js.convertPotential("'.$recordModel->getConvertPotentialUrl().'",this);',
+					'linkicon' => ''
+				);
+				$linkModelList['DETAILVIEWBASIC'][] = Vtiger_Link_Model::getInstanceFromValues($basicActionLink);
+			} else {
+				$projectDetailUrl = $recordModel->getConvertedProjectDetailViewUrl();
+				if ($projectDetailUrl && $currentUserModel->hasModuleActionPermission($projectModuleModel->getId(), 'DetailView')) {
+					$basicActionLink = array(
+						'linktype' => 'DETAILVIEWBASIC',
+						'linklabel' => vtranslate('LBL_VIEW_PROJECT', $recordModel->getModuleName()),
+						'linkurl' => 'javascript:window.location.href=\'' . $projectDetailUrl . '\';',
+						'linkicon' => ''
+					);
+					$linkModelList['DETAILVIEWBASIC'][] = Vtiger_Link_Model::getInstanceFromValues($basicActionLink);
+				}
+			}
 		}
 		
 		foreach($CalendarActionLinks as $basicLink) {

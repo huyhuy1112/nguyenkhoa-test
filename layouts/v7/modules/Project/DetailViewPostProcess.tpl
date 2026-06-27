@@ -7,9 +7,8 @@
 			</div>
 		</div>
 		</main>
-		<footer class="app-footer mk-project-shell-footer" role="contentinfo">
-			<p>B-ACE developed by TDB SOLUTION 2025</p>
-		</footer>
+		{assign var=MK_APP_FOOTER_EXTRA_CLASS value='mk-project-shell-footer'}
+		{include file="partials/MkAppFooter.tpl"|vtemplate_path:'Vtiger'}
 	</div>
 </div>
 {else}

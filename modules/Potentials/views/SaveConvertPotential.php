@@ -79,7 +79,8 @@ class Potentials_SaveConvertPotential_View extends Vtiger_View_Controller {
 		}
 
 		if(!empty($projectId)) {
-			header("Location: index.php?view=Detail&module=Project&record=$projectId");
+			$loadUrl = 'index.php?module=Project&view=Detail&record=' . (int) $projectId . '&app=MANAGEMENT';
+			header('Location: ' . $loadUrl);
 		} else {
 			$this->showError($request);
 			exit;

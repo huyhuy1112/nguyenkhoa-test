@@ -498,6 +498,8 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 				instance.registerConvertPotentialSubmit();
 			}
 			app.helper.showModal(data, {"cb": callBackFunction});
+			jQuery('.myModal').addClass('mk-convert-potential-modal');
+			jQuery('.myModal .modal-dialog').addClass('mk-convert-potential-dialog');
 		}
 	},
 

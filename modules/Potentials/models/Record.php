@@ -12,7 +12,7 @@ class Potentials_Record_Model extends Vtiger_Record_Model {
 
 	function getCreateInvoiceUrl() {
 		$invoiceModuleModel = Vtiger_Module_Model::getInstance('Invoice');
-		return $invoiceModuleModel->getCreateRecordUrl().'&sourceRecord='.$this->getId().'&sourceModule='.$this->getModuleName().'&potential_id='.$this->getId().'&account_id='.$this->get('related_to').'&contact_id='.$this->get('contact_id');
+		return $invoiceModuleModel->getCreateRecordUrl().'&sourceRecord='.$this->getId().'&sourceModule='.$this->getModuleName().'&potential_id='.$this->getId().'&account_id='.$this->get('related_to').'&contact_id='.$this->get('contact_id').'&app=TOOLS';
 	}
 
 	/**
@@ -21,7 +21,7 @@ class Potentials_Record_Model extends Vtiger_Record_Model {
 	 */
 	function getCreateEventUrl() {
 		$calendarModuleModel = Vtiger_Module_Model::getInstance('Calendar');
-		return $calendarModuleModel->getCreateEventRecordUrl().'&parent_id='.$this->getId();
+		return $calendarModuleModel->getCreateEventRecordUrl().'&parent_id='.$this->getId().'&app=MANAGEMENT';
 	}
 
 	/**
@@ -30,7 +30,7 @@ class Potentials_Record_Model extends Vtiger_Record_Model {
 	 */
 	function getCreateTaskUrl() {
 		$calendarModuleModel = Vtiger_Module_Model::getInstance('Calendar');
-		return $calendarModuleModel->getCreateTaskRecordUrl().'&parent_id='.$this->getId();
+		return $calendarModuleModel->getCreateTaskRecordUrl().'&parent_id='.$this->getId().'&app=MANAGEMENT';
 	}
 
 	/**
@@ -50,7 +50,7 @@ class Potentials_Record_Model extends Vtiger_Record_Model {
 	 */
 	public function getCreateQuoteUrl() {
 		$quoteModuleModel = Vtiger_Module_Model::getInstance('Quotes');
-		return $quoteModuleModel->getCreateRecordUrl().'&sourceRecord='.$this->getId().'&sourceModule='.$this->getModuleName().'&potential_id='.$this->getId().'&account_id='.$this->get('related_to').'&contact_id='.$this->get('contact_id').'&relationOperation=true';
+		return $quoteModuleModel->getCreateRecordUrl().'&sourceRecord='.$this->getId().'&sourceModule='.$this->getModuleName().'&potential_id='.$this->getId().'&account_id='.$this->get('related_to').'&contact_id='.$this->get('contact_id').'&relationOperation=true&app=SALES';
 	}
 
 	/**
@@ -61,7 +61,7 @@ class Potentials_Record_Model extends Vtiger_Record_Model {
 		$salesOrderModuleModel = Vtiger_Module_Model::getInstance('SalesOrder');
 		return $salesOrderModuleModel->getCreateRecordUrl().'&sourceRecord='.$this->getId().'&sourceModule='.$this->getModuleName().
 				'&potential_id='.$this->getId().'&account_id='.$this->get('related_to').'&contact_id='.$this->get('contact_id').
-				'&relationOperation=true';
+				'&relationOperation=true&app=SALES';
 	}
 
 	/**
@@ -172,6 +172,40 @@ class Potentials_Record_Model extends Vtiger_Record_Model {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Project created from this Opportunity (after convert).
+	 * @return int|null
+	 */
+	function getConvertedProjectId() {
+		if (!$this->isPotentialConverted()) {
+			return null;
+		}
+		$db = PearDatabase::getInstance();
+		$result = $db->pquery(
+			'SELECT p.projectid FROM vtiger_project p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.projectid AND ce.deleted = 0
+			 WHERE p.potentialid = ?
+			 ORDER BY ce.createdtime DESC LIMIT 1',
+			array($this->getId())
+		);
+		if ($result && $db->num_rows($result) > 0) {
+			return (int) $db->query_result($result, 0, 'projectid');
+		}
+		return null;
+	}
+
+	/**
+	 * Detail URL for converted project — MANAGEMENT shell (new UI).
+	 * @return string|null
+	 */
+	function getConvertedProjectDetailViewUrl() {
+		$projectId = $this->getConvertedProjectId();
+		if (!$projectId) {
+			return null;
+		}
+		return 'index.php?module=Project&view=Detail&record=' . $projectId . '&app=MANAGEMENT';
 	}
 
 }

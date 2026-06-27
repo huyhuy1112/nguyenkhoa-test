@@ -1548,14 +1548,15 @@ Vtiger.Class('Vtiger_Index_Js', {
 		app.helper.showProgress();
 		app.request.get({data: params}).then(function (err, response) {
 			app.helper.hideProgress();
-			jQuery('#helpPageOverlay').css({"width": "550px", "box-shadow": "-8px 0 5px -5px lightgrey", 'height': '100vh', 'background': 'white'});
+			jQuery('body').addClass('mk-quick-preview-open');
+			jQuery('#helpPageOverlay').addClass('mk-quick-preview-open');
 			var callBack = function(container){
 				self.registerMoreRecentUpdatesClickEvent(container,recordId);
-				//Register Navigation Events
 				self.registerNavigationEvents(container);
 			};
 			app.helper.loadHelpPageOverlay(response, {
-				'cb' : callBack
+				'cb' : callBack,
+				'backdrop' : false
 			});
 			var params = {
 				setHeight: "100%",
