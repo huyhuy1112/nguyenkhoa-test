@@ -202,13 +202,63 @@
 			var dateTo = (form.find('[name="date_to"]').val() || '').trim();
 			var ownerId = (form.find('[name="owner_id"]').val() || '').trim();
 			var reportType = (form.find('[name="report_type"]').val() || 'all').trim();
-			var url = 'index.php?module=Reports&action=ManagementExport&format=' + encodeURIComponent(fmt) +
-				'&date_from=' + encodeURIComponent(dateFrom) +
-				'&date_to=' + encodeURIComponent(dateTo) +
-				'&owner_id=' + encodeURIComponent(ownerId) +
-				'&report_type=' + encodeURIComponent(reportType);
+			var projectIds = [];
+			var taskIds = [];
+			jQuery('.js-mgmt-select-project:checked').each(function() {
+				projectIds.push(jQuery(this).val());
+			});
+			jQuery('.js-mgmt-select-task:checked').each(function() {
+				taskIds.push(jQuery(this).val());
+			});
+			var params = {
+				module: 'Reports',
+				action: 'ManagementExport',
+				format: fmt,
+				date_from: dateFrom,
+				date_to: dateTo,
+				owner_id: ownerId,
+				report_type: reportType,
+				app: 'MANAGEMENT'
+			};
+			if (projectIds.length) {
+				params.export_project_ids = projectIds.join(',');
+			}
+			if (taskIds.length) {
+				params.export_task_ids = taskIds.join(',');
+			}
+			var url = 'index.php?' + jQuery.param(params);
+			var extMap = { excel: 'xlsx', csv: 'csv', pdf: 'pdf' };
+			var filename = 'management_report.' + (extMap[fmt] || 'xlsx');
 			jQuery('#mgmtExportModal').modal('hide');
-			window.location.href = url;
+			if (typeof fetch === 'function') {
+				fetch(url, { credentials: 'same-origin' })
+					.then(function(resp) {
+						if (!resp.ok) {
+							throw new Error('export_failed');
+						}
+						var disposition = resp.headers.get('Content-Disposition') || '';
+						var match = disposition.match(/filename=\"?([^\";]+)\"?/i);
+						if (match && match[1]) {
+							filename = match[1];
+						}
+						return resp.blob();
+					})
+					.then(function(blob) {
+						var objectUrl = window.URL.createObjectURL(blob);
+						var link = document.createElement('a');
+						link.href = objectUrl;
+						link.download = filename;
+						document.body.appendChild(link);
+						link.click();
+						link.remove();
+						window.URL.revokeObjectURL(objectUrl);
+					})
+					.catch(function() {
+						alert('Không xuất được báo cáo. Vui lòng thử lại.');
+					});
+			} else {
+				window.location.href = url;
+			}
 		});
 	}
 

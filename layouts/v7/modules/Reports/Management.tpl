@@ -204,7 +204,7 @@
 	</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Reports/resources/ReportsMkManagement.js')}&mk_v=20260529_mgmt_dark"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Reports/resources/ReportsMkManagement.js')}&mk_v=20260625_mgmt_export_v1"></script>
 
 {* Modal Export: hỏi định dạng + loại báo cáo *}
 <div class="modal fade" id="mgmtExportModal" tabindex="-1" role="dialog">

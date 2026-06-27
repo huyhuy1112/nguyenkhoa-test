@@ -2312,20 +2312,48 @@ html.mk-project-list-management body[data-module="Project"][data-view="List"][da
 /* List — app footer inside mk-app-shell + pagination bar                     */
 /* ========================================================================== */
 
+html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] {
+	--mk-app-footer-h: 54px;
+}
+
 html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #page > .app-footer {
 	display: none !important;
 }
 
+html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #page {
+	display: flex !important;
+	flex-direction: column !important;
+	min-height: 100vh !important;
+	padding-bottom: 0 !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #mk-dash-split-root.mk-dash-split-root {
+	display: flex !important;
+	flex: 1 1 auto !important;
+	flex-direction: row !important;
+	align-items: stretch !important;
+	min-height: 100vh !important;
+}
+
 html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell {
 	display: flex !important;
+	flex: 1 1 auto !important;
 	flex-direction: column !important;
 	min-height: 100vh !important;
 	overflow: visible !important;
 }
 
-html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main {
+html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell > #overlayPageContent:not(.in):not(.show) {
+	display: none !important;
+	flex: 0 0 0 !important;
+	height: 0 !important;
+	overflow: hidden !important;
+}
+
+html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main,
+html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main.mk-project-list-main {
 	flex: 1 1 auto !important;
-	min-height: 0 !important;
+	min-height: calc(100vh - var(--mk-dash-topbar-h, 64px) - var(--mk-app-footer-h, 54px)) !important;
 	overflow: visible !important;
 }
 
@@ -2353,12 +2381,6 @@ html.mk-project-list-management body[data-module="Project"][data-view="List"][da
 }
 
 /* v6 — remove ghost global footer */
-html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #page {
-	display: block !important;
-	min-height: 0 !important;
-	padding-bottom: 0 !important;
-}
-
 html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #page > footer.app-footer,
 html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #page > .app-footer:not(.mk-project-shell-footer) {
 	display: none !important;
