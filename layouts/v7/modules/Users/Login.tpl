@@ -15,6 +15,29 @@
 			height: 100%;
 			overflow: hidden; /* fixed-screen: no page scroll */
 		}
+		html:has(body[data-view="Login"]) {
+			background-color: #061220;
+		}
+		body[data-view="Login"],
+		body[data-view="Login"] #page {
+			margin: 0 !important;
+			padding-top: 0 !important;
+			background: transparent !important;
+		}
+		body[data-view="Login"] #page {
+			min-height: 100vh !important;
+			height: auto !important;
+		}
+		body[data-view="Login"] .app-nav,
+		body[data-view="Login"] nav.navbar,
+		body[data-view="Login"] .app-fixed-navbar {
+			display: none !important;
+			height: 0 !important;
+			min-height: 0 !important;
+			padding: 0 !important;
+			margin: 0 !important;
+			border: 0 !important;
+		}
 		body {
 			margin: 0;
 			min-height: 100vh;
@@ -41,6 +64,9 @@
 			position: relative;
 			z-index: 1;
 			height: 100vh;
+			min-height: 100vh !important;
+			margin-top: 0 !important;
+			padding-top: 0 !important;
 			display: flex;
 			align-items: center;
 			justify-content: flex-start;
@@ -50,7 +76,7 @@
 		}
 
 		/* Hide footer on login only to prevent scroll */
-		.app-footer, .footer { display: none !important; }
+		.app-footer, .footer, .mk-app-footer { display: none !important; }
 
 		/* Subtle aurora glow behind cards */
 		.loginPageContainer::before,
