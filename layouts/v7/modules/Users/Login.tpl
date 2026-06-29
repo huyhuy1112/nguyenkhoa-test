@@ -24,7 +24,7 @@
 			min-height: 100vh;
 			background-color: #061220 !important;
 			background-image: url(layouts/v7/resources/Images/login-bace-tech-bg.png) !important;
-			background-position: center center !important;
+			background-position: 58% center !important;
 			background-size: cover !important;
 			background-repeat: no-repeat !important;
 			background-attachment: fixed !important;
@@ -32,7 +32,7 @@
 		html[data-theme="dark"] body[data-view="Login"] {
 			background-color: #061220 !important;
 			background-image: url(layouts/v7/resources/Images/login-bace-tech-bg.png) !important;
-			background-position: center center !important;
+			background-position: 58% center !important;
 			background-size: cover !important;
 			background-repeat: no-repeat !important;
 			background-attachment: fixed !important;
@@ -82,12 +82,7 @@
 			height: 100vh;
 			min-height: 100vh !important;
 			margin-top: 0 !important;
-			padding-top: 0 !important;
-			display: flex;
-			align-items: center;
-			justify-content: flex-start;
-			padding-left: clamp(5rem, 9vw, 10rem);
-			padding-right: clamp(2rem, 5vw, 5rem);
+			padding: 0 !important;
 			overflow: hidden;
 		}
 
@@ -143,33 +138,34 @@
 
 		.bace-shell {
 			position: relative;
-			display: grid;
-			grid-template-columns: 31rem 36rem;
-			column-gap: 2.25rem;
-			width: 69.25rem;
-			max-width: 90vw;
+			width: 100%;
+			height: 100vh;
+			max-width: none;
 			margin: 0;
-			align-items: start;
-			justify-content: start;
-			max-height: calc(100vh - 3.5rem);
-			transform: translate(19rem, -10rem);
+			transform: none;
 		}
 		@media (max-width: 1100px) {
 			.loginPageContainer {
+				display: flex;
+				align-items: center;
 				justify-content: center;
-				padding: 1rem;
+				padding: 1rem !important;
 			}
 			.bace-shell {
-				grid-template-columns: 1fr;
+				height: auto;
 				width: min(30rem, 92vw);
 				max-width: 92vw;
-				margin: 0 auto;
-				transform: none;
-				max-height: none;
 			}
-			.bace-card--login { width: 100%; }
+			.bace-card--login,
+			.bace-login-card {
+				position: relative !important;
+				left: auto !important;
+				top: auto !important;
+				transform: none !important;
+				width: 100% !important;
+			}
 			.bace-info-slider,
-			.bace-mid-accent { display: none; }
+			.bace-mid-accent { display: none !important; }
 		}
 
 		/* NOTE: avoid animating transforms on layout containers */
@@ -186,27 +182,32 @@
 			animation: baceFadeUp 520ms ease both;
 		}
 		.bace-card--login {
-			width: 31rem;
+			width: min(28.5rem, 32vw);
 			padding: 1.6rem 1.6rem 1.25rem 1.6rem;
 			background: rgba(255, 255, 255, 0.22); /* brighter for readability */
 		}
 		.bace-login-card {
-			align-self: start;
+			position: absolute;
+			left: max(2rem, calc(54vw - 30rem));
+			top: 50%;
+			transform: translateY(-50%);
+			z-index: 2;
 			margin-top: 0 !important;
 		}
 
-		/* Info slider: positioned via grid (no fixed left/top) */
+		/* Info slider: aligned above laptop screen in background art */
 		.bace-info-slider {
-			position: relative;
-			z-index: 1;
-			align-self: start;
-			width: 36rem;
+			position: absolute;
+			left: max(2rem, calc(54vw - 4rem));
+			top: clamp(4.5rem, 11vh, 7.5rem);
+			z-index: 2;
+			width: min(32rem, 34vw);
 			height: 13rem;
 			margin-top: 0 !important;
 			display: flex;
 			align-items: center;
 			padding: 1.85rem;
-			transform: translateY(-0.75rem) !important;
+			transform: none !important;
 			border-radius: 1.125rem;
 			background: rgba(255,255,255,0.14); /* less muddy */
 			border: 1px solid rgba(255,255,255,0.20);
@@ -216,11 +217,14 @@
 			overflow: hidden;
 		}
 
-		.bace-login-card,
-		.bace-info-slider {
-			margin-top: 0 !important;
-			transform: none !important;
-			align-self: start;
+		@media (min-width: 1101px) and (max-width: 1366px) {
+			.bace-login-card {
+				left: max(1.5rem, calc(52vw - 28rem));
+			}
+			.bace-info-slider {
+				left: max(1.5rem, calc(52vw - 2rem));
+				width: min(28rem, 38vw);
+			}
 		}
 		.bace-slide {
 			position: absolute;
@@ -291,11 +295,11 @@
 			display: block;
 		}
 
-		/* Subtle middle accents to reduce empty feel (no laptop cover) */
+		/* Subtle accent between login card and laptop */
 		.bace-mid-accent {
 			position: absolute;
-			left: calc(31rem + 1.125rem);
-			top: 1.25rem;
+			left: max(calc(54vw - 31rem), 1.5rem);
+			top: 18%;
 			width: 0.125rem;
 			height: 16rem;
 			border-radius: 99rem;
@@ -525,7 +529,6 @@
 			margin-top: 18px;
 		}
 		@media (max-width: 1100px) {
-			.loginPageContainer { justify-content: center; }
 			.bace-login-card { margin-top: 0; }
 			.bace-info-slider { display: none; }
 			.bace-mid-accent { display: none; }
@@ -558,7 +561,11 @@
 		/* Ultra-short screens: allow internal scroll within login card only */
 		@media (max-height: 640px) {
 			html, body { overflow: hidden; }
-			.loginPageContainer { align-items: flex-start; padding-top: 0.875rem; }
+			.bace-login-card {
+				top: 50%;
+				max-height: calc(100vh - 1.5rem);
+				overflow: auto;
+			}
 			.bace-card--login { max-height: calc(100vh - 28px); overflow: auto; }
 		}
 
