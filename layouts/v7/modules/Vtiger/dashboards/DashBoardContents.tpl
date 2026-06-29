@@ -29,17 +29,17 @@
 							<div class="mk-dashboard-tab-toolbar mk-dashboard-tab-toolbar--figma clearfix">
 								<div class="mk-dashboard-tab-toolbar-actions mk-dashboard-tab-toolbar-actions--figma">
 									<div class="dropdown dashBoardDropDown mk-dash-modify-dropdown">
-										<button class="btn btn-default dropdown-toggle mk-dash-figma-btn" type="button" data-toggle="dropdown">{vtranslate('LBL_MODIFY_DASHBOARD', $MODULE)}
+										<button class="btn btn-default dropdown-toggle mk-dash-figma-btn" type="button" data-toggle="dropdown">{vtranslate('LBL_MODIFY_DASHBOARD', 'Home')}
 											&nbsp;&nbsp;<span class="caret"></span></button>
 										<ul class="dropdown-menu dropdown-menu-right moreDashBoards">
-											<li id="newDashBoardLi"{if php7_count($DASHBOARD_TABS) eq $DASHBOARD_TABS_LIMIT} class="disabled"{/if}><a class="addNewDashBoard" href="#">{vtranslate('LBL_ADD_NEW_DASHBOARD',$MODULE)}</a></li>
-											<li><a class="reArrangeTabs" href="#">{vtranslate('LBL_REARRANGE_DASHBOARD_TABS',$MODULE)}</a></li>
+											<li id="newDashBoardLi"{if php7_count($DASHBOARD_TABS) eq $DASHBOARD_TABS_LIMIT} class="disabled"{/if}><a class="addNewDashBoard" href="#">{vtranslate('LBL_ADD_NEW_DASHBOARD','Home')}</a></li>
+											<li><a class="reArrangeTabs" href="#">{vtranslate('LBL_REARRANGE_DASHBOARD_TABS','Vtiger')}</a></li>
 										</ul>
 									</div>
 									<div class="mk-dash-toolbar-add-wrap">
 										{include file="dashboards/DashBoardHeader.tpl"|vtemplate_path:$MODULE_NAME DASHBOARDHEADER_TITLE=vtranslate($MODULE, $MODULE)}
 									</div>
-									<button type="button" class="btn-success updateSequence mk-dash-save-tab-order mk-dash-figma-btn mk-dash-figma-btn--secondary" title="{vtranslate('LBL_SAVE_DASHBOARD_LAYOUT',$MODULE)}">{vtranslate('LBL_SAVE_ORDER',$MODULE)}</button>
+									<button type="button" class="btn-success updateSequence mk-dash-save-tab-order mk-dash-figma-btn mk-dash-figma-btn--secondary" title="{vtranslate('LBL_SAVE_DASHBOARD_LAYOUT','Home')}">{vtranslate('LBL_SAVE_ORDER','Home')}</button>
 								</div>
 							</div>
 						</div>

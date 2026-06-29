@@ -1292,6 +1292,17 @@ $languageStrings = array(
 	'OFFICE_REVOKE_ACCESS_MESSAGE' => 'Clicking on this will remove existing Office365 authentication for Contacts, Calendar and Emails. It will not delete any records which are already synchronized.',
 	'LBL_START_GUIDED_TOUR' => 'Start Guided Tour',
 	'LBL_MENU' => 'Menu',
+	'LBL_TYPE_TO_SEARCH' => 'Type to search...',
+	'LBL_ADD_WIDGETS' => 'Add Widgets',
+	'LBL_MAIN_PAGE' => 'Main Page',
+	'LBL_SITE_SETTINGS' => 'Site Settings',
+	'LBL_MARK_ALL_AS_READ' => 'Mark all as read',
+	'LBL_CLEAR_ALL' => 'Clear all',
+	'LBL_DELETE_SELECTED' => 'Delete selected',
+	'LBL_DARK_MODE' => 'Dark mode',
+	'LBL_QUICK_CREATE_DETAIL_HINT' => 'Selecting an item will open a detailed creation wizard.',
+	'LBL_ONLINE' => 'Online',
+	'LBL_TASK_MANAGEMENT' => 'Task Management',
 	'LBL_EMAIL_DOMAIN_HELPTEXT'=>'Email Domain field will be used to match Cases and Contacts created from Emails. '
 	. 'For example, if a new support email comes from john@company.com, it would be linked to Organization that has '
 	. 'company.com in the Email domain field. Multiple domains should be separated by commas',
