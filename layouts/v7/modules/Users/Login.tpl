@@ -18,13 +18,29 @@
 		html:has(body[data-view="Login"]) {
 			background-color: #061220;
 		}
-		body[data-view="Login"],
+		body[data-view="Login"] {
+			margin: 0 !important;
+			padding-top: 0 !important;
+			min-height: 100vh;
+			background-color: #061220 !important;
+			background-image: url(layouts/v7/resources/Images/login-bace-tech-bg.png) !important;
+			background-position: center center !important;
+			background-size: cover !important;
+			background-repeat: no-repeat !important;
+			background-attachment: fixed !important;
+		}
+		html[data-theme="dark"] body[data-view="Login"] {
+			background-color: #061220 !important;
+			background-image: url(layouts/v7/resources/Images/login-bace-tech-bg.png) !important;
+			background-position: center center !important;
+			background-size: cover !important;
+			background-repeat: no-repeat !important;
+			background-attachment: fixed !important;
+		}
 		body[data-view="Login"] #page {
 			margin: 0 !important;
 			padding-top: 0 !important;
 			background: transparent !important;
-		}
-		body[data-view="Login"] #page {
 			min-height: 100vh !important;
 			height: auto !important;
 		}
