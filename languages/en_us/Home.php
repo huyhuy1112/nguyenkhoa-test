@@ -29,6 +29,10 @@ $languageStrings = array(
 	'LBL_DASHBOARD_TAB_ORDER_SAVED'=>'Dashboard tab order saved.',
 	'LBL_ADD_NEW_DASHBOARD'=>'Add new dashboard',
 	'LBL_MAX_CHARACTERS_ALLOWED_DASHBOARD' => 'Maximum 30 characters are allowed for dashboard name.',
+	'LBL_MY_DASHBOARD' => 'My Dashboard',
+	'LBL_MODIFY_DASHBOARD' => 'Modify Dashboard',
+	'My Dashboard' => 'My Dashboard',
+	'LBL_MAIN_PAGE' => 'Main Page',
 
 	// Main Page (Management dashboard)
 	'LBL_MK_MY_SHORTCUTS' => 'My shortcuts',
