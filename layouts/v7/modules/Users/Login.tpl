@@ -65,7 +65,7 @@
 			inset: 0;
 			background:
 				radial-gradient(900px 600px at 28% 25%, rgba(34,211,238,0.20), transparent 60%),
-				radial-gradient(800px 500px at 72% 28%, rgba(250,204,21,0.12), transparent 55%),
+				radial-gradient(800px 500px at 72% 28%, rgba(8,160,69,0.12), transparent 55%),
 				linear-gradient(135deg, rgba(2,6,23,0.28) 0%, rgba(2,6,23,0.38) 100%);
 			pointer-events: none;
 			z-index: 0;
@@ -111,7 +111,7 @@
 			background: radial-gradient(860px 520px at 34% 42%, rgba(34,211,238,0.34), transparent 64%);
 		}
 		.loginPageContainer::after {
-			background: radial-gradient(860px 520px at 70% 44%, rgba(250,204,21,0.22), transparent 66%);
+			background: radial-gradient(860px 520px at 70% 44%, rgba(8,160,69,0.22), transparent 66%);
 			animation-delay: 0.6s;
 			opacity: 0.75;
 		}
@@ -125,7 +125,7 @@
 			z-index: 0;
 			background:
 				radial-gradient(0.625rem 0.625rem at 18% 22%, rgba(34,211,238,0.55), transparent 70%),
-				radial-gradient(0.75rem 0.75rem at 82% 28%, rgba(250,204,21,0.45), transparent 72%),
+				radial-gradient(0.75rem 0.75rem at 82% 28%, rgba(8,160,69,0.45), transparent 72%),
 				radial-gradient(0.5625rem 0.5625rem at 66% 78%, rgba(59,130,246,0.40), transparent 72%),
 				linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.06) 48%, transparent 58%);
 			opacity: 0.55;
@@ -242,7 +242,7 @@
 			line-height: 1.15;
 			font-weight: 950;
 			letter-spacing: -0.03em;
-			color: #ffd54a;
+			color: #6BBF59;
 			text-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.35);
 		}
 		.bace-slide p {
@@ -303,7 +303,7 @@
 				180deg,
 				rgba(34,211,238,0),
 				rgba(34,211,238,0.60),
-				rgba(250,204,21,0.22),
+				rgba(8,160,69,0.22),
 				rgba(34,211,238,0)
 			);
 			box-shadow: 0 0 0.75rem rgba(34,211,238,0.25);
@@ -441,8 +441,8 @@
 			letter-spacing: 0.02em;
 			color: #0b1220;
 			cursor: pointer;
-			background: linear-gradient(135deg, #facc15 0%, #22d3ee 100%);
-			box-shadow: 0 18px 45px rgba(34, 211, 238, 0.18), 0 14px 40px rgba(250, 204, 21, 0.14);
+			background: linear-gradient(135deg, #08A045 0%, #0B6E4F 55%, #22d3ee 100%);
+			box-shadow: 0 18px 45px rgba(34, 211, 238, 0.18), 0 14px 40px rgba(8, 160, 69, 0.14);
 			transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
 			overflow: hidden;
 		}
@@ -458,7 +458,7 @@
 		.button:hover {
 			transform: translateY(-1px);
 			filter: brightness(1.02);
-			box-shadow: 0 22px 60px rgba(34, 211, 238, 0.22), 0 18px 55px rgba(250, 204, 21, 0.16);
+			box-shadow: 0 22px 60px rgba(34, 211, 238, 0.22), 0 18px 55px rgba(8, 160, 69, 0.16);
 		}
 		.button:hover::before { transform: translateX(120%); }
 		.button:active { transform: translateY(0); }
@@ -467,8 +467,8 @@
 			animation: baceBtnGlow 2.8s ease-in-out infinite;
 		}
 		@keyframes baceBtnGlow {
-			0%, 100% { box-shadow: 0 18px 45px rgba(34, 211, 238, 0.22), 0 14px 40px rgba(250, 204, 21, 0.18); }
-			50% { box-shadow: 0 22px 60px rgba(34, 211, 238, 0.30), 0 18px 55px rgba(250, 204, 21, 0.22); }
+			0%, 100% { box-shadow: 0 18px 45px rgba(34, 211, 238, 0.22), 0 14px 40px rgba(8, 160, 69, 0.18); }
+			50% { box-shadow: 0 22px 60px rgba(34, 211, 238, 0.30), 0 18px 55px rgba(8, 160, 69, 0.22); }
 		}
 
 		/* Links */
@@ -509,7 +509,7 @@
 			font-weight: 950;
 			color: rgba(255, 255, 255, 0.96);
 		}
-		.bace-brand-title .is-gold { color: #facc15; }
+		.bace-brand-title .is-gold { color: #08A045; }
 		.bace-brand-title .is-cyan { color: #22d3ee; }
 		.bace-brand-sub {
 			margin: 0 0 16px 0;
@@ -547,7 +547,7 @@
 			font-size: 14px;
 			font-weight: 950;
 			letter-spacing: -0.02em;
-			color: #facc15;
+			color: #08A045;
 		}
 		.bace-value p {
 			margin: 0;
@@ -563,7 +563,7 @@
 		}
 
 		/* Optional visual proof (enable temporarily if needed)
-		.bace-login-card { outline: 0.125rem solid rgba(250,204,21,0.8); }
+		.bace-login-card { outline: 0.125rem solid rgba(8,160,69,0.8); }
 		.bace-info-slider { outline: 0.125rem solid rgba(34,211,238,0.8); }
 		*/
 	</style>
@@ -575,7 +575,7 @@
 			<div class="bace-mid-accent" aria-hidden="true"></div>
 			<div class="bace-card bace-card--login bace-login-card">
 				<div class="bace-logo-tile">
-					<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo-transparent.png?v=20260429-2" alt="B-ACE / TDB Solution">
+				<img class="img-responsive user-logo nguyenkhoa-logo" src="layouts/v7/skins/images/nguyenkhoa-logo.png?v=20260629" alt="Nguyên Khoa">
 				</div>
 
 				<div class="bace-h1">Welcome back</div>

@@ -92,7 +92,7 @@
 .mk-leads-kpi-ic--violet { background: #ede9fe; color: #7c3aed; }
 .mk-leads-kpi-ic--emerald { background: #d1fae5; color: #059669; }
 .mk-leads-kpi-ic--cyan { background: #cffafe; color: #0891b2; }
-.mk-leads-kpi-ic--amber { background: #fef3c7; color: #d97706; }
+.mk-leads-kpi-ic--amber { background: #dcfce7; color: #0B6E4F; }
 .mk-leads-kpi-ic--rose { background: #ffe4e6; color: #e11d48; }
 .mk-leads-kpi-ic--indigo { background: #e0e7ff; color: #4f46e5; }
 
@@ -101,7 +101,7 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--blue { ba
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--violet { background: rgba(124, 58, 237, 0.16); color: #ddd6fe; }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--emerald { background: rgba(5, 150, 105, 0.16); color: #a7f3d0; }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--cyan { background: rgba(8, 145, 178, 0.16); color: #a5f3fc; }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--amber { background: rgba(245, 158, 11, 0.16); color: #fde68a; }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--amber { background: rgba(245, 158, 11, 0.16); color: #bbf7d0; }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--rose { background: rgba(225, 29, 72, 0.16); color: #fecdd3; }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-leads-kpi-ic--indigo { background: rgba(79, 70, 229, 0.16); color: #c7d2fe; }
 .mk-leads-kpi-card__trend.is-up { color: #059669; font-size: 10px; font-weight: 600; }
@@ -933,7 +933,7 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
 .mk-tag--website { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; }
 .mk-tag--zalo { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
 .mk-tag--other { background: #f1f5f9; color: #475569; }
-.mk-tag--chua-hoc { background: #fef3c7; color: #92400e; }
+.mk-tag--chua-hoc { background: #dcfce7; color: #073B3A; }
 .mk-tag--da-hoc { background: #d1fae5; color: #047857; }
 .mk-tag--free-online, .mk-tag--mien_phi_online { background: #cffafe; color: #0e7490; }
 .mk-tag--free-offline, .mk-tag--mien_phi_offline { background: #ccfbf1; color: #0f766e; }
@@ -944,11 +944,11 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
 .mk-tag--mua-lai { background: #d1fae5; color: #065f46; }
 .mk-tag--khong-mua { background: #ffedd5; color: #c2410c; }
 .mk-tag--ngung-mua { background: #fee2e2; color: #b91c1c; }
-.mk-tag--vang { background: #fef3c7; color: #92400e; }
+.mk-tag--vang { background: #dcfce7; color: #073B3A; }
 .mk-tag--bac { background: #f1f5f9; color: #475569; }
 .mk-tag--dong { background: #ffedd5; color: #9a3412; }
 .mk-tag--goi-lan-1 { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
-.mk-tag--goi-lan-2 { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+.mk-tag--goi-lan-2 { background: #dcfce7; color: #b45309; border-color: #fcd34d; }
 .mk-tag--goi-lan-3 { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
 
 /* Dark mode: make tags/pills vibrant (not washed out) */
@@ -969,10 +969,10 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--khong-mua { backgr
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--ngung-mua { background: rgba(185, 28, 28, 0.18); color: #fecaca; border-color: rgba(185, 28, 28, 0.38); }
 
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--goi-lan-1 { background: rgba(37, 99, 235, 0.14); color: #93c5fd; border-color: rgba(37, 99, 235, 0.32); }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--goi-lan-2 { background: rgba(245, 158, 11, 0.16); color: #fde68a; border-color: rgba(245, 158, 11, 0.36); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--goi-lan-2 { background: rgba(245, 158, 11, 0.16); color: #bbf7d0; border-color: rgba(245, 158, 11, 0.36); }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--goi-lan-3 { background: rgba(249, 115, 22, 0.16); color: #fed7aa; border-color: rgba(249, 115, 22, 0.36); }
 
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--gold { background: rgba(245, 158, 11, 0.16); color: #fde68a; border-color: rgba(245, 158, 11, 0.36); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--gold { background: rgba(245, 158, 11, 0.16); color: #bbf7d0; border-color: rgba(245, 158, 11, 0.36); }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--silver { background: rgba(148, 163, 184, 0.16); color: rgba(226, 232, 240, 0.86); border-color: rgba(148, 163, 184, 0.30); }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--bronze { background: rgba(234, 88, 12, 0.16); color: #fed7aa; border-color: rgba(234, 88, 12, 0.36); }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--support { background: rgba(234, 88, 12, 0.14); color: #fed7aa; border-color: rgba(234, 88, 12, 0.32); }
@@ -987,7 +987,7 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--support { backgro
 }
 .mk-pill--blue { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
 .mk-pill--purple { background: #faf5ff; color: #7e22ce; border-color: #e9d5ff; }
-.mk-pill--tier.mk-pill--gold { background: #fef3c7; color: #92400e; }
+.mk-pill--tier.mk-pill--gold { background: #dcfce7; color: #073B3A; }
 .mk-pill--tier.mk-pill--silver { background: #f1f5f9; color: #475569; }
 .mk-pill--tier.mk-pill--bronze { background: #ffedd5; color: #9a3412; }
 .mk-pill--support { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
@@ -1160,7 +1160,7 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--support { backgro
 .mk-leads-bulk-dot.mk-tag--website { background: #4338ca; }
 .mk-leads-bulk-dot.mk-tag--zalo { background: #0369a1; }
 .mk-leads-bulk-dot.mk-tag--other { background: #64748b; }
-.mk-leads-bulk-dot.mk-tag--chua-hoc { background: #d97706; }
+.mk-leads-bulk-dot.mk-tag--chua-hoc { background: #0B6E4F; }
 .mk-leads-bulk-dot.mk-tag--da-hoc { background: #059669; }
 .mk-leads-bulk-dot.mk-tag--free-online,
 .mk-leads-bulk-dot.mk-tag--mien_phi_online { background: #0891b2; }
@@ -1175,7 +1175,7 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--support { backgro
 .mk-leads-bulk-dot.mk-tag--mua-lai { background: #047857; }
 .mk-leads-bulk-dot.mk-tag--khong-mua { background: #c2410c; }
 .mk-leads-bulk-dot.mk-tag--ngung-mua { background: #b91c1c; }
-.mk-leads-bulk-dot.mk-tag--vang { background: #d97706; }
+.mk-leads-bulk-dot.mk-tag--vang { background: #0B6E4F; }
 .mk-leads-bulk-dot.mk-tag--bac { background: #64748b; }
 .mk-leads-bulk-dot.mk-tag--dong { background: #9a3412; }
 .mk-leads-bulk-btn {

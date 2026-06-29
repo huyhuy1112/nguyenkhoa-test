@@ -27,23 +27,23 @@
 	--mk-text-secondary: #64748b;
 	--mk-text-muted: #94a3b8;
 
-	--mk-primary: #fdbb2c;
-	--mk-primary-hover: #e5a824;
+	--mk-primary: #08a045;
+	--mk-primary-hover: #0b6e4f;
 	--mk-secondary: #40627e;
 
 	--mk-info: #40627e;
 	--mk-success: #22c55e;
-	--mk-warning: #f59e0b;
+	--mk-warning: #08A045;
 	--mk-danger: #ef4444;
 
 	--mk-sidebar-bg: #ffffff;
 	--mk-sidebar-text: #475569;
-	--mk-sidebar-active-bg: #fffbeb;
-	--mk-sidebar-active-border: #f59e0b;
-	--mk-sidebar-active-text: #d97706;
+	--mk-sidebar-active-bg: #ecfdf3;
+	--mk-sidebar-active-border: #08a045;
+	--mk-sidebar-active-text: #0b6e4f;
 	--mk-sidebar-hover-bg: #f8fafc;
 	--mk-sidebar-icon: #475569;
-	--mk-sidebar-icon-active: #d97706;
+	--mk-sidebar-icon-active: #08a045;
 
 	--mk-topbar-bg: #ffffff;
 	--mk-topbar-border: #e2e8f0;
@@ -53,11 +53,11 @@
 	--mk-input-text: #191c1e;
 	--mk-input-border: #d4c4ad;
 	--mk-input-placeholder: #94a3b8;
-	--mk-input-focus-border: #fdbb2c;
-	--mk-input-focus-ring: rgba(253, 187, 44, 0.2);
+	--mk-input-focus-border: #08a045;
+	--mk-input-focus-ring: rgba(8, 160, 69, 0.2);
 
-	--mk-btn-primary-bg: #fdbb2c;
-	--mk-btn-primary-text: #191c1e;
+	--mk-btn-primary-bg: #08a045;
+	--mk-btn-primary-text: #ffffff;
 	--mk-btn-secondary-bg: #ffffff;
 	--mk-btn-secondary-text: #40627e;
 
@@ -69,7 +69,7 @@
 	--mk-radius-card: 16px;
 
 	--mk-chart-primary: #40627e;
-	--mk-chart-secondary: #f59e0b;
+	--mk-chart-secondary: #08a045;
 	--mk-chart-grid: rgba(15, 23, 42, 0.08);
 	--mk-chart-axis: #64748b;
 
@@ -94,7 +94,7 @@ html[data-theme="dark"] {
 
 	--mk-border-color: rgba(255, 255, 255, 0.1);
 	--mk-border-subtle: rgba(255, 255, 255, 0.06);
-	--mk-border-accent: rgba(253, 187, 44, 0.35);
+	--mk-border-accent: rgba(8, 160, 69, 0.35);
 
 	--mk-text-primary: #f8fafc;
 	--mk-text-secondary: #cbd5e1;
@@ -102,23 +102,23 @@ html[data-theme="dark"] {
 	--mk-text-link: #5ee9ff;
 	--mk-text-link-hover: #a5f3fc;
 
-	--mk-primary: #fdbb2c;
-	--mk-primary-hover: #f5b21a;
+	--mk-primary: #08a045;
+	--mk-primary-hover: #6bbf59;
 	--mk-secondary: #334155;
 
 	--mk-info: #16d8ff;
 	--mk-success: #22c55e;
-	--mk-warning: #f59e0b;
+	--mk-warning: #08A045;
 	--mk-danger: #ef4444;
 
 	--mk-sidebar-bg: #111827;
 	--mk-sidebar-text: #cbd5e1;
-	--mk-sidebar-active-bg: rgba(253, 187, 44, 0.12);
-	--mk-sidebar-active-border: #fdbb2c;
-	--mk-sidebar-active-text: #fdbb2c;
+	--mk-sidebar-active-bg: rgba(8, 160, 69, 0.14);
+	--mk-sidebar-active-border: #08a045;
+	--mk-sidebar-active-text: #6bbf59;
 	--mk-sidebar-hover-bg: #1e2430;
 	--mk-sidebar-icon: #94a3b8;
-	--mk-sidebar-icon-active: #fdbb2c;
+	--mk-sidebar-icon-active: #6bbf59;
 
 	--mk-topbar-bg: rgba(23, 27, 36, 0.85);
 	--mk-topbar-border: rgba(255, 255, 255, 0.05);
@@ -128,29 +128,29 @@ html[data-theme="dark"] {
 	--mk-input-text: #f8fafc;
 	--mk-input-border: rgba(255, 255, 255, 0.08);
 	--mk-input-placeholder: #64748b;
-	--mk-input-focus-border: #fdbb2c;
-	--mk-input-focus-ring: rgba(253, 187, 44, 0.12);
+	--mk-input-focus-border: #08a045;
+	--mk-input-focus-ring: rgba(8, 160, 69, 0.12);
 
-	--mk-btn-primary-bg: #fdbb2c;
-	--mk-btn-primary-text: #111827;
+	--mk-btn-primary-bg: #08a045;
+	--mk-btn-primary-text: #ffffff;
 	--mk-btn-secondary-bg: #1e2430;
 	--mk-btn-secondary-text: #f8fafc;
 
 	--mk-table-bg: #171b24;
 	--mk-table-header-bg: #1e2430;
-	--mk-table-row-hover: rgba(253, 187, 44, 0.05);
+	--mk-table-row-hover: rgba(8, 160, 69, 0.06);
 
 	--mk-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.35);
 
-	--mk-chart-primary: #fdbb2c;
+	--mk-chart-primary: #08a045;
 	--mk-chart-secondary: #16d8ff;
 	--mk-chart-grid: rgba(255, 255, 255, 0.06);
 	--mk-chart-axis: #94a3b8;
 
 	--mk-kpi-revenue: #16d8ff;
 	--mk-kpi-roi: #22c55e;
-	--mk-kpi-inventory: #fdbb2c;
-	--mk-kpi-costs: #f59e0b;
+	--mk-kpi-inventory: #08a045;
+	--mk-kpi-costs: #08A045;
 
 	/* Remap DashBoard.css design tokens (widgets auto-theme) */
 	--mk-bg: #12151c;
@@ -159,8 +159,8 @@ html[data-theme="dark"] {
 	--mk-text: #f8fafc;
 	--mk-muted: #94a3b8;
 	--mk-primary: #5ee9ff;
-	--mk-amber: #fdbb2c;
-	--mk-amber-border: rgba(253, 187, 44, 0.45);
+	--mk-amber: #08a045;
+	--mk-amber-border: rgba(8, 160, 69, 0.45);
 	--mk-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
 	--mk-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
 
@@ -170,7 +170,7 @@ html[data-theme="dark"] {
 	--mk-badge-success-bg: rgba(34, 197, 94, 0.15);
 	--mk-badge-success-text: #22c55e;
 	--mk-badge-warning-bg: rgba(245, 158, 11, 0.15);
-	--mk-badge-warning-text: #f59e0b;
+	--mk-badge-warning-text: #08A045;
 	--mk-badge-info-bg: rgba(22, 216, 255, 0.15);
 	--mk-badge-info-text: #16d8ff;
 	--mk-badge-danger-bg: rgba(239, 68, 68, 0.15);

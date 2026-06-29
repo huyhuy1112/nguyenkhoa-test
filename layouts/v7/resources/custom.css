@@ -2428,7 +2428,7 @@ body[data-module="Reports"] .main-container #listViewContent .col-sm-12.col-xs-1
     max-width: 100%;
 }
 body[data-module="Reports"] #listViewContent .listview-actions-container {
-    background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 50%, #d1fae5 100%);
+    background: linear-gradient(135deg, #e0f2fe 0%, #dcfce7 50%, #d1fae5 100%);
     border: 1px solid rgba(14, 165, 233, 0.35);
     border-radius: 14px;
     padding: 12px 16px;
@@ -2492,7 +2492,7 @@ body[data-module="Reports"] #listViewContent .reports-listview-table tbody td {
 }
 /* Header */
 body[data-module="Reports"] #listViewContent .reports-listview-table > thead > tr.listViewContentHeader > th {
-    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 35%, #22c55e 70%, #f59e0b 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 35%, #22c55e 70%, #08A045 100%);
     color: #fff;
     font-weight: 700;
     font-size: 10px;
@@ -2529,11 +2529,11 @@ body[data-module="Reports"] #listViewContent .reports-listview-table > tbody > t
     background: #ffffff;
 }
 body[data-module="Reports"] #listViewContent .reports-listview-table > tbody > tr.listViewEntries:nth-child(even) {
-    background: linear-gradient(90deg, #ecfeff 0%, #fef3c7 50%, #f0f9ff 100%);
+    background: linear-gradient(90deg, #ecfeff 0%, #dcfce7 50%, #f0f9ff 100%);
 }
 body[data-module="Reports"] #listViewContent .reports-listview-table > tbody > tr.listViewEntries:hover {
-    background: linear-gradient(90deg, #fde68a 0%, #86efac 50%, #93c5fd 100%) !important;
-    box-shadow: inset 4px 0 0 #f59e0b;
+    background: linear-gradient(90deg, #bbf7d0 0%, #86efac 50%, #93c5fd 100%) !important;
+    box-shadow: inset 4px 0 0 #08A045;
 }
 
 /* ========== Project list: màu sắc riêng + Times New Roman ========== */
@@ -5742,12 +5742,12 @@ body[data-module="Project"] .summaryView:first-of-type .summaryViewFields .row .
 body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(2) .well .font-x-x-large { color: #065f46 !important; }
 body[data-module="Project"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(3) .well,
 body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(3) .well {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
 }
 body[data-module="Project"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(3) .well .font-x-small,
 body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(3) .well .font-x-small { color: #b45309 !important; }
 body[data-module="Project"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(3) .well .font-x-x-large,
-body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(3) .well .font-x-x-large { color: #92400e !important; }
+body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(3) .well .font-x-x-large { color: #073B3A !important; }
 body[data-module="Project"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(4) .well,
 body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(4) .well {
     background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%) !important;
@@ -5782,12 +5782,12 @@ body[data-module="Project"] .summaryView:first-of-type .summaryViewFields .row .
 body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(7) .well .font-x-x-large { color: #3730a3 !important; }
 body[data-module="Project"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(8) .well,
 body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(8) .well {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
 }
 body[data-module="Project"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(8) .well .font-x-small,
 body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(8) .well .font-x-small { color: #b45309 !important; }
 body[data-module="Project"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(8) .well .font-x-x-large,
-body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(8) .well .font-x-x-large { color: #92400e !important; }
+body[data-module="ProjectTask"] .summaryView:first-of-type .summaryViewFields .row .col-lg-3:nth-child(8) .well .font-x-x-large { color: #073B3A !important; }
 /* Key Fields – tông xám dịu */
 body[data-module="Project"] .summaryView .summaryViewFields .detailview-table .fieldLabel,
 body[data-module="ProjectTask"] .summaryView .summaryViewFields .detailview-table .fieldLabel,
@@ -6723,7 +6723,7 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
     transform: translateY(-2px);
     border-color: rgba(148, 163, 184, 0.4);
 }
-.area-ann.mainpage-card::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
+.area-ann.mainpage-card::before { background: linear-gradient(180deg, #08A045, #0B6E4F); }
 .area-shortcuts.mainpage-card::before { background: linear-gradient(180deg, #3b82f6, #2563eb); }
 .area-projects.mainpage-card::before { background: linear-gradient(180deg, #10b981, #059669); }
 .area-agenda.mainpage-card::before { background: linear-gradient(180deg, #8b5cf6, #7c3aed); }
@@ -6750,7 +6750,7 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
 .mainpage-card:hover .title .fa {
     transform: scale(1.08);
 }
-.area-ann .title .fa { color: #d97706; }
+.area-ann .title .fa { color: #0B6E4F; }
 .area-shortcuts .title .fa { color: #2563eb; }
 .area-projects .title .fa { color: #059669; }
 .area-agenda .title .fa { color: #7c3aed; }
@@ -6919,7 +6919,7 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
 }
 
 .team-status-leave-block {
-    background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 40%, #fefce8 100%);
+    background: linear-gradient(135deg, #dcfce7 0%, #ecfdf3 40%, #fefce8 100%);
     border-radius: 16px;
     padding: 10px 12px;
     border: 1px solid rgba(251, 191, 36, 0.4);
@@ -6931,7 +6931,7 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #92400e;
+    color: #073B3A;
     margin-bottom: 6px;
 }
 
@@ -7002,8 +7002,8 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
 
 .team-status-badge.status-leave,
 .team-status-item.team-status-leave .team-status-badge {
-    background: #fef3c7;
-    color: #92400e;
+    background: #dcfce7;
+    color: #073B3A;
 }
 
 .team-status-leave-note {
@@ -7029,7 +7029,7 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
 
 .status-online { color: #22c55e; }
 .status-offline { color: #9ca3af; }
-.status-leave { color: #f59e0b; }
+.status-leave { color: #08A045; }
 
 /* =========================
    Main Page - KPI card + charts
@@ -7281,7 +7281,7 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
     color: #fff;
 }
 .announcements .card-body {
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%);
     border: 1px solid rgba(245, 158, 11, 0.25);
     border-radius: 12px;
     min-height: 140px;
@@ -12991,7 +12991,7 @@ body[data-module="HelpDesk"] .badge-status {
     font-size: 10px;
 }
 body[data-module="HelpDesk"] .badge-status-open { background:#eef2ff;color:#3730a3;}
-body[data-module="HelpDesk"] .badge-status-in_progress { background:#fef3c7;color:#92400e;}
+body[data-module="HelpDesk"] .badge-status-in_progress { background:#dcfce7;color:#073B3A;}
 body[data-module="HelpDesk"] .badge-status-resolved { background:#dcfce7;color:#166534;}
 body[data-module="HelpDesk"] .badge-status-closed { background:#e5e7eb;color:#111827;}
 
@@ -13640,7 +13640,7 @@ body[data-module="HelpDesk"] .badge-status {
     font-size: 10px;
 }
 body[data-module="HelpDesk"] .badge-status-open { background:#eef2ff;color:#3730a3;}
-body[data-module="HelpDesk"] .badge-status-in_progress { background:#fef3c7;color:#92400e;}
+body[data-module="HelpDesk"] .badge-status-in_progress { background:#dcfce7;color:#073B3A;}
 body[data-module="HelpDesk"] .badge-status-resolved { background:#dcfce7;color:#166534;}
 body[data-module="HelpDesk"] .badge-status-closed { background:#e5e7eb;color:#111827;}
 
@@ -14065,7 +14065,7 @@ body[data-module="Activities"] .activities-status-skipped {
 .history-badge--edited { background: rgba(99, 102, 241, 0.14); color: #4f46e5; border-color: rgba(99, 102, 241, 0.25); }
 .history-badge--deleted { background: rgba(239, 68, 68, 0.12); color: #dc2626; border-color: rgba(239, 68, 68, 0.25); }
 .history-badge--restored { background: rgba(45, 212, 191, 0.12); color: #14b8a6; border-color: rgba(45, 212, 191, 0.25); }
-.history-badge--status-changed { background: rgba(245, 158, 11, 0.14); color: #d97706; border-color: rgba(245, 158, 11, 0.25); }
+.history-badge--status-changed { background: rgba(245, 158, 11, 0.14); color: #0B6E4F; border-color: rgba(245, 158, 11, 0.25); }
 
 .history-order-link {
     color: #1d4ed8;

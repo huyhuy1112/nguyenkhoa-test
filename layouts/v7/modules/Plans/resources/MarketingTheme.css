@@ -239,7 +239,7 @@
 }
 
 .mk .mk-badge--success { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.28); color: #166534; }
-.mk .mk-badge--warn { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.28); color: #92400e; }
+.mk .mk-badge--warn { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.28); color: #073B3A; }
 .mk .mk-badge--info { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.28); color: #1e3a8a; }
 
 .mk .mk-empty {

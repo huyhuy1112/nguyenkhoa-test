@@ -194,14 +194,14 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--primary {
-	background: #fdbb2c;
-	border-color: #e5a820;
+	background: #08A045;
+	border-color: #0B6E4F;
 	color: #191c1e;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--primary:hover {
 	background: #ffc85c;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline {
@@ -211,7 +211,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-color: #c4b49a;
 }
 
@@ -535,14 +535,14 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:hover:not(:disabled),
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:focus:not(:disabled) {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #191c1e !important;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination #PageJump.mk-ps-page-btn {
 	min-width: 48px;
-	box-shadow: inset 0 -3px 0 #fdbb2c;
+	box-shadow: inset 0 -3px 0 #08A045;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:disabled {
@@ -731,7 +731,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th {
@@ -832,7 +832,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress--100 .mk-ps-progress__fill {
-	background: #fdbb2c;
+	background: #08A045;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress__label {
@@ -948,7 +948,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__item a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1003,7 +1003,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-das
 
 /* Active page indicator (amber underline on page jump) */
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination #PageJump.mk-ps-page-btn {
-	box-shadow: inset 0 -3px 0 #fdbb2c;
+	box-shadow: inset 0 -3px 0 #08A045;
 }
 
 /* Neutralize MkSalesListTable shared rules — keep header/data in the same column lane */

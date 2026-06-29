@@ -179,14 +179,14 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-pagina
 
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-toggle-layout.is-active,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-toggle-layout[aria-pressed="true"] {
 	background: #fff8eb !important;
-	border-color: #e5a820 !important;
+	border-color: #0B6E4F !important;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-toggle-layout {
@@ -308,7 +308,7 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table tbody td[data-name="subject"] a {

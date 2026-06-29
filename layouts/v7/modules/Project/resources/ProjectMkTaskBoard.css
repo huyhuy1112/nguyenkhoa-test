@@ -40,8 +40,8 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-task-board.mk-project-task-board .board-column.drop-over,
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__cards.drop-over,
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column.drop-over {
-	background: rgba(253, 187, 44, 0.12) !important;
-	border: 2px dashed #fdbb2c !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border: 2px dashed #08A045 !important;
 }
 
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .project-task-board .card-add-assignee:not(.mk-project-task-board__assignee-plus) {
@@ -118,7 +118,7 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proje
 	height: 28px !important;
 	border-radius: 50% !important;
 	background: #ffffff !important;
-	border: 1px solid #fdbb2c !important;
+	border: 1px solid #08A045 !important;
 	color: #6d4d00 !important;
 	text-decoration: none !important;
 	font-size: 0 !important;
@@ -134,7 +134,7 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proje
 	font-size: 18px;
 	font-weight: 600;
 	line-height: 1;
-	color: #c98f12;
+	color: #08A045;
 }
 
 /* Cards container */
@@ -148,8 +148,8 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proje
 
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__cards.drop-over,
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-project-task-board__column.drop-over {
-	background: rgba(253, 187, 44, 0.12) !important;
-	border: 2px dashed #fdbb2c !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border: 2px dashed #08A045 !important;
 	border-radius: 12px !important;
 }
 
@@ -266,7 +266,7 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proje
 	height: 18px;
 	margin-left: 4px;
 	border-radius: 50%;
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
 	font-size: 12px;
 	font-weight: 700;

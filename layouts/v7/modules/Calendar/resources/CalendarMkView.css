@@ -327,7 +327,7 @@ html.mk-cal-ui-ready body[data-module="Calendar"]:not(.mk-dash-drawer-open) .mk-
     padding: 10px 14px;
     border: 1px solid #d4c4ad;
     border-radius: 6px;
-    background: #fdbb2c;
+    background: #08A045;
     color: #6d4d00;
     font-size: 12px;
     font-weight: 700;
@@ -459,7 +459,7 @@ html.mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day.fc-toda
 
 html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) #calendar-mini .fc-day.fc-today .fc-day-number,
 html.mk-cal-ui-ready body[data-module="Calendar"] #calendar-mini .fc-day.fc-today .fc-day-number {
-    background: #7c5800 !important;
+    background: #0B6E4F !important;
     color: #ffffff !important;
     border-radius: 50%;
     width: 22px;
@@ -782,11 +782,11 @@ html.mk-cal-ui-ready .activitytypes .activitytype-indicator {
 }
 
 .mk-cal-activity--orange {
-    background: rgba(253, 187, 44, 0.22);
-    border-color: #fdbb2c;
+    background: rgba(8, 160, 69, 0.22);
+    border-color: #08A045;
 }
 .mk-cal-activity--orange .mk-cal-activity__bar {
-    background: #fdbb2c;
+    background: #08A045;
 }
 
 .mk-cal-activity--blue {
@@ -847,7 +847,7 @@ html.mk-cal-ui-ready .activitytypes .activitytype-indicator {
 }
 
 .mk-cal-view-tab.is-active {
-    color: #7c5800;
+    color: #0B6E4F;
     font-weight: 600;
 }
 
@@ -858,7 +858,7 @@ html.mk-cal-ui-ready .activitytypes .activitytype-indicator {
     right: 14px;
     bottom: 2px;
     height: 2px;
-    background: #7c5800;
+    background: #0B6E4F;
     border-radius: 1px;
 }
 
@@ -874,7 +874,7 @@ html.mk-cal-ui-ready .activitytypes .activitytype-indicator {
     border: 1px solid #d4c4ad;
     border-radius: 6px;
     background: #fff;
-    color: #7c5800;
+    color: #0B6E4F;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -908,8 +908,8 @@ html.mk-cal-ui-ready .activitytypes .activitytype-indicator {
 
 .mk-cal-nav-arrow:hover,
 .mk-cal-nav-icon:hover {
-    border-color: #7c5800;
-    color: #7c5800;
+    border-color: #0B6E4F;
+    color: #0B6E4F;
 }
 
 /* FullCalendar host */
@@ -1034,7 +1034,7 @@ html.mk-cal-ui-ready .mk-cal-fc-host .fc-event:not([style*="background-color"]) 
 }
 
 html.mk-cal-ui-ready .mk-cal-fc-host .fc-now-indicator {
-    border-color: #7c5800;
+    border-color: #0B6E4F;
 }
 
 @media (max-width: 1100px) {

@@ -85,7 +85,7 @@ body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-dash
 	min-height: 0 !important;
 	padding: 24px !important;
 	box-sizing: border-box !important;
-	background: linear-gradient(165deg, #eef2ff 0%, #f8fafc 42%, #fffbeb 100%) !important;
+	background: linear-gradient(165deg, #eef2ff 0%, #f8fafc 42%, #ecfdf3 100%) !important;
 	position: relative !important;
 	z-index: 1 !important;
 }

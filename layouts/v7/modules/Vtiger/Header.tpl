@@ -21,9 +21,9 @@
 			})();
 		</script>
 		<title>B-ACE</title>
-        <link rel="icon" type="image/png" sizes="32x32" href="layouts/v7/skins/images/favicon-32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="layouts/v7/skins/images/favicon-16.png">
-        <link rel="apple-touch-icon" sizes="180x180" href="layouts/v7/skins/images/bace-icon-180.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="layouts/v7/skins/images/nguyenkhoa-logo.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="layouts/v7/skins/images/nguyenkhoa-logo.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="layouts/v7/skins/images/nguyenkhoa-logo.png">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
@@ -76,6 +76,7 @@
 		{/if}
 		{* cv = cache-bust: dùng filemtime hoặc thời điểm hiện tại để menu/custom CSS luôn mới sau chuyển trang hoặc refresh *}
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/custom.css')}&amp;cv={$CUSTOM_CSS_VERSION|default:$smarty.now}" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/nguyenkhoa-brand.css')}?nk_v=20260629f" media="screen" />
 		{include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkReferencePopup.css')}?mk_v=20260624_refpopup6" media="screen" />
 		<style type="text/css" id="mk-ref-popup-critical">

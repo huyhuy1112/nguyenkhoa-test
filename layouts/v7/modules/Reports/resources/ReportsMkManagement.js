@@ -35,8 +35,8 @@
 					datasets: [{
 						label: 'MKT Sale (demo)',
 						data: [10, 22, 18, 30, 26, 35],
-						borderColor: '#fdbb2c',
-						backgroundColor: 'rgba(253, 187, 44, 0.25)',
+						borderColor: '#08A045',
+						backgroundColor: 'rgba(8, 160, 69, 0.25)',
 						tension: 0.3,
 						fill: true,
 						pointRadius: 3
@@ -67,7 +67,7 @@
 					labels: ['Hoàn thành', 'Đang làm', 'Chưa bắt đầu'],
 					datasets: [{
 						data: [60, 25, 15],
-						backgroundColor: ['#fdbb2c', '#45627d', isDarkTheme() ? '#475569' : '#cbd5e1']
+						backgroundColor: ['#08A045', '#45627d', isDarkTheme() ? '#475569' : '#cbd5e1']
 					}]
 				},
 				options: {

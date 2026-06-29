@@ -244,8 +244,8 @@ body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--pr
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-btn--primary,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-btn--primary
 {
-	background: #fdbb2c;
-	border-color: #e5a820;
+	background: #08A045;
+	border-color: #0B6E4F;
 	color: #191c1e;
 }
 
@@ -254,7 +254,7 @@ body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-btn
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-btn--primary:hover
 {
 	background: #ffc85c;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--outline,
@@ -270,7 +270,7 @@ body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--ou
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-btn--outline:hover,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-btn--outline:hover
 {
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-color: #c4b49a;
 }
 
@@ -616,8 +616,8 @@ body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-pag
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-pagination .mk-org-page-btn:focus:not(:disabled),
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-pagination .mk-org-page-btn:focus:not(:disabled)
 {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #191c1e !important;
 }
 
@@ -626,7 +626,7 @@ body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-pag
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-pagination #PageJump.mk-org-page-btn
 {
 	min-width: 48px;
-	box-shadow: inset 0 -3px 0 #fdbb2c;
+	box-shadow: inset 0 -3px 0 #08A045;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-pagination .mk-org-page-btn:disabled,
@@ -816,7 +816,7 @@ body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewConten
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .table-actions .fa-star.active,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table .table-actions .fa-star.active
 {
-	color: #c98f12;
+	color: #08A045;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions .listViewEntriesCheckBox,
@@ -856,7 +856,7 @@ body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewConten
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries:hover,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table tbody tr.listViewEntries:hover
 {
-	background: #faf8f5;
+	background: #f0fdf4;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th,

@@ -153,7 +153,7 @@ body:has(.calendar-yearview) .cyv-menu-item {
   color: #504533;
   text-decoration: none !important;
   border: 1px solid #ebe6dc;
-  background: #faf8f5;
+  background: #f0fdf4;
 }
 body:has(.calendar-yearview) .cyv-menu-item:hover { background: #f3efe8; }
 body:has(.calendar-yearview) .cyv-menu-item.is-active {
@@ -182,7 +182,7 @@ body:has(.calendar-yearview) .cyv-menu-badge {
   box-shadow: 0 1px 2px rgba(80, 69, 51, 0.06);
 }
 .calendar-yearview-wrapper .btn.btn-default:hover {
-  background: #faf8f5;
+  background: #f0fdf4;
   border-color: #d4c9b8;
   color: #3d3428;
 }
@@ -251,7 +251,7 @@ body:has(.calendar-yearview) .cyv-menu-badge {
   padding: 8px 14px;
 }
 .cyv-dropdown-menu > li > a:hover {
-  background: #faf8f5;
+  background: #f0fdf4;
   color: #3d3428;
 }
 .cyv-dropdown-menu .divider {
@@ -269,7 +269,7 @@ body:has(.calendar-yearview) .cyv-menu-badge {
   user-select: none;
   margin-bottom: 6px;
   border: 1px solid #ebe6dc;
-  background: #faf8f5;
+  background: #f0fdf4;
 }
 .cyv-toggle:hover { background: #f3efe8; }
 .cyv-toggle input { display: none; }
@@ -325,7 +325,7 @@ body:has(.calendar-yearview) .cyv-menu-badge {
   border-radius: 12px;
   color: #504533;
 }
-.cyv-legend-row:hover { background: #faf8f5; }
+.cyv-legend-row:hover { background: #f0fdf4; }
 .cyv-swatch {
   width: 10px;
   height: 10px;
@@ -378,7 +378,7 @@ body:has(.calendar-yearview) .cyv-menu-badge {
 
 .calendar-yearview-month .calendar-yearview-month-head {
   padding: 14px 16px 12px;
-  background: #faf8f5;
+  background: #f0fdf4;
   border-bottom: 1px solid #ebe6dc;
   font-weight: 600;
   color: #504533;
@@ -565,7 +565,7 @@ body.cyv-filter-tasks .calendar-yearview-day.has-events[data-tk="0"] { opacity: 
   gap: 12px;
   padding: 18px 18px 14px;
   border-bottom: 1px solid #ebe6dc;
-  background: #faf8f5;
+  background: #f0fdf4;
 }
 
 .cyv-day-panel__kicker {
@@ -637,7 +637,7 @@ body.cyv-filter-tasks .calendar-yearview-day.has-events[data-tk="0"] { opacity: 
   padding: 12px 12px;
   border-radius: 12px;
   border: 1px solid #ebe6dc;
-  background: #faf8f5;
+  background: #f0fdf4;
   text-decoration: none !important;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
@@ -733,7 +733,7 @@ body.cyv-filter-tasks .calendar-yearview-day.has-events[data-tk="0"] { opacity: 
 .cyv-day-panel__footer {
   padding: 14px 18px 18px;
   border-top: 1px solid #ebe6dc;
-  background: #faf8f5;
+  background: #f0fdf4;
   display: flex;
   justify-content: stretch;
 }
@@ -746,9 +746,9 @@ body.cyv-filter-tasks .calendar-yearview-day.has-events[data-tk="0"] { opacity: 
   width: 100%;
   min-height: 44px;
   border-radius: 12px !important;
-  border: 1px solid rgba(253, 187, 44, 0.55) !important;
-  background: rgba(253, 187, 44, 0.14) !important;
-  color: #92400e !important;
+  border: 1px solid rgba(8, 160, 69, 0.55) !important;
+  background: rgba(8, 160, 69, 0.14) !important;
+  color: #073B3A !important;
   font-weight: 700 !important;
   font-size: 14px !important;
   text-decoration: none !important;
@@ -756,8 +756,8 @@ body.cyv-filter-tasks .calendar-yearview-day.has-events[data-tk="0"] { opacity: 
 }
 
 .cyv-day-panel__open-cal:hover {
-  background: rgba(253, 187, 44, 0.24) !important;
-  border-color: rgba(253, 187, 44, 0.75) !important;
+  background: rgba(8, 160, 69, 0.24) !important;
+  border-color: rgba(8, 160, 69, 0.75) !important;
   color: #78350f !important;
 }
 
@@ -926,13 +926,13 @@ html[data-theme="dark"] .cyv-day-panel__footer {
   background: rgba(0, 0, 0, 0.12);
 }
 html[data-theme="dark"] .cyv-day-panel__open-cal {
-  border-color: rgba(253, 187, 44, 0.45) !important;
-  background: rgba(253, 187, 44, 0.16) !important;
-  color: #fde68a !important;
+  border-color: rgba(8, 160, 69, 0.45) !important;
+  background: rgba(8, 160, 69, 0.16) !important;
+  color: #bbf7d0 !important;
 }
 html[data-theme="dark"] .cyv-day-panel__open-cal:hover {
-  background: rgba(253, 187, 44, 0.28) !important;
-  border-color: rgba(253, 187, 44, 0.65) !important;
+  background: rgba(8, 160, 69, 0.28) !important;
+  border-color: rgba(8, 160, 69, 0.65) !important;
   color: #fff !important;
 }
 

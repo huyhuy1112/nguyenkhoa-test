@@ -126,14 +126,14 @@ body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-opportuni
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn--primary {
-	background: #fdbb2c;
-	border-color: #e5a820;
+	background: #08A045;
+	border-color: #0B6E4F;
 	color: #191c1e;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn--primary:hover {
 	background: #ffc85c;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn--outline {
@@ -143,7 +143,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-opportuni
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-opportunity-btn--outline:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-color: #c4b49a;
 }
 
@@ -397,8 +397,8 @@ body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-opportuni
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-opportunity-pagination .mk-opportunity-page-btn:hover:not(:disabled),
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-opportunity-pagination .btn:hover:not(:disabled) {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #191c1e !important;
 }
 
@@ -742,7 +742,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-tab
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table td[data-name="potentialname"] a {
 	font-size: 16px;
 	font-weight: 700;
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
@@ -809,7 +809,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-stage .do
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-stage-qualification .dot {
-	background: #f4b122;
+	background: #6BBF59;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] .mk-stage-prospecting .dot {
@@ -1312,8 +1312,8 @@ body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-tab
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .fa-star.active {
-	color: #c98f12 !important;
-	background: rgba(253, 187, 44, 0.14);
+	color: #08A045 !important;
+	background: rgba(8, 160, 69, 0.14);
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table .table-actions .listColumnFilter {
@@ -1352,13 +1352,13 @@ body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-tab
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:hover,
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:hover {
-	border-color: #e5a820 !important;
+	border-color: #0B6E4F !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
-	background: #fdbb2c !important;
-	border-color: #c98f12 !important;
+	background: #08A045 !important;
+	border-color: #08A045 !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
@@ -1377,7 +1377,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-tab
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries.mk-opp-row-selected {
-	background: rgba(253, 187, 44, 0.1) !important;
+	background: rgba(8, 160, 69, 0.1) !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="TOOLS"] #listview-table thead tr.searchRow th .row-fluid,
@@ -1557,14 +1557,14 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-opportu
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn--primary {
-	background: #fdbb2c;
-	border-color: #e5a820;
+	background: #08A045;
+	border-color: #0B6E4F;
 	color: #191c1e;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn--primary:hover {
 	background: #ffc85c;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn--outline {
@@ -1574,7 +1574,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-opportu
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-btn--outline:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-color: #c4b49a;
 }
 
@@ -1828,8 +1828,8 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-opportu
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-pagination .mk-opportunity-page-btn:hover:not(:disabled),
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-pagination .btn:hover:not(:disabled) {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #191c1e !important;
 }
 
@@ -2173,7 +2173,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-t
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table td[data-name="potentialname"] a {
 	font-size: 16px;
 	font-weight: 700;
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
@@ -2240,7 +2240,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-stage .
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-stage-qualification .dot {
-	background: #f4b122;
+	background: #6BBF59;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] .mk-stage-prospecting .dot {
@@ -2743,8 +2743,8 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-t
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .fa-star.active {
-	color: #c98f12 !important;
-	background: rgba(253, 187, 44, 0.14);
+	color: #08A045 !important;
+	background: rgba(8, 160, 69, 0.14);
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table .table-actions .listColumnFilter {
@@ -2783,13 +2783,13 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-t
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:hover,
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:hover {
-	border-color: #e5a820 !important;
+	border-color: #0B6E4F !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
-	background: #fdbb2c !important;
-	border-color: #c98f12 !important;
+	background: #08A045 !important;
+	border-color: #08A045 !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
@@ -2808,7 +2808,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-t
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table tbody tr.listViewEntries.mk-opp-row-selected {
-	background: rgba(253, 187, 44, 0.1) !important;
+	background: rgba(8, 160, 69, 0.1) !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SUPPORT"] #listview-table thead tr.searchRow th .row-fluid,

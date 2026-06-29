@@ -130,7 +130,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-det
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-detail-breadcrumb__item a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -211,9 +211,9 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-det
 	padding: 0 !important;
 	position: static !important;
 	float: none !important;
-	background: linear-gradient(145deg, #fef3c7 0%, #fde68a 40%, #f59e0b 100%) !important;
-	border: 1px solid #fcd34d;
-	color: #92400e;
+	background: linear-gradient(145deg, #dcfce7 0%, #bbf7d0 40%, #08A045 100%) !important;
+	border: 1px solid #6BBF59;
+	color: #073B3A;
 	box-shadow: none;
 }
 
@@ -246,9 +246,9 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-det
 	border-radius: 999px;
 	font-size: 12px;
 	font-weight: 600;
-	background: #fef3c7;
-	color: #92400e;
-	border: 1px solid #fde68a;
+	background: #dcfce7;
+	color: #073B3A;
+	border: 1px solid #bbf7d0;
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-detail-hero__created {
@@ -293,9 +293,9 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-det
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-detail-btn:hover {
-	border-color: #c98f12;
-	color: #7c5800;
-	background: #fffbeb;
+	border-color: #08A045;
+	color: #0B6E4F;
+	background: #ecfdf3;
 }
 
 /* Tabs — chỉ gạch cam dưới tab active (không gạch đen/full-width) */
@@ -351,7 +351,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-det
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-detail-related-tabs .nav.nav-tabs > li.active > a,
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-detail-related-tabs .nav.nav-tabs > li.active > a:hover,
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-detail-related-tabs .nav.nav-tabs > li.active > a:focus {
-	color: #c98f12 !important;
+	color: #08A045 !important;
 	background: transparent !important;
 	border: none !important;
 	border-bottom: none !important;
@@ -373,7 +373,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-det
 	bottom: 0;
 	height: 3px;
 	border-radius: 3px 3px 0 0;
-	background: #fdbb2c;
+	background: #08A045;
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-detail-tabs-spacer {
@@ -532,7 +532,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] #CampaignPha
 	height: 0 !important;
 	border-top: 5px solid transparent !important;
 	border-bottom: 5px solid transparent !important;
-	border-left: 8px solid #f59e0b !important;
+	border-left: 8px solid #08A045 !important;
 	border-radius: 0 !important;
 	background: transparent !important;
 	box-shadow: none !important;
@@ -599,7 +599,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-plan-pha
 	height: 0;
 	border-top: 5px solid transparent;
 	border-bottom: 5px solid transparent;
-	border-left: 8px solid #f59e0b;
+	border-left: 8px solid #08A045;
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .cpd-phase-grid {
@@ -641,7 +641,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .cpd-card .c
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .cpd-card .cpd-progress .bar,
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] #CampaignPhaseDashboard.campaign-detail-modern .cpd-card .js-phase-progress,
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] #CampaignPhaseDashboard.campaign-detail-modern .cpd-card[data-phase] .js-phase-progress {
-	background: linear-gradient(90deg, #f59e0b 0%, #fdbb2c 55%, #fbbf24 100%) !important;
+	background: linear-gradient(90deg, #08A045 0%, #08A045 55%, #08A045 100%) !important;
 	height: 100%;
 	min-height: 10px;
 	border-radius: 999px;
@@ -691,7 +691,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .mk-files-em
 	padding: 28px 16px;
 	text-align: center;
 	color: #6b6358;
-	background: #faf8f5;
+	background: #f0fdf4;
 }
 
 @media (max-width: 900px) {
@@ -1367,7 +1367,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-kpi {
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-kpi--accent {
-	border-left: 4px solid #fbbf24;
+	border-left: 4px solid #08A045;
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-kpi__label {
@@ -1437,7 +1437,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-mix-bar 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-mix-bar__fill {
 	height: 100%;
 	border-radius: 999px;
-	background: linear-gradient(90deg, #fbbf24, #f59e0b);
+	background: linear-gradient(90deg, #08A045, #08A045);
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-panel {
@@ -1475,7 +1475,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tabs > l
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tabs > li.active > a {
 	color: #0f172a;
-	box-shadow: inset 0 -3px 0 #fbbf24;
+	box-shadow: inset 0 -3px 0 #08A045;
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-btn-add {
@@ -1485,7 +1485,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-btn-add 
 	margin: 10px 0;
 	border: none;
 	border-radius: 10px;
-	background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+	background: linear-gradient(180deg, #08A045 0%, #08A045 100%);
 	color: #1c1917;
 	font-size: 13px;
 	font-weight: 800;
@@ -1557,7 +1557,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-p
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-pill--completed .pm-status-pill__dot,
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-pill--complete .pm-status-pill__dot {
-	background: #fbbf24;
+	background: #08A045;
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-link {
@@ -1614,7 +1614,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tg__date
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tg__date-badge .fa {
-	color: #f59e0b;
+	color: #08A045;
 	font-size: 13px;
 }
 
@@ -1648,7 +1648,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tl-card 
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tl-card:hover,
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tl-card:focus {
-	border-color: #fbbf24;
+	border-color: #08A045;
 	box-shadow: 0 4px 16px rgba(245, 158, 11, 0.12);
 	outline: none;
 }
@@ -1748,7 +1748,7 @@ body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tl-card_
 }
 
 body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tl-card:hover .pm-tl-card__chev {
-	background: #fef3c7;
+	background: #dcfce7;
 	color: #b45309;
 }
 

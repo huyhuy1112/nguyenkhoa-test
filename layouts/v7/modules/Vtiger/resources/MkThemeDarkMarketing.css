@@ -94,7 +94,7 @@ html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app
 html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--complete .mk-camp-status-pill__dot,
 html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--completed .mk-plan-status-pill__dot,
 html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--complete .mk-plan-status-pill__dot {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 }
 
 html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--cancelled .mk-camp-status-pill__dot,
@@ -411,7 +411,7 @@ html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="
 
 html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-pill--completed .pm-status-pill__dot,
 html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-status-pill--complete .pm-status-pill__dot {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 }
 
 html[data-theme="dark"] body[data-module="Plans"][data-view="Detail"][data-app="MARKETING"] .pm-tl-card__title {
@@ -625,12 +625,12 @@ html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app
 
 html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--on-hold .mk-plan-status-pill__dot,
 html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--on-hold .mk-camp-status-pill__dot {
-	background-color: #f59e0b !important;
+	background-color: #08A045 !important;
 }
 
 html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--paused .mk-plan-status-pill__dot,
 html[data-theme="dark"] body[data-module="Campaigns"][data-view="List"][data-app="MARKETING"] .mk-camp-status-pill--paused .mk-camp-status-pill__dot {
-	background-color: #f59e0b !important;
+	background-color: #08A045 !important;
 }
 
 html[data-theme="dark"] body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--scheduled .mk-plan-status-pill__dot,

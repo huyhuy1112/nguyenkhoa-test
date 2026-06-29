@@ -194,14 +194,14 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-btn {
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-btn--primary {
-	background: #fdbb2c;
-	border-color: #e5a820;
+	background: #08A045;
+	border-color: #0B6E4F;
 	color: #191c1e;
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-btn--primary:hover {
 	background: #ffc85c;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-btn--outline {
@@ -211,7 +211,7 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-btn--
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-btn--outline:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-color: #c4b49a;
 }
 
@@ -453,14 +453,14 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-paginat
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-plan-page-btn:hover:not(:disabled),
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-plan-page-btn:focus:not(:disabled) {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #191c1e !important;
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-pagination #PageJump.mk-plan-page-btn {
 	min-width: 48px;
-	box-shadow: inset 0 -3px 0 #fdbb2c;
+	box-shadow: inset 0 -3px 0 #08A045;
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-pagination .mk-plan-page-btn:disabled {
@@ -638,7 +638,7 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewConte
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tr.searchRow th {
@@ -791,7 +791,7 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-bread
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-breadcrumb__item a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -840,7 +840,7 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-dash-main.
 
 /* Active page indicator (amber underline on page jump) */
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-so-pagination #PageJump.mk-plan-page-btn {
-	box-shadow: inset 0 -3px 0 #fdbb2c;
+	box-shadow: inset 0 -3px 0 #08A045;
 }
 
 /* Campaign name column */
@@ -958,7 +958,7 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-statu
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--completed .mk-plan-status-pill__dot,
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--complete .mk-plan-status-pill__dot {
-	background: #fdbb2c;
+	background: #08A045;
 }
 
 body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-status-pill--cancelled .mk-plan-status-pill__dot,
@@ -983,7 +983,7 @@ body[data-module="Plans"][data-view="List"][data-app="MARKETING"] .mk-plan-avata
 	font-size: 11px;
 	font-weight: 700;
 	color: #191c1e;
-	background: #fdbb2c;
+	background: #08A045;
 	flex-shrink: 0;
 }
 

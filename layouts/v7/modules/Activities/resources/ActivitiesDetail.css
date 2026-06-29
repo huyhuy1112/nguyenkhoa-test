@@ -213,7 +213,7 @@ body[data-module="Activities"][data-view="Detail"] .mk-act-detail-hero__icon {
 	width: 64px;
 	height: 64px;
 	border-radius: 12px;
-	background: #fdbb2c;
+	background: #08A045;
 	color: #271900;
 	display: inline-flex;
 	align-items: center;
@@ -321,7 +321,7 @@ body[data-module="Activities"][data-view="Detail"] .mk-act-btn {
 }
 
 body[data-module="Activities"][data-view="Detail"] .mk-act-btn--primary {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
 }
 
@@ -405,8 +405,8 @@ body[data-module="Activities"][data-view="Detail"] .mk-act-detail-tabs__btn {
 
 body[data-module="Activities"][data-view="Detail"] .mk-act-detail-tabs__btn--active,
 body[data-module="Activities"][data-view="Detail"] .mk-act-detail-tabs__btn.is-active {
-	color: #f59e0b;
-	border-bottom-color: #f59e0b;
+	color: #08A045;
+	border-bottom-color: #08A045;
 	font-weight: 600;
 }
 
@@ -591,7 +591,7 @@ body[data-module="Activities"][data-view="Detail"] .mk-act-pill--type-call {
 }
 
 body[data-module="Activities"][data-view="Detail"] .mk-act-pill--type-meeting {
-	background: #fef3c7;
+	background: #dcfce7;
 	color: #b45309;
 }
 
@@ -824,7 +824,7 @@ body[data-module="Activities"][data-view="Detail"] .mk-act-type-pill--call {
 }
 
 body[data-module="Activities"][data-view="Detail"] .mk-act-type-pill--meeting {
-	background: #fef3c7;
+	background: #dcfce7;
 	color: #b45309;
 }
 

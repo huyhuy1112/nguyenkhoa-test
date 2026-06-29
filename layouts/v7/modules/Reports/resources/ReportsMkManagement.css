@@ -128,9 +128,9 @@ body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt
 }
 
 body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-field .form-control:focus {
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15);
 }
 
 body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions {
@@ -149,8 +149,8 @@ body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt
 }
 
 body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-actions .btn-primary {
-	background: #fdbb2c !important;
-	border: 1px solid #e59a0f !important;
+	background: #08A045 !important;
+	border: 1px solid #0B6E4F !important;
 	color: #2a241c !important;
 	box-shadow: none !important;
 }
@@ -267,7 +267,7 @@ body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt
 }
 
 body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody tr:hover td {
-	background: #fffbeb;
+	background: #ecfdf3;
 }
 
 body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] .mgmt-report-table tbody a.text-primary,
@@ -349,8 +349,8 @@ body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] #mgmt
 }
 
 body[data-module="Reports"][data-view="Management"][data-app="MANAGEMENT"] #mgmtExportModal .js-mgmt-export-confirm {
-	background: #fdbb2c !important;
-	border-color: #e59a0f !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #2a241c !important;
 }
 

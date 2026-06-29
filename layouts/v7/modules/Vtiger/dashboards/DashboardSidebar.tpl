@@ -39,15 +39,9 @@
 
 <aside id="mk-dash-sidebar" class="mk-sidebar mk-dashboard-sidebar" aria-label="Dashboard sidebar">
 	<div class="mk-dash-sidebar-brand">
-		<div id="appnavigator" class="cursorPointer app-switcher-container mk-dash-appnavigator" data-app-class="fa-sitemap" title="{vtranslate('LBL_MENU',$MODULE)}">
-			<div class="row app-navigator mk-dash-appnavigator-inner">
-				<span class="mk-dash-hamburger-svg" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='MENU'}</span>
-			</div>
-		</div>
 		<div class="mk-dash-sidebar-logo">
-			<a href="index.php" class="company-logo mk-dash-logo-link" title="B-ACE" aria-label="B-ACE home">
-				<img class="mk-dash-bace-logo mk-dash-bace-logo--light" src="layouts/v7/resources/Images/bace-logo-figma.png?v=20260530_logo9" width="218" height="40" alt="B-ACE">
-				<img class="mk-dash-bace-logo mk-dash-bace-logo--dark" src="layouts/v7/resources/Images/bace-logo-figma-transparent.png?v=20260530_logo9" width="218" height="40" alt="B-ACE">
+			<a href="index.php" class="company-logo mk-dash-logo-link" title="Nguyên Khoa" aria-label="Nguyên Khoa home">
+				<img class="mk-dash-bace-logo nguyenkhoa-logo" src="layouts/v7/resources/Images/nguyenkhoa-logo.png?v=20260629d" width="240" height="96" alt="Nguyên Khoa">
 			</a>
 			{if $_settingsActive}
 				<p class="mk-settings-site-kicker">{vtranslate('LBL_SITE_SETTINGS','Vtiger')}</p>

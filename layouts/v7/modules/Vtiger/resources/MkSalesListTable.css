@@ -142,8 +142,8 @@ body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listvi
 
 body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-actions .mk-so-global-search:focus-within,
 body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-actions .mk-so-global-search:focus-within {
-	border-color: #c98f12;
-	box-shadow: 0 0 0 2px rgba(253, 187, 44, 0.2);
+	border-color: #08A045;
+	box-shadow: 0 0 0 2px rgba(8, 160, 69, 0.2);
 }
 
 body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-actions .mk-so-global-search__clear,
@@ -493,8 +493,8 @@ body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].
 
 body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
 body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
-	background: #fdbb2c !important;
-	border-color: #c98f12 !important;
+	background: #08A045 !important;
+	border-color: #08A045 !important;
 }
 
 body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
@@ -513,7 +513,7 @@ body[data-view="List"][data-app="SALES"] #listview-table input[type="checkbox"].
 
 body[data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
 body[data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries.mk-sales-row-selected {
-	background: rgba(253, 187, 44, 0.1) !important;
+	background: rgba(8, 160, 69, 0.1) !important;
 }
 
 body[data-view="List"][data-app="SALES"] #listview-table td.listViewRecordActions,
@@ -574,7 +574,7 @@ body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listvi
 
 body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
 body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tbody tr.listViewEntries.mk-sales-row-selected {
-	background: rgba(253, 187, 44, 0.1) !important;
+	background: rgba(8, 160, 69, 0.1) !important;
 }
 
 /* MANAGEMENT Project list — legacy filter row hidden (toolbar global search) */
@@ -627,7 +627,7 @@ body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-t
 body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
 body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tbody tr.listViewEntries.mk-sales-row-selected,
 body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tbody tr.listViewEntries.mk-project-row-selected {
-	background: rgba(253, 187, 44, 0.1) !important;
+	background: rgba(8, 160, 69, 0.1) !important;
 }
 
 /* MANAGEMENT list date filters — no jump/lag when opening calendar */
@@ -827,7 +827,7 @@ body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-t
 body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within input.dateField,
 body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within .mk-date-search-trigger,
 body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table thead tr.searchRow .mk-date-search-group:focus-within .mk-date-search-trigger {
-	border-color: #c98f12 !important;
+	border-color: #08A045 !important;
 }
 
 /* Progress column — no server filter; keep row height aligned */
@@ -893,8 +893,8 @@ body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listvi
 
 body[data-view="List"][data-app="MANAGEMENT"][data-module="Project"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"],
 body[data-view="List"][data-app="MANAGEMENT"][data-module="ProjectTask"] #listview-table tr.searchRow th.inline-search-btn [data-trigger="listSearch"] {
-	background: #fdbb2c !important;
-	border: 1px solid #c98f12 !important;
+	background: #08A045 !important;
+	border: 1px solid #08A045 !important;
 	color: #3d3028 !important;
 }
 

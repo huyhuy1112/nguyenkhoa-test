@@ -201,7 +201,7 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-p
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-timeline__item.is-active .mk-doc-timeline__dot {
 	background: var(--mk-doc-yellow);
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-timeline__item time {
@@ -471,8 +471,8 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-a
 }
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--tips {
-	border: 1px solid rgba(253, 187, 44, 0.55) !important;
-	box-shadow: 0 4px 18px rgba(253, 187, 44, 0.12) !important;
+	border: 1px solid rgba(8, 160, 69, 0.55) !important;
+	box-shadow: 0 4px 18px rgba(8, 160, 69, 0.12) !important;
 }
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--stages {
@@ -490,8 +490,8 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-a
 }
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--tips .mk-doc-aside-card__head {
-	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
-	border-bottom-color: rgba(253, 187, 44, 0.35) !important;
+	background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%) !important;
+	border-bottom-color: rgba(8, 160, 69, 0.35) !important;
 }
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--stages .mk-doc-aside-card__head {
@@ -512,7 +512,7 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-a
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__icon--tips {
 	background: var(--mk-doc-yellow) !important;
 	color: #6d4d00 !important;
-	box-shadow: 0 4px 10px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 4px 10px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__icon--stages {
@@ -534,7 +534,7 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-a
 }
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--tips .mk-doc-aside-card__title {
-	color: #92400e !important;
+	color: #073B3A !important;
 }
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card--stages .mk-doc-aside-card__title {

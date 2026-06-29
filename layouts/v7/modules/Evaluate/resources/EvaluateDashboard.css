@@ -165,7 +165,7 @@ html.mk-evaluate-ui-ready body[data-module="Evaluate"][data-view="List"][data-ap
 	padding: 0 18px;
 	border: none;
 	border-radius: 10px;
-	background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+	background: linear-gradient(180deg, #08A045 0%, #08A045 100%);
 	color: #1c1917;
 	font-size: 13px;
 	font-weight: 800;
@@ -202,7 +202,7 @@ html.mk-evaluate-ui-ready body[data-module="Evaluate"][data-view="List"][data-ap
 
 .mk-eval-filter__check input {
 	margin: 0;
-	accent-color: #fbbf24;
+	accent-color: #08A045;
 }
 
 /* ---- KPI row ---- */
@@ -234,7 +234,7 @@ html.mk-evaluate-ui-ready body[data-module="Evaluate"][data-view="List"][data-ap
 }
 
 .mk-eval-kpi--accent {
-	border-left: 4px solid #fbbf24;
+	border-left: 4px solid #08A045;
 }
 
 .mk-eval-kpi__label {
@@ -392,7 +392,7 @@ html.mk-evaluate-ui-ready body[data-module="Evaluate"][data-view="List"][data-ap
 }
 
 .mk-eval-status__dot--planning { background: #94a3b8; }
-.mk-eval-status__dot--active { background: #fbbf24; }
+.mk-eval-status__dot--active { background: #08A045; }
 .mk-eval-status__dot--completed { background: #22c55e; }
 
 .mk-eval-type-tag {
@@ -437,8 +437,8 @@ html.mk-evaluate-ui-ready body[data-module="Evaluate"][data-view="List"][data-ap
 }
 
 .mk-eval-pagination .is-active {
-	background: #fbbf24;
-	border-color: #f59e0b;
+	background: #08A045;
+	border-color: #08A045;
 	color: #1c1917;
 }
 

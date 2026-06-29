@@ -278,12 +278,12 @@ body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-
 	width: 56px;
 	height: 56px;
 	border-radius: 12px;
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 4px 12px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 4px 12px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-action-header__title {
@@ -333,22 +333,22 @@ body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-
 }
 
 body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-btn--primary {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #191c1e;
 }
 
 body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-btn--primary:hover {
-	background: #e5a824;
+	background: #0B6E4F;
 	color: #191c1e;
 }
 
 body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-btn--filter {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #191c1e;
 }
 
 body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-btn--filter:hover {
-	background: #e5a824;
+	background: #0B6E4F;
 }
 
 body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-btn--ghost {
@@ -404,7 +404,7 @@ body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-
 
 body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-topnav a.is-active {
 	color: #b45309;
-	border-bottom-color: #fdbb2c;
+	border-bottom-color: #08A045;
 }
 
 body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-alert {
@@ -580,7 +580,7 @@ body[data-module="GoodsReceipt"][data-view="List"][data-app="INVENTORY"] .mk-gi-
 	padding: 4px 10px;
 	border-radius: 999px;
 	background: #fff4d6;
-	border: 1px solid #fdbb2c;
+	border: 1px solid #08A045;
 	color: #6d4d00;
 	font-size: 12px;
 	font-weight: 600;

@@ -3,8 +3,8 @@
  * ========================================================================== */
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel {
-	--mk-chart-accent: #c98f12;
-	--mk-chart-accent-soft: #fdbb2c;
+	--mk-chart-accent: #08A045;
+	--mk-chart-accent-soft: #08A045;
 	--mk-chart-accent-pale: #fff7e0;
 	--mk-chart-border: #e5dfd4;
 	--mk-chart-surface: #ffffff;
@@ -77,7 +77,7 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 	border-radius: 999px;
 	background: var(--mk-chart-accent-pale);
 	border: 1px solid #f3d37a;
-	color: #7c5800;
+	color: #0B6E4F;
 	font-size: 12px;
 	font-weight: 700;
 }
@@ -455,12 +455,12 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-info {
-	background: linear-gradient(135deg, #fffbeb 0%, #f8fafc 100%);
+	background: linear-gradient(135deg, #ecfdf3 0%, #f8fafc 100%);
 	border-color: #f3e8c8;
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-info__title {
-	color: #7c5800;
+	color: #0B6E4F;
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-info__tips {
@@ -491,7 +491,7 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 	justify-content: center;
 	border-radius: 8px;
 	background: var(--mk-chart-accent-pale);
-	color: #7c5800;
+	color: #0B6E4F;
 	font-size: 13px;
 }
 
@@ -509,6 +509,6 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-chart-panel .emptyRecordsDiv a {
-	color: #7c5800;
+	color: #0B6E4F;
 	font-weight: 600;
 }

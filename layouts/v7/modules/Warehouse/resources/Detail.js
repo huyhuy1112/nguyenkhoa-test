@@ -84,7 +84,7 @@
 			yTicks +
 			'<line x1="' + padL + '" y1="' + (padT + chartH) + '" x2="' + (width - padR) + '" y2="' + (padT + chartH) + '" stroke="rgba(148,163,184,.35)" />' +
 			'<path d="' + buildPath('inbound') + '" fill="none" stroke="#22c55e" stroke-width="2.5" />' +
-			'<path d="' + buildPath('outbound') + '" fill="none" stroke="#fdbb2c" stroke-width="2.5" />' +
+			'<path d="' + buildPath('outbound') + '" fill="none" stroke="#08A045" stroke-width="2.5" />' +
 			labels +
 			'</svg>';
 		el.innerHTML = svg;

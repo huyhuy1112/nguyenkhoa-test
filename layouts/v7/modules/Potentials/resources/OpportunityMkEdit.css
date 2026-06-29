@@ -6,7 +6,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 :root {
-	--mk-opp-yellow: #FDBB2C;
+	--mk-opp-yellow: #08A045;
 	--mk-opp-navy: #40627E;
 	--mk-opp-surface: #F7F9FB;
 	--mk-opp-surface-dim: #D8DADC;
@@ -224,7 +224,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-hero_
 	padding: 28px 32px 24px;
 	border-radius: var(--mk-opp-radius);
 	background:
-		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(253, 187, 44, 0.14), transparent 55%),
+		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(8, 160, 69, 0.14), transparent 55%),
 		radial-gradient(ellipse 60% 50% at 0% 100%, rgba(64, 98, 126, 0.07), transparent 50%),
 		var(--mk-opp-white);
 	border: 1px solid var(--mk-opp-border);
@@ -306,7 +306,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-pill-
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-pill--draft {
-	background: rgba(253, 187, 44, 0.18);
+	background: rgba(8, 160, 69, 0.18);
 	color: #7a5a12;
 }
 
@@ -363,7 +363,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-healt
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-health__chip--warm {
-	background: rgba(253, 187, 44, 0.2);
+	background: rgba(8, 160, 69, 0.2);
 	color: #7a5a12;
 }
 
@@ -416,8 +416,8 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-owner
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-forecast-preview {
 	padding: 8px 16px;
 	border-radius: var(--mk-opp-radius-sm);
-	background: rgba(253, 187, 44, 0.12);
-	border: 1px solid rgba(253, 187, 44, 0.35);
+	background: rgba(8, 160, 69, 0.12);
+	border: 1px solid rgba(8, 160, 69, 0.35);
 	min-width: 120px;
 }
 
@@ -463,7 +463,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-btn {
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-btn--primary {
 	background: var(--mk-opp-yellow);
 	color: var(--mk-opp-text);
-	box-shadow: 0 4px 16px rgba(253, 187, 44, 0.45);
+	box-shadow: 0 4px 16px rgba(8, 160, 69, 0.45);
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-btn--primary:hover {
@@ -582,7 +582,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-pipel
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-pipeline__stage.is-active .mk-opp-pipeline__dot {
 	border-color: var(--mk-opp-navy);
 	background: var(--mk-opp-yellow);
-	box-shadow: 0 0 0 4px rgba(253, 187, 44, 0.25);
+	box-shadow: 0 0 0 4px rgba(8, 160, 69, 0.25);
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-pipeline__name {
@@ -630,8 +630,8 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card--tips {
-	border: 1px solid rgba(253, 187, 44, 0.55) !important;
-	box-shadow: 0 4px 18px rgba(253, 187, 44, 0.12) !important;
+	border: 1px solid rgba(8, 160, 69, 0.55) !important;
+	box-shadow: 0 4px 18px rgba(8, 160, 69, 0.12) !important;
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card--stages {
@@ -649,8 +649,8 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card--tips .mk-opp-aside-card__head {
-	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
-	border-bottom-color: rgba(253, 187, 44, 0.35) !important;
+	background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%) !important;
+	border-bottom-color: rgba(8, 160, 69, 0.35) !important;
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card--stages .mk-opp-aside-card__head {
@@ -671,7 +671,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card__icon--tips {
 	background: var(--mk-opp-yellow) !important;
 	color: #6d4d00 !important;
-	box-shadow: 0 4px 10px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 4px 10px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card__icon--stages {
@@ -693,7 +693,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card--tips .mk-opp-aside-card__title {
-	color: #92400e !important;
+	color: #073B3A !important;
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside-card--stages .mk-opp-aside-card__title {
@@ -815,13 +815,13 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--mid {
-	background: #fffbeb !important;
-	border-color: #fde68a !important;
+	background: #ecfdf3 !important;
+	border-color: #bbf7d0 !important;
 }
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--mid .mk-opp-stage-guide__badge {
-	background: #fef3c7 !important;
+	background: #dcfce7 !important;
 	color: #b45309 !important;
-	border: 1px solid #fcd34d !important;
+	border: 1px solid #6BBF59 !important;
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--won {
@@ -865,7 +865,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-insig
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-insight-card--hero {
 	background:
-		linear-gradient(160deg, rgba(253, 187, 44, 0.08), transparent 45%),
+		linear-gradient(160deg, rgba(8, 160, 69, 0.08), transparent 45%),
 		var(--mk-opp-white);
 }
 
@@ -951,8 +951,8 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-rec {
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-rec--done {
 	color: var(--mk-opp-text);
-	border-color: rgba(253, 187, 44, 0.35);
-	background: rgba(253, 187, 44, 0.08);
+	border-color: rgba(8, 160, 69, 0.35);
+	background: rgba(8, 160, 69, 0.08);
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-rec__icon {
@@ -1035,7 +1035,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-timel
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-timeline__item.is-active .mk-opp-timeline__dot {
 	background: var(--mk-opp-yellow);
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-timeline__item time {
@@ -1080,7 +1080,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-
 	letter-spacing: 0.05em;
 	margin: 0 0 28px 0 !important;
 	padding: 0 0 14px 10px !important;
-	border-bottom: 2px solid rgba(253, 187, 44, 0.45);
+	border-bottom: 2px solid rgba(8, 160, 69, 0.45);
 	line-height: 1.3;
 }
 
@@ -1435,14 +1435,14 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-creat
 	max-width: 1120px;
 	width: 100%;
 	box-sizing: border-box;
-	border: 1px solid rgba(253, 187, 44, 0.35);
+	border: 1px solid rgba(8, 160, 69, 0.35);
 	border-radius: 18px;
-	background: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+	background: linear-gradient(180deg, #ffffff 0%, #ecfdf3 100%);
 	box-shadow: 0 8px 28px rgba(64, 98, 126, 0.08);
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-form-footer .saveButton {
-	background: linear-gradient(135deg, var(--mk-opp-yellow) 0%, #e5a824 100%) !important;
+	background: linear-gradient(135deg, var(--mk-opp-yellow) 0%, #0B6E4F 100%) !important;
 	border: none !important;
 	color: #1a2834 !important;
 	padding: 14px 32px !important;

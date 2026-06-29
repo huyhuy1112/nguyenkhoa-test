@@ -106,6 +106,6 @@ body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-
 
 body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-page-btn:hover:not(:disabled),
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__footer .mk-so-page-btn:hover:not(:disabled) {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 }

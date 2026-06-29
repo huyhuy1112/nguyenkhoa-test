@@ -6,7 +6,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 :root {
-	--mk-so-yellow: #FDBB2C;
+	--mk-so-yellow: #08A045;
 	--mk-so-navy: #40627E;
 	--mk-so-surface: #F7F9FB;
 	--mk-so-surface-dim: #D8DADC;
@@ -221,7 +221,7 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hero__
 	padding: 28px 32px 24px;
 	border-radius: var(--mk-so-radius);
 	background:
-		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(253, 187, 44, 0.14), transparent 55%),
+		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(8, 160, 69, 0.14), transparent 55%),
 		radial-gradient(ellipse 60% 50% at 0% 100%, rgba(64, 98, 126, 0.07), transparent 50%),
 		var(--mk-so-white);
 	border: 1px solid var(--mk-so-border);
@@ -303,7 +303,7 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pill--
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pill--draft {
-	background: rgba(253, 187, 44, 0.18);
+	background: rgba(8, 160, 69, 0.18);
 	color: #7a5a12;
 }
 
@@ -360,7 +360,7 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-health
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-health__chip--warm {
-	background: rgba(253, 187, 44, 0.2);
+	background: rgba(8, 160, 69, 0.2);
 	color: #7a5a12;
 }
 
@@ -413,8 +413,8 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-owner_
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-forecast-preview {
 	padding: 8px 16px;
 	border-radius: var(--mk-so-radius-sm);
-	background: rgba(253, 187, 44, 0.12);
-	border: 1px solid rgba(253, 187, 44, 0.35);
+	background: rgba(8, 160, 69, 0.12);
+	border: 1px solid rgba(8, 160, 69, 0.35);
 	min-width: 120px;
 }
 
@@ -460,7 +460,7 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-btn {
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-btn--primary {
 	background: var(--mk-so-yellow);
 	color: var(--mk-so-text);
-	box-shadow: 0 4px 16px rgba(253, 187, 44, 0.45);
+	box-shadow: 0 4px 16px rgba(8, 160, 69, 0.45);
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-btn--primary:hover {
@@ -579,7 +579,7 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeli
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__stage.is-active .mk-so-pipeline__dot {
 	border-color: var(--mk-so-navy);
 	background: var(--mk-so-yellow);
-	box-shadow: 0 0 0 4px rgba(253, 187, 44, 0.25);
+	box-shadow: 0 0 0 4px rgba(8, 160, 69, 0.25);
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-pipeline__name {
@@ -624,7 +624,7 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-insigh
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-insight-card--hero {
 	background:
-		linear-gradient(160deg, rgba(253, 187, 44, 0.08), transparent 45%),
+		linear-gradient(160deg, rgba(8, 160, 69, 0.08), transparent 45%),
 		var(--mk-so-white);
 }
 
@@ -710,8 +710,8 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rec {
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rec--done {
 	color: var(--mk-so-text);
-	border-color: rgba(253, 187, 44, 0.35);
-	background: rgba(253, 187, 44, 0.08);
+	border-color: rgba(8, 160, 69, 0.35);
+	background: rgba(8, 160, 69, 0.08);
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rec__icon {
@@ -794,7 +794,7 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-timeli
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-timeline__item.is-active .mk-so-timeline__dot {
 	background: var(--mk-so-yellow);
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-timeline__item time {
@@ -839,7 +839,7 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 	letter-spacing: 0.05em;
 	margin: 0 0 28px 0 !important;
 	padding: 0 0 14px 10px !important;
-	border-bottom: 2px solid rgba(253, 187, 44, 0.45);
+	border-bottom: 2px solid rgba(8, 160, 69, 0.45);
 	line-height: 1.3;
 }
 
@@ -1222,14 +1222,14 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 	max-width: 1120px;
 	width: 100%;
 	box-sizing: border-box;
-	border: 1px solid rgba(253, 187, 44, 0.35);
+	border: 1px solid rgba(8, 160, 69, 0.35);
 	border-radius: 18px;
-	background: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+	background: linear-gradient(180deg, #ffffff 0%, #ecfdf3 100%);
 	box-shadow: 0 8px 28px rgba(64, 98, 126, 0.08);
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-form-footer .saveButton {
-	background: linear-gradient(135deg, var(--mk-so-yellow) 0%, #e5a824 100%) !important;
+	background: linear-gradient(135deg, var(--mk-so-yellow) 0%, #0B6E4F 100%) !important;
 	border: none !important;
 	color: #1a2834 !important;
 	padding: 14px 32px !important;
@@ -1417,7 +1417,7 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab tbody tr.lineItemRow:hover {
-	background: #fffbeb;
+	background: #ecfdf3;
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab tbody td {

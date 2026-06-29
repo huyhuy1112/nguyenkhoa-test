@@ -9,7 +9,7 @@ html.mk-wh-proto-ready body {
 	--mk-proto-border: #e2e8f0;
 	--mk-proto-text: #0f172a;
 	--mk-proto-muted: #64748b;
-	--mk-proto-accent: #fdbb2c;
+	--mk-proto-accent: #08A045;
 	--mk-proto-danger: #dc2626;
 	--mk-proto-radius: 14px;
 	--mk-proto-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
@@ -284,7 +284,7 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 .mk-wh-proto-pill--warn {
 	background: rgba(245, 158, 11, 0.16);
 	border-color: rgba(245, 158, 11, 0.45);
-	color: #92400e;
+	color: #073B3A;
 }
 
 .mk-wh-proto-pill--draft {
@@ -427,8 +427,8 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	background: rgba(253, 187, 44, 0.18);
-	border: 1px solid rgba(253, 187, 44, 0.38);
+	background: rgba(8, 160, 69, 0.18);
+	border: 1px solid rgba(8, 160, 69, 0.38);
 	border-radius: 12px;
 	padding: 8px 10px;
 	margin: 8px 0 12px;
@@ -442,7 +442,7 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	padding: 0 10px;
 	border-radius: 999px;
 	background: #fff;
-	border: 1px solid rgba(253, 187, 44, 0.55);
+	border: 1px solid rgba(8, 160, 69, 0.55);
 	font-weight: 800;
 	font-size: 12px;
 }
@@ -526,8 +526,8 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 }
 
 .mk-wh-proto-tab.is-active {
-	border-color: rgba(253, 187, 44, 0.7);
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.18);
+	border-color: rgba(8, 160, 69, 0.7);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.18);
 }
 
 .mk-wh-proto-tab.is-active .mk-wh-proto-tab__ic {
@@ -614,7 +614,7 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-modal__head {
 	padding: 16px 22px;
-	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 48%, #fde68a 100%);
+	background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 48%, #bbf7d0 100%);
 	color: #78350f;
 	border-bottom: 1px solid rgba(251, 191, 36, 0.35);
 }
@@ -624,7 +624,7 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 }
 
 .mk-wh-proto-modal__dialog--lux .mk-wh-proto-modal__close {
-	color: #92400e;
+	color: #073B3A;
 }
 
 .mk-wh-proto-modal__dialog--lux .mk-wh-proto-modal__title {
@@ -1316,7 +1316,7 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 .mk-wh-proto-tag--qc {
 	background: rgba(245, 158, 11, 0.16);
 	border-color: rgba(245, 158, 11, 0.45);
-	color: #92400e;
+	color: #073B3A;
 }
 
 .mk-wh-proto-quote {
@@ -1462,8 +1462,8 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 }
 
 .mk-wh-proto-pill--warn {
-	background: rgba(253, 187, 44, 0.18);
-	border-color: rgba(253, 187, 44, 0.55);
+	background: rgba(8, 160, 69, 0.18);
+	border-color: rgba(8, 160, 69, 0.55);
 }
 
 @media (max-width: 1060px) {

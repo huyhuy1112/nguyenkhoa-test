@@ -287,7 +287,7 @@ html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-fi
 }
 
 html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-leads-filter__option.is-active {
-	background: rgba(253, 187, 44, 0.15) !important;
+	background: rgba(8, 160, 69, 0.15) !important;
 	color: var(--mk-primary) !important;
 }
 
@@ -338,9 +338,9 @@ html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-chip--pu
 }
 
 html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-chip--gold {
-	background: rgba(253, 187, 44, 0.18) !important;
-	border-color: rgba(253, 187, 44, 0.45) !important;
-	color: #fcd34d !important;
+	background: rgba(8, 160, 69, 0.18) !important;
+	border-color: rgba(8, 160, 69, 0.45) !important;
+	color: #6BBF59 !important;
 }
 
 html[data-theme="dark"] body[data-module="Leads"][data-view="List"] .mk-chip--silver {
@@ -470,7 +470,7 @@ html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-ap
 }
 
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-qualification .dot {
-	background-color: #f4b122 !important;
+	background-color: #6BBF59 !important;
 }
 
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage-valueprop .dot {
@@ -1073,9 +1073,9 @@ body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .HistoryContainer 
 
 html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .HistoryContainer .historyButtons .btn.btn-success,
 body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .HistoryContainer .historyButtons .btn.btn-success {
-	background: rgba(253, 187, 44, 0.2) !important;
-	border-color: rgba(253, 187, 44, 0.45) !important;
-	color: #fde68a !important;
+	background: rgba(8, 160, 69, 0.2) !important;
+	border-color: rgba(8, 160, 69, 0.45) !important;
+	color: #bbf7d0 !important;
 }
 
 html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .updates_timeline:before,
@@ -1218,9 +1218,9 @@ body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .
 html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow th.inline-search-btn [data-trigger="relatedListSearch"],
 html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .relatedContents .listview-table thead tr.searchRow th.inline-search-btn [data-trigger="relatedListSearch"],
 body[data-theme="dark"][data-app="SALES"][data-view="Detail"] .relatedContents .listview-table thead tr.searchRow [data-trigger="relatedListSearch"] {
-	background: rgba(253, 187, 44, 0.18) !important;
-	border-color: rgba(253, 187, 44, 0.4) !important;
-	color: #fde68a !important;
+	background: rgba(8, 160, 69, 0.18) !important;
+	border-color: rgba(8, 160, 69, 0.4) !important;
+	color: #bbf7d0 !important;
 }
 
 html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .relatedHeader .btn,

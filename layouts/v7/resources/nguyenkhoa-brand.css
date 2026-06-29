@@ -1,0 +1,365 @@
+/**
+ * NGUYÊN KHOA — brand overrides (logo + green-only UI).
+ * Pigment Green #08A045 | Dartmouth #0B6E4F | Mantis #6BBF59 | Midnight #073B3A
+ */
+:root {
+	--nk-green: #08a045;
+	--nk-green-dark: #0b6e4f;
+	--nk-green-light: #6bbf59;
+	--nk-green-pale: #ecfdf3;
+	--nk-green-hover: #d1fae5;
+	--nk-green-deep: #073b3a;
+
+	--mk-primary: var(--nk-green);
+	--mk-primary-hover: var(--nk-green-dark);
+	--mk-brand-light: var(--nk-green-light);
+	--mk-brand-deep: var(--nk-green-deep);
+	--mk-btn-primary-bg: var(--nk-green);
+	--mk-btn-primary-text: #ffffff;
+	--mk-input-focus-border: var(--nk-green);
+	--mk-input-focus-ring: rgba(8, 160, 69, 0.22);
+	--mk-sidebar-active-bg: var(--nk-green-pale);
+	--mk-sidebar-active-border: var(--nk-green);
+	--mk-sidebar-active-text: var(--nk-green-dark);
+	--mk-sidebar-icon-active: var(--nk-green);
+	--mk-sidebar-hover-bg: var(--nk-green-dark);
+	--mk-amber: var(--nk-green);
+	--mk-amber-border: rgba(8, 160, 69, 0.45);
+	--mk-lux-gold-deep: var(--nk-green-dark);
+	--mk-chart-secondary: var(--nk-green);
+}
+
+html[data-theme="dark"] {
+	--mk-primary: var(--nk-green);
+	--mk-primary-hover: var(--nk-green-light);
+	--mk-border-accent: rgba(8, 160, 69, 0.35);
+	--mk-sidebar-active-bg: rgba(8, 160, 69, 0.14);
+	--mk-sidebar-active-border: var(--nk-green);
+	--mk-sidebar-active-text: var(--nk-green-light);
+	--mk-sidebar-icon-active: var(--nk-green-light);
+	--mk-input-focus-border: var(--nk-green);
+	--mk-input-focus-ring: rgba(8, 160, 69, 0.18);
+	--mk-btn-primary-bg: var(--nk-green);
+	--mk-btn-primary-text: #ffffff;
+	--mk-table-row-hover: rgba(8, 160, 69, 0.08);
+	--mk-chart-primary: var(--nk-green);
+	--mk-kpi-inventory: var(--nk-green);
+	--mk-amber: var(--nk-green);
+	--mk-amber-border: rgba(8, 160, 69, 0.45);
+	--mk-lux-gold-deep: var(--nk-green-light);
+}
+
+/* Logo — centered in sidebar brand area */
+.mk-dash-sidebar-brand:has(.nguyenkhoa-logo) {
+	align-items: center;
+	justify-content: center;
+	padding: 12px 14px 10px;
+	min-height: 104px;
+}
+
+.mk-dash-sidebar-brand:not(:has(#appnavigator)) .mk-dash-sidebar-logo {
+	width: 100%;
+	flex: 1 1 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo:has(.nguyenkhoa-logo) {
+	display: flex !important;
+	justify-content: center !important;
+	align-items: center !important;
+	width: 100% !important;
+	height: auto !important;
+	max-height: none !important;
+	min-height: 88px !important;
+	padding: 0 !important;
+}
+
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo img.nguyenkhoa-logo,
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo .mk-dash-bace-logo.nguyenkhoa-logo {
+	display: block !important;
+	width: auto !important;
+	max-width: 100% !important;
+	height: auto !important;
+	max-height: 96px !important;
+	min-height: 72px !important;
+	margin: 0 auto !important;
+	object-fit: contain !important;
+	object-position: center center !important;
+}
+
+/* Only one logo in sidebar — hide legacy light/dark pair if still present */
+.mk-dash-bace-logo--dark.nguyenkhoa-logo {
+	display: none !important;
+}
+
+html[data-theme="dark"] .mk-dash-bace-logo--light.nguyenkhoa-logo {
+	display: none !important;
+}
+
+html[data-theme="dark"] .mk-dash-bace-logo--dark.nguyenkhoa-logo {
+	display: block !important;
+}
+
+.loginPageContainer .user-logo.nguyenkhoa-logo {
+	max-height: 5rem !important;
+	max-width: min(18rem, 78%) !important;
+}
+
+html[data-theme="dark"] .mk-dash-sidebar-brand .nguyenkhoa-logo {
+	background: #ffffff;
+	border-radius: 10px;
+	padding: 4px 10px;
+	box-sizing: border-box;
+}
+
+/* Sidebar — green active states (override any leftover amber) */
+.mk-dash-nav-item--active,
+.mk-dash-app-group--active > .mk-dash-app-toggle,
+.mk-dash-mod-link--active {
+	background: var(--nk-green-pale) !important;
+	color: var(--nk-green-dark) !important;
+	box-shadow: inset -4px 0 0 var(--nk-green) !important;
+}
+
+.mk-dash-nav-item--active .mk-dash-nav-label,
+.mk-dash-nav-item--active .mk-dash-svg,
+.mk-dash-app-group--active > .mk-dash-app-toggle .mk-dash-svg {
+	color: var(--nk-green-dark) !important;
+}
+
+/* Sidebar — hover: light green (active) → dark green (never yellow) */
+.mk-dash-app-toggle:hover,
+.mk-dash-app-toggle:focus,
+.mk-dash-mod-link:hover,
+.mk-dash-nav-item:hover,
+.mk-dash-sidebar-brand #appnavigator.mk-dash-appnavigator:hover {
+	background: var(--nk-green-dark) !important;
+	color: #ffffff !important;
+}
+
+.mk-dash-app-toggle:hover .mk-dash-svg,
+.mk-dash-app-toggle:focus .mk-dash-svg,
+.mk-dash-app-toggle:hover .mk-dash-app-label,
+.mk-dash-app-toggle:focus .mk-dash-app-label,
+.mk-dash-app-toggle:hover .mk-dash-app-chevron,
+.mk-dash-app-toggle:focus .mk-dash-app-chevron,
+.mk-dash-nav-item:hover .mk-dash-nav-label,
+.mk-dash-nav-item:hover .mk-dash-svg {
+	color: #ffffff !important;
+}
+
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:hover,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus {
+	background: var(--nk-green-dark) !important;
+	color: #ffffff !important;
+}
+
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:hover .mk-dash-svg,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus .mk-dash-svg {
+	color: #ffffff !important;
+}
+
+.mk-dash-app-group--active > .mk-dash-app-toggle:hover,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus,
+.mk-dash-mod-link--active:hover {
+	background: var(--nk-green-dark) !important;
+	color: #ffffff !important;
+	box-shadow: inset -4px 0 0 var(--nk-green-light) !important;
+}
+
+.mk-dash-app-group--active > .mk-dash-app-toggle:hover .mk-dash-svg,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus .mk-dash-svg,
+.mk-dash-mod-link--active:hover {
+	color: #ffffff !important;
+}
+
+.mk-dash-nav-item--active:hover {
+	background: var(--nk-green-dark) !important;
+	color: #ffffff !important;
+}
+
+.mk-dash-nav-item--active:hover .mk-dash-nav-label,
+.mk-dash-nav-item--active:hover .mk-dash-svg {
+	color: #ffffff !important;
+}
+
+/* Primary action buttons — dark green hover (override legacy #ffc85c amber) */
+body [class*="btn--primary"]:hover,
+body .mk-opportunity-btn--primary:hover,
+body .mk-projecttask-btn--primary:hover,
+body .mk-project-btn--primary:hover,
+body .btn.buttonBlue:hover,
+body .btn-primary:hover:not(.disabled):not(:disabled) {
+	background: var(--nk-green-dark) !important;
+	border-color: var(--nk-green-deep) !important;
+	color: #ffffff !important;
+	text-shadow: none !important;
+}
+
+body [class*="btn--primary"]:hover .mk-dash-topbar-svg,
+body .mk-opportunity-btn--primary:hover .mk-opportunity-btn__ic {
+	color: #ffffff !important;
+}
+
+/* Footer accent — green only */
+body .app-footer.mk-app-footer .mk-app-footer__accent {
+	background: linear-gradient(
+		90deg,
+		rgba(8, 160, 69, 0.15) 0%,
+		var(--nk-green) 18%,
+		var(--nk-green-light) 50%,
+		var(--nk-green-dark) 82%,
+		rgba(7, 59, 58, 0.15) 100%
+	) !important;
+}
+
+/* Table rows — light green → darker green on hover */
+#listview-table tbody tr.listViewEntries:hover,
+#listViewContent #listview-table tbody tr.listViewEntries:hover,
+.listview-table tbody tr.listViewEntries:hover {
+	background: var(--nk-green-pale) !important;
+}
+
+#listview-table tbody tr.listViewEntries:hover td,
+.listview-table tbody tr.listViewEntries:hover td {
+	background: var(--nk-green-pale) !important;
+}
+
+#listview-table tbody tr.listViewEntries:hover td:first-child,
+.listview-table tbody tr.listViewEntries:hover td:first-child {
+	box-shadow: inset 3px 0 0 var(--nk-green) !important;
+}
+
+#listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
+#listview-table tbody tr.listViewEntries.mk-project-row-selected {
+	background: var(--nk-green-hover) !important;
+}
+
+/* Detail related lists */
+body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table tbody tr.listViewEntries:hover td {
+	background: var(--nk-green-pale) !important;
+}
+
+body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table tbody tr.listViewEntries td a {
+	color: var(--nk-green-dark) !important;
+}
+
+body[data-app="SALES"][data-view="Detail"] .relatedContents .listview-table tbody tr.listViewEntries td a:hover {
+	color: var(--nk-green) !important;
+}
+
+/* Settings — green active nav (override SettingsUi.css yellow accent) */
+body[data-parent="Settings"] {
+	--mk-settings-accent: var(--nk-green);
+	--mk-settings-accent-hover: var(--nk-green-dark);
+}
+
+body[data-parent="Settings"] .mk-dash-nav-item--active {
+	background: var(--nk-green-pale) !important;
+	color: var(--nk-green-dark) !important;
+	box-shadow: inset -4px 0 0 var(--nk-green) !important;
+}
+
+body[data-parent="Settings"] .mk-dash-nav-item--active .mk-dash-nav-ic,
+body[data-parent="Settings"] .mk-dash-nav-item--active .mk-dash-nav-label,
+body[data-parent="Settings"] .mk-dash-nav-item--active .mk-dash-svg {
+	color: var(--nk-green-dark) !important;
+}
+
+body[data-parent="Settings"] .mk-dash-nav-item--active:hover {
+	background: var(--nk-green-dark) !important;
+	color: #ffffff !important;
+}
+
+body[data-parent="Settings"] .mk-dash-nav-item--active:hover .mk-dash-nav-ic,
+body[data-parent="Settings"] .mk-dash-nav-item--active:hover .mk-dash-nav-label,
+body[data-parent="Settings"] .mk-dash-nav-item--active:hover .mk-dash-svg {
+	color: #ffffff !important;
+}
+
+body[data-parent="Settings"] .mk-settings-btn--primary,
+body[data-parent="Settings"] .mk-settings-subpage .btn-success,
+body[data-parent="Settings"] .mk-settings-subpage .saveButton {
+	background: var(--nk-green) !important;
+	border-color: var(--nk-green) !important;
+	color: #ffffff !important;
+}
+
+body[data-parent="Settings"] .mk-settings-btn--primary:hover,
+body[data-parent="Settings"] .mk-settings-subpage .btn-success:hover,
+body[data-parent="Settings"] .mk-settings-subpage .saveButton:hover {
+	background: var(--nk-green-dark) !important;
+	border-color: var(--nk-green-dark) !important;
+	color: #ffffff !important;
+}
+
+/* Kill remaining brand-yellow accents globally */
+[class*="--gold"],
+.is-gold,
+.mk-dashboard-kicker {
+	color: var(--nk-green) !important;
+}
+
+body .app-footer.mk-app-footer .mk-app-footer__logo {
+	color: var(--nk-green) !important;
+}
+
+body[data-view="Login"] .bace-slide h3,
+body[data-view="Login"] .bace-brand-title .is-gold,
+body[data-view="Login"] .bace-value h4 {
+	color: var(--nk-green) !important;
+}
+
+/* Opportunity stage pills — early stages use green tints not yellow */
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-stage-pill--qualification,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-stage-pill--prospecting,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-stage-pill--needs-analysis {
+	background: #dcfce7 !important;
+	color: #073b3a !important;
+}
+
+body[data-view="Detail"][data-app="SALES"] #detailView td.fieldValue:hover .action,
+body[data-view="Detail"][data-app="SALES"] table.summary-table td.fieldValue:hover .action,
+body[data-view="Detail"][data-app="SALES"] #detailView td.fieldValue .editAction:hover,
+body[data-view="Detail"][data-app="SALES"] table.summary-table td.fieldValue .editAction:hover {
+	background: var(--nk-green-pale) !important;
+	color: var(--nk-green-dark) !important;
+}
+
+/* Green primary buttons — white text, no bootstrap text-shadow halo */
+.dashBoardTabContainer .mk-dash-modify-dropdown > .btn,
+.dashBoardTabContainer .mk-dashboard-heading--inline .btn.addButton,
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn,
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-modify-dropdown > .btn.btn-default,
+.btn.buttonBlue,
+.mk-opportunity-btn--primary,
+.mk-so-btn--primary {
+	color: #ffffff !important;
+	text-shadow: none !important;
+	-webkit-font-smoothing: antialiased;
+}
+
+.dashBoardTabContainer .mk-dash-modify-dropdown > .btn:hover,
+.dashBoardTabContainer .mk-dashboard-heading--inline .btn.addButton:hover,
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn:hover,
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-modify-dropdown > .btn.btn-default:hover {
+	color: #ffffff !important;
+	text-shadow: none !important;
+}
+
+.dashBoardTabContainer .mk-dash-modify-dropdown > .btn .caret,
+.dashBoardTabContainer .mk-dashboard-heading--inline .btn.addButton .caret,
+body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn .caret {
+	border-top-color: #ffffff !important;
+}

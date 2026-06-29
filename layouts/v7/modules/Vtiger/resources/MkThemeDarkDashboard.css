@@ -88,7 +88,7 @@ html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboa
 
 html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData > div:hover,
 html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="OverdueActivities"] .dashboardWidgetData > div:hover {
-	background: rgba(253, 187, 44, 0.08) !important;
+	background: rgba(8, 160, 69, 0.08) !important;
 }
 
 html[data-theme="dark"] body[data-view="DashBoard"][data-module="Home"] .dashboardWidget[data-name="CalendarActivities"] .dashboardWidgetData a,

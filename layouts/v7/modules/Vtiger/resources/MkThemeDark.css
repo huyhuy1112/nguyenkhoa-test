@@ -440,8 +440,8 @@ html[data-theme="dark"] .mk-wh-row--expiring {
 /* ========================================================================== */
 
 html[data-theme="dark"] .mk-gi-chip {
-	background: rgba(253, 187, 44, 0.12) !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
 	color: var(--mk-primary) !important;
 }
 
@@ -499,8 +499,8 @@ html[data-theme="dark"] .badge-info {
 
 html[data-theme="dark"] .mk-gr-detail-stat--accent,
 html[data-theme="dark"] .mk-wh-kpi-card--warn {
-	background: rgba(253, 187, 44, 0.08) !important;
-	border-color: rgba(253, 187, 44, 0.25) !important;
+	background: rgba(8, 160, 69, 0.08) !important;
+	border-color: rgba(8, 160, 69, 0.25) !important;
 }
 
 html[data-theme="dark"] .mk-gr-detail-stat__value {
@@ -527,7 +527,7 @@ html[data-theme="dark"] .mk-gr-detail-topnav a.is-active,
 html[data-theme="dark"] .mk-gi-topnav a.is-active {
 	background: var(--mk-sidebar-active-bg) !important;
 	color: var(--mk-primary) !important;
-	box-shadow: inset 0 0 0 1px rgba(253, 187, 44, 0.25) !important;
+	box-shadow: inset 0 0 0 1px rgba(8, 160, 69, 0.25) !important;
 }
 
 html[data-theme="dark"] .mk-gi-breadcrumb__item a,
@@ -648,7 +648,7 @@ html[data-theme="dark"] #modern-notifications-container .modern-notifications-ac
 
 html[data-theme="dark"] #modern-notifications-container #modern-notifications-mark-all-read.modern-notifications-action-txt,
 html[data-theme="dark"] #modern-notifications-container #modern-notifications-mark-all-read .modern-notifications-action-ic-doublecheck {
-	color: #fbbf24 !important;
+	color: #08A045 !important;
 }
 
 html[data-theme="dark"] #modern-notifications-container .modern-notifications-trash-icon,
