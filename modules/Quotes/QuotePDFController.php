@@ -9,6 +9,7 @@
  ************************************************************************************/
 	
 include_once 'include/InventoryPDFController.php';
+require_once 'modules/Inventory/helpers/TermsDisplayHelper.php';
 
 class Vtiger_QuotePDFController extends Vtiger_InventoryPDFController{
 	function buildHeaderModelTitle() {
@@ -22,6 +23,48 @@ class Vtiger_QuotePDFController extends Vtiger_InventoryPDFController{
 
 	function getWatermarkContent() {
 		return $this->focusColumnValue('quotestatus');
+	}
+
+	function buildHeaderModelColumnLeft() {
+		require_once 'modules/Quotes/helpers/QuoteBaService.php';
+		$company = Quotes_QuoteBaService_Helper::getCompanyProfile();
+		$contentLines = array();
+		if (!empty($company['tax_code'])) {
+			$contentLines[] = 'MST: ' . $company['tax_code'];
+		}
+		if (!empty($company['address'])) {
+			$contentLines[] = $company['address'];
+		}
+		if (!empty($company['phone'])) {
+			$contentLines[] = getTranslatedString('Phone: ', $this->moduleName) . $company['phone'];
+		}
+
+		$logoPath = $company['logo_path'];
+		if ($logoPath === '' || !is_readable($logoPath)) {
+			global $adb;
+			$result = $adb->pquery('SELECT logoname FROM vtiger_organizationdetails LIMIT 1', array());
+			if ($result && $adb->num_rows($result)) {
+				$logoname = $adb->query_result($result, 0, 'logoname');
+				if ($logoname) {
+					$logoPath = 'test/logo/' . $logoname;
+				}
+			}
+		}
+
+		return array(
+			'logo' => $logoPath,
+			'summary' => $company['company_name'],
+			'content' => implode("\n", $contentLines),
+		);
+	}
+
+	function buildFooterModel() {
+		$footerModel = new Vtiger_PDF_Model();
+		$description = Inventory_TermsDisplayHelper::htmlToPlainText($this->focusColumnValue('description'));
+		$terms = Inventory_TermsDisplayHelper::htmlToPlainText($this->focusColumnValue('terms_conditions'));
+		$footerModel->set(Vtiger_PDF_InventoryFooterViewer::$DESCRIPTION_DATA_KEY, $description);
+		$footerModel->set(Vtiger_PDF_InventoryFooterViewer::$TERMSANDCONDITION_DATA_KEY, $terms);
+		return $footerModel;
 	}
 
 	function buildHeaderModelColumnRight() {

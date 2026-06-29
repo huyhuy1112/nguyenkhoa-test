@@ -39,6 +39,8 @@
     {else}
         <span class="currencyValue">{$FIELD_MODEL->getDisplayValue($FIELD_MODEL->get('fieldvalue'))}</span>&nbsp;{$CURRENCY_SYMBOL}
     {/if}
+{else if $FIELD_MODEL->get('name') eq 'terms_conditions' || ($FIELD_MODEL->get('name') eq 'description' && $FIELD_MODEL->getFieldDataType() eq 'text')}
+    <div class="mk-inventory-terms-rendered">{$FIELD_MODEL->getDisplayValue($FIELD_MODEL->get('fieldvalue'), $RECORD->getId(), $RECORD) nofilter}</div>
 {else if  $FIELD_MODEL->get('name') eq 'signature'}
 	{decode_html($FIELD_MODEL->getDisplayValue($FIELD_MODEL->get('fieldvalue'), $RECORD->getId(), $RECORD))}
 {else}

@@ -87,6 +87,9 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 			$relatedProducts = $parentRecordModel->getProducts();
 			$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
 			$recordModel->setRecordFieldValues($parentRecordModel);
+			if ($moduleName === 'SalesOrder' && $request->get('quote_id')) {
+				$recordModel->set('quote_id', $referenceId);
+			}
 		} else {
 			$taxes = Inventory_Module_Model::getAllProductTaxes();
 			$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);

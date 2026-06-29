@@ -23,6 +23,9 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 
 		$linkModelList = parent::getDetailViewLinks($linkParams);
 		$recordModel = $this->getRecord();
+		if (!($recordModel instanceof Quotes_Record_Model) && $recordModel->getId()) {
+			$recordModel = Quotes_Record_Model::getInstanceById($recordModel->getId(), 'Quotes');
+		}
 
 		// Filter Quote exports based on saved line-item types (Product vs Service).
 		$quoteId = (int) $recordModel->getId();
@@ -40,14 +43,30 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 		}
 		
 		$salesOrderModuleModel = Vtiger_Module_Model::getInstance('SalesOrder');
-		if($currentUserModel->hasModuleActionPermission($salesOrderModuleModel->getId(), 'CreateView')) {
-			$basicActionLink = array(
-				'linktype' => 'DETAILVIEW',
-				'linklabel' => vtranslate('LBL_GENERATE').' '.vtranslate($salesOrderModuleModel->getSingularLabelKey(), 'SalesOrder'),
+		if ($recordModel->hasLinkedSalesOrder()) {
+			if ($currentUserModel->hasModuleActionPermission($salesOrderModuleModel->getId(), 'DetailView')) {
+				$viewSalesOrderLink = Vtiger_Link_Model::getInstanceFromValues(array(
+					'linktype' => 'DETAILVIEWBASIC',
+					'linklabel' => 'LBL_VIEW_SALES_ORDER',
+					'linkurl' => $recordModel->getLinkedSalesOrderDetailViewUrl(),
+					'linkicon' => '',
+				));
+				$linkModelList['DETAILVIEWBASIC'] = $this->insertQuoteSalesOrderBasicLink(
+					isset($linkModelList['DETAILVIEWBASIC']) ? $linkModelList['DETAILVIEWBASIC'] : array(),
+					$viewSalesOrderLink
+				);
+			}
+		} elseif ($currentUserModel->hasModuleActionPermission($salesOrderModuleModel->getId(), 'CreateView')) {
+			$createSalesOrderLink = Vtiger_Link_Model::getInstanceFromValues(array(
+				'linktype' => 'DETAILVIEWBASIC',
+				'linklabel' => 'LBL_CREATE_SALES_ORDER',
 				'linkurl' => $recordModel->getCreateSalesOrderUrl(),
-				'linkicon' => ''
+				'linkicon' => '',
+			));
+			$linkModelList['DETAILVIEWBASIC'] = $this->insertQuoteSalesOrderBasicLink(
+				isset($linkModelList['DETAILVIEWBASIC']) ? $linkModelList['DETAILVIEWBASIC'] : array(),
+				$createSalesOrderLink
 			);
-			$linkModelList['DETAILVIEW'][] = Vtiger_Link_Model::getInstanceFromValues($basicActionLink);
 		}
 
 		$purchaseOrderModuleModel = Vtiger_Module_Model::getInstance('PurchaseOrder');
@@ -74,6 +93,14 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 
 				$isSaleExport = (strpos($linkUrl, 'action=ExportExcelForSale') !== false);
 				$isProjectExport = (strpos($linkUrl, 'action=ExportExcelForProject') !== false);
+				$isCreateSalesOrderFromQuote = (
+					strpos($linkUrl, 'module=SalesOrder') !== false
+					&& strpos($linkUrl, 'quote_id=') !== false
+				);
+
+				if ($isCreateSalesOrderFromQuote) {
+					continue;
+				}
 
 				// Business rule:
 				// - If ANY Product exists in the quote (product_only or mixed) => keep only Sale export.
@@ -115,6 +142,27 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 			$result[] = $link;
 		}
 		return $result;
+	}
+
+	/**
+	 * Insert Sales Order CTA before Edit on the Quote detail topbar.
+	 */
+	protected function insertQuoteSalesOrderBasicLink(array $basicLinks, Vtiger_Link_Model $salesOrderLink) {
+		$reorderedBasicLinks = array();
+		$inserted = false;
+		foreach ($basicLinks as $basicLink) {
+			$basicLabel = is_object($basicLink) && method_exists($basicLink, 'getLabel')
+				? $basicLink->getLabel() : '';
+			if (!$inserted && $basicLabel === 'LBL_EDIT') {
+				$reorderedBasicLinks[] = $salesOrderLink;
+				$inserted = true;
+			}
+			$reorderedBasicLinks[] = $basicLink;
+		}
+		if (!$inserted) {
+			$reorderedBasicLinks[] = $salesOrderLink;
+		}
+		return $reorderedBasicLinks;
 	}
 		
 }

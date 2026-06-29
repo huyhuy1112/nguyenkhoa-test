@@ -41,6 +41,9 @@ $languageStrings = array(
 	'LBL_IS_DELETED_FROM_THE_SYSTEM_PLEASE_REMOVE_OR_REPLACE_THIS_ITEM' => 'is deleted from the system.please remove or replace this item',
 	'LBL_THIS_LINE_ITEM_IS_DELETED_FROM_THE_SYSTEM_PLEASE_REMOVE_THIS_LINE_ITEM' => 'This line item is deleted from the system,please remove this line items',
 
+	'LBL_CREATE_SALES_ORDER' => 'Create Sales Order',
+	'LBL_VIEW_SALES_ORDER' => 'View Sales Order',
+	'LBL_QUOTE_ALREADY_HAS_SALES_ORDER' => 'This quote already has a sales order. Only one sales order is allowed per quote.',
 	'LBL_MK_QUOTE_SUMMARY' => 'Quote Summary',
 	'LBL_MK_QUOTE_VAT' => 'Totals & VAT',
 	'Quote Date' => 'Quote Date',

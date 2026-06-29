@@ -19,6 +19,11 @@ class Vtiger_Text_UIType extends Vtiger_Base_UIType {
 		if(in_array($this->get('field')->getFieldName(),array('signature','commentcontent'))) {
 			return $value;
 		}
+		$fieldName = $this->get('field')->getFieldName();
+		if ($fieldName === 'terms_conditions' || ($fieldName === 'description' && !$removeTags)) {
+			require_once 'modules/Inventory/helpers/TermsDisplayHelper.php';
+			return Inventory_TermsDisplayHelper::htmlToSafeDetailHtml($value);
+		}
                 if($removeTags){
                     $value = strip_tags($value,'<br>');
                 }

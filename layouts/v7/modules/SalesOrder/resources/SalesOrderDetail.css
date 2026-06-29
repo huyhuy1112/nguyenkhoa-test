@@ -1883,3 +1883,25 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 	background: #2c4a66 !important;
 	border-color: #2c4a66 !important;
 }
+
+/* Terms & conditions — render rich text instead of raw HTML tags */
+.mk-inventory-terms-rendered,
+body[data-module="Quotes"][data-view="Detail"] .mk-inventory-terms-rendered,
+body[data-module="SalesOrder"][data-view="Detail"] .mk-inventory-terms-rendered {
+	font-size: 14px;
+	line-height: 1.65;
+	color: #334155;
+	white-space: normal;
+	word-break: break-word;
+}
+
+.mk-inventory-terms-rendered p,
+body[data-module="Quotes"][data-view="Detail"] .mk-inventory-terms-rendered p,
+body[data-module="SalesOrder"][data-view="Detail"] .mk-inventory-terms-rendered p {
+	margin: 0 0 0.65em;
+}
+
+.mk-inventory-terms-rendered strong,
+.mk-inventory-terms-rendered em {
+	color: #0f172a;
+}

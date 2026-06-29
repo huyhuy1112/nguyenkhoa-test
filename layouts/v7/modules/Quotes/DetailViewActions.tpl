@@ -22,12 +22,20 @@
 			{/if}
 			{foreach item=DETAIL_VIEW_BASIC_LINK from=$DETAILVIEW_LINKS['DETAILVIEWBASIC']}
 				{assign var=MK_BASIC_LBL value=$DETAIL_VIEW_BASIC_LINK->getLabel()}
-				<button type="button" class="btn btn-default mk-qt-detail-btn {if $MK_BASIC_LBL eq 'LBL_EDIT' or $MK_BASIC_LBL eq 'LBL_SEND_EMAIL'}mk-qt-detail-btn--primary{/if}" id="{$MODULE_NAME}_detailView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_BASIC_LBL)}"
-						{if $DETAIL_VIEW_BASIC_LINK->isPageLoadLink()}
+				<button type="button" class="btn btn-default mk-qt-detail-btn {if $MK_BASIC_LBL eq 'LBL_CREATE_SALES_ORDER'}mk-qt-detail-btn--convert{elseif $MK_BASIC_LBL eq 'LBL_VIEW_SALES_ORDER'}mk-qt-detail-btn--view-so{elseif $MK_BASIC_LBL eq 'LBL_EDIT' or $MK_BASIC_LBL eq 'LBL_SEND_EMAIL'}mk-qt-detail-btn--primary{/if}" id="{$MODULE_NAME}_detailView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_BASIC_LBL)}"
+						{if $DETAIL_VIEW_BASIC_LINK->isPageLoadLink() && !$DETAIL_VIEW_BASIC_LINK->getUrl()|strstr:'app='}
 							onclick="window.location.href = '{$DETAIL_VIEW_BASIC_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}'"
+						{elseif $DETAIL_VIEW_BASIC_LINK->isPageLoadLink()}
+							onclick="window.location.href = '{$DETAIL_VIEW_BASIC_LINK->getUrl()}'"
 						{else}
 							onclick="{$DETAIL_VIEW_BASIC_LINK->getUrl()}"
 						{/if}>
+					{if $MK_BASIC_LBL eq 'LBL_VIEW_SALES_ORDER'}
+					<span class="mk-qt-detail-btn__ic" aria-hidden="true"><svg class="mk-qt-detail-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+					{/if}
+					{if $MK_BASIC_LBL eq 'LBL_CREATE_SALES_ORDER'}
+					<span class="mk-qt-detail-btn__ic" aria-hidden="true"><svg class="mk-qt-detail-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+					{/if}
 					{if $MK_BASIC_LBL eq 'LBL_EDIT'}
 					<span class="mk-qt-detail-btn__ic" aria-hidden="true"><svg class="mk-qt-detail-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
 					{/if}

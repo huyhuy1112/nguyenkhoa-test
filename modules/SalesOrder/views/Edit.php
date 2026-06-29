@@ -163,9 +163,29 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		}
 
 		if ($this->isMkModernSalesOrderCreate($request)) {
+			$this->redirectIfQuoteAlreadyHasSalesOrder($request);
 			$this->assignModernContext($request);
 		}
 		parent::process($request);
+	}
+
+	protected function redirectIfQuoteAlreadyHasSalesOrder(Vtiger_Request $request) {
+		if (!empty($request->get('record'))) {
+			return;
+		}
+		$quoteId = (int) $request->get('quote_id');
+		if ($quoteId <= 0) {
+			return;
+		}
+		$quoteModel = Vtiger_Record_Model::getInstanceById($quoteId, 'Quotes');
+		if (!$quoteModel instanceof Quotes_Record_Model || !$quoteModel->hasLinkedSalesOrder()) {
+			return;
+		}
+		$redirectUrl = $quoteModel->getLinkedSalesOrderDetailViewUrl();
+		if ($redirectUrl) {
+			header('Location: ' . $redirectUrl);
+			exit;
+		}
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {

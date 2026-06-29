@@ -585,6 +585,37 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-b
 	border-color: #40627e;
 }
 
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-btn--view-so {
+	background: #fff !important;
+	border-color: #2563eb;
+	color: #1d4ed8;
+	font-weight: 700;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-btn--view-so:hover,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-btn--view-so:focus {
+	background: #eff6ff !important;
+	color: #1d4ed8;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-btn--convert {
+	background: #22c55e !important;
+	background-image: none !important;
+	border-color: #16a34a;
+	color: #fff;
+	font-weight: 700;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-btn--convert:hover,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-btn--convert:focus {
+	background: #16a34a !important;
+	color: #fff;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-btn--convert .mk-qt-detail-svg {
+	stroke: #fff;
+}
+
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-btn--primary {
 	background: #fdbb2c !important;
 	background-image: none !important;
@@ -2787,4 +2818,24 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-d
 	font-size: 16px;
 	font-weight: 500;
 	letter-spacing: 0.04em;
+}
+
+/* Terms & conditions — render rich text instead of raw HTML tags */
+.mk-inventory-terms-rendered,
+body[data-module="Quotes"][data-view="Detail"] .mk-inventory-terms-rendered {
+	font-size: 14px;
+	line-height: 1.65;
+	color: #334155;
+	white-space: normal;
+	word-break: break-word;
+}
+
+.mk-inventory-terms-rendered p,
+body[data-module="Quotes"][data-view="Detail"] .mk-inventory-terms-rendered p {
+	margin: 0 0 0.65em;
+}
+
+.mk-inventory-terms-rendered strong,
+.mk-inventory-terms-rendered em {
+	color: #0f172a;
 }

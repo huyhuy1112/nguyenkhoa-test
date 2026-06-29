@@ -155,9 +155,24 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 	}
 
 	public function saveRecord($request) {
+		$this->assertQuoteCanCreateSalesOrder($request);
 		$recordModel = parent::saveRecord($request);
 		$this->ensurePotentialCommerceLink($request, $recordModel);
 		return $recordModel;
+	}
+
+	protected function assertQuoteCanCreateSalesOrder(Vtiger_Request $request) {
+		if ($this->isToolsOrdersContext($request) || !empty($request->get('record'))) {
+			return;
+		}
+		$quoteId = (int) $request->get('quote_id');
+		if ($quoteId <= 0) {
+			return;
+		}
+		$quoteModel = Vtiger_Record_Model::getInstanceById($quoteId, 'Quotes');
+		if ($quoteModel instanceof Quotes_Record_Model && $quoteModel->hasLinkedSalesOrder()) {
+			throw new Exception(vtranslate('LBL_QUOTE_ALREADY_HAS_SALES_ORDER', 'Quotes'));
+		}
 	}
 
 	public function process(Vtiger_Request $request) {

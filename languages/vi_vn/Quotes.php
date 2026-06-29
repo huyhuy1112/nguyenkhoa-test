@@ -30,6 +30,9 @@ $languageStrings = array(
 	'Quotes'=>'Báo giá',
 	'LINE_DETAILS' => 'Chi tiết',
 
+	'LBL_CREATE_SALES_ORDER' => 'Tạo đơn hàng',
+	'LBL_VIEW_SALES_ORDER' => 'Xem đơn hàng',
+	'LBL_QUOTE_ALREADY_HAS_SALES_ORDER' => 'Báo giá này đã có đơn hàng. Mỗi báo giá chỉ được tạo một đơn hàng.',
 	'LBL_MK_QUOTE_SUMMARY' => 'Tóm tắt báo giá',
 	'LBL_MK_QUOTE_VAT' => 'Tổng tiền & VAT',
 	'Quote Date' => 'Ngày báo giá',
