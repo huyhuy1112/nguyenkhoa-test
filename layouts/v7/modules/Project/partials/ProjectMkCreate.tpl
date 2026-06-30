@@ -23,7 +23,7 @@
 		<div class="mk-proj-page-head__row">
 			<div>
 				{if $MK_IS_EDIT}
-					<h1 class="mk-proj-page-head__title">{vtranslate('LBL_EDITING', $MODULE)} {vtranslate('SINGLE_Project', $MODULE)} — {$MK_RECORD_LABEL|escape}</h1>
+					<h1 class="mk-proj-page-head__title">{vtranslate('LBL_EDITING', $MODULE)} {vtranslate('SINGLE_Project', $MODULE)} — {$MK_RECORD_LABEL|decode_html|escape}</h1>
 				{else}
 					<h1 class="mk-proj-page-head__title">{vtranslate('LBL_CREATING_NEW', $MODULE)} {vtranslate('SINGLE_Project', $MODULE)}</h1>
 				{/if}
