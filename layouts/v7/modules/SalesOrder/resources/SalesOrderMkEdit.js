@@ -5,6 +5,13 @@
 	'use strict';
 
 	var MK_BUILD = '20260624_so_save1';
+
+	// Anti-FOUC: unhide once this bundle executes (CSS is already linked in pre-process).
+	try {
+		document.documentElement.classList.add('mk-so-create-styled');
+	} catch (e) {
+		/* ignore */
+	}
 	var TERMS_MODAL_ID = 'mkSoTermsModal';
 	var TERMS_EDITOR_ID = 'mkSoTermsEditor';
 	var termsModalOpen = false;
