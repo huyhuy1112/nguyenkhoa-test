@@ -3736,3 +3736,167 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-proj-comments-panel .bootstrap-switch {
 	margin: 0 !important;
 }
+
+/* Related To — inline edit reference field (detail tab) */
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue:has(.ajaxEdited) {
+	overflow: visible !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .edit .editElement {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	max-width: 100%;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .edit .editElement .referencefield-wrapper {
+	flex: 1 1 220px;
+	min-width: 0;
+	max-width: 100%;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .referencefield-wrapper .input-group {
+	display: flex !important;
+	align-items: center !important;
+	flex-wrap: nowrap;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	overflow: hidden;
+	background: #fafafa !important;
+	box-shadow: none !important;
+	box-sizing: border-box;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .referencefield-wrapper .input-group:focus-within {
+	border-color: var(--mk-proj-navy, #40627e) !important;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
+	background: #fff !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .referencefield-wrapper .input-group input.autoComplete,
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .referencefield-wrapper .input-group input.inputElement {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: auto !important;
+	max-width: none !important;
+	height: 42px !important;
+	min-height: 42px !important;
+	margin: 0 !important;
+	padding: 0 12px !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	font-size: 14px !important;
+	line-height: 42px !important;
+	box-sizing: border-box !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .referencefield-wrapper .input-group .input-group-addon {
+	flex: 0 0 42px;
+	width: 42px;
+	min-width: 42px;
+	height: 42px !important;
+	min-height: 42px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	border-left: 1px solid #e2e8f0 !important;
+	border-radius: 0 !important;
+	background: #f1f5f9 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	color: #64748b;
+	transition: background 0.2s ease, color 0.2s ease;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .referencefield-wrapper .input-group .input-group-addon.relatedPopup:hover {
+	background: linear-gradient(135deg, #6BBF59 0%, #08A045 100%) !important;
+	color: #fff !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .referencefield-wrapper .input-group .clearReferenceSelection {
+	flex: 0 0 auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	min-width: 34px;
+	height: 42px;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	border-left: 1px solid #e2e8f0 !important;
+	border-radius: 0 !important;
+	background: #f8fafc !important;
+	color: #94a3b8 !important;
+	font-size: 16px;
+	font-weight: 600;
+	line-height: 1;
+	text-decoration: none !important;
+	transition: background 0.2s ease, color 0.2s ease;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .referencefield-wrapper .input-group .clearReferenceSelection:hover {
+	background: #fee2e2 !important;
+	color: #dc2626 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .input-save-wrap {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 6px;
+	flex: 0 0 auto;
+	float: none !important;
+	position: relative;
+	z-index: 6;
+	pointer-events: auto !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .input-save-wrap .input-group-addon {
+	flex: 0 0 36px;
+	width: 36px;
+	min-width: 36px;
+	height: 36px !important;
+	min-height: 36px !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 10px !important;
+	background: #fff !important;
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .input-save-wrap .inlineAjaxSave {
+	color: #08A045 !important;
+	border-color: #bbf7d0 !important;
+	background: #f0fdf4 !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .input-save-wrap .inlineAjaxSave:hover {
+	background: #08A045 !important;
+	border-color: #08A045 !important;
+	color: #fff !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .input-save-wrap .inlineAjaxCancel {
+	color: #64748b !important;
+}
+
+html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .detailview-table td.fieldValue .input-save-wrap .inlineAjaxCancel:hover {
+	background: #fef2f2 !important;
+	border-color: #fecaca !important;
+	color: #dc2626 !important;
+}

@@ -1215,15 +1215,21 @@ Vtiger.Class("Vtiger_Detail_Js",{
 			editElement.append(ele);
 		}
 
-		// for reference fields, actual value will be ID but we need to show related name of that ID
+		// for reference fields, keep record ID in hidden input; show label in _display field
 		if(fieldType === 'reference'){
-			if(value !== 0){
-				jQuery('input[name="'+fieldName+'"]',editElement).prop('value',jQuery.trim(detailViewValue.text()));
-				var referenceElement = jQuery('input[name="'+fieldName+'"]',editElement);
-				if(!referenceElement.attr('disabled')) {
-					referenceElement.attr('disabled','disabled');
-					editElement.find('.clearReferenceSelection').removeClass('hide')
+			var displayText = jQuery.trim(detailViewValue.text());
+			var hiddenRef = jQuery('input[name="'+fieldName+'"]',editElement);
+			var displayRef = jQuery('input[name="'+fieldName+'_display"]',editElement);
+			if(value !== 0 && value !== '' && value !== '0'){
+				hiddenRef.val(value);
+				hiddenRef.data('value', value);
+				if(displayRef.length){
+					displayRef.val(displayText);
+					if(!displayRef.attr('disabled')) {
+						displayRef.attr('disabled','disabled');
+					}
 				}
+				editElement.find('.clearReferenceSelection').removeClass('hide');
 			}
 		}
 
