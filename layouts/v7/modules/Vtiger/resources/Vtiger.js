@@ -1225,16 +1225,33 @@ Vtiger.Class('Vtiger_Index_Js', {
 
 		// TODO : Need to recheck. We don't have reference field module name if that module is disabled
 		if(typeof popupReferenceModule == "undefined" || popupReferenceModule === '' || popupReferenceModule === 'undefined'){
-			var refModuleByField = {
-				productsservices_id: 'ProductsServices',
-				plans_id: 'Plans',
-				plan_id: 'Plans',
-				plan: 'Plans'
-			};
-			if (sourceField && refModuleByField[sourceField]) {
-				popupReferenceModule = refModuleByField[sourceField];
+			var refModuleList = container.find('.referenceModulesList');
+			if(refModuleList.length && refModuleList.val()) {
+				popupReferenceModule = refModuleList.val();
 			} else {
-				popupReferenceModule = "undefined";
+				var refModuleByField = {
+					productsservices_id: 'ProductsServices',
+					plans_id: 'Plans',
+					plan_id: 'Plans',
+					plan: 'Plans',
+					linktoaccountscontacts: 'Accounts',
+					related_to: 'Accounts',
+					parent_id: 'Accounts',
+					contact_id: 'Contacts',
+					account_id: 'Accounts',
+					potentialid: 'Potentials',
+					related_potential: 'Potentials'
+				};
+				if (sourceField && refModuleByField[sourceField]) {
+					popupReferenceModule = refModuleByField[sourceField];
+				} else {
+					var hiddenPopupModule = container.find('input[name="popupReferenceModule"]');
+					if (hiddenPopupModule.length && hiddenPopupModule.val() && hiddenPopupModule.val() !== 'undefined') {
+						popupReferenceModule = hiddenPopupModule.val();
+					} else {
+						popupReferenceModule = "undefined";
+					}
+				}
 			}
 		}
 
