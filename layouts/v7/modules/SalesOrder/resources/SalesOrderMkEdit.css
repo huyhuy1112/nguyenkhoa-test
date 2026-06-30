@@ -1102,6 +1102,7 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > input.inputElement:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > select.inputElement,
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.inputElement,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .mk-so-terms-preview.inputElement,
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > .form-control:not([type="checkbox"]) {
 	width: 100% !important;
 	max-width: 100% !important;
@@ -1120,6 +1121,31 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.form-control {
 	min-height: 120px !important;
 	resize: vertical;
+}
+
+/* Terms & conditions: render HTML preview (like Quotes) */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host textarea.mk-so-terms-source {
+	position: absolute !important;
+	left: -99999px !important;
+	width: 1px !important;
+	height: 1px !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-terms-preview {
+	min-height: 140px !important;
+	background: #fff !important;
+	cursor: text;
+	overflow: auto;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-terms-preview__placeholder {
+	color: #94a3b8;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-terms-preview p:empty {
+	display: none;
 }
 
 /* Select2 (single/multi): style outer container as the field; remove inner border to avoid double frames */
