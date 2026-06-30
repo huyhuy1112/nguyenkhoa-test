@@ -2646,7 +2646,25 @@ Vtiger.Class("Vtiger_Detail_Js",{
 					var elem = jQuery(e.currentTarget);
 					var recordUrl = elem.data('recordurl');
 				if(typeof recordUrl != "undefined"){
+						var ensureAppParam = function(url) {
+							try {
+								var appName = (typeof app !== 'undefined' && app.getAppName) ? app.getAppName() : '';
+								if (!appName || appName === 'undefined') return url;
+								if (url.indexOf('app=') !== -1) return url;
+								var joiner = (url.indexOf('?') === -1) ? '?' : '&';
+								return url + joiner + 'app=' + encodeURIComponent(appName);
+							} catch (e) {
+								return url;
+							}
+						};
+
 						var params = app.convertUrlToDataParams(recordUrl);
+						// Quotes UI relies on module-specific shell/CSS; open in full page (not overlay)
+						// so it always uses the latest SALES UI.
+						if (params && params.module === 'Quotes') {
+							window.location.href = ensureAppParam(recordUrl);
+							return;
+						}
 						//Display Mode to show details in overlay
 						params['mode'] = 'showDetailViewByMode';
 						params['requestMode'] = 'full';
