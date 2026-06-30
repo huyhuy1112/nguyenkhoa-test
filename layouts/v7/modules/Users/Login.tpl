@@ -381,21 +381,66 @@
 			gap: 12px;
 		}
 		.nk-remember {
-			display: flex;
-			align-items: center;
-			gap: 8px;
+			position: relative;
+			display: inline-flex;
 			cursor: pointer;
-			font-size: 14px;
-			color: #404941;
 			user-select: none;
 		}
-		.nk-remember input {
-			width: 16px;
-			height: 16px;
-			accent-color: #00341a;
+		.nk-remember input[type="checkbox"] {
+			appearance: none;
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			opacity: 0;
+			z-index: 2;
 			cursor: pointer;
 		}
-		.nk-remember:hover { color: #0b1c30; }
+		.nk-remember__chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 16px 8px 12px;
+			border-radius: 999px;
+			border: 1.5px solid #d5ddd7;
+			background: #f8fbf9;
+			color: #4a544d;
+			font-size: 13px;
+			font-weight: 600;
+			letter-spacing: 0.02em;
+			transition: background 0.28s ease, border-color 0.28s ease, color 0.28s ease, box-shadow 0.28s ease, transform 0.2s ease;
+			pointer-events: none;
+		}
+		.nk-remember__icon {
+			font-size: 18px;
+			line-height: 1;
+			color: #8b968f;
+			transition: color 0.28s ease, transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
+		}
+		.nk-remember:hover .nk-remember__chip {
+			border-color: #b8c8bc;
+			background: #f1f6f3;
+			transform: translateY(-1px);
+		}
+		.nk-remember input:checked + .nk-remember__chip {
+			background: linear-gradient(135deg, #00341a 0%, #0a5c32 100%);
+			border-color: #00341a;
+			color: #ffffff;
+			box-shadow: 0 4px 16px rgba(0, 52, 26, 0.24);
+		}
+		.nk-remember input:checked + .nk-remember__chip .nk-remember__icon {
+			color: #6bfe9c;
+			font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+			transform: scale(1.1);
+		}
+		.nk-remember input:focus-visible + .nk-remember__chip {
+			outline: 2px solid rgba(107, 254, 156, 0.8);
+			outline-offset: 3px;
+		}
 
 		.forgotPasswordLink {
 			font-size: 14px;
@@ -573,7 +618,10 @@
 							<div class="nk-form-row">
 								<label class="nk-remember">
 									<input type="checkbox" name="remember" value="1">
-									<span>Ghi nhớ</span>
+									<span class="nk-remember__chip" aria-hidden="true">
+										<span class="material-symbols-outlined nk-remember__icon">bookmark</span>
+										<span>Ghi nhớ</span>
+									</span>
 								</label>
 								<a class="forgotPasswordLink">Quên mật khẩu?</a>
 							</div>
