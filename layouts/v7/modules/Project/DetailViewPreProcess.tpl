@@ -5,6 +5,7 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-project-detail-management');</script>
+{include file="partials/MkSalesUiMeta.tpl"|@vtemplate_path:'Vtiger'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkDetail.css')}&mk_v=20260630_detail_related_v1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkRelatedList.css')}&mk_v=20260607_detail_v31" />
@@ -13,7 +14,7 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkTaskDetail.css')}&mk_v=20260529_detail16" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.js')}&mk_v=20260607_detail_v31"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkDetail.js')}&mk_v=20260607_detail_v36"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkDetail.js')}&mk_v=20260701_status_picklist1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-project-detail="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

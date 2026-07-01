@@ -229,7 +229,17 @@ Vtiger_Field_Js('Vtiger_Picklist_Field_Js',{},{
 	 * @return <object> key value pair of options
 	 */
 	getPickListValues : function() {
-		return this.get('editablepicklistvalues');
+		var pickListValues = this.get('editablepicklistvalues');
+		if (pickListValues === '' || pickListValues == null) {
+			pickListValues = this.get('picklistvalues');
+		}
+		if (pickListValues === '' || pickListValues == null) {
+			return {};
+		}
+		if (typeof pickListValues !== 'object' || pickListValues instanceof Array) {
+			return {};
+		}
+		return pickListValues;
 	},
 
 	/**
@@ -251,6 +261,9 @@ Vtiger_Field_Js('Vtiger_Picklist_Field_Js',{},{
 
 		var fieldName = this.getName();
 		for(var option in pickListValues) {
+			if (!Object.prototype.hasOwnProperty.call(pickListValues, option)) {
+				continue;
+			}
 			html += '<option value="'+option+'" ';
 
 			if (picklistColors) {
@@ -271,6 +284,9 @@ Vtiger_Field_Js('Vtiger_Picklist_Field_Js',{},{
 		if (picklistColors) {
 			html +='<style type="text/css">';
 			for(option in picklistColors) {
+				if (!Object.prototype.hasOwnProperty.call(picklistColors, option)) {
+					continue;
+				}
 				var picklistColor = picklistColors[option];
 				if (picklistColor) {
 					className = '.picklistColor_'+fieldName+'_'+option.replace(' ', '_');
