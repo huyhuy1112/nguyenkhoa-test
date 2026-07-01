@@ -152,7 +152,27 @@
 		return b && b.getAttribute('data-module') === 'Potentials' && isSalesAppList();
 	}
 
+	function isAccountsModernList() {
+		var b = document.body;
+		if (!b || b.getAttribute('data-module') !== 'Accounts' || b.getAttribute('data-view') !== 'List') {
+			return false;
+		}
+		var app = (b.getAttribute('data-app') || '').toUpperCase();
+		if (app === 'SALES' || app === 'MARKETING' || app === 'SUPPORT') {
+			return true;
+		}
+		var params = new URLSearchParams(window.location.search || '');
+		app = (params.get('app') || '').toUpperCase();
+		return app === 'SALES' || app === 'MARKETING' || app === 'SUPPORT';
+	}
+
 	function isSalesShellList() {
+		if (isAccountsModernList() && isSalesAppList()) {
+			return (
+				$('#mk-dash-split-root[data-mk-accounts-list]').length > 0 ||
+				getListPageRoot(getListViewContainer()).length > 0
+			);
+		}
 		if (!isSalesAppList()) {
 			return false;
 		}
@@ -517,10 +537,7 @@
 	}
 
 	function shouldPreserveSearchRow(options) {
-		if (options && options.preserveSearchRow) {
-			return true;
-		}
-		return isSearchRowFocused();
+		return !!(options && options.preserveSearchRow);
 	}
 
 	function captureSearchFocusState($lv) {
@@ -579,8 +596,13 @@
 		}
 		var $newBody = $newTable.find('> tbody').first();
 		var $oldBody = $oldTable.find('> tbody').first();
+		var bodyReplaced = false;
 		if ($newBody.length && $oldBody.length) {
 			$oldBody.replaceWith($newBody.clone(true, true));
+			bodyReplaced = true;
+		}
+		if (!bodyReplaced) {
+			return false;
 		}
 		var $newFoot = $newTable.find('> tfoot').first();
 		var $oldFoot = $oldTable.find('> tfoot').first();
@@ -619,6 +641,49 @@
 		if (isSalesAppList() && typeof window.applySalesOrderListUi === 'function') {
 			window.applySalesOrderListUi();
 		}
+		if (isAccountsModernList() && typeof window.mkAccountsListAfterAjax === 'function') {
+			window.mkAccountsListAfterAjax();
+		}
+	}
+
+	/**
+	 * Rebuild Organizations shell when PJAX returns legacy col-sm-12 markup (no mk-so-page).
+	 */
+	function wrapAccountsListShellContents(contents) {
+		var $lv = getListViewContainer();
+		if (!$lv.length) {
+			return false;
+		}
+		var $incoming = $('<div>').html(contents);
+		var $page = $incoming.find('.mk-so-page.mk-org-page, .mk-so-page.mk-so-list-sales-root').first();
+		if ($page.length) {
+			$lv.html($page.clone(true, true));
+			return true;
+		}
+		var $existingHeader = $lv.find('.mk-org-action-header').first().detach();
+		var $fragment = $incoming.find('.mk-so-table-card > .col-sm-12, .col-sm-12').first();
+		if (!$fragment.length) {
+			$fragment = $incoming.children().first();
+		}
+		if (!$fragment.length) {
+			return false;
+		}
+		var $shell = $('<div class="mk-so-page mk-so-list-sales-root mk-org-page"></div>');
+		if ($existingHeader.length) {
+			$shell.append($existingHeader);
+		}
+		var $card = $('<div class="mk-so-table-card mk-org-table-card"></div>');
+		$card.append($fragment.clone(true, true));
+		$shell.append($card);
+		$lv.html($shell);
+		return true;
+	}
+
+	function applyAccountsListShellSwap(contents, options) {
+		if (applySalesShellListContents(contents, options)) {
+			return true;
+		}
+		return wrapAccountsListShellContents(contents);
 	}
 
 	function syncHiddenFieldsFromFragment($incoming, $lv) {
@@ -642,7 +707,11 @@
 	}
 
 	function getIncomingRoot($incoming) {
-		var $page = $incoming.find('.mk-so-page.mk-opportunity-page').first();
+		var $page = $incoming.find('.mk-so-page.mk-org-page').first();
+		if ($page.length) {
+			return $page;
+		}
+		$page = $incoming.find('.mk-so-page.mk-opportunity-page').first();
 		if ($page.length) {
 			return $page;
 		}
@@ -662,7 +731,11 @@
 	}
 
 	function getListPageRoot($lv) {
-		var $page = $lv.find('.mk-so-page.mk-opportunity-page').first();
+		var $page = $lv.find('.mk-so-page.mk-org-page').first();
+		if ($page.length) {
+			return $page;
+		}
+		$page = $lv.find('.mk-so-page.mk-opportunity-page').first();
 		if ($page.length) {
 			return $page;
 		}
@@ -701,6 +774,12 @@
 		}
 		if (shouldPreserveSearchRow(options) && applySalesShellListBodyOnly($lv, $source, $page)) {
 			return true;
+		}
+		// Organizations: always full card replace so pagination never keeps stale tbody rows.
+		var listMod = document.body && document.body.getAttribute('data-module');
+		if (listMod === 'Accounts') {
+			options = options || {};
+			options.preserveSearchRow = false;
 		}
 		var $card = $page.find(MK_TABLE_CARD_SEL).first();
 		var $newCard = $source.find(MK_TABLE_CARD_SEL).first();
@@ -927,12 +1006,18 @@
 		var originalPlace = Vtiger_List_Js.prototype.placeListContents;
 		Vtiger_List_Js.prototype.placeListContents = function (contents) {
 			/* SALES shell: full table-card replace (never partial #table-content swap). */
-			if (isMkShellList()) {
+			if (isMkShellList() || isAccountsModernList()) {
 				var searchOpts = shouldPreserveSearchRow({}) ? { preserveSearchRow: true } : {};
 				var focusState = searchOpts.preserveSearchRow
 					? captureSearchFocusState(getListViewContainer())
 					: null;
-				if (applySalesShellListContents(contents, searchOpts)) {
+				var applied = false;
+				if (isAccountsModernList()) {
+					applied = applyAccountsListShellSwap(contents, searchOpts);
+				} else if (isMkShellList()) {
+					applied = applySalesShellListContents(contents, searchOpts);
+				}
+				if (applied) {
 					finalizeSalesListSearchUi(
 						searchOpts.preserveSearchRow ? { skipSearchReinit: true } : {},
 						focusState
@@ -947,8 +1032,19 @@
 					}
 					return;
 				}
+				/* Organizations: never vtiger container.html() — it drops the Figma shell/CSS hooks. */
+				if (isAccountsModernList() && wrapAccountsListShellContents(contents)) {
+					finalizeSalesListSearchUi(
+						searchOpts.preserveSearchRow ? { skipSearchReinit: true } : {},
+						focusState
+					);
+					hideProgressSafe();
+					return;
+				}
 				/* Mass delete / paging: shell swap can fail on unexpected PJAX markup — never leave blank list. */
-				originalPlace.call(this, contents);
+				if (!isAccountsModernList()) {
+					originalPlace.call(this, contents);
+				}
 				finalizeSalesListSearchUi(
 					searchOpts.preserveSearchRow ? { skipSearchReinit: true } : {},
 					focusState
@@ -1083,12 +1179,21 @@
 		return getListViewContainer();
 	}
 
+	function isAccountsSalesGlobalSearch() {
+		return isAccountsModernList() && isSalesAppList();
+	}
+
 	function ensureSearchRowVisible() {
 		if (!isSalesStyleTableList()) {
 			return;
 		}
 		var $root = getSalesTableRoot();
-		$root.addClass('mk-so-search-open mk-sales-list-table-ready');
+		$root.addClass('mk-sales-list-table-ready');
+		/* Organizations (SALES): global toolbar search — keep per-column row in DOM but hidden via CSS */
+		if (isAccountsSalesGlobalSearch()) {
+			return;
+		}
+		$root.addClass('mk-so-search-open');
 		$root.addClass('mk-qt-search-open mk-sc-search-open mk-ps-search-open mk-contact-search-open mk-org-search-open');
 	}
 
@@ -1964,6 +2069,79 @@
 		return isSalesStyleTableList();
 	}
 
+	var accountsGlobalSearchTimer = null;
+
+	function findAccountsNameSearchInput() {
+		var $root = getSalesTableRoot();
+		var $inp = $root.find('tr.searchRow th[data-columnname="accountname"] input.listSearchContributor').first();
+		if (!$inp.length) {
+			$inp = $root.find('tr.searchRow input[name="accountname"]').first();
+		}
+		return $inp;
+	}
+
+	function syncAccountsGlobalSearchInput() {
+		if (!isAccountsSalesGlobalSearch()) {
+			return;
+		}
+		var $bar = $('#mk-so-global-search');
+		if (!$bar.length) {
+			return;
+		}
+		var val = '';
+		try {
+			var params = new URLSearchParams(window.location.search || '');
+			var sp = params.get('search_params');
+			if (sp) {
+				var parsed = JSON.parse(sp);
+				if (parsed && parsed[0] && parsed[0][0] && parsed[0][0][0] === 'accountname') {
+					val = parsed[0][0][2] || '';
+				}
+			}
+		} catch (parseErr) {
+			/* ignore */
+		}
+		if (!val) {
+			var $col = findAccountsNameSearchInput();
+			if ($col.length) {
+				val = $.trim($col.val());
+			}
+		}
+		$bar.val(val);
+		$('#mk-so-global-search-clear').prop('hidden', !val);
+	}
+
+	function applyAccountsServerGlobalSearch() {
+		if (!isAccountsSalesGlobalSearch()) {
+			return;
+		}
+		var q = getGlobalQuickSearchQuery();
+		var $inp = findAccountsNameSearchInput();
+		if ($inp.length && $.trim($inp.val()) === q) {
+			return;
+		}
+		getSalesTableRoot().find('tr.searchRow input.listSearchContributor, tr.searchRow select.listSearchContributor').each(function () {
+			var $field = $(this);
+			var name = $field.attr('name') || '';
+			if (name === 'accountname') {
+				$field.val(q);
+			} else if (q) {
+				$field.val('');
+			}
+		});
+		runSalesListSearch({ silent: true });
+	}
+
+	function scheduleAccountsServerGlobalSearch() {
+		if (accountsGlobalSearchTimer) {
+			clearTimeout(accountsGlobalSearchTimer);
+		}
+		accountsGlobalSearchTimer = setTimeout(function () {
+			accountsGlobalSearchTimer = null;
+			applyAccountsServerGlobalSearch();
+		}, 350);
+	}
+
 	function getGlobalQuickSearchQuery() {
 		var $input = $('#mk-so-global-search');
 		return $input.length ? $.trim($input.val()) : '';
@@ -2007,6 +2185,10 @@
 	}
 
 	function applyGlobalQuickSearchFilter() {
+		if (isAccountsSalesGlobalSearch()) {
+			scheduleAccountsServerGlobalSearch();
+			return;
+		}
 		var $root = getSalesTableRoot();
 		if (!$root.length) {
 			return;
@@ -2103,9 +2285,13 @@
 		$root.addClass('mk-so-global-search-enabled');
 		injectGlobalQuickSearchUi();
 		bindGlobalQuickSearchEvents();
-		// After PJAX swaps, rows are new → clear cache and reapply current query.
-		clearRowTextCache();
-		applyGlobalQuickSearchFilter();
+		if (isAccountsSalesGlobalSearch()) {
+			syncAccountsGlobalSearchInput();
+		} else {
+			// After PJAX swaps, rows are new → clear cache and reapply current query.
+			clearRowTextCache();
+			applyGlobalQuickSearchFilter();
+		}
 	}
 
 	function scheduleApply() {
@@ -2194,6 +2380,9 @@
 		bindSalesListTableEvents: bindSalesListTableEvents,
 		applySalesShellListContents: applySalesShellListContents,
 		applyPotentialsListContents: applyPotentialsListContents,
+		wrapAccountsListShellContents: wrapAccountsListShellContents,
+		isAccountsModernList: isAccountsModernList,
+		syncAccountsGlobalSearchInput: syncAccountsGlobalSearchInput,
 		isSearchRowFocused: isSearchRowFocused,
 		captureSearchFocusState: captureSearchFocusState,
 		restoreSearchFocusState: restoreSearchFocusState,

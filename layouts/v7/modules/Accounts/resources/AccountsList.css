@@ -244,8 +244,8 @@ body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--pr
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-btn--primary,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-btn--primary
 {
-	background: #fdbb2c;
-	border-color: #e5a820;
+	background: #08A045;
+	border-color: #0B6E4F;
 	color: #191c1e;
 }
 
@@ -254,7 +254,7 @@ body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-btn
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-btn--primary:hover
 {
 	background: #ffc85c;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--outline,
@@ -270,7 +270,7 @@ body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-btn--ou
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-btn--outline:hover,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-btn--outline:hover
 {
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-color: #c4b49a;
 }
 
@@ -616,8 +616,8 @@ body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-pag
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-pagination .mk-org-page-btn:focus:not(:disabled),
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-pagination .mk-org-page-btn:focus:not(:disabled)
 {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #191c1e !important;
 }
 
@@ -626,7 +626,7 @@ body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] .mk-org-pag
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-org-pagination #PageJump.mk-org-page-btn
 {
 	min-width: 48px;
-	box-shadow: inset 0 -3px 0 #fdbb2c;
+	box-shadow: inset 0 -3px 0 #08A045;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-org-pagination .mk-org-page-btn:disabled,
@@ -683,7 +683,37 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 	background: #f7f9fb !important;
 }
 
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th
+{
+	box-sizing: border-box;
+	height: 48px;
+	min-height: 48px;
+	padding: 0 10px;
+	vertical-align: middle;
+	border-bottom: 1px solid #d4c4ad;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 14px;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #40627e !important;
+	white-space: nowrap;
+}
+
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td
+{
+	box-sizing: border-box;
+	height: 64px;
+	min-height: 64px;
+	padding: 0 10px;
+	vertical-align: middle;
+	border-bottom: 1px solid #eceef0;
+	font-size: 15px;
+	font-weight: 400;
+	line-height: 1.35;
+	color: #191c1e;
+}
+
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table thead tr.listViewContentHeader th,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table thead tr.listViewContentHeader th
 {
@@ -722,7 +752,6 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 	text-align: left;
 }
 
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td,
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries td,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table tbody tr.listViewEntries td
 {
@@ -816,7 +845,7 @@ body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewConten
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .table-actions .fa-star.active,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table .table-actions .fa-star.active
 {
-	color: #c98f12;
+	color: #08A045;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions .listViewEntriesCheckBox,
@@ -856,7 +885,7 @@ body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewConten
 body[data-module="Accounts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries:hover,
 body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent #listview-table tbody tr.listViewEntries:hover
 {
-	background: #faf8f5;
+	background: #f0fdf4;
 }
 
 body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th,
@@ -976,11 +1005,16 @@ body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewCont
 	border: 0;
 }
 
-/* Filter row: always visible on modern SALES/SUPPORT list */
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-so-search-open):not(.mk-org-search-open) tr.searchRow.listViewSearchContainer,
-body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent tr.searchRow.listViewSearchContainer,
-body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent:not(.mk-so-search-open):not(.mk-org-search-open) tr.searchRow.listViewSearchContainer {
+/* SALES: Quotes-style global toolbar search — hide per-column filter row */
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-so-global-search-enabled #listview-table thead tr.searchRow,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-so-global-search-enabled tr.searchRow.listViewSearchContainer,
+body[data-module="Accounts"][data-view="List"][data-app="SALES"] #listViewContent.mk-so-global-search-enabled #listview-table tr.searchRow {
+	display: none !important;
+}
+
+/* SUPPORT / explicit column-search mode: show filter row when search icon opens */
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent.mk-org-search-open tr.searchRow.listViewSearchContainer,
+body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] #listViewContent.mk-so-search-open tr.searchRow.listViewSearchContainer {
 	display: table-row !important;
 	background: #fafbfc;
 }

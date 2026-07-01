@@ -261,6 +261,45 @@
 			(app === 'SALES' || app === 'SUPPORT');
 	}
 
+	function clearClientSideListFilters() {
+		var hadQuery = !!$.trim($('#mk-so-global-search, #mk-mkt-global-search').val() || '');
+		var $root = $('#listViewContent');
+		var hadColumnSearch = !!$.trim($root.find('tr.searchRow input[name="accountname"]').val() || '');
+		$('#mk-so-global-search, #mk-mkt-global-search').val('');
+		$('#mk-so-global-search-clear, #mk-mkt-global-search-clear').prop('hidden', true);
+		$root.removeClass('mk-so-global-search-active mk-mkt-global-search-active');
+		$root.find('#listview-table tbody tr.listViewEntries').show();
+		if (!hadQuery && !hadColumnSearch) {
+			return;
+		}
+		if (isSalesStyleAccountsList() && window.MkSalesListShared) {
+			var $name = $root.find('tr.searchRow input[name="accountname"]').first();
+			if ($name.length) {
+				$name.val('');
+			}
+			if (typeof window.MkSalesListShared.runSalesListSearch === 'function') {
+				window.MkSalesListShared.runSalesListSearch({ silent: true });
+			}
+		}
+	}
+
+	/** AccountsList.css targets mk-org-* hooks; toolbar tpl uses mk-so-* — map after every PJAX refresh. */
+	function applyOrgListUiClasses() {
+		var $actions = $('#listViewContent #listview-actions').first();
+		if (!$actions.length) {
+			return;
+		}
+		$actions.addClass('mk-org-filter-row');
+		$actions.find('.mk-so-filter-row__inner').addClass('mk-org-filter-row__inner');
+		$actions.find('.mk-so-filter-row__start').addClass('mk-org-filter-row__start');
+		$actions.find('.mk-so-filter-row__right').addClass('mk-org-filter-row__right');
+		$actions.find('.mk-so-filter-row__footer').addClass('mk-org-filter-row__footer');
+		$actions.find('.mk-so-toolbar-toggles').addClass('mk-org-toolbar-toggles');
+		$actions.find('.mk-so-toolbar-count').addClass('mk-org-toolbar-count');
+		$actions.find('.mk-so-mass-actions').addClass('mk-org-mass-actions');
+		$actions.find('.mk-so-page-numbers').addClass('mk-org-page-numbers');
+	}
+
 	function refreshAccountsTableUi() {
 		if (!isModernAccountsList()) {
 			return;
@@ -270,6 +309,10 @@
 		if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
 			window.MkSalesListShared.revealSalesListUi();
 		}
+		if (window.MkSalesListShared && typeof window.MkSalesListShared.syncAccountsGlobalSearchInput === 'function') {
+			window.MkSalesListShared.syncAccountsGlobalSearchInput();
+		}
+		applyOrgListUiClasses();
 		markOrgTable();
 		assignColumnClasses();
 		fixEncodedNameCells(document);
@@ -377,6 +420,7 @@
 
 		installAccountsSalesAjaxHook();
 		installAccountsMarketingAjaxHook();
+		applyOrgListUiClasses();
 
 		$(document).on('click.mkOrgList', '.mk-so-trigger-columns, .mk-org-trigger-columns', function (e) {
 			e.preventDefault();

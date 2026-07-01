@@ -138,6 +138,20 @@
 		}
 		syncHiddenFieldsFromFragment($source, $lv);
 		var $card = $page.find('.mk-so-table-card').first();
+		var $newCard = $source.find('.mk-so-table-card.mk-org-table-card, .mk-org-table-card').first();
+		if (!$newCard.length) {
+			$newCard = $source.find('.mk-so-table-card').first();
+		}
+		if ($card.length && $newCard.length) {
+			$card.html($newCard.html());
+			var $newActions = $source.find('#listview-actions').first();
+			var $oldActions = $page.find('#listview-actions').first();
+			if ($newActions.length && $oldActions.length) {
+				$oldActions.replaceWith($newActions.clone(true, true));
+			}
+			relocatePaginationFooter();
+			return true;
+		}
 		var $newTableContent = $source.find('#table-content').first();
 		if (!$newTableContent.length || !$card.length) {
 			return false;
@@ -148,6 +162,7 @@
 		if ($newActions.length && $oldActions.length) {
 			$oldActions.replaceWith($newActions.clone(true, true));
 		}
+		relocatePaginationFooter();
 		return true;
 	}
 
@@ -341,10 +356,24 @@
 		placeListContentsPatched = true;
 		var originalPlace = Vtiger_List_Js.prototype.placeListContents;
 		Vtiger_List_Js.prototype.placeListContents = function (contents) {
-			if (isMarketingAppList() && swapListBodyInShell(contents)) {
-				applyCommonUi();
-				notifyMarketingModuleListUi();
-				return;
+			if (isMarketingAppList()) {
+				var swapped = swapListBodyInShell(contents);
+				if (!swapped && window.MkSalesListShared && typeof window.MkSalesListShared.isAccountsModernList === 'function' &&
+					window.MkSalesListShared.isAccountsModernList() &&
+					typeof window.MkSalesListShared.wrapAccountsListShellContents === 'function') {
+					swapped = window.MkSalesListShared.wrapAccountsListShellContents(contents);
+				}
+				if (swapped) {
+					applyCommonUi();
+					notifyMarketingModuleListUi();
+					return;
+				}
+				if (window.MkSalesListShared && typeof window.MkSalesListShared.isAccountsModernList === 'function' &&
+					window.MkSalesListShared.isAccountsModernList()) {
+					applyCommonUi();
+					notifyMarketingModuleListUi();
+					return;
+				}
 			}
 			originalPlace.call(this, contents);
 			if (isMarketingAppList()) {
@@ -402,6 +431,10 @@
 	/* Global quick search (Leads-style single search input)                   */
 	/* ====================================================================== */
 	function shouldUseGlobalQuickSearch() {
+		var mod = (document.body && document.body.getAttribute('data-module')) || '';
+		if (String(mod) === 'Accounts') {
+			return false;
+		}
 		return isMarketingAppList();
 	}
 

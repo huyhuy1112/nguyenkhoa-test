@@ -174,4 +174,170 @@ class Accounts_ListView_Model extends Vtiger_ListView_Model {
 
 		return $listQuery;
 	}
+
+	/**
+	 * Paginate by distinct accountid first, then load full rows for those ids.
+	 * Avoids LIMIT on joined duplicate rows (list repeating / missing orgs vs export).
+	 */
+	public function getListViewEntries($pagingModel) {
+		$db = PearDatabase::getInstance();
+
+		$moduleName = $this->getModule()->get('name');
+		$moduleFocus = CRMEntity::getInstance($moduleName);
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+
+		$queryGenerator = $this->get('query_generator');
+		$listViewContoller = $this->get('listview_controller');
+
+		$searchParams = $this->get('search_params');
+		if (empty($searchParams)) {
+			$searchParams = array();
+		}
+		$glue = '';
+		if (php7_count($queryGenerator->getWhereFields()) > 0 && (php7_count($searchParams)) > 0) {
+			$glue = QueryGenerator::$AND;
+		}
+		$queryGenerator->parseAdvFilterList($searchParams, $glue);
+
+		$searchKey = $this->get('search_key');
+		$searchValue = $this->get('search_value');
+		$operator = $this->get('operator');
+		if (!empty($searchKey)) {
+			$queryGenerator->addUserSearchConditions(array(
+				'search_field' => $searchKey,
+				'search_text' => $searchValue,
+				'operator' => $operator
+			));
+		}
+
+		$orderBy = $this->getForSql('orderby');
+		$sortOrder = $this->getForSql('sortorder');
+		$orderByFieldModel = null;
+
+		if (!empty($orderBy)) {
+			$queryGenerator = $this->get('query_generator');
+			$fieldModels = $queryGenerator->getModuleFields();
+			$orderByFieldModel = $fieldModels[$orderBy];
+			if ($orderByFieldModel && ($orderByFieldModel->getFieldDataType() == Vtiger_Field_Model::REFERENCE_TYPE ||
+					$orderByFieldModel->getFieldDataType() == Vtiger_Field_Model::OWNER_TYPE)) {
+				$queryGenerator->addWhereField($orderBy);
+			}
+		}
+
+		$listQuery = $this->getQuery();
+
+		$sourceModule = $this->get('src_module');
+		if (!empty($sourceModule)) {
+			if (method_exists($moduleModel, 'getQueryByModuleField')) {
+				$overrideQuery = $moduleModel->getQueryByModuleField(
+					$sourceModule,
+					$this->get('src_field'),
+					$this->get('src_record'),
+					$listQuery,
+					$this->get('relationId')
+				);
+				if (!empty($overrideQuery)) {
+					$listQuery = $overrideQuery;
+				}
+			}
+		}
+
+		$orderClause = '';
+		if (!empty($orderBy) && $orderByFieldModel) {
+			if ($orderBy == 'roleid' && $moduleName == 'Users') {
+				$orderClause = ' ORDER BY vtiger_role.rolename ' . $sortOrder;
+			} else {
+				$orderClause = ' ORDER BY ' . $queryGenerator->getOrderByColumn($orderBy) . ' ' . $sortOrder;
+			}
+			if ($orderBy == 'first_name' && $moduleName == 'Users') {
+				$orderClause .= ' , last_name ' . $sortOrder . ' ,  email1 ' . $sortOrder;
+			}
+		} elseif (empty($orderBy) && empty($sortOrder) && $moduleName != 'Users') {
+			$orderClause = ' ORDER BY vtiger_crmentity.modifiedtime DESC';
+		}
+
+		$startIndex = $pagingModel->getStartIndex();
+		$pageLimit = $pagingModel->getPageLimit();
+
+		$viewid = ListViewSession::getCurrentView($moduleName);
+		if (empty($viewid)) {
+			$viewid = $pagingModel->get('viewid');
+		}
+		$_SESSION['lvs'][$moduleName][$viewid]['start'] = $pagingModel->get('page');
+
+		$accountIds = $this->getDistinctPagedAccountIds($listQuery, $orderClause, $startIndex, $pageLimit + 1);
+		if (empty($accountIds)) {
+			$pagingModel->set('nextPageExists', false);
+			ListViewSession::setSessionQuery($moduleName, $listQuery . $orderClause, $viewid);
+			return array();
+		}
+
+		$hasNext = php7_count($accountIds) > $pageLimit;
+		if ($hasNext) {
+			array_pop($accountIds);
+		}
+		$pagingModel->set('nextPageExists', $hasNext);
+
+		$idList = implode(',', array_map('intval', $accountIds));
+		$idFilter = ' vtiger_account.accountid IN (' . $idList . ') ';
+		if (stripos($listQuery, ' where ') !== false) {
+			$listQuery .= ' AND ' . $idFilter;
+		} else {
+			$listQuery .= ' WHERE ' . $idFilter;
+		}
+		$listQuery .= $orderClause;
+
+		ListViewSession::setSessionQuery($moduleName, $listQuery, $viewid);
+
+		$listResult = $db->pquery($listQuery, array());
+		$listViewEntries = $listViewContoller->getListViewRecords($moduleFocus, $moduleName, $listResult);
+
+		$listViewRecordModels = array();
+		$rawById = array();
+		$rows = $db->num_rows($listResult);
+		for ($i = 0; $i < $rows; $i++) {
+			$rawData = $db->query_result_rowdata($listResult, $i);
+			$recordId = isset($rawData['accountid']) ? (int) $rawData['accountid'] : 0;
+			if ($recordId <= 0 && isset($rawData['crmid'])) {
+				$recordId = (int) $rawData['crmid'];
+			}
+			if ($recordId > 0 && !isset($rawById[$recordId])) {
+				$rawById[$recordId] = $rawData;
+			}
+		}
+
+		foreach ($accountIds as $recordId) {
+			$recordId = (int) $recordId;
+			if (!isset($listViewEntries[$recordId]) || !isset($rawById[$recordId])) {
+				continue;
+			}
+			$record = $listViewEntries[$recordId];
+			$record['id'] = $recordId;
+			$listViewRecordModels[$recordId] = $moduleModel->getRecordFromArray($record, $rawById[$recordId]);
+		}
+
+		$pagingModel->calculatePageRange($listViewRecordModels);
+		return $listViewRecordModels;
+	}
+
+	/**
+	 * @return int[]
+	 */
+	private function getDistinctPagedAccountIds($listQuery, $orderClause, $startIndex, $limit) {
+		$db = PearDatabase::getInstance();
+		$fromPos = stripos($listQuery, ' from ');
+		if ($fromPos === false) {
+			return array();
+		}
+		$fromAndWhere = substr($listQuery, $fromPos);
+		$idSql = 'SELECT DISTINCT vtiger_account.accountid' . $fromAndWhere . $orderClause
+			. ' LIMIT ' . (int) $startIndex . ',' . (int) $limit;
+		$idResult = $db->pquery($idSql, array());
+		$ids = array();
+		$rows = $db->num_rows($idResult);
+		for ($i = 0; $i < $rows; $i++) {
+			$ids[] = (int) $db->query_result($idResult, $i, 'accountid');
+		}
+		return $ids;
+	}
 }
