@@ -147,7 +147,7 @@ $default_charset = 'UTF-8';
 
 // default language
 // default_language default value = en_us
-$default_language = 'vi_vn';
+$default_language = 'en_us';
 
 //Option to hide empty home blocks if no entries.
 $display_empty_home_blocks = false;
