@@ -164,9 +164,9 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-input::placeholder {
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-input:focus,
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-select:focus {
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.2);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.2);
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-select option {
@@ -203,7 +203,7 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__item a {
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__item a:hover {
-	color: #d97706;
+	color: #0B6E4F;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-breadcrumb__item--current span {
@@ -236,12 +236,12 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-action-header__icon {
 	width: 56px;
 	height: 56px;
 	border-radius: 12px;
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 4px 12px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 4px 12px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-action-header__title {
@@ -291,24 +291,24 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn {
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--primary {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #191c1e;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--primary:hover {
-	background: #e5a824;
+	background: #0B6E4F;
 	color: #191c1e;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--filter {
 	width: 100%;
-	background: #fdbb2c;
+	background: #08A045;
 	color: #191c1e;
 	margin-top: 4px;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--filter:hover {
-	background: #e5a824;
+	background: #0B6E4F;
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--ghost {
@@ -318,8 +318,8 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--ghost {
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-btn--ghost:hover {
-	background: #fffbeb;
-	border-color: #fdbb2c;
+	background: #ecfdf3;
+	border-color: #08A045;
 	color: #0f172a;
 }
 
@@ -438,7 +438,7 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-view-toggle__btn {
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-view-toggle__btn.is-active {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #191c1e;
 }
 
@@ -605,7 +605,7 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-assignee__avatar {
 	width: 28px;
 	height: 28px;
 	border-radius: 999px;
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
 	font-size: 11px;
 	font-weight: 700;
@@ -677,8 +677,8 @@ body[data-module="HelpDesk"][data-view="List"] .mk-hd-pagination__btn:hover {
 }
 
 body[data-module="HelpDesk"][data-view="List"] .mk-hd-pagination__btn.is-active {
-	background: #fdbb2c;
-	border-color: #fdbb2c;
+	background: #08A045;
+	border-color: #08A045;
 	color: #191c1e;
 	font-weight: 600;
 }

@@ -34,7 +34,8 @@
 			<nav class="mk-gi-topnav mk-gi-topnav--pills" aria-label="Các module kho">
 				<a href="index.php?module=GoodsReceipt&amp;view=List&amp;app=INVENTORY"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>{vtranslate('GoodsReceipt','GoodsReceipt')}</a>
 				<a href="index.php?module=Warehouse&amp;view=List&amp;app=INVENTORY"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73Z" stroke="currentColor" stroke-width="1.6"/><path d="M3.3 7.7 12 12l8.7-4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22V12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>{vtranslate('Warehouse','Warehouse')}</a>
-				<a class="is-active" href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY" aria-current="page"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21V9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17 14l-5-5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>{vtranslate('GoodsIssue','GoodsIssue')}</a>
+				<a{if empty($ACTIVE_TAB) || $ACTIVE_TAB eq 'outbound'} class="is-active" aria-current="page"{/if} href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY" data-mk-gi-tab="outbound"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21V9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17 14l-5-5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>{vtranslate('GoodsIssue','GoodsIssue')}</a>
+				<a{if $ACTIVE_TAB eq 'waiting_print'} class="is-active" aria-current="page"{/if} href="index.php?module=GoodsIssue&amp;view=List&amp;app=INVENTORY&amp;tab=waiting_print" data-mk-gi-tab="waiting_print"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 4h12v16H6z" stroke="currentColor" stroke-width="1.7"/><path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>Chờ in phiếu</a>
 				<a href="javascript:void(0)" role="button" data-mk-gi-tab="qc"><span class="mk-inv-tab-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="1.8"/></svg></span>QC</a>
 			</nav>
 		</div>
@@ -99,6 +100,7 @@
 						<th scope="col">Destination</th>
 						<th scope="col">Issued date</th>
 						<th scope="col">{vtranslate('Warehouse','Warehouse')}</th>
+						<th scope="col">Trạng thái</th>
 						<th scope="col" class="mk-gi-table__num">Total qty</th>
 						<th scope="col" class="mk-gi-table__num">Total value</th>
 						<th scope="col" class="mk-gi-table__actions">Actions</th>
@@ -116,6 +118,7 @@
 							<td>{if $R.destination}{$R.destination|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</td>
 							<td>{if $R.issued_date}{$R.issued_date|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</td>
 							<td>{if $R.storage_location}{$R.storage_location|escape:'html'}{else}<span class="mk-gi-muted">—</span>{/if}</td>
+							<td>{if $R.status_label}<span class="mk-inv-qc-pill{if $R.status eq 'waiting_print'} mk-gi-status--waiting{/if}">{$R.status_label|escape:'html'}</span>{else}<span class="mk-gi-muted">—</span>{/if}</td>
 							<td class="mk-gi-table__num mk-gi-table__qty">{$R.total_qty_display|escape:'html'}</td>
 							<td class="mk-gi-table__num mk-gi-table__qty">{$R.total_value_display|escape:'html'}</td>
 							<td class="mk-gi-table__actions">
@@ -134,7 +137,7 @@
 						</tr>
 					{foreachelse}
 						<tr>
-							<td colspan="8" class="mk-gi-table__empty">No outbound issues yet.</td>
+							<td colspan="9" class="mk-gi-table__empty">No outbound issues yet.</td>
 						</tr>
 					{/foreach}
 				</tbody>

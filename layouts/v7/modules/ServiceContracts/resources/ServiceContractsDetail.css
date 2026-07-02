@@ -135,7 +135,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-breadcrumb__item a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -271,12 +271,12 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-hero__meta-item--amount .mk-sc-detail-hero__meta-text {
 	font-weight: 700;
-	color: #7c5800;
+	color: #0B6E4F;
 	font-size: 15px;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-hero__meta-item--amount i {
-	color: #c98f12;
+	color: #08A045;
 }
 
 /* Stage pill (also used in Hero meta + list) */
@@ -307,8 +307,8 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-stage-pill--qualification,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-stage-pill--prospecting,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-stage-pill--needs-analysis {
-	background: #fef3c7;
-	color: #92400e;
+	background: #dcfce7;
+	color: #073B3A;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-stage-pill--proposal,
@@ -437,9 +437,9 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-btn--primary {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	background-image: none !important;
-	border-color: #e59a0f;
+	border-color: #0B6E4F;
 	color: #6d4d00;
 	font-weight: 700;
 }
@@ -700,12 +700,12 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .rela
 	bottom: -1px;
 	height: 2px;
 	border-radius: 2px;
-	background: #fdbb2c;
+	background: #08A045;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover {
 	color: #504533;
-	background: rgba(253, 187, 44, 0.08);
+	background: rgba(8, 160, 69, 0.08);
 }
 
 /* Related-module icon tabs (right side) */
@@ -752,13 +752,13 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon {
-	background: rgba(253, 187, 44, 0.12);
+	background: rgba(8, 160, 69, 0.12);
 	color: #2b2b2b;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon {
-	background: rgba(253, 187, 44, 0.2);
+	background: rgba(8, 160, 69, 0.2);
 	color: #2b2b2b;
 }
 
@@ -797,7 +797,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"],
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"] {
-	background: #7c5800;
+	background: #0B6E4F;
 	color: #ffffff;
 }
 
@@ -947,7 +947,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	width: 4px;
 	height: 16px;
 	border-radius: 2px;
-	background: #fdbb2c;
+	background: #08A045;
 	flex: 0 0 4px;
 }
 
@@ -1050,12 +1050,12 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-kv-wrap .summary-table td.fieldValue a {
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-kv-wrap .summary-table td.fieldValue a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1121,7 +1121,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	width: 4px;
 	height: 16px;
 	border-radius: 2px;
-	background: #fdbb2c;
+	background: #08A045;
 	flex: 0 0 4px;
 }
 
@@ -1162,7 +1162,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	height: 40px;
 	margin: 0 auto 10px;
 	border-radius: 12px;
-	background: rgba(253, 187, 44, 0.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23504533' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='M8 3v4M16 3v4M3 11h18'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+	background: rgba(8, 160, 69, 0.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23504533' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='M8 3v4M16 3v4M3 11h18'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-activities .widget_header .pull-right {
@@ -1191,7 +1191,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-activities .widget_header .pull-right .btn:hover {
-	background: rgba(253, 187, 44, 0.08);
+	background: rgba(8, 160, 69, 0.08);
 	color: #2b2b2b;
 	border-color: #c4af8d;
 }
@@ -1215,7 +1215,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-related-activities .activityEntries .summaryViewEntries a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1309,7 +1309,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-documents__head .pull-right .btn:hover,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-products__head .pull-right .btn:hover,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-contacts__head .pull-right .btn:hover {
-	background: rgba(253, 187, 44, 0.08);
+	background: rgba(8, 160, 69, 0.08);
 	color: #2b2b2b;
 	border-color: #c4af8d;
 }
@@ -1412,9 +1412,9 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-card--comments textarea:focus,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-card--comments .commentTextArea:focus-within {
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15);
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-card--comments .modal-comment-widgets-container {
@@ -1432,9 +1432,9 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	border-radius: 8px;
 	font-weight: 700;
 	font-size: 13px;
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	background-image: none !important;
-	border: 1px solid #e59a0f;
+	border: 1px solid #0B6E4F;
 	color: #6d4d00;
 	padding: 8px 18px;
 	min-height: 40px;
@@ -1482,8 +1482,8 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-card--comments .detailViewSaveComment,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-card--comments .btn-success.detailViewSaveComment {
-	background: #fdbb2c !important;
-	border-color: #e59a0f !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #6d4d00 !important;
 }
 
@@ -1504,12 +1504,12 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-hero__map a.showMap {
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-hero__map a.showMap:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1601,12 +1601,12 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-details-row .detailview-table td.fieldValue a {
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-details-row .detailview-table td.fieldValue a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1661,7 +1661,7 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #star
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #starToggle.markStar.active .mk-sc-detail-btn__ic--follow {
-	color: #c98f12;
+	color: #08A045;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-kv-wrap .summary-table tr.summaryViewEntries:empty {

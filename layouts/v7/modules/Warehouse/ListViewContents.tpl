@@ -323,7 +323,7 @@
 										<td>{if $R.code}<span class="inv-chip">{$R.code|escape:'html'}</span>{else}<span class="text-muted">—</span>{/if}</td>
 										<td>
 											<a href="index.php?module=Warehouse&view=Detail&record={$R.stockid}&app=INVENTORY">{$R.product_name_display|escape:'html'}</a>
-											{if $R.is_expiring_soon}<span class="inv-status-dot" title="Sắp hết hạn (<= 3 tháng)" style="background:#f59e0b;"></span>{/if}
+											{if $R.is_expiring_soon}<span class="inv-status-dot" title="Sắp hết hạn (<= 3 tháng)" style="background:#6BBF59;"></span>{/if}
 											{if $R.is_expired}<span class="inv-status-dot" title="Đã hết hạn" style="background:#dc2626;"></span>{/if}
 										</td>
 										<td class="serial-cell" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">

@@ -73,8 +73,8 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-acti
 }
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-action-header__icon {
-	background: rgba(253, 187, 44, 0.15) !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.15) !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
 	color: var(--mk-primary) !important;
 }
 
@@ -156,7 +156,7 @@ html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app
 html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-kpi-section .mk-gi-alert--warn {
 	background: rgba(245, 158, 11, 0.12) !important;
 	border-color: rgba(245, 158, 11, 0.35) !important;
-	color: #fcd34d !important;
+	color: #6BBF59 !important;
 }
 
 /* ========================================================================== */
@@ -289,8 +289,8 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-tabl
 }
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-chip {
-	background: rgba(253, 187, 44, 0.12) !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
 	color: var(--mk-primary) !important;
 }
 
@@ -326,9 +326,9 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="List"] .mk-gi-icon
 
 /* Storage badges + expiry pills */
 html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-badge--legacy {
-	background: rgba(253, 187, 44, 0.15) !important;
-	border-color: rgba(253, 187, 44, 0.4) !important;
-	color: #fde68a !important;
+	background: rgba(8, 160, 69, 0.15) !important;
+	border-color: rgba(8, 160, 69, 0.4) !important;
+	color: #bbf7d0 !important;
 }
 
 html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-badge--catalog {
@@ -344,7 +344,7 @@ html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app
 }
 
 html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-wh-expired-date--warn {
-	color: #fcd34d !important;
+	color: #6BBF59 !important;
 	background: rgba(245, 158, 11, 0.15) !important;
 	border-color: rgba(245, 158, 11, 0.35) !important;
 }
@@ -442,8 +442,8 @@ html[data-theme="dark"] body[data-view="List"][data-app="INVENTORY"] .mk-inv-flo
 
 html[data-theme="dark"] body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav--pills a.is-active {
 	color: var(--mk-primary) !important;
-	background: rgba(253, 187, 44, 0.12) !important;
-	border-color: rgba(253, 187, 44, 0.45) !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border-color: rgba(8, 160, 69, 0.45) !important;
 	box-shadow: none !important;
 }
 
@@ -508,9 +508,9 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-acti
 }
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-action-header__icon {
-	background: rgba(253, 187, 44, 0.2) !important;
+	background: rgba(8, 160, 69, 0.2) !important;
 	color: var(--mk-primary) !important;
-	box-shadow: 0 4px 12px rgba(253, 187, 44, 0.15) !important;
+	box-shadow: 0 4px 12px rgba(8, 160, 69, 0.15) !important;
 }
 
 /* Flow pills (edit pages) */
@@ -528,8 +528,8 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-inv-flo
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-inv-flow-bar .mk-gi-topnav--pills a.is-active {
 	color: var(--mk-primary) !important;
-	background: rgba(253, 187, 44, 0.12) !important;
-	border-color: rgba(253, 187, 44, 0.45) !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border-color: rgba(8, 160, 69, 0.45) !important;
 	box-shadow: none !important;
 }
 
@@ -580,7 +580,7 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-form .form-control:focus,
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-go-edit-form .form-control:focus {
 	border-color: var(--mk-primary) !important;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.2) !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.2) !important;
 }
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit-input[readonly],
@@ -600,7 +600,7 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gr-edit
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-alert--warn {
 	background: rgba(245, 158, 11, 0.12) !important;
 	border-color: rgba(245, 158, 11, 0.35) !important;
-	color: #fcd34d !important;
+	color: #6BBF59 !important;
 }
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-alert--danger {
@@ -610,8 +610,8 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-aler
 }
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] .mk-gi-chip {
-	background: rgba(253, 187, 44, 0.12) !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
 	color: var(--mk-primary) !important;
 }
 
@@ -648,7 +648,7 @@ html[data-theme="dark"] body[data-module="GoodsIssue"][data-view="Edit"][data-ap
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable .stock-meta,
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssueItemsTable .stock-meta {
-	background: rgba(253, 187, 44, 0.08) !important;
+	background: rgba(8, 160, 69, 0.08) !important;
 	color: var(--mk-text-secondary) !important;
 }
 
@@ -660,8 +660,8 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssue
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable .legacy-warning,
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssueItemsTable .legacy-warning {
 	background: rgba(245, 158, 11, 0.1) !important;
-	border-left-color: #f59e0b !important;
-	color: #fcd34d !important;
+	border-left-color: #08A045 !important;
+	color: #6BBF59 !important;
 }
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable .stock-badge.catalog,
@@ -673,9 +673,9 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssue
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsReceiptItemsTable .stock-badge.legacy,
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Edit"] #GoodsIssueItemsTable .stock-badge.legacy {
-	background: rgba(253, 187, 44, 0.15) !important;
-	color: #fde68a !important;
-	border-color: rgba(253, 187, 44, 0.4) !important;
+	background: rgba(8, 160, 69, 0.15) !important;
+	color: #bbf7d0 !important;
+	border-color: rgba(8, 160, 69, 0.4) !important;
 }
 
 /* Attachments table */
@@ -806,8 +806,8 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-de
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-btn--primary,
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-btn--primary,
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-btn--warn {
-	background: linear-gradient(180deg, #ffd76a 0%, #fdbb2c 55%, #f0a514 100%) !important;
-	border-color: #e59a0f !important;
+	background: linear-gradient(180deg, #ffd76a 0%, #08A045 55%, #f0a514 100%) !important;
+	border-color: #0B6E4F !important;
 	color: #5c4200 !important;
 }
 
@@ -865,8 +865,8 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-de
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-page-content .mk-gi-topnav a.is-active,
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-page-content .mk-gi-topnav a.is-active {
 	color: var(--mk-primary) !important;
-	background: rgba(253, 187, 44, 0.12) !important;
-	box-shadow: inset 0 0 0 1px rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	box-shadow: inset 0 0 0 1px rgba(8, 160, 69, 0.35) !important;
 }
 
 /* KPI stats */
@@ -881,8 +881,8 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-de
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-stat--accent,
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-detail-stat--accent,
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-stat--accent {
-	background: rgba(253, 187, 44, 0.1) !important;
-	border-color: rgba(253, 187, 44, 0.4) !important;
+	background: rgba(8, 160, 69, 0.1) !important;
+	border-color: rgba(8, 160, 69, 0.4) !important;
 }
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-stat__label,
@@ -973,8 +973,8 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-de
 }
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gi-chip {
-	background: rgba(253, 187, 44, 0.12) !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
 	color: var(--mk-primary) !important;
 }
 
@@ -1004,7 +1004,7 @@ html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-wh-de
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-go-detail-alert--warn {
 	background: rgba(245, 158, 11, 0.12) !important;
 	border-color: rgba(245, 158, 11, 0.35) !important;
-	color: #fcd34d !important;
+	color: #6BBF59 !important;
 }
 
 html[data-theme="dark"] body[data-app="INVENTORY"][data-view="Detail"] .mk-gr-detail-alert--error,
@@ -1054,8 +1054,8 @@ html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-a
 }
 
 html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-detail-chart-legend__item--out {
-	background: rgba(253, 187, 44, 0.12) !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
 	color: var(--mk-primary) !important;
 }
 
@@ -1069,7 +1069,7 @@ html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-a
 html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-badge--dangerous {
 	background: rgba(245, 158, 11, 0.15) !important;
 	border-color: rgba(245, 158, 11, 0.35) !important;
-	color: #fcd34d !important;
+	color: #6BBF59 !important;
 }
 
 html[data-theme="dark"] body[data-module="Warehouse"][data-view="Detail"][data-app="INVENTORY"] .mk-wh-expired-date--danger,

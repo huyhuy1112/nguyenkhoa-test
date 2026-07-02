@@ -149,7 +149,7 @@ body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-inv
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav--pills a.is-active {
 	color: #b45309;
 	background: #ffffff;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	box-shadow: 0 1px 4px rgba(180, 83, 9, 0.12);
 }
 
@@ -212,12 +212,12 @@ body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-
 	width: 56px;
 	height: 56px;
 	border-radius: 12px;
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 4px 12px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 4px 12px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-action-header__actions {
@@ -253,9 +253,9 @@ body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-alert--warn {
-	background: #fffbeb;
-	border: 1px solid #fcd34d;
-	color: #92400e;
+	background: #ecfdf3;
+	border: 1px solid #6BBF59;
+	color: #073B3A;
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-alert--danger {
@@ -348,9 +348,9 @@ body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gr-
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gr-edit-input:focus,
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gr-edit-form .form-control:focus {
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.2);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.2);
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gr-edit-input[readonly] {
@@ -367,11 +367,11 @@ body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gr-
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gr-edit-hint--block {
 	margin: 0 0 12px;
 	padding: 12px 16px;
-	background: #fffbeb;
-	border: 1px solid #fde68a;
+	background: #ecfdf3;
+	border: 1px solid #bbf7d0;
 	border-radius: 10px;
 	font-size: 13px;
-	color: #92400e;
+	color: #073B3A;
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gr-edit-actions {
@@ -401,22 +401,22 @@ body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-btn--primary {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #191c1e;
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-btn--primary:hover {
-	background: #e5a824;
+	background: #0B6E4F;
 	color: #191c1e;
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-btn--filter {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #191c1e;
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-btn--filter:hover {
-	background: #e5a824;
+	background: #0B6E4F;
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] .mk-gi-btn--ghost {
@@ -470,7 +470,7 @@ body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] #GoodsR
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] #GoodsReceiptItemsTable tbody tr.row-item:hover {
-	background: rgba(253, 187, 44, 0.06);
+	background: rgba(8, 160, 69, 0.06);
 }
 
 body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] #GoodsReceiptItemsTable .product-input,
@@ -507,7 +507,7 @@ body[data-module="GoodsReceipt"][data-view="Edit"][data-app="INVENTORY"] #GoodsR
 	margin-top: 6px;
 	padding: 6px 8px;
 	border-radius: 8px;
-	background: rgba(253, 187, 44, 0.08);
+	background: rgba(8, 160, 69, 0.08);
 	color: #504533;
 	font-size: 12px;
 }

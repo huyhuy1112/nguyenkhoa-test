@@ -4,7 +4,10 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260624_so_save1';
+	var MK_BUILD = '20260701_so_wh_v1';
+	var WAREHOUSE_MODAL_ID = 'mkSoWarehouseModal';
+	var warehouseConfirmed = false;
+	var warehousePickerOpen = false;
 
 	// Anti-FOUC: unhide once this bundle executes (CSS is already linked in pre-process).
 	try {
@@ -171,7 +174,157 @@
 		});
 	}
 
-	function triggerSave() {
+	function isCreateMode() {
+		var recordId = ($form().find('input[name="record"]').val() || '').trim();
+		return !recordId;
+	}
+
+	function collectLineItemsForStock() {
+		var productIds = [];
+		var productNames = [];
+		var quantities = [];
+		$form()
+			.find('tr.lineItemRow')
+			.each(function () {
+				var $row = $(this);
+				var pid = parseInt($row.find('input.selectedModuleId').val(), 10) || 0;
+				var name = ($row.find('input.productName').val() || '').trim();
+				var qty = parseFloat($row.find('.qty').val()) || 0;
+				if (qty <= 0 || (!pid && !name)) {
+					return;
+				}
+				productIds.push(pid);
+				productNames.push(name);
+				quantities.push(qty);
+			});
+		return { productIds: productIds, productNames: productNames, quantities: quantities };
+	}
+
+	function ensureWarehouseModal() {
+		if ($('#' + WAREHOUSE_MODAL_ID).length) {
+			return;
+		}
+		var $modal = $(
+			'<div class="modal fade mk-so-wh-modal" id="' +
+				WAREHOUSE_MODAL_ID +
+				'" tabindex="-1" role="dialog" aria-hidden="true">' +
+				'<div class="modal-dialog modal-dialog-centered">' +
+				'<div class="modal-content">' +
+				'<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
+				'<h4 class="modal-title">Chọn kho xuất hàng</h4></div>' +
+				'<div class="modal-body"><p class="mk-so-wh-modal__lead">Đơn hàng sẽ tạo phiếu xuất kho ở trạng thái <strong>Chờ in phiếu</strong>.</p>' +
+				'<div class="mk-so-wh-modal__list" id="mkSoWarehouseList"></div>' +
+				'<div class="mk-so-wh-modal__error hide" id="mkSoWarehouseError"></div></div>' +
+				'<div class="modal-footer">' +
+				'<button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>' +
+				'<button type="button" class="btn btn-success" id="mkSoWarehouseConfirm" disabled>Xác nhận &amp; lưu</button>' +
+				'</div></div></div></div>'
+		);
+		$('body').append($modal);
+	}
+
+	function decodeEntities(s) {
+		var text = String(s || '');
+		if (/&(?:#x?[0-9a-f]+|[a-z]+);/i.test(text)) {
+			var el = document.createElement('textarea');
+			el.innerHTML = text;
+			text = el.value;
+		}
+		return text;
+	}
+
+	function renderWarehouseOptions(warehouses) {
+		var $list = $('#mkSoWarehouseList');
+		$list.empty();
+		warehouses.forEach(function (wh, idx) {
+			var id = 'mkSoWh_' + wh.id;
+			$list.append(
+				$('<label class="mk-so-wh-option"></label>')
+					.append(
+						$('<input type="radio" name="mk_so_warehouse_pick" />')
+							.attr('id', id)
+							.attr('value', wh.id)
+							.prop('checked', idx === 0)
+					)
+					.append(
+						$('<span class="mk-so-wh-option__body"></span>')
+							.append($('<strong></strong>').text(decodeEntities(wh.name)))
+							.append($('<small></small>').text(decodeEntities(wh.address || wh.code)))
+					)
+			);
+		});
+		$('#mkSoWarehouseConfirm').prop('disabled', warehouses.length === 0);
+	}
+
+	function openWarehousePicker(onConfirm) {
+		if (warehousePickerOpen) {
+			return;
+		}
+		ensureWarehouseModal();
+		warehousePickerOpen = true;
+		var $modal = $('#' + WAREHOUSE_MODAL_ID);
+		$('#mkSoWarehouseError').addClass('hide').empty();
+		$modal.off('hidden.bs.modal.mkSoWh').on('hidden.bs.modal.mkSoWh', function () {
+			warehousePickerOpen = false;
+		});
+		app.request.get({ url: 'index.php?module=SalesOrder&action=WarehouseList' }).then(function (err, res) {
+			var warehouses = (res && res.warehouses) || [];
+			renderWarehouseOptions(warehouses);
+			$modal.modal('show');
+			$('#mkSoWarehouseConfirm')
+				.off('click.mkSoWh')
+				.on('click.mkSoWh', function () {
+					var warehouseId = $('input[name="mk_so_warehouse_pick"]:checked').val();
+					var warehouse = null;
+					warehouses.forEach(function (wh) {
+						if (wh.id === warehouseId) {
+							warehouse = wh;
+						}
+					});
+					if (!warehouse) {
+						$('#mkSoWarehouseError').removeClass('hide').text('Vui lòng chọn kho.');
+						return;
+					}
+					var lines = collectLineItemsForStock();
+					app.request
+						.post({
+							data: {
+								module: 'SalesOrder',
+								action: 'CheckWarehouseStock',
+								warehouse_id: warehouse.id,
+								product_id: lines.productIds,
+								product_name: lines.productNames,
+								quantity: lines.quantities
+							}
+						})
+						.then(function (stockErr, stockRes) {
+							if (stockErr || !stockRes || !stockRes.success) {
+								var msg =
+									stockRes && stockRes.errors && stockRes.errors.length
+										? stockRes.errors.join('\n')
+										: 'Tồn kho không đủ để đặt hàng.';
+								$('#mkSoWarehouseError').removeClass('hide').text(msg);
+								return;
+							}
+							$form().find('input[name="mk_warehouse_id"], input[name="mk_warehouse_name"]').remove();
+							$form().append(
+								$('<input type="hidden" name="mk_warehouse_id" />').val(warehouse.id)
+							);
+							$form().append(
+								$('<input type="hidden" name="mk_warehouse_name" />').val(warehouse.name)
+							);
+							$form().trigger('mkSoWarehouseSelected', [warehouse]);
+							warehouseConfirmed = true;
+							$modal.modal('hide');
+							if (typeof onConfirm === 'function') {
+								onConfirm(warehouse);
+							}
+						});
+				});
+		});
+	}
+
+	function doActualSave() {
 		var $editForm = $form();
 		if (!$editForm.length) {
 			return;
@@ -199,7 +352,7 @@
 				formEl.requestSubmit($save.get(0));
 				return;
 			} catch (err) {
-				/* fall through to click */
+				/* fall through */
 			}
 		}
 
@@ -208,6 +361,25 @@
 			return;
 		}
 		$editForm.trigger('submit');
+	}
+
+	function triggerSave() {
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
+
+		if (isCreateMode() && !warehouseConfirmed) {
+			if ($editForm.valid && !$editForm.valid()) {
+				return;
+			}
+			openWarehousePicker(function () {
+				doActualSave();
+			});
+			return;
+		}
+
+		doActualSave();
 	}
 
 	function bindSaveValidationRecovery() {
@@ -466,6 +638,23 @@
 	function bindActions() {
 		bindSaveValidationRecovery();
 		markOppCommerceRefreshOnSubmit();
+		var $editForm = $form();
+		$editForm.off('submit.mkSoWarehouse').on('submit.mkSoWarehouse', function (e) {
+			if (isCreateMode() && !warehouseConfirmed) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				triggerSave();
+				return false;
+			}
+		});
+		$editForm.find('.saveButton').off('click.mkSoWarehouse').on('click.mkSoWarehouse', function (e) {
+			if (isCreateMode() && !warehouseConfirmed) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				triggerSave();
+				return false;
+			}
+		});
 		$('#mkSoSaveTop')
 			.off('click.mkSoSave')
 			.on('click.mkSoSave', function (e) {
@@ -486,12 +675,48 @@
 			});
 	}
 
+	function initOdooInventoryUi() {
+		if (window.MkInventoryOdooEdit && window.MkInventoryOdooEdit.init) {
+			window.MkInventoryOdooEdit.init($form(), { hideDescriptionBlock: true });
+		}
+	}
+
+	function simplifySalesOrderForm() {
+		if ($form().data('mkSoSimplified')) {
+			return;
+		}
+		$form().data('mkSoSimplified', true);
+		var hideFields = [
+			'bill_pobox',
+			'bill_city',
+			'bill_state',
+			'bill_code',
+			'bill_country',
+			'ship_pobox',
+			'ship_city',
+			'ship_state',
+			'ship_code',
+			'ship_country'
+		];
+		hideFields.forEach(function (name) {
+			$form()
+				.find('[name="' + name + '"]')
+				.closest('tr')
+				.addClass('mk-so-hide-legacy');
+		});
+		$form()
+			.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]')
+			.addClass('mk-so-address-simplified');
+	}
+
 	function runEnhancements() {
 		if (!isScoped()) {
 			return;
 		}
 		hideLegacyChrome();
 		styleFieldBlocks();
+		simplifySalesOrderForm();
+		initOdooInventoryUi();
 		initTermsRichEditor();
 		bindActions();
 	}

@@ -137,15 +137,16 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opp
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-btn--primary,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--primary {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	border-color: #d4c4ad !important;
 	color: #6d4d00 !important;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-btn--primary:hover,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--primary:hover {
-	background: #ffc85c !important;
-	border-color: #fdbb2c !important;
+	background: #0b6e4f !important;
+	border-color: #073b3a !important;
+	color: #ffffff !important;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-btn--outline,
@@ -212,14 +213,14 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opp
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--primary {
-	background: #fdbb2c;
-	border-color: #e5a820;
+	background: #08A045;
+	border-color: #0B6E4F;
 	color: #191c1e;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--primary:hover {
 	background: #ffc85c;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--outline {
@@ -229,7 +230,7 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opp
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--outline:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-color: #2f4f66;
 }
 
@@ -473,14 +474,14 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagination .btn:hover:not(:disabled),
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-pagination .mk-so-page-btn:hover:not(:disabled),
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-pagination .btn:hover:not(:disabled) {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	border-color: #d4c4ad !important;
 	color: #6d4d00 !important;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagination .pagination .active > a,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagination .pagination .active > span {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	border-color: #d4c4ad !important;
 	color: #6d4d00 !important;
 }
@@ -1171,7 +1172,7 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table .mk-projecttask-progress--done .mk-projecttask-progress__fill {
-	background: #fdbb2c;
+	background: #08A045;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table .mk-projecttask-progress--default .mk-projecttask-progress__fill {
@@ -1409,7 +1410,7 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .app-nav .addButton.module-buttons,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-projecttask-btn--primary,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-opportunity-btn--primary {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	color: #6d4d00 !important;
 	border: 1px solid #d4c4ad !important;
 	box-shadow: none !important;
@@ -1547,7 +1548,7 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout.is-active,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-actions .mk-so-toolbar-toggles .mk-so-toggle-layout[aria-pressed="true"] {
 	background: #fff8eb !important;
-	border-color: #e5a820 !important;
+	border-color: #0B6E4F !important;
 }
 
 /* Progress bar — light fill for in-progress (not dark "calculating" navy) */
@@ -1580,8 +1581,8 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listvi
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
-	background: #fdbb2c !important;
-	border-color: #c98f12 !important;
+	background: #08A045 !important;
+	border-color: #08A045 !important;
 }
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
@@ -1768,7 +1769,7 @@ html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listvie
 
 html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskpriority'] .mk-projecttask-priority-pill--high {
 	background: #ffe4b8;
-	color: #7c5800;
+	color: #0B6E4F;
 }
 
 html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskprogress'] .mk-projecttask-progress-grid {
@@ -1807,7 +1808,7 @@ html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listvie
 }
 
 html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskprogress'] .mk-projecttask-progress-grid--done .mk-projecttask-progress-grid__fill {
-	background: #fdbb2c;
+	background: #08A045;
 }
 
 html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listview-table tbody tr.listViewEntries td[data-name='projecttaskprogress'] .mk-projecttask-progress-grid__label {
@@ -1835,7 +1836,7 @@ html.mk-projecttask-list-management #listViewContent.mk-so-is-view-grid #listvie
 	border-radius: 6px;
 	background: #fff8eb;
 	border: 1px solid #f0d9a8;
-	color: #c98f12;
+	color: #08A045;
 	font-size: 10px;
 	font-weight: 700;
 	display: inline-flex;

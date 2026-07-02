@@ -86,7 +86,7 @@
 	position: absolute;
 	inset: 0;
 	background:
-		radial-gradient(ellipse 80% 120% at 0% 0%, rgba(253, 187, 44, 0.22), transparent 55%),
+		radial-gradient(ellipse 80% 120% at 0% 0%, rgba(8, 160, 69, 0.22), transparent 55%),
 		radial-gradient(ellipse 60% 80% at 100% 100%, rgba(22, 216, 255, 0.12), transparent 50%);
 	pointer-events: none;
 }
@@ -98,7 +98,7 @@
 	right: 28px;
 	bottom: 0;
 	height: 2px;
-	background: linear-gradient(90deg, transparent, #fdbb2c 35%, #16d8ff 65%, transparent);
+	background: linear-gradient(90deg, transparent, #08A045 35%, #16d8ff 65%, transparent);
 	opacity: 0.85;
 }
 
@@ -109,7 +109,7 @@
 	font-weight: 600;
 	letter-spacing: 0.14em;
 	text-transform: uppercase;
-	color: rgba(253, 187, 44, 0.92);
+	color: rgba(8, 160, 69, 0.92);
 }
 
 .teams-modal-title {
@@ -193,9 +193,9 @@
 
 .teams-modal .form-control:focus,
 .teams-modal select.form-control:focus {
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	background: #ffffff;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.18);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.18);
 	outline: none;
 }
 
@@ -218,7 +218,7 @@
 	padding: 0 22px;
 	border: none;
 	border-radius: 999px;
-	background: linear-gradient(135deg, #fdbb2c 0%, #f59e0b 52%, #ea580c 100%);
+	background: linear-gradient(135deg, #08A045 0%, #08A045 52%, #ea580c 100%);
 	color: #0f172a;
 	font-size: 12px;
 	font-weight: 700;
@@ -230,7 +230,7 @@
 
 .teams-modal-footer .teams-btn-primary:hover,
 .teams-modal-footer .teams-btn-primary:focus {
-	background: linear-gradient(135deg, #f59e0b 0%, #ea580c 52%, #c2410c 100%);
+	background: linear-gradient(135deg, #08A045 0%, #ea580c 52%, #c2410c 100%);
 	color: #0f172a;
 	transform: translateY(-1px);
 	box-shadow: 0 14px 28px rgba(245, 158, 11, 0.34);
@@ -358,7 +358,7 @@ html[data-theme="dark"] .teams-modal select.form-control {
 html[data-theme="dark"] .teams-modal .form-control:focus,
 html[data-theme="dark"] .teams-modal select.form-control:focus {
 	background: #141a24;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 }
 
 html[data-theme="dark"] .teams-modal-footer {

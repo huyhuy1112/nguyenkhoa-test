@@ -23,7 +23,7 @@ html.mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 :root {
-	--mk-ptask-yellow: #FDBB2C;
+	--mk-ptask-yellow: #08A045;
 	--mk-ptask-navy: #40627E;
 	--mk-ptask-surface: #F7F9FB;
 	--mk-ptask-surface-dim: #D8DADC;
@@ -239,7 +239,7 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 	padding: 28px 32px 24px;
 	border-radius: var(--mk-ptask-radius);
 	background:
-		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(253, 187, 44, 0.14), transparent 55%),
+		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(8, 160, 69, 0.14), transparent 55%),
 		radial-gradient(ellipse 60% 50% at 0% 100%, rgba(64, 98, 126, 0.07), transparent 50%),
 		var(--mk-ptask-white);
 	border: 1px solid var(--mk-ptask-border);
@@ -321,7 +321,7 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pill--draft {
-	background: rgba(253, 187, 44, 0.18);
+	background: rgba(8, 160, 69, 0.18);
 	color: #7a5a12;
 }
 
@@ -378,7 +378,7 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-health__chip--warm {
-	background: rgba(253, 187, 44, 0.2);
+	background: rgba(8, 160, 69, 0.2);
 	color: #7a5a12;
 }
 
@@ -431,8 +431,8 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-forecast-preview {
 	padding: 8px 16px;
 	border-radius: var(--mk-ptask-radius-sm);
-	background: rgba(253, 187, 44, 0.12);
-	border: 1px solid rgba(253, 187, 44, 0.35);
+	background: rgba(8, 160, 69, 0.12);
+	border: 1px solid rgba(8, 160, 69, 0.35);
 	min-width: 120px;
 }
 
@@ -478,7 +478,7 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-btn--primary {
 	background: var(--mk-ptask-yellow);
 	color: var(--mk-ptask-text);
-	box-shadow: 0 4px 16px rgba(253, 187, 44, 0.45);
+	box-shadow: 0 4px 16px rgba(8, 160, 69, 0.45);
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-btn--primary:hover {
@@ -597,7 +597,7 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__stage.is-active .mk-ptask-pipeline__dot {
 	border-color: var(--mk-ptask-navy);
 	background: var(--mk-ptask-yellow);
-	box-shadow: 0 0 0 4px rgba(253, 187, 44, 0.25);
+	box-shadow: 0 0 0 4px rgba(8, 160, 69, 0.25);
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-pipeline__name {
@@ -645,8 +645,8 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--tips {
-	border: 1px solid rgba(253, 187, 44, 0.55) !important;
-	box-shadow: 0 4px 18px rgba(253, 187, 44, 0.12) !important;
+	border: 1px solid rgba(8, 160, 69, 0.55) !important;
+	box-shadow: 0 4px 18px rgba(8, 160, 69, 0.12) !important;
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages {
@@ -664,8 +664,8 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--tips .mk-ptask-aside-card__head {
-	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
-	border-bottom-color: rgba(253, 187, 44, 0.35) !important;
+	background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%) !important;
+	border-bottom-color: rgba(8, 160, 69, 0.35) !important;
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages .mk-ptask-aside-card__head {
@@ -686,7 +686,7 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__icon--tips {
 	background: var(--mk-ptask-yellow) !important;
 	color: #6d4d00 !important;
-	box-shadow: 0 4px 10px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 4px 10px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card__icon--stages {
@@ -708,7 +708,7 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--tips .mk-ptask-aside-card__title {
-	color: #92400e !important;
+	color: #073B3A !important;
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-aside-card--stages .mk-ptask-aside-card__title {
@@ -824,13 +824,13 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--mid {
-	background: #fffbeb !important;
-	border-color: #fde68a !important;
+	background: #ecfdf3 !important;
+	border-color: #bbf7d0 !important;
 }
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--mid .mk-ptask-stage-guide__badge {
-	background: #fef3c7 !important;
+	background: #dcfce7 !important;
 	color: #b45309 !important;
-	border: 1px solid #fcd34d !important;
+	border: 1px solid #6BBF59 !important;
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--won {
@@ -874,7 +874,7 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-insight-card--hero {
 	background:
-		linear-gradient(160deg, rgba(253, 187, 44, 0.08), transparent 45%),
+		linear-gradient(160deg, rgba(8, 160, 69, 0.08), transparent 45%),
 		var(--mk-ptask-white);
 }
 
@@ -960,8 +960,8 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-rec--done {
 	color: var(--mk-ptask-text);
-	border-color: rgba(253, 187, 44, 0.35);
-	background: rgba(253, 187, 44, 0.08);
+	border-color: rgba(8, 160, 69, 0.35);
+	background: rgba(8, 160, 69, 0.08);
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-rec__icon {
@@ -1044,7 +1044,7 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-timeline__item.is-active .mk-ptask-timeline__dot {
 	background: var(--mk-ptask-yellow);
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-timeline__item time {
@@ -1448,14 +1448,14 @@ body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-pta
 	max-width: 1120px;
 	width: 100%;
 	box-sizing: border-box;
-	border: 1px solid rgba(253, 187, 44, 0.35);
+	border: 1px solid rgba(8, 160, 69, 0.35);
 	border-radius: 18px;
-	background: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+	background: linear-gradient(180deg, #ffffff 0%, #ecfdf3 100%);
 	box-shadow: 0 8px 28px rgba(64, 98, 126, 0.08);
 }
 
 body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-form-host .mk-ptask-form-footer .saveButton {
-	background: linear-gradient(135deg, var(--mk-ptask-yellow) 0%, #e5a824 100%) !important;
+	background: linear-gradient(135deg, var(--mk-ptask-yellow) 0%, #0B6E4F 100%) !important;
 	border: none !important;
 	color: #1a2834 !important;
 	padding: 14px 32px !important;
@@ -1638,14 +1638,14 @@ html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTas
 }
 
 html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--mid {
-	background: rgba(253, 187, 44, 0.1) !important;
-	border-color: rgba(253, 187, 44, 0.28) !important;
+	background: rgba(8, 160, 69, 0.1) !important;
+	border-color: rgba(8, 160, 69, 0.28) !important;
 }
 
 html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--mid .mk-ptask-stage-guide__badge {
-	background: rgba(253, 187, 44, 0.2) !important;
-	color: #fcd34d !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.2) !important;
+	color: #6BBF59 !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
 }
 
 html[data-theme="dark"].mk-projecttask-create-ready body[data-module="ProjectTask"][data-view="Edit"][data-app="MANAGEMENT"] .mk-ptask-stage-guide__item--won {

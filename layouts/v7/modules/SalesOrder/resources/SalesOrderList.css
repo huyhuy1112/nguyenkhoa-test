@@ -183,14 +183,14 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn {
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn--primary {
-	background: #fdbb2c;
-	border-color: #e5a820;
+	background: #08A045;
+	border-color: #0B6E4F;
 	color: #191c1e;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn--primary:hover {
 	background: #ffc85c;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn--outline {
@@ -200,7 +200,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn--o
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn--outline:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-color: #c4b49a;
 }
 
@@ -297,9 +297,9 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listview-tab
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listview-table .mk-so-status-pill--warning {
-	background: #fef3c7;
-	color: #92400e;
-	border-color: #fde68a;
+	background: #dcfce7;
+	color: #073B3A;
+	border-color: #bbf7d0;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listview-table .mk-so-status-pill--danger {
@@ -495,14 +495,14 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pagina
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #191c1e !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pagination #PageJump.mk-so-page-btn {
 	min-width: 48px;
-	box-shadow: inset 0 -3px 0 #fdbb2c;
+	box-shadow: inset 0 -3px 0 #08A045;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:disabled {
@@ -647,7 +647,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewCont
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th {
@@ -769,7 +769,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewCont
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-progress--100 .mk-so-progress__fill {
-	background: #fdbb2c;
+	background: #08A045;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-progress__label {
@@ -886,7 +886,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-breadc
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-breadcrumb__item a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -952,5 +952,5 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-dash-main
 
 /* Active page indicator (amber underline on page jump) */
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pagination #PageJump.mk-so-page-btn {
-	box-shadow: inset 0 -3px 0 #fdbb2c;
+	box-shadow: inset 0 -3px 0 #08A045;
 }

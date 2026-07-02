@@ -232,15 +232,15 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--primary,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--primary {
-	background: #fdbb2c;
-	border-color: #e5a820;
+	background: #08A045;
+	border-color: #0B6E4F;
 	color: #191c1e;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--primary:hover,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--primary:hover {
 	background: #ffc85c;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--outline,
@@ -252,7 +252,7 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--outline:hover,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--outline:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-color: #c4b49a;
 }
 
@@ -523,15 +523,15 @@ body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pag
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-pagination .mk-contact-page-btn:hover:not(:disabled),
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pagination .mk-contact-page-btn:focus:not(:disabled),
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-pagination .mk-contact-page-btn:focus:not(:disabled) {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #191c1e !important;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pagination #PageJump.mk-contact-page-btn,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-pagination #PageJump.mk-contact-page-btn {
 	min-width: 48px;
-	box-shadow: inset 0 -3px 0 #fdbb2c;
+	box-shadow: inset 0 -3px 0 #08A045;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-pagination .mk-contact-page-btn:disabled,
@@ -634,7 +634,7 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewCo
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th,
@@ -697,7 +697,7 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewCo
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="lastname"] a:hover,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table tbody td.listViewEntryValue[data-name="lastname"] a:hover {
 	text-decoration: underline;
-	color: #7c5800;
+	color: #0B6E4F;
 }
 
 /* Title — blue pill (JS adds .mk-contact-title-pill) */
@@ -922,7 +922,7 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewCo
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions .fa-star.active,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] #listViewContent #listview-table .table-actions .fa-star.active {
-	color: #c98f12;
+	color: #08A045;
 }
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions .listViewEntriesCheckBox,
@@ -1039,7 +1039,7 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-breadcrumb__item a:hover,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-breadcrumb__item a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1086,8 +1086,8 @@ body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact
 
 body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contact-btn--primary,
 body[data-module="Contacts"][data-view="List"][data-app="MARKETING"] .mk-contact-btn--primary {
-	background: #fdbb2c;
-	border-color: #e59a0f;
+	background: #08A045;
+	border-color: #0B6E4F;
 	color: #6d4d00;
 	font-weight: 700;
 }

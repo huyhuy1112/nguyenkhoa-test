@@ -200,11 +200,8 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		if (!$this->isMkModernSalesOrderCreate($request)) {
 			return $headerCssInstances;
 		}
-		$cssFileNames = array(
-			'~layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.css',
-		);
-		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
-		return array_merge($headerCssInstances, $cssInstances);
+		// Odoo + SalesOrderMkEdit CSS loaded once in EditViewPreProcess.tpl
+		return $headerCssInstances;
 	}
 
 	public function getHeaderScripts(Vtiger_Request $request) {
@@ -219,10 +216,7 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		if (!$this->isMkModernSalesOrderCreate($request)) {
 			return $headerScriptInstances;
 		}
-		$jsFileNames = array(
-			'~layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.js',
-		);
-		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
-		return array_merge($headerScriptInstances, $jsScriptInstances);
+		// SalesOrderMkEdit + MkInventoryOdooEdit loaded in EditViewPreProcess.tpl
+		return $headerScriptInstances;
 	}
 }

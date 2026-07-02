@@ -98,6 +98,7 @@ class GoodsReceipt_WorkflowSetup_Helper {
 		$add('inbound_note', '`inbound_note` TEXT');
 		$add('expired_date', '`expired_date` DATE DEFAULT NULL');
 		$add('code', '`code` VARCHAR(50) DEFAULT NULL');
+		$add('warehouse_name', '`warehouse_name` VARCHAR(255) DEFAULT NULL');
 	}
 
 	public static function ensureGoodsReceiptItemsExtendedColumns(PearDatabase $db) {

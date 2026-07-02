@@ -4,8 +4,8 @@
  */
 
 :root {
-	--mk-settings-accent: #ffb703;
-	--mk-settings-accent-hover: #e6a502;
+	--mk-settings-accent: #08a045;
+	--mk-settings-accent-hover: #0b6e4f;
 	--mk-settings-bg: #f7f9fb;
 	--mk-settings-card: #ffffff;
 	--mk-settings-text: #0f172a;
@@ -231,7 +231,7 @@ body[data-parent="Settings"] .mk-dashboard-sidebar .mk-settings-subnav .list-gro
 
 .mk-settings-subnav-input:focus {
 	outline: none;
-	border-color: #f59e0b;
+	border-color: #08A045;
 	box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
 }
 
@@ -280,10 +280,10 @@ body[data-parent="Settings"] .mk-dashboard-sidebar .mk-settings-subnav .list-gro
 
 body[data-parent="Settings"] .mk-settings-subnav-group:has(.mk-settings-subnav-link--active) .mk-settings-subnav-group-toggle,
 body[data-parent="Settings"] .mk-settings-subnav-group:has(.settingsgroup-menu-color) .mk-settings-subnav-group-toggle {
-	background: #fffbeb !important;
-	color: #d97706 !important;
+	background: #ecfdf3 !important;
+	color: #0B6E4F !important;
 	font-weight: 600;
-	box-shadow: inset -4px 0 0 #f59e0b;
+	box-shadow: inset -4px 0 0 #08A045;
 }
 
 .mk-settings-subnav-group-toggle.is-open .mk-settings-subnav-group-chevron {
@@ -335,10 +335,10 @@ body[data-parent="Settings"] .mk-dashboard-sidebar .mk-settings-subnav a.menuIte
 .mk-settings-subnav-link--active,
 .mk-settings-subnav-link.settingsgroup-menu-color,
 body[data-parent="Settings"] .mk-dashboard-sidebar .mk-settings-subnav a.menuItemLabel.settingsgroup-menu-color {
-	background: #fffbeb !important;
-	color: #d97706 !important;
+	background: #ecfdf3 !important;
+	color: #0B6E4F !important;
 	font-weight: 600;
-	box-shadow: inset -4px 0 0 #f59e0b;
+	box-shadow: inset -4px 0 0 #08A045;
 }
 
 .mk-settings-help-link {
@@ -365,17 +365,29 @@ body[data-parent="Settings"] .mk-dashboard-sidebar .mk-settings-subnav a.menuIte
 	color: #64748b;
 }
 
-/* Nút Settings chính — vàng đậm (giữ như thiết kế) */
+/* Nút Settings chính — xanh (đồng bộ brand Nguyên Khoa) */
 body[data-parent="Settings"] .mk-dash-nav-item--active {
-	background: var(--mk-settings-accent) !important;
-	color: #1a1200 !important;
-	box-shadow: none;
+	background: #ecfdf3 !important;
+	color: #0b6e4f !important;
+	box-shadow: inset -4px 0 0 #08a045;
 }
 
 body[data-parent="Settings"] .mk-dash-nav-item--active .mk-dash-nav-ic,
 body[data-parent="Settings"] .mk-dash-nav-item--active .mk-dash-nav-label,
 body[data-parent="Settings"] .mk-dash-nav-item--active .mk-dash-svg {
-	color: #1a1200 !important;
+	color: #0b6e4f !important;
+}
+
+body[data-parent="Settings"] .mk-dash-nav-item--active:hover {
+	background: #0b6e4f !important;
+	color: #ffffff !important;
+	box-shadow: inset -4px 0 0 #6bbf59;
+}
+
+body[data-parent="Settings"] .mk-dash-nav-item--active:hover .mk-dash-nav-ic,
+body[data-parent="Settings"] .mk-dash-nav-item--active:hover .mk-dash-nav-label,
+body[data-parent="Settings"] .mk-dash-nav-item--active:hover .mk-dash-svg {
+	color: #ffffff !important;
 }
 
 /* Chỉ highlight Settings — không sáng MARKETING/SALES khi parent=Settings */
@@ -659,13 +671,13 @@ body[data-parent="Settings"] .mk-dash-mod-link--active {
 .mk-settings-btn--primary {
 	border: 1px solid var(--mk-settings-accent);
 	background: var(--mk-settings-accent);
-	color: #1a1200 !important;
+	color: #ffffff !important;
 }
 
 .mk-settings-btn--primary:hover {
 	background: var(--mk-settings-accent-hover);
 	border-color: var(--mk-settings-accent-hover);
-	color: #1a1200 !important;
+	color: #ffffff !important;
 }
 
 .mk-settings-btn--outline {
@@ -892,7 +904,7 @@ body[data-parent="Settings"] .mk-settings-subpage .btn-success,
 body[data-parent="Settings"] .mk-settings-subpage .saveButton {
 	background: var(--mk-settings-accent) !important;
 	border-color: var(--mk-settings-accent) !important;
-	color: #1a1200 !important;
+	color: #ffffff !important;
 	border-radius: 10px;
 	font-weight: 700;
 }
@@ -1058,17 +1070,17 @@ body[data-parent="Settings"] .mk-settings-role-node:hover {
 
 body[data-parent="Settings"] .mk-settings-role-node--root,
 body[data-parent="Settings"] .mk-settings-roles-tree > ul > li > .toolbar-handle > a.mk-settings-role-node--root {
-	background: linear-gradient(135deg, #ffcc33 0%, #ffb703 55%, #f59e0b 100%) !important;
-	border-color: #e6a502 !important;
-	color: #1a1200 !important;
+	background: linear-gradient(135deg, #6bbf59 0%, #08a045 55%, #0b6e4f 100%) !important;
+	border-color: #0b6e4f !important;
+	color: #ffffff !important;
 	font-weight: 800 !important;
 	box-shadow:
-		0 4px 14px rgba(255, 183, 3, 0.35),
-		0 2px 4px rgba(245, 158, 11, 0.2);
+		0 4px 14px rgba(8, 160, 69, 0.28),
+		0 2px 4px rgba(11, 110, 79, 0.18);
 }
 
 body[data-parent="Settings"] .mk-settings-role-node--root:hover {
-	color: #1a1200 !important;
+	color: #ffffff !important;
 	transform: translateY(-2px);
 }
 
@@ -1102,8 +1114,8 @@ body[data-parent="Settings"] .mk-settings-role-toolbar__btn {
 }
 
 body[data-parent="Settings"] .mk-settings-role-toolbar__btn:hover {
-	background: #fffbeb;
-	border-color: #fcd34d;
+	background: #ecfdf3;
+	border-color: #6BBF59;
 	color: #b45309 !important;
 }
 
@@ -1143,8 +1155,8 @@ body[data-parent="Settings"] .mk-settings-btn .fa {
 /* ========================================================================== */
 
 html[data-theme="dark"] body[data-parent="Settings"] {
-	--mk-settings-accent: var(--mk-primary, #fdbb2c);
-	--mk-settings-accent-hover: var(--mk-primary-hover, #f5b21a);
+	--mk-settings-accent: var(--mk-primary, #08a045);
+	--mk-settings-accent-hover: var(--mk-primary-hover, #0b6e4f);
 	--mk-settings-bg: var(--mk-bg-primary, #12151c);
 	--mk-settings-card: var(--mk-card-bg, #1c2330);
 	--mk-settings-card-hover: var(--mk-card-hover, #252d3d);
@@ -1187,26 +1199,37 @@ html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-site-kicker {
 	color: var(--mk-text-muted, #94a3b8);
 }
 
-/* Main Settings nav — giữ accent vàng trên nền tối */
+/* Main Settings nav — accent xanh trên nền tối */
 html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-nav-item {
 	color: var(--mk-sidebar-text, #cbd5e1) !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-nav-item:hover {
-	background: var(--mk-sidebar-hover-bg, #1e2430) !important;
-	color: var(--mk-text-primary, #f8fafc) !important;
+	background: var(--mk-sidebar-hover-bg, #0b6e4f) !important;
+	color: #ffffff !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-nav-item--active {
-	background: var(--mk-settings-accent) !important;
-	color: var(--mk-btn-primary-text, #111827) !important;
-	box-shadow: 0 0 0 1px rgba(253, 187, 44, 0.25), 0 4px 14px rgba(253, 187, 44, 0.2) !important;
+	background: rgba(8, 160, 69, 0.14) !important;
+	color: var(--mk-green-light, #6bbf59) !important;
+	box-shadow: inset -4px 0 0 var(--mk-primary, #08a045) !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-nav-item--active .mk-dash-nav-ic,
 html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-nav-item--active .mk-dash-nav-label,
 html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-nav-item--active .mk-dash-svg {
-	color: var(--mk-btn-primary-text, #111827) !important;
+	color: var(--mk-green-light, #6bbf59) !important;
+}
+
+html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-nav-item--active:hover {
+	background: var(--mk-primary-hover, #0b6e4f) !important;
+	color: #ffffff !important;
+}
+
+html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-nav-item--active:hover .mk-dash-nav-ic,
+html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-nav-item--active:hover .mk-dash-nav-label,
+html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-nav-item--active:hover .mk-dash-svg {
+	color: #ffffff !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-dash-app-group--active > .mk-dash-app-toggle,
@@ -1238,8 +1261,8 @@ html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subnav-input::
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subnav-input:focus {
-	border-color: var(--mk-input-focus-border, #fdbb2c) !important;
-	box-shadow: 0 0 0 3px var(--mk-input-focus-ring, rgba(253, 187, 44, 0.12)) !important;
+	border-color: var(--mk-input-focus-border, #08A045) !important;
+	box-shadow: 0 0 0 3px var(--mk-input-focus-ring, rgba(8, 160, 69, 0.12)) !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subnav-group-toggle {
@@ -1254,9 +1277,9 @@ html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subnav-group-t
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subnav-group:has(.mk-settings-subnav-link--active) .mk-settings-subnav-group-toggle,
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subnav-group:has(.settingsgroup-menu-color) .mk-settings-subnav-group-toggle {
-	background: var(--mk-sidebar-active-bg, rgba(253, 187, 44, 0.12)) !important;
-	color: var(--mk-sidebar-active-text, #fdbb2c) !important;
-	box-shadow: inset -4px 0 0 var(--mk-sidebar-active-border, #fdbb2c) !important;
+	background: var(--mk-sidebar-active-bg, rgba(8, 160, 69, 0.12)) !important;
+	color: var(--mk-sidebar-active-text, #08A045) !important;
+	box-shadow: inset -4px 0 0 var(--mk-sidebar-active-border, #08A045) !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subnav-group-chevron,
@@ -1278,9 +1301,9 @@ html[data-theme="dark"] body[data-parent="Settings"] .mk-dashboard-sidebar .mk-s
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subnav-link--active,
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subnav-link.settingsgroup-menu-color,
 html[data-theme="dark"] body[data-parent="Settings"] .mk-dashboard-sidebar .mk-settings-subnav a.menuItemLabel.settingsgroup-menu-color {
-	background: var(--mk-sidebar-active-bg, rgba(253, 187, 44, 0.12)) !important;
-	color: var(--mk-sidebar-active-text, #fdbb2c) !important;
-	box-shadow: inset -4px 0 0 var(--mk-sidebar-active-border, #fdbb2c) !important;
+	background: var(--mk-sidebar-active-bg, rgba(8, 160, 69, 0.12)) !important;
+	color: var(--mk-sidebar-active-text, #08A045) !important;
+	box-shadow: inset -4px 0 0 var(--mk-sidebar-active-border, #08A045) !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-help-link {
@@ -1319,7 +1342,7 @@ html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-shortcut-card 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-stat-card:hover,
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-shortcut-card:hover {
 	background: var(--mk-settings-card-hover);
-	border-color: var(--mk-border-accent, rgba(253, 187, 44, 0.35));
+	border-color: var(--mk-border-accent, rgba(8, 160, 69, 0.35));
 	box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
 }
 
@@ -1436,7 +1459,7 @@ html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subpage .listv
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subpage .listview-table tbody tr:hover td {
-	background: var(--mk-table-row-hover, rgba(253, 187, 44, 0.05)) !important;
+	background: var(--mk-table-row-hover, rgba(8, 160, 69, 0.05)) !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-subpage .listview-table tbody tr.listViewEntries {
@@ -1513,8 +1536,8 @@ html[data-theme="dark"] body[data-parent="Settings"] .inputElement {
 html[data-theme="dark"] body[data-parent="Settings"] input.form-control:focus,
 html[data-theme="dark"] body[data-parent="Settings"] select.form-control:focus,
 html[data-theme="dark"] body[data-parent="Settings"] textarea.form-control:focus {
-	border-color: var(--mk-input-focus-border, #fdbb2c) !important;
-	box-shadow: 0 0 0 3px var(--mk-input-focus-ring, rgba(253, 187, 44, 0.12)) !important;
+	border-color: var(--mk-input-focus-border, #08A045) !important;
+	box-shadow: 0 0 0 3px var(--mk-input-focus-ring, rgba(8, 160, 69, 0.12)) !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .panel-default,
@@ -1592,10 +1615,10 @@ html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-role-node:hove
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-role-node--root,
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-roles-tree > ul > li > .toolbar-handle > a.mk-settings-role-node--root {
-	background: linear-gradient(135deg, #ffcc33 0%, #fdbb2c 50%, #e6a502 100%) !important;
-	border-color: rgba(253, 187, 44, 0.5) !important;
-	color: #111827 !important;
-	box-shadow: 0 4px 18px rgba(253, 187, 44, 0.28) !important;
+	background: linear-gradient(135deg, #6bbf59 0%, #08a045 50%, #0b6e4f 100%) !important;
+	border-color: rgba(8, 160, 69, 0.5) !important;
+	color: #ffffff !important;
+	box-shadow: 0 4px 18px rgba(8, 160, 69, 0.28) !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-role-toolbar__btn {
@@ -1605,8 +1628,8 @@ html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-role-toolbar__
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .mk-settings-role-toolbar__btn:hover {
-	background: rgba(253, 187, 44, 0.12) !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
 	color: var(--mk-settings-accent) !important;
 }
 
@@ -1650,8 +1673,8 @@ html[data-theme="dark"] body[data-parent="Settings"] .select2-results__option {
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .select2-results__option--highlighted {
-	background: var(--mk-sidebar-active-bg, rgba(253, 187, 44, 0.12)) !important;
-	color: var(--mk-sidebar-active-text, #fdbb2c) !important;
+	background: var(--mk-sidebar-active-bg, rgba(8, 160, 69, 0.12)) !important;
+	color: var(--mk-sidebar-active-text, #08A045) !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .contentsBackground,
@@ -1675,7 +1698,7 @@ html[data-theme="dark"] body[data-parent="Settings"] .listViewEntries td {
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .listViewEntries:hover td {
-	background: var(--mk-table-row-hover, rgba(253, 187, 44, 0.05)) !important;
+	background: var(--mk-table-row-hover, rgba(8, 160, 69, 0.05)) !important;
 }
 
 html[data-theme="dark"] body[data-parent="Settings"] .pagination,

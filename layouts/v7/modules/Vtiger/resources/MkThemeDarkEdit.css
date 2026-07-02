@@ -161,7 +161,7 @@ html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MA
 
 html[data-theme="dark"] body[data-module="Plans"][data-view="Edit"][data-app="MARKETING"] .mk-planx-sbadge--inprogress {
 	background: rgba(245, 158, 11, 0.18) !important;
-	color: #fcd34d !important;
+	color: #6BBF59 !important;
 	border-color: rgba(245, 158, 11, 0.35) !important;
 }
 
@@ -251,9 +251,9 @@ html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app
 }
 
 html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-pill {
-	background: rgba(253, 187, 44, 0.14) !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
-	color: #fcd34d !important;
+	background: rgba(8, 160, 69, 0.14) !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
+	color: #6BBF59 !important;
 }
 
 html[data-theme="dark"] body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-campx-pill--muted {
@@ -1319,14 +1319,14 @@ html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-ap
 }
 
 html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--mid {
-	background: rgba(253, 187, 44, 0.1) !important;
-	border-color: rgba(253, 187, 44, 0.28) !important;
+	background: rgba(8, 160, 69, 0.1) !important;
+	border-color: rgba(8, 160, 69, 0.28) !important;
 }
 
 html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--mid .mk-opp-stage-guide__badge {
-	background: rgba(253, 187, 44, 0.2) !important;
-	color: #fcd34d !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.2) !important;
+	color: #6BBF59 !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
 }
 
 html[data-theme="dark"] body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-stage-guide__item--won {

@@ -18,7 +18,7 @@
 			<div class="mk-hd-rule-detail-hero-icon" aria-hidden="true">
 				<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M12 4L4 8v4c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V8l-8-4z" fill="#271900"/>
-					<path d="M10 10h4v6h-4v-6z" fill="#FDBB2C"/>
+					<path d="M10 10h4v6h-4v-6z" fill="#08A045"/>
 				</svg>
 			</div>
 			<div class="mk-hd-rule-detail-hero-text">

@@ -11,7 +11,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 :root {
-	--mk-inv-yellow: #FDBB2C;
+	--mk-inv-yellow: #08A045;
 	--mk-inv-navy: #40627E;
 	--mk-inv-surface: #F7F9FB;
 	--mk-inv-surface-dim: #D8DADC;
@@ -170,7 +170,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-page-hea
 	padding: 22px 26px 20px;
 	border-radius: 16px;
 	background:
-		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(253, 187, 44, 0.14), transparent 55%),
+		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(8, 160, 69, 0.14), transparent 55%),
 		radial-gradient(ellipse 60% 50% at 0% 100%, rgba(64, 98, 126, 0.07), transparent 50%),
 		var(--mk-inv-white);
 	border: 1px solid var(--mk-inv-border);
@@ -244,7 +244,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-hero__pa
 	padding: 28px 32px 24px;
 	border-radius: var(--mk-inv-radius);
 	background:
-		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(253, 187, 44, 0.14), transparent 55%),
+		radial-gradient(ellipse 80% 60% at 100% 0%, rgba(8, 160, 69, 0.14), transparent 55%),
 		radial-gradient(ellipse 60% 50% at 0% 100%, rgba(64, 98, 126, 0.07), transparent 50%),
 		var(--mk-inv-white);
 	border: 1px solid var(--mk-inv-border);
@@ -326,7 +326,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-pill--ai
 }
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-pill--draft , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-pill--draft {
-	background: rgba(253, 187, 44, 0.18);
+	background: rgba(8, 160, 69, 0.18);
 	color: #7a5a12;
 }
 
@@ -383,7 +383,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-health__
 }
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-health__chip--warm , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-health__chip--warm {
-	background: rgba(253, 187, 44, 0.2);
+	background: rgba(8, 160, 69, 0.2);
 	color: #7a5a12;
 }
 
@@ -436,8 +436,8 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-owner__n
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-forecast-preview , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-forecast-preview {
 	padding: 8px 16px;
 	border-radius: var(--mk-inv-radius-sm);
-	background: rgba(253, 187, 44, 0.12);
-	border: 1px solid rgba(253, 187, 44, 0.35);
+	background: rgba(8, 160, 69, 0.12);
+	border: 1px solid rgba(8, 160, 69, 0.35);
 	min-width: 120px;
 }
 
@@ -483,7 +483,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-btn , bo
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-btn--primary , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-btn--primary {
 	background: var(--mk-inv-yellow);
 	color: var(--mk-inv-text);
-	box-shadow: 0 4px 16px rgba(253, 187, 44, 0.45);
+	box-shadow: 0 4px 16px rgba(8, 160, 69, 0.45);
 }
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-btn--primary:hover , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-btn--primary:hover {
@@ -602,7 +602,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-pipeline
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-pipeline__stage.is-active .mk-inv-pipeline__dot , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-pipeline__stage.is-active .mk-inv-pipeline__dot {
 	border-color: var(--mk-inv-navy);
 	background: var(--mk-inv-yellow);
-	box-shadow: 0 0 0 4px rgba(253, 187, 44, 0.25);
+	box-shadow: 0 0 0 4px rgba(8, 160, 69, 0.25);
 }
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-pipeline__name , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-pipeline__name {
@@ -647,7 +647,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-insight-
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-insight-card--hero , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-insight-card--hero {
 	background:
-		linear-gradient(160deg, rgba(253, 187, 44, 0.08), transparent 45%),
+		linear-gradient(160deg, rgba(8, 160, 69, 0.08), transparent 45%),
 		var(--mk-inv-white);
 }
 
@@ -733,8 +733,8 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-rec , bo
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-rec--done , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-rec--done {
 	color: var(--mk-inv-text);
-	border-color: rgba(253, 187, 44, 0.35);
-	background: rgba(253, 187, 44, 0.08);
+	border-color: rgba(8, 160, 69, 0.35);
+	background: rgba(8, 160, 69, 0.08);
 }
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-rec__icon , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-rec__icon {
@@ -817,7 +817,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-timeline
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-timeline__item.is-active .mk-inv-timeline__dot , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-timeline__item.is-active .mk-inv-timeline__dot {
 	background: var(--mk-inv-yellow);
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-timeline__item time , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-timeline__item time {
@@ -842,7 +842,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-form-hos
 }
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-form-host .mk-inv-block:hover , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-form-host .mk-inv-block:hover {
-	border-color: rgba(253, 187, 44, 0.45);
+	border-color: rgba(8, 160, 69, 0.45);
 	box-shadow: 0 4px 18px rgba(25, 28, 30, 0.07), 0 12px 36px rgba(64, 98, 126, 0.08);
 }
 
@@ -882,7 +882,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-form-hos
 	width: 32px;
 	height: 32px;
 	border-radius: 10px;
-	background: rgba(253, 187, 44, 0.18);
+	background: rgba(8, 160, 69, 0.18);
 	color: var(--mk-inv-navy);
 	flex-shrink: 0;
 	font-size: 14px;
@@ -1267,14 +1267,14 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-form-hos
 	max-width: 1120px;
 	width: 100%;
 	box-sizing: border-box;
-	border: 1px solid rgba(253, 187, 44, 0.35);
+	border: 1px solid rgba(8, 160, 69, 0.35);
 	border-radius: 18px;
-	background: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+	background: linear-gradient(180deg, #ffffff 0%, #ecfdf3 100%);
 	box-shadow: 0 8px 28px rgba(64, 98, 126, 0.08);
 }
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-form-host .mk-inv-form-footer .saveButton , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-form-host .mk-inv-form-footer .saveButton {
-	background: linear-gradient(135deg, var(--mk-inv-yellow) 0%, #e5a824 100%) !important;
+	background: linear-gradient(135deg, var(--mk-inv-yellow) 0%, #0B6E4F 100%) !important;
 	border: none !important;
 	color: #1a2834 !important;
 	padding: 14px 32px !important;
@@ -1462,7 +1462,7 @@ body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-form-hos
 }
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-form-host #lineItemTab tbody tr.lineItemRow:hover , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-form-host #lineItemTab tbody tr.lineItemRow:hover {
-	background: #fffbeb;
+	background: #ecfdf3;
 }
 
 body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-inv-form-host #lineItemTab tbody td , body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-inv-form-host #lineItemTab tbody td {

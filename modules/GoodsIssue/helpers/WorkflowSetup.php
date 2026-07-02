@@ -60,6 +60,10 @@ class GoodsIssue_WorkflowSetup_Helper {
 		self::ensureColumn($db, 'vtiger_goodsissue', 'code', "`code` VARCHAR(50) DEFAULT NULL");
 		self::ensureColumn($db, 'vtiger_goodsissue', 'issued_by', "`issued_by` VARCHAR(255) DEFAULT NULL");
 		self::ensureColumn($db, 'vtiger_goodsissue', 'storage_location', "`storage_location` VARCHAR(255) DEFAULT NULL");
+		self::ensureColumn($db, 'vtiger_goodsissue', 'status', "`status` VARCHAR(50) NOT NULL DEFAULT 'completed'");
+		self::ensureColumn($db, 'vtiger_goodsissue', 'salesorder_id', "`salesorder_id` INT(19) DEFAULT NULL");
+		self::ensureColumn($db, 'vtiger_goodsissue', 'warehouse_id', "`warehouse_id` VARCHAR(20) DEFAULT NULL");
+		self::ensureColumn($db, 'vtiger_goodsissue', 'mk_meta_json', "`mk_meta_json` TEXT");
 		self::ensureColumn($db, 'vtiger_goodsissue_items', 'unit_price', "`unit_price` DECIMAL(25,8) NOT NULL DEFAULT 0");
 		self::ensureColumn($db, 'vtiger_goodsissue_items', 'line_note', "`line_note` TEXT");
 		self::ensureColumn($db, 'vtiger_goodsissue_items', 'discount_percent', "`discount_percent` DECIMAL(10,4) NOT NULL DEFAULT 0");

@@ -43,46 +43,6 @@
     hasOpenTicket: false,
   };
 
-  var BULK_OWNER_PALETTE = ["#6366f1", "#8b5cf6", "#0ea5e9", "#10b981", "#f97316", "#ec4899", "#14b8a6", "#e11d48"];
-
-  function getBulkOwners() {
-    var users = store && store.getAssignableUsers ? store.getAssignableUsers() : [];
-    if (users.length) {
-      return users;
-    }
-    if (typeof window !== "undefined" && window.MK_LEADS_ASSIGNABLE_USERS && window.MK_LEADS_ASSIGNABLE_USERS.length) {
-      return window.MK_LEADS_ASSIGNABLE_USERS.slice();
-    }
-    return [];
-  }
-
-  function ownerDisplayName(user) {
-    if (!user) return "";
-    return user.label || user.user_name || String(user.id || "");
-  }
-
-  function ownerAssignValue(user) {
-    if (!user) return "";
-    if (user.id != null && user.id !== "") return String(user.id);
-    return user.user_name || "";
-  }
-
-  function ownerMenuColor(user, index) {
-    var key = ownerAssignValue(user) || ownerDisplayName(user);
-    if (logic && logic.ownerColor) {
-      return logic.ownerColor(key, index);
-    }
-    return BULK_OWNER_PALETTE[(index || 0) % BULK_OWNER_PALETTE.length];
-  }
-  var TAG_CAT_LABELS = {
-    source: "SOURCE",
-    learning: "LEARNING",
-    program: "PROGRAM",
-    purchase: "PURCHASE",
-    tier: "TIER",
-    other: "OTHER",
-  };
-
   var state = {
     filters: Object.assign({}, EMPTY),
     sortKey: "last_touch",
@@ -91,7 +51,6 @@
     selected: {},
     activeSegment: null,
     filtersOpen: true,
-    bulkMenu: null,
   };
 
   function $(id) {
@@ -111,6 +70,163 @@
 
   function getLeads() {
     return store ? store.getLeads() : [];
+  }
+
+  function leadCrmId(lead) {
+    if (!lead) return "";
+    return lead.crmid != null && lead.crmid !== "" ? String(lead.crmid) : String(lead.id || "");
+  }
+
+  function isLeadConvertible(lead) {
+    if (!lead) return false;
+    return lead.canConvert !== false && !lead.converted && !lead.potentialId;
+  }
+
+  function convertSingleLead(leadId, orderCategory) {
+    return new Promise(function (resolve, reject) {
+      if (!window.app || !app.request || !app.request.post) {
+        reject(new Error("app.request unavailable"));
+        return;
+      }
+      app.request
+        .post({
+          data: {
+            module: "Leads",
+            action: "ModernApi",
+            mode: "convert",
+            id: leadId,
+            order_category: orderCategory,
+          },
+        })
+        .then(function (err, res) {
+          if (err || !res || res.success === false) {
+            reject(err || (res && res.error) || new Error("Convert failed"));
+            return;
+          }
+          resolve(res);
+        });
+    });
+  }
+
+  function openBulkConvertModal(rows) {
+    var convertible = rows.filter(isLeadConvertible);
+    if (!convertible.length) {
+      window.alert("Các lead đã chọn đều đã convert hoặc không thể convert.");
+      return;
+    }
+    if (!window.app || !app.helper || !app.helper.showModal) {
+      var fallback = window.prompt("Loại Opportunity: gõ Internal hoặc Project", "Internal");
+      if (fallback === null) return;
+      var cat = String(fallback).trim();
+      if (cat !== "Internal" && cat !== "Project") {
+        window.alert("Chỉ chấp nhận Internal hoặc Project.");
+        return;
+      }
+      runBulkConvert(rows, cat);
+      return;
+    }
+
+    var modalHtml =
+      '<div class="modal-dialog mk-lead-convert-modal mk-leads-bulk-convert-modal">' +
+      '<div class="modal-content">' +
+      '<div class="modal-header">' +
+      '<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+      '<h4 class="modal-title">Convert to Opp</h4>' +
+      "</div>" +
+      '<div class="modal-body">' +
+      '<p class="mk-lead-convert-modal__intro">Chuyển <strong>' +
+      convertible.length +
+      "</strong> lead đã chọn sang <strong>Contact + Account + Opportunity</strong>. Chọn loại đơn hàng:</p>" +
+      '<div class="mk-lead-convert-modal__choices" role="radiogroup" aria-label="Order category">' +
+      '<label class="mk-lead-convert-modal__choice is-selected">' +
+      '<input type="radio" name="mk_leads_bulk_convert_order_category" value="Internal" checked />' +
+      '<span class="mk-lead-convert-modal__choice-body">' +
+      '<span class="mk-lead-convert-modal__choice-title">Internal</span>' +
+      '<span class="mk-lead-convert-modal__choice-desc">Đơn nội bộ / bán hàng thông thường</span>' +
+      "</span></label>" +
+      '<label class="mk-lead-convert-modal__choice">' +
+      '<input type="radio" name="mk_leads_bulk_convert_order_category" value="Project" />' +
+      '<span class="mk-lead-convert-modal__choice-body">' +
+      '<span class="mk-lead-convert-modal__choice-title">Project</span>' +
+      '<span class="mk-lead-convert-modal__choice-desc">Đơn dự án / triển khai theo project</span>' +
+      "</span></label>" +
+      "</div></div>" +
+      '<div class="modal-footer">' +
+      '<button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>' +
+      '<button type="button" class="btn btn-primary mk-leads-bulk-convert-modal__submit">Convert to Opp</button>' +
+      "</div></div></div>";
+
+    app.helper.showModal(modalHtml, {
+      backdrop: "static",
+      keyboard: false,
+      cb: function (container) {
+        var $root = container.find(".mk-leads-bulk-convert-modal");
+        $root.find(".mk-lead-convert-modal__choice").on("click", function () {
+          $root.find(".mk-lead-convert-modal__choice").removeClass("is-selected");
+          window.jQuery(this).addClass("is-selected");
+          window.jQuery(this).find('input[type="radio"]').prop("checked", true);
+        });
+        $root.find(".mk-leads-bulk-convert-modal__submit").on("click", function () {
+          var cat = $root.find('input[name="mk_leads_bulk_convert_order_category"]:checked').val();
+          if (cat !== "Internal" && cat !== "Project") {
+            window.alert("Vui lòng chọn Internal hoặc Project.");
+            return;
+          }
+          app.helper.hideModal();
+          runBulkConvert(rows, cat);
+        });
+      },
+    });
+  }
+
+  function runBulkConvert(rows, orderCategory) {
+    var convertible = rows.filter(isLeadConvertible);
+    var skipped = rows.length - convertible.length;
+    if (!convertible.length) {
+      window.alert("Không có lead nào có thể convert.");
+      return;
+    }
+    if (window.app && app.helper && app.helper.showProgress) {
+      app.helper.showProgress();
+    }
+    var ok = 0;
+    var already = 0;
+    var failed = 0;
+    var chain = Promise.resolve();
+    convertible.forEach(function (lead) {
+      chain = chain.then(function () {
+        return convertSingleLead(leadCrmId(lead), orderCategory)
+          .then(function (res) {
+            if (res && res.already_converted) already += 1;
+            else ok += 1;
+          })
+          .catch(function () {
+            failed += 1;
+          });
+      });
+    });
+    chain
+      .then(function () {
+        if (window.app && app.helper && app.helper.hideProgress) {
+          app.helper.hideProgress();
+        }
+        var refresh = store && store.refreshLeadsList ? store.refreshLeadsList() : Promise.resolve();
+        return refresh.then(function () {
+          clearSelection();
+          renderAll();
+          var msg = "Đã convert " + ok + " lead.";
+          if (ok !== 1) msg = "Đã convert " + ok + " leads.";
+          if (already) msg += " " + already + " đã convert trước đó.";
+          if (skipped) msg += " " + skipped + " bỏ qua.";
+          if (failed) msg += " " + failed + " lỗi.";
+          window.alert(msg);
+        });
+      })
+      .catch(function () {
+        if (window.app && app.helper && app.helper.hideProgress) {
+          app.helper.hideProgress();
+        }
+      });
   }
 
   function detailUrl(id) {
@@ -549,166 +665,7 @@
 
   function clearSelection() {
     state.selected = {};
-    state.bulkMenu = null;
     renderTable();
-  }
-
-  function getAllBulkTags() {
-    var meta = ref && ref.TAG_META ? ref.TAG_META : {};
-    return Object.keys(meta).map(function (k) {
-      var m = meta[k];
-      return { key: k, label: m.label, cat: m.cat, cls: m.cls };
-    });
-  }
-
-  function getSelectedLeadTags() {
-    var set = {};
-    selectedLeads().forEach(function (l) {
-      (l.tags || []).forEach(function (t) {
-        set[t] = true;
-      });
-    });
-    return Object.keys(set).sort();
-  }
-
-  function bulkMenuHtml(type) {
-    if (state.bulkMenu !== type) return "";
-    var html = '<div class="mk-leads-bulk-menu" role="menu">';
-    if (type === "assign") {
-      var owners = getBulkOwners();
-      if (!owners.length) {
-        html += '<div class="mk-leads-bulk-menu__empty">No assignable users</div>';
-      } else {
-        owners.forEach(function (user, idx) {
-          var label = ownerDisplayName(user);
-          var value = ownerAssignValue(user);
-          html +=
-            '<button type="button" class="mk-leads-bulk-menu__item" data-bulk-pick="owner" data-value="' +
-            esc(value) +
-            '" data-owner-label="' +
-            esc(label) +
-            '">' +
-            '<span class="mk-owner-avatar mk-leads-bulk-menu__avatar" style="background:' +
-            ownerMenuColor(user, idx) +
-            '">' +
-            esc(logic.ownerInitials(label)) +
-            "</span>" +
-            '<span class="mk-leads-bulk-menu__label">' +
-            esc(label) +
-            "</span></button>";
-        });
-      }
-    } else if (type === "add-tag") {
-      getAllBulkTags().forEach(function (t) {
-        html +=
-          '<button type="button" class="mk-leads-bulk-menu__item" data-bulk-pick="add-tag" data-value="' +
-          esc(t.key) +
-          '">' +
-          '<span class="mk-leads-bulk-dot ' +
-          esc(t.cls) +
-          '"></span>' +
-          '<span class="mk-leads-bulk-menu__label">' +
-          esc(t.label) +
-          '</span><span class="mk-leads-bulk-menu__cat">' +
-          esc(TAG_CAT_LABELS[t.cat] || String(t.cat || "").toUpperCase()) +
-          "</span></button>";
-      });
-    } else if (type === "remove-tag") {
-      var tags = getSelectedLeadTags();
-      if (!tags.length) {
-        html += '<div class="mk-leads-bulk-menu__empty">No tags on selected leads</div>';
-      } else {
-        tags.forEach(function (key) {
-          var m = tagMeta(key);
-          html +=
-            '<button type="button" class="mk-leads-bulk-menu__item" data-bulk-pick="remove-tag" data-value="' +
-            esc(key) +
-            '">' +
-            '<span class="mk-leads-bulk-dot ' +
-            esc(m.cls) +
-            '"></span>' +
-            '<span class="mk-leads-bulk-menu__label">' +
-            esc(m.label) +
-            "</span></button>";
-        });
-      }
-    }
-    html += "</div>";
-    return html;
-  }
-
-  function bulkActionWrap(action, label) {
-    var open = state.bulkMenu === action;
-    return (
-      '<div class="mk-leads-bulk-action">' +
-      '<button type="button" class="mk-leads-bulk-btn' +
-      (open ? " is-open" : "") +
-      '" data-bulk="' +
-      action +
-      '"><span>' +
-      label +
-      "</span></button>" +
-      bulkMenuHtml(action) +
-      "</div>"
-    );
-  }
-
-  function applyBulkOwner(ownerValue, ownerLabel) {
-    var rows = selectedLeads();
-    var assignValue = ownerValue || "";
-    if (!assignValue || !rows.length || !store) return;
-    var ids = rows.map(function (l) {
-      return l.crmid != null && l.crmid !== "" ? String(l.crmid) : l.id;
-    });
-    var keepIds = ids.slice();
-
-    (store.assignOwner ? store.assignOwner(ids, assignValue) : Promise.reject(new Error("assignOwner unavailable")))
-      .then(function () {
-        state.bulkMenu = null;
-        state.selected = {};
-        keepIds.forEach(function (id) {
-          var lead = store.getLead(id);
-          if (lead) state.selected[lead.id] = true;
-        });
-        renderAll();
-      })
-      .catch(function (err) {
-        console.error("Assign owner failed", err);
-        if (store.refreshLeadsList) {
-          store.refreshLeadsList().then(function () {
-            renderAll();
-          });
-        }
-      });
-  }
-
-  function applyBulkAddTag(tagKey) {
-    var rows = selectedLeads();
-    Promise.all(
-      rows.map(function (l) {
-        var tags = (l.tags || []).slice();
-        if (tags.indexOf(tagKey) < 0) tags.push(tagKey);
-        return store.update(l.id, { tags: tags });
-      }),
-    ).then(function () {
-      state.bulkMenu = null;
-      renderAll();
-    });
-  }
-
-  function applyBulkRemoveTag(tagKey) {
-    var rows = selectedLeads();
-    Promise.all(
-      rows.map(function (l) {
-        var tags = (l.tags || []).filter(function (x) {
-          return x !== tagKey;
-        });
-        return store.update(l.id, { tags: tags });
-      }),
-    ).then(function () {
-      state.bulkMenu = null;
-      renderAll();
-    });
   }
 
   function renderBulkBar() {
@@ -718,7 +675,6 @@
     if (!n) {
       bar.hidden = true;
       bar.innerHTML = "";
-      state.bulkMenu = null;
       return;
     }
     bar.hidden = false;
@@ -733,9 +689,10 @@
       "</strong> selected</span>" +
       "</div>" +
       '<div class="mk-leads-bulk-bar__actions">' +
-      bulkActionWrap("assign", "Assign owner") +
-      bulkActionWrap("add-tag", "Add tag") +
-      bulkActionWrap("remove-tag", "Remove tag") +
+      '<button type="button" class="mk-leads-bulk-btn mk-leads-bulk-btn--convert" data-bulk="convert">' +
+      '<span class="mk-leads-bulk-btn__ic">' +
+      ic("convert") +
+      "</span><span>Convert to Opp</span></button>" +
       '<button type="button" class="mk-leads-bulk-btn" data-bulk="export">' +
       '<span class="mk-leads-bulk-btn__ic">' +
       ic("export") +
@@ -942,25 +899,6 @@
     });
 
     document.addEventListener("click", function (e) {
-      var pick = e.target.closest && e.target.closest("[data-bulk-pick]");
-      if (pick) {
-        e.preventDefault();
-        e.stopPropagation();
-        var pickType = pick.getAttribute("data-bulk-pick");
-        var val = pick.getAttribute("data-value");
-        if (!val || !store) return;
-        if (pickType === "owner") {
-          applyBulkOwner(val, pick.getAttribute("data-owner-label") || val);
-        } else if (pickType === "add-tag") applyBulkAddTag(val);
-        else if (pickType === "remove-tag") applyBulkRemoveTag(val);
-        return;
-      }
-
-      if (state.bulkMenu && !(e.target.closest && e.target.closest(".mk-leads-bulk-bar"))) {
-        state.bulkMenu = null;
-        renderBulkBar();
-      }
-
       if (e.target.id === "mk-leads-prev") {
         state.page = Math.max(1, state.page - 1);
         renderTable();
@@ -988,6 +926,10 @@
           exportCsv(rows);
           return;
         }
+        if (action === "convert") {
+          openBulkConvertModal(rows);
+          return;
+        }
         if (action === "archive") {
           if (!window.confirm("Archive " + rows.length + " selected lead(s)?")) return;
           Promise.all(
@@ -998,11 +940,6 @@
             clearSelection();
             renderAll();
           });
-          return;
-        }
-        if (action === "assign" || action === "add-tag" || action === "remove-tag") {
-          state.bulkMenu = state.bulkMenu === action ? null : action;
-          renderBulkBar();
           return;
         }
       }

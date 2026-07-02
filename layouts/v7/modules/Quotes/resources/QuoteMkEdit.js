@@ -451,7 +451,6 @@
 			'shipping',
 			'inventorymanager',
 			'assigned_user_id1',
-			'description',
 			'bill_pobox',
 			'bill_city',
 			'bill_state',
@@ -680,6 +679,12 @@
 			});
 	}
 
+	function initOdooInventoryUi() {
+		if (window.MkInventoryOdooEdit && window.MkInventoryOdooEdit.init) {
+			window.MkInventoryOdooEdit.init($form(), { hideDescriptionBlock: true });
+		}
+	}
+
 	function runEnhancements() {
 		if (!isScoped()) {
 			return;
@@ -688,6 +693,7 @@
 		hideLegacyChrome();
 		styleFieldBlocks();
 		simplifyQuoteForm();
+		initOdooInventoryUi();
 		fixFormDisplayEncoding();
 		initBaForm();
 		initTermsRichEditor();

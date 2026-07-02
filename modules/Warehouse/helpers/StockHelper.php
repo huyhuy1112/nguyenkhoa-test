@@ -125,6 +125,61 @@ class Warehouse_Stock_Helper {
 	}
 
 	/**
+	 * Sum available quantity for a catalog product at a named warehouse.
+	 * Falls back to all warehouses when warehouse_name is unset on stock rows.
+	 */
+	public static function sumAvailableQtyForProductAtWarehouse(PearDatabase $db, $productId, $productName, $warehouseName) {
+		$productId = (int) $productId;
+		$warehouseName = trim((string) $warehouseName);
+		$total = 0.0;
+
+		if ($productId > 0) {
+			$params = array($productId);
+			$where = 'productid = ?';
+			if ($warehouseName !== '') {
+				$where .= ' AND (warehouse_name = ? OR warehouse_name IS NULL OR warehouse_name = \'\')';
+				$params[] = $warehouseName;
+			}
+			$rs = $db->pquery(
+				"SELECT quantity, shrinkage_qty FROM vtiger_warehouse_stock WHERE {$where}",
+				$params
+			);
+			while ($row = $db->fetchByAssoc($rs)) {
+				$total += self::availableQty($row['quantity'], isset($row['shrinkage_qty']) ? $row['shrinkage_qty'] : 0);
+			}
+			if ($total > 0 || $warehouseName === '') {
+				return $total;
+			}
+		}
+
+		if ($productName !== '') {
+			$name = trim(self::decodeDisplayText($productName));
+			$params = array(mb_strtolower($name), $name);
+			$where = '(LOWER(TRIM(product_name)) = ? OR TRIM(product_name) = ?)';
+			if ($warehouseName !== '') {
+				$where .= ' AND (warehouse_name = ? OR warehouse_name IS NULL OR warehouse_name = \'\')';
+				$params[] = $warehouseName;
+			}
+			$rs = $db->pquery(
+				"SELECT quantity, shrinkage_qty FROM vtiger_warehouse_stock WHERE {$where}",
+				$params
+			);
+			while ($row = $db->fetchByAssoc($rs)) {
+				$total += self::availableQty($row['quantity'], isset($row['shrinkage_qty']) ? $row['shrinkage_qty'] : 0);
+			}
+		}
+
+		if ($total <= 0 && $productId > 0) {
+			$row = self::findStockRowByProductKey($db, 'P:' . $productId);
+			if ($row) {
+				return self::availableQty($row['quantity'], isset($row['shrinkage_qty']) ? $row['shrinkage_qty'] : 0);
+			}
+		}
+
+		return $total;
+	}
+
+	/**
 	 * Build WHERE clause matching goods receipt line items to this stock row.
 	 *
 	 * @param array $stockRow Row from vtiger_warehouse_stock

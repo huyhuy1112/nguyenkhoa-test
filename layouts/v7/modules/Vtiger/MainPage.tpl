@@ -327,7 +327,7 @@
 				<div id="kpi-chart-kythuat" class="kpi-chart-panel hide" data-vals="78,95,88" data-colors="#3b82f6,#60a5fa,#93c5fd" data-labels="Hoàn thành sprint,Code review,Bug fix rate"></div>
 				<div id="kpi-chart-nhansu" class="kpi-chart-panel hide" data-vals="68,82,94" data-colors="#8b5cf6,#a78bfa,#c4b5fd" data-labels="Tuyển dụng,Đào tạo nội bộ,Tỷ lệ giữ chân"></div>
 				<div id="kpi-chart-ketoan" class="kpi-chart-panel hide" data-vals="92,100,76" data-colors="#ec4899,#f472b6,#f9a8d4" data-labels="Thu chi cân đối,Báo cáo đúng hạn,Kiểm toán nội bộ"></div>
-				<div id="kpi-chart-marketing" class="kpi-chart-panel hide" data-vals="89,65,80" data-colors="#f59e0b,#fbbf24,#fcd34d" data-labels="Lượt tiếp cận,Conversion rate,Brand awareness"></div>
+				<div id="kpi-chart-marketing" class="kpi-chart-panel hide" data-vals="89,65,80" data-colors="#08A045,#6BBF59,#0B6E4F" data-labels="Lượt tiếp cận,Conversion rate,Brand awareness"></div>
 			</div>
 		</div>
 	</div>

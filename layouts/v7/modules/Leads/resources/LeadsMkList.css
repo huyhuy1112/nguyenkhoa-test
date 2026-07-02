@@ -456,7 +456,7 @@ body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-so-page.mk-lea
 
 .mk-chip--blue { background: rgba(59,130,246,0.10); border-color: rgba(59,130,246,0.18); color: #1d4ed8; }
 .mk-chip--purple { background: rgba(168,85,247,0.10); border-color: rgba(168,85,247,0.18); color: #6d28d9; }
-.mk-chip--gold { background: #fef3c7; border-color: #fdbb2c; color: #92400e; }
+.mk-chip--gold { background: #dcfce7; border-color: #08A045; color: #073B3A; }
 .mk-chip--silver { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
 .mk-chip--bronze { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
 

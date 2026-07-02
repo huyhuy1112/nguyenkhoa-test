@@ -193,7 +193,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-breadcrumb__item a:hover , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-breadcrumb__item a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -315,9 +315,9 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 	font-size: 12px;
 	font-weight: 600;
 	line-height: 1.2;
-	background: rgba(253, 187, 44, 0.18);
+	background: rgba(8, 160, 69, 0.18);
 	color: #7a5a12;
-	border: 1px solid rgba(253, 187, 44, 0.45);
+	border: 1px solid rgba(8, 160, 69, 0.45);
 	white-space: nowrap;
 	max-width: 100%;
 }
@@ -455,12 +455,12 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-hero__meta-item--amount .mk-inv-detail-hero__meta-text , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-hero__meta-item--amount .mk-inv-detail-hero__meta-text {
 	font-weight: 700;
-	color: #7c5800;
+	color: #0B6E4F;
 	font-size: 15px;
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-hero__meta-item--amount i , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-hero__meta-item--amount i {
-	color: #c98f12;
+	color: #08A045;
 }
 
 /* Stage pill (also used in Hero meta + list) */
@@ -491,8 +491,8 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-stage-pill--qualification, body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-stage-pill--qualification,
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-stage-pill--prospecting, body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-stage-pill--prospecting,
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-stage-pill--needs-analysis , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-stage-pill--needs-analysis {
-	background: #fef3c7;
-	color: #92400e;
+	background: #dcfce7;
+	color: #073B3A;
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-stage-pill--proposal, body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-stage-pill--proposal,
@@ -613,7 +613,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-btn--primary , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-btn--primary {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	background-image: none !important;
 	border-color: #e59a0f;
 	color: #6d4d00;
@@ -858,7 +858,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .related-tabs 
 	bottom: -1px;
 	height: 2px;
 	border-radius: 2px;
-	background: #f59e0b;
+	background: #08A045;
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-related-tabs .navbar , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-related-tabs .navbar {
@@ -867,7 +867,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover {
 	color: #504533;
-	background: rgba(253, 187, 44, 0.08);
+	background: rgba(8, 160, 69, 0.08);
 }
 
 /* Related-module icon tabs (right side) */
@@ -905,13 +905,13 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon, body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon {
-	background: rgba(253, 187, 44, 0.12);
+	background: rgba(8, 160, 69, 0.12);
 	color: #2b2b2b;
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon, body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon {
-	background: rgba(253, 187, 44, 0.2);
+	background: rgba(8, 160, 69, 0.2);
 	color: #2b2b2b;
 }
 
@@ -950,7 +950,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"], body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"],
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"] , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"] {
-	background: #7c5800;
+	background: #0B6E4F;
 	color: #ffffff;
 }
 
@@ -1139,7 +1139,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 	width: 4px;
 	height: 16px;
 	border-radius: 2px;
-	background: #fdbb2c;
+	background: #08A045;
 	flex: 0 0 4px;
 }
 
@@ -1266,12 +1266,12 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-kv-wrap .summary-table td.fieldValue a , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-kv-wrap .summary-table td.fieldValue a {
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-kv-wrap .summary-table td.fieldValue a:hover , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-kv-wrap .summary-table td.fieldValue a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1386,7 +1386,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 	height: 44px;
 	margin: 0 auto 10px;
 	border-radius: 12px;
-	background: rgba(253, 187, 44, 0.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23504533' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+	background: rgba(8, 160, 69, 0.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23504533' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-related-activities .widget_header .pull-right , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-related-activities .widget_header .pull-right {
@@ -1415,7 +1415,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-related-activities .widget_header .pull-right .btn:hover , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-related-activities .widget_header .pull-right .btn:hover {
-	background: rgba(253, 187, 44, 0.08);
+	background: rgba(8, 160, 69, 0.08);
 	color: #2b2b2b;
 	border-color: #c4af8d;
 }
@@ -1439,7 +1439,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-related-activities .activityEntries .summaryViewEntries a:hover , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-related-activities .activityEntries .summaryViewEntries a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1533,7 +1533,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-documents__head .pull-right .btn:hover, body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-documents__head .pull-right .btn:hover,
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-products__head .pull-right .btn:hover, body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-products__head .pull-right .btn:hover,
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-contacts__head .pull-right .btn:hover , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-contacts__head .pull-right .btn:hover {
-	background: rgba(253, 187, 44, 0.08);
+	background: rgba(8, 160, 69, 0.08);
 	color: #2b2b2b;
 	border-color: #c4af8d;
 }
@@ -1650,9 +1650,9 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-card--comments textarea:focus, body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-card--comments textarea:focus,
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-card--comments .commentTextArea:focus-within , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-card--comments .commentTextArea:focus-within {
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15);
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-card--comments .modal-comment-widgets-container , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-card--comments .modal-comment-widgets-container {
@@ -1679,7 +1679,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 	border-radius: 8px;
 	font-weight: 700;
 	font-size: 13px;
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	background-image: none !important;
 	border: 1px solid #e59a0f;
 	color: #6d4d00;
@@ -1726,7 +1726,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-card--comments .detailViewSaveComment, body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-card--comments .detailViewSaveComment,
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-card--comments .btn-success.detailViewSaveComment , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-card--comments .btn-success.detailViewSaveComment {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	border-color: #e59a0f !important;
 	color: #6d4d00 !important;
 }
@@ -1748,12 +1748,12 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-hero__map a.showMap , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-hero__map a.showMap {
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-hero__map a.showMap:hover , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-hero__map a.showMap:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1845,12 +1845,12 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-details-row .detailview-table td.fieldValue a , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-details-row .detailview-table td.fieldValue a {
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] .mk-inv-detail-details-row .detailview-table td.fieldValue a:hover , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] .mk-inv-detail-details-row .detailview-table td.fieldValue a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1907,7 +1907,7 @@ body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] #starToggle .m
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] #starToggle.markStar.active .mk-inv-detail-btn__ic--follow , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] #starToggle.markStar.active .mk-inv-detail-btn__ic--follow {
-	color: #c98f12;
+	color: #08A045;
 }
 
 body[data-module="Invoice"][data-view="Detail"][data-app="TOOLS"] #starToggle.markStar.active .mk-inv-detail-btn__ic--follow svg polygon , body[data-module="Invoice"][data-view="Detail"][data-app="SUPPORT"] #starToggle.markStar.active .mk-inv-detail-btn__ic--follow svg polygon {

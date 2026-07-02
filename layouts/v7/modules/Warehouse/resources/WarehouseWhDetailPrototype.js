@@ -25,13 +25,74 @@
 			.replace(/'/g, '&#039;');
 	}
 
+	function escText(s) {
+		return escapeHtml(decodeEntities(s));
+	}
+
+	function showError(msg) {
+		var text = String(msg || 'Đã xảy ra lỗi');
+		if (typeof window !== 'undefined' && window.app && app.helper && app.helper.showErrorNotification) {
+			app.helper.showErrorNotification({ message: text });
+			return;
+		}
+		window.alert(text);
+	}
+
+	function decodeEntities(s) {
+		var text = String(s || '');
+		if (!text) {
+			return '';
+		}
+		var el = document.createElement('textarea');
+		var prev = null;
+		var guard = 0;
+		while (text !== prev && guard < 6) {
+			prev = text;
+			if (!/&(?:#x?[0-9a-f]+|[a-z]+);/i.test(text)) {
+				break;
+			}
+			el.innerHTML = text;
+			text = el.value;
+			guard += 1;
+		}
+		return text;
+	}
+
 	function fmtDateTime(iso) {
 		if (!iso) return '—';
 		try {
-			return new Date(iso).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
+			var d = new Date(iso);
+			if (isNaN(d.getTime())) {
+				d = new Date(String(iso).replace(' ', 'T'));
+			}
+			if (isNaN(d.getTime())) {
+				return '—';
+			}
+			return d.toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
 		} catch (e) {
-			return iso;
+			return '—';
 		}
+	}
+
+	function readQcNoteFromDialog(actionEl) {
+		var root = (actionEl && actionEl.closest && actionEl.closest('#mkWhProtoDialog')) || qs('#mkWhProtoDialog');
+		if (!root) return '';
+		var cached = root.getAttribute('data-mk-qc-note-cache');
+		if (cached) return String(cached).trim();
+		var noteEl = root.querySelector('[data-mk-qc-note="1"]');
+		return noteEl ? String(noteEl.value || '').trim() : '';
+	}
+
+	function bindQcNoteInput(root) {
+		if (!root) return;
+		var noteEl = root.querySelector('[data-mk-qc-note="1"]');
+		if (!noteEl || noteEl.getAttribute('data-mk-qc-bound') === '1') return;
+		noteEl.setAttribute('data-mk-qc-bound', '1');
+		var sync = function () {
+			root.setAttribute('data-mk-qc-note-cache', String(noteEl.value || ''));
+		};
+		noteEl.addEventListener('input', sync);
+		noteEl.addEventListener('change', sync);
 	}
 
 	function daysUntil(exp) {
@@ -86,16 +147,21 @@
 
 	var ISSUE_STATUS = {
 		draft: { label: 'Nháp', cls: 'mk-wh-proto-pill mk-wh-proto-pill--draft' },
-		pending_approval: { label: 'Chờ duyệt', cls: 'mk-wh-proto-pill mk-wh-proto-pill--warn' },
-		approved: { label: 'Đã duyệt', cls: 'mk-wh-proto-pill mk-wh-proto-pill--ok' },
+		waiting_print: { label: 'Chờ in phiếu', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
+		picking: { label: 'Đang soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-pick' },
+		packed: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 		shipped: { label: 'Đã giao', cls: 'mk-wh-proto-pill mk-wh-proto-pill--ok' },
 		rejected: { label: 'Từ chối', cls: 'mk-wh-proto-pill mk-wh-proto-pill--warn' },
+		// legacy aliases
+		pending_approval: { label: 'Chờ in phiếu', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
+		approved: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 	};
 
 	var OUTBOUND_TYPES = {
 		internal: {
 			label: 'Xuất nội bộ (test)',
 			short: 'Xuất nội bộ',
+			pillCls: 'mk-wh-proto-pill--out-internal',
 			customerLabel: 'Bộ phận / mục đích',
 			soLabel: 'Mã tham chiếu',
 			soPlaceholder: 'IT-TEST-...',
@@ -103,6 +169,7 @@
 		transfer: {
 			label: 'Xuất chuyển kho',
 			short: 'Chuyển kho',
+			pillCls: 'mk-wh-proto-pill--out-transfer',
 			customerLabel: 'Kho đích',
 			soLabel: 'Mã chuyển kho',
 			soPlaceholder: 'TRF-...',
@@ -110,6 +177,7 @@
 		scrap: {
 			label: 'Xuất huỷ',
 			short: 'Xuất huỷ',
+			pillCls: 'mk-wh-proto-pill--out-scrap',
 			customerLabel: 'Lý do huỷ',
 			soLabel: 'Mã phiếu huỷ',
 			soPlaceholder: 'SCR-...',
@@ -117,6 +185,7 @@
 		sale: {
 			label: 'Xuất bán (từ invoice)',
 			short: 'Xuất bán',
+			pillCls: 'mk-wh-proto-pill--out-sale',
 			customerLabel: 'Khách hàng',
 			soLabel: 'Mã invoice / SO',
 			soPlaceholder: 'INV-2026-...',
@@ -131,7 +200,8 @@
 
 	function outboundTypePill(type) {
 		var meta = getOutboundTypeMeta(type);
-		return '<span class="mk-wh-proto-pill mk-wh-proto-pill--blue">' + escapeHtml(meta.short) + '</span>';
+		var cls = meta.pillCls || 'mk-wh-proto-pill--out-internal';
+		return '<span class="mk-wh-proto-pill ' + escapeHtml(cls) + '">' + escapeHtml(meta.short) + '</span>';
 	}
 
 	function issueStatusPill(status) {
@@ -168,8 +238,8 @@
 			if (desc) desc.textContent = 'Kho không tồn tại hoặc đã bị xóa.';
 			return false;
 		}
-		if (title) title.textContent = w.name;
-		if (desc) desc.textContent = w.code + ' · ' + (w.address || '—') + ' · QL: ' + (w.manager || '—');
+		if (title) title.textContent = decodeEntities(w.name);
+		if (desc) desc.textContent = decodeEntities(w.code) + ' · ' + decodeEntities(w.address || '—') + ' · QL: ' + decodeEntities(w.manager || '—');
 		return true;
 	}
 
@@ -191,7 +261,9 @@
 		if (!id) return;
 		var d = S.ensureData(id);
 		var pendingQc = (d.receipts || []).filter(function (r) { return r.status === 'pending_qc'; }).length;
-		var pendingApprove = (d.issues || []).filter(function (i) { return i.status === 'pending_approval'; }).length;
+		var pendingApprove = (d.issues || []).filter(function (i) {
+			return i.status === 'waiting_print' || i.status === 'pending_approval' || i.status === 'picking' || i.status === 'packed' || i.status === 'approved';
+		}).length;
 		var skuSet = {};
 		(d.stock || []).forEach(function (s) { if ((Number(s.qty) || 0) > 0) skuSet[s.sku] = true; });
 		var expiring = (d.stock || []).filter(function (s) { return (Number(s.qty) || 0) > 0 && daysUntil(s.expiry) < 90; }).length;
@@ -235,8 +307,8 @@
 			var st = RECEIPT_STATUS[r.status] || { label: r.status, cls: 'mk-wh-proto-pill' };
 			return '<tr>' +
 				'<td><strong>' + escapeHtml(r.id) + '</strong></td>' +
-				'<td>' + escapeHtml(r.supplier) + '</td>' +
-				'<td>' + escapeHtml(r.poRef) + '</td>' +
+				'<td>' + escapeHtml(decodeEntities(r.supplier)) + '</td>' +
+				'<td>' + escapeHtml(decodeEntities(r.poRef)) + '</td>' +
 				'<td>' + escapeHtml(fmtDateTime(r.createdAt)) + '</td>' +
 				'<td><span class="' + escapeHtml(st.cls) + '">' + escapeHtml(st.label) + '</span></td>' +
 				'<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="inbound-detail" data-id="' + escapeHtml(r.id) + '">Mở</button></td>' +
@@ -254,14 +326,14 @@
 			var it = (r.lines && r.lines[0]) || {};
 			rows.push('<tr>' +
 				'<td><strong>' + escapeHtml(r.id) + '</strong></td>' +
-				'<td>' + escapeHtml(r.supplier) + '</td>' +
-				'<td>' + escapeHtml(it.name || '—') + ' <span class="mk-wh-proto-muted">(' + escapeHtml(it.sku || '') + ')</span></td>' +
-				'<td>' + escapeHtml(it.lot || '—') + '</td>' +
+				'<td>' + escText(r.supplier) + '</td>' +
+				'<td>' + escText(it.name || '—') + ' <span class="mk-wh-proto-muted">(' + escText(it.sku || '') + ')</span></td>' +
+				'<td>' + escText(it.lot || '—') + '</td>' +
 				'<td>' +
-					(it.mfg ? '<span class="mk-wh-proto-muted">NSX: ' + escapeHtml(it.mfg) + '</span><br/>' : '') +
-					'HSD: ' + escapeHtml(it.expiry || '—') +
+					(it.mfg ? '<span class="mk-wh-proto-muted">NSX: ' + escText(it.mfg) + '</span><br/>' : '') +
+					'HSD: ' + escText(it.expiry || '—') +
 				'</td>' +
-				'<td>' + escapeHtml(it.qty || '—') + '</td>' +
+				'<td>' + escText(it.qty || '—') + '</td>' +
 				'<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="qc-record" data-id="' + escapeHtml(r.id) + '"' +
 					(getRole() !== 'qc' ? ' disabled' : '') +
 				'>Ghi nhận QC</button></td>' +
@@ -325,13 +397,13 @@
 			var hsdCls = 'mk-wh-proto-hsd' + (days < 0 ? ' mk-wh-proto-hsd--expired' : (days < 90 ? ' mk-wh-proto-hsd--soon' : ''));
 			var qtyCls = (Number(s.qty) || 0) < 50 ? ' mk-wh-proto-qty--low' : '';
 			return '<tr>' +
-				'<td><strong>' + escapeHtml(s.sku) + '</strong></td>' +
-				'<td>' + escapeHtml(s.name) + '</td>' +
-				'<td>' + escapeHtml(s.lot) + '</td>' +
-				'<td class="' + hsdCls + '">' + escapeHtml(s.expiry || '—') + ' <span class="mk-wh-proto-muted">(' + escapeHtml(expLabel) + ')</span></td>' +
-				'<td class="mk-wh-proto-td-right">' + escapeHtml(fmtPrice(s.price)) + '</td>' +
-				'<td class="mk-wh-proto-td-right">' + escapeHtml(s.location || '—') + '</td>' +
-				'<td class="mk-wh-proto-td-right' + qtyCls + '"><strong>' + escapeHtml(s.qty) + '</strong></td>' +
+				'<td><strong>' + escText(s.sku) + '</strong></td>' +
+				'<td>' + escText(s.name) + '</td>' +
+				'<td>' + escText(s.lot) + '</td>' +
+				'<td class="' + hsdCls + '">' + escText(s.expiry || '—') + ' <span class="mk-wh-proto-muted">(' + escText(expLabel) + ')</span></td>' +
+				'<td class="mk-wh-proto-td-right">' + escText(fmtPrice(s.price)) + '</td>' +
+				'<td class="mk-wh-proto-td-right">' + escText(s.location || '—') + '</td>' +
+				'<td class="mk-wh-proto-td-right' + qtyCls + '"><strong>' + escText(s.qty) + '</strong></td>' +
 			'</tr>';
 		}).join('');
 	}
@@ -344,13 +416,13 @@
 		tbody.innerHTML = (d.issues || []).map(function (i) {
 			var st = ISSUE_STATUS[i.status] || { label: i.status, cls: 'mk-wh-proto-pill' };
 			return '<tr>' +
-				'<td><strong>' + escapeHtml(i.id) + '</strong></td>' +
+				'<td><strong>' + escText(i.id) + '</strong></td>' +
 				'<td>' + outboundTypePill(i.outboundType || 'internal') + '</td>' +
-				'<td>' + escapeHtml(i.customer) + '</td>' +
-				'<td>' + escapeHtml(i.soRef || '—') + '</td>' +
+				'<td>' + escText(i.customer) + '</td>' +
+				'<td>' + escText(i.soRef || '—') + '</td>' +
 				'<td>' + escapeHtml(fmtDateTime(i.createdAt)) + '</td>' +
 				'<td>' + issueStatusPill(i.status) + '</td>' +
-				'<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="outbound-detail" data-id="' + escapeHtml(i.id) + '">Chi tiết</button></td>' +
+				'<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="outbound-detail" data-id="' + escText(i.id) + '">Chi tiết</button></td>' +
 			'</tr>';
 		}).join('');
 	}
@@ -363,6 +435,31 @@
 		updateKpis();
 	}
 
+	function refreshWarehouseUi() {
+		renderAll();
+		if (typeof window.requestAnimationFrame === 'function') {
+			window.requestAnimationFrame(renderAll);
+		} else {
+			setTimeout(renderAll, 0);
+		}
+	}
+
+	function reopenIssueDialog(whId, issueId, res) {
+		var d = (res && res.data) ? res.data : S.ensureData(whId);
+		var issue = (d.issues || []).find(function (x) { return x.id === issueId; });
+		if (!issue) return;
+		var dlg = issueDialog(issue);
+		openDialog(dlg.title, dlg.meta, dlg.body);
+	}
+
+	function reopenReceiptDialog(whId, receiptId, res) {
+		var d = (res && res.data) ? res.data : S.ensureData(whId);
+		var receipt = (d.receipts || []).find(function (x) { return x.id === receiptId; });
+		if (!receipt) return;
+		var dlg = receiptDialog(receipt);
+		openDialog(dlg.title, dlg.meta, dlg.body);
+	}
+
 	/* ===== Dialog (timeline) ===== */
 	function openDialog(titleText, metaHtml, bodyHtml) {
 		var dialog = qs('#mkWhProtoDialog');
@@ -373,6 +470,8 @@
 		title.textContent = titleText || 'Phiếu';
 		meta.innerHTML = metaHtml || '';
 		body.innerHTML = bodyHtml || '';
+		dialog.removeAttribute('data-mk-qc-note-cache');
+		bindQcNoteInput(dialog);
 		dialog.classList.add('is-open');
 		dialog.setAttribute('aria-hidden', 'false');
 	}
@@ -390,27 +489,91 @@
 		return '<span class="mk-wh-proto-tag mk-wh-proto-tag--blue">Thủ kho</span>';
 	}
 
+	function getReceiptQcInfo(r) {
+		var qc = r.qc || {};
+		var result = String(qc.result || '');
+		var note = String(qc.note || '').trim();
+		var by = String(qc.by || '').trim();
+		var at = String(qc.at || '').trim();
+		(r.timeline || []).forEach(function (ev) {
+			if (!ev || ev.role !== 'qc') {
+				return;
+			}
+			if (!note && ev.note) {
+				note = String(ev.note || '').trim();
+			}
+			if (!by && ev.by) {
+				by = String(ev.by || '').trim();
+			}
+			if (!at && ev.at) {
+				at = String(ev.at || '').trim();
+			}
+			if (!result) {
+				var action = String(ev.action || '').toLowerCase();
+				if (action.indexOf('không đạt') >= 0 || action.indexOf('khong dat') >= 0) {
+					result = 'fail';
+				} else if (action.indexOf('đạt') >= 0 || action.indexOf('dat') >= 0) {
+					result = 'pass';
+				}
+			}
+		});
+		if (!result) {
+			if (r.status === 'qc_passed') result = 'pass';
+			if (r.status === 'qc_failed') result = 'fail';
+		}
+		return { result: result, note: note, by: by, at: at };
+	}
+
+	function renderQcResultPanel(qcInfo) {
+		if (!qcInfo || !qcInfo.result) {
+			return '';
+		}
+		var label = qcInfo.result === 'pass' ? 'Đạt' : 'Không đạt';
+		var cls = qcInfo.result === 'pass' ? 'mk-wh-proto-pill--ok' : 'mk-wh-proto-pill--warn';
+		return '<div class="mk-wh-proto-qc-result" style="margin-bottom:14px;padding:12px 14px;border:1px solid rgba(15,23,42,0.08);border-radius:12px;background:#f8fafc;">' +
+			'<div class="mk-wh-proto-dialog-section-title" style="margin-bottom:8px;">Kết quả QC</div>' +
+			'<div style="margin-bottom:8px;"><span class="mk-wh-proto-pill ' + escapeHtml(cls) + '">' + escapeHtml(label) + '</span></div>' +
+			(qcInfo.note
+				? ('<div class="mk-wh-proto-muted" style="margin-bottom:4px;">Ghi nhận của QC:</div>' +
+					'<div class="mk-wh-proto-quote">"' + escText(qcInfo.note) + '"</div>')
+				: '<div class="mk-wh-proto-muted">QC chưa ghi nhận chi tiết.</div>') +
+			((qcInfo.by || qcInfo.at)
+				? ('<div class="mk-wh-proto-muted" style="margin-top:8px;">' +
+					escText(qcInfo.by || 'QC') +
+					(qcInfo.at && fmtDateTime(qcInfo.at) !== '—' ? ' · ' + escText(fmtDateTime(qcInfo.at)) : '') +
+					'</div>')
+				: '') +
+			'</div>';
+	}
+
 	function receiptDialog(r) {
 		var st = RECEIPT_STATUS[r.status] || { label: r.status, cls: 'mk-wh-proto-pill' };
+		var qcInfo = getReceiptQcInfo(r);
 		var linesHtml = (r.lines || []).map(function (l) {
 			var qcPill = l.qcResult === 'pass'
 				? '<span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đạt</span>'
 				: l.qcResult === 'fail'
 					? '<span class="mk-wh-proto-pill mk-wh-proto-pill--warn">Không đạt</span>'
-					: '—';
-			return '<tr><td><strong>' + escapeHtml(l.name || '') + '</strong><div class="mk-wh-proto-muted">' + escapeHtml(l.sku || '') + '</div></td>' +
-				'<td>' + escapeHtml(l.lot || '') + '<br/><span class="mk-wh-proto-muted">HSD: ' + escapeHtml(l.expiry || '—') + '</span></td>' +
-				'<td>' + escapeHtml(l.qty) + '</td><td>' + qcPill + '</td></tr>';
+					: (r.status === 'pending_qc'
+						? '<span class="mk-wh-proto-pill mk-wh-proto-pill--warn">Chờ QC</span>'
+						: (r.status === 'qc_passed'
+							? '<span class="mk-wh-proto-pill mk-wh-proto-pill--ok">Đạt</span>'
+							: (r.status === 'qc_failed'
+								? '<span class="mk-wh-proto-pill mk-wh-proto-pill--warn">Không đạt</span>'
+								: '—')));
+			return '<tr><td><strong>' + escText(l.name || '') + '</strong><div class="mk-wh-proto-muted">' + escText(l.sku || '') + '</div></td>' +
+				'<td>' + escText(l.lot || '') + '<br/><span class="mk-wh-proto-muted">HSD: ' + escText(l.expiry || '—') + '</span></td>' +
+				'<td>' + escText(l.qty) + '</td><td>' + qcPill + '</td></tr>';
 		}).join('');
 
 		var timelineHtml =
 			'<div class="mk-wh-proto-timeline">' +
 			((r.timeline || []).map(function (ev) {
 				return '<div class="mk-wh-proto-timeline-item">' +
-					'<strong>' + escapeHtml(ev.action || '—') + '</strong>' +
+					'<strong>' + escText(ev.action || '—') + '</strong>' +
 					roleBadge(ev.role) +
-					'<div class="mk-wh-proto-muted">' + escapeHtml((ev.by || '—') + ' · ' + fmtDateTime(ev.at)) + '</div>' +
-					(ev.note ? '<div class="mk-wh-proto-quote">"' + escapeHtml(ev.note) + '"</div>' : '') +
+					'<div class="mk-wh-proto-muted">' + escText((ev.by || '—') + ' · ' + fmtDateTime(ev.at)) + '</div>' +
+					(ev.note ? '<div class="mk-wh-proto-quote">"' + escText(ev.note) + '"</div>' : '') +
 				'</div>';
 			}).join('')) +
 			'</div>';
@@ -443,9 +606,10 @@
 
 		return {
 			title: 'Phiếu nhập ' + r.id,
-			meta: 'NCC: ' + escapeHtml(r.supplier) + ' · PO: ' + escapeHtml(r.poRef),
+			meta: 'NCC: ' + escText(r.supplier) + ' · PO: ' + escText(r.poRef),
 			body:
 				'<div style="margin-bottom:10px;"><span class="' + escapeHtml(st.cls || 'mk-wh-proto-pill') + '">' + escapeHtml(st.label) + '</span></div>' +
+				renderQcResultPanel(qcInfo) +
 				'<div class="mk-wh-proto-dialog-grid">' +
 					'<div>' +
 						'<div class="mk-wh-proto-dialog-section-title">Chi tiết hàng hóa</div>' +
@@ -465,17 +629,17 @@
 	function issueDialog(issue) {
 		var st = ISSUE_STATUS[issue.status] || { label: issue.status, cls: 'mk-wh-proto-pill' };
 		var linesHtml = (issue.lines || []).map(function (l) {
-			return '<tr><td><strong>' + escapeHtml(l.name) + '</strong><div class="mk-wh-proto-muted">' + escapeHtml(l.sku) + '</div></td>' +
-				'<td>' + escapeHtml(l.lot) + '</td><td>' + escapeHtml(l.qty) + '</td></tr>';
+			return '<tr><td><strong>' + escText(l.name) + '</strong><div class="mk-wh-proto-muted">' + escText(l.sku) + '</div></td>' +
+				'<td>' + escText(l.lot) + '</td><td>' + escText(l.qty) + '</td></tr>';
 		}).join('');
 		var timelineHtml =
 			'<div class="mk-wh-proto-timeline">' +
 			((issue.timeline || []).map(function (ev) {
 				return '<div class="mk-wh-proto-timeline-item">' +
-					'<strong>' + escapeHtml(ev.action || '—') + '</strong>' +
+					'<strong>' + escText(ev.action || '—') + '</strong>' +
 					roleBadge(ev.role) +
-					'<div class="mk-wh-proto-muted">' + escapeHtml((ev.by || '—') + ' · ' + fmtDateTime(ev.at)) + '</div>' +
-					(ev.note ? '<div class="mk-wh-proto-quote">"' + escapeHtml(ev.note) + '"</div>' : '') +
+					'<div class="mk-wh-proto-muted">' + escText((ev.by || '—') + ' · ' + fmtDateTime(ev.at)) + '</div>' +
+					(ev.note ? '<div class="mk-wh-proto-quote">"' + escText(ev.note) + '"</div>' : '') +
 				'</div>';
 			}).join('')) +
 			'</div>';
@@ -484,28 +648,30 @@
 		var actions = '';
 		if (issue.status === 'draft' && role === 'keeper') {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
-				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-submit" data-id="' + escapeHtml(issue.id) + '">Gửi duyệt</button>' +
+				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-submit" data-id="' + escapeHtml(issue.id) + '">Chờ in phiếu</button>' +
 				'</div>';
 		}
-		if (issue.status === 'pending_approval' && role === 'manager') {
-			actions = '<div class="mk-wh-proto-dialog-section-title" style="margin-top:12px;">Lý do (nếu từ chối)</div>' +
-				'<textarea class="mk-wh-proto-textarea" data-mk-reject-reason="1" placeholder="VD: vượt hạn mức tín dụng"></textarea>' +
-				'<div class="mk-wh-proto-cta-row" style="margin-top:10px;">' +
-				'<button class="mk-wh-proto-cta mk-wh-proto-cta--fail" type="button" data-mk-action="issue-reject" data-id="' + escapeHtml(issue.id) + '"><span>✕</span> Từ chối</button>' +
-				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-approve" data-id="' + escapeHtml(issue.id) + '">Duyệt phiếu</button>' +
-				'</div>';
-		}
-		if (issue.status === 'approved' && role === 'keeper') {
+		if ((issue.status === 'waiting_print' || issue.status === 'pending_approval') && role === 'keeper') {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
-				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-ship" data-id="' + escapeHtml(issue.id) + '">Soạn &amp; giao hàng</button>' +
+				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-start-pick" data-id="' + escapeHtml(issue.id) + '">Bắt đầu soạn</button>' +
+				'</div>';
+		}
+		if (issue.status === 'picking' && role === 'keeper') {
+			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
+				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-finish-pick" data-id="' + escapeHtml(issue.id) + '">Hoàn tất soạn hàng</button>' +
+				'</div>';
+		}
+		if ((issue.status === 'packed' || issue.status === 'approved') && role === 'keeper') {
+			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
+				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-ship" data-id="' + escapeHtml(issue.id) + '">Xác nhận đã giao</button>' +
 				'</div>';
 		}
 
 		return {
 			title: 'Phiếu xuất ' + issue.id,
 			meta: outboundTypePill(issue.outboundType || 'internal') + ' · ' +
-				escapeHtml(getOutboundTypeMeta(issue.outboundType).customerLabel) + ': ' + escapeHtml(issue.customer) +
-				' · ' + escapeHtml(getOutboundTypeMeta(issue.outboundType).soLabel) + ': ' + escapeHtml(issue.soRef || '—'),
+				escText(getOutboundTypeMeta(issue.outboundType).customerLabel) + ': ' + escText(issue.customer) +
+				' · ' + escText(getOutboundTypeMeta(issue.outboundType).soLabel) + ': ' + escText(issue.soRef || '—'),
 			body:
 				'<div style="margin-bottom:10px;"><span class="' + escapeHtml(st.cls || 'mk-wh-proto-pill') + '">' + escapeHtml(st.label) + '</span></div>' +
 				'<div class="mk-wh-proto-dialog-grid">' +
@@ -580,12 +746,26 @@
 		var d = S.ensureData(whId);
 		var stock = (d.stock || []).slice();
 		(lines || []).forEach(function (l) {
-			var idx = stock.findIndex(function (s) { return s.sku === l.sku && s.lot === l.lot; });
-			if (idx >= 0) {
-				stock[idx] = Object.assign({}, stock[idx], {
-					qty: Math.max(0, (Number(stock[idx].qty) || 0) - (Number(l.qty) || 0)),
-				});
-			}
+			var qtyLeft = Number(l.qty) || 0;
+			if (qtyLeft <= 0) return;
+			var lot = String(l.lot || '');
+			var sku = String(l.sku || '');
+			var name = String(l.name || '');
+			var candidates = stock.map(function (s, idx) { return { s: s, idx: idx }; }).filter(function (row) {
+				if ((Number(row.s.qty) || 0) <= 0) return false;
+				if (sku && lot) return row.s.sku === sku && row.s.lot === lot;
+				if (sku) return row.s.sku === sku;
+				if (name) return String(row.s.name || '') === name;
+				return false;
+			});
+			candidates.forEach(function (row) {
+				if (qtyLeft <= 0) return;
+				var avail = Number(row.s.qty) || 0;
+				var deduct = Math.min(avail, qtyLeft);
+				if (deduct <= 0) return;
+				stock[row.idx] = Object.assign({}, stock[row.idx], { qty: avail - deduct });
+				qtyLeft -= deduct;
+			});
 		});
 		S.warehouseDataActions.setStock(whId, stock);
 	}
@@ -675,7 +855,7 @@
 			if (f.type === 'lines') {
 				return '<div class="mk-wh-proto-field mk-wh-proto-field--full"><label>' + escapeHtml(f.label || 'Danh sách hàng') + '</label>' +
 					'<div class="mk-wh-proto-lines mk-wh-proto-lines--catalog" data-mk-lines="1">' +
-					'<div class="mk-wh-proto-lines__head"><span class="mk-wh-proto-lines__ttl">Chọn sản phẩm từ tồn kho — SKU tự động điền</span>' +
+					'<div class="mk-wh-proto-lines__head"><span class="mk-wh-proto-lines__ttl">Chọn sản phẩm từ Products &amp; Services</span>' +
 					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost mk-wh-proto-lines__add" data-mk-lines-add="1">+ Thêm dòng</button></div>' +
 					'<div class="mk-wh-proto-lines__tableWrap"><table class="mk-wh-proto-lines__table" role="table"><thead><tr>' +
 					'<th class="mk-wh-proto-col-name">Tên hàng *</th><th class="mk-wh-proto-col-sku">SKU</th>' +
@@ -717,14 +897,16 @@
 	}
 
 	function getStockProductCatalog(whId) {
+		if (typeof window !== 'undefined' && window.MK_WH_PRODUCT_CATALOG && window.MK_WH_PRODUCT_CATALOG.length) {
+			return window.MK_WH_PRODUCT_CATALOG.slice();
+		}
 		var d = S.ensureData(whId);
 		var seen = {};
 		var list = [];
 		(d.stock || []).forEach(function (s) {
 			if (!s.sku || seen[s.sku]) return;
-			if ((Number(s.qty) || 0) <= 0) return;
 			seen[s.sku] = true;
-			list.push({ sku: s.sku, name: s.name || s.sku });
+			list.push({ id: 0, sku: s.sku, name: s.name || s.sku, price: s.price || 0 });
 		});
 		list.sort(function (a, b) {
 			return String(a.name).localeCompare(String(b.name), 'vi');
@@ -732,14 +914,18 @@
 		return list;
 	}
 
-	function productSelectHtml(catalog, selectedSku) {
-		var opts = '<option value="">— Chọn sản phẩm từ tồn kho —</option>' +
+	function productSelectHtml(catalog, selectedId) {
+		var opts = '<option value="">— Chọn sản phẩm (Products &amp; Services) —</option>' +
 			catalog.map(function (p) {
-				var sel = p.sku === selectedSku ? ' selected="selected"' : '';
-				return '<option value="' + escapeHtml(p.sku) + '" data-name="' + escapeHtml(p.name) + '"' + sel + '>' +
-					escapeHtml(p.name) + ' · ' + escapeHtml(p.sku) + '</option>';
+				var id = String(p.id || '');
+				var name = decodeEntities(p.name || '');
+				var sku = decodeEntities(p.sku || '');
+				var sel = id && id === String(selectedId) ? ' selected="selected"' : '';
+				return '<option value="' + escapeHtml(id) + '" data-sku="' + escapeHtml(sku) +
+					'" data-name="' + escapeHtml(name) + '" data-price="' + escapeHtml(String(p.price || 0)) + '"' + sel + '>' +
+					escapeHtml(name) + '</option>';
 			}).join('');
-		return '<select class="mk-wh-proto-product-select" data-mk-line-product="1" required>' + opts + '</select>';
+		return '<select class="mk-wh-proto-product-select" data-mk-line-product="1">' + opts + '</select>';
 	}
 
 	function bindInboundLineRows(form) {
@@ -750,13 +936,14 @@
 
 		function addRow(preset) {
 			var p = preset || {};
+			var productId = p.product_id || p.productId || '';
 			var skuVal = p.sku || '';
 			bodyEl.insertAdjacentHTML('beforeend',
 				'<tr class="mk-wh-proto-lines__row" data-mk-line="1">' +
-				'<td>' + productSelectHtml(catalog, skuVal) + '</td>' +
+				'<td>' + productSelectHtml(catalog, productId) + '</td>' +
 				'<td class="mk-wh-proto-col-sku"><input type="text" data-mk-line-sku="1" value="' + escapeHtml(skuVal) + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" placeholder="SKU" /></td>' +
-				'<td class="mk-wh-proto-col-lot"><input type="text" data-mk-line-lot="1" value="' + escapeHtml(p.lot || '') + '" required placeholder="LOT-2605A" /></td>' +
-				'<td class="mk-wh-proto-col-qty"><input type="number" min="1" step="1" data-mk-line-qty="1" value="' + escapeHtml(p.qty != null ? p.qty : '') + '" required placeholder="100" /></td>' +
+				'<td class="mk-wh-proto-col-lot"><input type="text" data-mk-line-lot="1" value="' + escapeHtml(p.lot || '') + '" placeholder="LOT-2605A" /></td>' +
+				'<td class="mk-wh-proto-col-qty"><input type="number" min="1" step="1" data-mk-line-qty="1" value="' + escapeHtml(p.qty != null ? p.qty : '') + '" placeholder="100" /></td>' +
 				'<td class="mk-wh-proto-col-date"><input type="date" data-mk-line-mfg="1" value="' + escapeHtml(p.mfg || '') + '" /></td>' +
 				'<td class="mk-wh-proto-col-date"><input type="date" data-mk-line-exp="1" value="' + escapeHtml(p.expiry || '') + '" /></td>' +
 				'<td><button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost mk-wh-proto-lines__del" data-mk-lines-del="1" title="Xóa dòng">×</button></td>' +
@@ -767,13 +954,12 @@
 		var addBtn = form.querySelector('[data-mk-lines-add="1"]');
 		if (!catalog.length) {
 			if (linesHead) {
-				linesHead.innerHTML = '<span class="mk-wh-proto-lines__warn">Chưa có sản phẩm trong tồn kho — cần nhập kho trước để chọn tên hàng.</span>';
+				linesHead.innerHTML = '<span class="mk-wh-proto-lines__warn">Chưa có sản phẩm trong Products &amp; Services — hãy tạo sản phẩm trước.</span>';
 			}
 			if (addBtn) addBtn.disabled = true;
 		} else {
-			if (linesHead) linesHead.textContent = 'Chọn sản phẩm từ tồn kho — SKU tự động điền';
+			if (linesHead) linesHead.textContent = 'Chọn sản phẩm từ Products & Services — SKU tự động điền';
 			if (!bodyEl.children.length) {
-				addRow();
 				addRow();
 			}
 			if (addBtn) {
@@ -787,8 +973,11 @@
 			if (!t || !(t.getAttribute && t.getAttribute('data-mk-line-product') === '1')) return;
 			var row = t.closest('[data-mk-line="1"]');
 			if (!row) return;
+			var opt = t.options[t.selectedIndex];
 			var skuEl = row.querySelector('[data-mk-line-sku="1"]');
-			if (skuEl) skuEl.value = t.value || '';
+			if (skuEl && opt) {
+				skuEl.value = opt.getAttribute('data-sku') || '';
+			}
 		};
 	}
 
@@ -858,7 +1047,7 @@
 					outboundType: outboundType,
 					customer: String(fd.get('customer') || '').trim(),
 					soRef: String(fd.get('so') || '—').trim() || '—',
-					status: 'draft',
+					status: 'waiting_print',
 					createdAt: now,
 					createdBy: 'Thủ kho Hà',
 					lines: [{ sku: stockLot.sku, name: stockLot.name, lot: stockLot.lot, qty: qtyOut }],
@@ -877,26 +1066,63 @@
 			var supplier = String(fd.get('supplier') || '').trim();
 			var poRef = String(fd.get('po') || '').trim();
 			var sendQc = fd.has('sendQc');
-			if (!supplier || !poRef) return;
+			if (!supplier || !poRef) {
+				showError('Vui lòng nhập đầy đủ Nhà cung cấp và Mã PO.');
+				return;
+			}
 
 			var rows = Array.prototype.slice.call(form.querySelectorAll('[data-mk-line="1"]'));
 			var lines = [];
 			rows.forEach(function (row) {
 				var productSel = row.querySelector('[data-mk-line-product="1"]');
-				var sku = productSel ? String(productSel.value || '').trim() : '';
+				var productId = productSel ? (parseInt(productSel.value, 10) || 0) : 0;
+				var sku = '';
 				var name = '';
+				var price = 0;
 				if (productSel && productSel.selectedIndex > 0) {
 					var opt = productSel.options[productSel.selectedIndex];
-					name = (opt && opt.getAttribute('data-name')) || '';
+					sku = decodeEntities((opt && opt.getAttribute('data-sku')) || '');
+					name = decodeEntities((opt && opt.getAttribute('data-name')) || '');
+					price = parseFloat((opt && opt.getAttribute('data-price')) || 0) || 0;
 				}
 				var lot = row.querySelector('[data-mk-line-lot="1"]') ? row.querySelector('[data-mk-line-lot="1"]').value.trim() : '';
 				var qty = row.querySelector('[data-mk-line-qty="1"]') ? (parseInt(row.querySelector('[data-mk-line-qty="1"]').value, 10) || 0) : 0;
 				var mfg = row.querySelector('[data-mk-line-mfg="1"]') ? row.querySelector('[data-mk-line-mfg="1"]').value : '';
 				var expiry = row.querySelector('[data-mk-line-exp="1"]') ? row.querySelector('[data-mk-line-exp="1"]').value : '';
-				if (!sku || !name || !lot || qty <= 0) return;
-				lines.push({ sku: sku, name: name, lot: lot, mfg: mfg || '', expiry: expiry || '—', qty: qty });
+				if (!productId && !lot && !qty) return;
+				if (!productId || !name || !lot || qty <= 0) return;
+				lines.push({ product_id: productId, sku: sku, name: name, lot: lot, mfg: mfg || '', expiry: expiry || '—', qty: qty, price: price });
 			});
-			if (!lines.length) return;
+			if (!lines.length) {
+				showError('Vui lòng chọn sản phẩm và nhập Lô + Số lượng cho ít nhất một dòng.');
+				return;
+			}
+
+			var receiptPayload = {
+				supplier: supplier,
+				poRef: poRef,
+				sendQc: sendQc,
+				lines: lines,
+			};
+
+			if (S.useDb && S.useDb()) {
+				if (submit) submit.disabled = true;
+				S.warehouseDataActions.saveReceipt(whId, receiptPayload).then(function (res) {
+					closeModal();
+					refreshWarehouseUi();
+					var saved = res && res.data && res.data.receipts && res.data.receipts[0];
+					if (saved) {
+						var rDlg = receiptDialog(saved);
+						openDialog(rDlg.title, rDlg.meta, rDlg.body);
+					}
+				}).fail(function (err) {
+					var msg = typeof err === 'string' ? err : (err && err.message) || (err && err.error && err.error.message) || (err && err.error) || 'Không lưu được phiếu nhập. Vui lòng thử lại.';
+					showError(msg);
+				}).always(function () {
+					if (submit) submit.disabled = false;
+				});
+				return;
+			}
 
 			var nowIn = S.nowISO();
 			var rid = nextId('GRN', d.receipts || []);
@@ -1007,16 +1233,17 @@
 		document.addEventListener('click', function (e) {
 			var t = e.target;
 			if (!t) return;
-			if (t.getAttribute && t.getAttribute('data-mk-dialog-close') === '1') {
+
+			// Support clicks on inner <span>/<svg> inside buttons.
+			var actionEl = (t.closest && t.closest('[data-mk-action]')) || null;
+			var closeEl = (t.closest && t.closest('[data-mk-dialog-close="1"]')) || null;
+			if (closeEl) {
 				closeDialog();
 				return;
 			}
-			while (t && t !== document.body && !(t.getAttribute && t.getAttribute('data-mk-action'))) {
-				t = t.parentElement;
-			}
-			if (!t || !t.getAttribute) return;
-			var action = t.getAttribute('data-mk-action');
-			var id = t.getAttribute('data-id');
+			if (!actionEl || !actionEl.getAttribute) return;
+			var action = actionEl.getAttribute('data-mk-action');
+			var id = actionEl.getAttribute('data-id');
 			if (!action) return;
 
 			var whId = getWhId();
@@ -1024,6 +1251,16 @@
 			var d = S.ensureData(whId);
 
 			if (action === 'inbound-detail' && id) {
+				if (S.useDb && S.useDb() && S.warehouseDataActions && typeof S.warehouseDataActions.refresh === 'function') {
+					S.warehouseDataActions.refresh(whId).always(function () {
+						var d0 = S.ensureData(whId);
+						var r0 = (d0.receipts || []).find(function (x) { return x.id === id; });
+						if (!r0) return;
+						var dialog0 = receiptDialog(r0);
+						openDialog(dialog0.title, dialog0.meta, dialog0.body);
+					});
+					return;
+				}
 				var r = (d.receipts || []).find(function (x) { return x.id === id; });
 				if (!r) return;
 				var dialog = receiptDialog(r);
@@ -1031,6 +1268,16 @@
 				return;
 			}
 			if (action === 'qc-record' && id) {
+				if (S.useDb && S.useDb() && S.warehouseDataActions && typeof S.warehouseDataActions.refresh === 'function') {
+					S.warehouseDataActions.refresh(whId).always(function () {
+						var d1 = S.ensureData(whId);
+						var r1 = (d1.receipts || []).find(function (x) { return x.id === id; });
+						if (!r1) return;
+						var dialog1 = receiptDialog(r1);
+						openDialog(dialog1.title, dialog1.meta, dialog1.body);
+					});
+					return;
+				}
 				var r2 = (d.receipts || []).find(function (x) { return x.id === id; });
 				if (!r2) return;
 				var dialog2 = receiptDialog(r2);
@@ -1038,6 +1285,16 @@
 				return;
 			}
 			if (action === 'outbound-detail' && id) {
+				if (S.useDb && S.useDb() && S.warehouseDataActions && typeof S.warehouseDataActions.refresh === 'function') {
+					S.warehouseDataActions.refresh(whId).always(function () {
+						var d2 = S.ensureData(whId);
+						var issue2 = (d2.issues || []).find(function (x) { return x.id === id; });
+						if (!issue2) return;
+						var dlg2 = issueDialog(issue2);
+						openDialog(dlg2.title, dlg2.meta, dlg2.body);
+					});
+					return;
+				}
 				var issue = (d.issues || []).find(function (x) { return x.id === id; });
 				if (!issue) return;
 				var dlg = issueDialog(issue);
@@ -1048,20 +1305,37 @@
 			// Receipt actions
 			if (id && (action === 'send-qc' || action === 'qc-pass' || action === 'qc-fail' || action === 'mgr-approve' || action === 'store')) {
 				var role = getRole();
+				if (S.useDb && S.useDb()) {
+					var note = '';
+					if (action === 'qc-pass' || action === 'qc-fail') {
+						note = readQcNoteFromDialog(actionEl);
+					}
+					S.warehouseDataActions
+						.receiptAction(whId, id, action, role, note)
+						.then(function (res) {
+							closeDialog();
+							refreshWarehouseUi();
+							reopenReceiptDialog(whId, id, res);
+						})
+						.fail(function (err) {
+							showError((err && err.message) || 'Không cập nhật được phiếu nhập.');
+						});
+					return;
+				}
 				patchReceipt(id, function (r) {
 					if (action === 'send-qc') {
 						r.status = 'pending_qc';
 						addTimeline(r.timeline, 'Gửi QC kiểm tra', role);
 					} else if (action === 'qc-pass') {
-						var noteEl = qs('[data-mk-qc-note="1"]');
-						var note = noteEl ? String(noteEl.value || '').trim() : '';
+						var note = readQcNoteFromDialog(actionEl);
 						r.status = 'qc_passed';
+						r.qc = { result: 'pass', note: note, at: S.nowISO(), by: 'QC Minh' };
 						r.lines = (r.lines || []).map(function (l) { return Object.assign({}, l, { qcResult: 'pass', passedQty: l.qty }); });
 						addTimeline(r.timeline, 'QC đạt', role, note || undefined);
 					} else if (action === 'qc-fail') {
-						var noteEl2 = qs('[data-mk-qc-note="1"]');
-						var note2 = noteEl2 ? String(noteEl2.value || '').trim() : '';
+						var note2 = readQcNoteFromDialog(actionEl);
 						r.status = 'qc_failed';
+						r.qc = { result: 'fail', note: note2, at: S.nowISO(), by: 'QC Minh' };
 						r.lines = (r.lines || []).map(function (l) { return Object.assign({}, l, { qcResult: 'fail', passedQty: 0 }); });
 						addTimeline(r.timeline, 'QC không đạt', role, note2 || undefined);
 					} else if (action === 'mgr-approve') {
@@ -1074,33 +1348,56 @@
 					}
 					return r;
 				});
-				closeDialog();
+				refreshWarehouseUi();
+				reopenReceiptDialog(whId, id);
 				return;
 			}
 
 			// Issue actions
-			if (id && (action === 'issue-submit' || action === 'issue-approve' || action === 'issue-reject' || action === 'issue-ship')) {
+			if (id && (action === 'issue-submit' || action === 'issue-start-pick' || action === 'issue-finish-pick' || action === 'issue-ship' || action === 'issue-approve' || action === 'issue-reject')) {
 				var role2 = getRole();
+				if (S.useDb && S.useDb()) {
+					var reasonDb = '';
+					if (action === 'issue-reject') {
+						var rsDb = qs('[data-mk-reject-reason="1"]');
+						reasonDb = rsDb ? String(rsDb.value || '').trim() : '';
+					}
+					S.warehouseDataActions
+						.issueAction(whId, id, action, role2, reasonDb)
+						.then(function (res) {
+							closeDialog();
+							refreshWarehouseUi();
+							reopenIssueDialog(whId, id, res);
+						})
+						.fail(function (err) {
+							showError((err && err.message) || 'Không cập nhật được phiếu xuất.');
+						});
+					return;
+				}
 				patchIssue(id, function (i) {
 					if (action === 'issue-submit') {
-						i.status = 'pending_approval';
-						addTimeline(i.timeline, 'Gửi duyệt', role2);
-					} else if (action === 'issue-approve') {
-						i.status = 'approved';
-						addTimeline(i.timeline, 'Duyệt phiếu', role2);
+						i.status = 'waiting_print';
+						addTimeline(i.timeline, 'Chờ in phiếu', role2);
+					} else if (action === 'issue-start-pick' || action === 'issue-approve') {
+						i.status = 'picking';
+						addTimeline(i.timeline, 'Bắt đầu soạn hàng', role2);
+					} else if (action === 'issue-finish-pick') {
+						deductStockFromIssueLines(whId, i.lines || []);
+						i.status = 'packed';
+						addTimeline(i.timeline, 'Đã soạn hàng', role2);
 					} else if (action === 'issue-reject') {
 						var rs = qs('[data-mk-reject-reason="1"]');
 						var reason = rs ? String(rs.value || '').trim() : '';
 						i.status = 'rejected';
 						addTimeline(i.timeline, 'Từ chối phiếu', role2, reason || 'Không nêu lý do');
 					} else if (action === 'issue-ship') {
-						deductStockFromIssueLines(whId, i.lines || []);
 						i.status = 'shipped';
-						addTimeline(i.timeline, 'Soạn hàng & giao', role2);
+						addTimeline(i.timeline, 'Đã giao hàng', role2);
 					}
 					return i;
 				});
-				closeDialog();
+				refreshWarehouseUi();
+				reopenIssueDialog(whId, id);
 				return;
 			}
 		});

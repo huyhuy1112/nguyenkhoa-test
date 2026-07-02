@@ -141,8 +141,8 @@ body[data-view="DashBoard"] {
     --mk-text: #191C1E;
     --mk-muted: #64748B;
     --mk-primary: #40627E;
-    --mk-amber: #FDBB2C;
-    --mk-amber-border: rgba(217, 119, 6, 0.45);
+    --mk-amber: #08A045;
+    --mk-amber-border: rgba(8, 160, 69, 0.45);
     --mk-radius: 14px; /* target 12–16px */
     --mk-radius-sm: 10px;
     --mk-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
@@ -567,10 +567,11 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
     min-width: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
     padding-top: 0;
 }
 
-.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo {
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo:not(:has(.nguyenkhoa-logo)) {
     display: inline-flex;
     align-items: center;
     height: 34px !important;
@@ -581,10 +582,39 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
     line-height: 0;
 }
 
-.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo img {
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo img:not(.nguyenkhoa-logo) {
     height: auto !important;
     max-height: 34px !important;
     width: auto !important;
+}
+
+.mk-dash-sidebar-brand:has(.nguyenkhoa-logo) {
+    align-items: center;
+    justify-content: center;
+    padding: 12px 14px 10px;
+    min-height: 104px;
+}
+
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo:has(.nguyenkhoa-logo) {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 88px !important;
+    width: 100% !important;
+    padding: 0 !important;
+}
+
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo .company-logo img.nguyenkhoa-logo {
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 96px !important;
+    min-height: 72px !important;
+    margin: 0 auto !important;
+    object-fit: contain !important;
+    object-position: center center !important;
 }
 
 .mk-dash-sidebar-scroll {
@@ -668,22 +698,28 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 }
 
 .mk-dash-nav-item:hover {
-    background: #f8fafc;
+    background: #0b6e4f;
+    color: #ffffff !important;
+}
+
+.mk-dash-nav-item:hover .mk-dash-nav-label,
+.mk-dash-nav-item:hover .mk-dash-svg {
+    color: #ffffff !important;
 }
 
 .mk-dash-nav-item--active {
-    background: #fffbeb !important;
-    color: #d97706 !important;
-    box-shadow: inset -4px 0 0 #f59e0b;
+    background: #ecfdf3 !important;
+    color: #0b6e4f !important;
+    box-shadow: inset -4px 0 0 #08a045;
 }
 
 .mk-dash-nav-item--active .mk-dash-nav-label {
-    color: #d97706 !important;
+    color: #0b6e4f !important;
     font-weight: 600;
 }
 
 .mk-dash-nav-item--active .mk-dash-svg {
-    color: #d97706;
+    color: #08a045;
 }
 
 .mk-dash-nav-ic {
@@ -839,25 +875,44 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 
 .mk-dash-app-toggle:hover,
 .mk-dash-app-toggle:focus {
-    background: #f8fafc;
+    background: #0b6e4f;
+    color: #ffffff !important;
     outline: none;
 }
 
+.mk-dash-app-toggle:hover .mk-dash-svg,
+.mk-dash-app-toggle:focus .mk-dash-svg,
+.mk-dash-app-toggle:hover .mk-dash-app-label,
+.mk-dash-app-toggle:focus .mk-dash-app-label,
+.mk-dash-app-toggle:hover .mk-dash-app-chevron,
+.mk-dash-app-toggle:focus .mk-dash-app-chevron {
+    color: #ffffff !important;
+}
+
 .mk-dash-app-group--active > .mk-dash-app-toggle {
-    background: #fffbeb !important;
-    color: #d97706 !important;
+    background: #ecfdf3 !important;
+    color: #0b6e4f !important;
     font-weight: 600;
-    box-shadow: inset -4px 0 0 #f59e0b;
+    box-shadow: inset -4px 0 0 #08a045;
 }
 
 .mk-dash-app-group--active > .mk-dash-app-toggle .mk-dash-svg {
-    color: #d97706;
+    color: #08a045;
 }
 
 .mk-dash-app-group--active > .mk-dash-app-toggle:hover,
 .mk-dash-app-group--active > .mk-dash-app-toggle:focus {
-    background: #fffbeb !important;
-    color: #d97706 !important;
+    background: #0b6e4f !important;
+    color: #ffffff !important;
+}
+
+.mk-dash-app-group--active > .mk-dash-app-toggle:hover .mk-dash-svg,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus .mk-dash-svg,
+.mk-dash-app-group--active > .mk-dash-app-toggle:hover .mk-dash-app-label,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus .mk-dash-app-label,
+.mk-dash-app-group--active > .mk-dash-app-toggle:hover .mk-dash-app-chevron,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus .mk-dash-app-chevron {
+    color: #ffffff !important;
 }
 
 .mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle {
@@ -873,8 +928,15 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 
 .mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:hover,
 .mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus {
-    background: #f8fafc;
-    color: #475569;
+    background: #0b6e4f;
+    color: #ffffff !important;
+}
+
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:hover .mk-dash-svg,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus .mk-dash-svg,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:hover .mk-dash-app-label,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus .mk-dash-app-label {
+    color: #ffffff !important;
 }
 
 .mk-dash-app-ic {
@@ -906,7 +968,7 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 }
 
 .mk-dash-app-group--active.mk-dash-app-group--open .mk-dash-app-chevron {
-    color: #d97706;
+    color: #0B6E4F;
 }
 
 .mk-dash-app-group--open:not(.mk-dash-app-group--active) .mk-dash-app-chevron {
@@ -944,14 +1006,20 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 }
 
 .mk-dash-mod-link:hover {
-    background: #f1f5f9;
+    background: #0b6e4f !important;
+    color: #ffffff !important;
 }
 
 .mk-dash-mod-link--active {
-    background: #fffbeb;
-    color: #d97706 !important;
+    background: #ecfdf3;
+    color: #0b6e4f !important;
     font-weight: 600;
-    box-shadow: inset -4px 0 0 #f59e0b;
+    box-shadow: inset -4px 0 0 #08a045;
+}
+
+.mk-dash-mod-link--active:hover {
+    background: #0b6e4f !important;
+    color: #ffffff !important;
 }
 
 .mk-dash-sidebar-mobile-toggle {
@@ -1289,9 +1357,9 @@ body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-modify-dro
     min-height: 44px !important;
     padding: 10px 24px !important;
     box-sizing: border-box !important;
-    background: #fdbb2c !important;
-    border: 1px solid rgba(217, 119, 6, 0.45) !important;
-    color: #5e4200 !important;
+    background: #08A045 !important;
+    border: 1px solid rgba(8, 160, 69, 0.45) !important;
+    color: #ffffff !important;
     border-radius: 8px !important;
     font-size: 15px !important;
     font-weight: 700 !important;
@@ -1300,12 +1368,14 @@ body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-modify-dro
     align-items: center !important;
     justify-content: center !important;
     box-shadow: none !important;
+    text-shadow: none !important;
 }
 
 body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn:hover,
 body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-modify-dropdown > .btn.btn-default:hover {
-    background: #f6ad1b !important;
-    color: #4a3400 !important;
+    background: #0B6E4F !important;
+    color: #ffffff !important;
+    text-shadow: none !important;
 }
 
 body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn--secondary {
@@ -1315,7 +1385,7 @@ body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn-
 }
 
 body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn .caret {
-    border-top-color: #5e4200;
+    border-top-color: #ffffff;
 }
 
 /* Tab strip: text links only — no pills / underline / divider line */
@@ -1394,7 +1464,7 @@ body[data-view="DashBoard"] .mk-dash-app-topbar .search-link {
 
 /* Figma dashboard header typography */
 body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dashboard-kicker {
-    color: #d97706 !important;
+    color: #08a045 !important;
     margin-bottom: 2px;
 }
 
@@ -1531,7 +1601,7 @@ body[data-view="DashBoard"] .mk-dash-app-topbar #modern-notifications-bell .mode
 }
 
 /* Phase 4B tokens (reference — shared values used below) */
-/* Page #F7F9FB | Card border #E2E8F0 | Text #191C1E | Secondary #64748B | Blue #40627E | Amber #FDBB2C / #D97706 | Radius 12px */
+/* Page #F7F9FB | Card border #E2E8F0 | Text #191C1E | Secondary #64748B | Blue #40627E | Amber #08A045 / #D97706 | Radius 12px */
 
 /* Tab strip: compact pills (non-Figma dashboards / fallback only) */
 .dashBoardContainer .tabContainer > ul.nav.nav-tabs.tabs.mk-dashboard-tabs:not(.mk-dashboard-tabs--figma) {
@@ -2201,9 +2271,9 @@ body[data-view="DashBoard"] .dashboardWidget.fullscreenview[data-name="OverdueAc
 /* ========== Dashboard buttons (fallback: tab body only; shell uses .mk-dashboard-page-header--figma rules) ========== */
 .dashBoardTabContainer .mk-dash-modify-dropdown > .btn,
 .dashBoardTabContainer .mk-dashboard-heading--inline .btn.addButton {
-    background: #fdbb2c !important;
-    border-color: rgba(217, 119, 6, 0.45) !important;
-    color: #5e4200 !important;
+    background: #08A045 !important;
+    border-color: rgba(8, 160, 69, 0.45) !important;
+    color: #ffffff !important;
     min-height: 44px !important;
     height: 44px !important;
     padding: 10px 24px !important;
@@ -2215,17 +2285,22 @@ body[data-view="DashBoard"] .dashboardWidget.fullscreenview[data-name="OverdueAc
     font-size: 15px !important;
     font-weight: 700 !important;
     box-shadow: none !important;
+    text-shadow: none !important;
 }
 
 .dashBoardTabContainer .mk-dash-modify-dropdown > .btn:hover,
 .dashBoardTabContainer .mk-dashboard-heading--inline .btn.addButton:hover {
-    background: #f6ad1b !important;
-    border-color: rgba(217, 119, 6, 0.65) !important;
+    background: #0b6e4f !important;
+    border-color: rgba(8, 160, 69, 0.65) !important;
+    color: #ffffff !important;
+    text-shadow: none !important;
 }
 
 .dashBoardTabContainer .mk-dash-modify-dropdown > .btn:active,
 .dashBoardTabContainer .mk-dashboard-heading--inline .btn.addButton:active {
-    background: #f59e0b !important;
+    background: #073b3a !important;
+    color: #ffffff !important;
+    text-shadow: none !important;
 }
 
 /* ========== jqPlot visual polish (CSS-only; safe) ========== */
@@ -6419,11 +6494,11 @@ body .app-footer.mk-app-footer .mk-app-footer__accent {
     width: 100%;
     background: linear-gradient(
         90deg,
-        rgba(201, 162, 39, 0.15) 0%,
-        #c9a227 18%,
-        #e8c56a 50%,
-        #c9a227 82%,
-        rgba(201, 162, 39, 0.15) 100%
+        rgba(8, 160, 69, 0.15) 0%,
+        #08a045 18%,
+        #6bbf59 50%,
+        #0b6e4f 82%,
+        rgba(7, 59, 58, 0.15) 100%
     );
 }
 
@@ -6450,7 +6525,7 @@ body .app-footer.mk-app-footer .mk-app-footer__mark {
     width: 10px;
     height: 10px;
     border-radius: 2px;
-    background: linear-gradient(135deg, #e8c56a 0%, #c9a227 100%);
+    background: linear-gradient(135deg, #6BBF59 0%, #c9a227 100%);
     box-shadow: 0 0 0 3px rgba(232, 197, 106, 0.22);
 }
 
@@ -6462,12 +6537,12 @@ body .app-footer.mk-app-footer .mk-app-footer__brand-text {
 }
 
 body .app-footer.mk-app-footer .mk-app-footer__logo {
-    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 13px;
+    font-family: "Be Vietnam Pro", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
     font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #2b2118;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: #0b6e4f;
     line-height: 1.2;
 }
 
@@ -6558,7 +6633,7 @@ body[data-theme="dark"] .app-footer.mk-app-footer .mk-app-footer__meta {
 
 html[data-theme="dark"] body .app-footer.mk-app-footer .mk-app-footer__credit strong,
 body[data-theme="dark"] .app-footer.mk-app-footer .mk-app-footer__credit strong {
-    color: #e8c56a;
+    color: #6BBF59;
 }
 
 html[data-theme="dark"] body .app-footer.mk-app-footer .mk-app-footer__dot,

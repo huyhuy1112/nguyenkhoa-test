@@ -221,6 +221,16 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 		$storageLocation = trim((string) $request->get('storage_location'));
 		$note = (string) $request->get('note');
 		$newItems = $this->parseItems($request);
+		$status = trim((string) $request->get('status'));
+		if ($issueId > 0 && $status === '') {
+			$rsStatus = $db->pquery('SELECT status FROM vtiger_goodsissue WHERE issueid = ? LIMIT 1', array($issueId));
+			if ($rsStatus && $db->num_rows($rsStatus) > 0) {
+				$status = trim((string) $db->query_result($rsStatus, 0, 'status'));
+			}
+		}
+		if ($status === '') {
+			$status = 'completed';
+		}
 
 		if ($subject === '' || empty($newItems)) {
 			$this->redirectEdit($issueId, array('validation' => 1));
@@ -237,13 +247,21 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 
 		$restoreByKey = array();
 		$deductByKey = array();
-		foreach ($keys as $k) {
-			$oldQty = isset($oldAgg[$k]) ? (float) $oldAgg[$k]['quantity'] : 0.0;
-			$newQty = isset($newAgg[$k]) ? (float) $newAgg[$k]['quantity'] : 0.0;
-			$delta = $newQty - $oldQty;
-			if (abs($delta) < 0.00000001) continue;
-			if ($delta > 0) $deductByKey[$k] = (float) $delta;
-			if ($delta < 0) $restoreByKey[$k] = (float) (-$delta);
+		if ($status !== 'waiting_print') {
+			foreach ($keys as $k) {
+				$oldQty = isset($oldAgg[$k]) ? (float) $oldAgg[$k]['quantity'] : 0.0;
+				$newQty = isset($newAgg[$k]) ? (float) $newAgg[$k]['quantity'] : 0.0;
+				$delta = $newQty - $oldQty;
+				if (abs($delta) < 0.00000001) {
+					continue;
+				}
+				if ($delta > 0) {
+					$deductByKey[$k] = (float) $delta;
+				}
+				if ($delta < 0) {
+					$restoreByKey[$k] = (float) (-$delta);
+				}
+			}
 		}
 
 		$stockMap = $this->loadStockRowsByKeys($db, $keys);
@@ -339,16 +357,16 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 			if ($issueId <= 0) {
 				$issueId = (int) $db->getUniqueID('vtiger_goodsissue');
 				$db->pquery(
-					"INSERT INTO vtiger_goodsissue(issueid, code, subject, issued_by, issued_date, destination, storage_location, note, createdby, updatedby, createdtime, updatedtime, deleted)
-					 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,0)",
-					array($issueId, $codeToSet, $subject, $issuedBy, $issuedDate, $destination, $storageLocation, $note, $userId, $userId, $now, $now)
+					"INSERT INTO vtiger_goodsissue(issueid, code, subject, issued_by, issued_date, destination, storage_location, note, status, createdby, updatedby, createdtime, updatedtime, deleted)
+					 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,0)",
+					array($issueId, $codeToSet, $subject, $issuedBy, $issuedDate, $destination, $storageLocation, $note, $status, $userId, $userId, $now, $now)
 				);
 			} else {
 				$db->pquery(
 					"UPDATE vtiger_goodsissue
-					 SET code = ?, subject = ?, issued_by = ?, issued_date = ?, destination = ?, storage_location = ?, note = ?, updatedby = ?, updatedtime = ?, deleted = 0
+					 SET code = ?, subject = ?, issued_by = ?, issued_date = ?, destination = ?, storage_location = ?, note = ?, status = ?, updatedby = ?, updatedtime = ?, deleted = 0
 					 WHERE issueid = ?",
-					array($codeToSet, $subject, $issuedBy, $issuedDate, $destination, $storageLocation, $note, $userId, $now, $issueId)
+					array($codeToSet, $subject, $issuedBy, $issuedDate, $destination, $storageLocation, $note, $status, $userId, $now, $issueId)
 				);
 				$db->pquery("DELETE FROM vtiger_goodsissue_items WHERE issueid = ?", array($issueId));
 			}

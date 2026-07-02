@@ -5,7 +5,7 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-settings-ui-ready');document.body.setAttribute('data-parent','Settings');</script>
-	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Settings/Vtiger/resources/SettingsUi.css')}?mk_v=20260603_settings_pad1" />
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Settings/Vtiger/resources/SettingsUi.css')}?mk_v=20260629_settings_green1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Settings/Vtiger/resources/SettingsListScroll.js')}"></script>
 <script type="text/javascript" src="{vresource_url('~layouts/v7/lib/jquery/Lightweight-jQuery-In-page-Filtering-Plugin-instaFilta/instafilta.js')}"></script>

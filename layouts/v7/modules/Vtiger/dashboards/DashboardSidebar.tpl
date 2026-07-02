@@ -39,15 +39,9 @@
 
 <aside id="mk-dash-sidebar" class="mk-sidebar mk-dashboard-sidebar" aria-label="Dashboard sidebar">
 	<div class="mk-dash-sidebar-brand">
-		<div id="appnavigator" class="cursorPointer app-switcher-container mk-dash-appnavigator" data-app-class="fa-sitemap" title="{vtranslate('LBL_MENU',$MODULE)}">
-			<div class="row app-navigator mk-dash-appnavigator-inner">
-				<span class="mk-dash-hamburger-svg" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='MENU'}</span>
-			</div>
-		</div>
 		<div class="mk-dash-sidebar-logo">
-			<a href="index.php" class="company-logo mk-dash-logo-link" title="B-ACE" aria-label="B-ACE home">
-				<img class="mk-dash-bace-logo mk-dash-bace-logo--light" src="layouts/v7/resources/Images/bace-logo-figma.png?v=20260530_logo9" width="218" height="40" alt="B-ACE">
-				<img class="mk-dash-bace-logo mk-dash-bace-logo--dark" src="layouts/v7/resources/Images/bace-logo-figma-transparent.png?v=20260530_logo9" width="218" height="40" alt="B-ACE">
+			<a href="index.php" class="company-logo mk-dash-logo-link" title="Nguyên Khoa" aria-label="Nguyên Khoa home">
+				<img class="mk-dash-bace-logo nguyenkhoa-logo" src="layouts/v7/resources/Images/nguyenkhoa-logo.png?v=20260629d" width="240" height="96" alt="Nguyên Khoa">
 			</a>
 			{if $_settingsActive}
 				<p class="mk-settings-site-kicker">{vtranslate('LBL_SITE_SETTINGS','Vtiger')}</p>
@@ -86,6 +80,19 @@
 						{assign var=_mkHasAccounts value=false}
 						{assign var=_mkHasActivities value=false}
 						{assign var=_mkHasCalendar value=false}
+						{* SALES: Leads fallback at top when missing from MenuEditor *}
+						{if $APP_NAME eq 'SALES'}
+							{foreach item=_mkScanModel key=_mkScanName from=$APP_GROUPED_MENU[$APP_NAME]}
+								{if $_mkScanName eq 'Leads'}{assign var=_mkHasLeads value=true}{/if}
+							{/foreach}
+							{if $_mkHasLeads eq false}
+								{assign var=_mkLeadsActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Leads')}
+								<a class="mk-dash-mod-link{if $_mkLeadsActive} mk-dash-mod-link--active{/if}" href="index.php?module=Leads&amp;view=List&amp;app=SALES">
+									<span class="mk-dash-mod-label">{vtranslate('Leads', 'Leads')}</span>
+								</a>
+								{assign var=_mkHasLeads value=true}
+							{/if}
+						{/if}
 						{foreach item=moduleModel key=moduleName from=$APP_GROUPED_MENU[$APP_NAME]}
 							{if $APP_NAME eq 'MANAGEMENT' && $moduleName eq 'Home'}{continue}{/if}
 							{* SUPPORT: ẩn Schedule/Calendar — chỉ dùng Activities (Schedule chỉ ở MANAGEMENT) *}
@@ -117,13 +124,6 @@
 							{/if}
 						{/foreach}
 
-						{* SALES: Leads modern list (sidebar fallback when missing from MenuEditor) *}
-						{if ($_mkHasLeads eq false) && ($APP_NAME eq 'SALES')}
-							{assign var=_mkLeadsActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Leads')}
-							<a class="mk-dash-mod-link{if $_mkLeadsActive} mk-dash-mod-link--active{/if}" href="index.php?module=Leads&amp;view=List&amp;app=SALES">
-								<span class="mk-dash-mod-label">{vtranslate('Leads', 'Leads')}</span>
-							</a>
-						{/if}
 						{* MANAGEMENT: Schedule khi Calendar chưa có trong MenuEditor *}
 						{if ($_mkHasCalendar eq false) && ($APP_NAME eq 'MANAGEMENT')}
 							{assign var=_mkScheduleActive value=(!$_settingsActive && $MODULE eq 'Calendar' && $VIEW eq 'Calendar')}

@@ -99,7 +99,7 @@ body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-btn
 }
 
 body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-btn--primary {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	border-color: #d4c4ad !important;
 	color: #6d4d00 !important;
 }
@@ -163,7 +163,7 @@ body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-tab
 
 body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-tab.is-active {
 	color: #191c1e;
-	border-bottom-color: #fdbb2c;
+	border-bottom-color: #08A045;
 }
 
 /* ---- People layout: groups sidebar + main ---- */
@@ -561,7 +561,7 @@ body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .dropdown-men
 
 /* Hide legacy purple bootstrap primary on Teams page */
 body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .btn-primary {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	border-color: #d4c4ad !important;
 	color: #6d4d00 !important;
 }

@@ -238,12 +238,12 @@ body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-action-header__icon {
 	width: 56px;
 	height: 56px;
 	border-radius: 12px;
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 4px 12px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 4px 12px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-action-header__actions {
@@ -304,12 +304,12 @@ body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-btn {
 }
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-btn--primary {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #191c1e;
 }
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-btn--primary:hover {
-	background: #e5a824;
+	background: #0B6E4F;
 	color: #191c1e;
 }
 
@@ -405,9 +405,9 @@ body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-edit-form .form-control {
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-edit-input:focus,
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-edit-form .form-control:focus {
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.2);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.2);
 }
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-edit-input[readonly] {
@@ -457,7 +457,7 @@ body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-aside-card--tips {
 }
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-aside-card--priority {
-	border-color: #fde68a;
+	border-color: #bbf7d0;
 	box-shadow: 0 4px 16px rgba(245, 158, 11, 0.1);
 }
 
@@ -475,8 +475,8 @@ body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-aside-card--tips .mk-hd-as
 }
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-aside-card--priority .mk-hd-aside-card__head {
-	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-	border-bottom-color: #fde68a;
+	background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%);
+	border-bottom-color: #bbf7d0;
 }
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-aside-card__icon {
@@ -496,7 +496,7 @@ body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-aside-card__icon--tips {
 }
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-aside-card__icon--priority {
-	background: #f59e0b;
+	background: #08A045;
 	color: #ffffff;
 	box-shadow: 0 4px 10px rgba(245, 158, 11, 0.28);
 }
@@ -516,7 +516,7 @@ body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-aside-card--tips .mk-hd-as
 }
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-aside-card--priority .mk-hd-aside-card__title {
-	color: #92400e;
+	color: #073B3A;
 }
 
 body[data-module="HelpDesk"][data-view="Edit"] .mk-hd-aside-card__body {

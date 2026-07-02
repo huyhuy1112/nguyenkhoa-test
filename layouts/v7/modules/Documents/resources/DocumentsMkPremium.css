@@ -6,9 +6,9 @@
 
 body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace {
 	--mk-doc-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-	--mk-doc-yellow: #FDBB2C;
-	--mk-doc-yellow-soft: rgba(253, 187, 44, 0.14);
-	--mk-doc-yellow-glow: rgba(253, 187, 44, 0.35);
+	--mk-doc-yellow: #08A045;
+	--mk-doc-yellow-soft: rgba(8, 160, 69, 0.14);
+	--mk-doc-yellow-glow: rgba(8, 160, 69, 0.35);
 	--mk-doc-navy: #40627E;
 	--mk-doc-navy-deep: #334f63;
 	--mk-doc-navy-soft: rgba(64, 98, 126, 0.1);
@@ -23,7 +23,7 @@ body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-w
 	--mk-doc-accent: #40627E;
 	--mk-doc-accent-soft: rgba(64, 98, 126, 0.1);
 	--mk-doc-accent-hover: #334f63;
-	--mk-doc-cta: #FDBB2C;
+	--mk-doc-cta: #08A045;
 	--mk-doc-radius-sm: 12px;
 	--mk-doc-radius: 20px;
 	--mk-doc-radius-lg: 24px;
@@ -545,7 +545,7 @@ body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-p
 	justify-content: center;
 	background: rgba(255, 255, 255, 0.88);
 	backdrop-filter: blur(8px);
-	border: 2px dashed rgba(253, 187, 44, 0.55);
+	border: 2px dashed rgba(8, 160, 69, 0.55);
 	border-radius: var(--mk-doc-radius-lg);
 	opacity: 0;
 	pointer-events: none;
@@ -942,7 +942,7 @@ body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-w
 }
 
 body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-workspace .listViewRecordActions .fa-star {
-	color: #f59e0b;
+	color: #08A045;
 	transition: transform var(--mk-doc-dur) var(--mk-doc-ease);
 }
 
@@ -1256,7 +1256,7 @@ body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-w
 	gap: 24px;
 	flex-wrap: wrap;
 	padding: 20px 22px;
-	background: linear-gradient(145deg, #ffffff 0%, #f7f9fb 55%, rgba(253, 187, 44, 0.06) 100%);
+	background: linear-gradient(145deg, #ffffff 0%, #f7f9fb 55%, rgba(8, 160, 69, 0.06) 100%);
 	border: 1px solid var(--mk-doc-border);
 	border-radius: var(--mk-doc-radius-lg);
 	box-shadow: var(--mk-doc-shadow);
@@ -1474,7 +1474,7 @@ body[data-module="Documents"][data-view="List"][data-app="MANAGEMENT"] .mk-doc-w
 .mk-doc-ai-strip {
 	margin-top: 10px;
 	padding: 10px 14px;
-	background: linear-gradient(90deg, rgba(64, 98, 126, 0.06) 0%, rgba(253, 187, 44, 0.08) 100%);
+	background: linear-gradient(90deg, rgba(64, 98, 126, 0.06) 0%, rgba(8, 160, 69, 0.08) 100%);
 	border: 1px solid var(--mk-doc-border);
 	border-radius: var(--mk-doc-radius);
 	overflow-x: auto;

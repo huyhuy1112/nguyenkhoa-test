@@ -9,34 +9,37 @@
 {* modules/Users/views/Login.php *}
 
 {strip}
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
 	<style>
-		/* Login page only (template-scoped inline styles) */
+		/* ── Nguyên Khoa split login ── */
+		.material-symbols-outlined {
+			font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+			line-height: 1;
+			vertical-align: middle;
+		}
+
 		html, body {
 			height: 100%;
-			overflow: hidden; /* fixed-screen: no page scroll */
+			margin: 0;
 		}
-		html:has(body[data-view="Login"]) {
-			background-color: #061220;
+
+		html:has(body[data-view="Login"]),
+		body[data-view="Login"],
+		html[data-theme="dark"] body[data-view="Login"] {
+			background: #f8f9ff !important;
 		}
+
 		body[data-view="Login"] {
 			margin: 0 !important;
 			padding-top: 0 !important;
 			min-height: 100vh;
-			background-color: #061220 !important;
-			background-image: url(layouts/v7/resources/Images/login-bace-tech-bg.png) !important;
-			background-position: center center !important;
-			background-size: cover !important;
-			background-repeat: no-repeat !important;
-			background-attachment: fixed !important;
+			font-family: 'Inter', system-ui, sans-serif;
+			color: #0b1c30;
+			-webkit-font-smoothing: antialiased;
 		}
-		html[data-theme="dark"] body[data-view="Login"] {
-			background-color: #061220 !important;
-			background-image: url(layouts/v7/resources/Images/login-bace-tech-bg.png) !important;
-			background-position: center center !important;
-			background-size: cover !important;
-			background-repeat: no-repeat !important;
-			background-attachment: fixed !important;
-		}
+
 		body[data-view="Login"] #page {
 			margin: 0 !important;
 			padding-top: 0 !important;
@@ -44,9 +47,11 @@
 			min-height: 100vh !important;
 			height: auto !important;
 		}
+
 		body[data-view="Login"] .app-nav,
 		body[data-view="Login"] nav.navbar,
-		body[data-view="Login"] .app-fixed-navbar {
+		body[data-view="Login"] .app-fixed-navbar,
+		.app-footer, .footer, .mk-app-footer {
 			display: none !important;
 			height: 0 !important;
 			min-height: 0 !important;
@@ -54,697 +59,658 @@
 			margin: 0 !important;
 			border: 0 !important;
 		}
-		body {
-			margin: 0;
-			min-height: 100vh;
-			background: url(layouts/v7/resources/Images/login-bace-tech-bg.png) center/cover no-repeat fixed;
-		}
-		body::before {
-			content: "";
-			position: fixed;
-			inset: 0;
-			background:
-				radial-gradient(900px 600px at 28% 25%, rgba(34,211,238,0.20), transparent 60%),
-				radial-gradient(800px 500px at 72% 28%, rgba(250,204,21,0.12), transparent 55%),
-				linear-gradient(135deg, rgba(2,6,23,0.28) 0%, rgba(2,6,23,0.38) 100%);
-			pointer-events: none;
-			z-index: 0;
-			animation: baceBgDrift 16s ease-in-out infinite alternate;
-		}
-		@keyframes baceBgDrift {
-			from { filter: saturate(1.06) contrast(1.03); }
-			to { filter: saturate(1.18) contrast(1.05); }
-		}
 
-		.loginPageContainer {
-			position: relative;
-			z-index: 1;
-			height: 100vh;
-			min-height: 100vh !important;
-			margin-top: 0 !important;
-			padding-top: 0 !important;
-			display: flex;
-			align-items: center;
-			justify-content: flex-start;
-			padding-left: clamp(5rem, 9vw, 10rem);
-			padding-right: clamp(2rem, 5vw, 5rem);
-			overflow: hidden;
-		}
-
-		/* Hide footer on login only to prevent scroll */
-		.app-footer, .footer, .mk-app-footer { display: none !important; }
-
-		/* Subtle aurora glow behind cards */
-		.loginPageContainer::before,
-		.loginPageContainer::after {
-			content: "";
-			position: fixed;
-			inset: -7.5rem;
-			pointer-events: none;
-			z-index: 0;
-			opacity: 0.9;
-			filter: blur(2.5rem);
-			mix-blend-mode: screen;
-			animation: baceAurora 18s ease-in-out infinite alternate;
-		}
-		.loginPageContainer::before {
-			background: radial-gradient(860px 520px at 34% 42%, rgba(34,211,238,0.34), transparent 64%);
-		}
-		.loginPageContainer::after {
-			background: radial-gradient(860px 520px at 70% 44%, rgba(250,204,21,0.22), transparent 66%);
-			animation-delay: 0.6s;
-			opacity: 0.75;
-		}
-
-		/* Floating light accents (very lightweight) */
-		body::after {
-			content: "";
-			position: fixed;
-			inset: 0;
-			pointer-events: none;
-			z-index: 0;
-			background:
-				radial-gradient(0.625rem 0.625rem at 18% 22%, rgba(34,211,238,0.55), transparent 70%),
-				radial-gradient(0.75rem 0.75rem at 82% 28%, rgba(250,204,21,0.45), transparent 72%),
-				radial-gradient(0.5625rem 0.5625rem at 66% 78%, rgba(59,130,246,0.40), transparent 72%),
-				linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.06) 48%, transparent 58%);
-			opacity: 0.55;
-			filter: blur(0.2px);
-			animation: baceFloat 22s ease-in-out infinite alternate;
-		}
-		@keyframes baceFloat {
-			from { transform: translate3d(0,0,0); }
-			to { transform: translate3d(1.125rem,-0.875rem,0); }
-		}
-		@keyframes baceAurora {
-			from { transform: translate3d(0,0,0) scale(1); }
-			to { transform: translate3d(1.25rem,-0.625rem,0) scale(1.02); }
-		}
-
-		.bace-shell {
-			position: relative;
-			display: grid;
-			grid-template-columns: 31rem 36rem;
-			column-gap: 2.25rem;
-			width: 69.25rem;
-			max-width: 90vw;
-			margin: 0;
-			align-items: start;
-			justify-content: start;
-			max-height: calc(100vh - 3.5rem);
-			transform: translate(34rem, -4.5rem);
-		}
-		@media (max-width: 1100px) {
-			.loginPageContainer {
-				justify-content: center;
-				padding: 1rem;
-			}
-			.bace-shell {
-				grid-template-columns: 1fr;
-				width: min(30rem, 92vw);
-				max-width: 92vw;
-				margin: 0 auto;
-				transform: none;
-				max-height: none;
-			}
-			.bace-card--login { width: 100%; }
-			.bace-info-slider,
-			.bace-mid-accent { display: none; }
-		}
-
-		/* NOTE: avoid animating transforms on layout containers */
-
-		/* Glass cards */
-		.bace-card {
-			border-radius: 1.5rem;
-			background: rgba(255, 255, 255, 0.14);
-			border: 1px solid rgba(255, 255, 255, 0.22);
-			box-shadow: 0 1.625rem 5rem rgba(0, 0, 0, 0.45);
-			backdrop-filter: blur(0.75rem);
-			-webkit-backdrop-filter: blur(0.75rem);
-			overflow: hidden;
-			animation: baceFadeUp 520ms ease both;
-		}
-		.bace-card--login {
-			width: 31rem;
-			padding: 1.6rem 1.6rem 1.25rem 1.6rem;
-			background: rgba(255, 255, 255, 0.22); /* brighter for readability */
-		}
-		.bace-login-card {
-			align-self: start;
-			margin-top: 0 !important;
-		}
-
-		/* Info slider: positioned via grid (no fixed left/top) */
-		.bace-info-slider {
-			position: relative;
-			z-index: 1;
-			align-self: start;
-			width: 36rem;
-			height: 13rem;
-			margin-top: 0 !important;
-			display: flex;
-			align-items: center;
-			padding: 1.85rem;
-			transform: translateY(-0.75rem) !important;
-			border-radius: 1.125rem;
-			background: rgba(255,255,255,0.14); /* less muddy */
-			border: 1px solid rgba(255,255,255,0.20);
-			backdrop-filter: blur(0.75rem);
-			-webkit-backdrop-filter: blur(0.75rem);
-			box-shadow: 0 0.75rem 2.5rem rgba(0,0,0,0.30);
-			overflow: hidden;
-		}
-
-		.bace-login-card,
-		.bace-info-slider {
-			margin-top: 0 !important;
-			transform: none !important;
-			align-self: start;
-		}
-		.bace-slide {
-			position: absolute;
-			left: clamp(1.25rem, 1.8vw, 2rem);
-			right: clamp(1.25rem, 1.8vw, 2rem);
-			top: clamp(1.25rem, 1.8vw, 2rem);
-			bottom: 2.25rem; /* leave room for dots */
-			opacity: 0;
-			transform: translateY(0.625rem);
-			transition: all 0.4s ease;
-		}
-		.bace-slide.active {
-			opacity: 1;
-			transform: translateY(0);
-		}
-		.bace-slide h3 {
-			margin: 0 0 6px 0;
-			font-size: 1.85rem;
-			line-height: 1.15;
-			font-weight: 950;
-			letter-spacing: -0.03em;
-			color: #ffd54a;
-			text-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.35);
-		}
-		.bace-slide p {
-			margin: 0;
-			font-size: 1.25rem;
-			line-height: 1.55;
-			max-width: 32rem;
-			color: rgba(255,255,255,0.92);
-			text-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.32);
-		}
-		.bace-info-dots {
-			position: absolute;
-			left: 1.25rem;
-			right: 1.25rem;
-			bottom: 0.75rem;
-			display: flex;
-			gap: 0.375rem;
-			justify-content: center;
-		}
-		.bace-info-dot {
-			width: 0.375rem;
-			height: 0.375rem;
-			border-radius: 999px;
-			background: rgba(255,255,255,0.22);
-		}
-		.bace-info-dot.is-active { background: rgba(34,211,238,0.75); box-shadow: 0 0 0 0.1875rem rgba(34,211,238,0.18); }
-
-		@keyframes baceFadeUp {
-			from { opacity: 0; filter: blur(0.25rem); }
-			to { opacity: 1; filter: blur(0); }
-		}
-
-		/* Logo tile */
-		.bace-logo-tile {
-			display: grid;
-			place-items: center;
-			background: transparent;
-			border: 0;
-			box-shadow: none;
-			padding: 6px 0 10px 0;
-		}
-		.user-logo {
-			width: min(15rem, 78%);
-			max-width: 15rem;
-			height: auto;
-			display: block;
-		}
-
-		/* Subtle middle accents to reduce empty feel (no laptop cover) */
-		.bace-mid-accent {
-			position: absolute;
-			left: calc(31rem + 1.125rem);
-			top: 1.25rem;
-			width: 0.125rem;
-			height: 16rem;
-			border-radius: 99rem;
-			background: linear-gradient(
-				180deg,
-				rgba(34,211,238,0),
-				rgba(34,211,238,0.60),
-				rgba(250,204,21,0.22),
-				rgba(34,211,238,0)
-			);
-			box-shadow: 0 0 0.75rem rgba(34,211,238,0.25);
-			opacity: 0.75;
-			pointer-events: none;
-			z-index: 3;
-		}
-
-		.bace-h1 {
-			margin: 14px 0 6px 0;
-			font-size: 1.65rem;
-			font-weight: 900;
-			letter-spacing: -0.03em;
-			color: rgba(255, 255, 255, 0.97);
-		}
-		.bace-sub {
-			margin: 0 0 16px 0;
-			color: rgba(226, 232, 240, 0.84);
-			font-size: 1.15rem;
-			font-weight: 600;
-			line-height: 1.5;
-		}
-
-		/* Messages */
-		.failureMessage, .successMessage {
-			display: block;
-			text-align: left;
-			padding: 10px 12px;
-			margin: 12px 0 0 0;
-			border-radius: 14px;
-			font-weight: 700;
-		}
-		.failureMessage { color: #fecaca; background: rgba(239, 68, 68, 0.10); border: 1px solid rgba(239, 68, 68, 0.22); }
-		.successMessage { color: #bbf7d0; background: rgba(34, 197, 94, 0.10); border: 1px solid rgba(34, 197, 94, 0.22); }
-
-		/* Inputs */
-		.group { position: relative; margin: 14px 0 12px 0; }
-		.bace-field {
-			display: grid;
-			grid-template-columns: 4.1rem 1fr !important;
-			align-items: center;
-			gap: 0.85rem !important;
-			padding: 1.55rem 1.5rem !important;
-			min-height: 5.4rem !important;
-			border-radius: 1.55rem !important;
-			border: 1px solid rgba(255, 255, 255, 0.18);
-			background: rgba(2, 6, 23, 0.22) !important;
-			overflow: hidden;
-			transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
-		}
-		.bace-field:focus-within {
-			border-color: rgba(34, 211, 238, 0.45);
-			box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.12);
-			background: rgba(2, 6, 23, 0.28);
-		}
-		.bace-ico {
-			width: 3.25rem !important;
-			height: 3.25rem !important;
-			border-radius: 1.1rem !important;
-			font-size: 1.25rem !important;
-			display: grid;
-			place-items: center;
-			background: rgba(255, 255, 255, 0.10);
-			border: 1px solid rgba(255, 255, 255, 0.12);
-			color: rgba(226, 232, 240, 0.92);
-		}
-		input, select {
-			width: 100%;
-			border: 0;
-			outline: 0;
-			background: transparent !important;
-			color: #ffffff !important;
-			font-size: 1.08rem;
-			line-height: 1.4;
-			min-height: 1.6rem;
-			padding: 0;
-			margin: 0;
-			-webkit-appearance: none;
-		}
-		.bace-field input {
-			height: 2.55rem !important;
-			min-height: 2.55rem !important;
-			font-size: 1.38rem !important;
-			line-height: 2.55rem !important;
-			color: #ffffff !important;
-			background: transparent !important;
+		.loginPageContainer.nk-split-login {
+			width: 100% !important;
+			max-width: 100% !important;
 			padding: 0 !important;
-		}
-		.bace-field input::placeholder {
-			font-size: 1.25rem !important;
-			color: rgba(226, 232, 240, 0.72) !important;
-		}
-
-		.bace-field input,
-		.bace-field input:focus,
-		.bace-field input:active {
-			background: transparent !important;
-			color: #ffffff !important;
-			box-shadow: none !important;
-			-webkit-box-shadow: none !important;
-			caret-color: #ffffff !important;
-		}
-		.bace-field input:-webkit-autofill,
-		.bace-field input:-webkit-autofill:hover,
-		.bace-field input:-webkit-autofill:focus,
-		.bace-field input:-webkit-autofill:active {
-			-webkit-text-fill-color: #ffffff !important;
-			caret-color: #ffffff !important;
-			background: transparent !important;
-			box-shadow: 0 0 0 100rem rgba(42, 79, 104, 0.96) inset !important;
-			-webkit-box-shadow: 0 0 0 100rem rgba(42, 79, 104, 0.96) inset !important;
-			transition: background-color 9999s ease-in-out 0s !important;
-		}
-		input::placeholder { color: rgba(226, 232, 240, 0.55); }
-		/* Keep old label markup but hide (we use placeholders + icons) */
-		.group label, .bar { display: none !important; }
-
-		/* Skin select */
-		.bace-skin { margin-top: 6px; }
-		.bace-skin select {
-			padding: 10px 12px;
-			border-radius: 14px;
-			border: 1px solid rgba(255, 255, 255, 0.16);
-			background: rgba(2, 6, 23, 0.22);
-		}
-
-		/* Button */
-		.button {
-			width: 100%;
-			border: 0;
-			border-radius: 1.5rem !important;
-			padding: 1.35rem 1.3rem !important;
-			font-size: 1.25rem !important;
-			font-weight: 900;
-			letter-spacing: 0.02em;
-			color: #0b1220;
-			cursor: pointer;
-			background: linear-gradient(135deg, #facc15 0%, #22d3ee 100%);
-			box-shadow: 0 18px 45px rgba(34, 211, 238, 0.18), 0 14px 40px rgba(250, 204, 21, 0.14);
-			transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+			margin: 0 !important;
+			min-height: 100vh;
+			height: 100vh;
 			overflow: hidden;
 		}
-		.button::before {
+
+		.nk-split-main {
+			display: flex;
+			flex-direction: row;
+			min-height: 100vh;
+			width: 100%;
+			overflow: hidden;
+		}
+
+		/* ── Left brand panel ── */
+		.nk-split-brand {
+			flex: 1 1 0;
+			position: relative;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			padding: 32px;
+			background-color: #00341a;
+			overflow: hidden;
+		}
+		.nk-split-brand::before {
 			content: "";
 			position: absolute;
 			inset: 0;
-			transform: translateX(-120%);
-			background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.35) 35%, transparent 70%);
-			transition: transform 520ms ease;
+			z-index: 0;
+			pointer-events: none;
+			background-color: #00341a;
+			background-image: url(layouts/v7/resources/Images/nguyenkhoa-login-bg.png?v=20260703c);
+			background-size: 100% auto;
+			background-position: center center;
+			background-repeat: no-repeat;
+		}
+
+		@media (min-width: 768px) {
+			.nk-split-brand { display: flex; }
+		}
+
+		.nk-split-brand__inner {
+			position: relative;
+			z-index: 3;
+			width: 100%;
+			max-width: 58rem;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+		}
+
+		.nk-split-brand__logo {
+			margin-bottom: 20px;
+			transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+		}
+		.nk-split-brand__logo:hover { transform: scale(1.05); }
+		.nk-split-brand__logo img {
+			height: clamp(9.5rem, 15vh, 12rem);
+			width: auto;
+			object-fit: contain;
+			filter: drop-shadow(0 20px 40px rgba(0,0,0,0.35));
+		}
+
+		.nk-split-brand__photo-wrap {
+			position: relative;
+			width: min(100%, 42rem, 62vw);
+			max-width: 42rem;
+			margin-bottom: 7rem;
+			line-height: 0;
+		}
+		.nk-split-brand__photo-glow {
+			position: absolute;
+			inset: -28px -16px;
+			border-radius: 28px;
+			background: rgba(107, 254, 156, 0.2);
+			filter: blur(52px);
+			transition: background 0.2s ease;
+		}
+		.nk-split-brand__photo-wrap:hover .nk-split-brand__photo-glow {
+			background: rgba(107, 254, 156, 0.3);
+		}
+		.nk-split-brand__photo-figure {
+			position: relative;
+			display: block;
+			width: 100%;
+		}
+		.nk-split-brand__slideshow {
+			position: relative;
+			width: 100%;
+		}
+		.nk-split-brand__slideshow-sizer {
+			display: block;
+			width: 100%;
+			height: auto;
+			max-height: min(78vh, 760px);
+			visibility: hidden;
 			pointer-events: none;
 		}
-		.button:hover {
-			transform: translateY(-1px);
-			filter: brightness(1.02);
-			box-shadow: 0 22px 60px rgba(34, 211, 238, 0.22), 0 18px 55px rgba(250, 204, 21, 0.16);
-		}
-		.button:hover::before { transform: translateX(120%); }
-		.button:active { transform: translateY(0); }
-
-		.buttonBlue {
-			animation: baceBtnGlow 2.8s ease-in-out infinite;
-		}
-		@keyframes baceBtnGlow {
-			0%, 100% { box-shadow: 0 18px 45px rgba(34, 211, 238, 0.22), 0 14px 40px rgba(250, 204, 21, 0.18); }
-			50% { box-shadow: 0 22px 60px rgba(34, 211, 238, 0.30), 0 18px 55px rgba(250, 204, 21, 0.22); }
-		}
-
-		/* Links */
-		.bace-links {
+		.nk-split-brand__slide {
+			position: absolute;
+			inset: 0;
 			display: flex;
-			justify-content: space-between;
 			align-items: center;
-			margin-top: 10px;
-			font-size: 13px;
+			justify-content: center;
+			opacity: 0;
+			visibility: hidden;
+			transition: opacity 0.5s ease, visibility 0.5s ease;
+			z-index: 0;
 		}
-		.forgotPasswordLink {
-			color: rgba(226, 232, 240, 0.85) !important;
-			text-decoration: none !important;
+		.nk-split-brand__slide.is-active {
+			opacity: 1;
+			visibility: visible;
+			z-index: 1;
+		}
+		.nk-split-brand__slide img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			max-width: 100%;
+			max-height: 100%;
+			object-fit: contain;
+			object-position: center center;
+			filter: drop-shadow(0 28px 56px rgba(0, 0, 0, 0.42));
+			transition: transform 0.2s ease;
+		}
+		/* Ảnh 1: căn giữa dọc (file có khoảng trống dưới nên trông hơi lệch lên) */
+		.nk-split-brand__slide:first-of-type img {
+			object-position: center 54%;
+		}
+		.nk-split-brand__photo-wrap:hover .nk-split-brand__slide.is-active img {
+			transform: scale(1.02);
+		}
+
+		.nk-split-brand__copy {
+			color: #fff;
+			margin-top: 2rem !important;
+			padding-top: 0.5rem;
+		}
+		.nk-split-brand__headline {
+			margin: 0 0 16px;
+			font-family: 'Manrope', sans-serif;
+			font-size: clamp(2rem, 3.6vw, 2.75rem);
+			font-weight: 700;
+			line-height: 1.12;
+			letter-spacing: -0.02em;
+		}
+		.nk-split-brand__headline span { color: #6bfe9c; }
+		.nk-split-brand__desc {
+			margin: 0 auto;
+			max-width: 36rem;
+			font-size: 1.125rem;
+			line-height: 1.55;
+			color: rgba(255,255,255,0.72);
+		}
+
+		.nk-split-brand__decor {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			z-index: 1;
+		}
+		.nk-split-brand__decor::before {
+			content: "";
+			position: absolute;
+			top: 5rem;
+			left: 5rem;
+			width: 8rem;
+			height: 8rem;
+			border-radius: 50%;
+			background: rgba(255,255,255,0.05);
+			filter: blur(48px);
+		}
+		.nk-split-brand__decor::after {
+			content: "";
+			position: absolute;
+			bottom: 5rem;
+			right: 5rem;
+			width: 16rem;
+			height: 16rem;
+			border-radius: 50%;
+			background: rgba(107, 254, 156, 0.05);
+			filter: blur(100px);
+		}
+
+		/* ── Right form panel ── */
+		.nk-split-form-panel {
+			flex: 0 0 100%;
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			padding: 32px 24px;
+			background: #ffffff;
+			overflow-y: auto;
+			z-index: 10;
+		}
+
+		@media (min-width: 768px) {
+			.nk-split-form-panel {
+				flex: 0 0 500px;
+				width: 500px;
+				padding: 32px 24px;
+			}
+		}
+		@media (min-width: 1024px) {
+			.nk-split-form-panel {
+				flex: 0 0 600px;
+				width: 600px;
+			}
+		}
+
+		.nk-split-form-inner {
+			width: 100%;
+			max-width: 380px;
+			margin: 0 auto;
+		}
+
+		.nk-split-form-header { margin-bottom: 32px; }
+		.nk-split-form-header h1 {
+			margin: 0 0 4px;
+			font-family: 'Manrope', sans-serif;
+			font-size: 2.25rem;
+			font-weight: 700;
+			line-height: 1.15;
+			letter-spacing: -0.02em;
+			color: #0b1c30;
+		}
+		.nk-split-form-header p {
+			margin: 0;
+			font-size: 14px;
+			line-height: 20px;
+			font-weight: 500;
+			color: #404941;
+		}
+
+		.nk-split-mobile-logo {
+			display: flex;
+			justify-content: center;
+			margin-bottom: 24px;
+		}
+		@media (min-width: 768px) {
+			.nk-split-mobile-logo { display: none; }
+		}
+		.nk-split-mobile-logo img {
+			height: 4.5rem;
+			width: auto;
+		}
+
+		.nk-field { margin-bottom: 24px; }
+		.nk-field label {
+			display: block;
+			margin-bottom: 8px;
+			font-size: 11px;
+			font-weight: 600;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+			color: #404941;
+		}
+		.nk-field-input-wrap { position: relative; }
+		.nk-field input[type="text"],
+		.nk-field input[type="password"],
+		.nk-field input[type="email"],
+		.nk-field select {
+			width: 100%;
+			padding: 12px 0;
+			border: 0;
+			border-bottom: 2px solid #c0c9bf;
+			border-radius: 0;
+			background: transparent !important;
+			color: #0b1c30 !important;
+			font-family: 'Inter', sans-serif;
+			font-size: 14px;
+			line-height: 20px;
+			outline: none;
+			box-shadow: none !important;
+			-webkit-appearance: none;
+			transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+		}
+		.nk-field input:focus,
+		.nk-field select:focus {
+			border-bottom-color: #00341a;
+		}
+		.nk-field input::placeholder { color: rgba(113, 121, 113, 0.55); }
+		.nk-field input:-webkit-autofill,
+		.nk-field input:-webkit-autofill:hover,
+		.nk-field input:-webkit-autofill:focus {
+			-webkit-text-fill-color: #0b1c30 !important;
+			box-shadow: 0 0 0 100rem #ffffff inset !important;
+			-webkit-box-shadow: 0 0 0 100rem #ffffff inset !important;
+		}
+
+		.nk-pw-toggle {
+			position: absolute;
+			right: 0;
+			top: 50%;
+			transform: translateY(-50%);
+			border: 0;
+			background: transparent;
+			padding: 4px;
+			color: #717971;
+			cursor: pointer;
+			line-height: 0;
+			transition: color 0.2s ease;
+		}
+		.nk-pw-toggle:hover { color: #00341a; }
+		.nk-pw-toggle .material-symbols-outlined { font-size: 20px; }
+
+		.nk-form-row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin: 8px 0 24px;
+			gap: 12px;
+		}
+		.nk-remember {
+			position: relative;
+			display: inline-flex;
+			cursor: pointer;
+			user-select: none;
+		}
+		.nk-remember input[type="checkbox"] {
+			appearance: none;
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			opacity: 0;
+			z-index: 2;
 			cursor: pointer;
 		}
-		.forgotPasswordLink:hover { color: #ffffff !important; text-decoration: underline !important; }
-
-		/* Brand panel */
-		.bace-kicker {
+		.nk-remember__chip {
 			display: inline-flex;
 			align-items: center;
-			gap: 8px;
-			padding: 6px 10px;
+			gap: 7px;
+			padding: 8px 16px 8px 12px;
 			border-radius: 999px;
-			background: rgba(255, 255, 255, 0.08);
-			border: 1px solid rgba(255, 255, 255, 0.14);
-			color: rgba(226, 232, 240, 0.92);
-			font-weight: 800;
-			font-size: 12px;
-			letter-spacing: 0.08em;
-			text-transform: uppercase;
+			border: 1.5px solid #d5ddd7;
+			background: #f8fbf9;
+			color: #4a544d;
+			font-size: 13px;
+			font-weight: 600;
+			letter-spacing: 0.02em;
+			transition: background 0.28s ease, border-color 0.28s ease, color 0.28s ease, box-shadow 0.28s ease, transform 0.2s ease;
+			pointer-events: none;
 		}
-		.bace-brand-title {
-			margin: 14px 0 10px 0;
-			font-size: 30px;
-			line-height: 1.12;
-			letter-spacing: -0.04em;
-			font-weight: 950;
-			color: rgba(255, 255, 255, 0.96);
+		.nk-remember__icon {
+			font-size: 18px;
+			line-height: 1;
+			color: #8b968f;
+			transition: color 0.28s ease, transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
 		}
-		.bace-brand-title .is-gold { color: #facc15; }
-		.bace-brand-title .is-cyan { color: #22d3ee; }
-		.bace-brand-sub {
-			margin: 0 0 16px 0;
-			color: rgba(226, 232, 240, 0.80);
-			font-size: 14px;
-			line-height: 1.55;
-			max-width: 56ch;
+		.nk-remember:hover .nk-remember__chip {
+			border-color: #b8c8bc;
+			background: #f1f6f3;
+			transform: translateY(-1px);
 		}
-		.bace-values {
-			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-			gap: 12px;
-			margin-top: 18px;
+		.nk-remember input:checked + .nk-remember__chip {
+			background: linear-gradient(135deg, #00341a 0%, #0a5c32 100%);
+			border-color: #00341a;
+			color: #ffffff;
+			box-shadow: 0 4px 16px rgba(0, 52, 26, 0.24);
 		}
-		@media (max-width: 1100px) {
-			.loginPageContainer { justify-content: center; }
-			.bace-login-card { margin-top: 0; }
-			.bace-info-slider { display: none; }
-			.bace-mid-accent { display: none; }
+		.nk-remember input:checked + .nk-remember__chip .nk-remember__icon {
+			color: #6bfe9c;
+			font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+			transform: scale(1.1);
 		}
-		.bace-value {
-			border-radius: 18px;
-			padding: 14px 14px;
-			background: rgba(255, 255, 255, 0.09);
-			border: 1px solid rgba(255, 255, 255, 0.16);
-			transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
-		}
-		.bace-value:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 16px 40px rgba(0,0,0,0.18);
-			background: rgba(255,255,255,0.11);
-		}
-		.bace-value h4 {
-			margin: 0 0 6px 0;
-			font-size: 14px;
-			font-weight: 950;
-			letter-spacing: -0.02em;
-			color: #facc15;
-		}
-		.bace-value p {
-			margin: 0;
-			font-size: 12.5px;
-			line-height: 1.45;
-			color: rgba(226, 232, 240, 0.78);
-		}
-		/* Ultra-short screens: allow internal scroll within login card only */
-		@media (max-height: 640px) {
-			html, body { overflow: hidden; }
-			.loginPageContainer { align-items: flex-start; padding-top: 0.875rem; }
-			.bace-card--login { max-height: calc(100vh - 28px); overflow: auto; }
+		.nk-remember input:focus-visible + .nk-remember__chip {
+			outline: 2px solid rgba(107, 254, 156, 0.8);
+			outline-offset: 3px;
 		}
 
-		/* Optional visual proof (enable temporarily if needed)
-		.bace-login-card { outline: 0.125rem solid rgba(250,204,21,0.8); }
-		.bace-info-slider { outline: 0.125rem solid rgba(34,211,238,0.8); }
-		*/
+		.forgotPasswordLink {
+			font-size: 14px;
+			font-weight: 600;
+			color: #00341a !important;
+			text-decoration: none !important;
+			cursor: pointer;
+			white-space: nowrap;
+		}
+		.forgotPasswordLink:hover { opacity: 0.8; }
+
+		.nk-submit-btn {
+			width: 100%;
+			padding: 16px;
+			border: 0;
+			border-radius: 12px;
+			background: #00341a;
+			color: #ffffff;
+			font-family: 'Manrope', sans-serif;
+			font-size: 20px;
+			font-weight: 700;
+			line-height: 28px;
+			cursor: pointer;
+			transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+		}
+		.nk-submit-btn:hover {
+			box-shadow: 0 16px 40px rgba(0, 52, 26, 0.25);
+			transform: translateY(-2px);
+		}
+		.nk-submit-btn:active { transform: translateY(0); }
+
+		.failureMessage, .successMessage {
+			display: block;
+			padding: 10px 12px;
+			margin-bottom: 16px;
+			border-radius: 8px;
+			font-size: 13px;
+			font-weight: 600;
+		}
+		.failureMessage {
+			color: #93000a;
+			background: #ffdad6;
+			border: 1px solid #ffb4ab;
+		}
+		.successMessage {
+			color: #0d4c2b;
+			background: #b2f1c3;
+			border: 1px solid #97d4a8;
+		}
+
+		.nk-skin-select {
+			margin-bottom: 16px;
+		}
+		.nk-skin-select select {
+			width: 100%;
+			padding: 10px 0;
+			border: 0;
+			border-bottom: 2px solid #c0c9bf;
+			background: transparent;
+			font-size: 14px;
+			color: #0b1c30;
+		}
+
+		.nk-forgot-back {
+			display: inline-block;
+			margin-top: 12px;
+			font-size: 14px;
+			font-weight: 600;
+			color: #00341a;
+			cursor: pointer;
+		}
+
+		.hide { display: none !important; }
+
+		html[data-theme="dark"] body[data-view="Login"] .nk-split-form-panel,
+		html[data-theme="dark"] body[data-view="Login"] .nk-split-form-panel input,
+		html[data-theme="dark"] body[data-view="Login"] .nk-split-form-panel select {
+			background: #ffffff !important;
+			color: #0b1c30 !important;
+		}
 	</style>
 
 	<span class="app-nav"></span>
-	<div class="container-fluid loginPageContainer">
-		{* bace-info-slider moved inside .bace-shell for responsive layout *}
-		<div class="bace-shell">
-			<div class="bace-mid-accent" aria-hidden="true"></div>
-			<div class="bace-card bace-card--login bace-login-card">
-				<div class="bace-logo-tile">
-					<img class="img-responsive user-logo" src="layouts/v7/skins/images/bace-login-logo-transparent.png?v=20260429-2" alt="B-ACE / TDB Solution">
+	<div class="container-fluid loginPageContainer nk-split-login">
+		<main class="nk-split-main">
+
+			{* ── Left: brand visual ── *}
+			<section class="nk-split-brand" aria-hidden="true">
+				<div class="nk-split-brand__decor"></div>
+				<div class="nk-split-brand__inner">
+					<div class="nk-split-brand__logo">
+						<img src="layouts/v7/resources/Images/nguyenkhoa-login-logo.png?v=20260703c" alt="Nguyên Khoa" width="320" height="128">
+					</div>
+
+					<div class="nk-split-brand__photo-wrap">
+						<div class="nk-split-brand__photo-glow"></div>
+						<div class="nk-split-brand__photo-figure">
+							<div class="nk-split-brand__slideshow" data-interval="3000">
+								<img class="nk-split-brand__slideshow-sizer" src="layouts/v7/resources/Images/nguyenkhoa-login-left.png?v=20260706b" alt="" width="471" height="530" aria-hidden="true">
+								<div class="nk-split-brand__slide is-active">
+									<img src="layouts/v7/resources/Images/nguyenkhoa-login-left.png?v=20260706b" alt="Nguyên Khoa" width="471" height="530">
+								</div>
+								<div class="nk-split-brand__slide">
+									<img src="layouts/v7/resources/Images/nguyenkhoa-login-slide-2.png?v=20260706b" alt="Đào tạo Nguyên Khoa" width="1024" height="1024">
+								</div>
+								<div class="nk-split-brand__slide">
+									<img src="layouts/v7/resources/Images/nguyenkhoa-login-slide-3.png?v=20260706b" alt="Demo sản phẩm Nguyên Khoa" width="576" height="1024">
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="nk-split-brand__copy">
+						<h2 class="nk-split-brand__headline">
+							Giải pháp quản lý<br><span>khách hàng chuyên nghiệp</span>
+						</h2>
+						<p class="nk-split-brand__desc">
+							Tối ưu hóa quy trình kinh doanh F&amp;B với hệ thống được thiết kế riêng cho sự tăng trưởng của thương hiệu Nguyên Khoa.
+						</p>
+					</div>
 				</div>
+			</section>
 
-				<div class="bace-h1">Welcome back</div>
-				<div class="bace-sub">Sign in to <strong>B-ACE</strong>.</div>
+			{* ── Right: login form ── *}
+			<section class="nk-split-form-panel">
+				<div class="nk-split-form-inner">
 
-				<div>
+					<div class="nk-split-mobile-logo">
+						<img src="layouts/v7/resources/Images/nguyenkhoa-login-logo.png?v=20260703c" alt="Nguyên Khoa" width="200" height="80">
+					</div>
+
+					<div class="nk-split-form-header">
+						<h1>Chào mừng</h1>
+						<p>Đăng nhập để bắt đầu phiên làm việc</p>
+					</div>
+
 					<span class="{if !$ERROR}hide{/if} failureMessage" id="validationMessage">{$MESSAGE}</span>
 					<span class="{if !$MAIL_STATUS}hide{/if} successMessage">{$MESSAGE}</span>
+
+					<div id="loginFormDiv">
+						<form class="nk-login-form" method="POST" action="index.php">
+							<input type="hidden" name="module" value="Users"/>
+							<input type="hidden" name="action" value="Login"/>
+
+							<div class="nk-field">
+								<label for="username">Email / Tài khoản</label>
+								<div class="nk-field-input-wrap">
+									<input id="username" type="text" name="username" placeholder="username@nguyenkhoa.vn" autocomplete="username" required>
+								</div>
+							</div>
+
+							<div class="nk-field">
+								<label for="password">Mật khẩu</label>
+								<div class="nk-field-input-wrap">
+									<input id="password" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+									<button type="button" class="nk-pw-toggle" id="nkPwToggle" aria-label="Hiện mật khẩu">
+										<span class="material-symbols-outlined" id="nkPwToggleIcon">visibility</span>
+									</button>
+								</div>
+							</div>
+
+							{assign var="CUSTOM_SKINS" value=Vtiger_Theme::getAllSkins()}
+							{if !empty($CUSTOM_SKINS)}
+							<div class="nk-skin-select">
+								<label for="skin" style="display:block;margin-bottom:8px;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#404941;">Giao diện</label>
+								<select id="skin" name="skin">
+									<option value="">Mặc định</option>
+									{foreach item=CUSTOM_SKIN from=$CUSTOM_SKINS}
+									<option value="{$CUSTOM_SKIN}">{$CUSTOM_SKIN}</option>
+									{/foreach}
+								</select>
+							</div>
+							{/if}
+
+							<div class="nk-form-row">
+								<label class="nk-remember">
+									<input type="checkbox" name="remember" value="1">
+									<span class="nk-remember__chip" aria-hidden="true">
+										<span class="material-symbols-outlined nk-remember__icon">bookmark</span>
+										<span>Ghi nhớ</span>
+									</span>
+								</label>
+								<a class="forgotPasswordLink">Quên mật khẩu?</a>
+							</div>
+
+							<button type="submit" class="nk-submit-btn">Tiếp tục</button>
+						</form>
+					</div>
+
+					<div id="forgotPasswordDiv" class="hide">
+						<form class="nk-login-form" action="forgotPassword.php" method="POST">
+							<div class="nk-field">
+								<label for="fusername">Tài khoản</label>
+								<div class="nk-field-input-wrap">
+									<input id="fusername" type="text" name="username" placeholder="Tên đăng nhập" autocomplete="username">
+								</div>
+							</div>
+
+							<div class="nk-field">
+								<label for="email">Email</label>
+								<div class="nk-field-input-wrap">
+									<input id="email" type="email" name="emailId" placeholder="email@nguyenkhoa.vn" autocomplete="email">
+								</div>
+							</div>
+
+							<button type="submit" class="nk-submit-btn forgot-submit-btn">Gửi yêu cầu</button>
+							<a class="forgotPasswordLink nk-forgot-back">← Quay lại đăng nhập</a>
+						</form>
+					</div>
+
 				</div>
-
-				<div id="loginFormDiv">
-					<form class="form-horizontal" method="POST" action="index.php">
-						<input type="hidden" name="module" value="Users"/>
-						<input type="hidden" name="action" value="Login"/>
-
-						<div class="group">
-							<div class="bace-field">
-								<span class="bace-ico"><i class="fa fa-user" aria-hidden="true"></i></span>
-								<input id="username" type="text" name="username" placeholder="Username" autocomplete="username">
-							</div>
-							<span class="bar"></span>
-							<label>Username</label>
-						</div>
-
-						<div class="group">
-							<div class="bace-field">
-								<span class="bace-ico"><i class="fa fa-lock" aria-hidden="true"></i></span>
-								<input id="password" type="password" name="password" placeholder="Password" autocomplete="current-password">
-							</div>
-							<span class="bar"></span>
-							<label>Password</label>
-						</div>
-
-						{assign var="CUSTOM_SKINS" value=Vtiger_Theme::getAllSkins()}
-						{if !empty($CUSTOM_SKINS)}
-						<div class="bace-skin">
-							<select id="skin" name="skin" placeholder="Skin" style="text-transform: capitalize;">
-								<option value="">Default Skin</option>
-								{foreach item=CUSTOM_SKIN from=$CUSTOM_SKINS}
-								<option value="{$CUSTOM_SKIN}">{$CUSTOM_SKIN}</option>
-								{/foreach}
-							</select>
-						</div>
-						{/if}
-
-						<div class="group" style="margin-top: 14px;">
-							<button type="submit" class="button buttonBlue">Sign in</button>
-							<div class="bace-links">
-								<a class="forgotPasswordLink">Forgot password?</a>
-								<span style="color: rgba(226, 232, 240, 0.55); font-size: 12px;">B-ACE • TDB Solution</span>
-							</div>
-						</div>
-					</form>
-				</div>
-
-				<div id="forgotPasswordDiv" class="hide">
-					<form class="form-horizontal" action="forgotPassword.php" method="POST">
-						<div class="group">
-							<div class="bace-field">
-								<span class="bace-ico"><i class="fa fa-user" aria-hidden="true"></i></span>
-								<input id="fusername" type="text" name="username" placeholder="Username" autocomplete="username">
-							</div>
-							<span class="bar"></span>
-							<label>Username</label>
-						</div>
-
-						<div class="group">
-							<div class="bace-field">
-								<span class="bace-ico"><i class="fa fa-envelope" aria-hidden="true"></i></span>
-								<input id="email" type="email" name="emailId" placeholder="Email" autocomplete="email">
-							</div>
-							<span class="bar"></span>
-							<label>Email</label>
-						</div>
-
-						<div class="group" style="margin-top: 14px;">
-							<button type="submit" class="button buttonBlue forgot-submit-btn">Submit</button>
-							<div class="bace-links">
-								<span style="color: rgba(226, 232, 240, 0.75); font-size: 12.5px;">Please enter details and submit</span>
-								<a class="forgotPasswordLink pull-right">Back</a>
-							</div>
-						</div>
-					</form>
-			</div>
-		</div>
-
-			{* Grid column 2: info slider (moved from absolute top-level for responsive layout) *}
-			<div class="bace-info-slider" aria-label="B-ACE info slider">
-				<div class="bace-slide active">
-					<h3>TDB Solution</h3>
-					<p>TDB Solution sáng tạo và đổi mới, chúng tôi mang đến khách hàng sự hài lòng nhờ đồng hành và cung cấp dịch vụ chất lượng cao.</p>
-		</div>
-				<div class="bace-slide">
-					<h3>Tận tâm</h3>
-					<p>Luôn đặt trải nghiệm và sự hài lòng của khách hàng lên hàng đầu.</p>
-												</div>
-				<div class="bace-slide">
-					<h3>Tiên phong</h3>
-					<p>Đổi mới liên tục, chuẩn hóa quy trình, nâng hiệu suất vận hành.</p>
-													</div>
-				<div class="bace-slide">
-					<h3>Đồng hành</h3>
-					<p>Phát triển bền vững cùng doanh nghiệp bằng giải pháp thực tế.</p>
-													</div>
-				<div class="bace-info-dots" aria-hidden="true">
-					<span class="bace-info-dot is-active"></span>
-					<span class="bace-info-dot"></span>
-					<span class="bace-info-dot"></span>
-					<span class="bace-info-dot"></span>
-				</div>
-			</div>
-
-		</div>
+			</section>
+		</main>
 
 		<script>
 			jQuery(document).ready(function () {
 				var validationMessage = jQuery('#validationMessage');
 				var forgotPasswordDiv = jQuery('#forgotPasswordDiv');
-
 				var loginFormDiv = jQuery('#loginFormDiv');
-				loginFormDiv.find('#password').focus();
 
-				// Top-right info slider (UI-only)
-				try {
-					var $slider = jQuery('.bace-info-slider');
-					var $slides = $slider.find('.bace-slide');
-					var $dots = $slider.find('.bace-info-dot');
+				loginFormDiv.find('#username').focus();
+
+				(function () {
+					var $slideshow = jQuery('.nk-split-brand__slideshow');
+					if (!$slideshow.length) return;
+					var $slides = $slideshow.find('.nk-split-brand__slide');
+					if ($slides.length < 2) return;
 					var idx = 0;
-					var tickMs = 2500;
-					var timer = null;
+					var interval = parseInt($slideshow.data('interval'), 10) || 3000;
+					setInterval(function () {
+						$slides.removeClass('is-active');
+						idx = (idx + 1) % $slides.length;
+						$slides.eq(idx).addClass('is-active');
+					}, interval);
+				})();
 
-					var show = function (i) {
-						idx = i;
-						$slides.removeClass('active').eq(idx).addClass('active');
-						$dots.removeClass('is-active').eq(idx).addClass('is-active');
-					};
-					var next = function () {
-						if (!$slides.length) return;
-						show((idx + 1) % $slides.length);
-					};
-					if ($slides.length > 1) {
-						timer = setInterval(next, tickMs);
-						$slider.on('mouseenter', function(){ if (timer) { clearInterval(timer); timer = null; } });
-						$slider.on('mouseleave', function(){ if (!timer) timer = setInterval(next, tickMs); });
+				jQuery('#nkPwToggle').on('click', function () {
+					var $pw = jQuery('#password');
+					var $icon = jQuery('#nkPwToggleIcon');
+					if ($pw.attr('type') === 'password') {
+						$pw.attr('type', 'text');
+						$icon.text('visibility_off');
+					} else {
+						$pw.attr('type', 'password');
+						$icon.text('visibility');
 					}
-				} catch (eSlider) {}
+				});
 
 				loginFormDiv.find('a.forgotPasswordLink').click(function () {
-					loginFormDiv.toggleClass('hide');
-					forgotPasswordDiv.toggleClass('hide');
+					loginFormDiv.addClass('hide');
+					forgotPasswordDiv.removeClass('hide');
 					validationMessage.addClass('hide');
 				});
 
 				forgotPasswordDiv.find('a.forgotPasswordLink').click(function () {
-					loginFormDiv.toggleClass('hide');
-					forgotPasswordDiv.toggleClass('hide');
+					forgotPasswordDiv.addClass('hide');
+					loginFormDiv.removeClass('hide');
 					validationMessage.addClass('hide');
 				});
 
-				loginFormDiv.find('button').on('click', function () {
+				loginFormDiv.find('button.nk-submit-btn').on('click', function () {
 					var username = loginFormDiv.find('#username').val();
 					var password = jQuery('#password').val();
 					var result = true;
 					var errorMessage = '';
 					if (username === '') {
-						errorMessage = 'Please enter valid username';
+						errorMessage = 'Vui lòng nhập tên đăng nhập';
 						result = false;
 					} else if (password === '') {
-						errorMessage = 'Please enter valid password';
+						errorMessage = 'Vui lòng nhập mật khẩu';
 						result = false;
 					}
 					if (errorMessage) {
@@ -753,24 +719,22 @@
 					return result;
 				});
 
-				forgotPasswordDiv.find('button').on('click', function () {
+				forgotPasswordDiv.find('button.forgot-submit-btn').on('click', function () {
 					var username = jQuery('#forgotPasswordDiv #fusername').val();
 					var email = jQuery('#email').val();
-
 					var email1 = email.replace(/^\s+/, '').replace(/\s+$/, '');
 					var emailFilter = /^[^@]+@[^@.]+\.[^@]*\w\w$/;
 					var illegalChars = /[\(\)\<\>\,\;\:\\\"\[\]]/;
-
 					var result = true;
 					var errorMessage = '';
 					if (username === '') {
-						errorMessage = 'Please enter valid username';
+						errorMessage = 'Vui lòng nhập tên đăng nhập';
 						result = false;
-					} else if (!emailFilter.test(email1) || email == '') {
-						errorMessage = 'Please enter valid email address';
+					} else if (!emailFilter.test(email1) || email === '') {
+						errorMessage = 'Vui lòng nhập email hợp lệ';
 						result = false;
 					} else if (email.match(illegalChars)) {
-						errorMessage = 'The email address contains illegal characters.';
+						errorMessage = 'Email chứa ký tự không hợp lệ.';
 						result = false;
 					}
 					if (errorMessage) {
@@ -778,27 +742,7 @@
 					}
 					return result;
 				});
-				jQuery('input').blur(function (e) {
-					var currentElement = jQuery(e.currentTarget);
-					if (currentElement.val()) {
-						currentElement.addClass('used');
-					} else {
-						currentElement.removeClass('used');
-					}
-				});
-
-				var ripples = jQuery('.ripples');
-				ripples.on('click.Ripples', function (e) {
-					jQuery(e.currentTarget).addClass('is-active');
-				});
-
-				ripples.on('animationend webkitAnimationEnd mozAnimationEnd oanimationend MSAnimationEnd', function (e) {
-					jQuery(e.currentTarget).removeClass('is-active');
-				});
-				loginFormDiv.find('#username').focus();
-
-				// Login page: marketing/news panel removed, so no slider/scroll init.
 			});
 		</script>
-		</div>
-	{/strip}
+	</div>
+{/strip}

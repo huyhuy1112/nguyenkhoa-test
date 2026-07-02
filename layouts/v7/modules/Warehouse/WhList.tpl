@@ -1,11 +1,11 @@
-{* Danh sách kho — multi-warehouse (localStorage prototype) *}
+{* Danh sách kho — multi-warehouse (database) *}
 {strip}
 <div class="mk-gi-page">
 	<section class="mk-wh-mgmt">
 		<header class="mk-wh-proto-head">
 			<div class="mk-wh-proto-title">
 				<h1 class="mk-wh-proto-title__h1">Danh sách kho</h1>
-				<p class="mk-wh-proto-title__sub">Quản lý nhiều kho — mỗi kho có tồn kho và quy trình độc lập. Dữ liệu lưu cache trình duyệt (prototype cho backend).</p>
+				<p class="mk-wh-proto-title__sub">Quản lý nhiều kho — mỗi kho có tồn kho và quy trình độc lập. Dữ liệu lưu trên cơ sở dữ liệu.</p>
 			</div>
 			<div class="mk-wh-mgmt-toolbar">
 				<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline" href="index.php?module=Warehouse&amp;view=WhDashboard&amp;app=INVENTORY">Dashboard tổng</a>

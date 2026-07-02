@@ -97,7 +97,39 @@ class Settings_MenuEditor_Module_Model extends Settings_Vtiger_Module_Model {
 			}
 		}
 
+		if (!empty($modules['SALES'])) {
+			$modules['SALES'] = self::sortSalesAppModules($modules['SALES']);
+		}
+
 		return $modules;
+	}
+
+	/**
+	 * BA order for SALES sidebar: Leads → Opp → Quote → SO → Service → Contacts → Organizations.
+	 */
+	public static function sortSalesAppModules(array $salesModules) {
+		$order = array(
+			'Leads',
+			'Potentials',
+			'Quotes',
+			'SalesOrder',
+			'ServiceContracts',
+			'Contacts',
+			'Accounts',
+			'ProductsServices',
+		);
+		$sorted = array();
+		foreach ($order as $moduleName) {
+			if (isset($salesModules[$moduleName])) {
+				$sorted[$moduleName] = $salesModules[$moduleName];
+			}
+		}
+		foreach ($salesModules as $moduleName => $moduleModel) {
+			if (!isset($sorted[$moduleName])) {
+				$sorted[$moduleName] = $moduleModel;
+			}
+		}
+		return $sorted;
 	}
 
 	public static function addModuleToApp($moduleName, $parent) {

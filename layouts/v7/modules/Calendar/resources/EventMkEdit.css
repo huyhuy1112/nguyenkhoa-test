@@ -13,7 +13,7 @@ html.mk-event-create-ready body[data-view="Edit"][data-app="MANAGEMENT"][data-mo
 	--mk-event-border: #e2e8f0;
 	--mk-event-text: #0f172a;
 	--mk-event-muted: #64748b;
-	--mk-event-accent: #fdbb2c;
+	--mk-event-accent: #08A045;
 }
 
 html:not([data-theme="dark"]).mk-event-create-ready,
@@ -313,8 +313,8 @@ html:not([data-theme="dark"]) html.mk-event-create-ready body[data-view="Edit"][
 .mk-event-form-host .inputElement:focus,
 .mk-event-form-host .form-control:focus,
 .mk-event-form-host textarea.inputElement:focus {
-	border-color: #c98f12 !important;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.2) !important;
+	border-color: #08A045 !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.2) !important;
 	outline: none !important;
 }
 

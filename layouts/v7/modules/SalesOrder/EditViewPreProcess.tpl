@@ -2,11 +2,30 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 {include file="partials/MkSalesOrderEditAntiFouc.tpl"|@vtemplate_path:'SalesOrder'}
+<script type="text/javascript">document.documentElement.classList.add('mk-inv-odoo-active');</script>
+<style type="text/css">
+	html.mk-so-create-guard #mkSoFormHost .fieldBlockContainer[data-block="LBL_DESCRIPTION_INFORMATION"],
+	html.mk-so-create-guard #mkSoFormHost tr:has([name="bill_pobox"]),
+	html.mk-so-create-guard #mkSoFormHost tr:has([name="bill_city"]),
+	html.mk-so-create-guard #mkSoFormHost tr:has([name="bill_state"]),
+	html.mk-so-create-guard #mkSoFormHost tr:has([name="bill_code"]),
+	html.mk-so-create-guard #mkSoFormHost tr:has([name="bill_country"]),
+	html.mk-so-create-guard #mkSoFormHost tr:has([name="ship_pobox"]),
+	html.mk-so-create-guard #mkSoFormHost tr:has([name="ship_city"]),
+	html.mk-so-create-guard #mkSoFormHost tr:has([name="ship_state"]),
+	html.mk-so-create-guard #mkSoFormHost tr:has([name="ship_code"]),
+	html.mk-so-create-guard #mkSoFormHost tr:has([name="ship_country"]),
+	html.mk-so-create-guard #mkSoFormHost .addressBlock > tbody > tr:first-child {
+		display: none !important;
+	}
+</style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260603_no_dup_footer" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.css')}?mk_v=20260624_so_recurring2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}?mk_v=20260701_odoo_v8" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.css')}?mk_v=20260701_odoo_v8" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.js')}?mk_v=20260625_so_commerce_refresh1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}?mk_v=20260701_odoo_v8"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.js')}?mk_v=20260701_odoo_v9"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-sales-order-create="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

@@ -16,8 +16,8 @@ body[data-view="ModernDashboard"] {
     --mk-text-2: #334155;
     --mk-muted: #64748b;
     --mk-muted-2: #94a3b8;
-    --mk-accent: #fdbb2c;
-    --mk-accent-2: #d97706;
+    --mk-accent: #08A045;
+    --mk-accent-2: #0B6E4F;
     --mk-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
     --mk-shadow-soft: 0 6px 18px rgba(2, 6, 23, 0.06);
 }
@@ -111,14 +111,14 @@ body[data-view="ModernDashboard"] .mk-modern-btn {
 }
 
 body[data-view="ModernDashboard"] .mk-modern-btn--primary {
-    background-color: #fdbb2c;
-    border-color: #fdbb2c;
+    background-color: #08A045;
+    border-color: #08A045;
     color: #111827;
 }
 
 body[data-view="ModernDashboard"] .mk-modern-btn--primary:hover {
-    background-color: #f59e0b;
-    border-color: #f59e0b;
+    background-color: #08A045;
+    border-color: #08A045;
 }
 
 body[data-view="ModernDashboard"] .mk-modern-btn--ghost {

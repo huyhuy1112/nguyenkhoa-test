@@ -6,7 +6,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 :root {
-	--mk-qt-gold: #f4b400;
+	--mk-qt-gold: #08A045;
 	--mk-qt-gold-light: #ffcc33;
 	--mk-qt-ink: #1f2937;
 	--mk-qt-navy: #40627e;
@@ -281,7 +281,7 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card-
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--ai {
-	background: linear-gradient(160deg, #fffbeb 0%, #fff 60%);
+	background: linear-gradient(160deg, #ecfdf3 0%, #fff 60%);
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__head {
@@ -577,12 +577,12 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	align-items: center !important;
 }
 
-/* Line items — CPQ-style table */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block--line-items {
+/* Line items — CPQ-style table (disabled when Odoo line editor is active) */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .mk-qt-block--line-items {
 	padding-bottom: 12px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab {
 	border-collapse: separate;
 	border-spacing: 0;
 	border-radius: 12px;
@@ -590,11 +590,11 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	border: 1px solid var(--mk-qt-border) !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab thead tr {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab thead tr {
 	background: #f8fafc;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab thead th {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab thead th {
 	font-size: 12px;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -608,39 +608,39 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	background: #f8fafc;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab tbody tr.lineItemRow:nth-child(even) {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody tr.lineItemRow:nth-child(even) {
 	background: #fafbfc;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab tbody tr.lineItemRow:hover {
-	background: #fffbeb;
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody tr.lineItemRow:hover {
+	background: #ecfdf3;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemTab tbody td {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody td {
 	padding: 10px !important;
 	vertical-align: middle !important;
 	border-color: #f1f5f9 !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemResult.lineItemTable {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemResult.lineItemTable {
 	border-radius: var(--mk-qt-radius);
 	overflow: hidden;
 	margin-top: 16px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #lineItemResult .lineItemInputBox {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemResult .lineItemInputBox {
 	border-radius: 8px !important;
 	border: 1px solid #e2e8f0 !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block--totals {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .mk-qt-block--totals {
 	background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
 }
 
 /* Add product row buttons */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host #addProductsServices,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .addProduct,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .addService {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #addProductsServices,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .addProduct,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .addService {
 	border-radius: 10px !important;
 	font-weight: 600;
 }

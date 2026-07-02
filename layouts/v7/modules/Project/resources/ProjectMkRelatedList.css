@@ -5,8 +5,8 @@
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer,
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer.mk-luxury-related-panel,
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContainer.mk-luxury-related-panel {
-	--mk-rel-accent: #c98f12;
-	--mk-rel-accent-soft: #fdbb2c;
+	--mk-rel-accent: #08A045;
+	--mk-rel-accent-soft: #08A045;
 	--mk-rel-border: #e5dfd4;
 	--mk-rel-surface: #ffffff;
 	--mk-rel-muted: #94a3b8;
@@ -64,7 +64,7 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 	left: 0;
 	right: 0;
 	height: 3px;
-	background: linear-gradient(90deg, #e8c56a 0%, var(--mk-rel-accent-soft) 45%, #e59a0f 100%);
+	background: linear-gradient(90deg, #6BBF59 0%, var(--mk-rel-accent-soft) 45%, #0B6E4F 100%);
 	pointer-events: none;
 	z-index: 2;
 }
@@ -317,8 +317,8 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 	font-family: Inter, sans-serif !important;
 	font-size: 13px !important;
 	font-weight: 700 !important;
-	border: 1px solid #e59a0f !important;
-	background: #fdbb2c !important;
+	border: 1px solid #0B6E4F !important;
+	background: #08A045 !important;
 	background-image: none !important;
 	color: #6d4d00 !important;
 	box-shadow: none !important;
@@ -326,7 +326,7 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table thead tr.searchRow [data-trigger="relatedListSearch"]:hover {
 	background: #f0a514 !important;
-	border-color: #e59a0f !important;
+	border-color: #0B6E4F !important;
 	color: #6d4d00 !important;
 }
 
@@ -398,9 +398,9 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table thead tr.searchRow th input.listSearchContributor.inputElement:not(.select2_input_element):not(.dateField):focus {
-	border-color: #fdbb2c !important;
+	border-color: #08A045 !important;
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15) !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15) !important;
 }
 
 /* Override global .relatedContents .listSearchContributor { width:130px } */
@@ -456,8 +456,8 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table thead tr.searchRow .select2-container-active .select2-choices,
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table thead tr.searchRow .select2-dropdown-open .select2-choices {
-	border-color: #fdbb2c !important;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15) !important;
+	border-color: #08A045 !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15) !important;
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table thead tr.searchRow th .row-fluid {
@@ -483,8 +483,8 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table thead tr.searchRow th .potentials-single-date-group:focus-within {
-	border-color: #fdbb2c !important;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15) !important;
+	border-color: #08A045 !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15) !important;
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table thead tr.searchRow th .potentials-single-date-group .input-group-addon {
@@ -571,8 +571,8 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table thead tr.searchRow .select2-container-active .select2-choice,
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table thead tr.searchRow .select2-dropdown-open .select2-choice {
-	border-color: #fdbb2c !important;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15) !important;
+	border-color: #08A045 !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15) !important;
 }
 
 /* Filter text — force center (select2 default padding/float is left-heavy) */
@@ -672,22 +672,22 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table tbody tr.listViewEntries:hover td {
-	background: rgba(253, 187, 44, 0.06);
+	background: rgba(8, 160, 69, 0.06);
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table tbody tr.listViewEntries:hover td:first-child {
-	box-shadow: inset 3px 0 0 #fdbb2c;
+	box-shadow: inset 3px 0 0 #08A045;
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table tbody tr.listViewEntries td a {
 	font-family: Inter, sans-serif;
-	color: #7c5800;
+	color: #0B6E4F;
 	font-weight: 600;
 	text-decoration: none;
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .relatedContents .listview-table tbody tr.listViewEntries td a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 

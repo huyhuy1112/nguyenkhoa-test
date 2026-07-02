@@ -49,30 +49,45 @@ class Users_LanguagePreference_Helper {
 		}
 	}
 
+	protected static function isLegacyEnglishLanguage($lang) {
+		$lang = strtolower(trim((string)$lang));
+		return $lang === '' || $lang === 'en_us' || $lang === 'en_gb';
+	}
+
 	protected static function resolveLanguageForUserId($userId) {
 		$userId = (int)$userId;
 		if ($userId <= 0) {
 			return '';
 		}
 
+		$siteDefault = trim((string)vglobal('default_language'));
+		$lang = '';
+
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery('SELECT language FROM vtiger_users WHERE id = ?', array($userId));
 		if ($res && $adb->num_rows($res) > 0) {
 			$lang = trim((string)$adb->query_result($res, 0, 'language'));
-			if ($lang !== '') {
-				return $lang;
-			}
+		}
+
+		if ($lang !== '' && !(self::isLegacyEnglishLanguage($lang) && $siteDefault === 'vi_vn')) {
+			return $lang;
 		}
 
 		if (!empty($_SESSION['authenticated_user_language'])) {
-			return trim((string)$_SESSION['authenticated_user_language']);
+			$sessionLang = trim((string)$_SESSION['authenticated_user_language']);
+			if ($sessionLang !== '' && !(self::isLegacyEnglishLanguage($sessionLang) && $siteDefault === 'vi_vn')) {
+				return $sessionLang;
+			}
 		}
 
 		global $current_user;
 		if (!empty($current_user) && (int)$current_user->id === $userId && !empty($current_user->column_fields['language'])) {
-			return trim((string)$current_user->column_fields['language']);
+			$profileLang = trim((string)$current_user->column_fields['language']);
+			if ($profileLang !== '' && !(self::isLegacyEnglishLanguage($profileLang) && $siteDefault === 'vi_vn')) {
+				return $profileLang;
+			}
 		}
 
-		return trim((string)vglobal('default_language'));
+		return $siteDefault !== '' ? $siteDefault : 'vi_vn';
 	}
 }

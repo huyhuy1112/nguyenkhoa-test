@@ -10,20 +10,30 @@
 	document.documentElement.classList.add('mk-wh-proto-ready');
 	{/if}
 </script>
+{if $MK_WH_DB_STATE_JSON}
+<script type="text/javascript">
+	window.MK_WH_DB_STATE = {$MK_WH_DB_STATE_JSON};
+</script>
+{/if}
+{if $MK_WH_PRODUCT_CATALOG_JSON}
+<script type="text/javascript">
+	window.MK_WH_PRODUCT_CATALOG = {$MK_WH_PRODUCT_CATALOG_JSON};
+</script>
+{/if}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryListShared.css')}?mk_v=20260612_wh_mgmt7" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.css')}?mk_v=20260619_wh_list_lux3" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.css')}?mk_v=20260701_wh_issue_flow1" />
 {if $VIEW eq 'WhDetail'}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailOverrides.css')}?mk_v=20260625_wh_detail_clean1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailOverrides.css')}?mk_v=20260701_wh_db4" />
 {else}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.css')}?mk_v=20260619_wh_list_lux3" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.css')}?mk_v=20260701_wh_db4" />
 {/if}
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseLocalStore.js')}?mk_v=20260619_wh_list_lux3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseLocalStore.js')}?mk_v=20260702_wh_qc_note3"></script>
 {if $VIEW eq 'WhDetail'}
-	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailPrototype.js')}?mk_v=20260625_wh_detail_clean1"></script>
+	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailPrototype.js')}?mk_v=20260702_wh_qc_note3"></script>
 {else}
-	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.js')}?mk_v=20260619_wh_list_lux3"></script>
+	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.js')}?mk_v=20260701_wh_db5"></script>
 {/if}
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-warehouse-mgmt="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

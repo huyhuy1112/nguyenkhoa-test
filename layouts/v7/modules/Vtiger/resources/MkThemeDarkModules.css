@@ -333,8 +333,8 @@ html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app
 }
 
 html[data-theme="dark"] body[data-module="Warehouse"][data-view="List"][data-app="INVENTORY"] .mk-gi-chip {
-	background: rgba(253, 187, 44, 0.12) !important;
-	border-color: rgba(253, 187, 44, 0.35) !important;
+	background: rgba(8, 160, 69, 0.12) !important;
+	border-color: rgba(8, 160, 69, 0.35) !important;
 	color: var(--mk-primary) !important;
 }
 

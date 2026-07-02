@@ -45,7 +45,8 @@ class Users_Login_Action extends Vtiger_Action_Controller {
 			// TODO Remove when switch-to-old look is not needed
 			$_SESSION['authenticated_user_id'] = $userid;
 			$_SESSION['app_unique_key'] = vglobal('application_unique_key');
-			$_SESSION['authenticated_user_language'] = vglobal('default_language');
+			require_once 'modules/Users/helpers/LanguagePreference.php';
+			Users_LanguagePreference_Helper::applyForCurrentUser();
 			$_SESSION['authenticated_user_skin'] = $request->get('skin');
 
 			//Enabled session variable for KCFINDER 

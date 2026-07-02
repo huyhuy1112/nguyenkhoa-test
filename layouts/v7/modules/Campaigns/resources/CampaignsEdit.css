@@ -13,7 +13,7 @@ body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] {
 	--mk-camp-border: #e2e8f0;
 	--mk-camp-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
 	--mk-camp-radius: 14px;
-	--mk-camp-accent: #fdbb2c;
+	--mk-camp-accent: #08A045;
 	font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 	color: var(--mk-camp-text);
 }
@@ -154,12 +154,12 @@ body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-i
 	width: 56px;
 	height: 56px;
 	border-radius: 12px;
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 4px 12px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 4px 12px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-action-header__title {
@@ -205,12 +205,12 @@ body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-b
 }
 
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn--primary {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #191c1e;
 }
 
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn--primary:hover {
-	background: #e5a824;
+	background: #0B6E4F;
 }
 
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn--ghost {
@@ -361,8 +361,8 @@ body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-f
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host select.inputElement:focus,
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host textarea.inputElement:focus,
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .select2-container--default.select2-container--focus .select2-selection {
-	border-color: rgba(253, 187, 44, 0.9) !important;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.18) !important;
+	border-color: rgba(8, 160, 69, 0.9) !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.18) !important;
 	outline: none !important;
 }
 

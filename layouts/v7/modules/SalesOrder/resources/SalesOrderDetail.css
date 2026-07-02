@@ -136,7 +136,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-breadcrumb__item a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -390,12 +390,12 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-hero__meta-item--amount .mk-so-detail-hero__meta-text {
 	font-weight: 700;
-	color: #7c5800;
+	color: #0B6E4F;
 	font-size: 15px;
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-hero__meta-item--amount i {
-	color: #c98f12;
+	color: #08A045;
 }
 
 /* Stage pill (also used in Hero meta + list) */
@@ -426,8 +426,8 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-stag
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-stage-pill--qualification,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-stage-pill--prospecting,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-stage-pill--needs-analysis {
-	background: #fef3c7;
-	color: #92400e;
+	background: #dcfce7;
+	color: #073B3A;
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-stage-pill--proposal,
@@ -543,9 +543,9 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-btn--primary {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	background-image: none !important;
-	border-color: #e59a0f;
+	border-color: #0B6E4F;
 	color: #6d4d00;
 	font-weight: 700;
 }
@@ -709,7 +709,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .related-ta
 	bottom: -1px;
 	height: 2px;
 	border-radius: 2px;
-	background: #f59e0b;
+	background: #08A045;
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-tabs .navbar {
@@ -718,7 +718,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover {
 	color: #504533;
-	background: rgba(253, 187, 44, 0.08);
+	background: rgba(8, 160, 69, 0.08);
 }
 
 /* Related-module icon tabs (right side) */
@@ -756,13 +756,13 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon {
-	background: rgba(253, 187, 44, 0.12);
+	background: rgba(8, 160, 69, 0.12);
 	color: #2b2b2b;
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon {
-	background: rgba(253, 187, 44, 0.2);
+	background: rgba(8, 160, 69, 0.2);
 	color: #2b2b2b;
 }
 
@@ -801,7 +801,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"],
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"] {
-	background: #7c5800;
+	background: #0B6E4F;
 	color: #ffffff;
 }
 
@@ -976,7 +976,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 	width: 4px;
 	height: 16px;
 	border-radius: 2px;
-	background: #fdbb2c;
+	background: #08A045;
 	flex: 0 0 4px;
 }
 
@@ -1103,12 +1103,12 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-kv-wrap .summary-table td.fieldValue a {
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-kv-wrap .summary-table td.fieldValue a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1223,7 +1223,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 	height: 44px;
 	margin: 0 auto 10px;
 	border-radius: 12px;
-	background: rgba(253, 187, 44, 0.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23504533' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+	background: rgba(8, 160, 69, 0.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23504533' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-activities .widget_header .pull-right {
@@ -1252,7 +1252,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-activities .widget_header .pull-right .btn:hover {
-	background: rgba(253, 187, 44, 0.08);
+	background: rgba(8, 160, 69, 0.08);
 	color: #2b2b2b;
 	border-color: #c4af8d;
 }
@@ -1276,7 +1276,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-activities .activityEntries .summaryViewEntries a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1370,7 +1370,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-documents__head .pull-right .btn:hover,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-products__head .pull-right .btn:hover,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-contacts__head .pull-right .btn:hover {
-	background: rgba(253, 187, 44, 0.08);
+	background: rgba(8, 160, 69, 0.08);
 	color: #2b2b2b;
 	border-color: #c4af8d;
 }
@@ -1487,9 +1487,9 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-card--comments textarea:focus,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-card--comments .commentTextArea:focus-within {
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.15);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15);
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-card--comments .modal-comment-widgets-container {
@@ -1516,9 +1516,9 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 	border-radius: 8px;
 	font-weight: 700;
 	font-size: 13px;
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	background-image: none !important;
-	border: 1px solid #e59a0f;
+	border: 1px solid #0B6E4F;
 	color: #6d4d00;
 	padding: 8px 18px;
 	min-height: 40px;
@@ -1563,8 +1563,8 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-card--comments .detailViewSaveComment,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-card--comments .btn-success.detailViewSaveComment {
-	background: #fdbb2c !important;
-	border-color: #e59a0f !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 	color: #6d4d00 !important;
 }
 
@@ -1585,12 +1585,12 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-hero__map a.showMap {
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-hero__map a.showMap:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1682,12 +1682,12 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .detailview-table td.fieldValue a {
-	color: #7c5800;
+	color: #0B6E4F;
 	text-decoration: none;
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .detailview-table td.fieldValue a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1744,7 +1744,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] #starToggle
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] #starToggle.markStar.active .mk-so-detail-btn__ic--follow {
-	color: #c98f12;
+	color: #08A045;
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] #starToggle.markStar.active .mk-so-detail-btn__ic--follow svg polygon {
@@ -1844,7 +1844,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-hero__meta-item--user .mk-so-detail-hero__meta-text a:hover {
-	color: #c98f12;
+	color: #08A045;
 	text-decoration: underline;
 }
 
@@ -1865,6 +1865,98 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 	font-size: 15px;
 	font-weight: 500;
 	color: #191c1e;
+}
+
+/* ============================================================================
+ * INVENTORY LINE ITEMS (Detail) — make SalesOrder match Quote polish
+ * Template: layouts/v7/modules/Inventory/LineItemsDetail.tpl
+ * ========================================================================== */
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv {
+	background: #fff;
+	border: 1px solid #e8edf3;
+	border-radius: 16px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	padding: 10px 12px 14px;
+	margin-top: 14px;
+	overflow: hidden;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv .lineItemsTable {
+	margin: 0 !important;
+	border: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv .lineItemsTable th {
+	background: #f8fafc;
+	border-color: #eef2f7 !important;
+	color: #334155;
+	font-weight: 700;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv .lineItemsTable td {
+	border-color: #eef2f7 !important;
+	vertical-align: middle;
+}
+
+/* Totals table (the second table right after line items) */
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv + table.lineItemsTable {
+	width: min(520px, 100%);
+	margin: 16px 0 0 auto;
+	border: 1px solid #e8edf3;
+	border-radius: 16px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	background: #fff;
+	overflow: hidden;
+	position: relative;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv + table.lineItemsTable::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 12px;
+	bottom: 12px;
+	width: 4px;
+	border-radius: 999px;
+	background: linear-gradient(180deg, #08a045 0%, #0b6e4f 55%, rgba(11, 110, 79, 0.15) 100%);
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv + table.lineItemsTable tr td {
+	border: none !important;
+	padding: 10px 14px 10px 18px;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv + table.lineItemsTable tr td:first-child {
+	color: #64748b;
+	font-weight: 600;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv + table.lineItemsTable tr td:last-child {
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+/* Make the grand total row stand out (usually last row) */
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv + table.lineItemsTable tr:last-child td {
+	padding-top: 14px;
+	padding-bottom: 16px;
+	border-top: 1px solid #eef2f7 !important;
+	background: linear-gradient(180deg, rgba(8, 160, 69, 0.06) 0%, rgba(255, 255, 255, 1) 70%);
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv + table.lineItemsTable tr:last-child td:first-child strong {
+	font-size: 14px;
+	color: #0b6e4f;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row .lineItemTableDiv + table.lineItemsTable tr:last-child td:last-child {
+	font-size: 18px;
 }
 
 /* Comments: Attach Files dark blue */

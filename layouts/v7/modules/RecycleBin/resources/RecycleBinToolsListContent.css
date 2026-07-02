@@ -86,7 +86,7 @@ body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-module
 }
 
 body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-module-tab:hover {
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-color: #c4b49a;
 	color: #191c1e;
 	text-decoration: none;
@@ -94,7 +94,7 @@ body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-module
 
 body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-rb-module-tab.is-active {
 	background: #fff8eb;
-	border-color: #e5a820;
+	border-color: #0B6E4F;
 	color: #191c1e;
 	box-shadow: 0 2px 8px rgba(229, 168, 32, 0.15);
 }
@@ -282,7 +282,7 @@ body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-tab
 }
 
 body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table tbody tr.listViewEntries:hover td {
-	background: #faf8f5;
+	background: #f0fdf4;
 }
 
 body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] #listview-table tbody td a {
@@ -433,8 +433,8 @@ body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-so-filter
 }
 
 body[data-module="RecycleBin"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-page-btn:hover:not(:disabled) {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 }
 
 /* ---- Empty state ---- */

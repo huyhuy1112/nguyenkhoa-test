@@ -218,7 +218,7 @@ body[data-module="SupportFAQ"][data-view="Detail"] .mk-sf-faq-detail-hero__icon 
 	width: 64px;
 	height: 64px;
 	border-radius: 12px;
-	background: #fdbb2c;
+	background: #08A045;
 	color: #271900;
 	font-family: 'Space Grotesk', Inter, sans-serif;
 	font-size: 18px;
@@ -369,7 +369,7 @@ body[data-module="SupportFAQ"][data-view="Detail"] .mk-sf-faq-btn {
 }
 
 body[data-module="SupportFAQ"][data-view="Detail"] .mk-sf-faq-btn--primary {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
 }
 
@@ -452,8 +452,8 @@ body[data-module="SupportFAQ"][data-view="Detail"] .mk-sf-faq-detail-tabs__btn {
 
 body[data-module="SupportFAQ"][data-view="Detail"] .mk-sf-faq-detail-tabs__btn--active,
 body[data-module="SupportFAQ"][data-view="Detail"] .mk-sf-faq-detail-tabs__btn.is-active {
-	color: #f59e0b;
-	border-bottom-color: #f59e0b;
+	color: #08A045;
+	border-bottom-color: #08A045;
 	font-weight: 600;
 }
 
@@ -638,7 +638,7 @@ body[data-module="SupportFAQ"][data-view="Detail"] .mk-sf-faq-pill--type-call {
 }
 
 body[data-module="SupportFAQ"][data-view="Detail"] .mk-sf-faq-pill--type-meeting {
-	background: #fef3c7;
+	background: #dcfce7;
 	color: #b45309;
 }
 
@@ -862,7 +862,7 @@ body[data-module="SupportFAQ"][data-view="Detail"] .mk-sf-faq-detail-field__empt
 }
 
 body[data-module="SupportFAQ"][data-view="Detail"] .mk-sf-faq-detail-assignee__avatar {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
 }
 

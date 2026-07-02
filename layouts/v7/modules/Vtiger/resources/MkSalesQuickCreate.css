@@ -6,8 +6,8 @@
 
 .mk-qc-sales-modal.modal-dialog,
 .mk-qc-event-modal.modal-dialog {
-	--mk-qc-accent: #c98f12;
-	--mk-qc-accent-soft: #fdbb2c;
+	--mk-qc-accent: #08A045;
+	--mk-qc-accent-soft: #08A045;
 	--mk-qc-border: #e5dfd4;
 	--mk-qc-text: #1e293b;
 	--mk-qc-muted: #64748b;
@@ -36,7 +36,7 @@
 
 .mk-qc-sales-modal--accounts {
 	--mk-qc-accent: #40627e;
-	--mk-qc-accent-soft: #fdbb2c;
+	--mk-qc-accent-soft: #08A045;
 	--mk-qc-border: rgba(64, 98, 126, 0.16);
 	--mk-qc-footer: #f7f9fb;
 	max-width: 640px;
@@ -95,7 +95,7 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: 12px;
-	background: linear-gradient(145deg, rgba(64, 98, 126, 0.12) 0%, rgba(253, 187, 44, 0.18) 100%);
+	background: linear-gradient(145deg, rgba(64, 98, 126, 0.12) 0%, rgba(8, 160, 69, 0.18) 100%);
 	color: #40627e;
 	border: 1px solid rgba(64, 98, 126, 0.12);
 }
@@ -139,7 +139,7 @@
 	left: 0;
 	right: 0;
 	height: 3px;
-	background: linear-gradient(90deg, #e8c56a 0%, var(--mk-qc-accent-soft) 45%, #e59a0f 100%);
+	background: linear-gradient(90deg, #6BBF59 0%, var(--mk-qc-accent-soft) 45%, #0B6E4F 100%);
 	pointer-events: none;
 	z-index: 3;
 }

@@ -4,7 +4,7 @@
  * ProjectTask Detail — MANAGEMENT app (Figma-aligned content; shell in DashBoard.css)
  */
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] {
-	--mk-ptask-dtl-accent: #fdbb2c;
+	--mk-ptask-dtl-accent: #08A045;
 	--mk-ptask-dtl-accent-hover: #ffc85c;
 	--mk-ptask-dtl-accent-text: #6d4d00;
 	--mk-ptask-dtl-border: #e2e8f0;
@@ -578,7 +578,7 @@ body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .rela
 	bottom: 0;
 	height: 2px;
 	border-radius: 2px;
-	background: #fdbb2c;
+	background: #08A045;
 }
 
 /* Icon tabs: no full-width underline on anchor */
@@ -592,7 +592,7 @@ body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .rela
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover,
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab:not(.active) > a:hover {
 	color: #504533 !important;
-	background: rgba(253, 187, 44, 0.08) !important;
+	background: rgba(8, 160, 69, 0.08) !important;
 }
 
 /* Related-module icon tabs (same as Organizations Detail) */
@@ -639,14 +639,14 @@ body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .rela
 
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon {
-	background: rgba(253, 187, 44, 0.12);
+	background: rgba(8, 160, 69, 0.12);
 	color: #0f172a;
 }
 
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon {
-	background: rgba(253, 187, 44, 0.2);
+	background: rgba(8, 160, 69, 0.2);
 	color: #0f172a;
 }
 
@@ -680,7 +680,7 @@ body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .rela
 
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"],
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"] {
-	background: #7c5800;
+	background: #0B6E4F;
 	color: #ffffff;
 }
 
@@ -1135,7 +1135,7 @@ body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .rela
 	padding: 8px 20px !important;
 	background: #ffb82e !important;
 	background-image: none !important;
-	border: 1px solid #e59a0f !important;
+	border: 1px solid #0B6E4F !important;
 	color: #2a241c !important;
 	border-radius: 8px !important;
 	font-size: 13px !important;
@@ -1544,9 +1544,9 @@ body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-p
 	border-radius: 999px;
 	font-size: 11px;
 	font-weight: 700;
-	background: #fffbeb;
+	background: #ecfdf3;
 	color: #b45309;
-	border: 1px solid #fde68a;
+	border: 1px solid #bbf7d0;
 }
 
 body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-projecttask-detail-hero__task-id {
@@ -1584,7 +1584,7 @@ body[data-module="ProjectTask"][data-view="Detail"][data-app="MANAGEMENT"] .mk-p
 	top: 0;
 	bottom: 0;
 	border-radius: 999px;
-	background: linear-gradient(90deg, #fdbb2c 0%, #f59e0b 100%);
+	background: linear-gradient(90deg, #08A045 0%, #08A045 100%);
 	transition: width 0.2s ease;
 }
 

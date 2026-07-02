@@ -1,11 +1,12 @@
 /**
- * Multi-warehouse store — localStorage-backed, isolated per warehouse_id.
- * Pure client state (prototype for backend). Key: bace_multi_warehouse_v1
+ * Multi-warehouse store — DB-backed (MK_WH_DB_STATE) with localStorage fallback.
+ * Key: bace_multi_warehouse_v2
  */
 (function (global) {
 	'use strict';
 
 	var KEY = 'bace_multi_warehouse_v2';
+	var useDb = false;
 
 	var SEED_WH = [
 		{ id: 'WH-001', code: 'WH-001', name: 'Kho Hồ Chí Minh', type: 'central', address: 'Q.7, TP.HCM', manager: 'QL Tuấn', status: 'active', createdAt: '2026-01-15T08:00:00Z' },
@@ -98,10 +99,68 @@
 	}
 
 	function persist() {
-		if (typeof window === 'undefined' || !hydrated) return;
+		if (useDb || typeof window === 'undefined' || !hydrated) return;
 		try {
 			localStorage.setItem(KEY, JSON.stringify(state));
 		} catch (e) { /* ignore */ }
+	}
+
+	function unwrapApiResponse(res) {
+		if (!res || typeof res !== 'object') {
+			return res;
+		}
+		// Vtiger HTTP response: { success: true, result: { success, data, ... } }
+		if (res.result && typeof res.result === 'object') {
+			return Object.assign({ success: true }, res.result);
+		}
+		return res;
+	}
+
+	function apiPost(data) {
+		var def = $.Deferred();
+		var reqData = Object.assign({ module: 'Warehouse', action: 'WhMgmtApi' }, data);
+		var onOk = function (res) {
+			if (!res || res.success === false || res.error) {
+				var msg = (res && res.error) ? res.error : 'Yêu cầu thất bại';
+				if (msg && typeof msg === 'object' && msg.message) msg = msg.message;
+				def.reject({ message: String(msg || 'Yêu cầu thất bại') });
+				return;
+			}
+			def.resolve(unwrapApiResponse(res));
+		};
+		var onErr = function (err) {
+			var msg = err;
+			if (msg && typeof msg === 'object') {
+				msg = msg.message || msg.statusText || msg.responseText;
+			}
+			def.reject({ message: String(msg || 'Không kết nối được máy chủ.') });
+		};
+
+		// Prefer Vtiger request helper when available; otherwise fallback to plain AJAX.
+		if (typeof window !== 'undefined' && window.app && app.request && app.request.post) {
+			app.request.post({ data: reqData }).then(function (err, res) {
+				if (err) {
+					onErr(err);
+					return;
+				}
+				onOk(res);
+			});
+			return def.promise();
+		}
+
+		$.ajax({
+			url: 'index.php',
+			method: 'POST',
+			dataType: 'json',
+			data: reqData,
+		}).done(onOk).fail(onErr);
+		return def.promise();
+	}
+
+	function reloadPage() {
+		if (typeof window !== 'undefined') {
+			window.location.reload();
+		}
 	}
 
 	function set(updater) {
@@ -131,6 +190,16 @@
 	function hydrate() {
 		if (hydrated || typeof window === 'undefined') return;
 		hydrated = true;
+		if (global.MK_WH_DB_STATE && global.MK_WH_DB_STATE.warehouses) {
+			useDb = true;
+			state = {
+				warehouses: global.MK_WH_DB_STATE.warehouses || [],
+				transfers: global.MK_WH_DB_STATE.transfers || [],
+				data: global.MK_WH_DB_STATE.data || {},
+			};
+			emit();
+			return;
+		}
 		try {
 			var raw = localStorage.getItem(KEY);
 			if (raw) {
@@ -171,6 +240,10 @@
 
 	var warehouseActions = {
 		create: function (input) {
+			if (useDb) {
+				apiPost({ mode: 'save', payload: JSON.stringify(input) }).then(reloadPage);
+				return null;
+			}
 			var id = 'WH-' + String(state.warehouses.length + 1).padStart(3, '0');
 			var w = Object.assign({}, input, { id: id, status: input.status || 'active', createdAt: nowISO() });
 			set(function (s) {
@@ -181,6 +254,12 @@
 			return w;
 		},
 		update: function (id, patch) {
+			if (useDb) {
+				var w = state.warehouses.find(function (x) { return x.id === id; });
+				var payload = Object.assign({}, w || {}, patch, { id: id });
+				apiPost({ mode: 'save', id: id, payload: JSON.stringify(payload) }).then(reloadPage);
+				return;
+			}
 			set(function (s) {
 				return Object.assign({}, s, {
 					warehouses: s.warehouses.map(function (w) {
@@ -190,6 +269,11 @@
 			});
 		},
 		remove: function (id) {
+			if (useDb) {
+				if (!window.confirm('Xóa kho này?')) return;
+				apiPost({ mode: 'delete', id: id }).then(reloadPage);
+				return;
+			}
 			set(function (s) {
 				var data = Object.assign({}, s.data);
 				delete data[id];
@@ -200,6 +284,10 @@
 			});
 		},
 		archive: function (id) {
+			if (useDb) {
+				apiPost({ mode: 'archive', id: id }).then(reloadPage);
+				return;
+			}
 			warehouseActions.update(id, { status: 'archived' });
 		},
 	};
@@ -209,6 +297,81 @@
 		setReceipts: function (id, receipts) { patchData(id, function (d) { return Object.assign({}, d, { receipts: receipts }); }); },
 		setIssues: function (id, issues) { patchData(id, function (d) { return Object.assign({}, d, { issues: issues }); }); },
 		setStock: function (id, stock) { patchData(id, function (d) { return Object.assign({}, d, { stock: stock }); }); },
+		refresh: function (whId) {
+			if (!useDb) {
+				return $.Deferred().resolve({ success: true, data: ensureData(whId) }).promise();
+			}
+			var def = $.Deferred();
+			apiPost({ mode: 'get', id: whId }).then(function (res) {
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) { def.reject(err); });
+			return def.promise();
+		},
+		saveReceipt: function (whId, receipt) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			apiPost({
+				mode: 'save_receipt',
+				whId: whId,
+				payload: JSON.stringify(receipt),
+			}).then(function (res) {
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) {
+				def.reject(err);
+			});
+			return def.promise();
+		},
+		receiptAction: function (whId, code, actionKey, role, note) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			var qcNote = note || '';
+			apiPost({
+				mode: 'receipt_action',
+				whId: whId,
+				code: code,
+				actionKey: actionKey,
+				role: role || '',
+				qcNote: qcNote,
+				note: qcNote,
+				payload: JSON.stringify({ qcNote: qcNote }),
+			}).then(function (res) {
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) { def.reject(err); });
+			return def.promise();
+		},
+		issueAction: function (whId, code, actionKey, role, note) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			apiPost({
+				mode: 'issue_action',
+				whId: whId,
+				code: code,
+				actionKey: actionKey,
+				role: role || '',
+				note: note || '',
+			}).then(function (res) {
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) { def.reject(err); });
+			return def.promise();
+		},
 	};
 
 	function computeSummary() {
@@ -222,7 +385,9 @@
 			var skus = {};
 			(d.stock || []).forEach(function (x) { skus[x.sku] = true; });
 			var pQC = (d.receipts || []).filter(function (r) { return r.status === 'pending_qc'; }).length;
-			var pEx = (d.issues || []).filter(function (i) { return i.status === 'pending_approval'; }).length;
+			var pEx = (d.issues || []).filter(function (i) {
+				return i.status !== 'shipped' && i.status !== 'rejected';
+			}).length;
 			var exp = (d.stock || []).filter(function (s) {
 				var days = (new Date(s.expiry).getTime() - Date.now()) / 86400000;
 				return days < 90 && s.qty > 0;
@@ -327,6 +492,7 @@
 
 	global.MkWarehouseStore = {
 		KEY: KEY,
+		useDb: function () { return useDb; },
 		TYPE_LABEL: TYPE_LABEL,
 		STATUS_LABEL: STATUS_LABEL,
 		TRANSFER_STATUS_LABEL: TRANSFER_STATUS_LABEL,

@@ -77,7 +77,7 @@
 		}
 		// In Progress = orange
 		if (s.indexOf('progress') >= 0 || s.indexOf('active') >= 0 || s.indexOf('in progress') >= 0) {
-			return { key: 'in_progress', label: statusRaw || 'In Progress', dot: '#f59e0b', icon: 'fa fa-hourglass-half', badgeCls: 'mk-planx-status--inprogress', percent: 60, stage: 1 };
+			return { key: 'in_progress', label: statusRaw || 'In Progress', dot: '#08A045', icon: 'fa fa-hourglass-half', badgeCls: 'mk-planx-status--inprogress', percent: 60, stage: 1 };
 		}
 		// Completed = green/yellow
 		if (s.indexOf('complete') >= 0 || s.indexOf('completed') >= 0) {

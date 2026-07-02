@@ -150,7 +150,7 @@ body[data-view="List"][data-app="SALES"] .mk-so-icon-btn {
 body[data-view="List"][data-app="SALES"] .mk-so-toggle-layout.is-active,
 body[data-view="List"][data-app="SALES"] .mk-so-toggle-layout[aria-pressed="true"] {
 	background: #fff8eb !important;
-	border-color: #e5a820 !important;
+	border-color: #0B6E4F !important;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-so-mass-btn {
@@ -206,8 +206,8 @@ body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn {
 
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
-	background: #fdbb2c !important;
-	border-color: #e5a820 !important;
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 }
 
 /* Footer pagination: menu opens upward / floats above overflow containers */
@@ -328,7 +328,7 @@ body[data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody 
 }
 
 body[data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
-	background: #faf8f5;
+	background: #ecfdf3;
 }
 
 body[data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="subject"] a {
@@ -521,7 +521,7 @@ body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-
 
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
 body[data-module="ProjectTask"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	border-color: #d4c4ad !important;
 	color: #6d4d00 !important;
 }
@@ -646,7 +646,7 @@ body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagi
 
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
 body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
-	background: #fdbb2c !important;
+	background: #08A045 !important;
 	border-color: #d4c4ad !important;
 	color: #6d4d00 !important;
 }
@@ -717,8 +717,8 @@ body[data-view="List"][data-app="MANAGEMENT"] .mk-so-filter-row__footer #PageJum
 	height: 36px;
 	padding: 0 12px;
 	border-radius: 8px;
-	border: 1px solid #c98f12;
-	background: #fdbb2c;
+	border: 1px solid #08A045;
+	background: #08A045;
 	color: #6d4d00;
 	font-weight: 600;
 	box-shadow: none;
@@ -823,7 +823,7 @@ body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody
 }
 
 body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody tr.listViewEntries:hover {
-	background: #fffdf8;
+	background: #ecfdf3;
 }
 
 body[data-view="List"].mk-so-is-view-grid #listViewContent #listview-table tbody tr.listViewEntries td {

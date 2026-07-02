@@ -20,6 +20,30 @@
 			.replace(/"/g, '&quot;');
 	}
 
+	function decodeEntities(s) {
+		var text = String(s || '');
+		if (!text) {
+			return '';
+		}
+		var el = document.createElement('textarea');
+		var prev = null;
+		var guard = 0;
+		while (text !== prev && guard < 6) {
+			prev = text;
+			if (!/&(?:#x?[0-9a-f]+|[a-z]+);/i.test(text)) {
+				break;
+			}
+			el.innerHTML = text;
+			text = el.value;
+			guard += 1;
+		}
+		return text;
+	}
+
+	function escText(s) {
+		return escapeHtml(decodeEntities(s));
+	}
+
 	function fmtDate(iso) {
 		if (!iso) return '—';
 		try {
@@ -87,16 +111,16 @@
 				'<article class="mk-wh-mgmt-card">' +
 				'<div class="mk-wh-mgmt-card__top">' +
 				'<div class="mk-wh-mgmt-card__identity">' +
-				'<div class="mk-wh-mgmt-card__code">' + escapeHtml(w.code) + '</div>' +
+				'<div class="mk-wh-mgmt-card__code">' + escText(w.code) + '</div>' +
 				'<div class="mk-wh-mgmt-card__title-row">' +
 				'<span class="mk-wh-mgmt-card__icon">' + ICON.warehouse + '</span>' +
-				'<span class="mk-wh-mgmt-card__name">' + escapeHtml(w.name) + '</span></div></div>' +
+				'<span class="mk-wh-mgmt-card__name">' + escText(w.name) + '</span></div></div>' +
 				statusBadge(w.status) +
 				'</div>' +
 				'<div class="mk-wh-mgmt-card__meta">' +
 				'<div class="mk-wh-mgmt-card__meta-row"><span>' + escapeHtml(S.TYPE_LABEL[w.type] || w.type) + '</span></div>' +
-				'<div class="mk-wh-mgmt-card__meta-row">' + ICON.mapPin + '<span>' + escapeHtml(w.address || '—') + '</span></div>' +
-				'<div class="mk-wh-mgmt-card__meta-row"><span>QL: ' + escapeHtml(w.manager || '—') + '</span></div>' +
+				'<div class="mk-wh-mgmt-card__meta-row">' + ICON.mapPin + '<span>' + escText(w.address || '—') + '</span></div>' +
+				'<div class="mk-wh-mgmt-card__meta-row"><span>QL: ' + escText(w.manager || '—') + '</span></div>' +
 				'</div>' +
 				'<div class="mk-wh-mgmt-card__stats">' +
 				'<div><span class="mk-wh-mgmt-card__stat-label">SKU</span><span class="mk-wh-mgmt-card__stat-value">' + skus + '</span></div>' +
@@ -112,11 +136,11 @@
 
 			htmlRows +=
 				'<tr>' +
-				'<td><span class="mk-wh-mgmt-chip">' + escapeHtml(w.code) + '</span></td>' +
-				'<td><strong>' + escapeHtml(w.name) + '</strong></td>' +
+				'<td><span class="mk-wh-mgmt-chip">' + escText(w.code) + '</span></td>' +
+				'<td><strong>' + escText(w.name) + '</strong></td>' +
 				'<td>' + escapeHtml(S.TYPE_LABEL[w.type] || w.type) + '</td>' +
-				'<td class="mk-wh-mgmt-muted">' + escapeHtml(w.address || '—') + '</td>' +
-				'<td>' + escapeHtml(w.manager || '—') + '</td>' +
+				'<td class="mk-wh-mgmt-muted">' + escText(w.address || '—') + '</td>' +
+				'<td>' + escText(w.manager || '—') + '</td>' +
 				'<td class="mk-wh-mgmt-td-right">' + skus + '</td>' +
 				'<td class="mk-wh-mgmt-td-right"><strong>' + stock.toLocaleString('vi-VN') + '</strong></td>' +
 				'<td>' + statusBadge(w.status) + '</td>' +
@@ -242,9 +266,9 @@
 			var w = item.w;
 			rows +=
 				'<tr>' +
-				'<td><div class="mk-wh-mgmt-card__name">' + escapeHtml(w.name) + '</div>' +
-				'<div class="mk-wh-mgmt-card__code">' + escapeHtml(w.code) + '</div></td>' +
-				'<td>' + escapeHtml(w.manager || '—') + '</td>' +
+				'<td><div class="mk-wh-mgmt-card__name">' + escText(w.name) + '</div>' +
+				'<div class="mk-wh-mgmt-card__code">' + escText(w.code) + '</div></td>' +
+				'<td>' + escText(w.manager || '—') + '</td>' +
 				'<td class="mk-wh-mgmt-td-right">' + item.skus + '</td>' +
 				'<td class="mk-wh-mgmt-td-right"><strong>' + item.stock.toLocaleString('vi-VN') + '</strong></td>' +
 				'<td class="mk-wh-mgmt-td-right">' + item.pQC + '</td>' +
@@ -275,11 +299,13 @@
 
 	var ISSUE_STATUS = {
 		draft: { label: 'Nháp', cls: 'mk-wh-proto-pill' },
-		pending_approval: { label: 'Chờ duyệt', cls: 'mk-wh-proto-pill mk-wh-proto-pill--warn' },
-		approved: { label: 'Đã duyệt', cls: 'mk-wh-proto-pill' },
-		picking: { label: 'Đang soạn', cls: 'mk-wh-proto-pill' },
+		waiting_print: { label: 'Chờ in phiếu', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
+		picking: { label: 'Đang soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-pick' },
+		packed: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 		shipped: { label: 'Đã giao', cls: 'mk-wh-proto-pill mk-wh-proto-pill--ok' },
-		rejected: { label: 'Bị từ chối', cls: 'mk-wh-proto-pill mk-wh-proto-pill--danger' },
+		rejected: { label: 'Từ chối', cls: 'mk-wh-proto-pill mk-wh-proto-pill--danger' },
+		pending_approval: { label: 'Chờ in phiếu', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
+		approved: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 	};
 
 	var ROLES = {
@@ -312,8 +338,8 @@
 			if (desc) desc.textContent = 'Kho không tồn tại hoặc đã bị xóa.';
 			return false;
 		}
-		if (title) title.textContent = w.name;
-		if (desc) desc.textContent = w.code + ' · ' + (w.address || '—') + ' · QL: ' + (w.manager || '—');
+		if (title) title.textContent = decodeEntities(w.name);
+		if (desc) desc.textContent = decodeEntities(w.code) + ' · ' + decodeEntities(w.address || '—') + ' · QL: ' + decodeEntities(w.manager || '—');
 		return true;
 	}
 
@@ -322,7 +348,9 @@
 		if (!w) return;
 		var d = S.ensureData(w.id);
 		var pendingQC = (d.receipts || []).filter(function (r) { return r.status === 'pending_qc'; }).length;
-		var pendingAp = (d.issues || []).filter(function (i) { return i.status === 'pending_approval'; }).length;
+		var pendingAp = (d.issues || []).filter(function (i) {
+			return i.status !== 'shipped' && i.status !== 'rejected';
+		}).length;
 		var skus = {};
 		(d.stock || []).forEach(function (s) { skus[s.sku] = true; });
 		var expiring = (d.stock || []).filter(function (s) {
@@ -921,11 +949,11 @@
 			var wh = S.getState().warehouses;
 			if (fromSel) {
 				fromSel.innerHTML = '<option value="">Chọn kho nguồn</option>' +
-					wh.map(function (w) { return '<option value="' + escapeHtml(w.id) + '">' + escapeHtml(w.name) + '</option>'; }).join('');
+					wh.map(function (w) { return '<option value="' + escapeHtml(w.id) + '">' + escText(w.name) + '</option>'; }).join('');
 			}
 			if (toSel) {
 				toSel.innerHTML = '<option value="">Chọn kho đích</option>' +
-					wh.map(function (w) { return '<option value="' + escapeHtml(w.id) + '">' + escapeHtml(w.name) + '</option>'; }).join('');
+					wh.map(function (w) { return '<option value="' + escapeHtml(w.id) + '">' + escText(w.name) + '</option>'; }).join('');
 			}
 		}
 

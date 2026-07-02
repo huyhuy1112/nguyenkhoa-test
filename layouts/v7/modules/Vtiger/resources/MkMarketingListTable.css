@@ -397,8 +397,8 @@ body[data-view="List"][data-app="MARKETING"] #listview-table input[type="checkbo
 
 body[data-view="List"][data-app="MARKETING"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
 body[data-view="List"][data-app="MARKETING"] #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
-	background: #fdbb2c !important;
-	border-color: #c98f12 !important;
+	background: #08A045 !important;
+	border-color: #08A045 !important;
 }
 
 body[data-view="List"][data-app="MARKETING"] #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
@@ -417,7 +417,7 @@ body[data-view="List"][data-app="MARKETING"] #listview-table input[type="checkbo
 
 body[data-view="List"][data-app="MARKETING"] #listview-table tbody tr.listViewEntries:has(.listViewEntriesCheckBox:checked),
 body[data-view="List"][data-app="MARKETING"] #listview-table tbody tr.listViewEntries.mk-sales-row-selected {
-	background: rgba(253, 187, 44, 0.1) !important;
+	background: rgba(8, 160, 69, 0.1) !important;
 }
 
 body[data-view="List"][data-app="MARKETING"] #listview-table td.listViewRecordActions,

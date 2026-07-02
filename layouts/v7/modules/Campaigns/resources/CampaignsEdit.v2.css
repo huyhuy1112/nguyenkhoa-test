@@ -12,7 +12,7 @@ body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] {
 	--mk-camp-muted: #64748b;
 	--mk-camp-border: #e2e8f0;
 	--mk-camp-border-soft: #f1f5f9;
-	--mk-camp-accent: #fdbb2c;
+	--mk-camp-accent: #08A045;
 	--mk-camp-radius: 14px;
 	--mk-camp-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
 	font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -124,7 +124,7 @@ body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-i
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 4px 12px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 4px 12px rgba(8, 160, 69, 0.35);
 }
 
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-action-header__title {
@@ -173,8 +173,8 @@ body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-b
 }
 
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn--primary:hover {
-	background: #e5a824;
-	border-color: #e5a824;
+	background: #0B6E4F;
+	border-color: #0B6E4F;
 }
 
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-btn--ghost {
@@ -359,8 +359,8 @@ body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-f
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host select.inputElement:focus,
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host textarea.inputElement:focus,
 body[data-module="Campaigns"][data-view="Edit"][data-app="MARKETING"] .mk-camp-form-host .select2-container--default.select2-container--focus .select2-selection {
-	border-color: rgba(253, 187, 44, 0.9) !important;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.18) !important;
+	border-color: rgba(8, 160, 69, 0.9) !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.18) !important;
 	outline: none !important;
 }
 

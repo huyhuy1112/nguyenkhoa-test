@@ -1407,12 +1407,12 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-float-
 		align-items: stretch;
 	}
 }
-/* Line items — CPQ-style table */
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block--line-items {
+/* Line items — CPQ-style table (disabled when Odoo line editor is active) */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) .mk-so-block--line-items {
 	padding-bottom: 12px;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab {
 	border-collapse: separate;
 	border-spacing: 0;
 	border-radius: 12px;
@@ -1420,11 +1420,11 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 	border: 1px solid var(--mk-so-border) !important;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab thead tr {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab thead tr {
 	background: #f8fafc;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab thead th {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab thead th {
 	font-size: 12px;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -1438,39 +1438,39 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 	background: #f8fafc;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab tbody tr.lineItemRow:nth-child(even) {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody tr.lineItemRow:nth-child(even) {
 	background: #fafbfc;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab tbody tr.lineItemRow:hover {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody tr.lineItemRow:hover {
 	background: #ecfdf3;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemTab tbody td {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody td {
 	padding: 10px !important;
 	vertical-align: middle !important;
 	border-color: #f1f5f9 !important;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemResult.lineItemTable {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) #lineItemResult.lineItemTable {
 	border-radius: var(--mk-so-radius);
 	overflow: hidden;
 	margin-top: 16px;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #lineItemResult .lineItemInputBox {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) #lineItemResult .lineItemInputBox {
 	border-radius: 8px !important;
 	border: 1px solid #e2e8f0 !important;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block--totals {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) .mk-so-block--totals {
 	background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
 }
 
 /* Add product row buttons */
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host #addProductsServices,
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .addProduct,
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .addService {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) #addProductsServices,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) .addProduct,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host:not(:has(.mk-inv-form-odoo)) .addService {
 	border-radius: 10px !important;
 	font-weight: 600;
 }
@@ -1507,4 +1507,65 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-recurring-block.mk-so-recurring-on .mk-so-recurring-dependent input:disabled {
 	opacity: 1;
 	pointer-events: auto;
+}
+
+/* Warehouse picker modal (create SO) */
+.mk-so-wh-modal .modal-content {
+	border-radius: 14px;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+}
+
+.mk-so-wh-modal__lead {
+	margin: 0 0 14px;
+	color: #64748b;
+	font-size: 14px;
+}
+
+.mk-so-wh-option {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 12px 14px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	margin-bottom: 10px;
+	cursor: pointer;
+	transition: border-color 0.15s, background 0.15s;
+}
+
+.mk-so-wh-option:hover {
+	border-color: #08a045;
+	background: #f8fffb;
+}
+
+.mk-so-wh-option input {
+	margin-top: 4px;
+	accent-color: #08a045;
+}
+
+.mk-so-wh-option__body {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.mk-so-wh-option__body strong {
+	font-size: 15px;
+	color: #1e293b;
+}
+
+.mk-so-wh-option__body small {
+	color: #94a3b8;
+	font-size: 12px;
+}
+
+.mk-so-wh-modal__error {
+	margin-top: 10px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #fef2f2;
+	color: #b91c1c;
+	font-size: 13px;
+	white-space: pre-wrap;
 }

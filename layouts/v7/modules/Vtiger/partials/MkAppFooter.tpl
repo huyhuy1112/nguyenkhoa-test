@@ -6,7 +6,7 @@
 	<div class="mk-app-footer__inner">
 		<div class="mk-app-footer__brand">
 			<span class="mk-app-footer__mark" aria-hidden="true"></span>
-			<span class="mk-app-footer__logo">BACE</span>
+			<span class="mk-app-footer__logo">Nguyên Khoa</span>
 		</div>
 		<div class="mk-app-footer__meta">
 			<span class="mk-app-footer__credit">Developed by <strong>TDB Solution</strong></span>

@@ -74,27 +74,18 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {
-		$headerCssInstances = parent::getHeaderCss($request);
-		if (!$this->isMkModernQuoteCreate($request)) {
-			return $headerCssInstances;
+		if ($this->isMkModernQuoteCreate($request)) {
+			// Odoo + QuoteMkEdit CSS loaded once in EditViewPreProcess.tpl (avoid duplicate legacy head CSS).
+			return parent::getHeaderCss($request);
 		}
-		$cssFileNames = array(
-			'~layouts/v7/modules/Quotes/resources/QuoteMkEdit.css',
-		);
-		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
-		return array_merge($headerCssInstances, $cssInstances);
+		return parent::getHeaderCss($request);
 	}
 
 	public function getHeaderScripts(Vtiger_Request $request) {
-		$headerScriptInstances = parent::getHeaderScripts($request);
-		if (!$this->isMkModernQuoteCreate($request)) {
-			return $headerScriptInstances;
+		if ($this->isMkModernQuoteCreate($request)) {
+			// QuoteMkBa + QuoteMkEdit + MkInventoryOdooEdit loaded in EditViewPreProcess.tpl
+			return parent::getHeaderScripts($request);
 		}
-		$jsFileNames = array(
-			'~layouts/v7/modules/Quotes/resources/QuoteMkBa.js',
-			'~layouts/v7/modules/Quotes/resources/QuoteMkEdit.js',
-		);
-		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
-		return array_merge($headerScriptInstances, $jsScriptInstances);
+		return parent::getHeaderScripts($request);
 	}
 }

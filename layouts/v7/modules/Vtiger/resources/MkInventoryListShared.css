@@ -76,7 +76,7 @@ body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav--pil
 body[data-view="List"][data-app="INVENTORY"] .mk-inv-flow-bar .mk-gi-topnav--pills a.is-active {
 	color: #b45309;
 	background: #ffffff;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	box-shadow: 0 1px 4px rgba(180, 83, 9, 0.12);
 }
 

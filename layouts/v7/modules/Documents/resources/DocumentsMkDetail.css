@@ -11,8 +11,8 @@ html.mk-documents-detail-management body[data-module="Documents"][data-view="Det
 }
 
 body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] {
-	--mk-doc-amber: #fdbb2c;
-	--mk-doc-amber-soft: #fffbeb;
+	--mk-doc-amber: #08A045;
+	--mk-doc-amber-soft: #ecfdf3;
 	--mk-doc-border: #d4c4ad;
 	--mk-doc-slate: #40627e;
 	--mk-doc-page-bg: #f7f9fb;
@@ -277,7 +277,7 @@ body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-doc
 
 body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-btn--primary-soft {
 	background: var(--mk-doc-amber) !important;
-	border-color: #e5a820 !important;
+	border-color: #0B6E4F !important;
 	color: var(--mk-doc-title) !important;
 }
 
@@ -359,7 +359,7 @@ body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .relate
 }
 
 body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon {
-	background: rgba(253, 187, 44, 0.2);
+	background: rgba(8, 160, 69, 0.2);
 	color: var(--mk-doc-title);
 }
 
@@ -401,7 +401,7 @@ body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-doc
 	letter-spacing: 0.08em !important;
 	text-transform: uppercase !important;
 	color: var(--mk-doc-title) !important;
-	background: #faf8f5 !important;
+	background: #f0fdf4 !important;
 	border-bottom: 1px solid var(--mk-doc-border) !important;
 	border-radius: 0 !important;
 	box-shadow: none !important;
@@ -452,7 +452,7 @@ body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-doc
 }
 
 body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block[data-block="LBL_FILE_INFORMATION"] {
-	border-color: #fde68a !important;
+	border-color: #bbf7d0 !important;
 }
 
 body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-inner .block[data-block="LBL_FILE_INFORMATION"] h4 {
@@ -473,7 +473,7 @@ body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .block-
 
 body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .block-document-history .blockHeader {
 	padding: 12px 16px;
-	background: #faf8f5;
+	background: #f0fdf4;
 	border-bottom: 1px solid var(--mk-doc-border);
 	font-size: 11px;
 	font-weight: 700;
@@ -512,7 +512,7 @@ html.mk-documents-detail-management body[data-module="Documents"][data-view="Det
 }
 
 html.mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .detailViewContainer .block h4 {
-	background: #faf8f5 !important;
+	background: #f0fdf4 !important;
 	color: var(--mk-doc-title) !important;
 	box-shadow: none !important;
 	border-radius: 0 !important;
@@ -529,7 +529,7 @@ html[data-theme="dark"].mk-documents-detail-management body[data-module="Documen
 	--mk-doc-title: var(--mk-text-primary, #e8eaed);
 	--mk-doc-muted: var(--mk-text-muted, #94a3b8);
 	--mk-doc-slate: var(--mk-text-link, #7dd3fc);
-	--mk-doc-amber-soft: rgba(253, 187, 44, 0.12);
+	--mk-doc-amber-soft: rgba(8, 160, 69, 0.12);
 }
 
 html[data-theme="dark"].mk-documents-detail-management body[data-module="Documents"][data-view="Detail"][data-app="MANAGEMENT"] .mk-documents-detail-breadcrumb__item a,

@@ -1779,7 +1779,8 @@ class Users extends CRMEntity {
 							}
 						}
 							if(empty($lang)) {
-								$lang = 'en_us';
+								global $default_language;
+								$lang = !empty($default_language) ? $default_language : 'vi_vn';
 							}
 							$fieldValue = $lang;
 							unset($lang);

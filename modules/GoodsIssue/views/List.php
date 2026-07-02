@@ -41,6 +41,7 @@ class GoodsIssue_List_View extends Vtiger_Index_View {
 	public function process(Vtiger_Request $request) {
 		require_once 'modules/GoodsIssue/helpers/WorkflowSetup.php';
 		GoodsIssue_WorkflowSetup_Helper::runAll();
+		require_once 'modules/GoodsIssue/helpers/CreateFromSalesOrder.php';
 
 		require_once 'modules/Warehouse/helpers/StockHelper.php';
 		$db = PearDatabase::getInstance();
@@ -55,8 +56,18 @@ class GoodsIssue_List_View extends Vtiger_Index_View {
 			$location = trim((string) $request->get('destination'));
 		}
 
+		$tab = trim((string) $request->get('tab'));
+		$statusFilter = '';
+		if ($tab === 'waiting_print') {
+			$statusFilter = GoodsIssue_CreateFromSalesOrder_Helper::STATUS_WAITING_PRINT;
+		}
+
 		$where = array('gi.deleted = 0');
 		$params = array();
+		if ($statusFilter !== '') {
+			$where[] = 'gi.status = ?';
+			$params[] = $statusFilter;
+		}
 		if ($search !== '') {
 			$where[] = '(gi.subject LIKE ? OR gi.destination LIKE ?)';
 			$params[] = '%' . $search . '%';
@@ -77,7 +88,7 @@ class GoodsIssue_List_View extends Vtiger_Index_View {
 		$whereSql = implode(' AND ', $where);
 
 		$rs = $db->pquery(
-			"SELECT gi.issueid, gi.code, gi.subject, gi.issued_date, gi.destination, gi.storage_location, gi.updatedtime,
+			"SELECT gi.issueid, gi.code, gi.subject, gi.issued_date, gi.destination, gi.storage_location, gi.status, gi.salesorder_id, gi.updatedtime,
 			        COALESCE(SUM(gii.quantity), 0) AS total_qty,
 			        COALESCE(SUM(gii.quantity * gii.unit_price), 0) AS total_value
 			 FROM vtiger_goodsissue gi
@@ -89,6 +100,11 @@ class GoodsIssue_List_View extends Vtiger_Index_View {
 		);
 		$rows = array();
 		while ($r = $db->fetchByAssoc($rs)) {
+			$status = trim((string) (isset($r['status']) ? $r['status'] : ''));
+			$statusLabel = 'Hoàn tất';
+			if ($status === GoodsIssue_CreateFromSalesOrder_Helper::STATUS_WAITING_PRINT) {
+				$statusLabel = 'Chờ in phiếu';
+			}
 			$rows[] = array(
 				'issueid' => (int) $r['issueid'],
 				'code' => Warehouse_Stock_Helper::decodeDisplayText($r['code']),
@@ -96,6 +112,9 @@ class GoodsIssue_List_View extends Vtiger_Index_View {
 				'issued_date' => (string) $r['issued_date'],
 				'destination' => Warehouse_Stock_Helper::decodeDisplayText($r['destination']),
 				'storage_location' => Warehouse_Stock_Helper::decodeDisplayText($r['storage_location']),
+				'status' => $status,
+				'status_label' => $statusLabel,
+				'salesorder_id' => (int) (isset($r['salesorder_id']) ? $r['salesorder_id'] : 0),
 				'updatedtime' => (string) $r['updatedtime'],
 				'total_qty_display' => number_format((float) $r['total_qty'], 2, '.', ','),
 				'total_value_display' => number_format((float) $r['total_value'], 0, '.', ','),
@@ -103,6 +122,7 @@ class GoodsIssue_List_View extends Vtiger_Index_View {
 		}
 
 		$viewer->assign('ROWS', $rows);
+		$viewer->assign('ACTIVE_TAB', $tab !== '' ? $tab : 'outbound');
 		$viewer->assign('SEARCH', $search);
 		$viewer->assign('DATE_FROM', $dateFrom);
 		$viewer->assign('DATE_TO', $dateTo);

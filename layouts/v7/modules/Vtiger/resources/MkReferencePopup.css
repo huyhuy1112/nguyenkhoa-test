@@ -47,7 +47,7 @@ body.mk-ref-popup-open .modal-backdrop.in {
 	padding: 8px 18px !important;
 	border-radius: 10px !important;
 	border: none !important;
-	background: linear-gradient(135deg, #fdbb2c 0%, #f59e0b 100%) !important;
+	background: linear-gradient(135deg, #08A045 0%, #08A045 100%) !important;
 	color: #1a1c1e !important;
 	font-weight: 700 !important;
 	box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
@@ -65,7 +65,7 @@ body.mk-ref-popup-open .modal-backdrop.in {
 
 #popupModal .listViewEntriesTable tr.listViewEntries.highlightBackgroundColor,
 #popupModal .listViewEntriesTable tr.listViewEntries:has(input.entryCheckBox:checked) {
-	background: linear-gradient(90deg, rgba(253, 187, 44, 0.18), rgba(255, 255, 255, 0)) !important;
+	background: linear-gradient(90deg, rgba(8, 160, 69, 0.18), rgba(255, 255, 255, 0)) !important;
 }
 
 #popupModal.mk-ref-popup-visible .modal-dialog {
@@ -93,7 +93,7 @@ body.mk-ref-popup-open .modal-backdrop.in {
 	-webkit-backdrop-filter: blur(20px);
 	box-shadow:
 		0 40px 80px rgba(15, 23, 42, 0.32),
-		0 16px 36px rgba(253, 187, 44, 0.14),
+		0 16px 36px rgba(8, 160, 69, 0.14),
 		0 0 0 1px rgba(212, 196, 173, 0.45),
 		inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
@@ -110,7 +110,7 @@ body.mk-ref-popup-open .modal-backdrop.in {
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: radial-gradient(ellipse 80% 120% at 10% -20%, rgba(253, 187, 44, 0.18), transparent 55%);
+	background: radial-gradient(ellipse 80% 120% at 10% -20%, rgba(8, 160, 69, 0.18), transparent 55%);
 	pointer-events: none;
 }
 
@@ -122,7 +122,7 @@ body.mk-ref-popup-open .modal-backdrop.in {
 	bottom: 0;
 	height: 3px;
 	border-radius: 3px;
-	background: linear-gradient(90deg, #fdbb2c 0%, #f5d78e 45%, #d4c4ad 100%);
+	background: linear-gradient(90deg, #08A045 0%, #f5d78e 45%, #d4c4ad 100%);
 	opacity: 0.95;
 }
 
@@ -155,7 +155,7 @@ body.mk-ref-popup-open .modal-backdrop.in {
 
 #popupModal .modal-header .close:hover {
 	color: #fff !important;
-	background: rgba(253, 187, 44, 0.22) !important;
+	background: rgba(8, 160, 69, 0.22) !important;
 	transform: scale(1.05);
 }
 
@@ -211,12 +211,12 @@ body.mk-ref-popup-open .modal-backdrop.in {
 }
 
 #popupModal .mk-ref-global-search:focus-within {
-	border-color: #c98f12;
-	box-shadow: 0 0 0 4px rgba(253, 187, 44, 0.22);
+	border-color: #08A045;
+	box-shadow: 0 0 0 4px rgba(8, 160, 69, 0.22);
 }
 
 #popupModal.mk-ref-popup-visible .mk-ref-global-search:focus-within {
-	box-shadow: 0 0 0 4px rgba(253, 187, 44, 0.22), 0 4px 16px rgba(253, 187, 44, 0.12);
+	box-shadow: 0 0 0 4px rgba(8, 160, 69, 0.22), 0 4px 16px rgba(8, 160, 69, 0.12);
 }
 
 #popupModal .mk-ref-global-search__ic {
@@ -273,19 +273,19 @@ body.mk-ref-popup-open .modal-backdrop.in {
 	margin-right: 4px;
 	border: none;
 	border-radius: 11px;
-	background: linear-gradient(135deg, #fdbb2c 0%, #e5a50f 100%);
+	background: linear-gradient(135deg, #08A045 0%, #e5a50f 100%);
 	color: #1a1c1e;
 	font-family: Inter, system-ui, -apple-system, sans-serif;
 	font-size: 13px;
 	font-weight: 700;
 	cursor: pointer;
-	box-shadow: 0 4px 14px rgba(253, 187, 44, 0.35);
+	box-shadow: 0 4px 14px rgba(8, 160, 69, 0.35);
 	transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 #popupModal .mk-ref-global-search__go:hover:not(:disabled) {
 	transform: translateY(-1px);
-	box-shadow: 0 6px 18px rgba(253, 187, 44, 0.45);
+	box-shadow: 0 6px 18px rgba(8, 160, 69, 0.45);
 }
 
 #popupModal .mk-ref-global-search__go:disabled {
@@ -399,7 +399,7 @@ body.mk-ref-popup-open .modal-backdrop.in {
 }
 
 #popupModal .listViewEntriesTable thead .listViewContentHeaderValues:hover {
-	color: #92400e !important;
+	color: #073B3A !important;
 }
 
 #popupModal .listViewEntriesTable tr.listViewEntries {
@@ -429,7 +429,7 @@ body.mk-ref-popup-open .modal-backdrop.in {
 
 #popupModal .listViewEntriesTable tr.listViewEntries:hover {
 	background: #fff9ed !important;
-	box-shadow: inset 4px 0 0 #fdbb2c;
+	box-shadow: inset 4px 0 0 #08A045;
 	transform: translateX(2px);
 }
 

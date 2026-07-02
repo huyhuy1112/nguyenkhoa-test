@@ -156,9 +156,50 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 
 	public function saveRecord($request) {
 		$this->assertQuoteCanCreateSalesOrder($request);
+		$isCreate = empty($request->get('record'));
 		$recordModel = parent::saveRecord($request);
 		$this->ensurePotentialCommerceLink($request, $recordModel);
+		if ($isCreate && !$this->isToolsOrdersContext($request)) {
+			$this->createOutboundFromSalesOrder($request, $recordModel);
+		}
 		return $recordModel;
+	}
+
+	protected function createOutboundFromSalesOrder(Vtiger_Request $request, Vtiger_Record_Model $recordModel) {
+		$warehouseId = trim((string) $request->get('mk_warehouse_id'));
+		if ($warehouseId === '') {
+			return;
+		}
+		require_once 'modules/Warehouse/helpers/WarehouseRegistry.php';
+		require_once 'modules/GoodsIssue/helpers/CreateFromSalesOrder.php';
+		$warehouse = Warehouse_Registry::findById($warehouseId);
+		if (!$warehouse) {
+			return;
+		}
+		$salesOrderId = (int) $recordModel->getId();
+		if ($salesOrderId <= 0) {
+			return;
+		}
+		$lines = GoodsIssue_CreateFromSalesOrder_Helper::loadSalesOrderLines($salesOrderId);
+		$errors = GoodsIssue_CreateFromSalesOrder_Helper::validateWarehouseStock($lines, $warehouse['name']);
+		if (!empty($errors)) {
+			throw new Exception(implode("\n", $errors));
+		}
+		try {
+			$userId = (int) Users_Record_Model::getCurrentUserModel()->getId();
+			GoodsIssue_CreateFromSalesOrder_Helper::createFromSalesOrder(
+				$salesOrderId,
+				$warehouse['id'],
+				$warehouse['name'],
+				$userId
+			);
+		} catch (Exception $e) {
+			global $log;
+			if ($log) {
+				$log->error('SalesOrder createOutboundFromSalesOrder: ' . $e->getMessage());
+			}
+			throw $e;
+		}
 	}
 
 	protected function assertQuoteCanCreateSalesOrder(Vtiger_Request $request) {

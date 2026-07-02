@@ -1,4 +1,4 @@
-{* Chi tiết kho — nhập/xuất/QC/tồn theo warehouse_id (localStorage prototype) *}
+{* Chi tiết kho — nhập/xuất/QC/tồn theo warehouse_id (database) *}
 {strip}
 <div class="mk-gi-page">
 	<div class="mk-gi-suite-card mk-wh-proto-suite" id="mkWhPrototypeRoot">

@@ -230,8 +230,8 @@ body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-inpu
 }
 
 body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-input:focus {
-	border-color: #e5a820 !important;
-	box-shadow: 0 0 0 3px rgba(253, 187, 44, 0.25) !important;
+	border-color: #0B6E4F !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.25) !important;
 	outline: none !important;
 }
 
@@ -295,7 +295,7 @@ body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-audi
 }
 
 body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-audit-table tbody tr.history-row:hover td {
-	background: #faf8f5;
+	background: #f0fdf4;
 }
 
 body[data-module="History"][data-view="List"][data-app="TOOLS"] .mk-history-cell--time {

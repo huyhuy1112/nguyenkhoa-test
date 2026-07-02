@@ -4,7 +4,7 @@
  * Documents Edit/Create — MANAGEMENT dashboard shell (same pattern as Project create).
  */
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] {
-	--mk-doc-yellow: #fdbb2c;
+	--mk-doc-yellow: #08A045;
 	--mk-doc-navy: #40627e;
 	--mk-doc-surface: #f7f9fb;
 	--mk-doc-white: #ffffff;
@@ -236,7 +236,7 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-b
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-btn--primary {
 	background: var(--mk-doc-yellow);
 	color: var(--mk-doc-text);
-	box-shadow: 0 4px 16px rgba(253, 187, 44, 0.45);
+	box-shadow: 0 4px 16px rgba(8, 160, 69, 0.45);
 }
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-btn--ghost {
@@ -283,7 +283,7 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-f
 	letter-spacing: 0.06em;
 	margin: 0 0 24px !important;
 	padding: 0 0 14px 0 !important;
-	border-bottom: 2px solid rgba(253, 187, 44, 0.45) !important;
+	border-bottom: 2px solid rgba(8, 160, 69, 0.45) !important;
 	line-height: 1.35;
 	position: relative;
 	z-index: 1;
@@ -496,7 +496,7 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-f
 html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"]:checked,
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input[type="checkbox"]:checked {
 	background: var(--mk-doc-yellow) !important;
-	border-color: #e5a820 !important;
+	border-color: #0B6E4F !important;
 }
 
 html.mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"]:checked::after,
@@ -588,12 +588,12 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-f
 	padding: 10px 20px !important;
 	margin: 0 !important;
 	background: var(--mk-doc-yellow) !important;
-	border: 1px solid #e5a820 !important;
+	border: 1px solid #0B6E4F !important;
 	color: #1a2834 !important;
 	border-radius: 10px !important;
 	font-size: 14px !important;
 	font-weight: 600 !important;
-	box-shadow: 0 2px 8px rgba(253, 187, 44, 0.35) !important;
+	box-shadow: 0 2px 8px rgba(8, 160, 69, 0.35) !important;
 	overflow: hidden;
 	cursor: pointer;
 	width: auto !important;
@@ -708,7 +708,7 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-a
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card {
 	border-radius: 14px;
 	background: var(--mk-doc-white);
-	border: 1px solid rgba(253, 187, 44, 0.45);
+	border: 1px solid rgba(8, 160, 69, 0.45);
 	box-shadow: var(--mk-doc-shadow);
 	overflow: hidden;
 }
@@ -719,7 +719,7 @@ body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-a
 	gap: 10px;
 	padding: 14px 16px;
 	border-bottom: 1px solid var(--mk-doc-border);
-	background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+	background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%);
 }
 
 body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-aside-card__title {
@@ -883,7 +883,7 @@ html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents
 html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"]:checked,
 html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .mk-doc-block td.fieldValue > input[type="checkbox"]:checked {
 	background: var(--mk-doc-yellow) !important;
-	border-color: #e5a820 !important;
+	border-color: #0B6E4F !important;
 }
 
 html[data-theme="dark"].mk-documents-edit-management body[data-module="Documents"][data-view="Edit"][data-app="MANAGEMENT"] .mk-doc-form-host .editViewBody .inputElement[type="checkbox"]:checked::after,

@@ -122,7 +122,7 @@
 }
 
 #modern-notifications-container #modern-notifications-mark-all-read.modern-notifications-action-txt {
-    color: #7c5800 !important;
+    color: #0B6E4F !important;
 }
 
 #modern-notifications-container #modern-notifications-delete-all.modern-notifications-action-txt {
@@ -164,7 +164,7 @@
 #modern-notifications-container .modern-notifications-action-ic-doublecheck {
     display: inline-flex;
     gap: 1px;
-    color: #7c5800;
+    color: #0B6E4F;
 }
 
 #modern-notifications-container .modern-notifications-action-ic-doublecheck .fa-check {
@@ -376,7 +376,7 @@
     height: 8px;
     margin-top: 6px;
     border-radius: 9999px;
-    background: #fdbb2c;
+    background: #08A045;
 }
 
 #modern-notifications-container .modern-notification-item.read-notification .modern-notification-unread-dot {

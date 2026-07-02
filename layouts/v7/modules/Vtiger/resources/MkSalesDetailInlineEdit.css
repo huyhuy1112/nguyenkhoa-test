@@ -77,9 +77,9 @@ body[data-view="Detail"][data-app="SALES"] table.summary-table td.fieldValue .ed
 
 body[data-view="Detail"][data-app="SALES"] #detailView td.fieldValue .editAction:hover,
 body[data-view="Detail"][data-app="SALES"] table.summary-table td.fieldValue .editAction:hover {
-	color: #c98f12;
+	color: #08A045;
 	border-color: #e8c56a;
-	background: #fffbeb;
+	background: #ecfdf3;
 }
 
 body[data-view="Detail"][data-app="SALES"] #detailView td.fieldLabel .action,

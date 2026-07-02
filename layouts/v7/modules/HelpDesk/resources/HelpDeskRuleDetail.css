@@ -131,7 +131,7 @@ body[data-module="HelpDesk"][data-view="RuleDetail"] .module-breadcrumb-RuleDeta
 	width: 64px;
 	height: 64px;
 	border-radius: 12px;
-	background: #fdbb2c;
+	background: #08A045;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -185,7 +185,7 @@ body[data-module="HelpDesk"][data-view="RuleDetail"] .module-breadcrumb-RuleDeta
 }
 
 .mk-hd-rule-detail-toggle--on {
-	background: #fdbb2c;
+	background: #08A045;
 }
 
 .mk-hd-rule-detail-toggle--off {
@@ -370,7 +370,7 @@ body[data-module="HelpDesk"][data-view="RuleDetail"] .module-breadcrumb-RuleDeta
 .mk-hd-rule-detail-checkbox input {
 	width: 16px;
 	height: 16px;
-	accent-color: #fdbb2c;
+	accent-color: #08A045;
 }
 
 .mk-hd-rule-detail-sep {
@@ -408,9 +408,9 @@ body[data-module="HelpDesk"][data-view="RuleDetail"] .module-breadcrumb-RuleDeta
 }
 
 .mk-hd-rule-detail-btn--primary {
-	background: #fdbb2c;
+	background: #08A045;
 	color: #6d4d00;
-	border-color: #fdbb2c;
+	border-color: #08A045;
 	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
@@ -464,7 +464,7 @@ body[data-module="HelpDesk"][data-view="RuleDetail"] .module-breadcrumb-RuleDeta
 	margin: 0 0 6px;
 	font-size: 14px;
 	font-weight: 700;
-	color: #fdbb2c;
+	color: #08A045;
 }
 
 .mk-hd-rule-detail-guide-card-text {

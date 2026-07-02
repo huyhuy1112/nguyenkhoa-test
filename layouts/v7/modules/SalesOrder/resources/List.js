@@ -94,6 +94,58 @@
 		});
 	}
 
+	function decodeHtmlEntities(text) {
+		var value = String(text || '');
+		if (!value) {
+			return '';
+		}
+		var el = document.createElement('textarea');
+		var prev = null;
+		var guard = 0;
+		while (value !== prev && guard < 6) {
+			prev = value;
+			if (!/&(?:#x?[0-9a-f]+|[a-z]+);/i.test(value)) {
+				break;
+			}
+			el.innerHTML = value;
+			value = el.value;
+			guard += 1;
+		}
+		return value;
+	}
+
+	var TEXT_DECODE_FIELDS = ['accountname', 'account_id', 'subject', 'contact_id'];
+
+	function fixEncodedTextCells($table) {
+		TEXT_DECODE_FIELDS.forEach(function (fieldName) {
+			$table.find('tbody td[data-name="' + fieldName + '"]').each(function () {
+				var $td = $(this);
+				if ($td.hasClass('mk-so-list-col-hidden')) {
+					return;
+				}
+				var $targets = $td.find('.value, a.listViewContentHeaderValues, a');
+				if (!$targets.length) {
+					$targets = $td;
+				}
+				$targets.each(function () {
+					var $node = $(this);
+					if ($node.data('mkDecoded')) {
+						return;
+					}
+					var raw = $.trim($node.text());
+					if (!raw || !/&(?:#x?[0-9a-f]+|[a-z]+);/i.test(raw)) {
+						return;
+					}
+					var decoded = decodeHtmlEntities(raw);
+					if (decoded !== raw) {
+						$node.text(decoded);
+						$node.data('mkDecoded', 1);
+					}
+				});
+			});
+		});
+	}
+
 	function normalizeStatusTone(text) {
 		var t = String(text || '').toLowerCase();
 		if (!t || t === '--') {
@@ -376,6 +428,7 @@
 		}
 
 		applyTableClasses($table);
+		fixEncodedTextCells($table);
 
 		var statusField = resolveStatusField($table);
 		if (statusField) {
