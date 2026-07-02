@@ -61,6 +61,58 @@
 		}
 	];
 
+	// Anti-FOUC: unhide once this bundle executes (CSS is already linked in pre-process).
+	try {
+		document.documentElement.classList.add('mk-so-create-styled');
+	} catch (e) {
+		/* ignore */
+	}
+	var TERMS_MODAL_ID = 'mkSoTermsModal';
+	var TERMS_EDITOR_ID = 'mkSoTermsEditor';
+	var termsModalOpen = false;
+
+	var TERMS_CK_TOOLBAR = [
+		{
+			name: 'clipboard',
+			items: ['Undo', 'Redo']
+		},
+		{
+			name: 'basicstyles',
+			items: ['Bold', 'Italic', 'Underline', 'Strike']
+		},
+		{
+			name: 'paragraph',
+			items: [
+				'NumberedList',
+				'BulletedList',
+				'-',
+				'Outdent',
+				'Indent',
+				'-',
+				'JustifyLeft',
+				'JustifyCenter',
+				'JustifyRight',
+				'JustifyBlock'
+			]
+		},
+		{
+			name: 'styles',
+			items: ['Format', 'Font', 'FontSize']
+		},
+		{
+			name: 'colors',
+			items: ['TextColor', 'BGColor']
+		},
+		{
+			name: 'insert',
+			items: ['Table', 'HorizontalRule']
+		},
+		{
+			name: 'tools',
+			items: ['RemoveFormat', 'Maximize']
+		}
+	];
+
 	var BLOCK_ICONS = {
 		LBL_SO_INFORMATION: 'fa-info-circle',
 		LBL_ITEM_DETAILS: 'fa-cubes',

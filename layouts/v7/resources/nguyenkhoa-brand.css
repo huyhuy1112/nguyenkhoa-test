@@ -9,6 +9,7 @@ body .mk-app-shell {
 	font-family: "Be Vietnam Pro", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 	-webkit-font-smoothing: antialiased;
 }
+
 :root {
 	--nk-green: #08a045;
 	--nk-green-dark: #0b6e4f;
