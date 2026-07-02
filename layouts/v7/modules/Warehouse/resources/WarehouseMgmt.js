@@ -155,9 +155,12 @@
 	}
 
 	function bindListEvents() {
+		var root = qs('#mkWhMgmtRoot');
 		var modal = qs('#mkWhMgmtFormModal');
 		var form = qs('#mkWhMgmtForm');
 		var createBtn = qs('#mkWhMgmtCreateBtn');
+
+		if (!root) return;
 
 		function openModal(editId) {
 			if (!modal) return;
@@ -195,7 +198,7 @@
 			createBtn.addEventListener('click', function () { openModal(null); });
 		}
 
-		document.addEventListener('click', function (e) {
+		root.addEventListener('click', function (e) {
 			var t = e.target;
 			if (t.getAttribute && t.getAttribute('data-mk-wh-close') === '1') {
 				closeModal();
@@ -605,9 +608,12 @@
 	}
 
 	function bindDetailEvents() {
+		var root = qs('#mkWhMgmtRoot');
 		var tabs = qs('#mkWhDetailTabs');
 		var roleSel = qs('#mkWhDetailRole');
 		var activeTab = 'inbound';
+
+		if (!root) return;
 
 		function refresh() {
 			if (!renderDetailHeader()) return;
@@ -632,7 +638,7 @@
 			roleSel.addEventListener('change', refresh);
 		}
 
-		document.addEventListener('click', function (e) {
+		root.addEventListener('click', function (e) {
 			var rid = e.target.getAttribute && e.target.getAttribute('data-mk-open-receipt');
 			if (rid) { e.preventDefault(); openReceiptModal(rid); return; }
 			var iid = e.target.getAttribute && e.target.getAttribute('data-mk-open-issue');
@@ -653,7 +659,7 @@
 			}
 		});
 
-		document.addEventListener('change', function (e) {
+		root.addEventListener('change', function (e) {
 			if (!e.target) return;
 			if (activeTab !== 'stock') return;
 			if (e.target.id === 'mkWhProtoFilterHsd' || e.target.id === 'mkWhProtoFilterName') {
@@ -783,7 +789,9 @@
 	}
 
 	function bindReceiptActions() {
-		document.addEventListener('click', function (e) {
+		var root = qs('#mkWhMgmtRoot');
+		if (!root) return;
+		root.addEventListener('click', function (e) {
 			var action = e.target.getAttribute && e.target.getAttribute('data-mk-rc-action');
 			var id = e.target.getAttribute && e.target.getAttribute('data-mk-rc-id');
 			if (!action || !id) return;
@@ -842,7 +850,9 @@
 	}
 
 	function bindIssueActions() {
-		document.addEventListener('click', function (e) {
+		var root = qs('#mkWhMgmtRoot');
+		if (!root) return;
+		root.addEventListener('click', function (e) {
 			var action = e.target.getAttribute && e.target.getAttribute('data-mk-is-action');
 			var id = e.target.getAttribute && e.target.getAttribute('data-mk-is-id');
 			if (!action || !id) return;
@@ -938,12 +948,15 @@
 	}
 
 	function bindTransferEvents() {
+		var root = qs('#mkWhMgmtRoot');
 		var modal = qs('#mkWhTransferFormModal');
 		var form = qs('#mkWhTransferForm');
 		var createBtn = qs('#mkWhTransferCreateBtn');
 		var fromSel = qs('#mkWhTrfFrom');
 		var toSel = qs('#mkWhTrfTo');
 		var lotSel = qs('#mkWhTrfLot');
+
+		if (!root) return;
 
 		function fillWarehouseSelects() {
 			var wh = S.getState().warehouses;
@@ -993,7 +1006,7 @@
 			});
 		}
 
-		document.addEventListener('click', function (e) {
+		root.addEventListener('click', function (e) {
 			if (e.target.getAttribute && e.target.getAttribute('data-mk-wh-trf-close') === '1') {
 				closeModal();
 				return;
@@ -1046,7 +1059,7 @@
 		if (!root) return;
 		var view = root.getAttribute('data-mk-wh-view') || '';
 
-		document.addEventListener('click', function (e) {
+		root.addEventListener('click', function (e) {
 			if (e.target.getAttribute && e.target.getAttribute('data-mk-wh-detail-close') === '1') {
 				closeDetailModal();
 			}

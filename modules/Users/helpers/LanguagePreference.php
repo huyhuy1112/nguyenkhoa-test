@@ -69,13 +69,14 @@ class Users_LanguagePreference_Helper {
 			$lang = trim((string)$adb->query_result($res, 0, 'language'));
 		}
 
-		if ($lang !== '' && !(self::isLegacyEnglishLanguage($lang) && $siteDefault === 'vi_vn')) {
+		// Respect explicit user profile preference (including en_us).
+		if ($lang !== '') {
 			return $lang;
 		}
 
 		if (!empty($_SESSION['authenticated_user_language'])) {
 			$sessionLang = trim((string)$_SESSION['authenticated_user_language']);
-			if ($sessionLang !== '' && !(self::isLegacyEnglishLanguage($sessionLang) && $siteDefault === 'vi_vn')) {
+			if ($sessionLang !== '') {
 				return $sessionLang;
 			}
 		}
@@ -83,7 +84,7 @@ class Users_LanguagePreference_Helper {
 		global $current_user;
 		if (!empty($current_user) && (int)$current_user->id === $userId && !empty($current_user->column_fields['language'])) {
 			$profileLang = trim((string)$current_user->column_fields['language']);
-			if ($profileLang !== '' && !(self::isLegacyEnglishLanguage($profileLang) && $siteDefault === 'vi_vn')) {
+			if ($profileLang !== '') {
 				return $profileLang;
 			}
 		}
