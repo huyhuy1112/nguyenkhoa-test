@@ -150,19 +150,19 @@
 						{if $APP_NAME eq 'INVENTORY'}
 							{assign var=_mkWhListActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'WhList' || $VIEW eq 'WhDetail'))}
 							<a class="mk-dash-mod-link{if $_mkWhListActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhList&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">Danh sách kho</span>
+								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_LIST','Warehouse')}</span>
 							</a>
 							{assign var=_mkWhDashActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'WhDashboard')}
 							<a class="mk-dash-mod-link{if $_mkWhDashActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhDashboard&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">Bảng điều khiển kho</span>
+								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_DASHBOARD','Warehouse')}</span>
 							</a>
 							{assign var=_mkWhTrfActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'WhTransfer')}
 							<a class="mk-dash-mod-link{if $_mkWhTrfActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhTransfer&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">Chuyển kho</span>
+								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_TRANSFER','Warehouse')}</span>
 							</a>
 							{assign var=_mkProtoActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'Prototype' || $VIEW eq 'PrototypeDetail'))}
 							<a class="mk-dash-mod-link{if $_mkProtoActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=Prototype&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">Mẫu thử kho</span>
+								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_PROTO','Warehouse')}</span>
 							</a>
 						{/if}
 					</div>

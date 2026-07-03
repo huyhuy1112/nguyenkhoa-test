@@ -43,7 +43,11 @@ class Vtiger_Language_Handler {
 				if ($translatedString === null
 					&& strcasecmp($currentLanguage, 'en_us') !== 0
 					&& strcasecmp($defaultLanguage, 'en_us') !== 0) {
-					$translatedString = self::getLanguageTranslatedString('en_us', $key, $module);
+					$siteDefault = trim((string)vglobal('default_language'));
+					$allowEnglishFallback = ($siteDefault === '' || strcasecmp($siteDefault, 'vi_vn') !== 0);
+					if ($allowEnglishFallback) {
+						$translatedString = self::getLanguageTranslatedString('en_us', $key, $module);
+					}
 				}
 			}
 		}
