@@ -1140,7 +1140,6 @@
 	var inflightSalesSearchId = 0;
 	var pendingSalesSearchRowState = null;
 	var globalQuickSearchBound = false;
-	var globalQuickSearchTimer = null;
 
 	function normalizeSearchFieldNameForColumn(fieldName) {
 		if (!fieldName) {
@@ -1740,6 +1739,8 @@
 
 	function runSalesListSearch(options) {
 		options = options || {};
+		lastGlobalSearchPayload = '';
+		liveGlobalSearchQuery = '';
 		ensureSearchRowVisible();
 		syncSearchFieldMeta();
 		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
@@ -2069,77 +2070,195 @@
 		return isSalesStyleTableList();
 	}
 
-	var accountsGlobalSearchTimer = null;
+	var serverGlobalSearchTimer = null;
+	var lastGlobalSearchPayload = '';
+	var liveGlobalSearchQuery = '';
+	var globalSearchUrlInitialized = false;
+	var globalSearchInputFocused = false;
+	var GLOBAL_SEARCH_DEBOUNCE_MS = 800;
 
-	function findAccountsNameSearchInput() {
+	function getModulePrimarySearchField() {
+		return REFERENCE_NAME_FIELD_BY_MODULE[getListModuleName()] || null;
+	}
+
+	function findPrimarySearchInput() {
+		var fieldName = getModulePrimarySearchField();
+		if (!fieldName) {
+			return $();
+		}
 		var $root = getSalesTableRoot();
-		var $inp = $root.find('tr.searchRow th[data-columnname="accountname"] input.listSearchContributor').first();
+		var $inp = $root.find('tr.searchRow th[data-columnname="' + fieldName + '"] input.listSearchContributor').first();
 		if (!$inp.length) {
-			$inp = $root.find('tr.searchRow input[name="accountname"]').first();
+			$inp = $root.find('tr.searchRow input[name="' + fieldName + '"]').first();
 		}
 		return $inp;
 	}
 
-	function syncAccountsGlobalSearchInput() {
-		if (!isAccountsSalesGlobalSearch()) {
+	function isGlobalSearchSkippableFieldType(fieldType) {
+		return (
+			fieldType === 'date' ||
+			fieldType === 'datetime' ||
+			fieldType === 'picklist' ||
+			fieldType === 'currency' ||
+			fieldType === 'double' ||
+			fieldType === 'integer' ||
+			fieldType === 'number' ||
+			fieldType === 'boolean' ||
+			fieldType === 'percentage' ||
+			fieldType === 'time'
+		);
+	}
+
+	function collectGlobalSearchFields() {
+		var fields = [];
+		var seen = {};
+		getSalesTableRoot().find('tr.searchRow .listSearchContributor[name]').each(function () {
+			var $el = $(this);
+			if ($el.hasClass('select2_input_element') || $el.is('div')) {
+				return;
+			}
+			var name = $el.attr('name');
+			if (!name || seen[name]) {
+				return;
+			}
+			var fieldInfo =
+				typeof uimeta !== 'undefined' && uimeta.field && uimeta.field.get
+					? uimeta.field.get(name)
+					: $el.data('fieldinfo');
+			if (!fieldInfo || typeof fieldInfo !== 'object') {
+				fieldInfo = { type: 'string' };
+			}
+			if (isGlobalSearchSkippableFieldType(fieldInfo.type || 'string')) {
+				return;
+			}
+			seen[name] = true;
+			fields.push({ name: name, fieldInfo: fieldInfo });
+		});
+		if (!fields.length) {
+			var primary = getModulePrimarySearchField();
+			if (primary) {
+				fields.push({ name: primary, fieldInfo: { type: 'string' } });
+			}
+		}
+		return fields;
+	}
+
+	function buildGlobalOrSearchParams(query) {
+		query = (query || '').toString().trim();
+		if (!query.length) {
+			return [];
+		}
+		var fieldEntries = collectGlobalSearchFields();
+		var conditions = [];
+		var i;
+		for (i = 0; i < fieldEntries.length; i++) {
+			conditions.push([
+				resolveReferenceSearchFieldName(fieldEntries[i].name, fieldEntries[i].fieldInfo),
+				'c',
+				query
+			]);
+		}
+		if (!conditions.length) {
+			return [];
+		}
+		if (conditions.length === 1) {
+			return [conditions];
+		}
+		// Empty first group + OR group: vtiger glueOrder uses "or" for group index 1.
+		return [[], conditions];
+	}
+
+	function readGlobalSearchValueFromParams(parsed) {
+		var val = '';
+		var i;
+		var j;
+		if (!parsed || !parsed.length) {
+			return val;
+		}
+		for (i = 0; i < parsed.length; i++) {
+			var group = parsed[i];
+			if (!group || !group.length) {
+				continue;
+			}
+			for (j = 0; j < group.length; j++) {
+				if (group[j] && group[j][2]) {
+					val = group[j][2];
+					break;
+				}
+			}
+			if (val) {
+				break;
+			}
+		}
+		return val;
+	}
+
+	function rememberLiveGlobalSearchQuery(val) {
+		liveGlobalSearchQuery = (val != null ? String(val) : getGlobalQuickSearchQuery()).trim();
+	}
+
+	function initGlobalSearchFromUrlOnce() {
+		if (globalSearchUrlInitialized || liveGlobalSearchQuery) {
+			return;
+		}
+		globalSearchUrlInitialized = true;
+		try {
+			var params = new URLSearchParams(window.location.search || '');
+			var sp = params.get('search_params');
+			if (sp) {
+				liveGlobalSearchQuery = readGlobalSearchValueFromParams(JSON.parse(sp));
+			}
+		} catch (parseErr) {
+			/* ignore */
+		}
+	}
+
+	function restoreGlobalSearchInput() {
+		var $bar = $('#mk-so-global-search');
+		if (!$bar.length) {
+			return;
+		}
+		$bar.val(liveGlobalSearchQuery);
+		$('#mk-so-global-search-clear').prop('hidden', !liveGlobalSearchQuery);
+	}
+
+	function captureGlobalSearchUiState() {
+		var $bar = $('#mk-so-global-search');
+		return {
+			hadFocus: globalSearchInputFocused || ($bar.length && document.activeElement === $bar[0])
+		};
+	}
+
+	function restoreGlobalSearchUiState(state) {
+		restoreGlobalSearchInput();
+		if (!state || !state.hadFocus) {
 			return;
 		}
 		var $bar = $('#mk-so-global-search');
 		if (!$bar.length) {
 			return;
 		}
-		var val = '';
-		try {
-			var params = new URLSearchParams(window.location.search || '');
-			var sp = params.get('search_params');
-			if (sp) {
-				var parsed = JSON.parse(sp);
-				if (parsed && parsed[0] && parsed[0][0] && parsed[0][0][0] === 'accountname') {
-					val = parsed[0][0][2] || '';
-				}
-			}
-		} catch (parseErr) {
-			/* ignore */
-		}
-		if (!val) {
-			var $col = findAccountsNameSearchInput();
-			if ($col.length) {
-				val = $.trim($col.val());
+		$bar.focus();
+		var len = ($bar.val() || '').length;
+		if ($bar[0] && $bar[0].setSelectionRange) {
+			try {
+				$bar[0].setSelectionRange(len, len);
+			} catch (focusErr) {
+				/* ignore */
 			}
 		}
-		$bar.val(val);
-		$('#mk-so-global-search-clear').prop('hidden', !val);
 	}
 
-	function applyAccountsServerGlobalSearch() {
-		if (!isAccountsSalesGlobalSearch()) {
-			return;
+	function maybeRunPendingGlobalSearch() {
+		var pendingPayload = JSON.stringify(buildGlobalOrSearchParams(liveGlobalSearchQuery));
+		if (pendingPayload !== lastGlobalSearchPayload) {
+			scheduleGlobalQuickSearch();
 		}
-		var q = getGlobalQuickSearchQuery();
-		var $inp = findAccountsNameSearchInput();
-		if ($inp.length && $.trim($inp.val()) === q) {
-			return;
-		}
-		getSalesTableRoot().find('tr.searchRow input.listSearchContributor, tr.searchRow select.listSearchContributor').each(function () {
-			var $field = $(this);
-			var name = $field.attr('name') || '';
-			if (name === 'accountname') {
-				$field.val(q);
-			} else if (q) {
-				$field.val('');
-			}
-		});
-		runSalesListSearch({ silent: true });
 	}
 
-	function scheduleAccountsServerGlobalSearch() {
-		if (accountsGlobalSearchTimer) {
-			clearTimeout(accountsGlobalSearchTimer);
-		}
-		accountsGlobalSearchTimer = setTimeout(function () {
-			accountsGlobalSearchTimer = null;
-			applyAccountsServerGlobalSearch();
-		}, 350);
+	function syncGlobalSearchInput() {
+		initGlobalSearchFromUrlOnce();
+		restoreGlobalSearchInput();
 	}
 
 	function getGlobalQuickSearchQuery() {
@@ -2147,75 +2266,91 @@
 		return $input.length ? $.trim($input.val()) : '';
 	}
 
-	function normalizeText(s) {
-		return String(s || '')
-			.toLowerCase()
-			.replace(/\s+/g, ' ')
-			.trim();
-	}
-
-	function rowTextForFilter(rowEl) {
-		if (!rowEl) {
-			return '';
+	function runGlobalQuickServerSearch(options) {
+		options = options || {};
+		if (!shouldUseGlobalQuickSearch()) {
+			return;
 		}
-		var t = rowEl.getAttribute('data-mk-rowtext');
-		if (t != null) {
-			return t;
+		var query =
+			options.query != null ? String(options.query).trim() : (liveGlobalSearchQuery || getGlobalQuickSearchQuery());
+		rememberLiveGlobalSearchQuery(query);
+		var searchParams = buildGlobalOrSearchParams(query);
+		var payload = JSON.stringify(searchParams);
+		if (payload === lastGlobalSearchPayload) {
+			return;
 		}
-		// Exclude action/control cell to avoid noisy icons.
-		var parts = [];
-		$(rowEl)
-			.children('td')
-			.not('.listViewRecordActions, .mk-col-control')
-			.each(function () {
-				var text = $(this).text();
-				if (text) {
-					parts.push(text);
+		lastGlobalSearchPayload = payload;
+		var uiState = captureGlobalSearchUiState();
+		ensureSearchRowVisible();
+		syncSearchFieldMeta();
+		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+		if (!listInstance || !listInstance.loadListViewRecords) {
+			return;
+		}
+		var requestId = ++inflightSalesSearchId;
+		listInstance.filterClick = false;
+		pendingSalesSearchRowState = null;
+		getSalesTableRoot().find('#currentSearchParams').val('');
+		syncUrlSearchParams(searchParams);
+		var $root = getSalesTableRoot();
+		$root.toggleClass('mk-so-global-search-active', !!query.length);
+		if (!options.silent) {
+			try {
+				if (typeof app !== 'undefined' && app.helper && app.helper.showProgress) {
+					app.helper.showProgress();
 				}
+			} catch (progressErr) {
+				/* ignore */
+			}
+		}
+		listInstance
+			.loadListViewRecords({
+				page: '1',
+				search_params: payload,
+				nolistcache: '1'
+			})
+			.done(function (html) {
+				var isLatest = requestId === inflightSalesSearchId;
+				if (!isLatest) {
+					return;
+				}
+				if (isMkShellList()) {
+					if (!applySalesShellListResponse(html, requestId, { preserveSearchRow: true })) {
+						hideProgressSafe();
+					}
+				} else {
+					hideProgressSafe();
+				}
+				ensureGlobalQuickSearch();
+				restoreGlobalSearchUiState(uiState);
+			})
+			.always(function () {
+				if (requestId === inflightSalesSearchId) {
+					pendingSalesSearchRowState = null;
+					hideProgressSafe();
+					inflightSalesSearchId = 0;
+				}
+				maybeRunPendingGlobalSearch();
 			});
-		t = normalizeText(parts.join(' '));
-		rowEl.setAttribute('data-mk-rowtext', t);
-		return t;
-	}
-
-	function clearRowTextCache() {
-		getSalesTableRoot()
-			.find('#listview-table tbody tr.listViewEntries[data-mk-rowtext]')
-			.removeAttr('data-mk-rowtext');
 	}
 
 	function applyGlobalQuickSearchFilter() {
-		if (isAccountsSalesGlobalSearch()) {
-			scheduleAccountsServerGlobalSearch();
-			return;
-		}
-		var $root = getSalesTableRoot();
-		if (!$root.length) {
-			return;
-		}
-		var q = normalizeText(getGlobalQuickSearchQuery());
-		var $rows = $root.find('#listview-table tbody tr.listViewEntries');
-		if (!q) {
-			$rows.show();
-			$root.removeClass('mk-so-global-search-active');
-			return;
-		}
-		$root.addClass('mk-so-global-search-active');
-		$rows.each(function () {
-			var hit = rowTextForFilter(this).indexOf(q) >= 0;
-			$(this).toggle(hit);
-		});
+		runGlobalQuickServerSearch({ silent: true });
 	}
 
-	function scheduleGlobalQuickSearch() {
-		if (globalQuickSearchTimer) {
-			clearTimeout(globalQuickSearchTimer);
+	function scheduleGlobalQuickSearch(immediate) {
+		if (serverGlobalSearchTimer) {
+			clearTimeout(serverGlobalSearchTimer);
+			serverGlobalSearchTimer = null;
 		}
-		// Very small debounce to feel instant but avoid layout thrash.
-		globalQuickSearchTimer = setTimeout(function () {
-			globalQuickSearchTimer = null;
+		if (immediate) {
 			applyGlobalQuickSearchFilter();
-		}, 40);
+			return;
+		}
+		serverGlobalSearchTimer = setTimeout(function () {
+			serverGlobalSearchTimer = null;
+			applyGlobalQuickSearchFilter();
+		}, GLOBAL_SEARCH_DEBOUNCE_MS);
 	}
 
 	function injectGlobalQuickSearchUi() {
@@ -2248,29 +2383,44 @@
 		}
 		globalQuickSearchBound = true;
 		$(document)
+			.off('focus.mkSoGlobalSearch', '#mk-so-global-search')
+			.on('focus.mkSoGlobalSearch', '#mk-so-global-search', function () {
+				globalSearchInputFocused = true;
+			})
+			.off('blur.mkSoGlobalSearch', '#mk-so-global-search')
+			.on('blur.mkSoGlobalSearch', '#mk-so-global-search', function () {
+				globalSearchInputFocused = false;
+			})
 			.off('input.mkSoGlobalSearch', '#mk-so-global-search')
 			.on('input.mkSoGlobalSearch', '#mk-so-global-search', function () {
 				var val = $.trim($(this).val());
+				rememberLiveGlobalSearchQuery(val);
 				$('#mk-so-global-search-clear').prop('hidden', !val);
 				scheduleGlobalQuickSearch();
 			})
 			.off('keydown.mkSoGlobalSearch', '#mk-so-global-search')
 			.on('keydown.mkSoGlobalSearch', '#mk-so-global-search', function (ev) {
+				if (ev.key === 'Enter') {
+					ev.preventDefault();
+					scheduleGlobalQuickSearch(true);
+					return;
+				}
 				if (ev.key === 'Escape') {
 					ev.preventDefault();
+					rememberLiveGlobalSearchQuery('');
 					$(this).val('');
 					$('#mk-so-global-search-clear').prop('hidden', true);
-					clearRowTextCache();
-					applyGlobalQuickSearchFilter();
+					lastGlobalSearchPayload = '';
+					scheduleGlobalQuickSearch(true);
 				}
 			});
 		$(document)
 			.off('click.mkSoGlobalSearchClear', '#mk-so-global-search-clear')
 			.on('click.mkSoGlobalSearchClear', '#mk-so-global-search-clear', function (e) {
 				e.preventDefault();
+				lastGlobalSearchPayload = '';
+				rememberLiveGlobalSearchQuery('');
 				$('#mk-so-global-search').val('').trigger('input').focus();
-				clearRowTextCache();
-				applyGlobalQuickSearchFilter();
 			});
 	}
 
@@ -2285,13 +2435,7 @@
 		$root.addClass('mk-so-global-search-enabled');
 		injectGlobalQuickSearchUi();
 		bindGlobalQuickSearchEvents();
-		if (isAccountsSalesGlobalSearch()) {
-			syncAccountsGlobalSearchInput();
-		} else {
-			// After PJAX swaps, rows are new → clear cache and reapply current query.
-			clearRowTextCache();
-			applyGlobalQuickSearchFilter();
-		}
+		syncGlobalSearchInput();
 	}
 
 	function scheduleApply() {
@@ -2382,7 +2526,8 @@
 		applyPotentialsListContents: applyPotentialsListContents,
 		wrapAccountsListShellContents: wrapAccountsListShellContents,
 		isAccountsModernList: isAccountsModernList,
-		syncAccountsGlobalSearchInput: syncAccountsGlobalSearchInput,
+		syncGlobalSearchInput: syncGlobalSearchInput,
+		syncAccountsGlobalSearchInput: syncGlobalSearchInput,
 		isSearchRowFocused: isSearchRowFocused,
 		captureSearchFocusState: captureSearchFocusState,
 		restoreSearchFocusState: restoreSearchFocusState,

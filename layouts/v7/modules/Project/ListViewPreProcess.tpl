@@ -9,7 +9,7 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkView.css')}&mk_v=20260625_project_footer_v1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260607_mgmt_grid_lux1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260617_mgmt_gsearch1" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260625_mgmt_reveal1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
 <script type="text/javascript" src="{vresource_url('libraries/bootstrap/js/eternicode-bootstrap-datepicker/js/bootstrap-datepicker.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Project/resources/List.js')}"></script>

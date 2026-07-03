@@ -22,7 +22,7 @@ html.mk-opportunity-list-sales #listViewContent .bottom-fixed-scroll {
 	pointer-events: none !important;
 }
 </style>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260607_unified1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/List.js')}?mk_v=20260622_opp_bulk_delete_v1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/InternalOrderProtection.js')}"></script>
