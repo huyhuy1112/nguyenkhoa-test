@@ -477,16 +477,17 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--primary {
-	background: #08A045 !important;
+	background: #16a34a !important;
 	background-image: none !important;
-	border-color: #0B6E4F;
-	color: #6d4d00;
+	border-color: #15803d;
+	color: #ffffff;
 	font-weight: 700;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--primary:hover {
-	background: #f0a514 !important;
-	color: #6d4d00;
+	background: #15803d !important;
+	border-color: #166534;
+	color: #ffffff;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #starToggle.mk-lead-detail-btn {
@@ -1435,21 +1436,29 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .commentTextArea,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .commentTextArea textarea {
 	border-radius: 10px;
-	border: 1px solid #e0d8cc;
+	border: 1px solid #cbd5e1;
 	padding: 12px 14px;
 	font-size: 14px;
+	line-height: 1.5;
+	color: #0f172a;
 	width: 100%;
 	box-sizing: border-box;
 	min-height: 64px;
-	background: #fafbfc;
+	background: #ffffff;
 	box-shadow: none;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments textarea::placeholder,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .commentTextArea textarea::placeholder {
+	color: #64748b;
+	opacity: 1;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments textarea:focus,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .commentTextArea:focus-within {
-	border-color: #08A045;
+	border-color: #16a34a;
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15);
+	box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .modal-comment-widgets-container {
@@ -1467,19 +1476,23 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	border-radius: 8px;
 	font-weight: 700;
 	font-size: 13px;
-	background: #08A045 !important;
+	background: #16a34a !important;
 	background-image: none !important;
-	border: 1px solid #0B6E4F;
-	color: #6d4d00;
+	border: 1px solid #15803d;
+	color: #ffffff !important;
 	padding: 8px 18px;
 	min-height: 40px;
 	box-shadow: none;
+	text-shadow: none !important;
+	-webkit-font-smoothing: antialiased;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .saveComment:hover,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .postComment:hover,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments button[name="saveButton"]:hover {
-	background: #f0a514 !important;
+	background: #15803d !important;
+	border-color: #166534;
+	color: #ffffff !important;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .commentDetails {

@@ -10,7 +10,16 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260520_2030" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20260612_leads_ba_v1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkConvertModal.css')}?mk_v=20260701_convert_modal_v1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260701_leads_bulk_convert2" />
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260703_leads_check_input2" />
+<style type="text/css">
+/* Critical: remove 1px clipped input line beside circular checkbox */
+.mk-leads-page--lovable .mk-leads-check { position: relative; width: 16px; height: 16px; isolation: isolate; }
+.mk-leads-page--lovable .mk-leads-check__input {
+	position: absolute; inset: 0; width: 16px; height: 16px; margin: 0; padding: 0; opacity: 0;
+	border: 0 !important; outline: 0 !important; background: transparent !important;
+	-webkit-appearance: none; appearance: none; z-index: 2; cursor: pointer; box-shadow: none !important;
+}
+</style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListShared.css')}" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLovableRef.js')}&mk_v=20260612_leads_ba_v1"></script>

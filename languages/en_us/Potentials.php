@@ -12,6 +12,8 @@ $languageStrings = array(
 	'Potentials' => 'Opportunities',
 	'SINGLE_Potentials' => 'Opportunity',
 	'LBL_ADD_RECORD' => 'Add Opportunity',
+	'LBL_MK_ALL_OPPORTUNITIES' => 'All Opportunities',
+	'LBL_MK_OPPORTUNITIES_SUBTITLE' => 'Manage opportunities from our customers.',
 	'LBL_RECORDS_LIST' => 'Opportunities List',
 
 	// Blocks

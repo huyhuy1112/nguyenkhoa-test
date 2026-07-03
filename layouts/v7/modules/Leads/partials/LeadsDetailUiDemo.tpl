@@ -203,7 +203,7 @@
 									<div class="widget_contents">
 										<div class="commentContainer">
 											<div class="addCommentBlock">
-												<textarea class="commentTextArea" id="mk-ld-ui-comment" rows="5" placeholder="{vtranslate('LBL_POST_YOUR_COMMENT_HERE', 'ModComments')}"></textarea>
+												<textarea class="commentTextArea" id="mk-ld-ui-comment" rows="5" placeholder="{vtranslate('LBL_POST_YOUR_COMMENT_HERE', 'Vtiger')}"></textarea>
 												<div class="row" style="margin-top: 8px;">
 													<div class="col-lg-12 text-right">
 														<button type="button" class="btn btn-success saveComment" id="mk-ld-ui-post-comment">{vtranslate('LBL_POST', 'ModComments')}</button>

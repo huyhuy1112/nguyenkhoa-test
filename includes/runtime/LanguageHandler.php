@@ -52,6 +52,11 @@ class Vtiger_Language_Handler {
 			}
 		}
 
+		// Never show raw LBL_* keys in UI — use en_us string when vi (or other) is missing.
+		if ($translatedString === null && strcasecmp($currentLanguage, 'en_us') !== 0) {
+			$translatedString = self::getLanguageTranslatedString('en_us', $key, $module);
+		}
+
 		// If translation is not found then return label
 		if ($translatedString === null) {
 			$translatedString = $key;
@@ -126,6 +131,17 @@ class Vtiger_Language_Handler {
 		$commonStrings = self::getModuleStringsFromFile($language);
 		if (!empty($commonStrings['jsLanguageStrings'][$key]))
 			return $commonStrings['jsLanguageStrings'][$key];
+
+		if (strcasecmp($language, 'en_us') !== 0) {
+			$moduleStrings = self::getModuleStringsFromFile('en_us', $module);
+			if (!empty($moduleStrings['jsLanguageStrings'][$key])) {
+				return $moduleStrings['jsLanguageStrings'][$key];
+			}
+			$commonStrings = self::getModuleStringsFromFile('en_us');
+			if (!empty($commonStrings['jsLanguageStrings'][$key])) {
+				return $commonStrings['jsLanguageStrings'][$key];
+			}
+		}
 
 		return $key;
 	}

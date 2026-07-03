@@ -379,3 +379,56 @@ body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-modify-dro
 body[data-view="DashBoard"] .mk-dashboard-page-header--figma .mk-dash-figma-btn .caret {
 	border-top-color: #ffffff !important;
 }
+
+/* --------------------------------------------------------------------------
+ * Readable text on green buttons + comment fields (detail / list SALES UIs)
+ * Fixes gold #6d4d00 on green — unreadable "Gửi" / primary actions
+ * -------------------------------------------------------------------------- */
+body[data-view="Detail"] .saveComment,
+body[data-view="Detail"] .postComment,
+body[data-view="Detail"] button[name="saveButton"],
+body[data-view="Detail"] .btn-success.saveComment,
+body[data-view="Detail"] .btn-success.postComment,
+body[data-view="Detail"] .btn-success.detailViewSaveComment,
+body[data-view="Detail"] [class*="detail-btn--primary"],
+body[data-view="Detail"] [class*="-btn--primary"]:not([class*="--ghost"]):not([class*="--outline"]) {
+	color: #ffffff !important;
+	text-shadow: none !important;
+	-webkit-font-smoothing: antialiased;
+}
+
+body[data-view="Detail"] .saveComment:hover,
+body[data-view="Detail"] .postComment:hover,
+body[data-view="Detail"] button[name="saveButton"]:hover,
+body[data-view="Detail"] .btn-success.saveComment:hover,
+body[data-view="Detail"] .btn-success.postComment:hover,
+body[data-view="Detail"] .btn-success.detailViewSaveComment:hover,
+body[data-view="Detail"] [class*="detail-btn--primary"]:hover,
+body[data-view="Detail"] [class*="-btn--primary"]:not([class*="--ghost"]):not([class*="--outline"]):hover {
+	color: #ffffff !important;
+	text-shadow: none !important;
+}
+
+body[data-view="Detail"] .commentTextArea textarea,
+body[data-view="Detail"] .commentTextArea .commentcontent,
+body[data-view="Detail"] [class*="detail-card--comments"] textarea,
+body[data-view="Detail"] [class*="detail-card--comments"] .commentcontent {
+	color: #0f172a !important;
+	background: #ffffff !important;
+	border-color: #cbd5e1 !important;
+	font-size: 14px !important;
+	line-height: 1.5 !important;
+}
+
+body[data-view="Detail"] .commentTextArea textarea::placeholder,
+body[data-view="Detail"] [class*="detail-card--comments"] textarea::placeholder {
+	color: #64748b !important;
+	opacity: 1 !important;
+}
+
+body[data-view="Detail"] .commentTextArea:focus-within textarea,
+body[data-view="Detail"] [class*="detail-card--comments"] textarea:focus {
+	border-color: #16a34a !important;
+	box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18) !important;
+	outline: none !important;
+}
