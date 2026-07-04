@@ -134,7 +134,11 @@
 	}
 
 	function markCreateEnhanced() {
-		document.documentElement.classList.add('mk-quote-create-enhanced');
+		requestAnimationFrame(function () {
+			requestAnimationFrame(function () {
+				document.documentElement.classList.add('mk-quote-create-enhanced');
+			});
+		});
 	}
 
 	function prepareTermsHtml(html, decodeEscaped) {

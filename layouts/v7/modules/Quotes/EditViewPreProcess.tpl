@@ -28,23 +28,32 @@
 	html.mk-quote-create-ready #mkQtFormHost .addressBlock > tbody > tr:first-child {
 		display: none !important;
 	}
-	html.mk-quote-create-ready:not(.mk-quote-create-enhanced) #mkQtFormHost {
-		visibility: hidden;
+	html.mk-quote-create-ready:not(.mk-quote-create-enhanced) #mkQtFormHost,
+	html.mk-quote-create-ready:not(.mk-quote-create-enhanced) #mk-dash-split-root,
+	html.mk-quote-create-ready:not(.mk-quote-create-enhanced) .editViewPageDiv {
+		opacity: 0 !important;
+		visibility: hidden !important;
+		pointer-events: none !important;
 	}
-	html.mk-quote-create-enhanced #mkQtFormHost {
-		visibility: visible;
+	html.mk-quote-create-enhanced #mkQtFormHost,
+	html.mk-quote-create-enhanced #mk-dash-split-root,
+	html.mk-quote-create-enhanced .editViewPageDiv {
+		visibility: visible !important;
+		opacity: 1 !important;
+		pointer-events: auto !important;
+		transition: opacity 0.2s ease-out !important;
 	}
 </style>
 {if !empty($MK_QUOTE_BA_CONFIG_JSON)}
 <script type="text/javascript">window.__MK_QUOTE_BA_CONFIG = {$MK_QUOTE_BA_CONFIG_JSON nofilter};</script>
 {/if}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260603_no_dup_footer" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}?mk_v=20260704_s2ui" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}?mk_v=20260704_s2ui" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260704_block_fix1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260704_fouc_v2" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}?mk_v=20260704_s2ui"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}?mk_v=20260704_s2ui"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}?mk_v=20260704_s2ui"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260704_fouc_v2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}&mk_v=20260704_fouc_v2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}&mk_v=20260704_fouc_v2"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-quote-create="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

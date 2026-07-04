@@ -730,13 +730,6 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo {
 	box-shadow: none !important;
 }
 
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult {
-	border: none !important;
-	max-width: 340px;
-	margin-left: auto;
-	background: transparent;
-}
-
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-hide {
 	display: none !important;
 }
@@ -844,13 +837,15 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-ta
 	display: none !important;
 }
 
-/* Payment terms card */
+/* Payment terms card — distinctive green-tinted card */
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms--card {
-	background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-	border: 1px solid #e2e8f0;
+	background: linear-gradient(135deg, #f0faf3 0%, #e8f5ed 100%);
+	border: 1.5px solid #a7dbb8;
+	border-left: 4px solid #08a045;
 	border-radius: 12px;
-	padding: 14px 16px;
+	padding: 16px 18px;
 	margin-bottom: 16px;
+	box-shadow: 0 2px 8px rgba(8, 160, 69, 0.06);
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms__row {
@@ -860,12 +855,13 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms__icon {
-	width: 36px;
-	height: 36px;
+	width: 38px;
+	height: 38px;
 	border-radius: 10px;
 	background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%2308a045' stroke-width='1.8' stroke-linecap='round' d='M7 3v3M17 3v3M4 9h16'/%3E%3Crect x='4' y='5' width='16' height='16' rx='3' stroke='%2308a045' stroke-width='1.8'/%3E%3C/svg%3E") center/18px no-repeat;
-	border: 1px solid #dbe3ee;
+	border: 1.5px solid #a7dbb8;
 	flex-shrink: 0;
+	box-shadow: 0 1px 3px rgba(8, 160, 69, 0.1);
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms__content {
@@ -875,9 +871,9 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms__label {
 	display: block;
-	font-size: 12px;
+	font-size: 13px;
 	font-weight: 700;
-	color: #475569;
+	color: #08a045;
 	text-transform: none;
 	letter-spacing: normal;
 	margin-bottom: 8px;
@@ -889,6 +885,19 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms
 	max-width: 100%;
 	min-height: 42px;
 	border-radius: 10px !important;
+	border: 1.5px solid #a7dbb8 !important;
+	background: #fff !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms__field .select2-container:hover,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms__field select:hover {
+	border-color: #08a045 !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms__field .select2-container:focus-within,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms__field select:focus {
+	border-color: #08a045 !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.12) !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-amount .totalAfterDiscount,
@@ -1061,4 +1070,39 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-tax-select {
 	background-position: right 10px center !important;
 	background-size: 10px 6px !important;
 	padding-right: 28px !important;
+}
+
+/* ── Totals block cleanup (Odoo active) ── */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo {
+	padding: 8px 0 0 !important;
+	border-radius: 0 !important;
+	border: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo > .fieldBlockHeader {
+	display: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult {
+	border: none !important;
+	max-width: 380px;
+	margin-left: auto;
+	padding: 16px 20px !important;
+	background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
+	border-radius: 14px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--sub td:first-child {
+	color: #475569;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand td:first-child {
+	color: #0f172a;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand td:last-child,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand #grandTotal {
+	color: #08a045;
+	font-weight: 800;
+	font-size: 18px;
 }

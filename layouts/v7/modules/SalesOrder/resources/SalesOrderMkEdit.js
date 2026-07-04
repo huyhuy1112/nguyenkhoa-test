@@ -9,64 +9,14 @@
 	var warehouseConfirmed = false;
 	var warehousePickerOpen = false;
 
-	// Anti-FOUC: unhide once this bundle executes (CSS is already linked in pre-process).
-	try {
-		document.documentElement.classList.add('mk-so-create-styled');
-	} catch (e) {
-		/* ignore */
+	function revealPage() {
+		requestAnimationFrame(function () {
+			requestAnimationFrame(function () {
+				document.documentElement.classList.add('mk-so-create-styled');
+			});
+		});
 	}
-	var TERMS_MODAL_ID = 'mkSoTermsModal';
-	var TERMS_EDITOR_ID = 'mkSoTermsEditor';
-	var termsModalOpen = false;
 
-	var TERMS_CK_TOOLBAR = [
-		{
-			name: 'clipboard',
-			items: ['Undo', 'Redo']
-		},
-		{
-			name: 'basicstyles',
-			items: ['Bold', 'Italic', 'Underline', 'Strike']
-		},
-		{
-			name: 'paragraph',
-			items: [
-				'NumberedList',
-				'BulletedList',
-				'-',
-				'Outdent',
-				'Indent',
-				'-',
-				'JustifyLeft',
-				'JustifyCenter',
-				'JustifyRight',
-				'JustifyBlock'
-			]
-		},
-		{
-			name: 'styles',
-			items: ['Format', 'Font', 'FontSize']
-		},
-		{
-			name: 'colors',
-			items: ['TextColor', 'BGColor']
-		},
-		{
-			name: 'insert',
-			items: ['Table', 'HorizontalRule']
-		},
-		{
-			name: 'tools',
-			items: ['RemoveFormat', 'Maximize']
-		}
-	];
-
-	// Anti-FOUC: unhide once this bundle executes (CSS is already linked in pre-process).
-	try {
-		document.documentElement.classList.add('mk-so-create-styled');
-	} catch (e) {
-		/* ignore */
-	}
 	var TERMS_MODAL_ID = 'mkSoTermsModal';
 	var TERMS_EDITOR_ID = 'mkSoTermsEditor';
 	var termsModalOpen = false;
@@ -687,6 +637,58 @@
 			});
 	}
 
+	function decodeHtmlText(value) {
+		if (value === null || value === undefined) {
+			return '';
+		}
+		var text = String(value);
+		if (!text) {
+			return '';
+		}
+		var prev;
+		var i = 0;
+		do {
+			prev = text;
+			if (typeof app !== 'undefined' && app.htmlDecode) {
+				text = app.htmlDecode(text);
+			} else {
+				var ta = document.createElement('textarea');
+				ta.innerHTML = text;
+				text = ta.value;
+			}
+			i++;
+		} while (text !== prev && /&(?:#\d+|#x[\da-fA-F]+|\w+);/.test(text) && i < 4);
+		return text;
+	}
+
+	function fixFormDisplayEncoding() {
+		$form()
+			.find('[name$="_display"], .sourceField')
+			.each(function () {
+				var $el = $(this);
+				var val = $el.val();
+				if (val && /&/.test(val)) {
+					var decoded = decodeHtmlText(val);
+					if (decoded !== val) {
+						$el.val(decoded);
+					}
+				}
+			});
+
+		$form()
+			.find('input[name="subject"]')
+			.each(function () {
+				var $el = $(this);
+				var val = $el.val();
+				if (val && /&/.test(val)) {
+					var decoded = decodeHtmlText(val);
+					if (decoded !== val) {
+						$el.val(decoded);
+					}
+				}
+			});
+	}
+
 	function bindActions() {
 		bindSaveValidationRecovery();
 		markOppCommerceRefreshOnSubmit();
@@ -761,6 +763,18 @@
 			.addClass('mk-so-address-simplified');
 	}
 
+	function initStickyHead() {
+		var $head = $('#mkSoStickyHead');
+		if (!$head.length || $head.data('mkStickyBound')) {
+			return;
+		}
+		$head.data('mkStickyBound', true);
+		var threshold = $head.offset().top + $head.outerHeight();
+		$(window).on('scroll.mkSoSticky', function () {
+			$head.toggleClass('is-elevated', window.scrollY > threshold);
+		});
+	}
+
 	function runEnhancements() {
 		if (!isScoped()) {
 			return;
@@ -769,8 +783,12 @@
 		styleFieldBlocks();
 		simplifySalesOrderForm();
 		initOdooInventoryUi();
+		fixFormDisplayEncoding();
 		initTermsRichEditor();
 		bindActions();
+		initStickyHead();
+		revealPage();
+		setTimeout(fixFormDisplayEncoding, 300);
 	}
 
 	function init() {
@@ -793,6 +811,8 @@
 	} else {
 		init();
 	}
+
+	setTimeout(revealPage, 3000);
 
 	window.__mkSoCreateBuild = MK_BUILD;
 })($);
