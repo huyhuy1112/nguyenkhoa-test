@@ -251,6 +251,101 @@
     return OWNER_PALETTE[Math.abs(hash) % OWNER_PALETTE.length];
   }
 
+  /**
+   * Vtiger Tag.tpl doesn't expose a stable tag key for styling.
+   * We derive a normalized slug from the visible label and attach it as data-tag,
+   * so CSS can reuse the same palette as Lead Create/Edit pills.
+   */
+  /** Display label / English tier name → canonical tag key (LeadsMkEdit.css data-tag). */
+  var TAG_LABEL_ALIASES = {
+    silver: "bac",
+    gold: "vang",
+    bronze: "dong",
+    vang: "vang",
+    bac: "bac",
+    dong: "dong",
+    facebook: "facebook",
+    tiktok: "tiktok",
+    website: "website",
+    zalo: "zalo",
+    individual: "individual",
+    company: "company",
+    mua_lan_dau: "mua_lan_dau",
+    mua_lai: "mua_lai",
+    khong_mua: "khong_mua",
+    ngung_mua: "ngung_mua",
+    chua_hoc: "chua_hoc",
+    da_hoc: "da_hoc",
+    nguyen_lieu_chuoi: "nguyen_lieu_chuoi",
+    mien_phi_online: "mien_phi_online",
+    mien_phi_offline: "mien_phi_offline",
+    pcth: "pcth",
+    van_hanh: "van_hanh",
+    mkt: "mkt",
+    lop_khac: "lop_khac",
+    nhuong_quyen: "nhuong_quyen",
+    kv1: "kv1",
+    kv2: "kv2",
+    kv3: "kv3",
+  };
+
+  function slugifyTagLabel(label) {
+    var s = String(label || "").trim().toLowerCase();
+    if (!s) return "";
+    if (s.charAt(0) === "#") s = s.slice(1);
+    try {
+      s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    } catch (e) {}
+    s = s
+      .replace(/đ/g, "d")
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .replace(/_+/g, "_");
+    return s;
+  }
+
+  function resolveTagSlug(label) {
+    var slug = slugifyTagLabel(label);
+    if (!slug) return "";
+    return TAG_LABEL_ALIASES[slug] || slug;
+  }
+
+  function applyVtigerTagDataAttrs(rootEl) {
+    var rootNode = rootEl && rootEl.querySelector ? rootEl : document;
+    if (!rootNode || !rootNode.querySelectorAll) return;
+    var tags = rootNode.querySelectorAll(".tagContainer .tag, .detailTagList .tag, .multiLevelTagList .tag");
+    for (var i = 0; i < tags.length; i++) {
+      var el = tags[i];
+      var labelEl = el.querySelector(".tagLabel");
+      var label = labelEl ? labelEl.textContent : el.getAttribute("title") || "";
+      var slug = resolveTagSlug(label);
+      if (slug) el.setAttribute("data-tag", slug);
+    }
+  }
+
+  // Run once and keep in sync when tags are edited/added.
+  if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function () {
+        applyVtigerTagDataAttrs(document);
+      });
+    } else {
+      applyVtigerTagDataAttrs(document);
+    }
+    try {
+      var mo = new MutationObserver(function (mutations) {
+        for (var j = 0; j < mutations.length; j++) {
+          var m = mutations[j];
+          if (m.addedNodes && m.addedNodes.length) {
+            applyVtigerTagDataAttrs(document);
+            break;
+          }
+        }
+      });
+      mo.observe(document.documentElement || document.body, { childList: true, subtree: true });
+    } catch (e) {}
+  }
+
   root.LeadsLeadsLogic = {
     derive: derive,
     daysSince: daysSince,

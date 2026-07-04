@@ -925,7 +925,11 @@
 		host.innerHTML = (lead.tags || [])
 			.map(function (t) {
 				return (
-					'<span class="tag">' +
+					'<span class="tag ' +
+					tagChipClass(t) +
+					'" data-tag="' +
+					esc(t) +
+					'">' +
 					esc(tagChipLabel(t)) +
 					' <a href="javascript:void(0)" class="mk-ld-ui-tag-remove" data-tag="' +
 					esc(t) +
@@ -933,6 +937,9 @@
 				);
 			})
 			.join(' ');
+		if (window.MkLeadsDetailTags && window.MkLeadsDetailTags.paintAll) {
+			window.MkLeadsDetailTags.paintAll();
+		}
 	}
 
 	function renderActivityLog(lead) {
