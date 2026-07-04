@@ -547,8 +547,11 @@
 					allowClear: true,
 					width: '100%',
 					minimumInputLength: 0,
-					language: { noResults: function () { return 'Không tìm thấy'; } }
+					formatNoMatches: function () { return 'Không tìm thấy sản phẩm'; },
+					formatSearching: function () { return 'Đang tìm...'; },
+					dropCssClass: 'mk-inv-s2-drop'
 				});
+				$sel.data('select2').container.addClass('mk-inv-product-select-s2');
 			}
 		} catch (e) { /* select2 not available, plain select is fine */ }
 	}
