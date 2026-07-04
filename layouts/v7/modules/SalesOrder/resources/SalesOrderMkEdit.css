@@ -873,14 +873,56 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 	margin-bottom: 0;
 }
 
-/* Single full-width field (description, etc.) */
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:has(> td.fieldValueWidth80),
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:has(> td.fieldValue[colspan]) {
+/* Single full-width field (description, etc.) — skip address block which uses its own grid on tbody */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block:not(.mk-inv-address-odoo) > table > tbody > tr:has(> td.fieldValueWidth80),
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block:not(.mk-inv-address-odoo) > table > tbody > tr:has(> td.fieldValue[colspan]) {
 	grid-template-columns: 1fr !important;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block:not(.mk-inv-address-odoo) > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) {
 	grid-template-columns: 1fr !important;
+}
+
+/* Address block: horizontal 2-column layout for bill_street + ship_street */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block.mk-inv-address-odoo > table.table,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block.mk-inv-address-odoo > table.table-borderless,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block.mk-inv-address-odoo > table.addressBlock {
+	display: block !important;
+	width: 100% !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block.mk-inv-address-odoo > table > tbody {
+	display: grid !important;
+	grid-template-columns: 1fr 1fr !important;
+	gap: 16px 28px !important;
+	width: 100% !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block.mk-inv-address-odoo > table > tbody > tr:not(.mk-inv-hide-legacy) {
+	display: flex !important;
+	flex-direction: column !important;
+	grid-template-columns: none !important;
+	gap: 6px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	min-width: 0 !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block.mk-inv-address-odoo > table > tbody > tr.mk-inv-hide-legacy {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block.mk-inv-address-odoo td.fieldValue.fieldValueWidth80 {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block.mk-inv-address-odoo textarea {
+	width: 100% !important;
+	min-height: 72px !important;
+	max-height: 120px !important;
+	box-sizing: border-box !important;
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td {

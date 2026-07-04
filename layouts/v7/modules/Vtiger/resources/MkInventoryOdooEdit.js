@@ -293,10 +293,10 @@
 		var $billLabel = $form.find('[name="bill_street"]').closest('tr').find('td.fieldLabel label').first();
 		var $shipLabel = $form.find('[name="ship_street"]').closest('tr').find('td.fieldLabel label').first();
 		if ($billLabel.length) {
-			$billLabel.html('Địa chỉ lập hóa đơn <span class="redColor">*</span>');
+			$billLabel.html('<span class="redColor">*</span> Địa chỉ');
 		}
 		if ($shipLabel.length) {
-			$shipLabel.html('Địa chỉ giao hàng <span class="redColor">*</span>');
+			$shipLabel.html('<span class="redColor">*</span> Địa chỉ vận chuyển');
 		}
 	}
 
@@ -365,6 +365,41 @@
 		}
 	}
 
+	function restructureAddressHorizontal($form) {
+		var $block = $form.find('.mk-inv-address-odoo');
+		if (!$block.length || $block.data('mkInvAddrHoriz')) { return; }
+
+		var $billTa = $form.find('textarea[name="bill_street"]');
+		var $shipTa = $form.find('textarea[name="ship_street"]');
+		if (!$billTa.length || !$shipTa.length) { return; }
+		$block.data('mkInvAddrHoriz', true);
+
+		var $table = $block.find('table.addressBlock');
+		if (!$table.length) { $table = $block.find('table').first(); }
+		if (!$table.length) { return; }
+
+		$table.addClass('mk-inv-hide-legacy');
+		$block.find('> hr').addClass('mk-inv-hide-legacy');
+
+		var $wrap = $('<div class="mk-inv-addr-horiz"></div>');
+
+		var $colLeft = $('<div class="mk-inv-addr-col"></div>');
+		$colLeft.append('<div class="mk-inv-addr-label-wrap"><span class="redColor">*</span> Địa chỉ</div>');
+		$colLeft.append($billTa.detach());
+
+		var $colRight = $('<div class="mk-inv-addr-col"></div>');
+		var $shipLabelHtml = '<div class="mk-inv-addr-label-wrap"><span class="redColor">*</span> Địa chỉ vận chuyển</div>';
+		$colRight.append($shipLabelHtml);
+		var $shipSame = $form.find('#mkInvShipSameAsBill').closest('label');
+		if ($shipSame.length) {
+			$colRight.find('.mk-inv-addr-label-wrap').append(' ').append($shipSame.detach());
+		}
+		$colRight.append($shipTa.detach());
+
+		$wrap.append($colLeft).append($colRight);
+		$block.find('.fieldBlockHeader').after($wrap);
+	}
+
 	function initAddressOdoo($form) {
 		var $block = $form.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]');
 		if (!$block.length || $block.data('mkInvAddrOdoo')) {
@@ -375,6 +410,7 @@
 		hideAddressDetailRows($form);
 		localizeAddressBlock($form);
 		injectShipSameCheckbox($form);
+		restructureAddressHorizontal($form);
 		registerAddressAutofill($form);
 	}
 
@@ -499,6 +535,24 @@
 		}, 80);
 	}
 
+	function applySelect2ToProductDropdown($sel) {
+		if (!$sel.length || $sel.data('mkSelect2Applied')) {
+			return;
+		}
+		$sel.data('mkSelect2Applied', true);
+		try {
+			if ($.fn.select2) {
+				$sel.select2({
+					placeholder: '— Chọn sản phẩm —',
+					allowClear: true,
+					width: '100%',
+					minimumInputLength: 0,
+					language: { noResults: function () { return 'Không tìm thấy'; } }
+				});
+			}
+		} catch (e) { /* select2 not available, plain select is fine */ }
+	}
+
 	function injectProductDropdown($row, $form) {
 		var $productTd = $row.find('input.productName').closest('td');
 		if (!$productTd.length || $productTd.find('.mk-inv-product-select').length) {
@@ -529,6 +583,7 @@
 			if (currentId) {
 				$sel.val(currentId);
 			}
+			applySelect2ToProductDropdown($sel);
 		});
 
 		$sel.on('change.mkInvProduct', function () {
@@ -585,6 +640,13 @@
 	}
 
 	function getPrimaryTaxPercent($form) {
+		var $taxSel = $form.find('.mk-inv-tax-select').first();
+		if ($taxSel.length) {
+			var selVal = $taxSel.val();
+			if (selVal === 'exempt') { return 0; }
+			var parsed = parseFloat(selVal);
+			if (!isNaN(parsed)) { return parsed; }
+		}
 		var pct = 0;
 		$form.find('.groupTaxPercentage').each(function () {
 			var v = parseFloat($(this).val());
@@ -602,7 +664,7 @@
 				}
 			});
 		}
-		return pct || 10;
+		return pct;
 	}
 
 	function syncProductDesc($row) {
@@ -622,9 +684,17 @@
 		}
 	}
 
+	var TAX_RATE_OPTIONS = [
+		{ value: '10', label: '10%' },
+		{ value: '8', label: '8%' },
+		{ value: '5', label: '5%' },
+		{ value: '0', label: '0%' },
+		{ value: 'exempt', label: 'VAT EXEMPTION' }
+	];
+
 	function syncRowTaxPill($row, $form) {
-		var $pill = $row.find('.mk-inv-tax-pill');
-		if (!$pill.length) {
+		var $sel = $row.find('.mk-inv-tax-select');
+		if (!$sel.length) {
 			return;
 		}
 		var pct = 0;
@@ -635,10 +705,60 @@
 				return false;
 			}
 		});
-		if (!pct) {
+		if (!pct && !$sel.data('mkUserChanged')) {
 			pct = getPrimaryTaxPercent($form);
 		}
-		$pill.text(pct + '%');
+		var strVal = String(pct);
+		if ($sel.val() !== strVal && !$sel.data('mkUserChanged')) {
+			$sel.val(strVal);
+		}
+	}
+
+	function injectTaxDropdown($row, $form) {
+		var $taxTd = $row.find('.mk-inv-col-tax');
+		if (!$taxTd.length || $taxTd.find('.mk-inv-tax-select').length) {
+			return;
+		}
+		$taxTd.find('.mk-inv-tax-pill').remove();
+
+		var $sel = $('<select class="mk-inv-tax-select inputElement" title="Thuế"></select>');
+		TAX_RATE_OPTIONS.forEach(function (opt) {
+			$sel.append($('<option></option>').attr('value', opt.value).text(opt.label));
+		});
+
+		var currentPct = 0;
+		$row.find('.taxPercentage').each(function () {
+			var v = parseFloat($(this).val());
+			if (!isNaN(v) && v > 0) {
+				currentPct = v;
+				return false;
+			}
+		});
+		if (!currentPct) {
+			currentPct = getPrimaryTaxPercent($form);
+		}
+		$sel.val(String(currentPct));
+
+		$sel.on('change.mkInvTax', function () {
+			$sel.data('mkUserChanged', true);
+			var val = $(this).val();
+			var pct = val === 'exempt' ? 0 : parseFloat(val) || 0;
+			$row.find('.taxPercentage').each(function () {
+				$(this).val(pct);
+			});
+			var $groupTax = $form.find('.groupTaxPercentage').first();
+			if ($groupTax.length) {
+				$groupTax.val(pct);
+			}
+			triggerLineRecalc($row, $form);
+			setTimeout(function () {
+				$form.data('mkInvSyncingTotals', false);
+				var fn = $form.data('mkScheduleRealtimeSync');
+				if (fn) { fn(); }
+			}, 150);
+		});
+
+		$taxTd.empty().append($sel);
 	}
 
 	function syncRowAmounts($row) {
@@ -676,7 +796,7 @@
 		if ($cell.find('input.listPrice').length) {
 			return 'Đơn giá';
 		}
-		if ($cell.hasClass('mk-inv-col-tax')) {
+		if ($cell.hasClass('mk-inv-col-tax') || $cell.find('.mk-inv-tax-select').length) {
 			return 'Thuế';
 		}
 		if ($cell.find('.productTotal').length) {
@@ -819,8 +939,9 @@
 		}
 		var $priceTd = $row.find('input.listPrice').closest('td');
 		if ($priceTd.length && !$row.find('.mk-inv-col-tax').length) {
-			$priceTd.after('<td class="mk-inv-col-tax"><span class="mk-inv-tax-pill">10%</span></td>');
+			$priceTd.after('<td class="mk-inv-col-tax"></td>');
 		}
+		injectTaxDropdown($row, $form);
 		syncRowTaxPill($row, $form);
 		syncProductDesc($row);
 		syncRowAmounts($row);
@@ -944,12 +1065,98 @@
 			obs.observe(el, { childList: true, characterData: true, subtree: true });
 		});
 
-		$form.on('focusout.mkInvTot change.mkInvTot input.mkInvTot', '.qty, .listPrice, .taxPercentage, .groupTaxPercentage', function () {
+		var _realtimeTimer = null;
+		function scheduleRealtimeSync() {
+			if (_realtimeTimer) { clearTimeout(_realtimeTimer); }
+			_realtimeTimer = setTimeout(function () {
+				_realtimeTimer = null;
+				$form.data('mkInvSyncingTotals', true);
+				var lineSum = 0;
+				$form.find('tr.lineItemRow').each(function () {
+					var $r = $(this);
+					var qty = parseMoney($r.find('.qty').val());
+					var price = parseMoney($r.find('.listPrice').val());
+					var total = qty * price;
+					var $pt = $r.find('.productTotal');
+					if ($pt.length) {
+						$pt.data('mkRawAmount', total);
+						writeAmountDisplay($pt, total);
+					}
+					lineSum += total;
+				});
+				var taxPct = getPrimaryTaxPercent($form);
+				var taxAmt = Math.round((lineSum * taxPct) / 100);
+				var grand = lineSum + taxAmt;
+				var $result = $form.find('#lineItemResult');
+				if ($result.length) {
+					writeAmountDisplay($result.find('#netTotal, .netTotal'), lineSum);
+					$result.find('#subtotal, input[name="subtotal"]').val(lineSum);
+					writeAmountDisplay($result.find('#preTaxTotal'), lineSum);
+					$result.find('#pre_tax_total').val(lineSum);
+					writeAmountDisplay($result.find('#tax_final'), taxAmt);
+					$form.find('.groupTaxTotal').first().val(taxAmt);
+					writeAmountDisplay($result.find('#grandTotal, .grandTotal'), grand);
+					$form.find('#total, input[name="total"]').val(grand);
+					var $taxRow = $result.find('#group_tax_row');
+					if ($taxRow.length) {
+						$taxRow.removeClass('mk-inv-totals-hide hide').addClass('mk-inv-totals-row mk-inv-totals-row--tax');
+						$taxRow.find('td:first').html('<div class="pull-right"><strong>Thuế GTGT ' + taxPct + '%</strong></div>');
+					}
+				}
+				setTimeout(function () { $form.data('mkInvSyncingTotals', false); }, 50);
+			}, 100);
+		}
+
+		$form.on('focusout.mkInvTot change.mkInvTot', '.qty, .listPrice, .taxPercentage, .groupTaxPercentage, .mk-inv-tax-select', function () {
 			setTimeout(function () {
 				restyleLineItemRows($form);
 				syncTotalsDisplay($form);
 			}, 60);
 		});
+
+		$form.on('input.mkInvTotRealtime keyup.mkInvTotRealtime change.mkInvTotRealtime', '.qty, .listPrice', function () {
+			scheduleRealtimeSync();
+		});
+
+		function bindDirectPriceEvents() {
+			$form.find('input.listPrice').each(function () {
+				var $el = $(this);
+				if ($el.data('mkDirectPriceBound')) { return; }
+				$el.data('mkDirectPriceBound', true);
+				$el.on('input.mkPriceDirect keyup.mkPriceDirect change.mkPriceDirect', function () {
+					scheduleRealtimeSync();
+				});
+				$el.on('focusout.mkPriceDirect', function () {
+					var $row = $el.closest('tr.lineItemRow');
+					if ($row.length) {
+						triggerLineRecalc($row, $form);
+						setTimeout(function () { scheduleRealtimeSync(); }, 200);
+					}
+				});
+			});
+		}
+		bindDirectPriceEvents();
+		$form.data('mkBindDirectPriceEvents', bindDirectPriceEvents);
+		$form.data('mkScheduleRealtimeSync', scheduleRealtimeSync);
+
+		var _lastPriceSnapshot = {};
+		setInterval(function () {
+			var changed = false;
+			$form.find('tr.lineItemRow').each(function () {
+				var $r = $(this);
+				var rowId = $r.attr('id') || $r.index();
+				var curPrice = $r.find('.listPrice').val() || '';
+				var curQty = $r.find('.qty').val() || '';
+				var key = curQty + '|' + curPrice;
+				if (_lastPriceSnapshot[rowId] !== key) {
+					_lastPriceSnapshot[rowId] = key;
+					changed = true;
+				}
+			});
+			if (changed) {
+				scheduleRealtimeSync();
+			}
+		}, 500);
 
 		$form.on('mkSoWarehouseSelected.mkInv', function (_e, warehouse) {
 			if (warehouse && warehouse.id) {
@@ -965,11 +1172,21 @@
 			syncProductDesc($(this).closest('tr'));
 		});
 
+		$form.on('change.mkInvTaxDd', '.mk-inv-tax-select', function () {
+			setTimeout(function () {
+				$form.data('mkInvSyncingTotals', false);
+				restyleLineItemRows($form);
+				scheduleRealtimeSync();
+			}, 80);
+		});
+
 		if (typeof app !== 'undefined' && app.event) {
 			app.event.on('post.LineItemPopupSelection.click', function () {
 				setTimeout(function () {
 					restyleLineItemRows($form);
 					syncTotalsDisplay($form);
+					var fn = $form.data('mkBindDirectPriceEvents');
+					if (fn) { fn(); }
 				}, 200);
 			});
 		}
@@ -1118,6 +1335,8 @@
 			setTimeout(function () {
 				restyleLineItemRows($form);
 				syncTotalsDisplay($form);
+				var fn = $form.data('mkBindDirectPriceEvents');
+				if (fn) { fn(); }
 			}, 50);
 		});
 
@@ -1126,6 +1345,8 @@
 				setTimeout(function () {
 					restyleLineItemRows($form);
 					syncTotalsDisplay($form);
+					var fn = $form.data('mkBindDirectPriceEvents');
+					if (fn) { fn(); }
 				}, 80);
 			});
 		}
