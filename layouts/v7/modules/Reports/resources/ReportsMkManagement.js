@@ -105,6 +105,10 @@
 		if (typeof jQuery === 'undefined') {
 			return;
 		}
+		if (window.__mkMgmtUiBound) {
+			return;
+		}
+		window.__mkMgmtUiBound = true;
 		jQuery(document).on('change', '.js-mgmt-select-project-all', function() {
 			var checked = jQuery(this).is(':checked');
 			jQuery('.js-mgmt-select-project').prop('checked', checked);
@@ -196,6 +200,10 @@
 		});
 		jQuery(document).on('click', '.js-mgmt-export-confirm', function(e) {
 			e.preventDefault();
+			if (window.__mkMgmtExportBusy) {
+				return;
+			}
+			window.__mkMgmtExportBusy = true;
 			var form = jQuery('#mgmt-report-filter-form');
 			var fmt = jQuery('input[name="mgmt_export_format"]:checked').val() || 'excel';
 			var dateFrom = (form.find('[name="date_from"]').val() || '').trim();
@@ -230,10 +238,17 @@
 			var extMap = { excel: 'xlsx', csv: 'csv', pdf: 'pdf' };
 			var filename = 'management_report.' + (extMap[fmt] || 'xlsx');
 			jQuery('#mgmtExportModal').modal('hide');
-			if (typeof fetch === 'function') {
-				fetch(url, { credentials: 'same-origin' })
+			var resetExportBusy = function() {
+				window.__mkMgmtExportBusy = false;
+			};
+			var downloadViaFetch = function() {
+				return fetch(url, { credentials: 'same-origin' })
 					.then(function(resp) {
 						if (!resp.ok) {
+							throw new Error('export_failed');
+						}
+						var contentType = (resp.headers.get('Content-Type') || '').toLowerCase();
+						if (contentType.indexOf('text/html') !== -1 || contentType.indexOf('application/json') !== -1) {
 							throw new Error('export_failed');
 						}
 						var disposition = resp.headers.get('Content-Disposition') || '';
@@ -244,6 +259,9 @@
 						return resp.blob();
 					})
 					.then(function(blob) {
+						if (!blob || !blob.size) {
+							throw new Error('export_failed');
+						}
 						var objectUrl = window.URL.createObjectURL(blob);
 						var link = document.createElement('a');
 						link.href = objectUrl;
@@ -252,12 +270,17 @@
 						link.click();
 						link.remove();
 						window.URL.revokeObjectURL(objectUrl);
-					})
-					.catch(function() {
-						alert('Không xuất được báo cáo. Vui lòng thử lại.');
 					});
+			};
+			if (typeof fetch === 'function') {
+				downloadViaFetch()
+					.catch(function() {
+						window.location.href = url;
+					})
+					.finally(resetExportBusy);
 			} else {
 				window.location.href = url;
+				setTimeout(resetExportBusy, 1500);
 			}
 		});
 	}
