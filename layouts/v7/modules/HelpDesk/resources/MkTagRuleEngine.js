@@ -13,6 +13,7 @@
 		trash: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
 		copy: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
 		plus: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+		search: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
 	};
 
 	function esc(s) {
@@ -87,8 +88,12 @@
 				+ '</div>';
 
 			this.$root.html(html);
+			this.$root.find('.mk-tre-page').addClass('mk-tre-page--init');
 			this.renderStats();
 			this.renderPanel();
+			window.setTimeout(function () {
+				$('#mk-tag-rule-engine .mk-tre-page').removeClass('mk-tre-page--init');
+			}, 500);
 		},
 
 		renderStats: function () {
@@ -120,14 +125,14 @@
 
 		renderPanel: function () {
 			var $panel = $('#mk-tre-panel');
-			$panel.addClass('is-switching');
-			this.renderStats();
 			if (this.activeTab === 'rules') $panel.html(this.renderRulesTab());
 			else if (this.activeTab === 'tags') $panel.html(this.renderTagsTab());
 			else $panel.html(this.renderScenariosTab());
-			window.setTimeout(function () {
-				$panel.removeClass('is-switching');
-			}, 320);
+		},
+
+		refreshAfterDataChange: function () {
+			this.renderStats();
+			this.renderPanel();
 		},
 
 		renderRulesTab: function () {
@@ -169,13 +174,15 @@
 			);
 		},
 
-		renderTagsTab: function () {
+		renderTagsTableBody: function () {
 			var self = this;
 			var tags = store.getTags().filter(function (t) {
 				return !self.tagSearch || t.name.toLowerCase().indexOf(self.tagSearch.toLowerCase()) >= 0;
 			});
-
-			var rows = tags.map(function (t) {
+			if (!tags.length) {
+				return '<tr><td colspan="5" class="mk-tre-empty">Không có tag phù hợp</td></tr>';
+			}
+			return tags.map(function (t) {
 				var used = store.getTagUsageCount(t.id);
 				return ''
 					+ '<tr>'
@@ -189,18 +196,30 @@
 					+ '  </td>'
 					+ '</tr>';
 			}).join('');
+		},
 
-			var searchRow = '<div class="mk-tre-section__tools"><input type="search" class="mk-tre-input mk-tre-input--search js-tre-tag-search" placeholder="Tìm tag theo tên..." value="' + esc(this.tagSearch) + '" /></div>';
+		updateTagsTable: function () {
+			$('#mk-tre-panel .js-tre-tags-tbody').html(this.renderTagsTableBody());
+		},
+
+		renderTagsTab: function () {
+			var tagActions = ''
+				+ '<div class="mk-tre-section__actions-row">'
+				+ '  <label class="mk-tre-search-field">'
+				+ '    <span class="mk-tre-search-field__icon" aria-hidden="true">' + ICONS.search + '</span>'
+				+ '    <input type="search" class="mk-tre-input mk-tre-input--search js-tre-tag-search" placeholder="Tìm tag theo tên..." value="' + esc(this.tagSearch) + '" autocomplete="off" />'
+				+ '  </label>'
+				+ '  <button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-tag-create">' + ICONS.plus + ' Tạo tag</button>'
+				+ '</div>';
 
 			return this.renderSection(
 				'Danh sách tag',
 				'Tag dùng làm điều kiện trong rule. Cột “Dùng ở rule” cho biết số rule đang tham chiếu.',
-				'<button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-tag-create">' + ICONS.plus + ' Tạo tag</button>',
-				searchRow
-				+ '<div class="mk-tre-table-wrap"><table class="mk-tre-table">'
+				tagActions,
+				'<div class="mk-tre-table-wrap"><table class="mk-tre-table">'
 				+ '<colgroup><col class="mk-tre-col-name" /><col class="mk-tre-col-group" /><col class="mk-tre-col-desc" /><col class="mk-tre-col-used" /><col class="mk-tre-col-act" /></colgroup>'
 				+ '<thead><tr><th>Tên</th><th>Nhóm</th><th>Mô tả</th><th>Dùng ở rule</th><th class="mk-tre-th-actions">Thao tác</th></tr></thead>'
-				+ '<tbody>' + (rows || '<tr><td colspan="5" class="mk-tre-empty">Không có tag phù hợp</td></tr>') + '</tbody>'
+				+ '<tbody class="js-tre-tags-tbody">' + this.renderTagsTableBody() + '</tbody>'
 				+ '</table></div>'
 			);
 		},
@@ -346,7 +365,9 @@
 
 			this.$root.on('input', '.js-tre-tag-search', function () {
 				self.tagSearch = $(this).val();
-				self.renderPanel();
+				if (self.activeTab === 'tags') {
+					self.updateTagsTable();
+				}
 			});
 
 			this.$root.on('change', '.js-tre-rule-toggle', function () {
@@ -359,7 +380,7 @@
 				var name = $(this).data('name');
 				if (window.confirm('Xoá rule "' + name + '"?')) {
 					store.deleteRule($(this).data('id'));
-					self.renderPanel();
+					self.refreshAfterDataChange();
 					toast('Đã xoá rule');
 				}
 			});
@@ -372,7 +393,7 @@
 				if (used > 0 && !window.confirm('Tag đang dùng trong ' + used + ' rule. Vẫn xoá?')) return;
 				if (!window.confirm('Xoá tag "' + name + '"?')) return;
 				store.deleteTag($(this).data('id'));
-				self.renderPanel();
+				self.refreshAfterDataChange();
 				toast('Đã xoá tag');
 			});
 
@@ -381,7 +402,7 @@
 			this.$root.on('click', '.js-tre-sc-del', function () {
 				if (window.confirm('Xoá "' + $(this).data('title') + '"?')) {
 					store.deleteScenario($(this).data('id'));
-					self.renderPanel();
+					self.refreshAfterDataChange();
 					toast('Đã xoá');
 				}
 			});
@@ -413,7 +434,7 @@
 				if (id) store.updateRule(id, data);
 				else store.createRule(data);
 				self.closeModal();
-				self.renderPanel();
+				self.refreshAfterDataChange();
 				toast('Đã lưu');
 			});
 
@@ -427,7 +448,7 @@
 				if (id) store.updateTag(id, data);
 				else store.createTag(data);
 				self.closeModal();
-				self.renderPanel();
+				self.refreshAfterDataChange();
 				toast('Đã lưu');
 			});
 
@@ -441,7 +462,7 @@
 				if (id) store.updateScenario(id, data);
 				else store.createScenario(data);
 				self.closeModal();
-				self.renderPanel();
+				self.refreshAfterDataChange();
 				toast('Đã lưu');
 			});
 		},

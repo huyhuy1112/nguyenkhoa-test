@@ -83,11 +83,34 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 }
 
 .mk-tre-panel {
-	animation: tre-fade-in 0.3s ease both;
+	/* no animation on tab switch — avoids double flash */
 }
 
-.mk-tre-panel.is-switching {
-	animation: tre-fade-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+.mk-tre-page--init .mk-tre-panel {
+	animation: tre-fade-in 0.35s ease both;
+}
+
+.mk-tre-page--init .mk-tre-stat-card {
+	animation: tre-fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mk-tre-page--init .mk-tre-stat-card:nth-child(1) { animation-delay: 0.04s; }
+.mk-tre-page--init .mk-tre-stat-card:nth-child(2) { animation-delay: 0.08s; }
+.mk-tre-page--init .mk-tre-stat-card:nth-child(3) { animation-delay: 0.12s; }
+.mk-tre-page--init .mk-tre-stat-card:nth-child(4) { animation-delay: 0.16s; }
+
+.mk-tre-page--init .mk-tre-table tbody tr {
+	animation: tre-fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mk-tre-page--init .mk-tre-table tbody tr:nth-child(1) { animation-delay: 0.03s; }
+.mk-tre-page--init .mk-tre-table tbody tr:nth-child(2) { animation-delay: 0.06s; }
+.mk-tre-page--init .mk-tre-table tbody tr:nth-child(3) { animation-delay: 0.09s; }
+.mk-tre-page--init .mk-tre-table tbody tr:nth-child(4) { animation-delay: 0.12s; }
+.mk-tre-page--init .mk-tre-table tbody tr:nth-child(5) { animation-delay: 0.15s; }
+
+.mk-tre-page--init .mk-tre-scenario-card {
+	animation: tre-fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* ---- Hero header ---- */
@@ -181,7 +204,6 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	flex-direction: column;
 	gap: 6px;
 	transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-	animation: tre-fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .mk-tre-stat-card:nth-child(1) { animation-delay: 0.04s; }
@@ -272,12 +294,50 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	flex-shrink: 0;
 }
 
-.mk-tre-section__body {
-	padding: 0;
+.mk-tre-section__actions-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 14px;
+	flex-wrap: wrap;
 }
 
-.mk-tre-section__tools {
-	padding: 18px 28px 0;
+.mk-tre-search-field {
+	position: relative;
+	display: flex;
+	align-items: center;
+	flex: 1 1 300px;
+	max-width: 400px;
+	min-width: 240px;
+}
+
+.mk-tre-search-field__icon {
+	position: absolute;
+	left: 16px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--tre-text-muted);
+	display: inline-flex;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.mk-tre-search-field .mk-tre-input--search {
+	width: 100%;
+	max-width: none;
+	padding-left: 46px;
+	padding-right: 16px;
+	min-height: 48px;
+	background: #f8fafb;
+	border-color: var(--tre-border);
+}
+
+.mk-tre-search-field .mk-tre-input--search:focus {
+	background: var(--tre-surface);
+}
+
+.mk-tre-section__body {
+	padding: 0;
 }
 
 .mk-tre-section__body .mk-tre-table-wrap {
@@ -702,16 +762,15 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	padding: 28px 30px;
 	box-shadow: var(--tre-shadow-sm);
 	transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.25s ease;
-	animation: tre-fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
 }
 
-.mk-tre-scenario-card:nth-child(1) { animation-delay: 0.04s; }
-.mk-tre-scenario-card:nth-child(2) { animation-delay: 0.08s; }
-.mk-tre-scenario-card:nth-child(3) { animation-delay: 0.12s; }
-.mk-tre-scenario-card:nth-child(4) { animation-delay: 0.16s; }
+.mk-tre-page--init .mk-tre-scenario-card:nth-child(1) { animation-delay: 0.04s; }
+.mk-tre-page--init .mk-tre-scenario-card:nth-child(2) { animation-delay: 0.08s; }
+.mk-tre-page--init .mk-tre-scenario-card:nth-child(3) { animation-delay: 0.12s; }
+.mk-tre-page--init .mk-tre-scenario-card:nth-child(4) { animation-delay: 0.16s; }
 
 .mk-tre-scenario-card:hover {
 	transform: translateY(-4px);
@@ -937,17 +996,6 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	font-size: 1.0625rem;
 }
 
-/* Table row stagger */
-.mk-tre-table tbody tr {
-	animation: tre-fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.mk-tre-table tbody tr:nth-child(1) { animation-delay: 0.03s; }
-.mk-tre-table tbody tr:nth-child(2) { animation-delay: 0.06s; }
-.mk-tre-table tbody tr:nth-child(3) { animation-delay: 0.09s; }
-.mk-tre-table tbody tr:nth-child(4) { animation-delay: 0.12s; }
-.mk-tre-table tbody tr:nth-child(5) { animation-delay: 0.15s; }
-
 @media (max-width: 1024px) {
 	.mk-tre-stats {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -970,6 +1018,14 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	}
 	.mk-tre-hero {
 		padding: 20px 22px;
+	}
+	.mk-tre-section__actions-row {
+		width: 100%;
+		justify-content: stretch;
+	}
+	.mk-tre-search-field {
+		flex: 1 1 100%;
+		max-width: none;
 	}
 	.mk-tre-section__head {
 		padding: 18px 20px;
