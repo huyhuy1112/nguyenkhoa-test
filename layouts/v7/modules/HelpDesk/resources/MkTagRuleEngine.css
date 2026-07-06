@@ -261,13 +261,18 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 
 .mk-tre-section__head {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	justify-content: space-between;
-	gap: 20px;
+	gap: 24px;
 	padding: 22px 28px;
 	border-bottom: 1px solid var(--tre-border-soft);
 	background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
+}
+
+.mk-tre-section__titles {
+	flex: 1 1 auto;
+	min-width: 0;
 }
 
 .mk-tre-stat-card--accent .mk-tre-stat-card__value {
@@ -292,6 +297,29 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 
 .mk-tre-section__actions {
 	flex-shrink: 0;
+	align-self: center;
+}
+
+/* Filter bar — search above table (Tag tab) */
+.mk-tre-section__filterbar {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 28px;
+	background: #f8fafb;
+	border-bottom: 1px solid var(--tre-border-soft);
+}
+
+.mk-tre-search-field--bar {
+	flex: 1 1 auto;
+	max-width: 480px;
+	min-width: 0;
+}
+
+.mk-tre-search-field--bar .mk-tre-input--search {
+	min-height: 44px;
+	background: var(--tre-surface);
+	box-shadow: var(--tre-shadow-sm);
 }
 
 .mk-tre-section__actions-row {
@@ -299,7 +327,7 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	align-items: center;
 	justify-content: flex-end;
 	gap: 14px;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 }
 
 .mk-tre-search-field {
@@ -308,7 +336,7 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	align-items: center;
 	flex: 1 1 300px;
 	max-width: 400px;
-	min-width: 240px;
+	min-width: 200px;
 }
 
 .mk-tre-search-field__icon {
@@ -1019,17 +1047,21 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	.mk-tre-hero {
 		padding: 20px 22px;
 	}
-	.mk-tre-section__actions-row {
-		width: 100%;
-		justify-content: stretch;
-	}
-	.mk-tre-search-field {
-		flex: 1 1 100%;
-		max-width: none;
-	}
 	.mk-tre-section__head {
 		padding: 18px 20px;
-		flex-direction: column;
+		flex-wrap: wrap;
+		align-items: flex-start;
+	}
+	.mk-tre-section__filterbar {
+		padding: 12px 20px;
+	}
+	.mk-tre-search-field--bar {
+		max-width: none;
+	}
+	.mk-tre-section__actions {
+		width: 100%;
+		display: flex;
+		justify-content: flex-end;
 	}
 	.mk-tre-table th,
 	.mk-tre-table td {

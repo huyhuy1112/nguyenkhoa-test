@@ -203,25 +203,31 @@
 		},
 
 		renderTagsTab: function () {
-			var tagActions = ''
-				+ '<div class="mk-tre-section__actions-row">'
-				+ '  <label class="mk-tre-search-field">'
-				+ '    <span class="mk-tre-search-field__icon" aria-hidden="true">' + ICONS.search + '</span>'
-				+ '    <input type="search" class="mk-tre-input mk-tre-input--search js-tre-tag-search" placeholder="Tìm tag theo tên..." value="' + esc(this.tagSearch) + '" autocomplete="off" />'
-				+ '  </label>'
-				+ '  <button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-tag-create">' + ICONS.plus + ' Tạo tag</button>'
-				+ '</div>';
-
-			return this.renderSection(
-				'Danh sách tag',
-				'Tag dùng làm điều kiện trong rule. Cột “Dùng ở rule” cho biết số rule đang tham chiếu.',
-				tagActions,
-				'<div class="mk-tre-table-wrap"><table class="mk-tre-table">'
+			return ''
+				+ '<section class="mk-tre-section">'
+				+ '  <div class="mk-tre-section__head">'
+				+ '    <div class="mk-tre-section__titles">'
+				+ '      <h2 class="mk-tre-section__title">Danh sách tag</h2>'
+				+ '      <p class="mk-tre-section__sub">Tag dùng làm điều kiện trong rule. Cột “Dùng ở rule” cho biết số rule đang tham chiếu.</p>'
+				+ '    </div>'
+				+ '    <div class="mk-tre-section__actions">'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-tag-create">' + ICONS.plus + ' Tạo tag</button>'
+				+ '    </div>'
+				+ '  </div>'
+				+ '  <div class="mk-tre-section__filterbar">'
+				+ '    <label class="mk-tre-search-field mk-tre-search-field--bar">'
+				+ '      <span class="mk-tre-search-field__icon" aria-hidden="true">' + ICONS.search + '</span>'
+				+ '      <input type="search" class="mk-tre-input mk-tre-input--search js-tre-tag-search" placeholder="Tìm tag theo tên..." value="' + esc(this.tagSearch) + '" autocomplete="off" />'
+				+ '    </label>'
+				+ '  </div>'
+				+ '  <div class="mk-tre-section__body">'
+				+ '    <div class="mk-tre-table-wrap"><table class="mk-tre-table">'
 				+ '<colgroup><col class="mk-tre-col-name" /><col class="mk-tre-col-group" /><col class="mk-tre-col-desc" /><col class="mk-tre-col-used" /><col class="mk-tre-col-act" /></colgroup>'
 				+ '<thead><tr><th>Tên</th><th>Nhóm</th><th>Mô tả</th><th>Dùng ở rule</th><th class="mk-tre-th-actions">Thao tác</th></tr></thead>'
 				+ '<tbody class="js-tre-tags-tbody">' + this.renderTagsTableBody() + '</tbody>'
 				+ '</table></div>'
-			);
+				+ '  </div>'
+				+ '</section>';
 		},
 
 		renderScenariosTab: function () {
