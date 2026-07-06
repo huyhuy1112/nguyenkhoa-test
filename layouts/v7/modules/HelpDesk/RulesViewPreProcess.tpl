@@ -4,10 +4,13 @@
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SUPPORT') || (isset($smarty.get.app) && $smarty.get.app eq 'SUPPORT') || !isset($smarty.get.app) || $smarty.get.app eq ''}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
-<script type="text/javascript">document.documentElement.classList.add('mk-hd-ui-ready');</script>
+<script type="text/javascript">document.documentElement.classList.add('mk-hd-ui-ready', 'mk-tre-ui-ready');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/HelpDesk/resources/HelpDeskRulesList.css')}" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css')}" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/HelpDesk/resources/Rules.js')}"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-helpdesk-rules="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

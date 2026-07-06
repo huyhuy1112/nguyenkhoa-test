@@ -119,7 +119,7 @@
 									{if $moduleName eq 'Rules'}{assign var=_mkModActive value=true}{/if}
 								{/if}
 								<a class="mk-dash-mod-link{if $_mkModActive} mk-dash-mod-link--active{/if}" href="{$moduleModel->getDefaultUrl()}&app={$APP_NAME}">
-									<span class="mk-dash-mod-label">{vtranslate($moduleName, $moduleName)}</span>
+									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
 								</a>
 							{/if}
 						{/foreach}

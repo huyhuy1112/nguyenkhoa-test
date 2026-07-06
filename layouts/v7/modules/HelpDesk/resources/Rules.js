@@ -1,8 +1,5 @@
 /*+***********************************************************************************
- * HelpDesk Rules view controller
- *
- * Needed so app.controller() can instantiate a controller and invoke Vtiger_Index_Js.registerEvents(),
- * which registers the app-menu (hamburger) toggle handlers.
+ * HelpDesk Rules view — Tag Rule Engine (Quản lý rule / tag / kịch bản)
  *************************************************************************************/
 
 Vtiger_Index_Js('HelpDesk_Rules_Js', {}, {
@@ -14,13 +11,15 @@ Vtiger_Index_Js('HelpDesk_Rules_Js', {}, {
 			return;
 		}
 
-		// Hide HelpDesk Tickets module action bar on Rules list only (same pattern as RuleEdit).
 		var $bc = jQuery('.module-breadcrumb-Rules');
 		if ($bc.length) {
 			$bc.closest('.module-action-bar').hide();
 		} else {
 			$rulesPage.closest('.main-container').find('.module-action-bar').first().hide();
 		}
+
+		if (window.MkTagRuleEngine && typeof window.MkTagRuleEngine.init === 'function') {
+			window.MkTagRuleEngine.init();
+		}
 	}
 });
-
