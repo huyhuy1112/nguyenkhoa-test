@@ -134,9 +134,11 @@ class Vtiger_Functions {
 
 	static function getCurrencySymbolandRate($currencyid) {
 		$currencyInfo = self::getCurrencyInfo($currencyid);
+		require_once 'include/utils/MkCurrencyBranding.php';
+		$symbol = $currencyInfo ? $currencyInfo['currency_symbol'] : '';
 		$currencyRateSymbol = array(
 			'rate' => $currencyInfo ? $currencyInfo['conversion_rate'] : 0,
-			'symbol'=>$currencyInfo ? $currencyInfo['currency_symbol'] : ""
+			'symbol' => MkCurrencyBranding::normalizeSymbol($symbol),
 		);
 		return $currencyRateSymbol;
 	}

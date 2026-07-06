@@ -932,6 +932,8 @@ function getInventoryCurrencyInfo($module, $id)
 	$currency_info['currency_name'] = $adb->query_result($res,0,'currency_name');
 	$currency_info['currency_code'] = $adb->query_result($res,0,'currency_code');
 	$currency_info['currency_symbol'] = $adb->query_result($res,0,'currency_symbol');
+	require_once 'include/utils/MkCurrencyBranding.php';
+	$currency_info['currency_symbol'] = MkCurrencyBranding::normalizeSymbol($currency_info['currency_symbol']);
 
 	$log->debug("Exit from function getInventoryCurrencyInfo($module, $id).");
 

@@ -173,12 +173,12 @@
 				if (title) title.textContent = 'Sửa kho';
 				if (submit) submit.textContent = 'Lưu';
 				if (editInput) editInput.value = w.id;
-				qs('#mkWhMgmtCode').value = w.code;
-				qs('#mkWhMgmtName').value = w.name;
+				qs('#mkWhMgmtCode').value = decodeEntities(w.code);
+				qs('#mkWhMgmtName').value = decodeEntities(w.name);
 				qs('#mkWhMgmtType').value = w.type;
 				qs('#mkWhMgmtStatus').value = w.status;
-				qs('#mkWhMgmtAddress').value = w.address || '';
-				qs('#mkWhMgmtManager').value = w.manager || '';
+				qs('#mkWhMgmtAddress').value = decodeEntities(w.address || '');
+				qs('#mkWhMgmtManager').value = decodeEntities(w.manager || '');
 			} else {
 				if (title) title.textContent = 'Tạo kho mới';
 				if (submit) submit.textContent = 'Tạo';
@@ -217,7 +217,7 @@
 			if (deleteId) {
 				e.preventDefault();
 				var w = S.getState().warehouses.find(function (x) { return x.id === deleteId; });
-				if (w && window.confirm('Xóa ' + w.name + '?')) {
+				if (w && window.confirm('Xóa ' + decodeEntities(w.name) + '?')) {
 					S.warehouseActions.remove(deleteId);
 					renderList();
 				}

@@ -4,20 +4,40 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260529_ps_create1';
+	var MK_BUILD = '20260706_ps_edit2';
 
 	function isScoped() {
 		return (
 			$('body').data('module') === 'ProductsServices' &&
 			$('body').data('view') === 'Edit' &&
 			($('body').data('app') === 'SALES' || !$('body').data('app')) &&
-			$('#mkPsCreateWorkspace').length &&
-			!$('input[name="record"]').val()
+			$('#mkPsCreateWorkspace').length
 		);
 	}
 
 	function $form() {
 		return $('#mkPsFormHost').find('form#EditView, form[name="EditView"]').first();
+	}
+
+	function hideExtraPriceFields() {
+		// Keep only "price" (base) and hide extra pricing fields.
+		var names = ['retail_price', 'wholesale_price', 'bulk_price'];
+		var $f = $form();
+		if (!$f.length) return;
+
+		names.forEach(function (n) {
+			// Most vtiger edit rows: <td class="fieldValue" data-fieldname="..."> ... </td>
+			var $valueCell = $f.find('td.fieldValue[data-fieldname="' + n + '"]');
+			if ($valueCell.length) {
+				$valueCell.closest('tr').addClass('mk-ps-hide-legacy');
+				return;
+			}
+			// Fallback: any input/select with name=field.
+			var $input = $f.find('[name="' + n + '"]');
+			if ($input.length) {
+				$input.closest('tr').addClass('mk-ps-hide-legacy');
+			}
+		});
 	}
 
 	function hideLegacyChrome() {
@@ -79,6 +99,10 @@
 		}
 		hideLegacyChrome();
 		styleFieldBlocks();
+		hideExtraPriceFields();
+		if (window.MkCurrency) {
+			window.MkCurrency.applyToDom('#mkPsFormHost');
+		}
 		bindActions();
 	}
 

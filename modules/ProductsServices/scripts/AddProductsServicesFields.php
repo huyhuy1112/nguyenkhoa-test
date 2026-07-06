@@ -49,6 +49,7 @@ if (!$blockInfo) {
 }
 
 // Product-only fields (in info block)
+addFieldIfMissing($module, $blockInfo, 'sku', 'SKU', 1, 'VARCHAR(100)', 'V~O');
 addFieldIfMissing($module, $blockInfo, 'brand', 'Brand', 1, 'VARCHAR(255)', 'V~O');
 addFieldIfMissing($module, $blockInfo, 'model', 'Model', 1, 'VARCHAR(255)', 'V~O');
 addFieldIfMissing($module, $blockInfo, 'unit', 'Unit', 15, 'VARCHAR(100)', 'V~O', array('Piece', 'Box', 'Set', 'Kg', 'Liter', 'Hour', 'Day', 'Month'));

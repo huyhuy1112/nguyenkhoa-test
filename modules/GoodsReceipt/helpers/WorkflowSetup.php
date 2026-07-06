@@ -120,6 +120,9 @@ class GoodsReceipt_WorkflowSetup_Helper {
 		if (empty($have['expired_date'])) {
 			$db->pquery("ALTER TABLE `{$table}` ADD COLUMN `expired_date` DATE DEFAULT NULL", array());
 		}
+		if (empty($have['storage_location'])) {
+			$db->pquery("ALTER TABLE `{$table}` ADD COLUMN `storage_location` VARCHAR(255) DEFAULT NULL", array());
+		}
 	}
 
 	public static function ensureGoodsReceiptExtendedColumns(PearDatabase $db) {

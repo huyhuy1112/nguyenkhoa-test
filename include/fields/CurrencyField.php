@@ -104,7 +104,8 @@ class CurrencyField {
 			$this->currencyId = self::getDBCurrencyId();
 		}
 		$currencyRateAndSymbol = getCurrencySymbolandCRate($this->currencyId);
-		$this->currencySymbol = $currencyRateAndSymbol['symbol'];
+		require_once 'include/utils/MkCurrencyBranding.php';
+		$this->currencySymbol = MkCurrencyBranding::normalizeSymbol($currencyRateAndSymbol['symbol']);
 		$this->conversionRate = $currencyRateAndSymbol['rate'];
 		$this->currencySymbolPlacement = $user->currency_symbol_placement;
 		$this->numberOfDecimal = getCurrencyDecimalPlaces($user);
@@ -179,6 +180,8 @@ class CurrencyField {
      */
 	public static function appendCurrencySymbol($currencyValue, $currencySymbol, $currencySymbolPlacement='') {
 		global $current_user;
+		require_once 'include/utils/MkCurrencyBranding.php';
+		$currencySymbol = MkCurrencyBranding::normalizeSymbol($currencySymbol);
 		if(empty($currencySymbolPlacement)) {
 			$currencySymbolPlacement = $current_user->currency_symbol_placement;
 		}

@@ -110,8 +110,8 @@
 							{if $APP_NAME eq 'INVENTORY' && ($moduleName eq 'GoodsReceipt' || $moduleName eq 'GoodsIssue' || $moduleName eq 'Warehouse')}{continue}{/if}
 							{if $moduleModel}
 								{assign var=_mkModActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq $moduleName)}
-								{* INVENTORY: Warehouse mgmt/prototype uses module=Warehouse but should not highlight Storage (Warehouse List) *}
-								{if $MODULE eq 'Warehouse' && ($VIEW eq 'Prototype' || $VIEW eq 'PrototypeDetail' || $VIEW eq 'WhList' || $VIEW eq 'WhDashboard' || $VIEW eq 'WhDetail' || $VIEW eq 'WhTransfer') && $moduleName eq 'Warehouse'}
+								{* INVENTORY: Warehouse mgmt uses module=Warehouse but should not highlight Storage (Warehouse List) *}
+								{if $MODULE eq 'Warehouse' && ($VIEW eq 'WhList' || $VIEW eq 'WhDashboard' || $VIEW eq 'WhDetail' || $VIEW eq 'WhTransfer') && $moduleName eq 'Warehouse'}
 									{assign var=_mkModActive value=false}
 								{/if}
 								{if $MODULE eq 'HelpDesk' && ($VIEW eq 'Rules' || $VIEW eq 'RuleDetail')}
@@ -159,10 +159,6 @@
 							{assign var=_mkWhTrfActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'WhTransfer')}
 							<a class="mk-dash-mod-link{if $_mkWhTrfActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhTransfer&amp;app=INVENTORY">
 								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_TRANSFER','Warehouse')}</span>
-							</a>
-							{assign var=_mkProtoActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'Prototype' || $VIEW eq 'PrototypeDetail'))}
-							<a class="mk-dash-mod-link{if $_mkProtoActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=Prototype&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_PROTO','Warehouse')}</span>
 							</a>
 						{/if}
 					</div>

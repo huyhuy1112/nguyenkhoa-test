@@ -11,9 +11,44 @@ class Warehouse_WhMgmtService {
 	public static function ensureInstalled() {
 		$db = PearDatabase::getInstance();
 		Warehouse_WorkflowSetup_Helper::runAll();
+		self::ensureProductSkuField();
 		if (!Warehouse_WorkflowSetup_Helper::isInstalled($db)) {
 			self::seedAll($db);
 		}
+	}
+
+	/**
+	 * Ensure Products & Services has an SKU column for warehouse linking.
+	 */
+	public static function ensureProductSkuField() {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		require_once 'vtlib/Vtiger/Module.php';
+		$module = Vtiger_Module::getInstance('ProductsServices');
+		if (!$module) {
+			return;
+		}
+		if (Vtiger_Field::getInstance('sku', $module)) {
+			return;
+		}
+		$block = Vtiger_Block::getInstance('LBL_PRODUCTS_SERVICES_INFORMATION', $module);
+		if (!$block) {
+			$block = Vtiger_Block::getInstance('LBL_PRODUCT_INFORMATION', $module);
+		}
+		if (!$block) {
+			return;
+		}
+		$field = new Vtiger_Field();
+		$field->name = 'sku';
+		$field->label = 'SKU';
+		$field->uitype = 1;
+		$field->column = 'sku';
+		$field->columntype = 'VARCHAR(100)';
+		$field->typeofdata = 'V~O';
+		$block->addField($field);
 	}
 
 	public static function seedAll(PearDatabase $db = null) {
@@ -333,14 +368,42 @@ class Warehouse_WhMgmtService {
 		$iso = $created !== '' ? gmdate('c', strtotime($created)) : gmdate('c');
 		return array(
 			'id' => (string) $row['code'],
-			'code' => (string) $row['code'],
-			'name' => (string) $row['name'],
+			'code' => self::decodeDisplayTextDeep((string) $row['code']),
+			'name' => self::decodeDisplayTextDeep((string) $row['name']),
 			'type' => (string) $row['type'],
-			'address' => (string) (isset($row['address']) ? $row['address'] : ''),
-			'manager' => (string) (isset($row['manager']) ? $row['manager'] : ''),
+			'address' => self::decodeDisplayTextDeep((string) (isset($row['address']) ? $row['address'] : '')),
+			'manager' => self::decodeDisplayTextDeep((string) (isset($row['manager']) ? $row['manager'] : '')),
 			'status' => (string) (isset($row['status']) ? $row['status'] : 'active'),
 			'createdAt' => $iso,
 		);
+	}
+
+	protected static function isAutoSku($sku) {
+		return (bool) preg_match('/^PS-\d+$/i', trim((string) $sku));
+	}
+
+	protected static function formatDisplaySku($sku) {
+		$sku = trim((string) $sku);
+		if ($sku === '' || self::isAutoSku($sku)) {
+			return '';
+		}
+		return $sku;
+	}
+
+	public static function resolveProductSku(PearDatabase $db, $productId) {
+		$productId = (int) $productId;
+		if ($productId <= 0) {
+			return '';
+		}
+		self::ensureProductSkuField();
+		$rs = $db->pquery(
+			'SELECT sku FROM vtiger_productsservices WHERE productsservicesid = ? LIMIT 1',
+			array($productId)
+		);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			return '';
+		}
+		return trim((string) $db->query_result($rs, 0, 'sku'));
 	}
 
 	public static function getWarehouseData(PearDatabase $db, $warehouseCode) {
@@ -408,6 +471,20 @@ class Warehouse_WhMgmtService {
 			$entry['note'] = trim((string) $note);
 		}
 		$meta['timeline'][] = $entry;
+	}
+
+	protected static function formatReceiptLocationNote(array $items) {
+		$locations = array();
+		foreach ($items as $item) {
+			$location = trim((string) (isset($item['storage_location']) ? $item['storage_location'] : ''));
+			if ($location !== '' && !in_array($location, $locations, true)) {
+				$locations[] = $location;
+			}
+		}
+		if (empty($locations)) {
+			return '';
+		}
+		return 'Vị trí: ' . implode(', ', $locations);
 	}
 
 	protected static function enrichQcTimelineFromMeta(array &$meta) {
@@ -555,7 +632,7 @@ class Warehouse_WhMgmtService {
 
 	protected static function loadReceiptItemsRaw(PearDatabase $db, $receiptId) {
 		$rs = $db->pquery(
-			'SELECT productid, product_name, quantity, serial_number, expired_date, line_note
+			'SELECT productid, product_name, quantity, serial_number, expired_date, line_note, storage_location
 			 FROM vtiger_goodsreceipt_items
 			 WHERE receiptid = ?
 			 ORDER BY itemid ASC',
@@ -616,7 +693,7 @@ class Warehouse_WhMgmtService {
 
 	protected static function loadReceiptItems(PearDatabase $db, $receiptId, array $meta = array()) {
 		$rs = $db->pquery(
-			'SELECT product_name, quantity, serial_number, expired_date, line_note
+			'SELECT product_name, quantity, serial_number, expired_date, line_note, storage_location
 			 FROM vtiger_goodsreceipt_items
 			 WHERE receiptid = ?
 			 ORDER BY itemid ASC',
@@ -628,12 +705,14 @@ class Warehouse_WhMgmtService {
 		$out = array();
 		while ($row = $db->fetchByAssoc($rs)) {
 			$sku = trim((string) (isset($row['line_note']) ? $row['line_note'] : ''));
+			$sku = self::formatDisplaySku($sku !== '' ? $sku : self::guessSkuFromName($row['product_name']));
 			$line = array(
-				'sku' => $sku !== '' ? $sku : self::guessSkuFromName($row['product_name']),
-				'name' => (string) $row['product_name'],
+				'sku' => $sku,
+				'name' => self::decodeDisplayTextDeep((string) $row['product_name']),
 				'lot' => (string) (isset($row['serial_number']) ? $row['serial_number'] : ''),
 				'expiry' => (string) (isset($row['expired_date']) ? $row['expired_date'] : ''),
 				'qty' => (float) $row['quantity'],
+				'location' => self::decodeDisplayTextDeep((string) (isset($row['storage_location']) ? $row['storage_location'] : '')),
 			);
 			if ($qcResult !== '') {
 				$line['qcResult'] = $qcResult;
@@ -712,11 +791,12 @@ class Warehouse_WhMgmtService {
 				$productId = (int) (isset($it['productid']) ? $it['productid'] : 0);
 				$qty = (float) (isset($it['quantity']) ? $it['quantity'] : 0);
 				$expiry = isset($it['expired_date']) && $it['expired_date'] !== '' ? $it['expired_date'] : null;
+				$location = trim((string) (isset($it['storage_location']) ? $it['storage_location'] : ''));
 				if ($name === '' || $lot === '' || $qty <= 0) {
 					continue;
 				}
 				if ($sku === '' && $productId > 0) {
-					$sku = 'PS-' . $productId;
+					$sku = self::resolveProductSku($db, $productId);
 				}
 				$price = 0;
 				if ($productId > 0) {
@@ -733,9 +813,11 @@ class Warehouse_WhMgmtService {
 					'qty' => $qty,
 					'expiry' => $expiry,
 					'price' => $price,
+					'location' => $location,
 				), $userId);
 			}
-			self::pushTimeline($meta, 'Đã nhập kho', $role, 'Vị trí: A1-02');
+			$locationNote = self::formatReceiptLocationNote($items);
+			self::pushTimeline($meta, 'Đã nhập kho', $role, $locationNote);
 		} else {
 			throw new Exception('Unsupported receipt action: ' . $actionKey);
 		}
@@ -776,10 +858,12 @@ class Warehouse_WhMgmtService {
 			$sku = trim((string) (isset($it['line_note']) ? $it['line_note'] : ''));
 			$productId = (int) (isset($it['productid']) ? $it['productid'] : 0);
 			if ($sku === '' && $productId > 0) {
-				$sku = 'PS-' . $productId;
+				$sku = self::resolveProductSku($db, $productId);
 			}
 
-			if ($sku !== '' && $lot !== '') {
+			if ($sku === '' || $lot === '') {
+				// Fall through to productId / name matching when SKU or lot is missing.
+			} else {
 				$key = self::stockProductKey($warehouseCode, $sku, $lot);
 				$rs = $db->pquery(
 					'SELECT stockid, quantity FROM vtiger_warehouse_stock WHERE product_key = ? LIMIT 1',
@@ -1028,9 +1112,10 @@ class Warehouse_WhMgmtService {
 		$out = array();
 		while ($row = $db->fetchByAssoc($rs)) {
 			$sku = trim((string) (isset($row['line_note']) ? $row['line_note'] : ''));
+			$sku = self::formatDisplaySku($sku !== '' ? $sku : self::guessSkuFromName($row['product_name']));
 			$out[] = array(
-				'sku' => $sku !== '' ? $sku : self::guessSkuFromName($row['product_name']),
-				'name' => (string) $row['product_name'],
+				'sku' => $sku,
+				'name' => self::decodeDisplayTextDeep((string) $row['product_name']),
 				'lot' => (string) (isset($row['serial_number']) ? $row['serial_number'] : ''),
 				'qty' => (float) $row['quantity'],
 			);
@@ -1040,7 +1125,7 @@ class Warehouse_WhMgmtService {
 
 	protected static function loadStock(PearDatabase $db, $warehouseCode) {
 		$rs = $db->pquery(
-			'SELECT product_key, product_name, quantity, last_price, expired_date, warehouse_name
+			'SELECT product_key, product_name, quantity, last_price, expired_date, warehouse_name, storage_location
 			 FROM vtiger_warehouse_stock
 			 WHERE warehouse_id = ?
 			 ORDER BY stockid ASC',
@@ -1051,14 +1136,15 @@ class Warehouse_WhMgmtService {
 			$key = (string) $row['product_key'];
 			$parts = explode('|', $key);
 			$sku = count($parts) >= 2 ? $parts[1] : self::guessSkuFromName($row['product_name']);
+			$sku = self::formatDisplaySku($sku);
 			$lot = count($parts) >= 3 ? $parts[2] : '';
 			$out[] = array(
 				'sku' => $sku,
-				'name' => (string) $row['product_name'],
+				'name' => self::decodeDisplayTextDeep((string) $row['product_name']),
 				'lot' => $lot,
 				'expiry' => (string) (isset($row['expired_date']) ? $row['expired_date'] : ''),
 				'qty' => (float) $row['quantity'],
-				'location' => '—',
+				'location' => self::decodeDisplayTextDeep((string) (isset($row['storage_location']) ? $row['storage_location'] : '')),
 				'price' => (float) (isset($row['last_price']) ? $row['last_price'] : 0),
 			);
 		}
@@ -1214,7 +1300,7 @@ class Warehouse_WhMgmtService {
 			$db = PearDatabase::getInstance();
 		}
 		$rs = $db->pquery(
-			'SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type
+			'SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku
 			 FROM vtiger_productsservices ps
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 			 ORDER BY ps.productsservicesname ASC
@@ -1232,12 +1318,13 @@ class Warehouse_WhMgmtService {
 			if ($name === '') {
 				continue;
 			}
+			$sku = self::formatDisplaySku(trim((string) (isset($row['sku']) ? $row['sku'] : '')));
 			$out[] = array(
 				'id' => $id,
 				'name' => $name,
 				'price' => (float) (isset($row['price']) ? $row['price'] : 0),
 				'type' => (string) (isset($row['item_type']) ? $row['item_type'] : ''),
-				'sku' => 'PS-' . $id,
+				'sku' => $sku,
 			);
 		}
 		return $out;
@@ -1334,22 +1421,26 @@ class Warehouse_WhMgmtService {
 				}
 			}
 			$sku = trim((string) (isset($line['sku']) ? $line['sku'] : ''));
-			if ($sku === '' && $productId > 0) {
-				$sku = 'PS-' . $productId;
+			if (($sku === '' || self::isAutoSku($sku)) && $productId > 0) {
+				$sku = self::resolveProductSku($db, $productId);
 			}
 			$lot = trim((string) (isset($line['lot']) ? $line['lot'] : ''));
 			$qty = (float) (isset($line['qty']) ? $line['qty'] : 0);
+			$location = trim((string) (isset($line['location']) ? $line['location'] : ''));
 			$expiry = isset($line['expiry']) && $line['expiry'] !== '—' ? $line['expiry'] : null;
 			if ($name === '' || $lot === '' || $qty <= 0) {
 				continue;
+			}
+			if ($productId > 0 && $sku === '') {
+				throw new Exception('Sản phẩm "' . $name . '" chưa có SKU. Hãy cập nhật SKU trong Products & Services trước khi nhập kho.');
 			}
 
 			$itemId = (int) $db->getUniqueID('vtiger_goodsreceipt_items');
 			$db->pquery(
 				'INSERT INTO vtiger_goodsreceipt_items
-				 (itemid, receiptid, productid, product_name, quantity, serial_number, expired_date, line_note)
-				 VALUES (?,?,?,?,?,?,?,?)',
-				array($itemId, $receiptId, $productId, $name, $qty, $lot, $expiry, $sku)
+				 (itemid, receiptid, productid, product_name, quantity, serial_number, expired_date, line_note, storage_location)
+				 VALUES (?,?,?,?,?,?,?,?,?)',
+				array($itemId, $receiptId, $productId, $name, $qty, $lot, $expiry, $sku, $location !== '' ? $location : null)
 			);
 
 			if (!$sendQc) {
@@ -1361,6 +1452,7 @@ class Warehouse_WhMgmtService {
 					'qty' => $qty,
 					'expiry' => $expiry,
 					'price' => isset($line['price']) ? (float) $line['price'] : 0,
+					'location' => $location,
 				), $userId);
 			}
 		}
@@ -1373,8 +1465,9 @@ class Warehouse_WhMgmtService {
 	}
 
 	protected static function findProductById(PearDatabase $db, $productId) {
+		self::ensureProductSkuField();
 		$rs = $db->pquery(
-			'SELECT ps.productsservicesid, ps.productsservicesname AS name, ps.price
+			'SELECT ps.productsservicesid, ps.productsservicesname AS name, ps.price, ps.sku
 			 FROM vtiger_productsservices ps
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 			 WHERE ps.productsservicesid = ?
@@ -1384,7 +1477,14 @@ class Warehouse_WhMgmtService {
 		if (!$rs || $db->num_rows($rs) < 1) {
 			return null;
 		}
-		return $db->fetchByAssoc($rs);
+		$row = $db->fetchByAssoc($rs);
+		if ($row && isset($row['name'])) {
+			$row['name'] = self::decodeDisplayTextDeep($row['name']);
+		}
+		if ($row) {
+			$row['sku'] = self::formatDisplaySku(isset($row['sku']) ? $row['sku'] : '');
+		}
+		return $row;
 	}
 
 	protected static function applyInboundStockLine(PearDatabase $db, $whCode, $whName, array $line, $userId) {
@@ -1392,6 +1492,7 @@ class Warehouse_WhMgmtService {
 		$lot = (string) $line['lot'];
 		$key = self::stockProductKey($whCode, $sku, $lot);
 		$qty = (float) $line['qty'];
+		$location = trim((string) (isset($line['location']) ? $line['location'] : ''));
 		$now = date('Y-m-d H:i:s');
 
 		$rs = $db->pquery(
@@ -1406,6 +1507,7 @@ class Warehouse_WhMgmtService {
 				 SET quantity = ?, product_name = ?, productid = ?, warehouse_id = ?, warehouse_name = ?,
 				     last_price = CASE WHEN ? > 0 THEN ? ELSE last_price END,
 				     expired_date = CASE WHEN ? IS NOT NULL AND ? <> \'\' THEN ? ELSE expired_date END,
+				     storage_location = CASE WHEN ? <> \'\' THEN ? ELSE storage_location END,
 				     updatedby = ?, updatedtime = ?
 				 WHERE stockid = ?',
 				array(
@@ -1419,6 +1521,8 @@ class Warehouse_WhMgmtService {
 					$line['expiry'],
 					$line['expiry'],
 					$line['expiry'],
+					$location,
+					$location,
 					$userId,
 					$now,
 					$stockId,
@@ -1432,8 +1536,8 @@ class Warehouse_WhMgmtService {
 		$db->pquery(
 			'INSERT INTO vtiger_warehouse_stock
 			 (stockid, code, product_key, productid, product_name, quantity, last_price,
-			  warehouse_id, warehouse_name, expired_date, createdtime, updatedtime, updatedby)
-			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+			  warehouse_id, warehouse_name, expired_date, storage_location, createdtime, updatedtime, updatedby)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
 			array(
 				$stockId,
 				$code,
@@ -1445,6 +1549,7 @@ class Warehouse_WhMgmtService {
 				$whCode,
 				$whName,
 				$line['expiry'],
+				$location !== '' ? $location : null,
 				$now,
 				$now,
 				$userId,

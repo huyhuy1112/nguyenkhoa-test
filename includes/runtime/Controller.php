@@ -280,7 +280,8 @@ abstract class Vtiger_View_Controller extends Vtiger_Action_Controller {
 		
 		if ($request->getModule() != 'Install') {
 			$userCurrencyInfo = getCurrencySymbolandCRate($currentUser->get('currency_id'));
-			$viewer->assign('USER_CURRENCY_SYMBOL', $userCurrencyInfo['symbol']);
+			require_once 'include/utils/MkCurrencyBranding.php';
+			$viewer->assign('USER_CURRENCY_SYMBOL', MkCurrencyBranding::normalizeSymbol($userCurrencyInfo['symbol']));
 		}
 		$viewer->assign('CURRENT_USER_MODEL', Users_Record_Model::getCurrentUserModel());
 
