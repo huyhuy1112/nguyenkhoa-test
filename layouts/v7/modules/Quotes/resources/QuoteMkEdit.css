@@ -309,6 +309,70 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card_
 	margin: 0;
 }
 
+/* Line-items header: pin add button on the right */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-inv-odoo-tabs {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-line-actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-line-actions #addProductsServices {
+	margin: 0 !important;
+}
+
+/* Rail address editor */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--address .mk-qt-addr-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 12px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--mk-qt-muted, #64748b);
+	margin: 0 0 6px;
+	display: block;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-copy {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--mk-qt-muted, #64748b);
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-ta {
+	width: 100%;
+	min-height: 96px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 10px 12px;
+	font-size: 13px;
+	line-height: 1.4;
+	resize: vertical;
+	box-sizing: border-box;
+	background: #fff;
+}
+
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row {
 	display: flex;
 	justify-content: space-between;

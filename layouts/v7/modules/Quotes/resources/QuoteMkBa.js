@@ -127,15 +127,16 @@
 
 	function injectCompanyReadonly($form) {
 		var company = cfg().company || {};
-		var $block = $form.find('.fieldBlockContainer[data-block="LBL_QUOTE_INFORMATION"]').first();
-		if (!$block.length || $block.find('.mk-qt-company-ro').length) {
+		var $rail = $('#mkQtQuoteRail');
+		if (!$rail.length || $rail.find('.mk-qt-company-ro').length) {
 			return;
 		}
+		// Force NK brand name in UI (BA request)
+		company = $.extend({}, company, { company_name: 'Nguyên Khoa' });
 		var rows = [
 			['Tên công ty', company.company_name],
 			['Mã số thuế', company.tax_code],
 			['Website', company.website],
-			['Địa chỉ', company.address],
 			['Ngân hàng', company.bank_name],
 			['Số tài khoản', company.bank_account],
 			['Chủ tài khoản', company.account_holder]
@@ -159,17 +160,70 @@
 				cells +
 				'</div></div>'
 		);
-		var $table = $block.find('table.table-borderless').first();
-		if ($table.length) {
-			$table.prepend(
-				$('<tr class="mk-qt-company-ro-row"><td colspan="4" class="fieldValue fieldValueWidth80"></td></tr>')
-					.find('td')
-					.append($panel)
-					.end()
-			);
+		// Move company panel to rail under summary card
+		var $card = $('<div class="mk-qt-rail-card mk-qt-rail-card--company"></div>');
+		$card.append($panel);
+		var $summary = $rail.find('.mk-qt-rail-card--summary').first();
+		if ($summary.length) {
+			$summary.after($card);
 		} else {
-			$block.find('.fieldBlockHeader').after($panel);
+			$rail.append($card);
 		}
+	}
+
+	function injectAddressEditorToRail($form) {
+		var $rail = $('#mkQtQuoteRail');
+		if (!$rail.length || $rail.find('.mk-qt-address-rail').length) {
+			return;
+		}
+		var $bill = $form.find('[name="bill_street"]').first();
+		var $ship = $form.find('[name="ship_street"]').first();
+		if (!$bill.length || !$ship.length) {
+			return;
+		}
+
+		var $card = $('<div class="mk-qt-rail-card mk-qt-rail-card--address mk-qt-address-rail"></div>');
+		$card.append('<div class="mk-qt-rail-card__head"><span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h2 class="mk-qt-rail-card__title">Địa chỉ</h2></div>');
+		$card.append(
+			'<div class="mk-qt-addr-grid">' +
+				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="mkQtBillStreetRail">Địa chỉ</label><textarea id="mkQtBillStreetRail" class="mk-qt-addr-ta" rows="4"></textarea></div>' +
+				'<div class="mk-qt-addr-col"><div class="mk-qt-addr-row"><label class="mk-qt-addr-label" for="mkQtShipStreetRail">Địa chỉ vận chuyển</label><label class="mk-qt-addr-copy"><input type="checkbox" id="mkQtAddrSame" /> Giống địa chỉ lập hoá đơn</label></div><textarea id="mkQtShipStreetRail" class="mk-qt-addr-ta" rows="4"></textarea></div>' +
+			'</div>'
+		);
+
+		var $summary = $rail.find('.mk-qt-rail-card--company').first();
+		if ($summary.length) {
+			$summary.after($card);
+		} else {
+			$rail.append($card);
+		}
+
+		var $billRail = $('#mkQtBillStreetRail');
+		var $shipRail = $('#mkQtShipStreetRail');
+		var $same = $('#mkQtAddrSame');
+
+		$billRail.val($bill.val() || '');
+		$shipRail.val($ship.val() || '');
+
+		$billRail.on('input', function () {
+			$bill.val($(this).val());
+			if ($same.is(':checked')) {
+				$shipRail.val($(this).val());
+				$ship.val($(this).val());
+			}
+		});
+		$shipRail.on('input', function () {
+			$ship.val($(this).val());
+		});
+		$same.on('change', function () {
+			if ($(this).is(':checked')) {
+				$shipRail.val($billRail.val());
+				$ship.val($billRail.val());
+			}
+		});
+
+		// Hide the original address block in main form (avoid duplicate)
+		$form.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]').addClass('mk-qt-hide-legacy');
 	}
 
 	function initBaDefaults($form) {
@@ -266,6 +320,7 @@
 
 		var boot = function () {
 			injectCompanyReadonly($form);
+			injectAddressEditorToRail($form);
 			initBaDefaults($form);
 			markReadonlyComputed($form);
 			syncVatAndWords($form);

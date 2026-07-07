@@ -5,6 +5,20 @@
 <script type="text/javascript">document.documentElement.classList.add('mk-quote-create-ready', 'mk-inv-odoo-active');</script>
 <style type="text/css">
 	/* Anti-FOUC: hide legacy vtiger form chrome before JS enhances */
+	html.mk-quote-create-ready body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root,
+	html.mk-quote-create-ready body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .editViewPageDiv {
+		opacity: 0 !important;
+		visibility: hidden !important;
+		pointer-events: none !important;
+	}
+	html.mk-quote-create-enhanced body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root,
+	html.mk-quote-create-enhanced body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .editViewPageDiv {
+		opacity: 1 !important;
+		visibility: visible !important;
+		pointer-events: auto !important;
+		transition: none !important;
+	}
+
 	html.mk-quote-create-ready #mkQtFormHost #modnavigator,
 	html.mk-quote-create-ready #mkQtFormHost .editViewModNavigator,
 	html.mk-quote-create-ready #mkQtFormHost .module-nav,
@@ -48,12 +62,12 @@
 <script type="text/javascript">window.__MK_QUOTE_BA_CONFIG = {$MK_QUOTE_BA_CONFIG_JSON nofilter};</script>
 {/if}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260603_no_dup_footer" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260704_block_fix1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260704_fouc_v2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260707_quote_items_fix2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260707_quote_items_fix2" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260704_fouc_v2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}&mk_v=20260704_fouc_v2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}&mk_v=20260704_fouc_v2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260707_quote_items_fix2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}&mk_v=20260707_quote_items_fix2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}&mk_v=20260707_quote_notes_label_fix1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-quote-create="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

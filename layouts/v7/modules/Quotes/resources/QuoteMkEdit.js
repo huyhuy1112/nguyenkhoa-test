@@ -160,7 +160,7 @@
 		}
 		var html = stripLegacySignatureHtml(prepareTermsHtml($ta.val() || '', true));
 		if (!$.trim(html)) {
-			$preview.html('<span class="mk-qt-terms-preview__placeholder">Nhấn để nhập điều khoản &amp; điều kiện…</span>');
+			$preview.html('<span class="mk-qt-terms-preview__placeholder">Nhấn để nhập ghi chú…</span>');
 			return;
 		}
 		$preview.html(html);
@@ -232,7 +232,7 @@
 				'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
 				'<h4 class="modal-title" id="' +
 				TERMS_MODAL_ID +
-				'Label">Điều khoản &amp; điều kiện</h4>' +
+				'Label">Ghi chú</h4>' +
 				'</div>' +
 				'<div class="modal-body">' +
 				'<textarea id="' +
@@ -349,6 +349,9 @@
 	}
 
 	function injectTermsTemplatePicker($ta) {
+		// UX change: "Điều kiện & điều khoản" is no longer used.
+		// Keep notes minimal: no template picker.
+		return;
 		if (!$ta.length || $ta.closest('td').find('.mk-qt-terms-template-wrap').length) {
 			return;
 		}
@@ -407,6 +410,10 @@
 
 		// Bỏ nội dung mặc định / chữ ký cũ — user tự nhập.
 		var cleaned = stripLegacySignatureHtml(prepareTermsHtml($ta.val() || '', true));
+		// For new quotes, keep notes EMPTY by default (no "terms template" content).
+		if (isNewQuoteRecord()) {
+			cleaned = '';
+		}
 		$ta.val(cleaned);
 
 		var $preview = $(
@@ -415,10 +422,6 @@
 		$ta.addClass('mk-qt-terms-source').attr({ 'aria-hidden': 'true', tabindex: '-1' });
 		$ta.after($preview);
 		injectTermsTemplatePicker($ta);
-
-		if (isNewQuoteRecord() && !$.trim(cleaned)) {
-			applyTermsTemplate($ta, 'standard', true);
-		}
 
 		syncTermsPreview($ta, $preview);
 
@@ -476,6 +479,39 @@
 		$form()
 			.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]')
 			.addClass('mk-qt-address-simplified');
+	}
+
+	function reorderQuoteBlocks() {
+		var $editForm = $form();
+		var $info = $editForm.find('.fieldBlockContainer[data-block="LBL_QUOTE_INFORMATION"]').first();
+		var $items = $editForm.find('#lineItemTab').closest('.fieldBlockContainer').first();
+		var $totals = $editForm.find('#lineItemResult').closest('.fieldBlockContainer').first();
+		var $addr = $editForm.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]').first();
+		var $terms = $editForm.find('.fieldBlockContainer[data-block="LBL_TERMS_INFORMATION"]').first();
+		if ($info.length && $items.length) {
+			$items.insertAfter($info);
+		}
+		if ($totals.length && $items.length) {
+			$totals.insertAfter($items);
+		}
+		if ($addr.length && ($totals.length || $items.length)) {
+			$addr.insertAfter($totals.length ? $totals : $items);
+		}
+		if ($terms.length && $addr.length) {
+			$terms.insertAfter($addr);
+		}
+		// Rename Terms block header to "Ghi chú"
+		if ($terms.length) {
+			var $h = $terms.find('.fieldBlockHeader').first();
+			if ($h.length) {
+				$h.contents().filter(function () { return this.nodeType === 3; }).each(function () {
+					this.nodeValue = String(this.nodeValue || '').replace(/Điều khoản.*$/i, 'Ghi chú');
+				});
+				if ($.trim($h.text()) === '' || /LBL_TERMS_INFORMATION/.test($h.text())) {
+					$h.text('Ghi chú');
+				}
+			}
+		}
 	}
 
 	function initBaForm() {
@@ -592,6 +628,98 @@
 		$('#mkQtRailTotal').text(total || '—');
 	}
 
+	function hideRailNoiseCards() {
+		var $rail = $('#mkQtQuoteRail');
+		if (!$rail.length) {
+			return;
+		}
+		$rail
+			.find('.mk-qt-rail-card--summary, .mk-qt-rail-card--muted, .mk-qt-rail-card--ai')
+			.addClass('mk-qt-hide-legacy');
+	}
+
+	function moveAssignedToIntoRail() {
+		var $editForm = $form();
+		var $rail = $('#mkQtQuoteRail');
+		if (!$editForm.length || !$rail.length) {
+			return;
+		}
+		// Hide "Phụ trách" row in main form
+		var $assigned = $editForm.find('[name="assigned_user_id"]').first();
+		if ($assigned.length) {
+			$assigned.closest('tr').addClass('mk-qt-hide-legacy');
+		}
+		// Make rail card usable: swap text with the actual field
+		var $card = $rail.find('.mk-qt-rail-card:has(#mkQtRailOwner), .mk-qt-rail-card:contains(\"Assigned To\")').first();
+		if (!$card.length || $card.data('mkQtAssignedReady')) {
+			return;
+		}
+		$card.data('mkQtAssignedReady', true);
+		var $host = $('<div class="mk-qt-rail-field"></div>');
+		if ($assigned.length) {
+			$host.append($assigned.detach());
+			$card.find('#mkQtRailOwner').replaceWith($host);
+			try {
+				if (typeof vtUtils !== 'undefined' && vtUtils.applyFieldElementsView) {
+					vtUtils.applyFieldElementsView($card);
+				}
+			} catch (e) { /* ignore */ }
+		}
+	}
+
+	function moveNotesIntoQuoteInfo() {
+		var $editForm = $form();
+		var $terms = $editForm.find('textarea[name=\"terms_conditions\"]').first();
+		if (!$terms.length) {
+			return;
+		}
+		var $termsRow = $terms.closest('tr');
+		var $termsBlock = $terms.closest('.fieldBlockContainer[data-block=\"LBL_TERMS_INFORMATION\"]');
+		var $infoBlock = $editForm.find('.fieldBlockContainer[data-block=\"LBL_QUOTE_INFORMATION\"]').first();
+		if (!$infoBlock.length) {
+			return;
+		}
+		// Move the row up to quote info block (place where "Phụ trách" used to be)
+		if ($termsRow.length) {
+			$termsRow
+				.find('td.fieldLabel label, td.fieldLabel .muted, td.fieldLabel')
+				.each(function () {
+					var $el = $(this);
+					// Only rewrite if it still shows the legacy title
+					var t = $.trim($el.text() || '');
+					if (!t) {
+						return;
+					}
+					if (/điều\s*kiện|điều\s*khoản/i.test(t)) {
+						$el.text('Ghi chú');
+					}
+				});
+			$infoBlock.find('table.table-borderless').first().append($termsRow.detach());
+		}
+		// Hide the original Terms block entirely (remove the old bottom notes area)
+		if ($termsBlock.length) {
+			$termsBlock.addClass('mk-qt-hide-legacy');
+		}
+	}
+
+	function forceRenameTermsToNotes() {
+		var $host = $('#mkQtFormHost');
+		if (!$host.length) {
+			return;
+		}
+		// Some templates render the label as plain text node (not <label>).
+		$host.find('.fieldLabel, .fieldBlockHeader, label, h4, span, div').each(function () {
+			var $el = $(this);
+			var text = $el.text();
+			if (!text) {
+				return;
+			}
+			if (/Điều\s*kiện\s*&\s*điều\s*khoản/i.test(text) || /Điều\s*kiện\s*và\s*điều\s*khoản/i.test(text)) {
+				$el.text(text.replace(/Điều\s*kiện\s*(?:&|và)\s*điều\s*khoản/gi, 'Ghi chú'));
+			}
+		});
+	}
+
 	function markDirty() {
 		var $el = $('#mkQtAutosave');
 		$el.addClass('is-dirty').removeClass('is-saved');
@@ -689,6 +817,25 @@
 		}
 	}
 
+	function pinAddProductToLineHeader() {
+		var $editForm = $form();
+		var $lineBlock = $editForm.find('#lineItemTab').closest('.fieldBlockContainer');
+		if (!$lineBlock.length) {
+			return;
+		}
+		var $tabs = $lineBlock.find('.mk-inv-odoo-tabs').first();
+		var $addBtn = $editForm.find('#addProductsServices').first();
+		if (!$tabs.length || !$addBtn.length) {
+			return;
+		}
+		if ($tabs.find('.mk-qt-line-actions').length) {
+			return;
+		}
+		var $actions = $('<div class="mk-qt-line-actions" aria-label="Thao tác dòng sản phẩm"></div>');
+		$actions.append($addBtn.detach());
+		$tabs.append($actions);
+	}
+
 	function runEnhancements() {
 		if (!isScoped()) {
 			return;
@@ -697,7 +844,13 @@
 		hideLegacyChrome();
 		styleFieldBlocks();
 		simplifyQuoteForm();
+		reorderQuoteBlocks();
 		initOdooInventoryUi();
+		pinAddProductToLineHeader();
+		hideRailNoiseCards();
+		moveAssignedToIntoRail();
+		moveNotesIntoQuoteInfo();
+		forceRenameTermsToNotes();
 		fixFormDisplayEncoding();
 		initBaForm();
 		initTermsRichEditor();

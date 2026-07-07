@@ -536,10 +536,18 @@
 	}
 
 	function applySelect2ToProductDropdown($sel) {
-		if (!$sel.length || $sel.data('mkSelect2Applied')) {
+		if (!$sel.length) {
 			return;
 		}
-		$sel.data('mkSelect2Applied', true);
+		// NOTE:
+		// Vtiger may clone line item rows with jQuery and copy $.data().
+		// If we rely on a custom "already applied" flag, the 2nd+ row can skip select2 init
+		// and lose the search/filter box. Use select2's own state instead.
+		try {
+			if ($sel.data('select2')) {
+				return;
+			}
+		} catch (ignore) { /* continue */ }
 		try {
 			if ($.fn.select2) {
 				$sel.select2({
@@ -565,14 +573,11 @@
 			} catch (e) { /* ignore */ }
 		}
 		$nameInput.removeClass('autoComplete').addClass('mk-inv-hide-legacy').attr({ type: 'hidden', tabindex: '-1' });
-		// Some vtiger templates wrap the whole product UI inside `.col-lg-10`.
-		// If we hide that wrapper, our injected dropdown disappears too.
-		$productTd
-			.find('.itemNameDiv .col-lg-10')
-			.filter(function () {
-				return $(this).find('.mk-inv-product-select, .mk-inv-product-select-s2').length === 0;
-			})
-			.addClass('mk-inv-hide-legacy');
+		// IMPORTANT:
+		// Do NOT hide `.itemNameDiv .col-lg-10` wrapper.
+		// In Quotes/SalesOrder, vtiger may re-render cells and momentarily move/replace the injected
+		// select2 container; hiding this wrapper can make the dropdown "flash then disappear"
+		// especially from the 2nd line item onward.
 		$productTd.find('.lineItemCommentBox').closest('div').addClass('mk-inv-hide-legacy');
 		// Keep our new product dropdown Select2 visible
 		$productTd

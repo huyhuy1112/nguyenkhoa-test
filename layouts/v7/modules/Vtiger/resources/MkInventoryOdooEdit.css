@@ -984,6 +984,7 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-ta
 
 /* ── Select2 v3 dropdown panel (appended to body) ── */
 .select2-drop.select2-drop-active {
+	z-index: 2147483640 !important;
 	border: 1.5px solid #e2e8f0 !important;
 	border-radius: 12px !important;
 	box-shadow: 0 10px 40px rgba(15, 23, 42, 0.14), 0 2px 10px rgba(15, 23, 42, 0.06) !important;

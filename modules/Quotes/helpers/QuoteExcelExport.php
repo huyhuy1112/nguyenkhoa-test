@@ -371,8 +371,9 @@ class Quotes_QuoteExcelExport_Helper {
 				$drawing->setDescription('Nguyên Khoa');
 				$drawing->setPath($logoPath);
 				$drawing->setHeight(88);
-				$drawing->setCoordinates('D1');
-				$drawing->setOffsetX(10);
+				// Center in B..H (roughly middle is E)
+				$drawing->setCoordinates('E1');
+				$drawing->setOffsetX(0);
 				$drawing->setOffsetY(6);
 				$drawing->setWorksheet($sheet);
 			}
