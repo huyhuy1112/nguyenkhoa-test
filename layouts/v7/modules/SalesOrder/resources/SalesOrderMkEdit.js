@@ -147,6 +147,16 @@
 				}
 				$block.find('> hr').addClass('mk-so-hide-legacy');
 				$block.find('table.table-borderless').addClass('mk-so-fields-table');
+
+				// Highlight payment method field row
+				$block
+					.find('select[name="mk_payment_terms"], select[name="payment_duration"]')
+					.each(function () {
+						var $row = $(this).closest('tr');
+						if ($row.length) {
+							$row.addClass('mk-so-payment-method');
+						}
+					});
 			});
 
 		$form().find('#lineItemTab').closest('.fieldBlockContainer').addClass('mk-so-block mk-so-block--line-items');
@@ -689,6 +699,36 @@
 			});
 	}
 
+	function ensureMandatoryHiddenDefaults() {
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
+		// Subject is mandatory in vtiger Inventory modules; keep it filled even if hidden.
+		var $subject = $editForm.find('input[name="subject"]').first();
+		if ($subject.length && !$subject.val()) {
+			var accountText = $.trim($editForm.find('[name="account_id_display"]').val() || $editForm.find('[name="account_id"]').closest('td').find('.select2-chosen').text());
+			$subject.val(('Đơn hàng' + (accountText ? ' - ' + accountText : '')).trim());
+		}
+		// Assigned user is mandatory but usually prefilled; ensure it has something.
+		var $assigned = $editForm.find('[name="assigned_user_id"]').first();
+		if ($assigned.length && !$assigned.val()) {
+			var fallback = $editForm.find('[name="assigned_user_id"] option').first().val();
+			if (fallback) {
+				$assigned.val(fallback);
+			}
+		}
+		// Keep subject synced when account changes (simple best-effort).
+		$editForm
+			.off('change.mkSoSubjectSync', '[name="account_id_display"]')
+			.on('change.mkSoSubjectSync', '[name="account_id_display"]', function () {
+				if ($subject.length && !$subject.val()) {
+					var txt = $.trim($(this).val());
+					$subject.val(('Đơn hàng' + (txt ? ' - ' + txt : '')).trim());
+				}
+			});
+	}
+
 	function bindActions() {
 		bindSaveValidationRecovery();
 		markOppCommerceRefreshOnSubmit();
@@ -736,11 +776,90 @@
 	}
 
 	function simplifySalesOrderForm() {
-		if ($form().data('mkSoSimplified')) {
-			return;
-		}
+		// Make this idempotent + re-runnable (form can re-render via ajax / vtiger hooks).
 		$form().data('mkSoSimplified', true);
-		var hideFields = [
+		var $editForm = $form();
+
+		// Keep only fields similar to BA screenshot.
+		// Everything else is hidden (but still present in DOM to not break save).
+		var allowNames = [
+			'account_id',
+			'account_id_display',
+			'duedate',
+			'mk_payment_terms',
+			'payment_duration',
+			'bill_street',
+			'ship_street',
+			'terms_conditions',
+			'currency_id'
+		];
+		var allowSet = {};
+		allowNames.forEach(function (n) { allowSet[n] = true; });
+
+		var hideRowIfNotAllowed = function ($row) {
+			// keep line item table rows intact
+			if ($row.closest('#lineItemTab, #lineItemResult').length) {
+				return;
+			}
+			var $fields = $row.find('input[name], select[name], textarea[name]');
+			if (!$fields.length) {
+				return;
+			}
+			var keep = false;
+			$fields.each(function () {
+				var name = $(this).attr('name');
+				if (name && allowSet[name]) {
+					keep = true;
+					return false;
+				}
+				return true;
+			});
+			if (!keep) {
+				$row.addClass('mk-so-hide-legacy');
+			}
+		};
+
+		// Hide non-allowed rows globally (covers blocks without data-block too).
+		$editForm.find('tr').each(function () {
+			hideRowIfNotAllowed($(this));
+		});
+
+		// Hide blocks that have no visible allowed rows (except line-items and terms).
+		$editForm.find('.fieldBlockContainer').each(function () {
+			var $block = $(this);
+			if ($block.find('#lineItemTab, #lineItemResult').length) {
+				return;
+			}
+			if ($block.find('textarea[name="terms_conditions"], [name="terms_conditions"]').length) {
+				return;
+			}
+			// Keep address block if it contains street fields.
+			if ($block.find('[name="bill_street"], [name="ship_street"]').length) {
+				return;
+			}
+			// Keep SO info block if it contains account/due/payment fields.
+			if ($block.find('[name="account_id"], [name="duedate"], [name="mk_payment_terms"], [name="payment_duration"]').length) {
+				return;
+			}
+
+			// If every row is hidden (or block is empty), hide the whole block.
+			var hasVisible = false;
+			$block.find('tr').each(function () {
+				if (!$(this).hasClass('mk-so-hide-legacy')) {
+					hasVisible = true;
+					return false;
+				}
+				return true;
+			});
+			if (!hasVisible) {
+				$block.addClass('mk-so-hide-legacy');
+			}
+		});
+
+		// Keep quick actions in line items (Thêm phần / Danh mục) like BA screenshot.
+
+		// Hide extra address subfields but keep street fields (like the screenshot).
+		[
 			'bill_pobox',
 			'bill_city',
 			'bill_state',
@@ -751,16 +870,9 @@
 			'ship_state',
 			'ship_code',
 			'ship_country'
-		];
-		hideFields.forEach(function (name) {
-			$form()
-				.find('[name="' + name + '"]')
-				.closest('tr')
-				.addClass('mk-so-hide-legacy');
+		].forEach(function (name) {
+			$editForm.find('[name="' + name + '"]').closest('tr').addClass('mk-so-hide-legacy');
 		});
-		$form()
-			.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]')
-			.addClass('mk-so-address-simplified');
 	}
 
 	function initStickyHead() {
@@ -782,8 +894,10 @@
 		hideLegacyChrome();
 		styleFieldBlocks();
 		simplifySalesOrderForm();
+		// Restore the improved Odoo-style line items UI (dropdown product + nicer grid)
 		initOdooInventoryUi();
 		fixFormDisplayEncoding();
+		ensureMandatoryHiddenDefaults();
 		initTermsRichEditor();
 		bindActions();
 		initStickyHead();

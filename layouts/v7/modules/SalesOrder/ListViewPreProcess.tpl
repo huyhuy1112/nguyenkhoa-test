@@ -20,10 +20,10 @@
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
 {else}
 {include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderList.css')}?mk_v=20260606_sales_search9" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderList.css')}?mk_v=20260707_so_pos19" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260624_sales_antifouc1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260707_so_pos17"></script>
 {/if}
 {assign var=mk_so_mod value=Vtiger_Module_Model::getInstance($MODULE)}
 {assign var=mk_so_status_fm value=Vtiger_Field_Model::getInstance('sostatus', $mk_so_mod)}
@@ -47,6 +47,11 @@ window.__mkSoSalesListConfig = window.__mkSoSalesListConfig || {};
 window.__mkSoSalesListConfig.statusFieldCandidates = ['sostatus', 'salesorder_status', 'invoicestatus', 'status'];
 window.__mkSoSalesListConfig.preferredStatusField = {if $mk_so_status_field_name ne ''}{Zend_Json::encode($mk_so_status_field_name)}{else}null{/if};
 window.__mkSoSalesListConfig.statusHeaderLabel = {Zend_Json::encode($mk_so_status_label)};
+window.__mkSoSalesListConfig.globalSearchPlaceholder = 'Theo mã phiếu đặt';
+window.__mkSoSalesListConfig.globalSearchFields = ['salesorder_no', 'customerno', 'subject'];
+window.__mkSoSalesListConfig.paidField = {if isset($MK_SO_POS_PAID_FIELD) && $MK_SO_POS_PAID_FIELD ne ''}{Zend_Json::encode($MK_SO_POS_PAID_FIELD)}{else}'received'{/if};
+window.__mkSoSalesListConfig.dueField = 'hdnGrandTotal';
+window.__mkSoSalesListConfig.filterMeta = {if isset($MK_SO_POS_FILTER_META)}{Zend_Json::encode($MK_SO_POS_FILTER_META)}{else}{}{/if};
 {if $MK_SO_IS_TOOLS}
 window.__mkSoToolsListConfig = window.__mkSoToolsListConfig || {};
 window.__mkSoToolsListConfig.statusFieldCandidates = window.__mkSoSalesListConfig.statusFieldCandidates;
@@ -58,7 +63,7 @@ window.__mkSoToolsListConfig.statusHeaderLabel = window.__mkSoSalesListConfig.st
 {if $MK_SO_IS_TOOLS}
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/ListToolsBoot.js')}?mk_v=20260605_so_tools2"></script>
 {else}
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/List.js')}?mk_v=20260701_so_list_decode1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/List.js')}?mk_v=20260707_so_pos19"></script>
 {/if}
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-sales-order-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

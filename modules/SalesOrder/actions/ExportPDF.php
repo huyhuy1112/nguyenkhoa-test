@@ -11,4 +11,17 @@
 vimport('~~/modules/SalesOrder/SalesOrderPDFController.php');
 
 class SalesOrder_ExportPDF_Action extends Inventory_ExportPDF_Action {
+
+	public function process(Vtiger_Request $request) {
+		$moduleName = $request->getModule();
+		$recordId = $request->get('record');
+
+		$controllerClassName = 'Vtiger_SalesOrderPDFController';
+		$controller = new $controllerClassName($moduleName);
+		$controller->loadRecord($recordId);
+
+		$fileName = $moduleName . '_' . getModuleSequenceNumber($moduleName, $recordId);
+		$isPreview = $request->get('preview') === '1' || $request->get('mode') === 'inline';
+		$controller->Output($fileName . '.pdf', $isPreview ? 'I' : 'D');
+	}
 }

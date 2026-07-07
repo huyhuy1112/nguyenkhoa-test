@@ -7,16 +7,16 @@
 	var REF_SEL = 'Vtiger.Reference.Selection';
 	var POST_REF = 'Vtiger.PostReference.Selection';
 
-	var PAYMENT_TERMS_FALLBACK = [
-		'Thanh toán ngay',
-		'15 ngày',
-		'21 ngày',
-		'30 ngày',
-		'45 ngày',
-		'Cuối tháng kế tiếp',
-		'10 ngày sau ngày cuối tháng kế tiếp',
-		'30% trả ngay, còn lại trả trong 60 ngày'
+	var PAYMENT_METHOD_OPTIONS = [
+		{ value: 'Tiền mặt', label: 'Tiền mặt' },
+		{ value: 'Chuyển khoản', label: 'Chuyển khoản' },
+		{ value: 'Thẻ', label: 'Thẻ' },
+		{ value: 'Ví', label: 'Ví' }
 	];
+
+	var PAYMENT_TERMS_FALLBACK = PAYMENT_METHOD_OPTIONS.map(function (item) {
+		return item.label;
+	});
 
 	var UNIT_OPTIONS = [
 		{ value: 'Đơn vị', label: 'Đơn vị' },
@@ -547,6 +547,8 @@
 					allowClear: true,
 					width: '100%',
 					minimumInputLength: 0,
+					// Always show search box (product lists can be long)
+					minimumResultsForSearch: 0,
 					formatNoMatches: function () { return 'Không tìm thấy sản phẩm'; },
 					formatSearching: function () { return 'Đang tìm...'; },
 					dropCssClass: 'mk-inv-s2-drop'
@@ -554,6 +556,29 @@
 				$sel.data('select2').container.addClass('mk-inv-product-select-s2');
 			}
 		} catch (e) { /* select2 not available, plain select is fine */ }
+	}
+
+	function cleanupLegacyProductCell($row, $nameInput, $productTd) {
+		if ($nameInput.data('ui-autocomplete')) {
+			try {
+				$nameInput.autocomplete('destroy');
+			} catch (e) { /* ignore */ }
+		}
+		$nameInput.removeClass('autoComplete').addClass('mk-inv-hide-legacy').attr({ type: 'hidden', tabindex: '-1' });
+		// Some vtiger templates wrap the whole product UI inside `.col-lg-10`.
+		// If we hide that wrapper, our injected dropdown disappears too.
+		$productTd
+			.find('.itemNameDiv .col-lg-10')
+			.filter(function () {
+				return $(this).find('.mk-inv-product-select, .mk-inv-product-select-s2').length === 0;
+			})
+			.addClass('mk-inv-hide-legacy');
+		$productTd.find('.lineItemCommentBox').closest('div').addClass('mk-inv-hide-legacy');
+		// Keep our new product dropdown Select2 visible
+		$productTd
+			.find('.itemNameDiv > .select2-container')
+			.not('.mk-inv-product-select-s2')
+			.addClass('mk-inv-hide-legacy');
 	}
 
 	function injectProductDropdown($row, $form) {
@@ -566,10 +591,12 @@
 		var $listPrice = $row.find('input.listPrice');
 		var $entityType = $row.find('input[name^="entityType"]');
 
-		var $sel = $('<select class="mk-inv-product-select inputElement" title="Sản phẩm"></select>');
-		$sel.append('<option value="">— Chọn sản phẩm —</option>');
+		var $sel = $('<select class="mk-inv-product-select inputElement" title="Sản phẩm" disabled="disabled"></select>');
+		$sel.append('<option value="">— Đang tải sản phẩm… —</option>');
 
 		loadProductCatalog().then(function (products) {
+			$sel.prop('disabled', false);
+			$sel.empty().append('<option value="">— Chọn sản phẩm —</option>');
 			products.forEach(function (p) {
 				var id = String(p.id || '');
 				var displayName = decodeText(p.name || id);
@@ -606,7 +633,7 @@
 			syncRowStockHint($row, $form);
 		});
 
-		$nameInput.addClass('mk-inv-hide-legacy');
+		cleanupLegacyProductCell($row, $nameInput, $productTd);
 		$row.find('.lineItemPopup').addClass('mk-inv-hide-legacy');
 		$productTd.find('.itemNameDiv').prepend($sel);
 	}
@@ -1230,6 +1257,26 @@
 		$addBtn.empty().append('<span class="mk-inv-add-line-btn__plus" aria-hidden="true">+</span> Thêm sản phẩm');
 	}
 
+	function rebuildPaymentMethodSelect($select, currentVal) {
+		$select.empty().append('<option value="">— Chọn hình thức —</option>');
+		PAYMENT_METHOD_OPTIONS.forEach(function (item) {
+			$select.append($('<option></option>').attr('value', item.value).text(item.label));
+		});
+		if (currentVal) {
+			var hasOption = false;
+			$select.find('option').each(function () {
+				if ($(this).val() === currentVal) {
+					hasOption = true;
+					return false;
+				}
+			});
+			if (!hasOption) {
+				$select.append($('<option></option>').attr('value', currentVal).text(currentVal));
+			}
+			$select.val(currentVal);
+		}
+	}
+
 	function initPaymentTerms($form) {
 		var $lineBlock = $form.find('.mk-inv-lineitems-odoo');
 		if (!$lineBlock.length || $lineBlock.data('mkInvPaymentTerms')) {
@@ -1257,22 +1304,20 @@
 			'<div class="mk-inv-payment-terms__row">' +
 				'<span class="mk-inv-payment-terms__icon" aria-hidden="true"></span>' +
 				'<div class="mk-inv-payment-terms__content">' +
-				'<label class="mk-inv-payment-terms__label" for="mkInvPaymentTermsSelect">Điều khoản thanh toán</label>' +
+				'<label class="mk-inv-payment-terms__label" for="mkInvPaymentTermsSelect">Hình thức thanh toán</label>' +
 				'</div></div>'
 		);
 
 		var $select;
+		var currentVal = '';
 		if ($existing.length && $existing.is('select')) {
+			currentVal = ($existing.val() || '').trim();
 			$select = $existing.detach().attr('id', 'mkInvPaymentTermsSelect');
+			rebuildPaymentMethodSelect($select, currentVal);
 		} else {
-			$select = $('<select class="inputElement select2" name="mk_payment_terms" id="mkInvPaymentTermsSelect"></select>');
-			$select.append('<option value="">— Chọn điều khoản —</option>');
-			PAYMENT_TERMS_FALLBACK.forEach(function (label) {
-				$select.append($('<option></option>').attr('value', label).text(label));
-			});
-			if ($existing.length && $existing.val()) {
-				$select.val($existing.val());
-			}
+			$select = $('<select class="inputElement" name="mk_payment_terms" id="mkInvPaymentTermsSelect"></select>');
+			currentVal = $existing.length ? ($existing.val() || '').trim() : '';
+			rebuildPaymentMethodSelect($select, currentVal);
 		}
 		$wrap.find('.mk-inv-payment-terms__content').append($('<div class="mk-inv-payment-terms__field"></div>').append($select));
 		$container.prepend($wrap);

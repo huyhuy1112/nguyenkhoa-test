@@ -11,7 +11,7 @@
 	{assign var=MK_SALES_LIST_COUNT_SUFFIX value=' sale orders'}
 	{include file="partials/OpportunityListViewActions.tpl"|vtemplate_path:'Potentials'}
 {elseif $MK_SO_IS_SALES}
-	{assign var=MK_SALES_LIST_COUNT_SUFFIX value=' sale orders'}
+	{assign var=MK_SALES_LIST_COUNT_SUFFIX value=' đơn hàng'}
 	{include file="partials/MkSalesListViewActions.tpl"|vtemplate_path:'Vtiger'}
 {else}
 	{include file="ListViewActions.tpl"|@vtemplate_path:'Vtiger'}

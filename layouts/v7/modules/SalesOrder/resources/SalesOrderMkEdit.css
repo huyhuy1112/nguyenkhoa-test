@@ -1121,6 +1121,26 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 	vertical-align: middle;
 }
 
+/* Payment method (Hình thức thanh toán) highlight */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-payment-method {
+	margin-top: 4px;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-payment-method .input-group {
+	border-color: #bbf7d0 !important;
+	background: linear-gradient(135deg, #f0fdf4, #ecfdf3) !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-payment-method .input-group-addon {
+	background: rgba(8, 160, 69, 0.08) !important;
+	color: #15803d !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-payment-method select.form-control {
+	font-weight: 600;
+	color: #065f46;
+}
+
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .input-group-addon.relatedPopup:hover,
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block .input-group .input-group-addon.createReferenceRecord:hover {
 	background: var(--mk-so-navy) !important;

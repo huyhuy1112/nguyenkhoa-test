@@ -26,7 +26,10 @@
 			return true;
 		}
 		var params = new URLSearchParams(window.location.search || '');
-		return params.get('module') === 'SalesOrder' && params.get('view') === 'List' && params.get('app') === 'SALES';
+		if (params.get('module') === 'SalesOrder' && params.get('view') === 'List' && params.get('app') === 'SALES') {
+			return true;
+		}
+		return !!document.querySelector('#listViewContent .mk-so-pos-list-enabled');
 	}
 
 	function getListViewContainer() {
@@ -146,21 +149,1607 @@
 		});
 	}
 
+	var STATUS_VI_LABELS = {
+		Created: 'Phiếu tạm',
+		Approved: 'Đã xác nhận',
+		Delivered: 'Đã giao',
+		Cancelled: 'Đã hủy',
+		Pending: 'Đang chờ',
+		Paid: 'Đã thanh toán',
+		Sent: 'Đã gửi',
+		Rejected: 'Từ chối',
+		'Đã duyệt': 'Đã xác nhận',
+		'Đã tạo': 'Phiếu tạm',
+		'Đang chờ xử lý': 'Đang chờ',
+		'Đang giao hàng': 'Đang giao hàng',
+		'Hoàn thành': 'Hoàn thành',
+		'Đã gửi': 'Đã gửi',
+		'Đã thanh toán': 'Đã thanh toán',
+		'Đã hủy': 'Đã hủy',
+		'Từ chối': 'Từ chối'
+	};
+
+	var POS_COL_CLASS_BY_FIELD = {
+		starred: 'mk-so-col-star',
+		salesorder_no: 'mk-so-col-order-no',
+		createdtime: 'mk-so-col-time',
+		customerno: 'mk-so-col-customer-code',
+		account_id: 'mk-so-col-customer',
+		hdnGrandTotal: 'mk-so-col-due',
+		total: 'mk-so-col-due',
+		received: 'mk-so-col-paid',
+		paid: 'mk-so-col-paid',
+		sostatus: 'mk-so-col-status',
+		salesorder_status: 'mk-so-col-status',
+		invoicestatus: 'mk-so-col-status',
+		status: 'mk-so-col-status'
+	};
+
+	var posSearchBound = false;
+	var posSearchTimer = null;
+	var lastPosSearchPayload = '';
+	var livePosSearchQuery = '';
+	var posFilterOpen = false;
+	var posFilterStateSynced = false;
+	var posFilterApplied = false;
+	var posExpandedRecordId = null;
+	var posInlineDetailLoading = false;
+
+	function getTableColspan($table) {
+		var count = $table.find('thead tr.listViewContentHeader th').length;
+		return count > 0 ? count : 1;
+	}
+
+	function collapsePosInlineDetail($table) {
+		if (!$table || !$table.length) {
+			posExpandedRecordId = null;
+			return;
+		}
+		closeInlineFullView();
+		closeInlineExcelPreview();
+		closeInlinePrintPreview();
+		$table.find('tr.mk-so-inline-detail-row').remove();
+		$table.find('tr.listViewEntries.mk-so-row-expanded').removeClass('mk-so-row-expanded');
+		posExpandedRecordId = null;
+	}
+
+	function ensureInlineDetailBackdrop() {
+		var $backdrop = $('.mk-so-inline-detail-backdrop');
+		if (!$backdrop.length) {
+			$backdrop = $('<div class="mk-so-inline-detail-backdrop" aria-hidden="true"></div>');
+			$('body').append($backdrop);
+			$backdrop.on('click.mkSoInlineFull', function () {
+				closeInlineFullView();
+			});
+		}
+		return $backdrop;
+	}
+
+	function openInlineFullView($panel) {
+		if (!$panel || !$panel.length) {
+			return;
+		}
+		ensureInlineDetailBackdrop().addClass('is-open');
+		$panel.addClass('is-fullscreen');
+		$('body').addClass('mk-so-inline-full-open');
+		if (!$panel.find('.mk-so-inline-detail__fullscreen-close').length) {
+			$panel.prepend(
+				'<button type="button" class="mk-so-inline-detail__fullscreen-close" aria-label="Thu gọn">' +
+					'<i class="fa fa-compress" aria-hidden="true"></i>' +
+				'</button>'
+			);
+		}
+		$panel[0].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+	}
+
+	function closeInlineFullView($panel) {
+		var $target = $panel && $panel.length ? $panel : $('.mk-so-inline-detail.is-fullscreen').first();
+		$('.mk-so-inline-detail-backdrop').removeClass('is-open');
+		$('body').removeClass('mk-so-inline-full-open');
+		if ($target.length) {
+			$target.removeClass('is-fullscreen');
+		}
+	}
+
+	function ensureInlineExcelPreviewModal() {
+		var $modal = $('#mk-so-inline-excel-preview');
+		if ($modal.length) {
+			return $modal;
+		}
+		$modal = $(
+			'<div id="mk-so-inline-excel-preview" class="mk-so-inline-excel-preview" aria-hidden="true">' +
+				'<div class="mk-so-inline-excel-preview__dialog" role="dialog" aria-labelledby="mk-so-inline-excel-title">' +
+					'<div class="mk-so-inline-excel-preview__head">' +
+						'<h3 id="mk-so-inline-excel-title">Xem trước Excel</h3>' +
+						'<button type="button" class="mk-so-inline-excel-preview__close" aria-label="Đóng">&times;</button>' +
+					'</div>' +
+					'<div class="mk-so-inline-excel-preview__body"></div>' +
+					'<div class="mk-so-inline-excel-preview__foot">' +
+						'<button type="button" class="mk-so-inline-excel-preview__cancel">Đóng</button>' +
+						'<button type="button" class="mk-so-inline-excel-preview__download">Tải Excel</button>' +
+					'</div>' +
+				'</div>' +
+			'</div>'
+		);
+		$('body').append($modal);
+		$modal.on('click', '.mk-so-inline-excel-preview__close, .mk-so-inline-excel-preview__cancel', function (e) {
+			e.preventDefault();
+			closeInlineExcelPreview();
+		});
+		$modal.on('click', function (e) {
+			if ($(e.target).is('#mk-so-inline-excel-preview')) {
+				closeInlineExcelPreview();
+			}
+		});
+		return $modal;
+	}
+
+	function closeInlineExcelPreview() {
+		var $modal = $('#mk-so-inline-excel-preview');
+		$modal.removeClass('is-open').attr('aria-hidden', 'true');
+		$('body').removeClass('mk-so-inline-excel-open');
+		$('.mk-so-inline-detail__export-btn').attr('data-export-ready', '0')
+			.find('.mk-so-inline-detail__export-label').text('Export Excel');
+	}
+
+	function csvEscape(value) {
+		var text = String(value == null ? '' : value).replace(/"/g, '""');
+		if (/[",\n\r]/.test(text)) {
+			return '"' + text + '"';
+		}
+		return text;
+	}
+
+	function buildInlineExportRows($panel) {
+		var rows = [];
+		var orderNo = $.trim($panel.find('.mk-so-inline-detail__order-no').text());
+		var customer = $.trim($panel.find('.mk-so-inline-detail__customer-name').text());
+		rows.push(['Mã đặt hàng', orderNo]);
+		rows.push(['Khách hàng', customer]);
+		$panel.find('.mk-so-inline-detail__field').each(function () {
+			var $field = $(this);
+			var label = $.trim($field.find('.mk-so-inline-detail__field-label').text());
+			var value = $.trim($field.find('.mk-so-inline-detail__field-view').text());
+			if (label) {
+				rows.push([label, value]);
+			}
+		});
+		rows.push([]);
+		rows.push(['Mã hàng', 'Tên hàng', 'Số lượng', 'Đơn giá', 'Giảm giá', 'Giá bán', 'Thành tiền']);
+		$panel.find('.mk-so-inline-detail__lines tbody tr').each(function () {
+			var $cells = $(this).find('td');
+			if ($cells.length < 7 || $cells.first().hasClass('mk-so-inline-detail__empty-lines')) {
+				return;
+			}
+			rows.push([
+				$.trim($cells.eq(0).text()),
+				$.trim($cells.eq(1).text()),
+				$.trim($cells.eq(2).text()),
+				$.trim($cells.eq(3).text()),
+				$.trim($cells.eq(4).text()),
+				$.trim($cells.eq(5).text()),
+				$.trim($cells.eq(6).text())
+			]);
+		});
+		rows.push([]);
+		$panel.find('.mk-so-inline-detail__total-row').each(function () {
+			var $row = $(this);
+			rows.push([$.trim($row.find('span').first().text()), $.trim($row.find('strong').text())]);
+		});
+		rows.push(['Ghi chú', $.trim($panel.find('.mk-so-inline-detail__notes-input').val())]);
+		return rows;
+	}
+
+	function buildInlineExportPreviewHtml($panel) {
+		var orderNo = $.trim($panel.find('.mk-so-inline-detail__order-no').text());
+		var customer = $.trim($panel.find('.mk-so-inline-detail__customer-name').text());
+		var meta = [];
+		$panel.find('.mk-so-inline-detail__field').each(function () {
+			var label = $.trim($(this).find('.mk-so-inline-detail__field-label').text());
+			var value = $.trim($(this).find('.mk-so-inline-detail__field-view').text());
+			if (label) {
+				meta.push({ label: label, value: value });
+			}
+		});
+		var lines = [];
+		$panel.find('.mk-so-inline-detail__lines tbody tr').each(function () {
+			var $cells = $(this).find('td');
+			if ($cells.length < 7 || $cells.first().hasClass('mk-so-inline-detail__empty-lines')) {
+				return;
+			}
+			lines.push({
+				code: $.trim($cells.eq(0).text()),
+				name: $.trim($cells.eq(1).text()),
+				qty: $.trim($cells.eq(2).text()),
+				price: $.trim($cells.eq(3).text()),
+				discount: $.trim($cells.eq(4).text()),
+				sale: $.trim($cells.eq(5).text()),
+				total: $.trim($cells.eq(6).text())
+			});
+		});
+		var totals = [];
+		$panel.find('.mk-so-inline-detail__total-row').each(function () {
+			var $row = $(this);
+			totals.push({
+				label: $.trim($row.find('span').first().text()),
+				value: $.trim($row.find('strong').text()),
+				grand: $row.hasClass('mk-so-inline-detail__total-row--grand')
+			});
+		});
+		var notes = $.trim($panel.find('.mk-so-inline-detail__notes-input').val());
+		var esc = function (text) {
+			return $('<div>').text(text || '').html();
+		};
+
+		var html = '<div class="mk-so-excel-sheet">';
+		html += '<div class="mk-so-excel-sheet__hero">';
+		html += '<div class="mk-so-excel-sheet__brand"><span class="mk-so-excel-sheet__brand-tag">Nguyên Khoa</span><strong>Phiếu đặt hàng</strong></div>';
+		html += '<div class="mk-so-excel-sheet__order-no">' + esc(orderNo) + '</div>';
+		html += '</div>';
+		html += '<div class="mk-so-excel-sheet__meta">';
+		html += '<div class="mk-so-excel-sheet__meta-card"><span class="mk-so-excel-sheet__meta-label">Khách hàng</span><strong>' + esc(customer) + '</strong></div>';
+		meta.forEach(function (item) {
+			html += '<div class="mk-so-excel-sheet__meta-card"><span class="mk-so-excel-sheet__meta-label">' + esc(item.label) + '</span><strong>' + esc(item.value) + '</strong></div>';
+		});
+		html += '</div>';
+		html += '<div class="mk-so-excel-sheet__table-wrap"><table class="mk-so-excel-sheet__table">';
+		html += '<thead><tr><th>Mã hàng</th><th>Tên hàng</th><th>Số lượng</th><th>Đơn giá</th><th>Giảm giá</th><th>Giá bán</th><th>Thành tiền</th></tr></thead><tbody>';
+		if (!lines.length) {
+			html += '<tr><td colspan="7" class="is-empty">Chưa có hàng hóa trong đơn.</td></tr>';
+		} else {
+			lines.forEach(function (line, idx) {
+				html += '<tr class="' + (idx % 2 === 1 ? 'is-alt' : '') + '">';
+				html += '<td>' + esc(line.code) + '</td><td class="is-name">' + esc(line.name) + '</td>';
+				html += '<td class="is-num">' + esc(line.qty) + '</td><td class="is-num">' + esc(line.price) + '</td>';
+				html += '<td class="is-num">' + esc(line.discount) + '</td><td class="is-num">' + esc(line.sale) + '</td>';
+				html += '<td class="is-num is-total">' + esc(line.total) + '</td></tr>';
+			});
+		}
+		html += '</tbody></table></div>';
+		html += '<div class="mk-so-excel-sheet__bottom">';
+		html += '<div class="mk-so-excel-sheet__notes"><span class="mk-so-excel-sheet__meta-label">Ghi chú</span><p>' + esc(notes || '—') + '</p></div>';
+		html += '<div class="mk-so-excel-sheet__totals">';
+		totals.forEach(function (item) {
+			html += '<div class="mk-so-excel-sheet__total-row' + (item.grand ? ' is-grand' : '') + '"><span>' + esc(item.label) + '</span><strong>' + esc(item.value) + '</strong></div>';
+		});
+		html += '</div></div></div>';
+		return html;
+	}
+
+	function downloadInlineExportCsv($panel, recordId) {
+		var rows = buildInlineExportRows($panel);
+		var lines = rows.map(function (row) {
+			return (row || []).map(csvEscape).join(',');
+		});
+		var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+		var orderNo = $.trim($panel.find('.mk-so-inline-detail__order-no').text()) || recordId;
+		var fileName = 'don-hang-' + orderNo.replace(/[^\w\-]+/g, '_') + '.csv';
+		var link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = fileName;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		setTimeout(function () {
+			URL.revokeObjectURL(link.href);
+		}, 0);
+	}
+
+	function openInlineExcelPreview($panel, recordId) {
+		var $modal = ensureInlineExcelPreviewModal();
+		$modal.find('.mk-so-inline-excel-preview__body').html(buildInlineExportPreviewHtml($panel));
+		$modal.data('mkExportRecordId', recordId);
+		$modal.data('mkExportPanel', $panel);
+		$modal.addClass('is-open').attr('aria-hidden', 'false');
+		$('body').addClass('mk-so-inline-excel-open');
+		$modal.off('click.mkSoExcelDownload').on('click.mkSoExcelDownload', '.mk-so-inline-excel-preview__download', function (e) {
+			e.preventDefault();
+			downloadInlineExportCsv($panel, recordId);
+			closeInlineExcelPreview();
+		});
+	}
+
+	function closeInlinePrintPreview() {
+		var $modal = $('#mk-so-inline-print-preview');
+		$modal.removeClass('is-open').attr('aria-hidden', 'true');
+		$modal.find('iframe').attr('src', 'about:blank');
+		$('body').removeClass('mk-so-inline-print-open');
+		$('.mk-so-inline-detail__print-btn').attr('data-print-ready', '0')
+			.find('.mk-so-inline-detail__print-label').text('In');
+	}
+
+	function ensureInlinePrintPreviewModal() {
+		var $modal = $('#mk-so-inline-print-preview');
+		if ($modal.length) {
+			return $modal;
+		}
+		$modal = $(
+			'<div id="mk-so-inline-print-preview" class="mk-so-inline-print-preview" aria-hidden="true">' +
+				'<div class="mk-so-inline-print-preview__dialog" role="dialog" aria-labelledby="mk-so-inline-print-title">' +
+					'<div class="mk-so-inline-print-preview__head">' +
+						'<h3 id="mk-so-inline-print-title">Xem trước bản in</h3>' +
+						'<button type="button" class="mk-so-inline-print-preview__close" aria-label="Đóng">&times;</button>' +
+					'</div>' +
+					'<div class="mk-so-inline-print-preview__body">' +
+						'<iframe class="mk-so-inline-print-preview__frame" title="Xem trước PDF đơn hàng"></iframe>' +
+					'</div>' +
+					'<div class="mk-so-inline-print-preview__foot">' +
+						'<button type="button" class="mk-so-inline-print-preview__cancel">Đóng</button>' +
+						'<button type="button" class="mk-so-inline-print-preview__print"><i class="fa fa-print" aria-hidden="true"></i> In ngay</button>' +
+						'<button type="button" class="mk-so-inline-print-preview__download"><i class="fa fa-download" aria-hidden="true"></i> Tải PDF</button>' +
+					'</div>' +
+				'</div>' +
+			'</div>'
+		);
+		$('body').append($modal);
+		$modal.on('click', '.mk-so-inline-print-preview__close, .mk-so-inline-print-preview__cancel', function (e) {
+			e.preventDefault();
+			closeInlinePrintPreview();
+		});
+		$modal.on('click', function (e) {
+			if ($(e.target).is('#mk-so-inline-print-preview')) {
+				closeInlinePrintPreview();
+			}
+		});
+		$modal.on('click', '.mk-so-inline-print-preview__print', function (e) {
+			e.preventDefault();
+			executeInlinePrintFromPreview();
+		});
+		$modal.on('click', '.mk-so-inline-print-preview__download', function (e) {
+			e.preventDefault();
+			var $panel = $modal.data('mkPrintPanel');
+			var recordId = $modal.data('mkPrintRecordId');
+			if ($panel && recordId) {
+				downloadInlinePrintPdf($panel, recordId);
+			}
+			closeInlinePrintPreview();
+		});
+		return $modal;
+	}
+
+	function getInlinePrintPreviewUrl($panel, recordId) {
+		var printUrl = $panel.data('print-url') || $panel.find('.mk-so-inline-detail__print-btn').data('print-url');
+		if (!printUrl) {
+			printUrl = 'index.php?module=SalesOrder&action=ExportPDF&record=' + encodeURIComponent(recordId) + '&preview=1';
+		}
+		return printUrl;
+	}
+
+	function getInlinePrintDownloadUrl($panel, recordId) {
+		var downloadUrl = $panel.data('print-download-url') || $panel.find('.mk-so-inline-detail__print-btn').data('print-download-url');
+		if (!downloadUrl) {
+			downloadUrl = 'index.php?module=SalesOrder&action=ExportPDF&record=' + encodeURIComponent(recordId);
+		}
+		return downloadUrl;
+	}
+
+	function openInlinePrintPreview($panel, recordId) {
+		var printUrl = getInlinePrintPreviewUrl($panel, recordId);
+		var $modal = ensureInlinePrintPreviewModal();
+		$modal.data('mkPrintPanel', $panel);
+		$modal.data('mkPrintRecordId', recordId);
+		$modal.find('iframe').attr('src', printUrl);
+		$modal.addClass('is-open').attr('aria-hidden', 'false');
+		$('body').addClass('mk-so-inline-print-open');
+	}
+
+	function downloadInlinePrintPdf($panel, recordId) {
+		var downloadUrl = getInlinePrintDownloadUrl($panel, recordId);
+		var $frame = $('#mk-so-inline-print-download-frame');
+		if (!$frame.length) {
+			$frame = $('<iframe id="mk-so-inline-print-download-frame" class="mk-so-inline-print-download-frame" title="Tải PDF đơn hàng"></iframe>');
+			$('body').append($frame);
+		}
+		$frame.attr('src', downloadUrl);
+	}
+
+	function executeInlinePrintFromPreview() {
+		var $iframe = $('#mk-so-inline-print-preview iframe');
+		if (!$iframe.length) {
+			return;
+		}
+		try {
+			var frameWindow = $iframe[0].contentWindow;
+			if (frameWindow) {
+				frameWindow.focus();
+				frameWindow.print();
+			}
+		} catch (err) {
+			var src = $iframe.attr('src');
+			if (src && src !== 'about:blank') {
+				window.open(src, '_blank');
+			}
+		}
+	}
+
+	function triggerInlinePrint($panel, recordId, $btn) {
+		var ready = $btn && String($btn.attr('data-print-ready')) === '1';
+		if (!ready) {
+			openInlinePrintPreview($panel, recordId);
+			if ($btn) {
+				$btn.attr('data-print-ready', '1');
+				$btn.find('.mk-so-inline-detail__print-label').text('Tải PDF');
+			}
+			return;
+		}
+		downloadInlinePrintPdf($panel, recordId);
+		closeInlinePrintPreview();
+		if ($btn) {
+			$btn.attr('data-print-ready', '0');
+			$btn.find('.mk-so-inline-detail__print-label').text('In');
+		}
+	}
+
+	function isPosInlineDetailInteraction(target) {
+		var $target = $(target);
+		if (!$target.length) {
+			return false;
+		}
+		if ($target.closest('.mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-control-td').length) {
+			return true;
+		}
+		if ($target.is('input[type="checkbox"]')) {
+			return true;
+		}
+		return false;
+	}
+
+	function captureInlineDetailSnapshot($panel) {
+		var snapshot = { fields: {}, description: '' };
+		$panel.find('.mk-so-inline-detail__field-edit :input').each(function () {
+			var name = $(this).attr('name');
+			if (name) {
+				snapshot.fields[name] = $(this).val();
+			}
+		});
+		snapshot.description = $panel.find('.mk-so-inline-detail__notes-input').val() || '';
+		return snapshot;
+	}
+
+	function restoreInlineDetailSnapshot($panel, snapshot) {
+		if (!snapshot) {
+			return;
+		}
+		$.each(snapshot.fields || {}, function (name, value) {
+			$panel.find('.mk-so-inline-detail__field-edit :input[name="' + name + '"]').val(value);
+		});
+		$panel.find('.mk-so-inline-detail__notes-input').val(snapshot.description || '');
+	}
+
+	function updateInlineDetailViewValues($panel) {
+		$panel.find('.mk-so-inline-detail__field[data-editable="1"]').each(function () {
+			var $field = $(this);
+			var $input = $field.find('.mk-so-inline-detail__field-edit :input').first();
+			var $view = $field.find('.mk-so-inline-detail__field-view');
+			if (!$input.length || !$view.length) {
+				return;
+			}
+			if ($input.is('select')) {
+				$view.text($input.find('option:selected').text());
+			} else {
+				$view.text($input.val());
+			}
+		});
+	}
+
+	function collectInlineDetailSaveData($panel, recordId) {
+		var data = {
+			record: recordId,
+			module: 'SalesOrder',
+			action: 'SaveAjax'
+		};
+		$panel.find('.mk-so-inline-detail__field-edit :input').each(function () {
+			var name = $(this).attr('name');
+			if (name) {
+				data[name] = $(this).val();
+			}
+		});
+		data.description = $panel.find('.mk-so-inline-detail__notes-input').val() || '';
+		return data;
+	}
+
+	function setInlineDetailEditMode($panel, enable) {
+		var isEdit = !!enable;
+		$panel.toggleClass('is-edit-mode', isEdit);
+		$panel.find('.mk-so-inline-detail__edit-toggle').attr('aria-pressed', isEdit ? 'true' : 'false');
+		$panel.find('.mk-so-inline-detail__notes-input').prop('readonly', !isEdit);
+		if (isEdit && typeof vtUtils !== 'undefined' && vtUtils.applyFieldElementsView) {
+			vtUtils.applyFieldElementsView($panel.find('.mk-so-inline-detail__field-edit .dateField').closest('.mk-so-inline-detail__field-edit'));
+		}
+	}
+
+	function saveInlineDetailPanel($panel, recordId) {
+		var deferred = $.Deferred();
+		var $saveBtn = $panel.find('.mk-so-inline-detail__save-btn');
+		$saveBtn.prop('disabled', true);
+		var postData = collectInlineDetailSaveData($panel, recordId);
+		app.request.post({ data: postData }).then(function (err, response) {
+			$saveBtn.prop('disabled', false);
+			if (err) {
+				var message = (err && err.message) ? err.message : 'Không lưu được đơn hàng.';
+				if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
+					app.helper.showErrorNotification({ message: message });
+				}
+				deferred.reject(err);
+				return;
+			}
+			if (response) {
+				$panel.find('.mk-so-inline-detail__field-edit :input').each(function () {
+					var name = $(this).attr('name');
+					if (!name || !response[name]) {
+						return;
+					}
+					var displayValue = response[name].display_value;
+					if (displayValue !== undefined && displayValue !== null) {
+						if (name.indexOf('status') >= 0 || name === 'sostatus' || name === 'salesorder_status') {
+							displayValue = translateStatusLabel(displayValue);
+						}
+						$panel.find('.mk-so-inline-detail__field[data-field-name="' + name + '"] .mk-so-inline-detail__field-view').html(displayValue);
+					}
+				});
+				if (response.description) {
+					var noteValue = response.description.value;
+					if (noteValue !== undefined) {
+						$panel.find('.mk-so-inline-detail__notes-input').val(decodeHtmlEntities(noteValue));
+					}
+				}
+			} else {
+				updateInlineDetailViewValues($panel);
+			}
+			if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
+				app.helper.showSuccessNotification({
+					message: app.vtranslate ? app.vtranslate('JS_RECORD_UPDATED') : 'Đã lưu thay đổi.'
+				});
+			}
+			deferred.resolve(response);
+		});
+		return deferred.promise();
+	}
+
+	function initPosInlineDetailPanel($container) {
+		var $panel = $container.find('.mk-so-inline-detail').first();
+		if (!$panel.length || $panel.data('mkSoInlineInit')) {
+			return;
+		}
+		$panel.data('mkSoInlineInit', true);
+
+		var recordId = String($panel.data('record-id') || '');
+		var snapshot = captureInlineDetailSnapshot($panel);
+		var $notes = $panel.find('.mk-so-inline-detail__notes-input');
+		if ($notes.length) {
+			$notes.val(decodeHtmlEntities($notes.val()));
+		}
+
+		$panel.on('click', '.mk-so-inline-detail__edit-toggle', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			setInlineDetailEditMode($panel, true);
+			$panel.find('.mk-so-inline-detail__notes-input').focus();
+		});
+
+		$panel.on('click', '.mk-so-inline-detail__process-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!recordId) {
+				return;
+			}
+			window.location.href = 'index.php?module=SalesOrder&view=Edit&record=' + encodeURIComponent(recordId) + '&app=SALES';
+		});
+
+		$panel.on('click', '.mk-so-inline-detail__cancel-edit', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			restoreInlineDetailSnapshot($panel, snapshot);
+			setInlineDetailEditMode($panel, false);
+		});
+
+		$panel.on('click', '.mk-so-inline-detail__save-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!recordId) {
+				return;
+			}
+			saveInlineDetailPanel($panel, recordId).then(function () {
+				snapshot = captureInlineDetailSnapshot($panel);
+				setInlineDetailEditMode($panel, false);
+			});
+		});
+
+		$panel.on('click', '.mk-so-inline-detail__view-full-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var detailUrl = $panel.data('detail-url');
+			if (!detailUrl) {
+				detailUrl = 'index.php?module=SalesOrder&view=Detail&record=' + encodeURIComponent(recordId) + '&app=SALES';
+			}
+			window.location.href = detailUrl;
+		});
+
+		$panel.on('click', '.mk-so-inline-detail__fullscreen-close', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			closeInlineFullView($panel);
+		});
+
+		$panel.on('click', '.mk-so-inline-detail__print-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!recordId) {
+				return;
+			}
+			triggerInlinePrint($panel, recordId, $(this));
+		});
+
+		$panel.on('click', '.mk-so-inline-detail__export-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!recordId) {
+				return;
+			}
+			var $btn = $(this);
+			var ready = String($btn.attr('data-export-ready')) === '1';
+			if (!ready) {
+				openInlineExcelPreview($panel, recordId);
+				$btn.attr('data-export-ready', '1');
+				$btn.find('.mk-so-inline-detail__export-label').text('Tải Excel');
+				return;
+			}
+			downloadInlineExportCsv($panel, recordId);
+			closeInlineExcelPreview();
+			$btn.attr('data-export-ready', '0');
+			$btn.find('.mk-so-inline-detail__export-label').text('Export Excel');
+		});
+	}
+
+	function loadPosInlineDetail(recordId, $row, $table) {
+		var colspan = getTableColspan($table);
+		var $detailRow = $(
+			'<tr class="mk-so-inline-detail-row">' +
+				'<td colspan="' + colspan + '">' +
+					'<div class="mk-so-inline-detail mk-so-inline-detail--loading">' +
+						'<span class="mk-so-inline-detail__spinner" aria-hidden="true"></span>' +
+						'<span>Đang tải chi tiết đơn...</span>' +
+					'</div>' +
+				'</td>' +
+			'</tr>'
+		);
+		$row.after($detailRow);
+
+		$.ajax({
+			url: 'index.php',
+			type: 'GET',
+			dataType: 'html',
+			data: {
+				module: 'SalesOrder',
+				view: 'Detail',
+				mode: 'showListInlineDetail',
+				record: recordId,
+				app: 'SALES'
+			}
+		}).done(function (html) {
+			if (posExpandedRecordId !== String(recordId)) {
+				return;
+			}
+			$detailRow.find('td').html(html);
+			if (typeof vtUtils !== 'undefined' && vtUtils.applyFieldElementsView) {
+				vtUtils.applyFieldElementsView($detailRow);
+			}
+			initPosInlineDetailPanel($detailRow);
+		}).fail(function () {
+			if (posExpandedRecordId !== String(recordId)) {
+				return;
+			}
+			$detailRow.find('td').html(
+				'<div class="mk-so-inline-detail mk-so-inline-detail--error">' +
+					'Không tải được chi tiết đơn. ' +
+					'<a href="' + ($row.data('recordurl') || '#') + '">Mở trang chi tiết</a>.' +
+				'</div>'
+			);
+		}).always(function () {
+			posInlineDetailLoading = false;
+		});
+	}
+
+	function togglePosInlineDetail(recordId, $row) {
+		var $table = $row.closest('#listview-table');
+		if (!$table.length) {
+			return;
+		}
+		recordId = String(recordId || '');
+		if (!recordId) {
+			return;
+		}
+		if (posExpandedRecordId === recordId) {
+			collapsePosInlineDetail($table);
+			return;
+		}
+		if (posInlineDetailLoading) {
+			return;
+		}
+		collapsePosInlineDetail($table);
+		posExpandedRecordId = recordId;
+		posInlineDetailLoading = true;
+		$row.addClass('mk-so-row-expanded');
+		loadPosInlineDetail(recordId, $row, $table);
+	}
+
+	function getRowRecordId($row) {
+		if (!$row || !$row.length) {
+			return '';
+		}
+		var id = $row.data('id');
+		if (id === undefined || id === null || id === '') {
+			id = $row.attr('data-id');
+		}
+		return id != null ? String(id) : '';
+	}
+
+	function unregisterVtigerRowNavigation($container) {
+		if (!$container || !$container.length) {
+			return;
+		}
+		$container.off('click', '.listViewEntries');
+		$container.off('click', '.listViewEntries a');
+		$container.find('.listViewEntries a').each(function () {
+			var $link = $(this);
+			var timer = $link.data('timer');
+			if (timer) {
+				clearTimeout(timer);
+				$link.removeData('timer');
+			}
+		});
+	}
+
+	function handlePosInlineDetailClick(e) {
+		if (!isSalesOrderSalesList()) {
+			return false;
+		}
+		var target = e.target;
+		if (!target || !target.closest) {
+			return false;
+		}
+		if (isPosInlineDetailInteraction(target)) {
+			return false;
+		}
+		var row = target.closest('#listview-table tr.listViewEntries');
+		if (!row) {
+			return false;
+		}
+		if (target.closest('.mk-so-inline-detail')) {
+			return false;
+		}
+		if (target.closest('td:first-child')) {
+			return false;
+		}
+		if (window.getSelection && String(window.getSelection()).trim().length > 0) {
+			return false;
+		}
+		if ($(row).hasClass('edited')) {
+			return false;
+		}
+
+		unregisterVtigerRowNavigation(getListViewContainer());
+
+		if (e && typeof e.preventDefault === 'function') {
+			e.preventDefault();
+		}
+		if (e && typeof e.stopPropagation === 'function') {
+			e.stopPropagation();
+		}
+		if (e && typeof e.stopImmediatePropagation === 'function') {
+			e.stopImmediatePropagation();
+		}
+
+		togglePosInlineDetail(getRowRecordId($(row)), $(row));
+		return true;
+	}
+
+	function registerSalesPosRowClickEvent(listInstance) {
+		var $container = listInstance && listInstance.getListViewContainer
+			? listInstance.getListViewContainer()
+			: getListViewContainer();
+		unregisterVtigerRowNavigation($container);
+	}
+
+	function patchInlineDetailRowClick() {
+		if (typeof Vtiger_List_Js === 'undefined' || Vtiger_List_Js.prototype._mkSoInlineDetailPatched) {
+			return;
+		}
+		Vtiger_List_Js.prototype._mkSoInlineDetailPatched = true;
+		var originalRegister = Vtiger_List_Js.prototype.registerRowClickEvent;
+		Vtiger_List_Js.prototype.registerRowClickEvent = function () {
+			if (!isSalesOrderSalesList()) {
+				return originalRegister.call(this);
+			}
+			registerSalesPosRowClickEvent(this);
+		};
+		var originalRegisterEvents = Vtiger_List_Js.prototype.registerEvents;
+		if (originalRegisterEvents) {
+			Vtiger_List_Js.prototype.registerEvents = function () {
+				var result = originalRegisterEvents.apply(this, arguments);
+				if (isSalesOrderSalesList()) {
+					registerSalesPosRowClickEvent(this);
+				}
+				return result;
+			};
+		}
+	}
+
+	function bindPosInlineDetailCapture() {
+		if (document.documentElement.getAttribute('data-mk-so-inline-detail-bound')) {
+			return;
+		}
+		document.documentElement.setAttribute('data-mk-so-inline-detail-bound', '1');
+		document.addEventListener('click', function (e) {
+			handlePosInlineDetailClick(e);
+		}, true);
+	}
+
+	function paidFieldName() {
+		var cfg = listConfig();
+		return cfg.paidField || 'received';
+	}
+
+	function dueFieldName() {
+		var cfg = listConfig();
+		return cfg.dueField || 'hdnGrandTotal';
+	}
+
+	function globalSearchFields() {
+		var cfg = listConfig();
+		return cfg.globalSearchFields || ['salesorder_no', 'customerno', 'subject'];
+	}
+
+	function parseMoneyText(text) {
+		var raw = String(text || '').replace(/[^\d.,-]/g, '').replace(/,/g, '');
+		var num = parseFloat(raw);
+		return isNaN(num) ? 0 : num;
+	}
+
+	function formatMoneyNumber(num) {
+		var n = Math.round(num);
+		return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	}
+
+	function stripCurrencyFromText(text) {
+		return String(text || '').replace(/[^\d.,-]/g, '').replace(/,/g, '');
+	}
+
+	function formatPosMoneyCells($table) {
+		var dueField = dueFieldName();
+		var paidField = paidFieldName();
+		[dueField, paidField, 'total'].forEach(function (fieldName) {
+			$table.find('tbody td[data-name="' + fieldName + '"] .value').each(function () {
+				var $value = $(this);
+				if ($value.data('mkPosMoney')) {
+					return;
+				}
+				var amount = parseMoneyText($value.text());
+				$value.text(formatMoneyNumber(amount));
+				$value.data('mkPosMoney', 1);
+			});
+		});
+	}
+
+	function formatPosDateTimeCells($table) {
+		$table.find('tbody td[data-name="createdtime"] .value, tbody td.mk-so-col-time .value').each(function () {
+			var $value = $(this);
+			if ($value.data('mkPosDate')) {
+				return;
+			}
+			var raw = $.trim($value.text());
+			if (!raw || raw === '--') {
+				return;
+			}
+			var formatted = null;
+			var match = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{1,2}):(\d{2})(?::\d{2})?)?/);
+			if (match) {
+				formatted = match[3] + '/' + match[2] + '/' + match[1] + ' ' + ('0' + (match[4] || '0')).slice(-2) + ':' + (match[5] || '00');
+			}
+			if (!formatted) {
+				match = raw.match(/^(\d{1,2})-(\d{1,2})-(\d{4})\s+(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?/i);
+				if (match) {
+					var hour = parseInt(match[4], 10);
+					var ampm = (match[6] || '').toUpperCase();
+					if (ampm === 'PM' && hour < 12) {
+						hour += 12;
+					}
+					if (ampm === 'AM' && hour === 12) {
+						hour = 0;
+					}
+					formatted = ('0' + match[2]).slice(-2) + '/' + ('0' + match[1]).slice(-2) + '/' + match[3] + ' ' + ('0' + hour).slice(-2) + ':' + match[5];
+				}
+			}
+			if (!formatted) {
+				match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
+				if (match) {
+					formatted = ('0' + match[1]).slice(-2) + '/' + ('0' + match[2]).slice(-2) + '/' + match[3] + ' ' + ('0' + (match[4] || '0')).slice(-2) + ':' + (match[5] || '00');
+				}
+			}
+			if (formatted) {
+				$value.text(formatted);
+				$value.data('mkPosDate', 1);
+			}
+		});
+	}
+
+	function hideLegacyPosColumns($table) {
+		var allowed = ['salesorder_no', 'createdtime', 'account_id', 'hdnGrandTotal', 'total', paidFieldName(), resolveStatusField($table)];
+		allowed = allowed.filter(function (f, i, arr) {
+			return f && arr.indexOf(f) === i;
+		});
+		statusCandidates().forEach(function (f) {
+			if (allowed.indexOf(f) < 0) {
+				allowed.push(f);
+			}
+		});
+		$table.find('thead tr.listViewContentHeader th a[data-columnname]').each(function () {
+			var name = $(this).attr('data-columnname');
+			if (name && allowed.indexOf(name) < 0) {
+				$(this).closest('th').addClass('mk-so-list-col-hidden');
+			}
+		});
+		$table.find('tbody td[data-name]').each(function () {
+			var name = $(this).attr('data-name');
+			if (name && (allowed.indexOf(name) < 0 || name === 'customerno')) {
+				$(this).addClass('mk-so-list-col-hidden');
+			}
+		});
+	}
+
+	function filterMeta() {
+		return listConfig().filterMeta || {};
+	}
+
+	function pad2(n) {
+		return ('0' + n).slice(-2);
+	}
+
+	function getUserDateFormat() {
+		if (typeof app !== 'undefined' && app.getDateFormat) {
+			return String(app.getDateFormat()).toLowerCase();
+		}
+		return 'dd-mm-yyyy';
+	}
+
+	function formatDateByUserFormat(dateObj) {
+		var fmt = getUserDateFormat();
+		var y = dateObj.getFullYear();
+		var m = pad2(dateObj.getMonth() + 1);
+		var d = pad2(dateObj.getDate());
+		if (fmt.indexOf('yyyy') === 0) {
+			return y + '-' + m + '-' + d;
+		}
+		if (fmt.indexOf('dd') >= 0 && fmt.indexOf('dd') < fmt.indexOf('mm')) {
+			return d + '-' + m + '-' + y;
+		}
+		return m + '-' + d + '-' + y;
+	}
+
+	function normalizeFilterDateInput(dateStr, endOfDay) {
+		var raw = $.trim(dateStr || '');
+		if (!raw) {
+			return '';
+		}
+		if (raw.indexOf(' ') >= 0) {
+			return raw;
+		}
+		return raw + ' ' + (endOfDay ? '23:59:59' : '00:00:00');
+	}
+
+	function buildDateBetweenValue(fromStr, toStr) {
+		var from = normalizeFilterDateInput(fromStr, false);
+		var to = normalizeFilterDateInput(toStr, true);
+		if (from && to) {
+			return from + ',' + to;
+		}
+		if (from) {
+			return from + ',' + from.replace(/\d{2}:\d{2}:\d{2}$/, '23:59:59');
+		}
+		if (to) {
+			return to + ',' + to;
+		}
+		return '';
+	}
+
+	function getMonthRange() {
+		var now = new Date();
+		var start = new Date(now.getFullYear(), now.getMonth(), 1);
+		var end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+		return {
+			start: formatDateByUserFormat(start) + ' 00:00:00',
+			end: formatDateByUserFormat(end) + ' 23:59:59'
+		};
+	}
+
+	function cellMoneyAmount($td) {
+		if (!$td || !$td.length) {
+			return 0;
+		}
+		var raw = $td.attr('data-rawvalue');
+		if (raw !== undefined && raw !== null && String(raw).trim() !== '') {
+			return parseMoneyText(raw);
+		}
+		return parseMoneyText($td.find('.value').first().text());
+	}
+
+	function readPosFilterState() {
+		var $panel = $('#mk-so-pos-filter-panel');
+		if (!$panel.length) {
+			return null;
+		}
+		var meta = filterMeta();
+		var state = {
+			timeMode: $panel.find('input[name="mk_so_filter_time"]:checked').val() || 'all',
+			timeFrom: $.trim($('#mk-so-filter-time-from').val()),
+			timeTo: $.trim($('#mk-so-filter-time-to').val()),
+			dueMode: $panel.find('input[name="mk_so_filter_due_time"]:checked').val() || 'all',
+			dueFrom: $.trim($('#mk-so-filter-due-from').val()),
+			dueTo: $.trim($('#mk-so-filter-due-to').val()),
+			statuses: [],
+			carrier: $.trim($('#mk-so-filter-carrier').val()),
+			region: $.trim($('#mk-so-filter-region').val()),
+			payment: $.trim($('#mk-so-filter-payment').val())
+		};
+		$('#mk-so-filter-status-chips .mk-so-pos-filter-chip.is-selected').each(function () {
+			var val = $(this).attr('data-value');
+			if (val) {
+				state.statuses.push(val);
+			}
+		});
+		state.statusField = meta.statusField || resolveStatusField(getPrimaryTable()) || 'sostatus';
+		state.createdField = meta.createdTimeField || 'createdtime';
+		state.dueField = meta.dueDateField || 'duedate';
+		state.carrierField = meta.carrierField || 'carrier';
+		state.regionField = meta.shipCityField || '';
+		state.paymentField = meta.paymentField || '';
+		return state;
+	}
+
+	function buildPosAdvancedSearchParams(state) {
+		state = state || readPosFilterState();
+		if (!state) {
+			return [];
+		}
+		var andGroup = [];
+		var orGroup = [];
+		var range;
+		var dateValue;
+
+		if (state.timeMode === 'this_month') {
+			range = getMonthRange();
+			andGroup.push([state.createdField, 'bw', range.start + ',' + range.end]);
+		} else if (state.timeMode === 'custom') {
+			dateValue = buildDateBetweenValue(state.timeFrom, state.timeTo);
+			if (dateValue) {
+				andGroup.push([state.createdField, 'bw', dateValue]);
+			}
+		}
+
+		if (state.dueMode === 'custom' && state.dueField) {
+			dateValue = buildDateBetweenValue(state.dueFrom, state.dueTo);
+			if (dateValue) {
+				andGroup.push([state.dueField, 'bw', dateValue]);
+			}
+		}
+
+		if (state.statuses.length === 1) {
+			andGroup.push([state.statusField, 'e', state.statuses[0]]);
+		} else if (state.statuses.length > 1) {
+			state.statuses.forEach(function (status) {
+				orGroup.push([state.statusField, 'e', status]);
+			});
+		}
+
+		if (state.carrier && state.carrierField) {
+			andGroup.push([state.carrierField, 'e', state.carrier]);
+		}
+		if (state.region && state.regionField) {
+			andGroup.push([state.regionField, 'c', state.region]);
+		}
+		if (state.payment && state.paymentField) {
+			andGroup.push([state.paymentField, 'e', state.payment]);
+		}
+
+		if (orGroup.length && andGroup.length) {
+			return [andGroup, orGroup];
+		}
+		if (orGroup.length) {
+			return [[], orGroup];
+		}
+		if (andGroup.length) {
+			return [andGroup];
+		}
+		return [];
+	}
+
+	function mergePosSearchPayloads(advParams, quickParams) {
+		var andGroup = [];
+		var orGroup = [];
+
+		function absorbGroup(group, defaultGlue) {
+			if (!group || !group.length) {
+				return;
+			}
+			if (defaultGlue === 'or') {
+				orGroup = orGroup.concat(group);
+			} else {
+				andGroup = andGroup.concat(group);
+			}
+		}
+
+		if (advParams && advParams.length) {
+			absorbGroup(advParams[0], 'and');
+			if (advParams.length > 1) {
+				absorbGroup(advParams[1], 'or');
+			}
+		}
+		if (quickParams && quickParams.length) {
+			if (quickParams[0] && quickParams[0].length) {
+				absorbGroup(quickParams[0], 'and');
+			}
+			if (quickParams.length > 1 && quickParams[1] && quickParams[1].length) {
+				absorbGroup(quickParams[1], 'or');
+			}
+		}
+
+		var merged = [];
+		if (andGroup.length) {
+			merged.push(andGroup);
+		}
+		if (orGroup.length) {
+			merged.push(orGroup);
+		}
+		return merged;
+	}
+
+	function getPersistedSortParams() {
+		var $lv = getListViewContainer();
+		var orderBy = $.trim($lv.find('#orderBy').val() || '');
+		var sortOrder = $.trim($lv.find('#sortOrder').val() || '');
+		if (!orderBy) {
+			return {};
+		}
+		return {
+			orderby: orderBy,
+			sortorder: sortOrder || 'DESC'
+		};
+	}
+
+	function loadPosListRecords(extraParams) {
+		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+		if (!listInstance || !listInstance.loadListViewRecords) {
+			return;
+		}
+		var params = $.extend({}, getPersistedSortParams(), extraParams || {});
+		listInstance.loadListViewRecords(params);
+	}
+	function runPosAdvancedFilter() {
+		posFilterApplied = true;
+		var advParams = buildPosAdvancedSearchParams(readPosFilterState());
+		var quickParams = buildPosSearchParams(livePosSearchQuery);
+		var merged = mergePosSearchPayloads(advParams, quickParams);
+		var payload = JSON.stringify(merged);
+		lastPosSearchPayload = payload;
+		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+		if (!listInstance || !listInstance.loadListViewRecords) {
+			return;
+		}
+		listInstance.filterClick = false;
+		getListViewContainer().find('#currentSearchParams').val(payload);
+		try {
+			if (typeof app !== 'undefined' && app.helper && app.helper.showProgress) {
+				app.helper.showProgress();
+			}
+		} catch (e) {
+			/* ignore */
+		}
+		loadPosListRecords({
+			page: '1',
+			search_params: payload,
+			nolistcache: '1'
+		});
+	}
+
+	function clearPosAdvancedFilter() {
+		posFilterApplied = false;
+		var $panel = $('#mk-so-pos-filter-panel');
+		$panel.find('input[name="mk_so_filter_time"][value="all"]').prop('checked', true);
+		$panel.find('input[name="mk_so_filter_due_time"][value="all"]').prop('checked', true);
+		$('#mk-so-filter-time-custom, #mk-so-filter-due-custom').prop('hidden', true);
+		$panel.find('.mk-so-pos-filter-date').val('');
+		$panel.find('.mk-so-pos-filter-select').val('');
+		$panel.find('.mk-so-pos-filter-chip.is-selected').removeClass('is-selected');
+		refreshPosStatusChipLabels();
+		livePosSearchQuery = '';
+		lastPosSearchPayload = '';
+		$('#mk-so-pos-search').val('');
+		$('#mk-so-pos-search-clear').prop('hidden', true);
+		getListViewContainer().find('#currentSearchParams').val('');
+		loadPosListRecords({ page: '1', search_params: '[]', nolistcache: '1' });
+	}
+
+	function refreshPosStatusChipLabels() {
+		$('#mk-so-filter-status-chips .mk-so-pos-filter-chip').each(function () {
+			var $chip = $(this);
+			var val = $chip.attr('data-value');
+			var label = translateStatusLabel($chip.attr('data-label') || $chip.find('.mk-so-pos-filter-chip__text').text() || val);
+			$chip.find('.mk-so-pos-filter-chip__text').text(label);
+		});
+		$('#mk-so-filter-status-pool .mk-so-pos-filter-status-option').each(function () {
+			var $opt = $(this);
+			var val = $opt.attr('data-value');
+			$opt.text(translateStatusLabel($opt.text() || val));
+		});
+		syncPosStatusPoolVisibility();
+	}
+
+	function syncPosStatusPoolVisibility() {
+		$('#mk-so-filter-status-pool .mk-so-pos-filter-status-option').each(function () {
+			var val = $(this).attr('data-value');
+			var selected = $('#mk-so-filter-status-chips .mk-so-pos-filter-chip[data-value="' + val + '"]').hasClass('is-selected');
+			$(this).toggleClass('is-hidden', selected);
+		});
+	}
+
+	function initPosFilterPanel() {
+		var $panel = $('#mk-so-pos-filter-panel');
+		if (!$panel.length || $panel.data('mkFilterBound')) {
+			return;
+		}
+		$panel.data('mkFilterBound', 1);
+		refreshPosStatusChipLabels();
+
+		if (typeof vtUtils !== 'undefined' && vtUtils.applyFieldElementsView) {
+			vtUtils.applyFieldElementsView($panel);
+		}
+
+		$panel
+			.off('change.mkSoFilterTime', 'input[name="mk_so_filter_time"]')
+			.on('change.mkSoFilterTime', 'input[name="mk_so_filter_time"]', function () {
+				var custom = $(this).val() === 'custom';
+				$('#mk-so-filter-time-custom').prop('hidden', !custom);
+			})
+			.off('change.mkSoFilterDue', 'input[name="mk_so_filter_due_time"]')
+			.on('change.mkSoFilterDue', 'input[name="mk_so_filter_due_time"]', function () {
+				var custom = $(this).val() === 'custom';
+				$('#mk-so-filter-due-custom').prop('hidden', !custom);
+			})
+			.off('click.mkSoFilterChip', '#mk-so-filter-status-chips .mk-so-pos-filter-chip')
+			.on('click.mkSoFilterChip', '#mk-so-filter-status-chips .mk-so-pos-filter-chip', function (e) {
+				if ($(e.target).closest('.mk-so-pos-filter-chip__remove').length) {
+					$(this).removeClass('is-selected');
+				} else {
+					$(this).toggleClass('is-selected');
+				}
+				syncPosStatusPoolVisibility();
+			})
+			.off('click.mkSoFilterStatusAdd', '#mk-so-filter-status-pool .mk-so-pos-filter-status-option')
+			.on('click.mkSoFilterStatusAdd', '#mk-so-filter-status-pool .mk-so-pos-filter-status-option', function () {
+				var val = $(this).attr('data-value');
+				var $chip = $('#mk-so-filter-status-chips .mk-so-pos-filter-chip[data-value="' + val + '"]');
+				if ($chip.length) {
+					$chip.addClass('is-selected');
+					syncPosStatusPoolVisibility();
+				}
+			})
+			.off('click.mkSoFilterClose', '#mk-so-pos-filter-close')
+			.on('click.mkSoFilterClose', '#mk-so-pos-filter-close', function (e) {
+				e.preventDefault();
+				togglePosAdvancedFilter(false);
+			})
+			.off('click.mkSoFilterApply', '#mk-so-pos-filter-apply')
+			.on('click.mkSoFilterApply', '#mk-so-pos-filter-apply', function (e) {
+				e.preventDefault();
+				runPosAdvancedFilter();
+			})
+			.off('click.mkSoFilterClear', '#mk-so-pos-filter-clear')
+			.on('click.mkSoFilterClear', '#mk-so-pos-filter-clear', function (e) {
+				e.preventDefault();
+				clearPosAdvancedFilter();
+			});
+	}
+
+	function syncPosFilterUi() {
+		var open = posFilterOpen;
+		var $layout = $('#mk-so-pos-layout');
+		var $main = $layout.find('.mk-so-pos-main').first();
+		$layout.toggleClass('mk-so-filter-open', open);
+		$('#mk-so-pos-filter-panel').attr('aria-hidden', open ? 'false' : 'true');
+		$('#mk-so-pos-filter-btn').toggleClass('is-active', open);
+		if (!open && $main.length) {
+			$main.css('min-height', '');
+		}
+		try {
+			window.dispatchEvent(new Event('resize'));
+		} catch (e) {
+			/* ignore */
+		}
+	}
+
+	function togglePosAdvancedFilter(forceOpen) {
+		posFilterOpen = typeof forceOpen === 'boolean' ? forceOpen : !posFilterOpen;
+		syncPosFilterUi();
+		if (posFilterOpen) {
+			initPosFilterPanel();
+		}
+	}
+
+	function maybeOpenFilterFromState() {
+		if (posFilterStateSynced) {
+			return;
+		}
+		posFilterStateSynced = true;
+		var raw = $.trim(getListViewContainer().find('#currentSearchParams').val() || '');
+		if (!raw || raw === '[]' || raw === '[[]]' || raw === 'null') {
+			return;
+		}
+		try {
+			var parsed = JSON.parse(raw);
+			var hasFilters = $.isArray(parsed) && parsed.some(function (group) {
+				return $.isArray(group) && group.length > 0;
+			});
+			if (hasFilters) {
+				togglePosAdvancedFilter(true);
+			}
+		} catch (e) {
+			/* ignore */
+		}
+	}
+
+	function translateStatusLabel(text) {
+		var raw = $.trim(text || '');
+		if (!raw || raw === '--') {
+			return '--';
+		}
+		if (STATUS_VI_LABELS[raw]) {
+			return STATUS_VI_LABELS[raw];
+		}
+		var lower = raw.toLowerCase();
+		var key;
+		for (key in STATUS_VI_LABELS) {
+			if (STATUS_VI_LABELS.hasOwnProperty(key) && key.toLowerCase() === lower) {
+				return STATUS_VI_LABELS[key];
+			}
+		}
+		return raw;
+	}
+
 	function normalizeStatusTone(text) {
 		var t = String(text || '').toLowerCase();
 		if (!t || t === '--') {
 			return 'neutral';
 		}
-		if (t.indexOf('cancel') >= 0 || t.indexOf('reject') >= 0 || t.indexOf('failed') >= 0) {
+		if (t.indexOf('xác nhận') >= 0 || t.indexOf('approved') >= 0 || t.indexOf('duyệt') >= 0 || t.indexOf('deliver') >= 0 || t.indexOf('giao') >= 0 || t.indexOf('hoàn thành') >= 0) {
+			return 'confirmed';
+		}
+		if (t.indexOf('tạm') >= 0 || t.indexOf('created') >= 0 || t.indexOf('draft') >= 0 || t.indexOf('đã tạo') >= 0 || t.indexOf('pending') >= 0 || t.indexOf('chờ') >= 0) {
+			return 'draft';
+		}
+		if (t.indexOf('cancel') >= 0 || t.indexOf('reject') >= 0 || t.indexOf('hủy') >= 0 || t.indexOf('từ chối') >= 0) {
 			return 'danger';
 		}
-		if (t.indexOf('deliver') >= 0 || t.indexOf('complete') >= 0 || t.indexOf('approved') >= 0 || t.indexOf('paid') >= 0) {
+		if (t.indexOf('paid') >= 0 || t.indexOf('thanh toán') >= 0) {
 			return 'success';
 		}
-		if (t.indexOf('pending') >= 0 || t.indexOf('hold') >= 0 || t.indexOf('draft') >= 0 || t.indexOf('created') >= 0) {
-			return 'warning';
-		}
 		return 'neutral';
+	}
+
+	function assignPosColumnClasses($table) {
+		var statusField = resolveStatusField($table);
+		var paidField = paidFieldName();
+		if (statusField && !POS_COL_CLASS_BY_FIELD[statusField]) {
+			POS_COL_CLASS_BY_FIELD[statusField] = 'mk-so-col-status';
+		}
+		if (paidField && !POS_COL_CLASS_BY_FIELD[paidField]) {
+			POS_COL_CLASS_BY_FIELD[paidField] = 'mk-so-col-paid';
+		}
+		$table.find('thead tr.listViewContentHeader th a[data-columnname]').each(function () {
+			var field = $(this).attr('data-columnname');
+			if (field && POS_COL_CLASS_BY_FIELD[field]) {
+				$(this).closest('th').addClass(POS_COL_CLASS_BY_FIELD[field]);
+			}
+		});
+		$table.find('tbody tr.listViewEntries').each(function () {
+			$(this)
+				.children('td[data-name]')
+				.each(function () {
+					var field = $(this).attr('data-name');
+					if (field && POS_COL_CLASS_BY_FIELD[field]) {
+						$(this).addClass(POS_COL_CLASS_BY_FIELD[field]);
+					}
+				});
+		});
+	}
+
+	function enhancePaidCells($table) {
+		var field = paidFieldName();
+		$table.find('tbody td[data-name="' + field + '"]').each(function () {
+			var $td = $(this);
+			var $value = $td.find('.value').first();
+			if (!$value.length) {
+				return;
+			}
+			var amount = parseMoneyText($value.text());
+			$td.toggleClass('mk-so-paid-zero', amount === 0);
+			$td.toggleClass('mk-so-paid-positive', amount > 0);
+		});
+	}
+
+	function buildPosSearchParams(query) {
+		query = (query || '').toString().trim();
+		if (!query.length) {
+			return [];
+		}
+		var fields = globalSearchFields();
+		var conditions = [];
+		var i;
+		for (i = 0; i < fields.length; i++) {
+			conditions.push([fields[i], 'c', query]);
+		}
+		if (conditions.length === 1) {
+			return [conditions];
+		}
+		return [[], conditions];
+	}
+
+	function runPosQuickSearch(query) {
+		query = query != null ? String(query).trim() : livePosSearchQuery;
+		livePosSearchQuery = query;
+		var quickParams = buildPosSearchParams(query);
+		var advParams = posFilterApplied ? buildPosAdvancedSearchParams(readPosFilterState()) : [];
+		var merged = mergePosSearchPayloads(advParams, quickParams);
+		var payload = JSON.stringify(merged);
+		if (payload === lastPosSearchPayload) {
+			return;
+		}
+		lastPosSearchPayload = payload;
+		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+		if (!listInstance || !listInstance.loadListViewRecords) {
+			return;
+		}
+		listInstance.filterClick = false;
+		getListViewContainer().find('#currentSearchParams').val(payload);
+		try {
+			if (typeof app !== 'undefined' && app.helper && app.helper.showProgress) {
+				app.helper.showProgress();
+			}
+		} catch (e) {
+			/* ignore */
+		}
+		loadPosListRecords({
+			page: '1',
+			search_params: payload,
+			nolistcache: '1'
+		});
+	}
+
+	function schedulePosQuickSearch(immediate) {
+		if (posSearchTimer) {
+			clearTimeout(posSearchTimer);
+			posSearchTimer = null;
+		}
+		if (immediate) {
+			runPosQuickSearch();
+			return;
+		}
+		posSearchTimer = setTimeout(function () {
+			posSearchTimer = null;
+			runPosQuickSearch();
+		}, 600);
+	}
+
+	function bindPosToolbarEvents() {
+		if (posSearchBound) {
+			return;
+		}
+		posSearchBound = true;
+		var $root = getListViewContainer();
+		$(document)
+			.off('input.mkSoPosSearch', '#mk-so-pos-search')
+			.on('input.mkSoPosSearch', '#mk-so-pos-search', function () {
+				var val = $.trim($(this).val());
+				livePosSearchQuery = val;
+				$('#mk-so-pos-search-clear').prop('hidden', !val);
+				schedulePosQuickSearch();
+			})
+			.off('keydown.mkSoPosSearch', '#mk-so-pos-search')
+			.on('keydown.mkSoPosSearch', '#mk-so-pos-search', function (ev) {
+				if (ev.key === 'Enter') {
+					ev.preventDefault();
+					schedulePosQuickSearch(true);
+				}
+				if (ev.key === 'Escape') {
+					ev.preventDefault();
+					livePosSearchQuery = '';
+					lastPosSearchPayload = '';
+					$(this).val('');
+					$('#mk-so-pos-search-clear').prop('hidden', true);
+					schedulePosQuickSearch(true);
+				}
+			})
+			.off('click.mkSoPosSearchClear', '#mk-so-pos-search-clear')
+			.on('click.mkSoPosSearchClear', '#mk-so-pos-search-clear', function (e) {
+				e.preventDefault();
+				livePosSearchQuery = '';
+				lastPosSearchPayload = '';
+				$('#mk-so-pos-search').val('').trigger('input').focus();
+			})
+			.off('click.mkSoPosFilter', '#mk-so-pos-filter-btn')
+			.on('click.mkSoPosFilter', '#mk-so-pos-filter-btn', function (e) {
+				e.preventDefault();
+				togglePosAdvancedFilter();
+			})
+			.off('click.mkSoPosColumns', '.mk-so-pos-trigger-columns')
+			.on('click.mkSoPosColumns', '.mk-so-pos-trigger-columns', function (e) {
+				e.preventDefault();
+				$root.find('.listColumnFilter').first().trigger('click');
+			})
+			.off('click.mkSoPosMerge', '#mk-so-merge-orders-btn')
+			.on('click.mkSoPosMerge', '#mk-so-merge-orders-btn', function (e) {
+				e.preventDefault();
+				if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
+					app.helper.showErrorNotification({ message: 'Chọn ít nhất 2 đơn hàng để gộp đơn.' });
+				}
+			});
+	}
+
+	function injectSummaryRow($table) {
+		var dueField = dueFieldName();
+		var paidField = paidFieldName();
+		var $headerRow = $table.find('thead tr.listViewContentHeader').first();
+		if (!$headerRow.length) {
+			return;
+		}
+		$table.find('thead tr.mk-so-summary-row').remove();
+		var $rows = $table.find('tbody tr.listViewEntries');
+		if (!$rows.length) {
+			return;
+		}
+		var hasDueColumn = $headerRow.find('a[data-columnname="' + dueField + '"]').length > 0;
+		var hasPaidColumn = $headerRow.find('a[data-columnname="' + paidField + '"]').length > 0;
+		var dueTotal = 0;
+		var paidTotal = 0;
+		$rows.each(function () {
+			var $row = $(this);
+			if (hasDueColumn) {
+				dueTotal += cellMoneyAmount($row.find('td[data-name="' + dueField + '"]').first());
+			}
+			if (hasPaidColumn) {
+				paidTotal += cellMoneyAmount($row.find('td[data-name="' + paidField + '"]').first());
+			}
+		});
+		var $cells = $headerRow.children('th');
+		var html = '<tr class="mk-so-summary-row">';
+		$cells.each(function () {
+			var $th = $(this);
+			var field = $th.find('a[data-columnname]').attr('data-columnname') || '';
+			var cls = 'mk-so-summary-cell';
+			var content = '';
+			if ($th.hasClass('mk-so-pos-control-th')) {
+				cls += ' mk-so-summary-cell--label';
+				content = '<span class="mk-so-summary-label">Tổng</span>';
+			} else if (field === dueField && hasDueColumn) {
+				cls += ' mk-so-summary-cell--due';
+				content = '<span class="mk-so-summary-value">' + formatMoneyNumber(dueTotal) + '</span>';
+			} else if (field === paidField && hasPaidColumn) {
+				cls += ' mk-so-summary-cell--paid';
+				content = '<span class="mk-so-summary-value">' + (paidTotal > 0 ? formatMoneyNumber(paidTotal) : '--') + '</span>';
+			}
+			html += '<th class="' + cls + '">' + content + '</th>';
+		});
+		html += '</tr>';
+		$headerRow.after(html);
+	}
+
+	function applyPosListChrome() {
+		var $root = getListViewContainer();
+		$root.addClass('mk-so-pos-list-enabled');
+		bindPosToolbarEvents();
+		if (livePosSearchQuery) {
+			$('#mk-so-pos-search').val(livePosSearchQuery);
+			$('#mk-so-pos-search-clear').prop('hidden', !livePosSearchQuery);
+		}
 	}
 
 	function enhanceStatusPills($table, statusField) {
@@ -171,19 +1760,54 @@
 			}
 			$td.addClass('mk-so-status-cell');
 			var $value = $td.find('.value').first();
-			if (!$value.length || $value.find('.mk-so-status-pill').length) {
+			if (!$value.length) {
 				return;
 			}
-			if ($value.find('.picklist-color').length) {
-				$value.find('.picklist-color').addClass('mk-so-status-pill mk-so-status-pill--' + normalizeStatusTone($value.text()));
+			if ($value.find('.mk-so-status-pill').length && $value.data('mkStatusDone')) {
 				return;
 			}
 			var text = $.trim($value.text()) || '--';
+			var display = translateStatusLabel(text);
+			var tone = normalizeStatusTone(display);
 			$value.empty().append($('<span>', {
-				'class': 'mk-so-status-pill mk-so-status-pill--' + normalizeStatusTone(text),
-				text: text
+				'class': 'mk-so-status-pill mk-so-status-pill--' + tone,
+				text: display
 			}));
+			$value.data('mkStatusDone', 1);
 		});
+	}
+
+	function applyPosColumnWidths($table) {
+		var $headers = $table.find('thead tr.listViewContentHeader th');
+		if (!$headers.length) {
+			return;
+		}
+		$table.find('colgroup.mk-so-pos-cols').remove();
+		var widthByClass = {
+			'mk-so-pos-control-th': '42px',
+			'mk-so-col-star': '42px',
+			'mk-so-col-order-no': '12%',
+			'mk-so-col-time': '15%',
+			'mk-so-col-customer': '30%',
+			'mk-so-col-due': '13%',
+			'mk-so-col-paid': '12%',
+			'mk-so-col-status': '12%'
+		};
+		var html = '<colgroup class="mk-so-pos-cols">';
+		$headers.each(function () {
+			var $th = $(this);
+			var width = 'auto';
+			var cls;
+			for (cls in widthByClass) {
+				if (widthByClass.hasOwnProperty(cls) && $th.hasClass(cls)) {
+					width = widthByClass[cls];
+					break;
+				}
+			}
+			html += '<col style="width:' + width + '">';
+		});
+		html += '</colgroup>';
+		$table.prepend(html);
 	}
 
 	function applyTableClasses($table) {
@@ -240,7 +1864,13 @@
 		$card.find('#table-content').replaceWith($newTableContent.clone(true, true));
 
 		var $newActions = $source.find('#listview-actions').first();
+		if (!$newActions.length) {
+			$newActions = $source.find('.mk-so-pos-actions-src #listview-actions').first();
+		}
 		var $oldActions = $page.find('#listview-actions').first();
+		if (!$oldActions.length) {
+			$oldActions = $page.find('.mk-so-pos-actions-src #listview-actions').first();
+		}
 		if ($newActions.length && $oldActions.length) {
 			$oldActions.replaceWith($newActions.clone(true, true));
 		}
@@ -427,8 +2057,21 @@
 			return;
 		}
 
+		collapsePosInlineDetail($table);
+		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+		if (listInstance) {
+			registerSalesPosRowClickEvent(listInstance);
+		}
+
 		applyTableClasses($table);
+		applyPosColumnWidths($table);
 		fixEncodedTextCells($table);
+		applyPosListChrome();
+		initPosFilterPanel();
+		syncPosFilterUi();
+		maybeOpenFilterFromState();
+		assignPosColumnClasses($table);
+		hideLegacyPosColumns($table);
 
 		var statusField = resolveStatusField($table);
 		if (statusField) {
@@ -440,6 +2083,13 @@
 			if (hasQuoteInHeaders) {
 				hideQuoteColumns($table);
 			}
+		}
+		formatPosMoneyCells($table);
+		formatPosDateTimeCells($table);
+		enhancePaidCells($table);
+		injectSummaryRow($table);
+		if (window.MkSalesListShared && typeof window.MkSalesListShared.relocatePaginationFooter === 'function') {
+			window.MkSalesListShared.relocatePaginationFooter();
 		}
 		document.documentElement.classList.add('mk-sales-list-ready');
 		if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === 'function') {
@@ -455,6 +2105,7 @@
 		var originalPlace = Vtiger_List_Js.prototype.placeListContents;
 		Vtiger_List_Js.prototype.placeListContents = function (contents) {
 			if (isSalesOrderSalesList() && swapListBodyInShell(contents)) {
+				syncPosFilterUi();
 				applyListEnhancements();
 				return;
 			}
@@ -548,6 +2199,7 @@
 		/* Filter icon: MkSalesListShared scrolls to filter row (no toggle hide) */
 
 		patchPlaceListContents();
+		patchInlineDetailRowClick();
 		bindListEvents();
 		initDebugHelpers();
 		scheduleInitialEnhancements();
@@ -555,13 +2207,23 @@
 
 	window.applySalesOrderListUi = applyListEnhancements;
 
+	bindPosInlineDetailCapture();
+	if (typeof Vtiger_List_Js !== 'undefined') {
+		patchInlineDetailRowClick();
+	}
+
 	function boot() {
 		if (!isSalesOrderSalesList()) {
 			return;
 		}
 		whenVtigerListReady(function () {
 			patchVtigerFloatingThead();
+			patchInlineDetailRowClick();
 			init();
+			var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+			if (listInstance && isSalesOrderSalesList()) {
+				registerSalesPosRowClickEvent(listInstance);
+			}
 		});
 	}
 

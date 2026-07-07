@@ -15,6 +15,33 @@ require_once 'modules/Quotes/helpers/QuoteBaService.php';
 require_once 'modules/Inventory/helpers/TermsDisplayHelper.php';
 
 class Vtiger_SalesOrderPDFController extends Vtiger_InventoryPDFController{
+
+	protected function pdfDecodeText($value) {
+		$text = (string) $value;
+		if ($text === '') {
+			return '';
+		}
+		if (function_exists('decode_html')) {
+			$text = decode_html($text);
+		}
+		$prev = '';
+		$guard = 0;
+		while ($text !== $prev && $guard < 5) {
+			$prev = $text;
+			$text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+			$guard++;
+		}
+		return trim($text);
+	}
+
+	function resolveReferenceLabel($id, $module = false) {
+		return $this->pdfDecodeText(parent::resolveReferenceLabel($id, $module));
+	}
+
+	function focusColumnValue($key, $defvalue = '') {
+		return $this->pdfDecodeText(parent::focusColumnValue($key, $defvalue));
+	}
+
 	function buildHeaderModelTitle() {
 		$singularModuleNameKey = 'SINGLE_'.$this->moduleName;
 		$translatedSingularModuleLabel = getTranslatedString($singularModuleNameKey, $this->moduleName);
@@ -66,6 +93,31 @@ class Vtiger_SalesOrderPDFController extends Vtiger_InventoryPDFController{
 		return $footerViewer;
 	}
 
+	function resolveNguyenKhoaLogoPath() {
+		global $root_directory;
+		$relativeCandidates = array(
+			'layouts/v7/resources/Images/nguyenkhoa-logo.png',
+			'layouts/v7/skins/images/nguyenkhoa-logo.png',
+		);
+		$roots = array();
+		if (!empty($root_directory)) {
+			$roots[] = rtrim((string) $root_directory, "/\\");
+		}
+		$moduleRoot = realpath(dirname(__FILE__) . '/../..');
+		if ($moduleRoot) {
+			$roots[] = $moduleRoot;
+		}
+		foreach ($relativeCandidates as $relativePath) {
+			foreach ($roots as $root) {
+				$absolutePath = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+				if (Quotes_QuoteBaService_Helper::isValidQuoteLogoImage($absolutePath)) {
+					return $absolutePath;
+				}
+			}
+		}
+		return '';
+	}
+
 	function buildHeaderModelColumnLeft() {
 		$company = Quotes_QuoteBaService_Helper::getCompanyProfile();
 		$contentLines = array();
@@ -82,14 +134,17 @@ class Vtiger_SalesOrderPDFController extends Vtiger_InventoryPDFController{
 			$contentLines[] = getTranslatedString('Website: ', $this->moduleName) . $company['website'];
 		}
 
-		$logoPath = $company['logo_path'];
-		if ($logoPath === '' || !is_readable($logoPath)) {
-			global $adb;
-			$result = $adb->pquery('SELECT logoname FROM vtiger_organizationdetails LIMIT 1', array());
-			if ($result && $adb->num_rows($result)) {
-				$logoname = $adb->query_result($result, 0, 'logoname');
-				if ($logoname) {
-					$logoPath = 'test/logo/' . $logoname;
+		$logoPath = $this->resolveNguyenKhoaLogoPath();
+		if ($logoPath === '') {
+			$logoPath = $company['logo_path'];
+			if ($logoPath === '' || !is_readable($logoPath)) {
+				global $adb;
+				$result = $adb->pquery('SELECT logoname FROM vtiger_organizationdetails LIMIT 1', array());
+				if ($result && $adb->num_rows($result)) {
+					$logoname = $adb->query_result($result, 0, 'logoname');
+					if ($logoname) {
+						$logoPath = 'test/logo/' . $logoname;
+					}
 				}
 			}
 		}

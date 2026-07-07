@@ -71,6 +71,19 @@ $languageStrings = array(
 "Support" => "Hỗ trợ",
 "Other" => "Khác",
 "Order Name" => "Tên đơn",
+"LBL_MK_SO_SEARCH_PLACEHOLDER" => "Theo mã phiếu đặt",
+"LBL_MK_SO_ADD_ORDER" => "Đặt hàng",
+"LBL_MK_SO_MERGE_ORDERS" => "Gộp đơn",
+"LBL_MK_SO_COL_ORDER_NO" => "Mã đặt hàng",
+"LBL_MK_SO_COL_TIME" => "Thời gian",
+"LBL_MK_SO_COL_CUSTOMER_CODE" => "Mã KH",
+"LBL_MK_SO_COL_CUSTOMER" => "Khách hàng",
+"LBL_MK_SO_COL_AMOUNT_DUE" => "Khách cần trả",
+"LBL_MK_SO_COL_AMOUNT_PAID" => "Khách đã trả",
+"LBL_MK_SO_COL_STATUS" => "Trạng thái",
+"LBL_MK_SO_STATUS_CONFIRMED" => "Đã xác nhận",
+"LBL_MK_SO_STATUS_DRAFT" => "Phiếu tạm",
+"Received" => "Khách đã trả",
 );
 
 $jsLanguageStrings = array(
