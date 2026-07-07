@@ -112,9 +112,12 @@
     else if (group === "customer-status") {
       state.customerStatus = btn.getAttribute("data-segment") || null;
     } else if (group === "purchase-status") {
-      state.purchaseStatus = tag;
-      syncPurchaseReasonPanel(btn);
-    } else if (group === "customer-tier") state.tier = tag;
+      // Removed per BA request
+      return;
+    } else if (group === "customer-tier") {
+      // Removed per BA request
+      return;
+    }
     renderTags();
   }
 
@@ -129,6 +132,9 @@
   function syncPurchaseReasonPanel(btn) {
     var panel = $("mk-td-purchase-reason");
     var foot = $("mk-td-purchase-tag-foot");
+    if (!panel && !foot) {
+      return;
+    }
     var needs = btn && btn.getAttribute("data-needs-reason") === "1";
     if (panel) panel.hidden = !needs;
     if (foot) {
@@ -254,8 +260,7 @@
     activateChoice("customer-type", findTag(tags, TAG_POOLS.customerType) || "individual");
     if (lead && lead.segment) activateSegment(lead.segment);
     activateChoice("lead-source", findTag(tags, TAG_POOLS.leadSource));
-    activateChoice("purchase-status", findTag(tags, TAG_POOLS.purchaseStatus));
-    activateChoice("customer-tier", findTag(tags, TAG_POOLS.tier));
+    // purchase-status + customer-tier removed per BA request
     setSelectByTag("mk-td-district", findTag(tags, TAG_POOLS.region));
     setSelectByTag("mk-td-intent", findTag(tags, TAG_POOLS.intent));
     var entryTag = findTag(tags, TAG_POOLS.entry);

@@ -1639,11 +1639,11 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-li
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-star { width: 42px; }
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-order-no { width: 12%; }
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-time { width: 15%; }
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-customer { width: 30%; }
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-due { width: 13%; }
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-paid { width: 12%; }
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-status { width: 12%; }
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-time { width: 16%; }
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-customer { width: 26%; }
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-due { width: 16%; }
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-paid { width: 14%; }
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-status { width: 14%; }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table > tbody > tr.listViewEntries > td {
 	padding: 8px 12px !important;

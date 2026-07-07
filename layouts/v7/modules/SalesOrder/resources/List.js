@@ -1787,11 +1787,11 @@
 			'mk-so-pos-control-th': '42px',
 			'mk-so-col-star': '42px',
 			'mk-so-col-order-no': '12%',
-			'mk-so-col-time': '15%',
-			'mk-so-col-customer': '30%',
-			'mk-so-col-due': '13%',
-			'mk-so-col-paid': '12%',
-			'mk-so-col-status': '12%'
+			'mk-so-col-time': '16%',
+			'mk-so-col-customer': '26%',
+			'mk-so-col-due': '16%',
+			'mk-so-col-paid': '14%',
+			'mk-so-col-status': '14%'
 		};
 		var html = '<colgroup class="mk-so-pos-cols">';
 		$headers.each(function () {
