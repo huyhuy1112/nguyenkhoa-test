@@ -11,6 +11,56 @@ class Quotes_QuoteExcelExport_Helper {
 	const COL_FIRST = 'B';
 	const COL_LAST = 'H';
 
+	// Nguyên Khoa defaults (used when org profile still has TDB placeholders)
+	const NK_COMPANY_NAME = 'nguyenlieuphachemt';
+	const NK_ADDRESS = '6/24 Đường số 3, Cư Xá Lữ Gia, Phú Thọ, Hồ Chí Minh';
+	const NK_PHONE = '0973969498';
+
+	protected static function resolveNguyenKhoaLogoPath() {
+		global $root_directory;
+		$candidates = array(
+			'layouts/v7/resources/Images/nguyenkhoa-logo.png',
+			'layouts/v7/skins/images/nguyenkhoa-logo.png',
+		);
+		$roots = array();
+		if (!empty($root_directory)) {
+			$roots[] = rtrim((string) $root_directory, "/\\");
+		}
+		$repoRoot = realpath(dirname(__FILE__) . '/../..');
+		if ($repoRoot) {
+			$roots[] = $repoRoot;
+		}
+		foreach ($candidates as $rel) {
+			foreach ($roots as $root) {
+				$abs = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rel);
+				if (Quotes_QuoteBaService_Helper::isValidQuoteLogoImage($abs)) {
+					return $abs;
+				}
+			}
+		}
+		return '';
+	}
+
+	protected static function applyNguyenKhoaCompanyBranding(array $company) {
+		$logo = self::resolveNguyenKhoaLogoPath();
+		if ($logo !== '') {
+			$company['logo_path'] = $logo;
+		}
+
+		// If organization still uses stock/TDB defaults, force NK identity.
+		$orgName = trim((string) ($company['company_name'] ?? ''));
+		if ($orgName === '' || stripos($orgName, 'TDB') !== false) {
+			$company['company_name'] = self::NK_COMPANY_NAME;
+		}
+		if (empty($company['address']) || stripos((string) $company['address'], 'bangalore') !== false) {
+			$company['address'] = self::NK_ADDRESS;
+		}
+		if (empty($company['phone'])) {
+			$company['phone'] = self::NK_PHONE;
+		}
+		return $company;
+	}
+
 	protected static function colRange($row, $from = self::COL_FIRST, $to = self::COL_LAST) {
 		return $from . $row . ':' . $to . $row;
 	}
@@ -216,7 +266,7 @@ class Quotes_QuoteExcelExport_Helper {
 
 	protected static function gatherQuoteContext(CRMEntity $focus) {
 		require_once 'modules/Quotes/helpers/QuoteBaService.php';
-		$company = Quotes_QuoteBaService_Helper::getCompanyProfile();
+		$company = self::applyNguyenKhoaCompanyBranding(Quotes_QuoteBaService_Helper::getCompanyProfile());
 
 		$accountName = '';
 		$phone = '';
@@ -310,52 +360,92 @@ class Quotes_QuoteExcelExport_Helper {
 			$sheet->getColumnDimension($col)->setWidth($width);
 		}
 
-		$row = self::writeCompanyHeader($sheet, $company);
+		// ===== NK invoice-style header (like provided form) =====
+		$row = 1;
+		// Center logo at top
+		try {
+			$logoPath = $company['logo_path'] ?? '';
+			if (Quotes_QuoteBaService_Helper::isValidQuoteLogoImage($logoPath)) {
+				$drawing = new PHPExcel_Worksheet_Drawing();
+				$drawing->setName('NK Logo');
+				$drawing->setDescription('Nguyên Khoa');
+				$drawing->setPath($logoPath);
+				$drawing->setHeight(120);
+				$drawing->setCoordinates('D1');
+				$drawing->setOffsetX(20);
+				$drawing->setOffsetY(0);
+				$drawing->setWorksheet($sheet);
+			}
+		} catch (Exception $e) { /* ignore */ }
 
-		$sheet->mergeCells(self::colRange($row));
-		$sheet->setCellValue('B' . $row, 'BÁO GIÁ');
-		$sheet->getStyle(self::colRange($row))->applyFromArray(array(
-			'font' => array('bold' => true, 'size' => 16, 'name' => self::FONT),
+		$sheet->getRowDimension(1)->setRowHeight(80);
+		$sheet->getRowDimension(2)->setRowHeight(18);
+		$sheet->getRowDimension(3)->setRowHeight(18);
+		$sheet->mergeCells('B2:H2');
+		$sheet->setCellValue('B2', (string) ($company['company_name'] ?? self::NK_COMPANY_NAME));
+		$sheet->getStyle('B2')->getFont()->setBold(true)->setSize(12)->setName(self::FONT);
+		$sheet->getStyle('B2')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+		$sheet->mergeCells('B3:H3');
+		$sheet->setCellValue('B3', 'Địa chỉ: ' . (string) ($company['address'] ?? self::NK_ADDRESS));
+		$sheet->getStyle('B3')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+		$sheet->mergeCells('B4:H4');
+		$sheet->setCellValue('B4', 'Điện thoại: ' . (string) ($company['phone'] ?? self::NK_PHONE));
+		$sheet->getStyle('B4')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+		$sheet->mergeCells('B6:H6');
+		$sheet->setCellValue('B6', 'HÓA ĐƠN ĐẶT HÀNG');
+		$sheet->getStyle('B6')->applyFromArray(array(
+			'font' => array('bold' => true, 'size' => 13, 'name' => self::FONT),
 			'alignment' => array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER),
 		));
-		$row++;
 
-		$sheet->setCellValue('F' . $row, 'Số: ' . ($ctx['quote_no'] !== '' ? $ctx['quote_no'] : ('BG-' . $focus->id)));
-		$sheet->setCellValue('H' . $row, 'Ngày: ' . $ctx['quote_date']);
-		$row += 2;
+		$docNo = $ctx['quote_no'] !== '' ? $ctx['quote_no'] : ('DH' . $focus->id);
+		$sheet->mergeCells('B7:H7');
+		$sheet->setCellValue('B7', 'Mã đơn hàng: ' . $docNo);
+		$sheet->getStyle('B7')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
-		$sheet->setCellValue('B' . $row, 'Kính gửi:');
+		$sheet->mergeCells('B8:H8');
+		$sheet->setCellValue('B8', 'Ngày ' . $ctx['quote_date']);
+		$sheet->getStyle('B8')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+		$row = 10;
+		$sheet->setCellValue('B' . $row, 'Khách hàng:');
 		$sheet->mergeCells('C' . $row . ':H' . $row);
-		$sheet->setCellValue('C' . $row, $ctx['receiver']);
+		$sheet->setCellValue('C' . $row, $ctx['account_name'] !== '' ? $ctx['account_name'] : $ctx['receiver']);
 		$row++;
-		$sheet->setCellValue('B' . $row, 'Công ty:');
+		$sheet->setCellValue('B' . $row, 'SĐT:');
 		$sheet->mergeCells('C' . $row . ':H' . $row);
-		$sheet->setCellValue('C' . $row, $ctx['account_name']);
+		$sheet->setCellValue('C' . $row, $ctx['phone']);
 		$row++;
 		$sheet->setCellValue('B' . $row, 'Địa chỉ:');
 		$sheet->mergeCells('C' . $row . ':H' . $row);
 		$sheet->setCellValue('C' . $row, $ctx['address']);
 		$row++;
-		$sheet->setCellValue('B' . $row, 'Điện thoại:');
-		$sheet->setCellValue('C' . $row, $ctx['phone']);
-		$sheet->setCellValue('F' . $row, 'Email:');
-		$sheet->mergeCells('G' . $row . ':H' . $row);
-		$sheet->setCellValue('G' . $row, $ctx['email']);
-		$row += 2;
+		$notes = self::stripTermsHtml($ctx['terms_html']);
+		if ($notes !== '') {
+			$sheet->setCellValue('B' . $row, 'Ghi chú:');
+			$sheet->mergeCells('C' . $row . ':H' . $row);
+			$sheet->setCellValue('C' . $row, $notes);
+			$sheet->getStyle('C' . $row)->getAlignment()->setWrapText(true);
+			$sheet->getRowDimension($row)->setRowHeight(-1);
+			$row++;
+		}
+		$row++;
 
 		$headerRow = $row;
+		// Table matches print-like form
 		$headers = array(
-			'B' => 'STT',
-			'C' => 'Mã sản phẩm',
-			'D' => 'Mô tả sản phẩm',
-			'E' => 'Đơn vị tính',
-			'F' => 'Đơn giá (VND)',
-			'G' => 'Số lượng',
-			'H' => 'Thành tiền',
+			'B' => 'Sản phẩm',
+			'F' => 'Đơn giá',
+			'G' => 'SL',
+			'H' => 'T.Tiền',
 		);
 		foreach ($headers as $col => $label) {
 			$sheet->setCellValue($col . $row, $label);
 		}
+		$sheet->mergeCells('B' . $row . ':E' . $row);
 		self::styleTableHeader($sheet, $row);
 		$row++;
 
@@ -381,14 +471,12 @@ class Quotes_QuoteExcelExport_Helper {
 			$productName = self::decode($productLineItem['productName' . $productLineItemIndex] ?? '');
 			$total = ($quantity * $listPrice) - $discount;
 
-			$sheet->setCellValue('B' . $row, $productLineItemIndex);
-			$sheet->setCellValue('C' . $row, $productCode);
-			$sheet->setCellValue('D' . $row, $productName);
-			$sheet->setCellValue('E' . $row, $usageUnit);
+			$sheet->mergeCells('B' . $row . ':E' . $row);
+			$sheet->setCellValue('B' . $row, $productName);
 			$sheet->setCellValue('F' . $row, $listPrice);
 			$sheet->setCellValue('G' . $row, $quantity);
 			$sheet->setCellValue('H' . $row, $total);
-			$sheet->getStyle(self::colRange($row))->applyFromArray(array(
+			$sheet->getStyle('B' . $row . ':H' . $row)->applyFromArray(array(
 				'borders' => array('allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN)),
 				'alignment' => array('wrap' => true, 'vertical' => PHPExcel_Style_Alignment::VERTICAL_TOP),
 			));
@@ -406,20 +494,20 @@ class Quotes_QuoteExcelExport_Helper {
 		$lastProductRow = $row - 1;
 		$totalRow = $row;
 		$sheet->mergeCells('B' . $totalRow . ':G' . $totalRow);
-		$sheet->setCellValue('B' . $totalRow, 'Tổng');
+		$sheet->setCellValue('B' . $totalRow, 'Tổng tiền hàng:');
 		$sheet->setCellValue('H' . $totalRow, '=SUM(H' . $firstProductRow . ':H' . $lastProductRow . ')');
 		$row++;
 
 		$vatRow = $row;
 		$sheet->mergeCells('B' . $vatRow . ':G' . $vatRow);
-		$sheet->setCellValue('B' . $vatRow, 'Thuế GTGT ' . $ctx['vat_percent'] . '%');
+		$sheet->setCellValue('B' . $vatRow, 'Chiết khấu:');
 		$sheet->setCellValue('H' . $vatRow, '=H' . $totalRow . '*' . ($ctx['vat_percent'] / 100));
 		$row++;
 
 		$grandRow = $row;
 		$sheet->mergeCells('B' . $grandRow . ':G' . $grandRow);
-		$sheet->setCellValue('B' . $grandRow, 'Tổng cộng');
-		$sheet->setCellValue('H' . $grandRow, '=H' . $totalRow . '+H' . $vatRow);
+		$sheet->setCellValue('B' . $grandRow, 'Tổng thanh toán:');
+		$sheet->setCellValue('H' . $grandRow, '=H' . $totalRow);
 		$sheet->getStyle('H' . $totalRow . ':H' . $grandRow)->getNumberFormat()->setFormatCode('#,##0');
 		$sheet->getStyle(self::colRange($totalRow) . ':' . self::colRange($grandRow))->applyFromArray(array(
 			'font' => array('bold' => true, 'name' => self::FONT),
@@ -429,39 +517,15 @@ class Quotes_QuoteExcelExport_Helper {
 
 		if ($ctx['amount_words'] !== '') {
 			$sheet->mergeCells(self::colRange($row));
-			$sheet->setCellValue('B' . $row, 'Bằng chữ: ' . $ctx['amount_words']);
+			$sheet->setCellValue('B' . $row, '(' . $ctx['amount_words'] . ')');
 			$sheet->getStyle(self::colRange($row))->getAlignment()->setWrapText(true);
 			$row += 2;
 		}
 
-		$termLines = self::parseTermsLines($ctx['terms_html'], $ctx['product_info'], $company);
-		foreach ($termLines as $line) {
-			$sheet->mergeCells(self::colRange($row));
-			$sheet->setCellValue('B' . $row, $line['text']);
-			if ($line['type'] === 'section') {
-				self::styleSectionBar($sheet, $row);
-			} else {
-				self::styleBodyRow($sheet, $row, true);
-				if ($line['type'] === 'sub') {
-					$sheet->getStyle('B' . $row)->getAlignment()->setIndent(1);
-				}
-			}
-			$sheet->getRowDimension($row)->setRowHeight(-1);
-			$row++;
-		}
-
 		$row += 2;
-		$sheet->setCellValue('B' . $row, 'Giám đốc');
-		$sheet->setCellValue('E' . $row, 'Người báo giá');
-		$sheet->setCellValue('H' . $row, 'Khách hàng');
-		$sheet->getStyle('B' . $row . ':H' . $row)->applyFromArray(array(
-			'font' => array('bold' => true, 'name' => self::FONT, 'size' => 10),
-			'alignment' => array(
-				'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-				'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
-			),
-		));
-		$row += 3;
+		$sheet->mergeCells('B' . $row . ':H' . $row);
+		$sheet->setCellValue('B' . $row, 'Cảm ơn và hẹn gặp lại!');
+		$sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 		$sheet->getPageSetup()->setOrientation(PHPExcel_Worksheet_PageSetup::ORIENTATION_PORTRAIT);
 		$sheet->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_A4);
@@ -492,8 +556,8 @@ class Quotes_QuoteExcelExport_Helper {
 		}
 		$fileBase = preg_replace('/^\d{6}-/', '', $fileBase);
 		$fileBase = trim($fileBase);
-		if ($fileBase !== '' && !preg_match('/^TDB Quo-/i', $fileBase)) {
-			$fileBase = 'TDB Quo-' . $fileBase;
+		if ($fileBase !== '' && !preg_match('/^NK Quo-/i', $fileBase)) {
+			$fileBase = 'NK Quo-' . $fileBase;
 		}
 		$fileBase = preg_replace('/[^\p{L}\p{N}\s\-\_\.]/u', '_', $fileBase);
 		$fileBase = preg_replace('/\s+/', ' ', $fileBase);
