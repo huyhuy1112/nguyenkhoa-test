@@ -104,8 +104,8 @@
 							{* Leads belongs to SALES only — hide from Marketing sidebar *}
 							{if $APP_NAME eq 'MARKETING' && $moduleName eq 'Leads'}{continue}{/if}
 							{if $moduleName eq 'ExtensionStore'}{continue}{/if}
-							{* SALES: keep ProductsServices; hide legacy Products/Services entries *}
-							{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
+							{* SALES: keep ProductsServices under Kho; hide legacy Products/Services entries *}
+							{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services' || $moduleName eq 'ProductsServices')}{continue}{/if}
 							{* INVENTORY: ẩn Inbound / Storage / Outbound — dùng Danh sách kho thay thế *}
 							{if $APP_NAME eq 'INVENTORY' && ($moduleName eq 'GoodsReceipt' || $moduleName eq 'GoodsIssue' || $moduleName eq 'Warehouse')}{continue}{/if}
 							{if $moduleModel}
@@ -119,7 +119,7 @@
 									{if $moduleName eq 'Rules'}{assign var=_mkModActive value=true}{/if}
 								{/if}
 								<a class="mk-dash-mod-link{if $_mkModActive} mk-dash-mod-link--active{/if}" href="{$moduleModel->getDefaultUrl()}&app={$APP_NAME}">
-									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
+									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'Accounts'}Tuibao{elseif $moduleName eq 'ProductsServices'}Hàng hoá{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
 								</a>
 							{/if}
 						{/foreach}
@@ -142,7 +142,7 @@
 						{if ($_mkHasAccounts eq false) && ($APP_NAME eq 'SUPPORT')}
 							{assign var=_mkAccountsActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Accounts')}
 							<a class="mk-dash-mod-link{if $_mkAccountsActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SUPPORT">
-								<span class="mk-dash-mod-label">{vtranslate('Accounts', 'Accounts')}</span>
+								<span class="mk-dash-mod-label">Tuibao</span>
 							</a>
 						{/if}
 
@@ -159,6 +159,10 @@
 							{assign var=_mkWhTrfActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'WhTransfer')}
 							<a class="mk-dash-mod-link{if $_mkWhTrfActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhTransfer&amp;app=INVENTORY">
 								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_TRANSFER','Warehouse')}</span>
+							</a>
+							{assign var=_mkPsActive value=(!$_settingsActive && $MODULE eq 'ProductsServices')}
+							<a class="mk-dash-mod-link{if $_mkPsActive} mk-dash-mod-link--active{/if}" href="index.php?module=ProductsServices&amp;view=List&amp;app=INVENTORY">
+								<span class="mk-dash-mod-label">Hàng hoá</span>
 							</a>
 						{/if}
 					</div>

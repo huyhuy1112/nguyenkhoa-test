@@ -69,8 +69,8 @@
 							{foreach item=moduleModel key=moduleName from=$APP_GROUPED_MENU[$APP_NAME]}
 								{* SUPPORT: ẩn Schedule (Calendar) — Schedule chỉ ở MANAGEMENT *}
 								{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Calendar' || $moduleName eq 'Schedule')}{continue}{/if}
-								{* SALES: keep ProductsServices; hide legacy Products/Services *}
-								{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
+								{* SALES: ProductsServices lives under Kho; hide legacy Products/Services *}
+								{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services' || $moduleName eq 'ProductsServices')}{continue}{/if}
 								{* INVENTORY: ẩn Inbound / Storage / Outbound *}
 								{if $APP_NAME eq 'INVENTORY' && ($moduleName eq 'GoodsReceipt' || $moduleName eq 'GoodsIssue' || $moduleName eq 'Warehouse')}{continue}{/if}
 								{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}
@@ -79,6 +79,10 @@
 									{assign var='translatedModuleLabel' value=vtranslate('LBL_SCHEDULE','Calendar')}
 								{elseif $moduleName eq 'Calendar' && $APP_NAME eq 'SUPPORT'}
 									{assign var='translatedModuleLabel' value=vtranslate('LBL_ACTIVITIES','Calendar')}
+								{elseif $moduleName eq 'Accounts'}
+									{assign var='translatedModuleLabel' value='Tuibao'}
+								{elseif $moduleName eq 'ProductsServices'}
+									{assign var='translatedModuleLabel' value='Hàng hoá'}
 								{/if}
 								<li>
 									{if $moduleName eq 'Reports' && $APP_NAME eq 'MANAGEMENT'}
@@ -122,6 +126,14 @@
 									{/if}
 								</li>
 							{/foreach}
+							{if $APP_NAME eq 'INVENTORY'}
+								<li>
+									<a href="index.php?module=ProductsServices&amp;view=List&amp;app=INVENTORY" title="Hàng hoá">
+										<span class="mk-icon module-icon module-icon-lg"><i class="fa fa-cubes"></i></span>
+										<span class="module-name textOverflowEllipsis"> Hàng hoá</span>
+									</a>
+								</li>
+							{/if}
 						</ul>
 					</div>
 				{/if}

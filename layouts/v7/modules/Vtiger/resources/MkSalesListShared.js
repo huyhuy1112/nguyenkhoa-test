@@ -94,6 +94,19 @@
 		return params.get('module') === 'SalesOrder' && params.get('view') === 'List' && params.get('app') === 'TOOLS';
 	}
 
+	function isSalesOrderSalesPosList() {
+		var b = document.body;
+		if (!b || b.getAttribute('data-module') !== 'SalesOrder' || b.getAttribute('data-view') !== 'List') {
+			return false;
+		}
+		var appName = (b.getAttribute('data-app') || '').toUpperCase();
+		if (appName === 'SALES') {
+			return true;
+		}
+		var params = new URLSearchParams(window.location.search || '');
+		return params.get('module') === 'SalesOrder' && params.get('view') === 'List' && params.get('app') === 'SALES';
+	}
+
 	function isRecycleBinToolsList() {
 		var b = document.body;
 		if (!b || b.getAttribute('data-module') !== 'RecycleBin' || b.getAttribute('data-view') !== 'List') {
@@ -108,7 +121,7 @@
 	}
 
 	function shouldRelocatePaginationFooter() {
-		return isMkEnhancedList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
+		return isMkEnhancedList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList() || isSalesOrderSalesPosList();
 	}
 
 	function isManagementProjectTaskList() {
@@ -2040,6 +2053,9 @@
 		if (!isSalesStyleTableList()) {
 			return;
 		}
+		if (isSalesOrderSalesPosList()) {
+			return;
+		}
 		ensureSearchRowVisible();
 		if (!options.skipSearchReinit) {
 			reinitSearchRow();
@@ -2065,6 +2081,9 @@
 		// Leads list is a bespoke UI (LeadsMkList.js) — don't inject here.
 		var mod = (document.body && document.body.getAttribute('data-module')) || '';
 		if (String(mod).toLowerCase() === 'leads') {
+			return false;
+		}
+		if (isSalesOrderSalesPosList()) {
 			return false;
 		}
 		return isSalesStyleTableList();

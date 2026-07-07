@@ -1,7 +1,7 @@
 {*+**********************************************************************************
- * ProductsServices List (Sales app): SALES dashboard split shell + topbar.
+ * ProductsServices List (Kho / INVENTORY app): dashboard split shell + topbar.
  ************************************************************************************}
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+{if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'INVENTORY')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'INVENTORY'))}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-ps-list-sales');</script>
@@ -38,9 +38,10 @@ html.mk-ps-list-sales #listview-table tr td:first-child {
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260624_ps_cols3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260707_ps_inv2"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-ps-list="1">
-	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260624_ps_cols3" />
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260707_ps_inv2" />
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260707_ps_inv2" />
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">
 		<header class="mk-topbar" role="banner">
@@ -51,7 +52,7 @@ html.mk-ps-list-sales #listview-table tr td:first-child {
 			<div class="modal-dialog"></div>
 		</div>
 		<main class="mk-dash-main mk-content mk-productsservices-list-main mk-ps-list-main" id="mk-dash-main" role="main">
-		<div class="main-container main-container-{$MODULE} mk-ps-list-page">
+		<div class="main-container main-container-{$MODULE} mk-ps-list-page{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'INVENTORY') || (isset($smarty.get.app) && $smarty.get.app eq 'INVENTORY')} mk-ps-inventory-page{/if}">
 			<div id="modnavigator" class="module-nav mk-ps-hide-legacy">
 				<div class="mod-switcher-container">
 					{include file="partials/Menubar.tpl"|vtemplate_path:$MODULE}

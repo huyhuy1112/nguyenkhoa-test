@@ -1,0 +1,364 @@
+/**
+ * Hàng hoá (ProductsServices) — Kho / INVENTORY app theme.
+ * Aligns with Warehouse WhDetail luxury indigo palette.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] {
+	--mk-ps-inv-indigo: #4338ca;
+	--mk-ps-inv-indigo-deep: #3730a3;
+	--mk-ps-inv-violet: #7c3aed;
+	--mk-ps-inv-gold: #c9a227;
+	--mk-ps-inv-surface: #f5f7ff;
+	--mk-ps-inv-card: #ffffff;
+	--mk-ps-inv-border: rgba(99, 102, 241, 0.16);
+	--mk-ps-inv-shadow: 0 10px 40px rgba(67, 56, 202, 0.08);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-dash-main.mk-ps-list-main,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-dash-main.mk-ps-detail-main,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-dash-main.mk-ps-edit-main {
+	font-family: "Be Vietnam Pro", Inter, system-ui, sans-serif;
+	background: var(--mk-ps-inv-surface) !important;
+}
+
+/* ---- List header ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-header--inventory {
+	margin-bottom: 20px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-inventory-kicker {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 10px;
+	padding: 6px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--mk-ps-inv-indigo-deep);
+	background: linear-gradient(90deg, #eef2ff 0%, #faf5ff 100%);
+	border: 1px solid var(--mk-ps-inv-border);
+	border-radius: 999px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-inventory-kicker__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 8px;
+	background: linear-gradient(135deg, #6366f1, #7c3aed);
+	color: #fff;
+	font-size: 11px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-breadcrumb a {
+	color: var(--mk-ps-inv-indigo);
+	font-weight: 500;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-breadcrumb a:hover {
+	color: var(--mk-ps-inv-violet);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-action-header__title {
+	color: var(--mk-ps-inv-indigo-deep);
+	font-weight: 700;
+	letter-spacing: -0.03em;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-action-header__subtitle {
+	color: #64748b;
+	max-width: 520px;
+}
+
+/* ---- Buttons ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-btn--primary {
+	background: linear-gradient(135deg, #6366f1 0%, #7c3aed 55%, #8b5cf6 100%);
+	border-color: #5b21b6;
+	color: #fff;
+	box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-btn--primary:hover {
+	background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%);
+	border-color: #4c1d95;
+	color: #fff;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-btn--outline {
+	border-color: rgba(99, 102, 241, 0.35);
+	color: var(--mk-ps-inv-indigo-deep);
+	background: #fff;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-btn--outline:hover {
+	background: #eef2ff;
+	border-color: rgba(99, 102, 241, 0.5);
+}
+
+/* ---- Table card ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-inventory-page .mk-ps-table-card,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-inventory-page .mk-so-table-card {
+	background: var(--mk-ps-inv-card);
+	border: 1px solid var(--mk-ps-inv-border);
+	border-radius: 16px;
+	box-shadow: var(--mk-ps-inv-shadow);
+	overflow: hidden;
+	padding: 0;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table thead tr {
+	background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table thead th {
+	color: var(--mk-ps-inv-indigo-deep) !important;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	border-bottom: 1px solid var(--mk-ps-inv-border) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table tbody tr:hover td {
+	background: #f8fafc !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table tbody td {
+	border-color: rgba(99, 102, 241, 0.08) !important;
+	vertical-align: middle;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table td[data-name="productsservicesname"] .value a,
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table td[data-name="productsservicesname"] .value {
+	font-weight: 600;
+	color: #1e293b;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-type-pill--product {
+	background: #eef2ff;
+	color: #4338ca;
+	border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-type-pill--service {
+	background: #f5f3ff;
+	color: #6d28d9;
+	border: 1px solid rgba(124, 58, 237, 0.25);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-toolbar-count {
+	color: #64748b;
+	font-size: 13px;
+}
+
+/* ---- List toolbar (Kho) ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-actions.mk-so-filter-row,
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-actions.mk-ps-filter-row {
+	background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%) !important;
+	border-bottom: 1px solid var(--mk-ps-inv-border) !important;
+	min-height: 76px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-filter-row__inner,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-filter-row__inner {
+	padding: 12px 18px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-icon-btn,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-icon-btn {
+	border-color: rgba(99, 102, 241, 0.2) !important;
+	border-radius: 12px !important;
+	transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-icon-btn:hover:not(:disabled),
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-icon-btn:hover:not(:disabled) {
+	background: #eef2ff !important;
+	border-color: rgba(99, 102, 241, 0.4) !important;
+	box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
+	transform: translateY(-1px);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-icon-btn__ic,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-icon-btn__ic {
+	color: var(--mk-ps-inv-indigo) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-mass-btn,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-mass-btn {
+	border-color: rgba(99, 102, 241, 0.2) !important;
+	border-radius: 12px !important;
+	transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-mass-btn:hover:not(:disabled),
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-mass-btn:hover:not(:disabled) {
+	background: #eef2ff !important;
+	border-color: rgba(99, 102, 241, 0.35) !important;
+	transform: translateY(-1px);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-mass-actions,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-mass-actions {
+	border-left-color: var(--mk-ps-inv-border) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-page-numbers .pageNumbersText,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-page-numbers .pageNumbersText {
+	color: var(--mk-ps-inv-indigo-deep);
+	font-weight: 600;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-page-numbers .totalNumberOfRecords,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-page-numbers .totalNumberOfRecords {
+	color: var(--mk-ps-inv-violet);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #table-content + .mk-ps-filter-row__footer,
+body[data-module="ProductsServices"][data-app="INVENTORY"] #table-content + .mk-so-filter-row__footer {
+	background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
+	border-top-color: var(--mk-ps-inv-border) !important;
+	border-radius: 0 0 16px 16px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-pagination .mk-ps-page-btn,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn {
+	border-color: rgba(99, 102, 241, 0.2) !important;
+	border-radius: 12px !important;
+	transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-pagination .mk-ps-page-btn:hover:not(:disabled),
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled) {
+	background: linear-gradient(135deg, #6366f1, #7c3aed) !important;
+	border-color: #5b21b6 !important;
+	color: #fff !important;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-pagination #PageJump.mk-ps-page-btn,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-pagination #PageJump.mk-so-page-btn {
+	box-shadow: inset 0 -3px 0 var(--mk-ps-inv-violet);
+}
+
+/* ---- Detail ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-breadcrumb a {
+	color: var(--mk-ps-inv-indigo);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-hero-strip.detailview-header-block {
+	background: linear-gradient(135deg, #ffffff 0%, #f8fafc 45%, #eef2ff 100%);
+	border: 1px solid var(--mk-ps-inv-border);
+	border-radius: 16px;
+	box-shadow: var(--mk-ps-inv-shadow);
+	margin-bottom: 20px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-hero__title,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-hero__title .recordLabel {
+	color: var(--mk-ps-inv-indigo-deep) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-card,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-card--overview .fieldBlockContainer {
+	border-color: var(--mk-ps-inv-border) !important;
+	border-radius: 14px !important;
+	box-shadow: 0 4px 18px rgba(67, 56, 202, 0.06) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-card--overview .fieldBlockHeader {
+	background: linear-gradient(180deg, #ffffff, #eef2ff) !important;
+	color: var(--mk-ps-inv-indigo-deep) !important;
+	border-bottom-color: var(--mk-ps-inv-border) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .related-tabs.row {
+	border-color: var(--mk-ps-inv-border) !important;
+	background: linear-gradient(180deg, #fff, #f8fafc) !important;
+	border-radius: 12px 12px 0 0;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .related-tabs .nav-tabs > li.active > a {
+	color: var(--mk-ps-inv-indigo-deep) !important;
+	border-bottom-color: var(--mk-ps-inv-violet) !important;
+}
+
+/* ---- Create / Edit ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-create {
+	background: transparent;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-page-head {
+	background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%);
+	border: 1px solid var(--mk-ps-inv-border);
+	border-radius: 16px;
+	box-shadow: var(--mk-ps-inv-shadow);
+	margin-bottom: 20px;
+	padding: 20px 24px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-page-head__title {
+	color: var(--mk-ps-inv-indigo-deep);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-page-head__crumb a {
+	color: var(--mk-ps-inv-indigo);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-form-host .mk-ps-block,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-form-host .fieldBlockContainer {
+	border-color: var(--mk-ps-inv-border) !important;
+	border-radius: 14px !important;
+	box-shadow: 0 4px 16px rgba(67, 56, 202, 0.05) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-form-host .mk-ps-block__header,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-form-host .fieldBlockHeader {
+	background: linear-gradient(180deg, #fff, #eef2ff) !important;
+	color: var(--mk-ps-inv-indigo-deep) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-btn--save,
+body[data-module="ProductsServices"][data-app="INVENTORY"] #mkPsSaveTop {
+	background: linear-gradient(135deg, #6366f1, #7c3aed) !important;
+	border-color: #5b21b6 !important;
+	color: #fff !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-hero__icon.recordImage {
+	background: linear-gradient(135deg, #6366f1, #7c3aed) !important;
+	border: 2px solid rgba(255, 255, 255, 0.85);
+	box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-type-pill--product {
+	background: #eef2ff;
+	color: #4338ca;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-type-pill--service {
+	background: #f5f3ff;
+	color: #6d28d9;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-text--price {
+	color: var(--mk-ps-inv-indigo-deep);
+	font-weight: 700;
+}
+
+@media (max-width: 768px) {
+	body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-action-header__title {
+		font-size: 22px;
+	}
+	body[data-module="ProductsServices"][data-app="INVENTORY"] .main-container.mk-ps-list-page,
+	body[data-module="ProductsServices"][data-app="INVENTORY"] .main-container.mk-ps-detail-page {
+		padding-left: 16px !important;
+		padding-right: 16px !important;
+	}
+}

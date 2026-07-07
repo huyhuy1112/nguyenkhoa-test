@@ -15,21 +15,21 @@ html.mk-ps-list-sales.mk-ps-list-ready #listViewContent {
 }
 
 /* ---- Main shell: Figma 24px padding under topbar ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-ps-list-main {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-ps-list-main , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-dash-main.mk-ps-list-main {
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"].mk-ps-ui-loading #listViewContent #table-content {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"].mk-ps-ui-loading #listViewContent #table-content , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"].mk-ps-ui-loading #listViewContent #table-content {
 	visibility: hidden;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"].mk-ps-ui-ready #listViewContent #table-content {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"].mk-ps-ui-ready #listViewContent #table-content , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"].mk-ps-ui-ready #listViewContent #table-content {
 	visibility: visible;
 }
 
 /* ---- Legacy LISTS column + module strip: remove from layout ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #modnavigator.module-nav,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #modnavigator.module-nav.mk-ps-list-hide-legacy {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #modnavigator.module-nav, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .main-container.mk-ps-list-page #modnavigator.module-nav,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #modnavigator.module-nav.mk-ps-list-hide-legacy , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .main-container.mk-ps-list-page #modnavigator.module-nav.mk-ps-list-hide-legacy {
 	display: none !important;
 	visibility: hidden !important;
 	width: 0 !important;
@@ -47,9 +47,9 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-c
 	pointer-events: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #sidebar-essentials.sidebar-essentials,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #sidebar-essentials.sidebar-essentials .sidebar-menu,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #sidebar-essentials .lists-menu-container {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #sidebar-essentials.sidebar-essentials, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .main-container.mk-ps-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #sidebar-essentials.sidebar-essentials .sidebar-menu, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .main-container.mk-ps-list-page #sidebar-essentials.sidebar-essentials .sidebar-menu,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #sidebar-essentials .lists-menu-container , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .main-container.mk-ps-list-page #sidebar-essentials .lists-menu-container {
 	display: none !important;
 	visibility: hidden !important;
 	width: 0 !important;
@@ -67,7 +67,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-c
 	pointer-events: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .essentials-toggle {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .essentials-toggle , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .essentials-toggle {
 	display: none !important;
 	visibility: hidden !important;
 	width: 0 !important;
@@ -76,13 +76,13 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .essent
 	pointer-events: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-hide-legacy,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-hide-legacy {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-hide-legacy, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-list-hide-legacy,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-hide-legacy , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-hide-legacy {
 	display: none !important;
 }
 
 /* ---- Main column: full width ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .main-container.mk-ps-list-page {
 	position: relative !important;
 	width: 100% !important;
 	max-width: none !important;
@@ -92,9 +92,9 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-c
 	min-height: 0 !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page .listViewPageDiv.content-area,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #listViewContent.listViewPageDiv,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #listViewContent.listViewPageDiv.content-area {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page .listViewPageDiv.content-area, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .main-container.mk-ps-list-page .listViewPageDiv.content-area,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #listViewContent.listViewPageDiv, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .main-container.mk-ps-list-page #listViewContent.listViewPageDiv,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-container.mk-ps-list-page #listViewContent.listViewPageDiv.content-area , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .main-container.mk-ps-list-page #listViewContent.listViewPageDiv.content-area {
 	padding-left: 0 !important;
 	padding-right: 0 !important;
 	margin-left: 0 !important;
@@ -108,8 +108,8 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .main-c
 	box-sizing: border-box !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-page,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-list-sales-root {
 	width: 100% !important;
 	max-width: none !important;
 	margin: 0 !important;
@@ -118,8 +118,8 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	position: relative !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page > .col-sm-12,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root > .col-sm-12 {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page > .col-sm-12, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-page > .col-sm-12,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root > .col-sm-12 , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-list-sales-root > .col-sm-12 {
 	padding-left: 0 !important;
 	padding-right: 0 !important;
 	float: none !important;
@@ -127,12 +127,12 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	max-width: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page .contentsDiv,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page .contents,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page .listViewEntriesDiv,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root .contentsDiv,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root .contents,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root .listViewEntriesDiv {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page .contentsDiv, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-page .contentsDiv,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page .contents, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-page .contents,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page .listViewEntriesDiv, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-page .listViewEntriesDiv,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root .contentsDiv, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-list-sales-root .contentsDiv,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root .contents, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-list-sales-root .contents,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root .listViewEntriesDiv , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-list-sales-root .listViewEntriesDiv {
 	width: 100% !important;
 	max-width: none !important;
 	margin: 0 !important;
@@ -143,7 +143,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 }
 
 /* ---- Action header (Figma) ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-action-header {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-start;
@@ -152,7 +152,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	margin: 0 0 20px;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__title {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__title , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-action-header__title {
 	margin: 0;
 	font-size: 28px;
 	font-weight: 600;
@@ -161,7 +161,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	letter-spacing: -0.02em;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__subtitle {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__subtitle , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-action-header__subtitle {
 	margin: 8px 0 0;
 	font-size: 16px;
 	font-weight: 400;
@@ -169,7 +169,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	color: #504533;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__actions {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__actions , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-action-header__actions {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -177,7 +177,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	gap: 10px;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -193,54 +193,54 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--primary {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--primary , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn--primary {
 	background: #08A045;
 	border-color: #0B6E4F;
 	color: #191c1e;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--primary:hover {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--primary:hover , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn--primary:hover {
 	background: #ffc85c;
 	border-color: #08A045;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn--outline {
 	background: #ffffff;
 	border-color: #d4c4ad;
 	color: #191c1e;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline:hover {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline:hover , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn--outline:hover {
 	background: #f0fdf4;
 	border-color: #c4b49a;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--icononly {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--icononly , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn--icononly {
 	min-width: 40px;
 	padding: 0 12px;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn__ic {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn__ic , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn__ic {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	color: #40627e;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--primary .mk-ps-btn__ic {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--primary .mk-ps-btn__ic , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn--primary .mk-ps-btn__ic {
 	color: #191c1e;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn .mk-dash-topbar-svg {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn .mk-dash-topbar-svg , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn .mk-dash-topbar-svg {
 	width: 20px;
 	height: 20px;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-settings-wrap {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-settings-wrap , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-settings-wrap {
 	position: relative;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-settings-menu {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-settings-menu , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-settings-menu {
 	min-width: 220px;
 	border-radius: 10px;
 	border: 1px solid #d4c4ad;
@@ -248,7 +248,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 }
 
 /* ---- Table card: single shell (no double card). No overflow:hidden — it clipped scrollbars / PS rails. ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-table-card {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-table-card , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-table-card {
 	background: #ffffff;
 	border: 1px solid #d4c4ad;
 	border-radius: 12px;
@@ -260,21 +260,21 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	min-width: 0;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-table-card > .col-sm-12 {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-table-card > .col-sm-12 , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-table-card > .col-sm-12 {
 	padding-left: 0 !important;
 	padding-right: 0 !important;
 	margin: 0 !important;
 }
 
 /* ---- List: hide Quote Name column when Status is shown (JS adds .mk-ps-list-col-hidden) ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table th.mk-ps-list-col-hidden,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-list-col-hidden {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table th.mk-ps-list-col-hidden, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table th.mk-ps-list-col-hidden,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-list-col-hidden , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td.mk-ps-list-col-hidden {
 	display: none !important;
 }
 
 /* Type cell: Product / Service pills */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill {
 	display: inline-flex;
 	align-items: center;
 	box-sizing: border-box;
@@ -289,76 +289,77 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listvi
 	max-width: 100%;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill--product,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--product {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill--product, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill--product,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--product , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--product {
 	background: #e0f2fe;
 	color: #0369a1;
 	border-color: #bae6fd;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill--service,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--service {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill--service, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill--service,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--service , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--service {
 	background: #ede9fe;
 	color: #5b21b6;
 	border-color: #ddd6fe;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="productsservicesname"] a,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="productsservicesname"] .value a {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="productsservicesname"] a, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="productsservicesname"] a,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="productsservicesname"] .value a , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="productsservicesname"] .value a {
 	font-weight: 600;
 	color: #2563eb;
 	text-decoration: none;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="productsservicesname"] a:hover {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="productsservicesname"] a:hover , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="productsservicesname"] a:hover {
 	text-decoration: underline;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="price"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-price-cell .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="wholesale_price"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-ps-wholesale .value {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="price"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="price"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-price-cell .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td.mk-ps-price-cell .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="wholesale_price"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="wholesale_price"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-ps-wholesale .value , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td.mk-col-ps-wholesale .value {
 	font-family: "Roboto Mono", ui-monospace, monospace;
 	font-weight: 600;
 	color: #191c1e;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th.mk-col-ps-price,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th.mk-col-ps-wholesale,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th:has(a[data-columnname="price"]),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th:has(a[data-columnname="wholesale_price"]),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody td.mk-col-ps-price,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody td.mk-col-ps-wholesale,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody td[data-name="price"],
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody td[data-name="wholesale_price"] {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th.mk-col-ps-price, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table thead th.mk-col-ps-price,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th.mk-col-ps-wholesale, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table thead th.mk-col-ps-wholesale,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th:has(a[data-columnname="price"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table thead th:has(a[data-columnname="price"]),
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th:has(a[data-columnname="wholesale_price"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table thead th:has(a[data-columnname="wholesale_price"]),
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody td.mk-col-ps-price, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table tbody td.mk-col-ps-price,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody td.mk-col-ps-wholesale, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table tbody td.mk-col-ps-wholesale,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody td[data-name="price"], body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table tbody td[data-name="price"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody td[data-name="wholesale_price"] , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table tbody td[data-name="wholesale_price"] {
 	text-align: left !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th.mk-col-ps-price a.listViewContentHeaderValues,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th.mk-col-ps-wholesale a.listViewContentHeaderValues,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th:has(a[data-columnname="price"]) a.listViewContentHeaderValues,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th:has(a[data-columnname="wholesale_price"]) a.listViewContentHeaderValues {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th.mk-col-ps-price a.listViewContentHeaderValues, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table thead th.mk-col-ps-price a.listViewContentHeaderValues,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th.mk-col-ps-wholesale a.listViewContentHeaderValues, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table thead th.mk-col-ps-wholesale a.listViewContentHeaderValues,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th:has(a[data-columnname="price"]) a.listViewContentHeaderValues, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table thead th:has(a[data-columnname="price"]) a.listViewContentHeaderValues,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th:has(a[data-columnname="wholesale_price"]) a.listViewContentHeaderValues , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table thead th:has(a[data-columnname="wholesale_price"]) a.listViewContentHeaderValues {
 	display: inline-block !important;
 	text-align: left !important;
 	width: auto !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.mk-col-ps-price .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.mk-col-ps-wholesale .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td[data-name="price"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td[data-name="wholesale_price"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.mk-col-ps-price .fieldValue,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.mk-col-ps-wholesale .fieldValue {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.mk-col-ps-price .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table tbody tr.listViewEntries td.mk-col-ps-price .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.mk-col-ps-wholesale .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table tbody tr.listViewEntries td.mk-col-ps-wholesale .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td[data-name="price"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table tbody tr.listViewEntries td[data-name="price"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td[data-name="wholesale_price"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table tbody tr.listViewEntries td[data-name="wholesale_price"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.mk-col-ps-price .fieldValue, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table tbody tr.listViewEntries td.mk-col-ps-price .fieldValue,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table tbody tr.listViewEntries td.mk-col-ps-wholesale .fieldValue , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table tbody tr.listViewEntries td.mk-col-ps-wholesale .fieldValue {
 	text-align: left !important;
 }
 
 /* ---- Filter row ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-actions.listview-actions-container.mk-ps-filter-row {
-	background: #eceef0 !important;
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-actions.listview-actions-container.mk-ps-filter-row,
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row {
+	background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
 	border: none !important;
-	border-bottom: 1px solid #d4c4ad !important;
+	border-bottom: 1px solid #e2e8f0 !important;
 	border-radius: 0 !important;
-	min-height: 73px;
+	min-height: 76px;
 	margin: 0 !important;
 	padding: 0 !important;
 	width: 100% !important;
@@ -370,41 +371,43 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	flex-direction: column;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-filter-row__inner {
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-filter-row__inner,
+body[data-module="ProductsServices"][data-view="List"] .mk-so-filter-row__inner {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	flex-wrap: wrap;
 	gap: 10px 14px;
-	min-height: 73px;
-	padding: 0 14px 0 12px;
+	min-height: 76px;
+	padding: 12px 18px;
 	box-sizing: border-box;
 	flex: 1 1 auto;
 }
 
-/* Start: list/grid toggles + “Showing …” only (no stock pagination here) */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-filter-row__start {
+/* Start: global search + count */
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-filter-row__start,
+body[data-module="ProductsServices"][data-view="List"] .mk-so-filter-row__start {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 12px 18px;
-	flex: 1 1 220px;
+	flex: 1 1 280px;
 	min-width: 0;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-toolbar-toggles {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-toolbar-toggles , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-toolbar-toggles {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 	flex-shrink: 0;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-toolbar-count {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-toolbar-count , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-toolbar-count {
 	min-width: 0;
 	flex: 1 1 auto;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-mass-actions {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-mass-actions , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-mass-actions {
 	display: inline-flex;
 	align-items: center;
 	flex-wrap: wrap;
@@ -415,7 +418,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	border-left: 1px solid #d4c4ad;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-filter-row__right {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-filter-row__right , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-filter-row__right {
 	flex: 0 0 auto;
 	display: flex;
 	align-items: center;
@@ -423,14 +426,14 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	margin-left: auto;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-ajax-empty-hint--toolbar {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-ajax-empty-hint--toolbar , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-ajax-empty-hint--toolbar {
 	padding: 6px 14px 0;
 	font-size: 13px;
 	width: 100%;
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page-numbers {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page-numbers , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-page-numbers {
 	display: inline-block;
 	font-size: 14px;
 	font-weight: 500;
@@ -438,68 +441,81 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	line-height: 1.4;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page-numbers .pageNumbersText {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page-numbers .pageNumbersText , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-page-numbers .pageNumbersText {
 	font-weight: 600;
 	color: #191c1e;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page-numbers .totalNumberOfRecords {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page-numbers .totalNumberOfRecords , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-page-numbers .totalNumberOfRecords {
 	font-weight: 500;
 	color: #40627e;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-icon-btn {
-	width: 40px;
-	height: 40px;
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-icon-btn,
+body[data-module="ProductsServices"][data-view="List"] .mk-so-icon-btn {
+	width: 42px;
+	height: 42px;
 	padding: 0;
-	border: 1px solid #d4c4ad;
-	border-radius: 10px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
 	background: #ffffff;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
 	box-sizing: border-box;
-	transition: background 0.15s ease, border-color 0.15s ease;
+	transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-icon-btn:hover:not(:disabled) {
-	background: #f2f4f6;
-	border-color: #c4b49a;
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-icon-btn:hover:not(:disabled),
+body[data-module="ProductsServices"][data-view="List"] .mk-so-icon-btn:hover:not(:disabled) {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+	box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+	transform: translateY(-1px);
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-icon-btn:disabled {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-icon-btn:disabled , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-icon-btn:disabled {
 	opacity: 0.55;
 	cursor: default;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-icon-btn__ic {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-icon-btn__ic , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-icon-btn__ic {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	color: #40627e;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-mass-btn {
-	min-width: 40px;
-	height: 40px;
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-mass-btn,
+body[data-module="ProductsServices"][data-view="List"] .mk-so-mass-btn {
+	min-width: 42px;
+	height: 42px;
 	padding: 0 10px;
-	border-radius: 10px;
-	border: 1px solid #d4c4ad !important;
+	border-radius: 12px;
+	border: 1px solid #e2e8f0 !important;
 	background: #fff !important;
-	opacity: 0.92;
+	opacity: 1;
 	box-shadow: none;
 	font-weight: 500;
+	transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-mass-more {
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-mass-btn:hover:not(:disabled),
+body[data-module="ProductsServices"][data-view="List"] .mk-so-mass-btn:hover:not(:disabled) {
+	background: #f8fafc !important;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+}
+
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-mass-more , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-mass-more {
 	height: 40px;
 	border-radius: 10px !important;
 	border: 1px solid #d4c4ad !important;
 }
 
 /* ---- Pagination footer (centered, below table after JS relocate; also works if still inside #listview-actions) ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent .mk-ps-filter-row__footer {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent .mk-ps-filter-row__footer , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent .mk-ps-filter-row__footer {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -512,17 +528,17 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	border-radius: 0 0 11px 11px;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination {
 	display: flex;
 	justify-content: center;
 	width: 100%;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .btn-group {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .btn-group , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination .btn-group {
 	box-shadow: none;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination .mk-ps-page-btn {
 	min-width: 40px;
 	height: 40px;
 	border-radius: 10px !important;
@@ -533,24 +549,24 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	font-weight: 600;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:hover:not(:disabled),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:focus:not(:disabled) {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:hover:not(:disabled), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination .mk-ps-page-btn:hover:not(:disabled),
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:focus:not(:disabled) , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination .mk-ps-page-btn:focus:not(:disabled) {
 	background: #08A045 !important;
 	border-color: #0B6E4F !important;
 	color: #191c1e !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination #PageJump.mk-ps-page-btn {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination #PageJump.mk-ps-page-btn , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination #PageJump.mk-ps-page-btn {
 	min-width: 48px;
 	box-shadow: inset 0 -3px 0 #08A045;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:disabled {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:disabled , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination .mk-ps-page-btn:disabled {
 	opacity: 0.45;
 }
 
 /* ---- Table block: ONE native horizontal scroll on #table-content (see AccountsList.js removes perfectScrollbar) ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #table-content.table-container {
 	margin-top: 0 !important;
 	border: none !important;
 	border-radius: 0 !important;
@@ -570,8 +586,8 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 }
 
 /* ---- Native table layout: full-width table inside scrollport; no max-content (breaks floatThead / cols) ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-ps-table,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-ps-table, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table.mk-ps-table,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table {
 	margin-bottom: 0;
 	width: 100%;
 	max-width: 100%;
@@ -584,41 +600,41 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 }
 
 /* Control column: wide enough for checkbox + row actions (prevents bleed into Name) */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr td:first-child,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr th:first-child {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr td:first-child, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tr td:first-child,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr th:first-child , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tr th:first-child {
 	width: 152px;
 	min-width: 152px;
 	max-width: 152px;
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-control,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-control,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-control,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.listViewRecordActions,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th:has(.table-actions) {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-control, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-control, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-control, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.listViewRecordActions, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.listViewRecordActions,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th:has(.table-actions) , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead th:has(.table-actions) {
 	width: 152px !important;
 	min-width: 152px !important;
 	max-width: 152px !important;
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.listViewRecordActions,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-control {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.listViewRecordActions, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.listViewRecordActions,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-control , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-control {
 	overflow: visible;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.listViewRecordActions .table-actions {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.listViewRecordActions .table-actions , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.listViewRecordActions .table-actions {
 	max-width: 100%;
 	overflow: visible;
 	flex-wrap: nowrap;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="productsservicesname"]),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="productsservicesname"] {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-name, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-name, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-name, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="productsservicesname"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="productsservicesname"]),
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="productsservicesname"] , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="productsservicesname"] {
 	width: 220px;
 	min-width: 200px;
 	max-width: 280px;
@@ -626,12 +642,12 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	overflow: hidden;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-type,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-type,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-type,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="item_type"]),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="item_type"],
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-ps-type-cell {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-type, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-ps-type,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-type, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-ps-type,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-type, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-type,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="item_type"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="item_type"]),
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="item_type"], body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="item_type"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-ps-type-cell , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-ps-type-cell {
 	width: 96px;
 	min-width: 96px;
 	max-width: 96px;
@@ -639,12 +655,12 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	overflow: hidden;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-price,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-price,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-price,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="price"]),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="price"],
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-ps-price-cell {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-price, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-ps-price,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-price, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-ps-price,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-price, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-price,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="price"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="price"]),
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="price"], body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="price"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-ps-price-cell , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-ps-price-cell {
 	width: 120px;
 	min-width: 120px;
 	max-width: 120px;
@@ -652,11 +668,11 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	overflow: hidden;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-wholesale,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-wholesale,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-wholesale,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="wholesale_price"]),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="wholesale_price"] {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-wholesale, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-ps-wholesale,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-wholesale, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-ps-wholesale,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-wholesale, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-wholesale,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="wholesale_price"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="wholesale_price"]),
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="wholesale_price"] , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="wholesale_price"] {
 	width: 168px;
 	min-width: 168px;
 	max-width: 168px;
@@ -664,11 +680,11 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	overflow: hidden;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-warranty,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-warranty,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-warranty,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="warranty"]),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="warranty"] {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-warranty, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-ps-warranty,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-warranty, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-ps-warranty,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-warranty, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-warranty,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="warranty"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="warranty"]),
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="warranty"] , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="warranty"] {
 	width: 96px;
 	min-width: 96px;
 	max-width: 96px;
@@ -676,11 +692,11 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	overflow: hidden;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.listViewContentHeader {
 	background: #f7f9fb !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.listViewContentHeader th {
 	box-sizing: border-box;
 	height: 44px;
 	min-height: 44px;
@@ -697,7 +713,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	text-align: left;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th a.listViewContentHeaderValues , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
 	color: #40627e !important;
 	font-weight: 500;
 	font-family: 'Space Grotesk', system-ui, sans-serif;
@@ -707,7 +723,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	max-width: 100%;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody tr.listViewEntries td {
 	box-sizing: border-box;
 	height: 52px;
 	min-height: 52px;
@@ -722,19 +738,19 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	white-space: nowrap;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="productsservicesname"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="wholesale_price"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="warranty"] .value {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="productsservicesname"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="productsservicesname"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="wholesale_price"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="wholesale_price"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="warranty"] .value , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="warranty"] .value {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
 	background: #f0fdf4;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tr.searchRow th {
 	height: auto !important;
 	min-height: 0 !important;
 	padding: 8px 10px !important;
@@ -745,26 +761,26 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	white-space: normal;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="phone"],
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="double"] {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="phone"], body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="phone"],
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="double"] , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="double"] {
 	font-family: 'Roboto Mono', ui-monospace, monospace;
 	font-size: 14px;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent .mk-ps-sort-hint {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent .mk-ps-sort-hint , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent .mk-ps-sort-hint {
 	opacity: 0.45;
 	cursor: default;
 }
 
 /* Subject — bold */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="subject"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="subject"] a {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="subject"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td[data-name="subject"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="subject"] a , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td[data-name="subject"] a {
 	font-weight: 700;
 	color: #191c1e;
 }
 
 /* Related To — pill/tag (JS adds .mk-ps-related-pill) */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-related-pill {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-related-pill , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-related-pill {
 	display: inline-flex;
 	align-items: center;
 	max-width: 100%;
@@ -781,15 +797,15 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-related-pill a {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-related-pill a , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-related-pill a {
 	color: #41627f !important;
 	text-decoration: none !important;
 }
 
 /* Start / Due date — monospace */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="startdate"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="duedate"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-field-type="date"] .value {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="startdate"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td[data-name="startdate"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="duedate"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td[data-name="duedate"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-field-type="date"] .value , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td[data-field-type="date"] .value {
 	font-family: 'Roboto Mono', ui-monospace, monospace;
 	font-size: 14px;
 	font-weight: 500;
@@ -797,7 +813,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 }
 
 /* Progress bar */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-progress {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
@@ -807,7 +823,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	vertical-align: middle;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress__track {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress__track , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-progress__track {
 	flex: 1 1 auto;
 	height: 8px;
 	min-width: 72px;
@@ -816,26 +832,26 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	overflow: hidden;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress__fill {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress__fill , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-progress__fill {
 	display: block;
 	height: 100%;
 	border-radius: 999px;
 	transition: width 0.15s ease;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress--25 .mk-ps-progress__fill {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress--25 .mk-ps-progress__fill , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-progress--25 .mk-ps-progress__fill {
 	background: #1e3a5f;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress--60 .mk-ps-progress__fill {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress--60 .mk-ps-progress__fill , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-progress--60 .mk-ps-progress__fill {
 	background: #5ba4d9;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress--100 .mk-ps-progress__fill {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress--100 .mk-ps-progress__fill , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-progress--100 .mk-ps-progress__fill {
 	background: #08A045;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress__label {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress__label , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-progress__label {
 	flex: 0 0 auto;
 	font-family: 'Roboto Mono', ui-monospace, monospace;
 	font-size: 12px;
@@ -846,9 +862,9 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 }
 
 /* Created by — avatar chip layout */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="assigned_user_id"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="created_user_id"] .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="smcreatorid"] .value.mk-ps-has-creator {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="assigned_user_id"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="assigned_user_id"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="created_user_id"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="created_user_id"] .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="smcreatorid"] .value.mk-ps-has-creator , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="smcreatorid"] .value.mk-ps-has-creator {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
@@ -856,7 +872,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	max-width: 100%;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-avatar {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-avatar , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-avatar {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -873,7 +889,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	text-transform: uppercase;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-avatar__label {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-avatar__label , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-avatar__label {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -884,7 +900,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 }
 
 /* Hide duplicate column picker in header (filter row icon opens same control) */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listColumnFilterContainer .listColumnFilter {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listColumnFilterContainer .listColumnFilter , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listColumnFilterContainer .listColumnFilter {
 	position: absolute;
 	width: 1px;
 	height: 1px;
@@ -896,20 +912,122 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	border: 0;
 }
 
-/* Filter row: always visible on modern SALES list */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow.listViewSearchContainer,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent:not(.mk-ps-search-open) tr.searchRow.listViewSearchContainer {
-	display: table-row !important;
-	background: #fafbfc;
+/* Global search: hide legacy per-column filter row */
+body[data-module="ProductsServices"][data-view="List"] #listViewContent.mk-ps-global-search-enabled #listview-table thead tr.searchRow,
+body[data-module="ProductsServices"][data-view="List"] #listViewContent.mk-ps-global-search-enabled tr.searchRow.listViewSearchContainer,
+body[data-module="ProductsServices"][data-view="List"] #listViewContent.mk-ps-global-search-enabled #listview-table tr.searchRow {
+	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th {
+/* Column filters only when toolbar search toggled open */
+body[data-module="ProductsServices"][data-view="List"] #listViewContent.mk-ps-search-open tr.searchRow.listViewSearchContainer {
+	display: table-row !important;
+	background: linear-gradient(180deg, #fafbff 0%, #f1f5f9 100%);
+}
+
+body[data-module="ProductsServices"][data-view="List"] #listViewContent:not(.mk-ps-search-open):not(.mk-ps-global-search-enabled) tr.searchRow.listViewSearchContainer {
+	display: none !important;
+}
+
+/* Global quick search bar */
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search,
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 42px;
+	min-height: 42px;
+	padding: 0 14px;
+	border: 1px solid rgba(99, 102, 241, 0.22);
+	border-radius: 12px;
+	background: #ffffff;
+	box-sizing: border-box;
+	box-shadow: 0 2px 8px rgba(67, 56, 202, 0.06);
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	flex: 1 1 240px;
+	max-width: 420px;
+	min-width: 200px;
+}
+
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search:focus-within,
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search:focus-within {
+	border-color: rgba(99, 102, 241, 0.45);
+	box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12), 0 4px 12px rgba(67, 56, 202, 0.1);
+}
+
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search__ic,
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search__ic {
+	color: #6366f1;
+	font-size: 14px;
+}
+
+body[data-module="ProductsServices"][data-view="List"] #listview-actions input.mk-ps-global-search__input,
+body[data-module="ProductsServices"][data-view="List"] #listview-actions input.mk-so-global-search__input {
+	width: 100%;
+	border: none !important;
+	outline: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+	height: 100% !important;
+	min-height: 40px !important;
+	font-size: 14px !important;
+	font-family: inherit !important;
+	color: #1e293b !important;
+	background: transparent !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"] #listview-actions input.mk-ps-global-search__input::placeholder,
+body[data-module="ProductsServices"][data-view="List"] #listview-actions input.mk-so-global-search__input::placeholder {
+	color: #94a3b8;
+}
+
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search__clear,
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search__clear {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border: none;
+	background: transparent;
+	color: #64748b;
+	border-radius: 8px;
+	padding: 0;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search__clear:hover,
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search__clear:hover {
+	background: #eef2ff;
+	color: #4338ca;
+}
+
+/* Pagination lives below table only (relocated by List.js) */
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-filter-row__footer,
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-filter-row__footer {
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"] #table-content + .mk-so-filter-row__footer,
+body[data-module="ProductsServices"][data-view="List"] #table-content + .mk-ps-filter-row__footer {
+	display: flex !important;
+}
+
+/* Hide non-functional layout toggles + sort hint */
+body[data-module="ProductsServices"][data-view="List"] .mk-so-toolbar-toggles,
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-toolbar-toggles,
+body[data-module="ProductsServices"][data-view="List"] .mk-so-sort-hint {
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent tr.searchRow th , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent tr.searchRow th {
 	border-bottom: 1px solid #d4c4ad;
 }
 
 /* Stock bottom-fixed-scroll duplicates horizontal scroll (custom.css top:-19px); hide — native bar on #table-content only */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent .bottom-fixed-scroll {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #scroller_wrapper.bottom-fixed-scroll, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent .bottom-fixed-scroll , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent .bottom-fixed-scroll {
 	display: none !important;
 	height: 0 !important;
 	min-height: 0 !important;
@@ -925,11 +1043,11 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 }
 
 /* ---- Page header: breadcrumb + dotted subtitle ---- */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-header {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-header , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-header {
 	margin: 0 0 20px;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__list {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__list , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-breadcrumb__list {
 	list-style: none;
 	margin: 0 0 10px;
 	padding: 0;
@@ -942,21 +1060,21 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	color: #6b6358;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__item a {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__item a , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-breadcrumb__item a {
 	color: #504533;
 	text-decoration: none;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__item a:hover {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__item a:hover , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-breadcrumb__item a:hover {
 	color: #08A045;
 	text-decoration: underline;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__sep {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__sep , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-breadcrumb__sep {
 	color: #d4c4ad;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__title {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__title , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-action-header__title {
 	font-family: 'Space Grotesk', Inter, sans-serif;
 	font-size: 32px;
 	font-weight: 700;
@@ -964,7 +1082,7 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	letter-spacing: -0.02em;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__subtitle {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__subtitle , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-action-header__subtitle {
 	margin: 8px 0 0;
 	font-size: 15px;
 	font-weight: 500;
@@ -972,12 +1090,12 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 	line-height: 1.45;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page .module-action-bar,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root .module-action-bar {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page .module-action-bar, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-page .module-action-bar,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-list-sales-root .module-action-bar , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-list-sales-root .module-action-bar {
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .table-actions {
 	width: auto;
 	min-width: 0;
 	max-width: 100%;
@@ -985,8 +1103,8 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 }
 
 /* Search row inputs */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow input.listSearchContributor,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow input[type="text"] {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow input.listSearchContributor, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tr.searchRow input.listSearchContributor,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow input[type="text"] , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tr.searchRow input[type="text"] {
 	width: 100%;
 	min-height: 36px;
 	padding: 6px 10px;
@@ -997,18 +1115,18 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	background: #fff;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-ps-list-main {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-ps-list-main , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-dash-main.mk-ps-list-main {
 	background: #f7f9fb;
 }
 
 /* Active page indicator (amber underline on page jump) */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination #PageJump.mk-ps-page-btn {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination #PageJump.mk-ps-page-btn , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination #PageJump.mk-ps-page-btn {
 	box-shadow: inset 0 -3px 0 #08A045;
 }
 
 /* Neutralize MkSalesListTable shared rules — keep header/data in the same column lane */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr > td .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr > td .fieldValue {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr > td .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table > tbody > tr > td .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table > tbody > tr > td .fieldValue , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table > tbody > tr > td .fieldValue {
 	padding: 0 !important;
 	text-align: left !important;
 	display: block;
@@ -1016,12 +1134,12 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td.mk-col-ps-type .value,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td[data-name="item_type"] .value {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td.mk-col-ps-type .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody tr.listViewEntries td.mk-col-ps-type .value,
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td[data-name="item_type"] .value , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody tr.listViewEntries td[data-name="item_type"] .value {
 	text-align: left !important;
 }
 
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th {
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tr.searchRow th {
 	padding: 10px 14px !important;
 	vertical-align: middle !important;
 }

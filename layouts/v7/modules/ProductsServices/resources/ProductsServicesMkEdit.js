@@ -10,7 +10,7 @@
 		return (
 			$('body').data('module') === 'ProductsServices' &&
 			$('body').data('view') === 'Edit' &&
-			($('body').data('app') === 'SALES' || !$('body').data('app')) &&
+			($('body').data('app') === 'INVENTORY' || $('body').data('app') === 'SALES' || !$('body').data('app')) &&
 			$('#mkPsCreateWorkspace').length
 		);
 	}

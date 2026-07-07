@@ -4,7 +4,7 @@
 
 {strip}
 {assign var=MK_PS_SALES_APP value=0}
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+{if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'INVENTORY')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'INVENTORY'))}
 {assign var=MK_PS_SALES_APP value=1}
 {/if}
 	<div class='related-tabs row {if $MK_PS_SALES_APP}mk-ps-detail-related-tabs{/if}'>

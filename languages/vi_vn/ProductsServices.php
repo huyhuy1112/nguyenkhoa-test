@@ -3,8 +3,8 @@
  * ProductsServices module - Vietnamese
  *************************************************************************************/
 $languageStrings = array(
-	'ProductsServices' => 'Sản phẩm & Dịch vụ',
-	'SINGLE_ProductsServices' => 'Sản phẩm & Dịch vụ',
+	'ProductsServices' => 'Hàng hoá',
+	'SINGLE_ProductsServices' => 'Hàng hoá',
 
 	'LBL_PRODUCT_INFORMATION' => 'Thông tin sản phẩm',
 	'LBL_SERVICE_INFORMATION' => 'Thông tin dịch vụ',

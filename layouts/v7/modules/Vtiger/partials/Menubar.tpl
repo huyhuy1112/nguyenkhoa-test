@@ -24,14 +24,18 @@
 	{/if}
 	{foreach key=moduleName item=moduleModel from=$SELECTED_CATEGORY_MENU_LIST}
 		{if $SELECTED_MENU_CATEGORY eq 'MANAGEMENT' && $moduleName eq 'Home'}{continue}{/if}
-		{* SALES: keep Products/Services; hide legacy Products/Services in module strip *}
-		{if $SELECTED_MENU_CATEGORY eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
+		{* SALES: hide legacy Products/Services; ProductsServices lives under Kho *}
+		{if $SELECTED_MENU_CATEGORY eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services' || $moduleName eq 'ProductsServices')}{continue}{/if}
 		{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}
 		{* Calendar: MANAGEMENT = Schedule, SUPPORT = Activities *}
 		{if $moduleName eq 'Calendar' && $SELECTED_MENU_CATEGORY eq 'MANAGEMENT'}
 			{assign var='translatedModuleLabel' value=vtranslate('LBL_SCHEDULE','Calendar')}
 		{elseif $moduleName eq 'Calendar' && $SELECTED_MENU_CATEGORY eq 'SUPPORT'}
 			{assign var='translatedModuleLabel' value=vtranslate('LBL_ACTIVITIES','Calendar')}
+		{elseif $moduleName eq 'Accounts'}
+			{assign var='translatedModuleLabel' value='Tuibao'}
+		{elseif $moduleName eq 'ProductsServices'}
+			{assign var='translatedModuleLabel' value='Hàng hoá'}
 		{/if}
 		<ul title="{$translatedModuleLabel}" class="module-qtip">
 			<li {if $MODULE eq $moduleName}class="active"{else}class=""{/if}>
@@ -83,6 +87,16 @@
 			</ul>
 		{/if}
 	{/foreach}
+	{if $SELECTED_MENU_CATEGORY eq 'INVENTORY' && $MODULE eq 'ProductsServices'}
+		<ul title="Hàng hoá" class="module-qtip">
+			<li class="active">
+				<a href="index.php?module=ProductsServices&amp;view=List&amp;app=INVENTORY">
+					<span class="mk-icon menubar-module-icon"><i class="fa fa-cubes"></i></span>
+					<span>Hàng hoá</span>
+				</a>
+			</li>
+		</ul>
+	{/if}
 </div>
 {elseif $MODULE eq 'Campaigns'}
 	{assign var=_CampMenuMod value=Vtiger_Module_Model::getInstance('Campaigns')}

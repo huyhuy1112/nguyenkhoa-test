@@ -10,7 +10,7 @@
 	{/if}
 {/foreach}
 
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+{if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'INVENTORY')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'INVENTORY'))}
 	<div class="mk-ps-summary-grid">
 		<section class="mk-ps-detail-card mk-ps-detail-card--key mk-ps-summary-grid__key" aria-labelledby="mk-ps-detail-keyfields-title">
 			<div class="mk-ps-detail-card__head">
