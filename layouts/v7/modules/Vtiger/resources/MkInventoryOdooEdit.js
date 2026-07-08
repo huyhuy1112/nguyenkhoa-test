@@ -1796,6 +1796,24 @@
 		}
 	}
 
+	function ensureTaxTotalsRowVisible($result, taxPct) {
+		if (!$result || !$result.length) {
+			return;
+		}
+		var safePct = parseFloat(taxPct);
+		if (isNaN(safePct) || safePct < 0) {
+			safePct = 0;
+		}
+		var $taxRow = $result.find('#group_tax_row');
+		if (!$taxRow.length) {
+			return;
+		}
+		$taxRow
+			.removeClass('mk-inv-totals-hide hide')
+			.addClass('mk-inv-totals-row mk-inv-totals-row--tax');
+		$taxRow.find('td:first').html('<div class="pull-right"><strong>Thuế GTGT ' + safePct + '%</strong></div>');
+	}
+
 	function syncTotalsDisplay($form) {
 		if ($form.data('mkInvSyncingTotals')) {
 			return;
@@ -1837,17 +1855,7 @@
 		$form.find('.groupTaxTotal').first().val(taxAmt);
 		$result.find('#tax_final').attr('data-raw', taxAmt);
 
-		var $taxRow = $result.find('#group_tax_row');
-		if ($taxRow.length) {
-			if (taxAmt > 0 || taxPct > 0) {
-				$taxRow.removeClass('mk-inv-totals-hide hide').addClass('mk-inv-totals-row mk-inv-totals-row--tax');
-				$taxRow
-					.find('td:first')
-					.html('<div class="pull-right"><strong>Thuế GTGT ' + taxPct + '%</strong></div>');
-			} else {
-				$taxRow.addClass('mk-inv-totals-hide');
-			}
-		}
+		ensureTaxTotalsRowVisible($result, taxPct);
 
 		$form.data('mkInvSyncingTotals', false);
 	}
@@ -1919,11 +1927,7 @@
 					writeAmountDisplay($result.find('#grandTotal, .grandTotal'), grand);
 					$form.find('#total, input[name="total"]').val(grand);
 					var taxPct = getPrimaryTaxPercent($form);
-					var $taxRow = $result.find('#group_tax_row');
-					if ($taxRow.length) {
-						$taxRow.removeClass('mk-inv-totals-hide hide').addClass('mk-inv-totals-row mk-inv-totals-row--tax');
-						$taxRow.find('td:first').html('<div class="pull-right"><strong>Thuế GTGT ' + taxPct + '%</strong></div>');
-					}
+					ensureTaxTotalsRowVisible($result, taxPct);
 				}
 				setTimeout(function () { $form.data('mkInvSyncingTotals', false); }, 50);
 			}, 100);
