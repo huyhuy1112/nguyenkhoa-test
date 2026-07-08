@@ -125,9 +125,13 @@
 		return $f.length ? $.trim($f.val()) : '';
 	}
 
+	function getQuoteRail() {
+		return $('#mkQtQuoteRail, #mkSoOrderRail').first();
+	}
+
 	function injectCompanyReadonly($form) {
 		var company = cfg().company || {};
-		var $rail = $('#mkQtQuoteRail');
+		var $rail = getQuoteRail();
 		if (!$rail.length || $rail.find('.mk-qt-company-ro').length) {
 			return;
 		}
@@ -172,10 +176,12 @@
 	}
 
 	function injectAddressEditorToRail($form) {
-		var $rail = $('#mkQtQuoteRail');
+		var $rail = getQuoteRail();
 		if (!$rail.length || $rail.find('.mk-qt-address-rail').length) {
 			return;
 		}
+		var isSo = $rail.attr('id') === 'mkSoOrderRail';
+		var prefix = isSo ? 'mkSo' : 'mkQt';
 		var $bill = $form.find('[name="bill_street"]').first();
 		var $ship = $form.find('[name="ship_street"]').first();
 		if (!$bill.length || !$ship.length) {
@@ -186,8 +192,8 @@
 		$card.append('<div class="mk-qt-rail-card__head"><span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h2 class="mk-qt-rail-card__title">Địa chỉ</h2></div>');
 		$card.append(
 			'<div class="mk-qt-addr-grid">' +
-				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="mkQtBillStreetRail">Địa chỉ</label><textarea id="mkQtBillStreetRail" class="mk-qt-addr-ta" rows="4"></textarea></div>' +
-				'<div class="mk-qt-addr-col"><div class="mk-qt-addr-row"><label class="mk-qt-addr-label" for="mkQtShipStreetRail">Địa chỉ vận chuyển</label><label class="mk-qt-addr-copy"><input type="checkbox" id="mkQtAddrSame" /> Giống địa chỉ lập hoá đơn</label></div><textarea id="mkQtShipStreetRail" class="mk-qt-addr-ta" rows="4"></textarea></div>' +
+				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'BillStreetRail">Địa chỉ</label><textarea id="' + prefix + 'BillStreetRail" class="mk-qt-addr-ta" rows="4"></textarea></div>' +
+				'<div class="mk-qt-addr-col"><div class="mk-qt-addr-row"><label class="mk-qt-addr-label" for="' + prefix + 'ShipStreetRail">Địa chỉ vận chuyển</label><label class="mk-qt-addr-copy"><input type="checkbox" id="' + prefix + 'AddrSame" /> Giống địa chỉ lập hoá đơn</label></div><textarea id="' + prefix + 'ShipStreetRail" class="mk-qt-addr-ta" rows="4"></textarea></div>' +
 			'</div>'
 		);
 
@@ -198,9 +204,9 @@
 			$rail.append($card);
 		}
 
-		var $billRail = $('#mkQtBillStreetRail');
-		var $shipRail = $('#mkQtShipStreetRail');
-		var $same = $('#mkQtAddrSame');
+		var $billRail = $('#' + prefix + 'BillStreetRail');
+		var $shipRail = $('#' + prefix + 'ShipStreetRail');
+		var $same = $('#' + prefix + 'AddrSame');
 
 		$billRail.val($bill.val() || '');
 		$shipRail.val($ship.val() || '');

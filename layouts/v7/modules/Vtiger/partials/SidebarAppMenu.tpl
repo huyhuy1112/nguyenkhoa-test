@@ -81,6 +81,8 @@
 									{assign var='translatedModuleLabel' value=vtranslate('LBL_ACTIVITIES','Calendar')}
 								{elseif $moduleName eq 'Accounts'}
 									{assign var='translatedModuleLabel' value='Tuibao'}
+								{elseif $moduleName eq 'Contacts'}
+									{assign var='translatedModuleLabel' value='Khách hàng'}
 								{elseif $moduleName eq 'ProductsServices'}
 									{assign var='translatedModuleLabel' value='Hàng hoá'}
 								{/if}

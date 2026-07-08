@@ -54,30 +54,52 @@
 
 	var BLOCK_ICONS = {
 		LBL_QUOTE_INFORMATION: 'fa-info-circle',
+		LBL_SO_INFORMATION: 'fa-info-circle',
 		LBL_ADDRESS_INFORMATION: 'fa-map-marker',
 		LBL_ITEM_DETAILS: 'fa-cubes',
 		LBL_DESCRIPTION_INFORMATION: 'fa-align-left',
 		LBL_TERMS_INFORMATION: 'fa-file-text-o',
-		LBL_MK_QUOTE_VAT: 'fa-calculator'
+		LBL_MK_QUOTE_VAT: 'fa-calculator',
+		'Recurring Invoice Information': 'fa-refresh'
 	};
+
+	function getModuleName() {
+		return (document.body && document.body.getAttribute('data-module')) || '';
+	}
+
+	function isSalesOrder() {
+		return getModuleName() === 'SalesOrder';
+	}
 
 	function isScoped() {
 		var body = document.body;
+		var mod = body && body.getAttribute('data-module');
 		return (
 			body &&
-			body.getAttribute('data-module') === 'Quotes' &&
 			body.getAttribute('data-view') === 'Edit' &&
-			(body.getAttribute('data-app') === 'SALES' || !body.getAttribute('data-app')) &&
-			$('#mkQtCreateWorkspace').length
+			(mod === 'Quotes' || mod === 'SalesOrder') &&
+			(body.getAttribute('data-app') === 'SALES' || !body.getAttribute('data-app'))
 		);
 	}
 
+	function $formHost() {
+		if (isSalesOrder()) {
+			return $('#mkSoFormHost');
+		}
+		return $('#mkQtFormHost');
+	}
+
 	function $form() {
-		return $('#mkQtFormHost').find('form#EditView, form[name="EditView"]').first();
+		var $host = $formHost();
+		var $f = $host.find('form#EditView, form[name="EditView"]').first();
+		if (!$f.length) {
+			$f = $('form#EditView.recordEditView, form[name="edit"].recordEditView').first();
+		}
+		return $f;
 	}
 
 	function hideLegacyChrome() {
-		var $host = $('#mkQtFormHost');
+		var $host = $formHost();
 		$host.find('#modnavigator, .editViewModNavigator, .module-nav').addClass('mk-qt-hide-legacy');
 		$host.find('.editViewHeader').addClass('mk-qt-hide-legacy');
 		$host.find('.modal-overlay-footer').addClass('mk-qt-form-footer');
@@ -134,9 +156,15 @@
 	}
 
 	function markCreateEnhanced() {
+		if (document.documentElement.classList.contains('mk-inv-ui-ready')) {
+			document.documentElement.classList.add('mk-quote-create-enhanced');
+			return;
+		}
 		requestAnimationFrame(function () {
 			requestAnimationFrame(function () {
-				document.documentElement.classList.add('mk-quote-create-enhanced');
+				if (document.documentElement.classList.contains('mk-inv-ui-ready')) {
+					document.documentElement.classList.add('mk-quote-create-enhanced');
+				}
 			});
 		});
 	}
@@ -448,10 +476,11 @@
 	}
 
 	function simplifyQuoteForm() {
-		if ($form().data('mkQtSimplified')) {
+		var flag = isSalesOrder() ? 'mkSoSimplified' : 'mkQtSimplified';
+		if ($form().data(flag)) {
 			return;
 		}
-		$form().data('mkQtSimplified', true);
+		$form().data(flag, true);
 
 		var hideFields = [
 			'carrier',
@@ -469,6 +498,21 @@
 			'ship_code',
 			'ship_country'
 		];
+		if (isSalesOrder()) {
+			hideFields = hideFields.concat([
+				'salescommission',
+				'leadsource',
+				'team_group',
+				'invoicestatus',
+				'purchaseorder',
+				'quote_id',
+				'contact_id',
+				'currency_id',
+				'conversion_rate',
+				'hdnTaxType',
+				'taxtype'
+			]);
+		}
 		hideFields.forEach(function (name) {
 			$form()
 				.find('[name="' + name + '"]')
@@ -478,12 +522,13 @@
 
 		$form()
 			.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]')
-			.addClass('mk-qt-address-simplified');
+			.addClass('mk-qt-address-simplified mk-qt-hide-legacy');
 	}
 
 	function reorderQuoteBlocks() {
 		var $editForm = $form();
-		var $info = $editForm.find('.fieldBlockContainer[data-block="LBL_QUOTE_INFORMATION"]').first();
+		var infoBlock = isSalesOrder() ? 'LBL_SO_INFORMATION' : 'LBL_QUOTE_INFORMATION';
+		var $info = $editForm.find('.fieldBlockContainer[data-block="' + infoBlock + '"]').first();
 		var $items = $editForm.find('#lineItemTab').closest('.fieldBlockContainer').first();
 		var $totals = $editForm.find('#lineItemResult').closest('.fieldBlockContainer').first();
 		var $addr = $editForm.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]').first();
@@ -494,14 +539,13 @@
 		if ($totals.length && $items.length) {
 			$totals.insertAfter($items);
 		}
-		if ($addr.length && ($totals.length || $items.length)) {
-			$addr.insertAfter($totals.length ? $totals : $items);
+		if ($addr.length) {
+			$addr.addClass('mk-qt-hide-legacy');
 		}
-		if ($terms.length && $addr.length) {
-			$terms.insertAfter($addr);
-		}
-		// Rename Terms block header to "Ghi chú"
 		if ($terms.length) {
+			$terms.addClass('mk-qt-hide-legacy');
+		}
+		if ($terms.length && !isSalesOrder()) {
 			var $h = $terms.find('.fieldBlockHeader').first();
 			if ($h.length) {
 				$h.contents().filter(function () { return this.nodeType === 3; }).each(function () {
@@ -615,6 +659,19 @@
 	}
 
 	function syncRail() {
+		if (isSalesOrder()) {
+			var stage = readFieldDisplay('sostatus') || readFieldDisplay('salesorder_status');
+			var due = readFieldDisplay('duedate');
+			var account = readFieldDisplay('account_id');
+			var opp = readFieldDisplay('potential_id');
+			var total = readGrandTotal();
+			$('#mkSoRailStage, #mkSoHeadStageBadge').text(stage || 'Draft');
+			$('#mkSoRailDueDate').text(due || '—');
+			$('#mkSoRailAccount').text(account || '—');
+			$('#mkSoRailOpportunity').text(opp || '—');
+			$('#mkSoRailTotal').text(total || '—');
+			return;
+		}
 		var stage = readFieldDisplay('quotestage');
 		var valid = readFieldDisplay('validtill');
 		var org = readFieldDisplay('account_id');
@@ -629,8 +686,12 @@
 	}
 
 	function hideRailNoiseCards() {
-		var $rail = $('#mkQtQuoteRail');
+		var $rail = isSalesOrder() ? $('#mkSoOrderRail') : $('#mkQtQuoteRail');
 		if (!$rail.length) {
+			return;
+		}
+		if (isSalesOrder()) {
+			$rail.find('.mk-qt-rail-card--muted').addClass('mk-qt-hide-legacy');
 			return;
 		}
 		$rail
@@ -640,17 +701,16 @@
 
 	function moveAssignedToIntoRail() {
 		var $editForm = $form();
-		var $rail = $('#mkQtQuoteRail');
+		var $rail = isSalesOrder() ? $('#mkSoOrderRail') : $('#mkQtQuoteRail');
 		if (!$editForm.length || !$rail.length) {
 			return;
 		}
-		// Hide "Phụ trách" row in main form
 		var $assigned = $editForm.find('[name="assigned_user_id"]').first();
 		if ($assigned.length) {
 			$assigned.closest('tr').addClass('mk-qt-hide-legacy');
 		}
-		// Make rail card usable: swap text with the actual field
-		var $card = $rail.find('.mk-qt-rail-card:has(#mkQtRailOwner), .mk-qt-rail-card:contains(\"Assigned To\")').first();
+		var ownerSel = isSalesOrder() ? '#mkSoRailOwner' : '#mkQtRailOwner';
+		var $card = $rail.find('.mk-qt-rail-card:has(' + ownerSel + ')').first();
 		if (!$card.length || $card.data('mkQtAssignedReady')) {
 			return;
 		}
@@ -658,7 +718,7 @@
 		var $host = $('<div class="mk-qt-rail-field"></div>');
 		if ($assigned.length) {
 			$host.append($assigned.detach());
-			$card.find('#mkQtRailOwner').replaceWith($host);
+			$card.find(ownerSel).replaceWith($host);
 			try {
 				if (typeof vtUtils !== 'undefined' && vtUtils.applyFieldElementsView) {
 					vtUtils.applyFieldElementsView($card);
@@ -669,13 +729,14 @@
 
 	function moveNotesIntoQuoteInfo() {
 		var $editForm = $form();
-		var $terms = $editForm.find('textarea[name=\"terms_conditions\"]').first();
+		var $terms = $editForm.find('textarea[name="terms_conditions"]').first();
 		if (!$terms.length) {
 			return;
 		}
 		var $termsRow = $terms.closest('tr');
-		var $termsBlock = $terms.closest('.fieldBlockContainer[data-block=\"LBL_TERMS_INFORMATION\"]');
-		var $infoBlock = $editForm.find('.fieldBlockContainer[data-block=\"LBL_QUOTE_INFORMATION\"]').first();
+		var $termsBlock = $terms.closest('.fieldBlockContainer[data-block="LBL_TERMS_INFORMATION"]');
+		var infoBlock = isSalesOrder() ? 'LBL_SO_INFORMATION' : 'LBL_QUOTE_INFORMATION';
+		var $infoBlock = $editForm.find('.fieldBlockContainer[data-block="' + infoBlock + '"]').first();
 		if (!$infoBlock.length) {
 			return;
 		}
@@ -703,7 +764,7 @@
 	}
 
 	function forceRenameTermsToNotes() {
-		var $host = $('#mkQtFormHost');
+		var $host = $formHost();
 		if (!$host.length) {
 			return;
 		}
@@ -732,10 +793,14 @@
 	}
 
 	function bindActions() {
-		$('#mkQtSaveTop')
+		$('#mkQtSaveTop, #mkSoSaveTop')
 			.off('click.mkQtSave')
 			.on('click.mkQtSave', function (e) {
 				e.preventDefault();
+				if (isSalesOrder() && window.__mkSoCreateSave) {
+					window.__mkSoCreateSave(e);
+					return;
+				}
 				triggerSave();
 			});
 
@@ -779,12 +844,28 @@
 			.off('keydown.mkQtCreate')
 			.on('keydown.mkQtCreate', function (e) {
 				if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-					if (!$(e.target).closest('#mkQtFormHost').length) {
+					if (!$(e.target).closest('#mkQtFormHost, #mkSoFormHost').length) {
 						return;
 					}
 					e.preventDefault();
+					if (isSalesOrder() && window.__mkSoCreateSave) {
+						window.__mkSoCreateSave(e);
+						return;
+					}
 					triggerSave();
 				}
+			});
+	}
+
+	function initStickyHead() {
+		var $head = isSalesOrder() ? $('#mkSoStickyHead') : $('#mkQtStickyHead');
+		if (!$head.length) {
+			return;
+		}
+		$(window)
+			.off('scroll.mkQtSticky')
+			.on('scroll.mkQtSticky', function () {
+				$head.toggleClass('is-elevated', window.scrollY > 8);
 			});
 	}
 
@@ -797,18 +878,6 @@
 			syncRail();
 		});
 		obs.observe(target, { childList: true, subtree: true, characterData: true });
-	}
-
-	function initStickyHead() {
-		var $head = $('#mkQtStickyHead');
-		if (!$head.length) {
-			return;
-		}
-		$(window)
-			.off('scroll.mkQtSticky')
-			.on('scroll.mkQtSticky', function () {
-				$head.toggleClass('is-elevated', window.scrollY > 8);
-			});
 	}
 
 	function initOdooInventoryUi() {
@@ -847,6 +916,9 @@
 		reorderQuoteBlocks();
 		initOdooInventoryUi();
 		pinAddProductToLineHeader();
+		if (window.MkInventoryOdooEdit && window.MkInventoryOdooEdit.scheduleLineItemsRestyle) {
+			window.MkInventoryOdooEdit.scheduleLineItemsRestyle($form());
+		}
 		hideRailNoiseCards();
 		moveAssignedToIntoRail();
 		moveNotesIntoQuoteInfo();
@@ -862,6 +934,9 @@
 		setTimeout(function () {
 			fixFormDisplayEncoding();
 			syncRail();
+			if (!document.documentElement.classList.contains('mk-inv-ui-ready')) {
+				document.documentElement.classList.add('mk-inv-ui-ready', 'mk-quote-create-enhanced');
+			}
 		}, 1200);
 	}
 

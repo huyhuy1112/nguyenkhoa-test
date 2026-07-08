@@ -2,21 +2,37 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 {include file="partials/MkSalesUiMeta.tpl"|vtemplate_path:'Vtiger'}
-<script type="text/javascript">document.documentElement.classList.add('mk-quote-create-ready', 'mk-inv-odoo-active');</script>
+<script type="text/javascript">{literal}
+document.documentElement.classList.add('mk-quote-create-ready', 'mk-inv-odoo-active');
+(function(){var b=document.body;if(b&&!b.getAttribute('data-app')){b.setAttribute('data-app','SALES');}})();
+setTimeout(function(){document.documentElement.classList.add('mk-inv-ui-ready','mk-quote-create-enhanced');}, 1800);
+{/literal}</script>
 <style type="text/css">
 	/* Anti-FOUC: hide legacy vtiger form chrome before JS enhances */
-	html.mk-quote-create-ready body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root,
-	html.mk-quote-create-ready body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .editViewPageDiv {
+	html.mk-quote-create-ready body[data-module="Quotes"][data-view="Edit"] #mk-dash-split-root,
+	html.mk-quote-create-ready body[data-module="Quotes"][data-view="Edit"] .editViewPageDiv,
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) body[data-module="Quotes"][data-view="Edit"] #mk-dash-split-root,
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) body[data-module="Quotes"][data-view="Edit"] .editViewPageDiv {
 		opacity: 0 !important;
 		visibility: hidden !important;
 		pointer-events: none !important;
 	}
-	html.mk-quote-create-enhanced body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root,
-	html.mk-quote-create-enhanced body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .editViewPageDiv {
+	html.mk-inv-ui-ready body[data-module="Quotes"][data-view="Edit"] #mk-dash-split-root,
+	html.mk-inv-ui-ready body[data-module="Quotes"][data-view="Edit"] .editViewPageDiv,
+	html.mk-quote-create-enhanced.mk-inv-ui-ready body[data-module="Quotes"][data-view="Edit"] #mk-dash-split-root,
+	html.mk-quote-create-enhanced.mk-inv-ui-ready body[data-module="Quotes"][data-view="Edit"] .editViewPageDiv {
 		opacity: 1 !important;
 		visibility: visible !important;
 		pointer-events: auto !important;
 		transition: none !important;
+	}
+
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) body[data-module="Quotes"][data-view="Edit"] #lineItemTab tr.lineItemRow,
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) body[data-module="SalesOrder"][data-view="Edit"] #lineItemTab tr.lineItemRow,
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) #lineItemTab > tbody > tr:first-child,
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) .lineitemTableContainer .well {
+		visibility: hidden !important;
+		opacity: 0 !important;
 	}
 
 	html.mk-quote-create-ready #mkQtFormHost #modnavigator,
@@ -42,32 +58,33 @@
 	html.mk-quote-create-ready #mkQtFormHost .addressBlock > tbody > tr:first-child {
 		display: none !important;
 	}
-	html.mk-quote-create-ready:not(.mk-quote-create-enhanced) #mkQtFormHost,
-	html.mk-quote-create-ready:not(.mk-quote-create-enhanced) #mk-dash-split-root,
-	html.mk-quote-create-ready:not(.mk-quote-create-enhanced) .editViewPageDiv {
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) #mkQtFormHost,
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) #mk-dash-split-root,
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) .editViewPageDiv {
 		opacity: 0 !important;
 		visibility: hidden !important;
 		pointer-events: none !important;
 	}
-	html.mk-quote-create-enhanced #mkQtFormHost,
-	html.mk-quote-create-enhanced #mk-dash-split-root,
-	html.mk-quote-create-enhanced .editViewPageDiv {
+	html.mk-inv-ui-ready #mkQtFormHost,
+	html.mk-inv-ui-ready #mk-dash-split-root,
+	html.mk-inv-ui-ready .editViewPageDiv {
 		visibility: visible !important;
 		opacity: 1 !important;
 		pointer-events: auto !important;
-		transition: opacity 0.2s ease-out !important;
+		transition: none !important;
 	}
 </style>
 {if !empty($MK_QUOTE_BA_CONFIG_JSON)}
 <script type="text/javascript">window.__MK_QUOTE_BA_CONFIG = {$MK_QUOTE_BA_CONFIG_JSON nofilter};</script>
 {/if}
+<script type="text/javascript">window.MK_PRODUCT_CATALOG = {$MK_PRODUCT_CATALOG_JSON|default:'[]' nofilter};</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260603_no_dup_footer" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260707_quote_items_fix2" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260707_quote_items_fix2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260708_header_v19" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260708_header_v19" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260707_quote_items_fix2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260708_header_v19"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}&mk_v=20260707_quote_items_fix2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}&mk_v=20260707_quote_notes_label_fix1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}&mk_v=20260708_header_v19"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-quote-create="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

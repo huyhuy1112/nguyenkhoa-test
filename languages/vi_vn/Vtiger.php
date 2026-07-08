@@ -85,7 +85,7 @@ $languageStrings = array(
 	'Construction' => 'Construction',
 	'Consulting' => 'Consulting',
 	'Contact Name' => 'Tên Người liên hệ',  //Duplicated key-value pairs
-	'Contacts' => 'Liên hệ',
+	'Contacts' => 'Khách hàng',
 	'Conversion Rate' => 'Tỷ lệ chuyển đổi',
 	'Country' => 'Quốc gia',
 	'Created Time' => 'Thời gian tạo',
@@ -666,7 +666,7 @@ $languageStrings = array(
 	'Shipping' => 'Vận chuyển',
 	'Shutdown' => 'Tắt',
 	'SINGLE_Accounts' => 'Khách hàng', //Duplicated key-value pairs
-	'SINGLE_Contacts' => 'Liên hệ', //Duplicated key-value pairs
+	'SINGLE_Contacts' => 'Khách hàng', //Duplicated key-value pairs
 	'SINGLE_Emails' => 'Email',
 	'Single_Users' => 'Người sử dụng',
 	'State' => 'Quận',
@@ -850,7 +850,7 @@ $jsLanguageStrings = array(
 	'PM' => 'PM',
 	'SHOULD_BE_LESS_THAN_TODAY' => 'Phải được thực hiện trước ngày hôm nay',
 	'SINGLE_Accounts' => 'Khách hàng',
-	'SINGLE_Contacts' => 'Liên hệ',
+	'SINGLE_Contacts' => 'Khách hàng',
     
         //Promotion translations
         'JS_HIDE_PROMOTION' => 'Ẩn khuyến mại',

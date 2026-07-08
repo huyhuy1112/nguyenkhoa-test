@@ -9,14 +9,7 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
-		$app = strtoupper((string)$request->get('app'));
-		if ($app === 'SALES') {
-			return true;
-		}
-		if ($app === '') {
-			return true;
-		}
-		return false;
+		return true;
 	}
 
 	protected function assignModernContext(Vtiger_Request $request) {
@@ -35,6 +28,8 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
 		$viewer->assign('MK_QUOTE_OWNER_NAME', trim($user->getName()));
 		$viewer->assign('MK_QUOTE_BA_CONFIG_JSON', Zend_Json::encode($baContext));
+		require_once 'modules/Inventory/helpers/ProductCatalog.php';
+		Inventory_ProductCatalog_Helper::assignToViewer($viewer);
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
@@ -74,18 +69,18 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {
-		if ($this->isMkModernQuoteCreate($request)) {
-			// Odoo + QuoteMkEdit CSS loaded once in EditViewPreProcess.tpl (avoid duplicate legacy head CSS).
-			return parent::getHeaderCss($request);
-		}
-		return parent::getHeaderCss($request);
+		$headerCssInstances = parent::getHeaderCss($request);
+		$cssFileNames = array(
+			'~layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css',
+		);
+		return array_merge($headerCssInstances, $this->checkAndConvertCssStyles($cssFileNames));
 	}
 
 	public function getHeaderScripts(Vtiger_Request $request) {
-		if ($this->isMkModernQuoteCreate($request)) {
-			// QuoteMkBa + QuoteMkEdit + MkInventoryOdooEdit loaded in EditViewPreProcess.tpl
-			return parent::getHeaderScripts($request);
-		}
-		return parent::getHeaderScripts($request);
+		$headerScriptInstances = parent::getHeaderScripts($request);
+		$jsFileNames = array(
+			'~layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js',
+		);
+		return array_merge($headerScriptInstances, $this->checkAndConvertJsScripts($jsFileNames));
 	}
 }

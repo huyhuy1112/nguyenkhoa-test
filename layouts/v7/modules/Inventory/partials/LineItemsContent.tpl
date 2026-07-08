@@ -156,6 +156,10 @@
 		{/if}
 	</td>
 
+	{if !empty($MK_MODERN_LINE_ITEMS)}
+		<td class="mk-inv-col-unit"></td>
+	{/if}
+
 	{if isset($PURCHASE_COST_EDITABLE) && $PURCHASE_COST_EDITABLE}
 		<td>
 			<input id="{$purchaseCost}" type="hidden" value="{if $data.$purchaseCost}{((float)$data.$purchaseCost) / ((float)$data.$qty)}{else}0{/if}" />
@@ -164,7 +168,12 @@
 		</td>
 	{/if}
 
-	{if $LIST_PRICE_EDITABLE}
+	{if !empty($MK_MODERN_LINE_ITEMS)}
+		<td class="mk-inv-col-price">
+			<input id="{$listPrice}" name="{$listPrice}" value="{if !empty($data.$listPrice)}{$data.$listPrice}{else}0{/if}" type="text"
+				   data-rule-required=true data-rule-positive=true class="listPrice smallInputBox inputElement" data-is-price-changed="{if $RECORD_ID && $row_no neq 0}true{else}false{/if}" list-info='{if isset($data.$listPrice)}{Zend_Json::encode($listPriceValues)}{/if}' data-base-currency-id="{getProductBaseCurrency($productId, {$entityType})}" />
+		</td>
+	{elseif $LIST_PRICE_EDITABLE}
 		<td>
 			<div>
 				<input id="{$listPrice}" name="{$listPrice}" value="{if !empty($data.$listPrice)}{$data.$listPrice}{else}0{/if}" type="text"
@@ -281,7 +290,7 @@
 		</td>
 	{/if}
 
-	<td>
+	<td{if !empty($MK_MODERN_LINE_ITEMS)} class="mk-inv-col-amount"{/if}>
 		<div id="productTotal{$row_no}" align="right" class="productTotal">{if isset($data.$productTotal) && $data.$productTotal}{$data.$productTotal}{else}0{/if}</div>
 		{if $ITEM_DISCOUNT_AMOUNT_EDITABLE || $ITEM_DISCOUNT_PERCENT_EDITABLE}
 			<div id="discountTotal{$row_no}" align="right" class="discountTotal">{if isset($data.$discountTotal) && $data.$discountTotal}{$data.$discountTotal}{else}0{/if}</div>
@@ -298,7 +307,7 @@
 	</td>
 	{/if}
 
-	<td>
+	<td{if !empty($MK_MODERN_LINE_ITEMS)} class="mk-inv-col-net-slot"{/if}>
 		<span id="netPrice{$row_no}" class="pull-right netPrice">{if isset($data.$netPrice) && $data.$netPrice}{$data.$netPrice}{else}0{/if}</span>
 	</td>
 {/strip}

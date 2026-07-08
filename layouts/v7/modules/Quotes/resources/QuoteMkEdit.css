@@ -1,6 +1,7 @@
 /**
  * Quotes Create (SALES) — enterprise create workspace (content area only).
- * Scope: body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mkQtCreateWorkspace
+ * Scope: body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mkQtCreateWorkspace,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #mkQtCreateWorkspace
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
@@ -25,13 +26,15 @@
 }
 
 /* ========== Split shell (unchanged sidebar/topbar geometry) ========== */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
 	position: relative;
 	display: block;
 	min-height: 0;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-app-shell {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-app-shell,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-app-shell {
 	margin-left: var(--mk-dash-sidebar-w);
 	width: calc(100% - var(--mk-dash-sidebar-w));
 	max-width: calc(100% - var(--mk-dash-sidebar-w));
@@ -43,7 +46,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-app-shell {
 	padding-top: var(--mk-dash-topbar-h);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-topbar {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-topbar,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-topbar {
 	height: 0;
 	margin: 0;
 	padding: 0;
@@ -51,7 +55,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-topbar {
 	flex-shrink: 0;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
 	position: fixed;
 	top: 0;
 	left: var(--mk-dash-sidebar-w);
@@ -67,11 +72,14 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-da
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #page,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #page.container-fluid {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #page,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #page.container-fluid,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #page.container-fluid {
 	padding-top: 0 !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-quote-edit-main {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-quote-edit-main,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-quote-edit-main {
 	width: 100%;
 	max-width: none;
 	min-width: 0;
@@ -81,7 +89,9 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-dash-main.mk-
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .main-container.mk-quote-edit-page,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .editViewPageDiv.mk-quote-edit-inner {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .main-container.mk-quote-edit-page,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .editViewPageDiv.mk-quote-edit-inner,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .editViewPageDiv.mk-quote-edit-inner {
 	padding: 0 !important;
 	margin: 0 !important;
 	background: transparent;
@@ -90,21 +100,25 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .editViewPageDiv.
 	max-width: none;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #overlayPageContent.fade:not(.in) {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #overlayPageContent.fade:not(.in),
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #overlayPageContent.fade:not(.in) {
 	pointer-events: none !important;
 	visibility: hidden !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-hide-legacy {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-hide-legacy {
 	display: none !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-footer {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-footer,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-footer {
 	display: none !important;
 }
 
 /* ========== Workspace layout ========== */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-create {
 	font-family: var(--mk-qt-font);
 	color: var(--mk-qt-ink);
 	padding: 0 32px 48px;
@@ -112,7 +126,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create {
 }
 
 /* Sticky action header */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head {
 	position: sticky;
 	top: var(--mk-dash-topbar-h);
 	z-index: 1020;
@@ -125,11 +140,13 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-hea
 	transition: box-shadow 0.2s ease;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head.is-elevated {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head.is-elevated,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head.is-elevated {
 	box-shadow: var(--mk-qt-shadow);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__inner {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__inner,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__inner {
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
@@ -139,29 +156,34 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-hea
 	margin: 0 auto;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb {
 	font-size: 13px;
 	color: var(--mk-qt-muted);
 	margin-bottom: 6px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb a {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb a,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb a {
 	color: var(--mk-qt-navy);
 	text-decoration: none;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb a:hover {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb a:hover,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__crumb a:hover {
 	text-decoration: underline;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__title-row {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__title-row,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__title-row {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 12px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__title {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__title,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__title {
 	font-family: var(--mk-qt-display);
 	font-size: 1.65rem;
 	font-weight: 700;
@@ -170,7 +192,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-hea
 	letter-spacing: -0.02em;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-badge {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-badge,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-badge {
 	display: inline-flex;
 	align-items: center;
 	padding: 4px 12px;
@@ -181,7 +204,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-badge {
 	color: var(--mk-qt-ink);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
@@ -190,25 +214,29 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave {
 	color: var(--mk-qt-muted);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave__dot {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave__dot,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave__dot {
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
 	background: #22c55e;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave.is-dirty .mk-qt-autosave__dot {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave.is-dirty .mk-qt-autosave__dot,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-autosave.is-dirty .mk-qt-autosave__dot {
 	background: var(--mk-qt-gold);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__actions {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__actions,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head__actions {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 	flex-shrink: 0;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -223,30 +251,35 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn {
 	transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--primary {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--primary,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--primary {
 	background: linear-gradient(180deg, var(--mk-qt-gold-light), var(--mk-qt-gold));
 	color: var(--mk-qt-ink);
 	border-color: #d4a000;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--primary:hover {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--primary:hover,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--primary:hover {
 	filter: brightness(1.03);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--secondary {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--secondary,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--secondary {
 	background: var(--mk-qt-white);
 	border-color: var(--mk-qt-border);
 	color: var(--mk-qt-ink);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--ghost {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--ghost,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--ghost {
 	background: transparent;
 	border-color: var(--mk-qt-border);
 	color: var(--mk-qt-muted);
 }
 
 /* 70 / 30 grid */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) 320px;
 	gap: 24px;
@@ -255,12 +288,14 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__gr
 	margin: 0 auto;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__main {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__main,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-create__main {
 	min-width: 0;
 }
 
 /* Right rail */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail {
 	position: sticky;
 	top: calc(var(--mk-dash-topbar-h) + 120px);
 	display: flex;
@@ -268,7 +303,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail {
 	gap: 16px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card {
 	background: var(--mk-qt-white);
 	border: 1px solid var(--mk-qt-border);
 	border-radius: var(--mk-qt-radius-lg);
@@ -276,22 +312,26 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card 
 	padding: 18px 20px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--summary {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--summary,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--summary {
 	border-top: 3px solid var(--mk-qt-gold);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--ai {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--ai,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--ai {
 	background: linear-gradient(160deg, #ecfdf3 0%, #fff 60%);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__head {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__head,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__head {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 	margin-bottom: 14px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__icon {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__icon,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__icon {
 	width: 36px;
 	height: 36px;
 	border-radius: 10px;
@@ -302,7 +342,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card_
 	justify-content: center;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__title {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__title,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card__title {
 	font-family: var(--mk-qt-display);
 	font-size: 15px;
 	font-weight: 600;
@@ -310,39 +351,45 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card_
 }
 
 /* Line-items header: pin add button on the right */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-inv-odoo-tabs {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-inv-odoo-tabs,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-inv-odoo-tabs {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-line-actions {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-line-actions,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-line-actions {
 	display: inline-flex;
 	align-items: center;
 	justify-content: flex-end;
 	gap: 10px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-line-actions #addProductsServices {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-line-actions #addProductsServices,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-line-actions #addProductsServices {
 	margin: 0 !important;
 }
 
 /* Rail address editor */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--address .mk-qt-addr-grid {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--address .mk-qt-addr-grid,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-card--address .mk-qt-addr-grid {
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 12px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-row {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-row,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-row {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 10px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-label {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-label,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-label {
 	font-size: 12px;
 	font-weight: 600;
 	color: var(--mk-qt-muted, #64748b);
@@ -350,7 +397,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-label
 	display: block;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-copy {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-copy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-copy {
 	font-size: 12px;
 	font-weight: 500;
 	color: var(--mk-qt-muted, #64748b);
@@ -360,7 +408,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-copy 
 	white-space: nowrap;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-ta {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-ta,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-ta {
 	width: 100%;
 	min-height: 96px;
 	border: 1px solid #e2e8f0;
@@ -373,7 +422,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-ta {
 	background: #fff;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row {
 	display: flex;
 	justify-content: space-between;
 	gap: 12px;
@@ -382,13 +432,15 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-li
 	font-size: 13px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row dt {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row dt,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row dt {
 	color: var(--mk-qt-muted);
 	font-weight: 500;
 	margin: 0;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row dd {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row dd,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row dd {
 	margin: 0;
 	font-weight: 600;
 	text-align: right;
@@ -396,20 +448,24 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-li
 	word-break: break-word;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row--total dd {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row--total dd,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row--total dd {
 	font-size: 16px;
 	color: var(--mk-qt-ink);
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-placeholder,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-note {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-placeholder,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-note,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-note {
 	font-size: 12px;
 	color: var(--mk-qt-muted);
 	margin: 0;
 	line-height: 1.5;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-ai-list {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-ai-list,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-ai-list {
 	margin: 0 0 10px;
 	padding-left: 18px;
 	font-size: 13px;
@@ -418,7 +474,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-ai-list {
 }
 
 /* ========== Form host ========== */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host form#EditView {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host form#EditView,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host form#EditView {
 	width: 100%;
 	border: none;
 	background: transparent;
@@ -426,8 +483,11 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .editViewBody,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .editViewBody,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .editViewContents,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host [name="editContent"] {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .editViewContents,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host [name="editContent"],
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host [name="editContent"] {
 	width: 100%;
 	padding: 0;
 	margin: 0;
@@ -435,7 +495,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 }
 
 /* Field cards */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block {
 	background: var(--mk-qt-white);
 	border: 1px solid var(--mk-qt-border);
 	border-radius: var(--mk-qt-radius-lg);
@@ -444,7 +505,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	margin-bottom: 20px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block__header {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block__header,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block__header {
 	font-family: var(--mk-qt-display);
 	font-size: 1.1rem;
 	font-weight: 600;
@@ -457,7 +519,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	gap: 10px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block__icon {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block__icon,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block__icon {
 	width: 32px;
 	height: 32px;
 	border-radius: 8px;
@@ -469,19 +532,30 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	font-size: 14px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table {
 	width: 100%;
 	border: none;
 	margin: 0;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(.mk-qt-form-ready) .table-borderless > tbody > tr {
+	display: table-row !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(.mk-qt-form-ready) .table-borderless td {
+	display: table-cell !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 16px 24px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldLabel {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldLabel,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldLabel {
 	display: block;
 	padding: 0 0 6px !important;
 	border: none;
@@ -492,48 +566,60 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	text-align: left;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldLabel label {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldLabel label,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldLabel label {
 	margin: 0;
 	font-weight: 600;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldValue {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldValue,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.fieldValue {
 	display: block;
 	padding: 0 !important;
 	border: none;
 	width: auto !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldLabel:nth-child(1) { grid-column: 1; grid-row: 1; }
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldValue:nth-child(2) { grid-column: 1; grid-row: 2; }
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldLabel:nth-child(3) { grid-column: 2; grid-row: 1; }
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldValue:nth-child(4) { grid-column: 2; grid-row: 2; }
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldLabel:nth-child(1),
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldLabel:nth-child(1) { grid-column: 1; grid-row: 1; }
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldValue:nth-child(2),
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldValue:nth-child(2) { grid-column: 1; grid-row: 2; }
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldLabel:nth-child(3),
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldLabel:nth-child(3) { grid-column: 2; grid-row: 1; }
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldValue:nth-child(4),
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldValue:nth-child(4) { grid-column: 2; grid-row: 2; }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr:has(> td.fieldValueWidth80) {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr:has(> td.fieldValueWidth80),
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr:has(> td.fieldValueWidth80) {
 	grid-template-columns: 1fr;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .addressBlock > tbody > tr:first-child {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .addressBlock > tbody > tr:first-child,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .addressBlock > tbody > tr:first-child {
 	grid-template-columns: 1fr 1fr;
 }
 
 /* Address block: copy-from radios + billing/shipping street only */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 16px 24px;
 	margin-bottom: 8px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child > td.fieldLabel {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child > td.fieldLabel,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child > td.fieldLabel {
 	padding-bottom: 4px !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child .radio {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child .radio,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child .radio {
 	margin: 0 0 8px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child .radio label {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child .radio label,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock > tbody > tr:first-child .radio label {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -544,16 +630,23 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock textarea[name="bill_street"],
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock textarea[name="ship_street"] {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock textarea[name="bill_street"],
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock textarea[name="ship_street"],
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-address-simplified .addressBlock textarea[name="ship_street"] {
 	min-height: 96px !important;
 }
 
 /* Inputs */
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > input.inputElement,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > input.inputElement,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > select.inputElement,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > select.inputElement,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea.inputElement,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea.inputElement,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .mk-qt-terms-preview.inputElement,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .form-control {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .mk-qt-terms-preview.inputElement,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .form-control,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .form-control {
 	width: 100% !important;
 	min-height: 46px !important;
 	padding: 12px 16px !important;
@@ -566,21 +659,26 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > input:focus,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > input:focus,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > select:focus,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea:focus {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > select:focus,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea:focus,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea:focus {
 	border-color: var(--mk-qt-navy) !important;
 	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
 	background: #fff !important;
 	outline: none;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > textarea {
 	min-height: 120px !important;
 	resize: vertical;
 }
 
 /* Composite / reference fields */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group {
 	display: flex !important;
 	align-items: center !important;
 	width: 100% !important;
@@ -590,15 +688,19 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	background: #fafafa !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group:focus-within {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group:focus-within,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group:focus-within {
 	border-color: var(--mk-qt-navy) !important;
 	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1) !important;
 	background: #fff !important;
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group input,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group input,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .autoComplete,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .dateField {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .autoComplete,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .dateField,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .dateField {
 	flex: 1;
 	border: none !important;
 	background: transparent !important;
@@ -608,7 +710,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	box-shadow: none !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .input-group-addon {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .input-group-addon,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .input-group-addon {
 	display: flex !important;
 	align-items: center !important;
 	justify-content: center !important;
@@ -619,12 +722,14 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	background: #f1f5f9 !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .input-group-addon:first-child {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .input-group-addon:first-child,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .input-group .input-group-addon:first-child {
 	border-left: none !important;
 	border-right: 1px solid #e2e8f0 !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .select2-container {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .select2-container,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .select2-container {
 	width: 100% !important;
 	border: 1px solid #e2e8f0 !important;
 	border-radius: 12px !important;
@@ -633,7 +738,9 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .select2-container .select2-choice,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .select2-container--default .select2-selection--single {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .select2-container .select2-choice,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .select2-container--default .select2-selection--single,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block .select2-container--default .select2-selection--single {
 	border: none !important;
 	background: transparent !important;
 	min-height: 46px !important;
@@ -642,11 +749,13 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 }
 
 /* Line items — CPQ-style table (disabled when Odoo line editor is active) */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .mk-qt-block--line-items {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .mk-qt-block--line-items,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .mk-qt-block--line-items {
 	padding-bottom: 12px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab {
 	border-collapse: separate;
 	border-spacing: 0;
 	border-radius: 12px;
@@ -654,11 +763,13 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:
 	border: 1px solid var(--mk-qt-border) !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab thead tr {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab thead tr,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab thead tr {
 	background: #f8fafc;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab thead th {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab thead th,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab thead th {
 	font-size: 12px;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -672,76 +783,92 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:
 	background: #f8fafc;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody tr.lineItemRow:nth-child(even) {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody tr.lineItemRow:nth-child(even),
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody tr.lineItemRow:nth-child(even) {
 	background: #fafbfc;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody tr.lineItemRow:hover {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody tr.lineItemRow:hover,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody tr.lineItemRow:hover {
 	background: #ecfdf3;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody td {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody td,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemTab tbody td {
 	padding: 10px !important;
 	vertical-align: middle !important;
 	border-color: #f1f5f9 !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemResult.lineItemTable {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemResult.lineItemTable,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemResult.lineItemTable {
 	border-radius: var(--mk-qt-radius);
 	overflow: hidden;
 	margin-top: 16px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemResult .lineItemInputBox {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemResult .lineItemInputBox,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #lineItemResult .lineItemInputBox {
 	border-radius: 8px !important;
 	border: 1px solid #e2e8f0 !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .mk-qt-block--totals {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .mk-qt-block--totals,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .mk-qt-block--totals {
 	background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
 }
 
 /* Add product row buttons */
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #addProductsServices,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) #addProductsServices,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .addProduct,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .addService {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .addProduct,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .addService,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host:not(:has(.mk-inv-form-odoo)) .addService {
 	border-radius: 10px !important;
 	font-weight: 600;
 }
 
 @media (max-width: 1200px) {
-	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid {
 		grid-template-columns: 1fr;
 	}
 
-	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail {
 		position: static;
 		order: -1;
 	}
 }
 
 @media (max-width: 768px) {
-	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-create {
 		padding: 0 16px 32px;
 	}
 
-	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-sticky-head {
 		margin: 0 -16px 20px;
 		padding: 14px 16px;
 	}
 
-	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr {
 		grid-template-columns: 1fr;
 	}
 
-	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td {
 		grid-column: 1 !important;
 		grid-row: auto !important;
 	}
 }
 
 /* Terms rich-text: preview replaces textarea visually; layout unchanged */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host textarea.mk-qt-terms-source {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host textarea.mk-qt-terms-source,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host textarea.mk-qt-terms-source {
 	position: absolute !important;
 	width: 1px !important;
 	height: 1px !important;
@@ -755,7 +882,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	resize: none !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview {
 	min-height: 120px !important;
 	resize: vertical;
 	cursor: pointer;
@@ -764,17 +892,21 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 	word-break: break-word;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview__placeholder {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview__placeholder,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview__placeholder {
 	color: var(--mk-qt-muted, #64748b);
 	font-style: italic;
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview .mk-quote-signature-block,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview .mk-quote-signature-block table {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview .mk-quote-signature-block,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview .mk-quote-signature-block table,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview .mk-quote-signature-block table {
 	display: none !important;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview p:empty {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview p:empty,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview p:empty {
 	display: none;
 }
 
@@ -807,21 +939,27 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview strong,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview b {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview strong,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview b,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview b {
 	font-weight: 700;
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview em,
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview i {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview em,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview i,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview i {
 	font-style: italic;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview u {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview u,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-terms-preview u {
 	text-decoration: underline;
 }
 
 /* BA: company read-only strip — same visual language as form fields */
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro {
 	margin-bottom: 16px;
 	padding: 14px 16px;
 	border-radius: 12px;
@@ -829,55 +967,88 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro
 	background: #fafafa;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__title {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__title,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__title {
 	margin: 0 0 10px;
 	font-size: 14px;
 	font-weight: 600;
 	color: var(--mk-qt-ink, #1f2937);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__hint {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__hint,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__hint {
 	font-weight: 400;
 	color: var(--mk-qt-muted, #64748b);
 	font-size: 12px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__grid {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__grid,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 8px 16px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__label {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__label,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__label {
 	display: block;
 	font-size: 12px;
 	color: var(--mk-qt-muted, #64748b);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__value {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__value,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__value {
 	display: block;
 	font-size: 14px;
 	color: var(--mk-qt-ink, #1f2937);
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-wrap {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-wrap,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-wrap {
 	margin-bottom: 10px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-label {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-label,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-label {
 	display: block;
 	font-size: 12px;
 	color: var(--mk-qt-muted, #64748b);
 	margin-bottom: 4px;
 }
 
-body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-select {
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-select,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-terms-template-select {
 	width: 100%;
 	max-width: 420px;
 }
 
 @media (max-width: 768px) {
-	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__grid {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__grid,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-company-ro__grid {
 		grid-template-columns: 1fr;
 	}
+}
+
+/* SalesOrder recurring invoice block (shared shell) */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-so-recurring-block:not(.mk-so-recurring-on) .mk-so-recurring-dependent {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-so-recurring-block.mk-so-recurring-on .mk-so-recurring-dependent {
+	display: block !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-so-recurring-block .mk-so-recurring-toggle {
+	display: block !important;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-so-recurring-block .mk-so-recurring-hint {
+	margin: 0 0 8px;
+	padding: 10px 14px;
+	font-size: 13px;
+	line-height: 1.45;
+	color: var(--mk-qt-muted);
+	background: rgba(64, 98, 126, 0.06);
+	border-radius: 10px;
+	border: 1px dashed var(--mk-qt-border);
 }

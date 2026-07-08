@@ -43,7 +43,7 @@
 			<div class="mk-qt-form-host" id="mkQtFormHost">
 				{include file="partials/QuoteMkInventoryForm.tpl"|vtemplate_path:$MODULE}
 			</div>
-			<script type="text/javascript">
+			<script type="text/javascript">{literal}
 			(function () {
 				var host = document.getElementById('mkQtFormHost');
 				if (!host) {
@@ -111,9 +111,8 @@
 				if (addrBlock) {
 					addrBlock.classList.add('mk-qt-address-simplified');
 				}
-				document.documentElement.classList.add('mk-quote-create-enhanced');
 			})();
-			</script>
+			{/literal}</script>
 		</div>
 
 		<aside class="mk-qt-rail" id="mkQtQuoteRail" aria-label="Quote summary">

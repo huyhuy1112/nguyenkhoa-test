@@ -9,7 +9,6 @@
 ********************************************************************************/
 -->*}
 
-{strip}
 	{assign var=LINEITEM_FIELDS value=$RECORD_STRUCTURE['LBL_ITEM_DETAILS']}
 	{assign var=COL_SPAN1 value=1}
 	{assign var=COL_SPAN2 value=2}
@@ -156,7 +155,40 @@
 				</div>
 			</div>
 			<div class="lineitemTableContainer">
+				{assign var=MK_MODERN_LINE_ITEMS value=!empty($MK_MODERN_QUOTE_CREATE) || !empty($MK_MODERN_SALES_ORDER_CREATE)}
 				<table class="table table-bordered" id="lineItemTab">
+					{if !empty($MK_MODERN_QUOTE_CREATE) || !empty($MK_MODERN_SALES_ORDER_CREATE)}
+					<colgroup class="mk-inv-colgroup">
+						<col style="width:52px" />
+						<col style="width:24%" />
+						<col style="width:92px" />
+						<col style="width:132px" />
+						<col style="width:104px" />
+						<col style="width:148px" />
+						<col style="width:156px" />
+					</colgroup>
+					<tr class="mk-inv-header-row">
+						<td class="mk-inv-col-drag"></td>
+						<td class="mk-inv-col-product">
+							<span class="mk-inv-th-label"><span class="mk-inv-required" aria-hidden="true">*</span>Tên mục</span>
+						</td>
+						<td class="mk-inv-col-qty">
+							<span class="mk-inv-th-label">Số lượng</span>
+						</td>
+						<td class="mk-inv-col-unit-head mk-inv-col-unit">
+							<span class="mk-inv-th-label">Đơn vị tính</span>
+						</td>
+						<td class="mk-inv-col-tax-head mk-inv-col-tax">
+							<span class="mk-inv-th-label">Thuế</span>
+						</td>
+						<td class="mk-inv-col-price">
+							<span class="mk-inv-th-label">Bảng giá</span>
+						</td>
+						<td class="mk-inv-col-amount">
+							<span class="mk-inv-th-label">Tổng giá trị</span>
+						</td>
+					</tr>
+					{else}
 					<tr>
 						<td><strong>{vtranslate('LBL_TOOLS',$MODULE)}</strong></td>
 						{if isset($IMAGE_EDITABLE)}
@@ -190,6 +222,7 @@
 						{/if}
 						<td><strong class="pull-right">{vtranslate('LBL_NET_PRICE',$MODULE)}</strong></td>
 					</tr>
+					{/if}
 					<tr id="row0" class="hide lineItemCloneCopy" data-row-num="0">
 						{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=0 data=[] IGNORE_UI_REGISTRATION=true}
 					</tr>

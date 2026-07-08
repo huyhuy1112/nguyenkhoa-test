@@ -105,16 +105,16 @@ class Settings_MenuEditor_Module_Model extends Settings_Vtiger_Module_Model {
 	}
 
 	/**
-	 * BA order for SALES sidebar: Leads → Opp → Quote → SO → Service → Contacts → Organizations.
+	 * BA order for SALES sidebar: Leads → Opp → Contacts → Quote → SO → Service → Tuibao.
 	 */
 	public static function sortSalesAppModules(array $salesModules) {
 		$order = array(
 			'Leads',
 			'Potentials',
+			'Contacts',
 			'Quotes',
 			'SalesOrder',
 			'ServiceContracts',
-			'Contacts',
 			'Accounts',
 			'ProductsServices',
 		);

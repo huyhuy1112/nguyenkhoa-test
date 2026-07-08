@@ -4,6 +4,10 @@
 (function ($) {
 	'use strict';
 
+	if (typeof document !== 'undefined' && document.documentElement) {
+		document.documentElement.classList.add('mk-inv-odoo-active');
+	}
+
 	var REF_SEL = 'Vtiger.Reference.Selection';
 	var POST_REF = 'Vtiger.PostReference.Selection';
 
@@ -18,11 +22,25 @@
 		return item.label;
 	});
 
+	var MODERN_LINE_HEADER_COLUMNS = [
+		{ className: 'mk-inv-col-drag', label: '' },
+		{ className: 'mk-inv-col-product', label: 'Tên mục', required: true },
+		{ className: 'mk-inv-col-qty', label: 'Số lượng' },
+		{ className: 'mk-inv-col-unit-head mk-inv-col-unit', label: 'Đơn vị tính' },
+		{ className: 'mk-inv-col-tax-head mk-inv-col-tax', label: 'Thuế' },
+		{ className: 'mk-inv-col-price', label: 'Bảng giá' },
+		{ className: 'mk-inv-col-amount', label: 'Tổng giá trị' }
+	];
+
+	var MODERN_LINE_COLGROUP_WIDTHS = ['52px', '24%', '92px', '132px', '104px', '148px', '156px'];
+
 	var UNIT_OPTIONS = [
-		{ value: 'Đơn vị', label: 'Đơn vị' },
-		{ value: 'Dozen', label: 'Dozens' },
-		{ value: 'Box', label: 'Box' },
-		{ value: 'Each', label: 'Each' }
+		{ value: 'Cái', label: 'Cái (Each)' },
+		{ value: 'Hộp', label: 'Hộp (Box)' },
+		{ value: 'Tá', label: 'Tá (Dozen)' },
+		{ value: 'Thùng', label: 'Thùng' },
+		{ value: 'Kg', label: 'Kg' },
+		{ value: 'Mét', label: 'Mét' }
 	];
 
 	var ADDRESS_DETAIL_FIELDS = [
@@ -37,6 +55,30 @@
 		'ship_code',
 		'ship_country'
 	];
+
+	function getLineItemsTableBody($table) {
+		if (!$table || !$table.length) {
+			return $();
+		}
+		var $tbody = $table.children('tbody');
+		return $tbody.length ? $tbody.first() : $table;
+	}
+
+	function getLineItemHeaderRow($table) {
+		return getLineItemsTableBody($table).children('tr').first();
+	}
+
+	function getLineItemTemplateRow($table) {
+		return $table.find('#row0.lineItemCloneCopy, tr.lineItemCloneCopy').first();
+	}
+
+	function getLineItemSampleRow($table) {
+		var $row = $table.find('tr.lineItemRow').not('.hide, .lineItemCloneCopy').first();
+		if (!$row.length) {
+			$row = getLineItemTemplateRow($table);
+		}
+		return $row;
+	}
 
 	function decodeText(value) {
 		if (value === null || value === undefined) {
@@ -471,8 +513,10 @@
 	function sumLinePreTax($form) {
 		var sum = 0;
 		$form.find('tr.lineItemRow').each(function () {
-			var raw = readAmountRaw($(this).find('.productTotal'));
-			sum += raw;
+			var $r = $(this);
+			var qty = parseMoney($r.find('.qty').val());
+			var price = parseMoney($r.find('.listPrice').val());
+			sum += qty * price;
 		});
 		return sum;
 	}
@@ -496,27 +540,145 @@
 	}
 
 	var productCatalogPromise = null;
+	var productCatalogCache = null;
 
-	function loadProductCatalog() {
-		if (productCatalogPromise) {
+	if (typeof window !== 'undefined' && window.MK_PRODUCT_CATALOG && window.MK_PRODUCT_CATALOG.length) {
+		productCatalogCache = window.MK_PRODUCT_CATALOG;
+	} else if (typeof window !== 'undefined' && window.MK_WH_PRODUCT_CATALOG && window.MK_WH_PRODUCT_CATALOG.length) {
+		productCatalogCache = window.MK_WH_PRODUCT_CATALOG;
+	}
+
+	function loadProductCatalog(forceReload) {
+		if (!forceReload && productCatalogCache) {
+			return $.Deferred().resolve(productCatalogCache).promise();
+		}
+		if (!forceReload && productCatalogPromise) {
 			return productCatalogPromise;
 		}
 		productCatalogPromise = $.Deferred();
+		if (typeof window !== 'undefined' && window.MK_PRODUCT_CATALOG && window.MK_PRODUCT_CATALOG.length) {
+			productCatalogCache = window.MK_PRODUCT_CATALOG;
+			productCatalogPromise.resolve(productCatalogCache);
+			return productCatalogPromise.promise();
+		}
 		if (typeof window !== 'undefined' && window.MK_WH_PRODUCT_CATALOG && window.MK_WH_PRODUCT_CATALOG.length) {
-			productCatalogPromise.resolve(window.MK_WH_PRODUCT_CATALOG);
+			productCatalogCache = window.MK_WH_PRODUCT_CATALOG;
+			productCatalogPromise.resolve(productCatalogCache);
 			return productCatalogPromise.promise();
 		}
 		if (typeof app === 'undefined' || !app.request) {
+			productCatalogCache = [];
 			productCatalogPromise.resolve([]);
 			return productCatalogPromise.promise();
 		}
 		app.request
-			.post({ data: { module: 'Warehouse', action: 'WhMgmtApi', mode: 'product_catalog' } })
+			.post({ data: { module: 'Inventory', action: 'ProductCatalog' } })
 			.then(function (err, res) {
 				var list = !err && res && res.products ? res.products : [];
-				productCatalogPromise.resolve(list);
+				if (list.length) {
+					productCatalogCache = list;
+					productCatalogPromise.resolve(list);
+					return;
+				}
+				app.request
+					.post({ data: { module: 'Warehouse', action: 'WhMgmtApi', mode: 'product_catalog' } })
+					.then(function (err2, res2) {
+						var fallback = !err2 && res2 && res2.products ? res2.products : [];
+						productCatalogCache = fallback;
+						productCatalogPromise.resolve(fallback);
+					});
 			});
+		setTimeout(function () {
+			if (productCatalogPromise && productCatalogPromise.state() === 'pending') {
+				productCatalogCache = productCatalogCache || [];
+				productCatalogPromise.resolve(productCatalogCache);
+			}
+		}, 8000);
 		return productCatalogPromise.promise();
+	}
+
+	function fillProductSelect($sel, products) {
+		buildProductSelectOptions($sel, products || []);
+		$sel.prop('disabled', false);
+		$sel.data('mkCatalogReady', true);
+		$sel.removeData('mkLoading');
+	}
+
+	function getInventoryEditInstance($form) {
+		if (typeof Inventory_Edit_Js === 'undefined') {
+			return null;
+		}
+		try {
+			var moduleName = $form.find('[name="module"]').val();
+			return Inventory_Edit_Js.getInstanceByModuleName(moduleName);
+		} catch (ignore) {
+			return null;
+		}
+	}
+
+	function applyProductSelection($row, $form, productId) {
+		var $nameInput = $row.find('input.productName').first();
+		var $hiddenId = $row.find('input.selectedModuleId').first();
+		var $listPrice = $row.find('input.listPrice').first();
+		var $entityType = $row.find('input[name^="lineItemType"], input.lineItemType').first();
+		var $opt = $row.find('.mk-inv-product-select option:selected');
+
+		if (!productId) {
+			$hiddenId.val('');
+			$nameInput.val('').removeAttr('disabled');
+			if ($listPrice.length) {
+				$listPrice.val(0);
+			}
+			triggerLineRecalc($row, $form);
+			return;
+		}
+
+		var moduleName = $form.find('[name="module"]').val() || 'Quotes';
+		var currencyId = $form.find('#currency_id').val() || '';
+		var fallbackName = decodeText($opt.attr('data-name') || $opt.text());
+		var fallbackPrice = parseMoney($opt.attr('data-price') || 0);
+
+		if ($entityType.length) {
+			$entityType.val('ProductsServices');
+		}
+
+		if (typeof app === 'undefined' || !app.request) {
+			$hiddenId.val(productId);
+			$nameInput.val(fallbackName).attr('disabled', 'disabled');
+			if ($listPrice.length && fallbackPrice > 0) {
+				$listPrice.val(fallbackPrice);
+			}
+			triggerLineRecalc($row, $form);
+			return;
+		}
+
+		var url =
+			'index.php?module=Inventory&action=GetTaxes&record=' +
+			encodeURIComponent(productId) +
+			'&currency_id=' +
+			encodeURIComponent(currencyId) +
+			'&sourceModule=' +
+			encodeURIComponent(moduleName);
+
+		app.request.get({ url: url }).then(function (err, data) {
+			var inst = getInventoryEditInstance($form);
+			if (!err && data && data[0] && inst && inst.mapResultsToFields) {
+				$row.find('input.lineItemType, input[name^="lineItemType"]').val('ProductsServices');
+				inst.mapResultsToFields($row, data[0]);
+				syncRowTaxPill($row, $form);
+				syncRowAmounts($row, $form);
+				triggerLineRecalc($row, $form);
+				syncRowStockHint($row, $form);
+				return;
+			}
+			$hiddenId.val(productId);
+			$nameInput.val(fallbackName).attr('disabled', 'disabled');
+			if ($listPrice.length) {
+				$listPrice.val(fallbackPrice > 0 ? fallbackPrice : $listPrice.val());
+			}
+			triggerLineRecalc($row, $form);
+			syncRowStockHint($row, $form);
+		});
 	}
 
 	function triggerLineRecalc($row, $form) {
@@ -530,117 +692,158 @@
 			} catch (e) { /* ignore */ }
 		}
 		setTimeout(function () {
-			syncRowAmounts($row);
+			syncRowAmounts($row, $form);
 			syncTotalsDisplay($form);
 		}, 80);
 	}
 
-	function applySelect2ToProductDropdown($sel) {
-		if (!$sel.length) {
-			return;
-		}
-		// NOTE:
-		// Vtiger may clone line item rows with jQuery and copy $.data().
-		// If we rely on a custom "already applied" flag, the 2nd+ row can skip select2 init
-		// and lose the search/filter box. Use select2's own state instead.
-		try {
-			if ($sel.data('select2')) {
-				return;
-			}
-		} catch (ignore) { /* continue */ }
-		try {
-			if ($.fn.select2) {
-				$sel.select2({
-					placeholder: '— Chọn sản phẩm —',
-					allowClear: true,
-					width: '100%',
-					minimumInputLength: 0,
-					// Always show search box (product lists can be long)
-					minimumResultsForSearch: 0,
-					formatNoMatches: function () { return 'Không tìm thấy sản phẩm'; },
-					formatSearching: function () { return 'Đang tìm...'; },
-					dropCssClass: 'mk-inv-s2-drop'
-				});
-				$sel.data('select2').container.addClass('mk-inv-product-select-s2');
-			}
-		} catch (e) { /* select2 not available, plain select is fine */ }
+	function isTemplateLineItemRow($row) {
+		return (
+			!$row ||
+			!$row.length ||
+			$row.hasClass('hide') ||
+			$row.hasClass('lineItemCloneCopy') ||
+			$row.is('#row0')
+		);
 	}
 
-	function cleanupLegacyProductCell($row, $nameInput, $productTd) {
+	function isProductDropdownHealthy($sel) {
+		return !!(
+			$sel &&
+			$sel.length &&
+			$sel.hasClass('mk-inv-product-native') &&
+			$.contains(document.documentElement, $sel[0]) &&
+			$sel.data('mkCatalogReady')
+		);
+	}
+
+	function destroyProductDropdownInRow($row) {
+		var $productTd = $row.find('input.productName').closest('td');
+		if (!$productTd.length) {
+			return;
+		}
+		$productTd.find('.mk-inv-product-select').remove();
+		$productTd.find('.itemNameDiv .select2-container').remove();
+	}
+
+	function neutralizeLegacyProductInput($row) {
+		var $nameInput = $row.find('input.productName').first();
+		if (!$nameInput.length) {
+			return;
+		}
 		if ($nameInput.data('ui-autocomplete')) {
 			try {
 				$nameInput.autocomplete('destroy');
-			} catch (e) { /* ignore */ }
+			} catch (ignore) { /* ignore */ }
 		}
+		$nameInput.removeClass('autoComplete').off('.autocomplete');
+	}
+
+	function cleanupLegacyProductCell($row, $nameInput, $productTd) {
+		neutralizeLegacyProductInput($row);
 		$nameInput.removeClass('autoComplete').addClass('mk-inv-hide-legacy').attr({ type: 'hidden', tabindex: '-1' });
-		// IMPORTANT:
-		// Do NOT hide `.itemNameDiv .col-lg-10` wrapper.
-		// In Quotes/SalesOrder, vtiger may re-render cells and momentarily move/replace the injected
-		// select2 container; hiding this wrapper can make the dropdown "flash then disappear"
-		// especially from the 2nd line item onward.
 		$productTd.find('.lineItemCommentBox').closest('div').addClass('mk-inv-hide-legacy');
-		// Keep our new product dropdown Select2 visible
-		$productTd
-			.find('.itemNameDiv > .select2-container')
-			.not('.mk-inv-product-select-s2')
-			.addClass('mk-inv-hide-legacy');
+		$productTd.find('.itemNameDiv .col-lg-10 > .input-group').addClass('mk-inv-hide-legacy');
+		$productTd.find('.itemNameDiv .col-lg-2').addClass('mk-inv-hide-legacy');
+		$productTd.find('.itemNameDiv > .select2-container').addClass('mk-inv-hide-legacy');
+	}
+
+	function buildProductSelectOptions($sel, products) {
+		$sel.empty().append('<option value="">— Chọn hàng hoá —</option>');
+		products.forEach(function (p) {
+			var id = String(p.id || '');
+			var displayName = decodeText(p.name || id);
+			var label = displayName;
+			if (p.sku) {
+				label += ' (' + decodeText(p.sku) + ')';
+			}
+			$sel.append(
+				$('<option></option>')
+					.attr('value', id)
+					.attr('data-name', displayName)
+					.attr('data-price', p.price || 0)
+					.attr('data-sku', p.sku || '')
+					.text(label)
+			);
+		});
 	}
 
 	function injectProductDropdown($row, $form) {
-		var $productTd = $row.find('input.productName').closest('td');
-		if (!$productTd.length || $productTd.find('.mk-inv-product-select').length) {
+		if (isTemplateLineItemRow($row)) {
 			return;
+		}
+		var $productTd = $row.find('input.productName').closest('td');
+		if (!$productTd.length) {
+			return;
+		}
+		var $existing = $productTd.find('.mk-inv-product-select').first();
+		if ($existing.length && isProductDropdownHealthy($existing)) {
+			return;
+		}
+		if ($existing.length && $existing.data('mkLoading')) {
+			return;
+		}
+		if ($existing.length) {
+			destroyProductDropdownInRow($row);
 		}
 		var $nameInput = $row.find('input.productName');
 		var $hiddenId = $row.find('input.selectedModuleId');
-		var $listPrice = $row.find('input.listPrice');
-		var $entityType = $row.find('input[name^="entityType"]');
 
-		var $sel = $('<select class="mk-inv-product-select inputElement" title="Sản phẩm" disabled="disabled"></select>');
-		$sel.append('<option value="">— Đang tải sản phẩm… —</option>');
+		var $sel = $(
+			'<select class="mk-inv-product-select mk-inv-product-native inputElement" title="Hàng hoá"></select>'
+		);
+		$sel.prop('disabled', true);
+		$sel.data('mkLoading', true);
+		$sel.append('<option value="">— Đang tải hàng hoá… —</option>');
 
-		loadProductCatalog().then(function (products) {
-			$sel.prop('disabled', false);
-			$sel.empty().append('<option value="">— Chọn sản phẩm —</option>');
-			products.forEach(function (p) {
-				var id = String(p.id || '');
-				var displayName = decodeText(p.name || id);
-				$sel.append(
-					$('<option></option>')
-						.attr('value', id)
-						.attr('data-name', displayName)
-						.attr('data-price', p.price || 0)
-						.attr('data-sku', p.sku || '')
-						.text(displayName)
-				);
-			});
+		if (productCatalogCache && productCatalogCache.length) {
+			fillProductSelect($sel, productCatalogCache);
 			var currentId = ($hiddenId.val() || '').trim();
 			if (currentId) {
+				if (!$sel.find('option[value="' + currentId.replace(/"/g, '') + '"]').length) {
+					var currentName = decodeText($nameInput.val() || currentId);
+					$sel.append(
+						$('<option></option>')
+							.attr('value', currentId)
+							.attr('data-name', currentName)
+							.text(currentName)
+					);
+				}
 				$sel.val(currentId);
 			}
-			applySelect2ToProductDropdown($sel);
-		});
+		} else {
+			loadProductCatalog().then(function (products) {
+				if (!$sel.closest('tr').length) {
+					return;
+				}
+				fillProductSelect($sel, products || []);
+				var currentId = ($hiddenId.val() || '').trim();
+				if (currentId) {
+					if (!$sel.find('option[value="' + currentId.replace(/"/g, '') + '"]').length) {
+						var currentName = decodeText($nameInput.val() || currentId);
+						$sel.append(
+							$('<option></option>')
+								.attr('value', currentId)
+								.attr('data-name', currentName)
+								.text(currentName)
+						);
+					}
+					$sel.val(currentId);
+				}
+			});
+		}
 
 		$sel.on('change.mkInvProduct', function () {
-			var $opt = $(this).find('option:selected');
-			var id = $(this).val();
-			var name = decodeText($opt.attr('data-name') || $opt.text());
-			var price = parseMoney($opt.attr('data-price') || 0);
-			$hiddenId.val(id || '');
-			$nameInput.val(name);
-			if ($entityType.length) {
-				$entityType.val('ProductsServices');
-			}
-			if ($listPrice.length && price > 0) {
-				$listPrice.val(price);
-			}
-			triggerLineRecalc($row, $form);
-			syncRowStockHint($row, $form);
+			applyProductSelection($row, $form, $(this).val());
 		});
 
 		cleanupLegacyProductCell($row, $nameInput, $productTd);
 		$row.find('.lineItemPopup').addClass('mk-inv-hide-legacy');
-		$productTd.find('.itemNameDiv').prepend($sel);
+		var $host = $productTd.find('.itemNameDiv .col-lg-10').first();
+		if (!$host.length) {
+			$host = $productTd.find('.itemNameDiv').first();
+		}
+		$host.prepend($sel);
 	}
 
 	function readAmountRaw($el, $hiddenFallback) {
@@ -732,7 +935,7 @@
 		if (!$sel.length) {
 			return;
 		}
-		var pct = 0;
+		var pct = parseFloat($row.data('mkTaxPct')) || 0;
 		$row.find('.taxPercentage').each(function () {
 			var v = parseFloat($(this).val());
 			if (!isNaN(v) && v > 0) {
@@ -750,8 +953,26 @@
 	}
 
 	function injectTaxDropdown($row, $form) {
-		var $taxTd = $row.find('.mk-inv-col-tax');
-		if (!$taxTd.length || $taxTd.find('.mk-inv-tax-select').length) {
+		$row.find('> td.mk-inv-col-tax').not(':last-child').remove();
+
+		var $taxTd = $row.find('> td.mk-inv-col-net-slot').first();
+		if (!$taxTd.length) {
+			$taxTd = $row.find('> td').has('.netPrice').first();
+		}
+		if (!$taxTd.length) {
+			$taxTd = $row.find('> td:last-child');
+		}
+		if (!$taxTd.length) {
+			return;
+		}
+		$taxTd
+			.addClass('mk-inv-col-tax')
+			.removeClass('mk-inv-col-net-hide mk-inv-hide-legacy mk-inv-col-net-slot');
+		$taxTd
+			.find('.netPrice, span.netPrice, .individualTax, .taxDivContainer')
+			.addClass('mk-inv-hide-legacy');
+
+		if ($taxTd.find('.mk-inv-tax-select').length) {
 			return;
 		}
 		$taxTd.find('.mk-inv-tax-pill').remove();
@@ -761,7 +982,7 @@
 			$sel.append($('<option></option>').attr('value', opt.value).text(opt.label));
 		});
 
-		var currentPct = 0;
+		var currentPct = parseFloat($row.data('mkTaxPct')) || 0;
 		$row.find('.taxPercentage').each(function () {
 			var v = parseFloat($(this).val());
 			if (!isNaN(v) && v > 0) {
@@ -778,6 +999,7 @@
 			$sel.data('mkUserChanged', true);
 			var val = $(this).val();
 			var pct = val === 'exempt' ? 0 : parseFloat(val) || 0;
+			$row.data('mkTaxPct', pct);
 			$row.find('.taxPercentage').each(function () {
 				$(this).val(pct);
 			});
@@ -785,7 +1007,11 @@
 			if ($groupTax.length) {
 				$groupTax.val(pct);
 			}
-			triggerLineRecalc($row, $form);
+			// Avoid triggering Inventory core tax recalcs (they can overwrite our selection back to 0).
+			setTimeout(function () {
+				syncRowAmounts($row, $form);
+				syncTotalsDisplay($form);
+			}, 20);
 			setTimeout(function () {
 				$form.data('mkInvSyncingTotals', false);
 				var fn = $form.data('mkScheduleRealtimeSync');
@@ -796,20 +1022,93 @@
 		$taxTd.empty().append($sel);
 	}
 
-	function syncRowAmounts($row) {
+	function getRowTaxPercent($row, $form) {
+		var pct = 0;
+		var $sel = $row.find('.mk-inv-tax-select');
+		if ($sel.length) {
+			var val = $sel.val();
+			pct = val === 'exempt' ? 0 : parseFloat(val) || 0;
+		}
+		if (!pct) {
+			$row.find('.taxPercentage').each(function () {
+				var v = parseFloat($(this).val());
+				if (!isNaN(v) && v > 0) {
+					pct = v;
+					return false;
+				}
+			});
+		}
+		if (!pct && $form && $form.length) {
+			pct = getPrimaryTaxPercent($form);
+		}
+		return pct;
+	}
+
+	function calcLineRowTotal($row, $form) {
+		var qty = parseMoney($row.find('.qty').val());
+		var price = parseMoney($row.find('.listPrice').val());
+		var preTax = qty * price;
+		var taxPct = getRowTaxPercent($row, $form);
+		var taxAmt = Math.round((preTax * taxPct) / 100);
+		return preTax + taxAmt;
+	}
+
+	function reorderTaxBeforePriceColumns($row) {
+		if (!$row || !$row.length) {
+			return;
+		}
+		var $priceTd = $row.find('> td.mk-inv-col-price').first();
+		var $taxTd = $row.find('> td.mk-inv-col-tax').last();
+		if (!$priceTd.length || !$taxTd.length || $priceTd[0] === $taxTd[0]) {
+			return;
+		}
+		if ($taxTd.index() > $priceTd.index()) {
+			$taxTd.insertBefore($priceTd);
+		}
+	}
+
+	function reorderTaxBeforeAmountColumns($row) {
+		reorderTaxBeforePriceColumns($row);
+		if (!$row || !$row.length) {
+			return;
+		}
+		var $amountTd = $row.find('> td.mk-inv-col-amount').first();
+		var $taxTd = $row.find('> td.mk-inv-col-tax').last();
+		if (!$amountTd.length || !$taxTd.length || $amountTd[0] === $taxTd[0]) {
+			return;
+		}
+		if ($amountTd.index() < $taxTd.index()) {
+			$taxTd.insertBefore($amountTd);
+		}
+	}
+
+	function syncRowAmounts($row, $form) {
 		var $total = $row.find('.productTotal');
 		if (!$total.length) {
 			return;
 		}
-		var raw = readAmountRaw($total);
-		writeAmountDisplay($total, raw);
+		if (!$form || !$form.length) {
+			$form = $row.closest('form');
+		}
+		var lineTotal = calcLineRowTotal($row, $form);
+		writeAmountDisplay($total, lineTotal);
+		$total.data('mkRawAmount', lineTotal);
 		var $amountTd = $total.closest('td');
 		$amountTd.addClass('mk-inv-col-amount');
-		$amountTd.children().not('.productTotal, .mk-inv-line-del, .mk-inv-amount-wrap').addClass('mk-inv-hide-legacy');
+		$amountTd.children().not('.productTotal, .mk-inv-money-wrap, .mk-inv-line-del, .mk-inv-amount-wrap').addClass('mk-inv-hide-legacy');
+	}
+
+	function syncAllRowAmounts($form) {
+		if (!$form || !$form.length) {
+			return;
+		}
+		$form.find('tr.lineItemRow').each(function () {
+			syncRowAmounts($(this), $form);
+		});
 	}
 
 	function headerLabelForCell($sampleRow, index) {
-		var $cell = $sampleRow.find('> td').eq(index);
+		var $cell = $sampleRow.children('td').eq(index);
 		if (!$cell.length) {
 			return '';
 		}
@@ -820,70 +1119,221 @@
 			return '__hide__';
 		}
 		if ($cell.find('input.productName').length) {
-			return 'Sản phẩm';
+			return 'Tên mục';
 		}
 		if ($cell.hasClass('mk-inv-col-unit')) {
-			return 'ĐVT';
+			return 'Đơn vị tính';
 		}
 		if ($cell.find('input.qty, .qty').length) {
 			return 'Số lượng';
 		}
 		if ($cell.find('input.listPrice').length) {
-			return 'Đơn giá';
+			return 'Bảng giá';
+		}
+		if ($cell.find('.productTotal').length) {
+			return 'Tổng giá trị';
 		}
 		if ($cell.hasClass('mk-inv-col-tax') || $cell.find('.mk-inv-tax-select').length) {
 			return 'Thuế';
 		}
-		if ($cell.find('.productTotal').length) {
-			return 'Số tiền';
-		}
 		return '';
 	}
 
-	function ensureOdooHeaderColumns($table) {
-		var $header = $table.find('> tr').first();
-		var $sample = $table.find('tr.lineItemRow').first();
+	function syncTaxHeaderLabel($table) {
+		var $header = getLineItemHeaderRow($table);
+		var $sample = getLineItemSampleRow($table);
 		if (!$header.length || !$sample.length) {
 			return;
 		}
 
-		if (!$header.data('mkOdooColsInjected')) {
-			var $qtyCell = $sample.find('input.qty, .qty').first().closest('td');
-			if ($qtyCell.length && !$header.find('.mk-inv-col-unit-head').length) {
-				var qtyIdx = $qtyCell.index();
-				$header.find('> td').eq(qtyIdx).after('<td class="mk-inv-col-unit-head"><strong>ĐVT</strong></td>');
-			}
-			var $priceCell = $sample.find('input.listPrice').first().closest('td');
-			if ($priceCell.length && !$header.find('.mk-inv-col-tax-head').length) {
-				var priceIdx = $priceCell.index();
-				$header.find('> td').eq(priceIdx).after('<td class="mk-inv-col-tax-head"><strong>Thuế</strong></td>');
-			}
-			$header.data('mkOdooColsInjected', true);
-		}
-
-		$header.find('> td').each(function (idx) {
+		$header.children('td').each(function () {
 			var $td = $(this);
-			var label = headerLabelForCell($sample, idx);
-			if (label === '__hide__') {
-				$td.addClass('mk-inv-col-net-hide').empty();
-				return;
-			}
-			if (idx === 0) {
-				$td.empty().addClass('mk-inv-col-drag');
-				return;
-			}
-			if (label) {
-				$td.html('<strong>' + label + '</strong>');
+			var text = $.trim($td.text());
+			if (/giảm|chiết khấu|net price/i.test(text)) {
+				$td.html('<span class="mk-inv-th-label">Thuế</span>')
+					.removeClass('mk-inv-col-net-hide mk-inv-hide-legacy')
+					.addClass('mk-inv-col-tax-head mk-inv-col-tax');
 			}
 		});
+
+		var lastIdx = -1;
+		$sample.children('td').each(function (idx) {
+			if ($(this).hasClass('mk-inv-col-tax') || $(this).find('.mk-inv-tax-select').length) {
+				lastIdx = idx;
+			}
+		});
+		if (lastIdx >= 0) {
+			$header
+				.children('td')
+				.eq(lastIdx)
+				.removeClass('mk-inv-col-net-hide mk-inv-hide-legacy mk-inv-col-amount')
+				.addClass('mk-inv-col-tax-head mk-inv-col-tax')
+				.html('<span class="mk-inv-th-label">Thuế</span>');
+		}
+	}
+
+	function applyHeaderCellClasses($header, $sample) {
+		$header.children('td').each(function (idx) {
+			var $h = $(this);
+			var $b = $sample.children('td').eq(idx);
+			$h.removeClass(
+				'mk-inv-col-product mk-inv-col-qty mk-inv-col-unit mk-inv-col-unit-head mk-inv-col-price mk-inv-col-amount mk-inv-col-tax mk-inv-col-tax-head mk-inv-col-drag'
+			);
+			if (idx === 0) {
+				$h.addClass('mk-inv-col-drag');
+				return;
+			}
+			if (!$b.length) {
+				return;
+			}
+			if ($b.hasClass('mk-inv-col-unit') || $b.find('.mk-inv-unit-select').length) {
+				$h.addClass('mk-inv-col-unit-head mk-inv-col-unit');
+			}
+			if ($b.hasClass('mk-inv-col-product') || $b.find('input.productName, select.mk-inv-product-native').length) {
+				$h.addClass('mk-inv-col-product');
+			}
+			if ($b.hasClass('mk-inv-col-qty') || $b.find('input.qty, .qty').length) {
+				$h.addClass('mk-inv-col-qty');
+			}
+			if ($b.hasClass('mk-inv-col-price') || $b.find('input.listPrice').length) {
+				$h.addClass('mk-inv-col-price');
+			}
+			if ($b.hasClass('mk-inv-col-amount') || $b.find('.productTotal').length) {
+				$h.addClass('mk-inv-col-amount');
+			}
+			if ($b.hasClass('mk-inv-col-tax') || $b.find('.mk-inv-tax-select').length) {
+				$h.addClass('mk-inv-col-tax-head mk-inv-col-tax');
+			}
+		});
+	}
+
+	function applyModernLineItemColgroup($table) {
+		if (!$table || !$table.length) {
+			return;
+		}
+		$table.find('colgroup.mk-inv-colgroup').remove();
+		var $colgroup = $('<colgroup class="mk-inv-colgroup"></colgroup>');
+		MODERN_LINE_COLGROUP_WIDTHS.forEach(function (w) {
+			$colgroup.append($('<col>').attr('style', 'width:' + w));
+		});
+		$table.prepend($colgroup);
+	}
+
+	function buildModernLineItemHeader($header) {
+		if (!$header || !$header.length) {
+			return false;
+		}
+		$header.empty().addClass('mk-inv-header-row');
+		MODERN_LINE_HEADER_COLUMNS.forEach(function (spec) {
+			var $td = $('<td></td>').addClass(spec.className);
+			if (spec.label) {
+				$td.html(renderHeaderLabelHtml(spec.label));
+			}
+			$header.append($td);
+		});
 		$header.data('mkOdooHeader', true);
+		return true;
+	}
+
+	function applyLineItemColgroup($table) {
+		if ($table.hasClass('mk-inv-luxury-lines') || $table.hasClass('mk-inv-odoo-lines-table')) {
+			applyModernLineItemColgroup($table);
+			return;
+		}
+		var $sample = getLineItemSampleRow($table);
+		if (!$sample.length) {
+			applyModernLineItemColgroup($table);
+			return;
+		}
+		var widths = [];
+		$sample.children('td').each(function (idx) {
+			if (idx === 0) {
+				widths.push('52px');
+			} else if ($(this).hasClass('mk-inv-col-product') || $(this).find('select.mk-inv-product-native').length) {
+				widths.push('24%');
+			} else if ($(this).hasClass('mk-inv-col-qty')) {
+				widths.push('92px');
+			} else if ($(this).hasClass('mk-inv-col-unit')) {
+				widths.push('132px');
+			} else if ($(this).hasClass('mk-inv-col-price')) {
+				widths.push('148px');
+			} else if ($(this).hasClass('mk-inv-col-amount')) {
+				widths.push('156px');
+			} else if ($(this).hasClass('mk-inv-col-tax')) {
+				widths.push('104px');
+			} else {
+				widths.push('auto');
+			}
+		});
+		$table.find('colgroup.mk-inv-colgroup').remove();
+		var $colgroup = $('<colgroup class="mk-inv-colgroup"></colgroup>');
+		widths.forEach(function (w) {
+			$colgroup.append($('<col>').attr('style', 'width:' + w));
+		});
+		$table.prepend($colgroup);
+	}
+
+	function renderHeaderLabelHtml(label) {
+		if (!label || label === '__hide__') {
+			return '';
+		}
+		var required = label === 'Tên mục' ? '<span class="mk-inv-required" aria-hidden="true">*</span>' : '';
+		return '<span class="mk-inv-th-label">' + required + label + '</span>';
+	}
+
+	function rebuildLineItemHeaderRow($table, $form) {
+		var $header = getLineItemHeaderRow($table);
+		if (!$header.length) {
+			return false;
+		}
+		buildModernLineItemHeader($header);
+		applyLineItemColgroup($table);
+		return true;
+	}
+
+	function ensureOdooHeaderColumns($table) {
+		rebuildLineItemHeaderRow($table);
+	}
+
+	function ensureModernLineItemsTable($form) {
+		var $table = $form.find('#lineItemTab');
+		if (!$table.length) {
+			return;
+		}
+		$table.addClass('mk-inv-odoo-lines-table mk-inv-luxury-lines');
+		ensureOdooHeaderColumns($table);
+		applyModernLineItemColgroup($table);
+	}
+
+	function wrapMoneyInput($input) {
+		if (!$input || !$input.length || $input.closest('.mk-inv-money-wrap').length) {
+			return;
+		}
+		$input.addClass('mk-inv-money-input');
+		$input.wrap('<div class="mk-inv-money-wrap"></div>');
+		if (!$input.siblings('.mk-inv-money-suffix').length) {
+			$input.after('<span class="mk-inv-money-suffix" aria-hidden="true">đ</span>');
+		}
+	}
+
+	function enhanceMoneyCells($row) {
+		wrapMoneyInput($row.find('input.listPrice').first());
+		var $total = $row.find('.productTotal').first();
+		if ($total.length && !$total.closest('.mk-inv-money-wrap').length) {
+			var $wrap = $('<div class="mk-inv-money-wrap mk-inv-money-wrap--total"></div>');
+			$total.wrap($wrap);
+			if (!$total.siblings('.mk-inv-money-suffix').length) {
+				$total.after('<span class="mk-inv-money-suffix" aria-hidden="true">đ</span>');
+			}
+		}
 	}
 
 	function injectUnitSelect($row, $unitTd) {
 		if ($unitTd.find('.mk-inv-unit-select').length) {
 			return;
 		}
-		var $sel = $('<select class="mk-inv-unit-select inputElement" title="ĐVT"></select>');
+		var $sel = $('<select class="mk-inv-unit-select inputElement" title="Đơn vị tính"></select>');
+		$sel.append($('<option></option>').attr('value', '').text('— ĐVT —'));
 		UNIT_OPTIONS.forEach(function (opt) {
 			$sel.append($('<option></option>').attr('value', opt.value).text(opt.label));
 		});
@@ -960,26 +1410,186 @@
 			});
 	}
 
-	function ensureOdooRowColumns($row, $form) {
-		if ($row.hasClass('mk-inv-section-row')) {
+	function injectPriceColumn($row) {
+		var $existing = $row.find('input.listPrice').first();
+		if ($existing.length) {
+			return $existing.closest('td');
+		}
+		var $amountTd = $row.find('.productTotal').closest('td');
+		if (!$amountTd.length) {
+			return $();
+		}
+		var rowNo = $row.find('.rowNumber').val() || $row.attr('data-row-num') || '';
+		var $priceTd = $('<td class="mk-inv-col-price"></td>');
+		var $input = $(
+			'<input type="text" class="listPrice smallInputBox inputElement" data-rule-required="true" data-rule-positive="true" value="0" />'
+		);
+		if (rowNo !== '') {
+			$input.attr('id', 'listPrice' + rowNo).attr('name', 'listPrice' + rowNo);
+		}
+		$priceTd.append($input);
+		$priceTd.insertBefore($amountTd);
+		return $priceTd;
+	}
+
+	function ensureModernPriceColumn($row) {
+		var $priceTd = injectPriceColumn($row);
+		if ($priceTd.length) {
+			$priceTd.removeClass('mk-inv-hide-legacy mk-inv-col-net-hide');
+		}
+		return $priceTd;
+	}
+
+	function getRowNumberValue($row) {
+		return String($row.find('.rowNumber').val() || $row.attr('data-row-num') || '').trim();
+	}
+
+	function paintPriceCell($row) {
+		var $priceTd = $row.find('input.listPrice').closest('td').first();
+		if (!$priceTd.length) {
+			$priceTd = ensureModernPriceColumn($row);
+		}
+		if (!$priceTd.length) {
+			return $();
+		}
+		$priceTd
+			.addClass('mk-inv-col-price')
+			.removeClass('mk-inv-hide-legacy mk-inv-col-net-hide')
+			.css({ display: '', visibility: '', opacity: '' });
+
+		var $input = $priceTd.find('input.listPrice').first();
+		if (!$input.length) {
+			var rowNo = getRowNumberValue($row);
+			$input = $(
+				'<input type="text" class="listPrice smallInputBox inputElement mk-inv-money-input" data-rule-required="true" data-rule-positive="true" value="0" />'
+			);
+			if (rowNo) {
+				$input.attr('id', 'listPrice' + rowNo).attr('name', 'listPrice' + rowNo);
+			}
+			$priceTd.empty().append($input);
+		}
+		$input.removeClass('mk-inv-hide-legacy').css({ display: '', visibility: '', opacity: '' });
+		$priceTd.find('.individualTaxContainer, .taxDivContainer, .individualDiscount').addClass('mk-inv-hide-legacy');
+		return $priceTd;
+	}
+
+	function paintAmountCell($row, $form) {
+		var $amountTd = $row.find('.productTotal').closest('td').first();
+		if (!$amountTd.length) {
+			var rowNo = getRowNumberValue($row);
+			$amountTd = $('<td class="mk-inv-col-amount"></td>');
+			var $total = $('<div class="productTotal">0</div>');
+			if (rowNo) {
+				$total.attr('id', 'productTotal' + rowNo);
+			}
+			$amountTd.append($total);
+			var $taxTd = $row.find('.mk-inv-tax-select').closest('td').first();
+			if ($taxTd.length) {
+				$amountTd.insertAfter($taxTd);
+			} else {
+				$row.append($amountTd);
+			}
+		}
+		$amountTd
+			.addClass('mk-inv-col-amount')
+			.removeClass('mk-inv-hide-legacy mk-inv-col-net-hide')
+			.css({ display: '', visibility: '', opacity: '' });
+		$amountTd
+			.children()
+			.not('.productTotal, .mk-inv-money-wrap, .mk-inv-line-del, .mk-inv-amount-wrap')
+			.addClass('mk-inv-hide-legacy');
+
+		var $total = $amountTd.find('.productTotal').first();
+		if (!$total.length) {
+			var rowNo = getRowNumberValue($row);
+			$total = $('<div class="productTotal">0</div>');
+			if (rowNo) {
+				$total.attr('id', 'productTotal' + rowNo);
+			}
+			$amountTd.prepend($total);
+		}
+		$total.removeClass('mk-inv-hide-legacy').css({ display: '', visibility: '', opacity: '' });
+		syncRowAmounts($row, $form);
+		return $amountTd;
+	}
+
+	function normalizeModernLineItemRow($row, $form) {
+		if (isTemplateLineItemRow($row)) {
 			return;
 		}
-		var $cells = $row.find('> td');
-		if (!$row.find('.mk-inv-col-unit').length && $cells.length >= 3) {
-			var $unitTd = $('<td class="mk-inv-col-unit"></td>');
-			$cells.eq(2).after($unitTd);
+
+		var $drag = $row.children('td').first();
+		var $product = $row.find('input.productName, select.mk-inv-product-native').closest('td').first();
+		var $qty = $row.find('input.qty, .qty').closest('td').first();
+		var $unit = $row.find('> td.mk-inv-col-unit').first();
+		if (!$unit.length) {
+			$unit = $row.find('.mk-inv-unit-select').closest('td').first();
+		}
+		var $tax = $row.find('.mk-inv-tax-select').closest('td').first();
+		var $price = paintPriceCell($row);
+		var $amount = paintAmountCell($row, $form);
+
+		var ordered = [];
+		[$drag, $product, $qty, $unit, $tax, $price, $amount].forEach(function ($td) {
+			if (!$td || !$td.length) {
+				return;
+			}
+			var el = $td[0];
+			if (ordered.indexOf(el) === -1) {
+				ordered.push(el);
+			}
+		});
+
+		ordered.forEach(function (el) {
+			$row.append(el);
+		});
+
+		$row.children('td').each(function () {
+			var $td = $(this);
+			if (ordered.indexOf(this) === -1) {
+				$td.addClass('mk-inv-col-net-hide mk-inv-hide-legacy');
+			}
+		});
+
+		tagLineItemColumnClasses($row);
+		enhanceMoneyCells($row);
+		syncRowAmounts($row, $form);
+	}
+
+	function tagLineItemColumnClasses($row) {
+		$row.find('input.productName').closest('td').addClass('mk-inv-col-product');
+		$row.find('input.qty, .qty').closest('td').addClass('mk-inv-col-qty');
+		$row.find('input.listPrice').closest('td').addClass('mk-inv-col-price');
+		$row.find('.productTotal').closest('td').addClass('mk-inv-col-amount');
+	}
+
+	function ensureOdooRowColumns($row, $form) {
+		if (isTemplateLineItemRow($row) || $row.hasClass('mk-inv-section-row')) {
+			return;
+		}
+
+		$row.removeData('mkTaxAmountReordered');
+
+		// Remove legacy extra tax column between total and net.
+		$row.find('> td.mk-inv-col-tax').not(':last-child').remove();
+
+		var $qtyTd = $row.find('input.qty, .qty').first().closest('td');
+		var $unitTd = $row.find('> td.mk-inv-col-unit').first();
+		if ($qtyTd.length && !$unitTd.length) {
+			$qtyTd.after('<td class="mk-inv-col-unit"></td>');
+			$unitTd = $row.find('> td.mk-inv-col-unit').first();
+		}
+		if ($unitTd.length) {
+			$unitTd.removeClass('mk-inv-hide-legacy');
 			injectUnitSelect($row, $unitTd);
-		} else if ($row.find('.mk-inv-col-unit').length && !$row.find('.mk-inv-unit-select').length) {
-			injectUnitSelect($row, $row.find('.mk-inv-col-unit').first());
 		}
-		var $priceTd = $row.find('input.listPrice').closest('td');
-		if ($priceTd.length && !$row.find('.mk-inv-col-tax').length) {
-			$priceTd.after('<td class="mk-inv-col-tax"></td>');
-		}
+
+		ensureModernPriceColumn($row);
+
 		injectTaxDropdown($row, $form);
 		syncRowTaxPill($row, $form);
 		syncProductDesc($row);
-		syncRowAmounts($row);
+		normalizeModernLineItemRow($row, $form);
 		injectProductDropdown($row, $form);
 
 		var $tools = $row.find('> td:first-child');
@@ -988,20 +1598,39 @@
 
 		var $amountTd = $row.find('.productTotal').closest('td');
 		var $del = $tools.find('.deleteRow').first();
-		if ($del.length && $amountTd.length && !$amountTd.find('.mk-inv-line-del').length) {
-			$amountTd.append(
-				$('<span class="mk-inv-line-del" title="Xóa dòng"></span>').append($del.detach())
-			);
+		$amountTd.find('.mk-inv-line-del').remove();
+		if ($del.length) {
+			$del.removeClass('mk-inv-hide-legacy');
+			if (!$del.closest('.mk-inv-del-btn').length) {
+				$del.wrap('<span class="mk-inv-del-btn" title="Xóa dòng"></span>');
+			}
 		}
-		$tools.find('.deleteRow').addClass('mk-inv-hide-legacy');
 
 		$row.find('input.productName').attr('placeholder', 'Chọn sản phẩm từ dropdown');
 		$row.find('.priceBookPopup').addClass('mk-inv-hide-legacy');
-		$row.find('.individualDiscount').closest('div').addClass('mk-inv-hide-legacy');
-		$row.find('.totalAfterDiscount').addClass('mk-inv-hide-legacy');
 		$row.find('.itemNameDiv .lineItemPopup').addClass('mk-inv-hide-legacy');
-		$row.find('> td:last-child').addClass('mk-inv-col-net-hide');
 		syncRowStockHint($row, $form);
+	}
+
+	function refreshLineItemRow($row, $form) {
+		if (!$row || !$row.length || isTemplateLineItemRow($row)) {
+			return;
+		}
+		neutralizeLegacyProductInput($row);
+		ensureOdooRowColumns($row, $form);
+	}
+
+	function markInventoryUiReady() {
+		if (typeof document === 'undefined' || !document.documentElement) {
+			return;
+		}
+		var root = document.documentElement;
+		if (root.classList.contains('mk-inv-ui-ready')) {
+			return;
+		}
+		root.classList.add('mk-inv-ui-ready');
+		root.classList.add('mk-quote-create-enhanced');
+		root.classList.add('mk-so-create-styled');
 	}
 
 	function restyleLineItemRows($form) {
@@ -1009,11 +1638,156 @@
 		if (!$table.length) {
 			return;
 		}
-		$table.addClass('mk-inv-odoo-lines-table');
+		$table.addClass('mk-inv-odoo-lines-table mk-inv-luxury-lines');
 		$table.find('tr.lineItemRow').each(function () {
-			ensureOdooRowColumns($(this), $form);
+			refreshLineItemRow($(this), $form);
 		});
 		ensureOdooHeaderColumns($table);
+		applyLineItemColgroup($table);
+		initTotalsOdoo($form);
+		syncTotalsDisplay($form);
+		syncAllRowAmounts($form);
+		markInventoryUiReady();
+	}
+
+	function scheduleLineItemsRestyle($form, delays) {
+		if (!$form || !$form.length) {
+			return;
+		}
+		if (!delays) {
+			delays = [0, 120, 320, 650, 1100, 1800, 2800];
+		}
+		delays.forEach(function (ms) {
+			setTimeout(function () {
+				if ($form.closest('body').length && $form.find('#lineItemTab').length) {
+					restyleLineItemRows($form);
+				}
+			}, ms);
+		});
+	}
+
+	function bindInventoryRestyleHooks($form) {
+		if (typeof app === 'undefined' || !app.event) {
+			return;
+		}
+
+		registerPostEditViewRestyleHook();
+
+		if ($form.data('mkInvRestyleHooks')) {
+			return;
+		}
+		$form.data('mkInvRestyleHooks', true);
+
+		app.event.on('post.lineItem.New', function (event, newLineItem) {
+			var $targetForm = $form;
+			if (!$targetForm.find('#lineItemTab').length) {
+				$targetForm = detectInventoryEditForm();
+			}
+			if ($targetForm.length && $targetForm.find('#lineItemTab').length) {
+				handleNewLineItemRow($targetForm, newLineItem);
+			}
+		});
+	}
+
+	function registerPostEditViewRestyleHook() {
+		if (window.__mkInvRestyleHooksBound || typeof app === 'undefined' || !app.event) {
+			return;
+		}
+		window.__mkInvRestyleHooksBound = true;
+		app.event.on('post.editView.load', function (event, container) {
+			var $targetForm = $(container).closest('form');
+			if (!$targetForm.length) {
+				$targetForm = $(container).find('form#EditView, form[name="EditView"]').first();
+			}
+			if (!$targetForm.length && $('#mkQtFormHost').length) {
+				$targetForm = $('#mkQtFormHost').find('form#EditView, form[name="EditView"]').first();
+			}
+			if (!$targetForm.length && $('#mkSoFormHost').length) {
+				$targetForm = $('#mkSoFormHost').find('form#EditView, form[name="EditView"]').first();
+			}
+			if ($targetForm.length && $targetForm.find('#lineItemTab').length) {
+				scheduleLineItemsRestyle($targetForm, [0, 150, 450, 900]);
+			}
+		});
+	}
+
+	function detectInventoryEditForm() {
+		var module = $('body').attr('data-module');
+		if (module !== 'Quotes' && module !== 'SalesOrder') {
+			return $();
+		}
+		var $form = $('#mkQtFormHost, #mkSoFormHost')
+			.find('form#EditView, form[name="EditView"]')
+			.first();
+		if (!$form.length) {
+			$form = $('form#EditView.recordEditView, form[name="edit"].recordEditView').first();
+		}
+		if ($form.length && $form.find('#lineItemTab').length) {
+			return $form;
+		}
+		return $();
+	}
+
+	function autoBootstrapInventoryOdooUi() {
+		var $form = detectInventoryEditForm();
+		if (!$form.length) {
+			return;
+		}
+		if (!$form.hasClass('mk-inv-form-odoo')) {
+			init($form, { hideDescriptionBlock: true });
+		} else {
+			scheduleLineItemsRestyle($form);
+		}
+	}
+
+	$(function () {
+		registerPostEditViewRestyleHook();
+		autoBootstrapInventoryOdooUi();
+		scheduleLineItemsRestyle(detectInventoryEditForm(), [80, 250, 600, 1200, 2000, 3200]);
+		setTimeout(markInventoryUiReady, 2000);
+		if (!window.__mkInvAddLineDocBound) {
+			window.__mkInvAddLineDocBound = true;
+			$(document).on('click.mkInvAddLine', '#addProductsServices', function () {
+				var $f = detectInventoryEditForm();
+				if ($f.length) {
+					setTimeout(function () {
+						handleNewLineItemRow($f, null);
+					}, 0);
+				}
+			});
+		}
+	});
+
+	function handleNewLineItemRow($form, newLineItem) {
+		var resolveRow = function () {
+			if (newLineItem) {
+				var $explicit = $(newLineItem);
+				if ($explicit.length) {
+					return $explicit;
+				}
+			}
+			return $form.find('#lineItemTab tr.lineItemRow').not('.hide, .lineItemCloneCopy').last();
+		};
+		var run = function () {
+			var $row = resolveRow();
+			if ($row.length) {
+				refreshLineItemRow($row, $form);
+			}
+			restyleLineItemRows($form);
+			syncTotalsDisplay($form);
+			var fn = $form.data('mkBindDirectPriceEvents');
+			if (fn) {
+				fn();
+			}
+			var scheduleFn = $form.data('mkScheduleRealtimeSync');
+			if (scheduleFn) {
+				scheduleFn();
+			}
+		};
+		run();
+		[50, 120, 280, 550, 900, 1500].forEach(function (ms) {
+			setTimeout(run, ms);
+		});
 	}
 
 	function setFormattedText($el, formatted) {
@@ -1085,17 +1859,26 @@
 		$form.data('mkInvTotalsWatch', true);
 
 		var $result = $form.find('#lineItemResult');
+		var _mutTimer = null;
 		['#preTaxTotal', '#tax_final', '#grandTotal'].forEach(function (sel) {
 			var el = $result.find(sel)[0];
 			if (!el || typeof MutationObserver === 'undefined') {
 				return;
 			}
 			var obs = new MutationObserver(function () {
-				syncTotalsDisplay($form);
-				$form.find('tr.lineItemRow').each(function () {
-					syncRowAmounts($(this));
-					syncRowTaxPill($(this), $form);
-				});
+				if (_mutTimer) {
+					clearTimeout(_mutTimer);
+				}
+				_mutTimer = setTimeout(function () {
+					_mutTimer = null;
+					syncTotalsDisplay($form);
+					$form.find('tr.lineItemRow').each(function () {
+						var $r = $(this);
+						syncRowAmounts($r, $form);
+						// Keep dropdown stable even if legacy DOM updates happen.
+						syncRowTaxPill($r, $form);
+					});
+				}, 120);
 			});
 			obs.observe(el, { childList: true, characterData: true, subtree: true });
 		});
@@ -1106,32 +1889,36 @@
 			_realtimeTimer = setTimeout(function () {
 				_realtimeTimer = null;
 				$form.data('mkInvSyncingTotals', true);
-				var lineSum = 0;
+				var preTaxSum = 0;
+				var taxSum = 0;
 				$form.find('tr.lineItemRow').each(function () {
 					var $r = $(this);
 					var qty = parseMoney($r.find('.qty').val());
 					var price = parseMoney($r.find('.listPrice').val());
-					var total = qty * price;
+					var preTax = qty * price;
+					var taxPct = getRowTaxPercent($r, $form);
+					var lineTax = Math.round((preTax * taxPct) / 100);
+					var lineTotal = preTax + lineTax;
+					preTaxSum += preTax;
+					taxSum += lineTax;
 					var $pt = $r.find('.productTotal');
 					if ($pt.length) {
-						$pt.data('mkRawAmount', total);
-						writeAmountDisplay($pt, total);
+						$pt.data('mkRawAmount', lineTotal);
+						writeAmountDisplay($pt, lineTotal);
 					}
-					lineSum += total;
 				});
-				var taxPct = getPrimaryTaxPercent($form);
-				var taxAmt = Math.round((lineSum * taxPct) / 100);
-				var grand = lineSum + taxAmt;
+				var grand = preTaxSum + taxSum;
 				var $result = $form.find('#lineItemResult');
 				if ($result.length) {
-					writeAmountDisplay($result.find('#netTotal, .netTotal'), lineSum);
-					$result.find('#subtotal, input[name="subtotal"]').val(lineSum);
-					writeAmountDisplay($result.find('#preTaxTotal'), lineSum);
-					$result.find('#pre_tax_total').val(lineSum);
-					writeAmountDisplay($result.find('#tax_final'), taxAmt);
-					$form.find('.groupTaxTotal').first().val(taxAmt);
+					writeAmountDisplay($result.find('#netTotal, .netTotal'), preTaxSum);
+					$result.find('#subtotal, input[name="subtotal"]').val(preTaxSum);
+					writeAmountDisplay($result.find('#preTaxTotal'), preTaxSum);
+					$result.find('#pre_tax_total').val(preTaxSum);
+					writeAmountDisplay($result.find('#tax_final'), taxSum);
+					$form.find('.groupTaxTotal').first().val(taxSum);
 					writeAmountDisplay($result.find('#grandTotal, .grandTotal'), grand);
 					$form.find('#total, input[name="total"]').val(grand);
+					var taxPct = getPrimaryTaxPercent($form);
 					var $taxRow = $result.find('#group_tax_row');
 					if ($taxRow.length) {
 						$taxRow.removeClass('mk-inv-totals-hide hide').addClass('mk-inv-totals-row mk-inv-totals-row--tax');
@@ -1143,13 +1930,17 @@
 		}
 
 		$form.on('focusout.mkInvTot change.mkInvTot', '.qty, .listPrice, .taxPercentage, .groupTaxPercentage, .mk-inv-tax-select', function () {
+			var $row = $(this).closest('tr.lineItemRow');
+			if ($row.length) {
+				syncRowAmounts($row, $form);
+			}
 			setTimeout(function () {
 				restyleLineItemRows($form);
 				syncTotalsDisplay($form);
 			}, 60);
 		});
 
-		$form.on('input.mkInvTotRealtime keyup.mkInvTotRealtime change.mkInvTotRealtime', '.qty, .listPrice', function () {
+		$form.on('input.mkInvTotRealtime keyup.mkInvTotRealtime change.mkInvTotRealtime', '.qty, .listPrice, .mk-inv-tax-select', function () {
 			scheduleRealtimeSync();
 		});
 
@@ -1259,7 +2050,10 @@
 		}
 		$addBtn.data('mkInvOdooAdd', true);
 		$addBtn.removeClass('btn btn-default').addClass('mk-inv-add-line-btn');
-		$addBtn.empty().append('<span class="mk-inv-add-line-btn__plus" aria-hidden="true">+</span> Thêm sản phẩm');
+		$addBtn.empty().append('<span class="mk-inv-add-line-btn__plus" aria-hidden="true">+</span> Thêm hàng hoá');
+		$addBtn.off('click.mkInvOdooRestyle').on('click.mkInvOdooRestyle', function () {
+			handleNewLineItemRow($form, null);
+		});
 	}
 
 	function rebuildPaymentMethodSelect($select, currentVal) {
@@ -1367,47 +2161,38 @@
 
 	function initLineItemsOdoo($form) {
 		var $lineBlock = $form.find('#lineItemTab').closest('.fieldBlockContainer');
-		if (!$lineBlock.length || $lineBlock.data('mkInvLineOdoo')) {
+		if (!$lineBlock.length) {
+			scheduleLineItemsRestyle($form);
 			return;
 		}
-		$lineBlock.data('mkInvLineOdoo', true).attr('data-block', 'LBL_ITEM_DETAILS').addClass('mk-inv-lineitems-odoo');
 
-		$lineBlock.find('> .row').first().addClass('mk-inv-hide-legacy');
-		$lineBlock.find('> .row > .col-sm-3 h4.fieldBlockHeader').addClass('mk-inv-hide-legacy');
-		$lineBlock.find('> br').addClass('mk-inv-hide-legacy');
+		if (!$lineBlock.data('mkInvLineOdoo')) {
+			$lineBlock.data('mkInvLineOdoo', true).attr('data-block', 'LBL_ITEM_DETAILS').addClass('mk-inv-lineitems-odoo');
 
-		initOdooTabs($lineBlock);
-		initPaymentTerms($form);
-		initAddLineButton($form);
-		initLineActionLinks();
-		polishLineItemsShell($form);
-		restyleLineItemRows($form);
-		initTotalsOdoo($form);
+			$lineBlock.find('> .row').first().addClass('mk-inv-hide-legacy');
+			$lineBlock.find('#region_id, #currency_id, #taxtype').closest('.row').addClass('mk-inv-hide-legacy');
+			$lineBlock.find('.well').closest('.row').addClass('mk-inv-hide-legacy');
+			$lineBlock.find('> .row > .col-sm-3 h4.fieldBlockHeader').addClass('mk-inv-hide-legacy');
+			$lineBlock.find('> br').addClass('mk-inv-hide-legacy');
 
-		$form.off('post.lineItem.New.mkInvOdoo').on('post.lineItem.New.mkInvOdoo', function () {
-			setTimeout(function () {
-				restyleLineItemRows($form);
-				syncTotalsDisplay($form);
-				var fn = $form.data('mkBindDirectPriceEvents');
-				if (fn) { fn(); }
-			}, 50);
-		});
+			initOdooTabs($lineBlock);
+			initPaymentTerms($form);
+			initAddLineButton($form);
+			initLineActionLinks();
+			polishLineItemsShell($form);
+			ensureModernLineItemsTable($form);
+			bindInventoryRestyleHooks($form);
 
-		if (typeof app !== 'undefined' && app.event) {
-			app.event.on('post.lineItem.New', function () {
-				setTimeout(function () {
-					restyleLineItemRows($form);
-					syncTotalsDisplay($form);
-					var fn = $form.data('mkBindDirectPriceEvents');
-					if (fn) { fn(); }
-				}, 80);
+			loadProductCatalog().always(function () {
+				scheduleLineItemsRestyle($form, [0, 200, 500]);
+			});
+
+			$form.off('post.lineItem.New.mkInvOdoo').on('post.lineItem.New.mkInvOdoo', function (e, newLineItem) {
+				handleNewLineItemRow($form, newLineItem);
 			});
 		}
 
-		setTimeout(function () {
-			restyleLineItemRows($form);
-			syncTotalsDisplay($form);
-		}, 350);
+		scheduleLineItemsRestyle($form);
 	}
 
 	function hideDescriptionBlock($form) {
@@ -1423,6 +2208,11 @@
 		if (typeof document !== 'undefined' && document.documentElement) {
 			document.documentElement.classList.add('mk-inv-odoo-active');
 		}
+		var $body = $('body');
+		var moduleName = $body.attr('data-module');
+		if ((moduleName === 'Quotes' || moduleName === 'SalesOrder') && $body.attr('data-app') !== 'SALES') {
+			$body.attr('data-app', 'SALES');
+		}
 		initAddressOdoo($form);
 		initLineItemsOdoo($form);
 		if (options.hideDescriptionBlock !== false) {
@@ -1432,9 +2222,11 @@
 
 	window.MkInventoryOdooEdit = {
 		init: init,
+		autoBootstrap: autoBootstrapInventoryOdooUi,
 		fillAddressFromPotential: fillAddressFromPotential,
 		fillAddressFromAccount: fillAddressFromAccount,
 		restyleLineItemRows: restyleLineItemRows,
+		scheduleLineItemsRestyle: scheduleLineItemsRestyle,
 		syncTotalsDisplay: syncTotalsDisplay,
 		refreshTotals: function ($form) {
 			initTotalsOdoo($form);

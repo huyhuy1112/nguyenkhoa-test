@@ -40,6 +40,9 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
             newLineItem.find('.ignore-ui-registration').removeClass('ignore-ui-registration');
             vtUtils.applyFieldElementsView(newLineItem);
             app.event.trigger('post.lineItem.New', newLineItem);
+            if (window.MkInventoryOdooEdit && window.MkInventoryOdooEdit.scheduleLineItemsRestyle) {
+                window.MkInventoryOdooEdit.scheduleLineItemsRestyle(self.getForm(), [0, 120, 400]);
+            }
             self.checkLineItemRow();
             self.registerLineItemAutoComplete(newLineItem);
 
