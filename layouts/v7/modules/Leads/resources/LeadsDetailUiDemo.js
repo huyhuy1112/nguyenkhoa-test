@@ -1896,6 +1896,14 @@
 			.then(function (err, res) {
 				app.helper.hideProgress();
 				if (err || !res || res.success === false) {
+					try {
+						// Debug in browser console
+						console.error('[MK] Lead convert failed', {
+							err: err,
+							res: res,
+							debug: res && res.debug ? res.debug : null,
+						});
+					} catch (e) {}
 					window.alert((err && err.message) || (res && res.error) || 'Convert thất bại');
 					return;
 				}

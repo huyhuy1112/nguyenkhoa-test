@@ -77,25 +77,24 @@ class Leads_ConvertService {
 			self::resetConvertedFlagIfNeeded($leadId);
 		}
 
+		// BA workflow: Lead is input data only.
+		// Convert Lead -> Opportunity MUST create Contact (BA confirmed).
 		$modules = isset($options['modules']) && is_array($options['modules'])
 			? $options['modules']
 			: array('Contacts', 'Potentials');
 		if (!in_array('Potentials', $modules, true)) {
 			$modules[] = 'Potentials';
 		}
-		$createAccount = !empty($options['create_account']);
 		if (!in_array('Contacts', $modules, true)) {
 			$modules[] = 'Contacts';
 		}
-		if (!in_array('Accounts', $modules, true)) {
-			$modules[] = 'Accounts';
-		}
-		$createAccount = true;
+		$createAccount = !empty($options['create_account']);
 		$orderCategory = self::resolveOrderCategory(isset($options['order_category']) ? $options['order_category'] : '');
 
 		$assignId = isset($options['assigned_user_id']) ? (int)$options['assigned_user_id'] : (int)$current_user->id;
+		// Transfer related records to Contact by default (Contact is always created).
 		$entityValues = array(
-			'transferRelatedRecordsTo' => 'Potentials',
+			'transferRelatedRecordsTo' => 'Contacts',
 			'assignedTo' => vtws_getWebserviceEntityId(vtws_getOwnerType($assignId), $assignId),
 			'leadId' => vtws_getWebserviceEntityId(self::MODULE, $leadId),
 			'imageAttachmentId' => '',
@@ -103,8 +102,12 @@ class Leads_ConvertService {
 		);
 
 		$convertLeadFields = $recordModel->getConvertLeadFields();
+		// Create modules explicitly requested (default: Contacts + Potentials; Accounts optional).
 		foreach (array('Accounts', 'Contacts', 'Potentials') as $module) {
 			if (!vtlib_isModuleActive($module) || !in_array($module, $modules, true)) {
+				continue;
+			}
+			if ($module === 'Accounts' && !$createAccount) {
 				continue;
 			}
 			$entityValues['entities'][$module] = array(
@@ -142,6 +145,16 @@ class Leads_ConvertService {
 					}
 				} elseif ($fieldModel->getFieldDataType() === 'date') {
 					$fieldValue = DateTimeField::convertToDBFormat($fieldValue);
+				} elseif ($fieldModel->getFieldDataType() === 'owner' && $fieldValue) {
+					$ids = vtws_getIdComponents($fieldValue);
+					if (php7_count($ids) === 1) {
+						$fieldValue = vtws_getWebserviceEntityId(vtws_getOwnerType($fieldValue), $fieldValue);
+					}
+				} elseif ($fieldModel->getFieldDataType() === 'reference' && $fieldValue) {
+					$ids = vtws_getIdComponents($fieldValue);
+					if (php7_count($ids) === 1) {
+						$fieldValue = vtws_getWebserviceEntityId(getSalesEntityType($fieldValue), $fieldValue);
+					}
 				}
 				$entityValues['entities'][$module][$fieldName] = $fieldValue;
 			}
@@ -150,9 +163,34 @@ class Leads_ConvertService {
 			}
 		}
 
-		$result = vtws_convertlead($entityValues, $current_user);
+		// Ensure Potentials has sane defaults for mandatory fields even if mapping is incomplete.
+		if (!empty($entityValues['entities']['Potentials']) && is_array($entityValues['entities']['Potentials'])) {
+			self::fillPotentialDefaults($entityValues['entities']['Potentials'], $recordModel, $orderCategory, $assignId);
+		}
+
+		try {
+			$result = vtws_convertlead($entityValues, $current_user);
+		} catch (Exception $e) {
+			error_log('[MK_LEAD_CONVERT] vtws_convertlead exception: ' . $e->getMessage());
+			error_log('[MK_LEAD_CONVERT] entities keys: ' . implode(',', array_keys($entityValues['entities'])));
+			throw new Exception($e->getMessage());
+		}
 		if (empty($result) || !is_array($result)) {
-			throw new Exception('Convert lead failed. Please check required Opportunity fields.');
+			$missing = self::validatePotentialMandatory(isset($entityValues['entities']['Potentials']) ? $entityValues['entities']['Potentials'] : array());
+			if (!empty($missing)) {
+				throw new Exception('Thiếu field bắt buộc của Cơ hội: ' . implode(', ', $missing));
+			}
+			throw new Exception('Convert lead failed (empty result). Kiểm tra field bắt buộc Contact/Opportunity.');
+		}
+		if (empty($result['Contacts'])) {
+			throw new Exception('Convert lead failed: Contact không được tạo.');
+		}
+		if (empty($result['Potentials'])) {
+			$missing = self::validatePotentialMandatory(isset($entityValues['entities']['Potentials']) ? $entityValues['entities']['Potentials'] : array());
+			if (!empty($missing)) {
+				throw new Exception('Thiếu field bắt buộc của Cơ hội: ' . implode(', ', $missing));
+			}
+			throw new Exception('Convert lead failed: Opportunity không được tạo.');
 		}
 		$potentialId = null;
 		$contactId = null;
@@ -340,4 +378,126 @@ class Leads_ConvertService {
 			array((int)$crmid, $module, (int)$relcrmid, $relmodule)
 		);
 	}
+
+	protected static function fillPotentialDefaults(array &$potentialEntity, Vtiger_Record_Model $lead, $orderCategory, $assignId) {
+		// Hard defaults for common mandatory fields
+		if (empty($potentialEntity['potentialname'])) {
+			$name = trim((string)self::decodeLeadField(trim($lead->get('firstname') . ' ' . $lead->get('lastname'))));
+			if ($name === '') {
+				$name = 'Lead #' . (int)$lead->getId();
+			}
+			$potentialEntity['potentialname'] = $name;
+		}
+		if (empty($potentialEntity['closingdate'])) {
+			$potentialEntity['closingdate'] = date('Y-m-d', strtotime('+30 days'));
+		}
+		if (empty($potentialEntity['sales_stage'])) {
+			$potentialEntity['sales_stage'] = 'Prospecting';
+		}
+		if (empty($potentialEntity['order_category'])) {
+			$potentialEntity['order_category'] = self::resolveOrderCategory($orderCategory);
+		}
+
+		// Best-effort: if Opportunity requires Organization (related_to) but we don't want to create a new Account,
+		// try to match an existing Account by Lead company name.
+		if (empty($potentialEntity['related_to'])) {
+			$company = trim((string)$lead->get('company'));
+			if ($company !== '' && $company !== '-') {
+				$accountId = self::lookupAccountIdByName($company);
+				if ($accountId > 0) {
+					$potentialEntity['related_to'] = vtws_getWebserviceEntityId('Accounts', $accountId);
+				}
+			}
+		}
+
+		// Fill any other mandatory fields with safe defaults if possible.
+		try {
+			$potentialModule = Vtiger_Module_Model::getInstance('Potentials');
+			if ($potentialModule) {
+				$fields = $potentialModule->getFields();
+				foreach ($fields as $fname => $fmodel) {
+					if (!$fmodel || !$fmodel->isMandatory()) {
+						continue;
+					}
+					if (isset($potentialEntity[$fname]) && $potentialEntity[$fname] !== '' && $potentialEntity[$fname] !== null) {
+						continue;
+					}
+					$type = $fmodel->getFieldDataType();
+					if ($type === 'date') {
+						$potentialEntity[$fname] = date('Y-m-d', strtotime('+30 days'));
+						continue;
+					}
+					if ($type === 'owner') {
+						$potentialEntity[$fname] = (int)$assignId;
+						continue;
+					}
+					if ($type === 'picklist' || $type === 'multipicklist') {
+						$vals = $fmodel->getPicklistValues();
+						if (!empty($vals) && is_array($vals)) {
+							foreach ($vals as $pv) {
+								if ($pv !== '' && $pv !== null) {
+									$potentialEntity[$fname] = $pv;
+									break;
+								}
+							}
+						}
+						continue;
+					}
+					if ($type === 'currency' || $type === 'integer' || $type === 'double') {
+						$potentialEntity[$fname] = 0;
+						continue;
+					}
+					if ($type === 'string' || $type === 'text') {
+						$potentialEntity[$fname] = $potentialEntity['potentialname'];
+						continue;
+					}
+				}
+			}
+		} catch (Exception $e) {
+			// ignore
+		}
+	}
+
+	protected static function lookupAccountIdByName($accountName) {
+		$accountName = trim((string)$accountName);
+		if ($accountName === '') {
+			return 0;
+		}
+		$db = PearDatabase::getInstance();
+		$res = $db->pquery(
+			'SELECT vtiger_account.accountid
+			 FROM vtiger_account
+			 INNER JOIN vtiger_crmentity ON vtiger_crmentity.crmid = vtiger_account.accountid
+			 WHERE vtiger_crmentity.deleted = 0 AND vtiger_account.accountname = ?
+			 LIMIT 1',
+			array($accountName)
+		);
+		if ($res && $db->num_rows($res) > 0) {
+			return (int)$db->query_result($res, 0, 'accountid');
+		}
+		return 0;
+	}
+
+	protected static function validatePotentialMandatory(array $potentialEntity) {
+		$labels = array();
+		try {
+			$potentialModule = Vtiger_Module_Model::getInstance('Potentials');
+			if (!$potentialModule) {
+				return $labels;
+			}
+			$fields = $potentialModule->getFields();
+			foreach ($fields as $fname => $fmodel) {
+				if (!$fmodel || !$fmodel->isMandatory()) {
+					continue;
+				}
+				if (!isset($potentialEntity[$fname]) || $potentialEntity[$fname] === null || $potentialEntity[$fname] === '') {
+					$labels[] = vtranslate($fmodel->get('label'), 'Potentials');
+				}
+			}
+		} catch (Exception $e) {
+			// ignore
+		}
+		return $labels;
+	}
+
 }

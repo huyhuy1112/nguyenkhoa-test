@@ -225,11 +225,28 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						$leadId = $request->get('record');
 					}
 					$createAccount = (bool)$request->get('create_account');
-					$result = Leads_ConvertService::convertLead($leadId, array(
-						'create_account' => $createAccount,
-						'order_category' => $request->get('order_category'),
-					));
-					$response->setResult(array('success' => true) + $result);
+					$orderCategory = $request->get('order_category');
+					try {
+						$result = Leads_ConvertService::convertLead($leadId, array(
+							'create_account' => $createAccount,
+							'order_category' => $orderCategory,
+						));
+						$response->setResult(array('success' => true) + $result);
+					} catch (Exception $convertEx) {
+						// Return debug info for browser console (BA/dev only).
+						$debug = array(
+							'lead_id' => $leadId,
+							'create_account' => $createAccount,
+							'order_category' => $orderCategory,
+							'message' => $convertEx->getMessage(),
+						);
+						error_log('[MK_LEAD_CONVERT_FAIL] ' . json_encode($debug));
+						$response->setResult(array(
+							'success' => false,
+							'error' => $convertEx->getMessage(),
+							'debug' => $debug,
+						));
+					}
 					break;
 
 				default:

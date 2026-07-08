@@ -65,7 +65,53 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			document.body.classList.remove('mk-opportunity-detail-ui-loading');
 			document.body.classList.add('mk-opportunity-detail-ui-ready');
 			this.decodeSummaryKeyFields();
+			this.registerConvertToCustomer();
 		}
+	},
+
+	registerConvertToCustomer : function() {
+		var self = this;
+		var btn = document.getElementById('mkOppConvertToCustomerBtn');
+		if (!btn || btn.getAttribute('data-mk-bound') === '1') {
+			return;
+		}
+		btn.setAttribute('data-mk-bound', '1');
+		btn.addEventListener('click', function (e) {
+			e.preventDefault();
+			if (!window.app || !app.request || !app.request.post) {
+				return;
+			}
+			var recordId = (document.querySelector('input[name="record_id"]') || {}).value;
+			if (!recordId) {
+				recordId = (document.getElementById('recordId') || {}).value;
+			}
+			if (!recordId) {
+				app.helper.showErrorNotification({ message: 'Không tìm thấy Opportunity ID.' });
+				return;
+			}
+			app.helper.showProgress && app.helper.showProgress();
+			app.request
+				.post({
+					data: {
+						module: 'Potentials',
+						action: 'ConvertToCustomer',
+						record: recordId
+					}
+				})
+				.then(function (err, res) {
+					app.helper.hideProgress && app.helper.hideProgress();
+					if (err || !res || res.success === false) {
+						app.helper.showErrorNotification({ message: (res && res.message) ? res.message : 'Không chuyển được sang Khách hàng.' });
+						return;
+					}
+					var contactId = res.contact_id || (res.result && res.result.contact_id);
+					if (!contactId) {
+						app.helper.showErrorNotification({ message: 'Không tìm thấy Contact để chuyển.' });
+						return;
+					}
+					window.location.href = 'index.php?module=Contacts&view=Detail&record=' + encodeURIComponent(contactId) + '&app=SALES';
+				});
+		});
 	},
 
 	ensureSalesAppOnDetail : function() {

@@ -29,6 +29,30 @@
 			</div>
 		</section>
 
+		<section class="mk-contact-detail-card mk-contact-detail-card--purchases mk-contact-detail-grid__salesorders" id="mk-contact-section-purchases" aria-labelledby="mk-contact-purchase-title">
+			<div class="mk-contact-detail-card__head mk-contact-purchase__head">
+				<span class="mk-contact-purchase__cart-ic" aria-hidden="true">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-1.5 9h-12L6 6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="17" cy="20" r="1.5" fill="currentColor"/></svg>
+				</span>
+				<h2 id="mk-contact-purchase-title" class="mk-contact-detail-card__title">Lịch sử mua hàng (0)</h2>
+				<div class="mk-contact-detail-card__actions pull-right">
+					<button type="button" class="btn btn-sm btn-default mk-contact-detail-btn mk-contact-detail-btn--ghost" id="mk-contact-link-order">Liên kết đơn hàng</button>
+				</div>
+			</div>
+			<div class="mk-contact-commerce-tabs mk-contact-purchase__tabs" role="tablist" aria-label="Lịch sử mua hàng">
+				<button type="button" class="mk-contact-commerce-tabs__btn is-active" data-mk-contact-commerce-tab="orders-month" role="tab" aria-selected="true">Đơn hàng trong 1 tháng</button>
+				<button type="button" class="mk-contact-commerce-tabs__btn" data-mk-contact-commerce-tab="products-total" role="tab" aria-selected="false">Tổng sản phẩm mua hàng</button>
+			</div>
+			<div class="mk-contact-purchase__body">
+				<div class="mk-contact-commerce-panel" id="mk-contact-commerce-orders-month" data-mk-contact-commerce-panel="orders-month" role="tabpanel">
+					<p class="mk-contact-purchase__empty">Không có đơn trong 30 ngày gần nhất.</p>
+				</div>
+				<div class="mk-contact-commerce-panel hide" id="mk-contact-commerce-products-total" data-mk-contact-commerce-panel="products-total" role="tabpanel">
+					<p class="mk-contact-purchase__empty">Chưa có sản phẩm mua hàng.</p>
+				</div>
+			</div>
+		</section>
+
 		{if $DOCUMENT_WIDGET_MODEL}
 		<section class="mk-contact-detail-card mk-contact-detail-card--documents mk-contact-detail-grid__documents" aria-labelledby="mk-contact-detail-documents-title">
 			<div class="summaryWidgetContainer mk-contact-detail-widget-host">

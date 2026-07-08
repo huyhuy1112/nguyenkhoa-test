@@ -810,6 +810,141 @@ class Leads_CommerceService {
 		return decode_html($value);
 	}
 
+	/* ---- Contacts (Customer) commerce ---- */
+
+	const CONTACT_MODULE = 'Contacts';
+
+	public static function getPurchasesForContactIds(array $contactIds) {
+		if (empty($contactIds)) {
+			return array();
+		}
+		$contactIds = array_values(array_unique(array_map('intval', $contactIds)));
+		$orderIdsByContact = self::resolveSalesOrderIdsByContact($contactIds);
+		$allOrderIds = array();
+		foreach ($orderIdsByContact as $ids) {
+			foreach ($ids as $id) {
+				$allOrderIds[(int)$id] = true;
+			}
+		}
+		$out = array();
+		foreach ($contactIds as $contactId) {
+			$out[(int)$contactId] = array();
+		}
+		if (empty($allOrderIds)) {
+			return $out;
+		}
+		$orderIdList = array_keys($allOrderIds);
+		$linesByOrder = self::fetchSalesOrderLineItems($orderIdList);
+		$metaByOrder = self::fetchSalesOrderMeta($orderIdList);
+		foreach ($orderIdsByContact as $contactId => $soIds) {
+			$rows = array();
+			foreach ($soIds as $soId) {
+				$soId = (int)$soId;
+				$meta = $metaByOrder[$soId] ?? array();
+				$lines = $linesByOrder[$soId] ?? array();
+				if (empty($lines) && !empty($meta)) {
+					$rows[] = array(
+						'orderId' => $meta['orderId'],
+						'orderName' => $meta['orderName'],
+						'product' => $meta['orderName'],
+						'qty' => 1,
+						'value' => (float)$meta['orderTotal'],
+						'date' => $meta['date'],
+						'source' => 'salesorder',
+						'crmid' => $soId,
+					);
+					continue;
+				}
+				foreach ($lines as $line) {
+					$rows[] = array(
+						'orderId' => $meta['orderId'] ?: (string)$soId,
+						'orderName' => $meta['orderName'] ?: ($meta['orderId'] ?: ('SO #' . $soId)),
+						'product' => $line['product'],
+						'qty' => (int)$line['qty'],
+						'value' => (float)$line['value'],
+						'date' => $meta['date'],
+						'source' => 'salesorder',
+						'crmid' => $soId,
+					);
+				}
+			}
+			$out[(int)$contactId] = $rows;
+		}
+		return $out;
+	}
+
+	public static function linkSalesOrderToContact($contactId, $salesOrderId) {
+		$contactId = (int)$contactId;
+		$salesOrderId = (int)$salesOrderId;
+		if ($contactId <= 0 || $salesOrderId <= 0) {
+			throw new Exception('Invalid contact or sales order id.');
+		}
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			'UPDATE vtiger_salesorder SET contactid = ? WHERE salesorderid = ?',
+			array($contactId, $salesOrderId)
+		);
+		$exists = $adb->pquery(
+			"SELECT 1 FROM vtiger_crmentityrel
+			 WHERE (crmid = ? AND module = ? AND relcrmid = ? AND relmodule = 'SalesOrder')
+			    OR (relcrmid = ? AND relmodule = ? AND crmid = ? AND module = 'SalesOrder')",
+			array($contactId, self::CONTACT_MODULE, $salesOrderId, $contactId, self::CONTACT_MODULE, $salesOrderId)
+		);
+		if (!$exists || $adb->num_rows($exists) < 1) {
+			$adb->pquery(
+				'INSERT INTO vtiger_crmentityrel(crmid, module, relcrmid, relmodule) VALUES(?,?,?,?)',
+				array($contactId, self::CONTACT_MODULE, $salesOrderId, 'SalesOrder')
+			);
+		}
+		return true;
+	}
+
+	protected static function resolveSalesOrderIdsByContact(array $contactIds) {
+		$adb = PearDatabase::getInstance();
+		$out = array();
+		foreach ($contactIds as $contactId) {
+			$out[(int)$contactId] = array();
+		}
+
+		$res = $adb->pquery(
+			'SELECT so.contactid, so.salesorderid
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE so.contactid IN (' . generateQuestionMarks($contactIds) . ')',
+			$contactIds
+		);
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			$contactId = (int)$adb->query_result($res, $i, 'contactid');
+			$soId = (int)$adb->query_result($res, $i, 'salesorderid');
+			if (isset($out[$contactId]) && $soId > 0) {
+				$out[$contactId][$soId] = $soId;
+			}
+		}
+
+		$res = $adb->pquery(
+			"SELECT crmid AS contactid, relcrmid AS salesorderid
+			 FROM vtiger_crmentityrel
+			 WHERE module = ? AND relmodule = 'SalesOrder' AND crmid IN (" . generateQuestionMarks($contactIds) . ")
+			 UNION
+			 SELECT relcrmid AS contactid, crmid AS salesorderid
+			 FROM vtiger_crmentityrel
+			 WHERE relmodule = ? AND module = 'SalesOrder' AND relcrmid IN (" . generateQuestionMarks($contactIds) . ')',
+			array_merge(array(self::CONTACT_MODULE), $contactIds, array(self::CONTACT_MODULE), $contactIds)
+		);
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			$contactId = (int)$adb->query_result($res, $i, 'contactid');
+			$soId = (int)$adb->query_result($res, $i, 'salesorderid');
+			if (isset($out[$contactId]) && $soId > 0) {
+				$out[$contactId][$soId] = $soId;
+			}
+		}
+
+		foreach ($out as $contactId => $ids) {
+			$out[$contactId] = array_values($ids);
+		}
+		return $out;
+	}
+
 	/* ---- Potentials (Opportunity) commerce ---- */
 
 	const POTENTIAL_MODULE = 'Potentials';
