@@ -179,18 +179,51 @@
 					<header class="mk-td-card__head">
 						<span class="mk-td-card__num">03</span>
 						<div>
-							<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">〰</span> Customer Intent</h2>
-							<p class="mk-td-card__desc">Nhóm nhu cầu khách <span class="mk-td-optional">(không bắt buộc)</span></p>
+							<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">〰</span> Nguyên liệu</h2>
 						</div>
 					</header>
 					<div class="mk-td-card__body">
-						<label class="mk-td-label" for="mk-td-intent">Chọn nhóm nhu cầu</label>
+						<label class="mk-td-label" for="mk-td-intent">Chọn nguyên liệu</label>
 						<select id="mk-td-intent" class="mk-td-select" data-tag-group="intent">
 							<option value="">Chọn nhóm nhu cầu</option>
 							<option value="chua_hoc" data-tag="chua_hoc">Nguyên liệu chưa học</option>
 							<option value="da_hoc" data-tag="da_hoc">Nguyên liệu đã học</option>
 							<option value="nguyen_lieu_chuoi" data-tag="nguyen_lieu_chuoi">Nguyên liệu chuỗi</option>
+							<option value="da_tg_free" data-tag="da_tg_free">Đã TG FREE</option>
+							<option value="mien_phi_online" data-tag="mien_phi_online">Miễn phí Online</option>
+							<option value="mien_phi_offline" data-tag="mien_phi_offline">Miễn phí Offline</option>
+							<option value="pcth" data-tag="pcth">PCTH</option>
+							<option value="van_hanh" data-tag="van_hanh">Vận hành</option>
+							<option value="mkt" data-tag="mkt">Marketing</option>
+							<option value="lop_khac" data-tag="lop_khac">Lớp học khác</option>
+							<option value="nhuong_quyen" data-tag="nhuong_quyen">Nhượng quyền</option>
 						</select>
+						<div id="mk-td-intent-tag-foot" class="mk-td-entry-tags" hidden></div>
+					</div>
+				</section>
+
+				<section class="mk-td-card" data-section="franchise-tag">
+					<header class="mk-td-card__head">
+						<span class="mk-td-card__num">04B</span>
+						<div>
+							<h2 class="mk-td-card__title">Nhượng quyền</h2>
+						</div>
+					</header>
+					<div class="mk-td-card__body">
+						<label class="mk-td-label" for="mk-td-franchise">Chọn tag nhượng quyền</label>
+						<select id="mk-td-franchise" class="mk-td-select" data-tag-group="franchise">
+							<option value="">Chọn tag</option>
+							<option value="dang_tu_van" data-tag="dang_tu_van">Đang tư vấn</option>
+							<option value="khong_nghe_may" data-tag="khong_nghe_may">Không nghe máy</option>
+							<option value="thue_bao" data-tag="thue_bao">Thuê Bao</option>
+							<option value="tiem_nang" data-tag="tiem_nang">Tiềm năng</option>
+							<option value="tham_khao" data-tag="tham_khao">Tham Khảo</option>
+							<option value="dung_cham_soc" data-tag="dung_cham_soc">Dừng Chăm Sóc</option>
+							<option value="khong_du_tai_chinh" data-tag="khong_du_tai_chinh">Không đủ tài chính</option>
+							<option value="da_ky_quy" data-tag="da_ky_quy">Đã Ký Quỹ</option>
+							<option value="mien_bac" data-tag="mien_bac">Miền Bắc</option>
+						</select>
+						<div id="mk-td-franchise-tag-foot" class="mk-td-entry-tags" hidden></div>
 					</div>
 				</section>
 
@@ -198,17 +231,38 @@
 					<header class="mk-td-card__head">
 						<span class="mk-td-card__num">04</span>
 						<div>
-							<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">⎇</span> Entry Program</h2>
-							<p class="mk-td-card__desc">Khách vào từ đâu trong hành trình <span class="mk-td-optional">(không bắt buộc)</span></p>
+							<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">⎇</span> Lớp học</h2>
 						</div>
 					</header>
 					<div class="mk-td-card__body">
-						<label class="mk-td-label" for="mk-td-entry">Chọn entry program</label>
+						<label class="mk-td-label" for="mk-td-entry">Chọn lớp học</label>
 						<select id="mk-td-entry" class="mk-td-select" data-tag-group="entry">
-							<option value="">Chọn entry program</option>
+							<option value="">Chọn lớp học</option>
 							<option value="mien_phi_online" data-tag="mien_phi_online">Pha chế miễn phí Online</option>
 							<option value="mien_phi_offline" data-tag="mien_phi_offline">Pha chế miễn phí Offline</option>
 							<option value="pcth" data-tag="pcth">Pha chế tổng hợp (PCTH)</option>
+							<option value="lop_online" data-tag="lop_online">Lớp online</option>
+							<option value="moi_lai" data-tag="moi_lai">Mời lại</option>
+							<option value="da_tg_free" data-tag="da_tg_free">Đã TG FREE</option>
+							<option value="doi_lich" data-tag="doi_lich">Đổi lịch</option>
+							<option value="l1" data-tag="L1">L1</option>
+							<option value="l2" data-tag="L2">L2</option>
+							<option value="khong_hoc" data-tag="khong_hoc">Không học</option>
+							<option value="thue_bao" data-tag="thue_bao">Thuê bao</option>
+							<option value="trung_so" data-tag="trung_so">Trúng số</option>
+							<option value="khong_nghe_may" data-tag="khong_nghe_may">Không nghe máy</option>
+							<option value="ngung_cham_soc" data-tag="ngung_cham_soc">Ngừng chăm sóc</option>
+							<option value="chua_mqbb_chua_pcth" data-tag="chua_MQBB_chua_PCTH">Chưa MQBB + Chưa PCTH</option>
+							<option value="chua_mqbb_da_pcth" data-tag="chua_MQBB_da_PCTH">Chưa MQBB + Đã PCTH</option>
+							<option value="da_mqbb_chua_pcth" data-tag="da_MQBB_chua_PCTH">Đã MQBB + Chưa PCTH</option>
+							<option value="da_mqbb_da_pcth" data-tag="da_MQBB_da_PCTH">Đã MQBB + Đã PCTH</option>
+							<option value="da_mqbb" data-tag="da_MQBB">Đã MQBB</option>
+							<option value="chua_mqbb" data-tag="chua_MQBB">Chưa MQBB</option>
+							<option value="da_pcth" data-tag="da_PCTH">Đã PCTH</option>
+							<option value="chua_pcth" data-tag="chua_PCTH">Chưa PCTH</option>
+							<option value="da_990k" data-tag="da_990k">Đã 990k</option>
+							<option value="chua_990k" data-tag="chua_990k">Chưa 990k</option>
+							<option value="hoan_tien_lop_hoc" data-tag="hoan_tien_lop_hoc">Hoàn tiền lớp học</option>
 						</select>
 						<div id="mk-td-entry-pcth-wrap" class="mk-td-nested-box" hidden>
 							<label class="mk-td-label mk-td-label--nested" for="mk-td-entry-branch">Nhánh lớp PCTH</label>

@@ -9,8 +9,57 @@
   var TAG_POOLS = {
     customerType: ["individual", "company"],
     leadSource: ["facebook", "tiktok", "website", "zalo", "other_source"],
-    intent: ["chua_hoc", "da_hoc", "nguyen_lieu_chuoi"],
-    entry: ["mien_phi_online", "mien_phi_offline", "pcth"],
+    intent: [
+      "chua_hoc",
+      "da_hoc",
+      "nguyen_lieu_chuoi",
+      "da_tg_free",
+      "mien_phi_online",
+      "mien_phi_offline",
+      "pcth",
+      "van_hanh",
+      "mkt",
+      "lop_khac",
+      "nhuong_quyen",
+    ],
+    franchise: [
+      "dang_tu_van",
+      "khong_nghe_may",
+      "thue_bao",
+      "tiem_nang",
+      "tham_khao",
+      "dung_cham_soc",
+      "khong_du_tai_chinh",
+      "da_ky_quy",
+      "mien_bac",
+    ],
+    entry: [
+      "mien_phi_online",
+      "mien_phi_offline",
+      "pcth",
+      "lop_online",
+      "moi_lai",
+      "da_tg_free",
+      "doi_lich",
+      "L1",
+      "L2",
+      "khong_hoc",
+      "thue_bao",
+      "trung_so",
+      "khong_nghe_may",
+      "ngung_cham_soc",
+      "chua_MQBB_chua_PCTH",
+      "chua_MQBB_da_PCTH",
+      "da_MQBB_chua_PCTH",
+      "da_MQBB_da_PCTH",
+      "da_MQBB",
+      "chua_MQBB",
+      "da_PCTH",
+      "chua_PCTH",
+      "da_990k",
+      "chua_990k",
+      "hoan_tien_lop_hoc",
+    ],
     entryBranch: ["van_hanh", "mkt", "lop_khac", "nhuong_quyen"],
     purchaseStatus: ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"],
     tier: ["vang", "bac", "dong"],
@@ -32,6 +81,7 @@
     customerStatus: null,
     intent: null,
     entry: null,
+    franchise: null,
     entryBranch: null,
     purchaseStatus: null,
     purchaseReason: "",
@@ -58,6 +108,7 @@
     if (state.entry) tags.push(state.entry);
     if (state.entryBranch) tags.push(state.entryBranch);
     if (state.purchaseStatus) tags.push(state.purchaseStatus);
+    if (state.franchise) tags.push(state.franchise);
     if (state.tier) tags.push(state.tier);
     if (state.regionTag) tags.push(state.regionTag);
     return tags;
@@ -182,9 +233,43 @@
     foot.hidden = false;
     foot.innerHTML = pills
       .map(function (t) {
-        return '<span class="mk-td-card-tag-foot">#' + t + "</span>";
+        return '<span class="mk-td-tag-pill" data-tag="' + t + '">#' + t + "</span>";
       })
       .join("");
+  }
+
+  function renderIntentTagFoot() {
+    var foot = $("mk-td-intent-tag-foot");
+    if (!foot) return;
+    if (!state.intent) {
+      foot.hidden = true;
+      foot.innerHTML = "";
+      return;
+    }
+    foot.hidden = false;
+    foot.innerHTML =
+      '<span class="mk-td-tag-pill" data-tag="' +
+      state.intent +
+      '">#' +
+      state.intent +
+      "</span>";
+  }
+
+  function renderFranchiseTagFoot() {
+    var foot = $("mk-td-franchise-tag-foot");
+    if (!foot) return;
+    if (!state.franchise) {
+      foot.hidden = true;
+      foot.innerHTML = "";
+      return;
+    }
+    foot.hidden = false;
+    foot.innerHTML =
+      '<span class="mk-td-tag-pill" data-tag="' +
+      state.franchise +
+      '">#' +
+      state.franchise +
+      "</span>";
   }
 
   function setPcthBranchVisible(show) {
@@ -392,6 +477,39 @@
     };
   }
 
+  function potentialDetailUrl(potentialId) {
+    return (
+      "index.php?module=Potentials&view=Detail&record=" +
+      encodeURIComponent(potentialId || "") +
+      "&app=SALES"
+    );
+  }
+
+  function autoConvertToOppIfNeeded(lead) {
+    if (!lead || !lead.id) return Promise.resolve(null);
+    if (state.customerStatus !== "co_quan") return Promise.resolve(null);
+    if (!window.app || !app.request) return Promise.resolve(null);
+
+    // Default order category (no modal): Internal
+    return app.request
+      .post({
+        data: {
+          module: "Leads",
+          action: "ModernApi",
+          mode: "convert",
+          id: lead.id,
+          order_category: "Internal",
+        },
+      })
+      .then(function (err, res) {
+        if (err || !res || res.success === false) return null;
+        return res;
+      })
+      .catch(function () {
+        return null;
+      });
+  }
+
   function mockSave() {
     var name = ($("mk-td-name") && $("mk-td-name").value) || "";
     var phone = ($("mk-td-phone") && $("mk-td-phone").value) || "";
@@ -443,7 +561,23 @@
     Promise.resolve(savePromise)
       .then(function (lead) {
         var savedId = lead && lead.id ? lead.id : recordId;
-        window.location.href = savedId ? detailUrl(savedId) : LIST_URL;
+        if (!savedId) {
+          window.location.href = LIST_URL;
+          return;
+        }
+
+        var leadObj = lead && lead.id ? lead : { id: savedId };
+        return Promise.resolve(autoConvertToOppIfNeeded(leadObj)).then(function (res) {
+          if (res && res.redirect) {
+            window.location.href = res.redirect;
+            return;
+          }
+          if (res && res.potentialId) {
+            window.location.href = potentialDetailUrl(res.potentialId);
+            return;
+          }
+          window.location.href = detailUrl(savedId);
+        });
       })
       .catch(function (err) {
         alert(err && err.message ? err.message : String(err || "Save failed"));
@@ -461,7 +595,12 @@
       });
     });
 
-    bindSelect("mk-td-intent", "intent");
+    bindSelect("mk-td-intent", "intent", function () {
+      renderIntentTagFoot();
+    });
+    bindSelect("mk-td-franchise", "franchise", function () {
+      renderFranchiseTagFoot();
+    });
     bindSelect("mk-td-district", "regionTag");
     bindEntryProgram();
 
