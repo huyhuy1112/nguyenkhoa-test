@@ -47,6 +47,20 @@ class Potentials_List_View extends Vtiger_List_View {
         return $headerScriptInstances;
     }
 
+    protected function assignModernListContext(Vtiger_Request $request) {
+        require_once 'modules/Potentials/models/ModernService.php';
+        $viewer = $this->getViewer($request);
+        $moduleName = $request->getModule();
+        $viewer->assign('MODULE', $moduleName);
+        $viewer->assign('MODULE_NAME', $moduleName);
+        $viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
+        $viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
+        $viewer->assign('VIEW', 'List');
+        $viewer->assign('MENU_SELECTED_MODULENAME', 'Potentials');
+        $viewer->assign('CURRENT_USER_MODEL', Users_Record_Model::getCurrentUserModel());
+        $viewer->assign('MK_OPPS_ASSIGNABLE_USERS', Potentials_ModernService::listAssignableUsers());
+    }
+
     /**
      * Check before rendering list.
      */
@@ -54,8 +68,17 @@ class Potentials_List_View extends Vtiger_List_View {
         $this->ensureSalesApp($request);
         if ($this->shouldBlockInternalOrders($request)) {
             $this->redirectToInternalOrderAuth($request);
-            // Do not call parent::preProcess; we are redirecting.
             exit;
+        }
+
+        if ($this->isMkModernSalesOpportunityList($request)) {
+            Vtiger_Index_View::preProcess($request, false);
+            $this->assignSalesApp($request);
+            $this->assignModernListContext($request);
+            if ($display) {
+                $this->preProcessDisplay($request);
+            }
+            return;
         }
 
         parent::preProcess($request, false);
@@ -73,7 +96,22 @@ class Potentials_List_View extends Vtiger_List_View {
             $this->redirectToInternalOrderAuth($request);
             exit;
         }
+        if ($this->isMkModernSalesOpportunityList($request)) {
+            $viewer = $this->getViewer($request);
+            $this->assignSalesApp($request);
+            $this->assignModernListContext($request);
+            $viewer->view('ListViewContents.tpl', $request->getModule());
+            return;
+        }
         parent::process($request);
+    }
+
+    protected function isMkModernSalesOpportunityList(Vtiger_Request $request) {
+        if (strtolower((string)$request->get('view')) !== 'list') {
+            return false;
+        }
+        $app = strtoupper((string)$request->get('app'));
+        return $app === 'SALES' || $app === '';
     }
 
     /**

@@ -426,6 +426,238 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 	gap: 6px;
 }
 
+/* Tag chips — BA Excel palette (Hạng KH, lớp học, NL, NQ, tier) */
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin: 0 6px 6px 0;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	background: #f1f5f9;
+	color: #475569;
+	border: 1px solid #e2e8f0;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag a,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag a {
+	color: inherit;
+	opacity: 0.65;
+	text-decoration: none;
+	margin-left: 2px;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="moi_quen"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="moi_quen"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="da_co_quan_he"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="da_co_quan_he"] { background: #ffe4e6; border-color: #fda4af; color: #be123c; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="chua_mqbh"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="chua_mqbh"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="da_tg_free"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="da_tg_free"] { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="vang"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="vang"] { background: #fef9c3; border-color: #facc15; color: #713f12; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="bac"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="bac"] { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="dong"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dong"] { background: #ffedd5; border-color: #fb923c; color: #9a3412; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lan_dau"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lan_dau"] { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lai"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lai"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="dang_cham_soc"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dang_cham_soc"] { background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="kh_can_nhac"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="kh_can_nhac"] { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="khong_mua"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="khong_mua"] { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="ngung_mua"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="ngung_mua"] { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="nhuong_quyen"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="nhuong_quyen"] { background: #ffe4e6; border-color: #fda4af; color: #be123c; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="da_ky_quy"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="da_ky_quy"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="dang_tu_van"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dang_tu_van"] { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags #addTagContainer > a,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags #addTagContainer a,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags #addTagContainer > a,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags #addTagContainer a {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 12px;
+	border-radius: 10px;
+	border: 1px solid #cbd5e1;
+	background: #ffffff;
+	color: #0B6E4F;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags #addTagContainer a:hover,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags #addTagContainer a:hover {
+	background: #f0fdf4;
+	border-color: rgba(8, 160, 69, 0.35);
+	color: #08A045;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .moreTags,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .moreTags {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #40627e;
+	text-decoration: none;
+}
+
+/* Contact tag modals */
+.mk-contact-tags-modal-dialog {
+	max-width: 560px;
+	width: calc(100% - 32px);
+	margin: 24px auto;
+}
+.mk-contact-tags-modal-dialog--view {
+	max-width: 480px;
+}
+.mk-contact-tags-modal {
+	border: none !important;
+	border-radius: 16px !important;
+	overflow: hidden;
+	box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
+}
+body[data-module="Contacts"] .mk-contact-tags-modal .modal-header,
+.myModal .mk-contact-tags-modal .modal-header,
+.modal .mk-contact-tags-modal .modal-header {
+	background: linear-gradient(135deg, #0B6E4F 0%, #08A045 100%);
+	border: none;
+	padding: 16px 20px;
+	border-radius: 0;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal .modal-title,
+.myModal .mk-contact-tags-modal .modal-title,
+.modal .mk-contact-tags-modal .modal-title {
+	color: #fff;
+	font-weight: 700;
+	font-size: 16px;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal .modal-header .close,
+.myModal .mk-contact-tags-modal .modal-header .close,
+.modal .mk-contact-tags-modal .modal-header .close {
+	color: #fff;
+	opacity: 0.9;
+	text-shadow: none;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal__body,
+.myModal .mk-contact-tags-modal__body,
+.modal .mk-contact-tags-modal__body {
+	padding: 20px 22px 24px;
+	background: #fff;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal__hint,
+.myModal .mk-contact-tags-modal__hint,
+.modal .mk-contact-tags-modal__hint {
+	margin: 0 0 16px;
+	font-size: 13px;
+	line-height: 1.5;
+	color: #64748b;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal__label,
+.myModal .mk-contact-tags-modal__label,
+.modal .mk-contact-tags-modal__label {
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #475569;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal__grid,
+body[data-module="Contacts"] .mk-contact-tags-modal .currentTag.multiLevelTagList,
+.myModal .mk-contact-tags-modal__grid,
+.myModal .mk-contact-tags-modal .currentTag.multiLevelTagList,
+.modal .mk-contact-tags-modal__grid,
+.modal .mk-contact-tags-modal .currentTag.multiLevelTagList {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	min-height: 52px;
+	padding: 16px !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	background: #f8fafc !important;
+	box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+	height: auto !important;
+	max-height: none !important;
+	overflow: visible !important;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal__scroll,
+.myModal .mk-contact-tags-modal__scroll,
+.modal .mk-contact-tags-modal__scroll {
+	max-height: none;
+	overflow: visible;
+	border: none;
+	background: transparent;
+	padding: 0;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal .tag,
+.myModal .mk-contact-tags-modal .tag,
+.modal .mk-contact-tags-modal .tag {
+	display: inline-flex !important;
+	align-items: center;
+	margin: 0 !important;
+	padding: 6px 12px !important;
+	border-radius: 999px !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	border: 1px solid #e2e8f0 !important;
+	line-height: 1.3;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal .tag .activeToggleIcon,
+body[data-module="Contacts"] .mk-contact-tags-modal .tag .editTag,
+.myModal .mk-contact-tags-modal .tag .activeToggleIcon,
+.myModal .mk-contact-tags-modal .tag .editTag,
+.modal .mk-contact-tags-modal .tag .activeToggleIcon,
+.modal .mk-contact-tags-modal .tag .editTag {
+	display: none !important;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal .tag .deleteTag,
+.myModal .mk-contact-tags-modal .tag .deleteTag,
+.modal .mk-contact-tags-modal .tag .deleteTag {
+	display: none !important;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal .tag .tagLabel,
+.myModal .mk-contact-tags-modal .tag .tagLabel,
+.modal .mk-contact-tags-modal .tag .tagLabel {
+	font-weight: 600;
+	max-width: 200px;
+}
+body[data-module="Contacts"] .mk-contact-tags-modal .detailShowAllModal .selectTagContainerborder,
+.myModal .mk-contact-tags-modal .detailShowAllModal .selectTagContainerborder,
+.modal .mk-contact-tags-modal .detailShowAllModal .selectTagContainerborder {
+	border-left: 1px solid #e2e8f0;
+}
+body[data-module="Contacts"] .mk-contact-add-tag-btn,
+.myModal .mk-contact-add-tag-btn,
+.modal .mk-contact-add-tag-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: #fff !important;
+	border: 1px dashed #94a3b8 !important;
+	color: #0B6E4F !important;
+	font-weight: 600;
+}
+
 /* ============================================================================
  * ACTION BUTTONS (Follow, basic actions, More, Send Email)
  * ========================================================================== */

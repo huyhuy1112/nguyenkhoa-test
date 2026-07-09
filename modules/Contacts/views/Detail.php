@@ -9,6 +9,8 @@
  * All Rights Reserved.
  * *********************************************************************************** */
 
+require_once 'modules/Leads/models/ConvertService.php';
+
 class Contacts_Detail_View extends Accounts_Detail_View {
 
 	function __construct() {
@@ -40,10 +42,46 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 		$viewer->assign('VIEW', 'Detail');
 	}
 
+	protected function assignFilteredContactTags(Vtiger_Request $request, $recordId) {
+		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
+		$recordId = (int)$recordId;
+		if ($recordId <= 0) {
+			return;
+		}
+		$viewer = $this->getViewer($request);
+		$currentUserModel = Users_Record_Model::getCurrentUserModel();
+		$moduleName = 'Contacts';
+
+		$allTags = Vtiger_Tag_Model::getAllAccessible($currentUserModel->getId(), $moduleName, $recordId);
+		$filteredTags = array();
+		foreach ($allTags as $tagId => $tagModel) {
+			if (Contacts_ContactTagCatalog::isAllowed($tagModel->getName())) {
+				$filteredTags[$tagId] = $tagModel;
+			}
+		}
+		$viewer->assign('TAGS_LIST', $filteredTags);
+
+		$allUserTags = Vtiger_Tag_Model::getAllUserTags($currentUserModel->getId());
+		$filteredUserTags = array();
+		foreach ($allUserTags as $tagModel) {
+			if (Contacts_ContactTagCatalog::isAllowed($tagModel->getName())) {
+				$filteredUserTags[] = $tagModel;
+			}
+		}
+		$viewer->assign('ALL_USER_TAGS', $filteredUserTags);
+	}
+
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		$this->assignModernContactDetailUi($request);
+		$recordId = (int)$request->get('record');
+		if ($recordId > 0 && strtolower((string)$request->get('view')) === 'detail') {
+			Leads_ConvertService::ensureContactTagsFromLead($recordId);
+		}
 		parent::preProcess($request, false);
 		$this->assignModernContactDetailUi($request);
+		if ($recordId > 0 && $this->isModernContactDetailUi($request)) {
+			$this->assignFilteredContactTags($request, $recordId);
+		}
 		if ($display) {
 			$this->preProcessDisplay($request);
 		}

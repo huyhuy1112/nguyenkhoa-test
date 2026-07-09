@@ -526,7 +526,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 /* Tag palette — MUST match Lead Create/Edit (LeadsMkEdit.css .mk-td-tag-pill[data-tag=...]) */
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="individual"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="company"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="vang"] { background: #dcfce7; border-color: #08A045; color: #073B3A; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="vang"] { background: #fef9c3; border-color: #facc15; color: #713f12; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="bac"] { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="dong"] { background: #ffedd5; border-color: #fb923c; color: #9a3412; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="facebook"] { background: #dbeafe; border-color: #60a5fa; color: #1d4ed8; }
@@ -963,7 +963,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	grid-template-columns: minmax(300px, 1fr) minmax(360px, 1fr);
 	grid-template-areas:
 		"key activities"
-		"purchases comments"
+		"address comments"
 		"service-contracts contacts"
 		"documents documents"
 		"products products";
@@ -975,7 +975,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__key       { grid-area: key; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__activities{ grid-area: activities; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__purchases { grid-area: purchases; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__address { grid-area: address; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__service-contracts { grid-area: service-contracts; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__documents { grid-area: documents; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__comments  { grid-area: comments; align-self: start; }
@@ -988,7 +988,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 		grid-template-areas:
 			"key"
 			"activities"
-			"purchases"
+			"address"
 			"comments"
 			"service-contracts"
 			"contacts"
@@ -3512,4 +3512,167 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 		width: 100%;
 		float: none;
 	}
+}
+
+/* —— Opp address card —— */
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__address {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	margin: 4px 0 8px;
+	font-size: 13px;
+	color: #57534e;
+	line-height: 1.45;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-card--address .mk-opp-address-body {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 12px 16px 16px;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-address-text {
+	margin: 0;
+	font-size: 14px;
+	color: #292524;
+	line-height: 1.5;
+}
+
+/* —— Tag modal (Tags For …) —— */
+body[data-module="Potentials"] .mk-opp-tags-modal .modal-header {
+	background: linear-gradient(135deg, #1c1917 0%, #44403c 100%);
+	border-radius: 12px 12px 0 0;
+}
+body[data-module="Potentials"] .mk-opp-tags-modal .modal-title {
+	color: #fff;
+	font-weight: 600;
+}
+body[data-module="Potentials"] .mk-opp-tags-modal__body {
+	padding: 20px 24px 24px;
+}
+body[data-module="Potentials"] .mk-opp-tags-modal__hint {
+	margin: 0 0 14px;
+	font-size: 13px;
+	color: #78716c;
+}
+body[data-module="Potentials"] .mk-opp-tags-modal__label {
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #57534e;
+}
+body[data-module="Potentials"] .mk-opp-tags-modal__grid,
+body[data-module="Potentials"] .mk-opp-tags-modal .currentTag.multiLevelTagList {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	min-height: 56px;
+	padding: 14px 16px !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	background: #f8fafc !important;
+	box-shadow: none !important;
+	height: auto !important;
+	max-height: none !important;
+	overflow: visible !important;
+}
+body[data-module="Potentials"] .mk-opp-tags-modal__scroll {
+	max-height: none;
+	overflow: visible;
+}
+body[data-module="Potentials"] .mk-opp-tags-modal .tag {
+	display: inline-flex !important;
+	align-items: center;
+	margin: 0 !important;
+	padding: 6px 12px !important;
+	border-radius: 999px !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	border: 1px solid transparent !important;
+}
+body[data-module="Potentials"] .mk-opp-tags-modal .tag .activeToggleIcon,
+body[data-module="Potentials"] .mk-opp-tags-modal .tag .editTag {
+	display: none !important;
+}
+body[data-module="Potentials"] .mk-opp-tags-modal .tag .deleteTag {
+	display: none !important;
+}
+body[data-module="Potentials"] .mk-opp-tags-modal .tag .tagLabel {
+	max-width: 180px;
+}
+body[data-module="Potentials"] .mk-opp-add-tag-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: #fff !important;
+	border: 1px dashed #a8a29e !important;
+	color: #57534e !important;
+	font-weight: 600;
+}
+body[data-module="Potentials"] #mk-opp-section-purchases {
+	display: none !important;
+}
+
+/* Modal is appended to body — duplicate tag-modal rules without body[data-module] scope */
+.myModal .mk-opp-tags-modal .modal-header,
+.modal .mk-opp-tags-modal .modal-header {
+	background: linear-gradient(135deg, #1c1917 0%, #44403c 100%);
+	border-radius: 12px 12px 0 0;
+}
+.myModal .mk-opp-tags-modal .modal-title,
+.modal .mk-opp-tags-modal .modal-title {
+	color: #fff;
+	font-weight: 600;
+}
+.myModal .mk-opp-tags-modal__body,
+.modal .mk-opp-tags-modal__body {
+	padding: 20px 24px 24px;
+}
+.myModal .mk-opp-tags-modal__hint,
+.modal .mk-opp-tags-modal__hint {
+	margin: 0 0 14px;
+	font-size: 13px;
+	color: #78716c;
+}
+.myModal .mk-opp-tags-modal__grid,
+.myModal .mk-opp-tags-modal .currentTag.multiLevelTagList,
+.modal .mk-opp-tags-modal__grid,
+.modal .mk-opp-tags-modal .currentTag.multiLevelTagList {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	min-height: 56px;
+	padding: 14px 16px !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	background: #f8fafc !important;
+	box-shadow: none !important;
+	height: auto !important;
+	max-height: none !important;
+	overflow: visible !important;
+}
+.myModal .mk-opp-tags-modal .tag,
+.modal .mk-opp-tags-modal .tag {
+	display: inline-flex !important;
+	align-items: center;
+	margin: 0 !important;
+	padding: 6px 12px !important;
+	border-radius: 999px !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	border: 1px solid transparent !important;
+}
+.myModal .mk-opp-tags-modal .tag .activeToggleIcon,
+.myModal .mk-opp-tags-modal .tag .editTag,
+.modal .mk-opp-tags-modal .tag .activeToggleIcon,
+.modal .mk-opp-tags-modal .tag .editTag {
+	display: none !important;
+}
+.myModal .mk-opp-tags-modal .tag .tagLabel,
+.modal .mk-opp-tags-modal .tag .tagLabel {
+	max-width: 200px;
 }

@@ -4,13 +4,34 @@
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
-{include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsList.css')}?mk_v=20260624_contacts_cols1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260624_sales_antifouc1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
+<script type="text/javascript">document.documentElement.classList.add('mk-contacts-ui-ready', 'mk-contacts-list-sales');</script>
+<script type="text/javascript">window.__MK_CONTACTS_UI_BUILD__ = "20260709_contacts_lovable2";</script>
+<script type="text/javascript">window.MK_CONTACTS_API_READY = true;</script>
+{if isset($MK_CONTACTS_ASSIGNABLE_USERS)}
+<script type="text/javascript">window.MK_CONTACTS_ASSIGNABLE_USERS = {Zend_Json::encode($MK_CONTACTS_ASSIGNABLE_USERS)};</script>
+{/if}
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkLovableListShell.css')}&mk_v=20260709_lovable_shell4" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260709_contacts_lovable2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkListShell.css')}&mk_v=20260709_contacts_pad3" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20260709_contacts_ui_fix1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260709_contacts_ui_fix1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkList.css')}&mk_v=20260709_contacts_ui_fix1" />
+<style type="text/css">
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .main-container .content-area,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] #listViewContent,
+html.mk-contacts-ui-ready body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Contacts"][data-view="List"] .main-container #sidebar-essentials.sidebar-essentials.hide + #listViewContent.listViewPageDiv.content-area {
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+}
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] #mk-dash-main.mk-contacts-list-main {
+	padding: 24px !important;
+}
+</style>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/List.js')}?mk_v=20260624_contacts_cols1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260709_contacts_lovable1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsLovableRef.js')}&mk_v=20260709_contacts_tags1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsLocalStore.js')}&mk_v=20260709_contacts_tags1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkList.js')}&mk_v=20260709_contacts_tags1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-contacts-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">
@@ -23,14 +44,8 @@
 		</div>
 		<main class="mk-dash-main mk-content mk-contacts-list-main" id="mk-dash-main" role="main">
 		<div class="main-container main-container-{$MODULE} mk-contacts-list-page">
-			<div id="modnavigator" class="module-nav mk-contacts-list-hide-legacy">
-				<div class="mod-switcher-container">
-					{include file="partials/Menubar.tpl"|vtemplate_path:$MODULE}
-				</div>
-			</div>
-			<div id="sidebar-essentials" class="sidebar-essentials hide mk-contacts-list-hide-legacy">
-				{include file="partials/SidebarEssentials.tpl"|vtemplate_path:$MODULE}
-			</div>
+			<div id="modnavigator" class="module-nav mk-contacts-list-hide-legacy" style="display:none !important" aria-hidden="true"></div>
+			<div id="sidebar-essentials" class="sidebar-essentials hide mk-contacts-list-hide-legacy" style="display:none !important" aria-hidden="true"></div>
 			<div class="listViewPageDiv content-area full-width mk-contacts-list-content" id="listViewContent">
 {/strip}
 {elseif (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'MARKETING') || (isset($smarty.get.app) && $smarty.get.app eq 'MARKETING')}
@@ -54,14 +69,8 @@
 		</div>
 		<main class="mk-dash-main mk-content mk-contacts-list-main" id="mk-dash-main" role="main">
 		<div class="main-container main-container-{$MODULE} mk-contacts-list-page">
-			<div id="modnavigator" class="module-nav mk-contacts-list-hide-legacy">
-				<div class="mod-switcher-container">
-					{include file="partials/Menubar.tpl"|vtemplate_path:$MODULE}
-				</div>
-			</div>
-			<div id="sidebar-essentials" class="sidebar-essentials hide mk-contacts-list-hide-legacy">
-				{include file="partials/SidebarEssentials.tpl"|vtemplate_path:$MODULE}
-			</div>
+			<div id="modnavigator" class="module-nav mk-contacts-list-hide-legacy" style="display:none !important" aria-hidden="true"></div>
+			<div id="sidebar-essentials" class="sidebar-essentials hide mk-contacts-list-hide-legacy" style="display:none !important" aria-hidden="true"></div>
 			<div class="listViewPageDiv content-area full-width mk-contacts-list-content" id="listViewContent">
 {/strip}
 {else}

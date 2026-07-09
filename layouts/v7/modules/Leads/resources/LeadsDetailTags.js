@@ -13,7 +13,7 @@
   var TAG_COLORS = {
     individual: { bg: "#dbeafe", border: "#93c5fd", color: "#1d4ed8" },
     company: { bg: "#ede9fe", border: "#c4b5fd", color: "#6d28d9" },
-    vang: { bg: "#dcfce7", border: "#08A045", color: "#073B3A" },
+    vang: { bg: "#fef9c3", border: "#facc15", color: "#713f12" },
     bac: { bg: "#f1f5f9", border: "#94a3b8", color: "#334155" },
     dong: { bg: "#ffedd5", border: "#fb923c", color: "#9a3412" },
     facebook: { bg: "#dbeafe", border: "#60a5fa", color: "#1d4ed8" },
@@ -37,6 +37,14 @@
     mkt: { bg: "#ede9fe", border: "#c4b5fd", color: "#6d28d9" },
     lop_khac: { bg: "#ede9fe", border: "#c4b5fd", color: "#6d28d9" },
     nhuong_quyen: { bg: "#ffe4e6", border: "#fda4af", color: "#be123c" },
+    moi_quen: { bg: "#dbeafe", border: "#93c5fd", color: "#1d4ed8" },
+    da_co_quan_he: { bg: "#ffe4e6", border: "#fda4af", color: "#be123c" },
+    chua_mqbh: { bg: "#ede9fe", border: "#c4b5fd", color: "#6d28d9" },
+    da_tg_free: { bg: "#e0e7ff", border: "#a5b4fc", color: "#4338ca" },
+    dang_tu_van: { bg: "#f0fdf4", border: "#86efac", color: "#15803d" },
+    da_ky_quy: { bg: "#dbeafe", border: "#93c5fd", color: "#1d4ed8" },
+    dang_cham_soc: { bg: "#ecfdf5", border: "#6ee7b7", color: "#047857" },
+    kh_can_nhac: { bg: "#fef3c7", border: "#fcd34d", color: "#92400e" },
   };
 
   function slugify(label) {
@@ -82,7 +90,7 @@
   function paintAll(root) {
     var scope = root && root.querySelector ? root : document;
     var tags = scope.querySelectorAll(
-      ".mk-lead-detail-hero__tags .tag, .mk-lead-detail-hero__tags .mk-lead-detail-tag-chip, .mk-opportunity-detail-hero__tags .tag, .tagContainer .detailTagList .tag, #mk-ld-ui-tag-list .tag"
+      ".mk-lead-detail-hero__tags .tag, .mk-lead-detail-hero__tags .mk-lead-detail-tag-chip, .mk-opportunity-detail-hero__tags .tag, .mk-contact-detail-hero__tags .tag, .tagContainer .detailTagList .tag, .mk-opp-tags-modal .tag, .mk-contact-tags-modal .tag, .myModal .mk-opp-tags-modal .tag, .myModal .mk-contact-tags-modal .tag, .modal .mk-opp-tags-modal .tag, .modal .mk-contact-tags-modal .tag, #mk-ld-ui-tag-list .tag"
     );
     for (var i = 0; i < tags.length; i++) {
       paintTag(tags[i]);
@@ -92,7 +100,7 @@
   function schedulePaint() {
     paintAll(document);
     if ($) {
-      $(".mk-lead-detail-hero__tags .tag, .mk-opportunity-detail-hero__tags .tag").each(function () {
+      $(".mk-lead-detail-hero__tags .tag, .mk-opportunity-detail-hero__tags .tag, .mk-contact-detail-hero__tags .tag").each(function () {
         paintTag(this);
       });
     }
@@ -113,7 +121,7 @@
       mo.observe(document.body || document.documentElement, { childList: true, subtree: true });
     } catch (e) {}
     if ($) {
-      $(document).on("click", "#addTagTriggerer, .saveTag, .deleteTag, .cancelSaveTag", function () {
+      $(document).on("click", "#addTagTriggerer, .saveTag, .deleteTag, .cancelSaveTag, .moreTags", function () {
         setTimeout(schedulePaint, 80);
         setTimeout(schedulePaint, 400);
       });

@@ -1,0 +1,78 @@
+/* Contacts list — accents on Lovable shell */
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .content-area,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .listViewPageDiv.content-area,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #listViewContent,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .mk-contacts-list-content,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container .content-area {
+	padding: 0 !important;
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	left: auto !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-contacts-list-main {
+	padding: 24px !important;
+}
+
+.mk-contacts-page .mk-leads-kpi-grid {
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.mk-contacts-page .mk-contacts-kpi-card[data-kpi="tagged"] .mk-leads-kpi-card__value {
+	color: #7c3aed;
+}
+
+.mk-contacts-page .mk-contacts-kpi-card[data-kpi="gold"] .mk-leads-kpi-card__value {
+	color: #b45309;
+}
+
+.mk-contacts-page .mk-leads-segment-chip.is-active {
+	background: linear-gradient(135deg, #ecfdf5 0%, #eff6ff 100%);
+	border-color: #34d399;
+	color: #047857;
+	font-weight: 600;
+}
+
+.mk-contacts-table-card {
+	border-top: 3px solid #059669;
+}
+
+.mk-contacts-row:hover {
+	background: linear-gradient(90deg, rgba(5, 150, 105, 0.05) 0%, rgba(255, 255, 255, 0) 48%);
+}
+
+.mk-contacts-email {
+	color: #2563eb;
+	text-decoration: none;
+	font-size: 12px;
+}
+
+.mk-contacts-email:hover {
+	text-decoration: underline;
+}
+
+.mk-tag--dang-tu-van { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+.mk-tag--moi-quen { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.mk-tag--co-quan-he { background: #ffe4e6; color: #be123c; border-color: #fda4af; }
+.mk-tag--chua-mqbh { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+.mk-tag--da-tg-free { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
+
+.mk-contacts-page .mk-pill--tier.mk-pill--gold {
+	background: #fef9c3;
+	color: #a16207;
+	border-color: #fde047;
+}
+
+@media (max-width: 1200px) {
+	.mk-contacts-page .mk-leads-kpi-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 900px) {
+	.mk-contacts-page .mk-leads-kpi-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}

@@ -87,6 +87,10 @@ class Leads_ModernService {
 		if (!$colRes || $adb->num_rows($colRes) < 1) {
 			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN potential_id INT(19) DEFAULT NULL AFTER mk_cache_id", array());
 		}
+		$colRes = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'contact_id'", array());
+		if (!$colRes || $adb->num_rows($colRes) < 1) {
+			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN contact_id INT(19) DEFAULT NULL AFTER potential_id", array());
+		}
 	}
 
 	public static function isInstalled(PearDatabase $adb) {

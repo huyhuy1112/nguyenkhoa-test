@@ -959,12 +959,30 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
 .mk-tag--mua-lai { background: #d1fae5; color: #065f46; }
 .mk-tag--khong-mua { background: #ffedd5; color: #c2410c; }
 .mk-tag--ngung-mua { background: #fee2e2; color: #b91c1c; }
-.mk-tag--vang { background: #dcfce7; color: #073B3A; }
+.mk-tag--vang { background: #fef9c3; color: #a16207; border-color: #fde047; }
 .mk-tag--bac { background: #f1f5f9; color: #475569; }
 .mk-tag--dong { background: #ffedd5; color: #9a3412; }
 .mk-tag--goi-lan-1 { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
 .mk-tag--goi-lan-2 { background: #dcfce7; color: #b45309; border-color: #fcd34d; }
 .mk-tag--goi-lan-3 { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
+.mk-tag--nguyen-lieu-chuoi { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.mk-tag--company { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+.mk-tag--individual { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+.mk-tag--co-quan { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+.mk-tag--chuan-bi-mo { background: #fce7f3; color: #be185d; border-color: #f9a8d4; }
+.mk-tag--gia-dinh { background: #dcfce7; color: #047857; border-color: #86efac; }
+.mk-tag--kv1, .mk-tag--kv2, .mk-tag--kv3 { background: #ecfdf5; color: #047857; border-color: #6ee7b7; }
+.mk-tag--da-ky-quy { background: #fef9c3; color: #a16207; border-color: #fde047; }
+.mk-tag--xac-nhan { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+.mk-tag--khong-xac-nhan { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.mk-tag--ladipage { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+.mk-tag--da-tg-free { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
+.mk-tag--dang-cham-soc { background: #fff7ed; color: #c2410c; border-color: #fdba74; }
+.mk-tag--dang-tu-van { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+.mk-tag--kh-can-nhac { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+.mk-tag--moi-quen { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.mk-tag--co-quan-he { background: #ffe4e6; color: #be123c; border-color: #fda4af; }
+.mk-tag--chua-mqbh { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
 
 /* Dark mode: make tags/pills vibrant (not washed out) */
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag,

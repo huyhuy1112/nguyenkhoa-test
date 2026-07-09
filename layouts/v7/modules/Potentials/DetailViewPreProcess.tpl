@@ -8,11 +8,11 @@
 {include file="modules/Vtiger/Header.tpl"}
 {include file="partials/MkSalesUiMeta.tpl"|vtemplate_path:'Vtiger'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesDetailInlineEdit.css')}&mk_v=20260611_mk_inline_v3" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.css')}&mk_v=20260625_opp_convert_ui_v1" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/OpportunityDetailCommerce.js')}&mk_v=20260625_opp_commerce_v5"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.css')}&mk_v=20260709_opp_tags_ui3" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLeadsLogic.js')}&mk_v=20260709_opp_tags1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsDetailTags.js')}&mk_v=20260709_opp_tags_ui3"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLeadsLogic.js')}&mk_v=20260619_opp_commerce1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.js')}&mk_v=20260625_opp_convert_ui_v1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/Detail.js')}&mk_v=20260709_opp_tags_ui3"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-opportunity-detail="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

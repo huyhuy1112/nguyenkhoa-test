@@ -47,6 +47,9 @@ class Leads_ConvertService {
 		}
 		$potential->save();
 		$potentialId = (int)$potential->getId();
+		if ($potentialId > 0) {
+			self::transferLeadTags($leadId, array('Potentials' => $potentialId), $ownerId);
+		}
 		if ($potentialId <= 0) {
 			return null;
 		}
@@ -210,6 +213,15 @@ class Leads_ConvertService {
 		if ($potentialId) {
 			self::storePotentialId($leadId, $potentialId);
 		}
+		if ($contactId) {
+			self::relateRecords($leadId, self::MODULE, $contactId, 'Contacts');
+			self::storeContactId($leadId, $contactId);
+		}
+		self::transferLeadTags($leadId, array(
+			'Potentials' => $potentialId,
+			'Contacts' => $contactId,
+			'Accounts' => $accountId,
+		), (int)$current_user->id);
 
 		return array(
 			'success' => true,
@@ -291,6 +303,47 @@ class Leads_ConvertService {
 		return $lead->get($fieldName);
 	}
 
+	public static function getLinkedLeadIdByPotential($potentialId) {
+		$potentialId = (int)$potentialId;
+		if ($potentialId <= 0) {
+			return null;
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			"SELECT leadid FROM bace_lead_profile WHERE potential_id = ? LIMIT 1",
+			array($potentialId)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$leadId = (int)$adb->query_result($res, 0, 'leadid');
+			if ($leadId > 0) {
+				return $leadId;
+			}
+		}
+		$res = $adb->pquery(
+			"SELECT crmid FROM vtiger_crmentityrel
+			 WHERE relcrmid = ? AND relmodule = ? AND module = ?
+			 ORDER BY crmid DESC LIMIT 1",
+			array($potentialId, 'Potentials', 'Leads')
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$leadId = (int)$adb->query_result($res, 0, 'crmid');
+			if ($leadId > 0) {
+				return $leadId;
+			}
+		}
+		$res = $adb->pquery(
+			"SELECT relcrmid FROM vtiger_crmentityrel
+			 WHERE crmid = ? AND module = ? AND relmodule = ?
+			 ORDER BY relcrmid DESC LIMIT 1",
+			array($potentialId, 'Potentials', 'Leads')
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$leadId = (int)$adb->query_result($res, 0, 'relcrmid');
+			return $leadId > 0 ? $leadId : null;
+		}
+		return null;
+	}
+
 	public static function getLinkedPotentialId($leadId, $verifyExists = true) {
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery("SELECT potential_id FROM bace_lead_profile WHERE leadid = ?", array((int)$leadId));
@@ -355,6 +408,56 @@ class Leads_ConvertService {
 			"UPDATE bace_lead_profile SET potential_id = ? WHERE leadid = ?",
 			array((int)$potentialId, (int)$leadId)
 		);
+	}
+
+	public static function storeContactId($leadId, $contactId) {
+		$leadId = (int)$leadId;
+		$contactId = (int)$contactId;
+		if ($leadId <= 0 || $contactId <= 0) {
+			return;
+		}
+		$adb = PearDatabase::getInstance();
+		require_once 'modules/Leads/models/ModernService.php';
+		Leads_ModernService::installSchema($adb);
+		$adb->pquery(
+			"UPDATE bace_lead_profile SET contact_id = ? WHERE leadid = ?",
+			array($contactId, $leadId)
+		);
+	}
+
+	public static function getLinkedPotentialIdsByContact($contactId) {
+		$contactId = (int)$contactId;
+		if ($contactId <= 0) {
+			return array();
+		}
+		$adb = PearDatabase::getInstance();
+		$ids = array();
+
+		$res = $adb->pquery(
+			"SELECT p.potentialid FROM vtiger_potential p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
+			 WHERE p.contact_id = ?",
+			array($contactId)
+		);
+		if ($res) {
+			$count = $adb->num_rows($res);
+			for ($i = 0; $i < $count; $i++) {
+				$ids[] = (int)$adb->query_result($res, $i, 'potentialid');
+			}
+		}
+
+		$res = $adb->pquery(
+			"SELECT potentialid FROM vtiger_contpotentialrel WHERE contactid = ?",
+			array($contactId)
+		);
+		if ($res) {
+			$count = $adb->num_rows($res);
+			for ($i = 0; $i < $count; $i++) {
+				$ids[] = (int)$adb->query_result($res, $i, 'potentialid');
+			}
+		}
+
+		return array_values(array_unique(array_filter($ids)));
 	}
 
 	public static function potentialDetailUrl($potentialId) {
@@ -498,6 +601,266 @@ class Leads_ConvertService {
 			// ignore
 		}
 		return $labels;
+	}
+
+	/**
+	 * Copy freetags from Lead to converted entities (Opportunity, Contact, Account).
+	 * Opportunity & Contact receive BA-filtered tags only (Excel categories).
+	 */
+	public static function transferLeadTags($leadId, array $targetsByModule, $userId = null) {
+		$leadId = (int)$leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		global $current_user;
+		if ($userId === null || (int)$userId <= 0) {
+			$userId = (int)$current_user->id;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		$tagModels = Vtiger_Tag_Model::getAllAccessible($userId, self::MODULE, $leadId);
+		if (empty($tagModels)) {
+			return;
+		}
+		require_once 'modules/Potentials/helpers/OppTagCatalog.php';
+		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
+		$allTagIds = array_keys($tagModels);
+		$oppTagIds = Potentials_OppTagCatalog::filterTagModelIds($tagModels);
+		$contactTagIds = Contacts_ContactTagCatalog::filterTagModelIds($tagModels);
+
+		foreach ($targetsByModule as $module => $recordId) {
+			$recordId = (int)$recordId;
+			if ($recordId <= 0 || empty($module)) {
+				continue;
+			}
+			if ($module === 'Potentials') {
+				$tagIds = $oppTagIds;
+			} elseif ($module === 'Contacts') {
+				$tagIds = $contactTagIds;
+			} else {
+				$tagIds = $allTagIds;
+			}
+			if (empty($tagIds)) {
+				continue;
+			}
+			Vtiger_Tag_Model::saveForRecord($recordId, $tagIds, $userId, $module);
+		}
+	}
+
+	/**
+	 * Backfill BA-filtered tags from linked Lead onto Opportunity (detail view / repair).
+	 */
+	public static function syncFilteredTagsToPotential($leadId, $potentialId, $userId = null) {
+		$leadId = (int)$leadId;
+		$potentialId = (int)$potentialId;
+		if ($leadId <= 0 || $potentialId <= 0) {
+			return 0;
+		}
+		global $current_user;
+		if ($userId === null || (int)$userId <= 0) {
+			$userId = (int)$current_user->id;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		require_once 'modules/Potentials/helpers/OppTagCatalog.php';
+
+		$leadTags = Vtiger_Tag_Model::getAllAccessible($userId, self::MODULE, $leadId);
+		if (empty($leadTags)) {
+			return 0;
+		}
+		$filteredIds = Potentials_OppTagCatalog::filterTagModelIds($leadTags);
+		if (empty($filteredIds)) {
+			return 0;
+		}
+
+		$oppTags = Vtiger_Tag_Model::getAllAccessible($userId, 'Potentials', $potentialId);
+		$existingOppIds = array_map('intval', array_keys($oppTags));
+		$toAdd = array_values(array_diff($filteredIds, $existingOppIds));
+		if (empty($toAdd)) {
+			return 0;
+		}
+		Vtiger_Tag_Model::saveForRecord($potentialId, $toAdd, $userId, 'Potentials');
+		return count($toAdd);
+	}
+
+	/**
+	 * When viewing Opportunity detail, ensure tags from linked Lead are present.
+	 */
+	public static function ensurePotentialTagsFromLead($potentialId, $userId = null) {
+		$potentialId = (int)$potentialId;
+		if ($potentialId <= 0) {
+			return 0;
+		}
+		$leadId = self::getLinkedLeadIdByPotential($potentialId);
+		if (!$leadId) {
+			return 0;
+		}
+		return self::syncFilteredTagsToPotential($leadId, $potentialId, $userId);
+	}
+
+	public static function getLinkedLeadIdByContact($contactId) {
+		$contactId = (int)$contactId;
+		if ($contactId <= 0) {
+			return null;
+		}
+		$adb = PearDatabase::getInstance();
+
+		$res = $adb->pquery(
+			"SELECT leadid FROM bace_lead_profile WHERE contact_id = ? AND leadid > 0 ORDER BY leadid DESC LIMIT 1",
+			array($contactId)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$leadId = (int)$adb->query_result($res, 0, 'leadid');
+			if ($leadId > 0) {
+				return $leadId;
+			}
+		}
+
+		$res = $adb->pquery(
+			"SELECT crmid FROM vtiger_crmentityrel
+			 WHERE relcrmid = ? AND relmodule = ? AND module = ?
+			 ORDER BY crmid DESC LIMIT 1",
+			array($contactId, 'Contacts', 'Leads')
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$leadId = (int)$adb->query_result($res, 0, 'crmid');
+			if ($leadId > 0) {
+				return $leadId;
+			}
+		}
+		$res = $adb->pquery(
+			"SELECT relcrmid FROM vtiger_crmentityrel
+			 WHERE crmid = ? AND module = ? AND relmodule = ?
+			 ORDER BY relcrmid DESC LIMIT 1",
+			array($contactId, 'Contacts', 'Leads')
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$leadId = (int)$adb->query_result($res, 0, 'relcrmid');
+			if ($leadId > 0) {
+				return $leadId;
+			}
+		}
+
+		$res = $adb->pquery(
+			"SELECT lp.leadid FROM bace_lead_profile lp
+			 INNER JOIN vtiger_potential p ON p.potentialid = lp.potential_id
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
+			 WHERE p.contact_id = ? AND lp.leadid > 0
+			 ORDER BY lp.leadid DESC LIMIT 1",
+			array($contactId)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$leadId = (int)$adb->query_result($res, 0, 'leadid');
+			if ($leadId > 0) {
+				return $leadId;
+			}
+		}
+
+		$res = $adb->pquery(
+			"SELECT lp.leadid FROM bace_lead_profile lp
+			 INNER JOIN vtiger_contpotentialrel cpr ON cpr.potentialid = lp.potential_id
+			 WHERE cpr.contactid = ? AND lp.leadid > 0
+			 ORDER BY lp.leadid DESC LIMIT 1",
+			array($contactId)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$leadId = (int)$adb->query_result($res, 0, 'leadid');
+			return $leadId > 0 ? $leadId : null;
+		}
+
+		return null;
+	}
+
+	public static function syncContactTagsFromPotentials($contactId, $userId = null) {
+		$contactId = (int)$contactId;
+		if ($contactId <= 0) {
+			return 0;
+		}
+		global $current_user;
+		if ($userId === null || (int)$userId <= 0) {
+			$userId = (int)$current_user->id;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
+
+		$potentialIds = self::getLinkedPotentialIdsByContact($contactId);
+		if (empty($potentialIds)) {
+			return 0;
+		}
+
+		$contactTags = Vtiger_Tag_Model::getAllAccessible($userId, 'Contacts', $contactId);
+		$existingIds = array_map('intval', array_keys($contactTags));
+		$toAdd = array();
+
+		foreach ($potentialIds as $potentialId) {
+			$oppTags = Vtiger_Tag_Model::getAllAccessible($userId, 'Potentials', (int)$potentialId);
+			if (empty($oppTags)) {
+				continue;
+			}
+			$allowedIds = Contacts_ContactTagCatalog::filterTagModelIds($oppTags);
+			foreach ($allowedIds as $tagId) {
+				if (!in_array((int)$tagId, $existingIds, true) && !in_array((int)$tagId, $toAdd, true)) {
+					$toAdd[] = (int)$tagId;
+				}
+			}
+		}
+
+		if (empty($toAdd)) {
+			return 0;
+		}
+		Vtiger_Tag_Model::saveForRecord($contactId, $toAdd, $userId, 'Contacts');
+		return count($toAdd);
+	}
+
+	/**
+	 * Backfill BA-filtered Contact tags from linked Lead.
+	 */
+	public static function syncFilteredTagsToContact($leadId, $contactId, $userId = null) {
+		$leadId = (int)$leadId;
+		$contactId = (int)$contactId;
+		if ($leadId <= 0 || $contactId <= 0) {
+			return 0;
+		}
+		global $current_user;
+		if ($userId === null || (int)$userId <= 0) {
+			$userId = (int)$current_user->id;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
+
+		$leadTags = Vtiger_Tag_Model::getAllAccessible($userId, self::MODULE, $leadId);
+		if (empty($leadTags)) {
+			return 0;
+		}
+		$filteredIds = Contacts_ContactTagCatalog::filterTagModelIds($leadTags);
+		if (empty($filteredIds)) {
+			return 0;
+		}
+
+		$contactTags = Vtiger_Tag_Model::getAllAccessible($userId, 'Contacts', $contactId);
+		$existingIds = array_map('intval', array_keys($contactTags));
+		$toAdd = array_values(array_diff($filteredIds, $existingIds));
+		if (empty($toAdd)) {
+			return 0;
+		}
+		Vtiger_Tag_Model::saveForRecord($contactId, $toAdd, $userId, 'Contacts');
+		return count($toAdd);
+	}
+
+	public static function ensureContactTagsFromLead($contactId, $userId = null) {
+		$contactId = (int)$contactId;
+		if ($contactId <= 0) {
+			return 0;
+		}
+		require_once 'modules/Leads/models/ModernService.php';
+		Leads_ModernService::installSchema(PearDatabase::getInstance());
+
+		$added = 0;
+		$leadId = self::getLinkedLeadIdByContact($contactId);
+		if ($leadId) {
+			self::storeContactId($leadId, $contactId);
+			$added += self::syncFilteredTagsToContact($leadId, $contactId, $userId);
+		}
+		$added += self::syncContactTagsFromPotentials($contactId, $userId);
+		return $added;
 	}
 
 }

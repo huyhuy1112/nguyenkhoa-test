@@ -66,6 +66,7 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			document.body.classList.add('mk-opportunity-detail-ui-ready');
 			this.decodeSummaryKeyFields();
 			this.registerConvertToCustomer();
+			this.registerMkOppTagModalPatch();
 		}
 	},
 
@@ -181,6 +182,34 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			&& body.getAttribute('data-module') === 'Potentials'
 			&& body.getAttribute('data-view') === 'Detail'
 		);
+	},
+
+	registerMkOppTagModalPatch : function() {
+		if (window.__MK_OPP_TAG_MODAL_PATCHED__) {
+			return;
+		}
+		window.__MK_OPP_TAG_MODAL_PATCHED__ = true;
+		if (typeof Vtiger_Tag_Js === 'undefined' || !Vtiger_Tag_Js.prototype) {
+			return;
+		}
+		Vtiger_Tag_Js.prototype.viewAllTags = function(container) {
+			var viewAllTagContainer = container.find('.viewAllTagsContainer').clone(true);
+			viewAllTagContainer.find('.deleteTag').remove();
+			app.helper.showModal(viewAllTagContainer.find('.modal-dialog'), {
+				cb: function(modalContainer) {
+					modalContainer.find('.modal-content').addClass('mk-opp-tags-modal');
+					var holder = modalContainer.find('.currentTag');
+					holder.css({ height: 'auto', maxHeight: 'none', overflow: 'visible' });
+					if (window.MkLeadsDetailTags && MkLeadsDetailTags.paintAll) {
+						var root = modalContainer[0] || modalContainer;
+						MkLeadsDetailTags.paintAll(root);
+						window.setTimeout(function() {
+							MkLeadsDetailTags.paintAll(root);
+						}, 80);
+					}
+				}
+			});
+		};
 	},
 
 	refreshRelatedTabBadges : function() {

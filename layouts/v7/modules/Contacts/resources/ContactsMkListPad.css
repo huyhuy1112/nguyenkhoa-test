@@ -1,0 +1,71 @@
+/**
+ * Contacts list — final padding override (loads after theme CSS).
+ * Match Leads list gutter exactly.
+ */
+
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] #page,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] #page.container-fluid {
+	padding: 0 !important;
+	margin: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .main-container.mk-contacts-list-page #modnavigator,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .main-container.mk-contacts-list-page #sidebar-essentials,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .main-container.mk-contacts-list-page .essentials-toggle,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .lists-menu-container {
+	display: none !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	pointer-events: none !important;
+}
+
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .main-container .content-area,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .main-container .listViewPageDiv.content-area,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .main-container.mk-contacts-list-page #listViewContent,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .main-container.mk-contacts-list-page .mk-contacts-list-content,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] #listViewContent.content-area,
+html.mk-contacts-ui-ready body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Contacts"][data-view="List"] .main-container #sidebar-essentials.sidebar-essentials.hide + .listViewPageDiv.content-area,
+html.mk-contacts-ui-ready body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Contacts"][data-view="List"] .main-container #sidebar-essentials.sidebar-essentials.hide + #listViewContent.content-area {
+	padding: 0 !important;
+	padding-left: 0 !important;
+	margin: 0 !important;
+	margin-left: 0 !important;
+	left: auto !important;
+	width: 100% !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	position: relative !important;
+	box-sizing: border-box !important;
+}
+
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .main-container.mk-contacts-list-page,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .mk-contacts-page,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .mk-so-page.mk-contacts-page {
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+/* Same as Leads: mk-dash-main 24px gutter */
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .mk-dash-main.mk-contacts-list-main,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] #mk-dash-main.mk-contacts-list-main {
+	padding: 24px !important;
+	box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+	html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .mk-dash-main.mk-contacts-list-main {
+		padding: 16px !important;
+	}
+}

@@ -225,7 +225,57 @@
 				</section>
 			</div>
 
-			{* 05 Purchase Status and 06 Customer Tier removed per BA request *}
+			<section class="mk-td-card" data-section="purchase-status">
+				<header class="mk-td-card__head">
+					<span class="mk-td-card__num">05</span>
+					<div>
+						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">🛍</span> Purchase Status</h2>
+						<p class="mk-td-card__desc">Xương sống của flow</p>
+					</div>
+				</header>
+				<div class="mk-td-card__body">
+					<div class="mk-td-choice-row mk-td-choice-row--4" role="group" aria-label="Purchase status">
+						<button type="button" class="mk-td-choice mk-td-choice--wide" data-tag="mua_lan_dau" data-group="purchase-status" data-value="first">Mua lần đầu</button>
+						<button type="button" class="mk-td-choice mk-td-choice--wide" data-tag="mua_lai" data-group="purchase-status" data-value="repeat">Mua lại</button>
+						<button type="button" class="mk-td-choice mk-td-choice--wide" data-tag="khong_mua" data-group="purchase-status" data-value="not" data-needs-reason="1">Không mua</button>
+						<button type="button" class="mk-td-choice mk-td-choice--wide" data-tag="ngung_mua" data-group="purchase-status" data-value="stopped" data-needs-reason="1">Ngừng mua</button>
+					</div>
+					<div id="mk-td-purchase-reason" class="mk-td-reason-panel" hidden>
+						<label class="mk-td-label" for="mk-td-purchase-reason-text">Lý do không mua <span class="mk-td-req">*</span></label>
+						<textarea id="mk-td-purchase-reason-text" class="mk-td-textarea mk-td-reason-textarea" rows="4" placeholder="Mô tả lý do để team chăm sóc có script phù hợp..."></textarea>
+					</div>
+					<div id="mk-td-purchase-tag-foot" class="mk-td-card-tag-foot" hidden></div>
+				</div>
+			</section>
+
+			<section class="mk-td-card" data-section="customer-tier">
+				<header class="mk-td-card__head">
+					<span class="mk-td-card__num">06</span>
+					<div>
+						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">👑</span> Customer Tier</h2>
+						<p class="mk-td-card__desc">Vàng / Bạc / Đồng</p>
+					</div>
+				</header>
+				<div class="mk-td-card__body">
+					<div class="mk-td-choice-row mk-td-choice-row--3" role="group" aria-label="Customer tier">
+						<button type="button" class="mk-td-choice mk-td-choice--tier" data-tag="vang" data-group="customer-tier" data-value="gold">
+							<span class="mk-td-tier-ic mk-td-tier-ic--gold">👑</span>
+							<span class="mk-td-choice__label">Vàng</span>
+							<span class="mk-td-choice__hint">tag: vang</span>
+						</button>
+						<button type="button" class="mk-td-choice mk-td-choice--tier" data-tag="bac" data-group="customer-tier" data-value="silver">
+							<span class="mk-td-tier-ic mk-td-tier-ic--silver">👑</span>
+							<span class="mk-td-choice__label">Bạc</span>
+							<span class="mk-td-choice__hint">tag: bac</span>
+						</button>
+						<button type="button" class="mk-td-choice mk-td-choice--tier" data-tag="dong" data-group="customer-tier" data-value="bronze">
+							<span class="mk-td-tier-ic mk-td-tier-ic--bronze">👑</span>
+							<span class="mk-td-choice__label">Đồng</span>
+							<span class="mk-td-choice__hint">tag: dong</span>
+						</button>
+					</div>
+				</div>
+			</section>
 
 		</div>
 
