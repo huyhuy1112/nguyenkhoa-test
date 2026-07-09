@@ -55,10 +55,19 @@
     return ref && ref.categorizeTags ? ref.categorizeTags(tags || []) : {};
   }
 
+  function decodeHtml(s) {
+    var str = String(s == null ? "" : s);
+    if (!str || str.indexOf("&") < 0) return str;
+    var el = document.createElement("textarea");
+    el.innerHTML = str;
+    return el.value;
+  }
+
   function esc(s) {
-    return String(s || "")
+    return decodeHtml(s)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
   }
 
