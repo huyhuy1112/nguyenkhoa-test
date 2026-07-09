@@ -31,6 +31,15 @@
 				<div class="summaryViewFields mk-opportunity-detail-kv-wrap">
 					{$MODULE_SUMMARY}
 				</div>
+				{if !empty($MK_OPP_FULL_ADDRESS)}
+				<div class="mk-opportunity-detail-key-address" aria-label="{vtranslate('LBL_MK_OPP_ADDRESS', 'Potentials')}">
+					<span class="mk-opportunity-detail-key-address__ic" aria-hidden="true">📍</span>
+					<div class="mk-opportunity-detail-key-address__body">
+						<div class="mk-opportunity-detail-key-address__label">{vtranslate('LBL_MK_OPP_ADDRESS', 'Potentials')}</div>
+						<p class="mk-opportunity-detail-key-address__text">{$MK_OPP_FULL_ADDRESS|escape}</p>
+					</div>
+				</div>
+				{/if}
 			</div>
 		</section>
 
@@ -40,14 +49,39 @@
 			</div>
 		</section>
 
-		{if !empty($MK_OPP_FULL_ADDRESS)}
-		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--address mk-opportunity-detail-grid__address" aria-label="{vtranslate('LBL_MK_OPP_ADDRESS', 'Potentials')}">
-			<div class="mk-opportunity-detail-card__head">
-				<h2 class="mk-opportunity-detail-card__title">{vtranslate('LBL_MK_OPP_ADDRESS', 'Potentials')}</h2>
+		{if $COMMENTS_WIDGET_MODEL}
+		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--comments mk-opportunity-detail-grid__comments" aria-labelledby="mk-opportunity-detail-comments-title">
+			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">
+				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
+					<div class="widget_header mk-opportunity-detail-card__head">
+						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
+						<h2 id="mk-opportunity-detail-comments-title" class="mk-opportunity-detail-card__title">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
+					</div>
+					<div class="widget_contents"></div>
+				</div>
 			</div>
-			<div class="mk-opp-address-body">
-				<span class="mk-opp-address-ic" aria-hidden="true">📍</span>
-				<p class="mk-opp-address-text">{$MK_OPP_FULL_ADDRESS|escape}</p>
+		</section>
+		{/if}
+
+		{if $CONTACT_WIDGET_MODEL}
+		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--contacts mk-opportunity-detail-grid__contacts" aria-labelledby="mk-opportunity-detail-contacts-title">
+			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">
+				<div class="widgetContainer_contacts" data-url="{$CONTACT_WIDGET_MODEL->getUrl()}" data-name="{$CONTACT_WIDGET_MODEL->getLabel()}">
+					<div class="widget_header clearfix mk-opportunity-detail-card__head mk-opportunity-detail-contacts__head">
+						<input type="hidden" name="relatedModule" value="{$CONTACT_WIDGET_MODEL->get('linkName')}" />
+						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
+						<h2 id="mk-opportunity-detail-contacts-title" class="mk-opportunity-detail-card__title display-inline-block pull-left">{vtranslate($CONTACT_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
+
+						{if $CONTACT_WIDGET_MODEL->get('action')}
+							<div class="pull-right">
+								<button class="btn addButton btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost createRecord" type="button" data-url="{$CONTACT_WIDGET_MODEL->get('actionURL')}">
+									<i class="fa fa-plus"></i>&nbsp;&nbsp;{vtranslate('LBL_ADD',$MODULE_NAME)}
+								</button>
+							</div>
+						{/if}
+					</div>
+					<div class="widget_contents"></div>
+				</div>
 			</div>
 		</section>
 		{/if}
@@ -105,20 +139,6 @@
 		</section>
 		{/if}
 
-		{if $COMMENTS_WIDGET_MODEL}
-		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--comments mk-opportunity-detail-grid__comments" aria-labelledby="mk-opportunity-detail-comments-title">
-			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">
-				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header mk-opportunity-detail-card__head">
-						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-						<h2 id="mk-opportunity-detail-comments-title" class="mk-opportunity-detail-card__title">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
-					</div>
-					<div class="widget_contents"></div>
-				</div>
-			</div>
-		</section>
-		{/if}
-
 		{if $PRODUCT_WIDGET_MODEL}
 		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--products mk-opportunity-detail-grid__products" aria-labelledby="mk-opportunity-detail-products-title">
 			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">
@@ -131,29 +151,6 @@
 						{if $PRODUCT_WIDGET_MODEL->get('action')}
 							<div class="pull-right">
 								<button class="btn addButton btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost potentialsSummaryProductsServicesAdd" type="button">
-									<i class="fa fa-plus"></i>&nbsp;&nbsp;{vtranslate('LBL_ADD',$MODULE_NAME)}
-								</button>
-							</div>
-						{/if}
-					</div>
-					<div class="widget_contents"></div>
-				</div>
-			</div>
-		</section>
-		{/if}
-
-		{if $CONTACT_WIDGET_MODEL}
-		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--contacts mk-opportunity-detail-grid__contacts" aria-labelledby="mk-opportunity-detail-contacts-title">
-			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">
-				<div class="widgetContainer_contacts" data-url="{$CONTACT_WIDGET_MODEL->getUrl()}" data-name="{$CONTACT_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header clearfix mk-opportunity-detail-card__head mk-opportunity-detail-contacts__head">
-						<input type="hidden" name="relatedModule" value="{$CONTACT_WIDGET_MODEL->get('linkName')}" />
-						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
-						<h2 id="mk-opportunity-detail-contacts-title" class="mk-opportunity-detail-card__title display-inline-block pull-left">{vtranslate($CONTACT_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
-
-						{if $CONTACT_WIDGET_MODEL->get('action')}
-							<div class="pull-right">
-								<button class="btn addButton btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost createRecord" type="button" data-url="{$CONTACT_WIDGET_MODEL->get('actionURL')}">
 									<i class="fa fa-plus"></i>&nbsp;&nbsp;{vtranslate('LBL_ADD',$MODULE_NAME)}
 								</button>
 							</div>

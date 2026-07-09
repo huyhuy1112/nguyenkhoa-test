@@ -8,6 +8,12 @@
  *************************************************************************************/
 
 Vtiger_Detail_Js("Contacts_Detail_Js", {}, {
+	registerMkContactTagShowAll: function () {
+		var $list = jQuery('.mk-contact-detail-hero__tags .detailTagList');
+		if (!$list.length) return;
+		$list.attr('data-num-of-tags-to-show', '999');
+		$list.find('.moreTags').addClass('hide');
+	},
 	registerMkContactTagModalPatch: function () {
 		if (window.__MK_CONTACT_TAG_MODAL_PATCHED__) {
 			return;
@@ -72,6 +78,7 @@ Vtiger_Detail_Js("Contacts_Detail_Js", {}, {
 	registerEvents: function () {
 		var form = this.getForm();
 		this._super();
+		this.registerMkContactTagShowAll();
 		this.registerMkContactTagModalPatch();
 		this.registerAjaxPreSaveEvents(form);
 	}

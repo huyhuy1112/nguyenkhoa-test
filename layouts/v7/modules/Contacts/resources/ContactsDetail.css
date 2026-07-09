@@ -483,6 +483,21 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="dang_tu_van"],
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dang_tu_van"] { background: #f0fdf4; border-color: #86efac; color: #15803d; }
 
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag .tagLabel,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag .tagLabel {
+	max-width: none !important;
+	white-space: nowrap !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	display: inline !important;
+	vertical-align: baseline !important;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .moreTags,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .moreTags {
+	display: none !important;
+}
+
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags #addTagContainer > a,
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags #addTagContainer a,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags #addTagContainer > a,
@@ -504,18 +519,6 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 	background: #f0fdf4;
 	border-color: rgba(8, 160, 69, 0.35);
 	color: #08A045;
-}
-
-body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .moreTags,
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .moreTags {
-	display: inline-flex;
-	align-items: center;
-	padding: 4px 10px;
-	border-radius: 999px;
-	font-size: 12px;
-	font-weight: 600;
-	color: #40627e;
-	text-decoration: none;
 }
 
 /* Contact tag modals */

@@ -239,13 +239,8 @@
 
   function tagStackHtml(tags) {
     var list = tags || [];
-    var shown = list.slice(0, 3);
-    var extra = list.length - shown.length;
-    if (!shown.length) return '<span class="mk-leads-muted">—</span>';
-    return (
-      shown.map(tagBadgeHtml).join("") +
-      (extra > 0 ? '<span class="mk-leads-tag-more">+' + extra + "</span>" : "")
-    );
+    if (!list.length) return '<span class="mk-leads-muted">—</span>';
+    return list.map(tagBadgeHtml).join("");
   }
 
   function tierPill(tags) {

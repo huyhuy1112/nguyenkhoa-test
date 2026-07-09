@@ -111,9 +111,23 @@
 	border-color: #fecaca;
 }
 
+.mk-opps-page .mk-leads-tags-stack {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 4px;
+}
+
 .mk-opps-page .mk-leads-tags-stack .mk-tag {
 	font-size: 10px;
-	padding: 2px 7px;
+	padding: 2px 8px;
+	max-width: none;
+	white-space: nowrap;
+}
+
+.mk-opps-page .mk-leads-td--tags {
+	min-width: 180px;
 }
 
 @media (max-width: 1400px) {

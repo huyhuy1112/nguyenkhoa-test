@@ -59,6 +59,25 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-ap
 .mk-tag--chua-mqbh { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
 .mk-tag--da-tg-free { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
 
+.mk-contacts-page .mk-leads-tags-stack {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 4px;
+}
+
+.mk-contacts-page .mk-leads-tags-stack .mk-tag {
+	font-size: 10px;
+	padding: 2px 8px;
+	max-width: none;
+	white-space: nowrap;
+}
+
+.mk-contacts-page .mk-leads-td--tags {
+	min-width: 180px;
+}
+
 .mk-contacts-page .mk-pill--tier.mk-pill--gold {
 	background: #fef9c3;
 	color: #a16207;

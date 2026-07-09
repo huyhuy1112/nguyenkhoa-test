@@ -1,17 +1,14 @@
 {* Potentials SALES — tag strip + modals (Lovable chips) *}
 <div class="tagContainer mk-opp-tag-container">
     <div class="tag-contents {if empty($TAGS_LIST)} hide{/if}">
-        <div class="detailTagList" data-num-of-tags-to-show="{Vtiger_Tag_Model::NUM_OF_TAGS_DETAIL}">
-            {foreach from=$TAGS_LIST item=TAG_MODEL name=tagCounter}
-                {if $smarty.foreach.tagCounter.iteration gt Vtiger_Tag_Model::NUM_OF_TAGS_DETAIL}
-                     {break}
-                {/if}
+        <div class="detailTagList" data-num-of-tags-to-show="999">
+            {foreach from=$TAGS_LIST item=TAG_MODEL}
                 {assign var=TAG_LABEL value=$TAG_MODEL->getName()}
                 {include file="Tag.tpl"|vtemplate_path:$MODULE}
             {/foreach}
 
-            <a href="javascript:void(0);" class="moreTags mk-opp-tags-more {if php7_count($TAGS_LIST) <= Vtiger_Tag_Model::NUM_OF_TAGS_DETAIL } hide {/if}">
-                <span class="tagMoreCount">{php7_count($TAGS_LIST)-Vtiger_Tag_Model::NUM_OF_TAGS_DETAIL}</span>
+            <a href="javascript:void(0);" class="moreTags mk-opp-tags-more hide" aria-hidden="true">
+                <span class="tagMoreCount">0</span>
                 &nbsp;{vtranslate('LBL_MORE',$MODULE)|strtolower}
             </a>
         </div>

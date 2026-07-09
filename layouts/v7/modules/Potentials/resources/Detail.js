@@ -66,6 +66,7 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			document.body.classList.add('mk-opportunity-detail-ui-ready');
 			this.decodeSummaryKeyFields();
 			this.registerConvertToCustomer();
+			this.registerMkOppTagShowAll();
 			this.registerMkOppTagModalPatch();
 		}
 	},
@@ -182,6 +183,13 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			&& body.getAttribute('data-module') === 'Potentials'
 			&& body.getAttribute('data-view') === 'Detail'
 		);
+	},
+
+	registerMkOppTagShowAll : function() {
+		var $list = jQuery('.mk-opportunity-detail-hero__tags .detailTagList');
+		if (!$list.length) return;
+		$list.attr('data-num-of-tags-to-show', '999');
+		$list.find('.moreTags').addClass('hide');
 	},
 
 	registerMkOppTagModalPatch : function() {
