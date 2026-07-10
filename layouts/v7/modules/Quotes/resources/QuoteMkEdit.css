@@ -107,8 +107,20 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] #overlayPageC
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-hide-legacy,
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-hide-legacy {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-hide-legacy,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.mk-qt-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table td.mk-qt-hide-legacy,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.mk-qt-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.mk-qt-hide-legacy,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table tr.mk-qt-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table tr.mk-qt-hide-legacy {
 	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	border: none !important;
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-footer,

@@ -1,16 +1,11 @@
 <?php
 /*+***********************************************************************************
- * The contents of this file are subject to the vtiger CRM Public License Version 1.0
- * ("License"); You may not use this file except in compliance with the License
- * The Original Code is:  vtiger CRM Open Source
- * The Initial Developer of the Original Code is vtiger.
- * Portions created by vtiger are Copyright (C) vtiger.
- * All Rights Reserved.
+ * SalesOrder Excel export — same Arial layout as Quotes, order naming.
  *************************************************************************************/
 
 require_once 'modules/Quotes/helpers/QuoteExcelExport.php';
 
-class Quotes_ExportExcelForSale_Action extends Vtiger_Action_Controller {
+class SalesOrder_ExportExcelForSale_Action extends Vtiger_Action_Controller {
 
 	public function requiresPermission(\Vtiger_Request $request) {
 		$permissions = parent::requiresPermission($request);
@@ -32,8 +27,8 @@ class Quotes_ExportExcelForSale_Action extends Vtiger_Action_Controller {
 		try {
 			require_once 'libraries/PHPExcel/PHPExcel.php';
 
-			$objPHPExcel = Quotes_QuoteExcelExport_Helper::buildSaleWorkbook($focus, $moduleName);
-			$fileName = Quotes_QuoteExcelExport_Helper::buildSaleFilename($focus, $recordId, $moduleName);
+			$objPHPExcel = Quotes_QuoteExcelExport_Helper::buildSaleWorkbook($focus, 'SalesOrder');
+			$fileName = Quotes_QuoteExcelExport_Helper::buildSaleFilename($focus, $recordId, 'SalesOrder');
 
 			header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 			header('Content-Disposition: attachment;filename="' . $fileName . '"');

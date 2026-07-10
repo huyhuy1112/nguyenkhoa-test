@@ -15,10 +15,18 @@
 	</div>
 	<div class="mk-so-pos-toolbar__actions">
 		{assign var=ADD_ACTION value=false}
+		{assign var=DELETE_ACTION value=false}
 		{if $MODULE_BASIC_ACTIONS|@count gt 0}
 			{foreach item=BASIC_ACTION from=$MODULE_BASIC_ACTIONS}
 				{if $BASIC_ACTION->getLabel() == 'LBL_ADD_RECORD'}
 					{assign var=ADD_ACTION value=$BASIC_ACTION}
+				{/if}
+			{/foreach}
+		{/if}
+		{if isset($LISTVIEW_MASSACTIONS) && $LISTVIEW_MASSACTIONS|@count gt 0}
+			{foreach item=MASS_ACTION from=$LISTVIEW_MASSACTIONS}
+				{if $MASS_ACTION->getLabel() == 'LBL_DELETE'}
+					{assign var=DELETE_ACTION value=$MASS_ACTION}
 				{/if}
 			{/foreach}
 		{/if}
@@ -31,6 +39,26 @@
 					{/if}>
 				<i class="fa fa-plus" aria-hidden="true"></i>
 				<span>{vtranslate($ADD_ACTION->getLabel(), $MODULE)}</span>
+			</button>
+		{/if}
+		<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline mk-qt-pos-mass-dup-btn mk-so-pos-mass-action" id="mk-qt-mass-duplicate-btn" disabled="disabled" aria-hidden="true" title="Nhân bản các báo giá đã chọn"
+				onclick="if (window.mkQtMassDuplicateQuotes) window.mkQtMassDuplicateQuotes(); return false;">
+			<i class="fa fa-copy" aria-hidden="true"></i>
+			<span>Nhân bản</span>
+		</button>
+		{if $DELETE_ACTION}
+			<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline mk-qt-pos-mass-delete-btn mk-so-pos-mass-action" id="mk-qt-mass-delete-btn" disabled="disabled" aria-hidden="true"
+					onclick="if (window.mkQtMassDeleteQuotes) window.mkQtMassDeleteQuotes(); return false;"
+					title="Xóa các báo giá đã chọn">
+				<i class="fa fa-trash" aria-hidden="true"></i>
+				<span>Xóa</span>
+			</button>
+		{else}
+			<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline mk-qt-pos-mass-delete-btn mk-so-pos-mass-action" id="mk-qt-mass-delete-btn" disabled="disabled" aria-hidden="true"
+					onclick="if (window.mkQtMassDeleteQuotes) window.mkQtMassDeleteQuotes(); return false;"
+					title="Xóa các báo giá đã chọn">
+				<i class="fa fa-trash" aria-hidden="true"></i>
+				<span>Xóa</span>
 			</button>
 		{/if}
 		<button type="button" class="mk-so-pos-icon-btn mk-qt-pos-trigger-columns" title="Cột hiển thị" aria-label="Cột hiển thị">

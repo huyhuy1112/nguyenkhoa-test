@@ -50,12 +50,21 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 			return '';
 		}
 
-		$this->showLineItemDetails($request);
-
 		$moduleName = 'SalesOrder';
 		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
 		$recordModel = Inventory_Record_Model::getInstanceById($recordId, $moduleName);
+		$this->repairMissingAccountFromQuote($recordModel);
+		$rawProducts = $recordModel->getProducts();
+
+		$this->showLineItemDetails($request);
+
 		$viewer = $this->getViewer($request);
+		$relatedProducts = $viewer->getTemplateVars('RELATED_PRODUCTS');
+		if (!is_array($relatedProducts) || empty($relatedProducts)) {
+			$relatedProducts = $rawProducts;
+		}
+		$relatedProducts = $this->normalizeInlineMoneyTotals($relatedProducts, $rawProducts, $recordModel);
+		$viewer->assign('RELATED_PRODUCTS', $relatedProducts);
 
 		$viewer->assign('RECORD', $recordModel);
 		$viewer->assign('MODULE', $moduleName);
@@ -68,12 +77,156 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('INLINE_ASSIGNED_USERS', $currentUser->getAccessibleUsersForModule($moduleName));
 		$viewer->assign('INLINE_BRANCH_LABEL', $this->resolveInlineBranchLabel($recordModel, $moduleModel));
 		$viewer->assign('INLINE_PAID_FIELD', $this->resolveInlinePaidFieldName($moduleModel));
+		$viewer->assign('INLINE_CUSTOMER_NAME', $this->resolveInlineCustomerName($recordModel));
 		$viewer->assign('INLINE_EDIT_URL', $recordModel->getEditViewUrl() . '&app=SALES');
 		$viewer->assign('INLINE_DETAIL_URL', $recordModel->getDetailViewUrl() . '&app=SALES');
 		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=SalesOrder&action=ExportPDF&record=' . (int) $recordId . '&preview=1');
 		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=SalesOrder&action=ExportPDF&record=' . (int) $recordId);
+		$viewer->assign('INLINE_CREATED_DATE', $recordModel->getDisplayValue('createdtime'));
+		$viewer->assign('INLINE_AMOUNT_WORDS', isset($relatedProducts[1]['final_details']['amount_in_words'])
+			? $relatedProducts[1]['final_details']['amount_in_words'] : '');
 
 		return $viewer->view('partials/ListInlineDetail.tpl', $moduleName, true);
+	}
+
+	/**
+	 * Repair SO created from quote that missed accountid (failed/partial confirm).
+	 */
+	protected function repairMissingAccountFromQuote(Vtiger_Record_Model $recordModel) {
+		$db = PearDatabase::getInstance();
+		$accountId = (int) $recordModel->get('account_id');
+		$contactId = (int) $recordModel->get('contact_id');
+		if ($accountId > 0 && $contactId > 0) {
+			return;
+		}
+		// Also try potential on the SO itself when quote is gone.
+		if ($contactId <= 0) {
+			$potentialId = (int) $recordModel->get('potential_id');
+			if ($potentialId > 0) {
+				require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+				$potContactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId($potentialId);
+				if ($potContactId > 0) {
+					$soId = (int) $recordModel->getId();
+					$db->pquery('UPDATE vtiger_salesorder SET contactid = ? WHERE salesorderid = ?', array($potContactId, $soId));
+					$recordModel->set('contact_id', $potContactId);
+					$contactId = $potContactId;
+				}
+			}
+		}
+		if ($accountId > 0 && $contactId > 0) {
+			return;
+		}
+		$quoteId = (int) $recordModel->get('quote_id');
+		if ($quoteId <= 0) {
+			return;
+		}
+		$rs = $db->pquery('SELECT accountid, contactid, potentialid FROM vtiger_quotes WHERE quoteid = ?', array($quoteId));
+		if (!$rs || $db->num_rows($rs) <= 0) {
+			return;
+		}
+		$quoteAccountId = (int) $db->query_result($rs, 0, 'accountid');
+		$quoteContactId = (int) $db->query_result($rs, 0, 'contactid');
+		$quotePotentialId = (int) $db->query_result($rs, 0, 'potentialid');
+		if ($quoteContactId <= 0 && $quotePotentialId > 0) {
+			require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+			$quoteContactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId($quotePotentialId);
+		}
+		if ($quoteAccountId <= 0 && $quoteContactId <= 0) {
+			return;
+		}
+		$soId = (int) $recordModel->getId();
+		$db->pquery(
+			'UPDATE vtiger_salesorder SET
+				accountid = IF(? > 0, ?, accountid),
+				contactid = IF(? > 0, ?, contactid)
+			 WHERE salesorderid = ?',
+			array($quoteAccountId, $quoteAccountId, $quoteContactId, $quoteContactId, $soId)
+		);
+		if ($quoteAccountId > 0) {
+			$recordModel->set('account_id', $quoteAccountId);
+		}
+		if ($quoteContactId > 0) {
+			$recordModel->set('contact_id', $quoteContactId);
+		}
+	}
+
+	protected function resolveInlineCustomerName(Vtiger_Record_Model $recordModel) {
+		require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+		$name = Vtiger_MkSalesCustomerName_Helper::resolveDisplayName($recordModel);
+		return $name !== '' ? $name : '—';
+	}
+
+	/**
+	 * Rebuild display totals from line amounts when header totals are out of scale.
+	 */
+	protected function normalizeInlineMoneyTotals(array $displayProducts, array $rawProducts, Vtiger_Record_Model $recordModel) {
+		if (empty($rawProducts[1]['final_details']) || empty($displayProducts[1]['final_details'])) {
+			return $displayProducts;
+		}
+
+		$lineSubTotal = 0.0;
+		$productsCount = php7_count($rawProducts);
+		for ($i = 1; $i <= $productsCount; $i++) {
+			if (!isset($rawProducts[$i])) {
+				continue;
+			}
+			$lineSubTotal += (float) $rawProducts[$i]['productTotal' . $i];
+		}
+
+		$rawFinal = $rawProducts[1]['final_details'];
+		$headerSubTotal = (float) $rawFinal['hdnSubTotal'];
+		$discount = (float) $rawFinal['discountTotal_final'];
+		$tax = (float) $rawFinal['tax_totalamount'];
+		$shipping = (float) $rawFinal['shipping_handling_charge'];
+		$adjustment = (float) $rawFinal['adjustment'];
+		$grand = (float) $rawFinal['grandTotal'];
+
+		$scale = 1.0;
+		if ($lineSubTotal > 0 && $headerSubTotal > 0 && $lineSubTotal > ($headerSubTotal * 50)) {
+			$scale = $lineSubTotal / $headerSubTotal;
+		}
+
+		$subTotal = $lineSubTotal > 0 ? $lineSubTotal : ($headerSubTotal * $scale);
+		$discount *= $scale;
+		$tax *= $scale;
+		$shipping *= $scale;
+		$adjustment *= $scale;
+		$discountAmountFinal = ((float) $rawFinal['discount_amount_final']) * $scale;
+
+		$computedGrand = $subTotal - $discount + $tax + $shipping + $adjustment;
+		if ($grand > 0) {
+			$grand *= $scale;
+		}
+		if ($grand <= 0 || ($subTotal > 1000 && $grand < ($subTotal * 0.5))) {
+			$grand = $computedGrand;
+		}
+		if ($tax <= 0 && $grand > ($subTotal - $discount + $shipping + $adjustment)) {
+			$tax = $grand - ($subTotal - $discount + $shipping + $adjustment);
+		}
+		if ($tax < 0) {
+			$tax = 0;
+		}
+
+		$formatMoney = function ($value) {
+			return Vtiger_Currency_UIType::transformDisplayValue($value, null, true);
+		};
+
+		$displayProducts[1]['final_details']['hdnSubTotal'] = $formatMoney($subTotal);
+		$displayProducts[1]['final_details']['discountTotal_final'] = $formatMoney($discount);
+		$displayProducts[1]['final_details']['discount_amount_final'] = $formatMoney($discountAmountFinal);
+		$displayProducts[1]['final_details']['tax_totalamount'] = $formatMoney($tax);
+		$displayProducts[1]['final_details']['shipping_handling_charge'] = $formatMoney($shipping);
+		$displayProducts[1]['final_details']['adjustment'] = $formatMoney($adjustment);
+		$displayProducts[1]['final_details']['grandTotal'] = $formatMoney($grand);
+
+		if (file_exists('modules/Quotes/helpers/QuoteBaService.php')) {
+			require_once 'modules/Quotes/helpers/QuoteBaService.php';
+			if (class_exists('Quotes_QuoteBaService_Helper') && method_exists('Quotes_QuoteBaService_Helper', 'amountInWordsVi')) {
+				$displayProducts[1]['final_details']['amount_in_words'] = Quotes_QuoteBaService_Helper::amountInWordsVi($grand);
+			}
+		}
+
+		return $displayProducts;
 	}
 
 	protected function resolveInlinePaidFieldName(Vtiger_Module_Model $moduleModel) {
@@ -289,7 +442,7 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 			array(
 				'names' => array('pricebook_id'),
 				'label' => 'Bảng giá',
-				'label_hints' => array('Bảng giá', 'Price Book', 'List Price', 'PriceBooks'),
+				'label_hints' => array('Bảng giá', 'Price Book', 'PriceBooks'),
 			),
 			array(
 				'names' => array('createdtime'),
@@ -340,6 +493,11 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 			);
 			if (!$fieldModel) {
 				continue;
+			}
+			if ($label === 'Bảng giá') {
+				if ($fieldModel->getName() !== 'pricebook_id' || (int) $recordModel->get('pricebook_id') <= 0) {
+					continue;
+				}
 			}
 			$fields[] = $this->buildInlineInfoFieldEntry($moduleModel, $recordModel, $fieldModel, $label);
 			$seenLabels[$label] = true;

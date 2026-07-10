@@ -19,7 +19,7 @@
 					{else}
 						<h1 class="mk-qt-sticky-head__title">{vtranslate('LBL_CREATING_NEW', $MODULE)} {vtranslate('SINGLE_Quotes', $MODULE)}</h1>
 					{/if}
-					<span class="mk-qt-badge mk-qt-badge--stage" id="mkQtHeadStageBadge">Draft</span>
+					<span class="mk-qt-badge mk-qt-badge--stage" id="mkQtHeadStageBadge">Nháp</span>
 				</div>
 				<div class="mk-qt-autosave" id="mkQtAutosave" aria-live="polite">
 					<span class="mk-qt-autosave__dot" aria-hidden="true"></span>
@@ -94,19 +94,46 @@
 					}
 				}
 				var hideFieldNames = [
-					'carrier', 'shipping', 'inventorymanager', 'assigned_user_id1', 'description',
+					'carrier', 'shipping', 'inventorymanager', 'assigned_user_id1', 'description', 'quotestage',
 					'bill_pobox', 'bill_city', 'bill_state', 'bill_code', 'bill_country',
 					'ship_pobox', 'ship_city', 'ship_state', 'ship_code', 'ship_country'
 				];
 				hideFieldNames.forEach(function (name) {
-					var field = host.querySelector('[name="' + name + '"]');
-					if (field) {
+					host.querySelectorAll('[name="' + name + '"], [name="' + name + '_display"]').forEach(function (field) {
+						var valueTd = field.closest('td.fieldValue');
+						if (valueTd) {
+							valueTd.classList.add('mk-qt-hide-legacy');
+							var labelTd = valueTd.previousElementSibling;
+							if (labelTd && labelTd.classList && labelTd.classList.contains('fieldLabel')) {
+								labelTd.classList.add('mk-qt-hide-legacy');
+							}
+							return;
+						}
 						var row = field.closest('tr');
 						if (row) {
 							row.classList.add('mk-qt-hide-legacy');
 						}
-					}
+					});
 				});
+				var contact = host.querySelector('[name="contact_id"], [name="contact_id_display"]');
+				if (contact) {
+					var cValue = contact.closest('td.fieldValue');
+					if (cValue) {
+						cValue.classList.remove('mk-qt-hide-legacy');
+						var cLabel = cValue.previousElementSibling;
+						if (cLabel && cLabel.classList && cLabel.classList.contains('fieldLabel')) {
+							cLabel.classList.remove('mk-qt-hide-legacy');
+							var lab = cLabel.querySelector('label');
+							if (lab) {
+								lab.textContent = 'Người liên hệ';
+							}
+						}
+						var cRow = cValue.closest('tr');
+						if (cRow) {
+							cRow.classList.remove('mk-qt-hide-legacy');
+						}
+					}
+				}
 				var addrBlock = host.querySelector('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]');
 				if (addrBlock) {
 					addrBlock.classList.add('mk-qt-address-simplified');
@@ -124,14 +151,14 @@
 				<dl class="mk-qt-summary-list">
 					<div class="mk-qt-summary-list__row">
 						<dt>Pipeline stage</dt>
-						<dd id="mkQtRailStage">—</dd>
+						<dd id="mkQtRailStage">Nháp</dd>
 					</div>
 					<div class="mk-qt-summary-list__row">
 						<dt>Valid until</dt>
 						<dd id="mkQtRailValidUntil">—</dd>
 					</div>
 					<div class="mk-qt-summary-list__row">
-						<dt>Organization</dt>
+						<dt>Người liên hệ</dt>
 						<dd id="mkQtRailOrganization">—</dd>
 					</div>
 					<div class="mk-qt-summary-list__row">

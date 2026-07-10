@@ -27,6 +27,11 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 			$listViewRecordModels[$recordId] = $recordModel;
 		}
 
+		require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+		foreach ($listViewRecordModels as $recordId => $recordModel) {
+			$listViewRecordModels[$recordId] = Vtiger_MkSalesCustomerName_Helper::applyListCustomerColumn($recordModel);
+		}
+
 		return $listViewRecordModels;
 	}
 
@@ -64,6 +69,9 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 		if ($lineSubTotal > ($headerSubTotal * 50)) {
 			$scale = $lineSubTotal / $headerSubTotal;
 			return ($headerTotal > 0 ? $headerTotal : $headerSubTotal) * $scale;
+		}
+		if ($headerTotal > 0 && $headerTotal < ($lineSubTotal * 0.5)) {
+			return $lineSubTotal;
 		}
 
 		return null;

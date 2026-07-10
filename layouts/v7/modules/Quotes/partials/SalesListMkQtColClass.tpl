@@ -6,7 +6,7 @@
 	{assign var=MK_QT_COL_CLASS value='mk-so-col-order-no'}
 {elseif $FIELD_NAME eq 'createdtime'}
 	{assign var=MK_QT_COL_CLASS value='mk-so-col-time'}
-{elseif $FIELD_NAME eq 'account_id'}
+{elseif $FIELD_NAME eq 'account_id' || $FIELD_NAME eq 'contact_id'}
 	{assign var=MK_QT_COL_CLASS value='mk-so-col-customer'}
 {elseif $FIELD_NAME eq 'potential_id'}
 	{assign var=MK_QT_COL_CLASS value='mk-so-col-customer'}

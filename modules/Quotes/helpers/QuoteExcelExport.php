@@ -315,6 +315,9 @@ class Quotes_QuoteExcelExport_Helper {
 		}
 
 		$quoteNo = $focus->column_fields['quote_no'] ?? '';
+		if ($quoteNo === '' && !empty($focus->column_fields['salesorder_no'])) {
+			$quoteNo = $focus->column_fields['salesorder_no'];
+		}
 		$quoteDate = $focus->column_fields['mk_quote_date'] ?? '';
 		if ($quoteDate === '' && !empty($focus->column_fields['createdtime'])) {
 			$quoteDate = date('d/m/Y', strtotime($focus->column_fields['createdtime']));
@@ -368,11 +371,15 @@ class Quotes_QuoteExcelExport_Helper {
 
 		$ctx = self::gatherQuoteContext($focus);
 		$company = $ctx['company'];
+		$isSalesOrder = ($moduleName === 'SalesOrder');
+		$sheetTitle = $isSalesOrder ? 'Don hang' : 'Bao gia';
+		$docTitle = $isSalesOrder ? 'HÓA ĐƠN ĐẶT HÀNG' : 'HÓA ĐƠN ĐẶT HÀNG';
+		$docNoLabel = $isSalesOrder ? 'Mã đơn hàng: ' : 'Mã đơn hàng: ';
 
 		$book = new PHPExcel();
 		$book->getDefaultStyle()->getFont()->setName(self::FONT)->setSize(10);
 		$sheet = $book->setActiveSheetIndex(0);
-		$sheet->setTitle('Bao gia');
+		$sheet->setTitle($sheetTitle);
 
 		foreach (array('A' => 2, 'B' => 6, 'C' => 14, 'D' => 18, 'E' => 12, 'F' => 14, 'G' => 10, 'H' => 16) as $col => $width) {
 			$sheet->getColumnDimension($col)->setWidth($width);
@@ -414,15 +421,15 @@ class Quotes_QuoteExcelExport_Helper {
 		$sheet->getStyle('B5')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 		$sheet->mergeCells('B7:H7');
-		$sheet->setCellValue('B7', 'HÓA ĐƠN ĐẶT HÀNG');
+		$sheet->setCellValue('B7', $docTitle);
 		$sheet->getStyle('B7')->applyFromArray(array(
 			'font' => array('bold' => true, 'size' => 13, 'name' => self::FONT),
 			'alignment' => array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER),
 		));
 
-		$docNo = $ctx['quote_no'] !== '' ? $ctx['quote_no'] : ('DH' . $focus->id);
+		$docNo = $ctx['quote_no'] !== '' ? $ctx['quote_no'] : (($isSalesOrder ? 'SO' : 'DH') . $focus->id);
 		$sheet->mergeCells('B8:H8');
-		$sheet->setCellValue('B8', 'Mã đơn hàng: ' . $docNo);
+		$sheet->setCellValue('B8', $docNoLabel . $docNo);
 		$sheet->getStyle('B8')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 		$sheet->mergeCells('B9:H9');
@@ -589,7 +596,8 @@ class Quotes_QuoteExcelExport_Helper {
 		return $book;
 	}
 
-	public static function buildSaleFilename(CRMEntity $focus, $recordId) {
+	public static function buildSaleFilename(CRMEntity $focus, $recordId, $moduleName = 'Quotes') {
+		$isSalesOrder = ($moduleName === 'SalesOrder');
 		$fileBase = '';
 		$potentialId = isset($focus->column_fields['potential_id']) ? (int) $focus->column_fields['potential_id'] : 0;
 		if ($potentialId > 0) {
@@ -607,12 +615,20 @@ class Quotes_QuoteExcelExport_Helper {
 		}
 		$fileBase = trim(self::decode($fileBase));
 		if ($fileBase === '') {
-			$fileBase = 'Quote_' . $recordId;
+			$docNo = '';
+			if ($isSalesOrder && !empty($focus->column_fields['salesorder_no'])) {
+				$docNo = self::decode($focus->column_fields['salesorder_no']);
+			} elseif (!empty($focus->column_fields['quote_no'])) {
+				$docNo = self::decode($focus->column_fields['quote_no']);
+			}
+			$fileBase = $docNo !== '' ? $docNo : (($isSalesOrder ? 'SalesOrder_' : 'Quote_') . $recordId);
 		}
 		$fileBase = preg_replace('/^\d{6}-/', '', $fileBase);
 		$fileBase = trim($fileBase);
-		if ($fileBase !== '' && !preg_match('/^NK Quo-/i', $fileBase)) {
-			$fileBase = 'NK Quo-' . $fileBase;
+		$prefix = $isSalesOrder ? 'NK SO-' : 'NK Quo-';
+		$prefixPattern = $isSalesOrder ? '/^NK SO-/i' : '/^NK Quo-/i';
+		if ($fileBase !== '' && !preg_match($prefixPattern, $fileBase)) {
+			$fileBase = $prefix . $fileBase;
 		}
 		$fileBase = preg_replace('/[^\p{L}\p{N}\s\-\_\.]/u', '_', $fileBase);
 		$fileBase = preg_replace('/\s+/', ' ', $fileBase);

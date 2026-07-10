@@ -156,12 +156,24 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 
 	public function saveRecord($request) {
 		$this->assertQuoteCanCreateSalesOrder($request);
-		$isCreate = empty($request->get('record'));
+		try {
+			$contactId = (int) $request->get('contact_id');
+			$potentialId = (int) $request->get('potential_id');
+			if ($contactId <= 0 && $potentialId > 0) {
+				require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+				$potContactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId($potentialId);
+				if ($potContactId > 0) {
+					$request->set('contact_id', $potContactId);
+					$request->set('contact_id_display', Vtiger_MkSalesCustomerName_Helper::readContactNameById($potContactId));
+				}
+			}
+		} catch (Exception $e) {
+			// keep default save behavior
+		}
 		$recordModel = parent::saveRecord($request);
 		$this->ensurePotentialCommerceLink($request, $recordModel);
-		if ($isCreate && !$this->isToolsOrdersContext($request)) {
-			$this->createOutboundFromSalesOrder($request, $recordModel);
-		}
+		// Outbound (phiếu xuất kho) is created only when the order is confirmed,
+		// not on create — new orders stay as Phiếu tạm (Created).
 		return $recordModel;
 	}
 
@@ -247,6 +259,11 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 			$potentialId = $this->resolvePotentialIdFromRequest($request, $recordModel);
 			if ($potentialId > 0 && (int) $recordModel->get('potential_id') <= 0) {
 				$recordModel->set('potential_id', $potentialId);
+			}
+			// New sales orders (create / from quote) always start as Phiếu tạm.
+			$recordId = (int) $request->get('record');
+			if ($recordId <= 0) {
+				$recordModel->set('sostatus', 'Created');
 			}
 			return $recordModel;
 		}

@@ -565,9 +565,28 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-ta
 	outline: none !important;
 }
 
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table select.mk-inv-product-native:disabled {
-	opacity: 0.65;
-	cursor: wait;
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table select.mk-inv-product-select.select2-offscreen,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table select.mk-inv-product-native.select2-offscreen {
+	display: none !important;
+	position: absolute !important;
+	left: -10000px !important;
+	width: 1px !important;
+	height: 1px !important;
+	min-height: 0 !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+	border: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	background: transparent !important;
+	appearance: none !important;
+	-webkit-appearance: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .itemNameDiv .select2-container {
+	display: block !important;
+	visibility: visible !important;
+	width: 100% !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .qty,
@@ -588,6 +607,38 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* Inside money wrap: only the wrap has the chrome — never double-border the input */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap .listPrice,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap input[name^="listPrice"],
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap .mk-inv-money-input,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-money-wrap .listPrice,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-money-wrap input[name^="listPrice"],
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-money-wrap .mk-inv-money-input,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines.mk-inv-odoo-lines-table .mk-inv-col-price .mk-inv-money-wrap .listPrice,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines.mk-inv-odoo-lines-table .mk-inv-col-price .mk-inv-money-wrap .mk-inv-money-input,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow > td.mk-inv-col-price .mk-inv-money-wrap .listPrice,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow > td.mk-inv-col-price .mk-inv-money-wrap .mk-inv-money-input {
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	outline: none !important;
+	padding: 8px 0 !important;
+	min-height: 40px !important;
+	height: auto !important;
+	width: 100% !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap .productTotal,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-amount .mk-inv-money-wrap .productTotal {
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	padding: 8px 0 !important;
+	min-width: 0 !important;
+	display: block !important;
+}
+
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-qty .qty,
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-qty input[name^="qty"] {
 	text-align: center;
@@ -599,17 +650,6 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 	font-weight: 700;
 	color: #0f172a;
 	font-variant-numeric: tabular-nums;
-}
-
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-amount .productTotal {
-	display: inline-block;
-	min-width: 0;
-	padding: 10px 12px;
-	background: #f8fafc;
-	border: 1px solid #e8edf3;
-	border-radius: 10px;
-	font-size: 14px;
-	line-height: 1.2;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-tax-select {
@@ -636,28 +676,57 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap {
 	display: inline-flex;
 	align-items: center;
 	justify-content: flex-end;
-	gap: 4px;
+	gap: 0;
 	width: 100%;
 	max-width: none;
 	margin-left: auto;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 0 10px 0 12px;
+	min-height: 42px;
+	box-sizing: border-box;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap:focus-within {
+	border-color: #08a045;
+	background: #fff;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.10);
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap--total {
 	max-width: 180px;
+	background: #f1f5f9;
+	pointer-events: none;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-input,
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap .productTotal {
 	flex: 1 1 auto;
 	min-width: 0;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	text-align: right !important;
+	font-weight: 700 !important;
+	font-variant-numeric: tabular-nums;
+	padding: 8px 0 !important;
+	min-height: 40px !important;
 }
 
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-suffix {
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-prefix {
 	flex: 0 0 auto;
 	font-size: 13px;
 	font-weight: 700;
 	color: #64748b;
 	white-space: nowrap;
+	margin-right: 6px;
+	line-height: 1;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-suffix {
+	display: none !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines > tr:first-child td.mk-inv-col-tax-head strong,
@@ -804,8 +873,50 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lineitems-odo
 /* —— v3 Odoo overrides —— */
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tabs {
 	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
 	border-bottom: 2px solid #e2e8f0;
 	margin-bottom: 0;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-header-actions,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-qt-line-actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+	margin-left: auto;
+	flex-shrink: 0;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-header-actions .mk-inv-add-line-btn,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-qt-line-actions .mk-inv-add-line-btn {
+	margin: 0 !important;
+	padding: 8px 14px !important;
+	border: 1px solid #bbf7d0 !important;
+	border-radius: 999px !important;
+	background: #ecfdf3 !important;
+	color: #15803d !important;
+	font-weight: 700 !important;
+	font-size: 13px !important;
+	line-height: 1.2 !important;
+	box-shadow: none !important;
+	white-space: nowrap;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-header-actions .mk-inv-add-line-btn:hover,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-qt-line-actions .mk-inv-add-line-btn:hover {
+	background: #dcfce7 !important;
+	border-color: #86efac !important;
+	color: #166534 !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-add-line-btn.is-busy,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-add-line-btn:disabled {
+	opacity: 0.65;
+	cursor: wait !important;
+	pointer-events: none;
+	transform: none !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tab {
@@ -1072,29 +1183,31 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row td {
 	border: none !important;
-	padding: 8px 0 !important;
+	padding: 9px 0 !important;
 	background: transparent !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand td {
 	font-size: 16px;
-	padding-top: 12px !important;
+	padding-top: 14px !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--tax td {
-	border-bottom: 1px solid #e2e8f0 !important;
-	padding-bottom: 10px !important;
+	border-bottom: 1px solid rgba(148, 163, 184, 0.28) !important;
+	padding-bottom: 14px !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row td:last-child,
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row td:nth-child(2) {
 	text-align: right;
 	font-variant-numeric: tabular-nums;
+	white-space: nowrap !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .grandTotal,
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand #grandTotal {
 	font-weight: 800;
+	white-space: nowrap !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-qt-block--totals,
@@ -1174,8 +1287,18 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-row--stock-wa
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-add-line-btn {
-	margin-top: 10px;
+	margin-top: 0;
 	padding: 8px 0 !important;
+}
+
+/* Keep product Select2 dropdown unclipped by table/card overflow */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lines-card,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .lineitemTableContainer,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-product,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table td.mk-inv-col-product,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .itemNameDiv,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .itemNameDiv .col-lg-10 {
+	overflow: visible !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .individualDiscount,
@@ -1292,8 +1415,13 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-ta
 	display: flex !important;
 	align-items: center;
 	padding: 0 36px 0 14px !important;
-	transition: border-color 0.2s, box-shadow 0.2s;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 	color: #334155;
+	overflow: hidden;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .select2-container.select2-allowclear .select2-choice {
+	padding-left: 28px !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .select2-container.select2-container-active .select2-choice {
@@ -1302,10 +1430,28 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-ta
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .select2-container .select2-chosen {
-	color: #334155 !important;
-	font-weight: 500;
+	color: #0f172a !important;
+	font-weight: 600;
 	line-height: 40px !important;
 	margin: 0 !important;
+	padding-right: 8px !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .select2-container .select2-search-choice-close {
+	top: 50% !important;
+	left: 8px !important;
+	margin-top: -7px !important;
+	width: 14px !important;
+	height: 14px !important;
+	opacity: 0.55;
+	background-position: center !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .select2-container .select2-search-choice-close:hover {
+	opacity: 1;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .select2-container .select2-arrow {
@@ -1330,91 +1476,125 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-ta
 }
 
 /* ── Select2 v3 dropdown panel (appended to body) ── */
-.select2-drop.select2-drop-active {
+.select2-drop.select2-drop-active.mk-inv-s2-drop,
+.select2-drop.mk-inv-s2-drop {
 	z-index: 2147483640 !important;
 	border: 1.5px solid #e2e8f0 !important;
 	border-radius: 12px !important;
-	box-shadow: 0 10px 40px rgba(15, 23, 42, 0.14), 0 2px 10px rgba(15, 23, 42, 0.06) !important;
+	box-shadow: 0 12px 36px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.06) !important;
 	margin-top: 4px !important;
 	overflow: hidden;
 	background: #fff !important;
+	min-width: 280px;
 }
 
-.select2-drop.mk-inv-s2-drop .select2-search {
-	display: none !important;
+.select2-drop.mk-inv-s2-drop .select2-search,
+.select2-drop.mk-inv-s2-drop.mk-inv-s2-search .select2-search {
+	display: block !important;
+	padding: 10px 12px 8px !important;
+	background: #fff !important;
+	border-bottom: 1px solid #f1f5f9;
+}
+
+.select2-drop.mk-inv-s2-drop .select2-search input.select2-input {
+	border: 1.5px solid #e2e8f0 !important;
+	border-radius: 10px !important;
+	padding: 10px 40px 10px 12px !important;
+	font-size: 14px !important;
+	font-weight: 500 !important;
+	color: #0f172a !important;
+	background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat right 12px center !important;
+	background-size: 16px 16px !important;
+	outline: none !important;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+	width: 100% !important;
+	box-sizing: border-box !important;
+	box-shadow: none !important;
+}
+
+.select2-drop.mk-inv-s2-drop .select2-search input.select2-input:focus {
+	border-color: #08a045 !important;
+	background-color: #fff !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.10) !important;
 }
 
 .select2-drop.mk-inv-s2-drop .select2-results {
 	max-height: 280px !important;
 	display: block !important;
+	padding: 6px !important;
+	margin: 0 !important;
+	overflow-y: auto !important;
 }
 
-.select2-drop .select2-search {
-	padding: 10px 12px 8px !important;
-	background: #fff !important;
-}
-
-.select2-drop .select2-search input.select2-input {
-	border: 1.5px solid #e2e8f0 !important;
-	border-radius: 8px !important;
-	padding: 9px 14px !important;
-	font-size: 13px !important;
-	color: #334155 !important;
-	background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat right 12px center !important;
-	background-size: 16px 16px !important;
-	outline: none !important;
-	transition: border-color 0.2s, background 0.2s;
-	width: 100% !important;
-	box-sizing: border-box !important;
-}
-
-.select2-drop .select2-search input.select2-input:focus {
-	border-color: #08a045 !important;
-	background-color: #fff !important;
-	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.08) !important;
-}
-
-.select2-drop .select2-results {
-	max-height: 240px !important;
-	padding: 4px 6px !important;
+.select2-drop.mk-inv-s2-drop .select2-results .select2-result {
+	padding: 0 !important;
 	margin: 0 !important;
 }
 
-.select2-drop .select2-results .select2-result {
-	padding: 0 !important;
-	margin: 1px 0 !important;
-}
-
-.select2-drop .select2-results .select2-result-label {
-	padding: 10px 14px 10px 16px !important;
+.select2-drop.mk-inv-s2-drop .select2-results .select2-result-label {
+	padding: 10px 12px !important;
 	font-size: 13.5px !important;
-	color: #475569 !important;
-	border-radius: 6px !important;
-	transition: all 0.15s ease;
+	color: #334155 !important;
+	border-radius: 8px !important;
 	cursor: pointer;
-	line-height: 1.45;
-	border-left: 3px solid transparent !important;
-	margin: 0 4px !important;
+	line-height: 1.35;
+	border-left: none !important;
+	margin: 0 !important;
+	transition: background 0.12s ease;
 }
 
-.select2-drop .select2-results .select2-highlighted .select2-result-label {
-	background: #f8fafc !important;
-	color: #1e293b !important;
-	font-weight: 600 !important;
-	border-left-color: #08a045 !important;
+.select2-drop.mk-inv-s2-drop .select2-results .select2-highlighted .select2-result-label,
+.select2-drop.mk-inv-s2-drop .select2-results .select2-result-label:hover {
+	background: #ecfdf3 !important;
+	color: #14532d !important;
+	font-weight: 500 !important;
 }
 
-.select2-drop .select2-results .select2-result-label:hover {
-	background: #f1f5f9 !important;
-	color: #1e293b !important;
+.select2-drop.mk-inv-s2-drop .mk-inv-s2-result {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 10px;
+	width: 100%;
 }
 
-.select2-drop .select2-results .select2-no-results {
-	padding: 16px !important;
+.select2-drop.mk-inv-s2-drop .mk-inv-s2-name {
+	font-weight: 600;
+	color: inherit;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.select2-drop.mk-inv-s2-drop .mk-inv-s2-sku {
+	flex-shrink: 0;
+	font-size: 12px;
+	font-weight: 500;
+	color: #64748b;
+	background: #f1f5f9;
+	border-radius: 999px;
+	padding: 2px 8px;
+	line-height: 1.4;
+}
+
+.select2-drop.mk-inv-s2-drop .mk-inv-s2-sku--empty {
+	color: #94a3b8;
+	background: #f8fafc;
+	font-weight: 400;
+}
+
+.select2-drop.mk-inv-s2-drop .select2-results .select2-highlighted .mk-inv-s2-sku {
+	background: #dcfce7;
+	color: #166534;
+}
+
+.select2-drop.mk-inv-s2-drop .select2-results .select2-no-results {
+	padding: 18px 12px !important;
 	font-size: 13px !important;
 	color: #94a3b8 !important;
 	text-align: center;
-	font-style: italic;
+	font-style: normal;
 }
 
 /* ── Tax dropdown polish (luxury lines) ── */
@@ -1434,11 +1614,13 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 	outline: none;
 }
 
-/* ── Totals block cleanup (Odoo active) ── */
+/* ── Totals block — modern summary card ── */
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo {
 	padding: 8px 0 0 !important;
 	border-radius: 0 !important;
 	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo > .fieldBlockHeader {
@@ -1446,27 +1628,99 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo >
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult {
-	border: none !important;
-	max-width: 380px;
+	border: 1px solid rgba(8, 160, 69, 0.14) !important;
+	max-width: 360px;
+	width: 100%;
 	margin-left: auto;
-	padding: 16px 20px !important;
-	background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
-	border-radius: 14px;
+	padding: 18px 20px !important;
+	background: linear-gradient(160deg, #ffffff 0%, #f3fbf6 55%, #eefaf3 100%);
+	border-radius: 16px;
+	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+	border-collapse: separate !important;
+	border-spacing: 0 !important;
 }
 
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--sub td:first-child {
-	color: #475569;
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-hide {
+	display: none !important;
 }
 
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand td:first-child {
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row td {
+	border: none !important;
+	padding: 9px 0 !important;
+	background: transparent !important;
+	vertical-align: middle !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row td:first-child {
+	text-align: left !important;
+	width: 55%;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row td:last-child,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row td:nth-child(2) {
+	text-align: right !important;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo .mk-inv-totals-label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #64748b;
+	letter-spacing: 0.01em;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--tax td {
+	border-bottom: 1px solid rgba(148, 163, 184, 0.28) !important;
+	padding-bottom: 14px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand td {
+	padding-top: 14px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .mk-inv-totals-label {
+	font-size: 14px;
+	font-weight: 800;
 	color: #0f172a;
 }
 
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand td:last-child,
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand #grandTotal {
-	color: #08a045;
-	font-weight: 800;
-	font-size: 18px;
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo .mk-inv-vnd {
+	display: inline-flex;
+	align-items: baseline;
+	justify-content: flex-end;
+	gap: 5px;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo .mk-inv-vnd__cur {
+	font-size: 12px;
+	font-weight: 700;
+	color: #94a3b8;
+	line-height: 1;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo .mk-inv-vnd__num {
+	font-size: 14px;
+	font-weight: 700;
+	color: #0f172a;
+	line-height: 1.2;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .mk-inv-vnd__cur {
+	color: #16a34a;
+	font-size: 14px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .mk-inv-vnd__num,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand #grandTotal,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .grandTotal {
+	color: #08a045 !important;
+	font-weight: 800 !important;
+	font-size: 20px !important;
+	line-height: 1.15 !important;
+	white-space: nowrap !important;
 }
 
 html.mk-inv-odoo-active body[data-view="Edit"] .mk-inv-form-odoo .mk-inv-hide-legacy {
@@ -1530,6 +1784,7 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 	min-height: 42px;
 	height: 42px;
 	margin: 0;
+	width: 100%;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-price {
@@ -1537,8 +1792,12 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-price .mk-inv-money-suffix {
-	line-height: 42px;
-	padding-right: 4px;
+	display: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-price .mk-inv-money-prefix {
+	line-height: 1;
+	margin-right: 6px;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow > td.mk-inv-col-price,
@@ -1561,6 +1820,21 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 	display: block !important;
 	visibility: visible !important;
 	width: 100% !important;
+}
+
+/* Final: kill nested chrome on price input inside money wrap (beats all luxury .listPrice borders) */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines.mk-inv-odoo-lines-table tr.lineItemRow > td.mk-inv-col-price .mk-inv-money-wrap .listPrice,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines.mk-inv-odoo-lines-table tr.lineItemRow > td.mk-inv-col-price .mk-inv-money-wrap input[name^="listPrice"],
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines.mk-inv-odoo-lines-table tr.lineItemRow > td.mk-inv-col-price .mk-inv-money-wrap .mk-inv-money-input,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines.mk-inv-odoo-lines-table tr.lineItemRow > td.mk-inv-col-amount .mk-inv-money-wrap .productTotal {
+	border: 0 !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	background-color: transparent !important;
+	box-shadow: none !important;
+	outline: none !important;
+	-webkit-appearance: none !important;
+	appearance: none !important;
 }
 
 /* —— Anti-FOUC: hide legacy line items until MkInventoryOdooEdit finishes —— */

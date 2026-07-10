@@ -34,7 +34,95 @@
 			return true;
 		}
 		var params = new URLSearchParams(window.location.search || '');
-		return params.get('module') === 'Quotes' && params.get('view') === 'List' && params.get('app') === 'SALES';
+		if (params.get('module') === 'Quotes' && params.get('view') === 'List' && (params.get('app') || '').toUpperCase() === 'SALES') {
+			return true;
+		}
+		/* POS shell rendered by PHP even when body data-app is empty */
+		if (document.querySelector('.mk-qt-pos-toolbar, #mk-dash-split-root[data-mk-quotes-list], .mk-so-pos-list-enabled.mk-qt-page')) {
+			if (!appName) {
+				b.setAttribute('data-app', 'SALES');
+			}
+			return true;
+		}
+		return false;
+	}
+
+	function getSalesTableRoot() {
+		var $root = $('#listViewContent');
+		if ($root.length) {
+			return $root;
+		}
+		return $(document.body);
+	}
+
+	function syncQtMassActionButtons() {
+		var $scope = getSalesTableRoot();
+		var checkedCount = $scope.find('.listViewEntriesCheckBox:checked').length;
+		if (!checkedCount) {
+			checkedCount = $(document).find('#listview-table .listViewEntriesCheckBox:checked').length;
+		}
+		var hasChecked = checkedCount > 0;
+		var $btns = $('#mk-qt-mass-duplicate-btn, #mk-qt-mass-delete-btn');
+		if (!$btns.length) {
+			ensureQtMassActionButtons();
+			$btns = $('#mk-qt-mass-duplicate-btn, #mk-qt-mass-delete-btn');
+		}
+		$btns.toggleClass('is-visible', hasChecked);
+		$btns.attr('aria-hidden', hasChecked ? 'false' : 'true');
+		if (hasChecked) {
+			$btns
+				.prop('disabled', false)
+				.removeAttr('disabled')
+				.css({ display: 'inline-flex', 'pointer-events': 'auto', cursor: 'pointer' });
+		} else {
+			$btns.prop('disabled', true).attr('disabled', 'disabled').css('display', 'none');
+		}
+	}
+
+	function ensureQtMassActionButtons() {
+		var $actions = $('.mk-qt-pos-toolbar .mk-so-pos-toolbar__actions, .mk-so-pos-toolbar.mk-qt-pos-toolbar .mk-so-pos-toolbar__actions').first();
+		if (!$actions.length) {
+			return;
+		}
+		if (!$('#mk-qt-mass-duplicate-btn').length) {
+			$actions.find('.mk-so-pos-btn--primary').first().after(
+				'<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline mk-qt-pos-mass-dup-btn mk-so-pos-mass-action" id="mk-qt-mass-duplicate-btn" disabled="disabled" aria-hidden="true" title="Nhân bản các báo giá đã chọn" style="display:none"' +
+					' onclick="if (window.mkQtMassDuplicateQuotes) window.mkQtMassDuplicateQuotes(); return false;">' +
+					'<i class="fa fa-copy" aria-hidden="true"></i><span>Nhân bản</span>' +
+				'</button>'
+			);
+		}
+		if (!$('#mk-qt-mass-delete-btn').length) {
+			var $after = $('#mk-qt-mass-duplicate-btn');
+			var $del = $(
+				'<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline mk-qt-pos-mass-delete-btn mk-so-pos-mass-action" id="mk-qt-mass-delete-btn" disabled="disabled" aria-hidden="true" title="Xóa các báo giá đã chọn" style="display:none"' +
+					' onclick="if (window.mkQtMassDeleteQuotes) window.mkQtMassDeleteQuotes(); return false;">' +
+					'<i class="fa fa-trash" aria-hidden="true"></i><span>Xóa</span>' +
+				'</button>'
+			);
+			if ($after.length) {
+				$after.after($del);
+			} else {
+				$actions.find('.mk-so-pos-btn--primary').first().after($del);
+			}
+		}
+	}
+
+	function bindQtSelectionEvents() {
+		if ($(document).data('mkQtSelectionBound')) {
+			return;
+		}
+		$(document).data('mkQtSelectionBound', 1);
+		$(document)
+			.off('change.mkQtRowCheck click.mkQtRowCheck', '.listViewEntriesCheckBox, .listViewEntriesMainCheckBox')
+			.on('change.mkQtRowCheck click.mkQtRowCheck', '.listViewEntriesCheckBox, .listViewEntriesMainCheckBox', function () {
+				if (!isQuotesSalesList()) {
+					return;
+				}
+				syncRowSelectedIfNeeded();
+				setTimeout(syncQtMassActionButtons, 0);
+				setTimeout(syncQtMassActionButtons, 50);
+			});
 	}
 
 	function isPosListEnabled() {
@@ -179,7 +267,7 @@
 		if (!$target.length) {
 			return false;
 		}
-		if ($target.closest('.mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-control-td').length) {
+		if ($target.closest('.mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-dup-btn, .mk-so-pos-check, .mk-so-pos-control-td, .listViewEntriesCheckBox, .listViewEntriesMainCheckBox').length) {
 			return true;
 		}
 		if ($target.is('input[type="checkbox"]')) {
@@ -581,6 +669,96 @@
 			window.location.href = editUrl;
 		});
 
+		$panel.on('click', '.mk-so-inline-detail__confirm-order-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!recordId) {
+				return;
+			}
+			var $btn = $(this);
+			if ($btn.data('mkBusy') || window.__mkQuoteConfirmBusy) {
+				return;
+			}
+			if (!window.confirm('Chuyển báo giá thành đơn hàng (Phiếu tạm)? Báo giá sẽ biến mất khỏi danh sách.')) {
+				return;
+			}
+			window.__mkQuoteConfirmBusy = true;
+			$btn.data('mkBusy', 1).prop('disabled', true).addClass('is-busy');
+			$panel.find('.mk-so-inline-detail__confirm-order-btn').prop('disabled', true);
+			var csrf = '';
+			if (typeof app !== 'undefined') {
+				if (typeof app.getCsrfToken === 'function') {
+					csrf = app.getCsrfToken();
+				} else if (typeof csrfMagicToken !== 'undefined') {
+					csrf = csrfMagicToken;
+				} else if (typeof csrfMagicName !== 'undefined') {
+					csrf = jQuery('[name="' + csrfMagicName + '"]').val() || '';
+				}
+			}
+			var postData = {
+				module: 'Quotes',
+				action: 'ConfirmSalesOrder',
+				record: recordId
+			};
+			if (csrf) {
+				postData.__vtrftk = csrf;
+			}
+			$.ajax({
+				url: 'index.php',
+				type: 'POST',
+				dataType: 'json',
+				data: postData
+			}).done(function (resp) {
+				var result = (resp && resp.result) ? resp.result : resp;
+				var errMsg = '';
+				if (resp && resp.success === false) {
+					errMsg = (resp.error && (resp.error.message || resp.error)) || 'Không tạo được đơn hàng từ báo giá.';
+				} else if (!result || result.success === false) {
+					errMsg = (result && result.message) ? result.message :
+						((resp && resp.error && resp.error.message) ? resp.error.message : 'Không tạo được đơn hàng từ báo giá.');
+				}
+				if (errMsg) {
+					if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({ message: String(errMsg) });
+					} else {
+						window.alert(String(errMsg));
+					}
+					window.__mkQuoteConfirmBusy = false;
+					$btn.data('mkBusy', 0).prop('disabled', false).removeClass('is-busy');
+					$panel.find('.mk-so-inline-detail__confirm-order-btn').prop('disabled', false);
+					return;
+				}
+				var soUrl = result.list_url ||
+					('index.php?module=SalesOrder&view=List&app=SALES');
+				if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({
+						message: result.already_exists
+							? 'Đơn hàng đã tồn tại. Đang mở danh sách đơn hàng...'
+							: 'Đã tạo đơn hàng (Phiếu tạm). Đang mở danh sách đơn hàng...'
+					});
+				}
+				window.location.href = soUrl;
+			}).fail(function (xhr) {
+				var msg = 'Không tạo được đơn hàng từ báo giá.';
+				try {
+					var parsed = JSON.parse(xhr.responseText || '{}');
+					if (parsed && parsed.error) {
+						msg = parsed.error.message || parsed.error || msg;
+					} else if (parsed && parsed.result && parsed.result.message) {
+						msg = parsed.result.message;
+					}
+				} catch (ignore) { /* ignore */ }
+				if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
+					app.helper.showErrorNotification({ message: String(msg) });
+				} else {
+					window.alert(String(msg));
+				}
+				window.__mkQuoteConfirmBusy = false;
+				$btn.data('mkBusy', 0).prop('disabled', false).removeClass('is-busy');
+				$panel.find('.mk-so-inline-detail__confirm-order-btn').prop('disabled', false);
+			});
+		});
+
 		$panel.on('click', '.mk-so-inline-detail__print-btn', function (e) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -816,7 +994,228 @@
 		}, 600);
 	}
 
+	function getSelectedQuoteIds() {
+		var ids = [];
+		var pushId = function (raw) {
+			var id = parseInt(raw, 10);
+			if (id > 0 && ids.indexOf(id) < 0) {
+				ids.push(id);
+			}
+		};
+		getSalesTableRoot().find('.listViewEntriesCheckBox:checked').each(function () {
+			pushId($(this).val());
+		});
+		if (!ids.length) {
+			$('#listview-table .listViewEntriesCheckBox:checked').each(function () {
+				pushId($(this).val());
+			});
+		}
+		if (!ids.length) {
+			try {
+				var listInstance = (typeof Vtiger_List_Js !== 'undefined' && Vtiger_List_Js.getInstance)
+					? Vtiger_List_Js.getInstance()
+					: null;
+				if (listInstance && typeof listInstance.readSelectedIds === 'function') {
+					var selected = listInstance.readSelectedIds(true);
+					if (jQuery.isArray(selected)) {
+						selected.forEach(pushId);
+					}
+				}
+			} catch (e) {
+				/* ignore */
+			}
+		}
+		if (!ids.length) {
+			getSalesTableRoot().find('tbody tr.listViewEntries.mk-sales-row-selected').each(function () {
+				pushId($(this).data('id') || $(this).attr('data-id'));
+			});
+		}
+		return ids;
+	}
+
+	var massDupInFlight = false;
+	var massDupClickLock = false;
+
+	function reloadQuotesListAfterMassAction() {
+		// POS Quotes list soft-refresh often leaves stale rows; hard reload is reliable.
+		window.location.reload();
+	}
+
+	function massDeleteQuotes() {
+		if (!isQuotesSalesList() || massDupInFlight || massDupClickLock) {
+			return;
+		}
+		massDupClickLock = true;
+		setTimeout(function () {
+			massDupClickLock = false;
+		}, 600);
+		var ids = getSelectedQuoteIds();
+		if (!ids.length) {
+			if (app.helper && app.helper.showErrorNotification) {
+				app.helper.showErrorNotification({ message: 'Chọn ít nhất 1 báo giá để xóa.' });
+			} else {
+				window.alert('Chọn ít nhất 1 báo giá để xóa.');
+			}
+			return;
+		}
+		var message = app.vtranslate
+			? app.vtranslate('LBL_MASS_DELETE_CONFIRMATION')
+			: ('Xóa ' + ids.length + ' báo giá đã chọn?');
+		var run = function () {
+			massDupInFlight = true;
+			var postData = {
+				module: 'Quotes',
+				action: 'MassDelete',
+				selected_ids: JSON.stringify(ids),
+				excluded_ids: JSON.stringify([]),
+				viewname: $('#listViewContent').find('[name="cvid"], #viewname, [name="viewname"]').first().val() || '',
+				app: 'SALES'
+			};
+			if (app.helper && app.helper.showProgress) {
+				app.helper.showProgress();
+			}
+			app.request.post({ data: postData }).then(function (err) {
+				massDupInFlight = false;
+				if (app.helper && app.helper.hideProgress) {
+					app.helper.hideProgress();
+				}
+				if (err) {
+					if (app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({ message: (err && err.message) || 'Không xóa được.' });
+					} else {
+						window.alert((err && err.message) || 'Không xóa được.');
+					}
+					return;
+				}
+				if (app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({ message: 'Đã xóa ' + ids.length + ' báo giá.' });
+				}
+				reloadQuotesListAfterMassAction();
+			});
+		};
+		try {
+			if (app.helper && app.helper.showConfirmationBox) {
+				app.helper.showConfirmationBox({ message: message }).then(run, function () { /* cancel */ });
+				return;
+			}
+		} catch (e) {
+			/* fall through */
+		}
+		if (window.confirm(message || ('Xóa ' + ids.length + ' báo giá?'))) {
+			run();
+		}
+	}
+
+	function massDuplicateQuotes() {
+		if (!isQuotesSalesList() || massDupInFlight || massDupClickLock) {
+			return;
+		}
+		massDupClickLock = true;
+		setTimeout(function () {
+			massDupClickLock = false;
+		}, 600);
+		var ids = getSelectedQuoteIds();
+		if (!ids.length) {
+			if (app.helper && app.helper.showErrorNotification) {
+				app.helper.showErrorNotification({ message: 'Chọn ít nhất 1 báo giá để nhân bản.' });
+			} else {
+				window.alert('Chọn ít nhất 1 báo giá để nhân bản.');
+			}
+			return;
+		}
+		if (ids.length === 1) {
+			window.location.href = 'index.php?module=Quotes&view=Edit&record=' + ids[0] + '&isDuplicate=true&app=SALES';
+			return;
+		}
+		var message = 'Nhân bản ' + ids.length + ' báo giá đã chọn?';
+		var run = function () {
+			massDupInFlight = true;
+			var postData = {
+				module: 'Quotes',
+				action: 'MassDuplicate',
+				selected_ids: JSON.stringify(ids),
+				excluded_ids: JSON.stringify([]),
+				viewname: $('#listViewContent').find('[name="cvid"], #viewname, [name="viewname"]').first().val() || '',
+				app: 'SALES'
+			};
+			if (app.helper && app.helper.showProgress) {
+				app.helper.showProgress();
+			}
+			app.request.post({ data: postData }).then(function (err, res) {
+				massDupInFlight = false;
+				if (app.helper && app.helper.hideProgress) {
+					app.helper.hideProgress();
+				}
+				if (err) {
+					if (app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({ message: (err && err.message) || 'Không nhân bản được.' });
+					} else {
+						window.alert((err && err.message) || 'Không nhân bản được.');
+					}
+					return;
+				}
+				var result = res || {};
+				if (result.success === false) {
+					if (app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({ message: result.message || 'Không nhân bản được.' });
+					} else {
+						window.alert(result.message || 'Không nhân bản được.');
+					}
+					return;
+				}
+				if (app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({ message: result.message || 'Đã nhân bản báo giá.' });
+				}
+				reloadQuotesListAfterMassAction();
+			});
+		};
+		try {
+			if (app.helper && app.helper.showConfirmationBox) {
+				app.helper.showConfirmationBox({ message: message }).then(run, function () { /* cancel */ });
+				return;
+			}
+		} catch (e) {
+			/* fall through to native confirm */
+		}
+		if (window.confirm(message)) {
+			run();
+		}
+	}
+
+	function patchQtListViewActions() {
+		if (typeof Vtiger_List_Js === 'undefined' || Vtiger_List_Js.prototype.__mkQtListActionsPatched) {
+			return;
+		}
+		var original = Vtiger_List_Js.prototype.registerPostLoadListViewActions;
+		Vtiger_List_Js.prototype.registerPostLoadListViewActions = function () {
+			original.apply(this, arguments);
+			if (isQuotesSalesList()) {
+				syncRowSelectedIfNeeded();
+				syncQtMassActionButtons();
+			}
+		};
+		Vtiger_List_Js.prototype.__mkQtListActionsPatched = true;
+	}
+
+	function bindMassActionButtons() {
+		$(document)
+			.off('click.mkQtMassDup', '#mk-qt-mass-duplicate-btn')
+			.on('click.mkQtMassDup', '#mk-qt-mass-duplicate-btn', function (e) {
+				if (!isQuotesSalesList()) return;
+				e.preventDefault();
+				massDuplicateQuotes();
+			})
+			.off('click.mkQtMassDel', '#mk-qt-mass-delete-btn')
+			.on('click.mkQtMassDel', '#mk-qt-mass-delete-btn', function (e) {
+				if (!isQuotesSalesList()) return;
+				e.preventDefault();
+				e.stopPropagation();
+				massDeleteQuotes();
+			});
+	}
+
 	function bindPosToolbarEvents() {
+		bindMassActionButtons();
 		if (qtPosSearchBound) {
 			return;
 		}
@@ -1040,6 +1439,12 @@
 	}
 
 	function enhanceQuoteStage(context) {
+		var STAGE_LABELS = {
+			Created: 'Nháp',
+			Draft: 'Nháp',
+			'Đã tạo': 'Nháp',
+			Nháp: 'Nháp'
+		};
 		$(context).find('td[data-name="quotestage"] .value').each(function () {
 			var $value = $(this);
 			if ($value.find('.mk-qt-stage-pill').length) {
@@ -1050,11 +1455,12 @@
 			if (!text) {
 				return;
 			}
+			var label = STAGE_LABELS[text] || text;
 			if ($link.length) {
-				$link.addClass('mk-qt-stage-pill');
+				$link.addClass('mk-qt-stage-pill').text(label);
 				return;
 			}
-			$value.empty().append($('<span>', { class: 'mk-qt-stage-pill', text: text }));
+			$value.empty().append($('<span>', { class: 'mk-qt-stage-pill', text: label }));
 		});
 	}
 
@@ -1185,10 +1591,6 @@
 		});
 	}
 
-	function getSalesTableRoot() {
-		return $('#listViewContent');
-	}
-
 	function afterListLayout() {
 		if (!isQuotesSalesList()) {
 			return;
@@ -1208,6 +1610,11 @@
 		syncQuotesLayoutMode();
 		fixListScrollContainer();
 		applyPosListChrome();
+		ensureQtMassActionButtons();
+		bindQtSelectionEvents();
+		patchQtListViewActions();
+		syncRowSelectedIfNeeded();
+		syncQtMassActionButtons();
 		setReadyState();
 	}
 
@@ -1216,6 +1623,9 @@
 			return;
 		}
 		document.body.classList.add('mk-quotes-list-ui-loading');
+		ensureQtMassActionButtons();
+		bindMassActionButtons();
+		bindQtSelectionEvents();
 		bindInlineDetailCapture();
 		patchInlineDetailRowClick();
 
@@ -1275,8 +1685,13 @@
 		afterListLayout: afterListLayout,
 		refreshListRowsOnly: refreshListRowsOnly,
 		bindViewLayoutToggle: bindViewLayoutToggle,
-		applyLayoutMode: applyLayoutMode
+		applyLayoutMode: applyLayoutMode,
+		massDuplicateQuotes: massDuplicateQuotes,
+		massDeleteQuotes: massDeleteQuotes,
+		syncQtMassActionButtons: syncQtMassActionButtons
 	};
+	window.mkQtMassDuplicateQuotes = massDuplicateQuotes;
+	window.mkQtMassDeleteQuotes = massDeleteQuotes;
 
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', init);

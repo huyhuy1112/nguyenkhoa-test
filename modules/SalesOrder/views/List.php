@@ -292,9 +292,9 @@ class SalesOrder_List_View extends Inventory_List_View {
 		$labelOverrides = array(
 			'salesorder_no' => 'Mã đặt hàng',
 			'createdtime' => 'Thời gian',
-			'account_id' => 'Khách hàng',
-			'hdnGrandTotal' => 'Khách cần trả',
-			'total' => 'Khách cần trả',
+			'account_id' => 'Người liên hệ',
+			'hdnGrandTotal' => 'Tổng cộng',
+			'total' => 'Tổng cộng',
 			$paidField => 'Khách đã trả',
 			$statusField => 'Trạng thái',
 		);

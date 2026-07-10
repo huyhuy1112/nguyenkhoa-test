@@ -42,7 +42,7 @@
 			<tbody>
 				{assign var=HAS_LINE_ITEMS value=false}
 				{foreach from=$RELATED_PRODUCTS key=IDX item=LINE}
-					{if $IDX > 0}
+					{if $IDX > 0 && $LINE["hdnProductId$IDX"]|default:'' neq ''}
 						{assign var=HAS_LINE_ITEMS value=true}
 						{assign var=DISCOUNT_TEXT value='0'}
 						{if $LINE["discount_amount$IDX"]|default:'' neq '' && $LINE["discount_amount$IDX"] neq '0'}
@@ -114,6 +114,14 @@
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__process-btn">
 				<i class="fa fa-check" aria-hidden="true"></i>
 				<span>Xử lý báo giá</span>
+			</button>
+			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__dup-btn" href="{$RECORD->getDuplicateRecordUrl()}&app=SALES" title="Nhân bản báo giá">
+				<i class="fa fa-copy" aria-hidden="true"></i>
+				<span>Nhân bản</span>
+			</a>
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn" data-confirm-url="{$INLINE_CONFIRM_URL|escape}" title="Xác nhận và chuyển thành đơn hàng">
+				<i class="fa fa-shopping-cart" aria-hidden="true"></i>
+				<span>Xác nhận đơn hàng</span>
 			</button>
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__print-btn" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-print-ready="0">
 				<i class="fa fa-print" aria-hidden="true"></i>

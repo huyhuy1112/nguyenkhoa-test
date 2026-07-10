@@ -1,7 +1,8 @@
 {* KiotViet-style inline order detail (expanded under list row) *}
 {strip}
 {assign var=FINAL_DETAILS value=$RELATED_PRODUCTS.1.final_details}
-<div class="mk-so-inline-detail" data-record-id="{$RECORD->getId()}" data-module="SalesOrder" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}">
+{assign var=INLINE_SOSTATUS value=$RECORD->get('sostatus')}
+<div class="mk-so-inline-detail" data-record-id="{$RECORD->getId()}" data-module="SalesOrder" data-sostatus="{$INLINE_SOSTATUS|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=SalesOrder&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$INLINE_AMOUNT_WORDS|default:''|escape}" data-created-date="{$INLINE_CREATED_DATE|default:''|escape}">
 	<div class="mk-so-inline-detail__tabs" role="tablist">
 		<button type="button" class="mk-so-inline-detail__tab is-active" role="tab" aria-selected="true">Thông tin</button>
 	</div>
@@ -9,7 +10,7 @@
 	<div class="mk-so-inline-detail__hero">
 		<div class="mk-so-inline-detail__hero-main">
 			<div class="mk-so-inline-detail__customer">
-				<span class="mk-so-inline-detail__customer-name">{$RECORD->getDisplayValue('account_id')}</span>
+				<span class="mk-so-inline-detail__customer-name">{if isset($INLINE_CUSTOMER_NAME) && $INLINE_CUSTOMER_NAME neq '' && $INLINE_CUSTOMER_NAME neq '—'}{$INLINE_CUSTOMER_NAME}{else}--{/if}</span>
 				<button type="button" class="mk-so-inline-detail__edit-toggle" title="Chỉnh sửa" aria-label="Chỉnh sửa" aria-pressed="false">
 					<i class="fa fa-pencil" aria-hidden="true"></i>
 				</button>
@@ -71,7 +72,7 @@
 			<tbody>
 				{assign var=HAS_LINE_ITEMS value=false}
 				{foreach from=$RELATED_PRODUCTS key=IDX item=LINE}
-					{if $IDX > 0}
+					{if $IDX > 0 && $LINE["hdnProductId$IDX"]|default:'' neq ''}
 						{assign var=HAS_LINE_ITEMS value=true}
 						{assign var=DISCOUNT_TEXT value='0'}
 						{if $LINE["discount_amount$IDX"]|default:'' neq '' && $LINE["discount_amount$IDX"] neq '0'}
@@ -118,6 +119,10 @@
 				<strong>{$FINAL_DETAILS.hdnSubTotal|default:'0'}</strong>
 			</div>
 			<div class="mk-so-inline-detail__total-row">
+				<span>Thuế</span>
+				<strong>{$FINAL_DETAILS.tax_totalamount|default:'0'}</strong>
+			</div>
+			<div class="mk-so-inline-detail__total-row">
 				<span>Giảm giá phiếu đặt</span>
 				<strong>{$FINAL_DETAILS.discountTotal_final|default:$FINAL_DETAILS.discount_amount_final|default:'0'}</strong>
 			</div>
@@ -125,12 +130,6 @@
 				<span>Tổng cộng</span>
 				<strong>{$FINAL_DETAILS.grandTotal|default:'0'}</strong>
 			</div>
-			{if $INLINE_PAID_FIELD neq ''}
-				<div class="mk-so-inline-detail__total-row">
-					<span>Khách đã trả</span>
-					<strong>{$RECORD->getDisplayValue($INLINE_PAID_FIELD)}</strong>
-				</div>
-			{/if}
 		</div>
 	</div>
 
@@ -146,10 +145,21 @@
 			</button>
 		</div>
 		<div class="mk-so-inline-detail__actions-right">
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__process-btn">
+			{assign var=SO_ALREADY_CONFIRMED value=($INLINE_SOSTATUS eq 'Approved' || $INLINE_SOSTATUS eq 'Đã xác nhận' || $INLINE_SOSTATUS eq 'Đã duyệt')}
+			{if !$SO_ALREADY_CONFIRMED}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn" title="Xác nhận đơn hàng và tạo phiếu xuất kho">
 				<i class="fa fa-check" aria-hidden="true"></i>
-				<span>Xử lý đơn hàng</span>
+				<span>Xác nhận đơn hàng</span>
 			</button>
+			{/if}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__process-btn" title="Mở form chỉnh sửa">
+				<i class="fa fa-pencil" aria-hidden="true"></i>
+				<span>Sửa đơn</span>
+			</button>
+			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__dup-btn" href="{$RECORD->getDuplicateRecordUrl()}&app=SALES" title="Nhân bản đơn hàng">
+				<i class="fa fa-copy" aria-hidden="true"></i>
+				<span>Nhân bản</span>
+			</a>
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__save-btn">
 				<i class="fa fa-save" aria-hidden="true"></i>
 				<span>Lưu</span>

@@ -139,8 +139,22 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 	box-sizing: border-box;
 }
 
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hide-legacy {
+/* Must beat `.mk-so-block td { display: block !important }` or hidden fields still show. */
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"] .mk-so-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.mk-so-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block tr.mk-so-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block.mk-so-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .fieldBlockContainer.mk-so-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.mk-inv-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block tr.mk-inv-hide-legacy {
 	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	border: none !important;
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-form-container {
@@ -832,8 +846,8 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-timeli
 
 /* ========== Form blocks — clean card style (matching Quotes) ========== */
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block {
-	margin-bottom: 20px;
-	padding: 22px 24px 26px;
+	margin-bottom: 16px;
+	padding: 18px 20px 20px;
 	border-radius: 16px;
 	background: var(--mk-so-white);
 	border: 1px solid var(--mk-so-border);
@@ -894,13 +908,19 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block:not(.mk-so-block--line-items):not(.mk-so-block--totals) > table > tbody > tr {
 	display: grid !important;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
-	column-gap: 40px;
+	column-gap: 28px;
 	row-gap: 0;
 	width: 100%;
-	margin: 0 0 28px;
+	margin: 0 0 16px;
 	padding: 0;
 	border: none;
 	box-sizing: border-box;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block:not(.mk-so-block--line-items):not(.mk-so-block--totals) > table > tbody > tr.mk-so-hide-legacy,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block:not(.mk-so-block--line-items):not(.mk-so-block--totals) > table > tbody > tr.mk-inv-hide-legacy {
+	display: none !important;
+	margin: 0 !important;
 }
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block:not(.mk-so-block--line-items):not(.mk-so-block--totals) > table > tbody > tr:last-child {
@@ -1215,8 +1235,13 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-h
 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.inputElement,
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea.form-control {
-	min-height: 120px !important;
+	min-height: 88px !important;
 	resize: vertical;
+}
+
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-form-host .mk-so-block td.fieldValue > textarea[name="description"] {
+	min-height: 72px !important;
+	max-height: 140px;
 }
 
 /* Terms & conditions: render HTML preview (like Quotes) */

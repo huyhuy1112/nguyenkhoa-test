@@ -507,7 +507,12 @@
 
 	function formatVnd(value) {
 		var n = Math.round(parseMoney(value));
-		return n.toLocaleString('vi-VN') + ' đ';
+		return 'đ ' + n.toLocaleString('vi-VN');
+	}
+
+	function formatVndNumber(value) {
+		var n = Math.round(parseMoney(value));
+		return n.toLocaleString('vi-VN');
 	}
 
 	function sumLinePreTax($form) {
@@ -708,13 +713,172 @@
 	}
 
 	function isProductDropdownHealthy($sel) {
-		return !!(
-			$sel &&
-			$sel.length &&
-			$sel.hasClass('mk-inv-product-native') &&
-			$.contains(document.documentElement, $sel[0]) &&
-			$sel.data('mkCatalogReady')
+		if (
+			!$sel ||
+			!$sel.length ||
+			!$sel.hasClass('mk-inv-product-native') ||
+			!$.contains(document.documentElement, $sel[0])
+		) {
+			return false;
+		}
+		if (typeof $.fn.select2 === 'function') {
+			return !!$sel.data('select2') && $sel.siblings('.select2-container').filter(':visible').length > 0;
+		}
+		return !!$sel.data('mkCatalogReady');
+	}
+
+	function destroyProductSelect2($sel) {
+		if (!$sel || !$sel.length) {
+			return;
+		}
+		if ($sel.data('select2')) {
+			try {
+				$sel.select2('close');
+				$sel.select2('destroy');
+			} catch (ignore) { /* ignore */ }
+		}
+		$sel.siblings('.select2-container').remove();
+		$sel.removeClass('select2-offscreen');
+	}
+
+	function escapeHtml(text) {
+		return String(text == null ? '' : text)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
+	}
+
+	function normalizeSearchText(text) {
+		var s = String(text || '').toLowerCase();
+		if (typeof s.normalize === 'function') {
+			s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+		}
+		return s.replace(/đ/g, 'd').replace(/\s+/g, ' ').trim();
+	}
+
+	function isAnyProductSelectOpen($scope) {
+		var open = false;
+		var $root = $scope && $scope.length ? $scope : $(document);
+		$root.find('select.mk-inv-product-select').each(function () {
+			var $sel = $(this);
+			if (!$sel.data('select2')) {
+				return true;
+			}
+			try {
+				if ($sel.select2('opened')) {
+					open = true;
+					return false;
+				}
+			} catch (ignore) { /* ignore */ }
+			return true;
+		});
+		return open;
+	}
+
+	function productSelectMatcher(term, text, option) {
+		var q = normalizeSearchText(term);
+		if (!q) {
+			return true;
+		}
+		var hay = normalizeSearchText(text);
+		if (hay.indexOf(q) >= 0) {
+			return true;
+		}
+		if (option) {
+			var name = normalizeSearchText($(option).attr('data-name') || '');
+			var sku = normalizeSearchText($(option).attr('data-sku') || '');
+			if (name.indexOf(q) >= 0 || sku.indexOf(q) >= 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function formatProductSelectResult(item) {
+		if (!item || !item.id) {
+			return item && item.text ? escapeHtml(item.text) : '';
+		}
+		var $opt = $(item.element);
+		var name = $opt.attr('data-name') || item.text || '';
+		var sku = ($opt.attr('data-sku') || '').trim();
+		var skuHtml = sku
+			? '<span class="mk-inv-s2-sku">' + escapeHtml(sku) + '</span>'
+			: '<span class="mk-inv-s2-sku mk-inv-s2-sku--empty">chưa có SKU</span>';
+		return (
+			'<span class="mk-inv-s2-result">' +
+			'<span class="mk-inv-s2-name">' +
+			escapeHtml(name) +
+			'</span>' +
+			skuHtml +
+			'</span>'
 		);
+	}
+
+	function formatProductSelectSelection(item) {
+		if (!item || !item.id) {
+			return item && item.text ? item.text : '';
+		}
+		var $opt = $(item.element);
+		return $opt.attr('data-name') || item.text || '';
+	}
+
+	function initOrRefreshProductSelect2($sel) {
+		if (!$sel || !$sel.length || typeof $.fn.select2 !== 'function') {
+			return;
+		}
+		if ($sel.prop('disabled') || $sel.data('mkLoading')) {
+			return;
+		}
+		// Already healthy — do NOT destroy/recreate (causes flicker / double UI).
+		if ($sel.data('select2') && $sel.siblings('.select2-container').length) {
+			$sel.siblings('.select2-container').removeClass('mk-inv-hide-legacy').css({ display: '', visibility: '' });
+			$sel.addClass('select2-offscreen');
+			return;
+		}
+		var currentVal = $sel.val() || '';
+		destroyProductSelect2($sel);
+		$sel.select2({
+			placeholder: '— Tìm / chọn sản phẩm —',
+			allowClear: true,
+			width: '100%',
+			dropdownCssClass: 'mk-inv-s2-drop mk-inv-s2-search',
+			minimumResultsForSearch: 0,
+			matcher: function (term, text, opt) {
+				return productSelectMatcher(term, text, opt);
+			},
+			formatResult: formatProductSelectResult,
+			formatSelection: formatProductSelectSelection,
+			formatNoMatches: function () {
+				return 'Không tìm thấy sản phẩm';
+			},
+			formatSearching: function () {
+				return 'Đang tìm…';
+			},
+			escapeMarkup: function (m) {
+				return m;
+			}
+		});
+		if (currentVal) {
+			$sel.select2('val', currentVal);
+		} else {
+			$sel.select2('val', '');
+		}
+		$sel.addClass('select2-offscreen');
+		$sel
+			.off('select2-open.mkInvS2 select2-close.mkInvS2')
+			.on('select2-open.mkInvS2', function () {
+				var $drop = $('.select2-drop.mk-inv-s2-drop.select2-drop-active');
+				$drop.css('z-index', 2147483640);
+				var $search = $drop.find('.select2-search input.select2-input');
+				if ($search.length) {
+					$search.attr('placeholder', 'Nhập tên hoặc SKU…');
+					// Focus search immediately so typing feels instant.
+					setTimeout(function () {
+						$search.focus();
+					}, 0);
+				}
+			});
 	}
 
 	function destroyProductDropdownInRow($row) {
@@ -722,7 +886,9 @@
 		if (!$productTd.length) {
 			return;
 		}
-		$productTd.find('.mk-inv-product-select').remove();
+		var $sel = $productTd.find('.mk-inv-product-select');
+		destroyProductSelect2($sel);
+		$sel.remove();
 		$productTd.find('.itemNameDiv .select2-container').remove();
 	}
 
@@ -745,17 +911,24 @@
 		$productTd.find('.lineItemCommentBox').closest('div').addClass('mk-inv-hide-legacy');
 		$productTd.find('.itemNameDiv .col-lg-10 > .input-group').addClass('mk-inv-hide-legacy');
 		$productTd.find('.itemNameDiv .col-lg-2').addClass('mk-inv-hide-legacy');
-		$productTd.find('.itemNameDiv > .select2-container').addClass('mk-inv-hide-legacy');
+		// Hide only legacy Select2 widgets — never our product picker.
+		$productTd
+			.find('.itemNameDiv .select2-container')
+			.not('.mk-inv-product-select + .select2-container')
+			.addClass('mk-inv-hide-legacy');
 	}
 
 	function buildProductSelectOptions($sel, products) {
-		$sel.empty().append('<option value="">— Chọn hàng hoá —</option>');
-		products.forEach(function (p) {
+		// Empty label required for Select2 placeholder (avoids double "—" text flicker).
+		$sel.empty().append('<option value=""></option>');
+		(products || []).forEach(function (p) {
 			var id = String(p.id || '');
 			var displayName = decodeText(p.name || id);
 			var label = displayName;
 			if (p.sku) {
 				label += ' (' + decodeText(p.sku) + ')';
+			} else {
+				label += ' (chưa có SKU)';
 			}
 			$sel.append(
 				$('<option></option>')
@@ -777,7 +950,32 @@
 			return;
 		}
 		var $existing = $productTd.find('.mk-inv-product-select').first();
+		if ($existing.length && typeof $.fn.select2 === 'function' && $existing.data('select2')) {
+			try {
+				if ($existing.select2('opened')) {
+					return;
+				}
+			} catch (ignore) { /* ignore */ }
+		}
 		if ($existing.length && isProductDropdownHealthy($existing)) {
+			$existing.siblings('.select2-container').removeClass('mk-inv-hide-legacy').css({ display: '', visibility: '' });
+			$existing.addClass('select2-offscreen');
+			// Backfill options quietly without destroying Select2 UI.
+			if (
+				$existing.find('option').length <= 1 &&
+				productCatalogCache &&
+				productCatalogCache.length
+			) {
+				var keepVal = $existing.val();
+				buildProductSelectOptions($existing, productCatalogCache);
+				$existing.data('mkCatalogReady', true);
+				if (keepVal) {
+					$existing.val(keepVal);
+					try {
+						$existing.select2('val', keepVal);
+					} catch (ignore2) { /* ignore */ }
+				}
+			}
 			return;
 		}
 		if ($existing.length && $existing.data('mkLoading')) {
@@ -790,52 +988,11 @@
 		var $hiddenId = $row.find('input.selectedModuleId');
 
 		var $sel = $(
-			'<select class="mk-inv-product-select mk-inv-product-native inputElement" title="Hàng hoá"></select>'
+			'<select class="mk-inv-product-select mk-inv-product-native" title="Hàng hoá" data-mk-inv-product="1"></select>'
 		);
 		$sel.prop('disabled', true);
 		$sel.data('mkLoading', true);
-		$sel.append('<option value="">— Đang tải hàng hoá… —</option>');
-
-		if (productCatalogCache && productCatalogCache.length) {
-			fillProductSelect($sel, productCatalogCache);
-			var currentId = ($hiddenId.val() || '').trim();
-			if (currentId) {
-				if (!$sel.find('option[value="' + currentId.replace(/"/g, '') + '"]').length) {
-					var currentName = decodeText($nameInput.val() || currentId);
-					$sel.append(
-						$('<option></option>')
-							.attr('value', currentId)
-							.attr('data-name', currentName)
-							.text(currentName)
-					);
-				}
-				$sel.val(currentId);
-			}
-		} else {
-			loadProductCatalog().then(function (products) {
-				if (!$sel.closest('tr').length) {
-					return;
-				}
-				fillProductSelect($sel, products || []);
-				var currentId = ($hiddenId.val() || '').trim();
-				if (currentId) {
-					if (!$sel.find('option[value="' + currentId.replace(/"/g, '') + '"]').length) {
-						var currentName = decodeText($nameInput.val() || currentId);
-						$sel.append(
-							$('<option></option>')
-								.attr('value', currentId)
-								.attr('data-name', currentName)
-								.text(currentName)
-						);
-					}
-					$sel.val(currentId);
-				}
-			});
-		}
-
-		$sel.on('change.mkInvProduct', function () {
-			applyProductSelection($row, $form, $(this).val());
-		});
+		$sel.append('<option value="">Đang tải hàng hoá…</option>');
 
 		cleanupLegacyProductCell($row, $nameInput, $productTd);
 		$row.find('.lineItemPopup').addClass('mk-inv-hide-legacy');
@@ -843,7 +1000,46 @@
 		if (!$host.length) {
 			$host = $productTd.find('.itemNameDiv').first();
 		}
+		if (!$host.length) {
+			$host = $productTd;
+		}
 		$host.prepend($sel);
+
+		function applyCurrentSelection() {
+			var currentId = ($hiddenId.val() || '').trim();
+			if (!currentId) {
+				return;
+			}
+			if (!$sel.find('option[value="' + currentId.replace(/"/g, '') + '"]').length) {
+				var currentName = decodeText($nameInput.val() || currentId);
+				$sel.append(
+					$('<option></option>')
+						.attr('value', currentId)
+						.attr('data-name', currentName)
+						.text(currentName)
+				);
+			}
+			$sel.val(currentId);
+		}
+
+		if (productCatalogCache && productCatalogCache.length) {
+			fillProductSelect($sel, productCatalogCache);
+			applyCurrentSelection();
+			initOrRefreshProductSelect2($sel);
+		} else {
+			loadProductCatalog().then(function (products) {
+				if (!$sel.closest('tr').length) {
+					return;
+				}
+				fillProductSelect($sel, products || []);
+				applyCurrentSelection();
+				initOrRefreshProductSelect2($sel);
+			});
+		}
+
+		$sel.off('change.mkInvProduct').on('change.mkInvProduct', function () {
+			applyProductSelection($row, $form, $(this).val());
+		});
 	}
 
 	function readAmountRaw($el, $hiddenFallback) {
@@ -871,6 +1067,27 @@
 			return;
 		}
 		$el.data('mkRawAmount', raw);
+		// Inside money wrap (price/total cells): prefix "đ" is a sibling — only write the number.
+		if ($el.closest('.mk-inv-money-wrap').length) {
+			var numOnly = formatVndNumber(raw);
+			if ($el.text() !== numOnly) {
+				$el.text(numOnly);
+			}
+			return;
+		}
+		if ($el.hasClass('mk-inv-vnd-amount') || $el.closest('.mk-inv-totals-odoo').length) {
+			var html =
+				'<span class="mk-inv-vnd" aria-hidden="false">' +
+				'<span class="mk-inv-vnd__cur">đ</span>' +
+				'<span class="mk-inv-vnd__num">' +
+				formatVndNumber(raw) +
+				'</span>' +
+				'</span>';
+			if ($el.html() !== html) {
+				$el.html(html);
+			}
+			return;
+		}
 		var formatted = formatVnd(raw);
 		if ($el.text() !== formatted) {
 			$el.text(formatted);
@@ -1311,8 +1528,10 @@
 		}
 		$input.addClass('mk-inv-money-input');
 		$input.wrap('<div class="mk-inv-money-wrap"></div>');
-		if (!$input.siblings('.mk-inv-money-suffix').length) {
-			$input.after('<span class="mk-inv-money-suffix" aria-hidden="true">đ</span>');
+		var $wrap = $input.parent();
+		$wrap.find('.mk-inv-money-suffix').remove();
+		if (!$wrap.find('.mk-inv-money-prefix').length) {
+			$input.before('<span class="mk-inv-money-prefix" aria-hidden="true">đ</span>');
 		}
 	}
 
@@ -1322,8 +1541,16 @@
 		if ($total.length && !$total.closest('.mk-inv-money-wrap').length) {
 			var $wrap = $('<div class="mk-inv-money-wrap mk-inv-money-wrap--total"></div>');
 			$total.wrap($wrap);
-			if (!$total.siblings('.mk-inv-money-suffix').length) {
-				$total.after('<span class="mk-inv-money-suffix" aria-hidden="true">đ</span>');
+			$wrap = $total.parent();
+			$wrap.find('.mk-inv-money-suffix').remove();
+			if (!$wrap.find('.mk-inv-money-prefix').length) {
+				$total.before('<span class="mk-inv-money-prefix" aria-hidden="true">đ</span>');
+			}
+		} else if ($total.length) {
+			var $existing = $total.closest('.mk-inv-money-wrap');
+			$existing.find('.mk-inv-money-suffix').remove();
+			if (!$existing.find('.mk-inv-money-prefix').length) {
+				$total.before('<span class="mk-inv-money-prefix" aria-hidden="true">đ</span>');
 			}
 		}
 	}
@@ -1634,6 +1861,13 @@
 	}
 
 	function restyleLineItemRows($form) {
+		if (!$form || !$form.length) {
+			return;
+		}
+		// Never restyle while user is searching/selecting a product — prevents stutter.
+		if (isAnyProductSelectOpen($form) || isAnyProductSelectOpen($(document.body))) {
+			return;
+		}
 		var $table = $form.find('#lineItemTab');
 		if (!$table.length) {
 			return;
@@ -1683,9 +1917,13 @@
 			if (!$targetForm.find('#lineItemTab').length) {
 				$targetForm = detectInventoryEditForm();
 			}
-			if ($targetForm.length && $targetForm.find('#lineItemTab').length) {
-				handleNewLineItemRow($targetForm, newLineItem);
+			if (!$targetForm.length || !$targetForm.find('#lineItemTab').length) {
+				return;
 			}
+			if ($targetForm.data('mkInvSkipPostLineHook') || $targetForm.data('mkInvAddingLine')) {
+				return;
+			}
+			handleNewLineItemRow($targetForm, newLineItem);
 		});
 	}
 
@@ -1747,47 +1985,160 @@
 		setTimeout(markInventoryUiReady, 2000);
 		if (!window.__mkInvAddLineDocBound) {
 			window.__mkInvAddLineDocBound = true;
-			$(document).on('click.mkInvAddLine', '#addProductsServices', function () {
-				var $f = detectInventoryEditForm();
-				if ($f.length) {
-					setTimeout(function () {
-						handleNewLineItemRow($f, null);
-					}, 0);
+			$(document).on('click.mkInvAddLine', '#addProductsServices', function (e) {
+				var $btn = $(this);
+				// Button-level handler owns creation once initialized.
+				if ($btn.data('mkInvOdooAddBound')) {
+					return;
 				}
+				e.preventDefault();
+				e.stopPropagation();
+				var $f = detectInventoryEditForm();
+				if (!$f.length) {
+					$f = $btn.closest('form');
+				}
+				createInventoryLineItemRow($f, $btn);
 			});
 		}
 	});
 
-	function handleNewLineItemRow($form, newLineItem) {
-		var resolveRow = function () {
-			if (newLineItem) {
-				var $explicit = $(newLineItem);
-				if ($explicit.length) {
-					return $explicit;
+	function createInventoryLineItemRow($form, $btn) {
+		if (!$form || !$form.length) {
+			return null;
+		}
+		if ($form.data('mkInvAddingLine')) {
+			return null;
+		}
+		$form.data('mkInvAddingLine', true);
+		if ($btn && $btn.length) {
+			$btn.addClass('is-busy').prop('disabled', true);
+		}
+		var newLineItem = null;
+		try {
+			var moduleName = $form.find('[name="module"]').val() || $('body').attr('data-module') || 'SalesOrder';
+			var inst = null;
+			if (typeof Inventory_Edit_Js !== 'undefined') {
+				try {
+					inst = Inventory_Edit_Js.getInstanceByModuleName(moduleName);
+				} catch (ignore) {
+					inst = null;
 				}
 			}
-			return $form.find('#lineItemTab tr.lineItemRow').not('.hide, .lineItemCloneCopy').last();
-		};
-		var run = function () {
-			var $row = resolveRow();
-			if ($row.length) {
+			if (!inst || typeof inst.getNewLineItem !== 'function') {
+				var $legacy = $form.find('#addProduct').first();
+				if ($legacy.length) {
+					$legacy.trigger('click');
+					setTimeout(function () {
+						var $last = $form.find('#lineItemTab tr.lineItemRow').not('.hide, .lineItemCloneCopy').last();
+						styleNewLineItemFast($form, $last);
+						unlockAddLineButton($form, $btn);
+					}, 40);
+					return null;
+				}
+				unlockAddLineButton($form, $btn);
+				return null;
+			}
+			if (!$btn || !$btn.length) {
+				$btn = $form.find('#addProductsServices').first();
+			}
+			if (!$btn.attr('data-module-name')) {
+				$btn.attr('data-module-name', 'ProductsServices');
+			}
+			newLineItem = inst.getNewLineItem({ currentTarget: $btn });
+			if (!newLineItem || !newLineItem.length) {
+				unlockAddLineButton($form, $btn);
+				return null;
+			}
+			var $holder = inst.lineItemsHolder && inst.lineItemsHolder.length
+				? inst.lineItemsHolder
+				: $form.find('#lineItemTab');
+			newLineItem.appendTo($holder);
+			newLineItem.find('input.productName').addClass('autoComplete');
+			newLineItem.find('.ignore-ui-registration').removeClass('ignore-ui-registration');
+
+			// Style the new row immediately (snappy). Skip full-table restyle loops.
+			styleNewLineItemFast($form, newLineItem);
+
+			// Let other listeners know, but skip our own heavy post.lineItem.New handler.
+			$form.data('mkInvSkipPostLineHook', true);
+			if (typeof app !== 'undefined' && app.event) {
+				app.event.trigger('post.lineItem.New', newLineItem);
+			}
+			$form.removeData('mkInvSkipPostLineHook');
+
+			if (typeof inst.checkLineItemRow === 'function') {
+				inst.checkLineItemRow();
+			}
+			// Do NOT registerLineItemAutoComplete — product picker is Select2; autocomplete adds lag.
+		} catch (err) {
+			if (window.console && console.warn) {
+				console.warn('[MkInventoryOdooEdit] add line failed', err);
+			}
+		}
+		unlockAddLineButton($form, $btn);
+		return newLineItem;
+	}
+
+	function unlockAddLineButton($form, $btn) {
+		setTimeout(function () {
+			if ($form && $form.length) {
+				$form.removeData('mkInvAddingLine');
+			}
+			if ($btn && $btn.length) {
+				$btn.removeClass('is-busy').prop('disabled', false);
+			}
+		}, 120);
+	}
+
+	/** Fast path: only touch the new row + totals once (no multi-timeout full restyle). */
+	function styleNewLineItemFast($form, newLineItem) {
+		if (!$form || !$form.length) {
+			return;
+		}
+		var $row = newLineItem && $(newLineItem).length
+			? $(newLineItem)
+			: $form.find('#lineItemTab tr.lineItemRow').not('.hide, .lineItemCloneCopy').last();
+		if (!$row.length || isTemplateLineItemRow($row)) {
+			return;
+		}
+		var $table = $form.find('#lineItemTab');
+		$table.addClass('mk-inv-odoo-lines-table mk-inv-luxury-lines');
+		refreshLineItemRow($row, $form);
+		syncTotalsDisplay($form);
+		// One short follow-up only if product Select2 did not mount yet.
+		setTimeout(function () {
+			if (!$row.closest('body').length) {
+				return;
+			}
+			var $sel = $row.find('select.mk-inv-product-select').first();
+			if (!$sel.length || !$sel.data('select2')) {
 				refreshLineItemRow($row, $form);
 			}
-			restyleLineItemRows($form);
-			syncTotalsDisplay($form);
-			var fn = $form.data('mkBindDirectPriceEvents');
-			if (fn) {
-				fn();
+		}, 80);
+	}
+
+	function handleNewLineItemRow($form, newLineItem) {
+		if (!$form || !$form.length) {
+			return;
+		}
+		if ($form.data('mkInvSkipPostLineHook')) {
+			return;
+		}
+		// Debounce overlapping handlers from Inventory + our add button.
+		var token = ($form.data('mkInvNewLineToken') || 0) + 1;
+		$form.data('mkInvNewLineToken', token);
+		styleNewLineItemFast($form, newLineItem);
+		setTimeout(function () {
+			if ($form.data('mkInvNewLineToken') !== token) {
+				return;
 			}
-			var scheduleFn = $form.data('mkScheduleRealtimeSync');
-			if (scheduleFn) {
-				scheduleFn();
+			var $row = newLineItem && $(newLineItem).length
+				? $(newLineItem)
+				: $form.find('#lineItemTab tr.lineItemRow').not('.hide, .lineItemCloneCopy').last();
+			if ($row.length && !$row.find('select.mk-inv-product-select').data('select2')) {
+				refreshLineItemRow($row, $form);
 			}
-		};
-		run();
-		[50, 120, 280, 550, 900, 1500].forEach(function (ms) {
-			setTimeout(run, ms);
-		});
+		}, 100);
 	}
 
 	function setFormattedText($el, formatted) {
@@ -1811,7 +2162,8 @@
 		$taxRow
 			.removeClass('mk-inv-totals-hide hide')
 			.addClass('mk-inv-totals-row mk-inv-totals-row--tax');
-		$taxRow.find('td:first').html('<div class="pull-right"><strong>Thuế GTGT ' + safePct + '%</strong></div>');
+		$taxRow.find('td:first').html('<div class="mk-inv-totals-label">Thuế GTGT ' + safePct + '%</div>');
+		$taxRow.find('#tax_final').addClass('mk-inv-vnd-amount');
 	}
 
 	function syncTotalsDisplay($form) {
@@ -2028,7 +2380,8 @@
 		if ($container.length && !$container.parent().hasClass('mk-inv-lines-card')) {
 			$container.wrap('<div class="mk-inv-lines-card"></div>');
 		}
-		$form.find('.mk-inv-line-actions').remove();
+		// Keep header actions (pinned add button); only remove legacy footer action bars.
+		$form.find('.mk-inv-line-actions').not('.mk-inv-line-header-actions').remove();
 	}
 
 	function initOdooTabs($lineBlock) {
@@ -2049,15 +2402,48 @@
 
 	function initAddLineButton($form) {
 		var $addBtn = $form.find('#addProductsServices');
-		if (!$addBtn.length || $addBtn.data('mkInvOdooAdd')) {
+		if (!$addBtn.length) {
 			return;
 		}
-		$addBtn.data('mkInvOdooAdd', true);
+		if (!$addBtn.attr('data-module-name')) {
+			$addBtn.attr('data-module-name', 'ProductsServices');
+		}
 		$addBtn.removeClass('btn btn-default').addClass('mk-inv-add-line-btn');
-		$addBtn.empty().append('<span class="mk-inv-add-line-btn__plus" aria-hidden="true">+</span> Thêm hàng hoá');
-		$addBtn.off('click.mkInvOdooRestyle').on('click.mkInvOdooRestyle', function () {
-			handleNewLineItemRow($form, null);
-		});
+		if (!$addBtn.data('mkInvOdooAddStyled')) {
+			$addBtn.data('mkInvOdooAddStyled', true);
+			$addBtn.empty().append('<span class="mk-inv-add-line-btn__plus" aria-hidden="true">+</span> Thêm hàng hoá');
+		}
+		if (!$addBtn.data('mkInvOdooAddBound')) {
+			$addBtn.data('mkInvOdooAddBound', true);
+			// Replace legacy direct binds (may be missing after shell move) with reliable create.
+			$addBtn.off('click');
+			$addBtn.on('click.mkInvOdooAdd', function (e) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				createInventoryLineItemRow($form, $(this));
+			});
+		}
+		pinAddLineButtonToTabs($form);
+	}
+
+	function pinAddLineButtonToTabs($form) {
+		var $lineBlock = $form.find('.mk-inv-lineitems-odoo, #lineItemTab').first().closest('.fieldBlockContainer');
+		if (!$lineBlock.length) {
+			$lineBlock = $form.find('#lineItemTab').closest('.fieldBlockContainer');
+		}
+		var $tabs = $lineBlock.find('.mk-inv-odoo-tabs').first();
+		var $addBtn = $form.find('#addProductsServices').first();
+		if (!$tabs.length || !$addBtn.length) {
+			return;
+		}
+		var $actions = $tabs.find('.mk-inv-line-header-actions').first();
+		if (!$actions.length) {
+			$actions = $('<div class="mk-inv-line-header-actions mk-qt-line-actions" aria-label="Thao tác dòng sản phẩm"></div>');
+			$tabs.append($actions);
+		}
+		if (!$addBtn.closest('.mk-inv-line-header-actions').length) {
+			$actions.append($addBtn.detach());
+		}
 	}
 
 	function rebuildPaymentMethodSelect($select, currentVal) {
@@ -2148,15 +2534,18 @@
 
 		if ($sub.length) {
 			$sub.removeClass('mk-inv-totals-hide').addClass('mk-inv-totals-row mk-inv-totals-row--sub');
-			$sub.find('td:first').html('<div class="pull-right"><strong>Số tiền trước thuế</strong></div>');
+			$sub.find('td:first').html('<div class="mk-inv-totals-label">Số tiền trước thuế</div>');
+			$sub.find('#preTaxTotal, #netTotal, .netTotal').addClass('mk-inv-vnd-amount');
 		}
 		var $taxRow = $result.find('#group_tax_row');
 		if ($taxRow.length) {
 			$taxRow.removeClass('hide mk-inv-totals-hide').addClass('mk-inv-totals-row mk-inv-totals-row--tax');
+			$taxRow.find('#tax_final').addClass('mk-inv-vnd-amount');
 		}
 		if ($grand.length) {
 			$grand.removeClass('mk-inv-totals-hide').addClass('mk-inv-totals-row mk-inv-totals-row--grand');
-			$grand.find('td:first').html('<div class="pull-right"><strong>Tổng</strong></div>');
+			$grand.find('td:first').html('<div class="mk-inv-totals-label">Tổng cộng</div>');
+			$grand.find('#grandTotal, .grandTotal').addClass('mk-inv-vnd-amount');
 		}
 
 		syncTotalsDisplay($form);

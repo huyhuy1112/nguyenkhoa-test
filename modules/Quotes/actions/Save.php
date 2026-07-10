@@ -20,6 +20,16 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 		return $name;
 	}
 
+	protected function getRecordModelFromRequest(Vtiger_Request $request) {
+		$recordModel = parent::getRecordModelFromRequest($request);
+		$recordId = (int) $request->get('record');
+		if ($recordId <= 0) {
+			require_once 'modules/Quotes/helpers/QuoteBaService.php';
+			$recordModel->set('quotestage', Quotes_QuoteBaService_Helper::resolveDraftQuoteStage());
+		}
+		return $recordModel;
+	}
+
 	public function saveRecord($request) {
 		// Auto-fill subject from Opportunity name if subject is empty.
 		// This does not change any inventory/tax math; it only ensures a consistent Quote subject.
@@ -45,6 +55,21 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 			}
 		} catch (Exception $e) {
 			// If anything goes wrong, fall back to default save behavior.
+		}
+
+		try {
+			$contactId = (int) $request->get('contact_id');
+			$potentialId = (int) $request->get('potential_id');
+			if ($contactId <= 0 && $potentialId > 0) {
+				require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+				$potContactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId($potentialId);
+				if ($potContactId > 0) {
+					$request->set('contact_id', $potContactId);
+					$request->set('contact_id_display', Vtiger_MkSalesCustomerName_Helper::readContactNameById($potContactId));
+				}
+			}
+		} catch (Exception $e) {
+			// keep default save behavior
 		}
 
 		require_once 'modules/Quotes/helpers/QuoteBaService.php';

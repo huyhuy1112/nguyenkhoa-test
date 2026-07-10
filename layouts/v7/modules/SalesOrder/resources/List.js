@@ -175,6 +175,7 @@
 		createdtime: 'mk-so-col-time',
 		customerno: 'mk-so-col-customer-code',
 		account_id: 'mk-so-col-customer',
+		contact_id: 'mk-so-col-customer',
 		hdnGrandTotal: 'mk-so-col-due',
 		total: 'mk-so-col-due',
 		received: 'mk-so-col-paid',
@@ -343,12 +344,22 @@
 	function buildInlineExportPreviewHtml($panel) {
 		var orderNo = $.trim($panel.find('.mk-so-inline-detail__order-no').text());
 		var customer = $.trim($panel.find('.mk-so-inline-detail__customer-name').text());
-		var meta = [];
+		var notes = $.trim($panel.find('.mk-so-inline-detail__notes-input').val());
+		var amountWords = $.trim($panel.attr('data-amount-words') || '');
+		var createdDate = $.trim($panel.attr('data-created-date') || '');
+		var phone = '';
+		var address = '';
 		$panel.find('.mk-so-inline-detail__field').each(function () {
-			var label = $.trim($(this).find('.mk-so-inline-detail__field-label').text());
+			var label = $.trim($(this).find('.mk-so-inline-detail__field-label').text()).toLowerCase();
 			var value = $.trim($(this).find('.mk-so-inline-detail__field-view').text());
-			if (label) {
-				meta.push({ label: label, value: value });
+			if (!phone && (label.indexOf('sđt') >= 0 || label.indexOf('phone') >= 0 || label.indexOf('điện thoại') >= 0)) {
+				phone = value;
+			}
+			if (!address && (label.indexOf('địa chỉ') >= 0 || label.indexOf('address') >= 0)) {
+				address = value;
+			}
+			if (!createdDate && (label.indexOf('ngày đặt') >= 0 || label.indexOf('created') >= 0)) {
+				createdDate = value;
 			}
 		});
 		var lines = [];
@@ -358,81 +369,136 @@
 				return;
 			}
 			lines.push({
-				code: $.trim($cells.eq(0).text()),
 				name: $.trim($cells.eq(1).text()),
 				qty: $.trim($cells.eq(2).text()),
 				price: $.trim($cells.eq(3).text()),
-				discount: $.trim($cells.eq(4).text()),
-				sale: $.trim($cells.eq(5).text()),
 				total: $.trim($cells.eq(6).text())
 			});
 		});
 		var totals = [];
+		var lineTotalSum = 0;
+		lines.forEach(function (line) {
+			if (window.MkCurrency && typeof MkCurrency.parse === 'function') {
+				lineTotalSum += MkCurrency.parse(line.total);
+			} else {
+				var n = parseFloat(String(line.total || '').replace(/\./g, '').replace(/,/g, '.'));
+				if (!isNaN(n)) lineTotalSum += n;
+			}
+		});
 		$panel.find('.mk-so-inline-detail__total-row').each(function () {
 			var $row = $(this);
+			var label = $.trim($row.find('.mk-so-inline-detail__total-label, span').first().text());
+			var value = $.trim($row.find('.mk-so-inline-detail__total-value, strong').first().text());
+			if (!label) {
+				return;
+			}
+			// Skip paid row in invoice-style preview; fix broken grand totals.
+			if (label.indexOf('Khách đã trả') === 0 || label.indexOf('đã trả') >= 0) {
+				return;
+			}
+			if (label.indexOf('Giảm giá') === 0) {
+				label = 'Chiết khấu';
+			} else if (label.indexOf('Tổng cộng') === 0 || label.indexOf('Tổng thanh toán') === 0) {
+				label = 'Tổng thanh toán';
+				var parsed = (window.MkCurrency && MkCurrency.parse) ? MkCurrency.parse(value) : parseFloat(String(value).replace(/\./g, '').replace(/,/g, '.'));
+				if (!parsed || parsed < (lineTotalSum * 0.5)) {
+					value = (window.MkCurrency && MkCurrency.format)
+						? MkCurrency.format(lineTotalSum, { decimals: 0 })
+						: String(Math.round(lineTotalSum)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+				}
+			} else if (label.indexOf('Tổng tiền hàng') === 0) {
+				var subParsed = (window.MkCurrency && MkCurrency.parse) ? MkCurrency.parse(value) : parseFloat(String(value).replace(/\./g, '').replace(/,/g, '.'));
+				if (!subParsed || subParsed < (lineTotalSum * 0.5)) {
+					value = (window.MkCurrency && MkCurrency.format)
+						? MkCurrency.format(lineTotalSum, { decimals: 0 })
+						: String(Math.round(lineTotalSum)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+				}
+			}
 			totals.push({
-				label: $.trim($row.find('span').first().text()),
-				value: $.trim($row.find('strong').text()),
-				grand: $row.hasClass('mk-so-inline-detail__total-row--grand')
+				label: label,
+				value: value,
+				grand: $row.hasClass('mk-so-inline-detail__total-row--grand') || label.indexOf('Tổng thanh toán') === 0
 			});
 		});
-		var notes = $.trim($panel.find('.mk-so-inline-detail__notes-input').val());
 		var esc = function (text) {
 			return $('<div>').text(text || '').html();
 		};
+		var formatDateVi = function (raw) {
+			if (!raw) {
+				return '';
+			}
+			var m = String(raw).match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+			if (m) {
+				return 'Ngày ' + m[1] + ' tháng ' + m[2] + ' năm ' + m[3];
+			}
+			return raw;
+		};
 
 		var html = '<div class="mk-so-excel-sheet">';
-		html += '<div class="mk-so-excel-sheet__hero">';
-		html += '<div class="mk-so-excel-sheet__brand"><span class="mk-so-excel-sheet__brand-tag">Nguyên Khoa</span><strong>Phiếu đặt hàng</strong></div>';
-		html += '<div class="mk-so-excel-sheet__order-no">' + esc(orderNo) + '</div>';
+		html += '<div class="mk-so-excel-sheet__header">';
+		html += '<div class="mk-so-excel-sheet__logo">NK</div>';
+		html += '<div class="mk-so-excel-sheet__company">nguyenlieuphachemt</div>';
+		html += '<div class="mk-so-excel-sheet__company-meta">6/24 Đường số 3, Cư Xá Lữ Gia, Phú Thọ, Hồ Chí Minh<br>0973969498</div>';
+		html += '<div class="mk-so-excel-sheet__doc-title">HÓA ĐƠN ĐẶT HÀNG</div>';
+		html += '<div class="mk-so-excel-sheet__doc-meta">Mã đơn hàng: ' + esc(orderNo) + '</div>';
+		if (createdDate) {
+			html += '<div class="mk-so-excel-sheet__doc-meta">' + esc(formatDateVi(createdDate)) + '</div>';
+		}
 		html += '</div>';
-		html += '<div class="mk-so-excel-sheet__meta">';
-		html += '<div class="mk-so-excel-sheet__meta-card"><span class="mk-so-excel-sheet__meta-label">Khách hàng</span><strong>' + esc(customer) + '</strong></div>';
-		meta.forEach(function (item) {
-			html += '<div class="mk-so-excel-sheet__meta-card"><span class="mk-so-excel-sheet__meta-label">' + esc(item.label) + '</span><strong>' + esc(item.value) + '</strong></div>';
-		});
+		html += '<div class="mk-so-excel-sheet__customer">';
+		html += '<div><strong>Khách hàng:</strong> ' + esc(customer || '—') + '</div>';
+		html += '<div><strong>SĐT:</strong> ' + esc(phone || '—') + '</div>';
+		html += '<div><strong>Địa chỉ:</strong> ' + esc(address || '—') + '</div>';
+		html += '<div><strong>Ghi chú:</strong> ' + esc(notes || '—') + '</div>';
 		html += '</div>';
-		html += '<div class="mk-so-excel-sheet__table-wrap"><table class="mk-so-excel-sheet__table">';
-		html += '<thead><tr><th>Mã hàng</th><th>Tên hàng</th><th>Số lượng</th><th>Đơn giá</th><th>Giảm giá</th><th>Giá bán</th><th>Thành tiền</th></tr></thead><tbody>';
+		html += '<table class="mk-so-excel-sheet__invoice-table">';
+		html += '<thead><tr><th>Đơn giá</th><th class="is-qty">SL</th><th class="is-money">T.Tiền</th></tr></thead><tbody>';
 		if (!lines.length) {
-			html += '<tr><td colspan="7" class="is-empty">Chưa có hàng hóa trong đơn.</td></tr>';
+			html += '<tr><td colspan="3" class="is-empty">Chưa có hàng hóa trong đơn hàng.</td></tr>';
 		} else {
-			lines.forEach(function (line, idx) {
-				html += '<tr class="' + (idx % 2 === 1 ? 'is-alt' : '') + '">';
-				html += '<td>' + esc(line.code) + '</td><td class="is-name">' + esc(line.name) + '</td>';
-				html += '<td class="is-num">' + esc(line.qty) + '</td><td class="is-num">' + esc(line.price) + '</td>';
-				html += '<td class="is-num">' + esc(line.discount) + '</td><td class="is-num">' + esc(line.sale) + '</td>';
-				html += '<td class="is-num is-total">' + esc(line.total) + '</td></tr>';
+			lines.forEach(function (line) {
+				html += '<tr><td colspan="3" class="is-item-name">' + esc(line.name) + '</td></tr>';
+				html += '<tr>';
+				html += '<td class="is-money" style="text-align:left">' + esc(line.price) + '</td>';
+				html += '<td class="is-qty">' + esc(line.qty) + '</td>';
+				html += '<td class="is-money">' + esc(line.total) + '</td>';
+				html += '</tr>';
 			});
 		}
-		html += '</tbody></table></div>';
+		html += '</tbody></table>';
+		html += '<hr class="mk-so-excel-sheet__divider" />';
 		html += '<div class="mk-so-excel-sheet__bottom">';
-		html += '<div class="mk-so-excel-sheet__notes"><span class="mk-so-excel-sheet__meta-label">Ghi chú</span><p>' + esc(notes || '—') + '</p></div>';
+		html += '<p class="mk-so-excel-sheet__words">' + (amountWords ? '(' + esc(amountWords) + ')' : '') + '</p>';
 		html += '<div class="mk-so-excel-sheet__totals">';
 		totals.forEach(function (item) {
-			html += '<div class="mk-so-excel-sheet__total-row' + (item.grand ? ' is-grand' : '') + '"><span>' + esc(item.label) + '</span><strong>' + esc(item.value) + '</strong></div>';
+			html += '<div class="mk-so-excel-sheet__total-row' + (item.grand ? ' is-grand' : '') + '">';
+			html += '<span>' + esc(item.label) + ':</span><strong>' + esc(item.value) + '</strong></div>';
 		});
-		html += '</div></div></div>';
+		html += '</div></div>';
+		html += '<p class="mk-so-excel-sheet__thanks">Cảm ơn và hẹn gặp lại!</p>';
+		html += '</div>';
 		return html;
 	}
 
+	function downloadInlineExportXlsx($panel, recordId) {
+		var excelUrl = $.trim($panel.attr('data-excel-url') || '');
+		if (!excelUrl) {
+			excelUrl = 'index.php?module=SalesOrder&action=ExportExcelForSale&record=' + encodeURIComponent(recordId);
+		}
+		var iframeId = 'mk-so-inline-excel-frame';
+		var $frame = $('#' + iframeId);
+		if (!$frame.length) {
+			$frame = $('<iframe>', {
+				id: iframeId,
+				css: { display: 'none', width: 0, height: 0, border: 0 }
+			});
+			$('body').append($frame);
+		}
+		$frame.attr('src', excelUrl);
+	}
+
 	function downloadInlineExportCsv($panel, recordId) {
-		var rows = buildInlineExportRows($panel);
-		var lines = rows.map(function (row) {
-			return (row || []).map(csvEscape).join(',');
-		});
-		var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-		var orderNo = $.trim($panel.find('.mk-so-inline-detail__order-no').text()) || recordId;
-		var fileName = 'don-hang-' + orderNo.replace(/[^\w\-]+/g, '_') + '.csv';
-		var link = document.createElement('a');
-		link.href = URL.createObjectURL(blob);
-		link.download = fileName;
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-		setTimeout(function () {
-			URL.revokeObjectURL(link.href);
-		}, 0);
+		downloadInlineExportXlsx($panel, recordId);
 	}
 
 	function openInlineExcelPreview($panel, recordId) {
@@ -585,13 +651,252 @@
 		if (!$target.length) {
 			return false;
 		}
-		if ($target.closest('.mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-control-td').length) {
+		if ($target.closest('.mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-delete-btn, .mk-so-pos-dup-btn, .mk-so-pos-check, .mk-so-pos-control-td').length) {
 			return true;
 		}
 		if ($target.is('input[type="checkbox"]')) {
 			return true;
 		}
 		return false;
+	}
+
+	function getCsrfToken() {
+		if (typeof app !== 'undefined' && typeof app.getCsrfToken === 'function') {
+			return app.getCsrfToken();
+		}
+		if (typeof csrfMagicToken !== 'undefined') {
+			return csrfMagicToken;
+		}
+		if (typeof csrfMagicName !== 'undefined') {
+			return jQuery('[name="' + csrfMagicName + '"]').val() || '';
+		}
+		return '';
+	}
+
+	function ensureSoConfirmWarehouseModal() {
+		var id = 'mkSoConfirmWarehouseModal';
+		if ($('#' + id).length) {
+			return $('#' + id);
+		}
+		var $modal = $(
+			'<div class="modal fade mk-so-wh-modal" id="' + id + '" tabindex="-1" role="dialog" aria-hidden="true">' +
+				'<div class="modal-dialog modal-dialog-centered">' +
+				'<div class="modal-content">' +
+				'<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
+				'<h4 class="modal-title">Xác nhận đơn hàng</h4></div>' +
+				'<div class="modal-body"><p class="mk-so-wh-modal__lead">Chọn kho để tạo phiếu xuất ở trạng thái <strong>Chờ in phiếu</strong>. Đơn hàng sẽ chuyển sang <strong>Đã xác nhận</strong>.</p>' +
+				'<div class="mk-so-wh-modal__list" id="mkSoConfirmWarehouseList"></div>' +
+				'<div class="mk-so-wh-modal__error hide" id="mkSoConfirmWarehouseError"></div></div>' +
+				'<div class="modal-footer">' +
+				'<button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>' +
+				'<button type="button" class="btn btn-success" id="mkSoConfirmWarehouseBtn" disabled>Xác nhận &amp; xuất kho</button>' +
+				'</div></div></div></div>'
+		);
+		$('body').append($modal);
+		return $modal;
+	}
+
+	function decodeWhLabel(s) {
+		var text = String(s || '');
+		if (/&(?:#x?[0-9a-f]+|[a-z]+);/i.test(text)) {
+			var el = document.createElement('textarea');
+			el.innerHTML = text;
+			text = el.value;
+		}
+		return text;
+	}
+
+	function confirmSalesOrderWithWarehouse($panel, recordId, $btn) {
+		var $modal = ensureSoConfirmWarehouseModal();
+		var $err = $('#mkSoConfirmWarehouseError');
+		var $list = $('#mkSoConfirmWarehouseList');
+		var $confirmBtn = $('#mkSoConfirmWarehouseBtn');
+		$err.addClass('hide').empty();
+		$list.empty();
+		$confirmBtn.prop('disabled', true).text('Xác nhận & xuất kho');
+
+		function openConfirmModal() {
+			$('body').addClass('mk-so-confirm-modal-open modal-open');
+			// Keep fullscreen detail visible but don't let its overlay eat clicks.
+			$('.mk-so-inline-detail-backdrop.is-open').css('pointer-events', 'none');
+			$modal.css('z-index', 110020);
+			$modal.modal('show');
+			// Bootstrap may insert backdrop after show — force it under the dialog.
+			window.setTimeout(function () {
+				$('.modal-backdrop')
+					.last()
+					.css({ 'z-index': 110000, 'pointer-events': 'auto' });
+				$modal.css({ 'z-index': 110020, display: 'block' });
+				$modal.find('.modal-dialog').css('pointer-events', 'auto');
+			}, 0);
+		}
+
+		function closeConfirmModal() {
+			$modal.modal('hide');
+			$('body').removeClass('mk-so-confirm-modal-open');
+			$('.mk-so-inline-detail-backdrop.is-open').css('pointer-events', '');
+			// If no other bootstrap modal is open, clear leftover backdrops.
+			window.setTimeout(function () {
+				if (!$('.modal.in:visible, .modal.show:visible').length) {
+					$('.modal-backdrop').remove();
+					$('body').removeClass('modal-open');
+				}
+			}, 320);
+		}
+
+		function postConfirm(warehouseId) {
+			$btn.data('mkBusy', 1).prop('disabled', true).addClass('is-busy');
+			$confirmBtn.prop('disabled', true).text('Đang xử lý...');
+			var postData = {
+				module: 'SalesOrder',
+				action: 'ConfirmSalesOrder',
+				record: recordId,
+				warehouse_id: warehouseId,
+				app: 'SALES'
+			};
+			var csrf = getCsrfToken();
+			if (csrf) {
+				postData.__vtrftk = csrf;
+			}
+
+			function handleFail(msg) {
+				$err.removeClass('hide').text(String(msg || 'Không xác nhận được đơn hàng.'));
+				$btn.data('mkBusy', 0).prop('disabled', false).removeClass('is-busy');
+				$confirmBtn.prop('disabled', false).text('Xác nhận & xuất kho');
+			}
+
+			function handleOk(result) {
+				closeConfirmModal();
+				if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({
+						message: result.message || 'Đã xác nhận đơn hàng và tạo phiếu xuất kho.'
+					});
+				}
+				var targetUrl = result.warehouse_url || result.list_url ||
+					('index.php?module=SalesOrder&view=List&app=SALES');
+				window.setTimeout(function () {
+					window.location.href = targetUrl;
+				}, 400);
+			}
+
+			if (typeof app !== 'undefined' && app.request && app.request.post) {
+				app.request.post({ data: postData }).then(function (err, res) {
+					if (err) {
+						handleFail((err && (err.message || err)) || 'Không xác nhận được đơn hàng.');
+						return;
+					}
+					var result = res || {};
+					if (result.success === false) {
+						handleFail(result.message || 'Không xác nhận được đơn hàng.');
+						return;
+					}
+					handleOk(result);
+				});
+				return;
+			}
+
+			$.ajax({
+				url: 'index.php',
+				type: 'POST',
+				dataType: 'json',
+				data: postData
+			}).done(function (resp) {
+				var result = (resp && resp.result) ? resp.result : resp;
+				if (resp && resp.success === false) {
+					handleFail((resp.error && (resp.error.message || resp.error)) || 'Không xác nhận được đơn hàng.');
+					return;
+				}
+				if (!result || result.success === false) {
+					handleFail((result && result.message) || 'Không xác nhận được đơn hàng.');
+					return;
+				}
+				handleOk(result);
+			}).fail(function (xhr) {
+				var msg = 'Không xác nhận được đơn hàng.';
+				try {
+					var parsed = JSON.parse(xhr.responseText || '{}');
+					if (parsed && parsed.error) {
+						msg = parsed.error.message || parsed.error || msg;
+					} else if (parsed && parsed.result && parsed.result.message) {
+						msg = parsed.result.message;
+					}
+				} catch (ignore) { /* ignore */ }
+				handleFail(msg);
+			});
+		}
+
+		function showWarehousePicker(warehouses) {
+			warehouses = warehouses || [];
+			if (!warehouses.length) {
+				$err.removeClass('hide').text('Không có kho nào để xuất hàng. Vào Kho hàng để tạo kho trước.');
+				openConfirmModal();
+				return;
+			}
+			warehouses.forEach(function (wh, idx) {
+				var id = 'mkSoConfirmWh_' + String(wh.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+				$list.append(
+					$('<label class="mk-so-wh-option"></label>')
+						.append(
+							$('<input type="radio" name="mk_so_confirm_warehouse_pick" />')
+								.attr('id', id)
+								.attr('value', wh.id)
+								.prop('checked', idx === 0)
+						)
+						.append(
+							$('<span class="mk-so-wh-option__body"></span>')
+								.append($('<strong></strong>').text(decodeWhLabel(wh.name)))
+								.append($('<small></small>').text(decodeWhLabel(wh.address || wh.code)))
+						)
+				);
+			});
+			$confirmBtn.prop('disabled', false);
+			$confirmBtn.off('click.mkSoConfirm').on('click.mkSoConfirm', function () {
+				var warehouseId = $('input[name="mk_so_confirm_warehouse_pick"]:checked').val();
+				if (!warehouseId) {
+					$err.removeClass('hide').text('Vui lòng chọn kho.');
+					return;
+				}
+				postConfirm(warehouseId);
+			});
+			openConfirmModal();
+		}
+
+		function loadWarehouses() {
+			if (typeof app !== 'undefined' && app.request && app.request.get) {
+				app.request.get({ url: 'index.php?module=SalesOrder&action=WarehouseList' }).then(function (err, res) {
+					if (err) {
+						$err.removeClass('hide').text(String((err && (err.message || err)) || 'Không tải được danh sách kho.'));
+						openConfirmModal();
+						return;
+					}
+					showWarehousePicker((res && res.warehouses) || []);
+				});
+				return;
+			}
+			$.ajax({
+				url: 'index.php',
+				type: 'GET',
+				dataType: 'json',
+				data: { module: 'SalesOrder', action: 'WarehouseList' }
+			}).done(function (resp) {
+				var res = (resp && resp.result) ? resp.result : resp;
+				showWarehousePicker((res && res.warehouses) || []);
+			}).fail(function () {
+				$err.removeClass('hide').text('Không tải được danh sách kho.');
+				openConfirmModal();
+			});
+		}
+
+		$modal.off('hidden.bs.modal.mkSoConfirmClean').on('hidden.bs.modal.mkSoConfirmClean', function () {
+			$('body').removeClass('mk-so-confirm-modal-open');
+			$('.mk-so-inline-detail-backdrop.is-open').css('pointer-events', '');
+			if (!$('.modal.in:visible, .modal.show:visible').not($modal).length) {
+				$('.modal-backdrop').remove();
+				$('body').removeClass('modal-open');
+			}
+		});
+
+		loadWarehouses();
 	}
 
 	function captureInlineDetailSnapshot($panel) {
@@ -735,6 +1040,8 @@
 			}
 			window.location.href = 'index.php?module=SalesOrder&view=Edit&record=' + encodeURIComponent(recordId) + '&app=SALES';
 		});
+
+		/* Confirm order: handled by document delegation in bindPosInlineDetailCapture */
 
 		$panel.on('click', '.mk-so-inline-detail__cancel-edit', function (e) {
 			e.preventDefault();
@@ -884,6 +1191,155 @@
 		return id != null ? String(id) : '';
 	}
 
+	function getListInstance() {
+		return (typeof Vtiger_List_Js !== 'undefined' && Vtiger_List_Js.getInstance)
+			? Vtiger_List_Js.getInstance()
+			: null;
+	}
+
+	function syncPosRowSelectedClass() {
+		var $root = getListViewContainer();
+		$root.find('tr.listViewEntries').each(function () {
+			var $row = $(this);
+			$row.toggleClass('mk-so-row-selected', $row.find('.listViewEntriesCheckBox:checked').length > 0);
+		});
+	}
+
+	function syncPosMassActionButtons() {
+		var $root = getListViewContainer();
+		var hasChecked = $root.find('.listViewEntriesCheckBox:checked').length > 0;
+		if (!hasChecked) {
+			var listInstance = getListInstance();
+			if (listInstance && listInstance.getRecordSelectTrackerInstance) {
+				var tracker = listInstance.getRecordSelectTrackerInstance();
+				var selectedIds = tracker ? tracker.getSelectedIds() : null;
+				if (jQuery.isArray(selectedIds)) {
+					hasChecked = selectedIds.length > 0;
+				} else if (typeof selectedIds === 'string') {
+					hasChecked = selectedIds !== '' && selectedIds.toLowerCase() !== 'all';
+				}
+			}
+		}
+		var $btns = $('#mk-so-mass-delete-btn, #mk-so-mass-duplicate-btn');
+		$btns.prop('disabled', !hasChecked);
+		$btns.toggleClass('is-visible', hasChecked);
+		$btns.attr('aria-hidden', hasChecked ? 'false' : 'true');
+	}
+
+	function getSelectedSalesOrderIds() {
+		var ids = [];
+		getListViewContainer().find('.listViewEntriesCheckBox:checked').each(function () {
+			var id = parseInt($(this).val(), 10);
+			if (id > 0) {
+				ids.push(id);
+			}
+		});
+		return ids;
+	}
+
+	function massDuplicateSalesOrders() {
+		var ids = getSelectedSalesOrderIds();
+		if (!ids.length) {
+			if (app.helper && app.helper.showErrorNotification) {
+				app.helper.showErrorNotification({ message: 'Chọn ít nhất 1 đơn hàng để nhân bản.' });
+			}
+			return;
+		}
+		if (ids.length === 1) {
+			window.location.href = 'index.php?module=SalesOrder&view=Edit&record=' + ids[0] + '&isDuplicate=true&app=SALES';
+			return;
+		}
+		var message = 'Nhân bản ' + ids.length + ' đơn hàng đã chọn?';
+		var run = function () {
+			var postData = {
+				module: 'SalesOrder',
+				action: 'MassDuplicate',
+				selected_ids: JSON.stringify(ids),
+				excluded_ids: JSON.stringify([]),
+				viewname: getListViewContainer().find('[name="cvid"], #viewname, [name="viewname"]').first().val() || '',
+				app: 'SALES'
+			};
+			if (app.helper && app.helper.showProgress) {
+				app.helper.showProgress();
+			}
+			app.request.post({ data: postData }).then(function (err, res) {
+				if (app.helper && app.helper.hideProgress) {
+					app.helper.hideProgress();
+				}
+				if (err) {
+					if (app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({ message: (err && err.message) || 'Không nhân bản được.' });
+					}
+					return;
+				}
+				var result = res || {};
+				if (result.success === false) {
+					if (app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({ message: result.message || 'Không nhân bản được.' });
+					}
+					return;
+				}
+				if (app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({ message: result.message || 'Đã nhân bản đơn hàng.' });
+				}
+				var listInstance = getListInstance();
+				if (listInstance && listInstance.clearList) {
+					listInstance.clearList();
+				}
+				if (listInstance && listInstance.loadListViewRecords) {
+					listInstance.loadListViewRecords();
+				} else {
+					window.location.reload();
+				}
+			});
+		};
+		if (app.helper && app.helper.showConfirmationBox) {
+			app.helper.showConfirmationBox({ message: message }).then(run);
+		} else if (window.confirm(message)) {
+			run();
+		}
+	}
+
+	function bindPosSelectionEvents() {
+		var $root = getListViewContainer();
+		if (!$root.length || $root.data('mkSoPosSelectionBound')) {
+			return;
+		}
+		$root.data('mkSoPosSelectionBound', 1);
+
+		$root.off('change.mkSoPosRowCheck', '.listViewEntriesCheckBox, .listViewEntriesMainCheckBox')
+			.on('change.mkSoPosRowCheck', '.listViewEntriesCheckBox, .listViewEntriesMainCheckBox', function (e) {
+				e.stopPropagation();
+				syncPosRowSelectedClass();
+				setTimeout(syncPosMassActionButtons, 0);
+			});
+	}
+
+	function bindPosMassDuplicateButton() {
+		$(document)
+			.off('click.mkSoMassDup', '#mk-so-mass-duplicate-btn')
+			.on('click.mkSoMassDup', '#mk-so-mass-duplicate-btn', function (e) {
+				if (!isSalesOrderSalesList()) return;
+				e.preventDefault();
+				massDuplicateSalesOrders();
+			});
+	}
+
+	function patchPosListViewActions() {
+		if (typeof Vtiger_List_Js === 'undefined' || Vtiger_List_Js.prototype.__mkSoListActionsPatched) {
+			return;
+		}
+		var original = Vtiger_List_Js.prototype.registerPostLoadListViewActions;
+		Vtiger_List_Js.prototype.registerPostLoadListViewActions = function () {
+			original.apply(this, arguments);
+			if (isSalesOrderSalesList()) {
+				syncPosRowSelectedClass();
+				syncPosMassActionButtons();
+			}
+		};
+		Vtiger_List_Js.prototype.__mkSoListActionsPatched = true;
+	}
+
 	function unregisterVtigerRowNavigation($container) {
 		if (!$container || !$container.length) {
 			return;
@@ -983,6 +1439,24 @@
 		document.addEventListener('click', function (e) {
 			handlePosInlineDetailClick(e);
 		}, true);
+
+		/* Backup: confirm button even if panel init missed */
+		$(document)
+			.off('click.mkSoConfirmOrder', '.mk-so-inline-detail__confirm-order-btn')
+			.on('click.mkSoConfirmOrder', '.mk-so-inline-detail__confirm-order-btn', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var $btn = $(this);
+				if ($btn.data('mkBusy')) {
+					return;
+				}
+				var $panel = $btn.closest('.mk-so-inline-detail');
+				var recordId = String($panel.data('record-id') || '');
+				if (!recordId) {
+					return;
+				}
+				confirmSalesOrderWithWarehouse($panel, recordId, $btn);
+			});
 	}
 
 	function paidFieldName() {
@@ -1798,11 +2272,11 @@
 		}
 		$table.find('colgroup.mk-so-pos-cols').remove();
 		var widthByClass = {
-			'mk-so-pos-control-th': '42px',
-			'mk-so-col-star': '42px',
+			'mk-so-pos-control-th': '76px',
+			'mk-so-col-star': '76px',
 			'mk-so-col-order-no': '12%',
 			'mk-so-col-time': '16%',
-			'mk-so-col-customer': '26%',
+			'mk-so-col-customer': '22%',
 			'mk-so-col-due': '16%',
 			'mk-so-col-paid': '14%',
 			'mk-so-col-status': '14%'
@@ -2102,6 +2576,10 @@
 		formatPosDateTimeCells($table);
 		enhancePaidCells($table);
 		injectSummaryRow($table);
+		bindPosSelectionEvents();
+		bindPosMassDuplicateButton();
+		syncPosRowSelectedClass();
+		syncPosMassActionButtons();
 		if (window.MkSalesListShared && typeof window.MkSalesListShared.relocatePaginationFooter === 'function') {
 			window.MkSalesListShared.relocatePaginationFooter();
 		}
@@ -2215,6 +2693,8 @@
 		patchPlaceListContents();
 		patchInlineDetailRowClick();
 		bindListEvents();
+		bindPosSelectionEvents();
+		bindPosMassDuplicateButton();
 		initDebugHelpers();
 		scheduleInitialEnhancements();
 	}
@@ -2233,6 +2713,7 @@
 		whenVtigerListReady(function () {
 			patchVtigerFloatingThead();
 			patchInlineDetailRowClick();
+			patchPosListViewActions();
 			init();
 			var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
 			if (listInstance && isSalesOrderSalesList()) {

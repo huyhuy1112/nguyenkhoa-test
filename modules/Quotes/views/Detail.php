@@ -57,6 +57,7 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('INLINE_NOTES', $this->resolveInlineNotes($recordModel));
 		$viewer->assign('INLINE_EDIT_URL', $recordModel->getEditViewUrl() . '&app=SALES');
 		$viewer->assign('INLINE_DETAIL_URL', $recordModel->getDetailViewUrl() . '&app=SALES');
+		$viewer->assign('INLINE_CONFIRM_URL', 'index.php?module=Quotes&action=ConfirmSalesOrder&record=' . (int) $recordId);
 		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=Quotes&action=ExportPDF&record=' . (int) $recordId . '&preview=1');
 		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=Quotes&action=ExportPDF&record=' . (int) $recordId);
 
@@ -141,15 +142,9 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 	}
 
 	protected function resolveInlineCustomerName(Vtiger_Record_Model $recordModel) {
-		foreach (array('account_id', 'potential_id', 'subject') as $fieldName) {
-			$raw = $recordModel->getDisplayValue($fieldName);
-			// Display values for references can include HTML anchors — strip for plain text hero.
-			$value = trim(html_entity_decode(strip_tags((string) $raw), ENT_QUOTES, 'UTF-8'));
-			if ($value !== '') {
-				return $value;
-			}
-		}
-		return '—';
+		require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+		$name = Vtiger_MkSalesCustomerName_Helper::resolveDisplayName($recordModel);
+		return $name !== '' ? $name : '—';
 	}
 
 	protected function resolveInlineNotes(Vtiger_Record_Model $recordModel) {
@@ -162,14 +157,10 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 
 	protected function getQuoteStageLabelMap() {
 		return array(
-			'Created' => 'Đã tạo',
-			'Delivered' => 'Đã giao',
-			'Reviewed' => 'Đang xem xét',
-			'Accepted' => 'Đã chấp nhận',
-			'Rejected' => 'Từ chối',
-			'Đã tạo' => 'Đã tạo',
-			'Đã chấp nhận' => 'Đã chấp nhận',
-			'Từ chối' => 'Từ chối',
+			'Created' => 'Nháp',
+			'Nháp' => 'Nháp',
+			'Draft' => 'Nháp',
+			'Đã tạo' => 'Nháp',
 		);
 	}
 

@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260622_quote_ba_v7';
+	var MK_BUILD = '20260710_quote_contact3';
 	var autosaveTimer;
 	var TERMS_MODAL_ID = 'mkQtTermsModal';
 	var TERMS_EDITOR_ID = 'mkQtTermsEditor';
@@ -512,17 +512,197 @@
 				'hdnTaxType',
 				'taxtype'
 			]);
+		} else {
+			// Quote create: status is auto-draft — hide field, keep contact visible.
+			hideFields.push('quotestage');
 		}
 		hideFields.forEach(function (name) {
-			$form()
-				.find('[name="' + name + '"]')
-				.closest('tr')
-				.addClass('mk-qt-hide-legacy');
+			hideQuoteFieldPair(name);
 		});
 
 		$form()
 			.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]')
 			.addClass('mk-qt-address-simplified mk-qt-hide-legacy');
+
+		if (!isSalesOrder()) {
+			ensureDraftQuoteStage();
+			ensureContactFieldVisible();
+		}
+	}
+
+	function hideQuoteFieldPair(name) {
+		$form()
+			.find('[name="' + name + '"], [name="' + name + '_display"]')
+			.each(function () {
+				var $valueTd = $(this).closest('td.fieldValue');
+				if ($valueTd.length) {
+					$valueTd.addClass('mk-qt-hide-legacy');
+					$valueTd.prev('td.fieldLabel').addClass('mk-qt-hide-legacy');
+					return;
+				}
+				$(this).closest('tr').addClass('mk-qt-hide-legacy');
+			});
+	}
+
+	function ensureDraftQuoteStage() {
+		var $stage = $form().find('select[name="quotestage"], [name="quotestage"]').first();
+		if (!$stage.length) {
+			return;
+		}
+		var preferred = ['Nháp', 'Created', 'Draft', 'Đã tạo'];
+		var current = $.trim($stage.val() || '');
+		var pick = '';
+		preferred.forEach(function (cand) {
+			if (pick) {
+				return;
+			}
+			$stage.find('option').each(function () {
+				var v = String($(this).attr('value') || '');
+				var t = $.trim($(this).text() || '');
+				if (v === cand || t === cand || v.toLowerCase() === cand.toLowerCase() || t.toLowerCase() === cand.toLowerCase()) {
+					pick = v || cand;
+					return false;
+				}
+				return true;
+			});
+		});
+		if (!pick) {
+			pick = 'Nháp';
+		}
+		if (!current || preferred.indexOf(current) >= 0 || /nháp|draft|created|đã tạo/i.test(current)) {
+			$stage.val(pick);
+		}
+		$('#mkQtRailStage, #mkQtHeadStageBadge').text('Nháp');
+	}
+
+	function buildContactReferenceHtml() {
+		return (
+			'<div class="referencefield-wrapper mk-qt-contact-ref">' +
+				'<input name="popupReferenceModule" type="hidden" value="Contacts"/>' +
+				'<div class="input-group">' +
+					'<input name="contact_id" type="hidden" value="" class="sourceField" data-displayvalue=""/>' +
+					'<input id="contact_id_display" name="contact_id_display" data-fieldname="contact_id" data-fieldtype="reference" type="text" ' +
+						'class="marginLeftZero autoComplete inputElement" value="" placeholder="Nhập để tìm kiếm"/>' +
+					'<a href="#" class="clearReferenceSelection hide" tabindex="-1"> x </a>' +
+					'<span class="input-group-addon relatedPopup cursorPointer" title="Select"><i class="fa fa-search"></i></span>' +
+					'<span class="input-group-addon createReferenceRecord cursorPointer clearfix" title="Create"><i class="fa fa-plus"></i></span>' +
+				'</div>' +
+			'</div>'
+		);
+	}
+
+	function registerInjectedContactEvents($container) {
+		if (!$container || !$container.length) {
+			return;
+		}
+		var editInstance = null;
+		try {
+			if (typeof Quotes_Edit_Js !== 'undefined' && Quotes_Edit_Js.getInstance) {
+				editInstance = Quotes_Edit_Js.getInstance();
+			} else if (typeof Inventory_Edit_Js !== 'undefined' && Inventory_Edit_Js.getInstance) {
+				editInstance = Inventory_Edit_Js.getInstance();
+			} else if (typeof Vtiger_Edit_Js !== 'undefined' && Vtiger_Edit_Js.getInstance) {
+				editInstance = Vtiger_Edit_Js.getInstance();
+			}
+		} catch (e) {
+			editInstance = null;
+		}
+		if (!editInstance) {
+			return;
+		}
+		if (typeof editInstance.registerAutoCompleteFields === 'function') {
+			editInstance.registerAutoCompleteFields($container);
+		}
+		if (typeof editInstance.registerClearReferenceSelectionEvent === 'function') {
+			editInstance.registerClearReferenceSelectionEvent($container);
+		}
+		if (typeof editInstance.registerReferenceCreate === 'function') {
+			editInstance.registerReferenceCreate($container);
+		}
+		if (typeof editInstance.referenceModulePopupRegisterEvent === 'function') {
+			editInstance.referenceModulePopupRegisterEvent($container);
+		}
+	}
+
+	function injectContactField() {
+		var $f = $form();
+		if ($f.find('[name="contact_id"]').length || $f.find('.mk-qt-contact-injected').length) {
+			return;
+		}
+
+		var $html = $(
+			'<tr class="mk-qt-contact-injected">' +
+				'<td class="fieldLabel alignMiddle">' +
+					'<label class="muted">Người liên hệ</label>' +
+				'</td>' +
+				'<td class="fieldValue">' + buildContactReferenceHtml() + '</td>' +
+				'<td class="fieldLabel"></td>' +
+				'<td class="fieldValue"></td>' +
+			'</tr>'
+		);
+
+		var $subjectRow = $f.find('[name="subject"]').closest('tr');
+		var $validRow = $f.find('[name="validtill"], #Quotes_editView_fieldName_validtill').closest('tr');
+		var $potentialRow = $f.find('[name="potential_id"]').closest('tr');
+		var $infoBody = $f
+			.find('.fieldBlockContainer[data-block="LBL_QUOTE_INFORMATION"] table.table-borderless > tbody')
+			.first();
+
+		// Prefer left column under Title: fill empty/hidden left of validtill row when possible
+		if ($validRow.length) {
+			var $leftLabel = $validRow.children('td.fieldLabel').first();
+			var $leftValue = $validRow.children('td.fieldValue').first();
+			var $rightValue = $validRow.children('td.fieldValue').last();
+			var leftIsValidtill = $leftValue.find('[name="validtill"]').length > 0;
+			var rightIsValidtill = $rightValue.find('[name="validtill"]').length > 0;
+			var leftHidden = $leftLabel.hasClass('mk-qt-hide-legacy') || $leftValue.hasClass('mk-qt-hide-legacy');
+			var leftEmpty = !$leftValue.children().length;
+
+			if (rightIsValidtill && !leftIsValidtill && (leftHidden || leftEmpty || $leftValue.find('[name="quotestage"]').length)) {
+				// Keep quotestage in DOM (hidden) for draft submit
+				var $stage = $leftValue.find('[name="quotestage"]').detach();
+				$leftLabel.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+				$leftValue.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+				$leftLabel.html('<label class="muted">Người liên hệ</label>');
+				$leftValue.empty().append(buildContactReferenceHtml());
+				if ($stage.length) {
+					$f.append($stage.addClass('mk-qt-hide-legacy').css({ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }));
+				}
+				$leftValue.addClass('mk-qt-contact-injected');
+				registerInjectedContactEvents($leftValue);
+				return;
+			}
+		}
+
+		if ($subjectRow.length) {
+			$html.insertAfter($subjectRow);
+		} else if ($potentialRow.length) {
+			$html.insertAfter($potentialRow);
+		} else if ($infoBody.length) {
+			$infoBody.append($html);
+		} else {
+			return;
+		}
+		registerInjectedContactEvents($html);
+	}
+
+	function ensureContactFieldVisible() {
+		var $contact = $form().find('[name="contact_id"], [name="contact_id_display"]').first();
+		if (!$contact.length) {
+			injectContactField();
+			$contact = $form().find('[name="contact_id"], [name="contact_id_display"]').first();
+			if (!$contact.length) {
+				return;
+			}
+		}
+		var $valueTd = $contact.closest('td.fieldValue');
+		$valueTd.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+		$valueTd.prev('td.fieldLabel').removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+		$valueTd.closest('tr').removeClass('mk-qt-hide-legacy');
+		var $label = $valueTd.prev('td.fieldLabel').find('label').first();
+		if ($label.length) {
+			$label.text('Người liên hệ');
+		}
 	}
 
 	function reorderQuoteBlocks() {
@@ -672,15 +852,15 @@
 			$('#mkSoRailTotal').text(total || '—');
 			return;
 		}
-		var stage = readFieldDisplay('quotestage');
+		var stage = 'Nháp';
 		var valid = readFieldDisplay('validtill');
-		var org = readFieldDisplay('account_id');
+		var contact = readFieldDisplay('contact_id') || readFieldDisplay('account_id');
 		var opp = readFieldDisplay('potential_id');
 		var total = readGrandTotal();
 
-		$('#mkQtRailStage, #mkQtHeadStageBadge').text(stage || 'Draft');
+		$('#mkQtRailStage, #mkQtHeadStageBadge').text(stage);
 		$('#mkQtRailValidUntil').text(valid || '—');
-		$('#mkQtRailOrganization').text(org || '—');
+		$('#mkQtRailOrganization').text(contact || '—');
 		$('#mkQtRailOpportunity').text(opp || '—');
 		$('#mkQtRailTotal').text(total || '—');
 	}
@@ -913,6 +1093,8 @@
 		hideLegacyChrome();
 		styleFieldBlocks();
 		simplifyQuoteForm();
+		ensureDraftQuoteStage();
+		ensureContactFieldVisible();
 		reorderQuoteBlocks();
 		initOdooInventoryUi();
 		pinAddProductToLineHeader();

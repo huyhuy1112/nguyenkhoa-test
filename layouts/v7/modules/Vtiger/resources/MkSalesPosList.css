@@ -151,6 +151,14 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-t
 	flex-wrap: nowrap;
 }
 
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-toolbar .mk-so-pos-mass-action {
+	display: none !important;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-toolbar .mk-so-pos-mass-action.is-visible {
+	display: inline-flex !important;
+}
+
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-btn {
 	display: inline-flex;
 	align-items: center;
@@ -246,32 +254,92 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-m
 	border-bottom: none !important;
 }
 
-/* Star / control column */
+/* Star / control column — checkbox + star (fixed 2-slot grid) */
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table th.mk-so-pos-control-th,
-body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table td.mk-so-pos-control-td {
-	width: 44px !important;
-	min-width: 44px !important;
-	max-width: 44px !important;
-	padding: 0 8px !important;
-	text-align: center !important;
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table td.mk-so-pos-control-td,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table td.listViewRecordActions.mk-so-pos-control-td {
+	width: 76px !important;
+	min-width: 76px !important;
+	max-width: 76px !important;
+	padding: 0 12px !important;
+	text-align: left !important;
 	border-right: none !important;
+	overflow: visible !important;
+	vertical-align: middle !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table th.mk-so-pos-control-th #listColumnFilterContainer {
+	position: absolute !important;
+	left: -9999px !important;
+	width: 1px !important;
+	height: 1px !important;
+	overflow: hidden !important;
+}
+
+/* Beat MkSalesListTable `.table-actions { display:inline-flex }` via #listview-table */
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader th .mk-so-pos-row-actions.table-actions,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table tbody tr.listViewEntries td .mk-so-pos-row-actions.table-actions,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table .mk-so-pos-row-actions {
+	display: grid !important;
+	grid-template-columns: 18px 28px !important;
+	column-gap: 10px !important;
+	row-gap: 0 !important;
+	align-items: center !important;
+	justify-content: start !important;
+	justify-items: center !important;
+	width: 56px !important;
+	min-width: 56px !important;
+	max-width: 56px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	gap: 10px !important; /* fallback; grid uses column-gap */
+	flex-wrap: nowrap !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table .mk-so-pos-row-actions > .mk-so-pos-check,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table .mk-so-pos-row-actions > .mk-so-pos-star-slot,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table .mk-so-pos-row-actions > .mk-so-pos-star-hdr,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table .table-actions > .mk-so-pos-check.input,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table .table-actions > .mk-so-pos-star-slot,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table .table-actions > .mk-so-pos-star-hdr {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 100% !important;
+	min-width: 0 !important;
+	height: 28px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	float: none !important;
+	flex: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled #listview-table .mk-so-pos-row-actions input[type="checkbox"] {
+	margin: 0 !important;
+	float: none !important;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled .mk-so-pos-star-hdr {
 	color: #cbd5e1;
-	font-size: 14px;
+	font-size: 15px;
+	line-height: 1;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-pos-list-enabled .mk-so-pos-star-btn {
-	display: inline-flex;
+	display: inline-flex !important;
 	align-items: center;
 	justify-content: center;
-	width: 28px;
-	height: 28px;
+	width: 28px !important;
+	height: 28px !important;
+	min-width: 28px !important;
 	border: none !important;
 	background: transparent !important;
 	color: #cbd5e1 !important;
 	font-size: 15px;
+	line-height: 1 !important;
 	box-shadow: none !important;
 }
 

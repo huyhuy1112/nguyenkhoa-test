@@ -955,6 +955,8 @@ body.mk-list-confirm-open .modal-backdrop.in {
 /* Confirm / bootbox must sit above backdrop so Yes/No stays clickable */
 body[data-view="List"][data-app="SALES"] .bootbox.modal,
 body[data-view="List"][data-app="SALES"] .myModal,
+body[data-view="List"][data-app="SALES"] .mk-so-wh-modal,
+body[data-view="List"][data-app="SALES"] #mkSoConfirmWarehouseModal,
 body[data-view="List"][data-app="MARKETING"] .bootbox.modal,
 body[data-view="List"][data-app="MARKETING"] .myModal,
 body[data-view="List"][data-app="SUPPORT"] .bootbox.modal,
@@ -962,6 +964,19 @@ body[data-view="List"][data-app="SUPPORT"] .myModal,
 body[data-module="Accounts"][data-view="List"] .bootbox.modal,
 body[data-module="Accounts"][data-view="List"] .myModal {
 	z-index: 110020 !important;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-wh-modal .modal-dialog,
+body[data-view="List"][data-app="SALES"] #mkSoConfirmWarehouseModal .modal-dialog {
+	pointer-events: auto !important;
+	z-index: 110021 !important;
+}
+
+/* Inline fullscreen backdrop must not cover confirm warehouse modal */
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"].modal-open .mk-so-inline-detail-backdrop.is-open,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"].mk-so-confirm-modal-open .mk-so-inline-detail-backdrop.is-open {
+	z-index: 109990 !important;
+	pointer-events: none !important;
 }
 
 body[data-view="List"][data-app="SALES"] .bootbox.modal .modal-dialog,

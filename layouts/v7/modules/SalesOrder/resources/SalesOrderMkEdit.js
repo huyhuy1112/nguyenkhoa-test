@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260708_so_qt_shell1';
+	var MK_BUILD = '20260710_so_product_dd2';
 	var WAREHOUSE_MODAL_ID = 'mkSoWarehouseModal';
 	var warehouseConfirmed = false;
 	var warehousePickerOpen = false;
@@ -81,11 +81,15 @@
 	};
 
 	function isScoped() {
+		var $body = $('body');
+		var mod = $body.attr('data-module') || $body.data('module');
+		var view = $body.attr('data-view') || $body.data('view');
+		var app = ($body.attr('data-app') || $body.data('app') || '').toString().toUpperCase();
 		return (
-			$('body').data('module') === 'SalesOrder' &&
-			$('body').data('view') === 'Edit' &&
-			($('body').data('app') === 'SALES' || !$('body').data('app')) &&
-			$('#mkSoCreateWorkspace').length
+			mod === 'SalesOrder' &&
+			view === 'Edit' &&
+			(app === 'SALES' || app === '') &&
+			$('#mkSoCreateWorkspace').length > 0
 		);
 	}
 
@@ -232,7 +236,7 @@
 				'<div class="modal-content">' +
 				'<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
 				'<h4 class="modal-title">Chọn kho xuất hàng</h4></div>' +
-				'<div class="modal-body"><p class="mk-so-wh-modal__lead">Đơn hàng sẽ tạo phiếu xuất kho ở trạng thái <strong>Chờ in phiếu</strong>.</p>' +
+				'<div class="modal-body"><p class="mk-so-wh-modal__lead">Chọn kho để tạo phiếu xuất ở trạng thái <strong>Chờ in phiếu</strong>.</p>' +
 				'<div class="mk-so-wh-modal__list" id="mkSoWarehouseList"></div>' +
 				'<div class="mk-so-wh-modal__error hide" id="mkSoWarehouseError"></div></div>' +
 				'<div class="modal-footer">' +
@@ -388,17 +392,7 @@
 		if (!$editForm.length) {
 			return;
 		}
-
-		if (isCreateMode() && !warehouseConfirmed) {
-			if ($editForm.valid && !$editForm.valid()) {
-				return;
-			}
-			openWarehousePicker(function () {
-				doActualSave();
-			});
-			return;
-		}
-
+		// Create stays as Phiếu tạm — warehouse outbound is created on confirm, not on save.
 		doActualSave();
 	}
 
@@ -715,7 +709,8 @@
 		// Subject is mandatory in vtiger Inventory modules; keep it filled even if hidden.
 		var $subject = $editForm.find('input[name="subject"]').first();
 		if ($subject.length && !$subject.val()) {
-			var accountText = $.trim($editForm.find('[name="account_id_display"]').val() || $editForm.find('[name="account_id"]').closest('td').find('.select2-chosen').text());
+			var contactText = $.trim($editForm.find('[name="contact_id_display"]').val() || $editForm.find('[name="contact_id"]').closest('td').find('.select2-chosen').text());
+			var accountText = contactText || $.trim($editForm.find('[name="account_id_display"]').val() || $editForm.find('[name="account_id"]').closest('td').find('.select2-chosen').text());
 			$subject.val(('Đơn hàng' + (accountText ? ' - ' + accountText : '')).trim());
 		}
 		// Assigned user is mandatory but usually prefilled; ensure it has something.
@@ -726,37 +721,42 @@
 				$assigned.val(fallback);
 			}
 		}
-		// Keep subject synced when account changes (simple best-effort).
+		// Keep subject synced when contact/account changes (prefer contact label).
 		$editForm
-			.off('change.mkSoSubjectSync', '[name="account_id_display"]')
-			.on('change.mkSoSubjectSync', '[name="account_id_display"]', function () {
+			.off('change.mkSoSubjectSync', '[name="contact_id_display"], [name="account_id_display"]')
+			.on('change.mkSoSubjectSync', '[name="contact_id_display"], [name="account_id_display"]', function () {
 				if ($subject.length && !$subject.val()) {
-					var txt = $.trim($(this).val());
+					var contactText = $.trim($editForm.find('[name="contact_id_display"]').val());
+					var txt = contactText || $.trim($(this).val());
 					$subject.val(('Đơn hàng' + (txt ? ' - ' + txt : '')).trim());
 				}
 			});
+	}
+
+	function ensureCreateStatusPhieuTam() {
+		if (!isCreateMode()) {
+			return;
+		}
+		var $editForm = $form();
+		var $status = $editForm.find('[name="sostatus"]').first();
+		if ($status.length) {
+			$status.val('Created');
+			if ($status.is('select')) {
+				$status.find('option[value="Created"]').prop('selected', true);
+			}
+			$status.trigger('change');
+		}
 	}
 
 	function bindActions() {
 		bindSaveValidationRecovery();
 		markOppCommerceRefreshOnSubmit();
 		var $editForm = $form();
-		$editForm.off('submit.mkSoWarehouse').on('submit.mkSoWarehouse', function (e) {
-			if (isCreateMode() && !warehouseConfirmed) {
-				e.preventDefault();
-				e.stopImmediatePropagation();
-				triggerSave();
-				return false;
-			}
-		});
-		$editForm.find('.saveButton').off('click.mkSoWarehouse').on('click.mkSoWarehouse', function (e) {
-			if (isCreateMode() && !warehouseConfirmed) {
-				e.preventDefault();
-				e.stopImmediatePropagation();
-				triggerSave();
-				return false;
-			}
-		});
+		// Create = Phiếu tạm only; warehouse picker runs on confirm, not on save.
+		$editForm.off('submit.mkSoWarehouse');
+		$editForm.find('.saveButton').off('click.mkSoWarehouse');
+		ensureCreateStatusPhieuTam();
+
 		$('#mkSoSaveTop')
 			.off('click.mkSoSave')
 			.on('click.mkSoSave', function (e) {
@@ -779,108 +779,263 @@
 
 	function initOdooInventoryUi() {
 		if (window.MkInventoryOdooEdit && window.MkInventoryOdooEdit.init) {
-			window.MkInventoryOdooEdit.init($form(), { hideDescriptionBlock: true });
+			window.MkInventoryOdooEdit.init($form(), { hideDescriptionBlock: false });
 		}
 	}
 
 	function simplifySalesOrderForm() {
-		// Make this idempotent + re-runnable (form can re-render via ajax / vtiger hooks).
 		$form().data('mkSoSimplified', true);
 		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
 
-		// Keep only fields similar to BA screenshot.
-		// Everything else is hidden (but still present in DOM to not break save).
-		var allowNames = [
-			'account_id',
-			'account_id_display',
-			'duedate',
-			'mk_payment_terms',
-			'payment_duration',
-			'bill_street',
-			'ship_street',
-			'terms_conditions',
-			'currency_id'
-		];
-		var allowSet = {};
-		allowNames.forEach(function (n) { allowSet[n] = true; });
+		// Only: Tiêu đề, Tên cơ hội, Ghi chú, Trạng thái + Chi tiết đơn hàng.
+		var allowNames = {
+			subject: true,
+			potential_id: true,
+			potential_id_display: true,
+			description: true,
+			sostatus: true
+		};
 
-		var hideRowIfNotAllowed = function ($row) {
-			// keep line item table rows intact
-			if ($row.closest('#lineItemTab, #lineItemResult').length) {
+		function fieldNameAllowed(name) {
+			if (!name) {
+				return false;
+			}
+			name = String(name).replace(/\[\]$/, '');
+			return !!(allowNames[name] || allowNames[name.replace(/_display$/, '')]);
+		}
+
+		function hideFieldPair($valueTd) {
+			if (!$valueTd || !$valueTd.length) {
 				return;
 			}
-			var $fields = $row.find('input[name], select[name], textarea[name]');
-			if (!$fields.length) {
+			$valueTd.addClass('mk-so-hide-legacy');
+			var $label = $valueTd.prev('td.fieldLabel');
+			if ($label.length) {
+				$label.addClass('mk-so-hide-legacy');
+			}
+		}
+
+		function showFieldPair($valueTd) {
+			if (!$valueTd || !$valueTd.length) {
+				return;
+			}
+			$valueTd.removeClass('mk-so-hide-legacy mk-inv-hide-legacy');
+			var $label = $valueTd.prev('td.fieldLabel');
+			if ($label.length) {
+				$label.removeClass('mk-so-hide-legacy mk-inv-hide-legacy');
+			}
+		}
+
+		// Hide blocks we never want on create/edit.
+		$editForm
+			.find(
+				'.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"],' +
+					'.fieldBlockContainer[data-block="LBL_TERMS_INFORMATION"],' +
+					'.fieldBlockContainer[data-block="Recurring Invoice Information"]'
+			)
+			.addClass('mk-so-hide-legacy');
+
+		// Hide field pairs (label+value) that are not in the allowlist.
+		// Important: Vtiger puts 2 fields per row — do NOT keep a whole row just because one field is allowed.
+		$editForm.find('td.fieldValue').each(function () {
+			var $valueTd = $(this);
+			if ($valueTd.closest('#lineItemTab, #lineItemResult, .lineItemTable, .lineitemTableContainer').length) {
 				return;
 			}
 			var keep = false;
-			$fields.each(function () {
-				var name = $(this).attr('name');
-				if (name && allowSet[name]) {
+			$valueTd.find('input[name], select[name], textarea[name]').each(function () {
+				if (fieldNameAllowed($(this).attr('name'))) {
 					keep = true;
 					return false;
 				}
 				return true;
 			});
-			if (!keep) {
-				$row.addClass('mk-so-hide-legacy');
+			if (keep) {
+				showFieldPair($valueTd);
+			} else {
+				hideFieldPair($valueTd);
 			}
-		};
-
-		// Hide non-allowed rows globally (covers blocks without data-block too).
-		$editForm.find('tr').each(function () {
-			hideRowIfNotAllowed($(this));
 		});
 
-		// Hide blocks that have no visible allowed rows (except line-items and terms).
-		$editForm.find('.fieldBlockContainer').each(function () {
-			var $block = $(this);
-			if ($block.find('#lineItemTab, #lineItemResult').length) {
+		// Extra safety: hide by known junk field names + label text from screenshots.
+		var forceHideNames = [
+			'customerno',
+			'purchaseorder',
+			'pending',
+			'exciseduty',
+			'purpose',
+			'internal_cost',
+			'needed_time',
+			'internal_order_status',
+			'created_user_id',
+			'approved_by',
+			'approval_note',
+			'team_group',
+			'leadsource',
+			'lead_id',
+			'leadid',
+			'account_id',
+			'contact_id',
+			'quote_id',
+			'carrier',
+			'shipping',
+			'salescommission',
+			'duedate',
+			'currency_id',
+			'conversion_rate',
+			'assigned_user_id',
+			'enable_recurring'
+		];
+		forceHideNames.forEach(function (name) {
+			$editForm.find('[name="' + name + '"], [name="' + name + '_display"]').each(function () {
+				hideFieldPair($(this).closest('td.fieldValue'));
+			});
+		});
+		var hideLabelRe = /mã\s*số\s*khách\s*hàng|mua\s*đặt\s*hàng|đang\s*chờ\s*xử\s*lý|excise\s*duty|mục\s*đích|remaining\s*amount|^lead$|người\s*đặt|người\s*duyệt|ghi\s*chú\s*duyệt|chi\s*phí|thời\s*điểm\s*cần/i;
+		$editForm.find('td.fieldLabel').each(function () {
+			var $labelTd = $(this);
+			var text = $.trim($labelTd.text() || '').replace(/\*/g, '');
+			if (!text || !hideLabelRe.test(text)) {
 				return;
 			}
-			if ($block.find('textarea[name="terms_conditions"], [name="terms_conditions"]').length) {
+			// Keep our Ghi chú label (description) — only hide "Remaining Amount" style junk labels before rename.
+			if (/^ghi\s*chú$/i.test(text)) {
 				return;
 			}
-			// Keep address block if it contains street fields.
-			if ($block.find('[name="bill_street"], [name="ship_street"]').length) {
+			var $valueTd = $labelTd.next('td.fieldValue');
+			if ($valueTd.find('[name="description"], [name="subject"], [name="sostatus"], [name="potential_id"], [name="potential_id_display"]').length) {
 				return;
 			}
-			// Keep SO info block if it contains account/due/payment fields.
-			if ($block.find('[name="account_id"], [name="duedate"], [name="mk_payment_terms"], [name="payment_duration"]').length) {
-				return;
-			}
+			$labelTd.addClass('mk-so-hide-legacy');
+			$valueTd.addClass('mk-so-hide-legacy');
+		});
 
-			// If every row is hidden (or block is empty), hide the whole block.
-			var hasVisible = false;
-			$block.find('tr').each(function () {
+		// Hide empty leftover rows (all cells hidden / no visible fields).
+		$editForm.find('table.table-borderless > tbody > tr').each(function () {
+			var $tr = $(this);
+			if ($tr.closest('#lineItemTab, #lineItemResult').length) {
+				return;
+			}
+			var $values = $tr.children('td.fieldValue');
+			if (!$values.length) {
+				return;
+			}
+			var anyVisible = false;
+			$values.each(function () {
 				if (!$(this).hasClass('mk-so-hide-legacy')) {
-					hasVisible = true;
+					anyVisible = true;
 					return false;
 				}
 				return true;
 			});
-			if (!hasVisible) {
-				$block.addClass('mk-so-hide-legacy');
+			$tr.toggleClass('mk-so-hide-legacy', !anyVisible);
+		});
+
+		// Keep SO info + line items blocks; hide other blocks with no allowed fields.
+		$editForm.find('.fieldBlockContainer[data-block]').each(function () {
+			var $block = $(this);
+			if ($block.find('#lineItemTab, #lineItemResult').length) {
+				$block.removeClass('mk-so-hide-legacy');
+				return;
 			}
+			var blockKey = $block.attr('data-block') || '';
+			if (blockKey === 'LBL_SO_INFORMATION') {
+				$block.removeClass('mk-so-hide-legacy');
+				return;
+			}
+			if (blockKey === 'LBL_DESCRIPTION_INFORMATION') {
+				// description row is moved into SO info; hide empty block
+				$block.addClass('mk-so-hide-legacy');
+				return;
+			}
+			var hasAllowed = false;
+			$block.find('input[name], select[name], textarea[name]').each(function () {
+				if (fieldNameAllowed($(this).attr('name'))) {
+					hasAllowed = true;
+					return false;
+				}
+				return true;
+			});
+			$block.toggleClass('mk-so-hide-legacy', !hasAllowed);
 		});
 
-		// Keep quick actions in line items (Thêm phần / Danh mục) like BA screenshot.
+		// Move Ghi chú into SO info card (Odoo CSS hides LBL_DESCRIPTION_INFORMATION).
+		var $desc = $editForm.find('textarea[name="description"]').first();
+		if ($desc.length) {
+			var $descRow = $desc.closest('tr');
+			var $descBlock = $desc.closest('.fieldBlockContainer');
+			var $infoBlock = $editForm.find('.fieldBlockContainer[data-block="LBL_SO_INFORMATION"]').first();
+			showFieldPair($desc.closest('td.fieldValue'));
+			$descRow.removeClass('mk-so-hide-legacy mk-inv-hide-legacy');
+			if ($infoBlock.length && $descRow.length && !$infoBlock.find('textarea[name="description"]').length) {
+				var $infoTable = $infoBlock.find('table.table-borderless > tbody').first();
+				if ($infoTable.length) {
+					$infoTable.append($descRow);
+				}
+			}
+			if ($descBlock.length && $descBlock.attr('data-block') === 'LBL_DESCRIPTION_INFORMATION') {
+				$descBlock.addClass('mk-so-hide-legacy mk-inv-hide-legacy');
+			}
+			$descRow.find('td.fieldLabel label').first().text('Ghi chú');
+			$desc.closest('td.fieldValue').addClass('fieldValueWidth80');
+		}
 
-		// Hide extra address subfields but keep street fields (like the screenshot).
-		[
-			'bill_pobox',
-			'bill_city',
-			'bill_state',
-			'bill_code',
-			'bill_country',
-			'ship_pobox',
-			'ship_city',
-			'ship_state',
-			'ship_code',
-			'ship_country'
-		].forEach(function (name) {
-			$editForm.find('[name="' + name + '"]').closest('tr').addClass('mk-so-hide-legacy');
+		var labelMap = {
+			subject: 'Tiêu đề',
+			potential_id: 'Tên cơ hội',
+			potential_id_display: 'Tên cơ hội',
+			sostatus: 'Trạng thái',
+			description: 'Ghi chú'
+		};
+		Object.keys(labelMap).forEach(function (name) {
+			$editForm
+				.find('[name="' + name + '"]')
+				.closest('td.fieldValue')
+				.prev('td.fieldLabel')
+				.find('label')
+				.first()
+				.each(function () {
+					$(this).text(labelMap[name]);
+				});
 		});
+
+		var $lineHeader = $editForm
+			.find('#lineItemTab')
+			.closest('.fieldBlockContainer')
+			.find('.fieldBlockHeader')
+			.first();
+		if ($lineHeader.length) {
+			var $lineIcon = $lineHeader.find('.mk-so-block__icon').detach();
+			$lineHeader.empty();
+			if ($lineIcon.length) {
+				$lineHeader.append($lineIcon);
+			}
+			$lineHeader.append(document.createTextNode(' Chi tiết đơn hàng'));
+		}
+	}
+
+	function pinAddProductToLineHeader() {
+		var $editForm = $form();
+		var $lineBlock = $editForm.find('#lineItemTab').closest('.fieldBlockContainer');
+		if (!$lineBlock.length) {
+			return;
+		}
+		var $tabs = $lineBlock.find('.mk-inv-odoo-tabs').first();
+		var $addBtn = $editForm.find('#addProductsServices').first();
+		if (!$tabs.length || !$addBtn.length) {
+			return;
+		}
+		var $actions = $tabs.find('.mk-inv-line-header-actions, .mk-qt-line-actions').first();
+		if (!$actions.length) {
+			$actions = $('<div class="mk-inv-line-header-actions mk-qt-line-actions" aria-label="Thao tác dòng sản phẩm"></div>');
+			$tabs.append($actions);
+		}
+		if (!$addBtn.closest('.mk-inv-line-header-actions, .mk-qt-line-actions').length) {
+			$actions.append($addBtn.detach());
+		}
 	}
 
 	function initStickyHead() {
@@ -916,8 +1071,9 @@
 		}
 
 		styleFieldBlocks();
-		simplifySalesOrderForm();
 		initOdooInventoryUi();
+		simplifySalesOrderForm();
+		pinAddProductToLineHeader();
 		initTermsRichEditor();
 		bindActions();
 		initStickyHead();
@@ -925,7 +1081,10 @@
 		ensureMandatoryHiddenDefaults();
 		markOppCommerceRefreshOnSubmit();
 		revealPage();
-		setTimeout(fixFormDisplayEncoding, 300);
+		setTimeout(function () {
+			simplifySalesOrderForm();
+			fixFormDisplayEncoding();
+		}, 300);
 	}
 
 	function bindWarehouseInterceptOnly() {
@@ -935,22 +1094,10 @@
 		}
 		$editForm.data('mkSoWhBound', true);
 		bindSaveValidationRecovery();
-		$editForm.off('submit.mkSoWarehouse').on('submit.mkSoWarehouse', function (e) {
-			if (isCreateMode() && !warehouseConfirmed) {
-				e.preventDefault();
-				e.stopImmediatePropagation();
-				triggerSave();
-				return false;
-			}
-		});
-		$editForm.find('.saveButton').off('click.mkSoWarehouse').on('click.mkSoWarehouse', function (e) {
-			if (isCreateMode() && !warehouseConfirmed) {
-				e.preventDefault();
-				e.stopImmediatePropagation();
-				triggerSave();
-				return false;
-			}
-		});
+		// No warehouse gate on create — outbound is created when confirming the order.
+		$editForm.off('submit.mkSoWarehouse');
+		$editForm.find('.saveButton').off('click.mkSoWarehouse');
+		ensureCreateStatusPhieuTam();
 	}
 
 	function ensureSubjectSyncFromAccount() {
@@ -959,11 +1106,13 @@
 			return;
 		}
 		$editForm
-			.off('change.mkSoSubjectSync', '[name="account_id_display"]')
-			.on('change.mkSoSubjectSync', '[name="account_id_display"]', function () {
+			.off('change.mkSoSubjectSync', '[name="contact_id_display"], [name="account_id_display"]')
+			.on('change.mkSoSubjectSync', '[name="contact_id_display"], [name="account_id_display"]', function () {
 				var $subject = $editForm.find('[name="subject"]');
 				if ($subject.length && !$.trim($subject.val())) {
-					$subject.val($.trim($(this).val()) || '');
+					var contactText = $.trim($editForm.find('[name="contact_id_display"]').val());
+					var txt = contactText || $.trim($(this).val());
+					$subject.val(txt ? ('Đơn hàng - ' + txt) : '');
 				}
 			});
 	}

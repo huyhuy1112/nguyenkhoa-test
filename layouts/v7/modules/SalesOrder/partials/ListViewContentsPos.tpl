@@ -46,7 +46,16 @@
 				<thead>
 					<tr class="listViewContentHeader">
 						<th class="mk-so-col-star mk-so-pos-control-th">
-							<span class="mk-so-pos-star-hdr" aria-hidden="true"><i class="fa fa-star-o"></i></span>
+							<div class="mk-so-pos-row-actions mk-so-pos-header-actions">
+								{if $SEARCH_MODE_RESULTS neq true}
+									<span class="mk-so-pos-check input">
+										<input type="checkbox" class="listViewEntriesMainCheckBox" title="{vtranslate('LBL_SELECT_ALL', $MODULE)}" />
+									</span>
+								{else}
+									<span class="mk-so-pos-check input mk-so-pos-check--spacer" aria-hidden="true"></span>
+								{/if}
+								<span class="mk-so-pos-star-slot mk-so-pos-star-hdr" aria-hidden="true"><i class="fa fa-star-o"></i></span>
+							</div>
 							{if $MODULE_MODEL->isFilterColumnEnabled()}
 								<div id="listColumnFilterContainer" class="hide">
 									<div class="listColumnFilter {if $CURRENT_CV_MODEL and !($CURRENT_CV_MODEL->isCvEditable())}disabled{/if}"

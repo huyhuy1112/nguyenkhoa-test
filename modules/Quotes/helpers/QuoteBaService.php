@@ -283,6 +283,12 @@ class Quotes_QuoteBaService_Helper {
 			$request->set('terms_conditions', self::stripSignatureFromTermsHtml($terms));
 		}
 
+		// New quotes always start as Nháp.
+		$recordId = (int) $request->get('record');
+		if ($recordId <= 0) {
+			$request->set('quotestage', self::resolveDraftQuoteStage());
+		}
+
 		if (trim((string) $request->get('mk_quote_date')) === '') {
 			$request->set('mk_quote_date', date('Y-m-d'));
 		}
@@ -304,5 +310,41 @@ class Quotes_QuoteBaService_Helper {
 			$grandTotal = $subtotal + $vatAmount;
 		}
 		$request->set('mk_amount_in_words', self::amountInWordsVi($grandTotal));
+	}
+
+	/**
+	 * Prefer picklist value "Nháp"; fall back to Created/Draft if needed.
+	 */
+	public static function resolveDraftQuoteStage() {
+		static $resolved = null;
+		if ($resolved !== null) {
+			return $resolved;
+		}
+		$candidates = array('Nháp', 'Created', 'Draft', 'Đã tạo');
+		try {
+			$moduleModel = Vtiger_Module_Model::getInstance('Quotes');
+			$fieldModel = $moduleModel ? Vtiger_Field_Model::getInstance('quotestage', $moduleModel) : null;
+			$values = ($fieldModel && method_exists($fieldModel, 'getPicklistValues'))
+				? $fieldModel->getPicklistValues()
+				: array();
+			if (is_array($values) && !empty($values)) {
+				foreach ($candidates as $candidate) {
+					if (isset($values[$candidate])) {
+						$resolved = $candidate;
+						return $resolved;
+					}
+					foreach ($values as $key => $label) {
+						if (strcasecmp((string) $key, $candidate) === 0 || strcasecmp((string) $label, $candidate) === 0) {
+							$resolved = (string) $key;
+							return $resolved;
+						}
+					}
+				}
+			}
+		} catch (Exception $e) {
+			// fall through
+		}
+		$resolved = 'Nháp';
+		return $resolved;
 	}
 }
