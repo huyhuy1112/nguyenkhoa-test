@@ -1001,18 +1001,32 @@
 	}
 
 	function parseMoneyText(text) {
-		var raw = String(text || '').replace(/[^\d.,-]/g, '').replace(/,/g, '');
+		if (window.MkCurrency && typeof MkCurrency.parse === 'function') {
+			return MkCurrency.parse(text);
+		}
+		var raw = String(text || '').replace(/[^\d.,-]/g, '');
+		if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(raw)) {
+			raw = raw.replace(/\./g, '').replace(',', '.');
+		} else {
+			raw = raw.replace(/,/g, '');
+		}
 		var num = parseFloat(raw);
 		return isNaN(num) ? 0 : num;
 	}
 
 	function formatMoneyNumber(num) {
+		if (window.MkCurrency && typeof MkCurrency.format === 'function') {
+			return MkCurrency.format(num, { decimals: 0 });
+		}
 		var n = Math.round(num);
-		return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+		return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 	}
 
 	function stripCurrencyFromText(text) {
-		return String(text || '').replace(/[^\d.,-]/g, '').replace(/,/g, '');
+		if (window.MkCurrency && typeof MkCurrency.parse === 'function') {
+			return String(MkCurrency.parse(text));
+		}
+		return String(text || '').replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(/,/g, '.');
 	}
 
 	function formatPosMoneyCells($table) {

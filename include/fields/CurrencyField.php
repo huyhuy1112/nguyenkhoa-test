@@ -92,10 +92,17 @@ class CurrencyField {
             $user = $current_user;
         }
 
+		require_once 'include/utils/MkCurrencyBranding.php';
+		MkCurrencyBranding::applyVnNumberFormat($user);
+
 		if(!empty($user->currency_grouping_pattern)) {
 			$this->currencyFormat = html_entity_decode($user->currency_grouping_pattern, ENT_QUOTES, $default_charset);
 			$this->currencySeparator = str_replace("\xC2\xA0", ' ', html_entity_decode($user->currency_grouping_separator, ENT_QUOTES, $default_charset));
 			$this->decimalSeparator = str_replace("\xC2\xA0", ' ', html_entity_decode($user->currency_decimal_separator, ENT_QUOTES, $default_charset));
+		} else {
+			$this->currencyFormat = MkCurrencyBranding::GROUPING_PATTERN;
+			$this->currencySeparator = MkCurrencyBranding::GROUPING_SEPARATOR;
+			$this->decimalSeparator = MkCurrencyBranding::DECIMAL_SEPARATOR;
 		}
 
 		if(!empty($user->currency_id)) {
@@ -104,7 +111,6 @@ class CurrencyField {
 			$this->currencyId = self::getDBCurrencyId();
 		}
 		$currencyRateAndSymbol = getCurrencySymbolandCRate($this->currencyId);
-		require_once 'include/utils/MkCurrencyBranding.php';
 		$this->currencySymbol = MkCurrencyBranding::normalizeSymbol($currencyRateAndSymbol['symbol']);
 		$this->conversionRate = $currencyRateAndSymbol['rate'];
 		$this->currencySymbolPlacement = $user->currency_symbol_placement;

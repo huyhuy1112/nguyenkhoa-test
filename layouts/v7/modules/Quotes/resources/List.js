@@ -863,8 +863,16 @@
 	}
 
 	function parseMoneyText(text) {
+		if (window.MkCurrency && typeof MkCurrency.parse === 'function') {
+			return MkCurrency.parse(text);
+		}
 		if (text == null) return 0;
-		var s = String(text).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(/,/g, '');
+		var s = String(text).replace(/[^\d,.-]/g, '');
+		if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+			s = s.replace(/\./g, '').replace(',', '.');
+		} else {
+			s = s.replace(/\./g, '').replace(/,/g, '');
+		}
 		var n = parseFloat(s);
 		return isNaN(n) ? 0 : n;
 	}
@@ -880,10 +888,13 @@
 	}
 
 	function formatMoneyNumber(n) {
+		if (window.MkCurrency && typeof MkCurrency.format === 'function') {
+			return MkCurrency.format(n, { decimals: 0 });
+		}
 		try {
-			return Math.round(n).toLocaleString('en-US');
+			return Math.round(n).toLocaleString('vi-VN');
 		} catch (e) {
-			return String(Math.round(n));
+			return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 		}
 	}
 

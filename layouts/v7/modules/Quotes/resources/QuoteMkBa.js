@@ -28,7 +28,10 @@
 		if (!isFinite(n)) {
 			return '';
 		}
-		return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+		if (window.MkCurrency && typeof MkCurrency.format === 'function') {
+			return MkCurrency.format(n, { decimals: 0 });
+		}
+		return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 	}
 
 	function amountInWordsVi(amount) {
