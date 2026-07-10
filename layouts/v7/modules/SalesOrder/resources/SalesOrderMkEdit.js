@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260701_so_wh_v1';
+	var MK_BUILD = '20260708_so_qt_shell1';
 	var WAREHOUSE_MODAL_ID = 'mkSoWarehouseModal';
 	var warehouseConfirmed = false;
 	var warehousePickerOpen = false;
@@ -13,8 +13,16 @@
 		requestAnimationFrame(function () {
 			requestAnimationFrame(function () {
 				document.documentElement.classList.add('mk-so-create-styled');
+				if (!document.documentElement.classList.contains('mk-inv-ui-ready')) {
+					document.documentElement.classList.add('mk-inv-ui-ready', 'mk-quote-create-enhanced');
+				}
 			});
 		});
+	}
+
+	/** True when create uses Quote create shell (70/30 grid + #mkSoOrderRail). */
+	function usesQuoteShell() {
+		return $('#mkSoOrderRail').length > 0 && $('#mkSoCreateWorkspace').hasClass('mk-qt-create');
 	}
 
 	var TERMS_MODAL_ID = 'mkSoTermsModal';
@@ -891,18 +899,73 @@
 		if (!isScoped()) {
 			return;
 		}
+		var quoteShell = usesQuoteShell();
 		hideLegacyChrome();
+
+		// If SalesOrder is using Quote UI shell, let QuoteMkEdit.js own all styling/layout.
+		// We keep only SO-specific behaviors (warehouse modal save + mandatory defaults).
+		if (quoteShell) {
+			ensureSubjectSyncFromAccount();
+			bindWarehouseInterceptOnly();
+			fixFormDisplayEncoding();
+			ensureMandatoryHiddenDefaults();
+			markOppCommerceRefreshOnSubmit();
+			// Reveal via QuoteMkEdit (mk-inv-ui-ready). Keep fallback as safety.
+			setTimeout(revealPage, 1500);
+			return;
+		}
+
 		styleFieldBlocks();
 		simplifySalesOrderForm();
-		// Restore the improved Odoo-style line items UI (dropdown product + nicer grid)
 		initOdooInventoryUi();
-		fixFormDisplayEncoding();
-		ensureMandatoryHiddenDefaults();
 		initTermsRichEditor();
 		bindActions();
 		initStickyHead();
+		fixFormDisplayEncoding();
+		ensureMandatoryHiddenDefaults();
+		markOppCommerceRefreshOnSubmit();
 		revealPage();
 		setTimeout(fixFormDisplayEncoding, 300);
+	}
+
+	function bindWarehouseInterceptOnly() {
+		var $editForm = $form();
+		if (!$editForm.length || $editForm.data('mkSoWhBound')) {
+			return;
+		}
+		$editForm.data('mkSoWhBound', true);
+		bindSaveValidationRecovery();
+		$editForm.off('submit.mkSoWarehouse').on('submit.mkSoWarehouse', function (e) {
+			if (isCreateMode() && !warehouseConfirmed) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				triggerSave();
+				return false;
+			}
+		});
+		$editForm.find('.saveButton').off('click.mkSoWarehouse').on('click.mkSoWarehouse', function (e) {
+			if (isCreateMode() && !warehouseConfirmed) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				triggerSave();
+				return false;
+			}
+		});
+	}
+
+	function ensureSubjectSyncFromAccount() {
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return;
+		}
+		$editForm
+			.off('change.mkSoSubjectSync', '[name="account_id_display"]')
+			.on('change.mkSoSubjectSync', '[name="account_id_display"]', function () {
+				var $subject = $editForm.find('[name="subject"]');
+				if ($subject.length && !$.trim($subject.val())) {
+					$subject.val($.trim($(this).val()) || '');
+				}
+			});
 	}
 
 	function init() {
@@ -929,4 +992,5 @@
 	setTimeout(revealPage, 3000);
 
 	window.__mkSoCreateBuild = MK_BUILD;
+	window.__mkSoCreateSave = triggerSave;
 })($);

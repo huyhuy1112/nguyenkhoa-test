@@ -5,12 +5,29 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 {include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsList.css')}?mk_v=20260603_sc_pad" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsList.css')}?mk_v=20260710_pos2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260624_sales_antifouc1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosList.css')}?mk_v=20260710_pos2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260710_pos2" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/List.js')}?mk_v=20260624_sales_antifouc1"></script>
+<script type="text/javascript">
+window.__mkSalesPosListConfig = {
+	searchInput: '#mk-sc-pos-search',
+	searchClear: '#mk-sc-pos-search-clear',
+	columnsTrigger: '.mk-pos-trigger-columns',
+	searchFields: ['subject', 'contract_no', 'sc_related_to', 'account_id', 'assigned_user_id']
+};
+window.__mkSalesPosInlineConfig = {
+	module: 'ServiceContracts',
+	loadingText: 'Đang tải chi tiết hợp đồng...',
+	errorText: 'Không tải được chi tiết hợp đồng.'
+};
+</script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosList.js')}?mk_v=20260710_pos2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260710_pos2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/List.js')}?mk_v=20260710_pos2"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-service-contracts-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

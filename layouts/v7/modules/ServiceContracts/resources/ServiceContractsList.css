@@ -743,3 +743,14 @@ body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-das
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-pagination #PageJump.mk-sc-page-btn {
 	box-shadow: inset 0 -3px 0 #08A045;
 }
+
+/* Hide legacy Figma header when POS toolbar is present */
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-so-pos-page .mk-sc-action-header,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-so-pos-page .mk-sc-header {
+	display: none !important;
+}
+
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-so-pos-page .mk-sc-table-card {
+	border-radius: 0 0 12px 12px;
+	border-top: none;
+}

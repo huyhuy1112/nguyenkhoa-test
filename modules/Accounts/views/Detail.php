@@ -11,6 +11,11 @@
 
 class Accounts_Detail_View extends Vtiger_Detail_View {
 
+	function __construct() {
+		parent::__construct();
+		$this->exposeMethod('showListInlineDetail');
+	}
+
 	/**
 	 * Sales + Marketing use the same modern Organizations detail shell.
 	 */
@@ -20,6 +25,66 @@ class Accounts_Detail_View extends Vtiger_Detail_View {
 			$app = strtoupper((string)$request->get('SELECTED_MENU_CATEGORY'));
 		}
 		return in_array($app, array('SALES', 'MARKETING', 'SUPPORT'), true);
+	}
+
+	public function showListInlineDetail(Vtiger_Request $request) {
+		$app = strtoupper((string) $request->get('app'));
+		if (!in_array($app, array('SALES', 'SUPPORT'), true)) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$recordId = $request->get('record');
+		if (empty($recordId)) {
+			return '';
+		}
+
+		$moduleName = 'Accounts';
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+		$viewer = $this->getViewer($request);
+
+		$title = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('accountname')), ENT_QUOTES, 'UTF-8'));
+		if ($title === '') {
+			$title = trim((string) $recordModel->getName());
+		}
+		$subtitle = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('account_no')), ENT_QUOTES, 'UTF-8'));
+		$notes = trim(strip_tags(decode_html((string) $recordModel->get('description'))));
+
+		$viewer->assign('RECORD', $recordModel);
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('INLINE_TITLE', $title !== '' ? $title : '—');
+		$viewer->assign('INLINE_SUBTITLE', $subtitle);
+		$viewer->assign('INLINE_NOTES', $notes);
+		$viewer->assign('INLINE_EDIT_URL', $recordModel->getEditViewUrl() . '&app=' . $app);
+		$viewer->assign('INLINE_DETAIL_URL', $recordModel->getDetailViewUrl() . '&app=' . $app);
+		$viewer->assign('INLINE_INFO_FIELDS', $this->getAccountsInlineInfoFields($moduleModel, $recordModel));
+
+		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
+	}
+
+	protected function getAccountsInlineInfoFields(Vtiger_Module_Model $moduleModel, Vtiger_Record_Model $recordModel) {
+		$candidates = array(
+			array('phone', 'SĐT'),
+			array('email1', 'Email'),
+			array('website', 'Website'),
+			array('bill_city', 'Thành phố'),
+			array('assigned_user_id', 'Phụ trách'),
+			array('createdtime', 'Ngày tạo'),
+		);
+		$fields = array();
+		foreach ($candidates as $pair) {
+			$fieldName = $pair[0];
+			$fieldModel = $moduleModel->getField($fieldName);
+			if (!$fieldModel || !$fieldModel->isViewable()) {
+				continue;
+			}
+			$value = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue($fieldName)), ENT_QUOTES, 'UTF-8'));
+			$fields[] = array(
+				'name' => $fieldName,
+				'label' => $pair[1],
+				'value' => $value !== '' ? $value : '—',
+			);
+		}
+		return $fields;
 	}
 
 	protected function assignModernAccountsDetailUi(Vtiger_Request $request) {

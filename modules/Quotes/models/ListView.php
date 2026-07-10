@@ -9,4 +9,63 @@
  *************************************************************************************/
 
 class Quotes_ListView_Model extends Inventory_ListView_Model {
+
+	public function getListViewEntries($pagingModel) {
+		$listViewRecordModels = parent::getListViewEntries($pagingModel);
+		if (empty($listViewRecordModels)) {
+			return $listViewRecordModels;
+		}
+
+		foreach ($listViewRecordModels as $recordId => $recordModel) {
+			$corrected = $this->resolveDisplayGrandTotal($recordModel);
+			if ($corrected === null) {
+				continue;
+			}
+			$formatted = CurrencyField::convertToUserFormat($corrected, null, true);
+			$recordModel->set('hdnGrandTotal', $formatted);
+			$recordModel->set('total', $formatted);
+			$listViewRecordModels[$recordId] = $recordModel;
+		}
+
+		return $listViewRecordModels;
+	}
+
+	/**
+	 * When quote header total is out of scale with line items, scale by line/header subtotal.
+	 */
+	protected function resolveDisplayGrandTotal(Vtiger_Record_Model $recordModel) {
+		$recordId = (int) $recordModel->getId();
+		if ($recordId <= 0) {
+			return null;
+		}
+
+		$db = PearDatabase::getInstance();
+		$headerResult = $db->pquery(
+			'SELECT subtotal, total FROM vtiger_quotes WHERE quoteid = ?',
+			array($recordId)
+		);
+		if (!$headerResult || $db->num_rows($headerResult) === 0) {
+			return null;
+		}
+		$headerSubTotal = (float) $db->query_result($headerResult, 0, 'subtotal');
+		$headerTotal = (float) $db->query_result($headerResult, 0, 'total');
+
+		$lineResult = $db->pquery(
+			'SELECT COALESCE(SUM(quantity * listprice), 0) AS line_subtotal FROM vtiger_inventoryproductrel WHERE id = ?',
+			array($recordId)
+		);
+		$lineSubTotal = (float) $db->query_result($lineResult, 0, 'line_subtotal');
+		if ($lineSubTotal <= 0) {
+			return null;
+		}
+		if ($headerSubTotal <= 0) {
+			return $lineSubTotal;
+		}
+		if ($lineSubTotal > ($headerSubTotal * 50)) {
+			$scale = $lineSubTotal / $headerSubTotal;
+			return ($headerTotal > 0 ? $headerTotal : $headerSubTotal) * $scale;
+		}
+
+		return null;
+	}
 }

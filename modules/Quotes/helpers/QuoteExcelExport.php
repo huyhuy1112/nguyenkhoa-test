@@ -7,7 +7,7 @@ require_once 'modules/Quotes/helpers/QuoteBaService.php';
 
 class Quotes_QuoteExcelExport_Helper {
 
-	const FONT = 'Arial Unicode MS';
+	const FONT = 'Arial';
 	const COL_FIRST = 'B';
 	const COL_LAST = 'H';
 
@@ -329,6 +329,21 @@ class Quotes_QuoteExcelExport_Helper {
 			$vatPercent = Quotes_QuoteBaService_Helper::DEFAULT_VAT_PERCENT;
 		}
 
+		$headerSubTotal = (float) ($focus->column_fields['hdnSubTotal'] ?? 0);
+		$headerGrand = (float) ($focus->column_fields['hdnGrandTotal'] ?? 0);
+		$headerDiscount = (float) ($focus->column_fields['hdnDiscountAmount'] ?? 0);
+		if (!empty($focus->column_fields['hdnDiscountPercent'])) {
+			$headerDiscount = $headerSubTotal * ((float) $focus->column_fields['hdnDiscountPercent']) / 100;
+		}
+		$mkVatAmount = (float) ($focus->column_fields['mk_vat_amount'] ?? 0);
+		$taxAmount = $mkVatAmount;
+		if ($taxAmount <= 0 && $headerGrand > ($headerSubTotal - $headerDiscount)) {
+			$taxAmount = $headerGrand - ($headerSubTotal - $headerDiscount);
+		}
+		if ($taxAmount < 0) {
+			$taxAmount = 0;
+		}
+
 		return array(
 			'company' => $company,
 			'account_name' => $accountName,
@@ -339,6 +354,9 @@ class Quotes_QuoteExcelExport_Helper {
 			'quote_no' => $quoteNo,
 			'quote_date' => $quoteDate,
 			'vat_percent' => $vatPercent,
+			'tax_amount' => $taxAmount,
+			'discount_amount' => $headerDiscount,
+			'grand_total' => $headerGrand,
 			'amount_words' => self::decode($focus->column_fields['mk_amount_in_words'] ?? ''),
 			'terms_html' => $focus->column_fields['terms_conditions'] ?? '',
 			'product_info' => $focus->column_fields['mk_product_info'] ?? '',
@@ -499,22 +517,56 @@ class Quotes_QuoteExcelExport_Helper {
 		$sheet->mergeCells('B' . $totalRow . ':G' . $totalRow);
 		$sheet->setCellValue('B' . $totalRow, 'Tổng tiền hàng:');
 		$sheet->setCellValue('H' . $totalRow, '=SUM(H' . $firstProductRow . ':H' . $lastProductRow . ')');
+		$sheet->getStyle('B' . $totalRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 		$row++;
 
-		$vatRow = $row;
-		$sheet->mergeCells('B' . $vatRow . ':G' . $vatRow);
-		$sheet->setCellValue('B' . $vatRow, 'Chiết khấu:');
-		$sheet->setCellValue('H' . $vatRow, '=H' . $totalRow . '*' . ($ctx['vat_percent'] / 100));
+		// Prefer actual quote tax/discount amounts so Excel matches UI (not a default VAT %).
+		$lineSubTotal = 0.0;
+		for ($i = $firstProductRow; $i <= $lastProductRow; $i++) {
+			$lineSubTotal += (float) $sheet->getCell('H' . $i)->getValue();
+		}
+		$taxAmount = (float) ($ctx['tax_amount'] ?? 0);
+		$discountAmount = (float) ($ctx['discount_amount'] ?? 0);
+		$grandTotal = (float) ($ctx['grand_total'] ?? 0);
+		if ($lineSubTotal > 0) {
+			$headerSub = (float) ($focus->column_fields['hdnSubTotal'] ?? 0);
+			if ($headerSub > 0 && $lineSubTotal > ($headerSub * 50)) {
+				$scale = $lineSubTotal / $headerSub;
+				$taxAmount *= $scale;
+				$discountAmount *= $scale;
+				$grandTotal *= $scale;
+			}
+			if ($taxAmount <= 0 && $grandTotal > ($lineSubTotal - $discountAmount)) {
+				$taxAmount = $grandTotal - ($lineSubTotal - $discountAmount);
+			}
+			if ($grandTotal <= 0) {
+				$grandTotal = $lineSubTotal - $discountAmount + $taxAmount;
+			}
+		}
+
+		$taxRow = $row;
+		$sheet->mergeCells('B' . $taxRow . ':G' . $taxRow);
+		$sheet->setCellValue('B' . $taxRow, 'Thuế:');
+		$sheet->setCellValue('H' . $taxRow, $taxAmount);
+		$sheet->getStyle('B' . $taxRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+		$row++;
+
+		$discountRow = $row;
+		$sheet->mergeCells('B' . $discountRow . ':G' . $discountRow);
+		$sheet->setCellValue('B' . $discountRow, 'Chiết khấu:');
+		$sheet->setCellValue('H' . $discountRow, $discountAmount);
+		$sheet->getStyle('B' . $discountRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 		$row++;
 
 		$grandRow = $row;
 		$sheet->mergeCells('B' . $grandRow . ':G' . $grandRow);
 		$sheet->setCellValue('B' . $grandRow, 'Tổng thanh toán:');
-		$sheet->setCellValue('H' . $grandRow, '=H' . $totalRow);
+		$sheet->setCellValue('H' . $grandRow, $grandTotal > 0 ? $grandTotal : ('=H' . $totalRow . '+H' . $taxRow . '-H' . $discountRow));
+		$sheet->getStyle('B' . $grandRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 		$sheet->getStyle('H' . $totalRow . ':H' . $grandRow)->getNumberFormat()->setFormatCode('#,##0');
+		$sheet->getStyle('H' . $totalRow . ':H' . $grandRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 		$sheet->getStyle(self::colRange($totalRow) . ':' . self::colRange($grandRow))->applyFromArray(array(
 			'font' => array('bold' => true, 'name' => self::FONT),
-			'borders' => array('allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN)),
 		));
 		$row += 2;
 
