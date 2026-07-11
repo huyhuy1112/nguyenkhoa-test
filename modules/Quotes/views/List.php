@@ -55,7 +55,6 @@ class Quotes_List_View extends Inventory_List_View {
 			'quotestage',
 			'potential_id',
 			'account_id',
-			'contact_id',
 			'assigned_user_id',
 			'total',
 			'hdnGrandTotal',
