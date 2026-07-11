@@ -7,16 +7,32 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
+  var COL_COUNT = 10;
 
-  var PRESET_SEGMENTS = [
-    { id: "tagged", name: "Có tag", filters: { hasTag: true } },
-    { id: "new_cust", name: "CH - Mới quen", filters: { customerRank: "moi_quen" } },
-    { id: "related", name: "Đã có quan hệ", filters: { customerRank: "da_co_quan_he" } },
-    { id: "first_buy", name: "Mua lần đầu", filters: { material: "mua_lan_dau" } },
-    { id: "franchise", name: "Nhượng quyền", filters: { franchise: "nhuong_quyen" } },
-    { id: "deposit", name: "Đã ký quỹ", filters: { franchise: "da_ky_quy" } },
-    { id: "gold", name: "Hạng Vàng", filters: { tier: "vang" } },
-  ];
+  function t(key, fallback) {
+    if (typeof app !== "undefined" && app.vtranslate) {
+      var translated = app.vtranslate(key);
+      if (translated && translated !== key) return translated;
+    }
+    return fallback || key;
+  }
+
+  function pick(vi, en) {
+    return ref && ref.pickLabel ? ref.pickLabel(vi, en) : vi;
+  }
+
+  /** Phân nhóm theo tag BA của Khách hàng — UI giống Leads (segment-btn) */
+  function getPresetSegments() {
+    return [
+      { id: "tagged", name: pick("Có tag", "Has tag"), filters: { hasTag: true } },
+      { id: "new_cust", name: pick("CH - Mới quen", "New contact"), filters: { customerRank: "moi_quen" } },
+      { id: "related", name: pick("Đã có quan hệ", "Has relationship"), filters: { customerRank: "da_co_quan_he" } },
+      { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
+      { id: "franchise", name: pick("Nhượng quyền", "Franchise"), filters: { franchise: "nhuong_quyen" } },
+      { id: "deposit", name: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
+      { id: "gold", name: pick("Hạng Vàng", "Gold tier"), filters: { tier: "vang" } },
+    ];
+  }
 
   var EMPTY = {
     search: "",
@@ -25,9 +41,11 @@
     material: ANY,
     franchise: ANY,
     tier: ANY,
+    anyTag: ANY,
     owner: ANY,
     hasTag: false,
     hasAccount: false,
+    staleOnly: false,
   };
 
   var state = {
@@ -47,8 +65,8 @@
     return icons && icons.get ? icons.get(name) : "";
   }
 
-  function tagMeta(t) {
-    return ref && ref.tagMeta ? ref.tagMeta(t) : { label: t, cls: "mk-tag" };
+  function tagMeta(tg) {
+    return ref && ref.tagMeta ? ref.tagMeta(tg) : { label: tg, cls: "mk-tag" };
   }
 
   function categorize(tags) {
@@ -93,6 +111,22 @@
     return "hsl(" + h + ", 52%, 42%)";
   }
 
+  function isStale(row) {
+    var iso = row.last_touch || row.modifiedtime;
+    if (!iso) return false;
+    var tms = new Date(iso).getTime();
+    if (isNaN(tms)) return false;
+    return Math.floor((Date.now() - tms) / 86400000) >= 7;
+  }
+
+  function hasNormalizedTag(tags, key) {
+    if (!tags || !tags.length || !key || !ref) return false;
+    for (var i = 0; i < tags.length; i++) {
+      if (ref.normalizeTag(tags[i]) === key) return true;
+    }
+    return false;
+  }
+
   function filterContacts(rows) {
     var f = state.filters;
     var q = (f.search || "").toLowerCase().trim();
@@ -111,6 +145,8 @@
       if (f.material !== ANY && (!cats.material || ref.normalizeTag(cats.material) !== f.material)) return false;
       if (f.franchise !== ANY && (!cats.franchise || ref.normalizeTag(cats.franchise) !== f.franchise)) return false;
       if (f.tier !== ANY && (!cats.tier || ref.normalizeTag(cats.tier) !== f.tier)) return false;
+      if (f.anyTag !== ANY && !hasNormalizedTag(c.tags, f.anyTag)) return false;
+      if (f.staleOnly && !isStale(c)) return false;
       if (f.owner !== ANY && c.owner !== f.owner) return false;
       return true;
     });
@@ -136,18 +172,18 @@
     var withPhone = rows.filter(function (c) { return !!c.phone; }).length;
     var withAccount = rows.filter(function (c) { return !!c.account; }).length;
     var gold = rows.filter(function (c) {
-      var t = categorize(c.tags).tier;
-      return t && ref.normalizeTag(t) === "vang";
+      var tg = categorize(c.tags).tier;
+      return tg && ref.normalizeTag(tg) === "vang";
     }).length;
     var franchise = rows.filter(function (c) { return categorize(c.tags).franchise; }).length;
     return [
-      { key: "total", label: "Tổng khách hàng", value: rows.length, icon: "users", tone: "blue" },
-      { key: "tagged", label: "Có tag", value: withTags, icon: "crown", tone: "violet" },
-      { key: "email", label: "Có email", value: withEmail, icon: "check", tone: "emerald" },
-      { key: "phone", label: "Có SĐT", value: withPhone, icon: "clock", tone: "cyan" },
-      { key: "account", label: "Có tổ chức", value: withAccount, icon: "repeat", tone: "amber" },
-      { key: "gold", label: "Hạng Vàng", value: gold, icon: "crown", tone: "rose" },
-      { key: "franchise", label: "Nhượng quyền", value: franchise, icon: "trend", tone: "indigo" },
+      { key: "total", label: t("JS_MK_KPI_TOTAL_CONTACT", "Tổng khách hàng"), value: rows.length, icon: "users", tone: "blue" },
+      { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "violet" },
+      { key: "email", label: t("JS_MK_KPI_EMAIL", "Có email"), value: withEmail, icon: "check", tone: "emerald" },
+      { key: "phone", label: t("JS_MK_KPI_PHONE", "Có SĐT"), value: withPhone, icon: "clock", tone: "cyan" },
+      { key: "account", label: t("JS_MK_KPI_ACCOUNT", "Có tổ chức"), value: withAccount, icon: "repeat", tone: "amber" },
+      { key: "gold", label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: gold, icon: "crown", tone: "rose" },
+      { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "trend", tone: "indigo" },
     ];
   }
 
@@ -175,15 +211,33 @@
   function renderSegments() {
     var host = $("mk-contacts-segments");
     if (!host) return;
-    host.innerHTML = PRESET_SEGMENTS.map(function (seg) {
-      var active = state.activeSegment === seg.id ? " is-active" : "";
-      return '<button type="button" class="mk-leads-segment-chip' + active + '" data-seg="' + esc(seg.id) + '">' + esc(seg.name) + "</button>";
-    }).join("");
+    var allOn = !state.activeSegment ? " is-active" : "";
+    var html =
+      '<button type="button" class="mk-leads-segment-btn' +
+      allOn +
+      '" data-seg="__all__">' +
+      esc(t("JS_MK_FILTER_ALL", "Tất cả")) +
+      "</button>";
+    html += getPresetSegments()
+      .map(function (seg) {
+        var active = state.activeSegment === seg.id ? " is-active" : "";
+        return (
+          '<button type="button" class="mk-leads-segment-btn' +
+          active +
+          '" data-seg="' +
+          esc(seg.id) +
+          '">' +
+          esc(seg.name) +
+          "</button>"
+        );
+      })
+      .join("");
+    host.innerHTML = html;
   }
 
   function selectOptions(pairs) {
     return (
-      '<option value="' + ANY + '">Tất cả</option>' +
+      '<option value="' + ANY + '">' + esc(t("JS_MK_FILTER_ALL", "Tất cả")) + "</option>" +
       pairs.map(function (p) {
         return '<option value="' + esc(p[0]) + '">' + esc(p[1]) + "</option>";
       }).join("")
@@ -201,12 +255,12 @@
     owners.sort();
     host.innerHTML =
       '<div class="mk-leads-filters-grid">' +
-      fieldSelect("Hạng khách hàng", "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Tag lớp học", "classTag", ref.CLASS_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Tag nguyên liệu", "material", ref.MATERIAL_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Tag nhượng quyền", "franchise", ref.FRANCHISE_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Hạng thành viên", "tier", ref.TIER_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Phụ trách", "owner", owners.map(function (o) { return [o, o]; })) +
+      fieldSelect(t("JS_MK_FILTER_CUSTOMER_RANK", "Hạng khách hàng"), "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"), "material", ref.MATERIAL_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"), "franchise", ref.FRANCHISE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_TIER", "Hạng thành viên"), "tier", ref.TIER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", owners.map(function (o) { return [o, o]; })) +
       "</div>";
     host.hidden = !state.filtersOpen;
     syncFilterControls();
@@ -233,14 +287,9 @@
   }
 
   function tagBadgeHtml(tag) {
+    if (!tag) return '<span class="mk-leads-muted">—</span>';
     var m = tagMeta(tag);
     return '<span class="mk-tag ' + m.cls + '">' + esc(m.label) + "</span>";
-  }
-
-  function tagStackHtml(tags) {
-    var list = tags || [];
-    if (!list.length) return '<span class="mk-leads-muted">—</span>';
-    return list.map(tagBadgeHtml).join("");
   }
 
   function tierPill(tags) {
@@ -248,11 +297,14 @@
     if (!tier) return '<span class="mk-leads-muted">—</span>';
     var m = tagMeta(tier);
     var slug = ref.normalizeTag(tier);
-    var cls = slug === "vang" ? "mk-pill--tier mk-pill--gold" : slug === "bac" ? "mk-pill--tier mk-pill--silver" : "mk-pill--tier mk-pill--bronze";
+    var cls =
+      slug === "vang"
+        ? "mk-pill--tier mk-pill--gold"
+        : slug === "bac"
+          ? "mk-pill--tier mk-pill--silver"
+          : "mk-pill--tier mk-pill--bronze";
     return '<span class="mk-pill ' + cls + '">' + esc(m.label) + "</span>";
   }
-
-  var COL_COUNT = 9;
 
   function renderTable() {
     var all = getContacts();
@@ -265,10 +317,16 @@
     if (!tbody) return;
 
     if (!pageRows.length) {
-      tbody.innerHTML = '<tr><td colspan="' + COL_COUNT + '" class="mk-leads-empty">Không có khách hàng phù hợp bộ lọc.</td></tr>';
+      tbody.innerHTML =
+        '<tr><td colspan="' +
+        COL_COUNT +
+        '" class="mk-leads-empty">' +
+        esc(t("JS_MK_NO_CONTACTS_MATCH", "Không có khách hàng phù hợp bộ lọc.")) +
+        "</td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (c) {
+          var cats = categorize(c.tags);
           return (
             '<tr class="mk-leads-row mk-contacts-row" data-id="' + esc(c.id) + '">' +
             '<td class="mk-leads-td mk-leads-td--check"><label class="mk-leads-check">' +
@@ -279,11 +337,13 @@
             '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' + detailUrl(c.crmid || c.id) + '">' + esc(c.name) + "</a>" +
             (c.title ? '<div class="mk-leads-sub">' + esc(c.title) + "</div>" : "") +
             "</span></span></td>" +
-            '<td class="mk-leads-td">' + (c.account ? '<span class="mk-pill mk-pill--blue">' + esc(c.account) + "</span>" : '<span class="mk-leads-muted">—</span>') + "</td>" +
-            '<td class="mk-leads-td">' + (c.email ? '<a class="mk-contacts-email" href="mailto:' + esc(c.email) + '">' + esc(c.email) + "</a>" : '<span class="mk-leads-muted">—</span>') + "</td>" +
             '<td class="mk-leads-td">' + (c.phone ? esc(c.phone) : '<span class="mk-leads-muted">—</span>') + "</td>" +
+            '<td class="mk-leads-td">' + (c.account ? '<span class="mk-pill mk-pill--blue">' + esc(c.account) + "</span>" : '<span class="mk-leads-muted">—</span>') + "</td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.customerRank) + "</td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.classTag) + "</td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.material) + "</td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.franchise) + "</td>" +
             '<td class="mk-leads-td">' + tierPill(c.tags) + "</td>" +
-            '<td class="mk-leads-td mk-leads-td--tags"><div class="mk-leads-tags-stack">' + tagStackHtml(c.tags) + "</div></td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(c.owner) + '">' + esc(ownerInitials(c.owner)) + "</span>" +
             "<span>" + esc(c.owner || "—") + "</span></span></td></tr>"
@@ -293,7 +353,10 @@
     }
 
     var summary = $("mk-contacts-filter-summary");
-    if (summary) summary.textContent = rows.length + " / " + all.length + " khách hàng";
+    if (summary) {
+      summary.textContent =
+        rows.length + " / " + all.length + " " + t("JS_MK_CONTACTS_COUNT_LABEL", "khách hàng");
+    }
     renderPagination(rows.length, totalPages);
   }
 
@@ -306,12 +369,25 @@
     }
     host.innerHTML =
       '<button type="button" class="mk-leads-page-btn" data-page="prev"' + (state.page <= 1 ? " disabled" : "") + ">‹</button>" +
-      '<span class="mk-leads-page-info">Trang ' + state.page + " / " + totalPages + "</span>" +
+      '<span class="mk-leads-page-info">' +
+      esc(t("JS_MK_PAGE", "Trang")) +
+      " " +
+      state.page +
+      " / " +
+      totalPages +
+      "</span>" +
       '<button type="button" class="mk-leads-page-btn" data-page="next"' + (state.page >= totalPages ? " disabled" : "") + ">›</button>";
   }
 
   function applySegment(segId) {
-    var seg = PRESET_SEGMENTS.find(function (s) { return s.id === segId; });
+    if (segId === "__all__") {
+      state.activeSegment = null;
+      state.filters = Object.assign({}, EMPTY);
+      state.page = 1;
+      renderAll();
+      return;
+    }
+    var seg = getPresetSegments().find(function (s) { return s.id === segId; });
     state.activeSegment = segId;
     state.filters = Object.assign({}, EMPTY);
     if (seg && seg.filters) {

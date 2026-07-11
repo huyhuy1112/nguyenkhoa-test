@@ -4,16 +4,40 @@
 (function (root) {
   "use strict";
 
+  function isVi() {
+    try {
+      var lang =
+        typeof app !== "undefined" && app.getUserLanguage
+          ? String(app.getUserLanguage() || "")
+          : "";
+      return !lang || lang.indexOf("vi") === 0 || lang === "vn";
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function pickLabel(vi, en) {
+    return isVi() ? vi : en || vi;
+  }
+
   var TAG_ALIASES = {
     gold: "vang",
     silver: "bac",
     bronze: "dong",
     ch_moi_quen: "moi_quen",
     co_quan_he: "da_co_quan_he",
+    da_co_quan: "co_quan",
+    chi_moi_quan: "chuan_bi_mo",
+    ch_mo_quan: "chuan_bi_mo",
     chua_mqbh: "chua_mqbh",
     da_tg_free: "da_tg_free",
+    da_tg_fb1: "da_tg_fb1",
+    da_tg_f_b1: "da_tg_fb1",
+    thu_3: "thu_3",
+    tiem_nang: "tiem_nang",
     mua_lan_dau: "mua_lan_dau",
     mua_lai: "mua_lai",
+    mua_on_dinh: "mua_on_dinh",
     dang_cham_soc: "dang_cham_soc",
     dang_tu_van: "dang_tu_van",
     kh_can_nhac: "kh_can_nhac",
@@ -24,30 +48,43 @@
     vang: "vang",
     bac: "bac",
     dong: "dong",
+    moi_quen: "moi_quen",
+    da_co_quan_he: "da_co_quan_he",
+    co_quan: "co_quan",
+    chuan_bi_mo: "chuan_bi_mo",
   };
 
-  var TAG_META = {
-    moi_quen: { label: "CH - Mới quen", cat: "customerRank", cls: "mk-tag--moi-quen" },
-    da_co_quan_he: { label: "Đã có quan hệ", cat: "customerRank", cls: "mk-tag--co-quan-he" },
-    chua_mqbh: { label: "Chưa MQBH", cat: "classTag", cls: "mk-tag--chua-mqbh" },
-    da_tg_free: { label: "Đã TG FREE", cat: "classTag", cls: "mk-tag--da-tg-free" },
-    mua_lan_dau: { label: "Mua lần đầu", cat: "material", cls: "mk-tag--mua-lan-dau" },
-    mua_lai: { label: "Mua lại", cat: "material", cls: "mk-tag--mua-lai" },
-    dang_cham_soc: { label: "Đang chăm sóc", cat: "material", cls: "mk-tag--dang-cham-soc" },
-    kh_can_nhac: { label: "KH Cần Nhắc", cat: "material", cls: "mk-tag--kh-can-nhac" },
-    khong_mua: { label: "Không mua", cat: "material", cls: "mk-tag--khong-mua" },
-    ngung_mua: { label: "Ngưng mua", cat: "material", cls: "mk-tag--ngung-mua" },
-    nhuong_quyen: { label: "Nhượng quyền", cat: "franchise", cls: "mk-tag--nhuong-quyen" },
-    da_ky_quy: { label: "Đã Ký Quỹ", cat: "franchise", cls: "mk-tag--da-ky-quy" },
-    dang_tu_van: { label: "Đang tư vấn", cat: "franchise", cls: "mk-tag--dang-tu-van" },
-    vang: { label: "Vàng", cat: "tier", cls: "mk-tag--vang" },
-    bac: { label: "Bạc", cat: "tier", cls: "mk-tag--bac" },
-    dong: { label: "Đồng", cat: "tier", cls: "mk-tag--dong" },
+  var TAG_META_RAW = {
+    moi_quen: { vi: "CH - Mới quen", en: "New contact", cat: "customerRank", cls: "mk-tag--moi-quen" },
+    da_co_quan_he: { vi: "Đã có quan hệ", en: "Has relationship", cat: "customerRank", cls: "mk-tag--co-quan-he" },
+    co_quan: { vi: "Đã có quán", en: "Has store", cat: "customerRank", cls: "mk-tag--co-quan" },
+    chuan_bi_mo: { vi: "CH. mở quán", en: "Opening store", cat: "customerRank", cls: "mk-tag--chuan-bi-mo" },
+    chua_mqbh: { vi: "Chưa MQBH", en: "No MQBH", cat: "classTag", cls: "mk-tag--chua-mqbh" },
+    da_tg_free: { vi: "Đã TG FREE", en: "Attended FREE", cat: "classTag", cls: "mk-tag--da-tg-free" },
+    da_tg_fb1: { vi: "Đã TG F&B1", en: "Attended F&B1", cat: "classTag", cls: "mk-tag--da-tg-fb1" },
+    thu_3: { vi: "THỨ 3", en: "Tuesday", cat: "classTag", cls: "mk-tag--thu-3" },
+    tiem_nang: { vi: "Tiềm năng", en: "Potential", cat: "material", cls: "mk-tag--tiem-nang" },
+    mua_lan_dau: { vi: "Mua lần đầu", en: "First purchase", cat: "material", cls: "mk-tag--mua-lan-dau" },
+    mua_lai: { vi: "Mua lại", en: "Repeat purchase", cat: "material", cls: "mk-tag--mua-lai" },
+    mua_on_dinh: { vi: "Mua ổn định", en: "Stable purchase", cat: "material", cls: "mk-tag--mua-on-dinh" },
+    dang_cham_soc: { vi: "Đang chăm sóc", en: "In care", cat: "material", cls: "mk-tag--dang-cham-soc" },
+    dang_tu_van: { vi: "Đang tư vấn", en: "Consulting", cat: "franchise", cls: "mk-tag--dang-tu-van" },
+    kh_can_nhac: { vi: "KH Cân Nhắc", en: "Considering", cat: "material", cls: "mk-tag--kh-can-nhac" },
+    khong_mua: { vi: "Không mua", en: "Not buying", cat: "material", cls: "mk-tag--khong-mua" },
+    ngung_mua: { vi: "Ngưng mua", en: "Stopped buying", cat: "material", cls: "mk-tag--ngung-mua" },
+    nhuong_quyen: { vi: "Nhượng quyền", en: "Franchise", cat: "franchise", cls: "mk-tag--nhuong-quyen" },
+    da_ky_quy: { vi: "Đã Ký Quỹ", en: "Deposited", cat: "franchise", cls: "mk-tag--da-ky-quy" },
+    vang: { vi: "Vàng", en: "Gold", cat: "tier", cls: "mk-tag--vang" },
+    bac: { vi: "Bạc", en: "Silver", cat: "tier", cls: "mk-tag--bac" },
+    dong: { vi: "Đồng", en: "Bronze", cat: "tier", cls: "mk-tag--dong" },
   };
 
-  var CUSTOMER_RANK_TAGS = ["moi_quen", "da_co_quan_he"];
-  var CLASS_TAGS = ["chua_mqbh", "da_tg_free"];
-  var MATERIAL_TAGS = ["mua_lan_dau", "mua_lai", "dang_cham_soc", "kh_can_nhac", "khong_mua", "ngung_mua"];
+  var CUSTOMER_RANK_TAGS = ["moi_quen", "da_co_quan_he", "co_quan", "chuan_bi_mo"];
+  var CLASS_TAGS = ["chua_mqbh", "da_tg_free", "da_tg_fb1", "thu_3"];
+  var MATERIAL_TAGS = [
+    "tiem_nang", "mua_lan_dau", "mua_lai", "mua_on_dinh", "dang_cham_soc",
+    "kh_can_nhac", "khong_mua", "ngung_mua",
+  ];
   var FRANCHISE_TAGS = ["nhuong_quyen", "da_ky_quy", "dang_tu_van"];
   var TIER_TAGS = ["vang", "bac", "dong"];
 
@@ -97,20 +134,30 @@
 
   function tagMeta(tag) {
     var key = normalizeTag(tag);
-    return TAG_META[key] || { label: String(tag || ""), cat: "other", cls: "mk-tag--other" };
+    var raw = TAG_META_RAW[key];
+    if (!raw) {
+      return { label: String(tag || ""), cat: "other", cls: "mk-tag--other" };
+    }
+    return {
+      label: pickLabel(raw.vi, raw.en),
+      cat: raw.cat,
+      cls: raw.cls,
+    };
   }
 
   function isAllowedContactTag(tag) {
-    return !!TAG_META[normalizeTag(tag)];
+    return !!TAG_META_RAW[normalizeTag(tag)];
   }
 
   root.ContactsLovableRef = {
-    TAG_META: TAG_META,
+    TAG_META_RAW: TAG_META_RAW,
     CUSTOMER_RANK_TAGS: CUSTOMER_RANK_TAGS,
     CLASS_TAGS: CLASS_TAGS,
     MATERIAL_TAGS: MATERIAL_TAGS,
     FRANCHISE_TAGS: FRANCHISE_TAGS,
     TIER_TAGS: TIER_TAGS,
+    isVi: isVi,
+    pickLabel: pickLabel,
     normalizeTag: normalizeTag,
     findTagInPool: findTagInPool,
     categorizeTags: categorizeTags,

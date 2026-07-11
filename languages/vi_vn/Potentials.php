@@ -59,6 +59,7 @@ $languageStrings = array(
 	'LBL_MK_FILTER_FRANCHISE' => 'Tag nhượng quyền',
 	'LBL_MK_FILTER_OWNER' => 'Phụ trách',
 	'LBL_MK_FILTER_ALL' => 'Tất cả',
+	'LBL_MK_FILTER_CONFIRM' => 'Xác nhận tham gia',
 	'LBL_EXPECTED_CLOSE_DATE_ON' => 'Ngày dự kiến kết thúc',
 	'LBL_OPPORTUNITY_INFORMATION' => 'Thông tin chi tiết về cơ hội',
 	'LBL_RECORDS_LIST' => 'Danh sách cơ hội',
@@ -91,4 +92,24 @@ $languageStrings = array(
 );
 
 $jsLanguageStrings = array(
+	'JS_MK_FILTER_ALL' => 'Tất cả',
+	'JS_MK_FILTER_SALES_STAGE' => 'Giai đoạn bán hàng',
+	'JS_MK_FILTER_ORDER_CATEGORY' => 'Loại đơn hàng',
+	'JS_MK_FILTER_AREA' => 'Khu vực',
+	'JS_MK_FILTER_SOURCE' => 'Nguồn data',
+	'JS_MK_FILTER_CUSTOMER' => 'Dạng khách hàng',
+	'JS_MK_FILTER_CLASS' => 'Tag lớp học',
+	'JS_MK_FILTER_MATERIAL' => 'Tag nguyên liệu',
+	'JS_MK_FILTER_FRANCHISE' => 'Tag nhượng quyền',
+	'JS_MK_FILTER_CONFIRM' => 'Xác nhận tham gia',
+	'JS_MK_FILTER_OWNER' => 'Phụ trách',
+	'JS_MK_KPI_TOTAL_OPP' => 'Tổng cơ hội',
+	'JS_MK_KPI_PIPELINE' => 'Pipeline',
+	'JS_MK_KPI_TAGGED' => 'Có tag',
+	'JS_MK_KPI_FRANCHISE' => 'Nhượng quyền',
+	'JS_MK_KPI_CLOSING' => 'Đóng trong 30 ngày',
+	'JS_MK_KPI_CONFIRMED' => 'Xác nhận TG',
+	'JS_MK_NO_OPPS_MATCH' => 'Không có cơ hội phù hợp bộ lọc.',
+	'JS_MK_OPPS_COUNT_LABEL' => 'cơ hội',
+	'JS_MK_PAGE' => 'Trang',
 );

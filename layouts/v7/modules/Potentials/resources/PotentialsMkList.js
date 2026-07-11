@@ -7,17 +7,33 @@
   var ref = window.PotentialsLovableRef;
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
+  var COL_COUNT = 14;
 
-  var PRESET_SEGMENTS = [
-    { id: "quote", name: "Báo giá", filters: { sales_stage: "Prospecting" } },
-    { id: "prospecting", name: "Tiềm năng", filters: { sales_stage: "Prospecting" } },
-    { id: "internal", name: "Internal", filters: { order_category: "Internal" } },
-    { id: "project", name: "Project", filters: { order_category: "Project" } },
-    { id: "first_buy", name: "Mua lần đầu", filters: { material: "mua_lan_dau" } },
-    { id: "franchise", name: "Nhượng quyền", filters: { franchise: "nhuong_quyen" } },
-    { id: "deposit", name: "Đã ký quỹ", filters: { franchise: "da_ky_quy" } },
-    { id: "confirmed", name: "Xác nhận TG", filters: { confirm: "xac_nhan_tham_gia" } },
-  ];
+  function t(key, fallback) {
+    if (typeof app !== "undefined" && app.vtranslate) {
+      var translated = app.vtranslate(key);
+      if (translated && translated !== key) return translated;
+    }
+    return fallback || key;
+  }
+
+  function pick(vi, en) {
+    return ref && ref.pickLabel ? ref.pickLabel(vi, en) : vi;
+  }
+
+  /** Phân nhóm theo tag/BA của Cơ hội — UI giống Leads (segment-btn) */
+  function getPresetSegments() {
+    return [
+      { id: "quote", name: pick("Báo giá", "Quotes"), filters: { sales_stage: "Prospecting" } },
+      { id: "prospecting", name: pick("Tiềm năng", "Prospecting"), filters: { sales_stage: "Prospecting" } },
+      { id: "internal", name: pick("Nội bộ", "Internal"), filters: { order_category: "Internal" } },
+      { id: "project", name: pick("Dự án", "Project"), filters: { order_category: "Project" } },
+      { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
+      { id: "franchise", name: pick("Nhượng quyền", "Franchise"), filters: { franchise: "nhuong_quyen" } },
+      { id: "deposit", name: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
+      { id: "confirmed", name: pick("Xác nhận TG", "Confirmed"), filters: { confirm: "xac_nhan_tham_gia" } },
+    ];
+  }
 
   var EMPTY = {
     search: "",
@@ -30,7 +46,10 @@
     material: ANY,
     franchise: ANY,
     confirm: ANY,
+    tier: ANY,
+    anyTag: ANY,
     owner: ANY,
+    staleOnly: false,
   };
 
   var state = {
@@ -50,8 +69,8 @@
     return icons && icons.get ? icons.get(name) : "";
   }
 
-  function tagMeta(t) {
-    return ref && ref.tagMeta ? ref.tagMeta(t) : { label: t, cls: "mk-tag" };
+  function tagMeta(tg) {
+    return ref && ref.tagMeta ? ref.tagMeta(tg) : { label: tg, cls: "mk-tag" };
   }
 
   function categorize(tags) {
@@ -84,15 +103,21 @@
 
   function stageLabel(stage) {
     var map = {
-      Prospecting: "Báo giá",
-      Qualification: "Chất lượng",
-      "Needs Analysis": "Phân tích nhu cầu",
-      "Proposal/Price Quote": "Đề nghị/Báo giá",
-      "Negotiation/Review": "Đàm phán/Xem xét",
-      "Closed Won": "Hoàn thành",
-      "Closed Lost": "Không thành công",
+      Prospecting: pick("Báo giá", "Prospecting"),
+      Qualification: pick("Chất lượng", "Qualification"),
+      "Needs Analysis": pick("Phân tích nhu cầu", "Needs Analysis"),
+      "Proposal/Price Quote": pick("Đề nghị/Báo giá", "Proposal/Price Quote"),
+      "Negotiation/Review": pick("Đàm phán/Xem xét", "Negotiation/Review"),
+      "Closed Won": pick("Hoàn thành", "Closed Won"),
+      "Closed Lost": pick("Không thành công", "Closed Lost"),
     };
     return map[stage] || stage || "—";
+  }
+
+  function categoryLabel(cat) {
+    if (cat === "Internal") return pick("Nội bộ", "Internal");
+    if (cat === "Project") return pick("Dự án", "Project");
+    return cat || "";
   }
 
   function formatMoney(n) {
@@ -130,20 +155,20 @@
     return map[stage] || "mk-pill--indigo";
   }
 
-  function closingDatePill(dateStr) {
-    if (!dateStr) return '<span class="mk-leads-muted">—</span>';
-    var d = new Date(dateStr);
-    if (isNaN(d.getTime())) return '<span class="mk-pill mk-pill--date">' + esc(dateStr) + "</span>";
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-    d.setHours(0, 0, 0, 0);
-    var diff = (d - today) / 86400000;
-    var cls = "mk-pill mk-pill--date";
-    if (diff < 0) cls += " mk-pill--date-overdue";
-    else if (diff <= 7) cls += " mk-pill--date-soon";
-    else if (diff <= 30) cls += " mk-pill--date-month";
-    else cls += " mk-pill--date-future";
-    return '<span class="' + cls + '">' + ic("clock") + esc(dateStr) + "</span>";
+  function isStale(row) {
+    var iso = row.last_touch || row.modifiedtime || row.closingdate;
+    if (!iso) return false;
+    var tms = new Date(iso).getTime();
+    if (isNaN(tms)) return false;
+    return Math.floor((Date.now() - tms) / 86400000) >= 7;
+  }
+
+  function hasNormalizedTag(tags, key) {
+    if (!tags || !tags.length || !key || !ref) return false;
+    for (var i = 0; i < tags.length; i++) {
+      if (ref.normalizeTag(tags[i]) === key) return true;
+    }
+    return false;
   }
 
   function filterOpps(rows) {
@@ -166,6 +191,9 @@
       if (f.material !== ANY && (!cats.material || ref.normalizeTag(cats.material) !== f.material)) return false;
       if (f.franchise !== ANY && (!cats.franchise || ref.normalizeTag(cats.franchise) !== f.franchise)) return false;
       if (f.confirm !== ANY && (!cats.confirm || ref.normalizeTag(cats.confirm) !== f.confirm)) return false;
+      if (f.tier !== ANY && (!cats.tier || ref.normalizeTag(cats.tier) !== f.tier)) return false;
+      if (f.anyTag !== ANY && !hasNormalizedTag(o.tags, f.anyTag)) return false;
+      if (f.staleOnly && !isStale(o)) return false;
       if (f.owner !== ANY && o.owner !== f.owner) return false;
       return true;
     });
@@ -207,14 +235,14 @@
       return diff >= 0 && diff <= 30;
     }).length;
     return [
-      { key: "total", label: "Tổng cơ hội", value: total, icon: "users", tone: "blue" },
-      { key: "pipeline", label: "Pipeline", value: formatMoney(pipeline), icon: "trend", tone: "violet" },
-      { key: "internal", label: "Internal", value: internal, icon: "check", tone: "emerald" },
-      { key: "project", label: "Project", value: project, icon: "bookmark", tone: "cyan" },
-      { key: "tagged", label: "Có tag", value: withTags, icon: "crown", tone: "amber" },
-      { key: "franchise", label: "Nhượng quyền", value: franchise, icon: "repeat", tone: "rose" },
-      { key: "closing", label: "Đóng trong 30 ngày", value: closingSoon, icon: "clock", tone: "indigo" },
-      { key: "confirmed", label: "Xác nhận TG", value: confirmed, icon: "check", tone: "emerald" },
+      { key: "total", label: t("JS_MK_KPI_TOTAL_OPP", "Tổng cơ hội"), value: total, icon: "users", tone: "blue" },
+      { key: "pipeline", label: t("JS_MK_KPI_PIPELINE", "Pipeline"), value: formatMoney(pipeline), icon: "trend", tone: "violet" },
+      { key: "internal", label: pick("Nội bộ", "Internal"), value: internal, icon: "check", tone: "emerald" },
+      { key: "project", label: pick("Dự án", "Project"), value: project, icon: "bookmark", tone: "cyan" },
+      { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "amber" },
+      { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "repeat", tone: "rose" },
+      { key: "closing", label: t("JS_MK_KPI_CLOSING", "Đóng trong 30 ngày"), value: closingSoon, icon: "clock", tone: "indigo" },
+      { key: "confirmed", label: t("JS_MK_KPI_CONFIRMED", "Xác nhận TG"), value: confirmed, icon: "check", tone: "emerald" },
     ];
   }
 
@@ -242,15 +270,33 @@
   function renderSegments() {
     var host = $("mk-opps-segments");
     if (!host) return;
-    host.innerHTML = PRESET_SEGMENTS.map(function (seg) {
-      var active = state.activeSegment === seg.id ? " is-active" : "";
-      return '<button type="button" class="mk-leads-segment-chip' + active + '" data-seg="' + esc(seg.id) + '">' + esc(seg.name) + "</button>";
-    }).join("");
+    var allOn = !state.activeSegment ? " is-active" : "";
+    var html =
+      '<button type="button" class="mk-leads-segment-btn' +
+      allOn +
+      '" data-seg="__all__">' +
+      esc(t("JS_MK_FILTER_ALL", "Tất cả")) +
+      "</button>";
+    html += getPresetSegments()
+      .map(function (seg) {
+        var active = state.activeSegment === seg.id ? " is-active" : "";
+        return (
+          '<button type="button" class="mk-leads-segment-btn' +
+          active +
+          '" data-seg="' +
+          esc(seg.id) +
+          '">' +
+          esc(seg.name) +
+          "</button>"
+        );
+      })
+      .join("");
+    host.innerHTML = html;
   }
 
   function selectOptions(pairs) {
     return (
-      '<option value="' + ANY + '">Tất cả</option>' +
+      '<option value="' + ANY + '">' + esc(t("JS_MK_FILTER_ALL", "Tất cả")) + "</option>" +
       pairs.map(function (p) {
         return '<option value="' + esc(p[0]) + '">' + esc(p[1]) + "</option>";
       }).join("")
@@ -271,15 +317,19 @@
     stages.sort();
     host.innerHTML =
       '<div class="mk-leads-filters-grid">' +
-      fieldSelect("Giai đoạn bán hàng", "sales_stage", stages.map(function (s) { return [s, stageLabel(s)]; })) +
-      fieldSelect("Loại đơn hàng", "order_category", [["Internal", "Internal"], ["Project", "Project"]]) +
-      fieldSelect("Khu vực", "area", ref.AREA_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Nguồn data", "source", ref.SOURCE_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Dạng khách hàng", "customer", ref.CUSTOMER_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Tag lớp học", "classTag", ref.CLASS_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Tag nguyên liệu", "material", ref.MATERIAL_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Tag nhượng quyền", "franchise", ref.FRANCHISE_TAGS.map(function (t) { return [ref.normalizeTag(t), tagMeta(t).label]; })) +
-      fieldSelect("Phụ trách", "owner", owners.map(function (o) { return [o, o]; })) +
+      fieldSelect(t("JS_MK_FILTER_SALES_STAGE", "Giai đoạn bán hàng"), "sales_stage", stages.map(function (s) { return [s, stageLabel(s)]; })) +
+      fieldSelect(t("JS_MK_FILTER_ORDER_CATEGORY", "Loại đơn hàng"), "order_category", [
+        ["Internal", pick("Nội bộ", "Internal")],
+        ["Project", pick("Dự án", "Project")],
+      ]) +
+      fieldSelect(t("JS_MK_FILTER_AREA", "Khu vực"), "area", ref.AREA_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_SOURCE", "Nguồn data"), "source", ref.SOURCE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_CUSTOMER", "Dạng khách hàng"), "customer", ref.CUSTOMER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"), "material", ref.MATERIAL_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"), "franchise", ref.FRANCHISE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_CONFIRM", "Xác nhận tham gia"), "confirm", ref.CONFIRM_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", owners.map(function (o) { return [o, o]; })) +
       "</div>";
     host.hidden = !state.filtersOpen;
     syncFilterControls();
@@ -314,16 +364,8 @@
   function categoryPill(cat) {
     if (!cat) return '<span class="mk-leads-muted">—</span>';
     var cls = cat === "Project" ? "mk-pill--purple" : "mk-pill--orange";
-    return '<span class="mk-pill ' + cls + '">' + esc(cat) + "</span>";
+    return '<span class="mk-pill ' + cls + '">' + esc(categoryLabel(cat)) + "</span>";
   }
-
-  function tagStackHtml(tags) {
-    var list = tags || [];
-    if (!list.length) return '<span class="mk-leads-muted">—</span>';
-    return list.map(tagBadgeHtml).join("");
-  }
-
-  var COL_COUNT = 10;
 
   function renderTable() {
     var all = getOpps();
@@ -336,11 +378,16 @@
     if (!tbody) return;
 
     if (!pageRows.length) {
-      tbody.innerHTML = '<tr><td colspan="' + COL_COUNT + '" class="mk-leads-empty">Không có cơ hội phù hợp bộ lọc.</td></tr>';
+      tbody.innerHTML =
+        '<tr><td colspan="' +
+        COL_COUNT +
+        '" class="mk-leads-empty">' +
+        esc(t("JS_MK_NO_OPPS_MATCH", "Không có cơ hội phù hợp bộ lọc.")) +
+        "</td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (o) {
-          var tags = o.tags || [];
+          var cats = categorize(o.tags);
           var amountCls = Number(o.amount) > 0 ? " mk-opps-amount--positive" : "";
           return (
             '<tr class="mk-leads-row mk-opps-row" data-id="' + esc(o.id) + '">' +
@@ -349,12 +396,16 @@
             '<span class="mk-leads-check__ui" aria-hidden="true"></span></label></td>' +
             '<td class="mk-leads-td mk-leads-td--lead"><a class="mk-leads-name" href="' + detailUrl(o.crmid || o.id) + '">' + esc(o.name) + "</a></td>" +
             '<td class="mk-leads-td">' + (o.account ? esc(o.account) : '<span class="mk-leads-muted">—</span>') + "</td>" +
-            '<td class="mk-leads-td">' + (o.contact ? esc(o.contact) : '<span class="mk-leads-muted">—</span>') + "</td>" +
             '<td class="mk-leads-td">' + categoryPill(o.order_category) + "</td>" +
             '<td class="mk-leads-td"><span class="mk-pill ' + stagePillClass(o.sales_stage) + '">' + esc(stageLabel(o.sales_stage)) + "</span></td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.area) + "</td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.source) + "</td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.customer) + "</td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.classTag) + "</td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.material) + "</td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.franchise) + "</td>" +
+            '<td class="mk-leads-td">' + tagBadgeHtml(cats.confirm) + "</td>" +
             '<td class="mk-leads-td mk-opps-amount' + amountCls + '">' + esc(formatMoney(o.amount)) + "</td>" +
-            '<td class="mk-leads-td">' + closingDatePill(o.closingdate) + "</td>" +
-            '<td class="mk-leads-td mk-leads-td--tags"><div class="mk-leads-tags-stack">' + tagStackHtml(tags) + "</div></td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(o.owner) + '">' + esc(ownerInitials(o.owner)) + "</span>" +
             "<span>" + esc(o.owner || "—") + "</span></span></td></tr>"
@@ -364,7 +415,10 @@
     }
 
     var summary = $("mk-opps-filter-summary");
-    if (summary) summary.textContent = rows.length + " / " + all.length + " cơ hội";
+    if (summary) {
+      summary.textContent =
+        rows.length + " / " + all.length + " " + t("JS_MK_OPPS_COUNT_LABEL", "cơ hội");
+    }
     renderPagination(rows.length, totalPages);
   }
 
@@ -377,12 +431,25 @@
     }
     host.innerHTML =
       '<button type="button" class="mk-leads-page-btn" data-page="prev"' + (state.page <= 1 ? " disabled" : "") + ">‹</button>" +
-      '<span class="mk-leads-page-info">Trang ' + state.page + " / " + totalPages + "</span>" +
+      '<span class="mk-leads-page-info">' +
+      esc(t("JS_MK_PAGE", "Trang")) +
+      " " +
+      state.page +
+      " / " +
+      totalPages +
+      "</span>" +
       '<button type="button" class="mk-leads-page-btn" data-page="next"' + (state.page >= totalPages ? " disabled" : "") + ">›</button>";
   }
 
   function applySegment(segId) {
-    var seg = PRESET_SEGMENTS.find(function (s) { return s.id === segId; });
+    if (segId === "__all__") {
+      state.activeSegment = null;
+      state.filters = Object.assign({}, EMPTY);
+      state.page = 1;
+      renderAll();
+      return;
+    }
+    var seg = getPresetSegments().find(function (s) { return s.id === segId; });
     state.activeSegment = segId;
     state.filters = Object.assign({}, EMPTY);
     if (seg && seg.filters) {

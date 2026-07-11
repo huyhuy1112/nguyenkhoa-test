@@ -5,30 +5,56 @@
 (function (root) {
   "use strict";
 
-  var PURCHASE_MAP = {
-    mua_lan_dau: "New Purchase",
-    mua_lai: "Repeat Purchase",
-    khong_mua: "Not Buying",
-    ngung_mua: "Stopped",
+  function isVi() {
+    try {
+      var lang =
+        typeof app !== "undefined" && app.getUserLanguage
+          ? String(app.getUserLanguage() || "")
+          : "";
+      return !lang || lang.indexOf("vi") === 0 || lang === "vn";
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function pick(vi, en) {
+    return isVi() ? vi : en || vi;
+  }
+
+  var PURCHASE_MAP_RAW = {
+    mua_lan_dau: { vi: "Mua lần đầu", en: "New Purchase" },
+    mua_lai: { vi: "Mua lại", en: "Repeat Purchase" },
+    khong_mua: { vi: "Không mua", en: "Not Buying" },
+    ngung_mua: { vi: "Ngưng mua", en: "Stopped" },
   };
 
-  var PROGRAM_MAP = {
-    nhuong_quyen: "Franchise",
-    pcth: "PCTH Program",
-    mien_phi_online: "Free Class",
-    mien_phi_offline: "Free Class",
-    van_hanh: "PCTH Program",
-    mkt: "PCTH Program",
-    lop_khac: "PCTH Program",
+  var PROGRAM_MAP_RAW = {
+    nhuong_quyen: { vi: "Nhượng quyền", en: "Franchise" },
+    pcth: { vi: "Chương trình PCTH", en: "PCTH Program" },
+    mien_phi_online: { vi: "Lớp miễn phí", en: "Free Class" },
+    mien_phi_offline: { vi: "Lớp miễn phí", en: "Free Class" },
+    van_hanh: { vi: "Chương trình PCTH", en: "PCTH Program" },
+    mkt: { vi: "Chương trình PCTH", en: "PCTH Program" },
+    lop_khac: { vi: "Chương trình PCTH", en: "PCTH Program" },
   };
 
-  var TIER_MAP = { vang: "Gold", bac: "Silver", dong: "Bronze" };
+  var TIER_MAP_RAW = {
+    vang: { vi: "Vàng", en: "Gold" },
+    bac: { vi: "Bạc", en: "Silver" },
+    dong: { vi: "Đồng", en: "Bronze" },
+  };
 
   var SEGMENT_LABELS = {
     gia_dinh: "Gia đình",
     chuan_bi_mo: "Chưa có quán",
     co_quan: "Đã có quán",
   };
+
+  function mapLabel(rawMap, key, fallback) {
+    var row = rawMap[key];
+    if (!row) return fallback || key;
+    return pick(row.vi, row.en);
+  }
 
   var ACTIVITY_TYPES = ["task", "call", "meeting"];
 
@@ -46,18 +72,30 @@
 
   function derive(lead) {
     var tags = lead.tags || [];
-    var purchaseTag = findTag(tags, Object.keys(PURCHASE_MAP));
-    var programTag = findTag(tags, Object.keys(PROGRAM_MAP));
-    var tierTag = findTag(tags, Object.keys(TIER_MAP));
+    var purchaseTag = findTag(tags, Object.keys(PURCHASE_MAP_RAW));
+    var programTag = findTag(tags, Object.keys(PROGRAM_MAP_RAW));
+    var tierTag = findTag(tags, Object.keys(TIER_MAP_RAW));
     var days = daysSince(lead.last_touch);
-    var stage = purchaseTag ? PURCHASE_MAP[purchaseTag] : "New Purchase";
-    var type = programTag ? PROGRAM_MAP[programTag] : "PCTH Program";
-    var tier = tierTag ? TIER_MAP[tierTag] : null;
+    var stage = purchaseTag
+      ? mapLabel(PURCHASE_MAP_RAW, purchaseTag)
+      : pick("Mua lần đầu", "New Purchase");
+    var type = programTag
+      ? mapLabel(PROGRAM_MAP_RAW, programTag)
+      : pick("Chương trình PCTH", "PCTH Program");
+    var tier = tierTag ? mapLabel(TIER_MAP_RAW, tierTag) : null;
     var stale = days >= 7;
     var high =
       (lead.value || 0) >= 25000000 &&
       (tags.indexOf("mua_lai") >= 0 || tags.indexOf("nhuong_quyen") >= 0);
-    return { stage: stage, type: type, tier: tier, stale: stale, high: high, days: days };
+    return {
+      stage: stage,
+      type: type,
+      tier: tier,
+      tierKey: tierTag || null,
+      stale: stale,
+      high: high,
+      days: days,
+    };
   }
 
   function parsePurchaseDate(dateStr) {
@@ -354,8 +392,30 @@
     ownerInitials: ownerInitials,
     ownerColor: ownerColor,
     SEGMENT_LABELS: SEGMENT_LABELS,
-    PURCHASE_MAP: PURCHASE_MAP,
-    PROGRAM_MAP: PROGRAM_MAP,
+    PURCHASE_MAP_RAW: PURCHASE_MAP_RAW,
+    PROGRAM_MAP_RAW: PROGRAM_MAP_RAW,
+    TIER_MAP_RAW: TIER_MAP_RAW,
+    get PURCHASE_MAP() {
+      var out = {};
+      Object.keys(PURCHASE_MAP_RAW).forEach(function (k) {
+        out[k] = mapLabel(PURCHASE_MAP_RAW, k);
+      });
+      return out;
+    },
+    get PROGRAM_MAP() {
+      var out = {};
+      Object.keys(PROGRAM_MAP_RAW).forEach(function (k) {
+        out[k] = mapLabel(PROGRAM_MAP_RAW, k);
+      });
+      return out;
+    },
+    get TIER_MAP() {
+      var out = {};
+      Object.keys(TIER_MAP_RAW).forEach(function (k) {
+        out[k] = mapLabel(TIER_MAP_RAW, k);
+      });
+      return out;
+    },
     monthlyOrderCount: monthlyOrderCount,
     totalProductsPurchased: totalProductsPurchased,
     recentOrderValue: recentOrderValue,

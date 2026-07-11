@@ -10,14 +10,15 @@ class Potentials_OppTagCatalog {
 		// Khu vực
 		'kv1', 'kv2', 'kv3',
 		// Nguồn data
-		'facebook', 'tiktok', 'ladipage_fb', 'website', 'zalo', 'other', 'other_source',
+		'facebook', 'tiktok', 'ladipage_fb', 'website', 'zalo', 'hotline', 'other', 'other_source',
 		// Dạng khách hàng
 		'individual', 'company', 'co_quan', 'chuan_bi_mo', 'gia_dinh',
 		// Tag lớp học / intent
-		'mien_phi_online', 'mien_phi_offline', 'da_tg_free', 'chua_hoc', 'da_hoc',
-		'pcth', 'van_hanh', 'mkt', 'lop_khac', 'nguyen_lieu_chuoi',
-		// Tag nguyên liệu
-		'mua_lan_dau', 'mua_lai', 'dang_cham_soc', 'dang_tu_van', 'kh_can_nhac', 'khong_mua', 'ngung_mua',
+		'mien_phi_online', 'mien_phi_offline', 'da_tg_free', 'da_tg_fb1', 'thu_3',
+		'chua_hoc', 'da_hoc', 'pcth', 'van_hanh', 'mkt', 'lop_khac', 'nguyen_lieu_chuoi',
+		// Tag nguyên liệu / chăm sóc
+		'tiem_nang', 'mua_lan_dau', 'mua_lai', 'mua_on_dinh', 'dang_cham_soc', 'dang_tu_van',
+		'kh_can_nhac', 'khong_mua', 'ngung_mua',
 		// Tag nhượng quyền
 		'nhuong_quyen', 'da_ky_quy',
 		// Xác nhận tham gia
@@ -35,9 +36,18 @@ class Potentials_OppTagCatalog {
 		'đồng' => 'dong',
 		'ladipage_fb' => 'ladipage_fb',
 		'ladipage' => 'ladipage_fb',
+		'ladypage_fb' => 'ladipage_fb',
 		'da_co_quan' => 'co_quan',
 		'chi_moi_quan' => 'chuan_bi_mo',
+		'ch_mo_quan' => 'chuan_bi_mo',
+		'ch_chuan_bi_mo_quan' => 'chuan_bi_mo',
 		'da_tg_free' => 'da_tg_free',
+		'da_tg_fb1' => 'da_tg_fb1',
+		'da_tg_f_b1' => 'da_tg_fb1',
+		'thu_3' => 'thu_3',
+		'thu_3_tag' => 'thu_3',
+		'mua_on_dinh' => 'mua_on_dinh',
+		'tiem_nang' => 'tiem_nang',
 		'nhuong_quyen' => 'nhuong_quyen',
 		'nhượng_quyền' => 'nhuong_quyen',
 		'mua_lan_dau' => 'mua_lan_dau',
@@ -47,6 +57,7 @@ class Potentials_OppTagCatalog {
 		'zalo' => 'zalo',
 		'facebook' => 'facebook',
 		'tiktok' => 'tiktok',
+		'hotline' => 'hotline',
 		'pcth' => 'pcth',
 		'company' => 'company',
 		'individual' => 'individual',

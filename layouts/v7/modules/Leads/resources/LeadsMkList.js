@@ -18,15 +18,32 @@
   var PURCHASE_TAGS = ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"];
   var TIER_TAGS = ["vang", "bac", "dong"];
 
-  var PRESET_SEGMENTS = (ref && ref.PRESET_SEGMENTS) || [
-    { id: "new", name: "Khách mới", filters: { purchase: "mua_lan_dau" } },
-    { id: "gold", name: "Khách vàng", filters: { tier: "vang" } },
-    { id: "repeat", name: "Khách mua lại", filters: { purchase: "mua_lai" } },
-    { id: "nobuy", name: "Khách không mua", filters: { purchase: "khong_mua" } },
-    { id: "chain", name: "Khách chuỗi (PCTH)", filters: { program: "pcth" } },
-    { id: "franchise", name: "Khách nhượng quyền", filters: { program: "nhuong_quyen" } },
-    { id: "cskh", name: "Khách cần CSKH", filters: { staleOnly: true } },
-  ];
+  function t(key, fallback) {
+    if (typeof app !== "undefined" && app.vtranslate) {
+      var translated = app.vtranslate(key);
+      if (translated && translated !== key) return translated;
+    }
+    return fallback || key;
+  }
+
+  function isVi() {
+    return ref && ref.isVi ? ref.isVi() : true;
+  }
+
+  function getPresetSegments() {
+    if (ref && ref.getPresetSegments) return ref.getPresetSegments();
+    return [
+      { id: "new", name: "Khách mới", filters: { purchase: "mua_lan_dau" } },
+      { id: "gold", name: "Khách vàng", filters: { tier: "vang" } },
+      { id: "repeat", name: "Khách mua lại", filters: { purchase: "mua_lai" } },
+      { id: "nobuy", name: "Khách không mua", filters: { purchase: "khong_mua" } },
+      { id: "chain", name: "Khách chuỗi (PCTH)", filters: { program: "pcth" } },
+      { id: "franchise", name: "Khách nhượng quyền", filters: { program: "nhuong_quyen" } },
+      { id: "cskh", name: "Khách cần CSKH", filters: { staleOnly: true } },
+    ];
+  }
+
+  var PRESET_SEGMENTS = getPresetSegments();
 
   var EMPTY = {
     search: "",
@@ -329,13 +346,13 @@
     if (!host) return;
     var kpis = computeKpis(getLeads());
     var items = [
-      { label: "Total Leads", value: kpis.total, trend: "+8%", up: true },
-      { label: "New Today", value: kpis.newToday, trend: "+12%", up: true },
-      { label: "Qualified", value: kpis.qualified, trend: "+5%", up: true },
-      { label: "Repeat", value: kpis.repeat, trend: "+3%", up: true },
-      { label: "Gold", value: kpis.gold, trend: "+2", up: true },
-      { label: "Stale", value: kpis.stale, trend: "-4%", up: false },
-      { label: "Conv. Rate", value: kpis.conv + "%", trend: "+1.4%", up: true },
+      { label: t("JS_MK_KPI_TOTAL", "Tổng lead"), value: kpis.total, trend: "+8%", up: true },
+      { label: t("JS_MK_KPI_NEW_TODAY", "Mới hôm nay"), value: kpis.newToday, trend: "+12%", up: true },
+      { label: t("JS_MK_KPI_QUALIFIED", "Đủ điều kiện"), value: kpis.qualified, trend: "+5%", up: true },
+      { label: t("JS_MK_KPI_REPEAT", "Mua lại"), value: kpis.repeat, trend: "+3%", up: true },
+      { label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: kpis.gold, trend: "+2", up: true },
+      { label: t("JS_MK_KPI_STALE", "Cần CSKH"), value: kpis.stale, trend: "-4%", up: false },
+      { label: t("JS_MK_KPI_CONV", "Tỷ lệ chuyển đổi"), value: kpis.conv + "%", trend: "+1.4%", up: true },
     ];
     var kpiIcons = (icons && icons.KPI) || [];
     var kpiTones = (icons && icons.KPI_TONES) || ["blue", "violet", "emerald", "cyan", "amber", "rose", "indigo"];
@@ -371,10 +388,13 @@
     if (!host) return;
     var saved = store ? store.getSegments() : [];
     var allOn = !state.activeSegment ? " is-active" : "";
+    PRESET_SEGMENTS = getPresetSegments();
     var html =
       '<button type="button" class="mk-leads-segment-btn' +
       allOn +
-      '" data-segment="__all__">Tất cả</button>';
+      '" data-segment="__all__">' +
+      esc(t("JS_MK_FILTER_ALL", "Tất cả")) +
+      "</button>";
     html += PRESET_SEGMENTS.map(function (s) {
       var on = state.activeSegment === s.id ? " is-active" : "";
       return '<button type="button" class="mk-leads-segment-btn' + on + '" data-segment="' + esc(s.id) + '">' + esc(s.name) + "</button>";
@@ -406,7 +426,9 @@
     return (
       '<option value="' +
       ANY +
-      '">All</option>' +
+      '">' +
+      esc(t("JS_MK_FILTER_ALL", "Tất cả")) +
+      "</option>" +
       pairs
         .map(function (p) {
           return '<option value="' + esc(p[0]) + '">' + esc(p[1]) + "</option>";
@@ -428,19 +450,23 @@
     owners.sort();
     areas.sort();
     var f = state.filters;
+    var segmentLabels =
+      ref && ref.getSegmentLabels
+        ? ref.getSegmentLabels()
+        : logic.SEGMENT_LABELS || {};
     host.innerHTML =
       '<div class="mk-leads-filters-grid">' +
-      fieldSelect("Source", "source", f.source, SOURCE_TAGS.map(function (t) { return [t, tagMeta(t).label]; })) +
-      fieldSelect("Program", "program", f.program, PROGRAM_TAGS.map(function (t) { return [t, tagMeta(t).label]; })) +
-      fieldSelect("Purchase status", "purchase", f.purchase, PURCHASE_TAGS.map(function (t) { return [t, tagMeta(t).label]; })) +
-      fieldSelect("Tier", "tier", f.tier, TIER_TAGS.map(function (t) { return [t, tagMeta(t).label]; })) +
-      fieldSelect("Owner", "owner", f.owner, owners.map(function (o) { return [o, o]; })) +
-      fieldSelect("Area", "area", f.area, areas.map(function (a) { return [a, a]; })) +
-      fieldSelect("Customer Type", "segment", f.segment, Object.keys(logic.SEGMENT_LABELS).map(function (k) { return [k, logic.SEGMENT_LABELS[k]]; })) +
-      fieldTouch("Last touch", "touchRange", f.touchRange) +
-      toggleField("Stale only", "staleOnly", f.staleOnly, true) +
-      toggleField("Has next action", "hasNextAction", f.hasNextAction, false) +
-      toggleField("Has open ticket", "hasOpenTicket", f.hasOpenTicket, false) +
+      fieldSelect(t("JS_MK_FILTER_SOURCE", "Nguồn"), "source", f.source, SOURCE_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_PROGRAM", "Chương trình"), "program", f.program, PROGRAM_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_PURCHASE", "Trạng thái mua"), "purchase", f.purchase, PURCHASE_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_TIER", "Hạng"), "tier", f.tier, TIER_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", f.owner, owners.map(function (o) { return [o, o]; })) +
+      fieldSelect(t("JS_MK_FILTER_AREA", "Khu vực"), "area", f.area, areas.map(function (a) { return [a, a]; })) +
+      fieldSelect(t("JS_MK_FILTER_CUSTOMER_TYPE", "Loại khách"), "segment", f.segment, Object.keys(segmentLabels).map(function (k) { return [k, segmentLabels[k]]; })) +
+      fieldTouch(t("JS_MK_FILTER_LAST_TOUCH", "Tương tác gần"), "touchRange", f.touchRange) +
+      toggleField(t("JS_MK_FILTER_STALE_ONLY", "Chỉ cần CSKH"), "staleOnly", f.staleOnly, true) +
+      toggleField(t("JS_MK_FILTER_HAS_NEXT", "Có hành động tiếp"), "hasNextAction", f.hasNextAction, false) +
+      toggleField(t("JS_MK_FILTER_HAS_TICKET", "Có ticket mở"), "hasOpenTicket", f.hasOpenTicket, false) +
       "</div>";
     host.hidden = !state.filtersOpen;
   }
@@ -463,7 +489,15 @@
       esc(label) +
       '</span><select class="mk-leads-filter-field__select" data-fkey="' +
       key +
-      '"><option value="any">Anytime</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="90d">Last 90 days</option></select></label>'
+      '"><option value="any">' +
+      esc(t("JS_MK_FILTER_ANYTIME", "Mọi lúc")) +
+      '</option><option value="7d">' +
+      esc(t("JS_MK_FILTER_LAST_7D", "7 ngày gần đây")) +
+      '</option><option value="30d">' +
+      esc(t("JS_MK_FILTER_LAST_30D", "30 ngày gần đây")) +
+      '</option><option value="90d">' +
+      esc(t("JS_MK_FILTER_LAST_90D", "90 ngày gần đây")) +
+      "</option></select></label>"
     );
   }
 
@@ -507,21 +541,29 @@
     if (!tbody) return;
 
     if (!pageRows.length) {
-      tbody.innerHTML = '<tr><td colspan="14" class="mk-leads-empty">No leads match these filters.</td></tr>';
+      tbody.innerHTML =
+        '<tr><td colspan="14" class="mk-leads-empty">' +
+        esc(t("JS_MK_NO_LEADS_MATCH", "Không có lead phù hợp bộ lọc.")) +
+        "</td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (l) {
           var d = logic.derive(l);
-          var src = (l.tags || []).find(function (t) {
-            return SOURCE_TAGS.indexOf(t) >= 0;
+          var src = (l.tags || []).find(function (tg) {
+            return SOURCE_TAGS.indexOf(tg) >= 0;
           });
-          var custLabel = l.segment ? logic.SEGMENT_LABELS[l.segment] : d.type;
-          var nonSourceTags = (l.tags || []).filter(function (t) {
-            return SOURCE_TAGS.indexOf(t) < 0;
+          var segmentLabels =
+            ref && ref.getSegmentLabels
+              ? ref.getSegmentLabels()
+              : logic.SEGMENT_LABELS || {};
+          var custLabel = l.segment ? segmentLabels[l.segment] || l.segment : d.type;
+          var nonSourceTags = (l.tags || []).filter(function (tg) {
+            return SOURCE_TAGS.indexOf(tg) < 0;
           });
           var tags = nonSourceTags.slice(0, 3);
           var extra = nonSourceTags.length - tags.length;
           var checked = state.selected[l.id] ? " checked" : "";
+          var tierCls = d.tierKey === "vang" ? "gold" : d.tierKey === "bac" ? "silver" : d.tierKey === "dong" ? "bronze" : "";
           return (
             '<tr class="mk-leads-row' +
             (d.high ? " mk-leads-row--hot" : "") +
@@ -561,7 +603,9 @@
             esc(d.stage) +
             "</span></td>" +
             '<td class="mk-leads-td">' +
-            (d.tier ? '<span class="mk-pill mk-pill--tier mk-pill--' + d.tier.toLowerCase() + '">' + esc(d.tier) + "</span>" : '<span class="mk-leads-muted">—</span>') +
+            (d.tier
+              ? '<span class="mk-pill mk-pill--tier mk-pill--' + tierCls + '">' + esc(d.tier) + "</span>"
+              : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner"><span class="mk-owner-avatar" style="background:' +
             logic.ownerColor(l.owner) +
@@ -587,12 +631,19 @@
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--center mk-leads-td--support">' +
             (l.openTickets > 0
-              ? '<span class="mk-pill mk-pill--support">' + ic("ticket") + l.openTickets + " open</span>"
+              ? '<span class="mk-pill mk-pill--support">' +
+                ic("ticket") +
+                l.openTickets +
+                " " +
+                esc(t("JS_MK_OPEN_TICKETS", "mở")) +
+                "</span>"
               : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--center">' +
             (d.stale
-              ? '<span class="mk-stale-pill"><span class="mk-dot mk-dot--stale"></span> Stale</span>'
+              ? '<span class="mk-stale-pill"><span class="mk-dot mk-dot--stale"></span> ' +
+                esc(t("JS_MK_STALE", "Cần CSKH")) +
+                "</span>"
               : '<span class="mk-dot mk-dot--ok"></span>') +
             "</td></tr>"
           );
@@ -601,24 +652,35 @@
     }
 
     var summary = $("mk-leads-filter-summary");
-    if (summary) summary.textContent = rows.length + " of " + all.length + " leads";
+    if (summary) {
+      summary.textContent =
+        rows.length +
+        " / " +
+        all.length +
+        " " +
+        t("JS_MK_LEADS_COUNT_LABEL", "lead");
+    }
 
     var pag = $("mk-leads-pagination");
     if (pag) {
       var from = rows.length ? start + 1 : 0;
       var to = start + pageRows.length;
       pag.innerHTML =
-        '<span class="mk-leads-pagination__info">Showing ' +
+        '<span class="mk-leads-pagination__info">' +
+        esc(t("JS_MK_SHOWING", "Hiển thị")) +
+        " " +
         from +
         "\u2013" +
         to +
-        " of " +
+        " / " +
         rows.length +
         "</span>" +
         '<div class="mk-leads-pagination__btns">' +
         '<button type="button" class="mk-leads-page-btn" id="mk-leads-prev"' +
         (state.page <= 1 ? " disabled" : "") +
-        ">Prev</button>" +
+        ">" +
+        esc(t("JS_MK_PREV", "Trước")) +
+        "</button>" +
         '<span class="mk-leads-page-num">' +
         state.page +
         " / " +
@@ -626,7 +688,9 @@
         "</span>" +
         '<button type="button" class="mk-leads-page-btn" id="mk-leads-next"' +
         (state.page >= totalPages ? " disabled" : "") +
-        ">Next</button></div>";
+        ">" +
+        esc(t("JS_MK_NEXT", "Sau")) +
+        "</button></div>";
     }
 
     var badge = $("mk-leads-filter-count");

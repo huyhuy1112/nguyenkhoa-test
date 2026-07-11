@@ -983,6 +983,11 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
 .mk-tag--moi-quen { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
 .mk-tag--co-quan-he { background: #ffe4e6; color: #be123c; border-color: #fda4af; }
 .mk-tag--chua-mqbh { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+.mk-tag--hotline { background: #1e293b; color: #f8fafc; border-color: #334155; }
+.mk-tag--da-tg-fb1 { background: #dcfce7; color: #166534; border-color: #86efac; }
+.mk-tag--thu-3 { background: #7f1d1d; color: #fecaca; border-color: #991b1b; }
+.mk-tag--tiem-nang { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+.mk-tag--mua-on-dinh { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
 
 /* Dark mode: make tags/pills vibrant (not washed out) */
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag,

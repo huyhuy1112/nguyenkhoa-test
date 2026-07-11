@@ -26,7 +26,11 @@ $languageStrings = array(
 	'LBL_MK_CONTACTS_SEARCH_PLACEHOLDER' => 'Tìm theo tên, email, SĐT, tổ chức, phụ trách hoặc tag…',
 	'LBL_MK_CONTACTS_TABLE' => 'Danh sách khách hàng',
 	'LBL_MK_CONTACT_TAGS_HINT' => 'Các tag được chuyển từ Lead khi convert.',
-	'LBL_MK_CUSTOMER_TIER' => 'Hạng KH',
+	'LBL_MK_CUSTOMER_TIER' => 'Hạng thành viên',
+	'LBL_MK_COL_CUSTOMER_RANK' => 'Hạng khách hàng',
+	'LBL_MK_COL_CLASS_TAG' => 'Tag lớp học',
+	'LBL_MK_COL_MATERIAL_TAG' => 'Tag nguyên liệu',
+	'LBL_MK_COL_FRANCHISE_TAG' => 'Tag nhượng quyền',
 	'LBL_CONTACT_INFORMATION' => 'Thông tin cơ bản',
 	'LBL_COPY_MAILING_ADDRESS' => 'Địa chỉ email',
 	'LBL_COPY_OTHER_ADDRESS' => 'Địa chỉ khác',
@@ -66,4 +70,21 @@ $languageStrings = array(
 );
 
 $jsLanguageStrings = array(
- );
+	'JS_MK_FILTER_ALL' => 'Tất cả',
+	'JS_MK_FILTER_CUSTOMER_RANK' => 'Hạng khách hàng',
+	'JS_MK_FILTER_CLASS' => 'Tag lớp học',
+	'JS_MK_FILTER_MATERIAL' => 'Tag nguyên liệu',
+	'JS_MK_FILTER_FRANCHISE' => 'Tag nhượng quyền',
+	'JS_MK_FILTER_TIER' => 'Hạng thành viên',
+	'JS_MK_FILTER_OWNER' => 'Phụ trách',
+	'JS_MK_KPI_TOTAL_CONTACT' => 'Tổng khách hàng',
+	'JS_MK_KPI_TAGGED' => 'Có tag',
+	'JS_MK_KPI_EMAIL' => 'Có email',
+	'JS_MK_KPI_PHONE' => 'Có SĐT',
+	'JS_MK_KPI_ACCOUNT' => 'Có tổ chức',
+	'JS_MK_KPI_GOLD' => 'Hạng Vàng',
+	'JS_MK_KPI_FRANCHISE' => 'Nhượng quyền',
+	'JS_MK_NO_CONTACTS_MATCH' => 'Không có khách hàng phù hợp bộ lọc.',
+	'JS_MK_CONTACTS_COUNT_LABEL' => 'khách hàng',
+	'JS_MK_PAGE' => 'Trang',
+);

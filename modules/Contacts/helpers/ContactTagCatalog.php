@@ -1,21 +1,22 @@
 <?php
 /*+***********************************************************************************
  * Contact tag whitelist — BA Excel (Lead convert → Contact).
- * Chỉ các cột: Hạng KH, Tag lớp học, Tag NL, Tag NQ, Hạng thành viên.
+ * Cột: Hạng KH, Tag lớp học, Tag NL, Tag NQ, Hạng thành viên.
  *************************************************************************************/
 
 class Contacts_ContactTagCatalog {
 
 	/** Canonical keys allowed on Contact (from BA Excel). */
 	protected static $allowedKeys = array(
-		// Hạng Khách Hàng
-		'moi_quen', 'da_co_quan_he',
-		// Tag lớp học (Contact)
-		'chua_mqbh', 'da_tg_free',
-		// Tag nguyên liệu
-		'mua_lan_dau', 'mua_lai', 'dang_cham_soc', 'kh_can_nhac', 'khong_mua', 'ngung_mua',
+		// Hạng Khách Hàng (Phân nhóm + BA spreadsheet)
+		'moi_quen', 'da_co_quan_he', 'co_quan', 'chuan_bi_mo',
+		// Tag lớp học
+		'chua_mqbh', 'da_tg_free', 'da_tg_fb1', 'thu_3',
+		// Tag nguyên liệu / chăm sóc
+		'tiem_nang', 'mua_lan_dau', 'mua_lai', 'mua_on_dinh', 'dang_cham_soc',
+		'dang_tu_van', 'kh_can_nhac', 'khong_mua', 'ngung_mua',
 		// Tag nhượng quyền
-		'nhuong_quyen', 'da_ky_quy', 'dang_tu_van',
+		'nhuong_quyen', 'da_ky_quy',
 		// Hạng thành viên (tier)
 		'vang', 'bac', 'dong',
 	);
@@ -34,6 +35,9 @@ class Contacts_ContactTagCatalog {
 		'chỉ mới quen' => 'moi_quen',
 		'co_quan_he' => 'da_co_quan_he',
 		'đã có quan hệ' => 'da_co_quan_he',
+		'da_co_quan' => 'co_quan',
+		'chi_moi_quan' => 'chuan_bi_mo',
+		'ch_mo_quan' => 'chuan_bi_mo',
 		'chua mqbh' => 'chua_mqbh',
 		'chua_mqhh' => 'chua_mqbh',
 		'chua mqhh' => 'chua_mqbh',
@@ -41,6 +45,11 @@ class Contacts_ContactTagCatalog {
 		'đã từng free' => 'da_tg_free',
 		'da_tung_free' => 'da_tg_free',
 		'da_tg_free' => 'da_tg_free',
+		'da_tg_fb1' => 'da_tg_fb1',
+		'da_tg_f_b1' => 'da_tg_fb1',
+		'thu_3' => 'thu_3',
+		'mua_on_dinh' => 'mua_on_dinh',
+		'tiem_nang' => 'tiem_nang',
 		'nhuong_quyen' => 'nhuong_quyen',
 		'nhượng_quyền' => 'nhuong_quyen',
 		'da_ky_quy' => 'da_ky_quy',
