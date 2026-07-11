@@ -312,9 +312,12 @@
 	};
 
 	var ROLES = {
-		keeper: { label: 'Thủ kho', user: 'Thủ kho Hà', perms: 'Tạo/sửa phiếu nhập • Gửi QC • Tạo phiếu xuất • Soạn & giao hàng' },
 		qc: { label: 'QC', user: 'QC Minh', perms: 'Ghi nhận kết quả QC (Đạt/Không đạt) • Ghi chú kiểm tra' },
-		manager: { label: 'Quản lý kho', user: 'QL Tuấn', perms: 'Duyệt phiếu nhập sau QC • Duyệt/Từ chối phiếu xuất • Xem toàn bộ tồn kho' },
+		manager: {
+			label: 'Quản lý kho',
+			user: 'QL Tuấn',
+			perms: 'Tạo phiếu nhập/xuất • Gửi QC • Nhập kho • Soạn & giao hàng • Duyệt phiếu sau QC • Xem tồn kho',
+		},
 	};
 
 	function getWhId() {
@@ -324,7 +327,13 @@
 
 	function getRole() {
 		var sel = qs('#mkWhDetailRole');
-		return sel ? sel.value : 'keeper';
+		var val = sel ? sel.value : 'manager';
+		if (val === 'stock' || val === 'keeper') return 'manager';
+		return val || 'manager';
+	}
+
+	function isWarehouseOps(role) {
+		return role === 'manager' || role === 'keeper' || role === 'stock';
 	}
 
 	function getWarehouse() {
@@ -416,7 +425,7 @@
 		}
 
 		if (btn) {
-			var canCreate = getRole() === 'keeper' && (tab === 'inbound' || tab === 'outbound');
+			var canCreate = isWarehouseOps(getRole()) && (tab === 'inbound' || tab === 'outbound');
 			btn.classList.toggle('hide', !canCreate);
 			btn.textContent = tab === 'outbound' ? 'Tạo phiếu xuất' : 'Tạo phiếu nhập';
 		}
@@ -540,7 +549,7 @@
 
 		if (tab === 'inbound') {
 			if (stageTitle) stageTitle.textContent = 'Danh sách phiếu nhập kho';
-			if (createBtn) { createBtn.textContent = 'Tạo phiếu nhập'; createBtn.classList.toggle('hide', getRole() !== 'keeper'); }
+			if (createBtn) { createBtn.textContent = 'Tạo phiếu nhập'; createBtn.classList.toggle('hide', !isWarehouseOps(getRole())); }
 			html = tableWrap(['Mã phiếu', 'NCC', 'PO', 'Số dòng', 'Ngày tạo', 'Trạng thái', 'Thao tác'],
 				(d.receipts || []).map(function (r) {
 					var st = RECEIPT_STATUS[r.status] || { label: r.status, cls: 'mk-wh-proto-pill' };
@@ -583,7 +592,7 @@
 				}));
 		} else if (tab === 'outbound') {
 			if (stageTitle) stageTitle.textContent = 'Danh sách phiếu xuất kho';
-			if (createBtn) { createBtn.textContent = 'Tạo phiếu xuất'; createBtn.classList.toggle('hide', getRole() !== 'keeper'); }
+			if (createBtn) { createBtn.textContent = 'Tạo phiếu xuất'; createBtn.classList.toggle('hide', !isWarehouseOps(getRole())); }
 			html = tableWrap(['Mã phiếu', 'Khách hàng', 'SO', 'Số dòng', 'Ngày tạo', 'Trạng thái', 'Thao tác'],
 				(d.issues || []).map(function (i) {
 					var st = ISSUE_STATUS[i.status] || { label: i.status, cls: 'mk-wh-proto-pill' };
@@ -690,7 +699,7 @@
 				'<td>' + (l.qcResult ? escapeHtml(l.qcResult) : '—') + '</td></tr>';
 		}).join('');
 	var timeline = (r.timeline || []).map(function (t) {
-		var roleLabel = t.role === 'qc' ? 'QC' : (t.role === 'manager' ? 'Quản lý kho' : 'Thủ kho');
+		var roleLabel = t.role === 'qc' ? 'QC' : 'Quản lý kho';
 		return '<div class="mk-wh-proto-timeline-item">' +
 			'<strong>' + escapeHtml(t.action || '—') + '</strong>' +
 			'<span class="mk-wh-proto-tag mk-wh-proto-tag--blue">' + escapeHtml(roleLabel) + '</span>' +
@@ -733,7 +742,7 @@
 			return '<tr><td>' + escapeHtml(l.name) + '</td><td>' + escapeHtml(l.lot) + '</td><td class="mk-wh-proto-td-right">' + l.qty + '</td></tr>';
 		}).join('');
 	var timeline = (issue.timeline || []).map(function (t) {
-		var roleLabel = t.role === 'manager' ? 'Quản lý kho' : (t.role === 'qc' ? 'QC' : 'Thủ kho');
+		var roleLabel = t.role === 'qc' ? 'QC' : 'Quản lý kho';
 		return '<div class="mk-wh-proto-timeline-item">' +
 			'<strong>' + escapeHtml(t.action || '—') + '</strong>' +
 			'<span class="mk-wh-proto-tag mk-wh-proto-tag--blue">' + escapeHtml(roleLabel) + '</span>' +
@@ -784,7 +793,7 @@
 	}
 
 	function addTimeline(list, action, role) {
-		var me = ROLES[role] || ROLES.keeper;
+		var me = ROLES[role] || ROLES.manager;
 		list.push({ at: S.nowISO(), by: me.user, role: role, action: action });
 	}
 
@@ -1045,7 +1054,7 @@
 					lot: s.lot,
 					qty: qty,
 					reason: reason || '—',
-					requestedBy: 'Thủ kho Hà',
+					requestedBy: 'QL Tuấn',
 				});
 				closeModal();
 				renderTransfers();

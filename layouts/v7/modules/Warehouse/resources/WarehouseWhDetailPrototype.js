@@ -128,20 +128,71 @@
 		return (S.getState().warehouses || []).find(function (w) { return w.id === id; });
 	}
 
-	// UI roles use Prototype keys: qc | stock | manager
-	// Store logic uses keeper | qc | manager, so map stock <-> keeper.
+	function getDestinationWarehouseOptions() {
+		var currentId = getWhId();
+		var opts = [{ value: '', label: '— Chọn kho đích —' }];
+		(S.getState().warehouses || []).forEach(function (w) {
+			if (!w || !w.id || w.id === currentId) return;
+			if (w.status && String(w.status).toLowerCase() !== 'active') return;
+			var label = decodeEntities(w.name || w.id);
+			if (w.address) label += ' — ' + decodeEntities(w.address);
+			opts.push({ value: String(w.id), label: label });
+		});
+		return opts;
+	}
+
+	function resolveWarehouseLabel(whId) {
+		var w = (S.getState().warehouses || []).find(function (x) { return x && String(x.id) === String(whId); });
+		return w ? decodeEntities(w.name || w.id) : String(whId || '');
+	}
+
+	/** Normalize date strings for <input type="date"> (YYYY-MM-DD). */
+	function toDateInputValue(v) {
+		var s = String(v || '').trim();
+		if (!s || s === '—' || s === '0000-00-00') return '';
+		var iso = s.match(/^(\d{4}-\d{2}-\d{2})/);
+		if (iso) return iso[1];
+		var dmy = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+		if (dmy) {
+			var dd = ('0' + dmy[1]).slice(-2);
+			var mm = ('0' + dmy[2]).slice(-2);
+			return dmy[3] + '-' + mm + '-' + dd;
+		}
+		var t = Date.parse(s);
+		if (!isNaN(t)) {
+			var d = new Date(t);
+			var y = d.getFullYear();
+			var m = ('0' + (d.getMonth() + 1)).slice(-2);
+			var day = ('0' + d.getDate()).slice(-2);
+			return y + '-' + m + '-' + day;
+		}
+		return '';
+	}
+
+	// UI roles: qc | manager (stock/keeper legacy → manager ops)
 	function getRole() {
 		var sel = qs('#mkWhDetailRole');
-		var val = sel ? sel.value : 'keeper';
-		if (val === 'stock') return 'keeper';
-		return val;
+		var val = sel ? sel.value : 'manager';
+		if (val === 'stock' || val === 'keeper') return 'manager';
+		return val || 'manager';
 	}
 
 	function setRoleUI(roleKey) {
 		var sel = qs('#mkWhDetailRole');
 		if (!sel) return;
-		var uiVal = roleKey === 'keeper' ? 'stock' : roleKey;
+		var uiVal = (roleKey === 'keeper' || roleKey === 'stock') ? 'manager' : roleKey;
+		if (uiVal !== 'qc' && uiVal !== 'manager') uiVal = 'manager';
 		if (sel.value !== uiVal) sel.value = uiVal;
+	}
+
+	/** Ops formerly done by Thủ kho — now owned by Quản lý kho. */
+	function isWarehouseOps(role) {
+		return role === 'manager' || role === 'keeper' || role === 'stock';
+	}
+
+	function roleActorName(role) {
+		if (role === 'qc') return 'QC Minh';
+		return 'QL Tuấn';
 	}
 
 	var RECEIPT_STATUS = {
@@ -219,8 +270,14 @@
 
 	function findStockLot(whId, sku, lot) {
 		var d = S.ensureData(whId);
+		var wantSku = decodeEntities(sku || '').trim();
+		var wantLot = decodeEntities(lot || '').replace(/^\s*lô\s+/i, '').trim();
 		return (d.stock || []).find(function (s) {
-			return s.sku === sku && s.lot === lot;
+			var sSku = decodeEntities(s.sku || '').trim();
+			var sLot = decodeEntities(s.lot || '').replace(/^\s*lô\s+/i, '').trim();
+			if (wantLot && sLot !== wantLot) return false;
+			if (wantSku && sSku && sSku !== wantSku) return false;
+			return !!(wantLot || (wantSku && sSku === wantSku));
 		});
 	}
 
@@ -256,7 +313,7 @@
 		var active = qs('.mk-wh-proto-tab.is-active');
 		var tabKey = active ? active.getAttribute('data-tab') : 'inbound';
 		var btn = qs('#mkWhProtoCreateBtn');
-		var canCreate = role === 'keeper' && (tabKey === 'inbound' || tabKey === 'outbound');
+		var canCreate = isWarehouseOps(role) && (tabKey === 'inbound' || tabKey === 'outbound');
 		if (btn) {
 			btn.classList.toggle('hide', !canCreate);
 			btn.disabled = !canCreate;
@@ -493,8 +550,7 @@
 
 	function roleBadge(roleKey) {
 		if (roleKey === 'qc') return '<span class="mk-wh-proto-tag mk-wh-proto-tag--qc">QC</span>';
-		if (roleKey === 'manager') return '<span class="mk-wh-proto-tag mk-wh-proto-tag--green">Quản lý kho</span>';
-		return '<span class="mk-wh-proto-tag mk-wh-proto-tag--blue">Thủ kho</span>';
+		return '<span class="mk-wh-proto-tag mk-wh-proto-tag--green">Quản lý kho</span>';
 	}
 
 	function getReceiptQcInfo(r) {
@@ -588,7 +644,7 @@
 
 		var role = getRole();
 		var actions = '';
-		if (r.status === 'draft' && role === 'keeper') {
+		if (r.status === 'draft' && isWarehouseOps(role)) {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="send-qc" data-id="' + escapeHtml(r.id) + '">Gửi QC</button>' +
 				'</div>';
@@ -606,7 +662,7 @@
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="mgr-approve" data-id="' + escapeHtml(r.id) + '">Duyệt phiếu</button>' +
 				'</div>';
 		}
-		if (r.status === 'approved' && role === 'keeper') {
+		if (r.status === 'approved' && isWarehouseOps(role)) {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="store" data-id="' + escapeHtml(r.id) + '">Nhập kho</button>' +
 				'</div>';
@@ -654,22 +710,22 @@
 
 		var role = getRole();
 		var actions = '';
-		if (issue.status === 'draft' && role === 'keeper') {
+		if (issue.status === 'draft' && isWarehouseOps(role)) {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-submit" data-id="' + escapeHtml(issue.id) + '">Chờ in phiếu</button>' +
 				'</div>';
 		}
-		if ((issue.status === 'waiting_print' || issue.status === 'pending_approval') && role === 'keeper') {
+		if ((issue.status === 'waiting_print' || issue.status === 'pending_approval') && isWarehouseOps(role)) {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-start-pick" data-id="' + escapeHtml(issue.id) + '">Bắt đầu soạn</button>' +
 				'</div>';
 		}
-		if (issue.status === 'picking' && role === 'keeper') {
+		if (issue.status === 'picking' && isWarehouseOps(role)) {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-finish-pick" data-id="' + escapeHtml(issue.id) + '">Hoàn tất soạn hàng</button>' +
 				'</div>';
 		}
-		if ((issue.status === 'packed' || issue.status === 'approved') && role === 'keeper') {
+		if ((issue.status === 'packed' || issue.status === 'approved') && isWarehouseOps(role)) {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-ship" data-id="' + escapeHtml(issue.id) + '">Xác nhận đã giao</button>' +
 				'</div>';
@@ -719,7 +775,7 @@
 	}
 
 	function addTimeline(list, action, role, note) {
-		list.push({ at: S.nowISO(), by: role === 'qc' ? 'QC Minh' : role === 'manager' ? 'QL Tuấn' : 'Thủ kho Hà', role: role, action: action, note: note || undefined });
+		list.push({ at: S.nowISO(), by: roleActorName(role), role: role === 'qc' ? 'qc' : 'manager', action: action, note: note || undefined });
 	}
 
 	function formatLocationNote(lines) {
@@ -747,6 +803,7 @@
 				var patch = {
 					qty: (Number(stock[idx].qty) || 0) + passed,
 					expiry: stock[idx].expiry || l.expiry,
+					mfg: stock[idx].mfg || l.mfg || '',
 					name: stock[idx].name || l.name,
 				};
 				if ((l.location || '').trim()) {
@@ -758,6 +815,7 @@
 					sku: l.sku,
 					name: l.name,
 					lot: l.lot,
+					mfg: l.mfg || '',
 					expiry: l.expiry || '—',
 					qty: passed,
 					location: (l.location || '').trim() || '—',
@@ -847,13 +905,22 @@
 			};
 		}
 		var outMeta = getOutboundTypeMeta(outboundType || 'internal');
+		var customerField = (outboundType === 'transfer')
+			? {
+				name: 'customer',
+				label: outMeta.customerLabel,
+				required: true,
+				type: 'select',
+				options: getDestinationWarehouseOptions(),
+			}
+			: { name: 'customer', label: outMeta.customerLabel, required: true, placeholder: '' };
 		return {
 			tabKey: 'outbound',
 			outboundType: outboundType || 'internal',
 			title: 'Tạo phiếu xuất — ' + outMeta.short,
 			submitLabel: 'Tạo phiếu',
 			fields: [
-				{ name: 'customer', label: outMeta.customerLabel, required: true, placeholder: '' },
+				customerField,
 				{ name: 'so', label: outMeta.soLabel, required: false, placeholder: outMeta.soPlaceholder },
 				{ type: 'lines', mode: 'outbound', label: 'Danh sách hàng xuất', full: true },
 			],
@@ -1094,15 +1161,15 @@
 	function outboundLotSelectHtml(lots, selectedKey) {
 		var opts = '<option value="">— Tìm / chọn sản phẩm —</option>' +
 			lots.map(function (s) {
-				var key = String(s.sku || '') + '|' + String(s.lot || '');
 				var name = decodeEntities(s.name || s.sku || '');
 				var sku = decodeEntities(s.sku || '');
-				var lot = decodeEntities(s.lot || '');
+				var lot = decodeEntities(s.lot || '').replace(/^\s*lô\s+/i, '').trim();
+				var key = String(sku || '') + '|' + String(lot || '');
 				var qty = Number(s.qty) || 0;
-				var mfg = s.mfg || '';
-				var expiry = s.expiry || s.exp || '';
+				var mfg = toDateInputValue(decodeEntities(s.mfg || ''));
+				var expiry = toDateInputValue(decodeEntities(s.expiry || s.exp || ''));
 				var sel = key && key === String(selectedKey || '') ? ' selected="selected"' : '';
-				var label = name + (lot ? ' · ' + lot : '') + ' · còn ' + qty;
+				var label = name + (lot ? ' · Lô ' + lot : '') + ' · còn ' + qty;
 				return '<option value="' + escapeHtml(key) + '" data-sku="' + escapeHtml(sku) +
 					'" data-name="' + escapeHtml(name) + '" data-lot="' + escapeHtml(lot) +
 					'" data-qty="' + escapeHtml(String(qty)) +
@@ -1125,23 +1192,45 @@
 		if (!opt || !selectEl.value) {
 			if (skuEl) { skuEl.value = ''; skuEl.placeholder = 'SKU'; }
 			if (lotEl) lotEl.value = '';
-			if (mfgEl) mfgEl.value = '';
-			if (expEl) expEl.value = '';
+			if (mfgEl) { mfgEl.value = ''; mfgEl.readOnly = true; }
+			if (expEl) { expEl.value = ''; expEl.readOnly = true; }
 			if (qtyEl) qtyEl.removeAttribute('max');
 			return;
 		}
-		var sku = opt.getAttribute('data-sku') || '';
-		var lot = opt.getAttribute('data-lot') || '';
-		var avail = parseInt(opt.getAttribute('data-qty') || '0', 10) || 0;
-		var mfg = opt.getAttribute('data-mfg') || '';
-		var expiry = opt.getAttribute('data-expiry') || '';
+		var lotKey = String(selectEl.value || '');
+		var parts = lotKey.split('|');
+		var skuKey = parts[0] || '';
+		var lotKeyPart = parts.slice(1).join('|');
+		var stockLot = findStockLot(getWhId(), skuKey, lotKeyPart);
+		if (!stockLot && lotKeyPart) {
+			// Match when sku in option key is empty/auto but stock row has resolved sku.
+			stockLot = (getOutboundStockLots(getWhId()) || []).find(function (s) {
+				return String(s.lot || '') === lotKeyPart || decodeEntities(s.lot || '') === decodeEntities(lotKeyPart);
+			});
+		}
+		var sku = decodeEntities((stockLot && stockLot.sku) || opt.getAttribute('data-sku') || '');
+		var lot = decodeEntities((stockLot && stockLot.lot) || opt.getAttribute('data-lot') || lotKeyPart || '');
+		lot = lot.replace(/^\s*lô\s+/i, '').trim();
+		var avail = stockLot ? (Number(stockLot.qty) || 0) : (parseInt(opt.getAttribute('data-qty') || '0', 10) || 0);
+		var mfg = toDateInputValue(decodeEntities((stockLot && stockLot.mfg) || opt.getAttribute('data-mfg') || ''));
+		var expiry = toDateInputValue(decodeEntities((stockLot && (stockLot.expiry || stockLot.exp)) || opt.getAttribute('data-expiry') || ''));
 		if (skuEl) {
 			skuEl.value = sku;
 			skuEl.placeholder = sku ? 'SKU' : 'Chưa có SKU';
 		}
 		if (lotEl) lotEl.value = lot;
-		if (mfgEl) mfgEl.value = mfg;
-		if (expEl) expEl.value = expiry && expiry !== '—' ? expiry : '';
+		if (mfgEl) {
+			mfgEl.value = mfg;
+			mfgEl.readOnly = !!mfg;
+			mfgEl.classList.toggle('mk-wh-proto-sku-readonly', !!mfg);
+			mfgEl.tabIndex = mfg ? -1 : 0;
+		}
+		if (expEl) {
+			expEl.value = expiry;
+			expEl.readOnly = !!expiry;
+			expEl.classList.toggle('mk-wh-proto-sku-readonly', !!expiry);
+			expEl.tabIndex = expiry ? -1 : 0;
+		}
 		if (qtyEl) {
 			if (avail > 0) {
 				qtyEl.setAttribute('max', String(avail));
@@ -1265,10 +1354,20 @@
 			}
 
 			if (tabKey === 'outbound') {
-				var customer = String(fd.get('customer') || '').trim();
+				var customerRaw = String(fd.get('customer') || '').trim();
 				var soRef = String(fd.get('so') || '').trim() || '—';
-				if (!customer) {
-					showError('Vui lòng nhập ' + (getOutboundTypeMeta(opts.outboundType || 'internal').customerLabel || 'thông tin bắt buộc') + '.');
+				var outboundType = opts.outboundType || 'internal';
+				var customer = customerRaw;
+				var toWarehouseId = '';
+				if (outboundType === 'transfer') {
+					toWarehouseId = customerRaw;
+					customer = resolveWarehouseLabel(customerRaw);
+					if (!toWarehouseId || !customer) {
+						showError('Vui lòng chọn kho đích.');
+						return;
+					}
+				} else if (!customer) {
+					showError('Vui lòng nhập ' + (getOutboundTypeMeta(outboundType).customerLabel || 'thông tin bắt buộc') + '.');
 					return;
 				}
 				var outRows = Array.prototype.slice.call(form.querySelectorAll('[data-mk-line="1"]'));
@@ -1298,13 +1397,19 @@
 						outError = 'Số lượng xuất vượt tồn (còn ' + avail + ') cho ' + (stockLot.name || sku) + ' · ' + lot + '.';
 						return;
 					}
+					var mfgVal = row.querySelector('[data-mk-line-mfg="1"]')
+						? row.querySelector('[data-mk-line-mfg="1"]').value
+						: '';
+					var expVal = row.querySelector('[data-mk-line-exp="1"]')
+						? row.querySelector('[data-mk-line-exp="1"]').value
+						: '';
 					outLines.push({
 						sku: stockLot.sku,
 						name: stockLot.name,
 						lot: stockLot.lot,
 						qty: qtyOut,
-						mfg: stockLot.mfg || '',
-						expiry: stockLot.expiry || stockLot.exp || '—',
+						mfg: toDateInputValue(mfgVal || stockLot.mfg || ''),
+						expiry: toDateInputValue(expVal || stockLot.expiry || stockLot.exp || '') || '—',
 					});
 				});
 				if (outError) {
@@ -1315,7 +1420,6 @@
 					showError('Vui lòng thêm ít nhất một dòng hàng xuất.');
 					return;
 				}
-				var outboundType = opts.outboundType || 'internal';
 				var typeMeta = getOutboundTypeMeta(outboundType);
 				var id = nextId('GIN', d.issues || []);
 				var now = S.nowISO();
@@ -1323,14 +1427,15 @@
 					id: id,
 					outboundType: outboundType,
 					customer: customer,
+					toWarehouseId: toWarehouseId || undefined,
 					soRef: soRef,
 					status: 'waiting_print',
 					createdAt: now,
-					createdBy: 'Thủ kho Hà',
+					createdBy: 'QL Tuấn',
 					lines: outLines,
 					timeline: [],
 				};
-				addTimeline(issue.timeline, 'Tạo phiếu xuất — ' + typeMeta.short, 'keeper');
+				addTimeline(issue.timeline, 'Tạo phiếu xuất — ' + typeMeta.short, 'manager');
 				var issues = (d.issues || []).slice();
 				issues.unshift(issue);
 				S.warehouseDataActions.setIssues(whId, issues);
@@ -1418,14 +1523,14 @@
 				supplier: supplier,
 				poRef: poRef,
 				createdAt: nowIn,
-				createdBy: 'Thủ kho Hà',
+				createdBy: 'QL Tuấn',
 				status: sendQc ? 'pending_qc' : 'stored',
 				lines: lines,
 				timeline: [],
 			};
-			addTimeline(receipt.timeline, 'Tạo phiếu nhập', 'keeper');
-			if (sendQc) addTimeline(receipt.timeline, 'Gửi QC kiểm tra', 'keeper');
-			else addTimeline(receipt.timeline, 'Nhập thẳng tồn kho', 'keeper', 'Không gửi QC — cộng tồn ngay');
+			addTimeline(receipt.timeline, 'Tạo phiếu nhập', 'manager');
+			if (sendQc) addTimeline(receipt.timeline, 'Gửi QC kiểm tra', 'manager');
+			else addTimeline(receipt.timeline, 'Nhập thẳng tồn kho', 'manager', 'Không gửi QC — cộng tồn ngay');
 
 			var receipts = (d.receipts || []).slice();
 			receipts.unshift(receipt);

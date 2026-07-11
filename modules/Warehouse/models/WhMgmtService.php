@@ -15,6 +15,32 @@ class Warehouse_WhMgmtService {
 		if (!Warehouse_WorkflowSetup_Helper::isInstalled($db)) {
 			self::seedAll($db);
 		}
+		self::backfillStockMfgDates($db);
+	}
+
+	/**
+	 * Fill mfg_date on existing seed/demo stock rows that only have expiry.
+	 */
+	protected static function backfillStockMfgDates(PearDatabase $db) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		foreach (Warehouse_WhMgmtSeedData::stockByWarehouse() as $whCode => $rows) {
+			foreach ($rows as $item) {
+				if (empty($item['mfg'])) {
+					continue;
+				}
+				$key = self::stockProductKey($whCode, $item['sku'], $item['lot']);
+				$db->pquery(
+					'UPDATE vtiger_warehouse_stock
+					 SET mfg_date = ?
+					 WHERE product_key = ? AND (mfg_date IS NULL OR mfg_date = \'\')',
+					array($item['mfg'], $key)
+				);
+			}
+		}
 	}
 
 	/**
@@ -119,8 +145,8 @@ class Warehouse_WhMgmtService {
 				$db->pquery(
 					'INSERT INTO vtiger_warehouse_stock
 					 (stockid, code, product_key, productid, product_name, quantity, last_price,
-					  warehouse_id, warehouse_name, expired_date, createdtime, updatedtime)
-					 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+					  warehouse_id, warehouse_name, expired_date, mfg_date, createdtime, updatedtime)
+					 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
 					array(
 						$stockId,
 						$code,
@@ -132,6 +158,7 @@ class Warehouse_WhMgmtService {
 						$whCode,
 						$whName,
 						isset($item['expiry']) ? $item['expiry'] : null,
+						isset($item['mfg']) ? $item['mfg'] : null,
 						$now,
 						$now,
 					)
@@ -454,7 +481,7 @@ class Warehouse_WhMgmtService {
 		$r = strtolower(trim((string) $role));
 		if ($r === 'qc') return 'QC Minh';
 		if ($r === 'manager') return 'QL Tuấn';
-		return 'Thủ kho Hà';
+		return 'QL Tuấn';
 	}
 
 	protected static function pushTimeline(array &$meta, $action, $role, $note = '') {
@@ -464,7 +491,7 @@ class Warehouse_WhMgmtService {
 		$entry = array(
 			'at' => self::nowIso(),
 			'by' => self::roleDisplayName($role),
-			'role' => strtolower(trim((string) $role)) !== '' ? strtolower(trim((string) $role)) : 'keeper',
+			'role' => strtolower(trim((string) $role)) !== '' ? strtolower(trim((string) $role)) : 'manager',
 			'action' => (string) $action,
 		);
 		if (trim((string) $note) !== '') {
@@ -632,7 +659,7 @@ class Warehouse_WhMgmtService {
 
 	protected static function loadReceiptItemsRaw(PearDatabase $db, $receiptId) {
 		$rs = $db->pquery(
-			'SELECT productid, product_name, quantity, serial_number, expired_date, line_note, storage_location
+			'SELECT productid, product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location
 			 FROM vtiger_goodsreceipt_items
 			 WHERE receiptid = ?
 			 ORDER BY itemid ASC',
@@ -693,7 +720,7 @@ class Warehouse_WhMgmtService {
 
 	protected static function loadReceiptItems(PearDatabase $db, $receiptId, array $meta = array()) {
 		$rs = $db->pquery(
-			'SELECT product_name, quantity, serial_number, expired_date, line_note, storage_location
+			'SELECT product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location
 			 FROM vtiger_goodsreceipt_items
 			 WHERE receiptid = ?
 			 ORDER BY itemid ASC',
@@ -710,7 +737,8 @@ class Warehouse_WhMgmtService {
 				'sku' => $sku,
 				'name' => self::decodeDisplayTextDeep((string) $row['product_name']),
 				'lot' => (string) (isset($row['serial_number']) ? $row['serial_number'] : ''),
-				'expiry' => (string) (isset($row['expired_date']) ? $row['expired_date'] : ''),
+				'mfg' => self::normalizeDateValue(isset($row['mfg_date']) ? $row['mfg_date'] : ''),
+				'expiry' => self::normalizeDateValue(isset($row['expired_date']) ? $row['expired_date'] : ''),
 				'qty' => (float) $row['quantity'],
 				'location' => self::decodeDisplayTextDeep((string) (isset($row['storage_location']) ? $row['storage_location'] : '')),
 			);
@@ -791,6 +819,7 @@ class Warehouse_WhMgmtService {
 				$productId = (int) (isset($it['productid']) ? $it['productid'] : 0);
 				$qty = (float) (isset($it['quantity']) ? $it['quantity'] : 0);
 				$expiry = isset($it['expired_date']) && $it['expired_date'] !== '' ? $it['expired_date'] : null;
+				$mfg = isset($it['mfg_date']) && $it['mfg_date'] !== '' ? $it['mfg_date'] : null;
 				$location = trim((string) (isset($it['storage_location']) ? $it['storage_location'] : ''));
 				if ($name === '' || $lot === '' || $qty <= 0) {
 					continue;
@@ -811,6 +840,7 @@ class Warehouse_WhMgmtService {
 					'name' => $name,
 					'lot' => $lot,
 					'qty' => $qty,
+					'mfg' => $mfg,
 					'expiry' => $expiry,
 					'price' => $price,
 					'location' => $location,
@@ -1147,7 +1177,7 @@ class Warehouse_WhMgmtService {
 
 	protected static function loadStock(PearDatabase $db, $warehouseCode) {
 		$rs = $db->pquery(
-			'SELECT product_key, product_name, quantity, last_price, expired_date, warehouse_name, storage_location
+			'SELECT product_key, productid, product_name, quantity, last_price, expired_date, mfg_date, warehouse_name, storage_location
 			 FROM vtiger_warehouse_stock
 			 WHERE warehouse_id = ?
 			 ORDER BY stockid ASC',
@@ -1155,22 +1185,164 @@ class Warehouse_WhMgmtService {
 		);
 		$out = array();
 		while ($row = $db->fetchByAssoc($rs)) {
-			$key = (string) $row['product_key'];
-			$parts = explode('|', $key);
-			$sku = count($parts) >= 2 ? $parts[1] : self::guessSkuFromName($row['product_name']);
-			$sku = self::formatDisplaySku($sku);
-			$lot = count($parts) >= 3 ? $parts[2] : '';
+			$parsed = self::parseStockIdentity($db, $row);
 			$out[] = array(
-				'sku' => $sku,
-				'name' => self::decodeDisplayTextDeep((string) $row['product_name']),
-				'lot' => $lot,
-				'expiry' => (string) (isset($row['expired_date']) ? $row['expired_date'] : ''),
+				'sku' => $parsed['sku'],
+				'name' => $parsed['name'],
+				'lot' => $parsed['lot'],
+				'mfg' => $parsed['mfg'],
+				'expiry' => $parsed['expiry'],
 				'qty' => (float) $row['quantity'],
 				'location' => self::decodeDisplayTextDeep((string) (isset($row['storage_location']) ? $row['storage_location'] : '')),
 				'price' => (float) (isset($row['last_price']) ? $row['last_price'] : 0),
 			);
 		}
 		return $out;
+	}
+
+	/**
+	 * Resolve sku/lot/mfg/expiry for both WhMgmt (WH|sku|lot) and GoodsReceipt (P:/N:…:S:…:E:…) keys.
+	 */
+	protected static function parseStockIdentity(PearDatabase $db, array $row) {
+		$key = trim((string) (isset($row['product_key']) ? $row['product_key'] : ''));
+		$name = self::decodeDisplayTextDeep((string) (isset($row['product_name']) ? $row['product_name'] : ''));
+		$productId = (int) (isset($row['productid']) ? $row['productid'] : 0);
+		$sku = '';
+		$lot = '';
+
+		if (strpos($key, '|') !== false) {
+			$parts = explode('|', $key);
+			$sku = isset($parts[1]) ? trim((string) $parts[1]) : '';
+			$lot = isset($parts[2]) ? trim((string) $parts[2]) : '';
+		}
+
+		require_once 'modules/Warehouse/helpers/StockHelper.php';
+		$parsed = Warehouse_Stock_Helper::parseProductKey($key);
+		if ($productId <= 0 && !empty($parsed['product_id'])) {
+			$productId = (int) $parsed['product_id'];
+		}
+		if ($lot === '' && preg_match('/:S:([^:]+)/u', $key, $sm)) {
+			$lot = self::decodeDisplayTextDeep($sm[1]);
+		} else {
+			$lot = self::decodeDisplayTextDeep($lot);
+		}
+
+		if (($sku === '' || self::isAutoSku($sku)) && $productId > 0) {
+			$sku = self::resolveProductSku($db, $productId);
+		}
+		if ($sku === '' || self::isAutoSku($sku)) {
+			$sku = self::guessSkuFromName($name);
+		}
+		$sku = self::formatDisplaySku($sku);
+
+		$mfg = self::normalizeDateValue(isset($row['mfg_date']) ? $row['mfg_date'] : '');
+		$expiry = self::normalizeDateValue(isset($row['expired_date']) ? $row['expired_date'] : '');
+		if ($expiry === '') {
+			$expiry = self::normalizeDateValue(Warehouse_Stock_Helper::extractExpiryFromProductKey($key));
+		}
+
+		if ($mfg === '' || $expiry === '') {
+			$fromInbound = self::lookupInboundLotDates($db, $productId, $name, $lot);
+			if ($mfg === '' && !empty($fromInbound['mfg'])) {
+				$mfg = $fromInbound['mfg'];
+			}
+			if ($expiry === '' && !empty($fromInbound['expiry'])) {
+				$expiry = $fromInbound['expiry'];
+			}
+		}
+
+		return array(
+			'sku' => $sku,
+			'name' => $name,
+			'lot' => $lot,
+			'mfg' => $mfg,
+			'expiry' => $expiry,
+		);
+	}
+
+	/**
+	 * Best-effort NSX/HSD from goods receipt lines matching this stock lot.
+	 */
+	protected static function lookupInboundLotDates(PearDatabase $db, $productId, $productName, $lot) {
+		static $haveMfg = null;
+		$productId = (int) $productId;
+		$nameKey = mb_strtolower(trim(self::decodeDisplayTextDeep($productName)));
+		$lot = trim(self::decodeDisplayTextDeep($lot));
+		$out = array('mfg' => '', 'expiry' => '');
+
+		$params = array();
+		$where = array('1=1');
+		if ($lot !== '') {
+			$where[] = 'TRIM(gri.serial_number) <> \'\' AND LOWER(TRIM(gri.serial_number)) = ?';
+			$params[] = mb_strtolower($lot);
+		}
+		if ($productId > 0) {
+			$where[] = 'gri.productid = ?';
+			$params[] = $productId;
+		} elseif ($nameKey !== '') {
+			$where[] = '(gri.productid IS NULL OR gri.productid = 0) AND LOWER(TRIM(gri.product_name)) = ?';
+			$params[] = $nameKey;
+		} elseif ($lot === '') {
+			return $out;
+		}
+
+		if ($haveMfg === null) {
+			$haveMfg = false;
+			try {
+				$colRs = $db->getColumnNames('vtiger_goodsreceipt_items');
+				if (is_array($colRs)) {
+					foreach ($colRs as $c) {
+						if (strtolower($c) === 'mfg_date') {
+							$haveMfg = true;
+							break;
+						}
+					}
+				}
+			} catch (Exception $e) {
+				$haveMfg = false;
+			}
+		}
+
+		$cols = 'gri.expired_date';
+		if ($haveMfg) {
+			$cols .= ', gri.mfg_date';
+		}
+
+		$rs = $db->pquery(
+			'SELECT ' . $cols . '
+			 FROM vtiger_goodsreceipt_items gri
+			 INNER JOIN vtiger_goodsreceipt gr ON gr.receiptid = gri.receiptid AND gr.deleted = 0
+			 WHERE ' . implode(' AND ', $where) . '
+			 ORDER BY gri.itemid DESC
+			 LIMIT 1',
+			$params
+		);
+		if ($rs && $db->num_rows($rs) > 0) {
+			$row = $db->fetchByAssoc($rs);
+			$out['expiry'] = self::normalizeDateValue(isset($row['expired_date']) ? $row['expired_date'] : '');
+			if ($haveMfg) {
+				$out['mfg'] = self::normalizeDateValue(isset($row['mfg_date']) ? $row['mfg_date'] : '');
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Normalize DB/date strings to YYYY-MM-DD for <input type="date">.
+	 */
+	protected static function normalizeDateValue($value) {
+		$s = trim((string) $value);
+		if ($s === '' || $s === '—' || $s === '0000-00-00') {
+			return '';
+		}
+		if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $s, $m)) {
+			return $m[1];
+		}
+		$ts = strtotime($s);
+		if ($ts) {
+			return date('Y-m-d', $ts);
+		}
+		return '';
 	}
 
 	protected static function guessSkuFromName($name) {
@@ -1450,6 +1622,7 @@ class Warehouse_WhMgmtService {
 			$qty = (float) (isset($line['qty']) ? $line['qty'] : 0);
 			$location = trim((string) (isset($line['location']) ? $line['location'] : ''));
 			$expiry = isset($line['expiry']) && $line['expiry'] !== '—' ? $line['expiry'] : null;
+			$mfg = isset($line['mfg']) && $line['mfg'] !== '' && $line['mfg'] !== '—' ? $line['mfg'] : null;
 			if ($name === '' || $lot === '' || $qty <= 0) {
 				continue;
 			}
@@ -1460,9 +1633,9 @@ class Warehouse_WhMgmtService {
 			$itemId = (int) $db->getUniqueID('vtiger_goodsreceipt_items');
 			$db->pquery(
 				'INSERT INTO vtiger_goodsreceipt_items
-				 (itemid, receiptid, productid, product_name, quantity, serial_number, expired_date, line_note, storage_location)
-				 VALUES (?,?,?,?,?,?,?,?,?)',
-				array($itemId, $receiptId, $productId, $name, $qty, $lot, $expiry, $sku, $location !== '' ? $location : null)
+				 (itemid, receiptid, productid, product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location)
+				 VALUES (?,?,?,?,?,?,?,?,?,?)',
+				array($itemId, $receiptId, $productId, $name, $qty, $lot, $expiry, $mfg, $sku, $location !== '' ? $location : null)
 			);
 
 			if (!$sendQc) {
@@ -1472,6 +1645,7 @@ class Warehouse_WhMgmtService {
 					'name' => $name,
 					'lot' => $lot,
 					'qty' => $qty,
+					'mfg' => $mfg,
 					'expiry' => $expiry,
 					'price' => isset($line['price']) ? (float) $line['price'] : 0,
 					'location' => $location,
@@ -1515,6 +1689,8 @@ class Warehouse_WhMgmtService {
 		$key = self::stockProductKey($whCode, $sku, $lot);
 		$qty = (float) $line['qty'];
 		$location = trim((string) (isset($line['location']) ? $line['location'] : ''));
+		$mfg = isset($line['mfg']) && $line['mfg'] !== '' && $line['mfg'] !== '—' ? $line['mfg'] : null;
+		$expiry = isset($line['expiry']) && $line['expiry'] !== '' && $line['expiry'] !== '—' ? $line['expiry'] : null;
 		$now = date('Y-m-d H:i:s');
 
 		$rs = $db->pquery(
@@ -1529,6 +1705,7 @@ class Warehouse_WhMgmtService {
 				 SET quantity = ?, product_name = ?, productid = ?, warehouse_id = ?, warehouse_name = ?,
 				     last_price = CASE WHEN ? > 0 THEN ? ELSE last_price END,
 				     expired_date = CASE WHEN ? IS NOT NULL AND ? <> \'\' THEN ? ELSE expired_date END,
+				     mfg_date = CASE WHEN ? IS NOT NULL AND ? <> \'\' THEN ? ELSE mfg_date END,
 				     storage_location = CASE WHEN ? <> \'\' THEN ? ELSE storage_location END,
 				     updatedby = ?, updatedtime = ?
 				 WHERE stockid = ?',
@@ -1540,9 +1717,12 @@ class Warehouse_WhMgmtService {
 					$whName,
 					(float) $line['price'],
 					(float) $line['price'],
-					$line['expiry'],
-					$line['expiry'],
-					$line['expiry'],
+					$expiry,
+					$expiry,
+					$expiry,
+					$mfg,
+					$mfg,
+					$mfg,
 					$location,
 					$location,
 					$userId,
@@ -1558,8 +1738,8 @@ class Warehouse_WhMgmtService {
 		$db->pquery(
 			'INSERT INTO vtiger_warehouse_stock
 			 (stockid, code, product_key, productid, product_name, quantity, last_price,
-			  warehouse_id, warehouse_name, expired_date, storage_location, createdtime, updatedtime, updatedby)
-			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+			  warehouse_id, warehouse_name, expired_date, mfg_date, storage_location, createdtime, updatedtime, updatedby)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
 			array(
 				$stockId,
 				$code,
@@ -1570,7 +1750,8 @@ class Warehouse_WhMgmtService {
 				(float) $line['price'],
 				$whCode,
 				$whName,
-				$line['expiry'],
+				$expiry,
+				$mfg,
 				$location !== '' ? $location : null,
 				$now,
 				$now,

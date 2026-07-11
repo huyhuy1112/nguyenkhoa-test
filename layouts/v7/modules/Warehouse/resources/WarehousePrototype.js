@@ -604,37 +604,33 @@
 				hint: 'Quyền: Chỉnh sửa kết quả QC (Đạt/Không đạt) • Ghi chú kiểm tra',
 				perms: 'Ghi nhận kết quả QC (Đạt/Không đạt) • Ghi chú kiểm tra',
 			},
-			stock: {
-				badge: 'Thủ kho',
-				hint: 'Quyền: Tạo/sửa phiếu nhập • Gửi QC • Soạn & giao hàng • Tạo phiếu xuất',
-				perms: 'Tạo/sửa phiếu nhập • Gửi QC • Soạn & giao hàng • Tạo phiếu xuất',
-			},
 			manager: {
 				badge: 'Quản lý kho',
-				hint: 'Quyền: Duyệt phiếu xuất • Xem báo cáo tồn kho',
-				perms: 'Duyệt phiếu xuất • Xem báo cáo tồn kho',
+				hint: 'Quyền: Tạo phiếu nhập/xuất • Gửi QC • Nhập kho • Soạn & giao • Duyệt sau QC',
+				perms: 'Tạo phiếu nhập/xuất • Gửi QC • Nhập kho • Soạn & giao hàng • Duyệt phiếu sau QC • Xem tồn kho',
 			},
 		};
-		var meta = map[role] || map.qc;
+		if (role === 'stock' || role === 'keeper') role = 'manager';
+		var meta = map[role] || map.manager;
 		if (badge) badge.textContent = meta.badge;
 		if (hint) hint.textContent = meta.hint;
 		if (permRole) permRole.textContent = meta.badge;
 		if (permItems) permItems.textContent = meta.perms;
 
-		// Chỉ thủ kho tạo phiếu nhập / xuất. Tab QC & tồn kho không có nút tạo (không có “phiếu QC”).
+		// Quản lý kho đảm nhiệm thao tác vận hành (trước đây là thủ kho).
 		var activeTab = 'inbound';
 		var active = qs('.mk-wh-proto-tab.is-active');
 		if (active) activeTab = active.getAttribute('data-tab') || 'inbound';
 		var canCreate =
-			role === 'stock' && (activeTab === 'inbound' || activeTab === 'outbound');
+			role === 'manager' && (activeTab === 'inbound' || activeTab === 'outbound');
 		if (!canCreate) {
 			if (btn) {
 				btn.classList.add('hide');
 				btn.disabled = true;
 				btn.classList.remove('is-disabled');
 				btn.title =
-					role !== 'stock'
-						? 'Chỉ thủ kho được tạo phiếu nhập / xuất (UI demo).'
+					role !== 'manager'
+						? 'Chỉ Quản lý kho được tạo phiếu nhập / xuất (UI demo).'
 						: 'Tab này không tạo phiếu mới (UI demo).';
 			}
 			return;
@@ -1058,7 +1054,7 @@
 			'<div class="mk-wh-proto-timeline">' +
 			(rec.timeline || [])
 				.map(function (ev) {
-					var label = ev.role === 'qc' ? 'QC' : ev.role === 'manager' ? 'Quản lý kho' : 'Thủ kho';
+					var label = ev.role === 'qc' ? 'QC' : 'Quản lý kho';
 					return (
 						'<div class="mk-wh-proto-timeline-item">' +
 						'<strong>' +
@@ -1076,7 +1072,7 @@
 			'</div>';
 
 		var primaryActions = '';
-		if (isDraft && role === 'stock' && receiptNeedsQc(rec)) {
+		if (isDraft && (role === 'manager' || role === 'stock') && receiptNeedsQc(rec)) {
 			primaryActions =
 				'<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="send-qc" data-code="' +
@@ -1105,7 +1101,7 @@
 				'">Duyệt phiếu</button>' +
 				'</div>';
 		}
-		if (isApproved && role === 'stock') {
+		if (isApproved && (role === 'manager' || role === 'stock')) {
 			primaryActions =
 				'<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="store" data-code="' +
@@ -1204,7 +1200,7 @@
 			'<div class="mk-wh-proto-timeline">' +
 			(issue.timeline || [])
 				.map(function (ev) {
-					var label = ev.role === 'manager' ? 'Quản lý kho' : ev.role === 'qc' ? 'QC' : 'Thủ kho';
+					var label = ev.role === 'qc' ? 'QC' : 'Quản lý kho';
 					return (
 						'<div class="mk-wh-proto-timeline-item"><strong>' +
 						escapeHtml(ev.action) +
@@ -1221,7 +1217,7 @@
 			'</div>';
 
 		var primaryActions = '';
-		if (issue.status === 'draft' && role === 'stock') {
+		if (issue.status === 'draft' && (role === 'manager' || role === 'stock')) {
 			primaryActions =
 				'<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-submit" data-code="' +
@@ -1242,7 +1238,7 @@
 				(stockWarn ? ' disabled title="Tồn không đủ"' : '') +
 				'>Duyệt phiếu</button></div>';
 		}
-		if (issue.status === 'approved' && role === 'stock') {
+		if (issue.status === 'approved' && (role === 'manager' || role === 'stock')) {
 			primaryActions =
 				'<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-ship" data-code="' +
@@ -1422,7 +1418,7 @@
 				var active = qs('.mk-wh-proto-tab.is-active');
 				var tabKey = active ? active.getAttribute('data-tab') : 'inbound';
 				var role = roleSel ? roleSel.value : 'qc';
-				if (role !== 'stock' || tabKey === 'qc' || tabKey === 'stock') return;
+				if ((role !== 'manager' && role !== 'stock') || tabKey === 'qc' || tabKey === 'stock') return;
 				if (tabKey === 'outbound') {
 					openOutboundTypePicker();
 					return;

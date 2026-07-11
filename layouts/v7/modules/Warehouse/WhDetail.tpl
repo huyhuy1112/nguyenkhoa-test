@@ -19,8 +19,7 @@
 						</span>
 						<select class="mk-wh-proto-select" id="mkWhDetailRole">
 							<option value="qc">QC — QC Minh</option>
-							<option value="stock" selected="selected">Thủ kho — Thủ kho Hà</option>
-							<option value="manager">Quản lý kho — QL Tuấn</option>
+							<option value="manager" selected="selected">Quản lý kho — QL Tuấn</option>
 						</select>
 					</div>
 				</div>

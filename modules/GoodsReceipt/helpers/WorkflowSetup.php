@@ -97,6 +97,7 @@ class GoodsReceipt_WorkflowSetup_Helper {
 		$add('product_type', '`product_type` VARCHAR(50) DEFAULT NULL');
 		$add('inbound_note', '`inbound_note` TEXT');
 		$add('expired_date', '`expired_date` DATE DEFAULT NULL');
+		$add('mfg_date', '`mfg_date` DATE DEFAULT NULL');
 		$add('code', '`code` VARCHAR(50) DEFAULT NULL');
 		$add('warehouse_name', '`warehouse_name` VARCHAR(255) DEFAULT NULL');
 	}
@@ -119,6 +120,9 @@ class GoodsReceipt_WorkflowSetup_Helper {
 		}
 		if (empty($have['expired_date'])) {
 			$db->pquery("ALTER TABLE `{$table}` ADD COLUMN `expired_date` DATE DEFAULT NULL", array());
+		}
+		if (empty($have['mfg_date'])) {
+			$db->pquery("ALTER TABLE `{$table}` ADD COLUMN `mfg_date` DATE DEFAULT NULL", array());
 		}
 		if (empty($have['storage_location'])) {
 			$db->pquery("ALTER TABLE `{$table}` ADD COLUMN `storage_location` VARCHAR(255) DEFAULT NULL", array());
