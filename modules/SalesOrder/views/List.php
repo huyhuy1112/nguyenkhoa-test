@@ -217,7 +217,10 @@ class SalesOrder_List_View extends Inventory_List_View {
 		if ($paidField) {
 			$preferredHeaders[] = $paidField;
 		}
-		// Status stays available via filter chips; default columns prefer paid over status.
+		// Keep status on the list (read-only via automation); only hide it from inline info edit.
+		if ($statusField) {
+			$preferredHeaders[] = $statusField;
+		}
 
 		$resolvedHeaders = array();
 		foreach ($preferredHeaders as $fieldName) {
