@@ -2029,6 +2029,57 @@
     applyLayoutMode(getSavedLayoutMode());
   }
 
+  function moveTotalColumnAfterAssigned($table) {
+    if (!$table || !$table.length) {
+      return;
+    }
+    var $headerRow = $table.find("thead tr.listViewContentHeader").first();
+    if (!$headerRow.length) {
+      return;
+    }
+    var $ths = $headerRow.children("th");
+    var assignedIdx = -1;
+    var totalIdx = -1;
+    $ths.each(function (i) {
+      var name =
+        $(this).find("a[data-columnname]").attr("data-columnname") || "";
+      if (
+        name === "assigned_user_id" ||
+        name === "created_user_id" ||
+        name === "smcreatorid"
+      ) {
+        if (assignedIdx < 0) {
+          assignedIdx = i;
+        }
+      }
+      if (name === "total" || name === "hdnGrandTotal") {
+        if (totalIdx < 0) {
+          totalIdx = i;
+        }
+      }
+    });
+    if (assignedIdx < 0 || totalIdx < 0 || totalIdx > assignedIdx) {
+      return;
+    }
+
+    function moveCellInRow($row, fromIdx, afterIdx) {
+      var $cells = $row.children("th, td");
+      if ($cells.length <= Math.max(fromIdx, afterIdx)) {
+        return;
+      }
+      var $from = $cells.eq(fromIdx);
+      var $after = $cells.eq(afterIdx);
+      if (!$from.length || !$after.length) {
+        return;
+      }
+      $from.insertAfter($after);
+    }
+
+    $table.find("thead tr, tbody tr").each(function () {
+      moveCellInRow($(this), totalIdx, assignedIdx);
+    });
+  }
+
   function refreshListRowsOnly() {
     if (!isQuotesSalesList()) {
       return;
@@ -2036,6 +2087,7 @@
     var $table = $("#listViewContent #listview-table");
     collapseInlineDetail($table);
     markTable();
+    moveTotalColumnAfterAssigned($table);
     fixEncodedTextCells($table);
     fixCurrencySpacing($table);
     enhanceQuoteStage(document);
@@ -2067,6 +2119,7 @@
     collapseInlineDetail($table);
     relocatePagination();
     markTable();
+    moveTotalColumnAfterAssigned($table);
     fixEncodedTextCells($table);
     fixCurrencySpacing($table);
     enhanceQuoteStage(document);

@@ -70,9 +70,6 @@
 				<span>Xóa</span>
 			</button>
 		{/if}
-		<button type="button" class="mk-so-pos-icon-btn mk-so-pos-trigger-columns" title="Cột hiển thị" aria-label="Cột hiển thị">
-			<i class="fa fa-th-large"></i>
-		</button>
 		{if $MODULE_SETTING_ACTIONS|@count gt 0}
 			<div class="mk-so-pos-settings-wrap">
 				<button type="button" class="mk-so-pos-icon-btn dropdown-toggle" data-toggle="dropdown" title="Cài đặt" aria-label="Cài đặt">
@@ -85,9 +82,6 @@
 				</ul>
 			</div>
 		{/if}
-		<button type="button" class="mk-so-pos-icon-btn" title="Trợ giúp" aria-label="Trợ giúp" onclick="window.open('https://help.vtiger.com','_blank')">
-			<i class="fa fa-question-circle"></i>
-		</button>
 	</div>
 </div>
 {if $FIELDS_INFO neq null}

@@ -580,9 +580,9 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewCont
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout th.mk-so-col-status,
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout td.mk-so-col-status {
-	width: 150px !important;
-	min-width: 150px !important;
-	max-width: 150px !important;
+	width: auto !important;
+	min-width: 0 !important;
+	max-width: none !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout th.mk-so-col-total,
@@ -1811,12 +1811,12 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-li
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-star { width: 76px; }
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-order-no { width: 12%; }
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-time { width: 16%; }
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-customer { width: 22%; }
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-due { width: 16%; }
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-order-no { width: 13%; }
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-time { width: 14%; }
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-customer { width: 18%; }
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-paid { width: 14%; }
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-status { width: 14%; }
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-status { width: 18%; }
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-due { width: 15%; }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table {
 	table-layout: fixed;
@@ -1875,27 +1875,56 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-li
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-due,
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-paid,
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th.mk-so-col-due,
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th.mk-so-col-paid {
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th.mk-so-col-due {
 	text-align: right !important;
 }
 
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-status-cell {
+/* Paid sits before status — left-align so amounts are not glued to status pills. */
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-paid,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th.mk-so-col-paid,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="received"],
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th a[data-columnname="received"] {
 	text-align: left !important;
 }
 
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th {
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-paid,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="received"],
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th.mk-so-col-paid {
+	padding-right: 28px !important;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-status,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-status-cell,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th.mk-so-col-status {
+	text-align: left !important;
+	padding-left: 20px !important;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-paid .value,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="received"] .value {
+	text-align: left !important;
+	display: inline-block;
+	width: auto;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.mk-so-summary-row td {
 	background: #f8fafc;
 	border-bottom: 1px solid #e2e8f0 !important;
+	border-top: 1px solid #e2e8f0 !important;
 	padding: 6px 12px 8px !important;
 	font-weight: 600;
 	height: 36px;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th.mk-so-summary-cell--due,
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th.mk-so-summary-cell--paid {
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.mk-so-summary-row td.mk-so-summary-cell--due {
 	text-align: right !important;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th.mk-so-summary-cell--paid,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.mk-so-summary-row td.mk-so-summary-cell--paid {
+	text-align: left !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-summary-cell--label .mk-so-summary-label {
@@ -1935,13 +1964,20 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-li
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-due .value,
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="hdnGrandTotal"] .value,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="total"] .value {
+	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-size: 14px;
+	font-weight: 600;
+	text-align: right !important;
+}
+
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-paid .value,
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="received"] .value,
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="paid"] .value {
 	font-family: 'Roboto Mono', ui-monospace, monospace;
 	font-size: 14px;
 	font-weight: 600;
-	text-align: right !important;
+	text-align: left !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-paid-zero .value {

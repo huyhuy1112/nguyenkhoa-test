@@ -3106,30 +3106,27 @@
     if (!$headerRow.length) {
       return;
     }
-    $table.find("thead tr.mk-so-summary-row").remove();
+    $table.find("tr.mk-so-summary-row").remove();
     var $rows = $table.find("tbody tr.listViewEntries");
     if (!$rows.length) {
       return;
     }
-    var hasDueColumn =
-      $headerRow.find('a[data-columnname="' + dueField + '"]').length > 0;
+    var sumField = null;
+    if ($headerRow.find('a[data-columnname="' + dueField + '"]').length > 0) {
+      sumField = dueField;
+    } else if ($headerRow.find('a[data-columnname="total"]').length > 0) {
+      sumField = "total";
+    }
     var hasPaidColumn =
       $headerRow.find('a[data-columnname="' + paidField + '"]').length > 0;
     var dueTotal = 0;
-    var paidTotal = 0;
-    $rows.each(function () {
-      var $row = $(this);
-      if (hasDueColumn) {
+    if (sumField) {
+      $rows.each(function () {
         dueTotal += cellMoneyAmount(
-          $row.find('td[data-name="' + dueField + '"]').first(),
+          $(this).find('td[data-name="' + sumField + '"]').first(),
         );
-      }
-      if (hasPaidColumn) {
-        paidTotal += cellMoneyAmount(
-          $row.find('td[data-name="' + paidField + '"]').first(),
-        );
-      }
-    });
+      });
+    }
     var $cells = $headerRow.children("th");
     var html = '<tr class="mk-so-summary-row">';
     $cells.each(function () {
@@ -3140,23 +3137,26 @@
       if ($th.hasClass("mk-so-pos-control-th")) {
         cls += " mk-so-summary-cell--label";
         content = '<span class="mk-so-summary-label">Tổng</span>';
-      } else if (field === dueField && hasDueColumn) {
+      } else if (sumField && field === sumField) {
         cls += " mk-so-summary-cell--due";
         content =
           '<span class="mk-so-summary-value">' +
           formatMoneyNumber(dueTotal) +
           "</span>";
       } else if (field === paidField && hasPaidColumn) {
+        // Keep paid column blank on the summary row.
         cls += " mk-so-summary-cell--paid";
-        content =
-          '<span class="mk-so-summary-value">' +
-          (paidTotal > 0 ? formatMoneyNumber(paidTotal) : "--") +
-          "</span>";
+        content = "";
       }
-      html += '<th class="' + cls + '">' + content + "</th>";
+      html += '<td class="' + cls + '">' + content + "</td>";
     });
     html += "</tr>";
-    $headerRow.after(html);
+    var $tbody = $table.find("tbody").first();
+    if ($tbody.length) {
+      $tbody.append(html);
+    } else {
+      $headerRow.after(html);
+    }
   }
 
   function applyPosListChrome() {
@@ -3208,25 +3208,32 @@
     var widthByClass = {
       "mk-so-pos-control-th": "76px",
       "mk-so-col-star": "76px",
-      "mk-so-col-order-no": "12%",
-      "mk-so-col-time": "16%",
-      "mk-so-col-customer": "22%",
-      "mk-so-col-due": "16%",
+      "mk-so-col-order-no": "13%",
+      "mk-so-col-time": "14%",
+      "mk-so-col-customer": "18%",
       "mk-so-col-paid": "14%",
-      "mk-so-col-status": "14%",
+      "mk-so-col-status": "18%",
+      "mk-so-col-due": "15%",
     };
     var html = '<colgroup class="mk-so-pos-cols">';
     $headers.each(function () {
       var $th = $(this);
       var width = "auto";
+      var matchedCls = "";
       var cls;
       for (cls in widthByClass) {
         if (widthByClass.hasOwnProperty(cls) && $th.hasClass(cls)) {
           width = widthByClass[cls];
+          matchedCls = cls;
           break;
         }
       }
-      html += '<col style="width:' + width + '">';
+      html +=
+        '<col class="' +
+        (matchedCls ? matchedCls + " " : "") +
+        'mk-so-pos-col" style="width:' +
+        width +
+        '">';
     });
     html += "</colgroup>";
     $table.prepend(html);

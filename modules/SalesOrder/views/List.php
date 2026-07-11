@@ -211,16 +211,16 @@ class SalesOrder_List_View extends Inventory_List_View {
 			'salesorder_no',
 			'createdtime',
 			'account_id',
-			'total',
-			'hdnGrandTotal',
 		);
 		if ($paidField) {
 			$preferredHeaders[] = $paidField;
 		}
-		// Keep status on the list (read-only via automation); only hide it from inline info edit.
+		// Status before grand total — list column order: … | Khách đã trả | Trạng thái | Tổng cộng
 		if ($statusField) {
 			$preferredHeaders[] = $statusField;
 		}
+		$preferredHeaders[] = 'total';
+		$preferredHeaders[] = 'hdnGrandTotal';
 
 		$resolvedHeaders = array();
 		foreach ($preferredHeaders as $fieldName) {
