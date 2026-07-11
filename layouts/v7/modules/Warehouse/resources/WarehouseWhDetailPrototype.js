@@ -1700,7 +1700,20 @@
 			renderAll();
 		});
 
-		setActiveTab('inbound');
+		var initialTab = 'inbound';
+		try {
+			var params = new URLSearchParams(window.location.search || '');
+			var tabParam = String(params.get('tab') || '').toLowerCase();
+			if (tabParam === 'outbound' || tabParam === 'xuatkho' || tabParam === 'stock' || tabParam === 'qc' || tabParam === 'inbound') {
+				initialTab = tabParam === 'xuatkho' ? 'outbound' : tabParam;
+			} else if (window.location.hash) {
+				var hash = String(window.location.hash || '').replace(/^#/, '').toLowerCase();
+				if (hash === 'outbound' || hash === 'xuatkho') {
+					initialTab = 'outbound';
+				}
+			}
+		} catch (ignore) { /* ignore */ }
+		setActiveTab(initialTab);
 		renderAll();
 	}
 

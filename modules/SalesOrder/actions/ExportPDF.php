@@ -8,7 +8,7 @@
  * All Rights Reserved.
  *************************************************************************************/
 
-vimport('~~/modules/SalesOrder/SalesOrderPDFController.php');
+require_once 'modules/SalesOrder/helpers/SaleInvoicePdf.php';
 
 class SalesOrder_ExportPDF_Action extends Inventory_ExportPDF_Action {
 
@@ -16,12 +16,15 @@ class SalesOrder_ExportPDF_Action extends Inventory_ExportPDF_Action {
 		$moduleName = $request->getModule();
 		$recordId = $request->get('record');
 
-		$controllerClassName = 'Vtiger_SalesOrderPDFController';
-		$controller = new $controllerClassName($moduleName);
-		$controller->loadRecord($recordId);
+		$focus = CRMEntity::getInstance($moduleName);
+		$focus->retrieve_entity_info($recordId, $moduleName);
+		$focus->apply_field_security();
+		$focus->id = $recordId;
 
-		$fileName = $moduleName . '_' . getModuleSequenceNumber($moduleName, $recordId);
+		$fileName = $moduleName . '_' . getModuleSequenceNumber($moduleName, $recordId) . '.pdf';
 		$isPreview = $request->get('preview') === '1' || $request->get('mode') === 'inline';
-		$controller->Output($fileName . '.pdf', $isPreview ? 'I' : 'D');
+
+		SalesOrder_SaleInvoicePdf_Helper::output($focus, $moduleName, $fileName, $isPreview ? 'I' : 'D');
+		exit;
 	}
 }

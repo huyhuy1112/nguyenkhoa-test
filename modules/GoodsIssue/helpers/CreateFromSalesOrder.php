@@ -91,7 +91,11 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 		return $errors;
 	}
 
-	public static function createFromSalesOrder($salesOrderId, $warehouseId, $warehouseName, $userId) {
+	/**
+	 * @param bool $requireStock When false (default for waiting_print), skip stock gate —
+	 *                           stock is only reserved/deducted when the slip is printed/confirmed.
+	 */
+	public static function createFromSalesOrder($salesOrderId, $warehouseId, $warehouseName, $userId, $requireStock = false) {
 		$salesOrderId = (int) $salesOrderId;
 		$userId = (int) $userId;
 		if ($salesOrderId <= 0) {
@@ -111,9 +115,11 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 			return 0;
 		}
 
-		$stockErrors = self::validateWarehouseStock($lines, $warehouseName);
-		if (!empty($stockErrors)) {
-			throw new Exception(implode(' ', $stockErrors));
+		if ($requireStock) {
+			$stockErrors = self::validateWarehouseStock($lines, $warehouseName);
+			if (!empty($stockErrors)) {
+				throw new Exception(implode(' ', $stockErrors));
+			}
 		}
 
 		$db = PearDatabase::getInstance();
@@ -124,16 +130,32 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 		$soRef = '';
 		$destination = '';
 		$rsSo = $db->pquery(
-			'SELECT so.subject, so.salesorder_no, COALESCE(acc.accountname, \'\') AS organization
+			'SELECT so.subject, so.salesorder_no, so.contactid, so.potentialid,
+			        COALESCE(acc.accountname, \'\') AS organization,
+			        TRIM(CONCAT(IFNULL(cd.firstname, \'\'), \' \', IFNULL(cd.lastname, \'\'))) AS contact_name
 			 FROM vtiger_salesorder so
 			 LEFT JOIN vtiger_account acc ON acc.accountid = so.accountid
+			 LEFT JOIN vtiger_contactdetails cd ON cd.contactid = so.contactid
 			 WHERE so.salesorderid = ? LIMIT 1',
 			array($salesOrderId)
 		);
 		if ($rsSo && $db->num_rows($rsSo) > 0) {
 			$soSubject = trim((string) $db->query_result($rsSo, 0, 'subject'));
 			$soRef = trim((string) $db->query_result($rsSo, 0, 'salesorder_no'));
-			$destination = trim((string) $db->query_result($rsSo, 0, 'organization'));
+			$destination = trim((string) $db->query_result($rsSo, 0, 'contact_name'));
+			$organization = trim((string) $db->query_result($rsSo, 0, 'organization'));
+			$contactId = (int) $db->query_result($rsSo, 0, 'contactid');
+			$potentialId = (int) $db->query_result($rsSo, 0, 'potentialid');
+			if ($destination === '' && $contactId <= 0 && $potentialId > 0) {
+				require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+				$potContactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId($potentialId);
+				if ($potContactId > 0) {
+					$destination = Vtiger_MkSalesCustomerName_Helper::readContactNameById($potContactId);
+				}
+			}
+			if ($destination === '') {
+				$destination = $organization;
+			}
 		}
 		require_once 'modules/Warehouse/helpers/StockHelper.php';
 		$destination = Warehouse_Stock_Helper::decodeDisplayText($destination);

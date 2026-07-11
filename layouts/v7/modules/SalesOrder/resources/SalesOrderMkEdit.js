@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260710_so_product_dd2';
+	var MK_BUILD = '20260711_so_status1';
 	var WAREHOUSE_MODAL_ID = 'mkSoWarehouseModal';
 	var warehouseConfirmed = false;
 	var warehousePickerOpen = false;
@@ -739,12 +739,55 @@
 		}
 		var $editForm = $form();
 		var $status = $editForm.find('[name="sostatus"]').first();
-		if ($status.length) {
-			$status.val('Created');
-			if ($status.is('select')) {
-				$status.find('option[value="Created"]').prop('selected', true);
-			}
-			$status.trigger('change');
+		if (!$status.length) {
+			return;
+		}
+
+		// Prefer picklist value "Created" (UI: Phiếu tạm); fall back to Vietnamese aliases.
+		var preferred = ['Created', 'Phiếu tạm', 'Đã tạo', 'Draft'];
+		var pick = '';
+		if ($status.is('select')) {
+			preferred.forEach(function (cand) {
+				if (pick) {
+					return;
+				}
+				$status.find('option').each(function () {
+					var v = String($(this).attr('value') || '');
+					var t = $.trim($(this).text() || '');
+					if (
+						v === cand ||
+						t === cand ||
+						v.toLowerCase() === cand.toLowerCase() ||
+						t.toLowerCase() === cand.toLowerCase()
+					) {
+						pick = v || cand;
+						return false;
+					}
+					return true;
+				});
+			});
+		}
+		if (!pick) {
+			pick = 'Created';
+		}
+		$status.val(pick);
+		if ($status.is('select')) {
+			$status.find('option').each(function () {
+				if (String($(this).attr('value') || '') === pick) {
+					$(this).prop('selected', true);
+				}
+			});
+		}
+		$status.trigger('change');
+
+		// Hide status on create — still submit as Phiếu tạm.
+		var $valueTd = $status.closest('td.fieldValue');
+		if ($valueTd.length) {
+			$valueTd.addClass('mk-so-hide-legacy');
+			$valueTd.prev('td.fieldLabel').addClass('mk-so-hide-legacy');
+			$valueTd.closest('tr').addClass('mk-so-hide-legacy');
+		} else {
+			$status.closest('tr').addClass('mk-so-hide-legacy');
 		}
 	}
 
@@ -790,14 +833,17 @@
 			return;
 		}
 
-		// Only: Tiêu đề, Tên cơ hội, Ghi chú, Trạng thái + Chi tiết đơn hàng.
+		// Only: Tiêu đề, Tên cơ hội, Ghi chú (+ Trạng thái on edit) + Chi tiết đơn hàng.
+		// On create: hide Trạng thái and auto-set Phiếu tạm (Created).
 		var allowNames = {
 			subject: true,
 			potential_id: true,
 			potential_id_display: true,
-			description: true,
-			sostatus: true
+			description: true
 		};
+		if (!isCreateMode()) {
+			allowNames.sostatus = true;
+		}
 
 		function fieldNameAllowed(name) {
 			if (!name) {
@@ -906,7 +952,7 @@
 				return;
 			}
 			var $valueTd = $labelTd.next('td.fieldValue');
-			if ($valueTd.find('[name="description"], [name="subject"], [name="sostatus"], [name="potential_id"], [name="potential_id_display"]').length) {
+			if ($valueTd.find('[name="description"], [name="subject"], [name="potential_id"], [name="potential_id_display"]').length) {
 				return;
 			}
 			$labelTd.addClass('mk-so-hide-legacy');
@@ -1060,6 +1106,7 @@
 		// If SalesOrder is using Quote UI shell, let QuoteMkEdit.js own all styling/layout.
 		// We keep only SO-specific behaviors (warehouse modal save + mandatory defaults).
 		if (quoteShell) {
+			ensureCreateStatusPhieuTam();
 			ensureSubjectSyncFromAccount();
 			bindWarehouseInterceptOnly();
 			fixFormDisplayEncoding();

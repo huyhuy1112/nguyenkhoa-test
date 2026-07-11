@@ -2,7 +2,7 @@
 {strip}
 {assign var=FINAL_DETAILS value=$RELATED_PRODUCTS.1.final_details}
 {assign var=INLINE_SOSTATUS value=$RECORD->get('sostatus')}
-<div class="mk-so-inline-detail" data-record-id="{$RECORD->getId()}" data-module="SalesOrder" data-sostatus="{$INLINE_SOSTATUS|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=SalesOrder&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$INLINE_AMOUNT_WORDS|default:''|escape}" data-created-date="{$INLINE_CREATED_DATE|default:''|escape}">
+<div class="mk-so-inline-detail" data-record-id="{$RECORD->getId()}" data-module="SalesOrder" data-sostatus="{$INLINE_SOSTATUS|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=SalesOrder&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$INLINE_AMOUNT_WORDS|default:''|escape}" data-created-date="{$INLINE_CREATED_DATE|default:''|escape}" data-grand-raw="{$INLINE_GRAND_RAW|default:0|escape}" data-paid-field="{$INLINE_PAID_FIELD|default:'received'|escape}">
 	<div class="mk-so-inline-detail__tabs" role="tablist">
 		<button type="button" class="mk-so-inline-detail__tab is-active" role="tab" aria-selected="true">Thông tin</button>
 	</div>
@@ -80,7 +80,7 @@
 						{elseif $LINE["discount_percent$IDX"]|default:'' neq '' && $LINE["discount_percent$IDX"] neq '0'}
 							{assign var=DISCOUNT_TEXT value=$LINE["discount_percent$IDX"]|cat:'%'}
 						{/if}
-						<tr>
+						<tr data-qty="{$LINE["qty$IDX"]|default:'1'|escape}" data-price="{$LINE["listPrice$IDX"]|default:$LINE["unitPrice$IDX"]|default:'0'|escape}" data-total="{$LINE["productTotal$IDX"]|default:'0'|escape}" data-unit="{$LINE["usageunit$IDX"]|default:''|escape}">
 							<td class="is-code">
 								{if $LINE["hdnProductId$IDX"]|default:'' neq ''}
 									<a href="index.php?module={$LINE["entityType$IDX"]|default:'Products'}&view=Detail&record={$LINE["hdnProductId$IDX"]}" target="_blank" rel="noopener">
@@ -126,9 +126,14 @@
 				<span>Giảm giá phiếu đặt</span>
 				<strong>{$FINAL_DETAILS.discountTotal_final|default:$FINAL_DETAILS.discount_amount_final|default:'0'}</strong>
 			</div>
-			<div class="mk-so-inline-detail__total-row mk-so-inline-detail__total-row--grand">
+			<div class="mk-so-inline-detail__total-row mk-so-inline-detail__total-row--paid" data-field-name="{$INLINE_PAID_FIELD|default:'received'|escape}">
+				<span class="mk-so-inline-detail__total-label">Khách đã trả</span>
+				<span class="mk-so-inline-detail__paid-view">{$INLINE_PAID_DISPLAY|default:'0'}</span>
+				<input type="text" class="mk-so-inline-detail__paid-input inputElement" name="{$INLINE_PAID_FIELD|default:'received'|escape}" value="{$INLINE_PAID_DISPLAY|default:'0'|escape}" inputmode="decimal" autocomplete="off" readonly />
+			</div>
+			<div class="mk-so-inline-detail__total-row mk-so-inline-detail__total-row--grand" data-grand-raw="{$INLINE_GRAND_RAW|default:0|escape}">
 				<span>Tổng cộng</span>
-				<strong>{$FINAL_DETAILS.grandTotal|default:'0'}</strong>
+				<strong class="mk-so-inline-detail__grand-value">{$INLINE_REMAINING_DISPLAY|default:$FINAL_DETAILS.grandTotal|default:'0'}</strong>
 			</div>
 		</div>
 	</div>
@@ -145,7 +150,14 @@
 			</button>
 		</div>
 		<div class="mk-so-inline-detail__actions-right">
-			{assign var=SO_ALREADY_CONFIRMED value=($INLINE_SOSTATUS eq 'Approved' || $INLINE_SOSTATUS eq 'Đã xác nhận' || $INLINE_SOSTATUS eq 'Đã duyệt')}
+			{assign var=SO_ALREADY_CONFIRMED value=(
+				$INLINE_SOSTATUS eq 'Approved' || $INLINE_SOSTATUS eq 'Đã xác nhận' || $INLINE_SOSTATUS eq 'Đã duyệt'
+				|| $INLINE_SOSTATUS eq 'waiting_print' || $INLINE_SOSTATUS eq 'picking' || $INLINE_SOSTATUS eq 'packed'
+				|| $INLINE_SOSTATUS eq 'shipped' || $INLINE_SOSTATUS eq 'rejected'
+				|| $INLINE_SOSTATUS eq 'Delivered' || $INLINE_SOSTATUS eq 'Đã giao' || $INLINE_SOSTATUS eq 'Hoàn thành'
+				|| $INLINE_SOSTATUS eq 'Chờ in phiếu' || $INLINE_SOSTATUS eq 'Đang soạn' || $INLINE_SOSTATUS eq 'Đã soạn'
+				|| $INLINE_SOSTATUS eq 'Từ chối'
+			)}
 			{if !$SO_ALREADY_CONFIRMED}
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn" title="Xác nhận đơn hàng và tạo phiếu xuất kho">
 				<i class="fa fa-check" aria-hidden="true"></i>
@@ -156,7 +168,7 @@
 				<i class="fa fa-pencil" aria-hidden="true"></i>
 				<span>Sửa đơn</span>
 			</button>
-			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__dup-btn" href="{$RECORD->getDuplicateRecordUrl()}&app=SALES" title="Nhân bản đơn hàng">
+			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__dup-btn" href="#" data-record-id="{$RECORD->getId()}" title="Nhân bản đơn hàng">
 				<i class="fa fa-copy" aria-hidden="true"></i>
 				<span>Nhân bản</span>
 			</a>

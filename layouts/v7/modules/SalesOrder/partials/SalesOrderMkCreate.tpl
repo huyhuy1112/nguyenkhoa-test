@@ -44,8 +44,7 @@
 			subject: 1,
 			potential_id: 1,
 			potential_id_display: 1,
-			description: 1,
-			sostatus: 1
+			description: 1
 		};
 		function baseName(name) {
 			return String(name || '').replace(/\[\]$/, '').replace(/_display$/, '');

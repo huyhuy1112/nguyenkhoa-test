@@ -426,7 +426,13 @@
 	function isNewQuoteRecord() {
 		var recordId = $.trim($form().find('[name="record"], #recordId').first().val() || '');
 		var isDuplicate = $.trim($form().find('[name="isDuplicate"]').first().val() || '');
-		return !recordId || isDuplicate === 'true';
+		var duplicating =
+			isDuplicate === 'true' ||
+			isDuplicate === '1' ||
+			isDuplicate === 'yes' ||
+			isDuplicate === 'on';
+		// Blank create only — keep source terms/notes when duplicating.
+		return !recordId && !duplicating;
 	}
 
 	function initTermsRichEditor() {

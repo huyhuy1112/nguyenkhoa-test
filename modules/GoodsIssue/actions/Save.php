@@ -395,6 +395,14 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 
 			$db->completeTransaction();
 
+			// Keep linked Sales Order status in sync with this GI status (xuất bán).
+			try {
+				require_once 'modules/GoodsIssue/helpers/SyncSalesOrderStatus.php';
+				GoodsIssue_SyncSalesOrderStatus_Helper::syncFromIssueId($issueId, $status);
+			} catch (Throwable $ignore) {
+				// Non-blocking.
+			}
+
 			// Attachments are additive and should not affect stock movement.
 			try {
 				$this->saveUploadedAttachments($db, $issueId, $userId, $now);

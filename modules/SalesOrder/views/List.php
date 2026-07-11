@@ -211,14 +211,13 @@ class SalesOrder_List_View extends Inventory_List_View {
 			'salesorder_no',
 			'createdtime',
 			'account_id',
+			'total',
 			'hdnGrandTotal',
 		);
 		if ($paidField) {
 			$preferredHeaders[] = $paidField;
 		}
-		if ($statusField) {
-			$preferredHeaders[] = $statusField;
-		}
+		// Status stays available via filter chips; default columns prefer paid over status.
 
 		$resolvedHeaders = array();
 		foreach ($preferredHeaders as $fieldName) {
@@ -255,6 +254,11 @@ class SalesOrder_List_View extends Inventory_List_View {
 			'Paid' => 'Đã thanh toán',
 			'Sent' => 'Đã gửi',
 			'Rejected' => 'Từ chối',
+			'waiting_print' => 'Chờ in phiếu',
+			'picking' => 'Đang soạn',
+			'packed' => 'Đã soạn',
+			'shipped' => 'Đã giao',
+			'rejected' => 'Từ chối',
 			'Đã duyệt' => 'Đã xác nhận',
 			'Đã tạo' => 'Phiếu tạm',
 			'Đang chờ xử lý' => 'Đang chờ',
@@ -264,6 +268,10 @@ class SalesOrder_List_View extends Inventory_List_View {
 			'Đã thanh toán' => 'Đã thanh toán',
 			'Đã hủy' => 'Đã hủy',
 			'Từ chối' => 'Từ chối',
+			'Chờ in phiếu' => 'Chờ in phiếu',
+			'Đang soạn' => 'Đang soạn',
+			'Đã soạn' => 'Đã soạn',
+			'Đã giao' => 'Đã giao',
 		);
 	}
 
@@ -298,6 +306,7 @@ class SalesOrder_List_View extends Inventory_List_View {
 			$paidField => 'Khách đã trả',
 			$statusField => 'Trạng thái',
 		);
+		// Prefer grand-total column label even when both total + hdnGrandTotal exist.
 		$viewer->assign('LISTVIEW_HEADER_LABEL_OVERRIDES', $labelOverrides);
 		$viewer->assign('MK_SO_POS_PAID_FIELD', $paidField);
 		$viewer->assign('MK_SO_POS_STATUS_FIELD', $statusField);

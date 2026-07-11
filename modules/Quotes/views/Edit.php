@@ -25,7 +25,7 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'Quotes');
 		$viewer->assign('MK_MODERN_QUOTE_CREATE', true);
-		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
+		$viewer->assign('IS_DUPLICATE', $this->isDuplicateRequest($request));
 		$viewer->assign('MK_QUOTE_OWNER_NAME', trim($user->getName()));
 		$viewer->assign('MK_QUOTE_BA_CONFIG_JSON', Zend_Json::encode($baContext));
 		require_once 'modules/Inventory/helpers/ProductCatalog.php';

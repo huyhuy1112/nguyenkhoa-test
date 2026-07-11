@@ -2369,6 +2369,39 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 	font-size: 15px;
 }
 
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-row--paid {
+	align-items: center;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__paid-view {
+	color: #0f172a;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__paid-input {
+	display: none;
+	width: 140px;
+	max-width: 46%;
+	height: 32px;
+	padding: 0 10px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	text-align: right;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	color: #0f172a;
+	background: #fff;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__paid-view {
+	display: none;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__paid-input {
+	display: inline-block;
+}
+
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions {
 	display: flex;
 	align-items: center;
@@ -2605,18 +2638,26 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__logo {
-	display: inline-flex;
+	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 64px;
-	height: 64px;
+	width: auto;
+	height: auto;
 	margin: 0 auto 8px;
-	border-radius: 8px;
-	background: #08A045;
-	color: #fff;
-	font-size: 22px;
-	font-weight: 800;
-	letter-spacing: 0.04em;
+	border-radius: 0;
+	background: transparent;
+	color: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	letter-spacing: normal;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__logo img {
+	display: block;
+	width: 72px;
+	height: auto;
+	max-height: 72px;
+	object-fit: contain;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__company {
@@ -2663,7 +2704,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table thead th {
-	padding: 8px 0;
+	padding: 8px 6px;
 	border-top: 1px solid #111;
 	border-bottom: 1px solid #111;
 	font-size: 13px;
@@ -2671,6 +2712,10 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 	color: #111;
 	background: transparent;
 	text-align: left;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table thead th.is-item {
+	width: auto;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table thead th.is-qty {
@@ -2684,16 +2729,30 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table tbody td {
-	padding: 4px 0;
+	padding: 8px 6px;
 	border: 0;
-	vertical-align: top;
+	vertical-align: middle;
 	font-size: 13px;
 	color: #111;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table .is-item-name {
-	padding-top: 10px;
+	padding-top: 8px;
 	font-weight: 400;
+	text-align: left;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__item-title {
+	font-weight: 400;
+	line-height: 1.35;
+	color: #111;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__item-price {
+	margin-top: 2px;
+	font-variant-numeric: tabular-nums;
+	text-align: left;
+	color: #111;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table .is-qty {
@@ -2703,6 +2762,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table .is-money {
 	text-align: right;
 	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table .is-empty {
@@ -2719,22 +2779,29 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__bottom {
 	display: grid;
-	grid-template-columns: 1.1fr 0.9fr;
-	gap: 16px;
+	grid-template-columns: 1fr auto;
+	grid-template-areas:
+		". totals"
+		"words .";
+	gap: 8px 24px;
 	align-items: start;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__words {
-	margin: 0;
+	grid-area: words;
+	margin: 4px 0 0;
 	font-size: 13px;
 	font-style: italic;
 	color: #222;
+	text-align: left;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__totals {
+	grid-area: totals;
 	margin-left: auto;
-	width: 100%;
-	max-width: 280px;
+	width: max-content;
+	min-width: 240px;
+	max-width: 320px;
 	border: 0;
 	padding: 0;
 	background: transparent;
@@ -2742,10 +2809,11 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__total-row {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 2px;
-	padding: 3px 0;
+	flex-direction: row;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 4px 0;
 	font-size: 13px;
 	line-height: 1.35;
 	color: #111;
@@ -2754,22 +2822,23 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__total-row span {
 	text-align: left;
 	white-space: nowrap;
-	font-size: 11px;
+	font-size: 12px;
 	font-weight: 700;
-	letter-spacing: 0.04em;
+	letter-spacing: 0.02em;
 	text-transform: uppercase;
 	color: #555;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__total-row strong {
 	display: block;
-	width: auto;
-	text-align: left;
+	min-width: 96px;
+	text-align: right;
 	font-variant-numeric: tabular-nums;
 	font-family: Arial, Helvetica, sans-serif !important;
 	font-size: 14px;
 	font-weight: 700;
 	line-height: 1.35;
+	white-space: nowrap;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__total-row.is-grand {
@@ -2797,6 +2866,9 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 @media (max-width: 900px) {
 	body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__bottom {
 		grid-template-columns: 1fr;
+		grid-template-areas:
+			"totals"
+			"words";
 	}
 }
 

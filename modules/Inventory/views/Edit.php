@@ -10,6 +10,18 @@
 
 Class Inventory_Edit_View extends Vtiger_Edit_View {
 
+	protected function isDuplicateRequest(Vtiger_Request $request) {
+		$flag = $request->get('isDuplicate');
+		if ($flag === true || $flag === 1 || $flag === '1') {
+			return true;
+		}
+		if (is_string($flag)) {
+			$normalized = strtolower(trim($flag));
+			return $normalized === 'true' || $normalized === 'yes' || $normalized === 'on';
+		}
+		return false;
+	}
+
 	public function process(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
@@ -22,6 +34,7 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 		}
 		$relatedProducts = null;
 		$currencyInfo = null;
+		$isDuplicate = $this->isDuplicateRequest($request);
 
 		$viewer->assign('MODE', '');
 		$viewer->assign('IS_DUPLICATE', false);
@@ -33,7 +46,7 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 			}
 			$relatedProducts = $recordModel->convertRequestToProducts($request);
 			$taxes = $relatedProducts[1]['final_details']['taxes'];
-		} else if(!empty($record)  && $request->get('isDuplicate') == true) {
+		} else if(!empty($record)  && $isDuplicate) {
 			$recordModel = Inventory_Record_Model::getInstanceById($record, $moduleName);
 			$currencyInfo = $recordModel->getCurrencyInfo();
 			$taxes = $recordModel->getProductTaxes();
@@ -155,7 +168,7 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 			$viewer->assign('SOURCE_MODULE', $sourceModule);
 			$viewer->assign('SOURCE_RECORD', $sourceRecord);
 		}
-		if(!empty($record)  && $request->get('isDuplicate') == true) {
+		if(!empty($record)  && $isDuplicate) {
 			$viewer->assign('IS_DUPLICATE',true);
 		} else {
 			$viewer->assign('IS_DUPLICATE',false);

@@ -33,7 +33,9 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 	}
 
 	/**
-	 * When SO header total is out of scale with line items, derive display total from lines.
+	 * List "Tổng cộng" must match inline panel bottom:
+	 * (tiền hàng − CK + thuế + ship + điều chỉnh) − khách đã trả.
+	 * After copy, DB total often equals subtotal (missing tax) — recompute like Detail view.
 	 */
 	protected function resolveDisplayGrandTotal(Vtiger_Record_Model $recordModel) {
 		$recordId = (int) $recordModel->getId();
@@ -43,43 +45,98 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 
 		$db = PearDatabase::getInstance();
 		$headerResult = $db->pquery(
-			'SELECT subtotal, total FROM vtiger_salesorder WHERE salesorderid = ?',
+			'SELECT subtotal, total, pre_tax_total, discount_amount, discount_percent,
+			        s_h_amount, adjustment, received
+			 FROM vtiger_salesorder WHERE salesorderid = ?',
 			array($recordId)
 		);
 		if (!$headerResult || $db->num_rows($headerResult) === 0) {
 			return null;
 		}
+
 		$headerSubTotal = (float) $db->query_result($headerResult, 0, 'subtotal');
 		$headerTotal = (float) $db->query_result($headerResult, 0, 'total');
+		$preTax = (float) $db->query_result($headerResult, 0, 'pre_tax_total');
+		$discount = (float) $db->query_result($headerResult, 0, 'discount_amount');
+		$discountPct = (float) $db->query_result($headerResult, 0, 'discount_percent');
+		$shipping = (float) $db->query_result($headerResult, 0, 's_h_amount');
+		$adjustment = (float) $db->query_result($headerResult, 0, 'adjustment');
+		$paid = (float) $db->query_result($headerResult, 0, 'received');
+		if ($paid < 0) {
+			$paid = 0;
+		}
 
 		$lineResult = $db->pquery(
 			'SELECT COALESCE(SUM(quantity * listprice), 0) AS line_subtotal FROM vtiger_inventoryproductrel WHERE id = ?',
 			array($recordId)
 		);
 		$lineSubTotal = (float) $db->query_result($lineResult, 0, 'line_subtotal');
-		if ($lineSubTotal <= 0) {
+
+		$subTotal = $headerSubTotal;
+		if ($lineSubTotal > 0) {
+			if ($headerSubTotal <= 0) {
+				$subTotal = $lineSubTotal;
+			} elseif ($lineSubTotal > ($headerSubTotal * 50)) {
+				// Corrupted duplicate lines — keep header.
+				$subTotal = $headerSubTotal;
+			} elseif ($headerSubTotal > ($lineSubTotal * 50)) {
+				$subTotal = $lineSubTotal;
+			} else {
+				$subTotal = $lineSubTotal;
+			}
+		}
+
+		if ($subTotal <= 0) {
+			if ($headerTotal > 0) {
+				$remaining = $headerTotal - $paid;
+				return $remaining < 0 ? 0.0 : $remaining;
+			}
 			return null;
 		}
-		if ($headerSubTotal <= 0) {
-			return $lineSubTotal;
+
+		if ($discount <= 0 && $discountPct > 0) {
+			$discount = $subTotal * $discountPct / 100;
 		}
 
-		$scale = 1.0;
-		if ($lineSubTotal > ($headerSubTotal * 50)) {
-			$scale = $lineSubTotal / $headerSubTotal;
-		}
-		$scaledTotal = ($headerTotal > 0 ? $headerTotal : $headerSubTotal) * $scale;
-		if ($scaledTotal < ($lineSubTotal * 0.5)) {
-			return $lineSubTotal;
-		}
-		if ($scale > 1.0) {
-			return $scaledTotal;
-		}
-		if ($headerTotal > 0 && $headerTotal < ($lineSubTotal * 0.5)) {
-			return $lineSubTotal;
+		$vatPercent = 8.0;
+		$mkVat = (float) $recordModel->get('mk_vat_percent');
+		if ($mkVat > 0 && $mkVat <= 100) {
+			$vatPercent = $mkVat;
 		}
 
-		return null;
+		$base = $subTotal - $discount + $shipping + $adjustment;
+		$tax = 0.0;
+		if ($preTax > 0 && $headerTotal > $preTax) {
+			$derived = $headerTotal - $preTax;
+			if ($derived <= ($subTotal * 0.5)) {
+				$tax = $derived;
+			}
+		}
+		if ($tax <= 0 && $headerTotal > $base) {
+			$derived = $headerTotal - $base;
+			if ($derived <= ($subTotal * 0.5)) {
+				$tax = $derived;
+			}
+		}
+		// Copy / bad save often stores total == subtotal (no tax). Match inline panel VAT.
+		if ($tax <= 0) {
+			$tax = round(($subTotal - $discount) * $vatPercent / 100);
+		}
+		if ($tax > ($subTotal * 0.5)) {
+			$tax = round(($subTotal - $discount) * $vatPercent / 100);
+		}
+
+		$grand = $base + $tax;
+		// Prefer a sensible stored grand total when it already includes tax.
+		if ($headerTotal > ($subTotal + 1) && $headerTotal <= ($subTotal * 2)) {
+			$grand = $headerTotal;
+		}
+
+		$remaining = $grand - $paid;
+		if ($remaining < 0) {
+			$remaining = 0;
+		}
+		return $remaining;
 	}
 
 	protected function isToolsOrdersContext() {

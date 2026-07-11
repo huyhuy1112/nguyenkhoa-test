@@ -67,8 +67,11 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 			return $lineSubTotal;
 		}
 		if ($lineSubTotal > ($headerSubTotal * 50)) {
-			$scale = $lineSubTotal / $headerSubTotal;
-			return ($headerTotal > 0 ? $headerTotal : $headerSubTotal) * $scale;
+			// Prefer header when lines look absurd (corrupted duplicate), never amplify.
+			if ($headerTotal > 0) {
+				return $headerTotal;
+			}
+			return $headerSubTotal;
 		}
 		if ($headerTotal > 0 && $headerTotal < ($lineSubTotal * 0.5)) {
 			return $lineSubTotal;

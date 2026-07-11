@@ -31,7 +31,7 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'SalesOrder');
 		$viewer->assign('MK_MODERN_SALES_ORDER_CREATE', true);
-		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
+		$viewer->assign('IS_DUPLICATE', $this->isDuplicateRequest($request));
 		require_once 'modules/Inventory/helpers/ProductCatalog.php';
 		Inventory_ProductCatalog_Helper::assignToViewer($viewer);
 	}

@@ -50,6 +50,10 @@
 					{/foreach}
 				{else}
 					<button type="button" class="mk-so-pos-filter-chip" data-value="Created"><span class="mk-so-pos-filter-chip__text">Phiếu tạm</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
+					<button type="button" class="mk-so-pos-filter-chip" data-value="waiting_print"><span class="mk-so-pos-filter-chip__text">Chờ in phiếu</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
+					<button type="button" class="mk-so-pos-filter-chip" data-value="picking"><span class="mk-so-pos-filter-chip__text">Đang soạn</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
+					<button type="button" class="mk-so-pos-filter-chip" data-value="packed"><span class="mk-so-pos-filter-chip__text">Đã soạn</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
+					<button type="button" class="mk-so-pos-filter-chip" data-value="shipped"><span class="mk-so-pos-filter-chip__text">Đã giao</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
 					<button type="button" class="mk-so-pos-filter-chip" data-value="Approved"><span class="mk-so-pos-filter-chip__text">Đã xác nhận</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
 					<button type="button" class="mk-so-pos-filter-chip" data-value="Delivered"><span class="mk-so-pos-filter-chip__text">Hoàn thành</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
 				{/if}

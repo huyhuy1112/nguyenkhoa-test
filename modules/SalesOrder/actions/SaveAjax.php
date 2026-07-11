@@ -15,89 +15,48 @@ class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
 	 * @return Vtiger_Record_Model or Module specific Record Model instance
 	 */
 	public function getRecordModelFromRequest(Vtiger_Request $request) {
-		$moduleName = $request->getModule();
-		$recordId = $request->get('record');
-		$enableRecurrence = false;
-
-		if($request->get('field') == 'enable_recurring'){
-			$enableRecurrence = true;
-		}
-		if(!empty($recordId)) {
-			$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
-			$recordModel->set('id', $recordId);
-			$recordModel->set('mode', 'edit');
-
-			$fieldModelList = $recordModel->getModule()->getFields();
-			foreach ($fieldModelList as $fieldName => $fieldModel) {
-				//For not converting createdtime and modified time to user format
-				$uiType = $fieldModel->get('uitype');
-				if ($uiType == 70) {
-					$fieldValue = $recordModel->get($fieldName);
-				} else {
-					$fieldValue = $fieldModel->getUITypeModel()->getUserRequestValue($recordModel->get($fieldName));
-				}
-
-
-				if ($request->has($fieldName)) {
-					$fieldValue = $request->get($fieldName, null);
-				} else if ($fieldName === $request->get('field')) {
-					$fieldValue = $request->get('value');
-				}
-
-				/**
-				 * If field is enable recurrence then we need to pass related fields of
-				 * recurrence to save,because untill enable recurrence is checked,the 
-				 * related field values wont get saved
-				 */
-				if($enableRecurrence){
-					$requestFieldValue = $request->get($fieldName);
-					if($requestFieldValue != ''){
-						$fieldValue = $request->get($fieldName);
-					}
-				}
-
-				$fieldDataType = $fieldModel->getFieldDataType();
-                if($fieldValue){
-                    $fieldValue = Vtiger_Util_Helper::validateFieldValue($fieldValue,$fieldModel);
-                }
-				if ($fieldDataType == 'time' && $fieldValue !== null) {
-					$fieldValue = Vtiger_Time_UIType::getTimeValueWithSeconds($fieldValue);
-				}
-				if ($fieldValue !== null) {
-					if (!is_array($fieldValue)) {
-						$fieldValue = trim($fieldValue);
-					}
-                                        $fieldValue = Vtiger_Util_Helper::validateFieldValue($fieldValue, $fieldModel);
-					$recordModel->set($fieldName, $fieldValue);
-				}
-				$recordModel->set($fieldName, $fieldValue);
-			}
-		} else {
-			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
-
-			$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
-			$recordModel->set('mode', '');
-
-			$fieldModelList = $moduleModel->getFields();
-			foreach ($fieldModelList as $fieldName => $fieldModel) {
-				if ($request->has($fieldName)) {
-					$fieldValue = $request->get($fieldName, null);
-				} else {
-					$fieldValue = $fieldModel->getDefaultFieldValue();
-				}
-				$fieldDataType = $fieldModel->getFieldDataType();
-				if ($fieldDataType == 'time' && $fieldValue !== null) {
-					$fieldValue = Vtiger_Time_UIType::getTimeValueWithSeconds($fieldValue);
-				}
-				if ($fieldValue !== null) {
-					if (!is_array($fieldValue)) {
-						$fieldValue = trim($fieldValue);
-					}
-                                        $fieldValue = Vtiger_Util_Helper::validateFieldValue($fieldValue, $fieldModel);
-					$recordModel->set($fieldName, $fieldValue);
-				}
-			} 
-		}
+		$recordModel = parent::getRecordModelFromRequest($request);
+		$this->syncReceivedBalance($recordModel, $request);
 		return $recordModel;
+	}
+
+	/**
+	 * Keep balance = total - received when customer paid amount is updated inline.
+	 */
+	protected function syncReceivedBalance(Vtiger_Record_Model $recordModel, Vtiger_Request $request) {
+		$paidField = '';
+		foreach (array('received', 'paid_amount', 'amount_paid', 'paid', 'mk_customer_paid') as $candidate) {
+			if ($request->has($candidate)) {
+				$paidField = $candidate;
+				break;
+			}
+		}
+		if ($paidField === '') {
+			return;
+		}
+
+		$paidRaw = $request->get($paidField);
+		if (class_exists('CurrencyField')) {
+			$paidAmount = (float) CurrencyField::convertToDBFormat($paidRaw, null, true);
+		} else {
+			$paidAmount = (float) preg_replace('/[^\d.-]/', '', str_replace(',', '.', (string) $paidRaw));
+		}
+		if ($paidAmount < 0) {
+			$paidAmount = 0;
+		}
+		$recordModel->set($paidField, $paidAmount);
+
+		$total = (float) $recordModel->get('total');
+		if ($total <= 0 && $recordModel->get('hdnGrandTotal') !== null && $recordModel->get('hdnGrandTotal') !== '') {
+			$total = (float) $recordModel->get('hdnGrandTotal');
+		}
+		$balance = $total - $paidAmount;
+		if ($balance < 0) {
+			$balance = 0;
+		}
+		$balanceField = $recordModel->getModule()->getField('balance');
+		if ($balanceField) {
+			$recordModel->set('balance', $balance);
+		}
 	}
 }

@@ -257,8 +257,23 @@
 		var vatPercent = parseMoney(readFieldVal($form, 'mk_vat_percent')) || parseMoney(cfg().vat_percent_default) || 8;
 		var vatAmount = Math.round(subtotal * vatPercent / 100);
 		var grand = subtotal + vatAmount;
-		setFieldVal($form, 'mk_vat_amount', formatMoney(vatAmount));
+		// Persist raw number — formatted "8.000" breaks inventory/tax save paths.
+		setFieldVal($form, 'mk_vat_amount', String(vatAmount));
 		setFieldVal($form, 'mk_amount_in_words', amountInWordsVi(grand));
+		$form.find('.mk-inv-tax-select').each(function () {
+			var $sel = $(this);
+			if ($sel.data('mkUserChanged')) {
+				return;
+			}
+			$sel.val(String(vatPercent));
+			$sel.closest('tr.lineItemRow').data('mkTaxPct', vatPercent);
+		});
+		$form.find('.groupTaxPercentage').each(function (idx) {
+			$(this).val(idx === 0 ? vatPercent : 0);
+		});
+		$form.find('.groupTaxTotal').each(function (idx) {
+			$(this).val(idx === 0 ? vatAmount : 0);
+		});
 	}
 
 	function fetchRecordDetails(module, recordId) {

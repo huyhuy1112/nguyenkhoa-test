@@ -57,18 +57,14 @@
 		</button>
 		{if $DELETE_ACTION}
 			<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline mk-so-pos-mass-delete-btn mk-so-pos-mass-action" id="mk-so-mass-delete-btn" disabled="disabled" aria-hidden="true"
-					{if stripos($DELETE_ACTION->getUrl(), 'javascript:')===0}
-				onclick='{$DELETE_ACTION->getUrl()|substr:strlen("javascript:")};'
-					{else}
-				onclick='window.location.href = "{$DELETE_ACTION->getUrl()}"'
-					{/if}
+					onclick="if (window.mkSoMassDeleteSalesOrders) { window.mkSoMassDeleteSalesOrders(); } return false;"
 					title="Xóa các đơn đã chọn">
 				<i class="fa fa-trash" aria-hidden="true"></i>
 				<span>Xóa</span>
 			</button>
 		{else}
 			<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline mk-so-pos-mass-delete-btn mk-so-pos-mass-action" id="mk-so-mass-delete-btn" disabled="disabled" aria-hidden="true"
-					onclick='Vtiger_List_Js.massDeleteRecords("index.php?module=SalesOrder&action=MassDelete");'
+					onclick="if (window.mkSoMassDeleteSalesOrders) { window.mkSoMassDeleteSalesOrders(); } return false;"
 					title="Xóa các đơn đã chọn">
 				<i class="fa fa-trash" aria-hidden="true"></i>
 				<span>Xóa</span>

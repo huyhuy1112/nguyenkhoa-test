@@ -360,6 +360,34 @@ class CurrencyField {
         $this->initialize($user);
 
 		$value = $this->value;
+		if (is_string($value)) {
+			$value = trim($value);
+		}
+
+		/*
+		 * VN branding uses '.' as thousand separator. Never strip dots from plain DB
+		 * decimals like 1.00000000 / 7000000.00 (that used to inflate MassDuplicate ~1e8).
+		 *
+		 * Rules:
+		 * - One dot + fraction length != 3  → DB/decimal (keep as float)
+		 * - One dot + fraction length == 3 + grouping '.' → thousand group (1.000 → 1000)
+		 * - Multiple dots → thousand groups (7.560.000)
+		 * - is_numeric without '.' → plain int
+		 */
+		if ($value !== null && $value !== '' && is_string($value)
+			&& $this->currencySeparator === '.'
+			&& preg_match('/^(\d{1,3})\.(\d{3})$/', $value)
+		) {
+			$value = str_replace('.', '', $value);
+		} elseif ($value !== null && $value !== '' && is_numeric($value)
+			&& (is_int($value) || is_float($value) || (is_string($value) && substr_count($value, '.') <= 1 && strpos($value, ',') === false))
+		) {
+			$value = (float) $value;
+			if ($skipConversion == false) {
+				$value = self::convertToDollar($value, $this->conversionRate);
+			}
+			return (float) $value;
+		}
 
         $currencySeparator = $this->currencySeparator;
         $decimalSeparator  = $this->decimalSeparator;

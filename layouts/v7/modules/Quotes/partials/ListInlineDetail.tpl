@@ -50,7 +50,7 @@
 						{elseif $LINE["discount_percent$IDX"]|default:'' neq '' && $LINE["discount_percent$IDX"] neq '0'}
 							{assign var=DISCOUNT_TEXT value=$LINE["discount_percent$IDX"]|cat:'%'}
 						{/if}
-						<tr>
+						<tr data-qty="{$LINE["qty$IDX"]|default:'1'|escape}" data-price="{$LINE["listPrice$IDX"]|default:$LINE["unitPrice$IDX"]|default:'0'|escape}" data-total="{$LINE["productTotal$IDX"]|default:'0'|escape}" data-unit="{$LINE["usageunit$IDX"]|default:''|escape}">
 							<td class="is-code">
 								{if $LINE["hdnProductId$IDX"]|default:'' neq ''}
 									<a href="index.php?module={$LINE["entityType$IDX"]|default:'Products'}&view=Detail&record={$LINE["hdnProductId$IDX"]}" target="_blank" rel="noopener">
@@ -115,7 +115,7 @@
 				<i class="fa fa-check" aria-hidden="true"></i>
 				<span>Xử lý báo giá</span>
 			</button>
-			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__dup-btn" href="{$RECORD->getDuplicateRecordUrl()}&app=SALES" title="Nhân bản báo giá">
+			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__dup-btn" href="#" data-record-id="{$RECORD->getId()}" title="Nhân bản báo giá">
 				<i class="fa fa-copy" aria-hidden="true"></i>
 				<span>Nhân bản</span>
 			</a>

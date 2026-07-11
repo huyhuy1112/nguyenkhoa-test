@@ -64,6 +64,7 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 			$relatedProducts = $rawProducts;
 		}
 		$relatedProducts = $this->normalizeInlineMoneyTotals($relatedProducts, $rawProducts, $recordModel);
+		$relatedProducts = $this->enrichLineUsageUnits($relatedProducts);
 		$viewer->assign('RELATED_PRODUCTS', $relatedProducts);
 
 		$viewer->assign('RECORD', $recordModel);
@@ -76,15 +77,51 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$currentUser = Users_Record_Model::getCurrentUserModel();
 		$viewer->assign('INLINE_ASSIGNED_USERS', $currentUser->getAccessibleUsersForModule($moduleName));
 		$viewer->assign('INLINE_BRANCH_LABEL', $this->resolveInlineBranchLabel($recordModel, $moduleModel));
-		$viewer->assign('INLINE_PAID_FIELD', $this->resolveInlinePaidFieldName($moduleModel));
+		$paidField = $this->resolveInlinePaidFieldName($moduleModel);
+		if ($paidField === '') {
+			$paidField = 'received';
+		}
+		$paidRaw = (float) $recordModel->get($paidField);
+		if ($paidRaw < 0) {
+			$paidRaw = 0;
+		}
+		$grandRaw = 0.0;
+		if (!empty($relatedProducts[1]['final_details']['grandTotal_raw'])) {
+			$grandRaw = (float) $relatedProducts[1]['final_details']['grandTotal_raw'];
+		} else {
+			$grandRaw = (float) $recordModel->get('total');
+		}
+		if ($grandRaw < 0) {
+			$grandRaw = 0;
+		}
+		$remainingRaw = $grandRaw - $paidRaw;
+		if ($remainingRaw < 0) {
+			$remainingRaw = 0;
+		}
+		$formatMoney = function ($value) {
+			return Vtiger_Currency_UIType::transformDisplayValue($value, null, true);
+		};
+		$viewer->assign('INLINE_PAID_FIELD', $paidField);
+		$viewer->assign('INLINE_PAID_RAW', $paidRaw);
+		$viewer->assign('INLINE_PAID_DISPLAY', $formatMoney($paidRaw));
+		$viewer->assign('INLINE_GRAND_RAW', $grandRaw);
+		$viewer->assign('INLINE_REMAINING_DISPLAY', $formatMoney($remainingRaw));
 		$viewer->assign('INLINE_CUSTOMER_NAME', $this->resolveInlineCustomerName($recordModel));
 		$viewer->assign('INLINE_EDIT_URL', $recordModel->getEditViewUrl() . '&app=SALES');
 		$viewer->assign('INLINE_DETAIL_URL', $recordModel->getDetailViewUrl() . '&app=SALES');
 		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=SalesOrder&action=ExportPDF&record=' . (int) $recordId . '&preview=1');
 		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=SalesOrder&action=ExportPDF&record=' . (int) $recordId);
-		$viewer->assign('INLINE_CREATED_DATE', $recordModel->getDisplayValue('createdtime'));
-		$viewer->assign('INLINE_AMOUNT_WORDS', isset($relatedProducts[1]['final_details']['amount_in_words'])
-			? $relatedProducts[1]['final_details']['amount_in_words'] : '');
+		$viewer->assign('INLINE_CREATED_DATE', $this->formatInlineCreatedDateDmY($recordModel));
+		$amountWords = '';
+		if (!empty($relatedProducts[1]['final_details']['amount_in_words'])) {
+			$amountWords = (string) $relatedProducts[1]['final_details']['amount_in_words'];
+		} elseif ($grandRaw > 0 && file_exists('modules/Quotes/helpers/QuoteBaService.php')) {
+			require_once 'modules/Quotes/helpers/QuoteBaService.php';
+			if (class_exists('Quotes_QuoteBaService_Helper')) {
+				$amountWords = Quotes_QuoteBaService_Helper::amountInWordsVi($grandRaw);
+			}
+		}
+		$viewer->assign('INLINE_AMOUNT_WORDS', $amountWords);
 
 		return $viewer->view('partials/ListInlineDetail.tpl', $moduleName, true);
 	}
@@ -194,18 +231,49 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$discountAmountFinal = ((float) $rawFinal['discount_amount_final']) * $scale;
 
 		$computedGrand = $subTotal - $discount + $tax + $shipping + $adjustment;
+		$headerPreTax = (float) $recordModel->get('pre_tax_total');
+		$headerTotal = (float) $recordModel->get('total');
+		$mkVatPercent = 8.0;
+		if (method_exists($recordModel, 'get')) {
+			$candidatePct = (float) $recordModel->get('mk_vat_percent');
+			if ($candidatePct > 0 && $candidatePct <= 100) {
+				$mkVatPercent = $candidatePct;
+			}
+		}
+
+		if ($tax <= 0 && $headerPreTax > 0 && $headerTotal > $headerPreTax) {
+			$derived = ($headerTotal - $headerPreTax) * $scale;
+			if ($subTotal <= 0 || $derived <= ($subTotal * 0.5)) {
+				$tax = $derived;
+				$computedGrand = $subTotal - $discount + $tax + $shipping + $adjustment;
+			}
+		}
+
+		if ($tax <= 0 && $subTotal > 0) {
+			$tax = round(($subTotal - $discount) * $mkVatPercent / 100);
+			$computedGrand = $subTotal - $discount + $tax + $shipping + $adjustment;
+		}
+
+		// Reject absurd tax/grand from bad saved header totals (e.g. 693M tax on 7M goods).
+		if ($subTotal > 0 && $tax > ($subTotal * 0.5)) {
+			$tax = round(($subTotal - $discount) * $mkVatPercent / 100);
+			$computedGrand = $subTotal - $discount + $tax + $shipping + $adjustment;
+		}
+
 		if ($grand > 0) {
 			$grand *= $scale;
 		}
-		if ($grand <= 0 || ($subTotal > 1000 && $grand < ($subTotal * 0.5))) {
+		if ($grand <= 0 || ($subTotal > 0 && ($grand < ($subTotal * 0.5) || $grand > ($subTotal * 2)))) {
 			$grand = $computedGrand;
 		}
-		if ($tax <= 0 && $grand > ($subTotal - $discount + $shipping + $adjustment)) {
-			$tax = $grand - ($subTotal - $discount + $shipping + $adjustment);
+		$base = $subTotal - $discount + $shipping + $adjustment;
+		if ($tax <= 0 && $grand > $base && ($grand - $base) <= ($subTotal * 0.5)) {
+			$tax = $grand - $base;
 		}
 		if ($tax < 0) {
 			$tax = 0;
 		}
+		$grand = $base + $tax;
 
 		$formatMoney = function ($value) {
 			return Vtiger_Currency_UIType::transformDisplayValue($value, null, true);
@@ -218,6 +286,47 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$displayProducts[1]['final_details']['shipping_handling_charge'] = $formatMoney($shipping);
 		$displayProducts[1]['final_details']['adjustment'] = $formatMoney($adjustment);
 		$displayProducts[1]['final_details']['grandTotal'] = $formatMoney($grand);
+		$displayProducts[1]['final_details']['grandTotal_raw'] = $grand;
+
+		// Repair line unit price / thành tiền only when saved as 0 but header totals exist.
+		$lineCount = 0;
+		for ($i = 1; $i <= $productsCount; $i++) {
+			if (!isset($rawProducts[$i]) || empty($rawProducts[$i]['hdnProductId' . $i])) {
+				continue;
+			}
+			$lineCount++;
+		}
+		if ($subTotal > 0 && $lineCount > 0) {
+			$share = $lineCount === 1 ? $subTotal : ($subTotal / $lineCount);
+			for ($i = 1; $i <= $productsCount; $i++) {
+				if (!isset($displayProducts[$i]) || empty($rawProducts[$i]['hdnProductId' . $i])) {
+					continue;
+				}
+				$qty = (float) ($rawProducts[$i]['qty' . $i] ?? 0);
+				if ($qty <= 0) {
+					$qty = 1;
+				}
+				$lineTotal = (float) ($rawProducts[$i]['productTotal' . $i] ?? 0);
+				$listPrice = (float) ($rawProducts[$i]['listPrice' . $i] ?? 0);
+				if ($lineTotal <= 0) {
+					$lineTotal = (float) ($rawProducts[$i]['totalAfterDiscount' . $i] ?? 0);
+				}
+				// Only backfill missing line money — never overwrite valid amounts.
+				if ($lineTotal > 0 && $listPrice > 0) {
+					continue;
+				}
+				if ($lineTotal <= 0) {
+					$lineTotal = $share;
+				}
+				if ($listPrice <= 0) {
+					$listPrice = $lineTotal / $qty;
+				}
+				$displayProducts[$i]['qty' . $i] = $qty;
+				$displayProducts[$i]['listPrice' . $i] = $formatMoney($listPrice);
+				$displayProducts[$i]['unitPrice' . $i] = $formatMoney($listPrice);
+				$displayProducts[$i]['productTotal' . $i] = $formatMoney($lineTotal);
+			}
+		}
 
 		if (file_exists('modules/Quotes/helpers/QuoteBaService.php')) {
 			require_once 'modules/Quotes/helpers/QuoteBaService.php';
@@ -229,14 +338,65 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		return $displayProducts;
 	}
 
+	/**
+	 * Attach product usage unit (đơn vị tính) for Excel preview / export labels.
+	 */
+	protected function enrichLineUsageUnits(array $products) {
+		$db = PearDatabase::getInstance();
+		$count = php7_count($products);
+		for ($i = 1; $i <= $count; $i++) {
+			if (!isset($products[$i])) {
+				continue;
+			}
+			$productId = (int) ($products[$i]['hdnProductId' . $i] ?? 0);
+			if ($productId <= 0) {
+				$products[$i]['usageunit' . $i] = '';
+				continue;
+			}
+			$entityType = (string) ($products[$i]['entityType' . $i] ?? 'Products');
+			$unit = '';
+			if (strcasecmp($entityType, 'Services') === 0) {
+				$rs = $db->pquery('SELECT service_usageunit FROM vtiger_service WHERE serviceid = ?', array($productId));
+				if ($rs && $db->num_rows($rs) > 0) {
+					$unit = (string) $db->query_result($rs, 0, 'service_usageunit');
+				}
+			} else {
+				$rs = $db->pquery('SELECT usageunit FROM vtiger_products WHERE productid = ?', array($productId));
+				if ($rs && $db->num_rows($rs) > 0) {
+					$unit = (string) $db->query_result($rs, 0, 'usageunit');
+				}
+			}
+			$products[$i]['usageunit' . $i] = trim(decode_html($unit));
+		}
+		return $products;
+	}
+
 	protected function resolveInlinePaidFieldName(Vtiger_Module_Model $moduleModel) {
-		foreach (array('received', 'paid_amount', 'amount_paid') as $fieldName) {
+		foreach (array('received', 'paid_amount', 'amount_paid', 'paid', 'mk_customer_paid') as $fieldName) {
 			$fieldModel = Vtiger_Field_Model::getInstance($fieldName, $moduleModel);
-			if ($fieldModel && $fieldModel->isViewable()) {
+			if ($fieldModel) {
 				return $fieldName;
 			}
 		}
-		return '';
+		return 'received';
+	}
+
+	/**
+	 * Always emit d/m/Y for Excel preview (avoid MM/DD user-format swap).
+	 */
+	protected function formatInlineCreatedDateDmY(Vtiger_Record_Model $recordModel) {
+		$raw = trim((string) $recordModel->get('createdtime'));
+		if ($raw === '') {
+			return date('d/m/Y');
+		}
+		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $raw, $m)) {
+			return $m[3] . '/' . $m[2] . '/' . $m[1];
+		}
+		$ts = strtotime($raw);
+		if ($ts) {
+			return date('d/m/Y', $ts);
+		}
+		return date('d/m/Y');
 	}
 
 	protected function resolveInlineBranchLabel(Vtiger_Record_Model $recordModel, Vtiger_Module_Model $moduleModel) {
@@ -262,6 +422,11 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 			'Paid' => 'Đã thanh toán',
 			'Sent' => 'Đã gửi',
 			'Rejected' => 'Từ chối',
+			'waiting_print' => 'Chờ in phiếu',
+			'picking' => 'Đang soạn',
+			'packed' => 'Đã soạn',
+			'shipped' => 'Đã giao',
+			'rejected' => 'Từ chối',
 			'Đã duyệt' => 'Đã xác nhận',
 			'Đã tạo' => 'Phiếu tạm',
 			'Đang chờ xử lý' => 'Đang chờ',
@@ -271,6 +436,10 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 			'Đã thanh toán' => 'Đã thanh toán',
 			'Đã hủy' => 'Đã hủy',
 			'Từ chối' => 'Từ chối',
+			'Chờ in phiếu' => 'Chờ in phiếu',
+			'Đang soạn' => 'Đang soạn',
+			'Đã soạn' => 'Đã soạn',
+			'Đã giao' => 'Đã giao',
 		);
 	}
 
@@ -430,9 +599,9 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 				'label_hints' => array('Kênh bán', 'Lead Source', 'Source', 'Funnel'),
 			),
 			array(
-				'names' => array('sostatus', 'salesorder_status', 'invoicestatus'),
-				'label' => 'Trạng thái',
-				'label_hints' => array('Trạng thái', 'Status', 'Invoice Status'),
+				'names' => array('received', 'paid_amount', 'amount_paid', 'paid', 'mk_customer_paid'),
+				'label' => 'Khách đã trả',
+				'label_hints' => array('Khách đã trả', 'Received', 'Paid', 'Amount Paid'),
 			),
 			array(
 				'names' => array('assigned_user_id'),

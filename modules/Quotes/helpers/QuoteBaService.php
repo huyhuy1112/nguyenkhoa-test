@@ -293,22 +293,68 @@ class Quotes_QuoteBaService_Helper {
 			$request->set('mk_quote_date', date('Y-m-d'));
 		}
 
-		$subtotal = self::parseMoneyNumber($request->get('hdnSubTotal'));
+		$subtotal = self::parseMoneyNumber($request->get('subtotal'));
+		if ($subtotal <= 0) {
+			$subtotal = self::parseMoneyNumber($request->get('pre_tax_total'));
+		}
+		if ($subtotal <= 0) {
+			$subtotal = self::parseMoneyNumber($request->get('hdnSubTotal'));
+		}
 		if ($subtotal <= 0) {
 			$subtotal = self::parseMoneyNumber($request->get('hdnGrandTotal'));
 		}
+
 		$vatPercent = self::parseMoneyNumber($request->get('mk_vat_percent'));
 		if ($vatPercent <= 0) {
+			// Prefer group tax % from inventory form when BA field is empty.
+			foreach (array('tax1_group_percentage', 'tax2_group_percentage', 'tax3_group_percentage') as $taxPctKey) {
+				$candidate = self::parseMoneyNumber($request->get($taxPctKey));
+				if ($candidate > 0) {
+					$vatPercent = $candidate;
+					break;
+				}
+			}
+		}
+		if ($vatPercent <= 0 || $vatPercent > 100) {
 			$vatPercent = self::DEFAULT_VAT_PERCENT;
 			$request->set('mk_vat_percent', (string) $vatPercent);
+		} else {
+			$request->set('mk_vat_percent', (string) $vatPercent);
 		}
-		$vatAmount = round($subtotal * $vatPercent / 100);
+
+		$vatAmount = self::parseMoneyNumber($request->get('mk_vat_amount'));
+		if ($vatAmount <= 0) {
+			foreach (array('tax1_group_amount', 'tax2_group_amount', 'tax3_group_amount') as $taxAmtKey) {
+				$candidate = self::parseMoneyNumber($request->get($taxAmtKey));
+				if ($candidate > 0) {
+					$vatAmount = $candidate;
+					break;
+				}
+			}
+		}
+		if ($vatAmount <= 0 && $subtotal > 0 && $vatPercent > 0) {
+			$vatAmount = round($subtotal * $vatPercent / 100);
+		}
+		// Guard absurd VAT amounts (money formatting / wrong field bleed).
+		if ($subtotal > 0 && $vatAmount > ($subtotal * 0.5)) {
+			$vatAmount = round($subtotal * $vatPercent / 100);
+		}
 		$request->set('mk_vat_amount', (string) $vatAmount);
 
-		$grandTotal = self::parseMoneyNumber($request->get('hdnGrandTotal'));
+		// Keep inventory group-tax request fields aligned so tax_totalamount persists.
+		if ($vatPercent > 0) {
+			$request->set('tax1_group_percentage', (string) $vatPercent);
+			$request->set('tax1_group_amount', (string) $vatAmount);
+		}
+
+		$grandTotal = self::parseMoneyNumber($request->get('total'));
 		if ($grandTotal <= 0) {
+			$grandTotal = self::parseMoneyNumber($request->get('hdnGrandTotal'));
+		}
+		if ($grandTotal <= 0 || ($subtotal > 0 && $grandTotal > ($subtotal * 2))) {
 			$grandTotal = $subtotal + $vatAmount;
 		}
+		$request->set('total', (string) $grandTotal);
 		$request->set('mk_amount_in_words', self::amountInWordsVi($grandTotal));
 	}
 

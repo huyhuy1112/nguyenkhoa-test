@@ -44,6 +44,7 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 			$relatedProducts = $rawProducts;
 		}
 		$relatedProducts = $this->normalizeInlineMoneyTotals($relatedProducts, $rawProducts, $recordModel);
+		$relatedProducts = $this->enrichLineUsageUnits($relatedProducts);
 		$viewer->assign('RELATED_PRODUCTS', $relatedProducts);
 
 		$viewer->assign('RECORD', $recordModel);
@@ -103,6 +104,14 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		$discountAmountFinal = ((float) $rawFinal['discount_amount_final']) * $scale;
 
 		$mkVatAmount = (float) $recordModel->get('mk_vat_amount');
+		$mkVatPercent = (float) $recordModel->get('mk_vat_percent');
+		$headerPreTax = (float) $recordModel->get('pre_tax_total');
+		$headerTotal = (float) $recordModel->get('total');
+
+		if ($mkVatPercent <= 0 || $mkVatPercent > 100) {
+			$mkVatPercent = 8.0;
+		}
+
 		if ($mkVatAmount > 0) {
 			if ($scale > 1 && $mkVatAmount < ($subTotal * 0.001)) {
 				$tax = $mkVatAmount * $scale;
@@ -111,19 +120,38 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 			}
 		}
 
-		if ($grand > 0) {
-			$grand *= $scale;
-		} else {
-			$grand = $subTotal - $discount + $tax + $shipping + $adjustment;
+		if ($tax <= 0 && $headerPreTax > 0 && $headerTotal > $headerPreTax) {
+			$derived = ($headerTotal - $headerPreTax) * $scale;
+			// Ignore absurd gaps (bad saved totals); prefer % calculation.
+			if ($subTotal <= 0 || $derived <= ($subTotal * 0.5)) {
+				$tax = $derived;
+			}
 		}
 
-		// Header total often already includes tax while tax_totalamount stays 0 — derive the gap.
-		if ($tax <= 0 && $grand > ($subTotal - $discount + $shipping + $adjustment)) {
-			$tax = $grand - ($subTotal - $discount + $shipping + $adjustment);
+		if ($tax <= 0 && $subTotal > 0) {
+			$tax = round(($subTotal - $discount) * $mkVatPercent / 100);
+		}
+
+		// Reject absurd tax relative to goods (e.g. 693M tax on 7M goods).
+		if ($subTotal > 0 && $tax > ($subTotal * 0.5)) {
+			$tax = round(($subTotal - $discount) * $mkVatPercent / 100);
+		}
+
+		$base = $subTotal - $discount + $shipping + $adjustment;
+		if ($grand > 0) {
+			$grand *= $scale;
+		}
+		if ($grand <= 0 || ($subTotal > 0 && $grand > ($subTotal * 2))) {
+			$grand = $base + $tax;
+		}
+
+		if ($tax <= 0 && $grand > $base && ($grand - $base) <= ($subTotal * 0.5)) {
+			$tax = $grand - $base;
 		}
 		if ($tax < 0) {
 			$tax = 0;
 		}
+		$grand = $base + $tax;
 
 		$formatMoney = function ($value) {
 			return Vtiger_Currency_UIType::transformDisplayValue($value, null, true);
@@ -139,6 +167,39 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		$displayProducts[1]['final_details']['amount_in_words'] = Quotes_QuoteBaService_Helper::amountInWordsVi($grand);
 
 		return $displayProducts;
+	}
+
+	/**
+	 * Attach product usage unit (đơn vị tính) for Excel preview / export labels.
+	 */
+	protected function enrichLineUsageUnits(array $products) {
+		$db = PearDatabase::getInstance();
+		$count = php7_count($products);
+		for ($i = 1; $i <= $count; $i++) {
+			if (!isset($products[$i])) {
+				continue;
+			}
+			$productId = (int) ($products[$i]['hdnProductId' . $i] ?? 0);
+			if ($productId <= 0) {
+				$products[$i]['usageunit' . $i] = '';
+				continue;
+			}
+			$entityType = (string) ($products[$i]['entityType' . $i] ?? 'Products');
+			$unit = '';
+			if (strcasecmp($entityType, 'Services') === 0) {
+				$rs = $db->pquery('SELECT service_usageunit FROM vtiger_service WHERE serviceid = ?', array($productId));
+				if ($rs && $db->num_rows($rs) > 0) {
+					$unit = (string) $db->query_result($rs, 0, 'service_usageunit');
+				}
+			} else {
+				$rs = $db->pquery('SELECT usageunit FROM vtiger_products WHERE productid = ?', array($productId));
+				if ($rs && $db->num_rows($rs) > 0) {
+					$unit = (string) $db->query_result($rs, 0, 'usageunit');
+				}
+			}
+			$products[$i]['usageunit' . $i] = trim(decode_html($unit));
+		}
+		return $products;
 	}
 
 	protected function resolveInlineCustomerName(Vtiger_Record_Model $recordModel) {

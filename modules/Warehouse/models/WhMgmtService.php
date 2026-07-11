@@ -997,6 +997,14 @@ class Warehouse_WhMgmtService {
 			array($newDbStatus, self::encodeMeta($meta), $now, $issueId)
 		);
 
+		// Xuất bán: SO status follows GI status (waiting_print / picking / packed / shipped / rejected).
+		try {
+			require_once 'modules/GoodsIssue/helpers/SyncSalesOrderStatus.php';
+			GoodsIssue_SyncSalesOrderStatus_Helper::syncFromIssueId($issueId, $newDbStatus);
+		} catch (Exception $ignore) {
+			// Do not block warehouse workflow if SO sync fails.
+		}
+
 		return array(
 			'code' => $issueCode,
 			'warehouse' => $warehouseCode,
@@ -1007,24 +1015,37 @@ class Warehouse_WhMgmtService {
 	protected static function loadSalesOrderOutboundContext(PearDatabase $db, $salesOrderId) {
 		$salesOrderId = (int) $salesOrderId;
 		if ($salesOrderId <= 0) {
-			return array('organization' => '', 'soRef' => '');
+			return array('organization' => '', 'contact' => '', 'soRef' => '');
 		}
 		$rs = $db->pquery(
-			'SELECT so.salesorder_no, so.subject, COALESCE(acc.accountname, \'\') AS organization
+			'SELECT so.salesorder_no, so.subject, so.contactid, so.potentialid,
+			        COALESCE(acc.accountname, \'\') AS organization,
+			        TRIM(CONCAT(IFNULL(cd.firstname, \'\'), \' \', IFNULL(cd.lastname, \'\'))) AS contact_name
 			 FROM vtiger_salesorder so
 			 LEFT JOIN vtiger_account acc ON acc.accountid = so.accountid
+			 LEFT JOIN vtiger_contactdetails cd ON cd.contactid = so.contactid
 			 WHERE so.salesorderid = ? LIMIT 1',
 			array($salesOrderId)
 		);
 		if (!$rs || $db->num_rows($rs) <= 0) {
-			return array('organization' => '', 'soRef' => '');
+			return array('organization' => '', 'contact' => '', 'soRef' => '');
 		}
 		$organization = self::decodeDisplayTextDeep($db->query_result($rs, 0, 'organization'));
+		$contact = self::decodeDisplayTextDeep($db->query_result($rs, 0, 'contact_name'));
+		$contactId = (int) $db->query_result($rs, 0, 'contactid');
+		$potentialId = (int) $db->query_result($rs, 0, 'potentialid');
+		if ($contact === '' && $contactId <= 0 && $potentialId > 0) {
+			require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+			$potContactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId($potentialId);
+			if ($potContactId > 0) {
+				$contact = Vtiger_MkSalesCustomerName_Helper::readContactNameById($potContactId);
+			}
+		}
 		$soRef = self::decodeDisplayTextDeep($db->query_result($rs, 0, 'salesorder_no'));
 		if ($soRef === '') {
 			$soRef = self::decodeDisplayTextDeep($db->query_result($rs, 0, 'subject'));
 		}
-		return array('organization' => $organization, 'soRef' => $soRef);
+		return array('organization' => $organization, 'contact' => $contact, 'soRef' => $soRef);
 	}
 
 	protected static function loadIssues(PearDatabase $db, $warehouseCode) {
@@ -1046,14 +1067,15 @@ class Warehouse_WhMgmtService {
 				if ($outboundType === '' || $outboundType === 'internal') {
 					$outboundType = 'sale';
 				}
-				if ($customer === '' || $soRef === '') {
-					$soCtx = self::loadSalesOrderOutboundContext($db, $salesOrderId);
-					if ($customer === '' && $soCtx['organization'] !== '') {
-						$customer = $soCtx['organization'];
-					}
-					if ($soRef === '' && $soCtx['soRef'] !== '') {
-						$soRef = $soCtx['soRef'];
-					}
+				$soCtx = self::loadSalesOrderOutboundContext($db, $salesOrderId);
+				// Prefer contact (Người liên hệ) for KHÁCH HÀNG column.
+				if ($soCtx['contact'] !== '') {
+					$customer = $soCtx['contact'];
+				} elseif ($customer === '' && $soCtx['organization'] !== '') {
+					$customer = $soCtx['organization'];
+				}
+				if ($soRef === '' && $soCtx['soRef'] !== '') {
+					$soRef = $soCtx['soRef'];
 				}
 			}
 			if ($outboundType === '') {

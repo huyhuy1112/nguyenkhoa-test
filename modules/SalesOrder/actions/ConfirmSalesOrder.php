@@ -38,7 +38,12 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 			}
 
 			$status = trim((string) $soModel->get('sostatus'));
-			$alreadyConfirmed = ($status === 'Approved' || $status === 'Đã xác nhận' || $status === 'Đã duyệt');
+			$outboundStatuses = array(
+				'Approved', 'Đã xác nhận', 'Đã duyệt',
+				'waiting_print', 'picking', 'packed', 'shipped', 'rejected',
+				'Delivered', 'Đã giao', 'Hoàn thành', 'Chờ in phiếu', 'Đang soạn', 'Đã soạn', 'Từ chối',
+			);
+			$alreadyConfirmed = in_array($status, $outboundStatuses, true);
 
 			require_once 'modules/GoodsIssue/helpers/CreateFromSalesOrder.php';
 			$existingGi = GoodsIssue_CreateFromSalesOrder_Helper::findBySalesOrderId($recordId);
@@ -50,7 +55,7 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 					'success' => true,
 					'salesorderid' => $recordId,
 					'salesorder_no' => $soModel->get('salesorder_no'),
-					'sostatus' => 'Approved',
+					'sostatus' => $status !== '' ? $status : 'waiting_print',
 					'goodsissueid' => $existingGi,
 					'already_confirmed' => true,
 					'message' => 'Đơn hàng đã được xác nhận và đã có phiếu xuất kho.',
@@ -80,14 +85,13 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 			// Soft stock warning only — waiting_print does not deduct stock yet.
 			$stockWarnings = GoodsIssue_CreateFromSalesOrder_Helper::validateWarehouseStock($lines, $warehouse['name']);
 
-			if (!$alreadyConfirmed) {
-				$db = PearDatabase::getInstance();
-				$db->pquery(
-					'UPDATE vtiger_salesorder SET sostatus = ? WHERE salesorderid = ?',
-					array('Approved', $recordId)
-				);
-				$soModel->set('sostatus', 'Approved');
-			}
+			// Match GI initial status: Chờ in phiếu.
+			$db = PearDatabase::getInstance();
+			$db->pquery(
+				'UPDATE vtiger_salesorder SET sostatus = ? WHERE salesorderid = ?',
+				array('waiting_print', $recordId)
+			);
+			$soModel->set('sostatus', 'waiting_print');
 
 			$userId = (int) Users_Record_Model::getCurrentUserModel()->getId();
 			$goodsIssueId = $existingGi > 0
@@ -104,6 +108,9 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				throw new Exception('Không tạo được phiếu xuất kho.');
 			}
 
+			require_once 'modules/GoodsIssue/helpers/SyncSalesOrderStatus.php';
+			GoodsIssue_SyncSalesOrderStatus_Helper::syncFromIssueId($goodsIssueId, 'waiting_print');
+
 			$message = 'Đã xác nhận đơn hàng và tạo phiếu xuất kho (Chờ in phiếu).';
 			if (!empty($stockWarnings)) {
 				$message .= ' Lưu ý tồn kho: ' . implode(' ', $stockWarnings);
@@ -116,7 +123,7 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				'success' => true,
 				'salesorderid' => $recordId,
 				'salesorder_no' => $soModel->get('salesorder_no'),
-				'sostatus' => 'Approved',
+				'sostatus' => 'waiting_print',
 				'goodsissueid' => $goodsIssueId,
 				'warehouse_id' => $warehouse['id'],
 				'warehouse_name' => $warehouse['name'],
