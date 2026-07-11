@@ -521,6 +521,8 @@
 		} else {
 			// Quote create: status is auto-draft — hide field, keep contact visible.
 			hideFields.push('quotestage');
+			// Hide "Có giá trị đến" (validtill) on Quotes create/edit SALES form.
+			hideFields.push('validtill');
 		}
 		hideFields.forEach(function (name) {
 			hideQuoteFieldPair(name);
@@ -859,13 +861,11 @@
 			return;
 		}
 		var stage = 'Nháp';
-		var valid = readFieldDisplay('validtill');
 		var contact = readFieldDisplay('contact_id') || readFieldDisplay('account_id');
 		var opp = readFieldDisplay('potential_id');
 		var total = readGrandTotal();
 
 		$('#mkQtRailStage, #mkQtHeadStageBadge').text(stage);
-		$('#mkQtRailValidUntil').text(valid || '—');
 		$('#mkQtRailOrganization').text(contact || '—');
 		$('#mkQtRailOpportunity').text(opp || '—');
 		$('#mkQtRailTotal').text(total || '—');

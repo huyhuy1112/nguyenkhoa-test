@@ -94,7 +94,7 @@
 					}
 				}
 				var hideFieldNames = [
-					'carrier', 'shipping', 'inventorymanager', 'assigned_user_id1', 'description', 'quotestage',
+					'carrier', 'shipping', 'inventorymanager', 'assigned_user_id1', 'description', 'quotestage', 'validtill',
 					'bill_pobox', 'bill_city', 'bill_state', 'bill_code', 'bill_country',
 					'ship_pobox', 'ship_city', 'ship_state', 'ship_code', 'ship_country'
 				];
@@ -154,10 +154,6 @@
 						<dd id="mkQtRailStage">Nháp</dd>
 					</div>
 					<div class="mk-qt-summary-list__row">
-						<dt>Valid until</dt>
-						<dd id="mkQtRailValidUntil">—</dd>
-					</div>
-					<div class="mk-qt-summary-list__row">
 						<dt>Người liên hệ</dt>
 						<dd id="mkQtRailOrganization">—</dd>
 					</div>
@@ -195,7 +191,6 @@
 				</div>
 				<ul class="mk-qt-ai-list">
 					<li>Add products to improve quote completeness</li>
-					<li>Set a valid-until date before sending to customer</li>
 					<li>Link an opportunity for pipeline tracking</li>
 				</ul>
 				<p class="mk-qt-rail-note">Visual guidance only — no automated changes.</p>

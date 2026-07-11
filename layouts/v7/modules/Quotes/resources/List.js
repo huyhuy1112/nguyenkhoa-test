@@ -926,7 +926,7 @@
       }
       if (
         !window.confirm(
-          "Chuyển báo giá thành đơn hàng (Phiếu tạm)? Báo giá sẽ biến mất khỏi danh sách.",
+          "Xác nhận chuyển báo giá thành đơn hàng?",
         )
       ) {
         return;
