@@ -327,8 +327,13 @@
       tbody.innerHTML = pageRows
         .map(function (c) {
           var cats = categorize(c.tags);
+          var crmId = c.crmid != null && c.crmid !== "" ? String(c.crmid) : String(c.id || "");
           return (
-            '<tr class="mk-leads-row mk-contacts-row" data-id="' + esc(c.id) + '">' +
+            '<tr class="mk-leads-row mk-contacts-row" data-id="' +
+            esc(c.id) +
+            '"' +
+            (crmId && /^\d+$/.test(crmId) ? ' data-crmid="' + esc(crmId) + '"' : "") +
+            ">" +
             '<td class="mk-leads-td mk-leads-td--check"><label class="mk-leads-check">' +
             '<input type="checkbox" class="mk-leads-check__input mk-contacts-row-check" data-id="' + esc(c.id) + '" />' +
             '<span class="mk-leads-check__ui" aria-hidden="true"></span></label></td>' +

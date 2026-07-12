@@ -61,6 +61,8 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('INLINE_CONFIRM_URL', 'index.php?module=Quotes&action=ConfirmSalesOrder&record=' . (int) $recordId);
 		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=Quotes&action=ExportPDF&record=' . (int) $recordId . '&preview=1');
 		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=Quotes&action=ExportPDF&record=' . (int) $recordId);
+		$currentUser = Users_Record_Model::getCurrentUserModel();
+		$viewer->assign('INLINE_ASSIGNED_USERS', $currentUser->getAccessibleUsersForModule($moduleName));
 
 		return $viewer->view('partials/ListInlineDetail.tpl', $moduleName, true);
 	}
@@ -341,10 +343,25 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 			$value = '—';
 		}
 
+		$dataType = $fieldModel->getFieldDataType();
+		$rawValue = $recordModel->get($fieldName);
+		$editValue = $rawValue;
+		if ($dataType === 'date' || $dataType === 'datetime') {
+			$editValue = $fieldModel->getUITypeModel()->getDisplayValue($rawValue);
+		}
+		$picklistValues = array();
+		if ($dataType === 'picklist') {
+			$picklistValues = $fieldModel->getPicklistValues();
+		}
+		$readOnlyFields = array('smcreatorid', 'created_user_id', 'createdtime', 'modifiedtime', 'modifiedby');
 		return array(
 			'name' => $fieldName,
 			'label' => $label,
 			'value' => $value,
+			'raw_value' => $editValue,
+			'data_type' => $dataType,
+			'editable' => $fieldModel->isEditable() && !in_array($fieldName, $readOnlyFields, true),
+			'picklist_values' => $picklistValues,
 		);
 	}
 
@@ -398,6 +415,10 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 					'name' => $creator['name'],
 					'label' => $label,
 					'value' => $displayValue,
+					'raw_value' => $creator['raw'],
+					'data_type' => 'string',
+					'editable' => false,
+					'picklist_values' => array(),
 				);
 				$seenLabels[$label] = true;
 				continue;

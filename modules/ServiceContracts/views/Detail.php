@@ -19,6 +19,7 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 			return '';
 		}
 
+		require_once 'modules/Vtiger/helpers/MkSalesInlineDetailHelper.php';
 		$moduleName = 'ServiceContracts';
 		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
 		$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
@@ -29,22 +30,7 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 			$title = trim((string) $recordModel->getName());
 		}
 		$subtitle = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('contract_no')), ENT_QUOTES, 'UTF-8'));
-		$notes = trim(strip_tags(decode_html((string) $recordModel->get('description'))));
-
-		$viewer->assign('RECORD', $recordModel);
-		$viewer->assign('MODULE', $moduleName);
-		$viewer->assign('INLINE_TITLE', $title !== '' ? $title : '—');
-		$viewer->assign('INLINE_SUBTITLE', $subtitle);
-		$viewer->assign('INLINE_NOTES', $notes);
-		$viewer->assign('INLINE_EDIT_URL', $recordModel->getEditViewUrl() . '&app=SALES');
-		$viewer->assign('INLINE_DETAIL_URL', $recordModel->getDetailViewUrl() . '&app=SALES');
-		$viewer->assign('INLINE_INFO_FIELDS', $this->getServiceContractsInlineInfoFields($moduleModel, $recordModel));
-
-		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
-	}
-
-	protected function getServiceContractsInlineInfoFields(Vtiger_Module_Model $moduleModel, Vtiger_Record_Model $recordModel) {
-		$candidates = array(
+		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
 			array('contract_status', 'Trạng thái'),
 			array('sc_related_to', 'Liên quan tới'),
 			array('account_id', 'Tổ chức'),
@@ -52,24 +38,10 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 			array('end_date', 'Ngày kết thúc'),
 			array('assigned_user_id', 'Phụ trách'),
 			array('createdtime', 'Ngày tạo'),
-		);
-		$fields = array();
-		$seen = array();
-		foreach ($candidates as $pair) {
-			$fieldName = $pair[0];
-			$fieldModel = $moduleModel->getField($fieldName);
-			if (!$fieldModel || !$fieldModel->isViewable() || isset($seen[$fieldName])) {
-				continue;
-			}
-			$value = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue($fieldName)), ENT_QUOTES, 'UTF-8'));
-			$fields[] = array(
-				'name' => $fieldName,
-				'label' => $pair[1],
-				'value' => $value !== '' ? $value : '—',
-			);
-			$seen[$fieldName] = true;
-		}
-		return $fields;
+		));
+		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, 'SALES', $infoFields, $title, $subtitle);
+
+		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 
 	/**

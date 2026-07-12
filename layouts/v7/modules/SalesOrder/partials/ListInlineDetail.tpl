@@ -122,10 +122,6 @@
 				<span>Thuế</span>
 				<strong>{$FINAL_DETAILS.tax_totalamount|default:'0'}</strong>
 			</div>
-			<div class="mk-so-inline-detail__total-row">
-				<span>Giảm giá phiếu đặt</span>
-				<strong>{$FINAL_DETAILS.discountTotal_final|default:$FINAL_DETAILS.discount_amount_final|default:'0'}</strong>
-			</div>
 			<div class="mk-so-inline-detail__total-row mk-so-inline-detail__total-row--paid" data-field-name="{$INLINE_PAID_FIELD|default:'received'|escape}">
 				<span class="mk-so-inline-detail__total-label">Khách đã trả</span>
 				<span class="mk-so-inline-detail__paid-view">{$INLINE_PAID_DISPLAY|default:'0'}</span>

@@ -14,6 +14,48 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 	function __construct() {
 		parent::__construct();
 		$this->exposeMethod('showRelatedRecords');
+		$this->exposeMethod('showListInlineDetail');
+	}
+
+	/**
+	 * Expandable list-row detail panel with pencil inline edit (Sales Mk list).
+	 */
+	public function showListInlineDetail(Vtiger_Request $request) {
+		if (strtoupper((string) $request->get('app')) !== 'SALES') {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$recordId = (int) $request->get('record');
+		if ($recordId <= 0) {
+			return '<div class="mk-so-inline-detail mk-so-inline-detail--error">Không tải được chi tiết.</div>';
+		}
+
+		require_once 'modules/Vtiger/helpers/MkSalesInlineDetailHelper.php';
+		$moduleName = 'Potentials';
+		try {
+			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+			$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+		} catch (Exception $e) {
+			return '<div class="mk-so-inline-detail mk-so-inline-detail--error">Không tải được chi tiết cơ hội.</div>';
+		}
+
+		$title = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('potentialname')), ENT_QUOTES, 'UTF-8'));
+		if ($title === '') {
+			$title = trim((string) $recordModel->getName());
+		}
+		$subtitle = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('potential_no')), ENT_QUOTES, 'UTF-8'));
+		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+			array('amount', 'Giá trị'),
+			array('sales_stage', 'Giai đoạn'),
+			array('closingdate', 'Ngày đóng'),
+			array('related_to', 'Tổ chức'),
+			array('contact_id', 'Liên hệ'),
+			array('assigned_user_id', 'Phụ trách'),
+			array('createdtime', 'Ngày tạo'),
+		));
+
+		$viewer = $this->getViewer($request);
+		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, 'SALES', $infoFields, $title, $subtitle);
+		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 
 	protected function ensureSalesApp(Vtiger_Request $request) {

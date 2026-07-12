@@ -884,6 +884,145 @@
     $panel.data("mkQtInlineInit", true);
 
     var recordId = String($panel.data("record-id") || "");
+    var snapshot = {
+      fields: {},
+      description: $panel.find(".mk-so-inline-detail__notes-input").val() || "",
+    };
+    $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
+      var name = $(this).attr("name");
+      if (name) snapshot.fields[name] = $(this).val();
+    });
+
+    function setEditMode(enable) {
+      var isEdit = !!enable;
+      $panel.toggleClass("is-edit-mode", isEdit);
+      $panel
+        .find(".mk-so-inline-detail__edit-toggle")
+        .attr("aria-pressed", isEdit ? "true" : "false");
+      $panel.find(".mk-so-inline-detail__notes-input").prop("readonly", !isEdit);
+      if (
+        isEdit &&
+        typeof vtUtils !== "undefined" &&
+        vtUtils.applyFieldElementsView
+      ) {
+        vtUtils.applyFieldElementsView(
+          $panel
+            .find(".mk-so-inline-detail__field-edit .dateField")
+            .closest(".mk-so-inline-detail__field-edit"),
+        );
+      }
+    }
+
+    function restoreSnapshot() {
+      $.each(snapshot.fields || {}, function (name, value) {
+        $panel
+          .find('.mk-so-inline-detail__field-edit :input[name="' + name + '"]')
+          .val(value);
+      });
+      $panel
+        .find(".mk-so-inline-detail__notes-input")
+        .val(snapshot.description || "");
+    }
+
+    function updateViewValues() {
+      $panel
+        .find('.mk-so-inline-detail__field[data-editable="1"]')
+        .each(function () {
+          var $field = $(this);
+          var $input = $field
+            .find(".mk-so-inline-detail__field-edit :input")
+            .first();
+          var $view = $field.find(".mk-so-inline-detail__field-view");
+          if (!$input.length || !$view.length) return;
+          if ($input.is("select")) {
+            $view.text($input.find("option:selected").text() || "—");
+          } else {
+            $view.text($input.val() || "—");
+          }
+        });
+    }
+
+    $panel.on("click", ".mk-so-inline-detail__edit-toggle", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      setEditMode(true);
+      $panel.find(".mk-so-inline-detail__notes-input").focus();
+    });
+
+    $panel.on("click", ".mk-so-inline-detail__cancel-edit", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      restoreSnapshot();
+      setEditMode(false);
+    });
+
+    $panel.on("click", ".mk-so-inline-detail__save-btn", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!recordId) return;
+      var $saveBtn = $(this);
+      $saveBtn.prop("disabled", true);
+      var postData = {
+        record: recordId,
+        module: "Quotes",
+        action: "SaveAjax",
+        description: $panel.find(".mk-so-inline-detail__notes-input").val() || "",
+      };
+      $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
+        var name = $(this).attr("name");
+        if (name) postData[name] = $(this).val();
+      });
+      app.request.post({ data: postData }).then(function (err, response) {
+        $saveBtn.prop("disabled", false);
+        if (err) {
+          var message =
+            err && err.message ? err.message : "Không lưu được báo giá.";
+          if (app.helper && app.helper.showErrorNotification) {
+            app.helper.showErrorNotification({ message: message });
+          }
+          return;
+        }
+        if (response) {
+          $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
+            var name = $(this).attr("name");
+            if (!name || !response[name]) return;
+            var displayValue = response[name].display_value;
+            if (displayValue !== undefined && displayValue !== null) {
+              $panel
+                .find(
+                  '.mk-so-inline-detail__field[data-field-name="' +
+                    name +
+                    '"] .mk-so-inline-detail__field-view',
+                )
+                .html(displayValue);
+            }
+          });
+          if (response.description && response.description.value !== undefined) {
+            $panel
+              .find(".mk-so-inline-detail__notes-input")
+              .val(response.description.value);
+          }
+        } else {
+          updateViewValues();
+        }
+        snapshot = {
+          fields: {},
+          description: $panel.find(".mk-so-inline-detail__notes-input").val() || "",
+        };
+        $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
+          var name = $(this).attr("name");
+          if (name) snapshot.fields[name] = $(this).val();
+        });
+        setEditMode(false);
+        if (app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({
+            message: app.vtranslate
+              ? app.vtranslate("JS_RECORD_UPDATED")
+              : "Đã lưu thay đổi.",
+          });
+        }
+      });
+    });
 
     $panel.on("click", ".mk-so-inline-detail__view-full-btn", function (e) {
       e.preventDefault();

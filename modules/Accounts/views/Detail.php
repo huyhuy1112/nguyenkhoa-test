@@ -37,6 +37,7 @@ class Accounts_Detail_View extends Vtiger_Detail_View {
 			return '';
 		}
 
+		require_once 'modules/Vtiger/helpers/MkSalesInlineDetailHelper.php';
 		$moduleName = 'Accounts';
 		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
 		$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
@@ -47,44 +48,17 @@ class Accounts_Detail_View extends Vtiger_Detail_View {
 			$title = trim((string) $recordModel->getName());
 		}
 		$subtitle = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('account_no')), ENT_QUOTES, 'UTF-8'));
-		$notes = trim(strip_tags(decode_html((string) $recordModel->get('description'))));
-
-		$viewer->assign('RECORD', $recordModel);
-		$viewer->assign('MODULE', $moduleName);
-		$viewer->assign('INLINE_TITLE', $title !== '' ? $title : '—');
-		$viewer->assign('INLINE_SUBTITLE', $subtitle);
-		$viewer->assign('INLINE_NOTES', $notes);
-		$viewer->assign('INLINE_EDIT_URL', $recordModel->getEditViewUrl() . '&app=' . $app);
-		$viewer->assign('INLINE_DETAIL_URL', $recordModel->getDetailViewUrl() . '&app=' . $app);
-		$viewer->assign('INLINE_INFO_FIELDS', $this->getAccountsInlineInfoFields($moduleModel, $recordModel));
-
-		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
-	}
-
-	protected function getAccountsInlineInfoFields(Vtiger_Module_Model $moduleModel, Vtiger_Record_Model $recordModel) {
-		$candidates = array(
+		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
 			array('phone', 'SĐT'),
 			array('email1', 'Email'),
 			array('website', 'Website'),
 			array('bill_city', 'Thành phố'),
 			array('assigned_user_id', 'Phụ trách'),
 			array('createdtime', 'Ngày tạo'),
-		);
-		$fields = array();
-		foreach ($candidates as $pair) {
-			$fieldName = $pair[0];
-			$fieldModel = $moduleModel->getField($fieldName);
-			if (!$fieldModel || !$fieldModel->isViewable()) {
-				continue;
-			}
-			$value = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue($fieldName)), ENT_QUOTES, 'UTF-8'));
-			$fields[] = array(
-				'name' => $fieldName,
-				'label' => $pair[1],
-				'value' => $value !== '' ? $value : '—',
-			);
-		}
-		return $fields;
+		));
+		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, $app, $infoFields, $title, $subtitle);
+
+		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 
 	protected function assignModernAccountsDetailUi(Vtiger_Request $request) {

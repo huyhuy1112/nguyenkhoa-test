@@ -564,13 +564,16 @@
           var extra = nonSourceTags.length - tags.length;
           var checked = state.selected[l.id] ? " checked" : "";
           var tierCls = d.tierKey === "vang" ? "gold" : d.tierKey === "bac" ? "silver" : d.tierKey === "dong" ? "bronze" : "";
+          var crmId = leadCrmId(l);
           return (
             '<tr class="mk-leads-row' +
             (d.high ? " mk-leads-row--hot" : "") +
             (state.selected[l.id] ? " mk-leads-row--selected" : "") +
             '" data-id="' +
             esc(l.id) +
-            '">' +
+            '"' +
+            (crmId && /^\d+$/.test(crmId) ? ' data-crmid="' + esc(crmId) + '"' : "") +
+            ">" +
             '<td class="mk-leads-td mk-leads-td--check"><label class="mk-leads-check">' +
             '<input type="checkbox" class="mk-leads-check__input mk-leads-row-check" data-id="' +
             esc(l.id) +
@@ -939,10 +942,9 @@
           return;
         }
         if (e.target.closest && e.target.closest(".mk-leads-td--check")) return;
-        var tr = e.target.closest("tr[data-id]");
-        if (tr && !e.target.closest("a")) {
-          window.location.href = detailUrl(tr.getAttribute("data-id"));
-        }
+        // Row body click is handled by MkSalesPosInline (expand panel).
+        // Name link still navigates to full detail.
+        if (e.target.closest && e.target.closest("a.mk-leads-name")) return;
       });
 
     document.addEventListener("change", function (e) {

@@ -389,8 +389,13 @@
         .map(function (o) {
           var cats = categorize(o.tags);
           var amountCls = Number(o.amount) > 0 ? " mk-opps-amount--positive" : "";
+          var crmId = o.crmid != null && o.crmid !== "" ? String(o.crmid) : String(o.id || "");
           return (
-            '<tr class="mk-leads-row mk-opps-row" data-id="' + esc(o.id) + '">' +
+            '<tr class="mk-leads-row mk-opps-row" data-id="' +
+            esc(o.id) +
+            '"' +
+            (crmId && /^\d+$/.test(crmId) ? ' data-crmid="' + esc(crmId) + '"' : "") +
+            ">" +
             '<td class="mk-leads-td mk-leads-td--check"><label class="mk-leads-check">' +
             '<input type="checkbox" class="mk-leads-check__input mk-opps-row-check" data-id="' + esc(o.id) + '" />' +
             '<span class="mk-leads-check__ui" aria-hidden="true"></span></label></td>' +

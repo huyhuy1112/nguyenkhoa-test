@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * Leads Detail: modern SALES UI (UI-only demo — no CRM record required).
+ * Leads Detail: modern SALES UI + list inline dropdown panel.
  ************************************************************************************/
 
 class Leads_Detail_View extends Vtiger_Index_View {
@@ -59,9 +59,55 @@ class Leads_Detail_View extends Vtiger_Index_View {
 
 	public function process(Vtiger_Request $request) {
 		$this->redirectMarketingToSales($request);
+		$mode = $request->getMode();
+		if ($mode === 'showListInlineDetail') {
+			echo $this->showListInlineDetail($request);
+			return;
+		}
 		$viewer = $this->getViewer($request);
 		$this->assignModernContext($request);
 		$viewer->view('DetailView.tpl', $request->getModule());
+	}
+
+	/**
+	 * Expandable list-row detail panel (Quotes/SO style) with pencil inline edit.
+	 */
+	public function showListInlineDetail(Vtiger_Request $request) {
+		if (strtoupper((string) $request->get('app')) !== 'SALES') {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$recordId = (int) $request->get('record');
+		if ($recordId <= 0) {
+			return '<div class="mk-so-inline-detail mk-so-inline-detail--error">Không tải được chi tiết.</div>';
+		}
+
+		require_once 'modules/Vtiger/helpers/MkSalesInlineDetailHelper.php';
+		$moduleName = 'Leads';
+		try {
+			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+			$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+		} catch (Exception $e) {
+			return '<div class="mk-so-inline-detail mk-so-inline-detail--error">Không tải được chi tiết lead.</div>';
+		}
+
+		$title = trim((string) $recordModel->getName());
+		if ($title === '') {
+			$title = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('lastname')), ENT_QUOTES, 'UTF-8'));
+		}
+		$subtitle = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('lead_no')), ENT_QUOTES, 'UTF-8'));
+		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+			array('phone', 'Điện thoại'),
+			array('email', 'Email'),
+			array('company', 'Công ty'),
+			array('leadsource', 'Nguồn'),
+			array('leadstatus', 'Trạng thái'),
+			array('assigned_user_id', 'Phụ trách'),
+			array('createdtime', 'Ngày tạo'),
+		));
+
+		$viewer = $this->getViewer($request);
+		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, 'SALES', $infoFields, $title, $subtitle);
+		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 
 	public function checkPermission(Vtiger_Request $request) {

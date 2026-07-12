@@ -18,6 +18,49 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 	}
 
 	/**
+	 * Expandable list-row detail panel with pencil inline edit (Sales Mk list).
+	 * Overrides Accounts parent which hardcodes Organizations fields.
+	 */
+	public function showListInlineDetail(Vtiger_Request $request) {
+		$app = strtoupper((string) $request->get('app'));
+		if ($app !== 'SALES') {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$recordId = (int) $request->get('record');
+		if ($recordId <= 0) {
+			return '<div class="mk-so-inline-detail mk-so-inline-detail--error">Không tải được chi tiết.</div>';
+		}
+
+		require_once 'modules/Vtiger/helpers/MkSalesInlineDetailHelper.php';
+		$moduleName = 'Contacts';
+		try {
+			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+			$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+		} catch (Exception $e) {
+			return '<div class="mk-so-inline-detail mk-so-inline-detail--error">Không tải được chi tiết khách hàng.</div>';
+		}
+
+		$title = trim((string) $recordModel->getName());
+		if ($title === '') {
+			$title = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('lastname')), ENT_QUOTES, 'UTF-8'));
+		}
+		$subtitle = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('contact_no')), ENT_QUOTES, 'UTF-8'));
+		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+			array('phone', 'Điện thoại'),
+			array('mobile', 'Di động'),
+			array('email', 'Email'),
+			array('account_id', 'Tổ chức'),
+			array('title', 'Chức danh'),
+			array('assigned_user_id', 'Phụ trách'),
+			array('createdtime', 'Ngày tạo'),
+		));
+
+		$viewer = $this->getViewer($request);
+		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, $app, $infoFields, $title, $subtitle);
+		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
+	}
+
+	/**
 	 * Sales + Marketing use the same modern Contacts detail shell (templates + ContactsDetail.css).
 	 */
 	protected function isModernContactDetailUi(Vtiger_Request $request) {

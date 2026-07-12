@@ -1739,6 +1739,12 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 	display: inline-flex !important;
 }
 
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__save-btn {
+	border-color: #08A045;
+	color: #08A045;
+	background: #ecfdf5;
+}
+
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__action[disabled] {
 	opacity: 0.6;
 	cursor: not-allowed;
