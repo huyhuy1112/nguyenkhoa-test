@@ -363,6 +363,278 @@
 		renderAll();
 	}
 
+	function inboundPrintPreviewUrl(receiptId) {
+		var whId = getWhId();
+		return 'index.php?module=Warehouse&action=ExportInboundPDF&warehouse=' +
+			encodeURIComponent(whId || '') +
+			'&record=' + encodeURIComponent(receiptId || '') +
+			'&preview=1&format=html&app=INVENTORY';
+	}
+
+	function inboundPrintDownloadUrl(receiptId) {
+		var whId = getWhId();
+		return 'index.php?module=Warehouse&action=ExportInboundPDF&warehouse=' +
+			encodeURIComponent(whId || '') +
+			'&record=' + encodeURIComponent(receiptId || '') +
+			'&download=1&format=pdf&app=INVENTORY';
+	}
+
+	function closeInboundPrintPreview() {
+		var modal = qs('#mkWhInboundPrintPreview');
+		if (!modal) return;
+		modal.classList.remove('is-open');
+		modal.setAttribute('aria-hidden', 'true');
+		var frame = modal.querySelector('iframe');
+		if (frame) frame.src = 'about:blank';
+		modal.removeAttribute('data-receipt-id');
+		modal.removeAttribute('data-previewed');
+		document.body.classList.remove('mk-wh-inbound-print-open');
+		var dl = modal.querySelector('[data-mk-print-download="1"]');
+		if (dl) {
+			dl.disabled = true;
+			dl.setAttribute('aria-disabled', 'true');
+			dl.title = 'Xem trước xong mới tải được PDF';
+		}
+	}
+
+	function ensureInboundPrintPreviewModal() {
+		var modal = qs('#mkWhInboundPrintPreview');
+		if (modal) return modal;
+		modal = document.createElement('div');
+		modal.id = 'mkWhInboundPrintPreview';
+		modal.className = 'mk-wh-inbound-print-preview';
+		modal.setAttribute('aria-hidden', 'true');
+		modal.innerHTML =
+			'<div class="mk-wh-inbound-print-preview__dialog" role="dialog" aria-labelledby="mkWhInboundPrintTitle">' +
+				'<div class="mk-wh-inbound-print-preview__head">' +
+					'<h3 id="mkWhInboundPrintTitle">Xem trước phiếu nhập kho</h3>' +
+					'<button type="button" class="mk-wh-inbound-print-preview__close" data-mk-print-close="1" aria-label="Đóng">&times;</button>' +
+				'</div>' +
+				'<div class="mk-wh-inbound-print-preview__body">' +
+					'<div class="mk-wh-inbound-print-preview__hint">Xem trước mẫu PHIẾU NHẬP KHO (01 - VT). Tải PDF chỉ bật sau khi bản xem trước đã tải xong.</div>' +
+					'<iframe class="mk-wh-inbound-print-preview__frame" title="Xem trước phiếu nhập kho" src="about:blank"></iframe>' +
+				'</div>' +
+				'<div class="mk-wh-inbound-print-preview__foot">' +
+					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-print-close="1">Đóng</button>' +
+					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--primary" data-mk-print-download="1" disabled aria-disabled="true" title="Xem trước xong mới tải được PDF">' +
+						'<i class="fa fa-download" aria-hidden="true"></i> Tải PDF' +
+					'</button>' +
+				'</div>' +
+			'</div>';
+		document.body.appendChild(modal);
+
+		modal.addEventListener('click', function (e) {
+			if (e.target === modal || (e.target && e.target.getAttribute && e.target.getAttribute('data-mk-print-close') === '1')) {
+				e.preventDefault();
+				closeInboundPrintPreview();
+			}
+		});
+		var dlBtn = modal.querySelector('[data-mk-print-download="1"]');
+		if (dlBtn) {
+			dlBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (modal.getAttribute('data-previewed') !== '1') {
+					showError('Hãy xem trước phiếu trước khi tải PDF.');
+					return;
+				}
+				var rid = modal.getAttribute('data-receipt-id') || '';
+				if (!rid) return;
+				var url = inboundPrintDownloadUrl(rid);
+				// New tab is more reliable than hidden iframe (CSRF/frame-breaker).
+				var opened = window.open(url, '_blank');
+				if (!opened) {
+					var a = document.createElement('a');
+					a.href = url;
+					a.target = '_blank';
+					a.rel = 'noopener';
+					document.body.appendChild(a);
+					a.click();
+					setTimeout(function () { a.remove(); }, 0);
+				}
+			});
+		}
+		return modal;
+	}
+
+	function openInboundPrintPreview(receiptId) {
+		if (getRole() !== 'manager') {
+			showError('Chỉ Quản lý kho được in phiếu nhập.');
+			return;
+		}
+		if (!receiptId) return;
+		var modal = ensureInboundPrintPreviewModal();
+		var frame = modal.querySelector('iframe');
+		var dl = modal.querySelector('[data-mk-print-download="1"]');
+		modal.setAttribute('data-receipt-id', receiptId);
+		modal.setAttribute('data-previewed', '0');
+		if (dl) {
+			dl.disabled = true;
+			dl.setAttribute('aria-disabled', 'true');
+			dl.title = 'Xem trước xong mới tải được PDF';
+		}
+		if (frame) {
+			var markPreviewReady = function () {
+				modal.setAttribute('data-previewed', '1');
+				if (dl) {
+					dl.disabled = false;
+					dl.removeAttribute('aria-disabled');
+					dl.title = 'Tải bản PDF phiếu nhập kho';
+				}
+			};
+			frame.onload = markPreviewReady;
+			// Preview only — never trigger download on open
+			frame.src = inboundPrintPreviewUrl(receiptId);
+			// Fallback if onload is swallowed by some browsers
+			setTimeout(function () {
+				if (modal.getAttribute('data-previewed') !== '1') {
+					markPreviewReady();
+				}
+			}, 1800);
+		}
+		modal.classList.add('is-open');
+		modal.setAttribute('aria-hidden', 'false');
+		document.body.classList.add('mk-wh-inbound-print-open');
+	}
+
+	function outboundPrintPreviewUrl(issueId) {
+		var whId = getWhId();
+		return 'index.php?module=Warehouse&action=ExportOutboundPDF&warehouse=' +
+			encodeURIComponent(whId || '') +
+			'&record=' + encodeURIComponent(issueId || '') +
+			'&preview=1&format=html&app=INVENTORY';
+	}
+
+	function outboundPrintDownloadUrl(issueId) {
+		var whId = getWhId();
+		return 'index.php?module=Warehouse&action=ExportOutboundPDF&warehouse=' +
+			encodeURIComponent(whId || '') +
+			'&record=' + encodeURIComponent(issueId || '') +
+			'&download=1&format=pdf&app=INVENTORY';
+	}
+
+	function closeOutboundPrintPreview() {
+		var modal = qs('#mkWhOutboundPrintPreview');
+		if (!modal) return;
+		modal.classList.remove('is-open');
+		modal.setAttribute('aria-hidden', 'true');
+		var frame = modal.querySelector('iframe');
+		if (frame) frame.src = 'about:blank';
+		modal.removeAttribute('data-issue-id');
+		modal.removeAttribute('data-previewed');
+		document.body.classList.remove('mk-wh-inbound-print-open');
+		var dl = modal.querySelector('[data-mk-print-download="1"]');
+		if (dl) {
+			dl.disabled = true;
+			dl.setAttribute('aria-disabled', 'true');
+			dl.title = 'Xem trước xong mới tải được PDF';
+		}
+	}
+
+	function ensureOutboundPrintPreviewModal() {
+		var modal = qs('#mkWhOutboundPrintPreview');
+		if (modal) return modal;
+		modal = document.createElement('div');
+		modal.id = 'mkWhOutboundPrintPreview';
+		modal.className = 'mk-wh-inbound-print-preview';
+		modal.setAttribute('aria-hidden', 'true');
+		modal.innerHTML =
+			'<div class="mk-wh-inbound-print-preview__dialog" role="dialog" aria-labelledby="mkWhOutboundPrintTitle">' +
+				'<div class="mk-wh-inbound-print-preview__head">' +
+					'<h3 id="mkWhOutboundPrintTitle">Xem trước phiếu xuất kho</h3>' +
+					'<button type="button" class="mk-wh-inbound-print-preview__close" data-mk-print-close="1" aria-label="Đóng">&times;</button>' +
+				'</div>' +
+				'<div class="mk-wh-inbound-print-preview__body">' +
+					'<div class="mk-wh-inbound-print-preview__hint">Xem trước mẫu PHIẾU XUẤT KHO (02 - VT). Tải PDF chỉ bật sau khi bản xem trước đã tải xong.</div>' +
+					'<iframe class="mk-wh-inbound-print-preview__frame" title="Xem trước phiếu xuất kho" src="about:blank"></iframe>' +
+				'</div>' +
+				'<div class="mk-wh-inbound-print-preview__foot">' +
+					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-print-close="1">Đóng</button>' +
+					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--primary" data-mk-print-download="1" disabled aria-disabled="true" title="Xem trước xong mới tải được PDF">' +
+						'<i class="fa fa-download" aria-hidden="true"></i> Tải PDF' +
+					'</button>' +
+				'</div>' +
+			'</div>';
+		document.body.appendChild(modal);
+
+		modal.addEventListener('click', function (e) {
+			if (e.target === modal || (e.target && e.target.getAttribute && e.target.getAttribute('data-mk-print-close') === '1')) {
+				e.preventDefault();
+				closeOutboundPrintPreview();
+			}
+		});
+		var dlBtn = modal.querySelector('[data-mk-print-download="1"]');
+		if (dlBtn) {
+			dlBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (modal.getAttribute('data-previewed') !== '1') {
+					showError('Hãy xem trước phiếu trước khi tải PDF.');
+					return;
+				}
+				var iid = modal.getAttribute('data-issue-id') || '';
+				if (!iid) return;
+				var url = outboundPrintDownloadUrl(iid);
+				var opened = window.open(url, '_blank');
+				if (!opened) {
+					var a = document.createElement('a');
+					a.href = url;
+					a.target = '_blank';
+					a.rel = 'noopener';
+					document.body.appendChild(a);
+					a.click();
+					setTimeout(function () { a.remove(); }, 0);
+				}
+			});
+		}
+		return modal;
+	}
+
+	function openOutboundPrintPreview(issueId) {
+		if (getRole() !== 'manager') {
+			showError('Chỉ Quản lý kho được in phiếu xuất.');
+			return;
+		}
+		if (!issueId) return;
+		var whId = getWhId();
+		var d = whId ? S.ensureData(whId) : null;
+		var issue = d && (d.issues || []).find(function (x) { return x.id === issueId; });
+		if (!issue || issue.status !== 'waiting_print') {
+			showError('Chỉ in được khi phiếu xuất ở trạng thái Chờ in phiếu.');
+			return;
+		}
+		var modal = ensureOutboundPrintPreviewModal();
+		var frame = modal.querySelector('iframe');
+		var dl = modal.querySelector('[data-mk-print-download="1"]');
+		modal.setAttribute('data-issue-id', issueId);
+		modal.setAttribute('data-previewed', '0');
+		if (dl) {
+			dl.disabled = true;
+			dl.setAttribute('aria-disabled', 'true');
+			dl.title = 'Xem trước xong mới tải được PDF';
+		}
+		if (frame) {
+			var markPreviewReady = function () {
+				modal.setAttribute('data-previewed', '1');
+				if (dl) {
+					dl.disabled = false;
+					dl.removeAttribute('aria-disabled');
+					dl.title = 'Tải bản PDF phiếu xuất kho';
+				}
+			};
+			frame.onload = markPreviewReady;
+			frame.src = outboundPrintPreviewUrl(issueId);
+			setTimeout(function () {
+				if (modal.getAttribute('data-previewed') !== '1') {
+					markPreviewReady();
+				}
+			}, 1800);
+		}
+		modal.classList.add('is-open');
+		modal.setAttribute('aria-hidden', 'false');
+		document.body.classList.add('mk-wh-inbound-print-open');
+	}
+
 	function renderInbounds() {
 		var id = getWhId();
 		var tbody = qs('#mkWhProtoInboundTbody');
@@ -376,7 +648,12 @@
 				'<td>' + escapeHtml(decodeEntities(r.poRef)) + '</td>' +
 				'<td>' + escapeHtml(fmtDateTime(r.createdAt)) + '</td>' +
 				'<td><span class="' + escapeHtml(st.cls) + '">' + escapeHtml(st.label) + '</span></td>' +
-				'<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="inbound-detail" data-id="' + escapeHtml(r.id) + '">Mở</button></td>' +
+				'<td class="mk-wh-proto-td-right mk-wh-proto-actions">' +
+					'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="inbound-detail" data-id="' + escapeHtml(r.id) + '">Mở</button>' +
+					(getRole() === 'manager'
+						? ' <button class="mk-wh-proto-mini-btn mk-wh-proto-mini-btn--print" type="button" data-mk-action="inbound-print" data-id="' + escapeHtml(r.id) + '">In</button>'
+						: '') +
+				'</td>' +
 			'</tr>';
 		}).join('');
 	}
@@ -487,7 +764,12 @@
 				'<td>' + escText(i.soRef || '—') + '</td>' +
 				'<td>' + escapeHtml(fmtDateTime(i.createdAt)) + '</td>' +
 				'<td>' + issueStatusPill(i.status) + '</td>' +
-				'<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="outbound-detail" data-id="' + escText(i.id) + '">Chi tiết</button></td>' +
+				'<td class="mk-wh-proto-td-right mk-wh-proto-actions">' +
+					'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="outbound-detail" data-id="' + escText(i.id) + '">Chi tiết</button>' +
+					(getRole() === 'manager' && i.status === 'waiting_print'
+						? ' <button class="mk-wh-proto-mini-btn mk-wh-proto-mini-btn--print" type="button" data-mk-action="outbound-print" data-id="' + escText(i.id) + '">In</button>'
+						: '') +
+				'</td>' +
 			'</tr>';
 		}).join('');
 	}
@@ -1662,6 +1944,14 @@
 				if (!r) return;
 				var dialog = receiptDialog(r);
 				openDialog(dialog.title, dialog.meta, dialog.body);
+				return;
+			}
+			if (action === 'inbound-print' && id) {
+				openInboundPrintPreview(id);
+				return;
+			}
+			if (action === 'outbound-print' && id) {
+				openOutboundPrintPreview(id);
 				return;
 			}
 			if (action === 'qc-record' && id) {

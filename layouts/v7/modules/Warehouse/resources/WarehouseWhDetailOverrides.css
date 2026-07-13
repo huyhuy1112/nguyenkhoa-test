@@ -340,3 +340,119 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh
 	border-top: 1px solid rgba(99, 102, 241, 0.1);
 	background: #fafbff;
 }
+
+/* Inbound print preview (PHIẾU NHẬP KHO) */
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-actions {
+	white-space: nowrap;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-mini-btn--print {
+	margin-left: 6px;
+	border-color: rgba(8, 160, 69, 0.35);
+	color: #067a37;
+	background: #ecfdf5;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-mini-btn--print:hover {
+	background: #d1fae5;
+	border-color: #08A045;
+}
+
+body.mk-wh-inbound-print-open {
+	overflow: hidden;
+}
+
+.mk-wh-inbound-print-preview {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 12000;
+	background: rgba(15, 23, 42, 0.55);
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+}
+
+.mk-wh-inbound-print-preview.is-open {
+	display: flex;
+}
+
+.mk-wh-inbound-print-preview__dialog {
+	width: min(980px, 98vw);
+	height: min(94vh, 980px);
+	background: #fff;
+	border-radius: 14px;
+	box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.mk-wh-inbound-print-preview__head,
+.mk-wh-inbound-print-preview__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 16px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.mk-wh-inbound-print-preview__foot {
+	border-bottom: 0;
+	border-top: 1px solid #e2e8f0;
+	justify-content: flex-end;
+}
+
+.mk-wh-inbound-print-preview__head h3 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+.mk-wh-inbound-print-preview__close {
+	border: 0;
+	background: transparent;
+	font-size: 24px;
+	line-height: 1;
+	color: #64748b;
+	cursor: pointer;
+}
+
+.mk-wh-inbound-print-preview__body {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	background: #e8eaed;
+}
+
+.mk-wh-inbound-print-preview__hint {
+	padding: 8px 16px;
+	font-size: 12px;
+	color: #475569;
+	background: #ecfdf5;
+	border-bottom: 1px solid #d1fae5;
+}
+
+.mk-wh-inbound-print-preview__frame {
+	flex: 1;
+	width: 100%;
+	border: 0;
+	background: #e8eaed;
+	min-height: 420px;
+}
+
+.mk-wh-inbound-print-preview__foot [data-mk-print-download="1"][disabled] {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.mk-wh-inbound-print-download-frame {
+	position: absolute;
+	width: 0;
+	height: 0;
+	border: 0;
+	visibility: hidden;
+}

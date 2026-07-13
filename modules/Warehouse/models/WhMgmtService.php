@@ -719,8 +719,33 @@ class Warehouse_WhMgmtService {
 	}
 
 	protected static function loadReceiptItems(PearDatabase $db, $receiptId, array $meta = array()) {
+		$hasUnitPrice = false;
+		$hasProductType = false;
+		try {
+			$colRs = $db->getColumnNames('vtiger_goodsreceipt_items');
+			if (is_array($colRs)) {
+				foreach ($colRs as $c) {
+					$lc = strtolower((string) $c);
+					if ($lc === 'unit_price') {
+						$hasUnitPrice = true;
+					}
+					if ($lc === 'product_type') {
+						$hasProductType = true;
+					}
+				}
+			}
+		} catch (Exception $e) {
+			// ignore
+		}
+		$cols = 'product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location';
+		if ($hasUnitPrice) {
+			$cols .= ', unit_price';
+		}
+		if ($hasProductType) {
+			$cols .= ', product_type';
+		}
 		$rs = $db->pquery(
-			'SELECT product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location
+			'SELECT ' . $cols . '
 			 FROM vtiger_goodsreceipt_items
 			 WHERE receiptid = ?
 			 ORDER BY itemid ASC',
@@ -740,6 +765,8 @@ class Warehouse_WhMgmtService {
 				'mfg' => self::normalizeDateValue(isset($row['mfg_date']) ? $row['mfg_date'] : ''),
 				'expiry' => self::normalizeDateValue(isset($row['expired_date']) ? $row['expired_date'] : ''),
 				'qty' => (float) $row['quantity'],
+				'unit_price' => $hasUnitPrice ? (float) (isset($row['unit_price']) ? $row['unit_price'] : 0) : 0,
+				'unit' => $hasProductType ? self::decodeDisplayTextDeep((string) (isset($row['product_type']) ? $row['product_type'] : '')) : '',
 				'location' => self::decodeDisplayTextDeep((string) (isset($row['storage_location']) ? $row['storage_location'] : '')),
 			);
 			if ($qcResult !== '') {
@@ -1757,6 +1784,250 @@ class Warehouse_WhMgmtService {
 				$now,
 				$userId,
 			)
+		);
+	}
+
+	/**
+	 * Payload for PHIẾU NHẬP KHO print/PDF (Mẫu số 01 - VT).
+	 *
+	 * @return array{receipt:array,warehouse:array,company:string}
+	 */
+	public static function getInboundReceiptPrintPayload($warehouseCode, $receiptCode) {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$warehouseCode = trim((string) $warehouseCode);
+		$receiptCode = trim((string) $receiptCode);
+		if ($warehouseCode === '' || $receiptCode === '') {
+			throw new Exception('Thiếu mã kho hoặc mã phiếu nhập.');
+		}
+		$wh = self::findWarehouseRowByCode($db, $warehouseCode);
+		if (!$wh) {
+			throw new Exception('Không tìm thấy kho.');
+		}
+		$rs = $db->pquery(
+			'SELECT receiptid, code, source_name, status, createdtime, mk_meta_json, note
+			 FROM vtiger_goodsreceipt
+			 WHERE deleted = 0 AND warehouse_id = ? AND code = ?
+			 LIMIT 1',
+			array($warehouseCode, $receiptCode)
+		);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			throw new Exception('Không tìm thấy phiếu nhập.');
+		}
+		$row = $db->fetchByAssoc($rs);
+		$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
+		$created = isset($row['createdtime']) ? (string) $row['createdtime'] : '';
+		$dbStatus = (string) (isset($row['status']) ? $row['status'] : 'stored');
+		self::syncQcMetaFromStorage($meta, $dbStatus, isset($row['note']) ? $row['note'] : '');
+		self::normalizeReceiptTimeline($meta, $created, $dbStatus);
+		$items = self::loadReceiptItems($db, (int) $row['receiptid'], $meta);
+		foreach ($items as &$item) {
+			if ((float) $item['unit_price'] > 0) {
+				continue;
+			}
+			$sku = trim((string) (isset($item['sku']) ? $item['sku'] : ''));
+			$name = trim((string) (isset($item['name']) ? $item['name'] : ''));
+			$price = 0.0;
+			if ($sku !== '') {
+				$prs = $db->pquery(
+					'SELECT ps.price FROM vtiger_productsservices ps
+					 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
+					 WHERE ps.sku = ? LIMIT 1',
+					array($sku)
+				);
+				if ($prs && $db->num_rows($prs) > 0) {
+					$price = (float) $db->query_result($prs, 0, 'price');
+				}
+			}
+			if ($price <= 0 && $name !== '') {
+				$prs = $db->pquery(
+					'SELECT ps.price FROM vtiger_productsservices ps
+					 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
+					 WHERE ps.productsservicesname = ? LIMIT 1',
+					array($name)
+				);
+				if ($prs && $db->num_rows($prs) > 0) {
+					$price = (float) $db->query_result($prs, 0, 'price');
+				}
+			}
+			if ($price > 0) {
+				$item['unit_price'] = $price;
+			}
+		}
+		unset($item);
+
+		$company = 'Nguyên Khoa';
+		try {
+			require_once 'modules/Quotes/helpers/QuoteExcelExport.php';
+			if (class_exists('Quotes_QuoteExcelExport_Helper') && method_exists('Quotes_QuoteExcelExport_Helper', 'nkCompanyName')) {
+				$company = Quotes_QuoteExcelExport_Helper::nkCompanyName();
+			}
+		} catch (Exception $e) {
+			// keep default
+		}
+
+		return array(
+			'receipt' => array(
+				'id' => (string) $row['code'],
+				'supplier' => self::decodeDisplayTextDeep((string) (isset($row['source_name']) ? $row['source_name'] : '')),
+				'poRef' => self::decodeDisplayTextDeep((string) (isset($meta['poRef']) ? $meta['poRef'] : '')),
+				'createdAt' => $created,
+				'createdBy' => self::decodeDisplayTextDeep((string) (isset($meta['createdBy']) ? $meta['createdBy'] : '')),
+				'status' => $dbStatus !== '' ? $dbStatus : 'stored',
+				'lines' => $items,
+				'note' => self::decodeDisplayTextDeep((string) (isset($row['note']) ? $row['note'] : '')),
+			),
+			'warehouse' => array(
+				'code' => (string) (isset($wh['code']) ? $wh['code'] : $warehouseCode),
+				'name' => self::decodeDisplayTextDeep((string) (isset($wh['name']) ? $wh['name'] : '')),
+				'address' => self::decodeDisplayTextDeep((string) (isset($wh['address']) ? $wh['address'] : '')),
+				'manager' => self::decodeDisplayTextDeep((string) (isset($wh['manager']) ? $wh['manager'] : '')),
+			),
+			'company' => $company,
+		);
+	}
+
+	/**
+	 * Payload in PHIẾU XUẤT KHO (02-VT) — HTML preview / PDF.
+	 */
+	public static function getOutboundIssuePrintPayload($warehouseCode, $issueCode) {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$warehouseCode = trim((string) $warehouseCode);
+		$issueCode = trim((string) $issueCode);
+		if ($warehouseCode === '' || $issueCode === '') {
+			throw new Exception('Thiếu mã kho hoặc mã phiếu xuất.');
+		}
+		$wh = self::findWarehouseRowByCode($db, $warehouseCode);
+		if (!$wh) {
+			throw new Exception('Không tìm thấy kho.');
+		}
+		$rs = $db->pquery(
+			'SELECT issueid, code, destination, status, createdtime, mk_meta_json, salesorder_id
+			 FROM vtiger_goodsissue
+			 WHERE deleted = 0 AND warehouse_id = ? AND code = ?
+			 LIMIT 1',
+			array($warehouseCode, $issueCode)
+		);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			throw new Exception('Không tìm thấy phiếu xuất.');
+		}
+		$row = $db->fetchByAssoc($rs);
+		$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
+		$created = isset($row['createdtime']) ? (string) $row['createdtime'] : '';
+		$salesOrderId = (int) (isset($row['salesorder_id']) ? $row['salesorder_id'] : 0);
+		$outboundType = (string) (isset($meta['outboundType']) ? $meta['outboundType'] : '');
+		$customer = self::decodeDisplayTextDeep((string) (isset($row['destination']) ? $row['destination'] : ''));
+		$soRef = self::decodeDisplayTextDeep((string) (isset($meta['soRef']) ? $meta['soRef'] : ''));
+		$receiverAddress = self::decodeDisplayTextDeep((string) (isset($meta['receiverAddress']) ? $meta['receiverAddress'] : ''));
+		if ($receiverAddress === '' && isset($meta['address'])) {
+			$receiverAddress = self::decodeDisplayTextDeep((string) $meta['address']);
+		}
+		if ($salesOrderId > 0) {
+			if ($outboundType === '' || $outboundType === 'internal') {
+				$outboundType = 'sale';
+			}
+			$soCtx = self::loadSalesOrderOutboundContext($db, $salesOrderId);
+			if ($soCtx['contact'] !== '') {
+				$customer = $soCtx['contact'];
+			} elseif ($customer === '' && $soCtx['organization'] !== '') {
+				$customer = $soCtx['organization'];
+			}
+			if ($soRef === '' && $soCtx['soRef'] !== '') {
+				$soRef = $soCtx['soRef'];
+			}
+			if ($receiverAddress === '' && $soCtx['organization'] !== '' && $soCtx['organization'] !== $customer) {
+				$receiverAddress = $soCtx['organization'];
+			}
+		}
+		if ($outboundType === '') {
+			$outboundType = 'internal';
+		}
+
+		$reason = self::decodeDisplayTextDeep((string) (isset($meta['reason']) ? $meta['reason'] : ''));
+		if ($reason === '' && isset($meta['lyDoXuat'])) {
+			$reason = self::decodeDisplayTextDeep((string) $meta['lyDoXuat']);
+		}
+		if ($reason === '') {
+			if ($outboundType === 'sale') {
+				$reason = $soRef !== '' ? ('Xuất bán theo đơn hàng ' . $soRef) : 'Xuất bán hàng';
+			} elseif ($outboundType === 'transfer') {
+				$reason = 'Xuất điều chuyển kho';
+			} else {
+				$reason = 'Xuất kho nội bộ';
+			}
+		}
+
+		$items = self::loadIssueItems($db, (int) $row['issueid']);
+		foreach ($items as &$item) {
+			$sku = trim((string) (isset($item['sku']) ? $item['sku'] : ''));
+			$name = trim((string) (isset($item['name']) ? $item['name'] : ''));
+			$price = (float) (isset($item['unit_price']) ? $item['unit_price'] : 0);
+			$unit = trim((string) (isset($item['unit']) ? $item['unit'] : ''));
+			if ($price <= 0) {
+				$prs = null;
+				if ($sku !== '') {
+					$prs = $db->pquery(
+						'SELECT ps.price FROM vtiger_productsservices ps
+						 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
+						 WHERE ps.sku = ? LIMIT 1',
+						array($sku)
+					);
+				}
+				if ((!$prs || $db->num_rows($prs) < 1) && $name !== '') {
+					$prs = $db->pquery(
+						'SELECT ps.price FROM vtiger_productsservices ps
+						 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
+						 WHERE ps.productsservicesname = ? LIMIT 1',
+						array($name)
+					);
+				}
+				if ($prs && $db->num_rows($prs) > 0) {
+					$price = (float) $db->query_result($prs, 0, 'price');
+				}
+			}
+			if ($price > 0) {
+				$item['unit_price'] = $price;
+			}
+			if ($unit !== '') {
+				$item['unit'] = $unit;
+			}
+			if (!isset($item['qty_request']) || (float) $item['qty_request'] <= 0) {
+				$item['qty_request'] = (float) (isset($item['qty']) ? $item['qty'] : 0);
+			}
+		}
+		unset($item);
+
+		$company = 'Nguyên Khoa';
+		try {
+			require_once 'modules/Quotes/helpers/QuoteExcelExport.php';
+			if (class_exists('Quotes_QuoteExcelExport_Helper') && method_exists('Quotes_QuoteExcelExport_Helper', 'nkCompanyName')) {
+				$company = Quotes_QuoteExcelExport_Helper::nkCompanyName();
+			}
+		} catch (Exception $e) {
+			// keep default
+		}
+
+		return array(
+			'issue' => array(
+				'id' => (string) $row['code'],
+				'receiver' => $customer,
+				'receiverAddress' => $receiverAddress,
+				'reason' => $reason,
+				'soRef' => $soRef,
+				'outboundType' => $outboundType,
+				'createdAt' => $created,
+				'createdBy' => self::decodeDisplayTextDeep((string) (isset($meta['createdBy']) ? $meta['createdBy'] : '')),
+				'status' => (string) (isset($row['status']) ? $row['status'] : ''),
+				'lines' => $items,
+			),
+			'warehouse' => array(
+				'code' => (string) (isset($wh['code']) ? $wh['code'] : $warehouseCode),
+				'name' => self::decodeDisplayTextDeep((string) (isset($wh['name']) ? $wh['name'] : '')),
+				'address' => self::decodeDisplayTextDeep((string) (isset($wh['address']) ? $wh['address'] : '')),
+				'manager' => self::decodeDisplayTextDeep((string) (isset($wh['manager']) ? $wh['manager'] : '')),
+			),
+			'company' => $company,
 		);
 	}
 }
