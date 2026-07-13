@@ -358,6 +358,18 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh
 	border-color: #08A045;
 }
 
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-mini-btn--cancel {
+	margin-right: 6px;
+	border-color: rgba(185, 28, 28, 0.35);
+	color: #b91c1c;
+	background: #fef2f2;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-mini-btn--cancel:hover {
+	background: #fee2e2;
+	border-color: #dc2626;
+}
+
 body.mk-wh-inbound-print-open {
 	overflow: hidden;
 }

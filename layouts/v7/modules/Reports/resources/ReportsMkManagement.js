@@ -21,84 +21,321 @@
 		};
 	}
 
-	function initDemoCharts() {
-		if (typeof Chart === 'undefined') {
+	function parseJsonEl(id) {
+		try {
+			var el = document.getElementById(id);
+			if (!el || !el.textContent) return null;
+			var raw = el.textContent.replace(/^\s+|\s+$/g, '');
+			if (!raw || raw === 'null') return null;
+			return JSON.parse(raw);
+		} catch (e) {
+			return null;
+		}
+	}
+
+	function setHint(id, msg) {
+		var el = document.getElementById(id);
+		if (el) el.textContent = msg || '';
+	}
+
+	function ensureChartJs(cb) {
+		if (typeof window.Chart !== 'undefined') {
+			cb();
 			return;
 		}
-		var colors = chartThemeColors();
-		var mktCtx = document.getElementById('mgmt-mkt-chart');
-		if (mktCtx) {
-			new Chart(mktCtx, {
-				type: 'line',
-				data: {
-					labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'],
-					datasets: [{
-						label: 'MKT Sale (demo)',
-						data: [10, 22, 18, 30, 26, 35],
-						borderColor: '#08A045',
-						backgroundColor: 'rgba(8, 160, 69, 0.25)',
-						tension: 0.3,
-						fill: true,
-						pointRadius: 3
-					}]
-				},
-				options: {
-					responsive: true,
-					plugins: { legend: { display: false } },
-					scales: {
-						x: {
-							ticks: { color: colors.tick },
-							grid: { color: colors.grid }
+		var existing = document.querySelector('script[data-mk-chartjs="1"]');
+		if (existing) {
+			var tries = 0;
+			var t = setInterval(function () {
+				tries++;
+				if (typeof window.Chart !== 'undefined') {
+					clearInterval(t);
+					cb();
+				} else if (tries > 80) {
+					clearInterval(t);
+					cb();
+				}
+			}, 100);
+			return;
+		}
+		var s = document.createElement('script');
+		s.src = 'layouts/v7/modules/Reports/resources/vendor/chart.umd.min.js';
+		s.async = true;
+		s.setAttribute('data-mk-chartjs', '1');
+		s.onload = function () { cb(); };
+		s.onerror = function () {
+			var s2 = document.createElement('script');
+			s2.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+			s2.async = true;
+			s2.setAttribute('data-mk-chartjs', '1');
+			s2.onload = function () { cb(); };
+			s2.onerror = function () { cb(); };
+			document.head.appendChild(s2);
+		};
+		document.head.appendChild(s);
+	}
+
+	function initDemoCharts() {
+		if (typeof window.Chart === 'undefined') {
+			setHint('mgmt-mkt-combined-hint', 'Không tải được thư viện biểu đồ.');
+			setHint('mgmt-mkt-class-hint', 'Không tải được thư viện biểu đồ.');
+			setHint('mgmt-mkt-month-hint', 'Không tải được thư viện biểu đồ.');
+			return;
+		}
+		if (window.__mkMktChartsReady) {
+			return;
+		}
+		window.__mkMktChartsReady = true;
+
+		var daily = parseJsonEl('mgmt-mkt-chart-data') || [];
+		var monthly = parseJsonEl('mgmt-mkt-monthly-data') || [];
+		var classDays = parseJsonEl('mgmt-mkt-class-data') || [];
+		var tick = '#64748b';
+		var grid = 'rgba(15, 23, 42, 0.06)';
+
+		// --- Bảng 1: 1 biểu đồ tổng hợp ---
+		var combinedCtx = document.getElementById('mgmt-mkt-combined-chart');
+		if (combinedCtx) {
+			var rows = (daily || []).filter(function (r) { return Number(r.total_leads) > 0; });
+			if (!rows.length) {
+				rows = (daily || []).slice(0, 31);
+			}
+			if (!rows.length) {
+				setHint('mgmt-mkt-combined-hint', 'Chưa có dữ liệu ngày để vẽ biểu đồ.');
+			} else {
+				setHint('mgmt-mkt-combined-hint', '');
+				new Chart(combinedCtx, {
+					type: 'bar',
+					data: {
+						labels: rows.map(function (r) { return r.label || r.date; }),
+						datasets: [
+							{
+								type: 'line',
+								label: 'Tổng Data MKT',
+								data: rows.map(function (r) { return Number(r.total_leads) || 0; }),
+								borderColor: '#0B6E4F',
+								backgroundColor: 'rgba(8, 160, 69, 0.12)',
+								fill: true,
+								tension: 0.3,
+								pointRadius: 3,
+								borderWidth: 2,
+								yAxisID: 'y',
+								order: 1
+							},
+							{
+								type: 'bar',
+								label: 'N.Khoa',
+								data: rows.map(function (r) { return Number(r.n_khoa) || 0; }),
+								backgroundColor: 'rgba(52, 211, 153, 0.75)',
+								borderRadius: 4,
+								yAxisID: 'y',
+								order: 2
+							},
+							{
+								type: 'bar',
+								label: 'TikTok',
+								data: rows.map(function (r) { return Number(r.tiktok) || 0; }),
+								backgroundColor: 'rgba(249, 168, 212, 0.85)',
+								borderRadius: 4,
+								yAxisID: 'y',
+								order: 2
+							},
+							{
+								type: 'line',
+								label: 'KV1',
+								data: rows.map(function (r) { return Number(r.kv1) || 0; }),
+								borderColor: '#16a34a',
+								backgroundColor: 'transparent',
+								tension: 0.3,
+								pointRadius: 2,
+								borderWidth: 2,
+								yAxisID: 'y',
+								order: 1
+							},
+							{
+								type: 'line',
+								label: 'KV2',
+								data: rows.map(function (r) { return Number(r.kv2) || 0; }),
+								borderColor: '#e11d48',
+								backgroundColor: 'transparent',
+								tension: 0.3,
+								pointRadius: 2,
+								borderWidth: 2,
+								yAxisID: 'y',
+								order: 1
+							},
+							{
+								type: 'line',
+								label: 'KV3',
+								data: rows.map(function (r) { return Number(r.kv3) || 0; }),
+								borderColor: '#2563eb',
+								backgroundColor: 'transparent',
+								tension: 0.3,
+								pointRadius: 2,
+								borderWidth: 2,
+								yAxisID: 'y',
+								order: 1
+							}
+						]
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						interaction: { mode: 'index', intersect: false },
+						plugins: {
+							legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } }
 						},
-						y: {
-							ticks: { color: colors.tick },
-							grid: { color: colors.grid }
+						scales: {
+							x: {
+								ticks: { color: tick, maxRotation: 40, maxTicksLimit: 16 },
+								grid: { display: false }
+							},
+							y: {
+								beginAtZero: true,
+								ticks: { color: tick, precision: 0 },
+								grid: { color: grid }
+							}
 						}
 					}
-				}
-			});
+				});
+			}
 		}
 
-		var kpiCtx = document.getElementById('mgmt-kpi-chart');
-		if (kpiCtx) {
-			new Chart(kpiCtx, {
-				type: 'doughnut',
-				data: {
-					labels: ['Hoàn thành', 'Đang làm', 'Chưa bắt đầu'],
-					datasets: [{
-						data: [60, 25, 15],
-						backgroundColor: ['#08A045', '#45627d', isDarkTheme() ? '#475569' : '#cbd5e1']
-					}]
-				},
-				options: {
-					responsive: true,
-					plugins: {
-						legend: {
-							position: 'bottom',
-							labels: { color: colors.legend }
+		// --- Bảng 2 ---
+		var classCtx = document.getElementById('mgmt-mkt-class-chart');
+		if (classCtx) {
+			var classRows = (classDays || []).filter(function (r) { return !r.is_summary; });
+			if (!classRows.length) {
+				setHint('mgmt-mkt-class-hint', 'Chưa có ngày học / lịch hẹn — biểu đồ sẽ hiện khi có dữ liệu bảng 2.');
+				// still draw empty axes so khung không trắng hoàn toàn
+				new Chart(classCtx, {
+					type: 'bar',
+					data: {
+						labels: ['—'],
+						datasets: [
+							{ label: 'Hẹn', data: [0], backgroundColor: 'rgba(147, 197, 253, 0.8)', borderRadius: 6 },
+							{ label: 'Show', data: [0], backgroundColor: 'rgba(253, 230, 138, 0.9)', borderRadius: 6 },
+							{ label: 'Chốt', data: [0], backgroundColor: 'rgba(252, 165, 165, 0.9)', borderRadius: 6 }
+						]
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+						scales: {
+							x: { ticks: { color: tick }, grid: { display: false } },
+							y: { beginAtZero: true, suggestedMax: 5, ticks: { color: tick, precision: 0 }, grid: { color: grid } }
 						}
 					}
-				}
-			});
+				});
+			} else {
+				setHint('mgmt-mkt-class-hint', '');
+				new Chart(classCtx, {
+					type: 'bar',
+					data: {
+						labels: classRows.map(function (r) { return r.label; }),
+						datasets: [
+							{
+								label: 'Hẹn',
+								data: classRows.map(function (r) { return Number(r.appointments) || 0; }),
+								backgroundColor: 'rgba(147, 197, 253, 0.85)',
+								borderRadius: 6
+							},
+							{
+								label: 'Show',
+								data: classRows.map(function (r) { return Number(r.show) || 0; }),
+								backgroundColor: 'rgba(253, 230, 138, 0.95)',
+								borderRadius: 6
+							},
+							{
+								label: 'Chốt',
+								data: classRows.map(function (r) { return Number(r.closed) || 0; }),
+								backgroundColor: 'rgba(252, 165, 165, 0.95)',
+								borderRadius: 6
+							}
+						]
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+						scales: {
+							x: { ticks: { color: tick }, grid: { display: false } },
+							y: { beginAtZero: true, ticks: { color: tick, precision: 0 }, grid: { color: grid } }
+						}
+					}
+				});
+			}
+		}
+
+		// --- Tổng kết tháng ---
+		var monthCtx = document.getElementById('mgmt-mkt-month-chart');
+		if (monthCtx) {
+			if (!monthly.length) {
+				setHint('mgmt-mkt-month-hint', 'Chưa có dữ liệu theo tháng.');
+			} else {
+				setHint('mgmt-mkt-month-hint', '');
+				new Chart(monthCtx, {
+					type: 'bar',
+					data: {
+						labels: monthly.map(function (r) { return r.label || r.month; }),
+						datasets: [
+							{
+								type: 'bar',
+								label: 'Lead/MKT',
+								data: monthly.map(function (r) { return Number(r.total_leads) || 0; }),
+								backgroundColor: 'rgba(52, 211, 153, 0.75)',
+								borderRadius: 5,
+								order: 2
+							},
+							{
+								type: 'bar',
+								label: 'Đặt lịch',
+								data: monthly.map(function (r) { return Number(r.appointments) || 0; }),
+								backgroundColor: 'rgba(147, 197, 253, 0.85)',
+								borderRadius: 5,
+								order: 2
+							},
+							{
+								type: 'line',
+								label: 'Show',
+								data: monthly.map(function (r) { return Number(r.show) || 0; }),
+								borderColor: '#d97706',
+								backgroundColor: 'transparent',
+								tension: 0.3,
+								pointRadius: 3,
+								borderWidth: 2,
+								order: 1
+							},
+							{
+								type: 'line',
+								label: 'Đã chốt',
+								data: monthly.map(function (r) { return Number(r.closed) || 0; }),
+								borderColor: '#dc2626',
+								backgroundColor: 'transparent',
+								tension: 0.3,
+								pointRadius: 3,
+								borderWidth: 2,
+								order: 1
+							}
+						]
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+						scales: {
+							x: { ticks: { color: tick }, grid: { display: false } },
+							y: { beginAtZero: true, ticks: { color: tick, precision: 0 }, grid: { color: grid } }
+						}
+					}
+				});
+			}
 		}
 	}
 
 	function waitForProjectTaskModal() {
-		if (typeof jQuery === 'undefined') {
-			setTimeout(waitForProjectTaskModal, 400);
-			return;
-		}
-		if (typeof ProjectTask_List_Js === 'undefined') {
-			setTimeout(waitForProjectTaskModal, 400);
-			return;
-		}
-		var taskHelper = new ProjectTask_List_Js();
-		jQuery(document).on('click', '.report-task-link', function(e) {
-			e.preventDefault();
-			var id = jQuery(this).data('taskid');
-			if (!id) return;
-			taskHelper.openTaskModal(id, null);
-		});
+		return;
 	}
 
 	function bindManagementUi() {
@@ -288,20 +525,7 @@
 	function boot() {
 		waitForProjectTaskModal();
 		bindManagementUi();
-		if (typeof Chart !== 'undefined') {
-			initDemoCharts();
-		} else {
-			var tries = 0;
-			var t = setInterval(function() {
-				tries++;
-				if (typeof Chart !== 'undefined') {
-					clearInterval(t);
-					initDemoCharts();
-				} else if (tries > 25) {
-					clearInterval(t);
-				}
-			}, 200);
-		}
+		// Biểu đồ do ReportsMkCharts.js (cuối Management.tpl) phụ trách — tránh double-init.
 	}
 
 	if (document.readyState === 'loading') {

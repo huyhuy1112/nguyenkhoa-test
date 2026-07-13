@@ -222,7 +222,8 @@ class Warehouse_InboundReceiptPdf_Helper {
 			$rowsHtml .= '<tr class="blank"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
 		}
 
-		$deliverer = $d['supplier'] !== '' ? $d['supplier'] : ($d['createdBy'] !== '' ? $d['createdBy'] : '........................................');
+		// Để trống — ký tay trên bản in (không lấy tên NCC / người lập).
+		$delivererBlank = '........................................';
 		$poShow = $d['poRef'] !== '' ? self::h($d['poRef']) : '...............';
 		$refOrg = $d['supplier'] !== '' ? self::h($d['supplier']) : '................................';
 		$whName = $d['whName'] !== '' ? self::h($d['whName']) : '..................................................';
@@ -308,7 +309,7 @@ tr.blank td{height:8mm}
 			. '<div class="title-refs">Số: ' . $docNo . '<br/>Nợ: ' . $dots . '<br/>Có: ' . $dots . '</div>'
 			. '</div>'
 			. '<div class="info">'
-			. '<p>- Họ và tên người giao: ' . self::h($deliverer) . '</p>'
+			. '<p>- Họ và tên người giao: ' . $delivererBlank . '</p>'
 			. '<p>- Theo PO số ' . $poShow
 			. ' ngày&nbsp;&nbsp;&nbsp;' . self::h($d['day'])
 			. '&nbsp;&nbsp;&nbsp;tháng&nbsp;&nbsp;&nbsp;' . self::h($d['month'])
@@ -353,7 +354,7 @@ tr.blank td{height:8mm}
 			. '<div class="sign-date">' . $dateHtml . '</div>'
 			. '<table class="signs"><tr>'
 			. '<td><div class="role">Người lập phiếu<br/>(Ký, họ tên)</div><div class="pad"></div><div class="name">' . self::h($d['createdBy']) . '</div></td>'
-			. '<td><div class="role">Người giao hàng<br/>(Ký, họ tên)</div><div class="pad"></div><div class="name">' . self::h($d['supplier']) . '</div></td>'
+			. '<td><div class="role">Người giao hàng<br/>(Ký, họ tên)</div><div class="pad"></div><div class="name"></div></td>'
 			. '<td><div class="role">Thủ kho<br/>(Ký, họ tên)</div><div class="pad"></div><div class="name">' . self::h($d['manager']) . '</div></td>'
 			. '<td><div class="role">Kế toán trưởng<br/>(Hoặc bộ phận có nhu cầu nhập)<br/>(Ký, họ tên)</div><div class="pad"></div><div class="name"></div></td>'
 			. '</tr></table>'
@@ -411,8 +412,8 @@ tr.blank td{height:8mm}
 
 		// Info — line-height rộng như mẫu
 		$pdf->SetFont($font, '', 10);
-		$deliverer = $d['supplier'] !== '' ? $d['supplier'] : ($d['createdBy'] !== '' ? $d['createdBy'] : '........................................');
-		$pdf->MultiCell($pageW, 6.5, self::utf('- Họ và tên người giao: ' . $deliverer), 0, 'L', false, 1);
+		// Để trống — ký tay trên bản in (không lấy tên NCC / người lập).
+		$pdf->MultiCell($pageW, 6.5, self::utf('- Họ và tên người giao: ........................................'), 0, 'L', false, 1);
 		$po = $d['poRef'] !== '' ? $d['poRef'] : '...............';
 		$org = $d['supplier'] !== '' ? $d['supplier'] : '................................';
 		$pdf->MultiCell(
@@ -514,7 +515,7 @@ tr.blank td{height:8mm}
 			"Thủ kho\n(Ký, họ tên)",
 			"Kế toán trưởng\n(Hoặc bộ phận có nhu cầu nhập)\n(Ký, họ tên)",
 		);
-		$names = array($d['createdBy'], $d['supplier'], $d['manager'], '');
+		$names = array($d['createdBy'], '', $d['manager'], '');
 		$pdf->SetFont($font, 'B', 8);
 		foreach ($labels as $i => $label) {
 			$pdf->SetXY($x0 + $sigW * $i, $sigY);

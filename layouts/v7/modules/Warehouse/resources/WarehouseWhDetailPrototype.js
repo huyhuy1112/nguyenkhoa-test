@@ -211,6 +211,7 @@
 		packed: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 		shipped: { label: 'Đã giao', cls: 'mk-wh-proto-pill mk-wh-proto-pill--ok' },
 		rejected: { label: 'Từ chối', cls: 'mk-wh-proto-pill mk-wh-proto-pill--warn' },
+		cancelled: { label: 'Đã huỷ', cls: 'mk-wh-proto-pill mk-wh-proto-pill--warn' },
 		// legacy aliases
 		pending_approval: { label: 'Chờ in phiếu', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
 		approved: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
@@ -226,14 +227,26 @@
 		);
 	}
 
+	/** Huỷ xuất: Chờ in / Đang soạn (bắt đầu soạn) / Đã soạn — chưa giao. */
+	function canCancelOutboundIssue(status) {
+		var s = String(status || '');
+		return (
+			s === 'waiting_print' ||
+			s === 'pending_approval' ||
+			s === 'picking' ||
+			s === 'packed' ||
+			s === 'approved'
+		);
+	}
+
 	var OUTBOUND_TYPES = {
 		internal: {
-			label: 'Xuất nội bộ (test)',
+			label: 'Xuất nội bộ',
 			short: 'Xuất nội bộ',
 			pillCls: 'mk-wh-proto-pill--out-internal',
 			customerLabel: 'Bộ phận / mục đích',
 			soLabel: 'Mã tham chiếu',
-			soPlaceholder: 'IT-TEST-...',
+			soPlaceholder: 'IT-...',
 		},
 		transfer: {
 			label: 'Xuất chuyển kho',
@@ -247,8 +260,8 @@
 			label: 'Xuất huỷ',
 			short: 'Xuất huỷ',
 			pillCls: 'mk-wh-proto-pill--out-scrap',
-			customerLabel: 'Lý do huỷ',
-			soLabel: 'Mã phiếu huỷ',
+			customerLabel: 'Khách hàng / đơn vị',
+			soLabel: 'Mã phiếu / tham chiếu',
 			soPlaceholder: 'SCR-...',
 		},
 		sale: {
@@ -262,6 +275,16 @@
 	};
 
 	var OUTBOUND_TYPE_PICKER = ['internal', 'transfer', 'scrap'];
+
+	/** Loại xuất chi tiết trên phiếu xuất nội bộ (in ra cột Loại xuất). */
+	var INTERNAL_EXPORT_TYPE_OPTIONS = [
+		{ value: 'Xuất dùng nội bộ', label: 'Xuất dùng nội bộ', selected: true },
+		{ value: 'Xuất phục vụ sự kiện, hội nghị nội bộ', label: 'Xuất phục vụ sự kiện, hội nghị nội bộ' },
+		{ value: 'Xuất cho sản xuất / pha chế', label: 'Xuất cho sản xuất / pha chế' },
+		{ value: 'Xuất kiểm nghiệm / mẫu', label: 'Xuất kiểm nghiệm / mẫu' },
+		{ value: 'Xuất hao hụt / điều chỉnh', label: 'Xuất hao hụt / điều chỉnh' },
+		{ value: 'Khác', label: 'Khác' },
+	];
 
 	function getOutboundTypeMeta(type) {
 		return OUTBOUND_TYPES[type] || OUTBOUND_TYPES.internal;
@@ -352,23 +375,76 @@
 		if (k4) k4.textContent = String(expiring);
 	}
 
+	function normalizeWhTabKey(raw) {
+		var k = String(raw || '').toLowerCase().replace(/^#/, '');
+		if (k === 'xuatkho' || k === 'outbound' || k === 'xuat') return 'outbound';
+		if (k === 'nhapkho' || k === 'inbound' || k === 'nhap') return 'inbound';
+		if (k === 'tonkho' || k === 'stock' || k === 'ton') return 'stock';
+		if (k === 'qc') return 'qc';
+		return '';
+	}
+
+	function persistWhTab(key) {
+		var tab = normalizeWhTabKey(key) || 'inbound';
+		try {
+			var whId = getWhId() || '';
+			if (whId && window.sessionStorage) {
+				sessionStorage.setItem('mk_wh_detail_tab:' + whId, tab);
+			}
+		} catch (e1) { /* ignore */ }
+		try {
+			if (!window.history || !window.history.replaceState) return;
+			var url = new URL(window.location.href);
+			url.searchParams.set('tab', tab);
+			// Bỏ hash cũ để tránh lệch với query
+			url.hash = '';
+			window.history.replaceState(null, '', url.pathname + url.search + (url.hash || ''));
+		} catch (e2) {
+			try {
+				window.location.hash = tab;
+			} catch (e3) { /* ignore */ }
+		}
+	}
+
+	function readPersistedWhTab() {
+		try {
+			var params = new URLSearchParams(window.location.search || '');
+			var fromQuery = normalizeWhTabKey(params.get('tab'));
+			if (fromQuery) return fromQuery;
+		} catch (e1) { /* ignore */ }
+		try {
+			var fromHash = normalizeWhTabKey(window.location.hash || '');
+			if (fromHash) return fromHash;
+		} catch (e2) { /* ignore */ }
+		try {
+			var whId = getWhId() || '';
+			if (whId && window.sessionStorage) {
+				var fromStore = normalizeWhTabKey(sessionStorage.getItem('mk_wh_detail_tab:' + whId));
+				if (fromStore) return fromStore;
+			}
+		} catch (e3) { /* ignore */ }
+		return 'inbound';
+	}
+
 	function setActiveTab(key) {
+		var tab = normalizeWhTabKey(key) || 'inbound';
 		qsa('.mk-wh-proto-tab').forEach(function (b) {
-			b.classList.toggle('is-active', b.getAttribute('data-tab') === key);
+			b.classList.toggle('is-active', b.getAttribute('data-tab') === tab);
 		});
 		var title = qs('#mkWhProtoStageTitle');
 		if (title) {
 			title.textContent =
-				key === 'qc' ? 'Hàng đợi QC' :
-				key === 'stock' ? 'Tồn kho' :
-				key === 'outbound' ? 'Danh sách phiếu xuất' :
+				tab === 'qc' ? 'Hàng đợi QC' :
+				tab === 'stock' ? 'Tồn kho' :
+				tab === 'outbound' ? 'Danh sách phiếu xuất' :
 				'Danh sách phiếu nhập';
 		}
 		['#mkWhProtoPaneInbound', '#mkWhProtoPaneQc', '#mkWhProtoPaneStock', '#mkWhProtoPaneOutbound'].forEach(function (sel) {
 			var el = qs(sel);
 			if (!el) return;
-			el.classList.toggle('hide', sel !== (key === 'qc' ? '#mkWhProtoPaneQc' : key === 'stock' ? '#mkWhProtoPaneStock' : key === 'outbound' ? '#mkWhProtoPaneOutbound' : '#mkWhProtoPaneInbound'));
+			el.classList.toggle('hide', sel !== (tab === 'qc' ? '#mkWhProtoPaneQc' : tab === 'stock' ? '#mkWhProtoPaneStock' : tab === 'outbound' ? '#mkWhProtoPaneOutbound' : '#mkWhProtoPaneInbound'));
 		});
+		persistWhTab(tab);
 		updateRoleBanner();
 		renderAll();
 	}
@@ -551,12 +627,12 @@
 		modal.innerHTML =
 			'<div class="mk-wh-inbound-print-preview__dialog" role="dialog" aria-labelledby="mkWhOutboundPrintTitle">' +
 				'<div class="mk-wh-inbound-print-preview__head">' +
-					'<h3 id="mkWhOutboundPrintTitle">Xem trước phiếu xuất kho</h3>' +
+					'<h3 id="mkWhOutboundPrintTitle">Xem trước phiếu xuất</h3>' +
 					'<button type="button" class="mk-wh-inbound-print-preview__close" data-mk-print-close="1" aria-label="Đóng">&times;</button>' +
 				'</div>' +
 				'<div class="mk-wh-inbound-print-preview__body">' +
-					'<div class="mk-wh-inbound-print-preview__hint">Xem trước mẫu PHIẾU XUẤT KHO (02 - VT). Tải PDF chỉ bật sau khi bản xem trước đã tải xong.</div>' +
-					'<iframe class="mk-wh-inbound-print-preview__frame" title="Xem trước phiếu xuất kho" src="about:blank"></iframe>' +
+					'<div class="mk-wh-inbound-print-preview__hint" data-mk-print-hint="1">Xem trước phiếu xuất. Tải PDF chỉ bật sau khi bản xem trước đã tải xong.</div>' +
+					'<iframe class="mk-wh-inbound-print-preview__frame" title="Xem trước phiếu xuất" src="about:blank"></iframe>' +
 				'</div>' +
 				'<div class="mk-wh-inbound-print-preview__foot">' +
 					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-print-close="1">Đóng</button>' +
@@ -600,6 +676,31 @@
 		return modal;
 	}
 
+	function outboundPrintLabels(outboundType) {
+		var t = String(outboundType || 'internal');
+		if (t === 'transfer') {
+			return {
+				title: 'Xem trước phiếu chuyển hàng',
+				hint: 'Mẫu PHIẾU CHUYỂN HÀNG (xuất chuyển kho). Tải PDF sau khi xem trước xong.',
+				readyTitle: 'Tải bản PDF phiếu chuyển hàng',
+			};
+		}
+		if (t === 'sale' || t === 'scrap') {
+			return {
+				title: 'Xem trước phiếu xuất kho',
+				hint: t === 'scrap'
+					? 'Mẫu PHIẾU XUẤT KHO (02 - VT) dùng cho xuất huỷ. Tải PDF sau khi xem trước xong.'
+					: 'Mẫu PHIẾU XUẤT KHO (02 - VT) dành cho xuất bán. Tải PDF sau khi xem trước xong.',
+				readyTitle: 'Tải bản PDF phiếu xuất kho',
+			};
+		}
+		return {
+			title: 'Xem trước phiếu xuất nội bộ',
+			hint: 'Mẫu Xuất dùng nội bộ. Tải PDF sau khi xem trước xong.',
+			readyTitle: 'Tải bản PDF xuất dùng nội bộ',
+		};
+	}
+
 	function openOutboundPrintPreview(issueId) {
 		if (getRole() !== 'manager') {
 			showError('Chỉ Quản lý kho được in phiếu xuất.');
@@ -613,36 +714,66 @@
 			showError('Chỉ in được khi phiếu còn Chờ in phiếu hoặc Đang soạn.');
 			return;
 		}
-		var modal = ensureOutboundPrintPreviewModal();
-		var frame = modal.querySelector('iframe');
-		var dl = modal.querySelector('[data-mk-print-download="1"]');
-		modal.setAttribute('data-issue-id', issueId);
-		modal.setAttribute('data-previewed', '0');
-		if (dl) {
-			dl.disabled = true;
-			dl.setAttribute('aria-disabled', 'true');
-			dl.title = 'Xem trước xong mới tải được PDF';
+		var labels = outboundPrintLabels(issue.outboundType || 'internal');
+
+		function showPreviewModal(finalIssueId) {
+			var modal = ensureOutboundPrintPreviewModal();
+			var frame = modal.querySelector('iframe');
+			var dl = modal.querySelector('[data-mk-print-download="1"]');
+			var titleEl = modal.querySelector('#mkWhOutboundPrintTitle');
+			var hintEl = modal.querySelector('[data-mk-print-hint="1"]');
+			if (titleEl) titleEl.textContent = labels.title;
+			if (hintEl) hintEl.textContent = labels.hint;
+			modal.setAttribute('data-issue-id', finalIssueId);
+			modal.setAttribute('data-previewed', '0');
+			if (dl) {
+				dl.disabled = true;
+				dl.setAttribute('aria-disabled', 'true');
+				dl.title = 'Xem trước xong mới tải được PDF';
+			}
+			if (frame) {
+				var markPreviewReady = function () {
+					modal.setAttribute('data-previewed', '1');
+					if (dl) {
+						dl.disabled = false;
+						dl.removeAttribute('aria-disabled');
+						dl.title = labels.readyTitle;
+					}
+				};
+				frame.onload = markPreviewReady;
+				frame.src = outboundPrintPreviewUrl(finalIssueId);
+				setTimeout(function () {
+					if (modal.getAttribute('data-previewed') !== '1') {
+						markPreviewReady();
+					}
+				}, 1800);
+			}
+			modal.classList.add('is-open');
+			modal.setAttribute('aria-hidden', 'false');
+			document.body.classList.add('mk-wh-inbound-print-open');
 		}
-		if (frame) {
-			var markPreviewReady = function () {
-				modal.setAttribute('data-previewed', '1');
-				if (dl) {
-					dl.disabled = false;
-					dl.removeAttribute('aria-disabled');
-					dl.title = 'Tải bản PDF phiếu xuất kho';
+
+		// Đồng bộ phiếu local (nội bộ/chuyển kho/huỷ) lên DB trước khi in — không đụng xuất bán.
+		var ot = String(issue.outboundType || 'internal');
+		if (
+			ot !== 'sale' &&
+			S.useDb && S.useDb() &&
+			S.warehouseDataActions &&
+			typeof S.warehouseDataActions.saveIssue === 'function'
+		) {
+			S.warehouseDataActions.saveIssue(whId, issue).then(function (res) {
+				var code = (res && res.code) ? res.code : issueId;
+				if (code && code !== issueId && issue) {
+					issue.id = code;
 				}
-			};
-			frame.onload = markPreviewReady;
-			frame.src = outboundPrintPreviewUrl(issueId);
-			setTimeout(function () {
-				if (modal.getAttribute('data-previewed') !== '1') {
-					markPreviewReady();
-				}
-			}, 1800);
+				showPreviewModal(code || issueId);
+			}).fail(function (err) {
+				showError((err && err.message) || 'Không đồng bộ được phiếu xuất để in.');
+			});
+			return;
 		}
-		modal.classList.add('is-open');
-		modal.setAttribute('aria-hidden', 'false');
-		document.body.classList.add('mk-wh-inbound-print-open');
+
+		showPreviewModal(issueId);
 	}
 
 	function renderInbounds() {
@@ -775,6 +906,9 @@
 				'<td>' + escapeHtml(fmtDateTime(i.createdAt)) + '</td>' +
 				'<td>' + issueStatusPill(i.status) + '</td>' +
 				'<td class="mk-wh-proto-td-right mk-wh-proto-actions">' +
+					(isWarehouseOps(getRole()) && canCancelOutboundIssue(i.status)
+						? '<button class="mk-wh-proto-mini-btn mk-wh-proto-mini-btn--cancel" type="button" data-mk-action="outbound-cancel" data-id="' + escText(i.id) + '">Huỷ</button> '
+						: '') +
 					'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="outbound-detail" data-id="' + escText(i.id) + '">Chi tiết</button>' +
 					(getRole() === 'manager' && canPrintOutboundIssue(i.status)
 						? ' <button class="mk-wh-proto-mini-btn mk-wh-proto-mini-btn--print" type="button" data-mk-action="outbound-print" data-id="' + escText(i.id) + '">In</button>'
@@ -1155,6 +1289,40 @@
 		modal.setAttribute('aria-hidden', 'true');
 	}
 
+	function creditStockToWarehouse(whId, lines) {
+		if (!whId) return;
+		var d = S.ensureData(whId);
+		var stock = (d.stock || []).slice();
+		(lines || []).forEach(function (l) {
+			var qtyAdd = Number(l.qty) || 0;
+			if (qtyAdd <= 0) return;
+			var idx = stock.findIndex(function (s) {
+				return String(s.sku || '') === String(l.sku || '') && String(s.lot || '') === String(l.lot || '');
+			});
+			if (idx >= 0) {
+				stock[idx] = Object.assign({}, stock[idx], {
+					qty: (Number(stock[idx].qty) || 0) + qtyAdd,
+					name: stock[idx].name || l.name,
+					expiry: stock[idx].expiry || l.expiry || '—',
+					mfg: stock[idx].mfg || l.mfg || '',
+					price: stock[idx].price || l.price || 0,
+				});
+			} else {
+				stock.push({
+					sku: l.sku,
+					name: l.name,
+					lot: l.lot,
+					mfg: l.mfg || '',
+					expiry: l.expiry || '—',
+					qty: qtyAdd,
+					location: 'NEW',
+					price: Number(l.price) || 0,
+				});
+			}
+		});
+		S.warehouseDataActions.setStock(whId, stock);
+	}
+
 	function modalSchema(tabKey, outboundType) {
 		if (tabKey === 'outbound-type') {
 			return {
@@ -1206,16 +1374,40 @@
 				options: getDestinationWarehouseOptions(),
 			}
 			: { name: 'customer', label: outMeta.customerLabel, required: true, placeholder: '' };
+		var fields = [
+			customerField,
+			{ name: 'so', label: outMeta.soLabel, required: false, placeholder: outMeta.soPlaceholder },
+		];
+		if (outboundType === 'internal') {
+			fields.push({
+				name: 'exportTypeLabel',
+				label: 'Loại xuất',
+				type: 'select',
+				required: true,
+				full: true,
+				options: INTERNAL_EXPORT_TYPE_OPTIONS,
+			});
+			fields.push({
+				name: 'notes',
+				label: 'Ghi chú',
+				type: 'textarea',
+				required: false,
+				full: true,
+				placeholder: 'Ghi chú in trên phiếu (lô hàng, lý do chi tiết…)',
+			});
+		}
+		fields.unshift({
+			name: 'outboundType',
+			type: 'hidden',
+			value: outboundType || 'internal',
+		});
+		fields.push({ type: 'lines', mode: 'outbound', label: 'Danh sách hàng xuất', full: true });
 		return {
 			tabKey: 'outbound',
 			outboundType: outboundType || 'internal',
 			title: 'Tạo phiếu xuất — ' + outMeta.short,
 			submitLabel: 'Tạo phiếu',
-			fields: [
-				customerField,
-				{ name: 'so', label: outMeta.soLabel, required: false, placeholder: outMeta.soPlaceholder },
-				{ type: 'lines', mode: 'outbound', label: 'Danh sách hàng xuất', full: true },
-			],
+			fields: fields,
 		};
 	}
 
@@ -1254,12 +1446,19 @@
 					(f.hint ? '<span class="mk-wh-proto-check__hint">' + escapeHtml(f.hint) + '</span>' : '') +
 					'</span></label></div>';
 			}
+			if (f.type === 'hidden') {
+				return '<input type="hidden" name="' + escapeHtml(f.name || '') + '" value="' + escapeHtml(f.value || '') + '" />';
+			}
 			var input;
 			if (f.type === 'select') {
 				input = '<select name="' + escapeHtml(f.name) + '"' + (f.required ? ' required' : '') + '>' +
 					(f.options || []).map(function (o) {
 						return '<option value="' + escapeHtml(o.value) + '"' + (o.selected ? ' selected="selected"' : '') + '>' + escapeHtml(o.label) + '</option>';
 					}).join('') + '</select>';
+			} else if (f.type === 'textarea') {
+				input = '<textarea name="' + escapeHtml(f.name) + '" rows="3"' +
+					(f.required ? ' required' : '') +
+					' placeholder="' + escapeHtml(f.placeholder || '') + '"></textarea>';
 			} else {
 				input = '<input type="' + escapeHtml(f.type || 'text') + '" name="' + escapeHtml(f.name) + '"' +
 					(f.required ? ' required' : '') + ' placeholder="' + escapeHtml(f.placeholder || '') + '" />';
@@ -1648,7 +1847,10 @@
 			if (tabKey === 'outbound') {
 				var customerRaw = String(fd.get('customer') || '').trim();
 				var soRef = String(fd.get('so') || '').trim() || '—';
-				var outboundType = opts.outboundType || 'internal';
+				var outboundType = String(fd.get('outboundType') || opts.outboundType || 'internal').trim();
+				if (OUTBOUND_TYPE_PICKER.indexOf(outboundType) < 0 && outboundType !== 'sale') {
+					outboundType = 'internal';
+				}
 				var customer = customerRaw;
 				var toWarehouseId = '';
 				if (outboundType === 'transfer') {
@@ -1700,6 +1902,8 @@
 						name: stockLot.name,
 						lot: stockLot.lot,
 						qty: qtyOut,
+						price: Number(stockLot.price) || 0,
+						unit_price: Number(stockLot.price) || 0,
 						mfg: toDateInputValue(mfgVal || stockLot.mfg || ''),
 						expiry: toDateInputValue(expVal || stockLot.expiry || stockLot.exp || '') || '—',
 					});
@@ -1713,6 +1917,11 @@
 					return;
 				}
 				var typeMeta = getOutboundTypeMeta(outboundType);
+				var exportTypeLabel = String(fd.get('exportTypeLabel') || '').trim();
+				var notes = String(fd.get('notes') || '').trim();
+				if (outboundType === 'internal' && !exportTypeLabel) {
+					exportTypeLabel = 'Xuất dùng nội bộ';
+				}
 				var id = nextId('GIN', d.issues || []);
 				var now = S.nowISO();
 				var issue = {
@@ -1721,19 +1930,50 @@
 					customer: customer,
 					toWarehouseId: toWarehouseId || undefined,
 					soRef: soRef,
+					exportTypeLabel: exportTypeLabel || undefined,
+					notes: notes || undefined,
 					status: 'waiting_print',
 					createdAt: now,
 					createdBy: 'QL Tuấn',
 					lines: outLines,
 					timeline: [],
+					stockDeducted: false,
 				};
 				addTimeline(issue.timeline, 'Tạo phiếu xuất — ' + typeMeta.short, 'manager');
+
+				function finishCreateIssue(savedIssue) {
+					closeModal();
+					var dlg = issueDialog(savedIssue || issue);
+					openDialog(dlg.title, dlg.meta, dlg.body);
+					renderAll();
+				}
+
+				if (S.useDb && S.useDb() && S.warehouseDataActions && typeof S.warehouseDataActions.saveIssue === 'function') {
+					S.warehouseDataActions.saveIssue(whId, issue).then(function (res) {
+						var saved = (res && res.issue) ? res.issue : issue;
+						if (res && res.code) {
+							saved.id = res.code;
+						}
+						finishCreateIssue(saved);
+					}).fail(function (err) {
+						showError((err && err.message) || 'Không lưu được phiếu xuất.');
+					});
+					return;
+				}
+
 				var issues = (d.issues || []).slice();
 				issues.unshift(issue);
 				S.warehouseDataActions.setIssues(whId, issues);
-				closeModal();
-				var dlg = issueDialog(issue);
-				openDialog(dlg.title, dlg.meta, dlg.body);
+				deductStockFromIssueLines(whId, outLines);
+				if (outboundType === 'transfer' && toWarehouseId) {
+					creditStockToWarehouse(toWarehouseId, outLines);
+				}
+				issue.stockDeducted = true;
+				if (outboundType === 'transfer' && toWarehouseId) {
+					issue.stockCreditedTo = toWarehouseId;
+				}
+				S.warehouseDataActions.setIssues(whId, issues);
+				finishCreateIssue(issue);
 				return;
 			}
 
@@ -1964,6 +2204,47 @@
 				openOutboundPrintPreview(id);
 				return;
 			}
+			if (action === 'outbound-cancel' && id) {
+				if (!isWarehouseOps(getRole())) {
+					showError('Chỉ Quản lý kho / Thủ kho được huỷ phiếu xuất.');
+					return;
+				}
+				var cancelIssue = (d.issues || []).find(function (x) { return x.id === id; });
+				if (!cancelIssue || !canCancelOutboundIssue(cancelIssue.status)) {
+					showError('Chỉ huỷ được phiếu ở trạng thái Chờ in phiếu, Đang soạn hoặc Đã soạn.');
+					return;
+				}
+				if (!window.confirm('Huỷ phiếu xuất ' + id + '?\nTồn kho đã trừ (nếu có) sẽ được hoàn lại.')) {
+					return;
+				}
+				if (S.useDb && S.useDb() && S.warehouseDataActions && typeof S.warehouseDataActions.issueAction === 'function') {
+					S.warehouseDataActions
+						.issueAction(whId, id, 'issue-cancel', getRole(), 'Huỷ xuất kho')
+						.then(function () {
+							closeDialog();
+							refreshWarehouseUi();
+						})
+						.fail(function (err) {
+							showError((err && err.message) || 'Không huỷ được phiếu xuất.');
+						});
+					return;
+				}
+				patchIssue(id, function (i) {
+					if (i.stockDeducted) {
+						creditStockToWarehouse(whId, i.lines || []);
+						i.stockDeducted = false;
+					}
+					if ((i.outboundType || '') === 'transfer' && i.stockCreditedTo) {
+						deductStockFromIssueLines(i.stockCreditedTo, i.lines || []);
+						i.stockCreditedTo = '';
+					}
+					i.status = 'cancelled';
+					addTimeline(i.timeline, 'Huỷ phiếu xuất', getRole(), 'Huỷ xuất kho');
+					return i;
+				});
+				refreshWarehouseUi();
+				return;
+			}
 			if (action === 'qc-record' && id) {
 				if (S.useDb && S.useDb() && S.warehouseDataActions && typeof S.warehouseDataActions.refresh === 'function') {
 					S.warehouseDataActions.refresh(whId).always(function () {
@@ -2051,7 +2332,7 @@
 			}
 
 			// Issue actions
-			if (id && (action === 'issue-submit' || action === 'issue-start-pick' || action === 'issue-finish-pick' || action === 'issue-ship' || action === 'issue-approve' || action === 'issue-reject')) {
+			if (id && (action === 'issue-submit' || action === 'issue-start-pick' || action === 'issue-finish-pick' || action === 'issue-ship' || action === 'issue-approve' || action === 'issue-reject' || action === 'issue-cancel')) {
 				var role2 = getRole();
 				if (S.useDb && S.useDb()) {
 					var reasonDb = '';
@@ -2079,7 +2360,14 @@
 						i.status = 'picking';
 						addTimeline(i.timeline, 'Bắt đầu soạn hàng', role2);
 					} else if (action === 'issue-finish-pick') {
-						deductStockFromIssueLines(whId, i.lines || []);
+						if (!i.stockDeducted) {
+							deductStockFromIssueLines(whId, i.lines || []);
+							i.stockDeducted = true;
+							if ((i.outboundType || '') === 'transfer' && i.toWarehouseId && !i.stockCreditedTo) {
+								creditStockToWarehouse(i.toWarehouseId, i.lines || []);
+								i.stockCreditedTo = i.toWarehouseId;
+							}
+						}
 						i.status = 'packed';
 						addTimeline(i.timeline, 'Đã soạn hàng', role2);
 					} else if (action === 'issue-reject') {
@@ -2087,6 +2375,17 @@
 						var reason = rs ? String(rs.value || '').trim() : '';
 						i.status = 'rejected';
 						addTimeline(i.timeline, 'Từ chối phiếu', role2, reason || 'Không nêu lý do');
+					} else if (action === 'issue-cancel') {
+						if (i.stockDeducted) {
+							creditStockToWarehouse(whId, i.lines || []);
+							i.stockDeducted = false;
+						}
+						if ((i.outboundType || '') === 'transfer' && i.stockCreditedTo) {
+							deductStockFromIssueLines(i.stockCreditedTo, i.lines || []);
+							i.stockCreditedTo = '';
+						}
+						i.status = 'cancelled';
+						addTimeline(i.timeline, 'Huỷ phiếu xuất', role2, 'Huỷ xuất kho');
 					} else if (action === 'issue-ship') {
 						i.status = 'shipped';
 						addTimeline(i.timeline, 'Đã giao hàng', role2);
@@ -2105,19 +2404,7 @@
 			renderAll();
 		});
 
-		var initialTab = 'inbound';
-		try {
-			var params = new URLSearchParams(window.location.search || '');
-			var tabParam = String(params.get('tab') || '').toLowerCase();
-			if (tabParam === 'outbound' || tabParam === 'xuatkho' || tabParam === 'stock' || tabParam === 'qc' || tabParam === 'inbound') {
-				initialTab = tabParam === 'xuatkho' ? 'outbound' : tabParam;
-			} else if (window.location.hash) {
-				var hash = String(window.location.hash || '').replace(/^#/, '').toLowerCase();
-				if (hash === 'outbound' || hash === 'xuatkho') {
-					initialTab = 'outbound';
-				}
-			}
-		} catch (ignore) { /* ignore */ }
+		var initialTab = readPersistedWhTab();
 		setActiveTab(initialTab);
 		renderAll();
 	}

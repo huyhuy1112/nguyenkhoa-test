@@ -446,7 +446,19 @@ class Warehouse_WhMgmtService {
 		if ($json === null || $json === '') {
 			return array();
 		}
-		$decoded = json_decode((string) $json, true);
+		$raw = trim((string) $json);
+		if ($raw === '') {
+			return array();
+		}
+		// PearDatabase::fetchByAssoc() applies to_html() by default, so JSON quotes
+		// become &quot; and json_decode fails — outboundType then falls back to "internal".
+		if (strpos($raw, '&') !== false) {
+			$raw = html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		}
+		$decoded = json_decode($raw, true);
+		if (!is_array($decoded) && function_exists('from_html')) {
+			$decoded = json_decode(from_html((string) $json), true);
+		}
 		return is_array($decoded) ? $decoded : array();
 	}
 
@@ -910,82 +922,291 @@ class Warehouse_WhMgmtService {
 			if ($qtyNeeded <= 0) {
 				continue;
 			}
-			$name = trim((string) (isset($it['product_name']) ? $it['product_name'] : ''));
-			$lot = trim((string) (isset($it['serial_number']) ? $it['serial_number'] : ''));
-			$sku = trim((string) (isset($it['line_note']) ? $it['line_note'] : ''));
+			$name = self::decodeDisplayTextDeep(isset($it['product_name']) ? $it['product_name'] : '');
+			$lot = self::decodeDisplayTextDeep(isset($it['serial_number']) ? $it['serial_number'] : '');
+			$sku = self::decodeDisplayTextDeep(isset($it['line_note']) ? $it['line_note'] : '');
 			$productId = (int) (isset($it['productid']) ? $it['productid'] : 0);
 			if ($sku === '' && $productId > 0) {
 				$sku = self::resolveProductSku($db, $productId);
 			}
-
-			if ($sku === '' || $lot === '') {
-				// Fall through to productId / name matching when SKU or lot is missing.
-			} else {
-				$key = self::stockProductKey($warehouseCode, $sku, $lot);
-				$rs = $db->pquery(
-					'SELECT stockid, quantity FROM vtiger_warehouse_stock WHERE product_key = ? LIMIT 1',
-					array($key)
-				);
-				if ($rs && $db->num_rows($rs) > 0) {
-					$stockId = (int) $db->query_result($rs, 0, 'stockid');
-					$current = (float) $db->query_result($rs, 0, 'quantity');
-					$deduct = min($current, $qtyNeeded);
-					if ($deduct > 0) {
-						$db->pquery(
-							'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
-							array(max(0, $current - $deduct), (int) $userId, $now, $stockId)
-						);
-						$qtyNeeded -= $deduct;
-					}
-				}
-				continue;
-			}
-
-			$rows = array();
-			if ($productId > 0) {
-				$rs = $db->pquery(
-					'SELECT stockid, quantity FROM vtiger_warehouse_stock
-					 WHERE warehouse_id = ? AND productid = ? AND quantity > 0
-					 ORDER BY expired_date ASC, stockid ASC',
-					array($warehouseCode, $productId)
-				);
-				while ($row = $db->fetchByAssoc($rs)) {
-					$rows[] = $row;
-				}
-			}
-			if (empty($rows) && $name !== '') {
-				$decodedName = Warehouse_Stock_Helper::decodeDisplayText($name);
-				$rs = $db->pquery(
-					'SELECT stockid, quantity, product_name FROM vtiger_warehouse_stock
-					 WHERE warehouse_id = ? AND quantity > 0
-					 ORDER BY expired_date ASC, stockid ASC',
-					array($warehouseCode)
-				);
-				while ($row = $db->fetchByAssoc($rs)) {
-					$rowName = Warehouse_Stock_Helper::decodeDisplayText(isset($row['product_name']) ? $row['product_name'] : '');
-					if (mb_strtolower($rowName) === mb_strtolower($decodedName)) {
-						$rows[] = $row;
-					}
-				}
-			}
-			foreach ($rows as $row) {
-				if ($qtyNeeded <= 0) {
-					break;
-				}
-				$stockId = (int) $row['stockid'];
-				$current = (float) $row['quantity'];
-				$deduct = min($current, $qtyNeeded);
-				if ($deduct <= 0) {
-					continue;
-				}
-				$db->pquery(
-					'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
-					array(max(0, $current - $deduct), (int) $userId, $now, $stockId)
-				);
-				$qtyNeeded -= $deduct;
-			}
+			self::deductQtyFromWarehouseStock(
+				$db,
+				$warehouseCode,
+				$qtyNeeded,
+				$sku,
+				$lot,
+				$name,
+				$productId,
+				$userId,
+				$now,
+				true
+			);
 		}
 		$meta['stockDeducted'] = true;
+	}
+
+	/**
+	 * @param bool $doUpdate when false, only simulate availability (no DB writes)
+	 * @return float remaining unmet qty
+	 */
+	protected static function deductQtyFromWarehouseStock(
+		PearDatabase $db,
+		$warehouseCode,
+		$qtyNeeded,
+		$sku,
+		$lot,
+		$name,
+		$productId,
+		$userId,
+		$now,
+		$doUpdate
+	) {
+		$qtyNeeded = (float) $qtyNeeded;
+		$sku = trim((string) $sku);
+		$lot = trim((string) $lot);
+		$name = trim((string) $name);
+		$productId = (int) $productId;
+		$virtualQty = array();
+
+		$takeFromRow = function ($stockId, $current) use (&$qtyNeeded, &$virtualQty, $doUpdate, $db, $userId, $now) {
+			$stockId = (int) $stockId;
+			if (!$doUpdate) {
+				if (!array_key_exists($stockId, $virtualQty)) {
+					$virtualQty[$stockId] = (float) $current;
+				}
+				$current = $virtualQty[$stockId];
+			}
+			$deduct = min((float) $current, $qtyNeeded);
+			if ($deduct <= 0) {
+				return;
+			}
+			if ($doUpdate) {
+				$db->pquery(
+					'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
+					array(max(0, (float) $current - $deduct), (int) $userId, $now, $stockId)
+				);
+			} else {
+				$virtualQty[$stockId] = max(0, (float) $current - $deduct);
+			}
+			$qtyNeeded -= $deduct;
+		};
+
+		if ($sku !== '' && $lot !== '') {
+			$key = self::stockProductKey($warehouseCode, $sku, $lot);
+			$rs = $db->pquery(
+				'SELECT stockid, quantity FROM vtiger_warehouse_stock WHERE product_key = ? LIMIT 1',
+				array($key)
+			);
+			if ($rs && $db->num_rows($rs) > 0) {
+				$takeFromRow(
+					(int) $db->query_result($rs, 0, 'stockid'),
+					(float) $db->query_result($rs, 0, 'quantity')
+				);
+			}
+		}
+		if ($qtyNeeded <= 0.00000001) {
+			return 0;
+		}
+
+		$rs = $db->pquery(
+			'SELECT stockid, quantity, product_key, productid, product_name FROM vtiger_warehouse_stock
+			 WHERE warehouse_id = ? AND quantity > 0
+			 ORDER BY expired_date ASC, stockid ASC',
+			array($warehouseCode)
+		);
+		while ($rs && ($row = $db->fetchByAssoc($rs))) {
+			if ($qtyNeeded <= 0.00000001) {
+				break;
+			}
+			$parsed = self::parseStockIdentity($db, $row);
+			$rowSku = (string) (isset($parsed['sku']) ? $parsed['sku'] : '');
+			$rowLot = (string) (isset($parsed['lot']) ? $parsed['lot'] : '');
+			$rowName = (string) (isset($parsed['name']) ? $parsed['name'] : '');
+			$rowPid = (int) (isset($row['productid']) ? $row['productid'] : 0);
+			$match = false;
+			if ($sku !== '' && $lot !== '' && strcasecmp($rowSku, $sku) === 0 && strcasecmp($rowLot, $lot) === 0) {
+				$match = true;
+			} elseif ($productId > 0 && $rowPid === $productId && ($lot === '' || strcasecmp($rowLot, $lot) === 0)) {
+				$match = true;
+			} elseif ($name !== '' && mb_strtolower($rowName) === mb_strtolower($name) && ($lot === '' || strcasecmp($rowLot, $lot) === 0)) {
+				$match = true;
+			}
+			if (!$match) {
+				continue;
+			}
+			$takeFromRow((int) $row['stockid'], (float) $row['quantity']);
+		}
+
+		if ($doUpdate && $qtyNeeded > 0.00000001) {
+			$label = $name !== '' ? $name : ($sku !== '' ? $sku : 'hàng');
+			if ($lot !== '') {
+				$label .= ' · Lô ' . $lot;
+			}
+			throw new Exception('Không đủ tồn kho để xuất: ' . $label . ' (thiếu ' . rtrim(rtrim(number_format($qtyNeeded, 3, '.', ''), '0'), '.') . ').');
+		}
+		return max(0, $qtyNeeded);
+	}
+
+	protected static function assertOutboundStockAvailable(PearDatabase $db, $warehouseCode, array $lines) {
+		foreach ($lines as $line) {
+			$qty = (float) (isset($line['qty']) ? $line['qty'] : 0);
+			if ($qty <= 0) {
+				continue;
+			}
+			$name = trim((string) (isset($line['name']) ? $line['name'] : ''));
+			$sku = trim((string) (isset($line['sku']) ? $line['sku'] : ''));
+			$lot = trim((string) (isset($line['lot']) ? $line['lot'] : ''));
+			$productId = (int) (isset($line['product_id']) ? $line['product_id'] : 0);
+			$short = self::deductQtyFromWarehouseStock(
+				$db,
+				$warehouseCode,
+				$qty,
+				$sku,
+				$lot,
+				$name,
+				$productId,
+				0,
+				self::nowSql(),
+				false
+			);
+			if ($short > 0.00000001) {
+				$label = $name !== '' ? $name : ($sku !== '' ? $sku : 'hàng');
+				if ($lot !== '') {
+					$label .= ' · Lô ' . $lot;
+				}
+				throw new Exception('Không đủ tồn kho để xuất: ' . $label . ' (thiếu ' . rtrim(rtrim(number_format($short, 3, '.', ''), '0'), '.') . ').');
+			}
+		}
+	}
+
+	/**
+	 * Cộng tồn kho đích khi xuất chuyển kho (một lần / phiếu).
+	 */
+	protected static function creditStockForTransferIssue(PearDatabase $db, $toWarehouseId, $issueId, $userId, array &$meta, array $fallbackLines = array()) {
+		$toWarehouseId = trim((string) $toWarehouseId);
+		if ($toWarehouseId === '' || !empty($meta['stockCreditedTo'])) {
+			return;
+		}
+		$toWh = self::findWarehouseRowByCode($db, $toWarehouseId);
+		if (!$toWh) {
+			throw new Exception('Không tìm thấy kho đích để nhập chuyển kho.');
+		}
+		$toName = self::decodeDisplayTextDeep((string) $toWh['name']);
+		$lines = array();
+		$raw = self::loadIssueItemsRaw($db, $issueId);
+		if (!empty($raw)) {
+			foreach ($raw as $it) {
+				$lines[] = array(
+					'sku' => self::decodeDisplayTextDeep(isset($it['line_note']) ? $it['line_note'] : ''),
+					'name' => self::decodeDisplayTextDeep(isset($it['product_name']) ? $it['product_name'] : ''),
+					'lot' => self::decodeDisplayTextDeep(isset($it['serial_number']) ? $it['serial_number'] : ''),
+					'qty' => (float) (isset($it['quantity']) ? $it['quantity'] : 0),
+					'product_id' => (int) (isset($it['productid']) ? $it['productid'] : 0),
+					'price' => 0,
+					'mfg' => '',
+					'expiry' => '',
+					'location' => '',
+				);
+			}
+		} else {
+			foreach ($fallbackLines as $line) {
+				$lines[] = array(
+					'sku' => trim((string) (isset($line['sku']) ? $line['sku'] : '')),
+					'name' => trim((string) (isset($line['name']) ? $line['name'] : '')),
+					'lot' => trim((string) (isset($line['lot']) ? $line['lot'] : '')),
+					'qty' => (float) (isset($line['qty']) ? $line['qty'] : 0),
+					'product_id' => (int) (isset($line['product_id']) ? $line['product_id'] : 0),
+					'price' => (float) (isset($line['price']) ? $line['price'] : (isset($line['unit_price']) ? $line['unit_price'] : 0)),
+					'mfg' => isset($line['mfg']) ? $line['mfg'] : '',
+					'expiry' => isset($line['expiry']) ? $line['expiry'] : '',
+					'location' => '',
+				);
+			}
+		}
+		foreach ($lines as $line) {
+			if ($line['qty'] <= 0 || $line['name'] === '') {
+				continue;
+			}
+			if ($line['sku'] === '') {
+				$line['sku'] = self::guessSkuFromName($line['name']);
+			}
+			if ($line['lot'] === '') {
+				$line['lot'] = '—';
+			}
+			self::applyInboundStockLine($db, $toWarehouseId, $toName, $line, $userId);
+		}
+		$meta['stockCreditedTo'] = $toWarehouseId;
+	}
+
+	/**
+	 * Hoàn tồn khi huỷ phiếu xuất (đã trừ nguồn / đã cộng đích chuyển kho).
+	 */
+	protected static function restoreStockForCancelledIssue(PearDatabase $db, $warehouseCode, $issueId, $userId, array &$meta) {
+		$wh = self::findWarehouseRowByCode($db, $warehouseCode);
+		$whName = $wh ? self::decodeDisplayTextDeep((string) $wh['name']) : $warehouseCode;
+
+		// Đảo chuyển kho đích trước (trừ lại hàng đã cộng).
+		$creditedTo = trim((string) (isset($meta['stockCreditedTo']) ? $meta['stockCreditedTo'] : ''));
+		if ($creditedTo !== '') {
+			$raw = self::loadIssueItemsRaw($db, $issueId);
+			$now = self::nowSql();
+			foreach ($raw as $it) {
+				$qty = (float) (isset($it['quantity']) ? $it['quantity'] : 0);
+				if ($qty <= 0) {
+					continue;
+				}
+				$sku = self::decodeDisplayTextDeep(isset($it['line_note']) ? $it['line_note'] : '');
+				$lot = self::decodeDisplayTextDeep(isset($it['serial_number']) ? $it['serial_number'] : '');
+				$name = self::decodeDisplayTextDeep(isset($it['product_name']) ? $it['product_name'] : '');
+				$productId = (int) (isset($it['productid']) ? $it['productid'] : 0);
+				self::deductQtyFromWarehouseStock(
+					$db,
+					$creditedTo,
+					$qty,
+					$sku,
+					$lot,
+					$name,
+					$productId,
+					$userId,
+					$now,
+					true
+				);
+			}
+			$meta['stockCreditedTo'] = '';
+		}
+
+		if (empty($meta['stockDeducted'])) {
+			return;
+		}
+		$raw = self::loadIssueItemsRaw($db, $issueId);
+		foreach ($raw as $it) {
+			$qty = (float) (isset($it['quantity']) ? $it['quantity'] : 0);
+			if ($qty <= 0) {
+				continue;
+			}
+			$line = array(
+				'sku' => self::decodeDisplayTextDeep(isset($it['line_note']) ? $it['line_note'] : ''),
+				'name' => self::decodeDisplayTextDeep(isset($it['product_name']) ? $it['product_name'] : ''),
+				'lot' => self::decodeDisplayTextDeep(isset($it['serial_number']) ? $it['serial_number'] : ''),
+				'qty' => $qty,
+				'product_id' => (int) (isset($it['productid']) ? $it['productid'] : 0),
+				'price' => 0,
+				'mfg' => '',
+				'expiry' => '',
+				'location' => '',
+			);
+			if ($line['name'] === '') {
+				continue;
+			}
+			if ($line['sku'] === '') {
+				$line['sku'] = self::guessSkuFromName($line['name']);
+			}
+			if ($line['lot'] === '') {
+				$line['lot'] = '—';
+			}
+			self::applyInboundStockLine($db, $warehouseCode, $whName, $line, $userId);
+		}
+		$meta['stockDeducted'] = false;
 	}
 
 	public static function applyIssueAction($warehouseCode, $issueCode, $actionKey, $role, $note = '', $userId = 0) {
@@ -1028,6 +1249,11 @@ class Warehouse_WhMgmtService {
 			}
 			$newDbStatus = 'packed';
 			self::deductStockForIssue($db, $warehouseCode, $issueId, $userId, $meta);
+			$ot = trim((string) (isset($meta['outboundType']) ? $meta['outboundType'] : ''));
+			$toId = trim((string) (isset($meta['toWarehouseId']) ? $meta['toWarehouseId'] : ''));
+			if ($ot === 'transfer' && $toId !== '') {
+				self::creditStockForTransferIssue($db, $toId, $issueId, $userId, $meta);
+			}
 			self::pushTimeline($meta, 'Đã soạn hàng', $role, '');
 		} else if ($actionKey === 'issue-ship') {
 			if (!in_array($dbStatus, array('packed', 'approved'), true)) {
@@ -1044,6 +1270,14 @@ class Warehouse_WhMgmtService {
 		} else if ($actionKey === 'issue-reject') {
 			$newDbStatus = 'rejected';
 			self::pushTimeline($meta, 'Từ chối phiếu', $role, (string) ($note !== '' ? $note : 'Không nêu lý do'));
+		} else if ($actionKey === 'issue-cancel') {
+			$cancellable = array('waiting_print', 'draft', 'pending_approval', 'picking', 'packed', 'approved');
+			if (!in_array($dbStatus, $cancellable, true)) {
+				throw new Exception('Chỉ huỷ được phiếu ở trạng thái Chờ in phiếu, Đang soạn hoặc Đã soạn.');
+			}
+			self::restoreStockForCancelledIssue($db, $warehouseCode, $issueId, $userId, $meta);
+			$newDbStatus = 'cancelled';
+			self::pushTimeline($meta, 'Huỷ phiếu xuất', $role, (string) ($note !== '' ? $note : 'Huỷ xuất kho'));
 		} else {
 			throw new Exception('Unsupported issue action: ' . $actionKey);
 		}
@@ -1118,6 +1352,7 @@ class Warehouse_WhMgmtService {
 			$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
 			$salesOrderId = (int) (isset($row['salesorder_id']) ? $row['salesorder_id'] : 0);
 			$outboundType = (string) (isset($meta['outboundType']) ? $meta['outboundType'] : '');
+			$toWarehouseIdMeta = (string) (isset($meta['toWarehouseId']) ? $meta['toWarehouseId'] : '');
 			$customer = self::decodeDisplayTextDeep(isset($row['destination']) ? $row['destination'] : '');
 			$soRef = self::decodeDisplayTextDeep(isset($meta['soRef']) ? $meta['soRef'] : '');
 			if ($salesOrderId > 0) {
@@ -1135,6 +1370,9 @@ class Warehouse_WhMgmtService {
 					$soRef = $soCtx['soRef'];
 				}
 			}
+			if ($toWarehouseIdMeta !== '' && ($outboundType === '' || $outboundType === 'internal')) {
+				$outboundType = 'transfer';
+			}
 			if ($outboundType === '') {
 				$outboundType = 'internal';
 			}
@@ -1147,11 +1385,16 @@ class Warehouse_WhMgmtService {
 				'outboundType' => $outboundType,
 				'customer' => $customer,
 				'soRef' => $soRef,
+				'toWarehouseId' => $toWarehouseIdMeta,
+				'exportTypeLabel' => self::decodeDisplayTextDeep((string) (isset($meta['exportTypeLabel']) ? $meta['exportTypeLabel'] : '')),
+				'notes' => self::decodeDisplayTextDeep((string) (isset($meta['notes']) ? $meta['notes'] : '')),
 				'createdAt' => $created !== '' ? gmdate('c', strtotime($created)) : gmdate('c'),
 				'createdBy' => (string) (isset($meta['createdBy']) ? $meta['createdBy'] : ''),
 				'status' => $uiStatus,
 				'lines' => $items,
 				'timeline' => isset($meta['timeline']) && is_array($meta['timeline']) ? $meta['timeline'] : array(),
+				'stockDeducted' => !empty($meta['stockDeducted']),
+				'stockCreditedTo' => (string) (isset($meta['stockCreditedTo']) ? $meta['stockCreditedTo'] : ''),
 			);
 		}
 		return $out;
@@ -1170,6 +1413,12 @@ class Warehouse_WhMgmtService {
 		}
 		if ($s === 'completed' || $s === 'shipped') {
 			return 'shipped';
+		}
+		if ($s === 'rejected') {
+			return 'rejected';
+		}
+		if ($s === 'cancelled' || $s === 'canceled' || $s === 'cancelled_by_user') {
+			return 'cancelled';
 		}
 		if ($s === 'pending_approval' || $s === 'draft') {
 			return 'waiting_print';
@@ -1887,6 +2136,236 @@ class Warehouse_WhMgmtService {
 		);
 	}
 
+	protected static function nextGinCode(PearDatabase $db) {
+		$rs = $db->pquery(
+			"SELECT MAX(CAST(SUBSTRING(code, 5) AS UNSIGNED)) AS max_seq
+			 FROM vtiger_goodsissue
+			 WHERE code LIKE 'GIN-%' AND deleted = 0",
+			array()
+		);
+		$max = 0;
+		if ($rs && $db->num_rows($rs) > 0) {
+			$max = (int) $db->query_result($rs, 0, 'max_seq');
+		}
+		return 'GIN-' . str_pad((string) ($max + 1), 4, '0', STR_PAD_LEFT);
+	}
+
+	/**
+	 * Persist outbound issue (xuất nội bộ / chuyển kho / huỷ) for print + list.
+	 * Upserts by code when payload.id is provided and already exists.
+	 *
+	 * @param array $payload outboundType, customer, soRef, toWarehouseId, createdBy, status, notes, lines[]
+	 */
+	public static function saveOutboundIssue($warehouseCode, array $payload, $userId = 0) {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		require_once 'modules/GoodsIssue/helpers/WorkflowSetup.php';
+		if (class_exists('GoodsIssue_WorkflowSetup_Helper') && method_exists('GoodsIssue_WorkflowSetup_Helper', 'runAll')) {
+			GoodsIssue_WorkflowSetup_Helper::runAll();
+		}
+
+		$warehouseCode = trim((string) $warehouseCode);
+		$wh = self::findWarehouseRowByCode($db, $warehouseCode);
+		if (!$wh) {
+			throw new Exception('Không tìm thấy kho.');
+		}
+
+		$outboundType = trim((string) (isset($payload['outboundType']) ? $payload['outboundType'] : 'internal'));
+		if ($outboundType === '') {
+			$outboundType = 'internal';
+		}
+		$customer = trim((string) (isset($payload['customer']) ? $payload['customer'] : ''));
+		$soRef = trim((string) (isset($payload['soRef']) ? $payload['soRef'] : ''));
+		$toWarehouseId = trim((string) (isset($payload['toWarehouseId']) ? $payload['toWarehouseId'] : ''));
+		// Kho đích có mã → luôn là xuất chuyển kho (tránh mất type khi meta bị encode).
+		if ($toWarehouseId !== '' && ($outboundType === '' || $outboundType === 'internal')) {
+			$outboundType = 'transfer';
+		}
+		$createdBy = trim((string) (isset($payload['createdBy']) ? $payload['createdBy'] : 'Thủ kho'));
+		if ($createdBy === '') {
+			$createdBy = 'Thủ kho';
+		}
+		$status = trim((string) (isset($payload['status']) ? $payload['status'] : 'waiting_print'));
+		if ($status === '') {
+			$status = 'waiting_print';
+		}
+		$notes = trim((string) (isset($payload['notes']) ? $payload['notes'] : ''));
+		if ($notes === '' && isset($payload['reason'])) {
+			$notes = trim((string) $payload['reason']);
+		}
+		$exportTypeLabel = trim((string) (isset($payload['exportTypeLabel']) ? $payload['exportTypeLabel'] : ''));
+		$lines = isset($payload['lines']) && is_array($payload['lines']) ? $payload['lines'] : array();
+		if (empty($lines)) {
+			throw new Exception('Thiếu dòng hàng phiếu xuất.');
+		}
+		if ($outboundType === 'transfer' && $toWarehouseId === '' && $customer === '') {
+			throw new Exception('Vui lòng chọn kho đích.');
+		}
+		if ($outboundType !== 'transfer' && $customer === '') {
+			throw new Exception('Thiếu thông tin bộ phận / mục đích xuất.');
+		}
+		if ($outboundType === 'transfer' && $customer === '' && $toWarehouseId !== '') {
+			$toWh = self::findWarehouseRowByCode($db, $toWarehouseId);
+			$customer = $toWh ? self::decodeDisplayTextDeep((string) $toWh['name']) : $toWarehouseId;
+		}
+
+		$now = date('Y-m-d H:i:s');
+		$requestedCode = trim((string) (isset($payload['id']) ? $payload['id'] : (isset($payload['code']) ? $payload['code'] : '')));
+		$existingId = 0;
+		$existingMeta = array();
+		if ($requestedCode !== '') {
+			$ex = $db->pquery(
+				'SELECT issueid, mk_meta_json FROM vtiger_goodsissue WHERE deleted = 0 AND code = ? LIMIT 1',
+				array($requestedCode)
+			);
+			if ($ex && $db->num_rows($ex) > 0) {
+				$existingId = (int) $db->query_result($ex, 0, 'issueid');
+				$existingMeta = self::decodeMeta($db->query_result($ex, 0, 'mk_meta_json'));
+			}
+		}
+
+		$timeline = array(
+			array(
+				'at' => gmdate('c'),
+				'by' => $createdBy,
+				'role' => 'manager',
+				'action' => 'Tạo phiếu xuất — ' . ($outboundType === 'transfer' ? 'Chuyển kho' : ($outboundType === 'scrap' ? 'Xuất huỷ' : 'Xuất nội bộ')),
+			),
+		);
+		if (isset($payload['timeline']) && is_array($payload['timeline']) && !empty($payload['timeline'])) {
+			$timeline = $payload['timeline'];
+		}
+
+		$alreadyDeducted = !empty($existingMeta['stockDeducted']);
+		$alreadyCredited = trim((string) (isset($existingMeta['stockCreditedTo']) ? $existingMeta['stockCreditedTo'] : ''));
+
+		if (!$alreadyDeducted) {
+			self::assertOutboundStockAvailable($db, $warehouseCode, $lines);
+		}
+
+		$meta = array(
+			'outboundType' => $outboundType,
+			'soRef' => $soRef,
+			'createdBy' => $createdBy,
+			'toWarehouseId' => $toWarehouseId,
+			'notes' => $notes,
+			'exportTypeLabel' => $exportTypeLabel,
+			'timeline' => $timeline,
+			'stockDeducted' => $alreadyDeducted,
+			'stockCreditedTo' => $alreadyCredited,
+		);
+		$metaJson = json_encode($meta, JSON_UNESCAPED_UNICODE);
+
+		if ($existingId > 0) {
+			$db->pquery(
+				'UPDATE vtiger_goodsissue
+				 SET destination = ?, status = ?, warehouse_id = ?, mk_meta_json = ?, updatedtime = ?, updatedby = ?
+				 WHERE issueid = ?',
+				array($customer, $status, $warehouseCode, $metaJson, $now, (int) $userId, $existingId)
+			);
+			$db->pquery('DELETE FROM vtiger_goodsissue_items WHERE issueid = ?', array($existingId));
+			$issueId = $existingId;
+			$code = $requestedCode;
+		} else {
+			$code = $requestedCode !== '' ? $requestedCode : self::nextGinCode($db);
+			// Avoid unique collision if client-generated code already taken elsewhere.
+			$clash = $db->pquery(
+				'SELECT issueid FROM vtiger_goodsissue WHERE deleted = 0 AND code = ? LIMIT 1',
+				array($code)
+			);
+			if ($clash && $db->num_rows($clash) > 0) {
+				$code = self::nextGinCode($db);
+			}
+			$issueId = (int) $db->getUniqueID('vtiger_goodsissue');
+			$db->pquery(
+				'INSERT INTO vtiger_goodsissue
+				 (issueid, code, subject, destination, issued_date, status, warehouse_id, mk_meta_json,
+				  createdby, updatedby, createdtime, updatedtime, deleted)
+				 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0)',
+				array(
+					$issueId,
+					$code,
+					'Phiếu xuất ' . $code,
+					$customer,
+					substr($now, 0, 10),
+					$status,
+					$warehouseCode,
+					$metaJson,
+					(int) $userId,
+					(int) $userId,
+					$now,
+					$now,
+				)
+			);
+		}
+
+		foreach ($lines as $line) {
+			$name = trim((string) (isset($line['name']) ? $line['name'] : ''));
+			$sku = trim((string) (isset($line['sku']) ? $line['sku'] : ''));
+			$lot = trim((string) (isset($line['lot']) ? $line['lot'] : ''));
+			$qty = (float) (isset($line['qty']) ? $line['qty'] : 0);
+			$price = (float) (isset($line['price']) ? $line['price'] : (isset($line['unit_price']) ? $line['unit_price'] : 0));
+			$productId = (int) (isset($line['product_id']) ? $line['product_id'] : 0);
+			if ($name === '' || $qty <= 0) {
+				continue;
+			}
+			$itemId = (int) $db->getUniqueID('vtiger_goodsissue_items');
+			// Prefer columns that always exist; unit_price when available.
+			$hasUnitPrice = false;
+			try {
+				$colRs = $db->pquery('SHOW COLUMNS FROM vtiger_goodsissue_items LIKE ?', array('unit_price'));
+				$hasUnitPrice = $colRs && $db->num_rows($colRs) > 0;
+			} catch (Exception $e) {
+				$hasUnitPrice = false;
+			}
+			if ($hasUnitPrice) {
+				$db->pquery(
+					'INSERT INTO vtiger_goodsissue_items
+					 (itemid, issueid, productid, product_name, quantity, serial_number, line_note, unit_price)
+					 VALUES (?,?,?,?,?,?,?,?)',
+					array($itemId, $issueId, $productId, $name, $qty, $lot, $sku, $price)
+				);
+			} else {
+				$db->pquery(
+					'INSERT INTO vtiger_goodsissue_items
+					 (itemid, issueid, productid, product_name, quantity, serial_number, line_note)
+					 VALUES (?,?,?,?,?,?,?)',
+					array($itemId, $issueId, $productId, $name, $qty, $lot, $sku)
+				);
+			}
+		}
+
+		// Trừ tồn ngay khi tạo/lưu phiếu xuất (idempotent qua stockDeducted).
+		self::deductStockForIssue($db, $warehouseCode, $issueId, $userId, $meta);
+		if ($outboundType === 'transfer' && $toWarehouseId !== '') {
+			self::creditStockForTransferIssue($db, $toWarehouseId, $issueId, $userId, $meta, $lines);
+		}
+		$db->pquery(
+			'UPDATE vtiger_goodsissue SET mk_meta_json = ?, updatedtime = ? WHERE issueid = ?',
+			array(json_encode($meta, JSON_UNESCAPED_UNICODE), $now, $issueId)
+		);
+
+		return array(
+			'code' => $code,
+			'issue' => array(
+				'id' => $code,
+				'outboundType' => $outboundType,
+				'customer' => $customer,
+				'toWarehouseId' => $toWarehouseId,
+				'soRef' => $soRef,
+				'exportTypeLabel' => $exportTypeLabel,
+				'notes' => $notes,
+				'status' => $status,
+				'createdAt' => gmdate('c', strtotime($now)),
+				'createdBy' => $createdBy,
+				'lines' => $lines,
+				'timeline' => $timeline,
+				'stockDeducted' => !empty($meta['stockDeducted']),
+			),
+			'data' => self::getWarehouseData($db, $warehouseCode),
+		);
+	}
+
 	/**
 	 * Payload in PHIẾU XUẤT KHO (02-VT) — HTML preview / PDF.
 	 */
@@ -1903,12 +2382,23 @@ class Warehouse_WhMgmtService {
 			throw new Exception('Không tìm thấy kho.');
 		}
 		$rs = $db->pquery(
-			'SELECT issueid, code, destination, status, createdtime, mk_meta_json, salesorder_id
+			'SELECT issueid, code, destination, status, createdtime, mk_meta_json, salesorder_id, warehouse_id
 			 FROM vtiger_goodsissue
 			 WHERE deleted = 0 AND warehouse_id = ? AND code = ?
 			 LIMIT 1',
 			array($warehouseCode, $issueCode)
 		);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			// Fallback: phiếu có thể gắn warehouse_id khác / tạo trước khi đổi mã kho.
+			$rs = $db->pquery(
+				'SELECT issueid, code, destination, status, createdtime, mk_meta_json, salesorder_id, warehouse_id
+				 FROM vtiger_goodsissue
+				 WHERE deleted = 0 AND code = ?
+				 ORDER BY issueid DESC
+				 LIMIT 1',
+				array($issueCode)
+			);
+		}
 		if (!$rs || $db->num_rows($rs) < 1) {
 			throw new Exception('Không tìm thấy phiếu xuất.');
 		}
@@ -1940,6 +2430,10 @@ class Warehouse_WhMgmtService {
 				$receiverAddress = $soCtx['organization'];
 			}
 		}
+		$toWarehouseIdMeta = (string) (isset($meta['toWarehouseId']) ? $meta['toWarehouseId'] : '');
+		if ($toWarehouseIdMeta !== '' && ($outboundType === '' || $outboundType === 'internal')) {
+			$outboundType = 'transfer';
+		}
 		if ($outboundType === '') {
 			$outboundType = 'internal';
 		}
@@ -1951,6 +2445,8 @@ class Warehouse_WhMgmtService {
 		if ($reason === '') {
 			if ($outboundType === 'sale') {
 				$reason = $soRef !== '' ? ('Xuất bán theo đơn hàng ' . $soRef) : 'Xuất bán hàng';
+			} elseif ($outboundType === 'scrap') {
+				$reason = $soRef !== '' ? ('Xuất huỷ theo phiếu ' . $soRef) : 'Xuất huỷ hàng';
 			} elseif ($outboundType === 'transfer') {
 				$reason = 'Xuất điều chuyển kho';
 			} else {
@@ -1999,21 +2495,79 @@ class Warehouse_WhMgmtService {
 		unset($item);
 
 		$company = 'Nguyên Khoa';
+		$companyAddress = '';
+		$companyPhone = '';
 		try {
 			require_once 'modules/Quotes/helpers/QuoteExcelExport.php';
-			if (class_exists('Quotes_QuoteExcelExport_Helper') && method_exists('Quotes_QuoteExcelExport_Helper', 'nkCompanyName')) {
-				$company = Quotes_QuoteExcelExport_Helper::nkCompanyName();
+			if (class_exists('Quotes_QuoteExcelExport_Helper')) {
+				if (method_exists('Quotes_QuoteExcelExport_Helper', 'nkCompanyName')) {
+					$company = Quotes_QuoteExcelExport_Helper::nkCompanyName();
+				}
+				if (method_exists('Quotes_QuoteExcelExport_Helper', 'nkAddress')) {
+					$companyAddress = Quotes_QuoteExcelExport_Helper::nkAddress();
+				}
+				if (method_exists('Quotes_QuoteExcelExport_Helper', 'nkPhone')) {
+					$companyPhone = Quotes_QuoteExcelExport_Helper::nkPhone();
+				}
 			}
 		} catch (Exception $e) {
 			// keep default
 		}
+
+		$notes = self::decodeDisplayTextDeep((string) (isset($meta['notes']) ? $meta['notes'] : ''));
+		if ($notes === '' && isset($meta['note'])) {
+			$notes = self::decodeDisplayTextDeep((string) $meta['note']);
+		}
+		$exportTypeLabel = self::decodeDisplayTextDeep((string) (isset($meta['exportTypeLabel']) ? $meta['exportTypeLabel'] : ''));
+		if ($exportTypeLabel === '') {
+			if ($outboundType === 'transfer') {
+				$exportTypeLabel = 'Xuất chuyển kho';
+			} elseif ($outboundType === 'scrap') {
+				$exportTypeLabel = 'Xuất huỷ';
+			} elseif ($outboundType === 'sale') {
+				$exportTypeLabel = 'Xuất bán hàng';
+			} else {
+				$exportTypeLabel = 'Xuất dùng nội bộ';
+			}
+		}
+
+		$toWarehouse = array('code' => '', 'name' => '');
+		$toWarehouseId = trim((string) (isset($meta['toWarehouseId']) ? $meta['toWarehouseId'] : ''));
+		if ($toWarehouseId !== '') {
+			$toWh = self::findWarehouseRowByCode($db, $toWarehouseId);
+			if ($toWh) {
+				$toWarehouse = array(
+					'code' => (string) (isset($toWh['code']) ? $toWh['code'] : $toWarehouseId),
+					'name' => self::decodeDisplayTextDeep((string) (isset($toWh['name']) ? $toWh['name'] : '')),
+				);
+			} else {
+				$toWarehouse = array('code' => $toWarehouseId, 'name' => $customer);
+			}
+		} elseif ($outboundType === 'transfer' && $customer !== '') {
+			$toWarehouse = array('code' => '', 'name' => $customer);
+		}
+
+		foreach ($items as &$item) {
+			if (!isset($item['note']) || trim((string) $item['note']) === '') {
+				$lot = trim((string) (isset($item['lot']) ? $item['lot'] : ''));
+				$item['note'] = $lot !== '' ? ('Lô ' . $lot) : '';
+			}
+		}
+		unset($item);
+
+		// Ghi chú in phiếu: chỉ dùng notes người dùng nhập, không lấy reason mặc định.
+		$printNotes = $notes;
 
 		return array(
 			'issue' => array(
 				'id' => (string) $row['code'],
 				'receiver' => $customer,
 				'receiverAddress' => $receiverAddress,
+				'receiverPerson' => self::decodeDisplayTextDeep((string) (isset($meta['receiverPerson']) ? $meta['receiverPerson'] : '')),
 				'reason' => $reason,
+				'notes' => $printNotes,
+				'receiveNotes' => self::decodeDisplayTextDeep((string) (isset($meta['receiveNotes']) ? $meta['receiveNotes'] : '')),
+				'exportTypeLabel' => $exportTypeLabel,
 				'soRef' => $soRef,
 				'outboundType' => $outboundType,
 				'createdAt' => $created,
@@ -2027,7 +2581,12 @@ class Warehouse_WhMgmtService {
 				'address' => self::decodeDisplayTextDeep((string) (isset($wh['address']) ? $wh['address'] : '')),
 				'manager' => self::decodeDisplayTextDeep((string) (isset($wh['manager']) ? $wh['manager'] : '')),
 			),
+			'toWarehouse' => $toWarehouse,
+			'branch' => 'Chi nhánh trung tâm',
+			'toBranch' => 'Chi nhánh trung tâm',
 			'company' => $company,
+			'companyAddress' => $companyAddress,
+			'companyPhone' => $companyPhone,
 		);
 	}
 }

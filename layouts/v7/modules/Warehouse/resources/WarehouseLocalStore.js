@@ -329,6 +329,25 @@
 			});
 			return def.promise();
 		},
+		saveIssue: function (whId, issue) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			apiPost({
+				mode: 'save_issue',
+				whId: whId,
+				payload: JSON.stringify(issue || {}),
+			}).then(function (res) {
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) {
+				def.reject(err);
+			});
+			return def.promise();
+		},
 		receiptAction: function (whId, code, actionKey, role, note) {
 			if (!useDb) {
 				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
@@ -386,7 +405,7 @@
 			(d.stock || []).forEach(function (x) { skus[x.sku] = true; });
 			var pQC = (d.receipts || []).filter(function (r) { return r.status === 'pending_qc'; }).length;
 			var pEx = (d.issues || []).filter(function (i) {
-				return i.status !== 'shipped' && i.status !== 'rejected';
+				return i.status !== 'shipped' && i.status !== 'rejected' && i.status !== 'cancelled';
 			}).length;
 			var exp = (d.stock || []).filter(function (s) {
 				var days = (new Date(s.expiry).getTime() - Date.now()) / 86400000;

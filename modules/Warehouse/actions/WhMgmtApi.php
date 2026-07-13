@@ -22,7 +22,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'receipt_action', 'issue_action'), true)) {
+		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -116,6 +116,18 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					}
 					$payload = $this->decodePayload($request);
 					$result = Warehouse_WhMgmtService::saveInboundReceipt($whId, $payload, $userId);
+					$response->setResult(array_merge(array('success' => true), $result));
+					break;
+
+				case 'save_issue':
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$payload = $this->decodePayload($request);
+					$result = Warehouse_WhMgmtService::saveOutboundIssue($whId, $payload, $userId);
 					$response->setResult(array_merge(array('success' => true), $result));
 					break;
 

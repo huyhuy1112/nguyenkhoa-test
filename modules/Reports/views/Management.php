@@ -44,9 +44,15 @@ class Reports_Management_View extends Vtiger_Index_View {
 			'date_from'   => $request->get('date_from'),
 			'date_to'     => $request->get('date_to'),
 			'owner_id'    => $request->get('owner_id'),
-			'report_type' => $request->get('report_type') ?: 'all', // all, project, task, mkt, kpi
+			'report_type' => $request->get('report_type') ?: 'mkt',
 			'export_fmt'  => $request->get('export_format'),
 		);
+		if (trim((string) $filters['date_from']) === '') {
+			$filters['date_from'] = date('Y-m-01');
+		}
+		if (trim((string) $filters['date_to']) === '') {
+			$filters['date_to'] = date('Y-m-t');
+		}
 
 		$doExport = $request->get('do_export');
 		$activeConfigId = (int) $request->get('selected_config_id');
@@ -98,26 +104,31 @@ class Reports_Management_View extends Vtiger_Index_View {
 			$ownersForDisplay[$oid] = $this->managementDecodeDisplayPlain($oname);
 		}
 
-		// Load dữ liệu cho từng loại báo cáo dựa trên report_type (mặc định: all)
-		$projectRows = array();
-		$taskRows = array();
-		if ($filters['report_type'] === 'all' || $filters['report_type'] === 'project') {
-			$projectRows = $this->getProjectRows($filters);
+		// MKT SALE only — dữ liệu thật từ Leads / Calendar / Potentials
+		if ($filters['report_type'] === 'project' || $filters['report_type'] === 'task') {
+			$filters['report_type'] = 'mkt';
 		}
-		if ($filters['report_type'] === 'all' || $filters['report_type'] === 'task') {
-			$taskRows = $this->getTaskRows($filters);
+		if ($filters['report_type'] === 'all') {
+			$filters['report_type'] = 'mkt';
 		}
-
-		$mktRows = array();
-		$kpiRows = array();
+		require_once 'modules/Reports/models/MktSaleReportService.php';
+		$mktReport = Reports_MktSaleReportService::build($filters);
 
 		$viewer->assign('CURRENT_USER', $currentUser);
 		$viewer->assign('REPORT_FILTERS', $filters);
 		$viewer->assign('REPORT_OWNERS', $ownersForDisplay);
-		$viewer->assign('REPORT_PROJECT_ROWS', $projectRows);
-		$viewer->assign('REPORT_TASK_ROWS', $taskRows);
-		$viewer->assign('REPORT_MKT_ROWS', $mktRows);
-		$viewer->assign('REPORT_KPI_ROWS', $kpiRows);
+		$viewer->assign('REPORT_PROJECT_ROWS', array());
+		$viewer->assign('REPORT_TASK_ROWS', array());
+		$viewer->assign('REPORT_MKT_ROWS', isset($mktReport['daily']) ? $mktReport['daily'] : array());
+		$viewer->assign('REPORT_KPI_ROWS', isset($mktReport['summary']) ? array($mktReport['summary']) : array());
+		$viewer->assign('REPORT_MKT_SALE', $mktReport);
+		$viewer->assign('REPORT_MKT_CHART_JSON', json_encode(isset($mktReport['daily']) ? $mktReport['daily'] : array()));
+		$viewer->assign('REPORT_MKT_MONTHLY_JSON', json_encode(isset($mktReport['monthly']) ? $mktReport['monthly'] : array()));
+		$viewer->assign('REPORT_MKT_KPI_JSON', json_encode(isset($mktReport['summary']) ? $mktReport['summary'] : array()));
+		$viewer->assign('REPORT_MKT_TOTALS_JSON', json_encode(isset($mktReport['daily_total']) ? $mktReport['daily_total'] : array()));
+		$viewer->assign('REPORT_MKT_CLASS_JSON', json_encode(isset($mktReport['class_days']) ? $mktReport['class_days'] : array()));
+		$viewer->assign('REPORT_MKT_STATUS_JSON', json_encode(isset($mktReport['status_matrix']) ? $mktReport['status_matrix'] : array()));
+		$viewer->assign('REPORT_MKT_FUNNEL_ROWS', isset($mktReport['status_matrix']['rows']) ? $mktReport['status_matrix']['rows'] : array());
 		$viewer->assign('REPORT_SAVED_CONFIGS', $savedConfigs);
 		$viewer->assign('ACTIVE_CONFIG_ID', $activeConfigId);
 
@@ -138,7 +149,7 @@ class Reports_Management_View extends Vtiger_Index_View {
 	public function getHeaderCss(Vtiger_Request $request) {
 		$headerCssInstances = parent::getHeaderCss($request);
 		$cssFileNames = array(
-			'~layouts/v7/modules/Reports/resources/ReportsMkManagement.css',
+			'~layouts/v7/modules/Reports/resources/ReportsMkManagement.css?mk_v=20260713_mktui8',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 		return array_merge($headerCssInstances, $cssInstances);
@@ -147,8 +158,7 @@ class Reports_Management_View extends Vtiger_Index_View {
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
-			"modules.ProjectTask.resources.List", // dùng lại modal Task của ProjectTask
-			"~layouts/v7/modules/Reports/resources/ReportsMkManagement.js",
+			"~layouts/v7/modules/Reports/resources/ReportsMkManagement.js?mk_v=20260713_mktui8",
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 		return array_merge($headerScriptInstances, $jsScriptInstances);
@@ -192,12 +202,8 @@ class Reports_Management_View extends Vtiger_Index_View {
 
 		$projectRows = array();
 		$taskRows = array();
-		if ($reportType === 'all' || $reportType === 'project') {
-			$projectRows = $this->getProjectRows($filters);
-		}
-		if ($reportType === 'all' || $reportType === 'task') {
-			$taskRows = $this->getTaskRows($filters);
-		}
+		require_once 'modules/Reports/models/MktSaleReportService.php';
+		$mktReport = Reports_MktSaleReportService::build($filters);
 
 		// Nếu người dùng tick cụ thể dòng nào thì chỉ export các dòng đó
 		if (!empty($selectedProjectIds)) {
@@ -269,6 +275,89 @@ class Reports_Management_View extends Vtiger_Index_View {
 				$html .= '</table>';
 			}
 
+			if (!empty($mktReport['daily'])) {
+				$html .= '<h3>Bảng 1 — Data Marketing theo ngày</h3>';
+				$html .= '<table border="1" cellspacing="0" cellpadding="3"><tr style="background-color:#f1f5f9;">'
+					. '<th>Ngày</th><th>Tổng MKT</th><th>N.Khoa</th><th>TikTok</th><th>KV1</th><th>KV2</th><th>KV3</th><th>K.rõ KV</th>'
+					. '<th>Đang TV</th><th>Không LH được</th><th>Không học/TB/Trùng</th><th>Online</th></tr>';
+				foreach ($mktReport['daily'] as $row) {
+					$html .= '<tr>'
+						. '<td>' . htmlspecialchars($row['label']) . '</td>'
+						. '<td align="right">' . (int) $row['total_leads'] . '</td>'
+						. '<td align="right">' . (int) $row['n_khoa'] . '</td>'
+						. '<td align="right">' . (int) $row['tiktok'] . '</td>'
+						. '<td align="right">' . (int) $row['kv1'] . '</td>'
+						. '<td align="right">' . (int) $row['kv2'] . '</td>'
+						. '<td align="right">' . (int) $row['kv3'] . '</td>'
+						. '<td align="right">' . (int) $row['region_unknown'] . '</td>'
+						. '<td align="right">' . (int) $row['consulting'] . '</td>'
+						. '<td align="right">' . (int) $row['unreachable'] . '</td>'
+						. '<td align="right">' . (int) $row['invalid'] . '</td>'
+						. '<td align="right">' . (int) $row['online_class'] . '</td>'
+						. '</tr>';
+				}
+				if (!empty($mktReport['daily_total'])) {
+					$t = $mktReport['daily_total'];
+					$html .= '<tr style="background:#dbeafe;font-weight:bold;">'
+						. '<td>' . htmlspecialchars($t['label']) . '</td>'
+						. '<td align="right">' . (int) $t['total_leads'] . '</td>'
+						. '<td align="right">' . (int) $t['n_khoa'] . '</td>'
+						. '<td align="right">' . (int) $t['tiktok'] . '</td>'
+						. '<td align="right">' . (int) $t['kv1'] . '</td>'
+						. '<td align="right">' . (int) $t['kv2'] . '</td>'
+						. '<td align="right">' . (int) $t['kv3'] . '</td>'
+						. '<td align="right">' . (int) $t['region_unknown'] . '</td>'
+						. '<td align="right">' . (int) $t['consulting'] . '</td>'
+						. '<td align="right">' . (int) $t['unreachable'] . '</td>'
+						. '<td align="right">' . (int) $t['invalid'] . '</td>'
+						. '<td align="right">' . (int) $t['online_class'] . '</td>'
+						. '</tr>';
+				}
+				$html .= '</table><br/>';
+			}
+
+			if (!empty($mktReport['class_days'])) {
+				$html .= '<h3>Bảng 2 — Funnel theo ngày học</h3>';
+				$html .= '<table border="1" cellspacing="0" cellpadding="3"><tr style="background-color:#dbeafe;">'
+					. '<th>Tháng</th><th>Thứ</th><th>Ngày học</th><th>Data MKT</th><th>Hẹn</th><th>Dời</th><th>Không học</th>'
+					. '<th>XN</th><th>Show</th><th>%TN</th><th>%Show/hẹn</th><th>%Chốt</th></tr>';
+				foreach ($mktReport['class_days'] as $row) {
+					$html .= '<tr>'
+						. '<td>' . htmlspecialchars($row['month_label']) . '</td>'
+						. '<td>' . htmlspecialchars($row['weekday']) . '</td>'
+						. '<td>' . htmlspecialchars($row['label']) . '</td>'
+						. '<td align="right">' . (int) $row['total_leads'] . '</td>'
+						. '<td align="right">' . (int) $row['appointments'] . '</td>'
+						. '<td align="right">' . (int) $row['reschedule'] . '</td>'
+						. '<td align="right">' . (int) $row['khong_hoc'] . '</td>'
+						. '<td align="right">' . (int) $row['confirmed'] . '</td>'
+						. '<td align="right">' . (int) $row['show'] . '</td>'
+						. '<td align="right">' . $row['pct_potential'] . '%</td>'
+						. '<td align="right">' . $row['pct_show_appt'] . '%</td>'
+						. '<td align="right">' . $row['pct_close_appt'] . '%</td>'
+						. '</tr>';
+				}
+				$html .= '</table><br/>';
+			}
+
+			if (!empty($mktReport['status_matrix']['columns']) && !empty($mktReport['status_matrix']['rows'])) {
+				$html .= '<h3>Bảng 3 — Tình trạng theo ngày học</h3>';
+				$html .= '<table border="1" cellspacing="0" cellpadding="3"><tr style="background-color:#dcfce7;"><th>Tình trạng</th>';
+				foreach ($mktReport['status_matrix']['columns'] as $col) {
+					$html .= '<th>' . htmlspecialchars($col['label']) . '</th>';
+				}
+				$html .= '</tr>';
+				foreach ($mktReport['status_matrix']['rows'] as $srow) {
+					$html .= '<tr><td>' . htmlspecialchars($srow['label']) . '</td>';
+					$cells = isset($srow['cells']) ? $srow['cells'] : array();
+					foreach ($mktReport['status_matrix']['columns'] as $i => $col) {
+						$html .= '<td align="right">' . (isset($cells[$i]) ? (int) $cells[$i] : 0) . '</td>';
+					}
+					$html .= '</tr>';
+				}
+				$html .= '</table>';
+			}
+
 			$pdf->writeHTML($html, true, false, true, false, '');
 			$pdf->Output($filename, 'D');
 			exit;
@@ -320,6 +409,129 @@ class Reports_Management_View extends Vtiger_Index_View {
 						$row['due'],
 						strip_tags($row['owner']),
 						$row['status'],
+					));
+				}
+				fputcsv($out, array());
+			}
+
+			if (!empty($mktReport['daily'])) {
+				fputcsv($out, array('Bảng 1 — Data Marketing theo ngày'));
+				fputcsv($out, array(
+					'Ngày', 'Tổng Data Marketing', 'N.Khoa', 'TikTok',
+					'KV1', 'KV2', 'KV3', 'K. rõ KV',
+					'Đang tư vấn / Hẹn / KNM', 'Liên hệ không được', 'Không học / Thuê bao / Trùng số', 'Lớp online',
+				));
+				foreach ($mktReport['daily'] as $row) {
+					fputcsv($out, array(
+						$row['label'],
+						$row['total_leads'],
+						$row['n_khoa'],
+						$row['tiktok'],
+						$row['kv1'],
+						$row['kv2'],
+						$row['kv3'],
+						$row['region_unknown'],
+						$row['consulting'],
+						$row['unreachable'],
+						$row['invalid'],
+						$row['online_class'],
+					));
+				}
+				if (!empty($mktReport['daily_total'])) {
+					$t = $mktReport['daily_total'];
+					fputcsv($out, array(
+						$t['label'],
+						$t['total_leads'],
+						$t['n_khoa'],
+						$t['tiktok'],
+						$t['kv1'],
+						$t['kv2'],
+						$t['kv3'],
+						$t['region_unknown'],
+						$t['consulting'],
+						$t['unreachable'],
+						$t['invalid'],
+						$t['online_class'],
+					));
+				}
+				fputcsv($out, array());
+			}
+
+			if (!empty($mktReport['class_days'])) {
+				fputcsv($out, array('Bảng 2 — Funnel theo ngày học'));
+				fputcsv($out, array(
+					'Tháng', 'Thứ', 'Ngày học', 'Tổng Data Marketing', 'Số lượng hẹn', 'Dời lịch', 'Không học',
+					'Xác nhận', 'Thực tế tham gia', '% Tiềm năng', '% Tham gia/hẹn', '% Xác nhận/hẹn', '% Thực tế/XN',
+					'PCTH', 'PCTH+MQ', 'MQ', 'Tỷ lệ chốt', 'Tổng %',
+					'KNM/Bận', 'Phân vân', 'Mời lại', 'Ngóng chờ', 'Chưa XĐ', 'Học chỗ khác', 'QT nhượng quyền', 'QT nguyên liệu',
+				));
+				foreach ($mktReport['class_days'] as $row) {
+					fputcsv($out, array(
+						$row['month_label'],
+						$row['weekday'],
+						$row['label'],
+						$row['total_leads'],
+						$row['appointments'],
+						$row['reschedule'],
+						$row['khong_hoc'],
+						$row['confirmed'],
+						$row['show'],
+						$row['pct_potential'] . '%',
+						$row['pct_show_appt'] . '%',
+						$row['pct_confirm_appt'] . '%',
+						$row['pct_show_confirm'] . '%',
+						$row['pcth'],
+						$row['pcth_mq'],
+						$row['mq'],
+						$row['pct_close_appt'] . '%',
+						$row['pct_close_total'] . '%',
+						$row['knm_ban'],
+						$row['phan_van'],
+						$row['moi_lai'],
+						$row['ngong_cho'],
+						$row['chua_xac_dinh'],
+						$row['hoc_cho_khac'],
+						$row['quan_tam_nq'],
+						$row['quan_tam_nl'],
+					));
+				}
+				fputcsv($out, array());
+			}
+
+			if (!empty($mktReport['status_matrix']['columns']) && !empty($mktReport['status_matrix']['rows'])) {
+				fputcsv($out, array('Bảng 3 — Tình trạng theo ngày học'));
+				$header = array('Tình trạng');
+				foreach ($mktReport['status_matrix']['columns'] as $col) {
+					$header[] = $col['label'];
+				}
+				fputcsv($out, $header);
+				foreach ($mktReport['status_matrix']['rows'] as $srow) {
+					$line = array($srow['label']);
+					$cells = isset($srow['cells']) ? $srow['cells'] : array();
+					foreach ($mktReport['status_matrix']['columns'] as $i => $col) {
+						$line[] = isset($cells[$i]) ? $cells[$i] : 0;
+					}
+					fputcsv($out, $line);
+				}
+				fputcsv($out, array());
+			}
+
+			if (!empty($mktReport['monthly'])) {
+				fputcsv($out, array('Tổng kết theo tháng (12 tháng)'));
+				fputcsv($out, array('Tháng', 'Lead', 'Đã LH', 'Đặt lịch', 'Show', 'XN', 'Chốt', '%Show/hẹn', '%XN/hẹn', '%Chốt/hẹn', '%Chốt/Lead'));
+				foreach ($mktReport['monthly'] as $row) {
+					fputcsv($out, array(
+						$row['label'],
+						$row['total_leads'],
+						$row['contacted'],
+						$row['appointments'],
+						$row['show'],
+						$row['confirmed'],
+						$row['closed'],
+						$row['pct_show_appt'] . '%',
+						$row['pct_confirm_appt'] . '%',
+						$row['pct_close_appt'] . '%',
+						$row['pct_close_lead'] . '%',
 					));
 				}
 			}

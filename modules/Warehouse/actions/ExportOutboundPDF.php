@@ -1,10 +1,15 @@
 <?php
 /*+***********************************************************************************
- * Export PHIẾU XUẤT KHO — HTML preview in iframe, PDF download separately.
+ * Export phiếu xuất kho — HTML preview / PDF.
+ * - sale / scrap → PHIẾU XUẤT KHO (02 - VT)
+ * - internal → Xuất dùng nội bộ
+ * - transfer → PHIẾU CHUYỂN HÀNG
  *************************************************************************************/
 
 require_once 'modules/Warehouse/models/WhMgmtService.php';
 require_once 'modules/Warehouse/helpers/OutboundIssuePdf.php';
+require_once 'modules/Warehouse/helpers/OutboundInternalPdf.php';
+require_once 'modules/Warehouse/helpers/OutboundTransferPdf.php';
 
 // Ensure TCPDF is loaded (absolute paths — không phụ thuộc cwd).
 if (!class_exists('TCPDF')) {
@@ -44,6 +49,18 @@ class Warehouse_ExportOutboundPDF_Action extends Vtiger_Action_Controller {
 		return true;
 	}
 
+	protected function resolveTemplate($outboundType) {
+		$type = strtolower(trim((string) $outboundType));
+		if ($type === 'transfer') {
+			return 'transfer';
+		}
+		if ($type === 'sale' || $type === 'scrap') {
+			return 'sale';
+		}
+		// internal / default → phiếu xuất nội bộ
+		return 'internal';
+	}
+
 	public function process(Vtiger_Request $request) {
 		$warehouseCode = trim((string) $request->get('warehouse'));
 		if ($warehouseCode === '') {
@@ -59,19 +76,38 @@ class Warehouse_ExportOutboundPDF_Action extends Vtiger_Action_Controller {
 				throw new Exception('Thiếu mã kho hoặc mã phiếu xuất.');
 			}
 			$payload = Warehouse_WhMgmtService::getOutboundIssuePrintPayload($warehouseCode, $issueCode);
+			$outboundType = '';
+			if (isset($payload['issue']['outboundType'])) {
+				$outboundType = (string) $payload['issue']['outboundType'];
+			}
+			$template = $this->resolveTemplate($outboundType);
 			$isPreview = $request->get('preview') === '1' || $request->get('mode') === 'inline';
 			$format = strtolower((string) $request->get('format'));
 
 			if ($isPreview || $format === 'html') {
-				Warehouse_OutboundIssuePdf_Helper::renderHtmlPreview($payload);
+				if ($template === 'transfer') {
+					Warehouse_OutboundTransferPdf_Helper::renderHtmlPreview($payload);
+				} elseif ($template === 'internal') {
+					Warehouse_OutboundInternalPdf_Helper::renderHtmlPreview($payload);
+				} else {
+					Warehouse_OutboundIssuePdf_Helper::renderHtmlPreview($payload);
+				}
 			}
 
 			if (!class_exists('TCPDF')) {
 				throw new Exception('TCPDF không khả dụng — không tạo được PDF. Kiểm tra vendor/tecnickcom/tcpdf.');
 			}
 
-			$fileName = 'PhieuXuatKho_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', $issueCode) . '.pdf';
-			Warehouse_OutboundIssuePdf_Helper::output($payload, $fileName, 'D');
+			if ($template === 'transfer') {
+				$fileName = 'PhieuChuyenHang_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', $issueCode) . '.pdf';
+				Warehouse_OutboundTransferPdf_Helper::output($payload, $fileName, 'D');
+			} elseif ($template === 'internal') {
+				$fileName = 'XuatDungNoiBo_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', $issueCode) . '.pdf';
+				Warehouse_OutboundInternalPdf_Helper::output($payload, $fileName, 'D');
+			} else {
+				$fileName = 'PhieuXuatKho_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', $issueCode) . '.pdf';
+				Warehouse_OutboundIssuePdf_Helper::output($payload, $fileName, 'D');
+			}
 			exit;
 		} catch (Exception $e) {
 			while (ob_get_level() > 0) {
