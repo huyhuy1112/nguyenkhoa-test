@@ -44,11 +44,11 @@
 							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="name"><span class="mk-leads-th__inner">{vtranslate('Contact Name', 'Contacts')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th" scope="col">{vtranslate('Office Phone', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('Account Name', 'Accounts')}</th>
+							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_CUSTOMER_TIER', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CUSTOMER_RANK', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CLASS_TAG', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_MATERIAL_TAG', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_FRANCHISE_TAG', 'Contacts')}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_CUSTOMER_TIER', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('Assigned To', 'Vtiger')}</th>
 						</tr>
 					</thead>

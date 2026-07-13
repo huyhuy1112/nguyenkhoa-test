@@ -255,11 +255,11 @@
     owners.sort();
     host.innerHTML =
       '<div class="mk-leads-filters-grid">' +
-      fieldSelect(t("JS_MK_FILTER_CUSTOMER_RANK", "Hạng khách hàng"), "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_TIER", "Hạng khách hàng"), "tier", ref.TIER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_CUSTOMER_RANK", "Phân nhóm"), "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"), "material", ref.MATERIAL_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"), "franchise", ref.FRANCHISE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
-      fieldSelect(t("JS_MK_FILTER_TIER", "Hạng thành viên"), "tier", ref.TIER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", owners.map(function (o) { return [o, o]; })) +
       "</div>";
     host.hidden = !state.filtersOpen;
@@ -344,11 +344,11 @@
             "</span></span></td>" +
             '<td class="mk-leads-td">' + (c.phone ? esc(c.phone) : '<span class="mk-leads-muted">—</span>') + "</td>" +
             '<td class="mk-leads-td">' + (c.account ? '<span class="mk-pill mk-pill--blue">' + esc(c.account) + "</span>" : '<span class="mk-leads-muted">—</span>') + "</td>" +
+            '<td class="mk-leads-td">' + tierPill(c.tags) + "</td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.customerRank) + "</td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.classTag) + "</td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.material) + "</td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.franchise) + "</td>" +
-            '<td class="mk-leads-td">' + tierPill(c.tags) + "</td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(c.owner) + '">' + esc(ownerInitials(c.owner)) + "</span>" +
             "<span>" + esc(c.owner || "—") + "</span></span></td></tr>"

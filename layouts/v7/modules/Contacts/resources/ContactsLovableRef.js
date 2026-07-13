@@ -34,6 +34,11 @@
     da_tg_fb1: "da_tg_fb1",
     da_tg_f_b1: "da_tg_fb1",
     thu_3: "thu_3",
+    pcth: "pcth",
+    chuong_trinh_pcth: "pcth",
+    van_hanh: "van_hanh",
+    mkt: "mkt",
+    lop_khac: "lop_khac",
     tiem_nang: "tiem_nang",
     mua_lan_dau: "mua_lan_dau",
     mua_lai: "mua_lai",
@@ -63,6 +68,10 @@
     da_tg_free: { vi: "Đã TG FREE", en: "Attended FREE", cat: "classTag", cls: "mk-tag--da-tg-free" },
     da_tg_fb1: { vi: "Đã TG F&B1", en: "Attended F&B1", cat: "classTag", cls: "mk-tag--da-tg-fb1" },
     thu_3: { vi: "THỨ 3", en: "Tuesday", cat: "classTag", cls: "mk-tag--thu-3" },
+    pcth: { vi: "PCTH", en: "PCTH", cat: "classTag", cls: "mk-tag--pcth" },
+    van_hanh: { vi: "Vận hành", en: "Operations", cat: "classTag", cls: "mk-tag--van-hanh" },
+    mkt: { vi: "MKT", en: "MKT", cat: "classTag", cls: "mk-tag--mkt" },
+    lop_khac: { vi: "Lớp khác", en: "Other class", cat: "classTag", cls: "mk-tag--lop-khac" },
     tiem_nang: { vi: "Tiềm năng", en: "Potential", cat: "material", cls: "mk-tag--tiem-nang" },
     mua_lan_dau: { vi: "Mua lần đầu", en: "First purchase", cat: "material", cls: "mk-tag--mua-lan-dau" },
     mua_lai: { vi: "Mua lại", en: "Repeat purchase", cat: "material", cls: "mk-tag--mua-lai" },
@@ -80,7 +89,7 @@
   };
 
   var CUSTOMER_RANK_TAGS = ["moi_quen", "da_co_quan_he", "co_quan", "chuan_bi_mo"];
-  var CLASS_TAGS = ["chua_mqbh", "da_tg_free", "da_tg_fb1", "thu_3"];
+  var CLASS_TAGS = ["chua_mqbh", "da_tg_free", "da_tg_fb1", "thu_3", "pcth", "van_hanh", "mkt", "lop_khac"];
   var MATERIAL_TAGS = [
     "tiem_nang", "mua_lan_dau", "mua_lai", "mua_on_dinh", "dang_cham_soc",
     "kh_can_nhac", "khong_mua", "ngung_mua",

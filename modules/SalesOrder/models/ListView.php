@@ -19,6 +19,7 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 		}
 		if (strtoupper((string) ($_REQUEST['app'] ?? '')) === 'SALES') {
 			require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+			$warehouseNames = $this->loadWarehouseNamesBySalesOrderIds(array_keys($listViewRecordModels));
 			foreach ($listViewRecordModels as $recordId => $recordModel) {
 				$corrected = $this->resolveDisplayGrandTotal($recordModel);
 				if ($corrected !== null) {
@@ -27,9 +28,58 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 					$recordModel->set('total', $formatted);
 				}
 				$listViewRecordModels[$recordId] = Vtiger_MkSalesCustomerName_Helper::applyListCustomerColumn($recordModel);
+				$whName = isset($warehouseNames[(int) $recordId]) ? $warehouseNames[(int) $recordId] : '';
+				$listViewRecordModels[$recordId]->set('mk_warehouse_name', $whName !== '' ? $whName : '—');
 			}
 		}
 		return $listViewRecordModels;
+	}
+
+	/**
+	 * Map salesorderid => warehouse display name (from linked goods issue).
+	 *
+	 * @param array $salesOrderIds
+	 * @return array
+	 */
+	protected function loadWarehouseNamesBySalesOrderIds(array $salesOrderIds) {
+		$ids = array();
+		foreach ($salesOrderIds as $id) {
+			$id = (int) $id;
+			if ($id > 0) {
+				$ids[] = $id;
+			}
+		}
+		$ids = array_values(array_unique($ids));
+		if (empty($ids)) {
+			return array();
+		}
+		$db = PearDatabase::getInstance();
+		$rs = $db->pquery(
+			'SELECT gi.salesorder_id, gi.warehouse_id, gi.storage_location
+			 FROM vtiger_goodsissue gi
+			 WHERE gi.deleted = 0 AND gi.salesorder_id IN (' . generateQuestionMarks($ids) . ')
+			 ORDER BY gi.issueid DESC',
+			$ids
+		);
+		$map = array();
+		require_once 'modules/Warehouse/helpers/WarehouseRegistry.php';
+		if ($rs) {
+			while ($row = $db->fetchByAssoc($rs)) {
+				$soId = (int) (isset($row['salesorder_id']) ? $row['salesorder_id'] : 0);
+				if ($soId <= 0 || isset($map[$soId])) {
+					continue;
+				}
+				$whId = trim((string) (isset($row['warehouse_id']) ? $row['warehouse_id'] : ''));
+				$name = $whId !== '' ? Warehouse_Registry::getName($whId) : '';
+				if ($name === '') {
+					$name = trim(decode_html((string) (isset($row['storage_location']) ? $row['storage_location'] : '')));
+				}
+				if ($name !== '') {
+					$map[$soId] = $name;
+				}
+			}
+		}
+		return $map;
 	}
 
 	/**

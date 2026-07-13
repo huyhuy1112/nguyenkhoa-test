@@ -8,16 +8,17 @@ class Contacts_ContactTagCatalog {
 
 	/** Canonical keys allowed on Contact (from BA Excel). */
 	protected static $allowedKeys = array(
-		// Hạng Khách Hàng (Phân nhóm + BA spreadsheet)
+		// Phân nhóm quan hệ (BA spreadsheet)
 		'moi_quen', 'da_co_quan_he', 'co_quan', 'chuan_bi_mo',
-		// Tag lớp học
+		// Tag lớp học / chương trình
 		'chua_mqbh', 'da_tg_free', 'da_tg_fb1', 'thu_3',
+		'pcth', 'van_hanh', 'mkt', 'lop_khac',
 		// Tag nguyên liệu / chăm sóc
 		'tiem_nang', 'mua_lan_dau', 'mua_lai', 'mua_on_dinh', 'dang_cham_soc',
 		'dang_tu_van', 'kh_can_nhac', 'khong_mua', 'ngung_mua',
 		// Tag nhượng quyền
 		'nhuong_quyen', 'da_ky_quy',
-		// Hạng thành viên (tier)
+		// Hạng khách hàng (tier Vàng/Bạc/Đồng)
 		'vang', 'bac', 'dong',
 	);
 
@@ -58,6 +59,11 @@ class Contacts_ContactTagCatalog {
 		'đang tư vấn' => 'dang_tu_van',
 		'mua_lan_dau' => 'mua_lan_dau',
 		'mua_lại' => 'mua_lai',
+		'pcth' => 'pcth',
+		'chuong_trinh_pcth' => 'pcth',
+		'van_hanh' => 'van_hanh',
+		'mkt' => 'mkt',
+		'lop_khac' => 'lop_khac',
 	);
 
 	public static function normalizeKey($tagName) {

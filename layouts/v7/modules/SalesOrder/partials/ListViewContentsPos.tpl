@@ -95,6 +95,11 @@
 									<a href="#" class="removeSorting"><i class="fa fa-remove"></i></a>
 								{/if}
 							</th>
+							{if $LIST_HEADER_NAME eq 'account_id' || $LIST_HEADER_NAME eq 'contact_id'}
+								<th class="mk-so-col-warehouse" nowrap="nowrap">
+									<span class="mk-so-pos-th-label">Kho</span>
+								</th>
+							{/if}
 						{/foreach}
 					</tr>
 				</thead>
@@ -140,12 +145,17 @@
 										</span>
 									</span>
 								</td>
+								{if $LISTVIEW_HEADERNAME eq 'account_id' || $LISTVIEW_HEADERNAME eq 'contact_id'}
+									<td class="listViewEntryValue mk-so-col-warehouse" data-name="mk_warehouse_name">
+										<span class="fieldValue"><span class="value">{$LISTVIEW_ENTRY->get('mk_warehouse_name')|default:'—'|escape}</span></span>
+									</td>
+								{/if}
 							{/foreach}
 						</tr>
 					{/foreach}
 					{if isset($LISTVIEW_ENTRIES_COUNT) && $LISTVIEW_ENTRIES_COUNT eq '0'}
 						<tr class="emptyRecordsDiv">
-							{assign var=COLSPAN_WIDTH value={php7_count($LISTVIEW_HEADERS)}+1}
+							{assign var=COLSPAN_WIDTH value={php7_count($LISTVIEW_HEADERS)}+2}
 							<td colspan="{$COLSPAN_WIDTH}">
 								<div class="emptyRecordsContent">
 									{vtranslate('LBL_NO')} {vtranslate($MODULE, $MODULE)} {vtranslate('LBL_FOUND')}.

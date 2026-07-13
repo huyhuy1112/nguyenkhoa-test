@@ -544,6 +544,35 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		);
 	}
 
+	/**
+	 * Warehouse used when confirming the order (linked goods issue).
+	 */
+	protected function resolveInlineWarehouseName(Vtiger_Record_Model $recordModel) {
+		$recordId = (int) $recordModel->getId();
+		if ($recordId <= 0) {
+			return '';
+		}
+		$db = PearDatabase::getInstance();
+		$rs = $db->pquery(
+			'SELECT warehouse_id, storage_location
+			 FROM vtiger_goodsissue
+			 WHERE deleted = 0 AND salesorder_id = ?
+			 ORDER BY issueid DESC
+			 LIMIT 1',
+			array($recordId)
+		);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			return '';
+		}
+		$whId = trim((string) $db->query_result($rs, 0, 'warehouse_id'));
+		require_once 'modules/Warehouse/helpers/WarehouseRegistry.php';
+		$name = $whId !== '' ? Warehouse_Registry::getName($whId) : '';
+		if ($name === '') {
+			$name = trim(decode_html((string) $db->query_result($rs, 0, 'storage_location')));
+		}
+		return $name;
+	}
+
 	protected function buildInlineInfoFieldEntry(
 		Vtiger_Module_Model $moduleModel,
 		Vtiger_Record_Model $recordModel,
@@ -623,6 +652,12 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 				'label' => 'Dự kiến giao',
 				'label_hints' => array('Dự kiến giao', 'Due Date', 'Ngày bàn giao', 'Expected Delivery'),
 			),
+			array(
+				'names' => array(),
+				'label' => 'Kho xuất',
+				'label_hints' => array('Kho xuất', 'Warehouse', 'Kho'),
+				'virtual' => 'warehouse',
+			),
 		);
 
 		$fields = array();
@@ -648,6 +683,21 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 					'value' => $displayValue,
 					'raw_value' => $creator['raw'],
 					'data_type' => $dataType,
+					'editable' => false,
+					'picklist_values' => array(),
+				);
+				$seenLabels[$label] = true;
+				continue;
+			}
+
+			if (!empty($candidate['virtual']) && $candidate['virtual'] === 'warehouse') {
+				$warehouseName = $this->resolveInlineWarehouseName($recordModel);
+				$fields[] = array(
+					'name' => 'mk_warehouse_name',
+					'label' => $label,
+					'value' => $warehouseName !== '' ? $warehouseName : '—',
+					'raw_value' => $warehouseName,
+					'data_type' => 'string',
 					'editable' => false,
 					'picklist_values' => array(),
 				);

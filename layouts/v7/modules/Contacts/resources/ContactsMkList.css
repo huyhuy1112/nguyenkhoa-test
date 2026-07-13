@@ -58,6 +58,10 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-ap
 .mk-tag--co-quan-he { background: #ffe4e6; color: #be123c; border-color: #fda4af; }
 .mk-tag--chua-mqbh { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
 .mk-tag--da-tg-free { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
+.mk-tag--pcth { background: #f3e8ff; color: #7e22ce; border-color: #c4b5fd; }
+.mk-tag--van-hanh { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
+.mk-tag--mkt { background: #fce7f3; color: #be185d; border-color: #f9a8d4; }
+.mk-tag--lop-khac { background: #f1f5f9; color: #334155; border-color: #94a3b8; }
 
 .mk-contacts-page .mk-leads-tags-stack {
 	display: flex;

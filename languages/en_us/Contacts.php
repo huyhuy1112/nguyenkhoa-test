@@ -19,11 +19,13 @@ $languageStrings = array(
 	'LBL_MK_CONTACTS_SEARCH_PLACEHOLDER' => 'Search by name, email, phone, organization, owner or tag…',
 	'LBL_MK_CONTACTS_TABLE' => 'Customers list',
 	'LBL_MK_CONTACT_TAGS_HINT' => 'Tags transferred from Lead on convert.',
-	'LBL_MK_CUSTOMER_TIER' => 'Member tier',
-	'LBL_MK_COL_CUSTOMER_RANK' => 'Customer rank',
+	'LBL_MK_CUSTOMER_TIER' => 'Customer rank',
+	'LBL_MK_COL_CUSTOMER_RANK' => 'Segment',
 	'LBL_MK_COL_CLASS_TAG' => 'Class tag',
 	'LBL_MK_COL_MATERIAL_TAG' => 'Material tag',
 	'LBL_MK_COL_FRANCHISE_TAG' => 'Franchise tag',
+	'LBL_MK_COL_SEGMENT' => 'Segment',
+	'LBL_MK_COL_MEMBER_TIER' => 'Customer rank',
 	'LBL_RECORDS_LIST' => 'Contacts List',
 
 	// Blocks
@@ -77,11 +79,11 @@ $languageStrings = array(
 
 $jsLanguageStrings = array(
 	'JS_MK_FILTER_ALL' => 'All',
-	'JS_MK_FILTER_CUSTOMER_RANK' => 'Customer rank',
+	'JS_MK_FILTER_CUSTOMER_RANK' => 'Segment',
 	'JS_MK_FILTER_CLASS' => 'Class tag',
 	'JS_MK_FILTER_MATERIAL' => 'Material tag',
 	'JS_MK_FILTER_FRANCHISE' => 'Franchise tag',
-	'JS_MK_FILTER_TIER' => 'Member tier',
+	'JS_MK_FILTER_TIER' => 'Customer rank',
 	'JS_MK_FILTER_OWNER' => 'Owner',
 	'JS_MK_KPI_TOTAL_CONTACT' => 'Total customers',
 	'JS_MK_KPI_TAGGED' => 'Has tag',

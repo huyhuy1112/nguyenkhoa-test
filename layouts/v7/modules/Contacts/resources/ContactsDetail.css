@@ -464,6 +464,14 @@ body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-d
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="bac"] { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="dong"],
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dong"] { background: #ffedd5; border-color: #fb923c; color: #9a3412; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="pcth"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="pcth"] { background: #f3e8ff; border-color: #c4b5fd; color: #7e22ce; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="van_hanh"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="van_hanh"] { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="mkt"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mkt"] { background: #fce7f3; border-color: #f9a8d4; color: #be185d; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="lop_khac"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="lop_khac"] { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lan_dau"],
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lan_dau"] { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lai"],

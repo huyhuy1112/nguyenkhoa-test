@@ -1,7 +1,7 @@
 <?php
 /**
  * Mass-duplicate Sales Orders (header + line items), new records start as Phiếu tạm (Created).
- * Doc no becomes "{source_no} (copy)" instead of a brand-new sequence number.
+ * Doc no uses the next module sequence (SO34, SO35, …) — never "{source} (copy)".
  */
 class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 
@@ -89,7 +89,6 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			throw new Exception('Không tìm thấy đơn hàng #' . $sourceId);
 		}
 
-		$sourceNo = trim((string) $source->get('salesorder_no'));
 		$sourceSubject = trim((string) $source->get('subject'));
 
 		$newModel = Vtiger_Record_Model::getCleanInstance('SalesOrder');
@@ -127,8 +126,12 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			$newModel->set($moneyField, 0);
 		}
 
+		// Keep a clean subject (strip any legacy "(copy)" from older duplicates).
 		if ($sourceSubject !== '') {
-			$newModel->set('subject', preg_replace('/\s*\(copy(?:\s+\d+)?\)\s*$/i', '', $sourceSubject) . ' (copy)');
+			$cleanSubject = trim(preg_replace('/\s*\(copy(?:\s+\d+)?\)\s*$/i', '', $sourceSubject));
+			if ($cleanSubject !== '') {
+				$newModel->set('subject', $cleanSubject);
+			}
 		}
 
 		$currentUser = Users_Record_Model::getCurrentUserModel();
@@ -179,7 +182,7 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 		$this->copySalesOrderTotals($sourceId, $newId);
 		$this->ensureTotalsFromLines($newId, $sourceId);
 		$this->fixInflatedMoney($sourceId, $newId);
-		$this->applyCopiedDocNumber($newId, $sourceNo);
+		$this->ensureNextDocNumber($newId);
 
 		return $newId;
 	}
@@ -603,25 +606,36 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 		);
 	}
 
-	protected function applyCopiedDocNumber($newId, $sourceNo) {
-		$sourceNo = trim((string) $sourceNo);
-		if ($sourceNo === '') {
+	/**
+	 * Keep the auto-incremented salesorder_no from save (SO34, …).
+	 * Only fill if save left it blank / still looks like a legacy "(copy)" label.
+	 */
+	protected function ensureNextDocNumber($newId) {
+		$newId = (int) $newId;
+		if ($newId <= 0) {
 			return;
 		}
-		$base = preg_replace('/\s*\(copy(?:\s+\d+)?\)\s*$/i', '', $sourceNo);
-		$candidate = $base . ' (copy)';
 		$db = PearDatabase::getInstance();
-		$n = 2;
-		while ($this->docNumberExists($candidate, $newId)) {
-			$candidate = $base . ' (copy ' . $n . ')';
-			$n++;
-			if ($n > 50) {
-				$candidate = $base . ' (copy ' . $newId . ')';
-				break;
+		$rs = $db->pquery(
+			'SELECT salesorder_no FROM vtiger_salesorder WHERE salesorderid = ? LIMIT 1',
+			array($newId)
+		);
+		$current = ($rs && $db->num_rows($rs) > 0)
+			? trim((string) $db->query_result($rs, 0, 'salesorder_no'))
+			: '';
+		if ($current !== '' && !preg_match('/\s*\(copy(?:\s+\d+)?\)\s*$/i', $current)) {
+			$db->pquery('UPDATE vtiger_crmentity SET label = ? WHERE crmid = ?', array($current, $newId));
+			return;
+		}
+
+		$focus = CRMEntity::getInstance('SalesOrder');
+		if ($focus && method_exists($focus, 'setModuleSeqNumber')) {
+			$seq = $focus->setModuleSeqNumber('increment', 'SalesOrder');
+			if (is_string($seq) && $seq !== '') {
+				$db->pquery('UPDATE vtiger_salesorder SET salesorder_no = ? WHERE salesorderid = ?', array($seq, $newId));
+				$db->pquery('UPDATE vtiger_crmentity SET label = ? WHERE crmid = ?', array($seq, $newId));
 			}
 		}
-		$db->pquery('UPDATE vtiger_salesorder SET salesorder_no = ? WHERE salesorderid = ?', array($candidate, $newId));
-		$db->pquery('UPDATE vtiger_crmentity SET label = ? WHERE crmid = ?', array($candidate, $newId));
 	}
 
 	protected function docNumberExists($docNo, $excludeId) {

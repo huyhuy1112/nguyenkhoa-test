@@ -10,6 +10,8 @@
 	{assign var=MK_SO_COL_CLASS value='mk-so-col-customer-code'}
 {elseif $FIELD_NAME eq 'account_id' || $FIELD_NAME eq 'contact_id' || $FIELD_NAME eq 'related_to' || $FIELD_NAME eq 'sc_related_to'}
 	{assign var=MK_SO_COL_CLASS value='mk-so-col-customer'}
+{elseif $FIELD_NAME eq 'mk_warehouse_name'}
+	{assign var=MK_SO_COL_CLASS value='mk-so-col-warehouse'}
 {elseif isset($MK_SO_STATUS_FIELD) && $MK_SO_STATUS_FIELD neq '' && $FIELD_NAME eq $MK_SO_STATUS_FIELD}
 	{assign var=MK_SO_COL_CLASS value='mk-so-col-status'}
 {elseif $FIELD_NAME eq 'hdnGrandTotal' || $FIELD_NAME eq 'total'}

@@ -220,6 +220,7 @@
     customerno: "mk-so-col-customer-code",
     account_id: "mk-so-col-customer",
     contact_id: "mk-so-col-customer",
+    mk_warehouse_name: "mk-so-col-warehouse",
     hdnGrandTotal: "mk-so-col-due",
     total: "mk-so-col-due",
     received: "mk-so-col-paid",
@@ -2374,6 +2375,8 @@
       "salesorder_no",
       "createdtime",
       "account_id",
+      "contact_id",
+      "mk_warehouse_name",
       "hdnGrandTotal",
       "total",
       paidFieldName(),
@@ -2401,6 +2404,8 @@
         $(this).addClass("mk-so-list-col-hidden");
       }
     });
+    // Injected Kho header has no data-columnname — keep it aligned with warehouse cells.
+    $table.find("thead th.mk-so-col-warehouse").removeClass("mk-so-list-col-hidden");
   }
 
   function filterMeta() {
@@ -3208,12 +3213,13 @@
     var widthByClass = {
       "mk-so-pos-control-th": "76px",
       "mk-so-col-star": "76px",
-      "mk-so-col-order-no": "13%",
-      "mk-so-col-time": "14%",
-      "mk-so-col-customer": "18%",
-      "mk-so-col-paid": "14%",
-      "mk-so-col-status": "18%",
-      "mk-so-col-due": "15%",
+      "mk-so-col-order-no": "12%",
+      "mk-so-col-time": "12%",
+      "mk-so-col-customer": "15%",
+      "mk-so-col-warehouse": "12%",
+      "mk-so-col-paid": "12%",
+      "mk-so-col-status": "14%",
+      "mk-so-col-due": "13%",
     };
     var html = '<colgroup class="mk-so-pos-cols">';
     $headers.each(function () {
