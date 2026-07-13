@@ -55,7 +55,11 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-ap
 
 .mk-tag--dang-tu-van { background: #f0fdf4; color: #15803d; border-color: #86efac; }
 .mk-tag--moi-quen { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.mk-tag--moi-quen { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
 .mk-tag--co-quan-he { background: #ffe4e6; color: #be123c; border-color: #fda4af; }
+.mk-tag--co-quan { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+.mk-tag--chuan-bi-mo { background: #fce7f3; color: #be185d; border-color: #f9a8d4; }
+.mk-tag--gia-dinh { background: #dcfce7; color: #047857; border-color: #86efac; }
 .mk-tag--chua-mqbh { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
 .mk-tag--da-tg-free { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
 .mk-tag--pcth { background: #f3e8ff; color: #7e22ce; border-color: #c4b5fd; }

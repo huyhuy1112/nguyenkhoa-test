@@ -78,7 +78,7 @@
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/custom.css')}&amp;cv={$CUSTOM_CSS_VERSION|default:$smarty.now}" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/nguyenkhoa-brand.css')}?nk_v=20260704_pm_edit1" media="screen" />
 		{include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkReferencePopup.css')}?mk_v=20260624_refpopup6" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkReferencePopup.css')}?mk_v=20260713_opp_popup2" media="screen" />
 		<style type="text/css" id="mk-ref-popup-critical">
 			/* FOUC guard: popup styles apply the instant #popupModal exists */
 			body.mk-ref-popup-open .modal-backdrop.in {

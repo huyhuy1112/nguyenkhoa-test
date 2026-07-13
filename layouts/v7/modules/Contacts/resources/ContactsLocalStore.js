@@ -64,5 +64,13 @@
       _readyPromise = null;
       return bootstrap();
     },
+    remove: function (id) {
+      var oid = String(id || "");
+      return apiRequest("delete", { id: oid }).then(function () {
+        _contacts = _contacts.filter(function (c) {
+          return String(c.id) !== oid && String(c.crmid || "") !== oid;
+        });
+      });
+    },
   };
 })(window);

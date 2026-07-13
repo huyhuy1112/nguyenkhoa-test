@@ -105,8 +105,21 @@ class Leads_Detail_View extends Vtiger_Index_View {
 			array('createdtime', 'Ngày tạo'),
 		));
 
+		$nextAction = '';
+		try {
+			$adb = PearDatabase::getInstance();
+			$naRes = $adb->pquery('SELECT next_action FROM bace_lead_profile WHERE leadid = ?', array($recordId));
+			if ($naRes && $adb->num_rows($naRes) > 0) {
+				$nextAction = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($naRes, 0, 'next_action'));
+			}
+		} catch (Exception $e) {
+			$nextAction = '';
+		}
+
 		$viewer = $this->getViewer($request);
 		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, 'SALES', $infoFields, $title, $subtitle);
+		$viewer->assign('INLINE_SHOW_NEXT_ACTION', true);
+		$viewer->assign('INLINE_NEXT_ACTION', $nextAction);
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 

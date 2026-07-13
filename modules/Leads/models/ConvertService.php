@@ -216,6 +216,7 @@ class Leads_ConvertService {
 		if ($contactId) {
 			self::relateRecords($leadId, self::MODULE, $contactId, 'Contacts');
 			self::storeContactId($leadId, $contactId);
+			self::syncLeadSegmentTagToContact($leadId, $contactId, (int)$current_user->id);
 		}
 		self::transferLeadTags($leadId, array(
 			'Potentials' => $potentialId,
@@ -858,9 +859,62 @@ class Leads_ConvertService {
 		if ($leadId) {
 			self::storeContactId($leadId, $contactId);
 			$added += self::syncFilteredTagsToContact($leadId, $contactId, $userId);
+			$added += self::syncLeadSegmentTagToContact($leadId, $contactId, $userId);
 		}
 		$added += self::syncContactTagsFromPotentials($contactId, $userId);
 		return $added;
+	}
+
+	/**
+	 * Copy Lead Trạng thái khách (segment) onto Contact as a Loại khách tag.
+	 */
+	public static function syncLeadSegmentTagToContact($leadId, $contactId, $userId = null) {
+		$leadId = (int)$leadId;
+		$contactId = (int)$contactId;
+		if ($leadId <= 0 || $contactId <= 0) {
+			return 0;
+		}
+		global $current_user;
+		if ($userId === null || (int)$userId <= 0) {
+			$userId = (int)$current_user->id;
+		}
+		$adb = PearDatabase::getInstance();
+		require_once 'modules/Leads/models/ModernService.php';
+		Leads_ModernService::installSchema($adb);
+		$res = $adb->pquery(
+			"SELECT segment FROM bace_lead_profile WHERE leadid = ? LIMIT 1",
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return 0;
+		}
+		$segment = strtolower(trim((string)$adb->query_result($res, 0, 'segment')));
+		if (!in_array($segment, array('co_quan', 'chuan_bi_mo', 'gia_dinh'), true)) {
+			return 0;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
+		if (!Contacts_ContactTagCatalog::isAllowed($segment)) {
+			return 0;
+		}
+
+		$tagModel = Vtiger_Tag_Model::getInstanceByName($segment, $userId);
+		if (!$tagModel) {
+			$tagModel = new Vtiger_Tag_Model();
+			$tagModel->setName($segment)->setType(Vtiger_Tag_Model::PUBLIC_TYPE);
+			$tagModel->create();
+		}
+		$tagId = (int)$tagModel->getId();
+		if ($tagId <= 0) {
+			return 0;
+		}
+		$contactTags = Vtiger_Tag_Model::getAllAccessible($userId, 'Contacts', $contactId);
+		$existingIds = array_map('intval', array_keys($contactTags));
+		if (in_array($tagId, $existingIds, true)) {
+			return 0;
+		}
+		Vtiger_Tag_Model::saveForRecord($contactId, array($tagId), $userId, 'Contacts');
+		return 1;
 	}
 
 }

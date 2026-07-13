@@ -7,7 +7,7 @@
   var ref = window.PotentialsLovableRef;
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 14;
+  var COL_COUNT = 13;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -59,6 +59,7 @@
     page: 1,
     filtersOpen: true,
     activeSegment: null,
+    selected: {},
   };
 
   function $(id) {
@@ -390,17 +391,23 @@
           var cats = categorize(o.tags);
           var amountCls = Number(o.amount) > 0 ? " mk-opps-amount--positive" : "";
           var crmId = o.crmid != null && o.crmid !== "" ? String(o.crmid) : String(o.id || "");
+          var customerName = String(o.contact || o.account || o.name || "").trim();
+          if (!customerName || customerName === ".") customerName = "";
+          var checked = state.selected[o.id] ? " checked" : "";
           return (
-            '<tr class="mk-leads-row mk-opps-row" data-id="' +
+            '<tr class="mk-leads-row mk-opps-row' +
+            (state.selected[o.id] ? " mk-leads-row--selected" : "") +
+            '" data-id="' +
             esc(o.id) +
             '"' +
             (crmId && /^\d+$/.test(crmId) ? ' data-crmid="' + esc(crmId) + '"' : "") +
             ">" +
             '<td class="mk-leads-td mk-leads-td--check"><label class="mk-leads-check">' +
-            '<input type="checkbox" class="mk-leads-check__input mk-opps-row-check" data-id="' + esc(o.id) + '" />' +
+            '<input type="checkbox" class="mk-leads-check__input mk-opps-row-check" data-id="' + esc(o.id) + '"' + checked + " />" +
             '<span class="mk-leads-check__ui" aria-hidden="true"></span></label></td>' +
-            '<td class="mk-leads-td mk-leads-td--lead"><a class="mk-leads-name" href="' + detailUrl(o.crmid || o.id) + '">' + esc(o.name) + "</a></td>" +
-            '<td class="mk-leads-td">' + (o.account ? esc(o.account) : '<span class="mk-leads-muted">—</span>') + "</td>" +
+            '<td class="mk-leads-td mk-leads-td--lead"><a class="mk-leads-name" href="' + detailUrl(o.crmid || o.id) + '">' +
+            (customerName ? esc(customerName) : '<span class="mk-leads-muted">—</span>') +
+            "</a></td>" +
             '<td class="mk-leads-td">' + categoryPill(o.order_category) + "</td>" +
             '<td class="mk-leads-td"><span class="mk-pill ' + stagePillClass(o.sales_stage) + '">' + esc(stageLabel(o.sales_stage)) + "</span></td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.area) + "</td>" +
@@ -425,6 +432,97 @@
         rows.length + " / " + all.length + " " + t("JS_MK_OPPS_COUNT_LABEL", "cơ hội");
     }
     renderPagination(rows.length, totalPages);
+
+    var checkAll = $("mk-opps-check-all");
+    if (checkAll) {
+      var allOnPage = pageRows.length > 0 && pageRows.every(function (o) {
+        return !!state.selected[o.id];
+      });
+      checkAll.checked = allOnPage;
+      checkAll.indeterminate = !allOnPage && pageRows.some(function (o) {
+        return !!state.selected[o.id];
+      });
+    }
+    renderBulkBar();
+  }
+
+  function selectedCount() {
+    return Object.keys(state.selected).length;
+  }
+
+  function selectedRows() {
+    return getOpps().filter(function (o) {
+      return !!state.selected[o.id];
+    });
+  }
+
+  function clearSelection() {
+    state.selected = {};
+    renderTable();
+  }
+
+  function renderBulkBar() {
+    var bar = $("mk-opps-bulk");
+    if (!bar) return;
+    var n = selectedCount();
+    if (!n) {
+      bar.hidden = true;
+      bar.innerHTML = "";
+      return;
+    }
+    bar.hidden = false;
+    bar.innerHTML =
+      '<div class="mk-leads-bulk-bar__inner">' +
+      '<div class="mk-leads-bulk-bar__left">' +
+      '<span class="mk-leads-bulk-badge" aria-hidden="true">' +
+      ic("bulkCheck") +
+      "</span>" +
+      '<span class="mk-leads-bulk-bar__count"><strong>' +
+      n +
+      "</strong> selected</span>" +
+      "</div>" +
+      '<div class="mk-leads-bulk-bar__actions">' +
+      '<button type="button" class="mk-leads-bulk-btn" data-bulk="export">' +
+      '<span class="mk-leads-bulk-btn__ic">' +
+      ic("export") +
+      "</span><span>Export</span></button>" +
+      '<button type="button" class="mk-leads-bulk-btn mk-leads-bulk-btn--danger" data-bulk="delete">' +
+      '<span class="mk-leads-bulk-btn__ic">' +
+      ic("trash") +
+      "</span><span>Xóa</span></button>" +
+      "</div>" +
+      '<button type="button" class="mk-leads-bulk-clear" data-bulk="clear">Clear</button>' +
+      "</div>";
+  }
+
+  function exportCsv(rows) {
+    var lines = ["Customer,OrderType,Stage,Amount,Owner,Tags"];
+    rows.forEach(function (o) {
+      var customerName = String(o.contact || o.account || o.name || "").trim();
+      lines.push(
+        [
+          customerName,
+          o.order_category || "",
+          o.sales_stage || "",
+          o.amount || 0,
+          o.owner || "",
+          (o.tags || []).join("|"),
+        ]
+          .map(function (v) {
+            return '"' + String(v).replace(/"/g, '""') + '"';
+          })
+          .join(",")
+      );
+    });
+    var blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "opportunities.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   function renderPagination(total, totalPages) {
@@ -498,13 +596,81 @@
 
     document.addEventListener("change", function (e) {
       var el = e.target;
-      if (!el || !el.getAttribute || !el.closest("#mk-opps-filters-panel")) return;
+      if (!el) return;
+      if (el.classList && el.classList.contains("mk-opps-row-check")) {
+        var id = el.getAttribute("data-id");
+        if (el.checked) state.selected[id] = true;
+        else delete state.selected[id];
+        renderTable();
+        return;
+      }
+      if (el.id === "mk-opps-check-all") {
+        var pageRows = sortOpps(filterOpps(getOpps())).slice(
+          (state.page - 1) * PAGE_SIZE,
+          state.page * PAGE_SIZE
+        );
+        pageRows.forEach(function (o) {
+          if (el.checked) state.selected[o.id] = true;
+          else delete state.selected[o.id];
+        });
+        renderTable();
+        return;
+      }
+      if (!el.getAttribute || !el.closest("#mk-opps-filters-panel")) return;
       var key = el.getAttribute("data-fkey");
       if (!key) return;
       state.filters[key] = el.value;
       state.activeSegment = null;
       state.page = 1;
       renderAll();
+    });
+
+    document.addEventListener("click", function (e) {
+      var bulkBtn = e.target.closest && e.target.closest("#mk-opps-bulk [data-bulk]");
+      if (!bulkBtn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var action = bulkBtn.getAttribute("data-bulk");
+      var rows = selectedRows();
+      if (!rows.length && action !== "clear") return;
+      if (action === "clear") {
+        clearSelection();
+        return;
+      }
+      if (action === "export") {
+        exportCsv(rows);
+        return;
+      }
+      if (action === "delete") {
+        if (!window.confirm("Xóa " + rows.length + " cơ hội đã chọn?")) return;
+        if (!store || !store.remove) return;
+        Promise.all(
+          rows.map(function (o) {
+            return store.remove(o.id);
+          })
+        ).then(function () {
+          clearSelection();
+          renderAll();
+        });
+      }
+    });
+
+    document.addEventListener("mk-opps-confirm-updated", function (e) {
+      var detail = (e && e.detail) || {};
+      var id = detail.id != null ? String(detail.id) : "";
+      if (!id) return;
+      if (store && store.setConfirmTag) {
+        store.setConfirmTag(id, detail.confirm || "");
+      }
+      // Keep expanded row; refresh KPIs / filter summary without wiping tbody.
+      var all = getOpps();
+      var rows = filterOpps(all);
+      renderKpi(rows);
+      var summary = $("mk-opps-filter-summary");
+      if (summary) {
+        summary.textContent =
+          rows.length + " / " + all.length + " " + t("JS_MK_OPPS_COUNT_LABEL", "cơ hội");
+      }
     });
 
     var segHost = $("mk-opps-segments");

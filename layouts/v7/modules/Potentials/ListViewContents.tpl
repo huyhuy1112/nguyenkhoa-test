@@ -30,6 +30,7 @@
 		</div>
 
 		<div class="mk-so-table-card mk-leads-table-card mk-opps-table-card" role="region" aria-label="{vtranslate('LBL_MK_OPPS_TABLE', 'Potentials')}">
+			<div id="mk-opps-bulk" class="mk-leads-bulk-bar" hidden></div>
 			<div class="mk-leads-table-scroll">
 				<table class="mk-leads-table" id="mk-opps-table">
 					<thead>
@@ -40,8 +41,7 @@
 									<span class="mk-leads-check__ui" aria-hidden="true"></span>
 								</label>
 							</th>
-							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="name"><span class="mk-leads-th__inner">{vtranslate('LBL_POTENTIAL_NAME', 'Potentials')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_ACCOUNT_NAME', 'Potentials')}</th>
+							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="name"><span class="mk-leads-th__inner">{vtranslate('LBL_ACCOUNT_NAME', 'Potentials')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_ORDER_CATEGORY', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_SALES_STAGE', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_AREA', 'Potentials')}</th>

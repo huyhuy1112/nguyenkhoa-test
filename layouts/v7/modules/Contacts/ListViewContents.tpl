@@ -31,6 +31,7 @@
 		</div>
 
 		<div class="mk-so-table-card mk-leads-table-card mk-contacts-table-card" role="region" aria-label="{vtranslate('LBL_MK_CONTACTS_TABLE', 'Contacts')}">
+			<div id="mk-contacts-bulk" class="mk-leads-bulk-bar" hidden></div>
 			<div class="mk-leads-table-scroll">
 				<table class="mk-leads-table" id="mk-contacts-table">
 					<thead>

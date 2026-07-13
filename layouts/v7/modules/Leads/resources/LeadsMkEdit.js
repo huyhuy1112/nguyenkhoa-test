@@ -10,17 +10,13 @@
     customerType: ["individual", "company"],
     leadSource: ["facebook", "tiktok", "website", "zalo", "other_source"],
     intent: [
-      "chua_hoc",
-      "da_hoc",
-      "nguyen_lieu_chuoi",
-      "da_tg_free",
-      "mien_phi_online",
-      "mien_phi_offline",
-      "pcth",
-      "van_hanh",
-      "mkt",
-      "lop_khac",
-      "nhuong_quyen",
+      "dang_tu_van",
+      "mua_lan_dau",
+      "dung_cham_soc",
+      "kh_can_nhac",
+      "mua_lai",
+      "mua_it_lai",
+      "ngung_mua",
     ],
     franchise: [
       "dang_tu_van",
@@ -34,9 +30,7 @@
       "mien_bac",
     ],
     entry: [
-      "mien_phi_online",
-      "mien_phi_offline",
-      "pcth",
+      "thu_3",
       "lop_online",
       "moi_lai",
       "da_tg_free",
@@ -102,15 +96,22 @@
 
   function collectTags() {
     var tags = [];
-    if (state.customerType) tags.push(state.customerType);
-    if (state.leadSource) tags.push(state.leadSource);
-    if (state.intent) tags.push(state.intent);
-    if (state.entry) tags.push(state.entry);
-    if (state.entryBranch) tags.push(state.entryBranch);
-    if (state.purchaseStatus) tags.push(state.purchaseStatus);
-    if (state.franchise) tags.push(state.franchise);
-    if (state.tier) tags.push(state.tier);
-    if (state.regionTag) tags.push(state.regionTag);
+    var seen = {};
+    function pushTag(t) {
+      if (!t || seen[t]) return;
+      seen[t] = true;
+      tags.push(t);
+    }
+    pushTag(state.customerType);
+    pushTag(state.leadSource);
+    pushTag(state.customerStatus);
+    pushTag(state.intent);
+    pushTag(state.entry);
+    pushTag(state.entryBranch);
+    pushTag(state.purchaseStatus);
+    pushTag(state.franchise);
+    pushTag(state.tier);
+    pushTag(state.regionTag);
     return tags;
   }
 
@@ -223,8 +224,22 @@
     var foot = $("mk-td-entry-tag-foot");
     if (!foot) return;
     var pills = [];
-    if (state.entry) pills.push(state.entry);
-    if (state.entryBranch) pills.push(state.entryBranch);
+    var entrySel = $("mk-td-entry");
+    var branchSel = $("mk-td-entry-branch");
+    if (state.entry) {
+      var entryLabel = state.entry;
+      if (entrySel && entrySel.selectedIndex >= 0 && entrySel.options[entrySel.selectedIndex]) {
+        entryLabel = entrySel.options[entrySel.selectedIndex].text || state.entry;
+      }
+      pills.push({ tag: state.entry, label: entryLabel });
+    }
+    if (state.entryBranch) {
+      var branchLabel = state.entryBranch;
+      if (branchSel && branchSel.selectedIndex >= 0 && branchSel.options[branchSel.selectedIndex]) {
+        branchLabel = branchSel.options[branchSel.selectedIndex].text || state.entryBranch;
+      }
+      pills.push({ tag: state.entryBranch, label: branchLabel });
+    }
     if (!pills.length) {
       foot.hidden = true;
       foot.innerHTML = "";
@@ -232,8 +247,10 @@
     }
     foot.hidden = false;
     foot.innerHTML = pills
-      .map(function (t) {
-        return '<span class="mk-td-tag-pill" data-tag="' + t + '">#' + t + "</span>";
+      .map(function (p) {
+        return (
+          '<span class="mk-td-tag-pill" data-tag="' + p.tag + '">' + p.label + "</span>"
+        );
       })
       .join("");
   }
@@ -246,12 +263,17 @@
       foot.innerHTML = "";
       return;
     }
+    var sel = $("mk-td-intent");
+    var label = state.intent;
+    if (sel && sel.selectedIndex >= 0 && sel.options[sel.selectedIndex]) {
+      label = sel.options[sel.selectedIndex].text || state.intent;
+    }
     foot.hidden = false;
     foot.innerHTML =
       '<span class="mk-td-tag-pill" data-tag="' +
       state.intent +
-      '">#' +
-      state.intent +
+      '">' +
+      label +
       "</span>";
   }
 
@@ -488,26 +510,33 @@
   function autoConvertToOppIfNeeded(lead) {
     if (!lead || !lead.id) return Promise.resolve(null);
     if (state.customerStatus !== "co_quan") return Promise.resolve(null);
-    if (!window.app || !app.request) return Promise.resolve(null);
+    if (!window.app || !app.request || !app.request.post) return Promise.resolve(null);
 
     // Default order category (no modal): Internal
-    return app.request
-      .post({
-        data: {
-          module: "Leads",
-          action: "ModernApi",
-          mode: "convert",
-          id: lead.id,
-          order_category: "Internal",
-        },
-      })
-      .then(function (err, res) {
-        if (err || !res || res.success === false) return null;
-        return res;
-      })
-      .catch(function () {
-        return null;
-      });
+    // Vtiger app.request returns a jQuery Deferred — no Promise.catch; wrap instead.
+    return new Promise(function (resolve) {
+      try {
+        app.request
+          .post({
+            data: {
+              module: "Leads",
+              action: "ModernApi",
+              mode: "convert",
+              id: lead.id,
+              order_category: "Internal",
+            },
+          })
+          .then(function (err, res) {
+            if (err || !res || res.success === false) {
+              resolve(null);
+              return;
+            }
+            resolve(res);
+          });
+      } catch (e) {
+        resolve(null);
+      }
+    });
   }
 
   function mockSave() {

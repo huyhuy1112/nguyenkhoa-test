@@ -8,8 +8,8 @@ class Contacts_ContactTagCatalog {
 
 	/** Canonical keys allowed on Contact (from BA Excel). */
 	protected static $allowedKeys = array(
-		// Phân nhóm quan hệ (BA spreadsheet)
-		'moi_quen', 'da_co_quan_he', 'co_quan', 'chuan_bi_mo',
+		// Loại khách (Trạng thái khách từ Lead)
+		'co_quan', 'chuan_bi_mo', 'gia_dinh', 'moi_quen', 'da_co_quan_he',
 		// Tag lớp học / chương trình
 		'chua_mqbh', 'da_tg_free', 'da_tg_fb1', 'thu_3',
 		'pcth', 'van_hanh', 'mkt', 'lop_khac',
@@ -37,8 +37,14 @@ class Contacts_ContactTagCatalog {
 		'co_quan_he' => 'da_co_quan_he',
 		'đã có quan hệ' => 'da_co_quan_he',
 		'da_co_quan' => 'co_quan',
+		'đã có quán' => 'co_quan',
+		'co quan' => 'co_quan',
 		'chi_moi_quan' => 'chuan_bi_mo',
 		'ch_mo_quan' => 'chuan_bi_mo',
+		'chua_co_quan' => 'chuan_bi_mo',
+		'chưa có quán' => 'chuan_bi_mo',
+		'gia_dinh' => 'gia_dinh',
+		'gia dinh' => 'gia_dinh',
 		'chua mqbh' => 'chua_mqbh',
 		'chua_mqhh' => 'chua_mqbh',
 		'chua mqhh' => 'chua_mqbh',

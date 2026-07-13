@@ -20,6 +20,13 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 		return true;
 	}
 
+	public function validateRequest(Vtiger_Request $request) {
+		$mode = strtolower((string) $request->get('mode'));
+		if (in_array($mode, array('delete'), true)) {
+			$request->validateWriteAccess();
+		}
+	}
+
 	public function process(Vtiger_Request $request) {
 		global $current_user;
 		$response = new Vtiger_Response();
@@ -34,6 +41,14 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 						'contacts' => Contacts_ModernService::listContacts($userId),
 						'assignable_users' => Contacts_ModernService::listAssignableUsers(),
 					));
+					break;
+				case 'delete':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					Contacts_ModernService::deleteContact($recordId);
+					$response->setResult(array('success' => true));
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

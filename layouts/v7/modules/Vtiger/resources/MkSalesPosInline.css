@@ -245,6 +245,10 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inlin
 	margin-bottom: 14px;
 }
 
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__bottom--split {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__notes-label {
 	display: block;
 	margin-bottom: 6px;

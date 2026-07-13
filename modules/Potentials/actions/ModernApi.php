@@ -20,6 +20,13 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 		return true;
 	}
 
+	public function validateRequest(Vtiger_Request $request) {
+		$mode = strtolower((string) $request->get('mode'));
+		if (in_array($mode, array('save_confirm_tag', 'delete'), true)) {
+			$request->validateWriteAccess();
+		}
+	}
+
 	public function process(Vtiger_Request $request) {
 		global $current_user;
 		$response = new Vtiger_Response();
@@ -34,6 +41,26 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						'opportunities' => Potentials_ModernService::listPotentials($userId),
 						'assignable_users' => Potentials_ModernService::listAssignableUsers(),
 					));
+					break;
+				case 'save_confirm_tag':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$confirm = $request->get('confirm');
+					if ($confirm === null) {
+						$confirm = $request->get('confirm_tag');
+					}
+					$result = Potentials_ModernService::setConfirmTag($recordId, $confirm);
+					$response->setResult(array('success' => true) + $result);
+					break;
+				case 'delete':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					Potentials_ModernService::deletePotential($recordId);
+					$response->setResult(array('success' => true));
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

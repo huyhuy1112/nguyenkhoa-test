@@ -29,15 +29,93 @@ class Contacts_ModernService {
 			$rows[] = $row;
 		}
 		$tagsByContact = self::getTagsForContactIds($contactIds, $userId);
+		$segmentsByContact = self::getLeadSegmentsForContactIds($contactIds);
 		$out = array();
 		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
 		foreach ($rows as $row) {
 			$contactId = (int)$row['contactid'];
 			$rawTags = $tagsByContact[$contactId] ?? array();
+			$segment = isset($segmentsByContact[$contactId]) ? (string)$segmentsByContact[$contactId] : '';
+			if ($segment !== '' && Contacts_ContactTagCatalog::isAllowed($segment)) {
+				$rawTags[] = $segment;
+			}
 			$tags = Contacts_ContactTagCatalog::filterTagNames($rawTags);
 			$out[] = self::composeCacheRow($row, $tags);
 		}
 		return $out;
+	}
+
+	/**
+	 * Map contactId → lead segment (co_quan / chuan_bi_mo / gia_dinh) from linked Lead profile.
+	 */
+	protected static function getLeadSegmentsForContactIds(array $contactIds) {
+		$map = array();
+		if (empty($contactIds)) {
+			return $map;
+		}
+		$adb = PearDatabase::getInstance();
+		try {
+			require_once 'modules/Leads/models/ModernService.php';
+			Leads_ModernService::installSchema($adb);
+		} catch (Exception $e) {
+			return $map;
+		}
+		$allowed = array('co_quan', 'chuan_bi_mo', 'gia_dinh');
+		$res = $adb->pquery(
+			"SELECT contact_id, segment FROM bace_lead_profile
+			 WHERE contact_id IN (" . generateQuestionMarks($contactIds) . ")
+			   AND contact_id > 0 AND segment IS NOT NULL AND segment <> ''
+			 ORDER BY leadid DESC",
+			$contactIds
+		);
+		if ($res) {
+			for ($i = 0; $i < $adb->num_rows($res); $i++) {
+				$cid = (int)$adb->query_result($res, $i, 'contact_id');
+				$seg = strtolower(trim((string)$adb->query_result($res, $i, 'segment')));
+				if ($cid <= 0 || isset($map[$cid])) {
+					continue;
+				}
+				if (in_array($seg, $allowed, true)) {
+					$map[$cid] = $seg;
+				}
+			}
+		}
+
+		$missing = array();
+		foreach ($contactIds as $cid) {
+			$cid = (int)$cid;
+			if ($cid > 0 && !isset($map[$cid])) {
+				$missing[] = $cid;
+			}
+		}
+		if (empty($missing)) {
+			return $map;
+		}
+
+		// Fallback: Lead ↔ Contact relation when contact_id chưa ghi vào profile.
+		$res2 = $adb->pquery(
+			"SELECT rel.relcrmid AS contact_id, p.segment
+			 FROM vtiger_crmentityrel rel
+			 INNER JOIN bace_lead_profile p ON p.leadid = rel.crmid
+			 WHERE rel.module = 'Leads' AND rel.relmodule = 'Contacts'
+			   AND rel.relcrmid IN (" . generateQuestionMarks($missing) . ")
+			   AND p.segment IS NOT NULL AND p.segment <> ''
+			 ORDER BY p.leadid DESC",
+			$missing
+		);
+		if ($res2) {
+			for ($i = 0; $i < $adb->num_rows($res2); $i++) {
+				$cid = (int)$adb->query_result($res2, $i, 'contact_id');
+				$seg = strtolower(trim((string)$adb->query_result($res2, $i, 'segment')));
+				if ($cid <= 0 || isset($map[$cid])) {
+					continue;
+				}
+				if (in_array($seg, $allowed, true)) {
+					$map[$cid] = $seg;
+				}
+			}
+		}
+		return $map;
 	}
 
 	protected static function composeCacheRow(array $row, array $tags) {
@@ -132,5 +210,18 @@ class Contacts_ModernService {
 			);
 		}
 		return $userOptions;
+	}
+
+	public static function deleteContact($contactId) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			throw new Exception('Contact not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'Delete', $contactId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$recordModel = Vtiger_Record_Model::getInstanceById($contactId, self::MODULE);
+		$recordModel->delete();
+		return true;
 	}
 }

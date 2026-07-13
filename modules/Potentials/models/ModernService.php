@@ -140,4 +140,79 @@ class Potentials_ModernService {
 		}
 		return $userOptions;
 	}
+
+	/**
+	 * Set / clear participation-confirm tag on an Opportunity (mutually exclusive).
+	 * @param int|string $potentialId
+	 * @param string $confirmTag '' | xac_nhan_tham_gia | khong_xac_nhan_tham_gia
+	 * @return array{confirm:string,tags:string[]}
+	 */
+	public static function setConfirmTag($potentialId, $confirmTag) {
+		global $current_user;
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			throw new Exception('Opportunity not found.');
+		}
+		$userId = (int) $current_user->id;
+		$confirmTag = trim((string) $confirmTag);
+		$allowed = array('xac_nhan_tham_gia', 'khong_xac_nhan_tham_gia');
+		if ($confirmTag !== '' && !in_array($confirmTag, $allowed, true)) {
+			throw new Exception('Invalid confirm tag.');
+		}
+
+		$existing = Vtiger_Tag_Model::getAllAccessible($userId, self::MODULE, $potentialId);
+		$keepIds = array();
+		$existingIds = array();
+		foreach ($existing as $tagModel) {
+			$tid = (int) $tagModel->getId();
+			$existingIds[] = $tid;
+			$name = decode_html((string) $tagModel->getName());
+			$key = strtolower(trim($name));
+			if (in_array($key, $allowed, true)) {
+				continue;
+			}
+			$keepIds[] = $tid;
+		}
+
+		$targetIds = $keepIds;
+		if ($confirmTag !== '') {
+			$tagModel = Vtiger_Tag_Model::getInstanceByName($confirmTag, $userId);
+			if ($tagModel) {
+				$targetIds[] = (int) $tagModel->getId();
+			} else {
+				$newTag = new Vtiger_Tag_Model();
+				$newTag->setName($confirmTag)->setType(Vtiger_Tag_Model::PUBLIC_TYPE);
+				$targetIds[] = (int) $newTag->create();
+			}
+		}
+		$targetIds = array_values(array_unique(array_filter($targetIds)));
+		$toAdd = array_diff($targetIds, $existingIds);
+		$toRemove = array_diff($existingIds, $targetIds);
+		if (!empty($toAdd)) {
+			Vtiger_Tag_Model::saveForRecord($potentialId, $toAdd, $userId, self::MODULE);
+		}
+		if (!empty($toRemove)) {
+			Vtiger_Tag_Model::deleteForRecord($potentialId, $toRemove, $userId, self::MODULE);
+		}
+
+		$tagsMap = self::getTagsForPotentialIds(array($potentialId), $userId);
+		$tags = isset($tagsMap[$potentialId]) ? array_values($tagsMap[$potentialId]) : array();
+		return array(
+			'confirm' => $confirmTag,
+			'tags' => $tags,
+		);
+	}
+
+	public static function deletePotential($potentialId) {
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			throw new Exception('Opportunity not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'Delete', $potentialId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$recordModel = Vtiger_Record_Model::getInstanceById($potentialId, self::MODULE);
+		$recordModel->delete();
+		return true;
+	}
 }

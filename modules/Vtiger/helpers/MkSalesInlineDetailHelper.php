@@ -52,7 +52,7 @@ class Vtiger_MkSalesInlineDetailHelper {
 		'thu_3' => 'Thứ 3',
 		'da_ky_quy' => 'Đã ký quỹ',
 		'xac_nhan_tham_gia' => 'Xác nhận tham gia',
-		'khong_xac_nhan_tham_gia' => 'Không xác nhận',
+		'khong_xac_nhan_tham_gia' => 'Không tham gia',
 	);
 
 	protected static $tagAliases = array(

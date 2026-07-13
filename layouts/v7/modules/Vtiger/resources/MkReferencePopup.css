@@ -357,18 +357,51 @@ body.mk-ref-popup-open .modal-backdrop.in {
 	height: auto !important;
 	min-height: 200px !important;
 	max-height: min(62vh, 580px) !important;
-	overflow: auto !important;
+	overflow-x: auto !important;
+	overflow-y: auto !important;
 	position: relative !important;
 	scrollbar-width: thin;
 	scrollbar-color: #d4c4ad #f8f4ee;
+	-webkit-overflow-scrolling: touch;
 }
 
 #popupModal .listViewEntriesTable {
-	width: 100% !important;
+	width: max-content !important;
+	min-width: 100% !important;
 	table-layout: auto !important;
 	margin: 0 !important;
 	border: none !important;
 	border-collapse: collapse !important;
+}
+
+#popupModal .listViewEntriesTable th.mk-ref-col-hidden,
+#popupModal .listViewEntriesTable td.mk-ref-col-hidden,
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable th.mk-ref-col-hidden,
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable td.mk-ref-col-hidden {
+	display: none !important;
+	width: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+}
+
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable {
+	width: 100% !important;
+	min-width: 100% !important;
+	table-layout: fixed !important;
+}
+
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable th,
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable td {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable th:first-child,
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable td:first-child {
+	min-width: 44px;
+	width: 44px;
 }
 
 #popupModal .listViewEntriesTable thead {

@@ -87,7 +87,11 @@
 	}
 
 	function captureSnapshot($panel) {
-		var snapshot = { fields: {}, description: $panel.find('.mk-so-inline-detail__notes-input').val() || '' };
+		var snapshot = {
+			fields: {},
+			description: $panel.find('.mk-so-inline-detail__notes-input[name="description"]').val() || '',
+			next_action: $panel.find('.mk-so-inline-detail__next-action-input').val() || ''
+		};
 		$panel.find('.mk-so-inline-detail__field-edit :input').each(function () {
 			var name = $(this).attr('name');
 			if (name) snapshot.fields[name] = $(this).val();
@@ -100,7 +104,8 @@
 		$.each(snapshot.fields || {}, function (name, value) {
 			$panel.find('.mk-so-inline-detail__field-edit :input[name="' + name + '"]').val(value);
 		});
-		$panel.find('.mk-so-inline-detail__notes-input').val(snapshot.description || '');
+		$panel.find('.mk-so-inline-detail__notes-input[name="description"]').val(snapshot.description || '');
+		$panel.find('.mk-so-inline-detail__next-action-input').val(snapshot.next_action || '');
 	}
 
 	function updateViewValues($panel) {
@@ -141,7 +146,11 @@
 			e.preventDefault();
 			e.stopPropagation();
 			setEditMode($panel, true);
-			$panel.find('.mk-so-inline-detail__notes-input').focus();
+			var $focus = $panel.find('.mk-so-inline-detail__next-action-input');
+			if (!$focus.length) {
+				$focus = $panel.find('.mk-so-inline-detail__notes-input[name="description"]');
+			}
+			$focus.focus();
 		});
 		$panel.on('click', '.mk-so-inline-detail__cancel-edit', function (e) {
 			e.preventDefault();
@@ -159,35 +168,95 @@
 				record: recordId,
 				module: mod,
 				action: 'SaveAjax',
-				description: $panel.find('.mk-so-inline-detail__notes-input').val() || ''
+				description: $panel.find('.mk-so-inline-detail__notes-input[name="description"]').val() || ''
 			};
 			$panel.find('.mk-so-inline-detail__field-edit :input').each(function () {
 				var name = $(this).attr('name');
+				if (!name || name.indexOf('mk_') === 0) return;
 				if (name) postData[name] = $(this).val();
 			});
-			var req = (typeof app !== 'undefined' && app.request && app.request.post)
-				? app.request.post({ data: postData })
-				: $.Deferred(function (d) {
-					$.ajax({ url: 'index.php', type: 'POST', dataType: 'json', data: postData })
-						.done(function (r) { d.resolve(null, r && r.result ? r.result : r); })
-						.fail(function (xhr) { d.resolve({ message: 'Save failed' }, null); });
-				}).promise();
-
-			$.when(req).then(function (err, response) {
-				$saveBtn.prop('disabled', false);
-				if (err) {
-					var message = (err && err.message) || 'Không lưu được.';
-					if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
-						app.helper.showErrorNotification({ message: message });
-					} else {
-						window.alert(message);
-					}
+			function postRequest(data) {
+				return (typeof app !== 'undefined' && app.request && app.request.post)
+					? app.request.post({ data: data })
+					: $.Deferred(function (d) {
+						$.ajax({ url: 'index.php', type: 'POST', dataType: 'json', data: data })
+							.done(function (r) { d.resolve(null, r && r.result ? r.result : r); })
+							.fail(function () { d.resolve({ message: 'Save failed' }, null); });
+					}).promise();
+			}
+			function showSaveError(err) {
+				var message = (err && err.message) || 'Không lưu được.';
+				if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
+					app.helper.showErrorNotification({ message: message });
+				} else {
+					window.alert(message);
+				}
+			}
+			function refreshInlineTags($panelEl, tags) {
+				if (!$.isArray(tags)) return;
+				var $list = $panelEl.find('.mk-so-inline-detail__tags-list');
+				if (!$list.length) return;
+				if (!tags.length) {
+					$list.html('<span class="mk-so-inline-detail__tags-empty">Chưa có tag</span>');
 					return;
 				}
+				var ref = window.PotentialsLovableRef || window.LeadsLovableRef;
+				var html = tags.map(function (raw) {
+					var key = raw;
+					var label = raw;
+					var cls = 'mk-tag';
+					if (ref && ref.normalizeTag) {
+						key = ref.normalizeTag(raw);
+					}
+					if (ref && ref.tagMeta) {
+						var meta = ref.tagMeta(raw);
+						label = meta.label || label;
+						cls = 'mk-tag ' + (meta.cls || '');
+					}
+					return '<span class="' + cls + '" title="' + $('<div/>').text(String(raw)).html() + '">' +
+						$('<div/>').text(String(label)).html() + '</span>';
+				}).join('');
+				$list.html(html);
+			}
+			function applyOppConfirmToList(recordId, confirmKey) {
+				if (window.PotentialsLocalStore && typeof window.PotentialsLocalStore.setConfirmTag === 'function') {
+					window.PotentialsLocalStore.setConfirmTag(recordId, confirmKey);
+				}
+				try {
+					document.dispatchEvent(new CustomEvent('mk-opps-confirm-updated', {
+						detail: { id: String(recordId), confirm: confirmKey || '' }
+					}));
+				} catch (e) { /* IE */ }
+				var $row = $('tr.mk-leads-row[data-crmid="' + recordId + '"], tr.mk-leads-row[data-id="' + recordId + '"]').first();
+				if (!$row.length) return;
+				var $td = $row.children('td.mk-leads-td').eq(10);
+				if (!$td.length) return;
+				if (!confirmKey) {
+					$td.html('<span class="mk-leads-muted">—</span>');
+					return;
+				}
+				var ref = window.PotentialsLovableRef;
+				var label = confirmKey;
+				var cls = 'mk-tag';
+				if (ref && ref.tagMeta) {
+					var meta = ref.tagMeta(confirmKey);
+					label = meta.label || label;
+					cls = 'mk-tag ' + (meta.cls || '');
+				} else if (confirmKey === 'xac_nhan_tham_gia') {
+					label = 'Xác nhận tham gia';
+					cls = 'mk-tag mk-tag--xac-nhan';
+				} else if (confirmKey === 'khong_xac_nhan_tham_gia') {
+					label = 'Không tham gia';
+					cls = 'mk-tag mk-tag--khong-xac-nhan';
+				}
+				$td.html('<span class="' + cls + '">' + $('<div/>').text(label).html() + '</span>');
+			}
+			function finishSave(response) {
 				if (response) {
 					$panel.find('.mk-so-inline-detail__field-edit :input').each(function () {
 						var name = $(this).attr('name');
-						if (!name || !response[name]) return;
+						if (!name || name.indexOf('mk_') === 0) return;
+						if (!response[name]) return;
 						var displayValue = response[name].display_value;
 						if (displayValue !== undefined && displayValue !== null) {
 							$panel
@@ -196,11 +265,12 @@
 						}
 					});
 					if (response.description && response.description.value !== undefined) {
-						$panel.find('.mk-so-inline-detail__notes-input').val(response.description.value);
+						$panel.find('.mk-so-inline-detail__notes-input[name="description"]').val(response.description.value);
 					}
 				} else {
 					updateViewValues($panel);
 				}
+				updateViewValues($panel);
 				snapshot = captureSnapshot($panel);
 				setEditMode($panel, false);
 				if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
@@ -208,6 +278,60 @@
 						message: app.vtranslate ? app.vtranslate('JS_RECORD_UPDATED') : 'Đã lưu thay đổi.'
 					});
 				}
+			}
+			function saveExtras(response) {
+				var chain = $.Deferred().resolve(null, null).promise();
+				var $nextInput = $panel.find('.mk-so-inline-detail__next-action-input');
+				if ($nextInput.length && mod === 'Leads') {
+					chain = chain.then(function () {
+						return postRequest({
+							module: 'Leads',
+							action: 'ModernApi',
+							mode: 'save_next_action',
+							record: recordId,
+							next_action: $nextInput.val() || ''
+						});
+					});
+				}
+				var $confirmInput = $panel.find('.mk-so-inline-detail__field[data-field-name="mk_confirm_tag"] :input[name="mk_confirm_tag"]');
+				if ($confirmInput.length && mod === 'Potentials') {
+					chain = chain.then(function (err) {
+						if (err) return $.Deferred().resolve(err, null).promise();
+						return postRequest({
+							module: 'Potentials',
+							action: 'ModernApi',
+							mode: 'save_confirm_tag',
+							record: recordId,
+							confirm: $confirmInput.val() || ''
+						});
+					});
+				}
+				$.when(chain).then(function (extraErr, extraRes) {
+					$saveBtn.prop('disabled', false);
+					if (extraErr) {
+						showSaveError(extraErr);
+						return;
+					}
+					if (mod === 'Potentials' && $confirmInput.length) {
+						var confirmKey = $confirmInput.val() || '';
+						if (extraRes && extraRes.confirm !== undefined) {
+							confirmKey = extraRes.confirm || '';
+						}
+						applyOppConfirmToList(recordId, confirmKey);
+						if (extraRes && extraRes.tags) {
+							refreshInlineTags($panel, extraRes.tags);
+						}
+					}
+					finishSave(response);
+				});
+			}
+			$.when(postRequest(postData)).then(function (err, response) {
+				if (err) {
+					$saveBtn.prop('disabled', false);
+					showSaveError(err);
+					return;
+				}
+				saveExtras(response);
 			});
 		});
 	}

@@ -216,6 +216,16 @@
 		approved: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 	};
 
+	/** In phiếu xuất: từ Chờ in phiếu đến trước Đã soạn (Đang soạn vẫn in được). */
+	function canPrintOutboundIssue(status) {
+		var s = String(status || '');
+		return (
+			s === 'waiting_print' ||
+			s === 'pending_approval' ||
+			s === 'picking'
+		);
+	}
+
 	var OUTBOUND_TYPES = {
 		internal: {
 			label: 'Xuất nội bộ (test)',
@@ -599,8 +609,8 @@
 		var whId = getWhId();
 		var d = whId ? S.ensureData(whId) : null;
 		var issue = d && (d.issues || []).find(function (x) { return x.id === issueId; });
-		if (!issue || issue.status !== 'waiting_print') {
-			showError('Chỉ in được khi phiếu xuất ở trạng thái Chờ in phiếu.');
+		if (!issue || !canPrintOutboundIssue(issue.status)) {
+			showError('Chỉ in được khi phiếu còn Chờ in phiếu hoặc Đang soạn.');
 			return;
 		}
 		var modal = ensureOutboundPrintPreviewModal();
@@ -766,7 +776,7 @@
 				'<td>' + issueStatusPill(i.status) + '</td>' +
 				'<td class="mk-wh-proto-td-right mk-wh-proto-actions">' +
 					'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="outbound-detail" data-id="' + escText(i.id) + '">Chi tiết</button>' +
-					(getRole() === 'manager' && i.status === 'waiting_print'
+					(getRole() === 'manager' && canPrintOutboundIssue(i.status)
 						? ' <button class="mk-wh-proto-mini-btn mk-wh-proto-mini-btn--print" type="button" data-mk-action="outbound-print" data-id="' + escText(i.id) + '">In</button>'
 						: '') +
 				'</td>' +

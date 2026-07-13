@@ -64,8 +64,14 @@
 		</div>
 	</div>
 
-	<div class="mk-so-inline-detail__bottom">
-		<div class="mk-so-inline-detail__notes" style="grid-column: 1 / -1; width: 100%;">
+	<div class="mk-so-inline-detail__bottom{if !empty($INLINE_SHOW_NEXT_ACTION)} mk-so-inline-detail__bottom--split{/if}">
+		{if !empty($INLINE_SHOW_NEXT_ACTION)}
+			<div class="mk-so-inline-detail__notes mk-so-inline-detail__next-action">
+				<label class="mk-so-inline-detail__notes-label" for="mk-crm-inline-next-{$RECORD->getId()}">Hành động tiếp theo</label>
+				<textarea id="mk-crm-inline-next-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input mk-so-inline-detail__next-action-input inputElement" name="next_action" rows="3" readonly>{$INLINE_NEXT_ACTION|escape}</textarea>
+			</div>
+		{/if}
+		<div class="mk-so-inline-detail__notes"{if empty($INLINE_SHOW_NEXT_ACTION)} style="grid-column: 1 / -1; width: 100%;"{/if}>
 			<label class="mk-so-inline-detail__notes-label" for="mk-crm-inline-note-{$RECORD->getId()}">Ghi chú</label>
 			<textarea id="mk-crm-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="description" rows="3" readonly>{$INLINE_NOTES|escape}</textarea>
 		</div>

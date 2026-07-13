@@ -26,7 +26,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string)$request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner', 'dedupe_leads'), true)) {
+		if (in_array($mode, array('save', 'save_next_action', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner', 'dedupe_leads'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -135,6 +135,23 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					$lead = Leads_ModernService::saveLead($payload, $recordId);
 					$response->setResult(array('success' => true, 'lead' => $lead));
+					break;
+
+				case 'save_next_action':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$nextAction = $request->get('next_action');
+					if ($nextAction === null) {
+						$payload = $this->decodePayload($request);
+						$nextAction = isset($payload['next_action']) ? $payload['next_action'] : '';
+						if (($recordId === null || $recordId === '') && isset($payload['id'])) {
+							$recordId = $payload['id'];
+						}
+					}
+					$saved = Leads_ModernService::updateNextAction($recordId, $nextAction);
+					$response->setResult(array('success' => true, 'next_action' => $saved));
 					break;
 
 				case 'delete':

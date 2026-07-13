@@ -117,7 +117,7 @@
     nhuong_quyen: { vi: "Nhượng quyền", en: "Franchise", cat: "franchise", cls: "mk-tag--nhuong-quyen" },
     da_ky_quy: { vi: "Đã Ký Quỹ", en: "Deposited", cat: "franchise", cls: "mk-tag--da-ky-quy" },
     xac_nhan_tham_gia: { vi: "Xác nhận tham gia", en: "Confirmed", cat: "confirm", cls: "mk-tag--xac-nhan" },
-    khong_xac_nhan_tham_gia: { vi: "Không xác nhận tham gia", en: "Not confirmed", cat: "confirm", cls: "mk-tag--khong-xac-nhan" },
+    khong_xac_nhan_tham_gia: { vi: "Không tham gia", en: "Not participating", cat: "confirm", cls: "mk-tag--khong-xac-nhan" },
     vang: { vi: "Vàng", en: "Gold", cat: "tier", cls: "mk-tag--vang" },
     bac: { vi: "Bạc", en: "Silver", cat: "tier", cls: "mk-tag--bac" },
     dong: { vi: "Đồng", en: "Bronze", cat: "tier", cls: "mk-tag--dong" },

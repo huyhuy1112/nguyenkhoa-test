@@ -27,8 +27,12 @@
     ch_moi_quen: "moi_quen",
     co_quan_he: "da_co_quan_he",
     da_co_quan: "co_quan",
+    da_co_quan_: "co_quan",
+    chua_co_quan: "chuan_bi_mo",
+    chua_co_quan_: "chuan_bi_mo",
     chi_moi_quan: "chuan_bi_mo",
     ch_mo_quan: "chuan_bi_mo",
+    gia_dinh: "gia_dinh",
     chua_mqbh: "chua_mqbh",
     da_tg_free: "da_tg_free",
     da_tg_fb1: "da_tg_fb1",
@@ -63,7 +67,8 @@
     moi_quen: { vi: "CH - Mới quen", en: "New contact", cat: "customerRank", cls: "mk-tag--moi-quen" },
     da_co_quan_he: { vi: "Đã có quan hệ", en: "Has relationship", cat: "customerRank", cls: "mk-tag--co-quan-he" },
     co_quan: { vi: "Đã có quán", en: "Has store", cat: "customerRank", cls: "mk-tag--co-quan" },
-    chuan_bi_mo: { vi: "CH. mở quán", en: "Opening store", cat: "customerRank", cls: "mk-tag--chuan-bi-mo" },
+    chuan_bi_mo: { vi: "Chưa có quán", en: "No store yet", cat: "customerRank", cls: "mk-tag--chuan-bi-mo" },
+    gia_dinh: { vi: "Gia đình", en: "Family", cat: "customerRank", cls: "mk-tag--gia-dinh" },
     chua_mqbh: { vi: "Chưa MQBH", en: "No MQBH", cat: "classTag", cls: "mk-tag--chua-mqbh" },
     da_tg_free: { vi: "Đã TG FREE", en: "Attended FREE", cat: "classTag", cls: "mk-tag--da-tg-free" },
     da_tg_fb1: { vi: "Đã TG F&B1", en: "Attended F&B1", cat: "classTag", cls: "mk-tag--da-tg-fb1" },
@@ -88,7 +93,8 @@
     dong: { vi: "Đồng", en: "Bronze", cat: "tier", cls: "mk-tag--dong" },
   };
 
-  var CUSTOMER_RANK_TAGS = ["moi_quen", "da_co_quan_he", "co_quan", "chuan_bi_mo"];
+  /** Loại khách — khớp Trạng thái khách trên Lead (Đã/Chưa có quán, Gia đình). */
+  var CUSTOMER_RANK_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh", "moi_quen", "da_co_quan_he"];
   var CLASS_TAGS = ["chua_mqbh", "da_tg_free", "da_tg_fb1", "thu_3", "pcth", "van_hanh", "mkt", "lop_khac"];
   var MATERIAL_TAGS = [
     "tiem_nang", "mua_lan_dau", "mua_lai", "mua_on_dinh", "dang_cham_soc",

@@ -64,5 +64,38 @@
       _readyPromise = null;
       return bootstrap();
     },
+    remove: function (id) {
+      var oid = String(id || "");
+      return apiRequest("delete", { id: oid }).then(function () {
+        _opps = _opps.filter(function (o) {
+          return String(o.id) !== oid && String(o.crmid || "") !== oid;
+        });
+      });
+    },
+    /**
+     * Replace confirm tags on a cached opportunity without full API reload.
+     */
+    setConfirmTag: function (id, confirmTag) {
+      var oid = String(id || "");
+      var confirmPool = ["xac_nhan_tham_gia", "khong_xac_nhan_tham_gia"];
+      var ref = root.PotentialsLovableRef;
+      for (var i = 0; i < _opps.length; i++) {
+        var o = _opps[i];
+        if (String(o.id) !== oid && String(o.crmid || "") !== oid) {
+          continue;
+        }
+        var tags = Array.isArray(o.tags) ? o.tags.slice() : [];
+        tags = tags.filter(function (tg) {
+          var key = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "").toLowerCase();
+          return confirmPool.indexOf(key) < 0;
+        });
+        if (confirmTag) {
+          tags.push(confirmTag);
+        }
+        o.tags = tags;
+        return o;
+      }
+      return null;
+    },
   };
 })(window);

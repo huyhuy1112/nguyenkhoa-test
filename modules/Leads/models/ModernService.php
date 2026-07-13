@@ -216,6 +216,24 @@ class Leads_ModernService {
 		return array_values(array_unique($out));
 	}
 
+	/** Đồng bộ Trạng thái khách (Đã/Chưa có quán / Gia đình) vào freetags. */
+	public static function applyCustomerStatusTag(array $tags, $segment) {
+		$statusPool = array('co_quan', 'chuan_bi_mo', 'gia_dinh');
+		$out = array();
+		foreach ($tags as $tag) {
+			$key = strtolower(trim((string)$tag));
+			if (in_array($key, $statusPool, true)) {
+				continue;
+			}
+			$out[] = $tag;
+		}
+		$segment = strtolower(trim((string)$segment));
+		if (in_array($segment, $statusPool, true)) {
+			$out[] = $segment;
+		}
+		return array_values(array_unique($out));
+	}
+
 	protected static function syncCallAttemptTagsIfNeeded($leadId, array $tags, $userId = null) {
 		global $current_user;
 		if ($userId === null) {
@@ -351,6 +369,7 @@ class Leads_ModernService {
 		$todayCalls = Leads_CommerceService::countTodayCallsForLead($leadId);
 		$tags = self::applyCallAttemptTags($tags, $todayCalls);
 		$tags = self::applyRegionTags($tags, isset($payload['district']) ? $payload['district'] : '');
+		$tags = self::applyCustomerStatusTag($tags, isset($profile['segment']) ? $profile['segment'] : '');
 		self::syncTags($leadId, $tags, $userId);
 
 		if ($isNew && empty($mkCacheId)) {
@@ -399,6 +418,36 @@ class Leads_ModernService {
 			throw new Exception('Could not update owner for selected lead(s).');
 		}
 		return $updated;
+	}
+
+	public static function updateNextAction($leadIdOrCacheId, $nextAction) {
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$leadId = self::resolveLeadId($leadIdOrCacheId);
+		if (!$leadId) {
+			throw new Exception('Lead not found.');
+		}
+		$nextAction = self::decodeText(trim((string) $nextAction));
+		if (function_exists('mb_substr')) {
+			$nextAction = mb_substr($nextAction, 0, 255, 'UTF-8');
+		} else {
+			$nextAction = substr($nextAction, 0, 255);
+		}
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT leadid FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET next_action = ?, modified_at = ? WHERE leadid = ?',
+				array($nextAction, $now, $leadId)
+			);
+		} else {
+			$adb->pquery(
+				'INSERT INTO bace_lead_profile(leadid, next_action, is_modern, created_at, modified_at)
+				 VALUES(?,?,1,?,?)',
+				array($leadId, $nextAction, $now, $now)
+			);
+		}
+		return $nextAction;
 	}
 
 	public static function deleteLead($idOrCacheId) {

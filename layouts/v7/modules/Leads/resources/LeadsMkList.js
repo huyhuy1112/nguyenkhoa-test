@@ -764,10 +764,10 @@
       '<span class="mk-leads-bulk-btn__ic">' +
       ic("export") +
       "</span><span>Export</span></button>" +
-      '<button type="button" class="mk-leads-bulk-btn mk-leads-bulk-btn--danger" data-bulk="archive">' +
+      '<button type="button" class="mk-leads-bulk-btn mk-leads-bulk-btn--danger" data-bulk="delete">' +
       '<span class="mk-leads-bulk-btn__ic">' +
       ic("trash") +
-      "</span><span>Archive</span></button>" +
+      "</span><span>Xóa</span></button>" +
       "</div>" +
       '<button type="button" class="mk-leads-bulk-clear" data-bulk="clear">Clear</button>' +
       "</div>";
@@ -996,8 +996,8 @@
           openBulkConvertModal(rows);
           return;
         }
-        if (action === "archive") {
-          if (!window.confirm("Archive " + rows.length + " selected lead(s)?")) return;
+        if (action === "delete" || action === "archive") {
+          if (!window.confirm("Xóa " + rows.length + " lead đã chọn?")) return;
           Promise.all(
             rows.map(function (l) {
               return store.remove(l.id);

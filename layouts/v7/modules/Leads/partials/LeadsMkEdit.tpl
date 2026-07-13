@@ -185,18 +185,14 @@
 					<div class="mk-td-card__body">
 						<label class="mk-td-label" for="mk-td-intent">Chọn nguyên liệu</label>
 						<select id="mk-td-intent" class="mk-td-select" data-tag-group="intent">
-							<option value="">Chọn nhóm nhu cầu</option>
-							<option value="chua_hoc" data-tag="chua_hoc">Nguyên liệu chưa học</option>
-							<option value="da_hoc" data-tag="da_hoc">Nguyên liệu đã học</option>
-							<option value="nguyen_lieu_chuoi" data-tag="nguyen_lieu_chuoi">Nguyên liệu chuỗi</option>
-							<option value="da_tg_free" data-tag="da_tg_free">Đã TG FREE</option>
-							<option value="mien_phi_online" data-tag="mien_phi_online">Miễn phí Online</option>
-							<option value="mien_phi_offline" data-tag="mien_phi_offline">Miễn phí Offline</option>
-							<option value="pcth" data-tag="pcth">PCTH</option>
-							<option value="van_hanh" data-tag="van_hanh">Vận hành</option>
-							<option value="mkt" data-tag="mkt">Marketing</option>
-							<option value="lop_khac" data-tag="lop_khac">Lớp học khác</option>
-							<option value="nhuong_quyen" data-tag="nhuong_quyen">Nhượng quyền</option>
+							<option value="">Chọn tag nguyên liệu</option>
+							<option value="dang_tu_van" data-tag="dang_tu_van">Đang tư vấn</option>
+							<option value="mua_lan_dau" data-tag="mua_lan_dau">Mua lần đầu</option>
+							<option value="dung_cham_soc" data-tag="dung_cham_soc">Dừng chăm sóc</option>
+							<option value="kh_can_nhac" data-tag="kh_can_nhac">KH Cân Nhắc</option>
+							<option value="mua_lai" data-tag="mua_lai">Mua lại</option>
+							<option value="mua_it_lai" data-tag="mua_it_lai">Mua ít lại</option>
+							<option value="ngung_mua" data-tag="ngung_mua">Ngừng mua</option>
 						</select>
 						<div id="mk-td-intent-tag-foot" class="mk-td-entry-tags" hidden></div>
 					</div>
@@ -238,19 +234,17 @@
 						<label class="mk-td-label" for="mk-td-entry">Chọn lớp học</label>
 						<select id="mk-td-entry" class="mk-td-select" data-tag-group="entry">
 							<option value="">Chọn lớp học</option>
-							<option value="mien_phi_online" data-tag="mien_phi_online">Pha chế miễn phí Online</option>
-							<option value="mien_phi_offline" data-tag="mien_phi_offline">Pha chế miễn phí Offline</option>
-							<option value="pcth" data-tag="pcth">Pha chế tổng hợp (PCTH)</option>
-							<option value="lop_online" data-tag="lop_online">Lớp online</option>
+							<option value="thu_3" data-tag="thu_3">THỨ 3</option>
+							<option value="lop_online" data-tag="lop_online">lớp online</option>
 							<option value="moi_lai" data-tag="moi_lai">Mời lại</option>
 							<option value="da_tg_free" data-tag="da_tg_free">Đã TG FREE</option>
-							<option value="doi_lich" data-tag="doi_lich">Đổi lịch</option>
+							<option value="doi_lich" data-tag="doi_lich">Dời lịch</option>
 							<option value="l1" data-tag="L1">L1</option>
 							<option value="l2" data-tag="L2">L2</option>
 							<option value="khong_hoc" data-tag="khong_hoc">Không học</option>
-							<option value="thue_bao" data-tag="thue_bao">Thuê bao</option>
-							<option value="trung_so" data-tag="trung_so">Trúng số</option>
-							<option value="khong_nghe_may" data-tag="khong_nghe_may">Không nghe máy</option>
+							<option value="thue_bao" data-tag="thue_bao">thuê bao</option>
+							<option value="trung_so" data-tag="trung_so">trùng số</option>
+							<option value="khong_nghe_may" data-tag="khong_nghe_may">không nghe máy</option>
 							<option value="ngung_cham_soc" data-tag="ngung_cham_soc">Ngừng chăm sóc</option>
 							<option value="chua_mqbb_chua_pcth" data-tag="chua_MQBB_chua_PCTH">Chưa MQBB + Chưa PCTH</option>
 							<option value="chua_mqbb_da_pcth" data-tag="chua_MQBB_da_PCTH">Chưa MQBB + Đã PCTH</option>

@@ -53,6 +53,31 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 			array('createdtime', 'Ngày tạo'),
 		));
 
+		$confirmKey = '';
+		$confirmLabel = '—';
+		$inlineTags = Vtiger_MkSalesInlineDetailHelper::buildInlineTags($moduleName, $recordId);
+		foreach ($inlineTags as $tag) {
+			$key = isset($tag['key']) ? (string) $tag['key'] : '';
+			if ($key === 'xac_nhan_tham_gia' || $key === 'khong_xac_nhan_tham_gia') {
+				$confirmKey = $key;
+				$confirmLabel = isset($tag['label']) ? (string) $tag['label'] : $key;
+				break;
+			}
+		}
+		$infoFields[] = array(
+			'name' => 'mk_confirm_tag',
+			'label' => 'Xác nhận tham gia',
+			'value' => $confirmLabel !== '' ? $confirmLabel : '—',
+			'raw_value' => $confirmKey,
+			'data_type' => 'picklist',
+			'editable' => true,
+			'picklist_values' => array(
+				'' => '—',
+				'xac_nhan_tham_gia' => 'Xác nhận tham gia',
+				'khong_xac_nhan_tham_gia' => 'Không tham gia',
+			),
+		);
+
 		$viewer = $this->getViewer($request);
 		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, 'SALES', $infoFields, $title, $subtitle);
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
