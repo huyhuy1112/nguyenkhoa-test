@@ -942,6 +942,10 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
     font-weight: 600;
     border: 1px solid transparent;
     margin: 1px 2px 1px 0;
+    /* Fallback pill — mọi tag chưa map màu vẫn có UI */
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
 }
 .mk-tag--facebook { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
 .mk-tag--tiktok { background: #fce7f3; color: #be185d; border-color: #fbcfe8; }
@@ -988,6 +992,21 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
 .mk-tag--thu-3 { background: #7f1d1d; color: #fecaca; border-color: #991b1b; }
 .mk-tag--tiem-nang { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
 .mk-tag--mua-on-dinh { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+.mk-tag--l1 { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+.mk-tag--l2 { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+.mk-tag--chua-990k { background: #fff7ed; color: #c2410c; border-color: #fdba74; }
+.mk-tag--da-990k { background: #dcfce7; color: #166534; border-color: #86efac; }
+.mk-tag--lop-online { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.mk-tag--moi-lai { background: #dcfce7; color: #166534; border-color: #86efac; }
+.mk-tag--doi-lich { background: #e2e8f0; color: #334155; border-color: #cbd5e1; }
+.mk-tag--khong-nghe-may { background: #ffe4e6; color: #9f1239; border-color: #fda4af; }
+.mk-tag--thue-bao { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.mk-tag--trung-so { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+.mk-tag--ngung-cham-soc { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.mk-tag--hoan-tien-lop-hoc { background: #fef9c3; color: #713f12; border-color: #facc15; }
+.mk-tag--khong-hoc { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+.mk-tag--da-pcth { background: #dcfce7; color: #166534; border-color: #86efac; }
+.mk-tag--chua-pcth { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
 
 /* Dark mode: make tags/pills vibrant (not washed out) */
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag,

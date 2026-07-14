@@ -141,13 +141,27 @@ class Leads_CommerceService {
 			return '';
 		}
 		$adb = PearDatabase::getInstance();
+		$ruleLabel = '';
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			$ruleLabel = HelpDesk_TagRuleEngineService::getInstance()->getNextActionForLead($leadId);
+		} catch (Exception $e) {
+			$ruleLabel = '';
+		}
 		$fallback = '';
 		$res = $adb->pquery('SELECT next_action FROM bace_lead_profile WHERE leadid = ?', array($leadId));
 		if ($res && $adb->num_rows($res) > 0) {
 			$fallback = self::decodeText($adb->query_result($res, 0, 'next_action'));
 		}
 		$tasksByLead = self::getCalendarTasksForLeadIds(array($leadId));
-		$label = self::deriveNextActionLabel($tasksByLead[$leadId] ?? array(), $fallback);
+		$label = ($ruleLabel !== '')
+			? $ruleLabel
+			: self::deriveNextActionLabel($tasksByLead[$leadId] ?? array(), $fallback);
+		if (function_exists('mb_substr')) {
+			$label = mb_substr($label, 0, 255, 'UTF-8');
+		} else {
+			$label = substr($label, 0, 255);
+		}
 		$adb->pquery(
 			'UPDATE bace_lead_profile SET next_action = ?, modified_at = ? WHERE leadid = ?',
 			array($label, date('Y-m-d H:i:s'), $leadId)

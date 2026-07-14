@@ -612,7 +612,53 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inlin
 	padding: 4px 10px;
 	border-radius: 999px;
 	margin: 0;
+	font-weight: 600;
+	line-height: 1.3;
+	border: 1px solid transparent;
+	/* KHÔNG set background ở đây — sẽ đè mất màu .mk-tag--vang / --website / ... */
 }
+
+/* Fallback chỉ khi không có class màu (hoặc --other) */
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag.mk-tag--other,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag:not([class*="mk-tag--"]) {
+	background: #f1f5f9;
+	border-color: #cbd5e1;
+	color: #475569;
+}
+
+/* Palette inline — specificity bằng container để màu luôn thắng */
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--vang { background: #fef9c3; border-color: #fde047; color: #a16207; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--bac { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--dong { background: #ffedd5; border-color: #fb923c; color: #9a3412; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--mua-lan-dau { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--mua-lai { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--khong-mua { background: #ffedd5; border-color: #fdba74; color: #c2410c; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--ngung-mua { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--website { background: #e0e7ff; border-color: #c7d2fe; color: #4338ca; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--facebook { background: #dbeafe; border-color: #bfdbfe; color: #1d4ed8; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--tiktok { background: #fce7f3; border-color: #fbcfe8; color: #be185d; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--zalo { background: #e0f2fe; border-color: #bae6fd; color: #0369a1; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--chua-hoc { background: #dcfce7; border-color: #86efac; color: #073B3A; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--da-hoc { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--company { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--individual { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--kv1,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--kv2,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--kv3 { background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--co-quan { background: #fef3c7; border-color: #fcd34d; color: #b45309; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--chuan-bi-mo { background: #fce7f3; border-color: #f9a8d4; color: #be185d; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--gia-dinh { background: #dcfce7; border-color: #86efac; color: #047857; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--tiem-nang { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--dang-tu-van { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--l1 { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--l2 { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--chua-990k { background: #fff7ed; border-color: #fdba74; color: #c2410c; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--da-990k { background: #dcfce7; border-color: #86efac; color: #166534; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--pcth { background: #f3e8ff; border-color: #c4b5fd; color: #7e22ce; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--free-online,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--mien_phi_online { background: #cffafe; border-color: #67e8f9; color: #0e7490; }
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--free-offline,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-list .mk-tag--mien_phi_offline { background: #ccfbf1; border-color: #5eead4; color: #0f766e; }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__tags-empty {
 	font-size: 13px;

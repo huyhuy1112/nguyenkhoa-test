@@ -592,7 +592,19 @@ class Leads_ModernService {
 		$lastTouch = !empty($row['last_touch']) ? date('c', strtotime($row['last_touch'])) : date('c');
 		$company = self::decodeText(isset($row['company']) ? $row['company'] : '');
 		$storedNext = self::decodeText(isset($row['next_action']) ? $row['next_action'] : '');
-		$nextAction = Leads_CommerceService::deriveNextActionLabel($calendarTasks, $storedNext);
+		$ruleNext = '';
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			$ruleMatch = HelpDesk_TagRuleEngineService::getInstance()->matchRules($tags, true);
+			if (!empty($ruleMatch['best']['next_action'])) {
+				$ruleNext = (string)$ruleMatch['best']['next_action'];
+			}
+		} catch (Exception $e) {
+			$ruleNext = '';
+		}
+		$nextAction = ($ruleNext !== '')
+			? $ruleNext
+			: Leads_CommerceService::deriveNextActionLabel($calendarTasks, $storedNext);
 
 		$conversion = Leads_ConvertService::getConversionStatus($leadId);
 
@@ -956,6 +968,12 @@ class Leads_ModernService {
 		}
 		if (!empty($toRemove)) {
 			Vtiger_Tag_Model::deleteForRecord($leadId, $toRemove, $userId, self::MODULE);
+		}
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			HelpDesk_TagRuleEngineService::getInstance()->applyNextActionToLead($leadId);
+		} catch (Exception $e) {
+			// ignore — next_action sync is best-effort
 		}
 	}
 

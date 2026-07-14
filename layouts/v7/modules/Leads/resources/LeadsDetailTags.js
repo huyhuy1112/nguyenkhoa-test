@@ -50,6 +50,10 @@
     da_ky_quy: { bg: "#dbeafe", border: "#93c5fd", color: "#1d4ed8" },
     dang_cham_soc: { bg: "#ecfdf5", border: "#6ee7b7", color: "#047857" },
     kh_can_nhac: { bg: "#1d4ed8", border: "#1e40af", color: "#fff" },
+    l1: { bg: "#e0f2fe", border: "#7dd3fc", color: "#0369a1" },
+    l2: { bg: "#ede9fe", border: "#c4b5fd", color: "#6d28d9" },
+    chua_990k: { bg: "#fff7ed", border: "#fdba74", color: "#c2410c" },
+    da_990k: { bg: "#dcfce7", border: "#86efac", color: "#166534" },
   };
 
   function slugify(label) {

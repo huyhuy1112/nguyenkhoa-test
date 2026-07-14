@@ -107,10 +107,17 @@ class Leads_Detail_View extends Vtiger_Index_View {
 
 		$nextAction = '';
 		try {
-			$adb = PearDatabase::getInstance();
-			$naRes = $adb->pquery('SELECT next_action FROM bace_lead_profile WHERE leadid = ?', array($recordId));
-			if ($naRes && $adb->num_rows($naRes) > 0) {
-				$nextAction = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($naRes, 0, 'next_action'));
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			$ruleSvc = HelpDesk_TagRuleEngineService::getInstance();
+			$nextAction = $ruleSvc->getNextActionForLead($recordId);
+			if ($nextAction === '') {
+				$adb = PearDatabase::getInstance();
+				$naRes = $adb->pquery('SELECT next_action FROM bace_lead_profile WHERE leadid = ?', array($recordId));
+				if ($naRes && $adb->num_rows($naRes) > 0) {
+					$nextAction = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($naRes, 0, 'next_action'));
+				}
+			} else {
+				$ruleSvc->applyNextActionToLead($recordId);
 			}
 		} catch (Exception $e) {
 			$nextAction = '';

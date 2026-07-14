@@ -118,8 +118,11 @@
 									{if $moduleName eq 'HelpDesk'}{assign var=_mkModActive value=false}{/if}
 									{if $moduleName eq 'Rules'}{assign var=_mkModActive value=true}{/if}
 								{/if}
+								{if $MODULE eq 'SupportFAQ' && $moduleName eq 'SupportFAQ'}
+									{assign var=_mkModActive value=true}
+								{/if}
 								<a class="mk-dash-mod-link{if $_mkModActive} mk-dash-mod-link--active{/if}" href="{$moduleModel->getDefaultUrl()}&app={$APP_NAME}">
-									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'Accounts'}Tuibao{elseif $moduleName eq 'Contacts'}Khách hàng{elseif $moduleName eq 'ProductsServices'}Hàng hoá{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
+									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'SupportFAQ'}Cảnh báo{elseif $moduleName eq 'Accounts'}Tuibao{elseif $moduleName eq 'Contacts'}Khách hàng{elseif $moduleName eq 'ProductsServices'}Hàng hoá{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
 								</a>
 							{/if}
 						{/foreach}

@@ -204,14 +204,14 @@
 				var html = tags.map(function (raw) {
 					var key = raw;
 					var label = raw;
-					var cls = 'mk-tag';
+					var cls = 'mk-tag mk-tag--other';
 					if (ref && ref.normalizeTag) {
 						key = ref.normalizeTag(raw);
 					}
 					if (ref && ref.tagMeta) {
 						var meta = ref.tagMeta(raw);
 						label = meta.label || label;
-						cls = 'mk-tag ' + (meta.cls || '');
+						cls = 'mk-tag ' + (meta.cls || 'mk-tag--other');
 					}
 					return '<span class="' + cls + '" title="' + $('<div/>').text(String(raw)).html() + '">' +
 						$('<div/>').text(String(label)).html() + '</span>';

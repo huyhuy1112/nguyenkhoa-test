@@ -152,7 +152,25 @@
     }
   }
 
-  function setChoiceGroup(group, btn) {
+  function setChoiceGroup(group, btn, opts) {
+    opts = opts || {};
+    var toggleable = group === "purchase-status" || group === "customer-tier";
+    var alreadyOn = btn.classList.contains("is-on");
+
+    // Hình 3 #05/#06: bấm lại option đang chọn → huỷ pick (cho phép không chọn).
+    // hydrate từ lead (force) thì không toggle-off.
+    if (toggleable && alreadyOn && !opts.force) {
+      btn.classList.remove("is-on");
+      if (group === "purchase-status") {
+        state.purchaseStatus = null;
+        syncPurchaseReasonPanel(null);
+      } else if (group === "customer-tier") {
+        state.tier = null;
+      }
+      renderTags();
+      return;
+    }
+
     document.querySelectorAll('.mk-td-choice[data-group="' + group + '"]').forEach(function (el) {
       el.classList.toggle("is-on", el === btn);
     });
@@ -175,7 +193,7 @@
     var btn = document.querySelector(
       '.mk-td-choice[data-group="' + group + '"][data-tag="' + tag + '"]'
     );
-    if (btn) setChoiceGroup(group, btn);
+    if (btn) setChoiceGroup(group, btn, { force: true });
   }
 
   function syncPurchaseReasonPanel(btn) {
@@ -354,7 +372,7 @@
     var btn = document.querySelector(
       '.mk-td-choice[data-group="customer-status"][data-segment="' + segment + '"]'
     );
-    if (btn) setChoiceGroup("customer-status", btn);
+    if (btn) setChoiceGroup("customer-status", btn, { force: true });
   }
 
   function applyTagsFromLead(tags, lead) {

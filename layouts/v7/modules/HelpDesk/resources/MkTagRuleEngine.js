@@ -54,7 +54,6 @@
 		init: function () {
 			this.$root = $('#mk-tag-rule-engine');
 			if (!this.$root.length) return;
-			store.reset();
 			this.render();
 			this.bindEvents();
 		},
@@ -146,11 +145,19 @@
 					return tagChip(tagMap[tid] ? tagMap[tid].name : '?');
 				}).join('');
 				if (!tagHtml) tagHtml = '<span class="mk-tre-muted">(chưa có tag)</span>';
+				var thenHtml = esc(r.next_action || '—');
+				if (r.require_note) {
+					thenHtml += ' <span class="mk-tre-chip mk-tre-chip--warn">Bắt buộc ghi chú</span>';
+				}
+				if (r.alert_days != null) {
+					thenHtml += ' <span class="mk-tre-chip">Cảnh báo ' + esc(r.alert_days) + ' ngày</span>';
+				}
 
 				return ''
 					+ '<tr>'
 					+ '  <td><div class="mk-tre-rule-name">' + esc(r.status_label) + '</div><div class="mk-tre-rule-sub">' + esc(r.name) + '</div></td>'
-					+ '  <td><div class="mk-tre-chips">' + tagHtml + '</div></td>'
+					+ '  <td><div class="mk-tre-if"><span class="mk-tre-if__label">Nếu</span><div class="mk-tre-chips">' + tagHtml + '</div></div></td>'
+					+ '  <td><div class="mk-tre-then"><span class="mk-tre-then__label">Thì</span><div class="mk-tre-then__text">' + thenHtml + '</div></div></td>'
 					+ '  <td><span class="mk-tre-priority">' + esc(r.priority) + '</span></td>'
 					+ '  <td><label class="mk-tre-switch"><input type="checkbox" class="js-tre-rule-toggle" data-id="' + esc(r.id) + '"' + (r.is_active ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></label></td>'
 					+ '  <td class="mk-tre-actions">'
@@ -162,14 +169,14 @@
 
 			return this.renderSection(
 				'Danh sách rule',
-				'Ưu tiên thấp hơn = xử lý trước. Điều kiện tag kết hợp theo AND.',
-				'<button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-rule-create">' + ICONS.plus + ' Tạo rule</button>',
-				'<div class="mk-tre-table-wrap"><table class="mk-tre-table">'
-				+ '<colgroup><col class="mk-tre-col-name" /><col class="mk-tre-col-tags" /><col class="mk-tre-col-pri" /><col class="mk-tre-col-active" /><col class="mk-tre-col-act" /></colgroup>'
+				'Nếu đủ tag (AND) → Thì chạy hành động / kịch bản. Priority thấp hơn = ưu tiên trước.',
+				'<button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-seed-reset">Khôi phục mẫu flowchart</button>'
+				+ '<button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-rule-create">' + ICONS.plus + ' Tạo rule</button>',
+				'<div class="mk-tre-table-wrap"><table class="mk-tre-table mk-tre-table--rules">'
 				+ '<thead><tr>'
-				+ '<th>Rule / Trạng thái</th><th>Điều kiện tag (AND)</th><th>Priority</th><th>Active</th><th class="mk-tre-th-actions">Thao tác</th>'
+				+ '<th>Trạng thái</th><th>Nếu (tag AND)</th><th>Thì (hành động)</th><th>Priority</th><th>Active</th><th class="mk-tre-th-actions">Thao tác</th>'
 				+ '</tr></thead>'
-				+ '<tbody>' + (rows || '<tr><td colspan="5" class="mk-tre-empty">Chưa có rule nào</td></tr>') + '</tbody>'
+				+ '<tbody>' + (rows || '<tr><td colspan="6" class="mk-tre-empty">Chưa có rule nào</td></tr>') + '</tbody>'
 				+ '</table></div>'
 			);
 		},
@@ -281,19 +288,34 @@
 
 		openRuleForm: function (ruleId) {
 			var isEdit = !!ruleId;
-			var rule = isEdit ? store.getRuleById(ruleId) : { status_label: '', name: '', tag_ids: [], priority: 10, is_active: true };
+			var rule = isEdit ? store.getRuleById(ruleId) : {
+				status_label: '', name: '', tag_ids: [], priority: 50, is_active: true,
+				alert_days: 3, next_action: '', require_note: false, scenario_id: ''
+			};
 			var tags = store.getTags();
+			var scenarios = store.getScenarios();
 			var tagChecks = tags.map(function (t) {
 				var checked = (rule.tag_ids || []).indexOf(t.id) >= 0 ? ' checked' : '';
 				return '<label class="mk-tre-check"><input type="checkbox" name="tag_ids" value="' + esc(t.id) + '"' + checked + ' /> ' + esc(t.name) + '</label>';
 			}).join('');
+			var scOpts = '<option value="">— Không gắn kịch bản —</option>' + scenarios.map(function (s) {
+				var sel = rule.scenario_id === s.id ? ' selected' : '';
+				return '<option value="' + esc(s.id) + '"' + sel + '>' + esc(s.title) + '</option>';
+			}).join('');
 
 			var body = ''
 				+ '<div class="mk-tre-form">'
-				+ '  <label class="mk-tre-field"><span>Trạng thái / nhãn</span><input class="mk-tre-input" name="status_label" value="' + esc(rule.status_label) + '" /></label>'
-				+ '  <label class="mk-tre-field"><span>Tên rule (mô tả ngắn)</span><input class="mk-tre-input" name="name" value="' + esc(rule.name) + '" /></label>'
-				+ '  <label class="mk-tre-field"><span>Priority</span><input class="mk-tre-input" type="number" name="priority" value="' + esc(rule.priority) + '" /></label>'
-				+ '  <fieldset class="mk-tre-field"><legend>Điều kiện tag (AND)</legend><div class="mk-tre-checks">' + (tagChecks || '<span class="mk-tre-muted">Chưa có tag — tạo tag trước.</span>') + '</div></fieldset>'
+				+ '  <p class="mk-tre-form-hint">Công thức: <strong>Nếu</strong> đủ tag (AND) → <strong>Thì</strong> trạng thái + hành động / kịch bản.</p>'
+				+ '  <label class="mk-tre-field"><span>Trạng thái khi khớp (Thì → nhãn)</span><input class="mk-tre-input" name="status_label" value="' + esc(rule.status_label) + '" placeholder="VD: Không nghe máy" /></label>'
+				+ '  <label class="mk-tre-field"><span>Mã / tên rule</span><input class="mk-tre-input" name="name" value="' + esc(rule.name) + '" placeholder="VD: R03 Miss call" /></label>'
+				+ '  <div class="mk-tre-form-row">'
+				+ '    <label class="mk-tre-field"><span>Priority</span><input class="mk-tre-input" type="number" name="priority" value="' + esc(rule.priority) + '" /></label>'
+				+ '    <label class="mk-tre-field"><span>Cảnh báo sau (ngày)</span><input class="mk-tre-input" type="number" name="alert_days" value="' + esc(rule.alert_days == null ? '' : rule.alert_days) + '" placeholder="Trống = không cảnh báo" /></label>'
+				+ '  </div>'
+				+ '  <label class="mk-tre-field"><span>Thì → Hành động</span><input class="mk-tre-input" name="next_action" value="' + esc(rule.next_action || '') + '" placeholder="VD: Nhắn Zalo + gọi lại" /></label>'
+				+ '  <label class="mk-tre-field"><span>Gắn kịch bản</span><select class="mk-tre-input" name="scenario_id">' + scOpts + '</select></label>'
+				+ '  <fieldset class="mk-tre-field"><legend>Nếu → Điều kiện tag (AND)</legend><div class="mk-tre-checks">' + (tagChecks || '<span class="mk-tre-muted">Chưa có tag.</span>') + '</div></fieldset>'
+				+ '  <label class="mk-tre-check mk-tre-check--inline"><input type="checkbox" name="require_note"' + (rule.require_note ? ' checked' : '') + ' /> Bắt buộc ghi chú lý do (nhánh xấu)</label>'
 				+ '  <label class="mk-tre-check mk-tre-check--inline"><input type="checkbox" name="is_active"' + (rule.is_active !== false ? ' checked' : '') + ' /> Active</label>'
 				+ '</div>';
 
@@ -377,17 +399,35 @@
 			});
 
 			this.$root.on('change', '.js-tre-rule-toggle', function () {
-				store.setRuleActive($(this).data('id'), $(this).prop('checked'));
+				try {
+					store.setRuleActive($(this).data('id'), $(this).prop('checked'));
+				} catch (e) {
+					window.alert(e.message || 'Không cập nhật được trạng thái rule');
+					$(this).prop('checked', !$(this).prop('checked'));
+				}
 			});
 
 			this.$root.on('click', '.js-tre-rule-create', function () { self.openRuleForm(null); });
+			this.$root.on('click', '.js-tre-seed-reset', function () {
+				if (!window.confirm('Khôi phục rule theo tag Sales thật (slug CRM) trên DB? Thay đổi hiện tại sẽ bị xoá.')) return;
+				try {
+					store.reset();
+					self.refreshAfterDataChange();
+					toast('Đã khôi phục rule + tag Sales trên DB');
+				} catch (e) {
+					window.alert(e.message || 'Không khôi phục được');
+				}
+			});
 			this.$root.on('click', '.js-tre-rule-edit', function () { self.openRuleForm($(this).data('id')); });
 			this.$root.on('click', '.js-tre-rule-del', function () {
 				var name = $(this).data('name');
-				if (window.confirm('Xoá rule "' + name + '"?')) {
+				if (!window.confirm('Xoá rule "' + name + '"?')) return;
+				try {
 					store.deleteRule($(this).data('id'));
 					self.refreshAfterDataChange();
 					toast('Đã xoá rule');
+				} catch (e) {
+					window.alert(e.message || 'Không xoá được rule');
 				}
 			});
 
@@ -398,18 +438,25 @@
 				var name = $(this).data('name');
 				if (used > 0 && !window.confirm('Tag đang dùng trong ' + used + ' rule. Vẫn xoá?')) return;
 				if (!window.confirm('Xoá tag "' + name + '"?')) return;
-				store.deleteTag($(this).data('id'));
-				self.refreshAfterDataChange();
-				toast('Đã xoá tag');
+				try {
+					store.deleteTag($(this).data('id'));
+					self.refreshAfterDataChange();
+					toast('Đã xoá tag');
+				} catch (e) {
+					window.alert(e.message || 'Không xoá được tag');
+				}
 			});
 
 			this.$root.on('click', '.js-tre-sc-create', function () { self.openScenarioForm(null); });
 			this.$root.on('click', '.js-tre-sc-edit', function () { self.openScenarioForm($(this).data('id')); });
 			this.$root.on('click', '.js-tre-sc-del', function () {
-				if (window.confirm('Xoá "' + $(this).data('title') + '"?')) {
+				if (!window.confirm('Xoá "' + $(this).data('title') + '"?')) return;
+				try {
 					store.deleteScenario($(this).data('id'));
 					self.refreshAfterDataChange();
 					toast('Đã xoá');
+				} catch (e) {
+					window.alert(e.message || 'Không xoá được kịch bản');
 				}
 			});
 			this.$root.on('click', '.js-tre-sc-copy', function () {
@@ -437,11 +484,15 @@
 					window.alert('Vui lòng nhập trạng thái và tên rule.');
 					return;
 				}
-				if (id) store.updateRule(id, data);
-				else store.createRule(data);
-				self.closeModal();
-				self.refreshAfterDataChange();
-				toast('Đã lưu');
+				try {
+					if (id) store.updateRule(id, data);
+					else store.createRule(data);
+					self.closeModal();
+					self.refreshAfterDataChange();
+					toast('Đã lưu');
+				} catch (e) {
+					window.alert(e.message || 'Không lưu được rule');
+				}
 			});
 
 			$(document).on('click.mkTagRuleEngine', '.js-tre-tag-save', function () {
@@ -451,11 +502,15 @@
 					window.alert('Vui lòng nhập tên tag.');
 					return;
 				}
-				if (id) store.updateTag(id, data);
-				else store.createTag(data);
-				self.closeModal();
-				self.refreshAfterDataChange();
-				toast('Đã lưu');
+				try {
+					if (id) store.updateTag(id, data);
+					else store.createTag(data);
+					self.closeModal();
+					self.refreshAfterDataChange();
+					toast('Đã lưu');
+				} catch (e) {
+					window.alert(e.message || 'Không lưu được tag');
+				}
 			});
 
 			$(document).on('click.mkTagRuleEngine', '.js-tre-sc-save', function () {
@@ -465,11 +520,15 @@
 					window.alert('Vui lòng nhập tiêu đề và nội dung.');
 					return;
 				}
-				if (id) store.updateScenario(id, data);
-				else store.createScenario(data);
-				self.closeModal();
-				self.refreshAfterDataChange();
-				toast('Đã lưu');
+				try {
+					if (id) store.updateScenario(id, data);
+					else store.createScenario(data);
+					self.closeModal();
+					self.refreshAfterDataChange();
+					toast('Đã lưu');
+				} catch (e) {
+					window.alert(e.message || 'Không lưu được kịch bản');
+				}
 			});
 		},
 	};

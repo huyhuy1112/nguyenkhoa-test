@@ -1173,3 +1173,214 @@ html.mk-tre-ui-ready body[data-module="HelpDesk"][data-view="Rules"] .content-ar
 html.mk-tre-ui-ready body[data-module="HelpDesk"][data-view="Rules"] #listViewContent {
 	background: transparent !important;
 }
+
+/* —— Cảnh báo hành động (SupportFAQ List) —— */
+.mk-tre-stats--3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mk-tre-stat-card--warn {
+	border-color: rgba(217, 119, 6, 0.28);
+	background: linear-gradient(180deg, #fffbeb, #fff);
+}
+
+.mk-tre-stat-card--danger {
+	border-color: rgba(220, 38, 38, 0.28);
+	background: linear-gradient(180deg, #fef2f2, #fff);
+}
+
+.mk-tre-alert-list {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	margin-top: 8px;
+}
+
+.mk-tre-alert-card {
+	background: #fff;
+	border: 1px solid var(--tre-border, #e2e8f0);
+	border-radius: 14px;
+	padding: 18px 18px 16px;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+	animation: mk-filter-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mk-tre-alert-card--warn {
+	border-color: rgba(217, 119, 6, 0.45);
+}
+
+.mk-tre-alert-card--severe {
+	border-color: rgba(220, 38, 38, 0.5);
+}
+
+.mk-tre-alert-card__top {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.mk-tre-alert-card__name-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.mk-tre-alert-card__name {
+	font-size: 1.05rem;
+	color: #0f172a;
+}
+
+.mk-tre-alert-card__meta {
+	margin-top: 4px;
+	font-size: 12px;
+}
+
+.mk-tre-alert-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	background: #fff7ed;
+	color: #c2410c;
+	border: 1px solid #fed7aa;
+}
+
+.mk-tre-alert-badge--severe {
+	background: #fef2f2;
+	color: #b91c1c;
+	border-color: #fecaca;
+}
+
+.mk-tre-alert-card__body {
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 12px 14px;
+	margin-bottom: 14px;
+}
+
+.mk-tre-alert-card__status {
+	font-weight: 700;
+	font-size: 14px;
+	color: #0f172a;
+	margin-bottom: 6px;
+}
+
+.mk-tre-alert-card__action {
+	font-size: 13px;
+	color: #334155;
+	margin-bottom: 8px;
+	line-height: 1.45;
+}
+
+.mk-tre-alert-card__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.mk-tre-alert-empty {
+	padding: 36px 20px;
+	text-align: center;
+	color: #64748b;
+	background: #fff;
+	border: 1px dashed #cbd5e1;
+	border-radius: 14px;
+}
+
+body[data-module="SupportFAQ"] .mk-sf-faq-main,
+body[data-module="SupportFAQ"] .mk-sf-faq-content,
+body[data-module="SupportFAQ"] .mk-sf-faq-page {
+	background: transparent !important;
+}
+
+.mk-tre-chip--warn {
+	background: #fff7ed;
+	border-color: #fdba74;
+	color: #9a3412;
+}
+
+.mk-tre-if,
+.mk-tre-then {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	align-items: flex-start;
+}
+
+.mk-tre-if__label,
+.mk-tre-then__label {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #64748b;
+}
+
+.mk-tre-then__text {
+	font-size: 13px;
+	line-height: 1.45;
+	color: #0f172a;
+	max-width: 360px;
+}
+
+.mk-tre-form-hint {
+	margin: 0 0 8px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #ecfdf5;
+	border: 1px solid #a7f3d0;
+	color: #065f46;
+	font-size: 13px;
+}
+
+.mk-tre-table--rules th:nth-child(3),
+.mk-tre-table--rules td:nth-child(3) {
+	min-width: 220px;
+}
+
+/* Cảnh báo: full-bleed content, never show LISTS strip */
+body[data-module="SupportFAQ"][data-view="List"] .mk-sf-alerts-page #modnavigator,
+body[data-module="SupportFAQ"][data-view="List"] .mk-sf-alerts-page #sidebar-essentials,
+body[data-module="SupportFAQ"][data-view="List"] .mk-sf-alerts-page .module-nav,
+body[data-module="SupportFAQ"][data-view="List"] .mk-sf-alerts-page .sidebar-essentials,
+body[data-module="SupportFAQ"][data-view="List"] .lists-menu-container,
+body[data-module="SupportFAQ"][data-view="List"] .list-menu-content,
+body[data-module="SupportFAQ"][data-view="List"] .sidebar-menu,
+body[data-module="SupportFAQ"][data-view="List"] #modules-menu {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+}
+
+body[data-module="SupportFAQ"][data-view="List"] .mk-sf-alerts-mount,
+body[data-module="SupportFAQ"][data-view="List"] #mk-tag-rule-alerts {
+	display: block !important;
+	width: 100% !important;
+	min-height: 320px;
+}
+
+body[data-module="SupportFAQ"][data-view="List"] .mk-sf-faq-content.listViewPageDiv,
+body[data-module="SupportFAQ"][data-view="List"] .mk-sf-faq-content {
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	float: none !important;
+}
+
+@media (max-width: 900px) {
+	.mk-tre-stats--3 {
+		grid-template-columns: 1fr;
+	}
+}
+

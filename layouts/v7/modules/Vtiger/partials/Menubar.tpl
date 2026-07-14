@@ -38,6 +38,8 @@
 			{assign var='translatedModuleLabel' value='Khách hàng'}
 		{elseif $moduleName eq 'ProductsServices'}
 			{assign var='translatedModuleLabel' value='Hàng hoá'}
+		{elseif $moduleName eq 'SupportFAQ'}
+			{assign var='translatedModuleLabel' value='Cảnh báo'}
 		{/if}
 		<ul title="{$translatedModuleLabel}" class="module-qtip">
 			<li {if $MODULE eq $moduleName}class="active"{else}class=""{/if}>
@@ -61,7 +63,7 @@
 					{elseif $moduleName eq 'Activities'}{assign var=MK_MOD_FA value='fa-tasks'}
 					{elseif $moduleName eq 'Schedule'}{assign var=MK_MOD_FA value='fa-calendar-o'}
 					{elseif $moduleName eq 'Rules'}{assign var=MK_MOD_FA value='fa-gavel'}
-					{elseif $moduleName eq 'SupportFAQ'}{assign var=MK_MOD_FA value='fa-question-circle'}
+					{elseif $moduleName eq 'SupportFAQ'}{assign var=MK_MOD_FA value='fa-bell'}
 					{elseif $moduleName eq 'Faq'}{assign var=MK_MOD_FA value='fa-question-circle'}
 					{elseif $moduleName eq 'Teams'}{assign var=MK_MOD_FA value='fa-users'}
 					{elseif $moduleName eq 'DocumentTemplate'}{assign var=MK_MOD_FA value='fa-file-text-o'}

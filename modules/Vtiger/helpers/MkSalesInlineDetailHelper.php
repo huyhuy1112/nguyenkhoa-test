@@ -53,6 +53,21 @@ class Vtiger_MkSalesInlineDetailHelper {
 		'da_ky_quy' => 'Đã ký quỹ',
 		'xac_nhan_tham_gia' => 'Xác nhận tham gia',
 		'khong_xac_nhan_tham_gia' => 'Không tham gia',
+		'l1' => 'L1',
+		'l2' => 'L2',
+		'chua_990k' => 'Chưa 990k',
+		'da_990k' => 'Đã 990k',
+		'lop_online' => 'Lớp online',
+		'moi_lai' => 'Mời lại',
+		'doi_lich' => 'Dời lịch',
+		'khong_nghe_may' => 'Không nghe máy',
+		'thue_bao' => 'Thuê bao',
+		'trung_so' => 'Trùng số',
+		'ngung_cham_soc' => 'Ngừng chăm sóc',
+		'hoan_tien_lop_hoc' => 'Hoàn tiền lớp học',
+		'khong_hoc' => 'Không học',
+		'da_pcth' => 'Đã PCTH',
+		'chua_pcth' => 'Chưa PCTH',
 	);
 
 	protected static $tagAliases = array(
@@ -163,6 +178,36 @@ class Vtiger_MkSalesInlineDetailHelper {
 		if (preg_match('/^goi_lan_(\d+)$/', $key, $m)) {
 			$n = min((int) $m[1], 3);
 			return 'mk-tag mk-tag--goi-lan-' . $n;
+		}
+		// Known palette classes use kebab-case; unknown → --other so luôn có pill UI.
+		$known = array(
+			'facebook', 'tiktok', 'website', 'zalo', 'hotline', 'other', 'other_source', 'ladipage_fb',
+			'chua_hoc', 'da_hoc', 'mien_phi_online', 'mien_phi_offline', 'pcth', 'van_hanh', 'mkt', 'lop_khac',
+			'nhuong_quyen', 'nguyen_lieu_chuoi', 'mua_lan_dau', 'mua_lai', 'khong_mua', 'ngung_mua', 'mua_on_dinh',
+			'tiem_nang', 'dang_cham_soc', 'dang_tu_van', 'kh_can_nhac', 'vang', 'bac', 'dong',
+			'kv1', 'kv2', 'kv3', 'individual', 'company', 'co_quan', 'chuan_bi_mo', 'gia_dinh',
+			'moi_quen', 'da_co_quan_he', 'chua_mqbh', 'da_tg_free', 'da_tg_fb1', 'thu_3', 'da_ky_quy',
+			'xac_nhan_tham_gia', 'khong_xac_nhan_tham_gia', 'l1', 'l2', 'chua_990k', 'da_990k',
+			'lop_online', 'moi_lai', 'doi_lich', 'khong_nghe_may', 'thue_bao', 'trung_so', 'ngung_cham_soc',
+			'hoan_tien_lop_hoc', 'khong_hoc', 'da_pcth', 'chua_pcth',
+		);
+		if (!in_array($key, $known, true)) {
+			return 'mk-tag mk-tag--other';
+		}
+		if ($key === 'xac_nhan_tham_gia') {
+			return 'mk-tag mk-tag--xac-nhan';
+		}
+		if ($key === 'khong_xac_nhan_tham_gia') {
+			return 'mk-tag mk-tag--khong-xac-nhan';
+		}
+		if ($key === 'ladipage_fb') {
+			return 'mk-tag mk-tag--ladipage';
+		}
+		if ($key === 'mien_phi_online') {
+			return 'mk-tag mk-tag--free-online';
+		}
+		if ($key === 'mien_phi_offline') {
+			return 'mk-tag mk-tag--free-offline';
 		}
 		$slug = str_replace('_', '-', $key);
 		return 'mk-tag mk-tag--' . $slug;
