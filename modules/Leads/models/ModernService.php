@@ -283,11 +283,30 @@ class Leads_ModernService {
 		global $current_user;
 		$adb = PearDatabase::getInstance();
 		$userId = (int)$current_user->id;
-		$leadId = self::resolveLeadId($recordId);
+
+		$requestedId = ($recordId !== null && $recordId !== '') ? $recordId : null;
+		if ($requestedId === null && isset($payload['id']) && $payload['id'] !== '') {
+			$requestedId = $payload['id'];
+		}
+		if ($requestedId === null && isset($payload['crmid']) && $payload['crmid'] !== '') {
+			$requestedId = $payload['crmid'];
+		}
+
+		$leadId = self::resolveLeadId($requestedId);
+		if (!$leadId && $recordId !== null && $recordId !== '' && (string)$recordId !== (string)$requestedId) {
+			$leadId = self::resolveLeadId($recordId);
+		}
+		if (!$leadId && is_numeric($requestedId) && self::vtigerLeadExists((int)$requestedId)) {
+			$leadId = (int)$requestedId;
+			self::ensureModernProfile($leadId);
+		}
+		if (!$leadId && isset($payload['crmid'])) {
+			$leadId = self::resolveLeadId($payload['crmid']);
+		}
 		if (!$leadId && isset($payload['id'])) {
 			$leadId = self::resolveLeadId($payload['id']);
 		}
-		if (!$leadId) {
+		if (!$leadId && ($requestedId === null || $requestedId === '')) {
 			$existingId = self::findExistingLeadIdByPhoneOrEmail(
 				isset($payload['phone']) ? $payload['phone'] : '',
 				isset($payload['email']) ? $payload['email'] : ''
@@ -295,10 +314,6 @@ class Leads_ModernService {
 			if ($existingId) {
 				$leadId = $existingId;
 			}
-		}
-		$requestedId = ($recordId !== null && $recordId !== '') ? $recordId : null;
-		if ($requestedId === null && isset($payload['id']) && $payload['id'] !== '') {
-			$requestedId = $payload['id'];
 		}
 		if ($requestedId !== null && $requestedId !== '' && !$leadId) {
 			throw new Exception('Lead not found.');
@@ -324,6 +339,8 @@ class Leads_ModernService {
 		$isNew = !$leadId;
 		if ($leadId) {
 			$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
+			$recordModel->set('id', $leadId);
+			$recordModel->set('mode', 'edit');
 		} else {
 			$recordModel = Vtiger_Record_Model::getCleanInstance(self::MODULE);
 		}
@@ -371,6 +388,11 @@ class Leads_ModernService {
 		$tags = self::applyRegionTags($tags, isset($payload['district']) ? $payload['district'] : '');
 		$tags = self::applyCustomerStatusTag($tags, isset($profile['segment']) ? $profile['segment'] : '');
 		self::syncTags($leadId, $tags, $userId);
+
+		if (!$isNew) {
+			require_once 'modules/Leads/models/ConvertService.php';
+			Leads_ConvertService::syncRelatedTagsFromLead($leadId, $userId);
+		}
 
 		if ($isNew && empty($mkCacheId)) {
 			Leads_ConvertService::ensurePotentialForLead($leadId, $payload, $ownerId);
@@ -721,8 +743,10 @@ class Leads_ModernService {
 					$payload[$field] = $existing[$field];
 				}
 			}
-			if ((!isset($payload['tags']) || !is_array($payload['tags']) || empty($payload['tags'])) && !empty($existing['tags'])) {
-				$payload['tags'] = $existing['tags'];
+			if (!isset($payload['tags']) || !is_array($payload['tags'])) {
+				if (!empty($existing['tags'])) {
+					$payload['tags'] = $existing['tags'];
+				}
 			}
 			if (!isset($payload['id']) || $payload['id'] === '') {
 				$payload['id'] = $existing['id'];

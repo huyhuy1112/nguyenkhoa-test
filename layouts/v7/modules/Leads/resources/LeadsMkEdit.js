@@ -6,6 +6,30 @@
 
   var LIST_URL = "index.php?module=Leads&view=List&app=SALES";
 
+  function getEditRecordId() {
+    var root = $("mk-td-create");
+    var id = root && root.getAttribute("data-record-id");
+    if (id) return String(id).trim();
+    try {
+      var m = window.location.search.match(/[?&]record=([^&]+)/);
+      return m ? decodeURIComponent(m[1]) : "";
+    } catch (e0) {
+      return "";
+    }
+  }
+
+  function isEditMode() {
+    var root = $("mk-td-create");
+    if (root && root.getAttribute("data-mode") === "edit") return true;
+    return !!getEditRecordId();
+  }
+
+  function resolveApiRecordId(recordId, lead) {
+    if (lead && lead.crmid != null && lead.crmid !== "") return String(lead.crmid);
+    if (/^\d+$/.test(String(recordId || ""))) return String(recordId);
+    return recordId || "";
+  }
+
   var TAG_POOLS = {
     customerType: ["individual", "company"],
     leadSource: ["facebook", "tiktok", "website", "zalo", "other_source"],
@@ -85,6 +109,193 @@
   function $(id) {
     return document.getElementById(id);
   }
+
+  var SEARCH_SELECT_IDS = [
+    "mk-td-owner",
+    "mk-td-intent",
+    "mk-td-franchise",
+    "mk-td-entry",
+    "mk-td-entry-branch",
+  ];
+
+  function syncSearchSelectTrigger(selectEl) {
+    var wrap = selectEl && selectEl.closest ? selectEl.closest(".mk-td-search-select") : null;
+    if (!wrap) return;
+    var trigger = wrap.querySelector(".mk-td-search-select__trigger");
+    if (!trigger) return;
+    var opt = selectEl.options[selectEl.selectedIndex];
+    trigger.textContent = opt && opt.text ? opt.text : "— Chọn —";
+    var picked = !!selectEl.value;
+    trigger.classList.toggle("mk-td-select--picked", picked);
+    wrap.classList.toggle("mk-td-search-select--picked", picked);
+    if (opt && opt.getAttribute) {
+      var tagKey = opt.getAttribute("data-tag");
+      if (tagKey) trigger.setAttribute("data-tag", tagKey);
+      else trigger.removeAttribute("data-tag");
+    } else {
+      trigger.removeAttribute("data-tag");
+    }
+  }
+
+  function closeAllSearchSelects(exceptWrap) {
+    document.querySelectorAll(".mk-td-search-select.is-open").forEach(function (w) {
+      if (exceptWrap && w === exceptWrap) return;
+      w.classList.remove("is-open");
+      var panel = w.querySelector(".mk-td-search-select__panel");
+      if (panel) panel.hidden = true;
+      var trigger = w.querySelector(".mk-td-search-select__trigger");
+      if (trigger) trigger.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function filterSearchSelectList(wrap, query) {
+    var list = wrap.querySelector(".mk-td-search-select__list");
+    if (!list) return;
+    var q = String(query || "").trim().toLowerCase();
+    var visible = 0;
+    list.querySelectorAll(".mk-td-search-select__option").forEach(function (btn) {
+      var text = String(btn.getAttribute("data-label") || btn.textContent || "").toLowerCase();
+      var show = !q || text.indexOf(q) >= 0;
+      btn.hidden = !show;
+      if (show) visible += 1;
+    });
+    var empty = wrap.querySelector(".mk-td-search-select__empty");
+    if (empty) empty.hidden = visible > 0 || !q;
+  }
+
+  function pickSearchSelectOption(selectEl, value) {
+    for (var i = 0; i < selectEl.options.length; i++) {
+      if (selectEl.options[i].value === value) {
+        selectEl.selectedIndex = i;
+        syncSearchSelectTrigger(selectEl);
+        selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+        return;
+      }
+    }
+  }
+
+  function initSearchableSelect(selectEl) {
+    if (!selectEl || selectEl.dataset.mkSearchInit === "1") return;
+    if (selectEl.options.length < 2) return;
+    selectEl.dataset.mkSearchInit = "1";
+
+    var wrap = document.createElement("div");
+    wrap.className = "mk-td-search-select";
+
+    var trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "mk-td-search-select__trigger mk-td-select";
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+
+    var panel = document.createElement("div");
+    panel.className = "mk-td-search-select__panel";
+    panel.hidden = true;
+
+    var search = document.createElement("input");
+    search.type = "search";
+    search.className = "mk-td-search-select__search";
+    search.placeholder = "Tìm kiếm…";
+    search.autocomplete = "off";
+
+    var list = document.createElement("div");
+    list.className = "mk-td-search-select__list";
+
+    var empty = document.createElement("p");
+    empty.className = "mk-td-search-select__empty";
+    empty.textContent = "Không tìm thấy";
+    empty.hidden = true;
+
+    for (var i = 0; i < selectEl.options.length; i++) {
+      (function (opt) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "mk-td-search-select__option";
+        btn.setAttribute("data-value", opt.value);
+        btn.setAttribute("data-label", opt.text || "");
+        var optTag = opt.getAttribute && opt.getAttribute("data-tag");
+        if (optTag) btn.setAttribute("data-tag", optTag);
+        btn.textContent = opt.text || opt.value || "—";
+        if (!opt.value) btn.classList.add("mk-td-search-select__option--placeholder");
+        btn.addEventListener("click", function () {
+          pickSearchSelectOption(selectEl, opt.value);
+          wrap.classList.remove("is-open");
+          panel.hidden = true;
+          trigger.setAttribute("aria-expanded", "false");
+        });
+        list.appendChild(btn);
+      })(selectEl.options[i]);
+    }
+
+    var parent = selectEl.parentNode;
+    parent.insertBefore(wrap, selectEl);
+    wrap.appendChild(selectEl);
+    wrap.appendChild(trigger);
+    wrap.appendChild(panel);
+    panel.appendChild(search);
+    panel.appendChild(list);
+    panel.appendChild(empty);
+
+    selectEl.classList.add("mk-td-select--native-hidden");
+
+    trigger.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var open = !wrap.classList.contains("is-open");
+      closeAllSearchSelects(open ? wrap : null);
+      wrap.classList.toggle("is-open", open);
+      panel.hidden = !open;
+      trigger.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) {
+        search.value = "";
+        filterSearchSelectList(wrap, "");
+        window.setTimeout(function () {
+          search.focus();
+        }, 0);
+      }
+    });
+
+    search.addEventListener("input", function () {
+      filterSearchSelectList(wrap, search.value);
+    });
+    search.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        wrap.classList.remove("is-open");
+        panel.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    selectEl.addEventListener("change", function () {
+      syncSearchSelectTrigger(selectEl);
+      list.querySelectorAll(".mk-td-search-select__option").forEach(function (btn) {
+        btn.classList.toggle("is-selected", btn.getAttribute("data-value") === selectEl.value);
+      });
+    });
+
+    syncSearchSelectTrigger(selectEl);
+    selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function initSearchableSelects() {
+    SEARCH_SELECT_IDS.forEach(function (id) {
+      var el = $(id);
+      if (el) initSearchableSelect(el);
+    });
+  }
+
+  function refreshSearchSelectTriggers() {
+    SEARCH_SELECT_IDS.forEach(function (id) {
+      var el = $(id);
+      if (el) syncSearchSelectTrigger(el);
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest || !e.target.closest(".mk-td-search-select")) {
+      closeAllSearchSelects(null);
+    }
+  });
 
   function findTag(tags, pool) {
     if (!tags || !tags.length) return null;
@@ -486,6 +697,7 @@
     }
 
     applyTagsFromLead(lead.tags || [], lead);
+    refreshSearchSelectTriggers();
   }
 
   function buildLeadPatch() {
@@ -591,39 +803,61 @@
     }
 
     var root = $("mk-td-create");
-    var recordId = root && root.getAttribute("data-record-id");
-    var isEdit = root && root.getAttribute("data-mode") === "edit";
+    var recordId = getEditRecordId();
+    var isEdit = isEditMode();
+    if (!recordId) {
+      try {
+        var urlRec = window.location.search.match(/[?&]record=([^&]+)/);
+        if (urlRec) recordId = decodeURIComponent(urlRec[1]);
+      } catch (eUrl) {
+        /* ignore */
+      }
+    }
+    if (recordId && !isEdit) isEdit = true;
+
     var patch = buildLeadPatch();
     var store = window.LeadsLocalStore;
+    var existingLead = null;
+    if (store && recordId && typeof store.getLead === "function") {
+      existingLead = store.getLead(recordId);
+    }
+    if (isEdit && recordId) {
+      var apiId = resolveApiRecordId(recordId, existingLead);
+      if (/^\d+$/.test(String(apiId))) {
+        patch.crmid = parseInt(apiId, 10);
+      }
+      if (existingLead && existingLead.id) {
+        patch.id = existingLead.id;
+      }
+    }
     var savePromise;
 
-    if (store) {
-      if (isEdit && recordId && typeof store.update === "function") {
-        savePromise = store.update(recordId, patch);
-      } else if (typeof store.create === "function") {
-        savePromise = store.create(patch);
-      }
+    if (!store) {
+      alert("Không thể lưu — hệ thống chưa tải xong. Vui lòng tải lại trang.");
+      return;
+    }
+
+    if (isEdit && recordId && typeof store.update === "function") {
+      savePromise = store.update(resolveApiRecordId(recordId, existingLead) || recordId, patch);
+    } else if (typeof store.create === "function") {
+      savePromise = store.create(patch);
+    }
+
+    if (!savePromise) {
+      alert("Không thể lưu lead — thiếu mã bản ghi.");
+      return;
     }
 
     Promise.resolve(savePromise)
       .then(function (lead) {
-        var savedId = lead && lead.id ? lead.id : recordId;
-        if (!savedId) {
+        if (isEdit) {
           window.location.href = LIST_URL;
           return;
         }
 
-        var leadObj = lead && lead.id ? lead : { id: savedId };
-        return Promise.resolve(autoConvertToOppIfNeeded(leadObj)).then(function (res) {
-          if (res && res.redirect) {
-            window.location.href = res.redirect;
-            return;
-          }
-          if (res && res.potentialId) {
-            window.location.href = potentialDetailUrl(res.potentialId);
-            return;
-          }
-          window.location.href = detailUrl(savedId);
+        var leadObj = lead && lead.id ? lead : { id: (lead && (lead.crmid || lead.id)) || recordId };
+        return Promise.resolve(autoConvertToOppIfNeeded(leadObj)).then(function () {
+          window.location.href = LIST_URL;
         });
       })
       .catch(function (err) {
@@ -635,6 +869,8 @@
     var root = $("mk-td-create");
     if (!root) return;
     var store = window.LeadsLocalStore;
+
+    initSearchableSelects();
 
     root.querySelectorAll(".mk-td-choice[data-group]").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -669,10 +905,10 @@
     }
     syncCustomerTypePanel();
 
-    var recordId = root.getAttribute("data-record-id");
+    var recordId = getEditRecordId();
     var boot = store && store.ready ? store.ready() : Promise.resolve();
     boot.then(function () {
-      if (recordId && root.getAttribute("data-mode") === "edit") {
+      if (recordId && isEditMode()) {
         var load =
           store && store.reloadLead
             ? store.reloadLead(recordId)

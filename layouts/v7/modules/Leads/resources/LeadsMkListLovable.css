@@ -61,6 +61,23 @@
     padding: 12px 14px;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
+a.mk-leads-kpi-card--link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+}
+a.mk-leads-kpi-card--link:hover {
+    border-color: #fecaca;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.12);
+    transform: translateY(-1px);
+}
+.mk-leads-kpi-card__hint {
+    font-size: 10px;
+    font-weight: 700;
+    color: #dc2626;
+    white-space: nowrap;
+}
 .mk-leads-kpi-card__top {
     display: flex;
     justify-content: space-between;
@@ -692,7 +709,7 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
 .mk-leads-page--lovable table.mk-leads-table {
     display: table !important;
     width: 100%;
-    min-width: 1560px;
+    min-width: 1496px;
     border-collapse: separate;
     border-spacing: 0;
     font-size: 13px;
@@ -720,7 +737,7 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
 .mk-leads-col--value { width: 118px; }
 .mk-leads-col--tags { width: 136px; }
 .mk-leads-col--support { width: 84px; }
-.mk-leads-col--stale { width: 64px; }
+.mk-leads-col--stale { width: 108px; }
 .mk-leads-page--lovable .mk-leads-table thead th,
 .mk-leads-page--lovable .mk-leads-table tbody td {
     white-space: nowrap;
@@ -738,6 +755,29 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
+}
+/* Cột CSKH: luôn thấy đủ nhãn, ghim bên phải khi scroll ngang */
+.mk-leads-page--lovable .mk-leads-table thead th.mk-leads-th--center:last-child,
+.mk-leads-page--lovable .mk-leads-table tbody td.mk-leads-td--center:last-child {
+    position: sticky;
+    right: 0;
+    z-index: 4;
+    background: #fff;
+    box-shadow: -6px 0 12px rgba(15, 23, 42, 0.06);
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+.mk-leads-page--lovable .mk-leads-table thead th.mk-leads-th--center:last-child {
+    z-index: 5;
+    background: #f8fafc;
+}
+.mk-leads-page--lovable .mk-leads-table tbody tr:hover td.mk-leads-td--center:last-child {
+    background: #f8fafc;
+}
+.mk-leads-page--lovable .mk-leads-table tbody tr.mk-so-row-expanded td.mk-leads-td--center:last-child,
+.mk-leads-page--lovable .mk-leads-table tbody tr.mk-leads-row--open td.mk-leads-td--center:last-child {
+    background: #f0fdf4;
 }
 .mk-leads-page--lovable .mk-leads-table thead th {
     position: sticky;
@@ -947,66 +987,7 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
     color: #334155;
     border-color: #cbd5e1;
 }
-.mk-tag--facebook { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
-.mk-tag--tiktok { background: #fce7f3; color: #be185d; border-color: #fbcfe8; }
-.mk-tag--website { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; }
-.mk-tag--zalo { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
-.mk-tag--other { background: #f1f5f9; color: #475569; }
-.mk-tag--chua-hoc { background: #dcfce7; color: #073B3A; }
-.mk-tag--da-hoc { background: #d1fae5; color: #047857; }
-.mk-tag--free-online, .mk-tag--mien_phi_online { background: #cffafe; color: #0e7490; }
-.mk-tag--free-offline, .mk-tag--mien_phi_offline { background: #ccfbf1; color: #0f766e; }
-.mk-tag--pcth { background: #f3e8ff; color: #7e22ce; }
-.mk-tag--van-hanh, .mk-tag--mkt, .mk-tag--lop-khac { background: #ede9fe; color: #6d28d9; }
-.mk-tag--nhuong-quyen { background: #ffe4e6; color: #be123c; }
-.mk-tag--mua-lan-dau { background: #dbeafe; color: #1e40af; }
-.mk-tag--mua-lai { background: #d1fae5; color: #065f46; }
-.mk-tag--khong-mua { background: #ffedd5; color: #c2410c; }
-.mk-tag--ngung-mua { background: #fee2e2; color: #b91c1c; }
-.mk-tag--vang { background: #fef9c3; color: #a16207; border-color: #fde047; }
-.mk-tag--bac { background: #f1f5f9; color: #475569; }
-.mk-tag--dong { background: #ffedd5; color: #9a3412; }
-.mk-tag--goi-lan-1 { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
-.mk-tag--goi-lan-2 { background: #dcfce7; color: #b45309; border-color: #fcd34d; }
-.mk-tag--goi-lan-3 { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
-.mk-tag--nguyen-lieu-chuoi { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
-.mk-tag--company { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
-.mk-tag--individual { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
-.mk-tag--co-quan { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
-.mk-tag--chuan-bi-mo { background: #fce7f3; color: #be185d; border-color: #f9a8d4; }
-.mk-tag--gia-dinh { background: #dcfce7; color: #047857; border-color: #86efac; }
-.mk-tag--kv1, .mk-tag--kv2, .mk-tag--kv3 { background: #ecfdf5; color: #047857; border-color: #6ee7b7; }
-.mk-tag--da-ky-quy { background: #fef9c3; color: #a16207; border-color: #fde047; }
-.mk-tag--xac-nhan { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
-.mk-tag--khong-xac-nhan { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
-.mk-tag--ladipage { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
-.mk-tag--da-tg-free { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
-.mk-tag--dang-cham-soc { background: #fff7ed; color: #c2410c; border-color: #fdba74; }
-.mk-tag--dang-tu-van { background: #f0fdf4; color: #15803d; border-color: #86efac; }
-.mk-tag--kh-can-nhac { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
-.mk-tag--moi-quen { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
-.mk-tag--co-quan-he { background: #ffe4e6; color: #be123c; border-color: #fda4af; }
-.mk-tag--chua-mqbh { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
-.mk-tag--hotline { background: #1e293b; color: #f8fafc; border-color: #334155; }
-.mk-tag--da-tg-fb1 { background: #dcfce7; color: #166534; border-color: #86efac; }
-.mk-tag--thu-3 { background: #7f1d1d; color: #fecaca; border-color: #991b1b; }
-.mk-tag--tiem-nang { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
-.mk-tag--mua-on-dinh { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
-.mk-tag--l1 { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
-.mk-tag--l2 { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
-.mk-tag--chua-990k { background: #fff7ed; color: #c2410c; border-color: #fdba74; }
-.mk-tag--da-990k { background: #dcfce7; color: #166534; border-color: #86efac; }
-.mk-tag--lop-online { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
-.mk-tag--moi-lai { background: #dcfce7; color: #166534; border-color: #86efac; }
-.mk-tag--doi-lich { background: #e2e8f0; color: #334155; border-color: #cbd5e1; }
-.mk-tag--khong-nghe-may { background: #ffe4e6; color: #9f1239; border-color: #fda4af; }
-.mk-tag--thue-bao { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
-.mk-tag--trung-so { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
-.mk-tag--ngung-cham-soc { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
-.mk-tag--hoan-tien-lop-hoc { background: #fef9c3; color: #713f12; border-color: #facc15; }
-.mk-tag--khong-hoc { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
-.mk-tag--da-pcth { background: #dcfce7; color: #166534; border-color: #86efac; }
-.mk-tag--chua-pcth { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+/* Tag colors → LeadsMkTagPalette.css (data-tag) */
 
 /* Dark mode: make tags/pills vibrant (not washed out) */
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag,
@@ -1014,22 +995,7 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill {
 	border-color: rgba(148, 163, 184, 0.22);
 }
 
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--facebook { background: rgba(37, 99, 235, 0.16); color: #93c5fd; border-color: rgba(37, 99, 235, 0.35); }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--tiktok { background: rgba(219, 39, 119, 0.16); color: #fbcfe8; border-color: rgba(219, 39, 119, 0.35); }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--website { background: rgba(79, 70, 229, 0.16); color: #c7d2fe; border-color: rgba(79, 70, 229, 0.35); }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--zalo { background: rgba(2, 132, 199, 0.16); color: #bae6fd; border-color: rgba(2, 132, 199, 0.35); }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--other { background: rgba(148, 163, 184, 0.14); color: rgba(226, 232, 240, 0.86); border-color: rgba(148, 163, 184, 0.22); }
-
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--mua-lan-dau { background: rgba(30, 64, 175, 0.18); color: #bfdbfe; border-color: rgba(30, 64, 175, 0.38); }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--mua-lai { background: rgba(5, 150, 105, 0.16); color: #a7f3d0; border-color: rgba(5, 150, 105, 0.36); }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--khong-mua { background: rgba(234, 88, 12, 0.18); color: #fed7aa; border-color: rgba(234, 88, 12, 0.38); }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--ngung-mua { background: rgba(185, 28, 28, 0.18); color: #fecaca; border-color: rgba(185, 28, 28, 0.38); }
-
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--goi-lan-1 { background: rgba(37, 99, 235, 0.14); color: #93c5fd; border-color: rgba(37, 99, 235, 0.32); }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--goi-lan-2 { background: rgba(245, 158, 11, 0.16); color: #bbf7d0; border-color: rgba(245, 158, 11, 0.36); }
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-tag--goi-lan-3 { background: rgba(249, 115, 22, 0.16); color: #fed7aa; border-color: rgba(249, 115, 22, 0.36); }
-
-html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--gold { background: rgba(245, 158, 11, 0.16); color: #bbf7d0; border-color: rgba(245, 158, 11, 0.36); }
+html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--gold { background: rgba(245, 158, 11, 0.16); color: #fde68a; border-color: rgba(245, 158, 11, 0.36); }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--silver { background: rgba(148, 163, 184, 0.16); color: rgba(226, 232, 240, 0.86); border-color: rgba(148, 163, 184, 0.30); }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--tier.mk-pill--bronze { background: rgba(234, 88, 12, 0.16); color: #fed7aa; border-color: rgba(234, 88, 12, 0.36); }
 html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--support { background: rgba(234, 88, 12, 0.14); color: #fed7aa; border-color: rgba(234, 88, 12, 0.32); }
@@ -1044,21 +1010,25 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--support { backgro
 }
 .mk-pill--blue { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
 .mk-pill--purple { background: #faf5ff; color: #7e22ce; border-color: #e9d5ff; }
-.mk-pill--tier.mk-pill--gold { background: #dcfce7; color: #073B3A; }
-.mk-pill--tier.mk-pill--silver { background: #f1f5f9; color: #475569; }
-.mk-pill--tier.mk-pill--bronze { background: #ffedd5; color: #9a3412; }
+/* Tier pills: keep in sync with LeadsMkTagPalette (Vàng = yellow) */
+.mk-pill--tier.mk-pill--gold { background: #fef9c3; color: #713f12; border-color: #facc15; }
+.mk-pill--tier.mk-pill--silver { background: #f1f5f9; color: #475569; border-color: #94a3b8; }
+.mk-pill--tier.mk-pill--bronze { background: #ffedd5; color: #9a3412; border-color: #fb923c; }
 .mk-pill--support { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
 
 .mk-stale-pill {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
+    gap: 5px;
+    padding: 3px 10px;
     border-radius: 999px;
     background: #fef2f2;
     color: #dc2626;
-    font-size: 10px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid #fecaca;
+    white-space: nowrap;
+    max-width: none;
 }
 .mk-dot--stale { background: #dc2626; }
 
@@ -1212,29 +1182,8 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--support { backgro
 	border-radius: 999px;
 	flex-shrink: 0;
 }
-.mk-leads-bulk-dot.mk-tag--facebook { background: #1d4ed8; }
-.mk-leads-bulk-dot.mk-tag--tiktok { background: #be185d; }
-.mk-leads-bulk-dot.mk-tag--website { background: #4338ca; }
-.mk-leads-bulk-dot.mk-tag--zalo { background: #0369a1; }
-.mk-leads-bulk-dot.mk-tag--other { background: #64748b; }
-.mk-leads-bulk-dot.mk-tag--chua-hoc { background: #0B6E4F; }
-.mk-leads-bulk-dot.mk-tag--da-hoc { background: #059669; }
-.mk-leads-bulk-dot.mk-tag--free-online,
-.mk-leads-bulk-dot.mk-tag--mien_phi_online { background: #0891b2; }
-.mk-leads-bulk-dot.mk-tag--free-offline,
-.mk-leads-bulk-dot.mk-tag--mien_phi_offline { background: #0f766e; }
-.mk-leads-bulk-dot.mk-tag--pcth { background: #7e22ce; }
-.mk-leads-bulk-dot.mk-tag--van-hanh,
-.mk-leads-bulk-dot.mk-tag--mkt,
-.mk-leads-bulk-dot.mk-tag--lop-khac { background: #6d28d9; }
-.mk-leads-bulk-dot.mk-tag--nhuong-quyen { background: #be123c; }
-.mk-leads-bulk-dot.mk-tag--mua-lan-dau { background: #1e40af; }
-.mk-leads-bulk-dot.mk-tag--mua-lai { background: #047857; }
-.mk-leads-bulk-dot.mk-tag--khong-mua { background: #c2410c; }
-.mk-leads-bulk-dot.mk-tag--ngung-mua { background: #b91c1c; }
-.mk-leads-bulk-dot.mk-tag--vang { background: #0B6E4F; }
-.mk-leads-bulk-dot.mk-tag--bac { background: #64748b; }
-.mk-leads-bulk-dot.mk-tag--dong { background: #9a3412; }
+/* Bulk dot colors → LeadsMkTagPalette.css */
+
 .mk-leads-bulk-btn {
 	display: inline-flex;
 	align-items: center;

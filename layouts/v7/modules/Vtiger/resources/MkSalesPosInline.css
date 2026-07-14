@@ -569,9 +569,23 @@ body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-so-row-expanded >
 }
 
 body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-so-inline-detail-row > td {
-	padding: 0;
-	background: transparent;
-	border-bottom: none;
+	padding: 0 !important;
+	background: #f0fdf4 !important;
+	border-bottom: 1px solid #d1fae5 !important;
+	width: 100%;
+}
+
+/* Expanded panel fills full table width (including sticky Support column area) */
+body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-so-inline-detail-row .mk-so-inline-detail {
+	display: block;
+	box-sizing: border-box;
+	width: auto;
+	max-width: none;
+	margin: 8px 10px 12px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-so-row-expanded > td.mk-leads-td--center:last-child {
+	background: #f0fdf4 !important;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-leads-row {

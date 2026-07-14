@@ -11,6 +11,8 @@ class HelpDesk_TagRuleEngineService {
 	protected $db;
 
 	const SCHEMA_VERSION = 1;
+	const CSKH_RULE_ID = 'rule-cskh';
+	const CSKH_ALERT_DAYS_DEFAULT = 7;
 
 	public function __construct() {
 		$this->db = PearDatabase::getInstance();
@@ -91,6 +93,9 @@ class HelpDesk_TagRuleEngineService {
 		if ((int)$ver < self::SCHEMA_VERSION) {
 			$this->seedIfEmpty();
 			$this->setMeta('schema_version', (string)self::SCHEMA_VERSION);
+		}
+		if ($this->getMeta('cskh_alert_days') === null) {
+			$this->setMeta('cskh_alert_days', (string)self::CSKH_ALERT_DAYS_DEFAULT);
 		}
 	}
 
@@ -211,12 +216,124 @@ class HelpDesk_TagRuleEngineService {
 
 	/** ——— Bootstrap / CRUD ——— */
 
-	public function bootstrap() {
-		return array(
+	public function bootstrap($userId = null) {
+		$out = array(
 			'tags' => $this->getTags(),
 			'rules' => $this->getRules(),
 			'scenarios' => $this->getScenarios(),
+			'channel_options' => $this->getScenarioChannelOptions(),
+			'assignee_options' => $this->getScenarioAssigneeOptions(),
+			'cskh_alert_days' => $this->getCskhAlertDays(),
 		);
+		if ($userId !== null) {
+			$out['alerts'] = $this->getAlerts((int)$userId, 200);
+		}
+		return $out;
+	}
+
+	/**
+	 * Kênh kịch bản — lấy từ tag nhóm Nguồn/Kênh + kênh đã dùng trong kịch bản.
+	 */
+	public function getScenarioChannelOptions() {
+		$channels = array();
+		foreach ($this->getTags() as $tag) {
+			$cat = isset($tag['category']) ? trim((string)$tag['category']) : '';
+			$name = isset($tag['name']) ? trim((string)$tag['name']) : '';
+			if ($name === '') {
+				continue;
+			}
+			$catLower = function_exists('mb_strtolower') ? mb_strtolower($cat, 'UTF-8') : strtolower($cat);
+			if ($cat === 'Nguồn' || $cat === 'Kênh' || $catLower === 'nguon' || $catLower === 'kênh' || $catLower === 'kenh') {
+				$channels[$name] = true;
+			}
+		}
+		foreach ($this->getScenarios() as $sc) {
+			if (!empty($sc['channel'])) {
+				$channels[trim((string)$sc['channel'])] = true;
+			}
+		}
+		$list = array_keys($channels);
+		usort($list, function ($a, $b) {
+			return strcasecmp($a, $b);
+		});
+		return $list;
+	}
+
+	/**
+	 * Người phụ trách — user + nhóm CRM + giá trị đã dùng trong kịch bản.
+	 */
+	public function getScenarioAssigneeOptions() {
+		global $current_user;
+		$options = array();
+		$seen = array();
+
+		$userModel = Users_Record_Model::getCurrentUserModel();
+		$users = $userModel->getAccessibleUsersForModule('HelpDesk');
+		if (!is_array($users) || empty($users)) {
+			$users = $userModel->getAccessibleUsers();
+		}
+		if (is_array($users)) {
+			foreach ($users as $userId => $label) {
+				$userId = (int)$userId;
+				if ($userId <= 0) {
+					continue;
+				}
+				$label = decode_html(trim((string)$label));
+				if ($label === '' || isset($seen[$label])) {
+					continue;
+				}
+				$seen[$label] = true;
+				$options[] = array(
+					'type' => 'user',
+					'id' => $userId,
+					'value' => $label,
+					'label' => $label,
+				);
+			}
+		}
+
+		$groups = $userModel->getAccessibleGroups('', 'HelpDesk');
+		if (!is_array($groups) || empty($groups)) {
+			$groups = $userModel->getAccessibleGroups();
+		}
+		if (is_array($groups)) {
+			foreach ($groups as $groupId => $groupName) {
+				$groupId = (int)$groupId;
+				$groupName = decode_html(trim((string)$groupName));
+				if ($groupId <= 0 || $groupName === '') {
+					continue;
+				}
+				$label = 'Nhóm: ' . $groupName;
+				if (isset($seen[$label])) {
+					continue;
+				}
+				$seen[$label] = true;
+				$options[] = array(
+					'type' => 'group',
+					'id' => $groupId,
+					'value' => $label,
+					'label' => $label,
+				);
+			}
+		}
+
+		foreach ($this->getScenarios() as $sc) {
+			$owner = isset($sc['owner']) ? trim((string)$sc['owner']) : '';
+			if ($owner !== '' && !isset($seen[$owner])) {
+				$seen[$owner] = true;
+				$options[] = array(
+					'type' => 'custom',
+					'id' => null,
+					'value' => $owner,
+					'label' => $owner,
+				);
+			}
+		}
+
+		usort($options, function ($a, $b) {
+			return strcasecmp($a['label'], $b['label']);
+		});
+		return $options;
 	}
 
 	public function getTags() {
@@ -584,43 +701,107 @@ class HelpDesk_TagRuleEngineService {
 		return $action;
 	}
 
-	/** Cảnh báo từ Lead thật + rules có alert_days */
-	public function getAlerts($userId, $limit = 100) {
-		$userId = (int)$userId;
-		$rules = array();
-		foreach ($this->getRules(true) as $rule) {
-			if ($rule['alert_days'] !== null && $rule['alert_days'] > 0) {
-				$rules[] = $rule;
+	/** Cảnh báo từ Lead: rule quá hạn + Cần CSKH (idle ≥ ngưỡng). */
+	public function getCskhAlertDays() {
+		$v = $this->getMeta('cskh_alert_days');
+		if ($v !== null && $v !== '' && (int)$v > 0) {
+			return (int)$v;
+		}
+		return self::CSKH_ALERT_DAYS_DEFAULT;
+	}
+
+	protected function getCskhRuleDefinition() {
+		$days = $this->getCskhAlertDays();
+		return array(
+			'id' => self::CSKH_RULE_ID,
+			'status_label' => 'Cần chăm sóc',
+			'name' => 'Cần CSKH',
+			'priority' => 5,
+			'is_active' => true,
+			'alert_days' => $days,
+			'next_action' => 'Gọi / nhắn Zalo liên hệ lại khách — không tương tác ≥ ' . $days . ' ngày',
+			'require_note' => false,
+			'scenario_id' => null,
+			'tag_ids' => array(),
+			'alert_type' => 'cskh',
+		);
+	}
+
+	protected function leadExcludedFromCskh(array $slugSet) {
+		$blocked = array('ngung_cham_soc', 'khong_xac_nhan_tham_gia');
+		foreach ($blocked as $slug) {
+			if (isset($slugSet[$slug])) {
+				return true;
 			}
 		}
-		if (empty($rules)) {
-			return array();
+		return false;
+	}
+
+	protected function buildAlertRow($lid, array $lead, array $labels, array $slugs, array $rule, $days) {
+		$firstname = decode_html($lead['firstname']);
+		$lastname = decode_html($lead['lastname']);
+		$name = trim($firstname . ' ' . $lastname);
+		if ($name === '') {
+			$name = decode_html($lead['company']) ?: ('Lead #' . $lid);
 		}
+		$row = array(
+			'lead_id' => (int)$lid,
+			'name' => $name,
+			'phone' => decode_html($lead['phone']),
+			'tags' => $labels,
+			'tag_slugs' => $slugs,
+			'rule' => $rule,
+			'days_idle' => (int)$days,
+			'next_action' => $rule['next_action'],
+		);
+		if (!empty($rule['alert_type'])) {
+			$row['alert_type'] = $rule['alert_type'];
+		}
+		return $row;
+	}
+
+	public function getAlerts($userId, $limit = 100) {
+		$userId = (int)$userId;
+		$limit = max(1, (int)$limit);
+		$activeRules = $this->getRules(true);
+		$alertRules = array();
+		foreach ($activeRules as $rule) {
+			if ($rule['alert_days'] !== null && (int)$rule['alert_days'] > 0 && !empty($rule['tag_ids'])) {
+				$alertRules[] = $rule;
+			}
+		}
+		$cskhDays = $this->getCskhAlertDays();
+		$cskhRule = $this->getCskhRuleDefinition();
 
 		$dismissMap = array();
 		$dres = $this->db->pquery(
-			'SELECT lead_id, rule_id, snooze_until FROM mk_tag_rule_dismissals WHERE user_id = ?',
+			'SELECT lead_id, rule_id, snooze_until
+			 FROM mk_tag_rule_dismissals
+			 WHERE user_id = ?
+			   AND (snooze_until IS NULL OR snooze_until = \'\' OR snooze_until > NOW())',
 			array($userId)
 		);
-		$nowTs = time();
 		if ($dres) {
 			while ($drow = $this->db->fetchByAssoc($dres)) {
 				$key = (int)$drow['lead_id'] . ':' . $drow['rule_id'];
-				$until = $drow['snooze_until'];
-				if ($until === null || $until === '' || strtotime($until) > $nowTs) {
-					$dismissMap[$key] = true;
-				}
+				$dismissMap[$key] = true;
 			}
 		}
 
 		$leadRes = $this->db->pquery(
 			"SELECT ld.leadid, ld.firstname, ld.lastname, ld.company, ld.phone,
-			        ce.smownerid, ce.modifiedtime, ce.createdtime,
-			        p.next_action, p.last_touch
+			        DATEDIFF(
+			          NOW(),
+			          COALESCE(
+			            NULLIF(p.last_touch, '0000-00-00 00:00:00'),
+			            NULLIF(ce.modifiedtime, '0000-00-00 00:00:00'),
+			            ce.createdtime
+			          )
+			        ) AS days_idle
 			 FROM vtiger_leaddetails ld
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0 AND ce.setype = 'Leads'
 			 LEFT JOIN bace_lead_profile p ON p.leadid = ld.leadid
-			 ORDER BY ce.modifiedtime DESC
+			 ORDER BY days_idle DESC, ce.modifiedtime DESC
 			 LIMIT 500",
 			array()
 		);
@@ -656,49 +837,79 @@ class HelpDesk_TagRuleEngineService {
 		}
 
 		$alerts = array();
+		$leadHasRuleAlert = array();
+
 		foreach ($leads as $lid => $lead) {
 			$labels = isset($tagMap[$lid]) ? $tagMap[$lid] : array();
-			if (empty($labels)) {
+			$slugs = $this->normalizeTagList($labels);
+			$slugSet = array_fill_keys($slugs, true);
+			$days = (int)$lead['days_idle'];
+			if ($days < 0) {
+				$days = 0;
+			}
+			if (empty($alertRules) || empty($labels)) {
 				continue;
 			}
-			$matched = $this->matchRules($labels, true);
-			foreach ($matched['matches'] as $m) {
-				$rule = $m['rule'];
-				if ($rule['alert_days'] === null || $rule['alert_days'] <= 0) {
-					continue;
+			foreach ($alertRules as $rule) {
+				$ok = true;
+				foreach ($rule['tag_ids'] as $tid) {
+					if (!isset($slugSet[$tid])) {
+						$ok = false;
+						break;
+					}
 				}
-				$ref = !empty($lead['last_touch']) ? $lead['last_touch'] : (!empty($lead['modifiedtime']) ? $lead['modifiedtime'] : $lead['createdtime']);
-				$refTs = $ref ? strtotime($ref) : $nowTs;
-				$days = (int)floor(($nowTs - $refTs) / 86400);
-				if ($days < (int)$rule['alert_days']) {
+				if (!$ok || $days < (int)$rule['alert_days']) {
 					continue;
 				}
 				$dkey = $lid . ':' . $rule['id'];
 				if (isset($dismissMap[$dkey])) {
 					continue;
 				}
-				$firstname = decode_html($lead['firstname']);
-				$lastname = decode_html($lead['lastname']);
-				$name = trim($firstname . ' ' . $lastname);
-				if ($name === '') {
-					$name = decode_html($lead['company']) ?: ('Lead #' . $lid);
-				}
-				$alerts[] = array(
-					'lead_id' => $lid,
-					'name' => $name,
-					'phone' => decode_html($lead['phone']),
-					'tags' => $labels,
-					'tag_slugs' => $matched['slugs'],
-					'rule' => $rule,
-					'days_idle' => $days,
-					'next_action' => $rule['next_action'],
-				);
+				$alerts[] = $this->buildAlertRow($lid, $lead, $labels, $slugs, $rule, $days);
+				$leadHasRuleAlert[$lid] = true;
 				if (count($alerts) >= $limit) {
 					return $alerts;
 				}
 			}
 		}
-		return $alerts;
+
+		foreach ($leads as $lid => $lead) {
+			if (isset($leadHasRuleAlert[$lid])) {
+				continue;
+			}
+			$labels = isset($tagMap[$lid]) ? $tagMap[$lid] : array();
+			$slugs = $this->normalizeTagList($labels);
+			$slugSet = array_fill_keys($slugs, true);
+			if ($this->leadExcludedFromCskh($slugSet)) {
+				continue;
+			}
+			$days = (int)$lead['days_idle'];
+			if ($days < 0) {
+				$days = 0;
+			}
+			if ($days < $cskhDays) {
+				continue;
+			}
+			$dkey = $lid . ':' . self::CSKH_RULE_ID;
+			if (isset($dismissMap[$dkey])) {
+				continue;
+			}
+			$alerts[] = $this->buildAlertRow($lid, $lead, $labels, $slugs, $cskhRule, $days);
+			if (count($alerts) >= $limit) {
+				break;
+			}
+		}
+
+		usort($alerts, function ($a, $b) {
+			$da = (int)$a['days_idle'];
+			$db = (int)$b['days_idle'];
+			if ($da !== $db) {
+				return $db - $da;
+			}
+			return (int)$a['lead_id'] - (int)$b['lead_id'];
+		});
+
+		return array_slice($alerts, 0, $limit);
 	}
 
 	public function upsertDismissal($userId, $leadId, $ruleId, $snoozeUntil = null) {

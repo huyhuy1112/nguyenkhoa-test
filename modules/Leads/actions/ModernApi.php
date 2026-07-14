@@ -130,8 +130,12 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 				case 'save':
 					$payload = $this->decodePayload($request);
 					$recordId = $request->get('record');
-					if (!$recordId && isset($payload['id'])) {
-						$recordId = $payload['id'];
+					if ($recordId === null || $recordId === '') {
+						if (isset($payload['crmid']) && $payload['crmid'] !== '') {
+							$recordId = $payload['crmid'];
+						} elseif (isset($payload['id']) && $payload['id'] !== '') {
+							$recordId = $payload['id'];
+						}
 					}
 					$lead = Leads_ModernService::saveLead($payload, $recordId);
 					$response->setResult(array('success' => true, 'lead' => $lead));

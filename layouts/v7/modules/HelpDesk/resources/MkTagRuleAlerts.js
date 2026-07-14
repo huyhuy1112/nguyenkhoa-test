@@ -40,22 +40,28 @@
 				return;
 			}
 			this.$root.data('mk-tre-inited', 1);
-			// Đọc thẳng bootstrap inject (alerts đã tính sẵn trên server).
+			// Ưu tiên bootstrap inject từ server; nếu trống thì gọi API mode=alerts.
 			var seeded = [];
-			if (global.MK_TAG_RULE_STATE && global.MK_TAG_RULE_STATE.alerts) {
+			if (global.MK_TAG_RULE_STATE && Array.isArray(global.MK_TAG_RULE_STATE.alerts)) {
 				seeded = global.MK_TAG_RULE_STATE.alerts;
-			}
-			if ((!seeded || !seeded.length) && store.getAlerts) {
-				try { seeded = store.getAlerts(); } catch (e0) { seeded = []; }
 			}
 			if (seeded && seeded.length) {
 				this.alerts = seeded;
+				if (store && typeof store === 'object') {
+					try { store.getAlerts && store.getAlerts(); } catch (eIgnore) { /* hydrate */ }
+				}
 			} else {
 				try {
-					this.alerts = store.loadAlerts();
+					this.alerts = store.loadAlerts ? store.loadAlerts() : [];
 				} catch (e) {
-					this.alerts = [];
-					this.loadError = (e && e.message) ? e.message : 'Không tải được cảnh báo';
+					try {
+						this.alerts = store.getAlerts ? store.getAlerts() : [];
+					} catch (e2) {
+						this.alerts = [];
+					}
+					if (!this.alerts || !this.alerts.length) {
+						this.loadError = (e && e.message) ? e.message : 'Không tải được cảnh báo';
+					}
 				}
 			}
 			this.render();
@@ -72,37 +78,52 @@
 			var alertRules = rules.filter(function (r) {
 				return r.is_active && r.alert_days != null;
 			}).length;
+			var cskhDays = (global.MK_TAG_RULE_STATE && global.MK_TAG_RULE_STATE.cskh_alert_days)
+				? parseInt(global.MK_TAG_RULE_STATE.cskh_alert_days, 10) : 7;
+			if (!cskhDays || cskhDays < 1) cskhDays = 7;
+			var cskhCount = alerts.filter(function (a) {
+				return a.alert_type === 'cskh' || (a.rule && a.rule.id === 'rule-cskh');
+			}).length;
+			var ruleCount = alerts.length - cskhCount;
 			var late7 = alerts.filter(function (a) { return (a.days_idle - (a.rule.alert_days || 0)) >= 7; }).length;
 
 			var cards = alerts.map(function (a) {
+				var isCskh = a.alert_type === 'cskh' || (a.rule && a.rule.id === 'rule-cskh');
 				var overdue = Math.max(0, (a.days_idle || 0) - (a.rule.alert_days || 0));
-				var severe = overdue >= 7;
+				var severe = isCskh ? (a.days_idle || 0) >= (cskhDays + 7) : overdue >= 7;
 				var tagHtml = (a.rule.tag_ids || []).map(function (tid) {
 					return chip(tagById[tid] ? tagById[tid].name : tid);
 				}).join('');
+				if (!tagHtml && a.tags && a.tags.length) {
+					tagHtml = a.tags.slice(0, 6).map(function (lbl) { return chip(lbl); }).join('');
+				}
+				var badgeLabel = isCskh
+					? 'Cần CSKH'
+					: ('Trễ ' + overdue + ' ngày');
 				return ''
-					+ '<article class="mk-tre-alert-card' + (severe ? ' mk-tre-alert-card--severe' : ' mk-tre-alert-card--warn') + '">'
+					+ '<article class="mk-tre-alert-card' + (isCskh ? ' mk-tre-alert-card--cskh' : (severe ? ' mk-tre-alert-card--severe' : ' mk-tre-alert-card--warn')) + '">'
 					+ '  <div class="mk-tre-alert-card__top">'
 					+ '    <div class="mk-tre-alert-card__who">'
 					+ '      <div class="mk-tre-alert-card__name-row">'
 					+ '        <strong class="mk-tre-alert-card__name">' + esc(a.name) + '</strong>'
 					+ '        <span class="mk-tre-chip">Lead #' + esc(a.lead_id) + '</span>'
+					+ (isCskh ? ' <span class="mk-tre-chip mk-tre-chip--cskh">Cần CSKH</span>' : '')
 					+ '      </div>'
 					+ '      <div class="mk-tre-muted mk-tre-alert-card__meta">'
 					+ esc(a.phone || '—') + ' · Idle ' + (a.days_idle || 0) + ' ngày'
 					+ '      </div>'
 					+ '    </div>'
-					+ '    <span class="mk-tre-alert-badge' + (severe ? ' mk-tre-alert-badge--severe' : '') + '">Trễ ' + overdue + ' ngày</span>'
+					+ '    <span class="mk-tre-alert-badge' + (isCskh ? ' mk-tre-alert-badge--cskh' : (severe ? ' mk-tre-alert-badge--severe' : '')) + '">' + esc(badgeLabel) + '</span>'
 					+ '  </div>'
 					+ '  <div class="mk-tre-alert-card__body">'
 					+ '    <div class="mk-tre-alert-card__status">→ ' + esc(a.rule.status_label) + '</div>'
-					+ (a.rule.next_action
-						? '<div class="mk-tre-alert-card__action"><span class="mk-tre-muted">Thì → </span>' + esc(a.rule.next_action) + '</div>'
+					+ (a.rule.next_action || a.next_action
+						? '<div class="mk-tre-alert-card__action"><span class="mk-tre-muted">Thì → </span>' + esc(a.rule.next_action || a.next_action) + '</div>'
 						: '')
 					+ (a.rule.require_note
 						? '<div class="mk-tre-alert-card__action"><span class="mk-tre-chip mk-tre-chip--warn">Bắt buộc ghi chú lý do</span></div>'
 						: '')
-					+ '    <div class="mk-tre-chips">' + tagHtml + '</div>'
+					+ (tagHtml ? '    <div class="mk-tre-chips">' + tagHtml + '</div>' : '')
 					+ '  </div>'
 					+ '  <div class="mk-tre-alert-card__actions">'
 					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-alert-done" data-lid="' + esc(a.lead_id) + '" data-rid="' + esc(a.rule.id) + '">Đã xử lý</button>'
@@ -116,10 +137,10 @@
 			if (!cards) {
 				cards = ''
 					+ '<div class="mk-tre-alert-empty">'
-					+ '  <p><strong>Chưa có cảnh báo quá hạn.</strong></p>'
-					+ '  <p class="mk-tre-muted">Cảnh báo chỉ hiện khi lead <em>có tag khớp rule</em> và '
-					+ '<em>idle ≥ alert_days</em> của rule đó (ví dụ R02 Chưa học = 2 ngày). '
-					+ 'Lead vừa tạo/sửa hôm nay (idle 0) sẽ chưa xuất hiện.</p>'
+					+ '  <p><strong>Chưa có cảnh báo.</strong></p>'
+					+ '  <p class="mk-tre-muted">Hiện khi: (1) lead khớp rule và idle ≥ <em>alert_days</em> của rule; '
+					+ 'hoặc (2) <strong>Cần CSKH</strong> — không tương tác ≥ <strong>' + cskhDays + ' ngày</strong> '
+					+ '(trừ tag Ngừng chăm sóc / Không tham gia). Lead vừa tạo hôm nay chưa xuất hiện.</p>'
 					+ (this.loadError ? '<p class="mk-tre-muted">Lỗi tải: ' + esc(this.loadError) + '</p>' : '')
 					+ '</div>';
 			}
@@ -130,12 +151,13 @@
 				+ '    <div class="mk-tre-hero__copy">'
 				+ '      <p class="mk-tre-eyebrow">Tag Rule Engine · Hỗ trợ</p>'
 				+ '      <h1 class="mk-tre-title">Cảnh báo</h1>'
-				+ '      <p class="mk-tre-desc">Lead khớp rule quá hạn xử lý: idle ≥ alert_days → hiện hành động tiếp theo của rule.</p>'
+				+ '      <p class="mk-tre-desc">Rule quá hạn (tag khớp + idle ≥ alert_days) và <strong>Cần CSKH</strong> (không tương tác ≥ ' + cskhDays + ' ngày).</p>'
 				+ '    </div>'
-				+ '  </header>'				+ '  <div class="mk-tre-stats">'
-				+ '    <div class="mk-tre-stat"><span class="mk-tre-stat__n">' + alerts.length + '</span><span class="mk-tre-stat__l">Cảnh báo</span></div>'
-				+ '    <div class="mk-tre-stat"><span class="mk-tre-stat__n">' + alertRules + '</span><span class="mk-tre-stat__l">Rule có hạn</span></div>'
-				+ '    <div class="mk-tre-stat"><span class="mk-tre-stat__n">' + late7 + '</span><span class="mk-tre-stat__l">Trễ ≥7 ngày</span></div>'
+				+ '  </header>'
+				+ '  <div class="mk-tre-stats mk-tre-stats--3">'
+				+ '    <div class="mk-tre-stat"><span class="mk-tre-stat__n">' + alerts.length + '</span><span class="mk-tre-stat__l">Tổng cảnh báo</span></div>'
+				+ '    <div class="mk-tre-stat"><span class="mk-tre-stat__n">' + ruleCount + '</span><span class="mk-tre-stat__l">Theo rule</span></div>'
+				+ '    <div class="mk-tre-stat"><span class="mk-tre-stat__n">' + cskhCount + '</span><span class="mk-tre-stat__l">Cần CSKH</span></div>'
 				+ '  </div>'
 				+ '  <div class="mk-tre-alert-list">' + cards + '</div>'
 				+ '</div>';

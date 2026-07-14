@@ -70,6 +70,23 @@
     return null;
   }
 
+  var CSKH_ALERT_DAYS = 7;
+  var CSKH_EXCLUDED_TAGS = ["ngung_cham_soc", "khong_xac_nhan_tham_gia"];
+
+  function leadExcludedFromCskh(tags) {
+    for (var i = 0; i < CSKH_EXCLUDED_TAGS.length; i++) {
+      if (tags.indexOf(CSKH_EXCLUDED_TAGS[i]) >= 0) return true;
+    }
+    return false;
+  }
+
+  /** Cùng điều kiện với Cảnh báo → Cần CSKH (rule-cskh). */
+  function needsCskh(lead) {
+    var tags = lead.tags || [];
+    if (leadExcludedFromCskh(tags)) return false;
+    return daysSince(lead.last_touch) >= CSKH_ALERT_DAYS;
+  }
+
   function derive(lead) {
     var tags = lead.tags || [];
     var purchaseTag = findTag(tags, Object.keys(PURCHASE_MAP_RAW));
@@ -83,7 +100,7 @@
       ? mapLabel(PROGRAM_MAP_RAW, programTag)
       : pick("Chương trình PCTH", "PCTH Program");
     var tier = tierTag ? mapLabel(TIER_MAP_RAW, tierTag) : null;
-    var stale = days >= 7;
+    var stale = needsCskh(lead);
     var high =
       (lead.value || 0) >= 25000000 &&
       (tags.indexOf("mua_lai") >= 0 || tags.indexOf("nhuong_quyen") >= 0);
@@ -435,5 +452,8 @@
     deriveNextAction: deriveNextAction,
     openCalendarTasks: openCalendarTasks,
     purchasesInLastDays: purchasesInLastDays,
+    CSKH_ALERT_DAYS: CSKH_ALERT_DAYS,
+    needsCskh: needsCskh,
+    leadExcludedFromCskh: leadExcludedFromCskh,
   };
 })(typeof window !== "undefined" ? window : this);

@@ -351,7 +351,7 @@
       { label: t("JS_MK_KPI_QUALIFIED", "Đủ điều kiện"), value: kpis.qualified, trend: "+5%", up: true },
       { label: t("JS_MK_KPI_REPEAT", "Mua lại"), value: kpis.repeat, trend: "+3%", up: true },
       { label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: kpis.gold, trend: "+2", up: true },
-      { label: t("JS_MK_KPI_STALE", "Cần CSKH"), value: kpis.stale, trend: "-4%", up: false },
+      { label: t("JS_MK_KPI_STALE", "Cần CSKH"), value: kpis.stale, trend: "-4%", up: false, linkAlerts: true },
       { label: t("JS_MK_KPI_CONV", "Tỷ lệ chuyển đổi"), value: kpis.conv + "%", trend: "+1.4%", up: true },
     ];
     var kpiIcons = (icons && icons.KPI) || [];
@@ -359,8 +359,14 @@
     host.innerHTML = items
       .map(function (k, i) {
         var tone = kpiTones[i] || "blue";
+        var alertsHref = "index.php?module=SupportFAQ&view=List&app=SUPPORT";
+        var cardClass = "mk-leads-kpi-card" + (k.linkAlerts ? " mk-leads-kpi-card--link" : "");
+        var cardTag = k.linkAlerts ? "a" : "div";
+        var cardAttrs = k.linkAlerts
+          ? ' class="' + cardClass + '" href="' + alertsHref + '" title="Xem chi tiết tại Hỗ trợ → Cảnh báo"'
+          : ' class="' + cardClass + '"';
         return (
-          '<div class="mk-leads-kpi-card">' +
+          "<" + cardTag + cardAttrs + ">" +
           '<div class="mk-leads-kpi-card__top">' +
           '<span class="mk-leads-kpi-card__label">' +
           '<span class="mk-leads-kpi-ic-wrap mk-leads-kpi-ic--' +
@@ -369,6 +375,7 @@
           ic(kpiIcons[i] || "users") +
           "</span><span>" +
           esc(k.label) +
+          (k.linkAlerts ? ' <span class="mk-leads-kpi-card__hint">→ Cảnh báo</span>' : "") +
           "</span></span>" +
           '<span class="mk-leads-kpi-card__trend' +
           (k.up ? " is-up" : " is-down") +
@@ -377,7 +384,7 @@
           "</span></div>" +
           '<div class="mk-leads-kpi-card__value">' +
           esc(k.value) +
-          "</div></div>"
+          "</div></" + cardTag + ">"
         );
       })
       .join("");
@@ -464,7 +471,7 @@
       fieldSelect(t("JS_MK_FILTER_AREA", "Khu vực"), "area", f.area, areas.map(function (a) { return [a, a]; })) +
       fieldSelect(t("JS_MK_FILTER_CUSTOMER_TYPE", "Loại khách"), "segment", f.segment, Object.keys(segmentLabels).map(function (k) { return [k, segmentLabels[k]]; })) +
       fieldTouch(t("JS_MK_FILTER_LAST_TOUCH", "Tương tác gần"), "touchRange", f.touchRange) +
-      toggleField(t("JS_MK_FILTER_STALE_ONLY", "Chỉ cần CSKH"), "staleOnly", f.staleOnly, true) +
+      toggleField(t("JS_MK_FILTER_STALE_ONLY", "Chỉ cần CSKH (xem Cảnh báo)"), "staleOnly", f.staleOnly, true) +
       toggleField(t("JS_MK_FILTER_HAS_NEXT", "Có hành động tiếp"), "hasNextAction", f.hasNextAction, false) +
       toggleField(t("JS_MK_FILTER_HAS_TICKET", "Có ticket mở"), "hasOpenTicket", f.hasOpenTicket, false) +
       "</div>";
@@ -525,9 +532,17 @@
     });
   }
 
-  function tagBadgeHtml(tag) {
+  function tagBadgeHtml(tag, labelOverride) {
     var m = tagMeta(tag);
-    return '<span class="mk-tag ' + m.cls + '">' + esc(m.label) + "</span>";
+    var key = String(tag || "").trim();
+    var label = labelOverride || (m && m.label) || key;
+    return (
+      '<span class="mk-tag" data-tag="' +
+      esc(key) +
+      '">' +
+      esc(label) +
+      "</span>"
+    );
   }
 
   function renderTable() {
@@ -542,7 +557,7 @@
 
     if (!pageRows.length) {
       tbody.innerHTML =
-        '<tr><td colspan="14" class="mk-leads-empty">' +
+        '<tr><td colspan="13" class="mk-leads-empty">' +
         esc(t("JS_MK_NO_LEADS_MATCH", "Không có lead phù hợp bộ lọc.")) +
         "</td></tr>";
     } else {
@@ -552,18 +567,23 @@
           var src = (l.tags || []).find(function (tg) {
             return SOURCE_TAGS.indexOf(tg) >= 0;
           });
+          var purchaseTag = (l.tags || []).find(function (tg) {
+            return PURCHASE_TAGS.indexOf(tg) >= 0;
+          });
           var segmentLabels =
             ref && ref.getSegmentLabels
               ? ref.getSegmentLabels()
               : logic.SEGMENT_LABELS || {};
-          var custLabel = l.segment ? segmentLabels[l.segment] || l.segment : d.type;
+          var segmentKey = l.segment || null;
+          var custLabel = segmentKey
+            ? segmentLabels[segmentKey] || segmentKey
+            : d.type;
           var nonSourceTags = (l.tags || []).filter(function (tg) {
             return SOURCE_TAGS.indexOf(tg) < 0;
           });
           var tags = nonSourceTags.slice(0, 3);
           var extra = nonSourceTags.length - tags.length;
           var checked = state.selected[l.id] ? " checked" : "";
-          var tierCls = d.tierKey === "vang" ? "gold" : d.tierKey === "bac" ? "silver" : d.tierKey === "dong" ? "bronze" : "";
           var crmId = leadCrmId(l);
           return (
             '<tr class="mk-leads-row' +
@@ -599,15 +619,21 @@
             '<td class="mk-leads-td">' +
             (src ? tagBadgeHtml(src) : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
-            '<td class="mk-leads-td"><span class="mk-pill mk-pill--blue">' +
-            esc(custLabel) +
-            "</span></td>" +
-            '<td class="mk-leads-td"><span class="mk-pill mk-pill--purple">' +
-            esc(d.stage) +
-            "</span></td>" +
             '<td class="mk-leads-td">' +
-            (d.tier
-              ? '<span class="mk-pill mk-pill--tier mk-pill--' + tierCls + '">' + esc(d.tier) + "</span>"
+            (segmentKey
+              ? tagBadgeHtml(segmentKey, custLabel)
+              : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            (purchaseTag
+              ? tagBadgeHtml(purchaseTag)
+              : d.stage
+                ? '<span class="mk-tag">' + esc(d.stage) + "</span>"
+                : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            (d.tierKey
+              ? tagBadgeHtml(d.tierKey, d.tier)
               : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner"><span class="mk-owner-avatar" style="background:' +
@@ -641,13 +667,6 @@
                 esc(t("JS_MK_OPEN_TICKETS", "mở")) +
                 "</span>"
               : '<span class="mk-leads-muted">—</span>') +
-            "</td>" +
-            '<td class="mk-leads-td mk-leads-td--center">' +
-            (d.stale
-              ? '<span class="mk-stale-pill"><span class="mk-dot mk-dot--stale"></span> ' +
-                esc(t("JS_MK_STALE", "Cần CSKH")) +
-                "</span>"
-              : '<span class="mk-dot mk-dot--ok"></span>') +
             "</td></tr>"
           );
         })

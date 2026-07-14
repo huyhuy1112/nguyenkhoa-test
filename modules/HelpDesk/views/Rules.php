@@ -41,8 +41,8 @@ class HelpDesk_Rules_View extends Vtiger_Index_View {
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js?mk_v=20260714_db1',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.js?mk_v=20260714_db1',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js?mk_v=20260714_rule_ui8',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.js?mk_v=20260714_rule_ui8',
 			'modules.HelpDesk.resources.Rules',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
@@ -53,7 +53,7 @@ class HelpDesk_Rules_View extends Vtiger_Index_View {
 		$headerCssInstances = parent::getHeaderCss($request);
 		$cssFileNames = array(
 			'~layouts/v7/modules/HelpDesk/resources/HelpDeskRulesList.css',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css?mk_v=20260714_db1',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css?mk_v=20260714_rule_ui8',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 		return array_merge($headerCssInstances, $cssInstances);

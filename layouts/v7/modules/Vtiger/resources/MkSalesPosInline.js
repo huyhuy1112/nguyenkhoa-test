@@ -42,12 +42,16 @@
 	}
 
 	function getColspan($table) {
+		// Prefer live thead count so config never drifts when columns change.
+		var $ths = $table.find('thead tr:first th');
+		if ($ths.length > 0) {
+			return $ths.length;
+		}
 		var c = cfg();
 		if (c.colspan) {
 			return Number(c.colspan) || 8;
 		}
-		var n = $table.find('thead tr.listViewContentHeader th, thead th').length;
-		return n > 0 ? n : 8;
+		return 8;
 	}
 
 	function resolveRecordId(rowEl) {
@@ -202,18 +206,16 @@
 				}
 				var ref = window.PotentialsLovableRef || window.LeadsLovableRef;
 				var html = tags.map(function (raw) {
-					var key = raw;
-					var label = raw;
-					var cls = 'mk-tag mk-tag--other';
+					var key = String(raw || "").trim();
+					var label = key;
 					if (ref && ref.normalizeTag) {
 						key = ref.normalizeTag(raw);
 					}
 					if (ref && ref.tagMeta) {
 						var meta = ref.tagMeta(raw);
 						label = meta.label || label;
-						cls = 'mk-tag ' + (meta.cls || 'mk-tag--other');
 					}
-					return '<span class="' + cls + '" title="' + $('<div/>').text(String(raw)).html() + '">' +
+					return '<span class="mk-tag" data-tag="' + $('<div/>').text(key).html() + '" title="' + $('<div/>').text(String(raw)).html() + '">' +
 						$('<div/>').text(String(label)).html() + '</span>';
 				}).join('');
 				$list.html(html);

@@ -1022,33 +1022,7 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	border: 1px solid #e2e8f0;
 }
 
-/* Tag palette — MUST match Lead Create/Edit (LeadsMkEdit.css .mk-td-tag-pill[data-tag=...]) */
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="individual"] { background: #dbeafe !important; border-color: #93c5fd !important; color: #1d4ed8 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="company"] { background: #ede9fe !important; border-color: #c4b5fd !important; color: #6d28d9 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="vang"] { background: #dcfce7 !important; border-color: #08A045 !important; color: #073B3A !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="bac"] { background: #f1f5f9 !important; border-color: #94a3b8 !important; color: #334155 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="dong"] { background: #ffedd5 !important; border-color: #fb923c !important; color: #9a3412 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="facebook"] { background: #dbeafe !important; border-color: #60a5fa !important; color: #1d4ed8 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="tiktok"] { background: #fce7f3 !important; border-color: #f9a8d4 !important; color: #9d174d !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="website"] { background: #d1fae5 !important; border-color: #6ee7b7 !important; color: #047857 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="zalo"] { background: #e0f2fe !important; border-color: #7dd3fc !important; color: #0369a1 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="mua_lan_dau"] { background: #d1fae5 !important; border-color: #6ee7b7 !important; color: #047857 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="mua_lai"] { background: #dbeafe !important; border-color: #93c5fd !important; color: #1d4ed8 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="khong_mua"] { background: #fee2e2 !important; border-color: #fca5a5 !important; color: #b91c1c !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="ngung_mua"] { background: #fef2f2 !important; border-color: #fecaca !important; color: #991b1b !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="chua_hoc"],
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="da_hoc"],
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="nguyen_lieu_chuoi"] { background: #eff6ff !important; border-color: #bfdbfe !important; color: #1d4ed8 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="mien_phi_online"],
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="mien_phi_offline"] { background: #e0e7ff !important; border-color: #a5b4fc !important; color: #4338ca !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="pcth"] { background: #f3f4f6 !important; border-color: #d1d5db !important; color: #374151 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="kv1"],
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="kv2"],
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="kv3"] { background: #ecfdf5 !important; border-color: #6ee7b7 !important; color: #047857 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="van_hanh"],
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="mkt"],
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="lop_khac"] { background: #ede9fe !important; border-color: #c4b5fd !important; color: #6d28d9 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag="nhuong_quyen"] { background: #ffe4e6 !important; border-color: #fda4af !important; color: #be123c !important; }
+/* Tag colors → LeadsMkTagPalette.css */
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag a {
 	color: inherit;
@@ -1693,18 +1667,7 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	color: #94a3b8;
 }
 
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-1 {
-	background: #dbeafe;
-	color: #1d4ed8;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-2 {
-	background: #dcfce7;
-	color: #b45309;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-3 {
-	background: #ffedd5;
-	color: #c2410c;
-}
+/* goi-lan tag colors → LeadsMkTagPalette.css (data-tag) */
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-activity-log__menu-btn--locked,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-activity-log__menu-btn--locked:hover {
@@ -1728,48 +1691,13 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	color: #475569;
 }
 
-/* Tag chip colors — sync with Lead Create/Edit (LeadsMkEdit.css) */
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--individual { background: #dbeafe !important; border-color: #93c5fd !important; color: #1d4ed8 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--company { background: #ede9fe !important; border-color: #c4b5fd !important; color: #6d28d9 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--vang { background: #dcfce7 !important; border-color: #08A045 !important; color: #073B3A !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--bac { background: #f1f5f9 !important; border-color: #94a3b8 !important; color: #334155 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--dong { background: #ffedd5 !important; border-color: #fb923c !important; color: #9a3412 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--facebook { background: #dbeafe !important; border-color: #60a5fa !important; color: #1d4ed8 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--tiktok { background: #fce7f3 !important; border-color: #f9a8d4 !important; color: #9d174d !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--website { background: #d1fae5 !important; border-color: #6ee7b7 !important; color: #047857 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--zalo { background: #e0f2fe !important; border-color: #7dd3fc !important; color: #0369a1 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--other { background: #f1f5f9 !important; border-color: #94a3b8 !important; color: #475569 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--mua-lan-dau { background: #d1fae5 !important; border-color: #6ee7b7 !important; color: #047857 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--mua-lai { background: #dbeafe !important; border-color: #93c5fd !important; color: #1d4ed8 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--khong-mua { background: #fee2e2 !important; border-color: #fca5a5 !important; color: #b91c1c !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--ngung-mua { background: #fef2f2 !important; border-color: #fecaca !important; color: #991b1b !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--chua-hoc,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--da-hoc { background: #eff6ff !important; border-color: #bfdbfe !important; color: #1d4ed8 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--free-online,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--mien_phi_online,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--free-offline,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--mien_phi_offline { background: #e0e7ff !important; border-color: #a5b4fc !important; color: #4338ca !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--pcth { background: #f3f4f6 !important; border-color: #d1d5db !important; color: #374151 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--van-hanh,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--mkt,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--lop-khac { background: #ede9fe !important; border-color: #c4b5fd !important; color: #6d28d9 !important; }
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--nhuong-quyen { background: #ffe4e6 !important; border-color: #fda4af !important; color: #be123c !important; }
+/* Tag chip colors → LeadsMkTagPalette.css */
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .mk-ld-ui-tag-remove {
 	color: inherit;
 	opacity: 0.55;
 	text-decoration: none;
 }
-
-html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip {
-	background: rgba(99, 102, 241, 0.14) !important;
-	border-color: rgba(99, 102, 241, 0.32) !important;
-	color: rgba(199, 210, 254, 0.95) !important;
-}
-
-html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-1 { background: rgba(37, 99, 235, 0.14) !important; border-color: rgba(37, 99, 235, 0.32) !important; color: #93c5fd !important; }
-html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-2 { background: rgba(245, 158, 11, 0.16) !important; border-color: rgba(245, 158, 11, 0.36) !important; color: #bbf7d0 !important; }
-html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-3 { background: rgba(249, 115, 22, 0.16) !important; border-color: rgba(249, 115, 22, 0.36) !important; color: #fed7aa !important; }
 
 /* Convert Lead modal — order category picker */
 .mk-lead-convert-modal {

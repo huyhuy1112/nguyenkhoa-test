@@ -342,6 +342,7 @@
 
   function update(id, patch) {
     if (useApi()) {
+      var numericId = /^\d+$/.test(String(id)) ? parseInt(id, 10) : null;
       var existing = getLead(id);
       var ensureExisting = existing
         ? Promise.resolve(existing)
@@ -349,11 +350,29 @@
             return null;
           });
       return ensureExisting.then(function (existingRow) {
-        var merged = Object.assign({}, existingRow || {}, patch || {}, {
-          id: existingRow ? existingRow.id : id,
-        });
+        var merged = Object.assign({}, existingRow || {}, patch || {});
+        if (existingRow && existingRow.id) {
+          merged.id = existingRow.id;
+        } else if (id != null && id !== "") {
+          merged.id = id;
+        }
+        if (existingRow && existingRow.crmid != null) {
+          merged.crmid = existingRow.crmid;
+        } else if (numericId) {
+          merged.crmid = numericId;
+        } else if (patch && patch.crmid != null) {
+          merged.crmid = patch.crmid;
+        }
+        var apiRecord =
+          existingRow && existingRow.crmid != null && existingRow.crmid !== ""
+            ? existingRow.crmid
+            : numericId
+              ? numericId
+              : patch && patch.crmid != null
+                ? patch.crmid
+                : id;
         return apiRequest("save", {
-          record: id,
+          record: apiRecord,
           payload: JSON.stringify(merged),
         }).then(function (res) {
           return upsertMemLead(res.lead);

@@ -43,16 +43,19 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 			switch ($mode) {
 				case 'bootstrap':
 				case 'state':
+					$state = $svc->bootstrap((int)$current_user->id);
 					$response->setResult(array(
 						'success' => true,
-						'state' => $svc->bootstrap(),
+						'state' => $state,
+						'alerts' => isset($state['alerts']) ? $state['alerts'] : array(),
 					));
 					break;
 
 				case 'alerts':
+					$alerts = $svc->getAlerts((int)$current_user->id, 200);
 					$response->setResult(array(
 						'success' => true,
-						'alerts' => $svc->getAlerts((int)$current_user->id, 200),
+						'alerts' => $alerts,
 						'state' => $svc->bootstrap(),
 					));
 					break;

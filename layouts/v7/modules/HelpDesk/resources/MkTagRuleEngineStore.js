@@ -10,6 +10,8 @@
 		rules: [],
 		scenarios: [],
 		alerts: [],
+		channel_options: [],
+		assignee_options: [],
 	};
 	var ready = false;
 	var listeners = [];
@@ -20,10 +22,12 @@
 
 	function applyState(next) {
 		if (!next || typeof next !== 'object') return;
-		if (next.tags) state.tags = next.tags;
-		if (next.rules) state.rules = next.rules;
-		if (next.scenarios) state.scenarios = next.scenarios;
-		if (next.alerts) state.alerts = next.alerts;
+		if (Array.isArray(next.tags)) state.tags = next.tags;
+		if (Array.isArray(next.rules)) state.rules = next.rules;
+		if (Array.isArray(next.scenarios)) state.scenarios = next.scenarios;
+		if (Array.isArray(next.alerts)) state.alerts = next.alerts;
+		if (Array.isArray(next.channel_options)) state.channel_options = next.channel_options;
+		if (Array.isArray(next.assignee_options)) state.assignee_options = next.assignee_options;
 		ready = true;
 		listeners.forEach(function (cb) {
 			try { cb(); } catch (e) { /* ignore */ }
@@ -113,14 +117,11 @@
 	}
 
 	function ensureBootstrapped() {
-		// List.tpl inject MK_TAG_RULE_STATE SAU khi Store.js parse — luôn ưu tiên nếu có.
+		// List.tpl inject MK_TAG_RULE_STATE SAU khi Store.js parse — luôn ưu tiên inject nếu có.
 		if (global.MK_TAG_RULE_STATE && typeof global.MK_TAG_RULE_STATE === 'object') {
-			var boot = global.MK_TAG_RULE_STATE;
-			if ((boot.rules && boot.rules.length) || (boot.alerts && boot.alerts.length) || (boot.tags && boot.tags.length)) {
-				applyState(boot);
-			}
+			applyState(global.MK_TAG_RULE_STATE);
 		}
-		if (ready && ((state.rules && state.rules.length) || (state.alerts && state.alerts.length))) {
+		if (ready && ((state.rules && state.rules.length) || (state.alerts && state.alerts.length) || (state.tags && state.tags.length))) {
 			return;
 		}
 		try {
@@ -130,7 +131,7 @@
 		}
 	}
 
-	ensureBootstrapped();
+	// Không bootstrap sớm khi parse (STATE chưa inject). Gọi lazy khi get*/init.
 
 	function getTags() {
 		ensureBootstrapped();
@@ -147,6 +148,16 @@
 	function getScenarios() {
 		ensureBootstrapped();
 		return clone(state.scenarios || []);
+	}
+
+	function getChannelOptions() {
+		ensureBootstrapped();
+		return clone(state.channel_options || []);
+	}
+
+	function getAssigneeOptions() {
+		ensureBootstrapped();
+		return clone(state.assignee_options || []);
 	}
 
 	function getAlertsCached() {
@@ -322,6 +333,8 @@
 		getTags: getTags,
 		getRules: getRules,
 		getScenarios: getScenarios,
+		getChannelOptions: getChannelOptions,
+		getAssigneeOptions: getAssigneeOptions,
 		getCustomers: getCustomers,
 		getCustomerTags: getCustomerTags,
 		getDismissals: getDismissals,

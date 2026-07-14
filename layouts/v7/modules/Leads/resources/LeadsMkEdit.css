@@ -462,6 +462,126 @@ body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell .con
     background: #fff;
 }
 
+/* Searchable dropdown — thay native select dài */
+.mk-td-search-select {
+    position: relative;
+    width: 100%;
+}
+
+.mk-td-select--native-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.mk-td-search-select__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    background: #fff;
+}
+
+.mk-td-search-select__trigger::after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-left: 8px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.15s ease;
+}
+
+.mk-td-search-select.is-open .mk-td-search-select__trigger::after {
+    transform: rotate(180deg);
+}
+
+.mk-td-search-select__panel {
+    position: absolute;
+    z-index: 1200;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+}
+
+.mk-td-search-select__search {
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px 14px;
+    font-size: 14px;
+    outline: none;
+    background: #f9fafb;
+}
+
+.mk-td-search-select__search:focus {
+    background: #fff;
+    box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.mk-td-search-select__list {
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 6px;
+}
+
+.mk-td-search-select__option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #111827;
+    cursor: pointer;
+}
+
+.mk-td-search-select__option:not([data-tag]):hover,
+.mk-td-search-select__option:not([data-tag]).is-selected {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.mk-td-search-select__option--placeholder {
+    color: #6b7280;
+}
+
+.mk-td-search-select__option[hidden] {
+    display: none !important;
+}
+
+.mk-td-search-select__empty {
+    margin: 0;
+    padding: 16px 12px;
+    text-align: center;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.mk-td-search-select__empty[hidden] {
+    display: none !important;
+}
+
 .mk-td-textarea {
     min-height: 88px;
     resize: vertical;
@@ -542,62 +662,7 @@ body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell .con
     color: #374151;
 }
 
-/* Tag pills — màu theo tag */
-.mk-td-tag-pill[data-tag="individual"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
-.mk-td-tag-pill[data-tag="company"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
-.mk-td-tag-pill[data-tag="vang"] { background: #fef9c3; border-color: #facc15; color: #713f12; }
-.mk-td-tag-pill[data-tag="bac"] { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
-.mk-td-tag-pill[data-tag="dong"] { background: #ffedd5; border-color: #fb923c; color: #9a3412; }
-.mk-td-tag-pill[data-tag="facebook"] { background: #dbeafe; border-color: #60a5fa; color: #1d4ed8; }
-.mk-td-tag-pill[data-tag="tiktok"] { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
-.mk-td-tag-pill[data-tag="website"] { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
-.mk-td-tag-pill[data-tag="zalo"] { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
-.mk-td-tag-pill[data-tag="mua_lan_dau"] { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
-.mk-td-tag-pill[data-tag="mua_lai"] { background: #1c1917; border-color: #1c1917; color: #fbbf24; }
-.mk-td-tag-pill[data-tag="mua_it_lai"] { background: #991b1b; border-color: #7f1d1d; color: #fff; }
-.mk-td-tag-pill[data-tag="khong_mua"] { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
-.mk-td-tag-pill[data-tag="ngung_mua"] { background: #78350f; border-color: #78350f; color: #fde68a; }
-.mk-td-tag-pill[data-tag="kh_can_nhac"] { background: #1d4ed8; border-color: #1e40af; color: #fff; }
-.mk-td-tag-pill[data-tag="dang_tu_van"] { background: #e0f2fe; border-color: #7dd3fc; color: #0f172a; }
-.mk-td-tag-pill[data-tag="dung_cham_soc"] { background: #dc2626; border-color: #b91c1c; color: #fff; }
-.mk-td-tag-pill[data-tag="chua_hoc"],
-.mk-td-tag-pill[data-tag="da_hoc"],
-.mk-td-tag-pill[data-tag="nguyen_lieu_chuoi"] { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
-.mk-td-tag-pill[data-tag="mien_phi_online"],
-.mk-td-tag-pill[data-tag="mien_phi_offline"] { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
-.mk-td-tag-pill[data-tag="pcth"] { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
-.mk-td-tag-pill[data-tag="da_tg_free"] { background: #dcfce7; border-color: #86efac; color: #166534; }
-.mk-td-tag-pill[data-tag="thu_3"] { background: #fecaca; border-color: #f87171; color: #991b1b; }
-.mk-td-tag-pill[data-tag="doi_lich"] { background: #e2e8f0; border-color: #cbd5e1; color: #334155; }
-.mk-td-tag-pill[data-tag="lop_online"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
-.mk-td-tag-pill[data-tag="moi_lai"] { background: #dcfce7; border-color: #86efac; color: #166534; }
-.mk-td-tag-pill[data-tag="trung_so"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
-.mk-td-tag-pill[data-tag="khong_nghe_may"] { background: #ffe4e6; border-color: #fda4af; color: #9f1239; }
-.mk-td-tag-pill[data-tag="ngung_cham_soc"] { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
-.mk-td-tag-pill[data-tag="thue_bao"] { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
-.mk-td-tag-pill[data-tag="tiem_nang"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
-.mk-td-tag-pill[data-tag="tham_khao"] { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
-.mk-td-tag-pill[data-tag="khong_du_tai_chinh"] { background: #0f172a; border-color: #0f172a; color: #f8fafc; }
-.mk-td-tag-pill[data-tag="da_ky_quy"] { background: #fef9c3; border-color: #facc15; color: #713f12; }
-.mk-td-tag-pill[data-tag="mien_bac"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
-.mk-td-tag-pill[data-tag="L1"] { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
-.mk-td-tag-pill[data-tag="L2"] { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
-.mk-td-tag-pill[data-tag="khong_hoc"] { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
-.mk-td-tag-pill[data-tag="thue_bao"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
-.mk-td-tag-pill[data-tag="da_MQBB"],
-.mk-td-tag-pill[data-tag="chua_MQBB"],
-.mk-td-tag-pill[data-tag="da_PCTH"],
-.mk-td-tag-pill[data-tag="chua_PCTH"],
-.mk-td-tag-pill[data-tag="da_MQBB_chua_PCTH"],
-.mk-td-tag-pill[data-tag="da_MQBB_da_PCTH"],
-.mk-td-tag-pill[data-tag="chua_MQBB_chua_PCTH"],
-.mk-td-tag-pill[data-tag="chua_MQBB_da_PCTH"] { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
-.mk-td-tag-pill[data-tag="da_990k"] { background: #dcfce7; border-color: #86efac; color: #166534; }
-.mk-td-tag-pill[data-tag="chua_990k"] { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
-.mk-td-tag-pill[data-tag="hoan_tien_lop_hoc"] { background: #fef9c3; border-color: #facc15; color: #713f12; }
-.mk-td-tag-pill[data-tag="KV1"],
-.mk-td-tag-pill[data-tag="KV2"],
-.mk-td-tag-pill[data-tag="KV3"] { background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
+/* Tag pill colors → LeadsMkTagPalette.css (shared List / Detail / Create) */
 
 #mk-td-entry-pcth-wrap.mk-td-nested-box {
     display: none;

@@ -43,8 +43,8 @@ class SupportFAQ_List_View extends Vtiger_Index_View {
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js?mk_v=20260714_db2',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleAlerts.js?mk_v=20260714_db2',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js?mk_v=20260714_cskh_alerts1',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleAlerts.js?mk_v=20260714_cskh_alerts1',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 		return array_merge($headerScriptInstances, $jsScriptInstances);
@@ -54,7 +54,7 @@ class SupportFAQ_List_View extends Vtiger_Index_View {
 		$headerCssInstances = parent::getHeaderCss($request);
 		$cssFileNames = array(
 			'~layouts/v7/modules/SupportFAQ/resources/SupportFAQList.css',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css?mk_v=20260714_db2',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css?mk_v=20260714_cskh_alerts1',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 		return array_merge($headerCssInstances, $cssInstances);
@@ -63,11 +63,10 @@ class SupportFAQ_List_View extends Vtiger_Index_View {
 	public function process(Vtiger_Request $request) {
 		global $current_user;
 		$viewer = $this->getViewer($request);
+		$userId = is_object($current_user) ? (int)$current_user->id : 0;
 		try {
 			$svc = HelpDesk_TagRuleEngineService::getInstance();
-			$bootstrap = $svc->bootstrap();
-			$userId = is_object($current_user) ? (int)$current_user->id : 0;
-			$bootstrap['alerts'] = $svc->getAlerts($userId, 200);
+			$bootstrap = $svc->bootstrap($userId);
 		} catch (Exception $e) {
 			$bootstrap = array(
 				'tags' => array(),
@@ -76,12 +75,29 @@ class SupportFAQ_List_View extends Vtiger_Index_View {
 				'alerts' => array(),
 				'error' => $e->getMessage(),
 			);
+		} catch (Throwable $e) {
+			$bootstrap = array(
+				'tags' => array(),
+				'rules' => array(),
+				'scenarios' => array(),
+				'alerts' => array(),
+				'error' => $e->getMessage(),
+			);
 		}
-		$viewer->assign('MK_TAG_RULE_ALERT_COUNT', isset($bootstrap['alerts']) ? count($bootstrap['alerts']) : 0);
-		$viewer->assign('MK_TAG_RULE_BOOTSTRAP_JSON', json_encode(
+		if (!isset($bootstrap['alerts']) || !is_array($bootstrap['alerts'])) {
+			$bootstrap['alerts'] = array();
+		}
+		$json = json_encode(
 			$bootstrap,
 			JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
-		));
+		);
+		if ($json === false) {
+			$bootstrap['alerts'] = array();
+			$bootstrap['error'] = 'JSON encode failed: ' . json_last_error_msg();
+			$json = json_encode($bootstrap, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+		}
+		$viewer->assign('MK_TAG_RULE_ALERT_COUNT', count($bootstrap['alerts']));
+		$viewer->assign('MK_TAG_RULE_BOOTSTRAP_JSON', $json);
 		$viewer->view('SupportFAQList.tpl', $request->getModule());
 	}
 }

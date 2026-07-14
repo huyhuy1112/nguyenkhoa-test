@@ -145,11 +145,7 @@
 		return tagDisplayMeta(tagKey).label || tagKey;
 	}
 
-	function tagChipClass(tagKey) {
-		var meta = tagDisplayMeta(tagKey);
-		if (meta.cls) {
-			return 'mk-lead-detail-tag-chip ' + meta.cls.replace('mk-tag--', 'mk-lead-detail-tag-chip--');
-		}
+	function tagChipClass() {
 		return 'mk-lead-detail-tag-chip';
 	}
 
@@ -802,6 +798,8 @@
 							return (
 								'<span class="' +
 								tagChipClass(t) +
+								'" data-tag="' +
+								esc(t) +
 								'">' +
 								esc(tagChipLabel(t)) +
 								'</span>'

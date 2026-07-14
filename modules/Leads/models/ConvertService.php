@@ -604,6 +604,99 @@ class Leads_ConvertService {
 		return $labels;
 	}
 
+	public static function getLinkedContactId($leadId, $verifyExists = true) {
+		$leadId = (int)$leadId;
+		if ($leadId <= 0) {
+			return null;
+		}
+		$adb = PearDatabase::getInstance();
+		require_once 'modules/Leads/models/ModernService.php';
+		Leads_ModernService::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT contact_id FROM bace_lead_profile WHERE leadid = ? LIMIT 1',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return null;
+		}
+		$contactId = (int)$adb->query_result($res, 0, 'contact_id');
+		if ($contactId <= 0) {
+			return null;
+		}
+		if ($verifyExists) {
+			$check = $adb->pquery(
+				"SELECT 1 FROM vtiger_crmentity WHERE crmid = ? AND setype = 'Contacts' AND deleted = 0",
+				array($contactId)
+			);
+			if (!$check || $adb->num_rows($check) < 1) {
+				return null;
+			}
+		}
+		return $contactId;
+	}
+
+	/**
+	 * Đồng bộ tag catalog từ Lead sang Opp + Contact liên kết (thêm + gỡ tag catalog).
+	 */
+	public static function syncRelatedTagsFromLead($leadId, $userId = null) {
+		global $current_user;
+		$leadId = (int)$leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		if ($userId === null || (int)$userId <= 0) {
+			$userId = (int)$current_user->id;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		require_once 'modules/Potentials/helpers/OppTagCatalog.php';
+		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
+
+		$leadTags = Vtiger_Tag_Model::getAllAccessible($userId, self::MODULE, $leadId);
+		if (!is_array($leadTags)) {
+			$leadTags = array();
+		}
+
+		$potentialId = self::getLinkedPotentialId($leadId, true);
+		if ($potentialId) {
+			self::replaceCatalogTagsOnModule($leadTags, $potentialId, 'Potentials', 'Potentials_OppTagCatalog', $userId);
+		}
+
+		$contactId = self::getLinkedContactId($leadId, true);
+		if ($contactId) {
+			self::replaceCatalogTagsOnModule($leadTags, $contactId, 'Contacts', 'Contacts_ContactTagCatalog', $userId);
+			self::syncLeadSegmentTagToContact($leadId, $contactId, $userId);
+		}
+	}
+
+	protected static function replaceCatalogTagsOnModule(array $leadTagModels, $recordId, $module, $catalogClass, $userId) {
+		$recordId = (int)$recordId;
+		if ($recordId <= 0) {
+			return;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		$targetIds = $catalogClass::filterTagModelIds($leadTagModels);
+		$targetIds = array_values(array_unique(array_map('intval', $targetIds)));
+
+		$existing = Vtiger_Tag_Model::getAllAccessible($userId, $module, $recordId);
+		$existingIds = array_map('intval', array_keys($existing));
+
+		$toRemove = array();
+		foreach ($existing as $tagId => $tagModel) {
+			$name = is_object($tagModel) && method_exists($tagModel, 'getName') ? $tagModel->getName() : '';
+			if ($catalogClass::isAllowed($name) && !in_array((int)$tagId, $targetIds, true)) {
+				$toRemove[] = (int)$tagId;
+			}
+		}
+		$toAdd = array_values(array_diff($targetIds, $existingIds));
+
+		if (!empty($toAdd)) {
+			Vtiger_Tag_Model::saveForRecord($recordId, $toAdd, $userId, $module);
+		}
+		if (!empty($toRemove)) {
+			Vtiger_Tag_Model::deleteForRecord($recordId, $toRemove, $userId, $module);
+		}
+	}
+
 	/**
 	 * Copy freetags from Lead to converted entities (Opportunity, Contact, Account).
 	 * Opportunity & Contact receive BA-filtered tags only (Excel categories).
