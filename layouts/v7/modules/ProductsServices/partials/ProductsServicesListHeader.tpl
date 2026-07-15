@@ -1,26 +1,10 @@
 {strip}
+{* List header — Leads-like: title + subtitle + actions (no breadcrumb / purple kicker) *}
 <div class="mk-ps-header{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'INVENTORY') || (isset($smarty.get.app) && $smarty.get.app eq 'INVENTORY')} mk-ps-header--inventory{/if}">
-	<nav class="mk-ps-breadcrumb" aria-label="Breadcrumb">
-		<ol class="mk-ps-breadcrumb__list">
-			<li class="mk-ps-breadcrumb__item">
-				<a href="index.php?module=Home&amp;view=DashBoard&amp;app=INVENTORY">{vtranslate('LBL_INVENTORY', 'Vtiger')}</a>
-			</li>
-			<li class="mk-ps-breadcrumb__sep" aria-hidden="true">&gt;</li>
-			<li class="mk-ps-breadcrumb__item mk-ps-breadcrumb__item--current">
-				<span>Hàng hoá</span>
-			</li>
-		</ol>
-	</nav>
 	<header class="mk-ps-action-header" role="region" aria-label="Hàng hoá">
 		<div class="mk-ps-action-header__text">
-			{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'INVENTORY') || (isset($smarty.get.app) && $smarty.get.app eq 'INVENTORY')}
-				<p class="mk-ps-inventory-kicker">
-					<span class="mk-ps-inventory-kicker__ic" aria-hidden="true"><i class="fa fa-cubes"></i></span>
-					<span>Danh mục kho</span>
-				</p>
-			{/if}
 			<h1 class="mk-ps-action-header__title">Danh sách hàng hoá</h1>
-			<p class="mk-ps-action-header__subtitle">Quản lý mã SKU, loại hàng, giá bán và người phụ trách — dùng cho nhập / xuất kho.</p>
+			<p class="mk-ps-action-header__subtitle">Quản lý SKU, loại, giá bán và người phụ trách.</p>
 		</div>
 		<div class="mk-ps-action-header__actions">
 			{assign var=IMPORT_ACTION value=false}

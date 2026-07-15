@@ -56,7 +56,7 @@
 		<div class="mk-so-inline-detail__tags-list">
 			{if isset($INLINE_TAGS) && $INLINE_TAGS|@count gt 0}
 				{foreach from=$INLINE_TAGS item=TAG}
-					<span class="{$TAG.cls|escape}" title="{$TAG.name|escape}">{$TAG.label|escape}</span>
+					<span class="mk-tag" data-tag="{$TAG.key|escape}" title="{$TAG.name|escape}">{$TAG.label|escape}</span>
 				{/foreach}
 			{else}
 				<span class="mk-so-inline-detail__tags-empty">Chưa có tag</span>
@@ -97,6 +97,18 @@
 				<i class="fa fa-external-link" aria-hidden="true"></i>
 				<span>Mở form sửa</span>
 			</button>
+			{if $MODULE eq 'Leads'}
+				{assign var=INLINE_CAN_CONVERT value=$INLINE_CAN_CONVERT|default:true}
+				<button type="button"
+					class="mk-so-inline-detail__action mk-so-inline-detail__action--convert mk-so-inline-detail__convert-btn{if empty($INLINE_CAN_CONVERT)} is-converted{/if}"
+					data-record-id="{$RECORD->getId()|escape}"
+					{if !empty($INLINE_POTENTIAL_URL)} data-potential-url="{$INLINE_POTENTIAL_URL|escape}"{/if}
+					{if empty($INLINE_CAN_CONVERT)} disabled="disabled" aria-disabled="true"{/if}
+					title="{if empty($INLINE_CAN_CONVERT)}Đã convert sang Opportunity{else}Convert to Opp{/if}">
+					<i class="fa fa-exchange" aria-hidden="true"></i>
+					<span>{if empty($INLINE_CAN_CONVERT)}Đã convert{else}Convert to Opp{/if}</span>
+				</button>
+			{/if}
 		</div>
 	</div>
 </div>

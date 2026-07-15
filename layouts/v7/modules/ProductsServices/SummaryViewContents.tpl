@@ -7,7 +7,7 @@
 <table class="summary-table no-border mk-ps-detail-summary-table">
 	<tbody>
 	{foreach item=FIELD_MODEL key=FIELD_NAME from=$SUMMARY_RECORD_STRUCTURE['SUMMARY_FIELDS']}
-		{if $FIELD_NAME eq 'productsservicesname' || $FIELD_NAME eq 'item_type' || $FIELD_NAME eq 'price' || $FIELD_NAME eq 'wholesale_price' || $FIELD_NAME eq 'warranty' || $FIELD_NAME eq 'assigned_user_id' || $FIELD_NAME eq 'description'}
+		{if $FIELD_NAME eq 'sku' || $FIELD_NAME eq 'productsservicesname' || $FIELD_NAME eq 'item_type' || $FIELD_NAME eq 'price' || $FIELD_NAME eq 'wholesale_price' || $FIELD_NAME eq 'specification' || $FIELD_NAME eq 'assigned_user_id' || $FIELD_NAME eq 'description'}
 			{assign var=fieldDataType value=$FIELD_MODEL->getFieldDataType()}
 			<tr class="summaryViewEntries">
 				<td class="fieldLabel">

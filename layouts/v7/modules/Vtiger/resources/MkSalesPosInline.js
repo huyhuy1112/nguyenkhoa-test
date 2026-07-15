@@ -25,7 +25,7 @@
 			return !!document.querySelector(c.enabledSelector);
 		}
 		return !!document.querySelector(
-			'#listViewContent .mk-so-pos-list-enabled, .mk-so-pos-page, [data-mk-leads-list], [data-mk-opps-list], [data-mk-opportunity-list], [data-mk-contacts-list], [data-mk-accounts-list]'
+			'#listViewContent .mk-so-pos-list-enabled, .mk-so-pos-page, [data-mk-leads-list], [data-mk-opps-list], [data-mk-opportunity-list], [data-mk-contacts-list], [data-mk-accounts-list], [data-mk-ps-list]'
 		);
 	}
 
@@ -239,19 +239,25 @@
 				}
 				var ref = window.PotentialsLovableRef;
 				var label = confirmKey;
-				var cls = 'mk-tag';
+				var key = confirmKey;
+				if (ref && ref.normalizeTag) {
+					key = ref.normalizeTag(confirmKey) || confirmKey;
+				}
 				if (ref && ref.tagMeta) {
 					var meta = ref.tagMeta(confirmKey);
 					label = meta.label || label;
-					cls = 'mk-tag ' + (meta.cls || '');
 				} else if (confirmKey === 'xac_nhan_tham_gia') {
 					label = 'Xác nhận tham gia';
-					cls = 'mk-tag mk-tag--xac-nhan';
 				} else if (confirmKey === 'khong_xac_nhan_tham_gia') {
 					label = 'Không tham gia';
-					cls = 'mk-tag mk-tag--khong-xac-nhan';
 				}
-				$td.html('<span class="' + cls + '">' + $('<div/>').text(label).html() + '</span>');
+				$td.html(
+					'<span class="mk-tag" data-tag="' +
+					$('<div/>').text(key).html() +
+					'">' +
+					$('<div/>').text(label).html() +
+					'</span>'
+				);
 			}
 			function finishSave(response) {
 				if (response) {

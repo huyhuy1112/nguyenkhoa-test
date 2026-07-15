@@ -291,21 +291,28 @@
   function tagBadgeHtml(tag) {
     if (!tag) return '<span class="mk-leads-muted">—</span>';
     var m = tagMeta(tag);
-    return '<span class="mk-tag ' + m.cls + '">' + esc(m.label) + "</span>";
+    var key = ref.normalizeTag(tag) || String(tag || "").trim();
+    return (
+      '<span class="mk-tag" data-tag="' +
+      esc(key) +
+      '">' +
+      esc(m.label) +
+      "</span>"
+    );
   }
 
   function tierPill(tags) {
     var tier = categorize(tags).tier;
     if (!tier) return '<span class="mk-leads-muted">—</span>';
     var m = tagMeta(tier);
-    var slug = ref.normalizeTag(tier);
-    var cls =
-      slug === "vang"
-        ? "mk-pill--tier mk-pill--gold"
-        : slug === "bac"
-          ? "mk-pill--tier mk-pill--silver"
-          : "mk-pill--tier mk-pill--bronze";
-    return '<span class="mk-pill ' + cls + '">' + esc(m.label) + "</span>";
+    var key = ref.normalizeTag(tier);
+    return (
+      '<span class="mk-tag" data-tag="' +
+      esc(key) +
+      '">' +
+      esc(m.label) +
+      "</span>"
+    );
   }
 
   function renderTable() {

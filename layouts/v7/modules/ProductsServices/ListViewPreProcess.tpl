@@ -28,20 +28,32 @@ html.mk-ps-list-sales #listview-table {
 }
 html.mk-ps-list-sales #listview-table tr th:first-child,
 html.mk-ps-list-sales #listview-table tr td:first-child {
-	width: 152px;
-	min-width: 152px;
-	max-width: 152px;
+	width: 48px;
+	min-width: 48px;
+	max-width: 48px;
 	box-sizing: border-box;
 }
 </style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260607_sales_footer1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260715_ps_inline1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260707_ps_inv2"></script>
+<script type="text/javascript">
+window.__mkSalesPosInlineConfig = {
+	module: 'ProductsServices',
+	tableSelector: '#listview-table',
+	rowSelector: 'tr.listViewEntries',
+	enabledSelector: '[data-mk-ps-list]',
+	loadingText: 'Đang tải chi tiết hàng hoá...',
+	errorText: 'Không tải được chi tiết hàng hoá.'
+};
+</script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260715_ps_inline1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260715_ps_hide_cb1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-ps-list="1">
-	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260707_ps_inv2" />
-	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260707_ps_inv2" />
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260715_ps_leads2" />
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260715_ps_leads2" />
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">
 		<header class="mk-topbar" role="banner">

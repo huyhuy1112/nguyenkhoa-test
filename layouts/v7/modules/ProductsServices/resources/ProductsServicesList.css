@@ -3,7 +3,7 @@
  * Scope: body[data-module="ProductsServices"][data-view="List"][data-app="SALES"]
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&family=Space+Grotesk:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
 
 /* Anti-FOUC: hide list until JS applies column layout (inline guard in ListViewPreProcess.tpl) */
 html.mk-ps-list-sales:not(.mk-ps-list-ready) #listViewContent {
@@ -291,36 +291,42 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listvi
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill--product, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill--product,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--product , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--product {
-	background: #e0f2fe;
-	color: #0369a1;
-	border-color: #bae6fd;
+	background: #ecfdf3;
+	color: #0b6e4f;
+	border-color: #bbf7d0;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill--service, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td.mk-ps-type-cell .value .mk-ps-type-pill--service,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--service , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--service {
-	background: #ede9fe;
-	color: #5b21b6;
-	border-color: #ddd6fe;
+	background: #f1f5f9;
+	color: #475569;
+	border-color: #e2e8f0;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="productsservicesname"] a, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="productsservicesname"] a,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="productsservicesname"] .value a , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="productsservicesname"] .value a {
 	font-weight: 600;
-	color: #2563eb;
+	color: #0f172a;
 	text-decoration: none;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="productsservicesname"] a:hover , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="productsservicesname"] a:hover {
+	color: #08a045;
 	text-decoration: underline;
 }
 
+/* Price — Leads-like Inter + tabular-nums (no mono) */
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="price"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="price"] .value,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-ps-price-cell .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td.mk-ps-price-cell .value,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="wholesale_price"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="wholesale_price"] .value,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-ps-wholesale .value , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td.mk-col-ps-wholesale .value {
-	font-family: "Roboto Mono", ui-monospace, monospace;
-	font-weight: 600;
-	color: #191c1e;
+	font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+	font-weight: 500 !important;
+	font-size: 13px !important;
+	font-variant-numeric: tabular-nums;
+	font-feature-settings: "tnum";
+	color: #0f172a !important;
+	letter-spacing: -0.01em;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table thead th.mk-col-ps-price, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table thead th.mk-col-ps-price,
@@ -355,11 +361,11 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listvi
 /* ---- Filter row ---- */
 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-actions.listview-actions-container.mk-ps-filter-row,
 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row {
-	background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+	background: #fff !important;
 	border: none !important;
 	border-bottom: 1px solid #e2e8f0 !important;
 	border-radius: 0 !important;
-	min-height: 76px;
+	min-height: 52px;
 	margin: 0 !important;
 	padding: 0 !important;
 	width: 100% !important;
@@ -377,9 +383,9 @@ body[data-module="ProductsServices"][data-view="List"] .mk-so-filter-row__inner 
 	align-items: center;
 	justify-content: space-between;
 	flex-wrap: wrap;
-	gap: 10px 14px;
-	min-height: 76px;
-	padding: 12px 18px;
+	gap: 8px 12px;
+	min-height: 52px;
+	padding: 8px 14px;
 	box-sizing: border-box;
 	flex: 1 1 auto;
 }
@@ -599,12 +605,12 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-/* Control column: wide enough for checkbox + row actions (prevents bleed into Name) */
+/* Control column hidden (no list checkboxes) */
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr td:first-child, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tr td:first-child,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr th:first-child , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tr th:first-child {
-	width: 152px;
-	min-width: 152px;
-	max-width: 152px;
+	width: 0;
+	min-width: 0;
+	max-width: 0;
 	box-sizing: border-box;
 }
 
@@ -613,9 +619,9 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-control, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-control,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.listViewRecordActions, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.listViewRecordActions,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th:has(.table-actions) , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead th:has(.table-actions) {
-	width: 152px !important;
-	min-width: 152px !important;
-	max-width: 152px !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
 	box-sizing: border-box;
 }
 
@@ -725,17 +731,18 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody tr.listViewEntries td {
 	box-sizing: border-box;
-	height: 52px;
-	min-height: 52px;
-	padding: 12px 14px !important;
+	height: 44px;
+	min-height: 44px;
+	padding: 10px 12px !important;
 	vertical-align: middle !important;
-	border-bottom: 1px solid #eceef0;
-	font-size: 14px;
+	border-bottom: 1px solid #f1f5f9;
+	font-size: 13px;
 	font-weight: 400;
 	line-height: 1.35;
-	color: #191c1e;
+	color: #0f172a;
 	text-align: left !important;
 	white-space: nowrap;
+	font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="productsservicesname"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="productsservicesname"] .value,
@@ -763,8 +770,11 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="phone"], body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="phone"],
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="double"] , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="double"] {
-	font-family: 'Roboto Mono', ui-monospace, monospace;
-	font-size: 14px;
+	font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+	font-size: 13px !important;
+	font-variant-numeric: tabular-nums;
+	font-weight: 500;
+	color: #0f172a;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent .mk-ps-sort-hint , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent .mk-ps-sort-hint {
@@ -802,14 +812,15 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	text-decoration: none !important;
 }
 
-/* Start / Due date — monospace */
+/* Start / Due date */
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="startdate"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td[data-name="startdate"] .value,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="duedate"] .value, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td[data-name="duedate"] .value,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-field-type="date"] .value , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tbody td[data-field-type="date"] .value {
-	font-family: 'Roboto Mono', ui-monospace, monospace;
-	font-size: 14px;
+	font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	font-size: 13px;
 	font-weight: 500;
-	color: #191c1e;
+	font-variant-numeric: tabular-nums;
+	color: #0f172a;
 }
 
 /* Progress bar */
@@ -853,10 +864,11 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-ps-progress__label , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table .mk-ps-progress__label {
 	flex: 0 0 auto;
-	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-family: Inter, system-ui, sans-serif;
 	font-size: 12px;
 	font-weight: 600;
-	color: #40627e;
+	font-variant-numeric: tabular-nums;
+	color: #64748b;
 	min-width: 2.5em;
 	text-align: right;
 }
@@ -951,13 +963,13 @@ body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-
 
 body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search:focus-within,
 body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search:focus-within {
-	border-color: rgba(99, 102, 241, 0.45);
-	box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12), 0 4px 12px rgba(67, 56, 202, 0.1);
+	border-color: rgba(8, 160, 69, 0.45);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search__ic,
 body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search__ic {
-	color: #6366f1;
+	color: #64748b;
 	font-size: 14px;
 }
 
@@ -999,8 +1011,8 @@ body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-
 
 body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search__clear:hover,
 body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search__clear:hover {
-	background: #eef2ff;
-	color: #4338ca;
+	background: #ecfdf3;
+	color: #0b6e4f;
 }
 
 /* Pagination lives below table only (relocated by List.js) */
@@ -1014,10 +1026,15 @@ body[data-module="ProductsServices"][data-view="List"] #table-content + .mk-ps-f
 	display: flex !important;
 }
 
-/* Hide non-functional layout toggles + sort hint */
+/* Hide layout toggles + noisy mass-action chrome (Leads keeps search only) */
 body[data-module="ProductsServices"][data-view="List"] .mk-so-toolbar-toggles,
 body[data-module="ProductsServices"][data-view="List"] .mk-ps-toolbar-toggles,
-body[data-module="ProductsServices"][data-view="List"] .mk-so-sort-hint {
+body[data-module="ProductsServices"][data-view="List"] .mk-so-sort-hint,
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-mass-actions,
+body[data-module="ProductsServices"][data-view="List"] .mk-so-mass-actions,
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-filter-row__right .mk-so-icon-btn,
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-filter-row__right .mk-ps-icon-btn,
+body[data-module="ProductsServices"][data-view="List"] .mk-so-filter-row__right .mk-so-icon-btn {
 	display: none !important;
 }
 
@@ -1076,18 +1093,23 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__title , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-action-header__title {
 	font-family: 'Space Grotesk', Inter, sans-serif;
-	font-size: 32px;
+	font-size: 28px;
 	font-weight: 700;
 	line-height: 1.15;
-	letter-spacing: -0.02em;
+	letter-spacing: -0.03em;
+	color: #0f172a;
+	margin: 0;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__subtitle , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-action-header__subtitle {
-	margin: 8px 0 0;
-	font-size: 15px;
+	margin: 6px 0 0;
+	padding-bottom: 2px;
+	font-size: 13px;
 	font-weight: 500;
-	color: #5b5b5b;
+	color: #64748b;
 	line-height: 1.45;
+	border-bottom: 2px dotted #e2e8f0;
+	display: inline-block;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-page .module-action-bar, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-page .module-action-bar,
@@ -1142,4 +1164,73 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table tr.searchRow th {
 	padding: 10px 14px !important;
 	vertical-align: middle !important;
+}
+
+/* Leads-like: checkbox only in first column; row click opens inline detail */
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions .fa.action,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions .fa.icon,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions .fa.fa-eye,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions .fa.fa-star,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions .fa.fa-info-circle,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions .fa.fa-ellipsis-v,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions a[href*="Detail"],
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions .markStar,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions .quickView {
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	gap: 0;
+	width: 100%;
+}
+
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table tbody tr.listViewEntries {
+	cursor: pointer;
+}
+
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table tbody tr.listViewEntries.mk-so-row-expanded > td {
+	background: #f0fdf4 !important;
+	border-bottom-color: transparent !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table tr.mk-so-inline-detail-row > td {
+	padding: 0 !important;
+	background: #f8fafc;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table tr.mk-so-inline-detail-row .mk-so-inline-detail {
+	margin: 8px 12px 14px;
+}
+
+/* Hide empty tags strip on goods inline panel */
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__tags {
+	display: none;
+}
+
+/* Hide list selection checkboxes (user requested — no multi-select column) */
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table input[type="checkbox"].listViewEntriesCheckBox,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table input[type="checkbox"].listViewEntriesMainCheckBox,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions > .input {
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table th.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table td.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table td.listViewRecordActions,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table thead tr.searchRow th.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table thead th:has(.table-actions),
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table thead th:has(.listViewEntriesMainCheckBox),
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table tr td:first-child:has(.listViewEntriesCheckBox),
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table tr th:first-child:has(.listViewEntriesMainCheckBox) {
+	display: none !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
 }
