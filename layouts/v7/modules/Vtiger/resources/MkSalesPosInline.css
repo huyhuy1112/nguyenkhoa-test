@@ -575,17 +575,13 @@ body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-so-inline-detail-
 	width: 100%;
 }
 
-/* Expanded panel fills full table width (including sticky Support column area) */
+/* Expanded panel fills full table width */
 body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-so-inline-detail-row .mk-so-inline-detail {
 	display: block;
 	box-sizing: border-box;
 	width: auto;
 	max-width: none;
 	margin: 8px 10px 12px;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-so-row-expanded > td.mk-leads-td--center:last-child {
-	background: #f0fdf4 !important;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-leads-row {

@@ -557,7 +557,7 @@
 
     if (!pageRows.length) {
       tbody.innerHTML =
-        '<tr><td colspan="13" class="mk-leads-empty">' +
+        '<tr><td colspan="12" class="mk-leads-empty">' +
         esc(t("JS_MK_NO_LEADS_MATCH", "Không có lead phù hợp bộ lọc.")) +
         "</td></tr>";
     } else {
@@ -657,16 +657,6 @@
               var next = logic.deriveNextAction ? logic.deriveNextAction(l) : l.next_action || "";
               return next ? esc(next) : '<span class="mk-leads-muted">—</span>';
             })() +
-            "</td>" +
-            '<td class="mk-leads-td mk-leads-td--center mk-leads-td--support">' +
-            (l.openTickets > 0
-              ? '<span class="mk-pill mk-pill--support">' +
-                ic("ticket") +
-                l.openTickets +
-                " " +
-                esc(t("JS_MK_OPEN_TICKETS", "mở")) +
-                "</span>"
-              : '<span class="mk-leads-muted">—</span>') +
             "</td></tr>"
           );
         })

@@ -93,7 +93,7 @@
 						</div>
 						<div class="mk-td-field">
 							<label for="mk-td-phone">Số điện thoại <span class="mk-td-req">*</span></label>
-							<input type="tel" id="mk-td-phone" class="mk-td-input" placeholder="09xx xxx xxx" autocomplete="tel" />
+							<input type="tel" id="mk-td-phone" class="mk-td-input" placeholder="09xxxxxxxx" autocomplete="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" />
 						</div>
 						<div class="mk-td-field">
 							<label for="mk-td-cccd">CCCD</label>
@@ -337,11 +337,6 @@
 				<div class="mk-td-tags-panel__list" id="mk-td-tags-list">
 					<span class="mk-td-tag-pill" data-tag="individual">#individual</span>
 				</div>
-				<p class="mk-td-tags-panel__trigger" id="mk-td-tags-trigger">WORKFLOW TRIGGER: 1 tag(s) → khớp script &amp; automation tương ứng.</p>
-				<button type="button" class="mk-td-btn mk-td-btn--dark mk-td-btn--block" id="mk-td-save-aside">
-					<span class="mk-td-btn__ic" aria-hidden="true">💾</span>
-					{if $MK_IS_EDIT}Save Changes{else}Save Lead &amp; Apply Tags{/if}
-				</button>
 			</div>
 		</aside>
 	</div>

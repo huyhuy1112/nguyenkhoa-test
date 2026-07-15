@@ -47,7 +47,6 @@
 						<col class="mk-leads-col mk-leads-col--tags" />
 						<col class="mk-leads-col mk-leads-col--touch" />
 						<col class="mk-leads-col mk-leads-col--next" />
-						<col class="mk-leads-col mk-leads-col--support" />
 					</colgroup>
 					<thead>
 						<tr>
@@ -68,7 +67,6 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_TAGS', 'Leads')}</th>
 							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="last_touch"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_COL_LAST_TOUCH', 'Leads')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_NEXT_ACTION', 'Leads')}</th>
-							<th class="mk-leads-th mk-leads-th--center" scope="col">{vtranslate('LBL_MK_COL_SUPPORT', 'Leads')}</th>
 						</tr>
 					</thead>
 					<tbody id="mk-leads-tbody"></tbody>

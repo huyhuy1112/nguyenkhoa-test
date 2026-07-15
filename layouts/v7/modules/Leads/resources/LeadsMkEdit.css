@@ -556,10 +556,10 @@ body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell .con
     cursor: pointer;
 }
 
-.mk-td-search-select__option:not([data-tag]):hover,
-.mk-td-search-select__option:not([data-tag]).is-selected {
-    background: #eff6ff;
-    color: #1d4ed8;
+.mk-td-search-select__option:hover,
+.mk-td-search-select__option.is-selected {
+    background: #f3f4f6;
+    color: #111827;
 }
 
 .mk-td-search-select__option--placeholder {

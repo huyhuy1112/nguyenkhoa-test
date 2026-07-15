@@ -30,6 +30,29 @@
     return recordId || "";
   }
 
+  function digitsOnly(value) {
+    return String(value || "").replace(/\D/g, "").slice(0, 10);
+  }
+
+  function bindPhoneInput() {
+    var phoneEl = $("mk-td-phone");
+    if (!phoneEl) return;
+    phoneEl.addEventListener("input", function () {
+      var next = digitsOnly(phoneEl.value);
+      if (phoneEl.value !== next) phoneEl.value = next;
+    });
+    phoneEl.addEventListener("paste", function (e) {
+      e.preventDefault();
+      var text = "";
+      try {
+        text = (e.clipboardData || window.clipboardData).getData("text") || "";
+      } catch (err) {
+        text = "";
+      }
+      phoneEl.value = digitsOnly(text);
+    });
+  }
+
   var TAG_POOLS = {
     customerType: ["individual", "company"],
     leadSource: ["facebook", "tiktok", "website", "zalo", "other_source"],
@@ -328,7 +351,6 @@
 
   function renderTags() {
     var list = $("mk-td-tags-list");
-    var trigger = $("mk-td-tags-trigger");
     if (!list) return;
 
     var tags = collectTags();
@@ -340,12 +362,6 @@
           return '<span class="mk-td-tag-pill" data-tag="' + t + '">#' + t + "</span>";
         })
         .join("");
-    }
-
-    if (trigger) {
-      var n = tags.length;
-      trigger.textContent =
-        "WORKFLOW TRIGGER: " + n + " tag(s) → khớp script & automation tương ứng.";
     }
   }
 
@@ -661,7 +677,7 @@
     if (!lead) return;
 
     if ($("mk-td-name")) $("mk-td-name").value = lead.name || "";
-    if ($("mk-td-phone")) $("mk-td-phone").value = lead.phone || "";
+    if ($("mk-td-phone")) $("mk-td-phone").value = digitsOnly(lead.phone || "");
     if ($("mk-td-cccd")) $("mk-td-cccd").value = lead.cccd || "";
     if ($("mk-td-email")) $("mk-td-email").value = lead.email || "";
     hydrateDistrictAddress(lead);
@@ -702,11 +718,12 @@
 
   function buildLeadPatch() {
     var name = ($("mk-td-name") && $("mk-td-name").value) || "";
-    var phone = ($("mk-td-phone") && $("mk-td-phone").value) || "";
+    var phone = digitsOnly(($("mk-td-phone") && $("mk-td-phone").value) || "");
+    if ($("mk-td-phone")) $("mk-td-phone").value = phone;
     var ownerEl = $("mk-td-owner");
     return {
       name: name.trim(),
-      phone: phone.trim(),
+      phone: phone,
       cccd: ($("mk-td-cccd") && $("mk-td-cccd").value.trim()) || "",
       email: ($("mk-td-email") && $("mk-td-email").value.trim()) || "",
       segment: state.customerStatus || "",
@@ -771,9 +788,14 @@
 
   function mockSave() {
     var name = ($("mk-td-name") && $("mk-td-name").value) || "";
-    var phone = ($("mk-td-phone") && $("mk-td-phone").value) || "";
-    if (!name.trim() || !phone.trim()) {
+    var phone = digitsOnly(($("mk-td-phone") && $("mk-td-phone").value) || "");
+    if ($("mk-td-phone")) $("mk-td-phone").value = phone;
+    if (!name.trim() || !phone) {
       alert("Vui lòng nhập Họ tên và Số điện thoại.");
+      return;
+    }
+    if (phone.length !== 10) {
+      alert("Số điện thoại phải đủ 10 số.");
       return;
     }
     if (state.customerType === "company") {
@@ -871,6 +893,7 @@
     var store = window.LeadsLocalStore;
 
     initSearchableSelects();
+    bindPhoneInput();
 
     root.querySelectorAll(".mk-td-choice[data-group]").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -894,10 +917,8 @@
       });
     }
 
-    ["mk-td-save-top", "mk-td-save-aside"].forEach(function (id) {
-      var b = $(id);
-      if (b) b.addEventListener("click", mockSave);
-    });
+    var saveTop = $("mk-td-save-top");
+    if (saveTop) saveTop.addEventListener("click", mockSave);
 
     var initialType = document.querySelector('.mk-td-choice[data-group="customer-type"].is-on');
     if (initialType) {

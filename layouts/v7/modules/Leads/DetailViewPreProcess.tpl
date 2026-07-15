@@ -3,7 +3,7 @@
 {include file="modules/Vtiger/Header.tpl"}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260612_footer_v1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkConvertModal.css')}?mk_v=20260701_convert_modal_v1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260714_tag_sync3" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260714_dd_neutral1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsDetailShell.css')}&mk_v=20260714_tag_sync3" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Calendar/resources/CalendarQuickCreateTask.css')}&mk_v=20260603_event_ui" />
 <script type="text/javascript">document.body.classList.add('mk-lead-detail-ui-loading');</script>
