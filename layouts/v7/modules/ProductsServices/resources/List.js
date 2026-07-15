@@ -377,7 +377,7 @@
 
 	var COL_WIDTH_BY_CLASS = {
 		'mk-col-control': '0',
-		'mk-col-ps-name': '220px',
+		'mk-col-ps-name': '240px',
 		'mk-col-ps-type': '96px',
 		'mk-col-ps-price': '120px',
 		'mk-col-ps-wholesale': '168px',
