@@ -50,9 +50,9 @@ window.__mkSalesPosInlineConfig = {
 };
 </script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260715_ps_inline1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260715_ps_namecol2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260715_ps_namecol3"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-ps-list="1">
-	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260715_ps_namecol2" />
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260715_ps_namecol3" />
 	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260715_ps_leads2" />
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

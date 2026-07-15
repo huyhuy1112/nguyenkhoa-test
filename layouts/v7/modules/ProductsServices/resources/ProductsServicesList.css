@@ -629,7 +629,12 @@ body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #li
 	overflow: hidden !important;
 }
 
-/* Name column must stay visible (Tên hàng hoá) */
+/* Name column must stay visible (Tên hàng hoá) — all apps */
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="productsservicesname"]),
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td[data-name="productsservicesname"],
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-name,
 body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-ps-name,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-name,

@@ -591,7 +591,12 @@
 		applySearchPlaceholders(document);
 		fixListScrollContainer();
 		setReadyState();
-		debugLog('mk-ps list layout applied');
+		var hasName =
+			$('#listview-table th:has(a[data-columnname="productsservicesname"]), #listview-table td[data-name="productsservicesname"]').length > 0;
+		if (!hasName && window.console && console.warn) {
+			console.warn('[ProductsServices] Cột productsservicesname chưa có trong HTML — cần hard refresh hoặc chạy EnsureNameInCustomViews.php');
+		}
+		debugLog('mk-ps list layout applied', { hasName: hasName });
 	}
 
 	function init() {
