@@ -95,7 +95,7 @@
     var days = daysSince(lead.last_touch);
     var stage = purchaseTag
       ? mapLabel(PURCHASE_MAP_RAW, purchaseTag)
-      : pick("Mua lần đầu", "New Purchase");
+      : null;
     var type = programTag
       ? mapLabel(PROGRAM_MAP_RAW, programTag)
       : pick("Chương trình PCTH", "PCTH Program");

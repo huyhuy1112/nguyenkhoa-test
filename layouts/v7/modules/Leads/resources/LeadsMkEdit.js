@@ -58,12 +58,10 @@
     leadSource: ["facebook", "tiktok", "website", "zalo", "other_source"],
     intent: [
       "dang_tu_van",
-      "mua_lan_dau",
       "dung_cham_soc",
       "kh_can_nhac",
-      "mua_lai",
       "mua_it_lai",
-      "ngung_mua",
+      "nguyen_lieu_chuoi",
     ],
     franchise: [
       "dang_tu_van",
@@ -606,10 +604,12 @@
     activateChoice("customer-type", findTag(tags, TAG_POOLS.customerType) || "individual");
     if (lead && lead.segment) activateSegment(lead.segment);
     activateChoice("lead-source", findTag(tags, TAG_POOLS.leadSource));
+    // Purchase Status trước — không để purchase tag spill sang Nguyên liệu
     activateChoice("purchase-status", findTag(tags, TAG_POOLS.purchaseStatus));
     activateChoice("customer-tier", findTag(tags, TAG_POOLS.tier));
     setSelectByTag("mk-td-district", findTag(tags, TAG_POOLS.region));
     setSelectByTag("mk-td-intent", findTag(tags, TAG_POOLS.intent));
+    setSelectByTag("mk-td-franchise", findTag(tags, TAG_POOLS.franchise));
     var entryTag = findTag(tags, TAG_POOLS.entry);
     setSelectByTag("mk-td-entry", entryTag);
     if (entryTag === "pcth") {

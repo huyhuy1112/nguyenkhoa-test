@@ -125,21 +125,26 @@
     });
   }
 
-  function openBulkConvertModal(rows) {
-    var convertible = rows.filter(isLeadConvertible);
-    if (!convertible.length) {
-      window.alert("Các lead đã chọn đều đã convert hoặc không thể convert.");
-      return;
+  function promptOrderCategory() {
+    var fallback = window.prompt("Loại Opportunity: gõ Internal hoặc Project", "Internal");
+    if (fallback === null) return null;
+    var cat = String(fallback).trim();
+    if (cat !== "Internal" && cat !== "Project") {
+      window.alert("Chỉ chấp nhận Internal hoặc Project.");
+      return null;
     }
+    return cat;
+  }
+
+  function openConvertOrderCategoryModal(options) {
+    options = options || {};
+    var introHtml = options.introHtml || "";
+    var onConfirm = options.onConfirm || function () {};
+    var radioName = options.radioName || "mk_leads_convert_order_category";
+
     if (!window.app || !app.helper || !app.helper.showModal) {
-      var fallback = window.prompt("Loại Opportunity: gõ Internal hoặc Project", "Internal");
-      if (fallback === null) return;
-      var cat = String(fallback).trim();
-      if (cat !== "Internal" && cat !== "Project") {
-        window.alert("Chỉ chấp nhận Internal hoặc Project.");
-        return;
-      }
-      runBulkConvert(rows, cat);
+      var cat = promptOrderCategory();
+      if (cat) onConfirm(cat);
       return;
     }
 
@@ -151,18 +156,22 @@
       '<h4 class="modal-title">Convert to Opp</h4>' +
       "</div>" +
       '<div class="modal-body">' +
-      '<p class="mk-lead-convert-modal__intro">Chuyển <strong>' +
-      convertible.length +
-      "</strong> lead đã chọn sang <strong>Contact + Account + Opportunity</strong>. Chọn loại đơn hàng:</p>" +
+      '<p class="mk-lead-convert-modal__intro">' +
+      introHtml +
+      "</p>" +
       '<div class="mk-lead-convert-modal__choices" role="radiogroup" aria-label="Order category">' +
       '<label class="mk-lead-convert-modal__choice is-selected">' +
-      '<input type="radio" name="mk_leads_bulk_convert_order_category" value="Internal" checked />' +
+      '<input type="radio" name="' +
+      radioName +
+      '" value="Internal" checked />' +
       '<span class="mk-lead-convert-modal__choice-body">' +
       '<span class="mk-lead-convert-modal__choice-title">Internal</span>' +
       '<span class="mk-lead-convert-modal__choice-desc">Đơn nội bộ / bán hàng thông thường</span>' +
       "</span></label>" +
       '<label class="mk-lead-convert-modal__choice">' +
-      '<input type="radio" name="mk_leads_bulk_convert_order_category" value="Project" />' +
+      '<input type="radio" name="' +
+      radioName +
+      '" value="Project" />' +
       '<span class="mk-lead-convert-modal__choice-body">' +
       '<span class="mk-lead-convert-modal__choice-title">Project</span>' +
       '<span class="mk-lead-convert-modal__choice-desc">Đơn dự án / triển khai theo project</span>' +
@@ -184,14 +193,124 @@
           window.jQuery(this).find('input[type="radio"]').prop("checked", true);
         });
         $root.find(".mk-leads-bulk-convert-modal__submit").on("click", function () {
-          var cat = $root.find('input[name="mk_leads_bulk_convert_order_category"]:checked').val();
+          var cat = $root.find('input[name="' + radioName + '"]:checked').val();
           if (cat !== "Internal" && cat !== "Project") {
             window.alert("Vui lòng chọn Internal hoặc Project.");
             return;
           }
           app.helper.hideModal();
-          runBulkConvert(rows, cat);
+          onConfirm(cat);
         });
+      },
+    });
+  }
+
+  function openBulkConvertModal(rows) {
+    var convertible = rows.filter(isLeadConvertible);
+    if (!convertible.length) {
+      window.alert("Các lead đã chọn đều đã convert hoặc không thể convert.");
+      return;
+    }
+    openConvertOrderCategoryModal({
+      radioName: "mk_leads_bulk_convert_order_category",
+      introHtml:
+        "Chuyển <strong>" +
+        convertible.length +
+        "</strong> lead đã chọn sang <strong>Contact + Account + Opportunity</strong>. Chọn loại đơn hàng:",
+      onConfirm: function (cat) {
+        runBulkConvert(rows, cat);
+      },
+    });
+  }
+
+  function markInlineConvertDone(btn, potentialUrl) {
+    if (!btn) return;
+    btn.classList.add("is-converted");
+    btn.disabled = true;
+    btn.setAttribute("aria-disabled", "true");
+    btn.setAttribute("title", "Đã convert sang Opportunity");
+    var label = btn.querySelector("span");
+    if (label) label.textContent = "Đã convert";
+    if (potentialUrl) btn.setAttribute("data-potential-url", potentialUrl);
+  }
+
+  function findLeadByRecordId(recordId) {
+    var id = String(recordId || "");
+    if (!id) return null;
+    var leads = getLeads();
+    for (var i = 0; i < leads.length; i++) {
+      var lead = leads[i];
+      if (leadCrmId(lead) === id || String(lead.id) === id) return lead;
+    }
+    return { id: id, crmid: id, canConvert: true };
+  }
+
+  function openInlineConvertModal(btn) {
+    var recordId = String((btn && btn.getAttribute("data-record-id")) || "");
+    if (!recordId) {
+      var panel = btn && btn.closest ? btn.closest(".mk-so-inline-detail") : null;
+      recordId = String((panel && panel.getAttribute("data-record-id")) || "");
+    }
+    if (!recordId) return;
+
+    var lead = findLeadByRecordId(recordId);
+    if (
+      !isLeadConvertible(lead) ||
+      (btn && (btn.classList.contains("is-converted") || btn.disabled))
+    ) {
+      var url = btn && btn.getAttribute("data-potential-url");
+      window.alert("Lead này đã được convert sang Opportunity.");
+      if (url && window.confirm("Mở Opportunity?")) {
+        window.location.href = url;
+      }
+      return;
+    }
+
+    openConvertOrderCategoryModal({
+      radioName: "mk_leads_inline_convert_order_category",
+      introHtml:
+        "Chuyển lead sang <strong>Contact + Account + Opportunity</strong>. Chọn loại đơn hàng:",
+      onConfirm: function (cat) {
+        if (window.app && app.helper && app.helper.showProgress) {
+          app.helper.showProgress();
+        }
+        convertSingleLead(leadCrmId(lead) || recordId, cat)
+          .then(function (res) {
+            if (window.app && app.helper && app.helper.hideProgress) {
+              app.helper.hideProgress();
+            }
+            var potentialUrl =
+              (res && (res.redirect || res.potentialUrl)) ||
+              (res && res.potentialId
+                ? "index.php?module=Potentials&view=Detail&record=" +
+                  res.potentialId +
+                  "&app=SALES"
+                : "");
+            if (lead) {
+              lead.converted = true;
+              lead.canConvert = false;
+              if (res && res.potentialId) lead.potentialId = res.potentialId;
+            }
+            markInlineConvertDone(btn, potentialUrl);
+            var refresh = store && store.refreshLeadsList ? store.refreshLeadsList() : Promise.resolve();
+            return refresh.then(function () {
+              renderAll();
+              if (res && res.already_converted) {
+                window.alert("Lead này đã được convert trước đó.");
+              } else {
+                window.alert("Đã convert sang Opportunity.");
+              }
+              if (potentialUrl && window.confirm("Mở Opportunity vừa tạo?")) {
+                window.location.href = potentialUrl;
+              }
+            });
+          })
+          .catch(function (err) {
+            if (window.app && app.helper && app.helper.hideProgress) {
+              app.helper.hideProgress();
+            }
+            window.alert((err && err.message) || "Convert thất bại");
+          });
       },
     });
   }
@@ -575,9 +694,16 @@
               ? ref.getSegmentLabels()
               : logic.SEGMENT_LABELS || {};
           var segmentKey = l.segment || null;
+          var typeTag = (l.tags || []).find(function (tg) {
+            return tg === "individual" || tg === "company" || tg === "ca_nhan";
+          });
+          if (typeTag === "ca_nhan") typeTag = "individual";
+          var custKey = segmentKey || typeTag || null;
           var custLabel = segmentKey
             ? segmentLabels[segmentKey] || segmentKey
-            : d.type;
+            : typeTag
+              ? tagMeta(typeTag).label || typeTag
+              : null;
           var nonSourceTags = (l.tags || []).filter(function (tg) {
             return SOURCE_TAGS.indexOf(tg) < 0;
           });
@@ -620,16 +746,14 @@
             (src ? tagBadgeHtml(src) : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
             '<td class="mk-leads-td">' +
-            (segmentKey
-              ? tagBadgeHtml(segmentKey, custLabel)
+            (custKey
+              ? tagBadgeHtml(custKey, custLabel)
               : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
             '<td class="mk-leads-td">' +
             (purchaseTag
               ? tagBadgeHtml(purchaseTag)
-              : d.stage
-                ? '<span class="mk-tag">' + esc(d.stage) + "</span>"
-                : '<span class="mk-leads-muted">—</span>') +
+              : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
             '<td class="mk-leads-td">' +
             (d.tierKey
@@ -974,6 +1098,14 @@
     });
 
     document.addEventListener("click", function (e) {
+      var inlineConvertBtn =
+        e.target.closest && e.target.closest(".mk-so-inline-detail__convert-btn");
+      if (inlineConvertBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openInlineConvertModal(inlineConvertBtn);
+        return;
+      }
       if (e.target.id === "mk-leads-prev") {
         state.page = Math.max(1, state.page - 1);
         renderTable();

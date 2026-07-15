@@ -56,7 +56,7 @@
 		<div class="mk-so-inline-detail__tags-list">
 			{if isset($INLINE_TAGS) && $INLINE_TAGS|@count gt 0}
 				{foreach from=$INLINE_TAGS item=TAG}
-					<span class="mk-tag" data-tag="{$TAG.key|escape}" title="{$TAG.name|escape}">{$TAG.label|escape}</span>
+					<span class="{if !empty($TAG.cls)}{$TAG.cls|escape}{else}mk-tag{/if}" data-tag="{$TAG.key|escape}" title="{$TAG.name|escape}">{$TAG.label|escape}</span>
 				{/foreach}
 			{else}
 				<span class="mk-so-inline-detail__tags-empty">Chưa có tag</span>

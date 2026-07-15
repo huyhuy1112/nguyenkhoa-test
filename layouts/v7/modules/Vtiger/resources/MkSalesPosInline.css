@@ -649,9 +649,10 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 	/* KHÔNG set background ở đây — sẽ đè mất màu .mk-tag--vang / --website / ... */
 }
 
-/* Fallback chỉ khi không có class màu (hoặc --other) */
+/* Fallback xám chỉ khi --other hoặc thiếu data-tag — KHÔNG đè palette [data-tag] */
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__tags-list .mk-tag.mk-tag--other,
-body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__tags-list .mk-tag:not([class*="mk-tag--"]) {
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__tags-list .mk-tag:not([data-tag]),
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__tags-list .mk-tag[data-tag=""] {
 	background: #f1f5f9;
 	border-color: #cbd5e1;
 	color: #475569;

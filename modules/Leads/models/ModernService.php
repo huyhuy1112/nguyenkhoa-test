@@ -1174,6 +1174,147 @@ class Leads_ModernService {
 	}
 
 	/**
+	 * Inline list edit: replace one-of category tags (source / customer / purchase / tier).
+	 * Empty string clears that category. Keys not present in $cats are left untouched.
+	 */
+	public static function updateInlineCategoryTags($leadIdOrCacheId, array $cats, $userId = null) {
+		global $current_user;
+		if ($userId === null) {
+			$userId = (int) $current_user->id;
+		}
+		$leadId = self::resolveLeadId($leadIdOrCacheId);
+		if (!$leadId) {
+			throw new Exception('Lead not found.');
+		}
+
+		$sourcePool = self::$sourceTags;
+		$customerPool = array('individual', 'company', 'co_quan', 'chuan_bi_mo', 'gia_dinh');
+		$purchasePool = array_keys(self::$purchaseMap);
+		$tierPool = array('vang', 'bac', 'dong');
+
+		$tagMap = self::getTagsForLeadIds(array($leadId), $userId);
+		$tags = isset($tagMap[$leadId]) ? array_values($tagMap[$leadId]) : array();
+
+		$normalize = function ($raw, array $pool) {
+			$key = trim((string) $raw);
+			if ($key === '') {
+				return '';
+			}
+			if ($key === 'other_source') {
+				$key = 'other';
+			}
+			if ($key === 'ca_nhan') {
+				$key = 'individual';
+			}
+			return in_array($key, $pool, true) ? $key : null;
+		};
+
+		$replacePool = function (array $tags, array $pool, $next) {
+			$out = array();
+			foreach ($tags as $t) {
+				if (!in_array($t, $pool, true)) {
+					$out[] = $t;
+				}
+			}
+			if ($next !== '' && $next !== null) {
+				$out[] = $next;
+			}
+			return array_values(array_unique($out));
+		};
+
+		$applied = array(
+			'source' => self::findTag($tags, $sourcePool) ?: '',
+			'customer' => self::findTag($tags, $customerPool) ?: '',
+			'purchase' => self::findTag($tags, $purchasePool) ?: '',
+			'tier' => self::findTag($tags, $tierPool) ?: '',
+		);
+
+		if (array_key_exists('source', $cats)) {
+			$next = $normalize($cats['source'], $sourcePool);
+			if ($next === null) {
+				throw new Exception('Nguồn không hợp lệ.');
+			}
+			$tags = $replacePool($tags, $sourcePool, $next);
+			$applied['source'] = $next;
+		}
+		if (array_key_exists('customer', $cats)) {
+			$next = $normalize($cats['customer'], $customerPool);
+			if ($next === null) {
+				throw new Exception('Loại khách không hợp lệ.');
+			}
+			$tags = $replacePool($tags, $customerPool, $next);
+			$applied['customer'] = $next;
+		}
+		if (array_key_exists('purchase', $cats)) {
+			$next = $normalize($cats['purchase'], $purchasePool);
+			if ($next === null) {
+				throw new Exception('Giai đoạn không hợp lệ.');
+			}
+			$tags = $replacePool($tags, $purchasePool, $next);
+			$applied['purchase'] = $next;
+		}
+		if (array_key_exists('tier', $cats)) {
+			$next = $normalize($cats['tier'], $tierPool);
+			if ($next === null) {
+				throw new Exception('Hạng không hợp lệ.');
+			}
+			$tags = $replacePool($tags, $tierPool, $next);
+			$applied['tier'] = $next;
+		}
+
+		$segmentTags = array('co_quan', 'chuan_bi_mo', 'gia_dinh');
+		$segment = self::findTag($tags, $segmentTags);
+		$customerType = self::findTag($tags, array('individual', 'company'));
+
+		$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
+		$recordModel->set('id', $leadId);
+		$recordModel->set('mode', 'edit');
+		$recordModel->set('leadsource', self::mapLeadsource($tags));
+		$recordModel->set('leadstatus', self::mapLeadstatus($tags));
+		$recordModel->save();
+
+		$adb = PearDatabase::getInstance();
+		$exists = $adb->pquery('SELECT leadid, segment, customer_type FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET segment = ?, customer_type = ?, modified_at = ? WHERE leadid = ?',
+				array($segment ?: '', $customerType ?: '', date('Y-m-d H:i:s'), $leadId)
+			);
+		} else {
+			self::upsertProfile($leadId, array(
+				'mk_cache_id' => null,
+				'cccd' => '',
+				'segment' => $segment ?: '',
+				'district' => '',
+				'address_line' => '',
+				'area' => '',
+				'lead_value' => 0,
+				'last_touch' => date('Y-m-d H:i:s'),
+				'next_action' => '',
+				'open_tickets' => 0,
+				'customer_type' => $customerType ?: '',
+				'purchase_reason' => '',
+			));
+		}
+
+		$tags = self::applyCustomerStatusTag($tags, $segment ?: '');
+		self::syncTags($leadId, $tags, $userId);
+		try {
+			require_once 'modules/Leads/models/ConvertService.php';
+			Leads_ConvertService::syncRelatedTagsFromLead($leadId, $userId);
+		} catch (Exception $e) {
+			/* best-effort */
+		}
+
+		$fresh = self::getTagsForLeadIds(array($leadId), $userId);
+		return array(
+			'tags' => isset($fresh[$leadId]) ? array_values($fresh[$leadId]) : $tags,
+			'categories' => $applied,
+			'segment' => $segment ?: '',
+		);
+	}
+
+	/**
 	 * Khu vực 1/2/3 → tag KV1/KV2/KV3 on saved lead profile.
 	 */
 	protected static function mapDistrictToRegionTag($district) {

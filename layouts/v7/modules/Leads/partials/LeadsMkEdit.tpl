@@ -187,12 +187,10 @@
 						<select id="mk-td-intent" class="mk-td-select" data-tag-group="intent">
 							<option value="">Chọn tag nguyên liệu</option>
 							<option value="dang_tu_van" data-tag="dang_tu_van">Đang tư vấn</option>
-							<option value="mua_lan_dau" data-tag="mua_lan_dau">Mua lần đầu</option>
 							<option value="dung_cham_soc" data-tag="dung_cham_soc">Dừng chăm sóc</option>
 							<option value="kh_can_nhac" data-tag="kh_can_nhac">KH Cân Nhắc</option>
-							<option value="mua_lai" data-tag="mua_lai">Mua lại</option>
 							<option value="mua_it_lai" data-tag="mua_it_lai">Mua ít lại</option>
-							<option value="ngung_mua" data-tag="ngung_mua">Ngừng mua</option>
+							<option value="nguyen_lieu_chuoi" data-tag="nguyen_lieu_chuoi">NL chuỗi</option>
 						</select>
 						<div id="mk-td-intent-tag-foot" class="mk-td-entry-tags" hidden></div>
 					</div>

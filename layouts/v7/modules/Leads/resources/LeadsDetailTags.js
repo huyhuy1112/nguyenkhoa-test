@@ -4,10 +4,11 @@
 (function (root, $) {
   "use strict";
 
-  var TAG_LABEL_ALIASES = {
+	var TAG_LABEL_ALIASES = {
     silver: "bac",
     gold: "vang",
     bronze: "dong",
+    ca_nhan: "individual",
   };
 
   function slugify(label) {

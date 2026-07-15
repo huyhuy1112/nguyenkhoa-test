@@ -196,6 +196,24 @@
 					window.alert(message);
 				}
 			}
+			function slugifyInlineTag(raw) {
+				var s = String(raw || "").trim().toLowerCase();
+				if (!s) return "";
+				if (s.charAt(0) === "#") s = s.slice(1);
+				try {
+					s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+				} catch (e) { /* IE */ }
+				s = s
+					.replace(/đ/g, "d")
+					.replace(/[^a-z0-9]+/g, "_")
+					.replace(/^_+|_+$/g, "")
+					.replace(/_+/g, "_");
+				if (s === "gold") return "vang";
+				if (s === "silver") return "bac";
+				if (s === "bronze") return "dong";
+				if (s === "ca_nhan") return "individual";
+				return s;
+			}
 			function refreshInlineTags($panelEl, tags) {
 				if (!$.isArray(tags)) return;
 				var $list = $panelEl.find('.mk-so-inline-detail__tags-list');
@@ -208,14 +226,20 @@
 				var html = tags.map(function (raw) {
 					var key = String(raw || "").trim();
 					var label = key;
+					var cls = "mk-tag";
 					if (ref && ref.normalizeTag) {
-						key = ref.normalizeTag(raw);
+						key = ref.normalizeTag(raw) || key;
+					} else {
+						key = slugifyInlineTag(raw) || key;
 					}
 					if (ref && ref.tagMeta) {
-						var meta = ref.tagMeta(raw);
+						var meta = ref.tagMeta(key) || ref.tagMeta(raw);
 						label = meta.label || label;
+						if (meta.cls) cls = meta.cls;
+					} else if (key) {
+						cls = "mk-tag mk-tag--" + String(key).replace(/_/g, "-");
 					}
-					return '<span class="mk-tag" data-tag="' + $('<div/>').text(key).html() + '" title="' + $('<div/>').text(String(raw)).html() + '">' +
+					return '<span class="' + cls + '" data-tag="' + $('<div/>').text(key).html() + '" title="' + $('<div/>').text(String(raw)).html() + '">' +
 						$('<div/>').text(String(label)).html() + '</span>';
 				}).join('');
 				$list.html(html);
@@ -287,17 +311,86 @@
 					});
 				}
 			}
+			function applyLeadCategoriesToList(recId, cats) {
+				if (!cats) return;
+				var $row = $('tr.mk-leads-row[data-crmid="' + recId + '"], tr.mk-leads-row[data-id="' + recId + '"]').first();
+				if (!$row.length) return;
+				var $tds = $row.children('td.mk-leads-td');
+				var ref = window.LeadsLovableRef;
+				function cellHtml(key) {
+					if (!key) {
+						return '<span class="mk-leads-muted">—</span>';
+					}
+					var label = key;
+					if (ref && ref.tagMeta) {
+						label = (ref.tagMeta(key).label) || key;
+					} else if (window.Vtiger === undefined) {
+						/* keep key */
+					}
+					var known = {
+						facebook: 'Facebook', tiktok: 'TikTok', website: 'Website', zalo: 'Zalo', other: 'Khác',
+						individual: 'Cá nhân', company: 'Công ty', co_quan: 'Có quán', chuan_bi_mo: 'Chuẩn bị mở', gia_dinh: 'Gia đình',
+						mua_lan_dau: 'Mua lần đầu', mua_lai: 'Mua lại', khong_mua: 'Không mua', ngung_mua: 'Ngừng mua',
+						vang: 'Vàng', bac: 'Bạc', dong: 'Đồng'
+					};
+					if (known[key]) label = known[key];
+					return '<span class="mk-tag" data-tag="' + $('<div/>').text(key).html() + '">' +
+						$('<div/>').text(label).html() + '</span>';
+				}
+				// 0 check, 1 lead, 2 phone, 3 area, 4 source, 5 customer, 6 stage, 7 tier
+				if (Object.prototype.hasOwnProperty.call(cats, 'source') && $tds.length > 4) {
+					$tds.eq(4).html(cellHtml(cats.source || ''));
+				}
+				if (Object.prototype.hasOwnProperty.call(cats, 'customer') && $tds.length > 5) {
+					$tds.eq(5).html(cellHtml(cats.customer || ''));
+				}
+				if (Object.prototype.hasOwnProperty.call(cats, 'purchase') && $tds.length > 6) {
+					$tds.eq(6).html(cellHtml(cats.purchase || ''));
+				}
+				if (Object.prototype.hasOwnProperty.call(cats, 'tier') && $tds.length > 7) {
+					$tds.eq(7).html(cellHtml(cats.tier || ''));
+				}
+				try {
+					document.dispatchEvent(new CustomEvent('mk-leads-category-updated', {
+						detail: { id: String(recId), categories: cats }
+					}));
+				} catch (e) { /* IE */ }
+			}
 			function saveExtras(response) {
 				var chain = $.Deferred().resolve(null, null).promise();
+				var leadCategoryRes = null;
 				var $nextInput = $panel.find('.mk-so-inline-detail__next-action-input');
 				if ($nextInput.length && mod === 'Leads') {
-					chain = chain.then(function () {
+					chain = chain.then(function (err) {
+						if (err) return $.Deferred().resolve(err, null).promise();
 						return postRequest({
 							module: 'Leads',
 							action: 'ModernApi',
 							mode: 'save_next_action',
 							record: recordId,
 							next_action: $nextInput.val() || ''
+						});
+					});
+				}
+				var $src = $panel.find(':input[name="mk_source"]');
+				var $cust = $panel.find(':input[name="mk_customer"]');
+				var $stage = $panel.find(':input[name="mk_stage"]');
+				var $tier = $panel.find(':input[name="mk_tier"]');
+				if (mod === 'Leads' && ($src.length || $cust.length || $stage.length || $tier.length)) {
+					chain = chain.then(function (err) {
+						if (err) return $.Deferred().resolve(err, null).promise();
+						return postRequest({
+							module: 'Leads',
+							action: 'ModernApi',
+							mode: 'save_inline_category_tags',
+							record: recordId,
+							mk_source: $src.length ? ($src.val() || '') : '',
+							mk_customer: $cust.length ? ($cust.val() || '') : '',
+							mk_stage: $stage.length ? ($stage.val() || '') : '',
+							mk_tier: $tier.length ? ($tier.val() || '') : ''
+						}).then(function (e2, r2) {
+							if (!e2) leadCategoryRes = r2;
+							return $.Deferred().resolve(e2, r2).promise();
 						});
 					});
 				}
@@ -328,6 +421,14 @@
 						applyOppConfirmToList(recordId, confirmKey);
 						if (extraRes && extraRes.tags) {
 							refreshInlineTags($panel, extraRes.tags);
+						}
+					}
+					if (mod === 'Leads' && leadCategoryRes) {
+						if (leadCategoryRes.tags) {
+							refreshInlineTags($panel, leadCategoryRes.tags);
+						}
+						if (leadCategoryRes.categories) {
+							applyLeadCategoriesToList(recordId, leadCategoryRes.categories);
 						}
 					}
 					finishSave(response);

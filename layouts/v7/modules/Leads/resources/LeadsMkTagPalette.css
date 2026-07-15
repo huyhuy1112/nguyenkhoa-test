@@ -223,10 +223,18 @@
 .mk-td-tag-pill[data-tag="da_MQBB"],
 .tag[data-tag="da_MQBB"],
 .mk-lead-detail-tag-chip[data-tag="da_MQBB"],
+.mk-tag[data-tag="da_mqbb"],
+.mk-td-tag-pill[data-tag="da_mqbb"],
+.tag[data-tag="da_mqbb"],
+.mk-lead-detail-tag-chip[data-tag="da_mqbb"],
 .mk-tag[data-tag="chua_MQBB"],
 .mk-td-tag-pill[data-tag="chua_MQBB"],
 .tag[data-tag="chua_MQBB"],
 .mk-lead-detail-tag-chip[data-tag="chua_MQBB"],
+.mk-tag[data-tag="chua_mqbb"],
+.mk-td-tag-pill[data-tag="chua_mqbb"],
+.tag[data-tag="chua_mqbb"],
+.mk-lead-detail-tag-chip[data-tag="chua_mqbb"],
 .mk-tag[data-tag="da_PCTH"],
 .mk-td-tag-pill[data-tag="da_PCTH"],
 .tag[data-tag="da_PCTH"],
@@ -239,18 +247,34 @@
 .mk-td-tag-pill[data-tag="da_MQBB_chua_PCTH"],
 .tag[data-tag="da_MQBB_chua_PCTH"],
 .mk-lead-detail-tag-chip[data-tag="da_MQBB_chua_PCTH"],
+.mk-tag[data-tag="da_mqbb_chua_pcth"],
+.mk-td-tag-pill[data-tag="da_mqbb_chua_pcth"],
+.tag[data-tag="da_mqbb_chua_pcth"],
+.mk-lead-detail-tag-chip[data-tag="da_mqbb_chua_pcth"],
 .mk-tag[data-tag="da_MQBB_da_PCTH"],
 .mk-td-tag-pill[data-tag="da_MQBB_da_PCTH"],
 .tag[data-tag="da_MQBB_da_PCTH"],
 .mk-lead-detail-tag-chip[data-tag="da_MQBB_da_PCTH"],
+.mk-tag[data-tag="da_mqbb_da_pcth"],
+.mk-td-tag-pill[data-tag="da_mqbb_da_pcth"],
+.tag[data-tag="da_mqbb_da_pcth"],
+.mk-lead-detail-tag-chip[data-tag="da_mqbb_da_pcth"],
 .mk-tag[data-tag="chua_MQBB_chua_PCTH"],
 .mk-td-tag-pill[data-tag="chua_MQBB_chua_PCTH"],
 .tag[data-tag="chua_MQBB_chua_PCTH"],
 .mk-lead-detail-tag-chip[data-tag="chua_MQBB_chua_PCTH"],
+.mk-tag[data-tag="chua_mqbb_chua_pcth"],
+.mk-td-tag-pill[data-tag="chua_mqbb_chua_pcth"],
+.tag[data-tag="chua_mqbb_chua_pcth"],
+.mk-lead-detail-tag-chip[data-tag="chua_mqbb_chua_pcth"],
 .mk-tag[data-tag="chua_MQBB_da_PCTH"],
 .mk-td-tag-pill[data-tag="chua_MQBB_da_PCTH"],
 .tag[data-tag="chua_MQBB_da_PCTH"],
-.mk-lead-detail-tag-chip[data-tag="chua_MQBB_da_PCTH"] {
+.mk-lead-detail-tag-chip[data-tag="chua_MQBB_da_PCTH"],
+.mk-tag[data-tag="chua_mqbb_da_pcth"],
+.mk-td-tag-pill[data-tag="chua_mqbb_da_pcth"],
+.tag[data-tag="chua_mqbb_da_pcth"],
+.mk-lead-detail-tag-chip[data-tag="chua_mqbb_da_pcth"] {
     border: 1px solid transparent;
     background: #f3f4f6; border-color: #d1d5db; color: #374151;
 }
@@ -477,6 +501,47 @@
 .mk-lead-detail-tag-chip[data-tag="goi_lan_10"] {
     border: 1px solid transparent;
     background: #ffedd5; border-color: #fdba74; color: #c2410c;
+}
+
+/* Opp-specific catalog tags (shared palette) */
+.mk-tag[data-tag="hotline"],
+.mk-td-tag-pill[data-tag="hotline"],
+.tag[data-tag="hotline"],
+.mk-lead-detail-tag-chip[data-tag="hotline"],
+.mk-tag[data-tag="ladipage_fb"],
+.mk-td-tag-pill[data-tag="ladipage_fb"],
+.tag[data-tag="ladipage_fb"],
+.mk-lead-detail-tag-chip[data-tag="ladipage_fb"] {
+    border: 1px solid transparent;
+    background: #dbeafe; border-color: #60a5fa; color: #1d4ed8;
+}
+
+.mk-tag[data-tag="da_tg_fb1"],
+.mk-td-tag-pill[data-tag="da_tg_fb1"],
+.tag[data-tag="da_tg_fb1"],
+.mk-lead-detail-tag-chip[data-tag="da_tg_fb1"],
+.mk-tag[data-tag="mua_on_dinh"],
+.mk-td-tag-pill[data-tag="mua_on_dinh"],
+.tag[data-tag="mua_on_dinh"],
+.mk-lead-detail-tag-chip[data-tag="mua_on_dinh"] {
+    border: 1px solid transparent;
+    background: #d1fae5; border-color: #6ee7b7; color: #047857;
+}
+
+.mk-tag[data-tag="xac_nhan_tham_gia"],
+.mk-td-tag-pill[data-tag="xac_nhan_tham_gia"],
+.tag[data-tag="xac_nhan_tham_gia"],
+.mk-lead-detail-tag-chip[data-tag="xac_nhan_tham_gia"] {
+    border: 1px solid transparent;
+    background: #dcfce7; border-color: #86efac; color: #166534;
+}
+
+.mk-tag[data-tag="khong_xac_nhan_tham_gia"],
+.mk-td-tag-pill[data-tag="khong_xac_nhan_tham_gia"],
+.tag[data-tag="khong_xac_nhan_tham_gia"],
+.mk-lead-detail-tag-chip[data-tag="khong_xac_nhan_tham_gia"] {
+    border: 1px solid transparent;
+    background: #fee2e2; border-color: #fca5a5; color: #b91c1c;
 }
 
 /* Dropdown options stay neutral — only tag pills keep color */

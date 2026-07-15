@@ -68,12 +68,20 @@ class Vtiger_MkSalesInlineDetailHelper {
 		'khong_hoc' => 'Không học',
 		'da_pcth' => 'Đã PCTH',
 		'chua_pcth' => 'Chưa PCTH',
+		'ca_nhan' => 'Cá nhân',
+		'chua_mqbb' => 'chua_MQBB',
+		'da_mqbb' => 'da_MQBB',
+		'da_mqbb_chua_pcth' => 'da_MQBB_chua_PCTH',
+		'da_mqbb_da_pcth' => 'da_MQBB_da_PCTH',
+		'chua_mqbb_chua_pcth' => 'chua_MQBB_chua_PCTH',
+		'chua_mqbb_da_pcth' => 'chua_MQBB_da_PCTH',
 	);
 
 	protected static $tagAliases = array(
 		'gold' => 'vang',
 		'silver' => 'bac',
 		'bronze' => 'dong',
+		'ca_nhan' => 'individual',
 	);
 
 	public static function decodeText($text) {
@@ -185,14 +193,19 @@ class Vtiger_MkSalesInlineDetailHelper {
 			'chua_hoc', 'da_hoc', 'mien_phi_online', 'mien_phi_offline', 'pcth', 'van_hanh', 'mkt', 'lop_khac',
 			'nhuong_quyen', 'nguyen_lieu_chuoi', 'mua_lan_dau', 'mua_lai', 'khong_mua', 'ngung_mua', 'mua_on_dinh',
 			'tiem_nang', 'dang_cham_soc', 'dang_tu_van', 'kh_can_nhac', 'vang', 'bac', 'dong',
-			'kv1', 'kv2', 'kv3', 'individual', 'company', 'co_quan', 'chuan_bi_mo', 'gia_dinh',
+			'kv1', 'kv2', 'kv3', 'individual', 'company', 'ca_nhan', 'co_quan', 'chuan_bi_mo', 'gia_dinh',
 			'moi_quen', 'da_co_quan_he', 'chua_mqbh', 'da_tg_free', 'da_tg_fb1', 'thu_3', 'da_ky_quy',
 			'xac_nhan_tham_gia', 'khong_xac_nhan_tham_gia', 'l1', 'l2', 'chua_990k', 'da_990k',
 			'lop_online', 'moi_lai', 'doi_lich', 'khong_nghe_may', 'thue_bao', 'trung_so', 'ngung_cham_soc',
 			'hoan_tien_lop_hoc', 'khong_hoc', 'da_pcth', 'chua_pcth',
+			'chua_mqbb', 'da_mqbb', 'da_mqbb_chua_pcth', 'da_mqbb_da_pcth', 'chua_mqbb_chua_pcth', 'chua_mqbb_da_pcth',
+			'dung_cham_soc', 'tham_khao', 'khong_du_tai_chinh',
 		);
 		if (!in_array($key, $known, true)) {
 			return 'mk-tag mk-tag--other';
+		}
+		if ($key === 'ca_nhan') {
+			return 'mk-tag mk-tag--individual';
 		}
 		if ($key === 'xac_nhan_tham_gia') {
 			return 'mk-tag mk-tag--xac-nhan';

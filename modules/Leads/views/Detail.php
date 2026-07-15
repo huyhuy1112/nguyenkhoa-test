@@ -99,11 +99,117 @@ class Leads_Detail_View extends Vtiger_Index_View {
 			array('phone', 'Điện thoại'),
 			array('email', 'Email'),
 			array('company', 'Công ty'),
-			array('leadsource', 'Nguồn'),
-			array('leadstatus', 'Trạng thái'),
 			array('assigned_user_id', 'Phụ trách'),
 			array('createdtime', 'Ngày tạo'),
 		));
+		foreach ($infoFields as &$infoField) {
+			if (!empty($infoField['value']) && $infoField['value'] !== '—') {
+				$infoField['value'] = Vtiger_MkSalesInlineDetailHelper::decodeText($infoField['value']);
+			}
+			if (isset($infoField['raw_value']) && is_string($infoField['raw_value'])) {
+				$infoField['raw_value'] = Vtiger_MkSalesInlineDetailHelper::decodeText($infoField['raw_value']);
+			}
+		}
+		unset($infoField);
+
+		$inlineTags = Vtiger_MkSalesInlineDetailHelper::buildInlineTags($moduleName, $recordId);
+		$tagKeys = array();
+		foreach ($inlineTags as $tag) {
+			if (!empty($tag['key'])) {
+				$tagKeys[] = (string) $tag['key'];
+			}
+		}
+		$pick = function (array $pool) use ($tagKeys) {
+			foreach ($pool as $k) {
+				if (in_array($k, $tagKeys, true)) {
+					return $k;
+				}
+			}
+			return '';
+		};
+		$labelOf = function ($key, $fallback = '—') {
+			if ($key === '') {
+				return $fallback;
+			}
+			return Vtiger_MkSalesInlineDetailHelper::labelForTag($key, $key);
+		};
+
+		$sourceKey = $pick(array('facebook', 'tiktok', 'website', 'zalo', 'other', 'other_source'));
+		if ($sourceKey === 'other_source') {
+			$sourceKey = 'other';
+		}
+		$customerKey = $pick(array('co_quan', 'chuan_bi_mo', 'gia_dinh', 'individual', 'company', 'ca_nhan'));
+		if ($customerKey === 'ca_nhan') {
+			$customerKey = 'individual';
+		}
+		$stageKey = $pick(array('mua_lan_dau', 'mua_lai', 'khong_mua', 'ngung_mua'));
+		$tierKey = $pick(array('vang', 'bac', 'dong'));
+
+		$categoryFields = array(
+			array(
+				'name' => 'mk_source',
+				'label' => 'Nguồn',
+				'value' => $labelOf($sourceKey),
+				'raw_value' => $sourceKey,
+				'data_type' => 'picklist',
+				'editable' => true,
+				'picklist_values' => array(
+					'' => '—',
+					'facebook' => 'Facebook',
+					'tiktok' => 'TikTok',
+					'website' => 'Website',
+					'zalo' => 'Zalo',
+					'other' => 'Khác',
+				),
+			),
+			array(
+				'name' => 'mk_customer',
+				'label' => 'Loại khách',
+				'value' => $labelOf($customerKey),
+				'raw_value' => $customerKey,
+				'data_type' => 'picklist',
+				'editable' => true,
+				'picklist_values' => array(
+					'' => '—',
+					'individual' => 'Cá nhân',
+					'company' => 'Công ty',
+					'co_quan' => 'Có quán',
+					'chuan_bi_mo' => 'Chuẩn bị mở',
+					'gia_dinh' => 'Gia đình',
+				),
+			),
+			array(
+				'name' => 'mk_stage',
+				'label' => 'Giai đoạn',
+				'value' => $labelOf($stageKey),
+				'raw_value' => $stageKey,
+				'data_type' => 'picklist',
+				'editable' => true,
+				'picklist_values' => array(
+					'' => '—',
+					'mua_lan_dau' => 'Mua lần đầu',
+					'mua_lai' => 'Mua lại',
+					'khong_mua' => 'Không mua',
+					'ngung_mua' => 'Ngừng mua',
+				),
+			),
+			array(
+				'name' => 'mk_tier',
+				'label' => 'Hạng',
+				'value' => $labelOf($tierKey),
+				'raw_value' => $tierKey,
+				'data_type' => 'picklist',
+				'editable' => true,
+				'picklist_values' => array(
+					'' => '—',
+					'vang' => 'Vàng',
+					'bac' => 'Bạc',
+					'dong' => 'Đồng',
+				),
+			),
+		);
+		// Insert category fields after company (index 2)
+		array_splice($infoFields, 3, 0, $categoryFields);
 
 		$nextAction = '';
 		try {
@@ -123,10 +229,24 @@ class Leads_Detail_View extends Vtiger_Index_View {
 			$nextAction = '';
 		}
 
+		$canConvert = true;
+		$potentialUrl = '';
+		try {
+			require_once 'modules/Leads/models/ConvertService.php';
+			$status = Leads_ConvertService::getConversionStatus($recordId);
+			$canConvert = !empty($status['canConvert']);
+			$potentialUrl = !empty($status['potentialUrl']) ? (string) $status['potentialUrl'] : '';
+		} catch (Exception $e) {
+			$canConvert = true;
+			$potentialUrl = '';
+		}
+
 		$viewer = $this->getViewer($request);
 		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, 'SALES', $infoFields, $title, $subtitle);
 		$viewer->assign('INLINE_SHOW_NEXT_ACTION', true);
 		$viewer->assign('INLINE_NEXT_ACTION', $nextAction);
+		$viewer->assign('INLINE_CAN_CONVERT', $canConvert);
+		$viewer->assign('INLINE_POTENTIAL_URL', $potentialUrl);
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 

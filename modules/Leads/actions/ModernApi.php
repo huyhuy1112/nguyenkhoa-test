@@ -26,7 +26,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string)$request->get('mode'));
-		if (in_array($mode, array('save', 'save_next_action', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner', 'dedupe_leads'), true)) {
+		if (in_array($mode, array('save', 'save_next_action', 'save_inline_category_tags', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner', 'dedupe_leads'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -156,6 +156,35 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					$saved = Leads_ModernService::updateNextAction($recordId, $nextAction);
 					$response->setResult(array('success' => true, 'next_action' => $saved));
+					break;
+
+				case 'save_inline_category_tags':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$payload = $this->decodePayload($request);
+					$cats = array();
+					$map = array(
+						'source' => array('source', 'mk_source'),
+						'customer' => array('customer', 'mk_customer'),
+						'purchase' => array('purchase', 'mk_stage'),
+						'tier' => array('tier', 'mk_tier'),
+					);
+					foreach ($map as $catKey => $aliases) {
+						foreach ($aliases as $alias) {
+							if (isset($payload[$alias])) {
+								$cats[$catKey] = $payload[$alias];
+								break;
+							}
+							if ($request->has($alias)) {
+								$cats[$catKey] = $request->get($alias);
+								break;
+							}
+						}
+					}
+					$result = Leads_ModernService::updateInlineCategoryTags($recordId, $cats, $userId);
+					$response->setResult(array('success' => true) + $result);
 					break;
 
 				case 'delete':

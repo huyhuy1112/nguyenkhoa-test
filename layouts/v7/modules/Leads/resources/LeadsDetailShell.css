@@ -1017,9 +1017,8 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	border-radius: 999px;
 	font-size: 12px;
 	font-weight: 600;
-	background: #f1f5f9;
-	color: #475569;
-	border: 1px solid #e2e8f0;
+	/* Màu từ LeadsMkTagPalette.css [data-tag] — không ép xám base */
+	border: 1px solid transparent;
 }
 
 /* Tag colors → LeadsMkTagPalette.css */
@@ -1686,8 +1685,16 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	border-radius: 999px;
 	font-size: 12px;
 	font-weight: 600;
+	/* Màu từ LeadsMkTagPalette.css [data-tag] — không ép xám base */
+	border: 1px solid transparent;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip:not([data-tag]),
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip[data-tag=""],
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag:not([data-tag]),
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag=""] {
 	background: #f1f5f9;
-	border: 1px solid #e2e8f0;
+	border-color: #e2e8f0;
 	color: #475569;
 }
 
