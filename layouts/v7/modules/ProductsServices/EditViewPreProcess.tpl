@@ -1,15 +1,45 @@
-{* ProductsServices Create: dashboard split shell — sidebar + topbar unchanged. *}
+{* ProductsServices Create: dashboard split shell — sidebar + topbar unchanged. No FOUC. *}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
-<script type="text/javascript">document.documentElement.classList.add('mk-ps-create-ready');</script>
-{* Cache-bust: vresource_url already adds ?v=… so append &mk_v=… *}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260715_ps_leads2" />
+<script type="text/javascript">
+document.documentElement.classList.add('mk-ps-create-ready','mk-ps-create-boot');
+if (document.body) { document.body.classList.add('mk-ps-create-ready'); }
+else { document.addEventListener('DOMContentLoaded', function () { document.body.classList.add('mk-ps-create-ready'); }); }
+</script>
+{* Critical anti-FOUC: hide form until MkEdit.css + JS paint; key v4 shell tokens inline *}
+<style type="text/css">
+html.mk-ps-create-boot:not(.mk-ps-create-painted) #mkPsCreateWorkspace {
+	visibility: hidden !important;
+}
+html.mk-ps-create-boot.mk-ps-create-painted #mkPsCreateWorkspace,
+html.mk-ps-create-ready #mkPsCreateWorkspace {
+	visibility: visible !important;
+}
+/* Inline shell so reload never flashes legacy vtiger edit chrome */
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-dash-main.mk-ps-edit-main {
+	background: #f4f7f5 !important;
+	font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create.mk-ps-create--v4 {
+	max-width: 880px !important;
+	margin: 0 auto !important;
+	padding: 8px 0 32px !important;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .module-nav,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] #modnavigator,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .editViewHeader,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .content-area > .row:has(.detailViewButtoncontainer) {
+	display: none !important;
+}
+</style>
+{* MkEdit last-wins styles FIRST among theme files so "new CSS" is what paints *}
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesMkEdit.css')}&mk_v=20260715_ps_create_v5" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260715_ps_create_v5" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
-{* Theme first (list/detail accents); MkEdit last so create compact green UI wins *}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}&mk_v=20260715_ps_leads2" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesMkEdit.css')}&mk_v=20260715_ps_leads2" />
+{* Re-assert MkEdit after shell/theme so create UI always wins on reload *}
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesMkEdit.css')}&mk_v=20260715_ps_create_v5" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesMkEdit.js')}&mk_v=20260715_ps_leads2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesMkEdit.js')}&mk_v=20260715_ps_create_v5"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-ps-create="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

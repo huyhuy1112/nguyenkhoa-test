@@ -4,7 +4,7 @@
 	<header class="mk-ps-action-header" role="region" aria-label="Hàng hoá">
 		<div class="mk-ps-action-header__text">
 			<h1 class="mk-ps-action-header__title">Danh sách hàng hoá</h1>
-			<p class="mk-ps-action-header__subtitle">Quản lý SKU, loại, giá bán và người phụ trách.</p>
+			<p class="mk-ps-action-header__subtitle">Quản lý sản phẩm và dịch vụ trong kho</p>
 		</div>
 		<div class="mk-ps-action-header__actions">
 			{assign var=IMPORT_ACTION value=false}

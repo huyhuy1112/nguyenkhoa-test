@@ -2661,3 +2661,338 @@ html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .
 	border: 1px solid #e5e7eb !important;
 	background: #fff !important;
 }
+
+/* ========== Create v4 — modern inventory composition ========== */
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] {
+	--mk-ps-v4-accent: #08a045;
+	--mk-ps-v4-ink: #0b1f17;
+	--mk-ps-v4-max: 1080px;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-dash-main.mk-ps-edit-main {
+	background:
+		radial-gradient(ellipse 60% 45% at 0% 0%, rgba(8, 160, 69, 0.12), transparent 55%),
+		radial-gradient(ellipse 50% 40% at 100% 10%, rgba(15, 23, 42, 0.06), transparent 50%),
+		linear-gradient(180deg, #eef6f1 0%, #f4f7f5 42%, #f8faf9 100%) !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create.mk-ps-create--v4 {
+	padding: 8px 22px 48px !important;
+	max-width: none !important;
+	background: transparent !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-create-body {
+	max-width: var(--mk-ps-v4-max) !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
+/* Hero header board */
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head {
+	position: relative !important;
+	margin-bottom: 18px !important;
+	padding: 18px 22px 20px !important;
+	border-radius: 20px !important;
+	border: 1px solid rgba(11, 31, 23, 0.08) !important;
+	background:
+		linear-gradient(135deg, #0b1f17 0%, #143528 48%, #0f2a1f 100%) !important;
+	box-shadow: 0 18px 40px rgba(11, 31, 23, 0.18) !important;
+	overflow: hidden !important;
+	color: #ecfdf3 !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__glow {
+	position: absolute;
+	right: -10%;
+	top: -40%;
+	width: 420px;
+	height: 420px;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(8, 160, 69, 0.45), transparent 68%);
+	pointer-events: none;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__top {
+	position: relative;
+	z-index: 1;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	gap: 12px;
+	margin-bottom: 14px !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__crumb {
+	color: rgba(236, 253, 243, 0.55) !important;
+	font-size: 12px !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__crumb a {
+	color: rgba(236, 253, 243, 0.78) !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__crumb a:hover {
+	color: #fff !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__hero {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 16px 24px;
+	flex-wrap: wrap;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__eyebrow {
+	margin: 0 0 6px !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: #86efac !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__title {
+	margin: 0 !important;
+	font-family: var(--mk-ps-display) !important;
+	font-size: clamp(1.55rem, 2.2vw, 2rem) !important;
+	font-weight: 700 !important;
+	letter-spacing: -0.03em !important;
+	color: #fff !important;
+	line-height: 1.15 !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__sub {
+	margin: 8px 0 0 !important;
+	font-size: 14px !important;
+	color: rgba(236, 253, 243, 0.7) !important;
+	border: none !important;
+	padding: 0 !important;
+	display: block !important;
+	max-width: 42ch;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__chips {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-page-head__chips li {
+	padding: 6px 12px;
+	border-radius: 999px;
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	background: rgba(255, 255, 255, 0.06);
+	color: rgba(236, 253, 243, 0.88);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	backdrop-filter: blur(6px);
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-btn--ghost {
+	background: rgba(255, 255, 255, 0.06) !important;
+	border: 1px solid rgba(255, 255, 255, 0.18) !important;
+	color: #ecfdf3 !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-btn--ghost:hover {
+	background: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-btn--save,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 #mkPsSaveTop {
+	background: var(--mk-ps-v4-accent) !important;
+	border-color: #07963f !important;
+	color: #fff !important;
+	min-height: 38px !important;
+	padding: 9px 18px !important;
+	border-radius: 11px !important;
+	box-shadow: 0 8px 20px rgba(8, 160, 69, 0.35) !important;
+	font-weight: 700 !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-btn--save:hover,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 #mkPsSaveTop:hover {
+	background: #07963f !important;
+	transform: translateY(-1px);
+}
+
+/* Form blocks */
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-form-host .mk-ps-block,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-form-host .fieldBlockContainer.mk-ps-block {
+	margin-bottom: 14px !important;
+	padding: 20px 22px 18px !important;
+	border-radius: 18px !important;
+	border: 1px solid rgba(15, 23, 42, 0.07) !important;
+	background: rgba(255, 255, 255, 0.92) !important;
+	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05) !important;
+	backdrop-filter: blur(8px);
+	overflow: visible !important;
+	transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-form-host .mk-ps-block:hover {
+	box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-form-host .mk-ps-block::before {
+	display: none !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-block--primary {
+	padding-top: 22px !important;
+	border-color: rgba(8, 160, 69, 0.18) !important;
+	background:
+		linear-gradient(180deg, #ffffff 0%, #f7fcf8 100%) !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-block-mosaic {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px;
+	margin-bottom: 14px;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-block-mosaic .mk-ps-block {
+	margin-bottom: 0 !important;
+	height: 100%;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-form-host .mk-ps-block .fieldBlockHeader,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-form-host .mk-ps-block .mk-ps-block__header {
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+	font-family: var(--mk-ps-display) !important;
+	font-size: 1.05rem !important;
+	font-weight: 700 !important;
+	letter-spacing: -0.02em !important;
+	text-transform: none !important;
+	color: var(--mk-ps-v4-ink) !important;
+	margin: 0 0 16px 0 !important;
+	padding: 0 0 12px 0 !important;
+	border-bottom: 1px solid #eef2f0 !important;
+	background: transparent !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-block__num {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 9px;
+	background: #0b1f17;
+	color: #ecfdf3;
+	font-size: 12px;
+	font-weight: 700;
+	font-family: var(--mk-ps-font);
+	flex: 0 0 28px;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-grid {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	column-gap: 16px !important;
+	row-gap: 12px !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-field--full,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-field--note {
+	grid-column: 1 / -1 !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-label {
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #64748b !important;
+	margin-bottom: 2px;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-value > input.inputElement,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-field .mk-ps-unit-box__select,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-value > textarea.inputElement {
+	height: 42px !important;
+	min-height: 42px !important;
+	border-radius: 12px !important;
+	border: 1px solid #dce5df !important;
+	background: #fbfcfb !important;
+	font-size: 14px !important;
+	color: #0f172a !important;
+	padding: 0 12px !important;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-value > textarea.inputElement {
+	height: auto !important;
+	min-height: 88px !important;
+	padding: 10px 12px !important;
+	resize: vertical;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-value > input.inputElement:focus,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-field .mk-ps-unit-box__select:focus,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-value > textarea.inputElement:focus {
+	background: #fff !important;
+	border-color: var(--mk-ps-v4-accent) !important;
+	box-shadow: 0 0 0 4px rgba(8, 160, 69, 0.14) !important;
+	outline: none !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-field--hero .mk-ps-compact-value > input.inputElement {
+	font-weight: 600 !important;
+	font-size: 15px !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-field--money .input-group {
+	min-height: 42px !important;
+	height: 42px !important;
+	border-radius: 12px !important;
+	border: 1px solid #dce5df !important;
+	background: #fbfcfb !important;
+	overflow: hidden;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-type-box__option {
+	min-height: 40px !important;
+	border-radius: 12px !important;
+	font-weight: 600 !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-type-box__option.is-on {
+	background: #ecfdf3 !important;
+	border-color: #086f3a !important;
+	color: #0b6e4f !important;
+	box-shadow: inset 0 0 0 1px rgba(8, 160, 69, 0.2) !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-unit-box__add {
+	width: 42px !important;
+	height: 42px !important;
+	flex: 0 0 42px !important;
+	border-radius: 12px !important;
+	background: #0b1f17 !important;
+	color: #fff !important;
+	border: none !important;
+}
+
+@media (max-width: 900px) {
+	html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-block-mosaic,
+	html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-grid {
+		grid-template-columns: 1fr !important;
+	}
+	html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create.mk-ps-create--v4 {
+		padding: 8px 14px 36px !important;
+	}
+}

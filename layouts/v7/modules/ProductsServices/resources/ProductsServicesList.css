@@ -605,21 +605,21 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-/* Control column: hide checkbox/actions only — never hide Tên hàng */
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-control,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-control,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-control,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-control,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-control,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-control,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.listViewRecordActions,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.listViewRecordActions,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader > th:first-child:has(.listViewEntriesMainCheckBox),
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.listViewContentHeader > th:first-child:has(.listViewEntriesMainCheckBox),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader > th:first-child:has(.table-actions),
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.listViewContentHeader > th:first-child:has(.table-actions),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow > th.inline-search-btn,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow > th.inline-search-btn {
+/* Control column: legacy hide — skipped on list v2 (checkbox must stay aligned) */
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table th.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table td.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-control,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table td.listViewRecordActions,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table td.listViewRecordActions,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader > th:first-child:has(.listViewEntriesMainCheckBox),
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table thead tr.listViewContentHeader > th:first-child:has(.listViewEntriesMainCheckBox),
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader > th:first-child:has(.table-actions),
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table thead tr.listViewContentHeader > th:first-child:has(.table-actions),
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table thead tr.searchRow > th.inline-search-btn,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow > th.inline-search-btn {
 	display: none !important;
 	width: 0 !important;
 	min-width: 0 !important;
@@ -629,26 +629,36 @@ body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #li
 	overflow: hidden !important;
 }
 
-/* Name column must stay visible (Tên hàng hoá) — all apps */
-body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="productsservicesname"]),
-body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td[data-name="productsservicesname"],
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-name,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="productsservicesname"]),
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="productsservicesname"]),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="productsservicesname"],
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="productsservicesname"] {
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader {
+	display: table-row;
+	width: 100%;
+}
+
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader th:last-child,
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries td:last-child {
+	border-right: none !important;
+}
+
+/* Name column must stay visible (Tên hàng hoá) — legacy only; v2 uses fixed col % */
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2) #listViewContent #listview-table th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2) #listViewContent #listview-table td.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2) #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2) #listViewContent #listview-table th:has(a[data-columnname="productsservicesname"]),
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2) #listViewContent #listview-table td[data-name="productsservicesname"],
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table td.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table td.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="productsservicesname"]),
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="productsservicesname"]),
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="SALES"] #listViewContent #listview-table td[data-name="productsservicesname"],
+body[data-module="ProductsServices"][data-view="List"]:not(.mk-ps-list-v2)[data-app="INVENTORY"] #listViewContent #listview-table td[data-name="productsservicesname"] {
 	display: table-cell !important;
-	width: 240px !important;
-	min-width: 180px !important;
-	max-width: 320px !important;
+	width: auto !important;
+	min-width: 200px !important;
+	max-width: none !important;
 	box-sizing: border-box;
 	overflow: hidden;
 	visibility: visible !important;
@@ -661,9 +671,9 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="item_type"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="item_type"]),
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="item_type"], body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="item_type"],
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-ps-type-cell , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-ps-type-cell {
-	width: 96px;
-	min-width: 96px;
-	max-width: 96px;
+	width: 110px;
+	min-width: 110px;
+	max-width: 140px;
 	box-sizing: border-box;
 	overflow: hidden;
 }
@@ -674,9 +684,9 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="price"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="price"]),
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="price"], body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="price"],
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td.mk-ps-price-cell , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td.mk-ps-price-cell {
-	width: 120px;
+	width: 130px;
 	min-width: 120px;
-	max-width: 120px;
+	max-width: 160px;
 	box-sizing: border-box;
 	overflow: hidden;
 }
@@ -686,9 +696,9 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-wholesale, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-wholesale,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="wholesale_price"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="wholesale_price"]),
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="wholesale_price"] , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="wholesale_price"] {
-	width: 168px;
-	min-width: 168px;
-	max-width: 168px;
+	width: 140px;
+	min-width: 130px;
+	max-width: 170px;
 	box-sizing: border-box;
 	overflow: hidden;
 }
@@ -698,9 +708,9 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listVi
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-warranty, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table thead tr.searchRow th.mk-col-ps-warranty,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table th:has(a[data-columnname="warranty"]), body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table th:has(a[data-columnname="warranty"]),
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="warranty"] , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #listview-table td[data-name="warranty"] {
-	width: 96px;
-	min-width: 96px;
-	max-width: 96px;
+	width: 120px;
+	min-width: 100px;
+	max-width: 140px;
 	box-sizing: border-box;
 	overflow: hidden;
 }
@@ -1218,9 +1228,50 @@ body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [d
 	display: none;
 }
 
-/* Hide list selection checkboxes (user requested — no multi-select column) */
-body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table input[type="checkbox"].listViewEntriesCheckBox,
-body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table input[type="checkbox"].listViewEntriesMainCheckBox,
-body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) #listViewContent #listview-table .table-actions > .input {
-	display: none !important;
+/* v2: checkboxes visible (circular tick styled in ProductsServicesListTable.css) */
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table > thead,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table > thead {
+	display: table-header-group !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+}
+
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader {
+	display: table-row !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+}
+
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader th,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader th {
+	display: table-cell !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+}
+
+/* v2 checkboxes: custom circular .mk-ps-check — native input stays invisible */
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table .table-actions > .input,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table .table-actions > .input {
+	display: inline-flex !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	align-items: center;
+	justify-content: center;
+}
+
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table input.listViewEntriesCheckBox,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table input.listViewEntriesMainCheckBox,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table input.listViewEntriesCheckBox,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table input.listViewEntriesMainCheckBox {
+	position: absolute !important;
+	opacity: 0 !important;
+	width: 18px !important;
+	height: 18px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	cursor: pointer;
+	z-index: 2;
+	-webkit-appearance: none !important;
+	appearance: none !important;
 }

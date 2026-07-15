@@ -21,6 +21,7 @@ $languageStrings = array(
 	'Stock' => 'Tồn kho',
 	'Supplier' => 'Nhà cung cấp',
 	'Name' => 'Tên sản phẩm',
+	'Price' => 'Giá',
 	'SKU' => 'SKU',
 	'Warranty' => 'Bảo hành',
 	'Specification' => 'Diễn giải',

@@ -1,37 +1,35 @@
 <?php
 /*+***********************************************************************************
- * ProductsServices ListView — always show product name (productsservicesname).
+ * ProductsServices ListView — fixed catalog columns.
  *************************************************************************************/
 
 class ProductsServices_ListView_Model extends Vtiger_ListView_Model {
 
 	const NAME_FIELD = 'productsservicesname';
 
-	protected function isModernProductsServicesListRequest() {
-		$app = '';
-		if (!empty($_REQUEST['app'])) {
-			$app = strtoupper((string) $_REQUEST['app']);
-		}
-		return in_array($app, array('SALES', 'INVENTORY'), true) || $app === '';
+	const CANONICAL_HEADERS = array(
+		'productsservicesname',
+		'item_type',
+		'price',
+		'supplier',
+		'unit',
+	);
+
+	public static function getInstance($moduleName, $viewId = '0', $listHeaders = array()) {
+		$listHeaders = self::CANONICAL_HEADERS;
+		return parent::getInstance($moduleName, $viewId, $listHeaders);
 	}
 
-	/**
-	 * Keep productsservicesname first in the QueryGenerator field list.
-	 */
+	public static function ensureNameInHeaderList($headers) {
+		return self::CANONICAL_HEADERS;
+	}
+
 	public function forceProductNameColumn() {
 		$queryGenerator = $this->get('query_generator');
 		if (!$queryGenerator) {
-			return;
+			return false;
 		}
-		$nameKey = self::NAME_FIELD;
-		$fields = $queryGenerator->getFields();
-		if (!is_array($fields)) {
-			$fields = array();
-		}
-		$fields = array_values(array_filter($fields, function ($f) use ($nameKey) {
-			return $f !== $nameKey && $f !== '';
-		}));
-		array_unshift($fields, $nameKey);
+		$fields = self::CANONICAL_HEADERS;
 		if (!in_array('id', $fields, true)) {
 			$fields[] = 'id';
 		}
@@ -39,11 +37,7 @@ class ProductsServices_ListView_Model extends Vtiger_ListView_Model {
 			$fields[] = 'starred';
 		}
 		$queryGenerator->setFields(array_values(array_unique($fields)));
-	}
-
-	/** @deprecated use forceProductNameColumn */
-	protected function ensureNameFieldInQuery() {
-		$this->forceProductNameColumn();
+		return true;
 	}
 
 	protected function resolveNameFieldModel() {
@@ -51,33 +45,24 @@ class ProductsServices_ListView_Model extends Vtiger_ListView_Model {
 		$nameKey = self::NAME_FIELD;
 		$nameField = Vtiger_Field_Model::getInstance($nameKey, $module);
 		if ($nameField) {
-			$nameField->set('listViewRawFieldName', $nameField->get('column') ? $nameField->get('column') : $nameKey);
+			$col = $nameField->get('column');
+			$nameField->set('listViewRawFieldName', $col ? $col : $nameKey);
 			return $nameField;
 		}
-
-		$queryGenerator = $this->get('query_generator');
-		$moduleFields = $queryGenerator ? $queryGenerator->getModuleFields() : null;
-		if (is_array($moduleFields) && isset($moduleFields[$nameKey])) {
-			$nameField = Vtiger_Field_Model::getInstance($nameKey, $module);
+		if (method_exists($module, 'getField')) {
+			$nameField = $module->getField($nameKey);
 			if ($nameField) {
-				$nameField->set('listViewRawFieldName', $nameField->get('column') ? $nameField->get('column') : $nameKey);
+				$col = $nameField->get('column');
+				$nameField->set('listViewRawFieldName', $col ? $col : $nameKey);
 				return $nameField;
 			}
 		}
 		return null;
 	}
 
-	/**
-	 * Ensure Tên hàng hoá is always the first data column (even if Custom View / session omitted it).
-	 */
 	public function getListViewHeaders() {
-		$headers = parent::getListViewHeaders();
-		if (!$this->isModernProductsServicesListRequest()) {
-			return $headers;
-		}
-
 		$this->forceProductNameColumn();
-
+		$headers = parent::getListViewHeaders();
 		$nameKey = self::NAME_FIELD;
 		$nameField = null;
 		if (isset($headers[$nameKey])) {
@@ -86,18 +71,20 @@ class ProductsServices_ListView_Model extends Vtiger_ListView_Model {
 		} else {
 			$nameField = $this->resolveNameFieldModel();
 		}
-
 		if ($nameField) {
 			$headers = array($nameKey => $nameField) + $headers;
 		}
-
-		return $headers;
+		$ordered = array();
+		foreach (self::CANONICAL_HEADERS as $key) {
+			if (isset($headers[$key])) {
+				$ordered[$key] = $headers[$key];
+			}
+		}
+		return $ordered;
 	}
 
 	public function getListViewEntries($pagingModel) {
-		if ($this->isModernProductsServicesListRequest()) {
-			$this->forceProductNameColumn();
-		}
+		$this->forceProductNameColumn();
 		return parent::getListViewEntries($pagingModel);
 	}
 }

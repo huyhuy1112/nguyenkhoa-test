@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260715_ps_leads2';
+	var MK_BUILD = '20260715_ps_create_v5';
 	var UNIT_PRESETS = ['cái', 'hộp', 'set', 'bộ'];
 	var UNIT_STORAGE_KEY = 'mk_ps_custom_units_v1';
 	/* Only fields previously agreed to remove — keep brand/model/stock/etc. */
@@ -403,8 +403,68 @@
 			});
 	}
 
+	function decorateCreateLayout() {
+		var $host = $('#mkPsFormHost');
+		if (!$host.length) {
+			return;
+		}
+		var $blocks = $host.find('.fieldBlockContainer.mk-ps-block').filter(':visible');
+		if (!$blocks.length) {
+			return;
+		}
+
+		$blocks.each(function (idx) {
+			var $block = $(this);
+			$block.attr('data-mk-ps-block-idx', String(idx + 1));
+			var $head = $block.find('.mk-ps-block__header, .fieldBlockHeader').first();
+			if ($head.length && !$head.find('.mk-ps-block__num').length) {
+				$head.prepend('<span class="mk-ps-block__num" aria-hidden="true">' + (idx + 1) + '</span>');
+			}
+			if (idx === 0) {
+				$block.addClass('mk-ps-block--primary');
+			} else {
+				$block.addClass('mk-ps-block--secondary');
+			}
+		});
+
+		var $secondary = $blocks.filter('.mk-ps-block--secondary');
+		if ($secondary.length >= 2 && !$host.find('.mk-ps-block-mosaic').length) {
+			var $mosaic = $('<div class="mk-ps-block-mosaic" role="presentation"></div>');
+			$secondary.first().before($mosaic);
+			$secondary.appendTo($mosaic);
+		}
+
+		$host.find('.mk-ps-compact-field').each(function () {
+			var $field = $(this);
+			var fname = String(
+				$field.find('.mk-ps-compact-value').attr('data-fieldname') ||
+					$field.find('[name]').first().attr('name') ||
+					''
+			)
+				.replace(/\[\]$/, '')
+				.trim();
+			if (fname === 'productsservicesname' || fname === 'sku') {
+				$field.addClass('mk-ps-compact-field--hero');
+			}
+			if (fname === 'price' || fname === 'wholesale_price') {
+				$field.addClass('mk-ps-compact-field--money');
+			}
+			if (fname === 'specification' || fname === 'description') {
+				$field.addClass('mk-ps-compact-field--full mk-ps-compact-field--note');
+			}
+		});
+	}
+
+	function markPainted() {
+		document.documentElement.classList.add('mk-ps-create-painted', 'mk-ps-create-ready');
+		if (document.body) {
+			document.body.classList.add('mk-ps-create-ready');
+		}
+	}
+
 	function runEnhancements() {
 		if (!isScoped()) {
+			markPainted();
 			return;
 		}
 		hideLegacyChrome();
@@ -414,19 +474,24 @@
 		relabelTypeField();
 		enhanceUnitField();
 		enhanceTypeField();
+		decorateCreateLayout();
 		if (window.MkCurrency) {
 			window.MkCurrency.applyToDom('#mkPsFormHost');
 		}
 		bindActions();
+		markPainted();
 	}
 
 	function init() {
 		if (!isScoped()) {
+			markPainted();
 			return;
 		}
 		runEnhancements();
 		setTimeout(runEnhancements, 150);
 		setTimeout(runEnhancements, 600);
+		/* Safety: never leave workspace hidden after crash / slow JS */
+		setTimeout(markPainted, 1200);
 
 		$(document).ajaxComplete(function () {
 			if (isScoped()) {
