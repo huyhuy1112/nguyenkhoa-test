@@ -686,6 +686,11 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	width: 112px;
 }
 
+.mk-wh-proto-lines__table .mk-wh-proto-col-unit {
+	min-width: 88px;
+	width: 96px;
+}
+
 .mk-wh-proto-lines__table .mk-wh-proto-col-lot {
 	min-width: 132px;
 	width: 136px;

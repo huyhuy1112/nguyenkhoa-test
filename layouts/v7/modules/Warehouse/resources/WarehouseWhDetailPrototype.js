@@ -1431,6 +1431,7 @@
 					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost mk-wh-proto-lines__add" data-mk-lines-add="1">+ Thêm dòng</button></div>' +
 					'<div class="mk-wh-proto-lines__tableWrap"><table class="mk-wh-proto-lines__table" role="table"><thead><tr>' +
 					'<th class="mk-wh-proto-col-name">Tên hàng *</th><th class="mk-wh-proto-col-sku">SKU</th>' +
+					'<th class="mk-wh-proto-col-unit">Đơn vị</th>' +
 					'<th class="mk-wh-proto-col-lot">Lô *</th><th class="mk-wh-proto-col-qty">SL *</th>' +
 					'<th class="mk-wh-proto-col-date">NSX</th><th class="mk-wh-proto-col-date">HSD</th>' +
 					locTh + '<th style="width:44px;"></th>' +
@@ -1500,10 +1501,12 @@
 				var id = String(p.id || '');
 				var name = decodeEntities(p.name || '');
 				var sku = decodeEntities(p.sku || '');
+				var unit = decodeEntities(p.unit || '');
 				var sel = id && id === String(selectedId) ? ' selected="selected"' : '';
 				var label = name + (sku ? ' · ' + sku : ' (chưa có SKU)');
 				return '<option value="' + escapeHtml(id) + '" data-sku="' + escapeHtml(sku) +
-					'" data-name="' + escapeHtml(name) + '" data-price="' + escapeHtml(String(p.price || 0)) + '"' + sel + '>' +
+					'" data-name="' + escapeHtml(name) + '" data-price="' + escapeHtml(String(p.price || 0)) +
+					'" data-unit="' + escapeHtml(unit) + '"' + sel + '>' +
 					escapeHtml(label) + '</option>';
 			}).join('');
 		return '<select class="mk-wh-proto-product-select" data-mk-line-product="1">' + opts + '</select>';
@@ -1559,19 +1562,40 @@
 		} catch (e) { /* plain select fallback */ }
 	}
 
+	function lookupUnitFromCatalog(sku, name) {
+		var cat = getStockProductCatalog(getWhId()) || [];
+		var skuKey = String(sku || '').trim();
+		var nameKey = String(name || '').trim();
+		var i;
+		for (i = 0; i < cat.length; i++) {
+			if (skuKey && String(cat[i].sku || '').trim() === skuKey) {
+				return decodeEntities(cat[i].unit || '');
+			}
+		}
+		for (i = 0; i < cat.length; i++) {
+			if (nameKey && String(cat[i].name || '').trim() === nameKey) {
+				return decodeEntities(cat[i].unit || '');
+			}
+		}
+		return '';
+	}
+
 	function syncLineSkuFromSelect(selectEl) {
 		if (!selectEl) return;
 		var row = selectEl.closest('[data-mk-line="1"]');
 		if (!row) return;
 		var skuEl = row.querySelector('[data-mk-line-sku="1"]');
-		if (!skuEl) return;
+		var unitEl = row.querySelector('[data-mk-line-unit="1"]');
 		var opt = selectEl.options[selectEl.selectedIndex];
-		skuEl.value = (opt && opt.getAttribute('data-sku')) || '';
-		if (!skuEl.value) {
-			skuEl.value = '';
-			skuEl.placeholder = 'Chưa có SKU';
-		} else {
-			skuEl.placeholder = 'SKU';
+		var sku = (opt && opt.getAttribute('data-sku')) || '';
+		var unit = (opt && opt.getAttribute('data-unit')) || '';
+		if (skuEl) {
+			skuEl.value = sku;
+			skuEl.placeholder = sku ? 'SKU' : 'Chưa có SKU';
+		}
+		if (unitEl) {
+			unitEl.value = unit;
+			unitEl.placeholder = unit ? 'Đơn vị' : '—';
 		}
 	}
 
@@ -1585,10 +1609,12 @@
 			var p = preset || {};
 			var productId = p.product_id || p.productId || '';
 			var skuVal = p.sku || '';
+			var unitVal = p.unit || '';
 			bodyEl.insertAdjacentHTML('beforeend',
 				'<tr class="mk-wh-proto-lines__row" data-mk-line="1">' +
 				'<td>' + productSelectHtml(catalog, productId) + '</td>' +
 				'<td class="mk-wh-proto-col-sku"><input type="text" data-mk-line-sku="1" value="' + escapeHtml(skuVal) + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" placeholder="SKU" /></td>' +
+				'<td class="mk-wh-proto-col-unit"><input type="text" data-mk-line-unit="1" value="' + escapeHtml(unitVal) + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" placeholder="—" /></td>' +
 				'<td class="mk-wh-proto-col-lot"><input type="text" data-mk-line-lot="1" value="' + escapeHtml(p.lot || '') + '" placeholder="LOT-2605A" /></td>' +
 				'<td class="mk-wh-proto-col-qty"><input type="number" min="1" step="1" data-mk-line-qty="1" value="' + escapeHtml(p.qty != null ? p.qty : '') + '" placeholder="100" /></td>' +
 				'<td class="mk-wh-proto-col-date"><input type="date" data-mk-line-mfg="1" value="' + escapeHtml(p.mfg || '') + '" /></td>' +
@@ -1599,7 +1625,10 @@
 			var rows = bodyEl.querySelectorAll('[data-mk-line="1"]');
 			var newRow = rows[rows.length - 1];
 			var productSel = newRow ? newRow.querySelector('[data-mk-line-product="1"]') : null;
-			if (productSel) applyProductSelect2(productSel);
+			if (productSel) {
+				applyProductSelect2(productSel);
+				if (productId) syncLineSkuFromSelect(productSel);
+			}
 		}
 
 		var linesHead = form.querySelector('.mk-wh-proto-lines__ttl');
@@ -1664,6 +1693,7 @@
 				return '<option value="' + escapeHtml(key) + '" data-sku="' + escapeHtml(sku) +
 					'" data-name="' + escapeHtml(name) + '" data-lot="' + escapeHtml(lot) +
 					'" data-qty="' + escapeHtml(String(qty)) +
+					'" data-unit="' + escapeHtml(lookupUnitFromCatalog(sku, name)) +
 					'" data-mfg="' + escapeHtml(mfg) + '" data-expiry="' + escapeHtml(expiry) + '"' + sel + '>' +
 					escapeHtml(label) + '</option>';
 			}).join('');
@@ -1676,12 +1706,14 @@
 		if (!row) return;
 		var opt = selectEl.options[selectEl.selectedIndex];
 		var skuEl = row.querySelector('[data-mk-line-sku="1"]');
+		var unitEl = row.querySelector('[data-mk-line-unit="1"]');
 		var lotEl = row.querySelector('[data-mk-line-lot="1"]');
 		var qtyEl = row.querySelector('[data-mk-line-qty="1"]');
 		var mfgEl = row.querySelector('[data-mk-line-mfg="1"]');
 		var expEl = row.querySelector('[data-mk-line-exp="1"]');
 		if (!opt || !selectEl.value) {
 			if (skuEl) { skuEl.value = ''; skuEl.placeholder = 'SKU'; }
+			if (unitEl) { unitEl.value = ''; unitEl.placeholder = '—'; }
 			if (lotEl) lotEl.value = '';
 			if (mfgEl) { mfgEl.value = ''; mfgEl.readOnly = true; }
 			if (expEl) { expEl.value = ''; expEl.readOnly = true; }
@@ -1702,12 +1734,18 @@
 		var sku = decodeEntities((stockLot && stockLot.sku) || opt.getAttribute('data-sku') || '');
 		var lot = decodeEntities((stockLot && stockLot.lot) || opt.getAttribute('data-lot') || lotKeyPart || '');
 		lot = lot.replace(/^\s*lô\s+/i, '').trim();
+		var name = decodeEntities((stockLot && stockLot.name) || opt.getAttribute('data-name') || '');
+		var unit = decodeEntities(opt.getAttribute('data-unit') || '') || lookupUnitFromCatalog(sku, name);
 		var avail = stockLot ? (Number(stockLot.qty) || 0) : (parseInt(opt.getAttribute('data-qty') || '0', 10) || 0);
 		var mfg = toDateInputValue(decodeEntities((stockLot && stockLot.mfg) || opt.getAttribute('data-mfg') || ''));
 		var expiry = toDateInputValue(decodeEntities((stockLot && (stockLot.expiry || stockLot.exp)) || opt.getAttribute('data-expiry') || ''));
 		if (skuEl) {
 			skuEl.value = sku;
 			skuEl.placeholder = sku ? 'SKU' : 'Chưa có SKU';
+		}
+		if (unitEl) {
+			unitEl.value = unit;
+			unitEl.placeholder = unit ? 'Đơn vị' : '—';
 		}
 		if (lotEl) lotEl.value = lot;
 		if (mfgEl) {
@@ -1747,6 +1785,7 @@
 				'<tr class="mk-wh-proto-lines__row" data-mk-line="1">' +
 				'<td>' + outboundLotSelectHtml(lots, selectedKey) + '</td>' +
 				'<td class="mk-wh-proto-col-sku"><input type="text" data-mk-line-sku="1" value="' + escapeHtml(p.sku || '') + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" placeholder="SKU" /></td>' +
+				'<td class="mk-wh-proto-col-unit"><input type="text" data-mk-line-unit="1" value="' + escapeHtml(p.unit || '') + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" placeholder="—" /></td>' +
 				'<td class="mk-wh-proto-col-lot"><input type="text" data-mk-line-lot="1" value="' + escapeHtml(p.lot || '') + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" placeholder="LOT-2605A" /></td>' +
 				'<td class="mk-wh-proto-col-qty"><input type="number" min="1" step="1" data-mk-line-qty="1" value="' + escapeHtml(p.qty != null ? p.qty : '') + '" placeholder="100" /></td>' +
 				'<td class="mk-wh-proto-col-date"><input type="date" data-mk-line-mfg="1" value="' + escapeHtml(p.mfg || '') + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" /></td>' +
@@ -1904,6 +1943,9 @@
 						qty: qtyOut,
 						price: Number(stockLot.price) || 0,
 						unit_price: Number(stockLot.price) || 0,
+						unit: (row.querySelector('[data-mk-line-unit="1"]')
+							? row.querySelector('[data-mk-line-unit="1"]').value
+							: '') || lookupUnitFromCatalog(stockLot.sku, stockLot.name),
 						mfg: toDateInputValue(mfgVal || stockLot.mfg || ''),
 						expiry: toDateInputValue(expVal || stockLot.expiry || stockLot.exp || '') || '—',
 					});
@@ -1994,24 +2036,29 @@
 				var sku = '';
 				var name = '';
 				var price = 0;
+				var unit = '';
 				if (productSel && productSel.selectedIndex > 0) {
 					var opt = productSel.options[productSel.selectedIndex];
 					sku = decodeEntities((opt && opt.getAttribute('data-sku')) || '');
 					name = decodeEntities((opt && opt.getAttribute('data-name')) || '');
 					price = parseFloat((opt && opt.getAttribute('data-price')) || 0) || 0;
+					unit = decodeEntities((opt && opt.getAttribute('data-unit')) || '');
 				}
 				var lot = row.querySelector('[data-mk-line-lot="1"]') ? row.querySelector('[data-mk-line-lot="1"]').value.trim() : '';
 				var qty = row.querySelector('[data-mk-line-qty="1"]') ? (parseInt(row.querySelector('[data-mk-line-qty="1"]').value, 10) || 0) : 0;
 				var mfg = row.querySelector('[data-mk-line-mfg="1"]') ? row.querySelector('[data-mk-line-mfg="1"]').value : '';
 				var expiry = row.querySelector('[data-mk-line-exp="1"]') ? row.querySelector('[data-mk-line-exp="1"]').value : '';
 				var location = row.querySelector('[data-mk-line-location="1"]') ? row.querySelector('[data-mk-line-location="1"]').value.trim() : '';
+				if (!unit && row.querySelector('[data-mk-line-unit="1"]')) {
+					unit = row.querySelector('[data-mk-line-unit="1"]').value.trim();
+				}
 				if (!productId && !lot && !qty) return;
 				if (!productId || !name || !lot || qty <= 0) return;
 				if (productId && !sku) {
 					missingSku = true;
 					return;
 				}
-				lines.push({ product_id: productId, sku: sku, name: name, lot: lot, mfg: mfg || '', expiry: expiry || '—', qty: qty, price: price, location: location });
+				lines.push({ product_id: productId, sku: sku, name: name, lot: lot, mfg: mfg || '', expiry: expiry || '—', qty: qty, price: price, unit: unit, location: location });
 			});
 			if (missingSku) {
 				showError('Một hoặc nhiều sản phẩm chưa có SKU. Hãy cập nhật SKU trong Products & Services trước khi nhập kho.');

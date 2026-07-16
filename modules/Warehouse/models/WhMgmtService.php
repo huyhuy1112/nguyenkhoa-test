@@ -749,7 +749,7 @@ class Warehouse_WhMgmtService {
 		} catch (Exception $e) {
 			// ignore
 		}
-		$cols = 'product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location';
+		$cols = 'productid, product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location';
 		if ($hasUnitPrice) {
 			$cols .= ', unit_price';
 		}
@@ -770,15 +770,17 @@ class Warehouse_WhMgmtService {
 		while ($row = $db->fetchByAssoc($rs)) {
 			$sku = trim((string) (isset($row['line_note']) ? $row['line_note'] : ''));
 			$sku = self::formatDisplaySku($sku !== '' ? $sku : self::guessSkuFromName($row['product_name']));
+			$name = self::decodeDisplayTextDeep((string) $row['product_name']);
+			$productId = (int) (isset($row['productid']) ? $row['productid'] : 0);
 			$line = array(
 				'sku' => $sku,
-				'name' => self::decodeDisplayTextDeep((string) $row['product_name']),
+				'name' => $name,
 				'lot' => (string) (isset($row['serial_number']) ? $row['serial_number'] : ''),
 				'mfg' => self::normalizeDateValue(isset($row['mfg_date']) ? $row['mfg_date'] : ''),
 				'expiry' => self::normalizeDateValue(isset($row['expired_date']) ? $row['expired_date'] : ''),
 				'qty' => (float) $row['quantity'],
 				'unit_price' => $hasUnitPrice ? (float) (isset($row['unit_price']) ? $row['unit_price'] : 0) : 0,
-				'unit' => $hasProductType ? self::decodeDisplayTextDeep((string) (isset($row['product_type']) ? $row['product_type'] : '')) : '',
+				'unit' => self::lookupProductUnit($db, $productId, $sku, $name),
 				'location' => self::decodeDisplayTextDeep((string) (isset($row['storage_location']) ? $row['storage_location'] : '')),
 			);
 			if ($qcResult !== '') {
@@ -1431,7 +1433,7 @@ class Warehouse_WhMgmtService {
 
 	protected static function loadIssueItems(PearDatabase $db, $issueId) {
 		$rs = $db->pquery(
-			'SELECT product_name, quantity, serial_number, line_note
+			'SELECT productid, product_name, quantity, serial_number, line_note
 			 FROM vtiger_goodsissue_items
 			 WHERE issueid = ?
 			 ORDER BY itemid ASC',
@@ -1441,11 +1443,14 @@ class Warehouse_WhMgmtService {
 		while ($row = $db->fetchByAssoc($rs)) {
 			$sku = trim((string) (isset($row['line_note']) ? $row['line_note'] : ''));
 			$sku = self::formatDisplaySku($sku !== '' ? $sku : self::guessSkuFromName($row['product_name']));
+			$name = self::decodeDisplayTextDeep((string) $row['product_name']);
+			$productId = (int) (isset($row['productid']) ? $row['productid'] : 0);
 			$out[] = array(
 				'sku' => $sku,
-				'name' => self::decodeDisplayTextDeep((string) $row['product_name']),
+				'name' => $name,
 				'lot' => (string) (isset($row['serial_number']) ? $row['serial_number'] : ''),
 				'qty' => (float) $row['quantity'],
+				'unit' => self::lookupProductUnit($db, $productId, $sku, $name),
 			);
 		}
 		return $out;
@@ -1770,7 +1775,7 @@ class Warehouse_WhMgmtService {
 			$db = PearDatabase::getInstance();
 		}
 		$rs = $db->pquery(
-			'SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku
+			'SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku, ps.unit
 			 FROM vtiger_productsservices ps
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 			 ORDER BY ps.productsservicesname ASC
@@ -1789,15 +1794,55 @@ class Warehouse_WhMgmtService {
 				continue;
 			}
 			$sku = self::formatDisplaySku(trim((string) (isset($row['sku']) ? $row['sku'] : '')));
+			$unit = self::decodeDisplayTextDeep(trim((string) (isset($row['unit']) ? $row['unit'] : '')));
 			$out[] = array(
 				'id' => $id,
 				'name' => $name,
 				'price' => (float) (isset($row['price']) ? $row['price'] : 0),
 				'type' => (string) (isset($row['item_type']) ? $row['item_type'] : ''),
 				'sku' => $sku,
+				'unit' => $unit,
 			);
 		}
 		return $out;
+	}
+
+	/**
+	 * Resolve Đơn vị tính from Products & Services by id / sku / name.
+	 */
+	public static function lookupProductUnit(PearDatabase $db, $productId = 0, $sku = '', $name = '') {
+		$productId = (int) $productId;
+		$sku = self::formatDisplaySku(trim((string) $sku));
+		$name = trim((string) $name);
+		$prs = null;
+		if ($productId > 0) {
+			$prs = $db->pquery(
+				'SELECT ps.unit FROM vtiger_productsservices ps
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
+				 WHERE ps.productsservicesid = ? LIMIT 1',
+				array($productId)
+			);
+		}
+		if ((!$prs || $db->num_rows($prs) < 1) && $sku !== '' && !self::isAutoSku($sku)) {
+			$prs = $db->pquery(
+				'SELECT ps.unit FROM vtiger_productsservices ps
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
+				 WHERE ps.sku = ? LIMIT 1',
+				array($sku)
+			);
+		}
+		if ((!$prs || $db->num_rows($prs) < 1) && $name !== '') {
+			$prs = $db->pquery(
+				'SELECT ps.unit FROM vtiger_productsservices ps
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
+				 WHERE ps.productsservicesname = ? LIMIT 1',
+				array($name)
+			);
+		}
+		if (!$prs || $db->num_rows($prs) < 1) {
+			return '';
+		}
+		return self::decodeDisplayTextDeep(trim((string) $db->query_result($prs, 0, 'unit')));
 	}
 
 	protected static function nextGrnCode(PearDatabase $db) {
@@ -2071,6 +2116,14 @@ class Warehouse_WhMgmtService {
 		self::normalizeReceiptTimeline($meta, $created, $dbStatus);
 		$items = self::loadReceiptItems($db, (int) $row['receiptid'], $meta);
 		foreach ($items as &$item) {
+			if (empty($item['unit'])) {
+				$item['unit'] = self::lookupProductUnit(
+					$db,
+					isset($item['product_id']) ? (int) $item['product_id'] : 0,
+					isset($item['sku']) ? $item['sku'] : '',
+					isset($item['name']) ? $item['name'] : ''
+				);
+			}
 			if ((float) $item['unit_price'] > 0) {
 				continue;
 			}
@@ -2079,24 +2132,30 @@ class Warehouse_WhMgmtService {
 			$price = 0.0;
 			if ($sku !== '') {
 				$prs = $db->pquery(
-					'SELECT ps.price FROM vtiger_productsservices ps
+					'SELECT ps.price, ps.unit FROM vtiger_productsservices ps
 					 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 					 WHERE ps.sku = ? LIMIT 1',
 					array($sku)
 				);
 				if ($prs && $db->num_rows($prs) > 0) {
 					$price = (float) $db->query_result($prs, 0, 'price');
+					if (empty($item['unit'])) {
+						$item['unit'] = self::decodeDisplayTextDeep(trim((string) $db->query_result($prs, 0, 'unit')));
+					}
 				}
 			}
 			if ($price <= 0 && $name !== '') {
 				$prs = $db->pquery(
-					'SELECT ps.price FROM vtiger_productsservices ps
+					'SELECT ps.price, ps.unit FROM vtiger_productsservices ps
 					 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 					 WHERE ps.productsservicesname = ? LIMIT 1',
 					array($name)
 				);
 				if ($prs && $db->num_rows($prs) > 0) {
 					$price = (float) $db->query_result($prs, 0, 'price');
+					if (empty($item['unit'])) {
+						$item['unit'] = self::decodeDisplayTextDeep(trim((string) $db->query_result($prs, 0, 'unit')));
+					}
 				}
 			}
 			if ($price > 0) {
@@ -2464,7 +2523,7 @@ class Warehouse_WhMgmtService {
 				$prs = null;
 				if ($sku !== '') {
 					$prs = $db->pquery(
-						'SELECT ps.price FROM vtiger_productsservices ps
+						'SELECT ps.price, ps.unit FROM vtiger_productsservices ps
 						 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 						 WHERE ps.sku = ? LIMIT 1',
 						array($sku)
@@ -2472,7 +2531,7 @@ class Warehouse_WhMgmtService {
 				}
 				if ((!$prs || $db->num_rows($prs) < 1) && $name !== '') {
 					$prs = $db->pquery(
-						'SELECT ps.price FROM vtiger_productsservices ps
+						'SELECT ps.price, ps.unit FROM vtiger_productsservices ps
 						 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 						 WHERE ps.productsservicesname = ? LIMIT 1',
 						array($name)
@@ -2480,10 +2539,16 @@ class Warehouse_WhMgmtService {
 				}
 				if ($prs && $db->num_rows($prs) > 0) {
 					$price = (float) $db->query_result($prs, 0, 'price');
+					if ($unit === '') {
+						$unit = self::decodeDisplayTextDeep(trim((string) $db->query_result($prs, 0, 'unit')));
+					}
 				}
 			}
 			if ($price > 0) {
 				$item['unit_price'] = $price;
+			}
+			if ($unit === '') {
+				$unit = self::lookupProductUnit($db, 0, $sku, $name);
 			}
 			if ($unit !== '') {
 				$item['unit'] = $unit;
