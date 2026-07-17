@@ -45,18 +45,32 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 			$title = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('lastname')), ENT_QUOTES, 'UTF-8'));
 		}
 		$subtitle = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('contact_no')), ENT_QUOTES, 'UTF-8'));
+		require_once 'modules/Contacts/models/ModernService.php';
+		try {
+			Contacts_ModernService::ensureEventTimeColumns();
+			// Reload module so newly registered fields are available for inline edit.
+			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		} catch (Exception $e) {
+			// ignore — schema ensure is best-effort
+		}
+
 		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
 			array('phone', 'Điện thoại'),
 			array('mobile', 'Di động'),
 			array('email', 'Email'),
 			array('account_id', 'Tổ chức'),
 			array('title', 'Chức danh'),
+			array('thoigian_dangky', 'Thời gian Đăng Ký'),
+			array('thoigian_pcth', 'Thời gian tham gia PCTH'),
+			array('thoigian_mqbb', 'Thời gian tham gia MQBB'),
 			array('assigned_user_id', 'Phụ trách'),
 			array('createdtime', 'Ngày tạo'),
 		));
 
 		$viewer = $this->getViewer($request);
 		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, $app, $infoFields, $title, $subtitle);
+		// Class-reg + bằng/tài khoản chỉ trên Detail — không hiện trong dropdown list.
+		$viewer->assign('INLINE_SHOW_CLASS_REG', false);
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 
@@ -83,6 +97,34 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 		$viewer->assign('MK_CONTACT_MODERN_UI', true);
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'Contacts');
 		$viewer->assign('VIEW', 'Detail');
+
+		$recordId = (int)$request->get('record');
+		if ($recordId > 0) {
+			try {
+				require_once 'modules/Contacts/models/ModernService.php';
+				Contacts_ModernService::ensureEventTimeColumns();
+				Contacts_ModernService::ensureCredentialFields();
+				$viewer->assign('MK_CLASS_REG', Contacts_ModernService::getClassRegSummary($recordId));
+				$viewer->assign('MK_CREDENTIALS', Contacts_ModernService::getCredentialState($recordId));
+				$viewer->assign('MK_CONTACT_CCCD', Contacts_ModernService::getLeadCccdForContact($recordId));
+			} catch (Exception $e) {
+				$viewer->assign('MK_CLASS_REG', array(
+					'logs' => array(),
+					'hint' => '',
+					'can_add' => true,
+					'rights_label' => '',
+					'date_min' => '',
+					'date_max' => '',
+				));
+				$viewer->assign('MK_CREDENTIALS', array(
+					'da_cap_bang' => 'Chưa cấp',
+					'da_cap_tai_khoan' => 'Chưa cấp tài khoản',
+					'bang_options' => array('Chưa cấp', 'Đã cấp'),
+					'tk_options' => array('Chưa cấp tài khoản', 'Đã cấp tài khoản'),
+				));
+				$viewer->assign('MK_CONTACT_CCCD', '');
+			}
+		}
 	}
 
 	protected function assignFilteredContactTags(Vtiger_Request $request, $recordId) {

@@ -31,6 +31,13 @@
     return TAG_LABEL_ALIASES[slug] || slug;
   }
 
+  function catalogDisplay(label, slug) {
+    var labels = root.MK_OPP_TAG_LABELS || {};
+    if (slug && labels[slug]) return labels[slug];
+    if (label && labels[label]) return labels[label];
+    return label;
+  }
+
   function paintTag(el) {
     if (!el || !el.classList) return;
     if (!el.classList.contains("tag") && !el.classList.contains("mk-lead-detail-tag-chip")) return;
@@ -39,6 +46,10 @@
     var slug = resolveSlug(label, el.getAttribute("data-tag") || el.getAttribute("title") || "");
     if (!slug) return;
     el.setAttribute("data-tag", slug);
+    var display = catalogDisplay(label, slug);
+    if (labelEl && display && display !== label) {
+      labelEl.textContent = display;
+    }
   }
 
   function paintAll(root) {

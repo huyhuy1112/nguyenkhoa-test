@@ -98,41 +98,8 @@ class Leads_CommerceService {
 	}
 
 	public static function deriveNextActionLabel(array $calendarTasks, $fallback = '') {
-		$open = array();
-		foreach ($calendarTasks as $task) {
-			if (!is_array($task)) {
-				continue;
-			}
-			$type = isset($task['type']) ? strtolower(trim((string)$task['type'])) : '';
-			if (!in_array($type, array('task', 'call', 'meeting'), true)) {
-				continue;
-			}
-			$status = strtolower(trim((string)($task['status'] ?? 'open')));
-			if (in_array($status, array('done', 'completed', 'closed'), true)) {
-				continue;
-			}
-			$open[] = $task;
-		}
-		if (empty($open)) {
-			return trim((string)$fallback);
-		}
-		usort($open, function ($a, $b) {
-			$da = !empty($a['dueAt']) ? strtotime($a['dueAt']) : PHP_INT_MAX;
-			$db = !empty($b['dueAt']) ? strtotime($b['dueAt']) : PHP_INT_MAX;
-			if ($da === $db) {
-				return 0;
-			}
-			return ($da < $db) ? -1 : 1;
-		});
-		$top = $open[0];
-		$prefixMap = array(
-			'call' => 'Gọi: ',
-			'meeting' => 'Họp: ',
-			'task' => 'Việc: ',
-		);
-		$type = isset($top['type']) ? strtolower(trim((string)$top['type'])) : 'task';
-		$prefix = $prefixMap[$type] ?? '';
-		return $prefix . trim((string)($top['subject'] ?? ''));
+		// Hành động tiếp theo = ghi chú tự do của user — không lấy từ Calendar / Last Touch.
+		return trim((string)$fallback);
 	}
 
 	public static function syncNextActionForLead($leadId) {
@@ -141,32 +108,13 @@ class Leads_CommerceService {
 			return '';
 		}
 		$adb = PearDatabase::getInstance();
-		$ruleLabel = '';
-		try {
-			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
-			$ruleLabel = HelpDesk_TagRuleEngineService::getInstance()->getNextActionForLead($leadId);
-		} catch (Exception $e) {
-			$ruleLabel = '';
-		}
 		$fallback = '';
 		$res = $adb->pquery('SELECT next_action FROM bace_lead_profile WHERE leadid = ?', array($leadId));
 		if ($res && $adb->num_rows($res) > 0) {
 			$fallback = self::decodeText($adb->query_result($res, 0, 'next_action'));
 		}
-		$tasksByLead = self::getCalendarTasksForLeadIds(array($leadId));
-		$label = ($ruleLabel !== '')
-			? $ruleLabel
-			: self::deriveNextActionLabel($tasksByLead[$leadId] ?? array(), $fallback);
-		if (function_exists('mb_substr')) {
-			$label = mb_substr($label, 0, 255, 'UTF-8');
-		} else {
-			$label = substr($label, 0, 255);
-		}
-		$adb->pquery(
-			'UPDATE bace_lead_profile SET next_action = ?, modified_at = ? WHERE leadid = ?',
-			array($label, date('Y-m-d H:i:s'), $leadId)
-		);
-		return $label;
+		// Giữ nguyên next_action đã lưu — không overwrite bằng activity Call nhắc.
+		return $fallback;
 	}
 
 	protected static function mergeCalendarTaskLists(array $primary, array $secondary) {

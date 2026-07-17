@@ -162,7 +162,7 @@
 
 				// Highlight payment method field row
 				$block
-					.find('select[name="mk_payment_terms"], select[name="payment_duration"]')
+					.find('select[name="mk_payment_method"], select[name="mk_payment_terms"], select[name="payment_duration"]')
 					.each(function () {
 						var $row = $(this).closest('tr');
 						if ($row.length) {
@@ -1081,6 +1081,11 @@
 		}
 		if (!$addBtn.closest('.mk-inv-line-header-actions, .mk-qt-line-actions').length) {
 			$actions.append($addBtn.detach());
+		}
+		// Quick search replaces the visible add button.
+		$addBtn.addClass('mk-inv-add-line-btn--hidden').attr('aria-hidden', 'true');
+		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.initQuickProductSearch === 'function') {
+			window.MkInventoryOdooEdit.initQuickProductSearch($editForm);
 		}
 	}
 

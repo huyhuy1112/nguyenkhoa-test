@@ -17,10 +17,25 @@
     { value: "Thẻ", label: "Thẻ" },
     { value: "Ví", label: "Ví" },
   ];
+  var DEFAULT_PAYMENT_METHOD = "Chuyển khoản";
 
-  var PAYMENT_TERMS_FALLBACK = PAYMENT_METHOD_OPTIONS.map(function (item) {
-    return item.label;
-  });
+  var CREDIT_TERMS_OPTIONS = [
+    { value: "Thanh toán ngay", label: "Thanh toán ngay" },
+    { value: "15 ngày", label: "15 ngày" },
+    { value: "21 ngày", label: "21 ngày" },
+    { value: "30 ngày", label: "30 ngày" },
+    { value: "45 ngày", label: "45 ngày" },
+    { value: "Cuối tháng kế tiếp", label: "Cuối tháng kế tiếp" },
+    {
+      value: "10 ngày sau ngày cuối tháng kế tiếp",
+      label: "10 ngày sau ngày cuối tháng kế tiếp",
+    },
+    {
+      value: "30% trả ngay, còn lại trả trong 60 ngày",
+      label: "30% trả ngay, còn lại trả trong 60 ngày",
+    },
+  ];
+  var DEFAULT_CREDIT_TERM = "Thanh toán ngay";
 
   var MODERN_LINE_HEADER_COLUMNS = [
     { className: "mk-inv-col-drag", label: "" },
@@ -33,7 +48,7 @@
   ];
 
   var MODERN_LINE_COLGROUP_WIDTHS = [
-    "52px",
+    "72px",
     "24%",
     "92px",
     "132px",
@@ -714,6 +729,129 @@
     }
   }
 
+  function rowHasSelectedProduct($row) {
+    if (!$row || !$row.length) {
+      return false;
+    }
+    var productId = $.trim(
+      $row.find("input.selectedModuleId").first().val() || "",
+    );
+    if (productId && productId !== "0") {
+      return true;
+    }
+    return !!$.trim($row.find(".mk-inv-product-select").first().val() || "");
+  }
+
+  function countVisibleLineItemRows($form) {
+    if (!$form || !$form.length) {
+      return 0;
+    }
+    return $form
+      .find("#lineItemTab tr.lineItemRow")
+      .not(".hide, .lineItemCloneCopy, #row0")
+      .length;
+  }
+
+  function shouldShowLineDelete($row, $form) {
+    if (isTemplateLineItemRow($row)) {
+      return false;
+    }
+    if (rowHasSelectedProduct($row)) {
+      return true;
+    }
+    return countVisibleLineItemRows($form) > 1;
+  }
+
+  function normalizeItemTypeKey(type) {
+    var t = String(type || "")
+      .trim()
+      .toLowerCase();
+    if (
+      t === "service" ||
+      t === "services" ||
+      t === "dịch vụ" ||
+      t === "dich vu"
+    ) {
+      return "service";
+    }
+    return "product";
+  }
+
+  function formatItemTypeLabel(type) {
+    return normalizeItemTypeKey(type) === "service" ? "Dịch vụ" : "Sản phẩm";
+  }
+
+  function itemTypeIconClass(type) {
+    return normalizeItemTypeKey(type) === "service"
+      ? "fa fa-wrench"
+      : "fa fa-cube";
+  }
+
+  function ensureLineDeleteButton($row, $form) {
+    if (isTemplateLineItemRow($row)) {
+      return;
+    }
+    if (!$form || !$form.length) {
+      $form = $row.closest("form");
+    }
+
+    var $tools = $row.find("> td:first-child");
+    if (!$tools.length) {
+      return;
+    }
+    $tools.addClass("mk-inv-col-drag");
+
+    $row.find("> td.mk-inv-col-amount .mk-inv-line-del").remove();
+
+    var $del = $row.find(".deleteRow").first();
+    if (!$del.length) {
+      $del = $(
+        '<i class="fa fa-trash deleteRow cursorPointer" title="Xóa dòng"></i>',
+      );
+    }
+
+    var $lineDel = $tools.find(".mk-inv-line-del").first();
+    if (!$lineDel.length) {
+      $lineDel = $(
+        '<span class="mk-inv-line-del mk-inv-line-del--left" title="Xóa dòng"></span>',
+      );
+      $tools.prepend($lineDel);
+    }
+
+    var $btnWrap = $del.closest(".mk-inv-del-btn");
+    if (
+      $btnWrap.length &&
+      $btnWrap.closest(".mk-inv-line-del")[0] !== $lineDel[0]
+    ) {
+      $btnWrap.detach().appendTo($lineDel);
+    } else if (!$del.closest(".mk-inv-line-del").length) {
+      $lineDel.empty();
+      if ($btnWrap.length) {
+        $btnWrap.appendTo($lineDel);
+      } else {
+        $del.wrap('<span class="mk-inv-del-btn" title="Xóa dòng"></span>');
+        $del.closest(".mk-inv-del-btn").appendTo($lineDel);
+      }
+    }
+
+    if (shouldShowLineDelete($row, $form)) {
+      $lineDel.show();
+      $del.show().removeClass("mk-inv-hide-legacy");
+    } else {
+      $lineDel.hide();
+      $del.hide();
+    }
+  }
+
+  function syncLineDeleteVisibility($form) {
+    if (!$form || !$form.length) {
+      return;
+    }
+    $form.find("#lineItemTab tr.lineItemRow").each(function () {
+      ensureLineDeleteButton($(this), $form);
+    });
+  }
+
   function applyProductSelection($row, $form, productId) {
     var $nameInput = $row.find("input.productName").first();
     var $hiddenId = $row.find("input.selectedModuleId").first();
@@ -729,7 +867,12 @@
       if ($listPrice.length) {
         $listPrice.val(0);
       }
+      $row.removeData("mkAvailableStock mkStockCacheKey mkStockCachedHtml");
+      $row.find(".mk-inv-stock-hint").remove();
+      $row.removeClass("mk-inv-row--stock-warn");
       triggerLineRecalc($row, $form);
+      ensureLineDeleteButton($row, $form);
+      syncCreditTermsVisibility($form);
       return;
     }
 
@@ -737,6 +880,11 @@
     var currencyId = $form.find("#currency_id").val() || "";
     var fallbackName = decodeText($opt.attr("data-name") || $opt.text());
     var fallbackPrice = parseMoney($opt.attr("data-price") || 0);
+    var catalogStock = parseFloat($opt.attr("data-stock"));
+    if (isFinite(catalogStock)) {
+      $row.data("mkAvailableStock", Math.max(0, catalogStock));
+      $row.removeData("mkStockCacheKey mkStockCachedHtml");
+    }
 
     if ($entityType.length) {
       $entityType.val("ProductsServices");
@@ -748,7 +896,11 @@
       if ($listPrice.length && fallbackPrice > 0) {
         $listPrice.val(fallbackPrice);
       }
+      enforceQtyAgainstStock($row, $form);
       triggerLineRecalc($row, $form);
+      syncRowStockHint($row, $form);
+      ensureLineDeleteButton($row, $form);
+      syncCreditTermsVisibility($form);
       return;
     }
 
@@ -769,8 +921,11 @@
         inst.mapResultsToFields($row, data[0]);
         syncRowTaxPill($row, $form);
         syncRowAmounts($row, $form);
+        enforceQtyAgainstStock($row, $form);
         triggerLineRecalc($row, $form);
         syncRowStockHint($row, $form);
+        ensureLineDeleteButton($row, $form);
+        syncCreditTermsVisibility($form);
         return;
       }
       $hiddenId.val(productId);
@@ -778,8 +933,11 @@
       if ($listPrice.length) {
         $listPrice.val(fallbackPrice > 0 ? fallbackPrice : $listPrice.val());
       }
+      enforceQtyAgainstStock($row, $form);
       triggerLineRecalc($row, $form);
       syncRowStockHint($row, $form);
+      ensureLineDeleteButton($row, $form);
+      syncCreditTermsVisibility($form);
     });
   }
 
@@ -866,21 +1024,23 @@
   function isAnyProductSelectOpen($scope) {
     var open = false;
     var $root = $scope && $scope.length ? $scope : $(document);
-    $root.find("select.mk-inv-product-select").each(function () {
-      var $sel = $(this);
-      if (!$sel.data("select2")) {
-        return true;
-      }
-      try {
-        if ($sel.select2("opened")) {
-          open = true;
-          return false;
+    $root
+      .find("select.mk-inv-product-select, select.mk-inv-quick-product-search")
+      .each(function () {
+        var $sel = $(this);
+        if (!$sel.data("select2")) {
+          return true;
         }
-      } catch (ignore) {
-        /* ignore */
-      }
-      return true;
-    });
+        try {
+          if ($sel.select2("opened")) {
+            open = true;
+            return false;
+          }
+        } catch (ignore) {
+          /* ignore */
+        }
+        return true;
+      });
     return open;
   }
 
@@ -903,6 +1063,26 @@
     return false;
   }
 
+  function formatPriceVi(n) {
+    var x = Math.round(Number(n) || 0);
+    try {
+      return new Intl.NumberFormat("vi-VN").format(x);
+    } catch (e) {
+      return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+  }
+
+  function formatQtyShort(n) {
+    var x = Number(n);
+    if (!isFinite(x)) {
+      return "0";
+    }
+    if (Math.abs(x - Math.round(x)) < 0.001) {
+      return String(Math.round(x));
+    }
+    return String(Math.round(x * 100) / 100);
+  }
+
   function formatProductSelectResult(item) {
     if (!item || !item.id) {
       return item && item.text ? escapeHtml(item.text) : "";
@@ -910,15 +1090,52 @@
     var $opt = $(item.element);
     var name = $opt.attr("data-name") || item.text || "";
     var sku = ($opt.attr("data-sku") || "").trim();
+    var unit = ($opt.attr("data-unit") || "").trim();
+    var itemType = $opt.attr("data-type") || "";
+    var typeKey = normalizeItemTypeKey(itemType);
+    var typeLabel = formatItemTypeLabel(itemType);
+    var stock = formatQtyShort($opt.attr("data-stock") || 0);
+    var qtyPo = formatQtyShort($opt.attr("data-qty-po") || 0);
+    var qtySo = formatQtyShort($opt.attr("data-qty-so") || 0);
+    var price = formatPriceVi($opt.attr("data-price") || 0);
+    var unitHtml = unit
+      ? '<span class="mk-inv-s2-unit">' + escapeHtml(unit) + "</span>"
+      : "";
+    var typeHtml =
+      '<span class="mk-inv-s2-type mk-inv-s2-type--' +
+      typeKey +
+      '">' +
+      escapeHtml(typeLabel) +
+      "</span>";
     var skuHtml = sku
-      ? '<span class="mk-inv-s2-sku">' + escapeHtml(sku) + "</span>"
-      : '<span class="mk-inv-s2-sku mk-inv-s2-sku--empty">chưa có SKU</span>';
+      ? '<span class="mk-inv-s2-sku-code">' + escapeHtml(sku) + "</span>"
+      : '<span class="mk-inv-s2-sku-code mk-inv-s2-sku-code--empty">chưa có SKU</span>';
     return (
-      '<span class="mk-inv-s2-result">' +
+      '<span class="mk-inv-s2-kiot">' +
+      '<span class="mk-inv-s2-kiot__thumb" aria-hidden="true"><i class="' +
+      itemTypeIconClass(itemType) +
+      '"></i></span>' +
+      '<span class="mk-inv-s2-kiot__main">' +
+      '<span class="mk-inv-s2-kiot__title">' +
       '<span class="mk-inv-s2-name">' +
       escapeHtml(name) +
       "</span>" +
+      typeHtml +
+      unitHtml +
+      "</span>" +
       skuHtml +
+      '<span class="mk-inv-s2-stockline">' +
+      "Tồn: <strong>" +
+      escapeHtml(stock) +
+      "</strong> | Đặt NCC: " +
+      escapeHtml(qtyPo) +
+      " | KH đặt: " +
+      escapeHtml(qtySo) +
+      "</span>" +
+      "</span>" +
+      '<span class="mk-inv-s2-price">' +
+      escapeHtml(price) +
+      "</span>" +
       "</span>"
     );
   }
@@ -983,7 +1200,7 @@
         $drop.css("z-index", 2147483640);
         var $search = $drop.find(".select2-search input.select2-input");
         if ($search.length) {
-          $search.attr("placeholder", "Nhập tên hoặc SKU…");
+          $search.attr("placeholder", "Tìm tên sản phẩm hoặc mã hàng…");
           // Focus search immediately so typing feels instant.
           setTimeout(function () {
             $search.focus();
@@ -1057,6 +1274,11 @@
           .attr("data-name", displayName)
           .attr("data-price", p.price || 0)
           .attr("data-sku", p.sku || "")
+          .attr("data-unit", p.unit || "")
+          .attr("data-type", p.type || "")
+          .attr("data-stock", p.stock != null ? p.stock : 0)
+          .attr("data-qty-po", p.qty_po != null ? p.qty_po : 0)
+          .attr("data-qty-so", p.qty_so != null ? p.qty_so : 0)
           .text(label),
       );
     });
@@ -1754,7 +1976,7 @@
     var widths = [];
     $sample.children("td").each(function (idx) {
       if (idx === 0) {
-        widths.push("52px");
+        widths.push("72px");
       } else if (
         $(this).hasClass("mk-inv-col-product") ||
         $(this).find("select.mk-inv-product-native").length
@@ -1907,7 +2129,13 @@
       $form.find('input[name="mk_warehouse_id"]').val() ||
       $form.data("mkWarehouseId");
     if (!warehouseId || typeof app === "undefined" || !app.request) {
-      $row.find(".mk-inv-stock-hint").remove();
+      // No warehouse API — still cap from catalog stock on the selected product.
+      var catalogStock = readCatalogStockForRow($row);
+      if (catalogStock != null) {
+        $row.data("mkAvailableStock", catalogStock);
+        paintStockHint($row, catalogStock, true);
+        enforceQtyAgainstStock($row, $form, { silent: true });
+      }
       return;
     }
     var productId =
@@ -1925,9 +2153,15 @@
     }
     if (
       $row.data("mkStockCacheKey") === cacheKey &&
-      $row.data("mkStockCachedHtml")
+      $row.data("mkAvailableStock") != null
     ) {
-      $hint.html($row.data("mkStockCachedHtml"));
+      paintStockHint(
+        $row,
+        Number($row.data("mkAvailableStock")),
+        parseMoney($row.find(".qty").val()) <=
+          Number($row.data("mkAvailableStock")),
+      );
+      enforceQtyAgainstStock($row, $form, { silent: true });
       return;
     }
     app.request
@@ -1943,21 +2177,95 @@
       })
       .then(function (err, res) {
         if (err || !res || !res.lines || !res.lines.length) {
+          var fallback = readCatalogStockForRow($row);
+          if (fallback != null) {
+            $row.data("mkAvailableStock", fallback);
+            paintStockHint($row, fallback, true);
+            enforceQtyAgainstStock($row, $form);
+          }
           return;
         }
         var line = res.lines[0];
         var available = parseMoney(line.available);
-        var ok = line.ok;
-        var html =
-          "Tồn kho: <strong>" +
-          available.toLocaleString("vi-VN") +
-          "</strong>" +
-          (ok ? "" : ' <span class="mk-inv-stock-warn">(không đủ)</span>');
         $row.data("mkStockCacheKey", cacheKey);
-        $row.data("mkStockCachedHtml", html);
-        $hint.html(html);
-        $row.toggleClass("mk-inv-row--stock-warn", !ok);
+        $row.data("mkAvailableStock", available);
+        enforceQtyAgainstStock($row, $form);
+        var qtyNow = parseMoney($row.find(".qty").val());
+        paintStockHint($row, available, qtyNow <= available);
       });
+  }
+
+  function readCatalogStockForRow($row) {
+    var stored = $row.data("mkAvailableStock");
+    if (stored != null && stored !== "" && isFinite(Number(stored))) {
+      return Math.max(0, Number(stored));
+    }
+    var $opt = $row.find(".mk-inv-product-select option:selected").first();
+    if ($opt.length && $opt.attr("data-stock") != null && $opt.attr("data-stock") !== "") {
+      var n = Number($opt.attr("data-stock"));
+      if (isFinite(n)) {
+        return Math.max(0, n);
+      }
+    }
+    return null;
+  }
+
+  function paintStockHint($row, available, ok) {
+    var $hint = $row.find(".mk-inv-stock-hint");
+    if (!$hint.length) {
+      $hint = $('<div class="mk-inv-stock-hint"></div>');
+      $row.find("input.qty").closest("td").append($hint);
+    }
+    var stockLabel = formatQtyShort(available);
+    var html =
+      "Tồn kho: <strong>" +
+      escapeHtml(stockLabel) +
+      "</strong>" +
+      (ok
+        ? ""
+        : ' <span class="mk-inv-stock-warn">(tối đa ' +
+          escapeHtml(stockLabel) +
+          ")</span>");
+    $row.data("mkStockCachedHtml", html);
+    $hint.html(html);
+    $row.toggleClass("mk-inv-row--stock-warn", !ok);
+  }
+
+  function getRowAvailableStock($row) {
+    return readCatalogStockForRow($row);
+  }
+
+  function enforceQtyAgainstStock($row, $form, opts) {
+    opts = opts || {};
+    if (!$row || !$row.length) {
+      return true;
+    }
+    var max = getRowAvailableStock($row);
+    if (max == null || !isFinite(max)) {
+      return true;
+    }
+    max = Math.max(0, max);
+    var $qty = $row.find("input.qty, .qty").first();
+    if (!$qty.length) {
+      return true;
+    }
+    var qty = parseMoney($qty.val());
+    if (!(qty > max)) {
+      if (!opts.silent) {
+        paintStockHint($row, max, true);
+      }
+      return true;
+    }
+    var clamped = max;
+    if (Math.abs(clamped - Math.round(clamped)) < 0.001) {
+      clamped = Math.round(clamped);
+    }
+    $qty.val(clamped);
+    paintStockHint($row, max, false);
+    if (!opts.silent) {
+      triggerLineRecalc($row, $form);
+    }
+    return false;
   }
 
   function injectPriceColumn($row) {
@@ -2197,15 +2505,7 @@
       .closest("a, span")
       .removeClass("mk-inv-hide-legacy");
 
-    var $amountTd = $row.find(".productTotal").closest("td");
-    var $del = $tools.find(".deleteRow").first();
-    $amountTd.find(".mk-inv-line-del").remove();
-    if ($del.length) {
-      $del.removeClass("mk-inv-hide-legacy");
-      if (!$del.closest(".mk-inv-del-btn").length) {
-        $del.wrap('<span class="mk-inv-del-btn" title="Xóa dòng"></span>');
-      }
-    }
+    ensureLineDeleteButton($row, $form);
 
     $row
       .find("input.productName")
@@ -2221,6 +2521,7 @@
     }
     neutralizeLegacyProductInput($row);
     ensureOdooRowColumns($row, $form);
+    ensureQtyEditable($row);
   }
 
   function markInventoryUiReady() {
@@ -2263,7 +2564,8 @@
       isAnyProductSelectOpen($form) ||
       isAnyProductSelectOpen($(document.body)) ||
       isAnyTaxSelectOpen($form) ||
-      isAnyTaxSelectOpen($(document.body))
+      isAnyTaxSelectOpen($(document.body)) ||
+      isEditingLineField($form)
     ) {
       return;
     }
@@ -2280,6 +2582,8 @@
     initTotalsOdoo($form);
     syncTotalsDisplay($form);
     syncAllRowAmounts($form);
+    syncLineDeleteVisibility($form);
+    syncCreditTermsVisibility($form);
     markInventoryUiReady();
   }
 
@@ -2299,6 +2603,23 @@
     });
   }
 
+  function bindLineDeleteSync($form) {
+    if (!$form || !$form.length || $form.data("mkInvDelSync")) {
+      return;
+    }
+    $form.data("mkInvDelSync", true);
+    $form.on("click.mkInvDelSync", ".deleteRow", function () {
+      setTimeout(function () {
+        syncLineDeleteVisibility($form);
+        syncCreditTermsVisibility($form);
+      }, 0);
+      setTimeout(function () {
+        syncLineDeleteVisibility($form);
+        syncCreditTermsVisibility($form);
+      }, 120);
+    });
+  }
+
   function bindInventoryRestyleHooks($form) {
     if (typeof app === "undefined" || !app.event) {
       return;
@@ -2310,6 +2631,7 @@
       return;
     }
     $form.data("mkInvRestyleHooks", true);
+    bindLineDeleteSync($form);
 
     app.event.on("post.lineItem.New", function (event, newLineItem) {
       var $targetForm = $form;
@@ -2746,14 +3068,15 @@
       function () {
         var $row = $(this).closest("tr.lineItemRow");
         if ($row.length) {
+          ensureQtyEditable($row);
           syncRowAmounts($row, $form);
         }
         setTimeout(function () {
-          if (isAnyTaxSelectOpen($form)) {
+          if (isAnyTaxSelectOpen($form) || isEditingLineField($form)) {
             syncTotalsDisplay($form);
             return;
           }
-          restyleLineItemRows($form);
+          // Do not rebuild rows on qty/price edit — that steals focus and blocks typing.
           syncTotalsDisplay($form);
         }, 60);
       },
@@ -2763,7 +3086,24 @@
       "input.mkInvTotRealtime keyup.mkInvTotRealtime change.mkInvTotRealtime",
       ".qty, .listPrice",
       function () {
+        var $row = $(this).closest("tr.lineItemRow");
+        if ($row.length && $(this).is("input.qty, .qty")) {
+          enforceQtyAgainstStock($row, $form, { silent: true });
+        }
         scheduleRealtimeSync();
+      },
+    );
+
+    $form.on(
+      "focusout.mkInvStockCap change.mkInvStockCap",
+      "input.qty, .qty",
+      function () {
+        var $row = $(this).closest("tr.lineItemRow");
+        if (!$row.length) {
+          return;
+        }
+        enforceQtyAgainstStock($row, $form);
+        syncRowStockHint($row, $form);
       },
     );
 
@@ -2819,7 +3159,9 @@
         $form.data("mkWarehouseId", warehouse.id);
       }
       $form.find("tr.lineItemRow").each(function () {
-        $(this).removeData("mkStockCacheKey mkStockCachedHtml");
+        $(this).removeData(
+          "mkStockCacheKey mkStockCachedHtml mkAvailableStock",
+        );
         syncRowStockHint($(this), $form);
       });
     });
@@ -2911,6 +3253,7 @@
       });
     }
     pinAddLineButtonToTabs($form);
+    initQuickProductSearch($form);
   }
 
   function pinAddLineButtonToTabs($form) {
@@ -2926,15 +3269,545 @@
     if (!$tabs.length || !$addBtn.length) {
       return;
     }
-    var $actions = $tabs.find(".mk-inv-line-header-actions").first();
+    var $actions = $tabs
+      .find(".mk-inv-line-header-actions, .mk-qt-line-actions")
+      .first();
     if (!$actions.length) {
       $actions = $(
         '<div class="mk-inv-line-header-actions mk-qt-line-actions" aria-label="Thao tác dòng sản phẩm"></div>',
       );
       $tabs.append($actions);
+    } else {
+      $actions.addClass("mk-inv-line-header-actions mk-qt-line-actions");
     }
-    if (!$addBtn.closest(".mk-inv-line-header-actions").length) {
+    if (!$addBtn.closest(".mk-inv-line-header-actions, .mk-qt-line-actions").length) {
       $actions.append($addBtn.detach());
+    }
+    // Keep button for programmatic line create; UI uses quick search instead.
+    $addBtn.addClass("mk-inv-add-line-btn--hidden").attr("aria-hidden", "true");
+  }
+
+  function getSelectedProductIds($form) {
+    var used = {};
+    if (!$form || !$form.length) {
+      return used;
+    }
+    $form
+      .find("#lineItemTab tr.lineItemRow")
+      .not(".hide, .lineItemCloneCopy")
+      .each(function () {
+        var $row = $(this);
+        if (isTemplateLineItemRow($row)) {
+          return true;
+        }
+        var id = ($row.find("input.selectedModuleId").val() || "").trim();
+        if (id) {
+          used[String(id)] = true;
+        }
+        return true;
+      });
+    return used;
+  }
+
+  function filterCatalogExcludingSelected(products, $form) {
+    var used = getSelectedProductIds($form);
+    return (products || []).filter(function (p) {
+      var id = String(p && p.id != null ? p.id : "");
+      return id && !used[id];
+    });
+  }
+
+  function ensureQtyEditable($row) {
+    if (!$row || !$row.length) {
+      return;
+    }
+    $row
+      .find("input.qty, .qty")
+      .prop("readonly", false)
+      .prop("disabled", false)
+      .removeAttr("readonly")
+      .removeAttr("disabled")
+      .css({
+        "pointer-events": "auto",
+        "user-select": "text",
+        cursor: "text",
+      });
+  }
+
+  function isEditingLineField($form) {
+    var el = document.activeElement;
+    if (!el) {
+      return false;
+    }
+    var $el = $(el);
+    if (!$el.closest("#lineItemTab").length) {
+      return false;
+    }
+    return (
+      $el.is(
+        "input.qty, .qty, input.listPrice, .listPrice, .mk-inv-unit-select, .mk-inv-tax-select, textarea, input[type='text'], input[type='number']",
+      ) || $el.hasClass("qty")
+    );
+  }
+
+  function findEmptyProductLineRow($form) {
+    var $empty = null;
+    $form
+      .find("#lineItemTab tr.lineItemRow")
+      .not(".hide, .lineItemCloneCopy")
+      .each(function () {
+        var $row = $(this);
+        if (isTemplateLineItemRow($row)) {
+          return true;
+        }
+        var id = ($row.find("input.selectedModuleId").val() || "").trim();
+        var name = ($row.find("input.productName").val() || "").trim();
+        if (!id && !name) {
+          $empty = $row;
+          return false;
+        }
+        return true;
+      });
+    return $empty;
+  }
+
+  function ensureProductOptionOnSelect($sel, productId, meta) {
+    if (!$sel || !$sel.length || !productId) {
+      return;
+    }
+    var id = String(productId);
+    var $opt = $sel.find('option[value="' + id.replace(/"/g, "") + '"]');
+    meta = meta || {};
+    if (!$opt.length) {
+      var displayName = decodeText(meta.name || id);
+      var label = displayName;
+      if (meta.sku) {
+        label += " (" + decodeText(meta.sku) + ")";
+      }
+      $opt = $("<option></option>")
+        .attr("value", id)
+        .attr("data-name", displayName)
+        .attr("data-price", meta.price || 0)
+        .attr("data-sku", meta.sku || "")
+        .attr("data-unit", meta.unit || "")
+        .attr("data-type", meta.type || "")
+        .attr("data-stock", meta.stock != null ? meta.stock : 0)
+        .attr("data-qty-po", meta.qty_po != null ? meta.qty_po : 0)
+        .attr("data-qty-so", meta.qty_so != null ? meta.qty_so : 0)
+        .text(label);
+      $sel.append($opt);
+    } else if (meta.name) {
+      $opt
+        .attr("data-name", decodeText(meta.name))
+        .attr("data-price", meta.price || $opt.attr("data-price") || 0)
+        .attr("data-sku", meta.sku || $opt.attr("data-sku") || "")
+        .attr("data-unit", meta.unit || $opt.attr("data-unit") || "")
+        .attr("data-type", meta.type || $opt.attr("data-type") || "")
+        .attr(
+          "data-stock",
+          meta.stock != null ? meta.stock : $opt.attr("data-stock") || 0,
+        )
+        .attr(
+          "data-qty-po",
+          meta.qty_po != null ? meta.qty_po : $opt.attr("data-qty-po") || 0,
+        )
+        .attr(
+          "data-qty-so",
+          meta.qty_so != null ? meta.qty_so : $opt.attr("data-qty-so") || 0,
+        );
+    }
+  }
+
+  function readProductMetaFromOption($opt) {
+    if (!$opt || !$opt.length) {
+      return {};
+    }
+    return {
+      name: $opt.attr("data-name") || $opt.text() || "",
+      price: $opt.attr("data-price") || 0,
+      sku: $opt.attr("data-sku") || "",
+      unit: $opt.attr("data-unit") || "",
+      type: $opt.attr("data-type") || "",
+      stock: $opt.attr("data-stock"),
+      qty_po: $opt.attr("data-qty-po"),
+      qty_so: $opt.attr("data-qty-so"),
+    };
+  }
+
+  function applyProductToLineRow($row, $form, productId, meta) {
+    if (!$row || !$row.length || !productId) {
+      return;
+    }
+    if (meta && meta.stock != null && meta.stock !== "") {
+      var stockNum = Number(meta.stock);
+      if (isFinite(stockNum)) {
+        $row.data("mkAvailableStock", Math.max(0, stockNum));
+        $row.removeData("mkStockCacheKey mkStockCachedHtml");
+      }
+    }
+    var $sel = $row.find("select.mk-inv-product-select").first();
+    if ($sel.length) {
+      ensureProductOptionOnSelect($sel, productId, meta);
+      $sel.val(String(productId));
+      try {
+        if ($sel.data("select2")) {
+          $sel.select2("val", String(productId));
+        }
+      } catch (ignore) {
+        /* ignore */
+      }
+    }
+    applyProductSelection($row, $form, String(productId));
+    enforceQtyAgainstStock($row, $form);
+    syncCreditTermsVisibility($form);
+  }
+
+  function addProductFromQuickSearch($form, productId, meta) {
+    if (!$form || !$form.length || !productId) {
+      return;
+    }
+    if ($form.data("mkInvQuickAdding")) {
+      return;
+    }
+    $form.data("mkInvQuickAdding", true);
+    var $row = findEmptyProductLineRow($form);
+    if (!$row || !$row.length) {
+      $row = createInventoryLineItemRow(
+        $form,
+        $form.find("#addProductsServices").first(),
+      );
+    } else {
+      styleNewLineItemFast($form, $row);
+    }
+
+    function tryApply(attempt) {
+      if (!$row || !$row.length || !$row.closest("body").length) {
+        $form.removeData("mkInvQuickAdding");
+        return;
+      }
+      var $sel = $row.find("select.mk-inv-product-select").first();
+      var ready =
+        $sel.length &&
+        ($sel.data("select2") ||
+          $sel.data("mkCatalogReady") ||
+          !$sel.prop("disabled"));
+      if (ready || attempt >= 24) {
+        applyProductToLineRow($row, $form, productId, meta);
+        ensureQtyEditable($row);
+        $form.removeData("mkInvQuickAdding");
+        setTimeout(function () {
+          var $qty = $row.find("input.qty, .qty").first();
+          if ($qty.length) {
+            ensureQtyEditable($row);
+            try {
+              $qty.focus().select();
+            } catch (ignoreFocus) {
+              /* ignore */
+            }
+          }
+          if (typeof $form.data("mkRefreshQuickSearch") === "function") {
+            $form.data("mkRefreshQuickSearch")();
+          }
+        }, 80);
+        return;
+      }
+      setTimeout(function () {
+        tryApply(attempt + 1);
+      }, 40);
+    }
+    tryApply(0);
+  }
+
+  function initQuickProductSearch($form) {
+    var $lineBlock = $form
+      .find(".mk-inv-lineitems-odoo, #lineItemTab")
+      .first()
+      .closest(".fieldBlockContainer");
+    if (!$lineBlock.length) {
+      $lineBlock = $form.find("#lineItemTab").closest(".fieldBlockContainer");
+    }
+    var $tabs = $lineBlock.find(".mk-inv-odoo-tabs").first();
+    if (!$tabs.length) {
+      return;
+    }
+    var $actions = $tabs
+      .find(".mk-inv-line-header-actions, .mk-qt-line-actions")
+      .first();
+    if (!$actions.length) {
+      $actions = $(
+        '<div class="mk-inv-line-header-actions mk-qt-line-actions" aria-label="Thao tác dòng sản phẩm"></div>',
+      );
+      $tabs.append($actions);
+    } else {
+      $actions.addClass("mk-inv-line-header-actions mk-qt-line-actions");
+    }
+
+    var $wrap = $actions.find(".mk-inv-quick-search").first();
+    if (!$wrap.length) {
+      $wrap = $(
+        '<div class="mk-inv-quick-search" role="search">' +
+          '<label class="mk-inv-quick-search__label" for="mkInvQuickProductSearch">Tìm hàng hoá</label>' +
+          '<select id="mkInvQuickProductSearch" class="mk-inv-quick-product-search" title="Tìm và thêm hàng hoá"></select>' +
+          "</div>",
+      );
+      $actions.prepend($wrap);
+    }
+
+    var $sel = $wrap.find("select.mk-inv-quick-product-search").first();
+    if (!$sel.length) {
+      return;
+    }
+
+    function refreshQuickSearchOptions() {
+      if (!$sel.closest("body").length) {
+        return;
+      }
+      try {
+        if ($sel.data("select2") && $sel.select2("opened")) {
+          return;
+        }
+      } catch (ignoreOpenCheck) {
+        /* ignore */
+      }
+      var source = productCatalogCache || [];
+      var available = filterCatalogExcludingSelected(source, $form);
+      fillProductSelect($sel, available);
+      try {
+        if ($sel.data("select2")) {
+          $sel.select2("val", "");
+        } else {
+          $sel.val("");
+        }
+      } catch (ignoreVal) {
+        $sel.val("");
+      }
+    }
+
+    $form.data("mkRefreshQuickSearch", refreshQuickSearchOptions);
+
+    function mountQuickSelect(products) {
+      if (!$sel.closest("body").length) {
+        return;
+      }
+      var wasOpen = false;
+      try {
+        wasOpen = !!($sel.data("select2") && $sel.select2("opened"));
+      } catch (ignoreOpen) {
+        wasOpen = false;
+      }
+      if (wasOpen) {
+        return;
+      }
+      var available = filterCatalogExcludingSelected(
+        products || productCatalogCache || [],
+        $form,
+      );
+      // Already mounted — just refresh available options (hide already-added products).
+      if (
+        $sel.data("mkQuickReady") &&
+        $sel.data("select2") &&
+        $sel.siblings(".select2-container").length
+      ) {
+        refreshQuickSearchOptions();
+        return;
+      }
+      fillProductSelect($sel, available);
+      destroyProductSelect2($sel);
+      if (typeof $.fn.select2 !== "function") {
+        return;
+      }
+      $sel.select2({
+        placeholder: "Tìm hàng hoá / mã SKU…",
+        allowClear: true,
+        width: "100%",
+        dropdownCssClass: "mk-inv-s2-drop mk-inv-s2-search mk-inv-s2-quick",
+        minimumResultsForSearch: 0,
+        matcher: function (term, text, opt) {
+          var id = opt ? String($(opt).val() || "") : "";
+          if (id && getSelectedProductIds($form)[id]) {
+            return false;
+          }
+          return productSelectMatcher(term, text, opt);
+        },
+        formatResult: formatProductSelectResult,
+        formatSelection: formatProductSelectSelection,
+        formatNoMatches: function () {
+          return "Không tìm thấy sản phẩm";
+        },
+        formatSearching: function () {
+          return "Đang tìm…";
+        },
+        escapeMarkup: function (m) {
+          return m;
+        },
+      });
+      $sel.data("mkQuickReady", true);
+      $sel.off("change.mkInvQuick").on("change.mkInvQuick", function () {
+        var id = ($(this).val() || "").trim();
+        if (!id) {
+          return;
+        }
+        var meta = readProductMetaFromOption(
+          $sel.find("option:selected").first(),
+        );
+        addProductFromQuickSearch($form, id, meta);
+        // Reset search so user can keep adding more products.
+        setTimeout(function () {
+          refreshQuickSearchOptions();
+        }, 120);
+      });
+    }
+
+    if (productCatalogCache && productCatalogCache.length) {
+      mountQuickSelect(productCatalogCache);
+    } else {
+      $sel.prop("disabled", true);
+      $sel.empty().append('<option value="">Đang tải hàng hoá…</option>');
+      loadProductCatalog().then(function (products) {
+        mountQuickSelect(products || []);
+      });
+    }
+  }
+
+  function isPaymentMethodValue(val) {
+    var v = (val || "").trim();
+    if (!v) {
+      return false;
+    }
+    return PAYMENT_METHOD_OPTIONS.some(function (item) {
+      return item.value === v;
+    });
+  }
+
+  function hasSelectedLineProducts($form) {
+    if (!$form || !$form.length) {
+      return false;
+    }
+    var found = false;
+    $form
+      .find("#lineItemTab tr.lineItemRow")
+      .not(".hide, .lineItemCloneCopy, #row0")
+      .each(function () {
+        if (rowHasSelectedProduct($(this))) {
+          found = true;
+          return false;
+        }
+      });
+    return found;
+  }
+
+  function collectCreditTermsOptions($existingSelect) {
+    var options = [];
+    if ($existingSelect && $existingSelect.length && $existingSelect.is("select")) {
+      $existingSelect.find("option").each(function () {
+        var val = ($(this).val() || "").trim();
+        var label = ($(this).text() || "").trim();
+        if (!val || isPaymentMethodValue(val)) {
+          return;
+        }
+        options.push({ value: val, label: label || val });
+      });
+    }
+    return options.length ? options : CREDIT_TERMS_OPTIONS;
+  }
+
+  function rebuildCreditTermsSelect($select, currentVal, options) {
+    options = options || CREDIT_TERMS_OPTIONS;
+    $select.empty().append('<option value=""></option>');
+    options.forEach(function (item) {
+      $select.append(
+        $("<option></option>").attr("value", item.value).text(item.label),
+      );
+    });
+    var resolved = (currentVal || "").trim();
+    if (!resolved || isPaymentMethodValue(resolved)) {
+      resolved = DEFAULT_CREDIT_TERM;
+    }
+    if (resolved) {
+      var hasOption = false;
+      $select.find("option").each(function () {
+        if ($(this).val() === resolved) {
+          hasOption = true;
+          return false;
+        }
+      });
+      if (!hasOption) {
+        $select.append(
+          $("<option></option>").attr("value", resolved).text(resolved),
+        );
+      }
+      $select.val(resolved);
+    }
+    return resolved;
+  }
+
+  function initCreditTermsSelect2($select) {
+    if (!$select || !$select.length || typeof $.fn.select2 !== "function") {
+      return;
+    }
+    if ($select.data("select2")) {
+      try {
+        $select.select2("destroy");
+      } catch (ignoreDestroy) {
+        /* ignore */
+      }
+    }
+    $select.select2({
+      placeholder: "Ngay lập tức",
+      allowClear: false,
+      width: "100%",
+      minimumResultsForSearch: 0,
+      dropdownCssClass: "mk-inv-s2-drop mk-inv-s2-search mk-inv-credit-drop",
+      formatNoMatches: function () {
+        return "Không tìm thấy công nợ";
+      },
+      formatSearching: function () {
+        return "Đang tìm…";
+      },
+    });
+    $select
+      .off("select2-open.mkInvCredit select2-close.mkInvCredit")
+      .on("select2-open.mkInvCredit", function () {
+        var $drop = $(".select2-drop.mk-inv-credit-drop.select2-drop-active");
+        $drop.css("z-index", 2147483640);
+        var $search = $drop.find(".select2-search input.select2-input");
+        if ($search.length) {
+          $search.attr("placeholder", "Tìm thời hạn thanh toán…");
+          setTimeout(function () {
+            $search.focus();
+          }, 0);
+        }
+      });
+  }
+
+  function syncCreditTermsVisibility($form) {
+    if (!$form || !$form.length) {
+      return;
+    }
+    var $wrap = $form.find(".mk-inv-credit-terms").first();
+    if (!$wrap.length) {
+      return;
+    }
+    var show = hasSelectedLineProducts($form);
+    $wrap.toggleClass("mk-inv-credit-terms--visible", show);
+    $wrap.attr("aria-hidden", show ? "false" : "true");
+    if (!show) {
+      return;
+    }
+    var $sel = $wrap.find('[name="mk_payment_terms"]').first();
+    if (!$sel.length) {
+      return;
+    }
+    var current = ($sel.val() || "").trim();
+    if (!current || isPaymentMethodValue(current)) {
+      var resolved = rebuildCreditTermsSelect($sel, DEFAULT_CREDIT_TERM);
+      try {
+        if ($sel.data("select2")) {
+          $sel.select2("val", resolved);
+        }
+      } catch (ignoreSel) {
+        /* ignore */
+      }
     }
   }
 
@@ -2945,21 +3818,37 @@
         $("<option></option>").attr("value", item.value).text(item.label),
       );
     });
-    if (currentVal) {
+    var resolved = (currentVal || "").trim();
+    if (!resolved) {
+      resolved = DEFAULT_PAYMENT_METHOD;
+    }
+    if (resolved) {
       var hasOption = false;
       $select.find("option").each(function () {
-        if ($(this).val() === currentVal) {
+        if ($(this).val() === resolved) {
           hasOption = true;
           return false;
         }
       });
       if (!hasOption) {
         $select.append(
-          $("<option></option>").attr("value", currentVal).text(currentVal),
+          $("<option></option>").attr("value", resolved).text(resolved),
         );
       }
-      $select.val(currentVal);
+      $select.val(resolved);
     }
+    return resolved;
+  }
+
+  function syncPaymentMethodChips($wrap, value) {
+    if (!$wrap || !$wrap.length) {
+      return;
+    }
+    $wrap.find(".mk-inv-pay-chip").each(function () {
+      var $chip = $(this);
+      $chip.toggleClass("is-active", $chip.attr("data-value") === value);
+      $chip.attr("aria-pressed", $chip.attr("data-value") === value ? "true" : "false");
+    });
   }
 
   function initPaymentTerms($form) {
@@ -2985,45 +3874,141 @@
       return;
     }
 
-    var $existing = $form.find('[name="mk_payment_terms"]');
-    if ($existing.length) {
-      $existing.closest("tr").addClass("mk-inv-hide-legacy");
+    var $existingTerms = $form.find('[name="mk_payment_terms"]');
+    var $existingMethod = $form.find('[name="mk_payment_method"]');
+    if ($existingTerms.length) {
+      $existingTerms.closest("tr").addClass("mk-inv-hide-legacy");
+    }
+    if ($existingMethod.length) {
+      $existingMethod.closest("tr").addClass("mk-inv-hide-legacy");
     }
 
-    var $wrap = $(
-      '<div class="mk-inv-payment-terms mk-inv-payment-terms--card"></div>',
+    var termsVal = "";
+    var methodVal = "";
+    if ($existingTerms.length) {
+      termsVal = ($existingTerms.val() || "").trim();
+    }
+    if ($existingMethod.length) {
+      methodVal = ($existingMethod.val() || "").trim();
+    }
+    if (!methodVal && isPaymentMethodValue(termsVal)) {
+      methodVal = termsVal;
+      termsVal = "";
+    }
+
+    var creditOptions = collectCreditTermsOptions(
+      $existingTerms.filter("select").first(),
     );
-    $wrap.append(
+
+    var chipsHtml = PAYMENT_METHOD_OPTIONS.map(function (item) {
+      return (
+        '<button type="button" class="mk-inv-pay-chip" data-value="' +
+        $("<div>").text(item.value).html() +
+        '" aria-pressed="false">' +
+        $("<div>").text(item.label).html() +
+        "</button>"
+      );
+    }).join("");
+
+    var $payWrap = $(
+      '<div class="mk-inv-payment-terms mk-inv-payment-terms--modern"></div>',
+    );
+    $payWrap.append(
       '<div class="mk-inv-payment-terms__row">' +
         '<span class="mk-inv-payment-terms__icon" aria-hidden="true"></span>' +
         '<div class="mk-inv-payment-terms__content">' +
-        '<label class="mk-inv-payment-terms__label" for="mkInvPaymentTermsSelect">Hình thức thanh toán</label>' +
+        '<div class="mk-inv-payment-terms__head">' +
+        '<label class="mk-inv-payment-terms__label" for="mkInvPaymentMethodSelect">Hình thức thanh toán</label>' +
+        '<span class="mk-inv-payment-terms__hint">Chọn cách khách thanh toán</span>' +
+        "</div>" +
+        '<div class="mk-inv-payment-terms__chips" role="group" aria-label="Hình thức thanh toán">' +
+        chipsHtml +
+        "</div>" +
+        '<div class="mk-inv-payment-terms__field mk-inv-payment-terms__field--sr"></div>' +
         "</div></div>",
     );
 
-    var $select;
-    var currentVal = "";
-    if ($existing.length && $existing.is("select")) {
-      currentVal = ($existing.val() || "").trim();
-      $select = $existing.detach().attr("id", "mkInvPaymentTermsSelect");
-      rebuildPaymentMethodSelect($select, currentVal);
+    var $methodSelect;
+    if ($existingMethod.length && $existingMethod.is("select")) {
+      $methodSelect = $existingMethod
+        .detach()
+        .attr("id", "mkInvPaymentMethodSelect");
     } else {
-      $select = $(
-        '<select class="inputElement" name="mk_payment_terms" id="mkInvPaymentTermsSelect"></select>',
+      $methodSelect = $(
+        '<select class="inputElement" name="mk_payment_method" id="mkInvPaymentMethodSelect"></select>',
       );
-      currentVal = $existing.length ? ($existing.val() || "").trim() : "";
-      rebuildPaymentMethodSelect($select, currentVal);
     }
-    $wrap
-      .find(".mk-inv-payment-terms__content")
-      .append(
-        $('<div class="mk-inv-payment-terms__field"></div>').append($select),
+    var resolvedMethod = rebuildPaymentMethodSelect($methodSelect, methodVal);
+    $payWrap.find(".mk-inv-payment-terms__field").append($methodSelect);
+
+    var $creditWrap = $(
+      '<div class="mk-inv-credit-terms mk-inv-credit-terms--modern" aria-hidden="true"></div>',
+    );
+    $creditWrap.append(
+      '<div class="mk-inv-payment-terms__row">' +
+        '<span class="mk-inv-payment-terms__icon mk-inv-payment-terms__icon--credit" aria-hidden="true"></span>' +
+        '<div class="mk-inv-payment-terms__content">' +
+        '<div class="mk-inv-payment-terms__head mk-inv-credit-terms__head">' +
+        '<label class="mk-inv-payment-terms__label" for="mkInvCreditTermsSelect">Công nợ</label>' +
+        '<span class="mk-inv-payment-terms__hint">Chọn thời hạn thanh toán cho đơn hàng</span>' +
+        "</div>" +
+        '<div class="mk-inv-credit-terms__field"></div>' +
+        "</div></div>",
+    );
+
+    var $creditSelect;
+    if ($existingTerms.length && $existingTerms.is("select")) {
+      $creditSelect = $existingTerms.detach().attr("id", "mkInvCreditTermsSelect");
+    } else {
+      $creditSelect = $(
+        '<select class="inputElement" name="mk_payment_terms" id="mkInvCreditTermsSelect"></select>',
       );
-    $container.prepend($wrap);
+      if ($existingTerms.length) {
+        termsVal = ($existingTerms.val() || "").trim();
+      }
+    }
+    var resolvedCredit = rebuildCreditTermsSelect(
+      $creditSelect,
+      termsVal,
+      creditOptions,
+    );
+    $creditWrap.find(".mk-inv-credit-terms__field").append($creditSelect);
+
+    $container.prepend($creditWrap);
+    $container.prepend($payWrap);
+    syncPaymentMethodChips($payWrap, resolvedMethod);
+    initCreditTermsSelect2($creditSelect);
+    try {
+      if ($creditSelect.data("select2")) {
+        $creditSelect.select2("val", resolvedCredit);
+      }
+    } catch (ignoreCreditSel) {
+      /* ignore */
+    }
+
+    $payWrap.on("click", ".mk-inv-pay-chip", function (e) {
+      e.preventDefault();
+      var val = $(this).attr("data-value") || "";
+      $methodSelect.val(val).trigger("change");
+      syncPaymentMethodChips($payWrap, val);
+      try {
+        if ($methodSelect.data("select2")) {
+          $methodSelect.select2("val", val);
+        }
+      } catch (ignoreSel) {
+        /* ignore */
+      }
+    });
+
+    $methodSelect.on("change.mkInvPay", function () {
+      syncPaymentMethodChips($payWrap, ($methodSelect.val() || "").trim());
+    });
 
     if (typeof vtUtils !== "undefined" && vtUtils.applyFieldElementsView) {
-      vtUtils.applyFieldElementsView($wrap);
+      vtUtils.applyFieldElementsView($payWrap);
     }
+
+    syncCreditTermsVisibility($form);
   }
 
   function persistRawTotalsBeforeSubmit($form) {
@@ -3325,6 +4310,7 @@
       bindInventoryRestyleHooks($form);
 
       loadProductCatalog().always(function () {
+        initQuickProductSearch($form);
         scheduleLineItemsRestyle($form, [0, 200, 500]);
       });
 
@@ -3376,6 +4362,7 @@
     fillAddressFromAccount: fillAddressFromAccount,
     restyleLineItemRows: restyleLineItemRows,
     scheduleLineItemsRestyle: scheduleLineItemsRestyle,
+    initQuickProductSearch: initQuickProductSearch,
     syncTotalsDisplay: syncTotalsDisplay,
     refreshTotals: function ($form) {
       initTotalsOdoo($form);

@@ -442,6 +442,14 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 	border: 1px solid #e2e8f0;
 }
 
+/* Default color for custom / unknown tags (e.g. ngủ) */
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag] {
+	background: #f3e8ff;
+	border-color: #d8b4fe;
+	color: #6b21a8;
+}
+
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag a,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag a {
 	color: inherit;
@@ -450,46 +458,80 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 	margin-left: 2px;
 }
 
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="individual"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="individual"],
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="ca_nhan"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="ca_nhan"],
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="zalo"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="zalo"] { background: #e0f2fe !important; border-color: #7dd3fc !important; color: #0369a1 !important; }
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="facebook"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="facebook"] { background: #dbeafe !important; border-color: #93c5fd !important; color: #1d4ed8 !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="tiktok"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="tiktok"] { background: #fce7f3 !important; border-color: #f9a8d4 !important; color: #be185d !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="kv1"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="kv1"] { background: #dcfce7 !important; border-color: #86efac !important; color: #166534 !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="kv2"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="kv2"] { background: #e0f2fe !important; border-color: #7dd3fc !important; color: #075985 !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="kv3"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="kv3"] { background: #d1fae5 !important; border-color: #6ee7b7 !important; color: #047857 !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="co_quan"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="co_quan"] { background: #ffedd5 !important; border-color: #fdba74 !important; color: #9a3412 !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="chuan_bi_mo"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="chuan_bi_mo"] { background: #fce7f3 !important; border-color: #f9a8d4 !important; color: #be185d !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="xac_nhan_tham_gia"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="xac_nhan_tham_gia"] { background: #dcfce7 !important; border-color: #86efac !important; color: #166534 !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="khong_xac_nhan_tham_gia"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="khong_xac_nhan_tham_gia"] { background: #fee2e2 !important; border-color: #fca5a5 !important; color: #b91c1c !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="tiem_nang"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="tiem_nang"] { background: #fef9c3 !important; border-color: #fde047 !important; color: #854d0e !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="mua_on_dinh"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mua_on_dinh"] { background: #ccfbf1 !important; border-color: #5eead4 !important; color: #0f766e !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="da_tg_fb1"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="da_tg_fb1"] { background: #e0e7ff !important; border-color: #a5b4fc !important; color: #4338ca !important; }
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="thu_3"],
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="thu_3"] { background: #fef3c7 !important; border-color: #fcd34d !important; color: #92400e !important; }
+
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="moi_quen"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="moi_quen"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="moi_quen"] { background: #dbeafe !important; border-color: #93c5fd !important; color: #1d4ed8 !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="da_co_quan_he"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="da_co_quan_he"] { background: #ffe4e6; border-color: #fda4af; color: #be123c; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="da_co_quan_he"] { background: #ffe4e6 !important; border-color: #fda4af !important; color: #be123c !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="chua_mqbh"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="chua_mqbh"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="chua_mqbh"] { background: #ede9fe !important; border-color: #c4b5fd !important; color: #6d28d9 !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="da_tg_free"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="da_tg_free"] { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="da_tg_free"] { background: #e0e7ff !important; border-color: #a5b4fc !important; color: #4338ca !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="vang"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="vang"] { background: #fef9c3; border-color: #facc15; color: #713f12; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="vang"] { background: #fef9c3 !important; border-color: #facc15 !important; color: #713f12 !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="bac"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="bac"] { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="bac"] { background: #f1f5f9 !important; border-color: #94a3b8 !important; color: #334155 !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="dong"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dong"] { background: #ffedd5; border-color: #fb923c; color: #9a3412; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dong"] { background: #ffedd5 !important; border-color: #fb923c !important; color: #9a3412 !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="pcth"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="pcth"] { background: #f3e8ff; border-color: #c4b5fd; color: #7e22ce; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="pcth"] { background: #f3e8ff !important; border-color: #c4b5fd !important; color: #7e22ce !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="van_hanh"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="van_hanh"] { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="van_hanh"] { background: #e0e7ff !important; border-color: #a5b4fc !important; color: #4338ca !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="mkt"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mkt"] { background: #fce7f3; border-color: #f9a8d4; color: #be185d; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mkt"] { background: #fce7f3 !important; border-color: #f9a8d4 !important; color: #be185d !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="lop_khac"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="lop_khac"] { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="lop_khac"] { background: #f1f5f9 !important; border-color: #94a3b8 !important; color: #334155 !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lan_dau"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lan_dau"] { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lan_dau"] { background: #d1fae5 !important; border-color: #6ee7b7 !important; color: #047857 !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lai"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lai"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="mua_lai"] { background: #dbeafe !important; border-color: #93c5fd !important; color: #1d4ed8 !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="dang_cham_soc"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dang_cham_soc"] { background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dang_cham_soc"] { background: #ecfdf5 !important; border-color: #6ee7b7 !important; color: #047857 !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="kh_can_nhac"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="kh_can_nhac"] { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="kh_can_nhac"] { background: #fef3c7 !important; border-color: #fcd34d !important; color: #92400e !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="khong_mua"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="khong_mua"] { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="khong_mua"] { background: #fee2e2 !important; border-color: #fca5a5 !important; color: #b91c1c !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="ngung_mua"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="ngung_mua"] { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="ngung_mua"] { background: #fef2f2 !important; border-color: #fecaca !important; color: #991b1b !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="nhuong_quyen"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="nhuong_quyen"] { background: #ffe4e6; border-color: #fda4af; color: #be123c; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="nhuong_quyen"] { background: #ffe4e6 !important; border-color: #fda4af !important; color: #be123c !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="da_ky_quy"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="da_ky_quy"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="da_ky_quy"] { background: #dbeafe !important; border-color: #93c5fd !important; color: #1d4ed8 !important; }
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag[data-tag="dang_tu_van"],
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dang_tu_van"] { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag[data-tag="dang_tu_van"] { background: #f0fdf4 !important; border-color: #86efac !important; color: #15803d !important; }
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags .tag .tagLabel,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags .tag .tagLabel {
@@ -2333,4 +2375,283 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 	body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__row {
 		flex-wrap: nowrap;
 	}
+}
+
+/* ==========================================================================
+ * Class registration + credentials panel (Detail only)
+ * ========================================================================== */
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel {
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid #e8edf2;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__grid,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+	gap: 16px;
+}
+
+@media (max-width: 900px) {
+	body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__grid,
+	body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__section,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__section {
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 14px 16px;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__title,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__title {
+	margin: 0 0 10px;
+	font-size: 14px;
+	font-weight: 700;
+	color: #0f172a;
+	font-family: "Space Grotesk", sans-serif;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__rights,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__rights {
+	margin: 0 0 8px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.4;
+	background: #f1f5f9;
+	color: #475569;
+	border: 1px solid #e2e8f0;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__rights.is-active,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__rights.is-active {
+	background: #ecfdf5;
+	border-color: #a7f3d0;
+	color: #047857;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__rights.is-expired,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__rights.is-expired {
+	background: #fff1f2;
+	border-color: #fecdd3;
+	color: #be123c;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__rights.is-used,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__rights.is-used {
+	background: #eff6ff;
+	border-color: #bfdbfe;
+	color: #1d4ed8;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__hint,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__hint {
+	margin: 0 0 10px;
+	font-size: 12px;
+	line-height: 1.45;
+	color: #64748b;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__list,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__list {
+	list-style: none;
+	margin: 0 0 12px;
+	padding: 0;
+	max-height: 180px;
+	overflow-y: auto;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #fff;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__item,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 10px 8px;
+	border-bottom: 1px solid #eef2f7;
+	font-size: 13px;
+	color: #1e293b;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__item:last-child,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__item:last-child {
+	border-bottom: 0;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__item-main,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__item-main {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__btn--retake,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__btn--retake {
+	flex: 0 0 auto;
+	border: 1px solid #bfdbfe !important;
+	background: #eff6ff !important;
+	color: #1d4ed8 !important;
+	font-weight: 700;
+	font-size: 12px;
+	padding: 5px 10px;
+	border-radius: 999px;
+	white-space: nowrap;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__btn--retake:hover,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__btn--retake:hover {
+	background: #dbeafe !important;
+	border-color: #93c5fd !important;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__retake-form,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__retake-form {
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	border: 1px dashed #93c5fd;
+	border-radius: 10px;
+	background: #f8fbff;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__retake-form.hide,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__retake-form.hide {
+	display: none !important;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__retake-label,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__retake-label {
+	display: block;
+	margin: 0 0 8px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #1d4ed8;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__retake-row,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__retake-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__n,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__n {
+	flex: 0 0 auto;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: #ecfdf5;
+	border: 1px solid #a7f3d0;
+	color: #047857;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__n.is-retake,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__n.is-retake {
+	background: #eff6ff;
+	border-color: #bfdbfe;
+	color: #1d4ed8;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__empty,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__empty {
+	padding: 14px 10px;
+	text-align: center;
+	color: #94a3b8;
+	font-size: 13px;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__add,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__add {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__date,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__date {
+	flex: 1 1 160px;
+	min-width: 140px;
+	height: 38px;
+	padding: 6px 10px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	background: #fff;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__field,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__field {
+	margin-bottom: 12px;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__label,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__label {
+	display: block;
+	margin-bottom: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #64748b;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__select,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__select {
+	width: 100%;
+	height: 38px;
+	appearance: auto;
+	-webkit-appearance: menulist;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	background: #fff;
+	padding: 4px 10px;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__btn,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	height: 38px;
+	padding: 0 14px;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	border: 1px solid transparent;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__btn--outline,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__btn--outline {
+	background: #fff;
+	border-color: #cbd5e1;
+	color: #334155;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__btn--primary,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__btn--primary {
+	background: #0f766e;
+	border-color: #0f766e;
+	color: #fff;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__btn:disabled,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
 }

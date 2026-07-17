@@ -226,27 +226,13 @@
   }
 
   /**
-   * Next Action (List column) = earliest open Calendar activity (Task/Call/Meeting).
-   * Fallback: legacy next_action string in cache.
+   * Next Action (List / Detail) = ghi chú tự do đã lưu trên lead.
+   * Không lấy từ Calendar / nhắc Last Touch Call.
    */
   function deriveNextAction(lead) {
     var stored = String(lead.next_action || "").trim();
-    var tasks = (lead.calendarTasks || []).filter(function (t) {
-      if (!t || ACTIVITY_TYPES.indexOf(t.type) < 0) return false;
-      var status = String(t.status || "open").toLowerCase();
-      return status !== "done" && status !== "completed" && status !== "closed";
-    });
-    if (tasks.length) {
-      tasks.sort(function (a, b) {
-        var da = a.dueAt ? new Date(a.dueAt).getTime() : Number.MAX_SAFE_INTEGER;
-        var db = b.dueAt ? new Date(b.dueAt).getTime() : Number.MAX_SAFE_INTEGER;
-        return da - db;
-      });
-      var top = tasks[0];
-      var derived = activityTypePrefix(top.type) + String(top.subject || "").trim();
-      if (derived) {
-        return derived;
-      }
+    if (/^(Nhắc gọi Call\s*#|Đã nghe máy|Đã đủ 3 lần gọi|Gọi:\s*Nhắc gọi)/i.test(stored)) {
+      return "";
     }
     return stored;
   }
@@ -275,10 +261,67 @@
     }
   }
 
-  function touchLabel(days) {
-    if (days <= 0) return "Today";
-    return days + "d ago";
-  }
+	function touchLabel(days) {
+		if (days <= 0) return "Today";
+		return days + "d ago";
+	}
+
+	/**
+	 * Cột / field "Tương tác gần đây" = log Last Touch Call (không dùng Today/Nd ago).
+	 */
+	function lastTouchCallLogHtml(lead, escFn) {
+		var esc =
+			typeof escFn === "function"
+				? escFn
+				: function (s) {
+						return String(s == null ? "" : s)
+							.replace(/&/g, "&amp;")
+							.replace(/</g, "&lt;")
+							.replace(/>/g, "&gt;")
+							.replace(/"/g, "&quot;");
+				  };
+		var lt = lead && lead.lastTouchCalls ? lead.lastTouchCalls : null;
+		var calls = lt && lt.calls ? lt.calls : [];
+		if (!calls.length) {
+			return '<span class="mk-leads-muted">Chưa có cuộc gọi</span>';
+		}
+		return (
+			'<div class="mk-leads-call-log">' +
+			calls
+				.map(function (c) {
+					var line =
+						c.label ||
+						(c.called_at_label || "") +
+							" Call #" +
+							(c.n || "") +
+							" Kết quả: " +
+							(c.result || "");
+					return '<div class="mk-leads-call-log__item">' + esc(line) + "</div>";
+				})
+				.join("") +
+			"</div>"
+		);
+	}
+
+	function lastTouchCallLogText(lead) {
+		var lt = lead && lead.lastTouchCalls ? lead.lastTouchCalls : null;
+		var calls = lt && lt.calls ? lt.calls : [];
+		if (!calls.length) {
+			return "";
+		}
+		return calls
+			.map(function (c) {
+				return (
+					c.label ||
+					(c.called_at_label || "") +
+						" Call #" +
+						(c.n || "") +
+						" Kết quả: " +
+						(c.result || "")
+				);
+			})
+			.join("\n");
+	}
 
   function ownerInitials(name) {
     return String(name || "")
@@ -416,6 +459,8 @@
     daysSince: daysSince,
     fmtVND: fmtVND,
     touchLabel: touchLabel,
+    lastTouchCallLogHtml: lastTouchCallLogHtml,
+    lastTouchCallLogText: lastTouchCallLogText,
     ownerInitials: ownerInitials,
     ownerColor: ownerColor,
     SEGMENT_LABELS: SEGMENT_LABELS,

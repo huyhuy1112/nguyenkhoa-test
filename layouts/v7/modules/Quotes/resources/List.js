@@ -616,7 +616,7 @@
       '<div class="mk-so-excel-sheet__logo"><img src="layouts/v7/modules/Quotes/resources/images/nguyenkhoa-excel-logo.png" alt="Nguyên Khoa" /></div>';
     html += '<div class="mk-so-excel-sheet__company">nguyenlieuphachemt</div>';
     html +=
-      '<div class="mk-so-excel-sheet__company-meta">6/24 Đường số 3, Cư Xá Lữ Gia, Phú Thọ, Hồ Chí Minh<br>0973969498</div>';
+      '<div class="mk-so-excel-sheet__company-meta">Địa chỉ: 6/24 Đường số 3, Cư Xá Lữ Gia, Phú Thọ, Hồ Chí Minh<br>Điện thoại: 0973969498</div>';
     html += '<div class="mk-so-excel-sheet__doc-title">BÁO GIÁ</div>';
     html +=
       '<div class="mk-so-excel-sheet__doc-meta">Mã báo giá: ' +

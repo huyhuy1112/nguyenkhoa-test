@@ -7,7 +7,7 @@
   var ref = window.PotentialsLovableRef;
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 13;
+  var COL_COUNT = 12;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -356,10 +356,32 @@
     });
   }
 
+  function tagCellHtml(primary, extras) {
+    var html = "";
+    if (primary) html += tagBadgeHtml(primary);
+    if (extras && extras.length) {
+      extras.forEach(function (t) {
+        html += tagBadgeHtml(t);
+      });
+    }
+    return html || '<span class="mk-leads-muted">—</span>';
+  }
+
   function tagBadgeHtml(tag) {
     if (!tag) return '<span class="mk-leads-muted">—</span>';
     var m = tagMeta(tag);
-    return '<span class="mk-tag ' + m.cls + '">' + esc(m.label) + "</span>";
+    var key =
+      ref && ref.normalizeTag ? ref.normalizeTag(tag) : String(tag || "").trim();
+    if (!key) key = String(tag || "").trim();
+    return (
+      '<span class="mk-tag" data-tag="' +
+      esc(key) +
+      '" title="' +
+      esc(String(tag)) +
+      '">' +
+      esc(m.label || key) +
+      "</span>"
+    );
   }
 
   function categoryPill(cat) {
@@ -389,7 +411,6 @@
       tbody.innerHTML = pageRows
         .map(function (o) {
           var cats = categorize(o.tags);
-          var amountCls = Number(o.amount) > 0 ? " mk-opps-amount--positive" : "";
           var crmId = o.crmid != null && o.crmid !== "" ? String(o.crmid) : String(o.id || "");
           var customerName = String(o.contact || o.account || o.name || "").trim();
           if (!customerName || customerName === ".") customerName = "";
@@ -408,7 +429,6 @@
             '<td class="mk-leads-td mk-leads-td--lead"><a class="mk-leads-name" href="' + detailUrl(o.crmid || o.id) + '">' +
             (customerName ? esc(customerName) : '<span class="mk-leads-muted">—</span>') +
             "</a></td>" +
-            '<td class="mk-leads-td">' + categoryPill(o.order_category) + "</td>" +
             '<td class="mk-leads-td"><span class="mk-pill ' + stagePillClass(o.sales_stage) + '">' + esc(stageLabel(o.sales_stage)) + "</span></td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.area) + "</td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.source) + "</td>" +
@@ -416,8 +436,8 @@
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.classTag) + "</td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.material) + "</td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.franchise) + "</td>" +
+            '<td class="mk-leads-td">' + tagCellHtml(null, cats.custom) + "</td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.confirm) + "</td>" +
-            '<td class="mk-leads-td mk-opps-amount' + amountCls + '">' + esc(formatMoney(o.amount)) + "</td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(o.owner) + '">' + esc(ownerInitials(o.owner)) + "</span>" +
             "<span>" + esc(o.owner || "—") + "</span></span></td></tr>"

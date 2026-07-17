@@ -26,7 +26,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string)$request->get('mode'));
-		if (in_array($mode, array('save', 'save_next_action', 'save_inline_category_tags', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner', 'dedupe_leads'), true)) {
+		if (in_array($mode, array('save', 'save_next_action', 'save_inline_category_tags', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner', 'dedupe_leads', 'last_touch_call_log'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -247,6 +247,41 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					$response->setResult(array(
 						'success' => true,
 						'lead' => Leads_ModernService::getLead($leadId, $userId),
+					));
+					break;
+
+				case 'last_touch_call_list':
+					require_once 'modules/Leads/models/LastTouchCallService.php';
+					$leadId = $request->get('id');
+					if ($leadId === null || $leadId === '') {
+						$leadId = $request->get('record');
+					}
+					$response->setResult(array(
+						'success' => true,
+						'lastTouchCalls' => Leads_LastTouchCallService::getSummary($leadId),
+					));
+					break;
+
+				case 'last_touch_call_log':
+					require_once 'modules/Leads/models/LastTouchCallService.php';
+					$leadId = $request->get('id');
+					if ($leadId === null || $leadId === '') {
+						$leadId = $request->get('record');
+					}
+					$result = $request->get('call_result');
+					if ($result === null || $result === '') {
+						$result = $request->get('result');
+					}
+					$note = $request->get('note');
+					if ($note === null) {
+						$note = $request->get('call_note');
+					}
+					$logged = Leads_LastTouchCallService::logCall($leadId, $result, $note, $userId);
+					$response->setResult(array(
+						'success' => true,
+						'lastTouchCalls' => $logged,
+						'lead' => isset($logged['lead']) ? $logged['lead'] : null,
+						'convert' => isset($logged['convert']) ? $logged['convert'] : null,
 					));
 					break;
 

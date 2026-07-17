@@ -724,6 +724,7 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
     box-sizing: border-box;
 }
 .mk-leads-col--check { width: 44px; }
+.mk-leads-col--created { width: 132px; }
 .mk-leads-col--lead { width: 190px; }
 .mk-leads-col--phone { width: 118px; }
 .mk-leads-col--area { width: 132px; }
@@ -1234,4 +1235,22 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--support { backgro
 @media (max-width: 768px) {
     .mk-leads-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .mk-leads-filters-grid { grid-template-columns: 1fr; }
+}
+
+/* Tương tác gần đây = log Call Last Touch */
+.mk-leads-page--lovable .mk-leads-td--touch {
+	min-width: 220px;
+	max-width: 340px;
+	white-space: normal;
+	vertical-align: top;
+}
+.mk-leads-page--lovable .mk-leads-call-log {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.mk-leads-page--lovable .mk-leads-call-log__item {
+	font-size: 12px;
+	line-height: 1.35;
+	color: #334155;
 }

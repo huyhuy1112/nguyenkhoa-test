@@ -57,10 +57,76 @@
 		});
 	}
 
+	var CORE_GROUP_IDS = {
+		nguyen_lieu: true,
+		nhuong_quyen_group: true,
+		lop_hoc: true,
+	};
+
+	function isProtectedGroup(groupId) {
+		return !!CORE_GROUP_IDS[groupId];
+	}
+
+	function getGroupChildCount(groupId) {
+		return store.getTags().filter(function (t) {
+			return t.group_id === groupId;
+		}).length;
+	}
+
 	function getTagCategories() {
-		return uniqSorted(store.getTags().map(function (t) {
-			return t.category;
-		}));
+		// Dropdown “Tag cha”: chỉ 3 nhóm chính trên form tạo Lead (+ nhóm đang chọn nếu edit).
+		var preferredIds = {
+			nguyen_lieu: true,
+			nhuong_quyen_group: true,
+			lop_hoc: true,
+		};
+		var preferredOrder = ['Nguyên liệu', 'Nhượng quyền', 'Lớp học'];
+		var byName = {};
+		(store.getGroups ? store.getGroups() : []).forEach(function (g) {
+			if (!g || !g.name) return;
+			if (g.show_on_create || preferredIds[g.id]) {
+				byName[g.name] = true;
+			}
+		});
+		var list = preferredOrder.filter(function (n) { return byName[n]; });
+		Object.keys(byName).forEach(function (n) {
+			if (list.indexOf(n) < 0) list.push(n);
+		});
+		return list;
+	}
+
+	function getGroupOptions() {
+		var preferredIds = {
+			nguyen_lieu: true,
+			nhuong_quyen_group: true,
+			lop_hoc: true,
+		};
+		return (store.getGroups ? store.getGroups() : [])
+			.filter(function (g) {
+				return g.show_on_create || preferredIds[g.id];
+			})
+			.map(function (g) {
+				return { id: g.id, name: g.name, show_on_create: g.show_on_create };
+			});
+	}
+
+	function resolveGroupLabel(tag) {
+		if (tag.group_id && store.getGroupById) {
+			var g = store.getGroupById(tag.group_id);
+			if (g) return g.name;
+		}
+		return tag.category || '—';
+	}
+
+	function scopeBadges(tag) {
+		var parts = [];
+		if (tag.scope_lead !== 0) parts.push('Lead');
+		if (tag.scope_opp !== 0) parts.push('Opp');
+		if (tag.scope_contact !== 0) parts.push('Contact');
+		if (!parts.length) return '—';
+		return parts.map(function (p) {
+			return '<span class="mk-tre-scope-pill">' + esc(p) + '</span>';
+		}).join('');
 	}
 
 	function getScenarioChannels() {
@@ -158,6 +224,53 @@
 		return hay.indexOf(q) >= 0;
 	}
 
+	var TAB_IDS = { rules: true, tags: true, scenarios: true };
+	var TAB_STORAGE_KEY = 'mk_tre_active_tab';
+
+	function readPersistedTab() {
+		var fromHash = '';
+		try {
+			var hash = String(window.location.hash || '').replace(/^#/, '');
+			if (hash.indexOf('tab=') === 0) {
+				fromHash = hash.slice(4);
+			} else if (TAB_IDS[hash]) {
+				fromHash = hash;
+			}
+		} catch (e0) { /* ignore */ }
+		if (TAB_IDS[fromHash]) return fromHash;
+
+		try {
+			var params = new URLSearchParams(window.location.search || '');
+			var fromQuery = params.get('tab') || '';
+			if (TAB_IDS[fromQuery]) return fromQuery;
+		} catch (e1) { /* ignore */ }
+
+		try {
+			var fromStore = window.sessionStorage ? sessionStorage.getItem(TAB_STORAGE_KEY) : '';
+			if (TAB_IDS[fromStore]) return fromStore;
+		} catch (e2) { /* ignore */ }
+
+		return 'rules';
+	}
+
+	function persistTab(tab) {
+		if (!TAB_IDS[tab]) tab = 'rules';
+		try {
+			if (window.sessionStorage) sessionStorage.setItem(TAB_STORAGE_KEY, tab);
+		} catch (e0) { /* ignore */ }
+		try {
+			var nextHash = 'tab=' + tab;
+			if (String(window.location.hash || '').replace(/^#/, '') !== nextHash) {
+				if (window.history && history.replaceState) {
+					var url = window.location.pathname + window.location.search + '#' + nextHash;
+					history.replaceState(null, '', url);
+				} else {
+					window.location.hash = nextHash;
+				}
+			}
+		} catch (e1) { /* ignore */ }
+	}
+
 	var MkTagRuleEngine = {
 		$root: null,
 		activeTab: 'rules',
@@ -167,8 +280,21 @@
 		init: function () {
 			this.$root = $('#mk-tag-rule-engine');
 			if (!this.$root.length) return;
+			this.activeTab = readPersistedTab();
+			persistTab(this.activeTab);
 			this.render();
 			this.bindEvents();
+		},
+
+		setActiveTab: function (tab) {
+			if (!TAB_IDS[tab]) tab = 'rules';
+			this.activeTab = tab;
+			persistTab(tab);
+			if (this.$root && this.$root.length) {
+				this.$root.find('.mk-tre-tab').removeClass('is-active');
+				this.$root.find('.mk-tre-tab[data-tab="' + tab + '"]').addClass('is-active');
+				this.renderPanel();
+			}
 		},
 
 		render: function () {
@@ -321,20 +447,73 @@
 				+ '</section>';
 		},
 
+		renderGroupsTableBody: function () {
+			var groups = store.getGroups ? store.getGroups() : [];
+			if (!groups.length) {
+				return '<tr><td colspan="4" class="mk-tre-empty">Chưa có tag cha</td></tr>';
+			}
+			return groups.map(function (g) {
+				var childCount = getGroupChildCount(g.id);
+				var onLead = g.show_on_create
+					? '<span class="mk-tre-chip mk-tre-chip--primary">Có</span>'
+					: '<span class="mk-tre-muted">Không</span>';
+				var protectedGroup = isProtectedGroup(g.id);
+				var delBtn = protectedGroup
+					? ''
+					: '    <button type="button" class="mk-tre-icon-btn mk-tre-icon-btn--danger js-tre-group-del" data-id="' + esc(g.id) + '" data-name="' + esc(g.name) + '" data-children="' + childCount + '" title="Xoá tag cha">' + ICONS.trash + '</button>';
+				return ''
+					+ '<tr>'
+					+ '  <td class="mk-tre-strong">' + esc(g.name) + (protectedGroup ? ' <span class="mk-tre-chip mk-tre-chip--muted">Hệ thống</span>' : '') + '</td>'
+					+ '  <td>' + onLead + '</td>'
+					+ '  <td class="mk-tre-muted">' + childCount + '</td>'
+					+ '  <td class="mk-tre-actions">'
+					+ '    <button type="button" class="mk-tre-icon-btn js-tre-group-edit" data-id="' + esc(g.id) + '" title="Sửa tag cha">' + ICONS.pencil + '</button>'
+					+ delBtn
+					+ '  </td>'
+					+ '</tr>';
+			}).join('');
+		},
+
+		renderGroupsSection: function () {
+			return ''
+				+ '<section class="mk-tre-section mk-tre-section--groups">'
+				+ '  <div class="mk-tre-section__head">'
+				+ '    <div class="mk-tre-section__titles">'
+				+ '      <h2 class="mk-tre-section__title">Tag cha (nhóm)</h2>'
+				+ '      <p class="mk-tre-section__sub">Tag cha quyết định card trên form tạo Lead. Xoá tag con không tự xoá tag cha — dùng nút xoá ở đây để gỡ card khỏi Lead.</p>'
+				+ '    </div>'
+				+ '    <div class="mk-tre-section__actions">'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--ghost mk-tre-btn--lg js-tre-group-create">' + ICONS.plus + ' Tạo tag cha</button>'
+				+ '    </div>'
+				+ '  </div>'
+				+ '  <div class="mk-tre-section__body">'
+				+ '    <div class="mk-tre-table-wrap"><table class="mk-tre-table">'
+				+ '<colgroup><col class="mk-tre-col-name" /><col class="mk-tre-col-lead" /><col class="mk-tre-col-used" /><col class="mk-tre-col-act" /></colgroup>'
+				+ '<thead><tr><th>Tên tag cha</th><th>Form tạo Lead</th><th>Tag con</th><th class="mk-tre-th-actions">Thao tác</th></tr></thead>'
+				+ '<tbody class="js-tre-groups-tbody">' + this.renderGroupsTableBody() + '</tbody>'
+				+ '</table></div>'
+				+ '  </div>'
+				+ '</section>';
+		},
+
 		renderTagsTableBody: function () {
 			var self = this;
+			var q = String(self.tagSearch || '').toLowerCase();
 			var tags = store.getTags().filter(function (t) {
-				return !self.tagSearch || t.name.toLowerCase().indexOf(self.tagSearch.toLowerCase()) >= 0;
+				if (!q) return true;
+				var hay = (t.name + ' ' + (t.category || '') + ' ' + resolveGroupLabel(t)).toLowerCase();
+				return hay.indexOf(q) >= 0;
 			});
 			if (!tags.length) {
-				return '<tr><td colspan="5" class="mk-tre-empty">Không có tag phù hợp</td></tr>';
+				return '<tr><td colspan="6" class="mk-tre-empty">Không có tag phù hợp</td></tr>';
 			}
 			return tags.map(function (t) {
 				var used = store.getTagUsageCount(t.id);
 				return ''
 					+ '<tr>'
 					+ '  <td class="mk-tre-strong">' + esc(t.name) + '</td>'
-					+ '  <td class="mk-tre-muted">' + esc(t.category || '—') + '</td>'
+					+ '  <td class="mk-tre-muted">' + esc(resolveGroupLabel(t)) + '</td>'
+					+ '  <td class="mk-tre-td-scope"><span class="mk-tre-scope">' + scopeBadges(t) + '</span></td>'
 					+ '  <td class="mk-tre-muted">' + esc(t.description || '—') + '</td>'
 					+ '  <td>' + used + '</td>'
 					+ '  <td class="mk-tre-actions">'
@@ -351,11 +530,12 @@
 
 		renderTagsTab: function () {
 			return ''
+				+ this.renderGroupsSection()
 				+ '<section class="mk-tre-section">'
 				+ '  <div class="mk-tre-section__head">'
 				+ '    <div class="mk-tre-section__titles">'
-				+ '      <h2 class="mk-tre-section__title">Danh sách tag</h2>'
-				+ '      <p class="mk-tre-section__sub">Tag dùng làm điều kiện trong rule. Cột “Dùng ở rule” cho biết số rule đang tham chiếu.</p>'
+				+ '      <h2 class="mk-tre-section__title">Danh sách tag con</h2>'
+				+ '      <p class="mk-tre-section__sub">Tag con thuộc tag cha (nhóm). Scope quyết định hiện trên Lead / Opp / Contact.</p>'
 				+ '    </div>'
 				+ '    <div class="mk-tre-section__actions">'
 				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-tag-create">' + ICONS.plus + ' Tạo tag</button>'
@@ -364,13 +544,13 @@
 				+ '  <div class="mk-tre-section__filterbar">'
 				+ '    <label class="mk-tre-search-field mk-tre-search-field--bar">'
 				+ '      <span class="mk-tre-search-field__icon" aria-hidden="true">' + ICONS.search + '</span>'
-				+ '      <input type="search" class="mk-tre-input mk-tre-input--search js-tre-tag-search" placeholder="Tìm tag theo tên..." value="' + esc(this.tagSearch) + '" autocomplete="off" />'
+				+ '      <input type="search" class="mk-tre-input mk-tre-input--search js-tre-tag-search" placeholder="Tìm tag theo tên hoặc nhóm..." value="' + esc(this.tagSearch) + '" autocomplete="off" />'
 				+ '    </label>'
 				+ '  </div>'
 				+ '  <div class="mk-tre-section__body">'
 				+ '    <div class="mk-tre-table-wrap"><table class="mk-tre-table">'
-				+ '<colgroup><col class="mk-tre-col-name" /><col class="mk-tre-col-group" /><col class="mk-tre-col-desc" /><col class="mk-tre-col-used" /><col class="mk-tre-col-act" /></colgroup>'
-				+ '<thead><tr><th>Tên</th><th>Nhóm</th><th>Mô tả</th><th>Dùng ở rule</th><th class="mk-tre-th-actions">Thao tác</th></tr></thead>'
+				+ '<colgroup><col class="mk-tre-col-name" /><col class="mk-tre-col-group" /><col class="mk-tre-col-scope" /><col class="mk-tre-col-desc" /><col class="mk-tre-col-used" /><col class="mk-tre-col-act" /></colgroup>'
+				+ '<thead><tr><th>Tên</th><th>Tag cha</th><th>Scope</th><th>Mô tả</th><th>Dùng ở rule</th><th class="mk-tre-th-actions">Thao tác</th></tr></thead>'
 				+ '<tbody class="js-tre-tags-tbody">' + this.renderTagsTableBody() + '</tbody>'
 				+ '</table></div>'
 				+ '  </div>'
@@ -443,18 +623,38 @@
 			var tags = store.getTags();
 			var scenarios = store.getScenarios();
 			var selected = rule.tag_ids || [];
-			var byCat = {};
-			var catOrder = [];
-			tags.forEach(function (t) {
-				var cat = (t.category && String(t.category).trim()) || 'Khác';
-				if (!byCat[cat]) {
-					byCat[cat] = [];
-					catOrder.push(cat);
-				}
-				byCat[cat].push(t);
+			var groups = getGroupOptions();
+			var byGroup = {};
+			var groupOrder = [];
+			groups.forEach(function (g) {
+				byGroup[g.id] = [];
+				groupOrder.push({ key: g.id, label: g.name });
 			});
-			var tagGroups = catOrder.map(function (cat) {
-				var pills = byCat[cat].map(function (t) {
+			var ungrouped = [];
+			tags.forEach(function (t) {
+				if (t.group_id && byGroup[t.group_id]) {
+					byGroup[t.group_id].push(t);
+				} else {
+					var cat = (t.category && String(t.category).trim()) || 'Khác';
+					var found = null;
+					for (var i = 0; i < groupOrder.length; i++) {
+						if (groupOrder[i].label === cat) { found = groupOrder[i].key; break; }
+					}
+					if (found && byGroup[found]) {
+						byGroup[found].push(t);
+					} else {
+						ungrouped.push(t);
+					}
+				}
+			});
+			if (ungrouped.length) {
+				byGroup.__other__ = ungrouped;
+				groupOrder.push({ key: '__other__', label: 'Khác' });
+			}
+			var tagGroups = groupOrder.map(function (g) {
+				var list = byGroup[g.key] || [];
+				if (!list.length) return '';
+				var pills = list.map(function (t) {
 					var checked = selected.indexOf(t.id) >= 0 ? ' checked' : '';
 					return ''
 						+ '<label class="mk-tre-tag-pill" data-tag-name="' + esc((t.name || '').toLowerCase()) + '" data-tag-id="' + esc((t.id || '').toLowerCase()) + '">'
@@ -464,7 +664,7 @@
 				}).join('');
 				return ''
 					+ '<div class="mk-tre-tag-group">'
-					+ '  <div class="mk-tre-tag-group__label">' + esc(cat) + '</div>'
+					+ '  <div class="mk-tre-tag-group__label">' + esc(g.label) + '</div>'
 					+ '  <div class="mk-tre-tag-group__pills">' + pills + '</div>'
 					+ '</div>';
 			}).join('');
@@ -551,18 +751,66 @@
 
 		openTagForm: function (tagId) {
 			var isEdit = !!tagId;
-			var tag = isEdit ? store.getTagById(tagId) : { name: '', category: '', description: '' };
-			var categoryField = buildPickOrNewSelect('category', getTagCategories(), tag.category || '', '— Chọn nhóm —');
+			var tag = isEdit ? store.getTagById(tagId) : {
+				name: '', category: '', description: '',
+				scope_lead: 1, scope_opp: 1, scope_contact: 1, group_id: ''
+			};
+			if (!tag) {
+				tag = { name: '', category: '', description: '', scope_lead: 1, scope_opp: 1, scope_contact: 1 };
+			}
+			var groupLabel = resolveGroupLabel(tag);
+			if (groupLabel === '—') groupLabel = tag.category || '';
+			var catOptions = getTagCategories();
+			if (groupLabel && catOptions.indexOf(groupLabel) < 0) {
+				catOptions = catOptions.concat([groupLabel]);
+			}
+			var categoryField = buildPickOrNewSelect('category', catOptions, groupLabel, '— Chọn tag cha —');
 			var body = ''
 				+ '<div class="mk-tre-form mk-tre-form--modal">'
 				+ '  <label class="mk-tre-field"><span>Tên tag</span><input class="mk-tre-input" name="name" value="' + esc(tag.name) + '" autocomplete="off" /></label>'
-				+ '  <div class="mk-tre-field"><span>Nhóm</span>' + categoryField + '</div>'
+				+ '  <div class="mk-tre-field"><span>Tag cha (nhóm)</span>' + categoryField + '</div>'
 				+ '  <label class="mk-tre-field"><span>Mô tả</span><input class="mk-tre-input" name="description" value="' + esc(tag.description || '') + '" autocomplete="off" /></label>'
+				+ '  <div class="mk-tre-field"><span>Hiện trên module</span>'
+				+ '    <div class="mk-tre-form-row" style="margin-top:6px">'
+				+ '      <label class="mk-tre-opt" style="flex:1"><span class="mk-tre-opt__text"><strong>Lead</strong></span>'
+				+ '        <span class="mk-tre-switch"><input type="checkbox" name="scope_lead"' + (tag.scope_lead !== 0 ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span></label>'
+				+ '      <label class="mk-tre-opt" style="flex:1"><span class="mk-tre-opt__text"><strong>Opp</strong></span>'
+				+ '        <span class="mk-tre-switch"><input type="checkbox" name="scope_opp"' + (tag.scope_opp !== 0 ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span></label>'
+				+ '      <label class="mk-tre-opt" style="flex:1"><span class="mk-tre-opt__text"><strong>Contact</strong></span>'
+				+ '        <span class="mk-tre-switch"><input type="checkbox" name="scope_contact"' + (tag.scope_contact !== 0 ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span></label>'
+				+ '    </div>'
+				+ '  </div>'
+				+ '  <label class="mk-tre-opt">'
+				+ '    <span class="mk-tre-opt__text"><strong>Hiện trên form tạo Lead</strong><small>Khi tạo tag cha mới từ “＋ Thêm mới…”</small></span>'
+				+ '    <span class="mk-tre-switch"><input type="checkbox" name="show_on_create" checked /><span class="mk-tre-switch__track"></span></span>'
+				+ '  </label>'
 				+ '</div>';
 			var foot = ''
 				+ '<button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-modal-cancel">Huỷ</button>'
 				+ '<button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-tag-save" data-id="' + esc(tagId || '') + '">Lưu</button>';
 			this.openModal(isEdit ? 'Sửa tag' : 'Tạo tag mới', body, foot, { variant: 'form' });
+		},
+
+		openGroupForm: function (groupId) {
+			var isEdit = !!groupId;
+			var g = isEdit && store.getGroupById ? store.getGroupById(groupId) : null;
+			if (isEdit && !g) {
+				return;
+			}
+			var protectedGroup = isEdit && isProtectedGroup(groupId);
+			var body = ''
+				+ '<div class="mk-tre-form mk-tre-form--modal">'
+				+ '  <label class="mk-tre-field"><span>Tên tag cha</span><input class="mk-tre-input" name="name" value="' + esc(isEdit ? g.name : '') + '" placeholder="VD: Marketing" autocomplete="off"' + (protectedGroup ? ' readonly' : '') + ' /></label>'
+				+ '  <label class="mk-tre-opt">'
+				+ '    <span class="mk-tre-opt__text"><strong>Hiện trên form tạo Lead</strong><small>Thêm card chọn tag con khi tạo Lead</small></span>'
+				+ '    <span class="mk-tre-switch"><input type="checkbox" name="show_on_create"' + ((!isEdit || g.show_on_create) ? ' checked' : '') + (protectedGroup ? ' disabled' : '') + ' /><span class="mk-tre-switch__track"></span></span>'
+				+ '  </label>'
+				+ (protectedGroup ? '  <p class="mk-tre-muted" style="margin:0">Tag cha hệ thống không thể xoá hoặc tắt trên form Lead.</p>' : '')
+				+ '</div>';
+			var foot = ''
+				+ '<button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-modal-cancel">Huỷ</button>'
+				+ '<button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-group-save" data-id="' + esc(groupId || '') + '">' + (isEdit ? 'Cập nhật tag cha' : 'Lưu tag cha') + '</button>';
+			this.openModal(isEdit ? 'Sửa tag cha' : 'Tạo tag cha', body, foot, { variant: 'form' });
 		},
 
 		openScenarioForm: function (scId) {
@@ -604,9 +852,16 @@
 			});
 			if (data.category_select !== undefined) {
 				data.category = resolvePickOrNew(data, 'category');
+				if (data.category_select === '__new__' && data.category) {
+					data.create_group = 1;
+					data.new_group = 1;
+				}
 				delete data.category_select;
 				delete data.category_new;
 			}
+			['scope_lead', 'scope_opp', 'scope_contact', 'show_on_create'].forEach(function (k) {
+				if (data[k] === undefined) data[k] = false;
+			});
 			if (data.channel_select !== undefined) {
 				data.channel = resolvePickOrNew(data, 'channel');
 				delete data.channel_select;
@@ -624,10 +879,7 @@
 			var self = this;
 
 			this.$root.on('click', '.mk-tre-tab', function () {
-				self.activeTab = $(this).data('tab');
-				self.$root.find('.mk-tre-tab').removeClass('is-active');
-				$(this).addClass('is-active');
-				self.renderPanel();
+				self.setActiveTab($(this).data('tab'));
 			});
 
 			this.$root.on('input', '.js-tre-tag-search', function () {
@@ -668,6 +920,27 @@
 			});
 
 			this.$root.on('click', '.js-tre-tag-create', function () { self.openTagForm(null); });
+			this.$root.on('click', '.js-tre-group-create', function () { self.openGroupForm(null); });
+			this.$root.on('click', '.js-tre-group-edit', function () { self.openGroupForm($(this).data('id')); });
+			this.$root.on('click', '.js-tre-group-del', function () {
+				var $btn = $(this);
+				var name = $btn.data('name');
+				var children = parseInt($btn.data('children'), 10) || 0;
+				var msg = 'Xoá tag cha "' + name + '"?';
+				if (children > 0) {
+					msg += '\n\nCòn ' + children + ' tag con — chúng sẽ bị gỡ khỏi nhóm này.';
+				}
+				msg += '\n\nCard tương ứng sẽ biến mất khỏi form tạo Lead.';
+				if (!window.confirm(msg)) return;
+				try {
+					if (!store.deleteGroup) throw new Error('Store chưa hỗ trợ xoá tag cha');
+					store.deleteGroup($btn.data('id'));
+					self.refreshAfterDataChange();
+					toast('Đã xoá tag cha');
+				} catch (e) {
+					window.alert(e.message || 'Không xoá được tag cha');
+				}
+			});
 			this.$root.on('click', '.js-tre-tag-edit', function () { self.openTagForm($(this).data('id')); });
 			this.$root.on('click', '.js-tre-tag-del', function () {
 				var used = parseInt($(this).data('used'), 10) || 0;
@@ -826,6 +1099,19 @@
 					window.alert('Vui lòng nhập tên tag.');
 					return;
 				}
+				if (data.category) {
+					var groups = getGroupOptions();
+					for (var i = 0; i < groups.length; i++) {
+						if (groups[i].name === data.category) {
+							data.group_id = groups[i].id;
+							break;
+						}
+					}
+					if (!data.group_id) {
+						data.create_group = 1;
+						data.new_group = 1;
+					}
+				}
 				try {
 					if (id) store.updateTag(id, data);
 					else store.createTag(data);
@@ -834,6 +1120,41 @@
 					toast('Đã lưu');
 				} catch (e) {
 					window.alert(e.message || 'Không lưu được tag');
+				}
+			});
+
+			$(document).on('click.mkTagRuleEngine', '.js-tre-group-save', function () {
+				var id = $(this).data('id');
+				var data = self.readForm();
+				if (!data.name) {
+					window.alert('Vui lòng nhập tên tag cha.');
+					return;
+				}
+				try {
+					if (id) {
+						if (!store.updateGroup) throw new Error('Store chưa hỗ trợ sửa tag cha');
+						var payload = {
+							name: data.name,
+							show_on_create: !!data.show_on_create,
+						};
+						if (isProtectedGroup(id)) {
+							payload.show_on_create = true;
+						}
+						store.updateGroup(id, payload);
+						toast('Đã cập nhật tag cha');
+					} else {
+						if (!store.createGroup) throw new Error('Store chưa hỗ trợ tạo tag cha');
+						store.createGroup({
+							name: data.name,
+							show_on_create: !!data.show_on_create,
+							sort_order: 200,
+						});
+						toast('Đã tạo tag cha');
+					}
+					self.closeModal();
+					self.refreshAfterDataChange();
+				} catch (e) {
+					window.alert(e.message || 'Không lưu được tag cha');
 				}
 			});
 

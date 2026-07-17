@@ -10,9 +10,16 @@ class HelpDesk_TagRuleEngineService {
 	/** @var PearDatabase */
 	protected $db;
 
-	const SCHEMA_VERSION = 1;
+	const SCHEMA_VERSION = 4;
 	const CSKH_RULE_ID = 'rule-cskh';
 	const CSKH_ALERT_DAYS_DEFAULT = 7;
+
+	/** Tag cha cố định trên form tạo Lead — không được xoá. */
+	const CORE_CREATE_GROUP_IDS = array(
+		'nguyen_lieu',
+		'nhuong_quyen_group',
+		'lop_hoc',
+	);
 
 	public function __construct() {
 		$this->db = PearDatabase::getInstance();
@@ -89,14 +96,295 @@ class HelpDesk_TagRuleEngineService {
 			meta_value VARCHAR(255) NOT NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+		$this->db->query("CREATE TABLE IF NOT EXISTS mk_tag_groups (
+			id VARCHAR(64) NOT NULL PRIMARY KEY,
+			name VARCHAR(150) NOT NULL,
+			sort_order INT NOT NULL DEFAULT 0,
+			show_on_create TINYINT(1) NOT NULL DEFAULT 0,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+		$this->db->query("CREATE TABLE IF NOT EXISTS mk_tag_group_members (
+			group_id VARCHAR(64) NOT NULL,
+			tag_id VARCHAR(64) NOT NULL,
+			sort_order INT NOT NULL DEFAULT 0,
+			PRIMARY KEY (group_id, tag_id),
+			INDEX idx_mk_tag_group_members_tag (tag_id)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+		$this->ensureCatalogExtraColumns();
+
 		$ver = $this->getMeta('schema_version');
-		if ((int)$ver < self::SCHEMA_VERSION) {
+		if ((int)$ver < 1) {
 			$this->seedIfEmpty();
+			$this->setMeta('schema_version', '1');
+			$ver = '1';
+		}
+		if ((int)$ver < self::SCHEMA_VERSION) {
+			$this->migrateGroupsV2();
+			$this->pruneLegacyGroupsV4();
 			$this->setMeta('schema_version', (string)self::SCHEMA_VERSION);
 		}
 		if ($this->getMeta('cskh_alert_days') === null) {
 			$this->setMeta('cskh_alert_days', (string)self::CSKH_ALERT_DAYS_DEFAULT);
 		}
+	}
+
+	protected function ensureCatalogExtraColumns() {
+		$cols = array();
+		try {
+			$rs = $this->db->getColumnNames('mk_tag_catalog');
+			if (is_array($rs)) {
+				foreach ($rs as $c) {
+					$cols[strtolower((string)$c)] = true;
+				}
+			}
+		} catch (Exception $e) {
+			$cols = array();
+		}
+		if (empty($cols['group_id'])) {
+			$this->db->query('ALTER TABLE mk_tag_catalog ADD COLUMN group_id VARCHAR(64) NULL');
+		}
+		if (empty($cols['scope_lead'])) {
+			$this->db->query('ALTER TABLE mk_tag_catalog ADD COLUMN scope_lead TINYINT(1) NOT NULL DEFAULT 1');
+		}
+		if (empty($cols['scope_opp'])) {
+			$this->db->query('ALTER TABLE mk_tag_catalog ADD COLUMN scope_opp TINYINT(1) NOT NULL DEFAULT 1');
+		}
+		if (empty($cols['scope_contact'])) {
+			$this->db->query('ALTER TABLE mk_tag_catalog ADD COLUMN scope_contact TINYINT(1) NOT NULL DEFAULT 1');
+		}
+	}
+
+	/**
+	 * Seed tag-cha groups + map existing tags; ensure Lead create pools exist.
+	 */
+	protected function migrateGroupsV2() {
+		foreach ($this->seedGroups() as $g) {
+			$this->upsertGroup($g, false);
+		}
+		// Ensure create-pool child tags exist (keep old labels).
+		foreach ($this->seedCreatePoolTags() as $tag) {
+			$existing = $this->getTagById($tag['id']);
+			if (!$existing) {
+				$this->upsertTag($tag, false);
+			} else {
+				// Remap category/group without renaming if already present.
+				$this->upsertTag(array_merge($existing, array(
+					'category' => $tag['category'],
+					'group_id' => $tag['group_id'],
+					'scope_lead' => 1,
+					'scope_opp' => isset($tag['scope_opp']) ? (int)$tag['scope_opp'] : 1,
+					'scope_contact' => isset($tag['scope_contact']) ? (int)$tag['scope_contact'] : 1,
+				)), false);
+			}
+			$this->addTagToGroup($tag['group_id'], $tag['id'], isset($tag['sort_order']) ? (int)$tag['sort_order'] : 0);
+		}
+		// Map remaining catalog rows by category name → group.
+		$catToGroup = array(
+			'Nguồn' => 'nguon',
+			'Khu vực' => 'khu_vuc',
+			'Phân loại KH' => 'dang_kh',
+			'Dạng KH' => 'dang_kh',
+			'Học liệu' => 'lop_hoc',
+			'Chương trình' => 'lop_hoc',
+			'Nhượng quyền' => 'nhuong_quyen_group',
+			'Liên hệ' => 'lien_he',
+			'Lịch hẹn' => 'lop_hoc',
+			'Xác nhận' => 'xac_nhan',
+			'Mua hàng' => 'nguyen_lieu',
+			'Hạng KH' => 'hang_kh',
+			'Nguyên liệu' => 'nguyen_lieu',
+			'Lớp học' => 'lop_hoc',
+		);
+		foreach ($this->getTags() as $tag) {
+			$gid = isset($tag['group_id']) ? trim((string)$tag['group_id']) : '';
+			if ($gid !== '') {
+				$this->addTagToGroup($gid, $tag['id'], 0);
+				continue;
+			}
+			$cat = isset($tag['category']) ? trim((string)$tag['category']) : '';
+			if ($cat !== '' && isset($catToGroup[$cat])) {
+				$this->db->pquery('UPDATE mk_tag_catalog SET group_id = ? WHERE id = ?', array($catToGroup[$cat], $tag['id']));
+				$this->addTagToGroup($catToGroup[$cat], $tag['id'], 0);
+			}
+		}
+	}
+
+	protected function seedGroups() {
+		// Chỉ 3 tag cha chính (form tạo Lead). Tag cha mới thêm qua UI “＋ Thêm mới…”.
+		return array(
+			array('id' => 'nguyen_lieu', 'name' => 'Nguyên liệu', 'sort_order' => 10, 'show_on_create' => 1),
+			array('id' => 'nhuong_quyen_group', 'name' => 'Nhượng quyền', 'sort_order' => 20, 'show_on_create' => 1),
+			array('id' => 'lop_hoc', 'name' => 'Lớp học', 'sort_order' => 30, 'show_on_create' => 1),
+		);
+	}
+
+	/**
+	 * Gộp / xoá nhóm legacy (Chương trình, Học liệu, …) — chỉ giữ 3 tag cha chính + nhóm show_on_create.
+	 */
+	protected function pruneLegacyGroupsV4() {
+		$keep = array(
+			'nguyen_lieu' => true,
+			'nhuong_quyen_group' => true,
+			'lop_hoc' => true,
+		);
+		// Alias legacy → nhóm chính
+		$aliasToKeep = array(
+			'mua_hang' => 'nguyen_lieu',
+			'chuong_trinh' => 'lop_hoc',
+			'hoc_lieu' => 'lop_hoc',
+			'lich_hen' => 'lop_hoc',
+			'phan_loai_kh' => 'nguyen_lieu',
+			'dang_kh' => 'nguyen_lieu',
+			'nguon' => 'nguyen_lieu',
+			'khu_vuc' => 'nguyen_lieu',
+			'lien_he' => 'nhuong_quyen_group',
+			'xac_nhan' => 'lop_hoc',
+			'hang_kh' => 'nguyen_lieu',
+		);
+		foreach ($aliasToKeep as $fromId => $toId) {
+			$toGroup = $this->getGroupById($toId);
+			$toName = $toGroup ? $toGroup['name'] : null;
+			$rs = $this->db->pquery(
+				'SELECT tag_id, sort_order FROM mk_tag_group_members WHERE group_id = ?',
+				array($fromId)
+			);
+			if ($rs) {
+				while ($row = $this->db->fetchByAssoc($rs)) {
+					$this->addTagToGroup($toId, $row['tag_id'], (int)$row['sort_order']);
+					if ($toName !== null) {
+						$this->db->pquery(
+							'UPDATE mk_tag_catalog SET group_id = ?, category = ? WHERE id = ? AND (group_id IS NULL OR group_id = ? OR group_id = ?)',
+							array($toId, $toName, $row['tag_id'], $fromId, $toId)
+						);
+					} else {
+						$this->db->pquery(
+							'UPDATE mk_tag_catalog SET group_id = ? WHERE id = ? AND (group_id IS NULL OR group_id = ?)',
+							array($toId, $row['tag_id'], $fromId)
+						);
+					}
+				}
+			}
+			$this->db->pquery('DELETE FROM mk_tag_group_members WHERE group_id = ?', array($fromId));
+			$this->db->pquery('DELETE FROM mk_tag_groups WHERE id = ?', array($fromId));
+		}
+		// Xoá mọi nhóm còn lại không phải 3 chính và không show_on_create
+		$all = $this->getGroups();
+		foreach ($all as $g) {
+			if (!empty($keep[$g['id']])) {
+				continue;
+			}
+			if (!empty($g['show_on_create'])) {
+				continue; // giữ tag cha user tự tạo cho form Lead
+			}
+			$this->deleteGroup($g['id']);
+		}
+		// Đảm bảo 3 nhóm chính tồn tại + show_on_create
+		foreach ($this->seedGroups() as $g) {
+			$this->upsertGroup($g, false);
+		}
+	}
+
+	protected function seedCreatePoolTags() {
+		$n = 'Nguyên liệu';
+		$f = 'Nhượng quyền';
+		$l = 'Lớp học';
+		$out = array();
+		// Image 2 — Tag Nguyên Liệu (BA / Opp material pool)
+		$intent = array(
+			array('dang_tu_van', 'Đang tư vấn'),
+			array('mua_lan_dau', 'Mua lần đầu'),
+			array('dung_cham_soc', 'Dừng chăm sóc'),
+			array('kh_can_nhac', 'KH Cân Nhắc'),
+			array('mua_lai', 'Mua Lại'),
+			array('mua_it_lai', 'Mua ít lại'),
+			array('ngung_mua', 'Ngừng Mua'),
+		);
+		$i = 0;
+		foreach ($intent as $pair) {
+			$out[] = array('id' => $pair[0], 'name' => $pair[1], 'category' => $n, 'group_id' => 'nguyen_lieu', 'sort_order' => ++$i, 'scope_opp' => 1, 'scope_contact' => 1);
+		}
+		// Image 4 — Tag Nhượng Quyền
+		$franchise = array(
+			array('dang_tu_van', 'Đang tư vấn'),
+			array('khong_nghe_may', 'Không nghe máy'),
+			array('thue_bao', 'Thuê Bao'),
+			array('tiem_nang', 'Tiềm năng'),
+			array('tham_khao', 'Tham Khảo'),
+			array('dung_cham_soc', 'Dừng Chăm Sóc'),
+			array('khong_du_tai_chinh', 'Không đủ tài chính'),
+			array('da_ky_quy', 'Đã Ký Quỹ'),
+			array('mien_bac', 'Miền Bắc'),
+		);
+		$i = 0;
+		foreach ($franchise as $pair) {
+			$out[] = array('id' => $pair[0], 'name' => $pair[1], 'category' => $f, 'group_id' => 'nhuong_quyen_group', 'sort_order' => ++$i, 'scope_opp' => 1, 'scope_contact' => 1);
+		}
+		// Image 3 — Tag Lớp Học
+		$entry = array(
+			array('thu_3', 'THỨ 3'),
+			array('lop_online', 'lớp online'),
+			array('moi_lai', 'Mời lại'),
+			array('da_tg_free', 'Đã TG FREE'),
+			array('doi_lich', 'Dời lịch'),
+			array('L1', 'L1'),
+			array('L2', 'L2'),
+			array('khong_hoc', 'Không học'),
+			array('thue_bao', 'thuê bao'),
+			array('trung_so', 'trùng số'),
+			array('khong_nghe_may', 'không nghe máy'),
+			array('ngung_cham_soc', 'Ngừng chăm sóc'),
+			array('chua_MQBB_chua_PCTH', 'Chưa MQBB + Chưa PCTH'),
+			array('chua_MQBB_da_PCTH', 'Chưa MQBB + Đã PCTH'),
+			array('da_MQBB_chua_PCTH', 'Đã MQBB + Chưa PCTH'),
+			array('da_MQBB_da_PCTH', 'Đã MQBB + Đã PCTH'),
+			array('da_MQBB', 'Đã MQBB'),
+			array('chua_MQBB', 'Chưa MQBB'),
+			array('da_PCTH', 'Đã PCTH'),
+			array('chua_PCTH', 'Chưa PCTH'),
+			array('da_990k', 'Đã 990k'),
+			array('chua_990k', 'Chưa 990k'),
+			array('hoan_tien_lop_hoc', 'Hoàn tiền lớp học'),
+			array('lop_khac', 'Lớp khác'),
+			array('mkt', 'Marketing'),
+			array('van_hanh', 'Vận hành'),
+			array('nguyen_lieu_chuoi', 'NL chuỗi'),
+		);
+		$i = 0;
+		foreach ($entry as $pair) {
+			$out[] = array('id' => $pair[0], 'name' => $pair[1], 'category' => $l, 'group_id' => 'lop_hoc', 'sort_order' => ++$i, 'scope_opp' => 1, 'scope_contact' => 1);
+		}
+		// Image 5 — Dạng KH (không đưa tên cha vào danh sách con)
+		$customer = array(
+			array('co_quan', 'CÓ QUÁN'),
+			array('chuan_bi_mo', 'CHUẨN BỊ MỞ'),
+			array('gia_dinh', 'GIA ĐÌNH'),
+		);
+		$i = 0;
+		foreach ($customer as $pair) {
+			$out[] = array('id' => $pair[0], 'name' => $pair[1], 'category' => 'Dạng KH', 'group_id' => 'dang_kh', 'sort_order' => ++$i, 'scope_opp' => 1, 'scope_contact' => 1);
+		}
+		// Image 6 — Nguồn (bổ sung nguồn thực tế)
+		$sources = array(
+			array('facebook', 'Facebook'),
+			array('tiktok', 'tiktok'),
+			array('website', 'Website'),
+			array('zalo', 'Zalo'),
+			array('hotline', 'Hotline'),
+			array('ladipage_fb', 'Ladipage FB'),
+			array('nguyen_khoa_fnb', 'nguyên khoa F&B'),
+			array('nguyen_lieu_gia_si', 'nguyên liệu giá sỉ'),
+			array('khach_tu_tim_toi', 'khách tự tìm tới'),
+			array('khach_di_chung', 'Khách đi chung'),
+			array('other', 'Khác'),
+		);
+		$i = 0;
+		foreach ($sources as $pair) {
+			$out[] = array('id' => $pair[0], 'name' => $pair[1], 'category' => 'Nguồn', 'group_id' => 'nguon', 'sort_order' => ++$i, 'scope_opp' => 1, 'scope_contact' => 1);
+		}
+		return $out;
 	}
 
 	protected function getMeta($key) {
@@ -125,7 +413,9 @@ class HelpDesk_TagRuleEngineService {
 			$this->db->query('DELETE FROM mk_tag_rule_conditions');
 			$this->db->query('DELETE FROM mk_tag_rules');
 			$this->db->query('DELETE FROM mk_tag_scenarios');
+			$this->db->query('DELETE FROM mk_tag_group_members');
 			$this->db->query('DELETE FROM mk_tag_catalog');
+			$this->db->query('DELETE FROM mk_tag_groups');
 		}
 		foreach ($this->seedTags() as $tag) {
 			$this->upsertTag($tag, false);
@@ -136,6 +426,7 @@ class HelpDesk_TagRuleEngineService {
 		foreach ($this->seedRules() as $rule) {
 			$this->upsertRule($rule, false);
 		}
+		$this->migrateGroupsV2();
 		$this->setMeta('seeded_at', date('Y-m-d H:i:s'));
 		return true;
 	}
@@ -219,11 +510,13 @@ class HelpDesk_TagRuleEngineService {
 	public function bootstrap($userId = null) {
 		$out = array(
 			'tags' => $this->getTags(),
+			'groups' => $this->getGroups(),
 			'rules' => $this->getRules(),
 			'scenarios' => $this->getScenarios(),
 			'channel_options' => $this->getScenarioChannelOptions(),
 			'assignee_options' => $this->getScenarioAssigneeOptions(),
 			'cskh_alert_days' => $this->getCskhAlertDays(),
+			'create_tag_groups' => $this->getCreateTagGroups(),
 		);
 		if ($userId !== null) {
 			$out['alerts'] = $this->getAlerts((int)$userId, 200);
@@ -337,23 +630,153 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	public function getTags() {
-		$res = $this->db->pquery('SELECT id, name, category, description FROM mk_tag_catalog ORDER BY category, name', array());
+		$res = $this->db->pquery(
+			'SELECT id, name, category, description, group_id, scope_lead, scope_opp, scope_contact
+			 FROM mk_tag_catalog ORDER BY category, name',
+			array()
+		);
 		$rows = array();
 		if ($res) {
 			while ($row = $this->db->fetchByAssoc($res)) {
-				$rows[] = array(
-					'id' => (string)$row['id'],
-					'name' => decode_html($row['name']),
-					'category' => $row['category'] !== null ? decode_html($row['category']) : null,
-					'description' => $row['description'] !== null ? decode_html($row['description']) : null,
-				);
+				$rows[] = $this->hydrateTagRow($row);
 			}
 		}
 		return $rows;
 	}
 
 	public function getTagById($id) {
-		$res = $this->db->pquery('SELECT id, name, category, description FROM mk_tag_catalog WHERE id = ?', array($id));
+		$res = $this->db->pquery(
+			'SELECT id, name, category, description, group_id, scope_lead, scope_opp, scope_contact
+			 FROM mk_tag_catalog WHERE id = ?',
+			array($id)
+		);
+		if (!$res || $this->db->num_rows($res) === 0) {
+			return null;
+		}
+		return $this->hydrateTagRow($this->db->fetchByAssoc($res));
+	}
+
+	/**
+	 * Resolve mk_tag_catalog row from freetag id, slug, or display name.
+	 */
+	public function resolveTagInCatalog($tagName) {
+		$raw = trim(decode_html((string)$tagName));
+		if ($raw === '') {
+			return null;
+		}
+		if ($raw[0] === '#') {
+			$raw = substr($raw, 1);
+		}
+
+		$byId = $this->getTagById($raw);
+		if ($byId) {
+			return $byId;
+		}
+
+		$slug = $this->slugify($raw);
+		if ($slug !== '') {
+			$bySlug = $this->getTagById($slug);
+			if ($bySlug) {
+				return $bySlug;
+			}
+		}
+
+		$res = $this->db->pquery(
+			'SELECT id, name, category, description, group_id, scope_lead, scope_opp, scope_contact
+			 FROM mk_tag_catalog WHERE LOWER(name) = LOWER(?) LIMIT 1',
+			array($raw)
+		);
+		if ($res && $this->db->num_rows($res) > 0) {
+			return $this->hydrateTagRow($this->db->fetchByAssoc($res));
+		}
+		return null;
+	}
+
+	/**
+	 * Check catalog tag scope (lead / opp / contact).
+	 */
+	public function isTagInScope($tagName, $scope) {
+		$scope = strtolower(trim((string)$scope));
+		if (!in_array($scope, array('lead', 'opp', 'contact'), true)) {
+			return false;
+		}
+		$tag = $this->resolveTagInCatalog($tagName);
+		if (!$tag) {
+			return false;
+		}
+		$key = 'scope_' . $scope;
+		return !empty($tag[$key]);
+	}
+
+	/**
+	 * id/slug => display label for tags in a module scope (UI).
+	 */
+	public function getScopeTagLabels($scope) {
+		$scope = strtolower(trim((string)$scope));
+		$key = 'scope_' . $scope;
+		if (!in_array($scope, array('lead', 'opp', 'contact'), true)) {
+			return array();
+		}
+		$labels = array();
+		foreach ($this->getTags() as $tag) {
+			if (empty($tag[$key])) {
+				continue;
+			}
+			$labels[(string)$tag['id']] = (string)$tag['name'];
+			$slug = $this->slugify($tag['name']);
+			if ($slug !== '') {
+				$labels[$slug] = (string)$tag['name'];
+			}
+		}
+		return $labels;
+	}
+
+	protected function hydrateTagRow(array $row) {
+		$groupId = isset($row['group_id']) && $row['group_id'] !== null && $row['group_id'] !== ''
+			? (string)$row['group_id'] : null;
+		$category = $row['category'] !== null ? decode_html($row['category']) : null;
+		if (($category === null || $category === '') && $groupId) {
+			$g = $this->getGroupById($groupId);
+			if ($g) {
+				$category = $g['name'];
+			}
+		}
+		return array(
+			'id' => (string)$row['id'],
+			'name' => decode_html($row['name']),
+			'category' => $category,
+			'group_id' => $groupId,
+			'description' => $row['description'] !== null ? decode_html($row['description']) : null,
+			'scope_lead' => !isset($row['scope_lead']) || (int)$row['scope_lead'] ? 1 : 0,
+			'scope_opp' => !isset($row['scope_opp']) || (int)$row['scope_opp'] ? 1 : 0,
+			'scope_contact' => !isset($row['scope_contact']) || (int)$row['scope_contact'] ? 1 : 0,
+		);
+	}
+
+	public function getGroups() {
+		$res = $this->db->pquery(
+			'SELECT id, name, sort_order, show_on_create FROM mk_tag_groups ORDER BY sort_order ASC, name ASC',
+			array()
+		);
+		$rows = array();
+		if ($res) {
+			while ($row = $this->db->fetchByAssoc($res)) {
+				$rows[] = array(
+					'id' => (string)$row['id'],
+					'name' => decode_html($row['name']),
+					'sort_order' => (int)$row['sort_order'],
+					'show_on_create' => (int)$row['show_on_create'] ? 1 : 0,
+				);
+			}
+		}
+		return $rows;
+	}
+
+	public function getGroupById($id) {
+		$res = $this->db->pquery(
+			'SELECT id, name, sort_order, show_on_create FROM mk_tag_groups WHERE id = ?',
+			array($id)
+		);
 		if (!$res || $this->db->num_rows($res) === 0) {
 			return null;
 		}
@@ -361,14 +784,187 @@ class HelpDesk_TagRuleEngineService {
 		return array(
 			'id' => (string)$row['id'],
 			'name' => decode_html($row['name']),
-			'category' => $row['category'] !== null ? decode_html($row['category']) : null,
-			'description' => $row['description'] !== null ? decode_html($row['description']) : null,
+			'sort_order' => (int)$row['sort_order'],
+			'show_on_create' => (int)$row['show_on_create'] ? 1 : 0,
 		);
+	}
+
+	public function upsertGroup(array $payload, $generateId = true) {
+		$id = isset($payload['id']) ? trim((string)$payload['id']) : '';
+		$name = trim((string)(isset($payload['name']) ? $payload['name'] : ''));
+		if ($name === '') {
+			throw new Exception('Tên tag cha (nhóm) bắt buộc.');
+		}
+		if ($id === '' && $generateId) {
+			$id = $this->slugify($name);
+			if ($id === '') {
+				$id = 'grp_' . substr(md5(uniqid('', true)), 0, 8);
+			}
+		}
+		// Duplicate name check (new only)
+		$dup = $this->db->pquery(
+			'SELECT id FROM mk_tag_groups WHERE LOWER(name) = LOWER(?) AND id <> ? LIMIT 1',
+			array($name, $id !== '' ? $id : '__none__')
+		);
+		$existsSelf = $this->db->pquery('SELECT id FROM mk_tag_groups WHERE id = ?', array($id));
+		$isUpdate = $existsSelf && $this->db->num_rows($existsSelf) > 0;
+		if (!$isUpdate && $dup && $this->db->num_rows($dup) > 0) {
+			throw new Exception('Tag cha đã tồn tại: ' . $name);
+		}
+		if (!$isUpdate && $generateId) {
+			$dupId = $this->db->pquery('SELECT id FROM mk_tag_groups WHERE id = ?', array($id));
+			if ($dupId && $this->db->num_rows($dupId) > 0) {
+				throw new Exception('Tag cha đã tồn tại (id): ' . $id);
+			}
+		}
+		$sort = isset($payload['sort_order']) ? (int)$payload['sort_order'] : 200;
+		$show = !empty($payload['show_on_create']) ? 1 : 0;
+		if ($isUpdate && $this->isProtectedGroup($id)) {
+			$show = 1;
+		}
+		if ($isUpdate) {
+			$this->db->pquery(
+				'UPDATE mk_tag_groups SET name = ?, sort_order = ?, show_on_create = ? WHERE id = ?',
+				array($name, $sort, $show, $id)
+			);
+		} else {
+			$this->db->pquery(
+				'INSERT INTO mk_tag_groups (id, name, sort_order, show_on_create) VALUES (?,?,?,?)',
+				array($id, $name, $sort, $show)
+			);
+		}
+		return $this->getGroupById($id);
+	}
+
+	public function isProtectedGroup($id) {
+		return in_array(trim((string)$id), self::CORE_CREATE_GROUP_IDS, true);
+	}
+
+	public function countGroupMembers($groupId) {
+		$groupId = trim((string)$groupId);
+		if ($groupId === '') {
+			return 0;
+		}
+		$rs = $this->db->pquery(
+			'SELECT COUNT(*) AS cnt FROM mk_tag_group_members WHERE group_id = ?',
+			array($groupId)
+		);
+		if (!$rs || $this->db->num_rows($rs) === 0) {
+			return 0;
+		}
+		$row = $this->db->fetchByAssoc($rs);
+		return isset($row['cnt']) ? (int)$row['cnt'] : 0;
+	}
+
+	/**
+	 * Xoá tag cha tuỳ chỉnh khi không còn tag con (form Lead tự ẩn card).
+	 */
+	protected function maybeDeleteEmptyCustomGroup($groupId) {
+		$groupId = trim((string)$groupId);
+		if ($groupId === '' || $this->isProtectedGroup($groupId)) {
+			return false;
+		}
+		$group = $this->getGroupById($groupId);
+		if (!$group || empty($group['show_on_create'])) {
+			return false;
+		}
+		if ($this->countGroupMembers($groupId) > 0) {
+			return false;
+		}
+		return $this->deleteGroup($groupId, true);
+	}
+
+	public function deleteGroup($id, $allowProtected = false) {
+		$id = trim((string)$id);
+		if ($id === '') {
+			return false;
+		}
+		if (!$allowProtected && $this->isProtectedGroup($id)) {
+			throw new Exception('Không thể xoá tag cha hệ thống (Nguyên liệu, Nhượng quyền, Lớp học).');
+		}
+		$this->db->pquery('DELETE FROM mk_tag_group_members WHERE group_id = ?', array($id));
+		$this->db->pquery('UPDATE mk_tag_catalog SET group_id = NULL WHERE group_id = ?', array($id));
+		$this->db->pquery('DELETE FROM mk_tag_groups WHERE id = ?', array($id));
+		return true;
+	}
+
+	public function addTagToGroup($groupId, $tagId, $sortOrder = 0) {
+		$groupId = trim((string)$groupId);
+		$tagId = trim((string)$tagId);
+		if ($groupId === '' || $tagId === '') {
+			return false;
+		}
+		$this->db->pquery(
+			'INSERT INTO mk_tag_group_members (group_id, tag_id, sort_order) VALUES (?,?,?)
+			 ON DUPLICATE KEY UPDATE sort_order = VALUES(sort_order)',
+			array($groupId, $tagId, (int)$sortOrder)
+		);
+		return true;
+	}
+
+	/**
+	 * Groups marked show_on_create + children for Lead create form.
+	 */
+	public function getCreateTagGroups() {
+		$groups = array();
+		$leadIntentAllow = array(
+			'dang_tu_van',
+			'mua_lan_dau',
+			'dung_cham_soc',
+			'kh_can_nhac',
+			'mua_lai',
+			'mua_it_lai',
+			'ngung_mua',
+		);
+		foreach ($this->getGroups() as $g) {
+			if (empty($g['show_on_create'])) {
+				continue;
+			}
+			$children = array();
+			$rs = $this->db->pquery(
+				'SELECT t.id, t.name, m.sort_order
+				 FROM mk_tag_group_members m
+				 INNER JOIN mk_tag_catalog t ON t.id = m.tag_id
+				 WHERE m.group_id = ?
+				 ORDER BY m.sort_order ASC, t.name ASC',
+				array($g['id'])
+			);
+			if ($rs) {
+				while ($row = $this->db->fetchByAssoc($rs)) {
+					$children[] = array(
+						'id' => (string)$row['id'],
+						'name' => decode_html($row['name']),
+					);
+				}
+			}
+			if ($g['id'] === 'nguyen_lieu') {
+				$byId = array();
+				foreach ($children as $c) {
+					$byId[$c['id']] = $c;
+				}
+				$children = array();
+				foreach ($leadIntentAllow as $tid) {
+					if (isset($byId[$tid])) {
+						$children[] = $byId[$tid];
+					}
+				}
+			}
+			if (empty($children)) {
+				continue;
+			}
+			$groups[] = array(
+				'id' => $g['id'],
+				'name' => $g['name'],
+				'sort_order' => $g['sort_order'],
+				'children' => $children,
+			);
+		}
+		return $groups;
 	}
 
 	public function upsertTag(array $payload, $generateId = true) {
 		$id = isset($payload['id']) ? trim((string)$payload['id']) : '';
-		$name = trim((string)($payload['name'] ?? ''));
+		$name = trim((string)(isset($payload['name']) ? $payload['name'] : ''));
 		if ($name === '') {
 			throw new Exception('Tag name required');
 		}
@@ -378,26 +974,100 @@ class HelpDesk_TagRuleEngineService {
 				$id = 'tag_' . substr(md5(uniqid('', true)), 0, 8);
 			}
 		}
-		$category = isset($payload['category']) && $payload['category'] !== '' ? (string)$payload['category'] : null;
-		$description = isset($payload['description']) && $payload['description'] !== '' ? (string)$payload['description'] : null;
 		$exists = $this->db->pquery('SELECT id FROM mk_tag_catalog WHERE id = ?', array($id));
-		if ($exists && $this->db->num_rows($exists) > 0) {
+		$isUpdate = $exists && $this->db->num_rows($exists) > 0;
+		if (!$isUpdate && $generateId) {
+			// Block duplicate by id or by name (case-insensitive)
+			$dupName = $this->db->pquery(
+				'SELECT id, name FROM mk_tag_catalog WHERE LOWER(name) = LOWER(?) LIMIT 1',
+				array($name)
+			);
+			if ($dupName && $this->db->num_rows($dupName) > 0) {
+				throw new Exception('Tag đã tồn tại: ' . decode_html($this->db->query_result($dupName, 0, 'name')));
+			}
+			$dupId = $this->db->pquery('SELECT id FROM mk_tag_catalog WHERE id = ?', array($id));
+			if ($dupId && $this->db->num_rows($dupId) > 0) {
+				throw new Exception('Tag đã tồn tại (id): ' . $id);
+			}
+		}
+
+		$groupId = null;
+		if (isset($payload['group_id']) && trim((string)$payload['group_id']) !== '') {
+			$groupId = trim((string)$payload['group_id']);
+		}
+		$category = isset($payload['category']) && $payload['category'] !== '' ? (string)$payload['category'] : null;
+		if ($groupId) {
+			$g = $this->getGroupById($groupId);
+			if ($g) {
+				$category = $g['name'];
+			} elseif ($category === null || $category === '') {
+				// Auto-create group if user typed new parent name into category + show_on_create flag
+				if (!empty($payload['create_group']) && $category) {
+					$g = $this->upsertGroup(array(
+						'name' => $category,
+						'show_on_create' => !empty($payload['show_on_create']) ? 1 : 0,
+						'sort_order' => 200,
+					), true);
+					$groupId = $g['id'];
+					$category = $g['name'];
+				}
+			}
+		} elseif ($category) {
+			// Resolve or create group from category name
+			$found = null;
+			foreach ($this->getGroups() as $g) {
+				if (strcasecmp($g['name'], $category) === 0) {
+					$found = $g;
+					break;
+				}
+			}
+			if ($found) {
+				$groupId = $found['id'];
+			} elseif (!empty($payload['create_group']) || !empty($payload['new_group'])) {
+				$g = $this->upsertGroup(array(
+					'name' => $category,
+					'show_on_create' => !empty($payload['show_on_create']) ? 1 : 0,
+					'sort_order' => 200,
+				), true);
+				$groupId = $g['id'];
+			}
+		}
+
+		$description = isset($payload['description']) && $payload['description'] !== '' ? (string)$payload['description'] : null;
+		$scopeLead = array_key_exists('scope_lead', $payload) ? (!empty($payload['scope_lead']) ? 1 : 0) : 1;
+		$scopeOpp = array_key_exists('scope_opp', $payload) ? (!empty($payload['scope_opp']) ? 1 : 0) : 1;
+		$scopeContact = array_key_exists('scope_contact', $payload) ? (!empty($payload['scope_contact']) ? 1 : 0) : 1;
+
+		if ($isUpdate) {
 			$this->db->pquery(
-				'UPDATE mk_tag_catalog SET name = ?, category = ?, description = ? WHERE id = ?',
-				array($name, $category, $description, $id)
+				'UPDATE mk_tag_catalog SET name = ?, category = ?, description = ?, group_id = ?,
+				 scope_lead = ?, scope_opp = ?, scope_contact = ? WHERE id = ?',
+				array($name, $category, $description, $groupId, $scopeLead, $scopeOpp, $scopeContact, $id)
 			);
 		} else {
 			$this->db->pquery(
-				'INSERT INTO mk_tag_catalog (id, name, category, description) VALUES (?,?,?,?)',
-				array($id, $name, $category, $description)
+				'INSERT INTO mk_tag_catalog (id, name, category, description, group_id, scope_lead, scope_opp, scope_contact)
+				 VALUES (?,?,?,?,?,?,?,?)',
+				array($id, $name, $category, $description, $groupId, $scopeLead, $scopeOpp, $scopeContact)
 			);
+		}
+		if ($groupId) {
+			$this->addTagToGroup($groupId, $id, isset($payload['sort_order']) ? (int)$payload['sort_order'] : 0);
 		}
 		return $this->getTagById($id);
 	}
 
 	public function deleteTag($id) {
+		$tag = $this->getTagById($id);
+		$groupId = ($tag && !empty($tag['group_id'])) ? (string)$tag['group_id'] : null;
+
 		$this->db->pquery('DELETE FROM mk_tag_rule_conditions WHERE tag_id = ?', array($id));
+		$this->db->pquery('DELETE FROM mk_tag_group_members WHERE tag_id = ?', array($id));
 		$this->db->pquery('DELETE FROM mk_tag_catalog WHERE id = ?', array($id));
+
+		if ($groupId) {
+			$this->maybeDeleteEmptyCustomGroup($groupId);
+		}
 		return true;
 	}
 
@@ -938,38 +1608,41 @@ class HelpDesk_TagRuleEngineService {
 			array('id' => 'kv1', 'name' => 'Khu vực 1', 'category' => 'Khu vực'),
 			array('id' => 'kv2', 'name' => 'Khu vực 2', 'category' => 'Khu vực'),
 			array('id' => 'kv3', 'name' => 'Khu vực 3', 'category' => 'Khu vực'),
-			array('id' => 'individual', 'name' => 'Cá nhân', 'category' => 'Phân loại KH'),
-			array('id' => 'company', 'name' => 'Công ty', 'category' => 'Phân loại KH'),
-			array('id' => 'tiem_nang', 'name' => 'Tiềm năng', 'category' => 'Mua hàng'),
-			array('id' => 'chua_hoc', 'name' => 'Chưa học', 'category' => 'Học liệu'),
-			array('id' => 'da_hoc', 'name' => 'Đã học', 'category' => 'Học liệu'),
-			array('id' => 'mien_phi_online', 'name' => 'Miễn phí Online', 'category' => 'Chương trình'),
-			array('id' => 'mien_phi_offline', 'name' => 'Miễn phí Offline', 'category' => 'Chương trình'),
-			array('id' => 'da_tg_free', 'name' => 'Đã TG FREE', 'category' => 'Chương trình'),
-			array('id' => 'thu_3', 'name' => 'THỨ 3', 'category' => 'Lịch hẹn'),
-			array('id' => 'pcth', 'name' => 'PCTH', 'category' => 'Chương trình'),
-			array('id' => 'chua_PCTH', 'name' => 'Chưa PCTH', 'category' => 'Chương trình'),
-			array('id' => 'da_PCTH', 'name' => 'Đã PCTH', 'category' => 'Chương trình'),
-			array('id' => 'van_hanh', 'name' => 'Vận hành', 'category' => 'Chương trình'),
-			array('id' => 'mkt', 'name' => 'Marketing', 'category' => 'Chương trình'),
-			array('id' => 'lop_khac', 'name' => 'Lớp khác', 'category' => 'Chương trình'),
+			array('id' => 'individual', 'name' => 'Cá nhân', 'category' => 'Dạng KH'),
+			array('id' => 'company', 'name' => 'Công ty', 'category' => 'Dạng KH'),
+			array('id' => 'tiem_nang', 'name' => 'Tiềm năng', 'category' => 'Nguyên liệu'),
+			array('id' => 'co_quan', 'name' => 'CÓ QUÁN', 'category' => 'Dạng KH'),
+			array('id' => 'chuan_bi_mo', 'name' => 'CHUẨN BỊ MỞ', 'category' => 'Dạng KH'),
+			array('id' => 'gia_dinh', 'name' => 'GIA ĐÌNH', 'category' => 'Dạng KH'),
+			array('id' => 'chua_hoc', 'name' => 'Chưa học', 'category' => 'Lớp học'),
+			array('id' => 'da_hoc', 'name' => 'Đã học', 'category' => 'Lớp học'),
+			array('id' => 'mien_phi_online', 'name' => 'Miễn phí Online', 'category' => 'Lớp học'),
+			array('id' => 'mien_phi_offline', 'name' => 'Miễn phí Offline', 'category' => 'Lớp học'),
+			array('id' => 'da_tg_free', 'name' => 'Đã TG FREE', 'category' => 'Lớp học'),
+			array('id' => 'thu_3', 'name' => 'THỨ 3', 'category' => 'Lớp học'),
+			array('id' => 'pcth', 'name' => 'PCTH', 'category' => 'Lớp học'),
+			array('id' => 'chua_PCTH', 'name' => 'Chưa PCTH', 'category' => 'Lớp học'),
+			array('id' => 'da_PCTH', 'name' => 'Đã PCTH', 'category' => 'Lớp học'),
+			array('id' => 'van_hanh', 'name' => 'Vận hành', 'category' => 'Lớp học'),
+			array('id' => 'mkt', 'name' => 'Marketing', 'category' => 'Lớp học'),
+			array('id' => 'lop_khac', 'name' => 'Lớp khác', 'category' => 'Lớp học'),
 			array('id' => 'nhuong_quyen', 'name' => 'Nhượng quyền', 'category' => 'Nhượng quyền'),
-			array('id' => 'khong_nghe_may', 'name' => 'Không nghe máy', 'category' => 'Liên hệ'),
-			array('id' => 'thue_bao', 'name' => 'Thuê bao', 'category' => 'Liên hệ'),
-			array('id' => 'trung_so', 'name' => 'Trùng số / Sai số', 'category' => 'Liên hệ'),
-			array('id' => 'doi_lich', 'name' => 'Dời lịch', 'category' => 'Lịch hẹn'),
+			array('id' => 'khong_nghe_may', 'name' => 'Không nghe máy', 'category' => 'Nhượng quyền'),
+			array('id' => 'thue_bao', 'name' => 'Thuê bao', 'category' => 'Nhượng quyền'),
+			array('id' => 'trung_so', 'name' => 'Trùng số / Sai số', 'category' => 'Lớp học'),
+			array('id' => 'doi_lich', 'name' => 'Dời lịch', 'category' => 'Lớp học'),
 			array('id' => 'xac_nhan_tham_gia', 'name' => 'Xác nhận tham gia', 'category' => 'Xác nhận'),
 			array('id' => 'khong_xac_nhan_tham_gia', 'name' => 'Không tham gia', 'category' => 'Xác nhận'),
-			array('id' => 'moi_lai', 'name' => 'Mời lại', 'category' => 'Lịch hẹn'),
-			array('id' => 'ngung_cham_soc', 'name' => 'Ngừng chăm sóc', 'category' => 'Liên hệ'),
+			array('id' => 'moi_lai', 'name' => 'Mời lại', 'category' => 'Lớp học'),
+			array('id' => 'ngung_cham_soc', 'name' => 'Ngừng chăm sóc', 'category' => 'Lớp học'),
 			array('id' => 'goi_lan_1', 'name' => 'Gọi lần 1', 'category' => 'Liên hệ'),
 			array('id' => 'goi_lan_2', 'name' => 'Gọi lần 2', 'category' => 'Liên hệ'),
 			array('id' => 'goi_lan_3', 'name' => 'Gọi lần 3', 'category' => 'Liên hệ'),
-			array('id' => 'mua_lan_dau', 'name' => 'Mua lần đầu', 'category' => 'Mua hàng'),
-			array('id' => 'mua_lai', 'name' => 'Mua lại', 'category' => 'Mua hàng'),
-			array('id' => 'mua_on_dinh', 'name' => 'Mua ổn định', 'category' => 'Mua hàng'),
-			array('id' => 'khong_mua', 'name' => 'Không mua', 'category' => 'Mua hàng'),
-			array('id' => 'ngung_mua', 'name' => 'Ngưng mua', 'category' => 'Mua hàng'),
+			array('id' => 'mua_lan_dau', 'name' => 'Mua lần đầu', 'category' => 'Nguyên liệu'),
+			array('id' => 'mua_lai', 'name' => 'Mua lại', 'category' => 'Nguyên liệu'),
+			array('id' => 'mua_on_dinh', 'name' => 'Mua ổn định', 'category' => 'Nguyên liệu'),
+			array('id' => 'khong_mua', 'name' => 'Không mua', 'category' => 'Nguyên liệu'),
+			array('id' => 'ngung_mua', 'name' => 'Ngưng mua', 'category' => 'Nguyên liệu'),
 			array('id' => 'mua_it_lai', 'name' => 'Mua ít lại', 'category' => 'Mua hàng'),
 			array('id' => 'vang', 'name' => 'Vàng', 'category' => 'Hạng KH'),
 			array('id' => 'bac', 'name' => 'Bạc', 'category' => 'Hạng KH'),

@@ -13,12 +13,15 @@ class Contacts_ModernService {
 			$userId = (int)$current_user->id;
 		}
 		$adb = PearDatabase::getInstance();
+		self::ensureEventTimeColumns($adb);
 		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.title, cd.email, cd.phone, cd.mobile,
 				cd.accountid, ce.smownerid, ce.createdtime, ce.modifiedtime,
-				acc.accountname
+				acc.accountname,
+				cf.thoigian_dangky, cf.thoigian_pcth, cf.thoigian_mqbb
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = cd.accountid
+			LEFT JOIN vtiger_contactscf cf ON cf.contactid = cd.contactid
 			ORDER BY ce.modifiedtime DESC, cd.contactid DESC";
 		$res = $adb->pquery($sql, array());
 		$rows = array();
@@ -43,6 +46,269 @@ class Contacts_ModernService {
 			$out[] = self::composeCacheRow($row, $tags);
 		}
 		return $out;
+	}
+
+	/**
+	 * Ensure BA event-time columns + vtiger_field rows exist (safe before migrate script).
+	 */
+	public static function ensureEventTimeColumns($adb = null) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		$specs = array(
+			'thoigian_dangky' => 'Thời gian Đăng Ký',
+			'thoigian_pcth' => 'Thời gian tham gia PCTH',
+			'thoigian_mqbb' => 'Thời gian tham gia MQBB',
+		);
+		foreach ($specs as $col => $label) {
+			$check = $adb->pquery("SHOW COLUMNS FROM vtiger_contactscf LIKE ?", array($col));
+			if (!$check || $adb->num_rows($check) === 0) {
+				$adb->pquery("ALTER TABLE vtiger_contactscf ADD COLUMN `{$col}` DATETIME NULL", array());
+			}
+		}
+
+		$tabRes = $adb->pquery("SELECT tabid FROM vtiger_tab WHERE name = ?", array('Contacts'));
+		if (!$tabRes || $adb->num_rows($tabRes) === 0) {
+			return;
+		}
+		$tabid = (int)$adb->query_result($tabRes, 0, 'tabid');
+		$blockRes = $adb->pquery(
+			"SELECT blockid FROM vtiger_blocks WHERE tabid = ? ORDER BY sequence ASC LIMIT 1",
+			array($tabid)
+		);
+		if (!$blockRes || $adb->num_rows($blockRes) === 0) {
+			return;
+		}
+		$blockid = (int)$adb->query_result($blockRes, 0, 'blockid');
+
+		foreach ($specs as $col => $label) {
+			$exists = $adb->pquery(
+				"SELECT fieldid FROM vtiger_field WHERE tabid = ? AND fieldname = ?",
+				array($tabid, $col)
+			);
+			if ($exists && $adb->num_rows($exists) > 0) {
+				continue;
+			}
+			$maxRes = $adb->pquery('SELECT MAX(fieldid) AS mid FROM vtiger_field', array());
+			$fieldid = ($maxRes && $adb->num_rows($maxRes) > 0) ? ((int)$adb->query_result($maxRes, 0, 'mid') + 1) : 1;
+			$seqRes = $adb->pquery(
+				'SELECT MAX(sequence) AS seq FROM vtiger_field WHERE block = ?',
+				array($blockid)
+			);
+			$sequence = ($seqRes && $adb->num_rows($seqRes) > 0) ? ((int)$adb->query_result($seqRes, 0, 'seq') + 1) : 1;
+			$adb->pquery(
+				"INSERT INTO vtiger_field
+					(tabid, fieldid, columnname, tablename, generatedtype, uitype, fieldname, fieldlabel,
+					 readonly, presence, defaultvalue, maximumlength, sequence, block, displaytype, typeofdata,
+					 quickcreate, quickcreatesequence, info_type, masseditable, helpinfo, summaryfield, headerfield)
+				 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+				array(
+					$tabid, $fieldid, $col, 'vtiger_contactscf', 2, '70', $col, $label,
+					0, 2, '', 100, $sequence, $blockid, 1, 'DT~O',
+					1, null, 'BAS', 1, '', 0, 0,
+				)
+			);
+			$adb->pquery(
+				'INSERT IGNORE INTO vtiger_def_org_field (tabid, fieldid, visible, readonly) VALUES (?,?,?,?)',
+				array($tabid, $fieldid, 0, 0)
+			);
+			$profRes = $adb->pquery('SELECT DISTINCT profileid FROM vtiger_profile2field WHERE tabid = ?', array($tabid));
+			if ($profRes) {
+				while ($prow = $adb->fetchByAssoc($profRes)) {
+					$pid = (int)$prow['profileid'];
+					$adb->pquery(
+						'INSERT IGNORE INTO vtiger_profile2field (profileid, tabid, fieldid, visible, readonly) VALUES (?,?,?,?,?)',
+						array($pid, $tabid, $fieldid, 0, 0)
+					);
+				}
+			}
+		}
+
+		self::ensureCredentialFields($adb, $tabid, $blockid);
+	}
+
+	/**
+	 * Đã cấp bằng / Đã cấp tài khoản — chỉ Create + Detail (không list/dropdown).
+	 */
+	public static function ensureCredentialFields($adb = null, $tabid = null, $blockid = null) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		if ($tabid === null) {
+			$tabRes = $adb->pquery("SELECT tabid FROM vtiger_tab WHERE name = ?", array('Contacts'));
+			if (!$tabRes || $adb->num_rows($tabRes) === 0) {
+				return;
+			}
+			$tabid = (int)$adb->query_result($tabRes, 0, 'tabid');
+		}
+		if ($blockid === null) {
+			$blockRes = $adb->pquery(
+				"SELECT blockid FROM vtiger_blocks WHERE tabid = ? ORDER BY sequence ASC LIMIT 1",
+				array($tabid)
+			);
+			if (!$blockRes || $adb->num_rows($blockRes) === 0) {
+				return;
+			}
+			$blockid = (int)$adb->query_result($blockRes, 0, 'blockid');
+		}
+
+		$specs = array(
+			'da_cap_bang' => array(
+				'label' => 'Đã cấp bằng',
+				'values' => array('Chưa cấp', 'Đã cấp'),
+				'default' => 'Chưa cấp',
+			),
+			'da_cap_tai_khoan' => array(
+				'label' => 'Đã cấp tài khoản',
+				'values' => array('Chưa cấp tài khoản', 'Đã cấp tài khoản'),
+				'default' => 'Chưa cấp tài khoản',
+			),
+		);
+
+		foreach ($specs as $col => $meta) {
+			$check = $adb->pquery("SHOW COLUMNS FROM vtiger_contactscf LIKE ?", array($col));
+			if (!$check || $adb->num_rows($check) === 0) {
+				$adb->pquery("ALTER TABLE vtiger_contactscf ADD COLUMN `{$col}` VARCHAR(64) NULL", array());
+			}
+			$exists = $adb->pquery(
+				"SELECT fieldid FROM vtiger_field WHERE tabid = ? AND fieldname = ?",
+				array($tabid, $col)
+			);
+			$fieldid = 0;
+			if ($exists && $adb->num_rows($exists) > 0) {
+				$fieldid = (int)$adb->query_result($exists, 0, 'fieldid');
+				// Create/Edit only in stock layout; Detail uses custom panel.
+				$adb->pquery(
+					'UPDATE vtiger_field SET displaytype = 3, summaryfield = 0 WHERE fieldid = ?',
+					array($fieldid)
+				);
+			} else {
+				$maxRes = $adb->pquery('SELECT MAX(fieldid) AS mid FROM vtiger_field', array());
+				$fieldid = ($maxRes && $adb->num_rows($maxRes) > 0) ? ((int)$adb->query_result($maxRes, 0, 'mid') + 1) : 1;
+				$seqRes = $adb->pquery(
+					'SELECT MAX(sequence) AS seq FROM vtiger_field WHERE block = ?',
+					array($blockid)
+				);
+				$sequence = ($seqRes && $adb->num_rows($seqRes) > 0) ? ((int)$adb->query_result($seqRes, 0, 'seq') + 1) : 1;
+				$adb->pquery(
+					"INSERT INTO vtiger_field
+						(tabid, fieldid, columnname, tablename, generatedtype, uitype, fieldname, fieldlabel,
+						 readonly, presence, defaultvalue, maximumlength, sequence, block, displaytype, typeofdata,
+						 quickcreate, quickcreatesequence, info_type, masseditable, helpinfo, summaryfield, headerfield)
+					 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+					array(
+						$tabid, $fieldid, $col, 'vtiger_contactscf', 2, '15', $col, $meta['label'],
+						0, 2, $meta['default'], 100, $sequence, $blockid, 3, 'V~O',
+						1, null, 'BAS', 1, '', 0, 0,
+					)
+				);
+				$adb->pquery(
+					'INSERT IGNORE INTO vtiger_def_org_field (tabid, fieldid, visible, readonly) VALUES (?,?,?,?)',
+					array($tabid, $fieldid, 0, 0)
+				);
+				$profRes = $adb->pquery('SELECT DISTINCT profileid FROM vtiger_profile2field WHERE tabid = ?', array($tabid));
+				if ($profRes) {
+					while ($prow = $adb->fetchByAssoc($profRes)) {
+						$pid = (int)$prow['profileid'];
+						$adb->pquery(
+							'INSERT IGNORE INTO vtiger_profile2field (profileid, tabid, fieldid, visible, readonly) VALUES (?,?,?,?,?)',
+							array($pid, $tabid, $fieldid, 0, 0)
+						);
+					}
+				}
+			}
+
+			try {
+				require_once 'vtlib/Vtiger/Module.php';
+				require_once 'vtlib/Vtiger/Field.php';
+				$module = Vtiger_Module::getInstance('Contacts');
+				$fieldInst = $module ? Vtiger_Field::getInstance($col, $module) : false;
+				if ($fieldInst) {
+					$fieldInst->setPicklistValues($meta['values']);
+				}
+			} catch (Exception $e) {
+				// ignore — picklist may already exist
+			}
+		}
+	}
+
+	/**
+	 * Giá trị hiện tại + options cho panel Detail / Create.
+	 */
+	public static function getCredentialState($contactId) {
+		$out = array(
+			'da_cap_bang' => 'Chưa cấp',
+			'da_cap_tai_khoan' => 'Chưa cấp tài khoản',
+			'bang_options' => array('Chưa cấp', 'Đã cấp'),
+			'tk_options' => array('Chưa cấp tài khoản', 'Đã cấp tài khoản'),
+		);
+		$contactId = (int)$contactId;
+		if ($contactId <= 0) {
+			return $out;
+		}
+		self::ensureCredentialFields();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT da_cap_bang, da_cap_tai_khoan FROM vtiger_contactscf WHERE contactid = ?',
+			array($contactId)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$bang = trim((string)$adb->query_result($res, 0, 'da_cap_bang'));
+			$tk = trim((string)$adb->query_result($res, 0, 'da_cap_tai_khoan'));
+			if ($bang !== '') {
+				$out['da_cap_bang'] = $bang;
+			}
+			if ($tk !== '') {
+				$out['da_cap_tai_khoan'] = $tk;
+			}
+		}
+		return $out;
+	}
+
+	public static function saveCredentialFields($contactId, $daCapBang, $daCapTaiKhoan) {
+		$contactId = (int)$contactId;
+		if ($contactId <= 0) {
+			throw new Exception('Contact không hợp lệ.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contactId)
+			&& !Users_Privileges_Model::isPermitted(self::MODULE, 'Save', $contactId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		self::ensureCredentialFields();
+		$allowedBang = array('Chưa cấp', 'Đã cấp');
+		$allowedTk = array('Chưa cấp tài khoản', 'Đã cấp tài khoản');
+		$daCapBang = trim((string)$daCapBang);
+		$daCapTaiKhoan = trim((string)$daCapTaiKhoan);
+		if (!in_array($daCapBang, $allowedBang, true)) {
+			throw new Exception('Giá trị Đã cấp bằng không hợp lệ.');
+		}
+		if (!in_array($daCapTaiKhoan, $allowedTk, true)) {
+			throw new Exception('Giá trị Đã cấp tài khoản không hợp lệ.');
+		}
+		$adb = PearDatabase::getInstance();
+		$existsCf = $adb->pquery('SELECT contactid FROM vtiger_contactscf WHERE contactid = ?', array($contactId));
+		if ($existsCf && $adb->num_rows($existsCf) > 0) {
+			$adb->pquery(
+				'UPDATE vtiger_contactscf SET da_cap_bang = ?, da_cap_tai_khoan = ? WHERE contactid = ?',
+				array($daCapBang, $daCapTaiKhoan, $contactId)
+			);
+		} else {
+			$adb->pquery(
+				'INSERT INTO vtiger_contactscf (contactid, da_cap_bang, da_cap_tai_khoan) VALUES (?,?,?)',
+				array($contactId, $daCapBang, $daCapTaiKhoan)
+			);
+		}
+		return self::getCredentialState($contactId);
 	}
 
 	/**
@@ -118,6 +384,70 @@ class Contacts_ModernService {
 		return $map;
 	}
 
+	/**
+	 * CCCD entered on Lead (bace_lead_profile) for a converted Contact.
+	 *
+	 * @param int $contactId
+	 * @return string
+	 */
+	public static function getLeadCccdForContact($contactId) {
+		$contactId = (int)$contactId;
+		if ($contactId <= 0) {
+			return '';
+		}
+		$adb = PearDatabase::getInstance();
+		try {
+			require_once 'modules/Leads/models/ModernService.php';
+			Leads_ModernService::installSchema($adb);
+		} catch (Exception $e) {
+			return '';
+		}
+
+		$res = $adb->pquery(
+			"SELECT cccd FROM bace_lead_profile
+			 WHERE contact_id = ? AND contact_id > 0
+			   AND cccd IS NOT NULL AND TRIM(cccd) <> ''
+			 ORDER BY leadid DESC LIMIT 1",
+			array($contactId)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$cccd = trim(decode_html((string)$adb->query_result($res, 0, 'cccd')));
+			if ($cccd !== '') {
+				return $cccd;
+			}
+		}
+
+		$res2 = $adb->pquery(
+			"SELECT p.cccd
+			 FROM vtiger_crmentityrel rel
+			 INNER JOIN bace_lead_profile p ON p.leadid = rel.crmid
+			 WHERE rel.module = 'Leads' AND rel.relmodule = 'Contacts'
+			   AND rel.relcrmid = ?
+			   AND p.cccd IS NOT NULL AND TRIM(p.cccd) <> ''
+			 ORDER BY p.leadid DESC LIMIT 1",
+			array($contactId)
+		);
+		if ($res2 && $adb->num_rows($res2) > 0) {
+			return trim(decode_html((string)$adb->query_result($res2, 0, 'cccd')));
+		}
+
+		$res3 = $adb->pquery(
+			"SELECT p.cccd
+			 FROM vtiger_crmentityrel rel
+			 INNER JOIN bace_lead_profile p ON p.leadid = rel.relcrmid
+			 WHERE rel.module = 'Contacts' AND rel.relmodule = 'Leads'
+			   AND rel.crmid = ?
+			   AND p.cccd IS NOT NULL AND TRIM(p.cccd) <> ''
+			 ORDER BY p.leadid DESC LIMIT 1",
+			array($contactId)
+		);
+		if ($res3 && $adb->num_rows($res3) > 0) {
+			return trim(decode_html((string)$adb->query_result($res3, 0, 'cccd')));
+		}
+
+		return '';
+	}
+
 	protected static function composeCacheRow(array $row, array $tags) {
 		$contactId = (int)$row['contactid'];
 		$first = decode_html((string)$row['firstname']);
@@ -147,7 +477,492 @@ class Contacts_ModernService {
 			'owner' => self::getOwnerLabel((int)$row['smownerid']),
 			'tags' => array_values($tags),
 			'last_touch' => $modified,
+			'thoigian_dangky' => self::toIsoDateTime(isset($row['thoigian_dangky']) ? $row['thoigian_dangky'] : ''),
+			'thoigian_pcth' => self::toIsoDateTime(isset($row['thoigian_pcth']) ? $row['thoigian_pcth'] : ''),
+			'thoigian_mqbb' => self::toIsoDateTime(isset($row['thoigian_mqbb']) ? $row['thoigian_mqbb'] : ''),
 		);
+	}
+
+	protected static function toIsoDateTime($raw) {
+		$raw = trim((string)$raw);
+		if ($raw === '' || $raw === '0000-00-00' || $raw === '0000-00-00 00:00:00') {
+			return '';
+		}
+		$ts = strtotime($raw);
+		if ($ts === false) {
+			return '';
+		}
+		return date('c', $ts);
+	}
+
+	/**
+	 * Log đăng ký đi học:
+	 * - Chỉ "Đăng ký học lần 1" được Học lại 1 lần trong 1 năm.
+	 * - Lần 2, 3, 4… chỉ là đăng ký mới — không có quyền Học lại.
+	 */
+	public static function ensureClassRegSchema($adb = null) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		$adb->query("CREATE TABLE IF NOT EXISTS bace_contact_class_reg_log (
+			id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			contactid INT UNSIGNED NOT NULL,
+			registered_on DATE NOT NULL,
+			entry_kind VARCHAR(16) NOT NULL DEFAULT 'register',
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			created_by INT UNSIGNED NULL,
+			KEY idx_contact_reg (contactid, registered_on)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+		// Migrate older installs that lack entry_kind.
+		$col = $adb->pquery("SHOW COLUMNS FROM bace_contact_class_reg_log LIKE 'entry_kind'", array());
+		if (!$col || $adb->num_rows($col) === 0) {
+			$adb->query("ALTER TABLE bace_contact_class_reg_log
+				ADD COLUMN entry_kind VARCHAR(16) NOT NULL DEFAULT 'register' AFTER registered_on");
+			self::backfillClassRegEntryKinds($adb);
+		}
+	}
+
+	/**
+	 * One-time: infer retake rows from legacy date-window rule.
+	 */
+	protected static function backfillClassRegEntryKinds($adb) {
+		$res = $adb->pquery(
+			'SELECT id, contactid, registered_on
+			 FROM bace_contact_class_reg_log
+			 ORDER BY contactid ASC, registered_on ASC, id ASC',
+			array()
+		);
+		if (!$res) {
+			return;
+		}
+		$byContact = array();
+		while ($row = $adb->fetchByAssoc($res)) {
+			$cid = (int)$row['contactid'];
+			if (!isset($byContact[$cid])) {
+				$byContact[$cid] = array();
+			}
+			$byContact[$cid][] = array(
+				'id' => (int)$row['id'],
+				'registered_on' => (string)$row['registered_on'],
+			);
+		}
+		foreach ($byContact as $rows) {
+			$cycle = 0;
+			$anchor = '';
+			$until = '';
+			$retakeUsed = false;
+			foreach ($rows as $raw) {
+				$on = $raw['registered_on'];
+				$kind = 'register';
+				if ($cycle <= 0) {
+					$cycle = 1;
+					$anchor = $on;
+					$until = date('Y-m-d', strtotime($anchor . ' +1 year'));
+					$retakeUsed = false;
+				} elseif (!$retakeUsed && $until !== '' && $on <= $until) {
+					$kind = 'retake';
+					$retakeUsed = true;
+				} else {
+					$cycle++;
+					$anchor = $on;
+					$until = date('Y-m-d', strtotime($anchor . ' +1 year'));
+					$retakeUsed = false;
+				}
+				$adb->pquery(
+					'UPDATE bace_contact_class_reg_log SET entry_kind = ? WHERE id = ?',
+					array($kind, (int)$raw['id'])
+				);
+			}
+		}
+	}
+
+	public static function formatClassRegDate($ymd) {
+		$ymd = trim((string)$ymd);
+		if ($ymd === '') {
+			return '';
+		}
+		$ts = strtotime($ymd);
+		if ($ts === false) {
+			return $ymd;
+		}
+		return date('d/m/Y', $ts);
+	}
+
+	public static function normalizeClassRegDate($raw) {
+		$raw = trim((string)$raw);
+		if ($raw === '') {
+			return '';
+		}
+		// d/m/Y or d-m-Y
+		if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $raw, $m)) {
+			$d = (int)$m[1];
+			$mo = (int)$m[2];
+			$y = (int)$m[3];
+			if (!checkdate($mo, $d, $y)) {
+				return '';
+			}
+			return sprintf('%04d-%02d-%02d', $y, $mo, $d);
+		}
+		// Y-m-d
+		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $raw, $m)) {
+			if (!checkdate((int)$m[2], (int)$m[3], (int)$m[1])) {
+				return '';
+			}
+			return $m[1] . '-' . $m[2] . '-' . $m[3];
+		}
+		$ts = strtotime($raw);
+		if ($ts === false) {
+			return '';
+		}
+		return date('Y-m-d', $ts);
+	}
+
+	/**
+	 * Gán nhãn theo entry_kind đã lưu (register | retake).
+	 *
+	 * @param array $rawLogs rows with id, registered_on, entry_kind, created_at
+	 * @return array
+	 */
+	public static function classifyClassRegLogs(array $rawLogs) {
+		$rows = array();
+		$cycle = 0;
+		$anchor = '';
+		$until = '';
+		$seq = 0;
+		$retakeN = 0;
+
+		foreach ($rawLogs as $raw) {
+			$seq++;
+			$on = (string)$raw['registered_on'];
+			$dateLabel = self::formatClassRegDate($on);
+			$kindRaw = isset($raw['entry_kind']) ? strtolower(trim((string)$raw['entry_kind'])) : 'register';
+			$isRetake = ($kindRaw === 'retake');
+
+			if ($isRetake) {
+				if ($cycle <= 0) {
+					// Orphan retake — treat as register lần 1.
+					$cycle = 1;
+					$anchor = $on;
+					$until = date('Y-m-d', strtotime($anchor . ' +1 year'));
+					$kind = 'register';
+					$isRetake = false;
+					$badge = 'Lần 1';
+					$label = 'Đăng ký học lần 1: ' . $dateLabel;
+				} else {
+					$retakeN++;
+					$kind = 'retake';
+					$badge = 'Học lại';
+					$label = 'Học lại lần ' . $retakeN . ': ' . $dateLabel;
+				}
+			} else {
+				$cycle++;
+				$anchor = $on;
+				$until = date('Y-m-d', strtotime($anchor . ' +1 year'));
+				$kind = 'register';
+				$badge = 'Lần ' . $cycle;
+				$label = 'Đăng ký học lần ' . $cycle . ': ' . $dateLabel;
+			}
+
+			$rows[] = array(
+				'id' => isset($raw['id']) ? (int)$raw['id'] : 0,
+				'n' => $seq,
+				'cycle' => $cycle,
+				'kind' => $kind,
+				'is_retake' => $isRetake,
+				'retake_n' => $isRetake ? $retakeN : 0,
+				'badge' => $badge,
+				'registered_on' => $on,
+				'registered_on_label' => $dateLabel,
+				'label' => $label,
+				'created_at' => isset($raw['created_at']) && $raw['created_at'] !== null
+					? (string)$raw['created_at'] : '',
+				'anchor_on' => $anchor,
+				'until_on' => $until,
+				'show_retake_btn' => false,
+			);
+		}
+
+		return $rows;
+	}
+
+	public static function getClassRegLogs($contactId) {
+		$contactId = (int)$contactId;
+		if ($contactId <= 0) {
+			return array();
+		}
+		$adb = PearDatabase::getInstance();
+		self::ensureClassRegSchema($adb);
+		$res = $adb->pquery(
+			'SELECT id, registered_on, entry_kind, created_at, created_by
+			 FROM bace_contact_class_reg_log
+			 WHERE contactid = ?
+			 ORDER BY registered_on ASC, id ASC',
+			array($contactId)
+		);
+		$raw = array();
+		if ($res) {
+			while ($row = $adb->fetchByAssoc($res)) {
+				$raw[] = array(
+					'id' => (int)$row['id'],
+					'registered_on' => (string)$row['registered_on'],
+					'entry_kind' => isset($row['entry_kind']) ? (string)$row['entry_kind'] : 'register',
+					'created_at' => $row['created_at'] !== null ? (string)$row['created_at'] : '',
+				);
+			}
+		}
+		return self::classifyClassRegLogs($raw);
+	}
+
+	public static function getClassRegSummary($contactId) {
+		$logs = self::getClassRegLogs($contactId);
+		$first = !empty($logs) ? $logs[0]['registered_on'] : '';
+		$last = !empty($logs) ? $logs[count($logs) - 1]['registered_on'] : '';
+		$anchor = '';
+		$until = '';
+		$cycle = 0;
+		$retakeUsed = false;
+		$retakeAvailable = false;
+		$nextKind = 'register';
+		$canAdd = true;
+		$canAddRegister = true;
+		$dateMin = '';
+		$dateMax = '';
+		$retakeDateMin = '';
+		$retakeDateMax = '';
+
+		$rightsLabel = 'Chưa mở quyền học lại — thêm Đăng ký học lần 1, rồi bấm nút Học lại khi cần (1 lần / 1 năm).';
+		$hint = 'Chọn ngày Đăng ký học lần 1. Sau mỗi lần Học lại phải chờ 1 năm thì nút Học lại mới hiện lại.';
+
+		$lastRetakeOn = '';
+		$retakeCount = 0;
+		$nextRetakeOpenOn = '';
+		$retakeCooldown = false;
+
+		if (!empty($logs)) {
+			$registerCount = 0;
+			$lan1Index = -1;
+			$retakeUsed = false;
+			$cycle = 0;
+			foreach ($logs as $idx => $log) {
+				if (empty($log['is_retake'])) {
+					$registerCount++;
+					if ((int)$log['cycle'] === 1 && $lan1Index < 0) {
+						$lan1Index = $idx;
+						$anchor = (string)$log['registered_on'];
+						$until = date('Y-m-d', strtotime($anchor . ' +1 year'));
+					}
+				} else {
+					$retakeUsed = true;
+					$retakeCount++;
+					$lastRetakeOn = (string)$log['registered_on'];
+				}
+				$cycle = max($cycle, (int)$log['cycle']);
+			}
+			if ($lan1Index < 0) {
+				foreach ($logs as $idx => $log) {
+					if (empty($log['is_retake'])) {
+						$lan1Index = $idx;
+						$anchor = (string)$log['registered_on'];
+						$until = date('Y-m-d', strtotime($anchor . ' +1 year'));
+						break;
+					}
+				}
+			}
+
+			$today = date('Y-m-d');
+			$dateMin = date('Y-m-d', strtotime($last . ' +1 day'));
+			$dateMax = '';
+			$retakeAvailable = false;
+			$retakeDateMin = $dateMin;
+			$retakeDateMax = '';
+
+			if ($lastRetakeOn !== '') {
+				// Đã học lại: chờ đủ 1 năm kể từ ngày Học lại gần nhất thì nút hiện lại.
+				$nextRetakeOpenOn = date('Y-m-d', strtotime($lastRetakeOn . ' +1 year'));
+				$renewUntil = date('Y-m-d', strtotime($nextRetakeOpenOn . ' +1 year'));
+				if ($today < $nextRetakeOpenOn) {
+					$retakeCooldown = true;
+					$retakeAvailable = false;
+				} else {
+					$retakeAvailable = ($today <= $renewUntil);
+					$retakeDateMin = $dateMin;
+					if ($nextRetakeOpenOn > $retakeDateMin) {
+						$retakeDateMin = $nextRetakeOpenOn;
+					}
+					$retakeDateMax = $renewUntil;
+					$until = $renewUntil;
+				}
+			} else {
+				// Chưa học lại lần nào: chỉ khi còn đúng Đăng ký lần 1 và trong hạn 1 năm từ lần 1.
+				$windowOpen = ($until !== '' && $today <= $until);
+				$retakeAvailable = (
+					$lan1Index >= 0
+					&& $registerCount === 1
+					&& $windowOpen
+				);
+				$retakeDateMax = $until;
+			}
+
+			$btnIndex = $lan1Index;
+			if ($retakeAvailable && $retakeCount > 0 && !empty($logs)) {
+				$btnIndex = count($logs) - 1;
+			}
+
+			if ($retakeAvailable && $btnIndex >= 0) {
+				$logs[$btnIndex]['show_retake_btn'] = true;
+				$nextKind = 'retake';
+				$nextRetakeLabel = 'Học lại lần ' . ($retakeCount + 1);
+				$rightsLabel = 'Còn quyền ' . $nextRetakeLabel . ' đến ' . self::formatClassRegDate($retakeDateMax)
+					. ' — bấm nút Học lại.';
+				$hint = 'Nút Học lại: chọn ngày từ ' . self::formatClassRegDate($retakeDateMin)
+					. ' đến ' . self::formatClassRegDate($retakeDateMax) . '.'
+					. ' Form bên dưới dùng để Đăng ký học lần mới (không dùng quyền học lại).';
+			} elseif ($retakeCooldown && $nextRetakeOpenOn !== '') {
+				$nextKind = 'register';
+				$rightsLabel = 'Đã Học lại ngày ' . self::formatClassRegDate($lastRetakeOn)
+					. '. Nút Học lại sẽ hiện lại từ ' . self::formatClassRegDate($nextRetakeOpenOn)
+					. ' (sau 1 năm).';
+				$hint = 'Trong lúc chờ có thể Đăng ký học lần ' . ($cycle + 1)
+					. ' bằng form bên dưới. Ngày mới phải sau lần gần nhất ('
+					. self::formatClassRegDate($last) . ').';
+			} elseif ($registerCount >= 2 && !$retakeUsed) {
+				$nextKind = 'register';
+				$rightsLabel = 'Đã có Đăng ký học lần ' . $cycle . '.'
+					. ' Không còn quyền Học lại của lần 1 — nếu có vấn đề hãy Đăng ký học lần '
+					. ($cycle + 1) . '.';
+				$hint = 'Ngày đăng ký mới phải sau lần gần nhất (' . self::formatClassRegDate($last) . ').';
+			} elseif ($lan1Index >= 0 && !$retakeUsed && $until !== '' && $today > $until) {
+				$nextKind = 'register';
+				$rightsLabel = 'Đã hết hạn học lại lần đầu (đến ' . self::formatClassRegDate($until) . ').'
+					. ' Đăng ký tiếp sẽ là Đăng ký học lần 2.';
+				$hint = 'Ngày đăng ký mới phải sau lần gần nhất (' . self::formatClassRegDate($last) . ').';
+			} else {
+				$nextKind = 'register';
+				$hint = 'Ngày đăng ký mới phải sau lần gần nhất (' . self::formatClassRegDate($last) . ').';
+			}
+		}
+
+		return array(
+			'logs' => $logs,
+			'count' => count($logs),
+			'first_on' => $first,
+			'first_on_label' => self::formatClassRegDate($first),
+			'last_on' => $last,
+			'last_on_label' => self::formatClassRegDate($last),
+			'anchor_on' => $anchor,
+			'anchor_on_label' => self::formatClassRegDate($anchor),
+			'until_on' => $until,
+			'until_on_label' => self::formatClassRegDate($until),
+			'cycle' => $cycle,
+			'retake_used' => $retakeUsed,
+			'retake_count' => $retakeCount,
+			'last_retake_on' => $lastRetakeOn,
+			'last_retake_on_label' => self::formatClassRegDate($lastRetakeOn),
+			'next_retake_open_on' => $nextRetakeOpenOn,
+			'next_retake_open_on_label' => self::formatClassRegDate($nextRetakeOpenOn),
+			'retake_cooldown' => $retakeCooldown,
+			'retake_available' => $retakeAvailable,
+			'next_kind' => $nextKind,
+			'can_add' => $canAdd,
+			'can_add_register' => $canAddRegister,
+			'date_min' => $dateMin,
+			'date_max' => $dateMax,
+			'retake_date_min' => $retakeDateMin,
+			'retake_date_max' => $retakeDateMax,
+			'rights_label' => $rightsLabel,
+			'hint' => $hint,
+		);
+	}
+
+	/**
+	 * @param string $kind register|retake
+	 */
+	public static function addClassRegLog($contactId, $registeredOn, $userId = null, $kind = 'register') {
+		global $current_user;
+		$contactId = (int)$contactId;
+		if ($contactId <= 0) {
+			throw new Exception('Contact không hợp lệ.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contactId)
+			&& !Users_Privileges_Model::isPermitted(self::MODULE, 'Save', $contactId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$ymd = self::normalizeClassRegDate($registeredOn);
+		if ($ymd === '') {
+			throw new Exception('Ngày đăng ký không hợp lệ. Vui lòng chọn ngày trên lịch.');
+		}
+		$kind = strtolower(trim((string)$kind));
+		if ($kind !== 'retake') {
+			$kind = 'register';
+		}
+		if ($userId === null || (int)$userId <= 0) {
+			$userId = (int)$current_user->id;
+		}
+		$adb = PearDatabase::getInstance();
+		self::ensureClassRegSchema($adb);
+		self::ensureEventTimeColumns($adb);
+
+		$summary = self::getClassRegSummary($contactId);
+		if (!empty($summary['logs'])) {
+			$last = $summary['last_on'];
+			if ($ymd <= $last) {
+				throw new Exception('Ngày phải sau lần gần nhất (' . self::formatClassRegDate($last) . ').');
+			}
+		}
+
+		if ($kind === 'retake') {
+			if (empty($summary['logs'])) {
+				throw new Exception('Chưa có Đăng ký học lần 1 — không thể ghi Học lại.');
+			}
+			if (empty($summary['retake_available'])) {
+				if (!empty($summary['retake_cooldown']) && !empty($summary['next_retake_open_on'])) {
+					throw new Exception(
+						'Chưa đến hạn Học lại tiếp. Nút Học lại sẽ hiện từ '
+						. self::formatClassRegDate($summary['next_retake_open_on']) . '.'
+					);
+				}
+				throw new Exception('Hiện không còn quyền Học lại (đã hết hạn hoặc chưa đủ điều kiện).');
+			}
+			$retakeMin = !empty($summary['retake_date_min']) ? $summary['retake_date_min'] : '';
+			$retakeMax = !empty($summary['retake_date_max']) ? $summary['retake_date_max'] : '';
+			if ($retakeMin !== '' && $ymd < $retakeMin) {
+				throw new Exception('Ngày Học lại phải từ ' . self::formatClassRegDate($retakeMin) . ' trở đi.');
+			}
+			if ($retakeMax !== '' && $ymd > $retakeMax) {
+				throw new Exception('Ngày Học lại không được quá hạn ' . self::formatClassRegDate($retakeMax) . '.');
+			}
+		}
+
+		$adb->pquery(
+			'INSERT INTO bace_contact_class_reg_log (contactid, registered_on, entry_kind, created_at, created_by) VALUES (?,?,?,NOW(),?)',
+			array($contactId, $ymd, $kind, (int)$userId)
+		);
+
+		// Sync field Thời gian Đăng Ký = lần đăng ký đầu tiên
+		$summaryAfter = self::getClassRegSummary($contactId);
+		$firstOn = $summaryAfter['first_on'];
+		if ($firstOn !== '') {
+			$existsCf = $adb->pquery('SELECT contactid FROM vtiger_contactscf WHERE contactid = ?', array($contactId));
+			if ($existsCf && $adb->num_rows($existsCf) > 0) {
+				$adb->pquery(
+					'UPDATE vtiger_contactscf SET thoigian_dangky = ? WHERE contactid = ?',
+					array($firstOn . ' 00:00:00', $contactId)
+				);
+			} else {
+				$adb->pquery(
+					'INSERT INTO vtiger_contactscf (contactid, thoigian_dangky) VALUES (?,?)',
+					array($contactId, $firstOn . ' 00:00:00')
+				);
+			}
+		}
+
+		return $summaryAfter;
 	}
 
 	protected static function getTagsForContactIds(array $contactIds, $userId = null) {

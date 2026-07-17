@@ -219,6 +219,10 @@
 	}
 
 	function isCallAttemptsLocked(lead, pendingTask) {
+		var lt = lead && lead.lastTouchCalls;
+		if (lt && typeof lt.can_add === 'boolean') {
+			return lt.can_add === false;
+		}
 		return countTodayLoggedCalls(lead, pendingTask) >= callAttemptMax();
 	}
 
@@ -240,30 +244,215 @@
 	}
 
 	function syncCallLogUiState(lead) {
-		var max = callAttemptMax();
-		var count = countTodayLoggedCalls(lead);
-		var locked = count >= max;
+		var lt = lead && lead.lastTouchCalls ? lead.lastTouchCalls : null;
+		var canAdd = !lt || lt.can_add !== false;
+		var nextN = lt && lt.next_n ? lt.next_n : 1;
+		var count = lt && typeof lt.count === 'number' ? lt.count : 0;
+		var max = (lt && lt.max_calls) || 3;
 		document.querySelectorAll('[data-mk-log="call"]').forEach(function (btn) {
-			if (locked) {
+			if (!canAdd) {
 				btn.setAttribute('disabled', 'disabled');
 				btn.classList.add('mk-lead-activity-log__menu-btn--locked');
 				btn.setAttribute(
 					'title',
-					leadLabel(
-						'LBL_MK_CALL_LOCKED',
-						'Đã ghi ' + count + '/' + max + ' cuộc gọi hôm nay. Không thể ghi thêm.'
-					)
+					(lt && lt.hint) ||
+						'Đã đủ ' + count + '/' + max + ' lần gọi Last Touch.'
 				);
-			} else if (count > 0) {
-				btn.removeAttribute('disabled');
-				btn.classList.remove('mk-lead-activity-log__menu-btn--locked');
-				btn.setAttribute('title', 'Hôm nay: ' + count + '/' + max + ' cuộc gọi');
 			} else {
 				btn.removeAttribute('disabled');
 				btn.classList.remove('mk-lead-activity-log__menu-btn--locked');
-				btn.removeAttribute('title');
+				btn.setAttribute('title', 'Last Touch Call #' + nextN + ' (tối đa ' + max + ' lần)');
 			}
 		});
+	}
+
+	function renderLastTouchPanel(lead) {
+		var host = byId('mk-ld-ui-last-touch');
+		var list = byId('mk-ld-ui-last-touch-list');
+		var hint = byId('mk-ld-ui-last-touch-hint');
+		var badge = byId('mk-ld-ui-last-touch-badge');
+		if (!host || !list) {
+			return;
+		}
+		var lt = lead && lead.lastTouchCalls ? lead.lastTouchCalls : null;
+		var calls = (lt && lt.calls) || [];
+		host.hidden = false;
+		if (hint) {
+			hint.textContent =
+				(lt && lt.hint) ||
+				'Last Touch chỉ dành cho Call. Gọi lần 1 → khoảng 5 giờ gọi lần 2 → lần 3 nhắc gọi. Nghe máy → Opp.';
+		}
+		if (badge) {
+			badge.textContent = calls.length + '/' + ((lt && lt.max_calls) || 3);
+			badge.className =
+				'mk-lead-last-touch__badge' +
+				(lt && lt.can_add === false ? ' is-done' : ' is-open');
+		}
+		if (!calls.length) {
+			list.innerHTML =
+				'<li class="mk-lead-last-touch__empty">Chưa có Call #1 — nhấn “Ghi cuộc gọi” để bắt đầu Last Touch.</li>';
+			return;
+		}
+		list.innerHTML = calls
+			.map(function (c) {
+				return (
+					'<li class="mk-lead-last-touch__item">' +
+					'<span class="mk-lead-last-touch__n">Call #' +
+					esc(String(c.n || '')) +
+					'</span>' +
+					'<span class="mk-lead-last-touch__text">' +
+					esc(c.label || '') +
+					'</span></li>'
+				);
+			})
+			.join('');
+	}
+
+	function closeLastTouchModal() {
+		var modal = byId('mk-ld-lt-modal');
+		if (!modal) return;
+		modal.hidden = true;
+		modal.setAttribute('aria-hidden', 'true');
+	}
+
+	function openLastTouchModal(lead) {
+		var modal = byId('mk-ld-lt-modal');
+		if (!modal) {
+			showToast('Không mở được form Last Touch Call.');
+			return;
+		}
+		var lt = lead && lead.lastTouchCalls ? lead.lastTouchCalls : null;
+		if (lt && lt.can_add === false) {
+			showToast((lt && lt.hint) || 'Không thể ghi thêm cuộc gọi Last Touch.');
+			return;
+		}
+		var nextN = (lt && lt.next_n) || 1;
+		var meta = byId('mk-ld-lt-meta');
+		if (meta) {
+			meta.textContent =
+				'Ghi nhận Call #' +
+				nextN +
+				(lt && lt.reminder_at_label
+					? ' · Nhắc lần trước: ' + lt.reminder_at_label
+					: '') +
+				'. Khoảng 5 giờ giữa các lần gọi.';
+		}
+		var resultEl = byId('mk-ld-lt-result');
+		var noteEl = byId('mk-ld-lt-note');
+		if (resultEl) resultEl.value = 'Không nghe máy';
+		if (noteEl) noteEl.value = '';
+		modal.hidden = false;
+		modal.setAttribute('aria-hidden', 'false');
+		modal._mkLead = lead;
+	}
+
+	function submitLastTouchCall() {
+		var modal = byId('mk-ld-lt-modal');
+		var lead = modal && modal._mkLead;
+		if (!lead) return;
+		var resultEl = byId('mk-ld-lt-result');
+		var noteEl = byId('mk-ld-lt-note');
+		var saveBtn = byId('mk-ld-lt-save');
+		var result = resultEl ? String(resultEl.value || '').trim() : '';
+		var note = noteEl ? String(noteEl.value || '').trim() : '';
+		if (!result) {
+			showToast('Vui lòng chọn kết quả cuộc gọi.');
+			return;
+		}
+		var linkId = leadStoreId(lead);
+		if (!linkId) {
+			showToast('Không xác định được Lead.');
+			return;
+		}
+		if (saveBtn) saveBtn.disabled = true;
+		var postData = {
+			module: 'Leads',
+			action: 'ModernApi',
+			mode: 'last_touch_call_log',
+			id: linkId,
+			record: linkId,
+			call_result: result,
+			note: note,
+		};
+		function done(err, res) {
+			if (saveBtn) saveBtn.disabled = false;
+			if (err || !res || res.success === false) {
+				var msg =
+					(err && err.message) ||
+					(res && res.error) ||
+					'Không ghi được cuộc gọi Last Touch.';
+				if (typeof msg === 'object' && msg.message) msg = msg.message;
+				if (app.helper && app.helper.showErrorNotification) {
+					app.helper.showErrorNotification({ message: String(msg) });
+				} else {
+					window.alert(String(msg));
+				}
+				return;
+			}
+			closeLastTouchModal();
+			var lt = res.lastTouchCalls || null;
+			var fresh = res.lead || null;
+			if (fresh) {
+				var row = storeLeadToDemo(fresh);
+				if (lt) row.lastTouchCalls = lt;
+				syncLeadObject(lead, row);
+			} else if (lt) {
+				lead.lastTouchCalls = lt;
+			}
+			render(cloneLeadData(lead));
+			var convert = res.convert || (lt && lt.convert) || null;
+			if (result === 'Nghe máy' && convert) {
+				var url =
+					convert.redirect ||
+					convert.potentialUrl ||
+					(convert.potentialId ? potentialDetailUrl(convert.potentialId) : '') ||
+					lead.potentialUrl;
+				if (app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({
+						message: 'Nghe máy — đã chuyển sang Opportunity.',
+					});
+				}
+				if (url) {
+					window.setTimeout(function () {
+						window.location.href = url;
+					}, 600);
+					return;
+				}
+			}
+			if (app.helper && app.helper.showSuccessNotification) {
+				var logged = (lt && lt.logged) || {};
+				app.helper.showSuccessNotification({
+					message: logged.label || 'Đã ghi Last Touch Call.',
+				});
+			}
+		}
+		if (typeof app !== 'undefined' && app.request && app.request.post) {
+			app.request.post({ data: postData }).then(function (err, res) {
+				done(err, res);
+			});
+		} else {
+			done({ message: 'Không kết nối được máy chủ.' }, null);
+		}
+	}
+
+	function bindLastTouchModal() {
+		var modal = byId('mk-ld-lt-modal');
+		if (!modal || modal.getAttribute('data-mk-bound') === '1') return;
+		modal.setAttribute('data-mk-bound', '1');
+		modal.addEventListener('click', function (e) {
+			var t = e.target;
+			if (t && t.getAttribute && t.getAttribute('data-mk-lt-close') === '1') {
+				e.preventDefault();
+				closeLastTouchModal();
+			}
+		});
+		var saveBtn = byId('mk-ld-lt-save');
+		if (saveBtn) {
+			saveBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				submitLastTouchCall();
+			});
+		}
 	}
 
 	function activityLogLabel(type) {
@@ -475,6 +664,7 @@
 			area: lead.area,
 			next_action: lead.next_action,
 			last_touch: lead.last_touch,
+			lastTouchCalls: lead.lastTouchCalls || null,
 			badges: Object.assign(
 				{
 					contacts: 1,
@@ -582,6 +772,9 @@
 			area: raw.area || '',
 			purchases: (raw.purchases || []).slice(),
 			calendarTasks: (raw.calendarTasks || []).slice(),
+			last_touch: raw.last_touch || '',
+			next_action: raw.next_action || '',
+			lastTouchCalls: raw.lastTouchCalls || null,
 			badges: {
 				contacts: 1,
 				comments: (raw.comments || []).length,
@@ -839,12 +1032,16 @@
 			else if (lead.area) addressFields += detailField('Khu vực', esc(lead.area));
 		}
 
+		var touchLogHtml =
+			window.LeadsLeadsLogic && window.LeadsLeadsLogic.lastTouchCallLogHtml
+				? window.LeadsLeadsLogic.lastTouchCallLogHtml(lead, esc)
+				: esc(lead.last_touch || '—');
 		var manageFields =
 			detailField('Phụ trách', esc(lead.owner || '—')) +
 			detailField('Giá trị', esc(formatVnd(lead.value))) +
 			detailField('Ngày dự kiến', esc(lead.closeDate || '—')) +
-			detailField('Chạm cuối', esc(lead.last_touch || '—')) +
-			(lead.next_action ? detailField('Hành động tiếp', esc(lead.next_action), true) : '') +
+			detailField('Tương tác gần đây', touchLogHtml, true) +
+			(lead.next_action ? detailField('Hành động tiếp theo', esc(lead.next_action), true) : '') +
 			(lead.notes ? detailField('Ghi chú', esc(lead.notes), true) : '');
 
 		host.innerHTML =
@@ -1686,15 +1883,15 @@
 		if (kind === 'call' && isCallAttemptsLocked(lead)) {
 			setButtonBusy(triggerBtn, false);
 			showToast(
-				leadLabel(
-					'LBL_MK_CALL_LOCKED',
-					'Đã ghi ' +
-						countTodayLoggedCalls(lead) +
-						'/' +
-						callAttemptMax() +
-						' cuộc gọi hôm nay. Không thể ghi thêm.'
-				)
+				(lead.lastTouchCalls && lead.lastTouchCalls.hint) ||
+					'Đã đủ số lần gọi Last Touch.'
 			);
+			return;
+		}
+
+		if (kind === 'call') {
+			setButtonBusy(triggerBtn, false);
+			openLastTouchModal(lead);
 			return;
 		}
 
@@ -2141,12 +2338,14 @@
 		renderDetailFields(lead);
 		renderTags(lead);
 		renderActivityLog(lead);
+		renderLastTouchPanel(lead);
 		renderActivities(lead);
 		renderComments(lead);
 		renderUpdates(lead);
 		syncBadges(lead);
 		syncConvertButtonState(lead);
 		syncCallLogUiState(lead);
+		bindLastTouchModal();
 	}
 
 	function markReady() {

@@ -36,12 +36,12 @@
 				<table class="mk-leads-table" id="mk-leads-table">
 					<colgroup>
 						<col class="mk-leads-col mk-leads-col--check" />
+						<col class="mk-leads-col mk-leads-col--created" />
 						<col class="mk-leads-col mk-leads-col--lead" />
 						<col class="mk-leads-col mk-leads-col--phone" />
 						<col class="mk-leads-col mk-leads-col--area" />
 						<col class="mk-leads-col mk-leads-col--source" />
 						<col class="mk-leads-col mk-leads-col--ctype" />
-						<col class="mk-leads-col mk-leads-col--stage" />
 						<col class="mk-leads-col mk-leads-col--tier" />
 						<col class="mk-leads-col mk-leads-col--owner" />
 						<col class="mk-leads-col mk-leads-col--tags" />
@@ -56,12 +56,12 @@
 									<span class="mk-leads-check__ui" aria-hidden="true"></span>
 								</label>
 							</th>
+							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="createdtime"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_COL_CREATED', 'Leads')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="name"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_COL_LEAD', 'Leads')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_PHONE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_AREA', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_SOURCE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CUSTOMER_TYPE', 'Leads')}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_STAGE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_TIER', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_OWNER', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_TAGS', 'Leads')}</th>

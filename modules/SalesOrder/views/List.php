@@ -334,7 +334,7 @@ class SalesOrder_List_View extends Inventory_List_View {
 		};
 
 		$paymentField = '';
-		foreach (array('mk_payment_terms', 'payment_duration') as $candidate) {
+		foreach (array('mk_payment_method', 'mk_payment_terms', 'payment_duration') as $candidate) {
 			$fieldModel = Vtiger_Field_Model::getInstance($candidate, $moduleModel);
 			if ($fieldModel && $fieldModel->isViewable()) {
 				$paymentField = $candidate;

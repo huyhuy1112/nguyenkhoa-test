@@ -81,7 +81,7 @@
   };
 
   var LIST_COLUMNS = [
-    "checkbox", "lead", "phone", "area", "source", "customerType", "stage", "tier",
+    "checkbox", "created", "lead", "phone", "area", "source", "customerType", "tier",
     "owner", "tags", "lastTouch", "nextAction",
   ];
 

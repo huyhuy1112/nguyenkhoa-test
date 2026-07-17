@@ -25,7 +25,7 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string)$request->get('mode'));
 		$write = array(
-			'save_tag', 'delete_tag', 'save_rule', 'delete_rule', 'set_rule_active',
+			'save_tag', 'delete_tag', 'save_group', 'delete_group', 'save_rule', 'delete_rule', 'set_rule_active',
 			'save_scenario', 'delete_scenario', 'reseed', 'dismiss', 'apply_lead',
 		);
 		if (in_array($mode, $write, true)) {
@@ -84,6 +84,25 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 					}
 					$tag = $svc->upsertTag($payload, true);
 					$response->setResult(array('success' => true, 'tag' => $tag, 'state' => $svc->bootstrap()));
+					break;
+
+				case 'save_group':
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id && empty($payload['id'])) {
+						$payload['id'] = $id;
+					}
+					// Creating a parent tag for Lead create form by default when from UI "tag cha"
+					if (!isset($payload['show_on_create'])) {
+						$payload['show_on_create'] = 1;
+					}
+					$group = $svc->upsertGroup($payload, true);
+					$response->setResult(array('success' => true, 'group' => $group, 'state' => $svc->bootstrap()));
+					break;
+
+				case 'delete_group':
+					$svc->deleteGroup((string)$request->get('id'));
+					$response->setResult(array('success' => true, 'state' => $svc->bootstrap()));
 					break;
 
 				case 'delete_tag':

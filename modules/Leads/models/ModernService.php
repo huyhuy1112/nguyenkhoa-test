@@ -91,6 +91,12 @@ class Leads_ModernService {
 		if (!$colRes || $adb->num_rows($colRes) < 1) {
 			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN contact_id INT(19) DEFAULT NULL AFTER potential_id", array());
 		}
+		try {
+			require_once 'modules/Leads/models/LastTouchCallService.php';
+			Leads_LastTouchCallService::ensureSchema($adb);
+		} catch (Exception $e) {
+			// best-effort
+		}
 	}
 
 	public static function isInstalled(PearDatabase $adb) {
@@ -106,7 +112,7 @@ class Leads_ModernService {
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-				la.phone, ce.smownerid
+				la.phone, ce.smownerid, ce.createdtime
 			FROM bace_lead_profile p
 			INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
@@ -146,7 +152,7 @@ class Leads_ModernService {
 			"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-				la.phone, ce.smownerid
+				la.phone, ce.smownerid, ce.createdtime
 			FROM bace_lead_profile p
 			INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
@@ -161,7 +167,7 @@ class Leads_ModernService {
 					"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 						p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
 						ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-						la.phone, ce.smownerid
+						la.phone, ce.smownerid, ce.createdtime
 					FROM bace_lead_profile p
 					INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 					INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
@@ -199,6 +205,27 @@ class Leads_ModernService {
 		}
 		$tagsByLead = self::getTagsForLeadIds(array($resolved), $userId);
 		self::syncCallAttemptTagsIfNeeded($resolved, $tagsByLead[$resolved] ?? array(), $userId);
+	}
+
+	/** Resolve cache id / crm id → leadid (public for Last Touch / APIs). */
+	public static function resolveLeadRecordId($idOrCacheId) {
+		return self::resolveLeadId($idOrCacheId);
+	}
+
+	/** Gắn tag goi_lan_N (Last Touch Call #N), gỡ các goi_lan_* khác. */
+	public static function setGoiLanTag($leadId, $callN, $userId = null) {
+		global $current_user;
+		if ($userId === null) {
+			$userId = (int)$current_user->id;
+		}
+		$leadId = (int)self::resolveLeadId($leadId);
+		if ($leadId <= 0) {
+			return;
+		}
+		$callN = max(1, min((int)$callN, self::MAX_CALLS_PER_DAY));
+		$tagsByLead = self::getTagsForLeadIds(array($leadId), $userId);
+		$expected = self::applyCallAttemptTags($tagsByLead[$leadId] ?? array(), $callN);
+		self::syncTags($leadId, $expected, $userId);
 	}
 
 	public static function applyCallAttemptTags(array $tags, $todayCallCount) {
@@ -239,8 +266,17 @@ class Leads_ModernService {
 		if ($userId === null) {
 			$userId = (int)$current_user->id;
 		}
-		$todayCalls = Leads_CommerceService::countTodayCallsForLead($leadId);
-		$expected = self::applyCallAttemptTags($tags, $todayCalls);
+		$callCount = 0;
+		try {
+			require_once 'modules/Leads/models/LastTouchCallService.php';
+			$callCount = Leads_LastTouchCallService::countCalls($leadId);
+		} catch (Exception $e) {
+			$callCount = 0;
+		}
+		if ($callCount <= 0) {
+			$callCount = Leads_CommerceService::countTodayCallsForLead($leadId);
+		}
+		$expected = self::applyCallAttemptTags($tags, $callCount);
 		$current = array_values(array_unique(array_map('strval', $tags)));
 		sort($current);
 		$next = array_values(array_unique(array_map('strval', $expected)));
@@ -359,7 +395,22 @@ class Leads_ModernService {
 		$leadId = (int)$recordModel->getId();
 
 		$now = date('Y-m-d H:i:s');
-		$lastTouch = isset($payload['last_touch']) ? self::normalizeDateTime($payload['last_touch']) : $now;
+		// last_touch chỉ cập nhật khi payload gửi (hoặc Last Touch Call) — không bump mỗi lần Save.
+		$lastTouch = null;
+		if (isset($payload['last_touch']) && $payload['last_touch'] !== '') {
+			$lastTouch = self::normalizeDateTime($payload['last_touch']);
+		} elseif ($leadId) {
+			$prevTouch = $adb->pquery('SELECT last_touch FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+			if ($prevTouch && $adb->num_rows($prevTouch) > 0) {
+				$prevVal = $adb->query_result($prevTouch, 0, 'last_touch');
+				if ($prevVal && $prevVal !== '0000-00-00 00:00:00') {
+					$lastTouch = $prevVal;
+				}
+			}
+		}
+		if ($lastTouch === null || $lastTouch === '') {
+			$lastTouch = $now;
+		}
 		$mkCacheId = isset($payload['id']) && !is_numeric($payload['id']) ? $payload['id'] : null;
 		if (!$mkCacheId && $leadId) {
 			$existing = $adb->pquery("SELECT mk_cache_id FROM bace_lead_profile WHERE leadid = ?", array($leadId));
@@ -585,6 +636,20 @@ class Leads_ModernService {
 		return decode_html($value);
 	}
 
+	/**
+	 * Bỏ next_action auto từ Last Touch / Calendar (giữ ghi chú tay kiểu "Chăm hạng Đồng...").
+	 */
+	protected static function sanitizeManualNextAction($text) {
+		$text = trim((string)$text);
+		if ($text === '') {
+			return '';
+		}
+		if (preg_match('/^(Nhắc gọi Call\s*#|Đã nghe máy|Đã đủ 3 lần gọi|Gọi:\s*Nhắc gọi)/iu', $text)) {
+			return '';
+		}
+		return $text;
+	}
+
 	protected static function composeDisplayName($firstname, $lastname) {
 		$firstname = self::decodeText(trim((string)$firstname));
 		$lastname = self::decodeText(trim((string)$lastname));
@@ -612,23 +677,38 @@ class Leads_ModernService {
 		}
 		$id = !empty($row['mk_cache_id']) ? $row['mk_cache_id'] : (string)$leadId;
 		$lastTouch = !empty($row['last_touch']) ? date('c', strtotime($row['last_touch'])) : date('c');
+		$createdTime = '';
+		if (!empty($row['createdtime'])) {
+			$createdTs = strtotime($row['createdtime']);
+			if ($createdTs) {
+				$createdTime = date('c', $createdTs);
+			}
+		}
 		$company = self::decodeText(isset($row['company']) ? $row['company'] : '');
 		$storedNext = self::decodeText(isset($row['next_action']) ? $row['next_action'] : '');
-		$ruleNext = '';
-		try {
-			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
-			$ruleMatch = HelpDesk_TagRuleEngineService::getInstance()->matchRules($tags, true);
-			if (!empty($ruleMatch['best']['next_action'])) {
-				$ruleNext = (string)$ruleMatch['best']['next_action'];
+		// Hành động tiếp theo = ghi chú tự do đã lưu (không derive từ Calendar / Last Touch).
+		$nextAction = self::sanitizeManualNextAction($storedNext);
+		if ($nextAction === '') {
+			try {
+				require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+				$ruleMatch = HelpDesk_TagRuleEngineService::getInstance()->matchRules($tags, true);
+				if (!empty($ruleMatch['best']['next_action'])) {
+					$nextAction = (string)$ruleMatch['best']['next_action'];
+				}
+			} catch (Exception $e) {
+				$nextAction = '';
 			}
-		} catch (Exception $e) {
-			$ruleNext = '';
 		}
-		$nextAction = ($ruleNext !== '')
-			? $ruleNext
-			: Leads_CommerceService::deriveNextActionLabel($calendarTasks, $storedNext);
 
 		$conversion = Leads_ConvertService::getConversionStatus($leadId);
+
+		$lastTouchCalls = array('calls' => array(), 'count' => 0, 'can_add' => true, 'hint' => '');
+		try {
+			require_once 'modules/Leads/models/LastTouchCallService.php';
+			$lastTouchCalls = Leads_LastTouchCallService::getSummary($leadId);
+		} catch (Exception $e) {
+			// ignore
+		}
 
 		return array(
 			'id' => $id,
@@ -647,6 +727,8 @@ class Leads_ModernService {
 			'owner_username' => self::getUsername((int)$row['smownerid']),
 			'value' => (float)$row['lead_value'],
 			'last_touch' => $lastTouch,
+			'lastTouchCalls' => $lastTouchCalls,
+			'createdtime' => $createdTime,
 			'next_action' => $nextAction,
 			'segment' => self::decodeText(isset($row['segment']) ? $row['segment'] : ''),
 			'district' => self::decodeText(isset($row['district']) ? $row['district'] : ''),

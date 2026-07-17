@@ -59,6 +59,15 @@ class Potentials_List_View extends Vtiger_List_View {
         $viewer->assign('MENU_SELECTED_MODULENAME', 'Potentials');
         $viewer->assign('CURRENT_USER_MODEL', Users_Record_Model::getCurrentUserModel());
         $viewer->assign('MK_OPPS_ASSIGNABLE_USERS', Potentials_ModernService::listAssignableUsers());
+        try {
+            require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+            $viewer->assign('MK_OPP_TAG_LABELS_JSON', json_encode(
+                HelpDesk_TagRuleEngineService::getInstance()->getScopeTagLabels('opp'),
+                JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+            ));
+        } catch (Exception $e) {
+            $viewer->assign('MK_OPP_TAG_LABELS_JSON', '{}');
+        }
     }
 
     /**

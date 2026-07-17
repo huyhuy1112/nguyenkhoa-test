@@ -1083,12 +1083,20 @@
 		if (!$tabs.length || !$addBtn.length) {
 			return;
 		}
-		if ($tabs.find('.mk-qt-line-actions').length) {
-			return;
+		var $actions = $tabs.find('.mk-inv-line-header-actions, .mk-qt-line-actions').first();
+		if (!$actions.length) {
+			$actions = $('<div class="mk-inv-line-header-actions mk-qt-line-actions" aria-label="Thao tác dòng sản phẩm"></div>');
+			$tabs.append($actions);
+		} else {
+			$actions.addClass('mk-inv-line-header-actions mk-qt-line-actions');
 		}
-		var $actions = $('<div class="mk-qt-line-actions" aria-label="Thao tác dòng sản phẩm"></div>');
-		$actions.append($addBtn.detach());
-		$tabs.append($actions);
+		if (!$addBtn.closest('.mk-inv-line-header-actions, .mk-qt-line-actions').length) {
+			$actions.append($addBtn.detach());
+		}
+		$addBtn.addClass('mk-inv-add-line-btn--hidden').attr('aria-hidden', 'true');
+		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.initQuickProductSearch === 'function') {
+			window.MkInventoryOdooEdit.initQuickProductSearch($editForm);
+		}
 	}
 
 	function runEnhancements() {

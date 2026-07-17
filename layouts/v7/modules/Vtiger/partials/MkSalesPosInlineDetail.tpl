@@ -1,6 +1,6 @@
 {* Lightweight POS inline detail dropdown (Accounts / Leads / Opp / Contacts) *}
 {strip}
-<div class="mk-so-inline-detail" data-record-id="{$RECORD->getId()}" data-module="{$MODULE|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-edit-url="{$INLINE_EDIT_URL|escape}">
+<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="{$MODULE|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-edit-url="{$INLINE_EDIT_URL|escape}">
 	<div class="mk-so-inline-detail__tabs" role="tablist">
 		<button type="button" class="mk-so-inline-detail__tab is-active" role="tab" aria-selected="true">Thông tin</button>
 	</div>
@@ -9,9 +9,6 @@
 		<div class="mk-so-inline-detail__hero-main">
 			<div class="mk-so-inline-detail__customer">
 				<span class="mk-so-inline-detail__customer-name">{$INLINE_TITLE|escape}</span>
-				<button type="button" class="mk-so-inline-detail__edit-toggle" title="Chỉnh sửa" aria-label="Chỉnh sửa" aria-pressed="false">
-					<i class="fa fa-pencil" aria-hidden="true"></i>
-				</button>
 			</div>
 			{if $INLINE_SUBTITLE neq ''}
 				<div class="mk-so-inline-detail__order-no">{$INLINE_SUBTITLE|escape}</div>
@@ -64,16 +61,43 @@
 		</div>
 	</div>
 
-	<div class="mk-so-inline-detail__bottom{if !empty($INLINE_SHOW_NEXT_ACTION)} mk-so-inline-detail__bottom--split{/if}">
-		{if !empty($INLINE_SHOW_NEXT_ACTION)}
+	<div class="mk-so-inline-detail__bottom{if !empty($INLINE_SHOW_NEXT_ACTION) || !empty($INLINE_SHOW_CLASS_REG)} mk-so-inline-detail__bottom--split{/if}">
+		{if !empty($INLINE_SHOW_CLASS_REG)}
+			{assign var=CLASS_REG value=$INLINE_CLASS_REG|default:[]}
+			<div class="mk-so-inline-detail__notes mk-so-inline-detail__class-reg" data-class-reg="1">
+				<label class="mk-so-inline-detail__notes-label">Log đăng ký học</label>
+				<p class="mk-so-inline-detail__class-reg-hint">{if isset($CLASS_REG.hint)}{$CLASS_REG.hint|escape}{/if}</p>
+				<ul class="mk-so-inline-detail__class-reg-list">
+					{if isset($CLASS_REG.logs) && $CLASS_REG.logs|@count gt 0}
+						{foreach from=$CLASS_REG.logs item=REG_LOG}
+							<li class="mk-so-inline-detail__class-reg-item{if !empty($REG_LOG.is_retake)} is-retake{/if}" data-id="{$REG_LOG.id|escape}">
+								<span class="mk-so-inline-detail__class-reg-n{if !empty($REG_LOG.is_retake)} is-retake{/if}">{if !empty($REG_LOG.badge)}{$REG_LOG.badge|escape}{else}Lần {$REG_LOG.n|escape}{/if}</span>
+								<span class="mk-so-inline-detail__class-reg-text">{$REG_LOG.label|escape}</span>
+							</li>
+						{/foreach}
+					{else}
+						<li class="mk-so-inline-detail__class-reg-empty">Chưa có lần đăng ký nào</li>
+					{/if}
+				</ul>
+				{if !isset($CLASS_REG.can_add) || !empty($CLASS_REG.can_add)}
+					<div class="mk-so-inline-detail__class-reg-add">
+						<input type="text" class="mk-so-inline-detail__input mk-so-inline-detail__class-reg-date inputElement" placeholder="dd/mm/yyyy" maxlength="10" />
+						<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__class-reg-add-btn">
+							<i class="fa fa-plus" aria-hidden="true"></i>
+							<span>Thêm đăng ký</span>
+						</button>
+					</div>
+				{/if}
+			</div>
+		{elseif !empty($INLINE_SHOW_NEXT_ACTION)}
 			<div class="mk-so-inline-detail__notes mk-so-inline-detail__next-action">
 				<label class="mk-so-inline-detail__notes-label" for="mk-crm-inline-next-{$RECORD->getId()}">Hành động tiếp theo</label>
-				<textarea id="mk-crm-inline-next-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input mk-so-inline-detail__next-action-input inputElement" name="next_action" rows="3" readonly>{$INLINE_NEXT_ACTION|escape}</textarea>
+				<textarea id="mk-crm-inline-next-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input mk-so-inline-detail__next-action-input inputElement" name="next_action" rows="3">{$INLINE_NEXT_ACTION|escape}</textarea>
 			</div>
 		{/if}
-		<div class="mk-so-inline-detail__notes"{if empty($INLINE_SHOW_NEXT_ACTION)} style="grid-column: 1 / -1; width: 100%;"{/if}>
+		<div class="mk-so-inline-detail__notes"{if empty($INLINE_SHOW_NEXT_ACTION) && empty($INLINE_SHOW_CLASS_REG)} style="grid-column: 1 / -1; width: 100%;"{/if}>
 			<label class="mk-so-inline-detail__notes-label" for="mk-crm-inline-note-{$RECORD->getId()}">Ghi chú</label>
-			<textarea id="mk-crm-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="description" rows="3" readonly>{$INLINE_NOTES|escape}</textarea>
+			<textarea id="mk-crm-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="description" rows="3">{$INLINE_NOTES|escape}</textarea>
 		</div>
 	</div>
 

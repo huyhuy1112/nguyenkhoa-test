@@ -174,7 +174,68 @@
 				</div>
 			</section>
 
-			<div class="mk-td-create__row-2">
+			<div class="mk-td-create__row-2" id="mk-td-create-tag-groups">
+				{if !empty($MK_LEAD_CREATE_TAG_GROUPS)}
+					{assign var=MK_CREATE_NUM value=3}
+					{foreach from=$MK_LEAD_CREATE_TAG_GROUPS item=MK_GROUP}
+						{assign var=MK_GID value=$MK_GROUP.id}
+						{assign var=MK_SEL_ID value='mk-td-g-'|cat:$MK_GID}
+						{assign var=MK_FOOT_ID value='mk-td-g-'|cat:$MK_GID|cat:'-tag-foot'}
+						{assign var=MK_SECTION value='group-'|cat:$MK_GID}
+						{assign var=MK_TAG_GROUP value=$MK_GID}
+						{assign var=MK_CARD_NUM value=$MK_CREATE_NUM|string_format:"%02d"}
+						{if $MK_GID eq 'nguyen_lieu'}
+							{assign var=MK_SEL_ID value='mk-td-intent'}
+							{assign var=MK_FOOT_ID value='mk-td-intent-tag-foot'}
+							{assign var=MK_SECTION value='customer-intent'}
+							{assign var=MK_TAG_GROUP value='intent'}
+							{assign var=MK_CARD_NUM value='03'}
+						{elseif $MK_GID eq 'nhuong_quyen_group'}
+							{assign var=MK_SEL_ID value='mk-td-franchise'}
+							{assign var=MK_FOOT_ID value='mk-td-franchise-tag-foot'}
+							{assign var=MK_SECTION value='franchise-tag'}
+							{assign var=MK_TAG_GROUP value='franchise'}
+							{assign var=MK_CARD_NUM value='04B'}
+						{elseif $MK_GID eq 'lop_hoc'}
+							{assign var=MK_SEL_ID value='mk-td-entry'}
+							{assign var=MK_FOOT_ID value='mk-td-entry-tag-foot'}
+							{assign var=MK_SECTION value='entry-program'}
+							{assign var=MK_TAG_GROUP value='entry'}
+							{assign var=MK_CARD_NUM value='04'}
+						{/if}
+						<section class="mk-td-card" data-section="{$MK_SECTION|escape:'html'}" data-group-id="{$MK_GID|escape:'html'}">
+							<header class="mk-td-card__head">
+								<span class="mk-td-card__num">{$MK_CARD_NUM|escape:'html'}</span>
+								<div>
+									<h2 class="mk-td-card__title">{$MK_GROUP.name|escape:'html'}</h2>
+								</div>
+							</header>
+							<div class="mk-td-card__body">
+								<label class="mk-td-label" for="{$MK_SEL_ID|escape:'html'}">Chọn {$MK_GROUP.name|escape:'html'|lower}</label>
+								<select id="{$MK_SEL_ID|escape:'html'}" class="mk-td-select js-mk-create-group-select" data-tag-group="{$MK_TAG_GROUP|escape:'html'}" data-group-id="{$MK_GID|escape:'html'}">
+									<option value="">Chọn tag</option>
+									{foreach from=$MK_GROUP.children item=MK_CHILD}
+										<option value="{$MK_CHILD.id|escape:'html'}" data-tag="{$MK_CHILD.id|escape:'html'}">{$MK_CHILD.name|escape:'html'}</option>
+									{/foreach}
+								</select>
+								{if $MK_GID eq 'lop_hoc'}
+									<div id="mk-td-entry-pcth-wrap" class="mk-td-nested-box" hidden>
+										<label class="mk-td-label mk-td-label--nested" for="mk-td-entry-branch">Nhánh lớp PCTH</label>
+										<select id="mk-td-entry-branch" class="mk-td-select" data-tag-group="entry-branch">
+											<option value="">Chọn nhánh lớp</option>
+											<option value="van_hanh" data-tag="van_hanh">Vận hành</option>
+											<option value="mkt" data-tag="mkt">Marketing</option>
+											<option value="lop_khac" data-tag="lop_khac">Lớp học khác</option>
+											<option value="nhuong_quyen" data-tag="nhuong_quyen">Nhượng quyền</option>
+										</select>
+									</div>
+								{/if}
+								<div id="{$MK_FOOT_ID|escape:'html'}" class="mk-td-entry-tags" hidden></div>
+							</div>
+						</section>
+						{assign var=MK_CREATE_NUM value=$MK_CREATE_NUM+1}
+					{/foreach}
+				{else}
 				<section class="mk-td-card" data-section="customer-intent">
 					<header class="mk-td-card__head">
 						<span class="mk-td-card__num">03</span>
@@ -184,7 +245,7 @@
 					</header>
 					<div class="mk-td-card__body">
 						<label class="mk-td-label" for="mk-td-intent">Chọn nguyên liệu</label>
-						<select id="mk-td-intent" class="mk-td-select" data-tag-group="intent">
+						<select id="mk-td-intent" class="mk-td-select" data-tag-group="intent" data-group-id="nguyen_lieu">
 							<option value="">Chọn tag nguyên liệu</option>
 							<option value="dang_tu_van" data-tag="dang_tu_van">Đang tư vấn</option>
 							<option value="dung_cham_soc" data-tag="dung_cham_soc">Dừng chăm sóc</option>
@@ -205,7 +266,7 @@
 					</header>
 					<div class="mk-td-card__body">
 						<label class="mk-td-label" for="mk-td-franchise">Chọn tag nhượng quyền</label>
-						<select id="mk-td-franchise" class="mk-td-select" data-tag-group="franchise">
+						<select id="mk-td-franchise" class="mk-td-select" data-tag-group="franchise" data-group-id="nhuong_quyen_group">
 							<option value="">Chọn tag</option>
 							<option value="dang_tu_van" data-tag="dang_tu_van">Đang tư vấn</option>
 							<option value="khong_nghe_may" data-tag="khong_nghe_may">Không nghe máy</option>
@@ -230,7 +291,7 @@
 					</header>
 					<div class="mk-td-card__body">
 						<label class="mk-td-label" for="mk-td-entry">Chọn lớp học</label>
-						<select id="mk-td-entry" class="mk-td-select" data-tag-group="entry">
+						<select id="mk-td-entry" class="mk-td-select" data-tag-group="entry" data-group-id="lop_hoc">
 							<option value="">Chọn lớp học</option>
 							<option value="thu_3" data-tag="thu_3">THỨ 3</option>
 							<option value="lop_online" data-tag="lop_online">lớp online</option>
@@ -269,7 +330,11 @@
 						<div id="mk-td-entry-tag-foot" class="mk-td-entry-tags" hidden></div>
 					</div>
 				</section>
+				{/if}
 			</div>
+			<script type="text/javascript">
+				window.MK_LEAD_CREATE_TAG_GROUPS = {$MK_LEAD_CREATE_TAG_GROUPS_JSON|default:'[]' nofilter};
+			</script>
 
 			<section class="mk-td-card" data-section="purchase-status">
 				<header class="mk-td-card__head">

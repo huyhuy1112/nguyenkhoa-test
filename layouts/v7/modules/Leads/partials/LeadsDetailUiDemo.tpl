@@ -150,8 +150,42 @@
 									</div>
 								</div>
 							</div>
+							<div class="mk-lead-last-touch" id="mk-ld-ui-last-touch" hidden>
+								<div class="mk-lead-last-touch__head">
+									<strong class="mk-lead-last-touch__title">Last Touch (Call)</strong>
+									<span class="mk-lead-last-touch__badge" id="mk-ld-ui-last-touch-badge"></span>
+								</div>
+								<p class="mk-lead-last-touch__hint" id="mk-ld-ui-last-touch-hint"></p>
+								<ul class="mk-lead-last-touch__list" id="mk-ld-ui-last-touch-list"></ul>
+							</div>
 							<div class="mk-lead-activity-log__list" id="mk-ld-ui-activity-log"></div>
 						</section>
+
+						{* Modal Last Touch Call *}
+						<div class="mk-lead-lt-modal" id="mk-ld-lt-modal" hidden aria-hidden="true">
+							<div class="mk-lead-lt-modal__backdrop" data-mk-lt-close="1"></div>
+							<div class="mk-lead-lt-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mk-ld-lt-title">
+								<div class="mk-lead-lt-modal__head">
+									<h3 id="mk-ld-lt-title">Ghi Last Touch — Call</h3>
+									<button type="button" class="mk-lead-lt-modal__x" data-mk-lt-close="1" aria-label="Đóng">&times;</button>
+								</div>
+								<div class="mk-lead-lt-modal__body">
+									<p class="mk-lead-lt-modal__meta" id="mk-ld-lt-meta"></p>
+									<label class="mk-lead-lt-modal__label" for="mk-ld-lt-result">Kết quả cuộc gọi</label>
+									<select id="mk-ld-lt-result" class="mk-lead-lt-modal__select inputElement">
+										<option value="Không nghe máy">Không nghe máy</option>
+										<option value="Nghe máy">Nghe máy</option>
+									</select>
+									<label class="mk-lead-lt-modal__label" for="mk-ld-lt-note">Ghi chú</label>
+									<textarea id="mk-ld-lt-note" class="mk-lead-lt-modal__note inputElement" rows="3" placeholder="Ví dụ: Khách quan tâm lớp học"></textarea>
+									<p class="mk-lead-lt-modal__tip">Chọn <strong>Nghe máy</strong> sẽ tự chuyển Lead sang Opportunity.</p>
+								</div>
+								<div class="mk-lead-lt-modal__foot">
+									<button type="button" class="btn btn-default" data-mk-lt-close="1">Hủy</button>
+									<button type="button" class="btn btn-success" id="mk-ld-lt-save">Lưu cuộc gọi</button>
+								</div>
+							</div>
+						</div>
 
 						<section class="mk-lead-detail-card mk-lead-detail-card--documents mk-lead-detail-grid__documents" id="mk-ld-ui-section-documents">
 							<div class="summaryWidgetContainer mk-lead-detail-widget-host">

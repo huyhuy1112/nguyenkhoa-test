@@ -50,6 +50,9 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CLASS_TAG', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_MATERIAL_TAG', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_FRANCHISE_TAG', 'Contacts')}</th>
+							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="thoigian_dangky"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_COL_REG_TIME', 'Contacts')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
+							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="thoigian_pcth"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_COL_PCTH_TIME', 'Contacts')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
+							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="thoigian_mqbb"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_COL_MQBB_TIME', 'Contacts')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th" scope="col">{vtranslate('Assigned To', 'Vtiger')}</th>
 						</tr>
 					</thead>

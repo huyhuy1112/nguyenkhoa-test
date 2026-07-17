@@ -124,19 +124,41 @@
   };
 
   var AREA_TAGS = ["kv1", "kv2", "kv3"];
-  var SOURCE_TAGS = ["facebook", "tiktok", "ladipage_fb", "website", "zalo", "hotline", "other", "other_source"];
-  var CUSTOMER_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh", "individual", "company"];
+  var SOURCE_TAGS = [
+    "facebook", "tiktok", "ladipage_fb", "website", "zalo", "hotline",
+    "nguyen_khoa_fnb", "nguyen_lieu_gia_si", "khach_tu_tim_toi", "khach_di_chung",
+    "other", "other_source",
+  ];
+  var CUSTOMER_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh"];
   var CLASS_TAGS = [
     "da_tg_free", "da_tg_fb1", "thu_3", "mien_phi_online", "mien_phi_offline",
     "chua_hoc", "da_hoc", "pcth", "van_hanh", "mkt", "lop_khac", "nguyen_lieu_chuoi",
   ];
   var MATERIAL_TAGS = [
-    "tiem_nang", "mua_lan_dau", "mua_lai", "mua_on_dinh", "dang_cham_soc",
-    "dang_tu_van", "kh_can_nhac", "khong_mua", "ngung_mua",
+    "dang_tu_van", "mua_lan_dau", "dung_cham_soc", "kh_can_nhac",
+    "mua_lai", "mua_it_lai", "ngung_mua", "tiem_nang", "mua_on_dinh",
+    "dang_cham_soc", "khong_mua",
   ];
-  var FRANCHISE_TAGS = ["nhuong_quyen", "da_ky_quy", "dang_tu_van"];
+  var FRANCHISE_TAGS = [
+    "dang_tu_van", "khong_nghe_may", "thue_bao", "tiem_nang", "tham_khao",
+    "dung_cham_soc", "khong_du_tai_chinh", "da_ky_quy", "mien_bac", "nhuong_quyen",
+  ];
   var CONFIRM_TAGS = ["xac_nhan_tham_gia", "khong_xac_nhan_tham_gia"];
   var TIER_TAGS = ["vang", "bac", "dong"];
+  var ALL_KNOWN_TAGS = []
+    .concat(AREA_TAGS, SOURCE_TAGS, CUSTOMER_TAGS, CLASS_TAGS, MATERIAL_TAGS, FRANCHISE_TAGS, CONFIRM_TAGS, TIER_TAGS);
+
+  function catalogLabel(tag) {
+    var labels = root.MK_OPP_TAG_LABELS || {};
+    var key = normalizeTag(tag);
+    if (key && labels[key]) return labels[key];
+    if (tag && labels[tag]) return labels[tag];
+    return null;
+  }
+
+  function isCatalogScopedTag(tag) {
+    return !!catalogLabel(tag);
+  }
 
   function slugify(label) {
     var s = String(label || "").trim().toLowerCase();
@@ -173,6 +195,13 @@
   }
 
   function categorizeTags(tags) {
+    var custom = [];
+    (tags || []).forEach(function (t) {
+      // Tag tự tạo / catalog scope_opp — không thuộc cột BA cố định
+      if (!findTagInPool([t], ALL_KNOWN_TAGS)) {
+        custom.push(t);
+      }
+    });
     return {
       area: findTagInPool(tags, AREA_TAGS),
       source: findTagInPool(tags, SOURCE_TAGS),
@@ -182,11 +211,17 @@
       franchise: findTagInPool(tags, FRANCHISE_TAGS),
       confirm: findTagInPool(tags, CONFIRM_TAGS),
       tier: findTagInPool(tags, TIER_TAGS),
+      custom: custom,
+      customTag: custom.length ? custom[0] : null,
     };
   }
 
   function tagMeta(tag) {
     var key = normalizeTag(tag);
+    var catalogName = catalogLabel(tag);
+    if (catalogName) {
+      return { label: catalogName, cat: "custom", cls: "mk-tag--custom" };
+    }
     var raw = TAG_META_RAW[key];
     if (!raw) {
       return { label: String(tag || ""), cat: "other", cls: "mk-tag--other" };
@@ -208,6 +243,9 @@
     FRANCHISE_TAGS: FRANCHISE_TAGS,
     CONFIRM_TAGS: CONFIRM_TAGS,
     TIER_TAGS: TIER_TAGS,
+    ALL_KNOWN_TAGS: ALL_KNOWN_TAGS,
+    catalogLabel: catalogLabel,
+    isCatalogScopedTag: isCatalogScopedTag,
     isVi: isVi,
     pickLabel: pickLabel,
     normalizeTag: normalizeTag,

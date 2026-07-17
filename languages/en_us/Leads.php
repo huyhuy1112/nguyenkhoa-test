@@ -35,6 +35,7 @@ $languageStrings = array(
 	'LBL_MK_LEADS_SEARCH_PLACEHOLDER' => 'Search by name, phone, email, or company…',
 	'LBL_MK_LEADS_TABLE' => 'Leads table',
 	'LBL_MK_COL_LEAD' => 'Lead',
+	'LBL_MK_COL_CREATED' => 'Created',
 	'LBL_MK_COL_PHONE' => 'Phone',
 	'LBL_MK_COL_AREA' => 'Area',
 	'LBL_MK_COL_SOURCE' => 'Source',

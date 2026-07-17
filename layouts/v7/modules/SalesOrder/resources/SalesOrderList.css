@@ -2691,9 +2691,9 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__logo img {
 	display: block;
-	width: 72px;
+	width: 180px;
 	height: auto;
-	max-height: 72px;
+	max-height: 180px;
 	object-fit: contain;
 }
 
@@ -2768,19 +2768,26 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table tbody td {
 	padding: 8px 6px;
 	border: 0;
-	vertical-align: middle;
+	border-bottom: 1.5px dashed #555;
+	vertical-align: bottom;
 	font-size: 13px;
+	font-weight: 400;
 	color: #111;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table tbody tr:last-child td {
+	border-bottom: 0;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table .is-item-name {
 	padding-top: 8px;
 	font-weight: 400;
 	text-align: left;
+	vertical-align: top;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__item-title {
-	font-weight: 400;
+	font-weight: 400 !important;
 	line-height: 1.35;
 	color: #111;
 }
@@ -2810,7 +2817,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__divider {
 	border: 0;
-	border-top: 1px dotted #666;
+	border-top: 1.5px dashed #555;
 	margin: 8px 0 12px;
 }
 

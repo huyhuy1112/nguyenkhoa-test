@@ -265,17 +265,17 @@ class Quotes_QuoteExcelExport_Helper {
 		$range = self::colRange($row);
 		$sheet->getStyle($range)->applyFromArray(array(
 			'fill' => array(
-				'type' => PHPExcel_Style_Fill::FILL_SOLID,
-				'color' => array('rgb' => 'D9D9D9'),
+				'type' => PHPExcel_Style_Fill::FILL_NONE,
 			),
-			'font' => array('bold' => true, 'name' => self::FONT, 'size' => 10),
+			'font' => array('bold' => true, 'name' => self::FONT, 'size' => 10, 'color' => array('rgb' => '111111')),
 			'alignment' => array(
 				'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
 				'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
 				'wrap' => true,
 			),
 			'borders' => array(
-				'allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN),
+				'top' => array('style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('rgb' => '111111')),
+				'bottom' => array('style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('rgb' => '111111')),
 			),
 		));
 	}
@@ -535,16 +535,16 @@ class Quotes_QuoteExcelExport_Helper {
 				$drawing->setName('NK Logo');
 				$drawing->setDescription('Nguyên Khoa');
 				$drawing->setPath($logoPath);
-				$drawing->setHeight(72);
+				$drawing->setHeight(150);
 				// Center logo across the sheet (B..H).
 				$drawing->setCoordinates('D1');
-				$drawing->setOffsetX(20);
-				$drawing->setOffsetY(4);
+				$drawing->setOffsetX(0);
+				$drawing->setOffsetY(2);
 				$drawing->setWorksheet($sheet);
 			}
 		} catch (Exception $e) { /* ignore */ }
 
-		$sheet->getRowDimension(1)->setRowHeight(78);
+		$sheet->getRowDimension(1)->setRowHeight(128);
 		$sheet->getRowDimension(2)->setRowHeight(6);
 
 		$sheet->mergeCells('B3:H3');
@@ -553,11 +553,11 @@ class Quotes_QuoteExcelExport_Helper {
 		$sheet->getStyle('B3')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 		$sheet->mergeCells('B4:H4');
-		$sheet->setCellValue('B4', (string) ($company['address'] ?? self::NK_ADDRESS));
+		$sheet->setCellValue('B4', 'Địa chỉ: ' . (string) ($company['address'] ?? self::NK_ADDRESS));
 		$sheet->getStyle('B4')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 		$sheet->mergeCells('B5:H5');
-		self::setTextCell($sheet, 'B5', (string) ($company['phone'] ?? self::NK_PHONE));
+		self::setTextCell($sheet, 'B5', 'Điện thoại: ' . (string) ($company['phone'] ?? self::NK_PHONE));
 		$sheet->getStyle('B5')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 		$sheet->mergeCells('B7:H7');
@@ -674,10 +674,17 @@ class Quotes_QuoteExcelExport_Helper {
 			$sheet->setCellValue('B' . $row, $cellText);
 			$sheet->setCellValue('G' . $row, $quantity);
 			$sheet->setCellValue('H' . $row, $total);
+			// Name on top; SL + T.Tiền sit on the price line (bottom of wrapped cell)
+			$sheet->getStyle('B' . $row)->getFont()->setBold(false);
 			$sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP)->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
-			$sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
-			$sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
+			$sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_BOTTOM);
+			$sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT)->setVertical(PHPExcel_Style_Alignment::VERTICAL_BOTTOM);
 			$sheet->getStyle('H' . $row)->getNumberFormat()->setFormatCode('#,##0');
+			$sheet->getStyle('B' . $row . ':H' . $row)->applyFromArray(array(
+				'borders' => array(
+					'bottom' => array('style' => PHPExcel_Style_Border::BORDER_DASHED, 'color' => array('rgb' => 'B0B0B0')),
+				),
+			));
 			$sheet->getRowDimension($row)->setRowHeight(32);
 			$row++;
 		}

@@ -173,10 +173,6 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 	display: none !important;
 }
 
-body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__cancel-edit {
-	display: inline-flex !important;
-}
-
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__action[disabled] {
 	opacity: 0.6;
 	cursor: not-allowed;
@@ -247,6 +243,83 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__bottom--split {
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-hint {
+	margin: 0 0 8px;
+	font-size: 12px;
+	line-height: 1.4;
+	color: #64748b;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-list {
+	list-style: none;
+	margin: 0 0 10px;
+	padding: 0;
+	max-height: 140px;
+	overflow-y: auto;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #f8fafc;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	padding: 8px 10px;
+	border-bottom: 1px solid #eef2f7;
+	font-size: 13px;
+	color: #1e293b;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-item:last-child {
+	border-bottom: 0;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-n {
+	flex: 0 0 auto;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: #ecfdf5;
+	border: 1px solid #a7f3d0;
+	color: #047857;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-n.is-retake {
+	background: #eff6ff;
+	border-color: #bfdbfe;
+	color: #1d4ed8;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-text {
+	flex: 1 1 auto;
+	line-height: 1.4;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-empty {
+	padding: 14px 10px;
+	text-align: center;
+	color: #94a3b8;
+	font-size: 13px;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-add {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-date {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-add-btn {
+	flex: 0 0 auto;
+	height: 38px;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__notes-label {
@@ -607,6 +680,23 @@ body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-so-inline-detail-
 
 body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-leads-row {
 	cursor: pointer;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__save-btn {
+	display: inline-flex !important;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__field[data-editable="1"] .mk-so-inline-detail__field-view {
+	display: none;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__field[data-editable="1"] .mk-so-inline-detail__field-edit {
+	display: block;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__notes-input {
+	background: #fff;
+	border-color: #cbd5e1;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__save-btn {

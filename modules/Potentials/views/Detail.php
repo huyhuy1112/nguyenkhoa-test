@@ -152,6 +152,15 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 			Leads_ConvertService::ensurePotentialTagsFromLead($recordId);
 			$this->assignLinkedLeadAddress($request, $recordId);
 		}
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			$this->getViewer($request)->assign('MK_OPP_TAG_LABELS_JSON', json_encode(
+				HelpDesk_TagRuleEngineService::getInstance()->getScopeTagLabels('opp'),
+				JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+			));
+		} catch (Exception $e) {
+			$this->getViewer($request)->assign('MK_OPP_TAG_LABELS_JSON', '{}');
+		}
 		parent::preProcess($request, false);
 		$this->assignSalesApp($request);
 		if ($display) {

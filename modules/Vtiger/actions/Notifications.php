@@ -22,6 +22,14 @@ class Vtiger_Notifications_Action extends Vtiger_Action_Controller {
 		global $adb, $current_user;
 
 		try {
+			// Đẩy lịch thông báo đã đến hạn vào chuông chính (vd. nhắc Last Touch sau 5 giờ).
+			try {
+				require_once 'modules/Vtiger/models/NotificationSchedule.php';
+				Vtiger_NotificationSchedule::flushDue(50);
+			} catch (Exception $flushEx) {
+				// ignore — không chặn đọc thông báo
+			}
+
 			$userid = $current_user->id;
 			$type = $request->get('type');
 			if (empty($type)) {

@@ -7,11 +7,13 @@
 
 	var state = {
 		tags: [],
+		groups: [],
 		rules: [],
 		scenarios: [],
 		alerts: [],
 		channel_options: [],
 		assignee_options: [],
+		create_tag_groups: [],
 	};
 	var ready = false;
 	var listeners = [];
@@ -23,11 +25,13 @@
 	function applyState(next) {
 		if (!next || typeof next !== 'object') return;
 		if (Array.isArray(next.tags)) state.tags = next.tags;
+		if (Array.isArray(next.groups)) state.groups = next.groups;
 		if (Array.isArray(next.rules)) state.rules = next.rules;
 		if (Array.isArray(next.scenarios)) state.scenarios = next.scenarios;
 		if (Array.isArray(next.alerts)) state.alerts = next.alerts;
 		if (Array.isArray(next.channel_options)) state.channel_options = next.channel_options;
 		if (Array.isArray(next.assignee_options)) state.assignee_options = next.assignee_options;
+		if (Array.isArray(next.create_tag_groups)) state.create_tag_groups = next.create_tag_groups;
 		ready = true;
 		listeners.forEach(function (cb) {
 			try { cb(); } catch (e) { /* ignore */ }
@@ -136,6 +140,26 @@
 	function getTags() {
 		ensureBootstrapped();
 		return clone(state.tags || []);
+	}
+
+	function getGroups() {
+		ensureBootstrapped();
+		return clone(state.groups || []).sort(function (a, b) {
+			return (a.sort_order || 0) - (b.sort_order || 0);
+		});
+	}
+
+	function getCreateTagGroups() {
+		ensureBootstrapped();
+		return clone(state.create_tag_groups || []);
+	}
+
+	function getGroupById(id) {
+		var groups = getGroups();
+		for (var i = 0; i < groups.length; i++) {
+			if (groups[i].id === id) return clone(groups[i]);
+		}
+		return null;
 	}
 
 	function getRules() {
@@ -256,6 +280,21 @@
 		apiSync({ mode: 'delete_tag', id: id });
 	}
 
+	function createGroup(payload) {
+		var body = apiSync({ mode: 'save_group', payload: JSON.stringify(payload || {}) });
+		return body && body.group ? clone(body.group) : null;
+	}
+
+	function updateGroup(id, payload) {
+		var data = Object.assign({}, payload || {}, { id: id });
+		var body = apiSync({ mode: 'save_group', payload: JSON.stringify(data) });
+		return body && body.group ? clone(body.group) : null;
+	}
+
+	function deleteGroup(id) {
+		apiSync({ mode: 'delete_group', id: id });
+	}
+
 	function createRule(payload) {
 		var body = apiSync({
 			mode: 'save_rule',
@@ -331,6 +370,9 @@
 		refresh: function () { return apiSync({ mode: 'bootstrap' }); },
 		reset: reset,
 		getTags: getTags,
+		getGroups: getGroups,
+		getCreateTagGroups: getCreateTagGroups,
+		getGroupById: getGroupById,
 		getRules: getRules,
 		getScenarios: getScenarios,
 		getChannelOptions: getChannelOptions,
@@ -346,6 +388,9 @@
 		createTag: createTag,
 		updateTag: updateTag,
 		deleteTag: deleteTag,
+		createGroup: createGroup,
+		updateGroup: updateGroup,
+		deleteGroup: deleteGroup,
 		createRule: createRule,
 		updateRule: updateRule,
 		setRuleActive: setRuleActive,

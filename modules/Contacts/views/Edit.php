@@ -91,6 +91,13 @@ class Contacts_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function process(Vtiger_Request $request) {
+		try {
+			require_once 'modules/Contacts/models/ModernService.php';
+			Contacts_ModernService::ensureEventTimeColumns();
+			Contacts_ModernService::ensureCredentialFields();
+		} catch (Exception $e) {
+			// best-effort schema ensure for Create fields
+		}
 		if ($this->isMkModernContactCreate($request)) {
 			$this->assignModernContext($request);
 		}

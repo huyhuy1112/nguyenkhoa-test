@@ -100,18 +100,18 @@ class SalesOrder_SaleInvoicePdf_Helper {
 		$x = $margins['left'];
 		$y = $pdf->GetY();
 
-		// Logo centered (same as Excel)
+		// Logo centered (same as reference invoice)
 		if ($logoPath !== '' && is_readable($logoPath) && Quotes_QuoteBaService_Helper::isValidQuoteLogoImage($logoPath)) {
-			$logoW = 28;
+			$logoW = 58;
 			$pdf->Image($logoPath, ($pdf->getPageWidth() - $logoW) / 2, $y, $logoW, 0, '', '', '', false, 300);
-			$pdf->SetY($y + 22);
+			$pdf->SetY($y + 42);
 		}
 
 		$pdf->SetFont(self::FONT, 'B', 12);
 		$pdf->Cell($pageW, 6, self::utf($companyName), 0, 1, 'C');
 		$pdf->SetFont(self::FONT, '', 9);
-		$pdf->MultiCell($pageW, 5, self::utf($address), 0, 'C', false, 1);
-		$pdf->Cell($pageW, 5, self::utf($phone), 0, 1, 'C');
+		$pdf->MultiCell($pageW, 5, self::utf('Địa chỉ: ' . $address), 0, 'C', false, 1);
+		$pdf->Cell($pageW, 5, self::utf('Điện thoại: ' . $phone), 0, 1, 'C');
 		$pdf->Ln(4);
 
 		$pdf->SetFont(self::FONT, 'B', 13);
@@ -128,19 +128,18 @@ class SalesOrder_SaleInvoicePdf_Helper {
 		self::writeLabelValue($pdf, $pageW, 'Ghi chú:', $notes !== '' ? $notes : '—');
 		$pdf->Ln(3);
 
-		// Table: Đơn giá | SL | T.Tiền
+		// Table: Đơn giá | SL | T.Tiền — name on line 1; price/qty/total on line 2
 		$colItem = $pageW * 0.62;
 		$colQty = $pageW * 0.14;
 		$colMoney = $pageW * 0.24;
-		$pdf->SetFillColor(self::GREEN[0], self::GREEN[1], self::GREEN[2]);
-		$pdf->SetTextColor(255, 255, 255);
-		$pdf->SetFont(self::FONT, 'B', 10);
-		$pdf->Cell($colItem, 8, self::utf('Đơn giá'), 0, 0, 'L', true);
-		$pdf->Cell($colQty, 8, self::utf('SL'), 0, 0, 'C', true);
-		$pdf->Cell($colMoney, 8, self::utf('T.Tiền'), 0, 1, 'R', true);
 		$pdf->SetTextColor(0, 0, 0);
-		$pdf->SetDrawColor(226, 232, 240);
-		$pdf->Line($x, $pdf->GetY(), $x + $pageW, $pdf->GetY());
+		$pdf->SetFont(self::FONT, 'B', 10);
+		// Header rules: solid (not dashed)
+		self::drawSolidLine($pdf, $x, $pdf->GetY(), $x + $pageW);
+		$pdf->Cell($colItem, 8, self::utf('Đơn giá'), 0, 0, 'L', false);
+		$pdf->Cell($colQty, 8, self::utf('SL'), 0, 0, 'C', false);
+		$pdf->Cell($colMoney, 8, self::utf('T.Tiền'), 0, 1, 'R', false);
+		self::drawSolidLine($pdf, $x, $pdf->GetY(), $x + $pageW);
 
 		$pdf->SetFont(self::FONT, '', 10);
 		if (empty($lines)) {
@@ -163,29 +162,21 @@ class SalesOrder_SaleInvoicePdf_Helper {
 					$startY = $pdf->GetY();
 				}
 
-				$pdf->SetFont(self::FONT, 'B', 10);
-				$pdf->MultiCell($colItem, 5, self::utf($name), 0, 'L', false, 1, $x, $startY, true, 0, false, true, 0, 'T', false);
-				$nameBottom = $pdf->GetY();
+				// Line 1: product name (regular weight, not bold)
 				$pdf->SetFont(self::FONT, '', 10);
-				$pdf->SetXY($x, $nameBottom);
-				$pdf->Cell($colItem, 5, self::utf($priceText), 0, 1, 'L');
-				$rowBottom = $pdf->GetY();
-				$rowH = max(12, $rowBottom - $startY);
-
-				$pdf->SetXY($x + $colItem, $startY);
-				$pdf->MultiCell($colQty, $rowH, self::utf($qtyText), 0, 'C', false, 0, '', '', true, 0, false, true, $rowH, 'T', false);
-				$pdf->SetXY($x + $colItem + $colQty, $startY);
-				$pdf->MultiCell($colMoney, $rowH, self::utf($totalText), 0, 'R', false, 1, '', '', true, 0, false, true, $rowH, 'T', false);
-				$pdf->SetY($startY + $rowH);
-				$pdf->SetDrawColor(241, 245, 249);
-				$pdf->Line($x, $pdf->GetY(), $x + $pageW, $pdf->GetY());
+				$pdf->MultiCell($pageW, 5, self::utf($name), 0, 'L', false, 1, $x, $startY, true, 0, false, true, 0, 'T', false);
+				// Line 2: unit price | qty | line total — same baseline
+				$valuesY = $pdf->GetY();
+				$pdf->SetXY($x, $valuesY);
+				$pdf->Cell($colItem, 5, self::utf($priceText), 0, 0, 'L');
+				$pdf->Cell($colQty, 5, self::utf($qtyText), 0, 0, 'C');
+				$pdf->Cell($colMoney, 5, self::utf($totalText), 0, 1, 'R');
+				// One separator after each item (no extra line before totals)
+				self::drawDashedLine($pdf, $x, $pdf->GetY(), $x + $pageW, array(80, 80, 80));
 			}
 		}
 
 		$pdf->Ln(4);
-		$pdf->SetDrawColor(203, 213, 225);
-		$pdf->Line($x, $pdf->GetY(), $x + $pageW, $pdf->GetY());
-		$pdf->Ln(3);
 
 		$totals = array(
 			array('Tổng tiền hàng', $subTotal, false),
@@ -198,22 +189,13 @@ class SalesOrder_SaleInvoicePdf_Helper {
 		$rightW = $pageW * 0.52;
 		$totalsStartY = $pdf->GetY();
 
-		// Totals on the right (match Excel)
+		// Totals on the right (plain black, no green)
 		$ty = $totalsStartY;
 		foreach ($totals as $item) {
 			$pdf->SetXY($x + $leftW, $ty);
-			if ($item[2]) {
-				$pdf->SetFont(self::FONT, 'B', 11);
-				$pdf->SetTextColor(self::GREEN[0], self::GREEN[1], self::GREEN[2]);
-			} else {
-				$pdf->SetFont(self::FONT, 'B', 10);
-				$pdf->SetTextColor(71, 85, 105);
-			}
+			$pdf->SetFont(self::FONT, 'B', $item[2] ? 11 : 10);
+			$pdf->SetTextColor(0, 0, 0);
 			$pdf->Cell($rightW * 0.55, 6, self::utf($item[0] . ':'), 0, 0, 'L');
-			$pdf->SetTextColor(15, 23, 42);
-			if ($item[2]) {
-				$pdf->SetTextColor(self::GREEN[0], self::GREEN[1], self::GREEN[2]);
-			}
 			$pdf->Cell($rightW * 0.45, 6, self::utf(Quotes_QuoteExcelExport_Helper::formatMoneyVnPublic($item[1])), 0, 1, 'R');
 			$ty += 6;
 		}
@@ -231,6 +213,72 @@ class SalesOrder_SaleInvoicePdf_Helper {
 		$pdf->Cell($pageW, 6, self::utf('Cảm ơn và hẹn gặp lại!'), 0, 1, 'C');
 
 		return $pdf;
+	}
+
+	/**
+	 * Draw a solid horizontal rule (header separators).
+	 *
+	 * @param Vtiger_PDF_TCPDF $pdf
+	 * @param float $x1
+	 * @param float $y
+	 * @param float $x2
+	 * @param int[] $rgb
+	 */
+	protected static function drawSolidLine(Vtiger_PDF_TCPDF $pdf, $x1, $y, $x2, $rgb = array(17, 17, 17)) {
+		$pdf->SetDrawColor((int) $rgb[0], (int) $rgb[1], (int) $rgb[2]);
+		if (method_exists($pdf, 'SetLineStyle')) {
+			$pdf->SetLineStyle(array(
+				'width' => 0.35,
+				'cap' => 'butt',
+				'join' => 'miter',
+				'dash' => 0,
+				'color' => array((int) $rgb[0], (int) $rgb[1], (int) $rgb[2]),
+			));
+		} else {
+			$pdf->SetLineWidth(0.35);
+		}
+		$pdf->Line($x1, $y, $x2, $y);
+	}
+
+	/**
+	 * Draw a dashed horizontal rule (invoice separators).
+	 *
+	 * @param Vtiger_PDF_TCPDF $pdf
+	 * @param float $x1
+	 * @param float $y
+	 * @param float $x2
+	 * @param int[] $rgb
+	 */
+	protected static function drawDashedLine(Vtiger_PDF_TCPDF $pdf, $x1, $y, $x2, $rgb = array(17, 17, 17)) {
+		$pdf->SetDrawColor((int) $rgb[0], (int) $rgb[1], (int) $rgb[2]);
+		if (method_exists($pdf, 'SetLineStyle')) {
+			$pdf->SetLineStyle(array(
+				'width' => 0.55,
+				'cap' => 'butt',
+				'join' => 'miter',
+				'dash' => '1.8,1.1',
+				'color' => array((int) $rgb[0], (int) $rgb[1], (int) $rgb[2]),
+			));
+			$pdf->Line($x1, $y, $x2, $y);
+			$pdf->SetLineStyle(array(
+				'width' => 0.2,
+				'cap' => 'butt',
+				'join' => 'miter',
+				'dash' => 0,
+				'color' => array(0, 0, 0),
+			));
+			return;
+		}
+		$pdf->SetLineWidth(0.55);
+		$dash = 1.8;
+		$gap = 1.1;
+		$x = $x1;
+		while ($x < $x2) {
+			$xEnd = min($x + $dash, $x2);
+			$pdf->Line($x, $y, $xEnd, $y);
+			$x = $xEnd + $gap;
+		}
+		$pdf->SetLineWidth(0.2);
 	}
 
 	protected static function writeLabelValue(Vtiger_PDF_TCPDF $pdf, $pageW, $label, $value) {

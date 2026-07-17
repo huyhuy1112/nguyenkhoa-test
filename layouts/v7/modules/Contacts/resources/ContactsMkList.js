@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 10;
+  var COL_COUNT = 13;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -160,12 +160,46 @@
     return rows.slice().sort(function (a, b) {
       var av = a[key];
       var bv = b[key];
+      if (key === "thoigian_dangky" || key === "thoigian_pcth" || key === "thoigian_mqbb") {
+        av = av ? new Date(av).getTime() : 0;
+        bv = bv ? new Date(bv).getTime() : 0;
+        if (av < bv) return -1 * dir;
+        if (av > bv) return 1 * dir;
+        return 0;
+      }
       av = String(av || "").toLowerCase();
       bv = String(bv || "").toLowerCase();
       if (av < bv) return -1 * dir;
       if (av > bv) return 1 * dir;
       return 0;
     });
+  }
+
+  function formatDateTimeLabel(raw) {
+    if (!raw) return "";
+    var d = new Date(raw);
+    if (isNaN(d.getTime())) return String(raw);
+    var mm = String(d.getMonth() + 1).padStart
+      ? String(d.getMonth() + 1).padStart(2, "0")
+      : ("0" + (d.getMonth() + 1)).slice(-2);
+    var dd = String(d.getDate()).padStart
+      ? String(d.getDate()).padStart(2, "0")
+      : ("0" + d.getDate()).slice(-2);
+    var yyyy = d.getFullYear();
+    var h = d.getHours();
+    var m = d.getMinutes();
+    var ampm = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    var mmins = String(m).padStart ? String(m).padStart(2, "0") : ("0" + m).slice(-2);
+    return mm + "-" + dd + "-" + yyyy + " " + h12 + ":" + mmins + " " + ampm;
+  }
+
+  function dateCell(raw) {
+    var label = formatDateTimeLabel(raw);
+    return label
+      ? '<span class="mk-leads-date">' + esc(label) + "</span>"
+      : '<span class="mk-leads-muted">—</span>';
   }
 
   function computeKpis(rows) {
@@ -361,6 +395,9 @@
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.classTag) + "</td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.material) + "</td>" +
             '<td class="mk-leads-td">' + tagBadgeHtml(cats.franchise) + "</td>" +
+            '<td class="mk-leads-td">' + dateCell(c.thoigian_dangky) + "</td>" +
+            '<td class="mk-leads-td">' + dateCell(c.thoigian_pcth) + "</td>" +
+            '<td class="mk-leads-td">' + dateCell(c.thoigian_mqbb) + "</td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(c.owner) + '">' + esc(ownerInitials(c.owner)) + "</span>" +
             "<span>" + esc(c.owner || "—") + "</span></span></td></tr>"

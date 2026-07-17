@@ -53,17 +53,34 @@
     });
   }
 
+  var CREATE_TAG_GROUPS = Array.isArray(window.MK_LEAD_CREATE_TAG_GROUPS)
+    ? window.MK_LEAD_CREATE_TAG_GROUPS
+    : [];
+
+  function childIdsFromGroup(groupId) {
+    for (var i = 0; i < CREATE_TAG_GROUPS.length; i++) {
+      if (CREATE_TAG_GROUPS[i].id === groupId) {
+        return (CREATE_TAG_GROUPS[i].children || []).map(function (c) {
+          return c.id;
+        });
+      }
+    }
+    return null;
+  }
+
   var TAG_POOLS = {
     customerType: ["individual", "company"],
     leadSource: ["facebook", "tiktok", "website", "zalo", "other_source"],
-    intent: [
+    intent: childIdsFromGroup("nguyen_lieu") || [
       "dang_tu_van",
+      "mua_lan_dau",
       "dung_cham_soc",
       "kh_can_nhac",
+      "mua_lai",
       "mua_it_lai",
-      "nguyen_lieu_chuoi",
+      "ngung_mua",
     ],
-    franchise: [
+    franchise: childIdsFromGroup("nhuong_quyen_group") || [
       "dang_tu_van",
       "khong_nghe_may",
       "thue_bao",
@@ -74,7 +91,7 @@
       "da_ky_quy",
       "mien_bac",
     ],
-    entry: [
+    entry: childIdsFromGroup("lop_hoc") || [
       "thu_3",
       "lop_online",
       "moi_lai",
@@ -105,6 +122,12 @@
     region: ["KV1", "KV2", "KV3"],
   };
 
+  var KNOWN_CREATE_GROUP_IDS = {
+    nguyen_lieu: true,
+    nhuong_quyen_group: true,
+    lop_hoc: true,
+  };
+
   function detailUrl(recordId) {
     return (
       "index.php?module=Leads&view=Detail&record=" +
@@ -125,19 +148,32 @@
     purchaseStatus: null,
     purchaseReason: "",
     tier: null,
+    extraGroupTags: {},
   };
 
   function $(id) {
     return document.getElementById(id);
   }
 
-  var SEARCH_SELECT_IDS = [
-    "mk-td-owner",
-    "mk-td-intent",
-    "mk-td-franchise",
-    "mk-td-entry",
-    "mk-td-entry-branch",
-  ];
+  function getSearchSelectIds() {
+    var ids = ["mk-td-owner", "mk-td-entry-branch"];
+    var seen = { "mk-td-owner": true, "mk-td-entry-branch": true };
+    document.querySelectorAll(".js-mk-create-group-select").forEach(function (el) {
+      if (el.id && !seen[el.id]) {
+        seen[el.id] = true;
+        ids.push(el.id);
+      }
+    });
+    ["mk-td-intent", "mk-td-franchise", "mk-td-entry"].forEach(function (id) {
+      if (!seen[id] && $(id)) {
+        seen[id] = true;
+        ids.push(id);
+      }
+    });
+    return ids;
+  }
+
+  var SEARCH_SELECT_IDS = getSearchSelectIds();
 
   function syncSearchSelectTrigger(selectEl) {
     var wrap = selectEl && selectEl.closest ? selectEl.closest(".mk-td-search-select") : null;
@@ -344,7 +380,47 @@
     pushTag(state.franchise);
     pushTag(state.tier);
     pushTag(state.regionTag);
+    Object.keys(state.extraGroupTags || {}).forEach(function (gid) {
+      pushTag(state.extraGroupTags[gid]);
+    });
     return tags;
+  }
+
+  function renderExtraGroupFoot(groupId, selectEl) {
+    var foot = $("mk-td-g-" + groupId + "-tag-foot");
+    if (!foot) return;
+    var tag = state.extraGroupTags[groupId];
+    if (!tag) {
+      foot.hidden = true;
+      foot.innerHTML = "";
+      return;
+    }
+    var label = tag;
+    if (selectEl && selectEl.selectedIndex >= 0 && selectEl.options[selectEl.selectedIndex]) {
+      label = selectEl.options[selectEl.selectedIndex].text || tag;
+    }
+    foot.hidden = false;
+    foot.innerHTML =
+      '<span class="mk-td-tag-pill" data-tag="' + tag + '">' + label + "</span>";
+  }
+
+  function bindExtraCreateGroupSelects() {
+    document.querySelectorAll(".js-mk-create-group-select").forEach(function (el) {
+      var gid = el.getAttribute("data-group-id") || "";
+      var tagGroup = el.getAttribute("data-tag-group") || "";
+      if (!gid || KNOWN_CREATE_GROUP_IDS[gid]) return;
+      if (tagGroup === "intent" || tagGroup === "franchise" || tagGroup === "entry") return;
+      if (el.getAttribute("data-mk-bound") === "1") return;
+      el.setAttribute("data-mk-bound", "1");
+      el.addEventListener("change", function () {
+        var opt = el.options[el.selectedIndex];
+        var tag = opt && opt.getAttribute("data-tag") ? opt.getAttribute("data-tag") : null;
+        state.extraGroupTags[gid] = tag;
+        el.classList.toggle("mk-td-select--picked", !!el.value);
+        renderExtraGroupFoot(gid, el);
+        renderTags();
+      });
+    });
   }
 
   function renderTags() {
@@ -615,6 +691,19 @@
     if (entryTag === "pcth") {
       setSelectByTag("mk-td-entry-branch", findTag(tags, TAG_POOLS.entryBranch));
     }
+    CREATE_TAG_GROUPS.forEach(function (g) {
+      if (!g || !g.id || KNOWN_CREATE_GROUP_IDS[g.id]) return;
+      var pool = (g.children || []).map(function (c) {
+        return c.id;
+      });
+      var hit = findTag(tags, pool);
+      var selId = "mk-td-g-" + g.id;
+      if (hit) {
+        setSelectByTag(selId, hit);
+        state.extraGroupTags[g.id] = hit;
+        renderExtraGroupFoot(g.id, $(selId));
+      }
+    });
     renderTags();
   }
 
@@ -892,6 +981,7 @@
     if (!root) return;
     var store = window.LeadsLocalStore;
 
+    SEARCH_SELECT_IDS = getSearchSelectIds();
     initSearchableSelects();
     bindPhoneInput();
 
@@ -909,6 +999,7 @@
     });
     bindSelect("mk-td-district", "regionTag");
     bindEntryProgram();
+    bindExtraCreateGroupSelects();
 
     var reasonTa = $("mk-td-purchase-reason-text");
     if (reasonTa) {

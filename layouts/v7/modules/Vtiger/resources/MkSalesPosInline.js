@@ -78,7 +78,14 @@
 		loading = false;
 	}
 
+	function isAlwaysEdit($panel) {
+		return String($panel.attr('data-always-edit') || '') === '1';
+	}
+
 	function setEditMode($panel, enable) {
+		if (isAlwaysEdit($panel)) {
+			enable = true;
+		}
 		var isEdit = !!enable;
 		$panel.toggleClass('is-edit-mode', isEdit);
 		$panel.find('.mk-so-inline-detail__edit-toggle').attr('aria-pressed', isEdit ? 'true' : 'false');
@@ -135,6 +142,7 @@
 		var recordId = String($panel.data('record-id') || '');
 		var mod = String($panel.data('module') || moduleName());
 		var snapshot = captureSnapshot($panel);
+		setEditMode($panel, true);
 
 		$panel.on('click', '.mk-so-inline-detail__view-full-btn', function (e) {
 			e.preventDefault();
@@ -160,8 +168,156 @@
 			e.preventDefault();
 			e.stopPropagation();
 			restoreSnapshot($panel, snapshot);
-			setEditMode($panel, false);
+			setEditMode($panel, true);
 		});
+
+		function renderClassReg($wrap, summary) {
+			if (!$wrap.length || !summary) return;
+			$wrap.find('.mk-so-inline-detail__class-reg-hint').text(summary.hint || '');
+			var $list = $wrap.find('.mk-so-inline-detail__class-reg-list');
+			var logs = summary.logs || [];
+			if (!logs.length) {
+				$list.html('<li class="mk-so-inline-detail__class-reg-empty">Chưa có lần đăng ký nào</li>');
+			} else {
+				$list.html(logs.map(function (log) {
+					var badge = log.badge || ('Lần ' + (log.n || ''));
+					var retakeClass = log.is_retake ? ' is-retake' : '';
+					var btn = log.show_retake_btn
+						? '<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__class-reg-retake-btn" title="Học lại">' +
+							'<i class="fa fa-refresh" aria-hidden="true"></i><span>Học lại</span></button>'
+						: '';
+					return '<li class="mk-so-inline-detail__class-reg-item' + retakeClass + '" data-id="' + (log.id || '') + '">' +
+						'<span class="mk-so-inline-detail__class-reg-n' + retakeClass + '">' + $('<div/>').text(badge).html() + '</span>' +
+						'<span class="mk-so-inline-detail__class-reg-text">' + $('<div/>').text(log.label || '').html() + '</span>' +
+						btn +
+						'</li>';
+				}).join(''));
+			}
+			var $add = $wrap.find('.mk-so-inline-detail__class-reg-add');
+			if (summary.can_add === false) {
+				$add.hide();
+			} else {
+				$add.show();
+			}
+			$wrap.data('mkClassRegSummary', summary);
+			// Sync Thời gian Đăng Ký field (lần 1)
+			if (summary.first_on_label) {
+				var $dk = $panel.find('.mk-so-inline-detail__field[data-field-name="thoigian_dangky"]');
+				$dk.find('.mk-so-inline-detail__field-view').text(summary.first_on_label);
+				$dk.find('.mk-so-inline-detail__field-edit :input').val(summary.first_on_label);
+			}
+		}
+
+		$panel.on('click', '.mk-so-inline-detail__class-reg-add-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!recordId || mod !== 'Contacts') return;
+			var $wrap = $panel.find('.mk-so-inline-detail__class-reg');
+			var $input = $wrap.find('.mk-so-inline-detail__class-reg-date');
+			var dateVal = String($input.val() || '').trim();
+			if (!dateVal) {
+				window.alert('Vui lòng nhập ngày đăng ký (dd/mm/yyyy).');
+				$input.focus();
+				return;
+			}
+			var $btn = $(this);
+			$btn.prop('disabled', true);
+			var postData = {
+				module: 'Contacts',
+				action: 'ModernApi',
+				mode: 'class_reg_add',
+				record: recordId,
+				registered_on: dateVal,
+				entry_kind: 'register'
+			};
+			function done(err, res) {
+				$btn.prop('disabled', false);
+				if (err || !res || res.success === false) {
+					var msg = (err && err.message) || (res && res.error) || 'Không thêm được đăng ký.';
+					if (typeof msg === 'object' && msg.message) msg = msg.message;
+					if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({ message: String(msg) });
+					} else {
+						window.alert(String(msg));
+					}
+					return;
+				}
+				var summary = res.class_reg || (res.result && res.result.class_reg) || null;
+				if (summary) renderClassReg($wrap, summary);
+				$input.val('');
+				if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({ message: 'Đã ghi nhận đăng ký học.' });
+				}
+			}
+			if (typeof app !== 'undefined' && app.request && app.request.post) {
+				app.request.post({ data: postData }).then(function (err, res) {
+					done(err, res);
+				});
+			} else {
+				$.ajax({ url: 'index.php', type: 'POST', dataType: 'json', data: postData })
+					.done(function (r) { done(null, r && r.result ? r.result : r); })
+					.fail(function () { done({ message: 'Không kết nối được máy chủ.' }, null); });
+			}
+		});
+
+		$panel.on('click', '.mk-so-inline-detail__class-reg-retake-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!recordId || mod !== 'Contacts') return;
+			var $wrap = $panel.find('.mk-so-inline-detail__class-reg');
+			var summary = $wrap.data('mkClassRegSummary') || {};
+			var min = summary.retake_date_min || '';
+			var max = summary.retake_date_max || '';
+			var hint = 'Nhập ngày Học lại (dd/mm/yyyy)';
+			if (min || max) {
+				hint += ' — sau ' + (min || '...') + (max ? ', đến ' + max : '');
+			}
+			var dateVal = window.prompt(hint, '');
+			if (dateVal == null) return;
+			dateVal = String(dateVal || '').trim();
+			if (!dateVal) {
+				window.alert('Vui lòng nhập ngày học lại.');
+				return;
+			}
+			var $btn = $(this);
+			$btn.prop('disabled', true);
+			var postData = {
+				module: 'Contacts',
+				action: 'ModernApi',
+				mode: 'class_reg_add',
+				record: recordId,
+				registered_on: dateVal,
+				entry_kind: 'retake'
+			};
+			function doneRetake(err, res) {
+				$btn.prop('disabled', false);
+				if (err || !res || res.success === false) {
+					var msg = (err && err.message) || (res && res.error) || 'Không ghi được học lại.';
+					if (typeof msg === 'object' && msg.message) msg = msg.message;
+					if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({ message: String(msg) });
+					} else {
+						window.alert(String(msg));
+					}
+					return;
+				}
+				var summary2 = res.class_reg || (res.result && res.result.class_reg) || null;
+				if (summary2) renderClassReg($wrap, summary2);
+				if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({ message: 'Đã ghi nhận Học lại lần 1.' });
+				}
+			}
+			if (typeof app !== 'undefined' && app.request && app.request.post) {
+				app.request.post({ data: postData }).then(function (err, res) {
+					doneRetake(err, res);
+				});
+			} else {
+				$.ajax({ url: 'index.php', type: 'POST', dataType: 'json', data: postData })
+					.done(function (r) { doneRetake(null, r && r.result ? r.result : r); })
+					.fail(function () { doneRetake({ message: 'Không kết nối được máy chủ.' }, null); });
+			}
+		});
+
 		$panel.on('click', '.mk-so-inline-detail__save-btn', function (e) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -304,7 +460,7 @@
 				}
 				updateViewValues($panel);
 				snapshot = captureSnapshot($panel);
-				setEditMode($panel, false);
+				setEditMode($panel, true);
 				if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
 					app.helper.showSuccessNotification({
 						message: app.vtranslate ? app.vtranslate('JS_RECORD_UPDATED') : 'Đã lưu thay đổi.'
@@ -337,15 +493,12 @@
 					return '<span class="mk-tag" data-tag="' + $('<div/>').text(key).html() + '">' +
 						$('<div/>').text(label).html() + '</span>';
 				}
-				// 0 check, 1 lead, 2 phone, 3 area, 4 source, 5 customer, 6 stage, 7 tier
-				if (Object.prototype.hasOwnProperty.call(cats, 'source') && $tds.length > 4) {
-					$tds.eq(4).html(cellHtml(cats.source || ''));
+				// 0 check, 1 created, 2 lead, 3 phone, 4 area, 5 source, 6 customer, 7 tier
+				if (Object.prototype.hasOwnProperty.call(cats, 'source') && $tds.length > 5) {
+					$tds.eq(5).html(cellHtml(cats.source || ''));
 				}
-				if (Object.prototype.hasOwnProperty.call(cats, 'customer') && $tds.length > 5) {
-					$tds.eq(5).html(cellHtml(cats.customer || ''));
-				}
-				if (Object.prototype.hasOwnProperty.call(cats, 'purchase') && $tds.length > 6) {
-					$tds.eq(6).html(cellHtml(cats.purchase || ''));
+				if (Object.prototype.hasOwnProperty.call(cats, 'customer') && $tds.length > 6) {
+					$tds.eq(6).html(cellHtml(cats.customer || ''));
 				}
 				if (Object.prototype.hasOwnProperty.call(cats, 'tier') && $tds.length > 7) {
 					$tds.eq(7).html(cellHtml(cats.tier || ''));

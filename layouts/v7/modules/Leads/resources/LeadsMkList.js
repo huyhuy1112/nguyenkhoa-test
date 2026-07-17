@@ -412,6 +412,9 @@
       } else if (key === "value") {
         av = a.value || 0;
         bv = b.value || 0;
+      } else if (key === "createdtime") {
+        av = a.createdtime ? new Date(a.createdtime).getTime() : 0;
+        bv = b.createdtime ? new Date(b.createdtime).getTime() : 0;
       } else {
         av = new Date(a.last_touch).getTime();
         bv = new Date(b.last_touch).getTime();
@@ -420,6 +423,26 @@
       if (av > bv) return 1 * dir;
       return 0;
     });
+  }
+
+  function formatCreatedLabel(raw) {
+    if (!raw) return "";
+    var d = new Date(raw);
+    if (isNaN(d.getTime())) return String(raw);
+    var mm = String(d.getMonth() + 1).padStart
+      ? String(d.getMonth() + 1).padStart(2, "0")
+      : ("0" + (d.getMonth() + 1)).slice(-2);
+    var dd = String(d.getDate()).padStart
+      ? String(d.getDate()).padStart(2, "0")
+      : ("0" + d.getDate()).slice(-2);
+    var yyyy = d.getFullYear();
+    var h = d.getHours();
+    var m = d.getMinutes();
+    var ampm = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    var mmins = String(m).padStart ? String(m).padStart(2, "0") : ("0" + m).slice(-2);
+    return mm + "-" + dd + "-" + yyyy + " " + h12 + ":" + mmins + " " + ampm;
   }
 
   function computeKpis(leads) {
@@ -686,9 +709,6 @@
           var src = (l.tags || []).find(function (tg) {
             return SOURCE_TAGS.indexOf(tg) >= 0;
           });
-          var purchaseTag = (l.tags || []).find(function (tg) {
-            return PURCHASE_TAGS.indexOf(tg) >= 0;
-          });
           var segmentLabels =
             ref && ref.getSegmentLabels
               ? ref.getSegmentLabels()
@@ -711,6 +731,7 @@
           var extra = nonSourceTags.length - tags.length;
           var checked = state.selected[l.id] ? " checked" : "";
           var crmId = leadCrmId(l);
+          var createdLabel = formatCreatedLabel(l.createdtime);
           return (
             '<tr class="mk-leads-row' +
             (d.high ? " mk-leads-row--hot" : "") +
@@ -726,6 +747,11 @@
             '"' +
             checked +
             ' /><span class="mk-leads-check__ui" aria-hidden="true"></span></label></td>' +
+            '<td class="mk-leads-td mk-leads-td--created">' +
+            (createdLabel
+              ? esc(createdLabel)
+              : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
             '<td class="mk-leads-td mk-leads-td--lead">' +
             '<span class="mk-leads-lead-cell">' +
             (d.high ? '<span class="mk-leads-fire" title="High priority">&#9832;</span>' : ic("user")) +
@@ -751,11 +777,6 @@
               : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
             '<td class="mk-leads-td">' +
-            (purchaseTag
-              ? tagBadgeHtml(purchaseTag)
-              : '<span class="mk-leads-muted">—</span>') +
-            "</td>" +
-            '<td class="mk-leads-td">' +
             (d.tierKey
               ? tagBadgeHtml(d.tierKey, d.tier)
               : '<span class="mk-leads-muted">—</span>') +
@@ -771,10 +792,12 @@
             (tags.length ? tags.map(tagBadgeHtml).join("") : '<span class="mk-leads-muted">—</span>') +
             (extra > 0 ? '<span class="mk-leads-tag-more">+' + extra + "</span>" : "") +
             "</div></td>" +
-            '<td class="mk-leads-td' +
+            '<td class="mk-leads-td mk-leads-td--touch' +
             (d.stale ? " mk-leads-td--stale" : "") +
             '">' +
-            logic.touchLabel(d.days) +
+            (logic.lastTouchCallLogHtml
+              ? logic.lastTouchCallLogHtml(l, esc)
+              : logic.touchLabel(d.days)) +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--next">' +
             (function () {

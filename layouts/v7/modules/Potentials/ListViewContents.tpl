@@ -42,7 +42,6 @@
 								</label>
 							</th>
 							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="name"><span class="mk-leads-th__inner">{vtranslate('LBL_ACCOUNT_NAME', 'Potentials')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_ORDER_CATEGORY', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_SALES_STAGE', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_AREA', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_SOURCE', 'Potentials')}</th>
@@ -50,8 +49,8 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CLASS_TAG', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_MATERIAL_TAG', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_FRANCHISE_TAG', 'Potentials')}</th>
+							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_TAGS', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CONFIRM_TAG', 'Potentials')}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_AMOUNT', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_ASSIGNED_TO', 'Potentials')}</th>
 						</tr>
 					</thead>

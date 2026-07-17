@@ -95,7 +95,20 @@ class Potentials_OppTagCatalog {
 		if (preg_match('/^goi_lan_\d+$/', $key)) {
 			return false;
 		}
+		$catalogTag = self::resolveCatalogTag($tagName);
+		if ($catalogTag !== null) {
+			return !empty($catalogTag['scope_opp']);
+		}
 		return in_array($key, self::$allowedKeys, true);
+	}
+
+	protected static function resolveCatalogTag($tagName) {
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			return HelpDesk_TagRuleEngineService::getInstance()->resolveTagInCatalog($tagName);
+		} catch (Exception $e) {
+			return null;
+		}
 	}
 
 	/**
