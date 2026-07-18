@@ -14,6 +14,7 @@
 		copy: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
 		plus: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
 		search: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+		chevron: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
 	};
 
 	function esc(s) {
@@ -67,10 +68,22 @@
 		return !!CORE_GROUP_IDS[groupId];
 	}
 
-	function getGroupChildCount(groupId) {
+	function getGroupChildren(groupId) {
+		var group = store.getGroupById ? store.getGroupById(groupId) : null;
+		var groupName = group ? String(group.name || '').trim().toLowerCase() : '';
 		return store.getTags().filter(function (t) {
-			return t.group_id === groupId;
-		}).length;
+			if (t.group_id === groupId) return true;
+			if (groupName && String(t.category || '').trim().toLowerCase() === groupName) {
+				return !t.group_id;
+			}
+			return false;
+		}).sort(function (a, b) {
+			return String(a.name || '').localeCompare(String(b.name || ''), 'vi');
+		});
+	}
+
+	function getGroupChildCount(groupId) {
+		return getGroupChildren(groupId).length;
 	}
 
 	function getTagCategories() {
@@ -271,9 +284,28 @@
 		} catch (e1) { /* ignore */ }
 	}
 
+	var TAGS_SUBTAB_KEY = 'mk_tre_tags_subtab';
+	var TAGS_SUBTAB_IDS = { parent: 1, children: 1 };
+
+	function readPersistedTagsSubTab() {
+		try {
+			var stored = String(localStorage.getItem(TAGS_SUBTAB_KEY) || '').trim();
+			if (TAGS_SUBTAB_IDS[stored]) return stored;
+		} catch (e) { /* ignore */ }
+		return 'parent';
+	}
+
+	function persistTagsSubTab(sub) {
+		try {
+			localStorage.setItem(TAGS_SUBTAB_KEY, sub);
+		} catch (e) { /* ignore */ }
+	}
+
 	var MkTagRuleEngine = {
 		$root: null,
 		activeTab: 'rules',
+		activeTagsSubTab: 'parent',
+		expandedGroupIds: {},
 		ruleSearch: '',
 		tagSearch: '',
 
@@ -281,7 +313,9 @@
 			this.$root = $('#mk-tag-rule-engine');
 			if (!this.$root.length) return;
 			this.activeTab = readPersistedTab();
+			this.activeTagsSubTab = readPersistedTagsSubTab();
 			persistTab(this.activeTab);
+			persistTagsSubTab(this.activeTagsSubTab);
 			this.render();
 			this.bindEvents();
 		},
@@ -291,8 +325,23 @@
 			this.activeTab = tab;
 			persistTab(tab);
 			if (this.$root && this.$root.length) {
-				this.$root.find('.mk-tre-tab').removeClass('is-active');
-				this.$root.find('.mk-tre-tab[data-tab="' + tab + '"]').addClass('is-active');
+				this.$root.find('.mk-tre-tabs > .mk-tre-tab').removeClass('is-active');
+				this.$root.find('.mk-tre-tabs > .mk-tre-tab[data-tab="' + tab + '"]').addClass('is-active');
+				this.renderPanel();
+			}
+		},
+
+		setActiveTagsSubTab: function (sub) {
+			if (!TAGS_SUBTAB_IDS[sub]) sub = 'parent';
+			this.activeTagsSubTab = sub;
+			persistTagsSubTab(sub);
+			if (this.activeTab !== 'tags') {
+				this.setActiveTab('tags');
+				return;
+			}
+			if (this.$root && this.$root.length) {
+				this.$root.find('.mk-tre-subtab').removeClass('is-active');
+				this.$root.find('.mk-tre-subtab[data-subtab="' + sub + '"]').addClass('is-active');
 				this.renderPanel();
 			}
 		},
@@ -447,13 +496,45 @@
 				+ '</section>';
 		},
 
+		renderGroupChildrenDetail: function (groupId) {
+			var children = getGroupChildren(groupId);
+			if (!children.length) {
+				return '<div class="mk-tre-group-detail__empty">Chưa có tag con trong nhóm này</div>';
+			}
+			var rows = children.map(function (t) {
+				var used = store.getTagUsageCount(t.id);
+				return ''
+					+ '<div class="mk-tre-group-child">'
+					+ '  <div class="mk-tre-group-child__main">'
+					+ '    <span class="mk-tre-group-child__name">' + esc(t.name) + '</span>'
+					+ '    <span class="mk-tre-scope">' + scopeBadges(t) + '</span>'
+					+ '  </div>'
+					+ '  <div class="mk-tre-group-child__meta">'
+					+ '    <span class="mk-tre-muted">' + esc(t.description || 'Không có mô tả') + '</span>'
+					+ '    <span class="mk-tre-group-child__used">Rule: <strong>' + used + '</strong></span>'
+					+ '  </div>'
+					+ '  <div class="mk-tre-group-child__actions">'
+					+ '    <button type="button" class="mk-tre-icon-btn js-tre-tag-edit" data-id="' + esc(t.id) + '" title="Sửa tag con">' + ICONS.pencil + '</button>'
+					+ '  </div>'
+					+ '</div>';
+			}).join('');
+			return ''
+				+ '<div class="mk-tre-group-detail">'
+				+ '  <div class="mk-tre-group-detail__head">Danh sách tag con (' + children.length + ')</div>'
+				+ '  <div class="mk-tre-group-detail__list">' + rows + '</div>'
+				+ '</div>';
+		},
+
 		renderGroupsTableBody: function () {
+			var self = this;
 			var groups = store.getGroups ? store.getGroups() : [];
 			if (!groups.length) {
 				return '<tr><td colspan="4" class="mk-tre-empty">Chưa có tag cha</td></tr>';
 			}
 			return groups.map(function (g) {
-				var childCount = getGroupChildCount(g.id);
+				var children = getGroupChildren(g.id);
+				var childCount = children.length;
+				var isOpen = !!self.expandedGroupIds[g.id];
 				var onLead = g.show_on_create
 					? '<span class="mk-tre-chip mk-tre-chip--primary">Có</span>'
 					: '<span class="mk-tre-muted">Không</span>';
@@ -462,14 +543,27 @@
 					? ''
 					: '    <button type="button" class="mk-tre-icon-btn mk-tre-icon-btn--danger js-tre-group-del" data-id="' + esc(g.id) + '" data-name="' + esc(g.name) + '" data-children="' + childCount + '" title="Xoá tag cha">' + ICONS.trash + '</button>';
 				return ''
-					+ '<tr>'
-					+ '  <td class="mk-tre-strong">' + esc(g.name) + (protectedGroup ? ' <span class="mk-tre-chip mk-tre-chip--muted">Hệ thống</span>' : '') + '</td>'
+					+ '<tr class="mk-tre-group-row' + (isOpen ? ' is-open' : '') + '" data-group-id="' + esc(g.id) + '">'
+					+ '  <td class="mk-tre-strong">'
+					+ '    <button type="button" class="mk-tre-group-toggle js-tre-group-expand" data-id="' + esc(g.id) + '" aria-expanded="' + (isOpen ? 'true' : 'false') + '" title="' + (isOpen ? 'Thu gọn' : 'Xem tag con') + '">'
+					+ '      <span class="mk-tre-group-toggle__chevron" aria-hidden="true">' + ICONS.chevron + '</span>'
+					+ '      <span class="mk-tre-group-toggle__name">' + esc(g.name) + '</span>'
+					+ (protectedGroup ? ' <span class="mk-tre-chip mk-tre-chip--muted">Hệ thống</span>' : '')
+					+ '    </button>'
+					+ '  </td>'
 					+ '  <td>' + onLead + '</td>'
-					+ '  <td class="mk-tre-muted">' + childCount + '</td>'
+					+ '  <td>'
+					+ '    <button type="button" class="mk-tre-group-count js-tre-group-expand" data-id="' + esc(g.id) + '" aria-expanded="' + (isOpen ? 'true' : 'false') + '" title="' + (isOpen ? 'Thu gọn' : 'Xem danh sách tag con') + '">'
+					+ '      <strong>' + childCount + '</strong>'
+					+ '    </button>'
+					+ '  </td>'
 					+ '  <td class="mk-tre-actions">'
 					+ '    <button type="button" class="mk-tre-icon-btn js-tre-group-edit" data-id="' + esc(g.id) + '" title="Sửa tag cha">' + ICONS.pencil + '</button>'
 					+ delBtn
 					+ '  </td>'
+					+ '</tr>'
+					+ '<tr class="mk-tre-group-detail-row' + (isOpen ? ' is-open' : '') + '" data-group-id="' + esc(g.id) + '"' + (isOpen ? '' : ' hidden') + '>'
+					+ '  <td colspan="4">' + self.renderGroupChildrenDetail(g.id) + '</td>'
 					+ '</tr>';
 			}).join('');
 		},
@@ -528,10 +622,13 @@
 			$('#mk-tre-panel .js-tre-tags-tbody').html(this.renderTagsTableBody());
 		},
 
-		renderTagsTab: function () {
+		updateGroupsTable: function () {
+			$('#mk-tre-panel .js-tre-groups-tbody').html(this.renderGroupsTableBody());
+		},
+
+		renderChildrenSection: function () {
 			return ''
-				+ this.renderGroupsSection()
-				+ '<section class="mk-tre-section">'
+				+ '<section class="mk-tre-section mk-tre-section--children">'
 				+ '  <div class="mk-tre-section__head">'
 				+ '    <div class="mk-tre-section__titles">'
 				+ '      <h2 class="mk-tre-section__title">Danh sách tag con</h2>'
@@ -555,6 +652,22 @@
 				+ '</table></div>'
 				+ '  </div>'
 				+ '</section>';
+		},
+
+		renderTagsTab: function () {
+			var sub = TAGS_SUBTAB_IDS[this.activeTagsSubTab] ? this.activeTagsSubTab : 'parent';
+			this.activeTagsSubTab = sub;
+			var body = sub === 'children'
+				? this.renderChildrenSection()
+				: this.renderGroupsSection();
+			return ''
+				+ '<div class="mk-tre-subtabs" role="tablist" aria-label="Loại tag">'
+				+ '  <button type="button" class="mk-tre-subtab' + (sub === 'parent' ? ' is-active' : '') + '" data-subtab="parent" role="tab" aria-selected="' + (sub === 'parent' ? 'true' : 'false') + '">Tag cha</button>'
+				+ '  <button type="button" class="mk-tre-subtab' + (sub === 'children' ? ' is-active' : '') + '" data-subtab="children" role="tab" aria-selected="' + (sub === 'children' ? 'true' : 'false') + '">Tag con</button>'
+				+ '</div>'
+				+ '<div class="mk-tre-subpanel" data-active-subtab="' + esc(sub) + '">'
+				+ body
+				+ '</div>';
 		},
 
 		renderScenariosTab: function () {
@@ -878,13 +991,30 @@
 		bindEvents: function () {
 			var self = this;
 
-			this.$root.on('click', '.mk-tre-tab', function () {
+			this.$root.on('click', '.mk-tre-tabs > .mk-tre-tab', function () {
 				self.setActiveTab($(this).data('tab'));
+			});
+
+			this.$root.on('click', '.mk-tre-subtab', function () {
+				self.setActiveTagsSubTab($(this).data('subtab'));
+			});
+
+			this.$root.on('click', '.js-tre-group-expand', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var id = String($(this).data('id') || '');
+				if (!id) return;
+				if (self.expandedGroupIds[id]) {
+					delete self.expandedGroupIds[id];
+				} else {
+					self.expandedGroupIds[id] = true;
+				}
+				self.updateGroupsTable();
 			});
 
 			this.$root.on('input', '.js-tre-tag-search', function () {
 				self.tagSearch = $(this).val();
-				if (self.activeTab === 'tags') {
+				if (self.activeTab === 'tags' && self.activeTagsSubTab === 'children') {
 					self.updateTagsTable();
 				}
 			});
