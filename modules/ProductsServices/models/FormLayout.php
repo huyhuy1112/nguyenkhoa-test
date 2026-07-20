@@ -25,6 +25,11 @@ class ProductsServices_FormLayout_Helper {
 		'unit',
 		'price',
 		'wholesale_price',
+		'price_lt_1m',
+		'price_gte_1m',
+		'price_gte_3m',
+		'price_gte_5m',
+		'price_gte_7m',
 		'specification',
 		'assigned_user_id',
 	);

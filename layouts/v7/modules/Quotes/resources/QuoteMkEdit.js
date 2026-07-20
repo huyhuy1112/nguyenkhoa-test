@@ -535,7 +535,123 @@
 		if (!isSalesOrder()) {
 			ensureDraftQuoteStage();
 			ensureContactFieldVisible();
+			layoutQuoteHeaderFields();
 		}
+	}
+
+	/** Group clear / search / add into a single action strip on the right. */
+	function polishOppReferenceField($refWrap) {
+		if (!$refWrap || !$refWrap.length) {
+			return;
+		}
+		var $group = $refWrap.find('.input-group').first();
+		if (!$group.length || $group.hasClass('mk-qt-opp-ref-group')) {
+			return;
+		}
+		var $clear = $group.find('.clearReferenceSelection').first();
+		var $addons = $group.find('.input-group-addon');
+		var $actions = $('<div class="mk-qt-opp-actions"></div>');
+		if ($clear.length) {
+			$actions.append($clear);
+		}
+		if ($addons.length) {
+			$actions.append($addons);
+		}
+		$group.append($actions);
+		$group.addClass('mk-qt-opp-ref-group');
+	}
+
+	/**
+	 * Quote header: Opportunity first (required) → Customer name (subject title).
+	 */
+	function layoutQuoteHeaderFields() {
+		var $f = $form();
+		if (!$f.length || isSalesOrder()) {
+			return;
+		}
+
+		var $subjectInput = $f.find('[name="subject"]').first();
+		var $potentialInput = $f.find('[name="potential_id"]').first();
+		if (!$subjectInput.length || !$potentialInput.length) {
+			return;
+		}
+
+		var $subjectValue = $subjectInput.closest('td.fieldValue');
+		var $subjectLabel = $subjectValue.prev('td.fieldLabel');
+		var $potentialValue = $potentialInput.closest('td.fieldValue');
+		var $potentialLabel = $potentialValue.prev('td.fieldLabel');
+		if (!$subjectValue.length || !$potentialValue.length) {
+			return;
+		}
+
+		var $subjectRow = $subjectValue.closest('tr');
+		var $potentialRow = $potentialValue.closest('tr');
+
+		// Same row (2-col): put Opportunity on the left, Customer name on the right.
+		if ($subjectRow.length && $potentialRow.length && $subjectRow[0] === $potentialRow[0]) {
+			var $cells = $subjectRow.children('td');
+			if ($cells.length >= 4) {
+				var subjectIsLeft = $cells.eq(1).find('[name="subject"]').length > 0;
+				if (subjectIsLeft) {
+					var $leftLabel = $cells.eq(0);
+					var $leftValue = $cells.eq(1);
+					var $rightLabel = $cells.eq(2);
+					var $rightValue = $cells.eq(3);
+					$leftLabel.before($rightLabel.add($rightValue));
+					// Re-query after move
+					$subjectValue = $subjectInput.closest('td.fieldValue');
+					$subjectLabel = $subjectValue.prev('td.fieldLabel');
+					$potentialValue = $potentialInput.closest('td.fieldValue');
+					$potentialLabel = $potentialValue.prev('td.fieldLabel');
+				}
+			}
+		} else if ($subjectRow.length && $potentialRow.length && $subjectRow[0] !== $potentialRow[0]) {
+			// Different rows: Opportunity row first.
+			$potentialRow.insertBefore($subjectRow);
+		}
+
+		function setFieldLabel($labelTd, text, required) {
+			if (!$labelTd || !$labelTd.length) {
+				return;
+			}
+			var $label = $labelTd.find('label').first();
+			if (!$label.length) {
+				$label = $('<label class="muted"></label>').appendTo($labelTd.empty());
+			}
+			$label.empty().append(document.createTextNode(text));
+			if (required) {
+				$label.append(document.createTextNode(' '));
+				$label.append($('<span class="redColor">*</span>'));
+			}
+			$labelTd.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+		}
+
+		setFieldLabel($potentialLabel, 'Tên Cơ hội', true);
+		setFieldLabel($subjectLabel, 'Tên khách hàng', false);
+		$potentialValue.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+		$subjectValue.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+		$potentialRow.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+		$subjectRow.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+
+		// Opportunity is the required primary key for creating a quote.
+		var $potentialDisplay = $f.find('[name="potential_id_display"]').first();
+		if ($potentialDisplay.length) {
+			$potentialDisplay.attr('data-rule-required', 'true').addClass('required');
+			$potentialDisplay.attr('placeholder', 'Nhập để tìm kiếm cơ hội...');
+			var $refWrap = $potentialDisplay.closest('.referencefield-wrapper');
+			$refWrap.addClass('mk-qt-opp-ref');
+			$potentialValue.addClass('mk-qt-opp-field');
+			polishOppReferenceField($refWrap);
+			// Show clear (x) when a value is selected.
+			if ($.trim($potentialInput.val() || '') || $.trim($potentialDisplay.val() || '')) {
+				$refWrap.find('.clearReferenceSelection').removeClass('hide');
+			}
+		}
+		$potentialInput.attr('data-rule-required', 'true');
+
+		// Subject is auto-filled from customer; keep it editable but not the primary gate.
+		$subjectInput.removeAttr('data-rule-required').removeClass('required');
+		$subjectInput.attr('placeholder', 'Tự điền khi chọn cơ hội');
 	}
 
 	function hideQuoteFieldPair(name) {
@@ -881,8 +997,9 @@
 			return;
 		}
 		$rail
-			.find('.mk-qt-rail-card--summary, .mk-qt-rail-card--muted, .mk-qt-rail-card--ai')
-			.addClass('mk-qt-hide-legacy');
+			.find('.mk-qt-rail-card--summary, .mk-qt-rail-card--muted, .mk-qt-rail-card--ai, .mk-qt-rail-card--company, .mk-qt-company-ro')
+			.addClass('mk-qt-hide-legacy')
+			.remove();
 	}
 
 	function moveAssignedToIntoRail() {
@@ -1109,11 +1226,17 @@
 		simplifyQuoteForm();
 		ensureDraftQuoteStage();
 		ensureContactFieldVisible();
+		if (!isSalesOrder()) {
+			layoutQuoteHeaderFields();
+		}
 		reorderQuoteBlocks();
 		initOdooInventoryUi();
 		pinAddProductToLineHeader();
 		if (window.MkInventoryOdooEdit && window.MkInventoryOdooEdit.scheduleLineItemsRestyle) {
 			window.MkInventoryOdooEdit.scheduleLineItemsRestyle($form());
+		}
+		if (window.MkInventoryOdooEdit && window.MkInventoryOdooEdit.syncLineDeleteVisibility) {
+			window.MkInventoryOdooEdit.syncLineDeleteVisibility($form());
 		}
 		hideRailNoiseCards();
 		moveAssignedToIntoRail();

@@ -383,10 +383,20 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-del--lef
 	flex: 0 0 auto;
 }
 
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-del,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-del-btn {
+	position: relative;
+	z-index: 3;
+	pointer-events: auto !important;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag .mk-inv-del-btn {
-	width: 26px;
-	height: 26px;
+	width: 32px;
+	height: 32px;
 	margin-left: 0;
+	flex: 0 0 32px;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag img {
@@ -417,9 +427,11 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-del-btn:hover
 	background: #fef2f2;
 }
 
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-del-btn .deleteRow {
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-del-btn .deleteRow,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-del-btn .mk-inv-del-icon {
 	font-size: 14px;
 	margin: 0;
+	pointer-events: none;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-net-hide {
@@ -1106,6 +1118,10 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-tax-select {
 	color: #08a045;
 	cursor: pointer;
 	appearance: auto;
+	position: relative;
+	z-index: 2;
+	pointer-events: auto !important;
+	touch-action: manipulation;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-tax-select:focus {
@@ -1179,13 +1195,16 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 	min-width: 0;
 }
 
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-del .deleteRow {
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-del .deleteRow,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-del .mk-inv-del-icon {
 	color: #94a3b8;
 	cursor: pointer;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-del:hover .deleteRow,
-body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-del-btn:hover .deleteRow {
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-del:hover .mk-inv-del-icon,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-del-btn:hover .deleteRow,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-del-btn:hover .mk-inv-del-icon {
 	color: #ef4444;
 }
 
@@ -1458,6 +1477,7 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-add-line-btn 
 /* Keep product / payment Select2 unclipped by table/card overflow */
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lines-card,
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .lineitemTableContainer,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--modern,
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-payment-terms--modern,
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-credit-terms--modern,
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-credit-terms__field,
@@ -1642,6 +1662,127 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-credit-terms_
 .select2-drop.mk-inv-credit-drop .select2-results .select2-highlighted .select2-result-label {
 	background: #f0fdf4 !important;
 	color: #166534 !important;
+}
+
+/* Invoice price list — automatic or manually selected tier */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--modern {
+	background: linear-gradient(180deg, #f8fbff 0%, #f3f8ff 100%);
+	border: 1px solid #d9e8fb;
+	border-left: none;
+	border-radius: 14px;
+	padding: 16px 18px 18px;
+	margin-bottom: 14px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	position: relative;
+	overflow: visible;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--modern::before {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 3px;
+	background: linear-gradient(180deg, #2563eb 0%, #60a5fa 100%);
+	border-radius: 14px 0 0 14px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__row {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 12px;
+	background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' viewBox='0 0 24 24'%3E%3Cpath d='M4 7.5h16M7 4v7M17 13v7M4 16.5h16' stroke='%232563eb' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='7' cy='16.5' r='2' fill='white' stroke='%232563eb' stroke-width='1.8'/%3E%3Ccircle cx='17' cy='7.5' r='2' fill='white' stroke='%232563eb' stroke-width='1.8'/%3E%3C/svg%3E") center/20px no-repeat;
+	border: 1px solid #d9e8fb;
+	flex-shrink: 0;
+	box-shadow: 0 1px 2px rgba(37, 99, 235, 0.08);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__content {
+	flex: 1;
+	min-width: 0;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 6px 12px;
+	margin-bottom: 10px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__label {
+	font-size: 13px;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__hint,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__status {
+	font-size: 12px;
+	font-weight: 500;
+	color: #64748b;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-tier-chip {
+	appearance: none;
+	border: 1px solid #cbdcf4;
+	background: #fff;
+	color: #334155;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.2;
+	padding: 8px 14px;
+	border-radius: 999px;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-tier-chip:hover {
+	border-color: #93b8f6;
+	color: #1d4ed8;
+	background: #eff6ff;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-tier-chip.is-active {
+	border-color: #2563eb;
+	background: #2563eb;
+	color: #fff;
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.22);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-tier-chip:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__status {
+	margin-top: 9px;
+	color: #2563eb;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__field--sr,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__field--sr .select2-container {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	border: 0 !important;
+	white-space: nowrap !important;
 }
 
 /* Payment terms — modern chip selector */
@@ -2171,6 +2312,8 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 	background-position: right 10px center !important;
 	background-size: 10px 6px !important;
 	padding-right: 28px !important;
+	pointer-events: auto !important;
+	touch-action: manipulation;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-tax-select:focus {

@@ -19,6 +19,22 @@
   ];
   var DEFAULT_PAYMENT_METHOD = "Chuyển khoản";
 
+  var INVOICE_TIER_OPTIONS = [
+    { value: "auto", label: "Tự động theo tổng đơn" },
+    { value: "lt_1m", label: "Giá < 1 triệu" },
+    { value: "gte_1m", label: "Giá ≥ 1 triệu" },
+    { value: "gte_3m", label: "Giá ≥ 3 triệu" },
+    { value: "gte_5m", label: "Giá ≥ 5 triệu" },
+    { value: "gte_7m", label: "Giá ≥ 7 triệu" },
+  ];
+  var INVOICE_TIER_FIELDS = {
+    lt_1m: "price_lt_1m",
+    gte_1m: "price_gte_1m",
+    gte_3m: "price_gte_3m",
+    gte_5m: "price_gte_5m",
+    gte_7m: "price_gte_7m",
+  };
+
   var CREDIT_TERMS_OPTIONS = [
     { value: "Thanh toán ngay", label: "Thanh toán ngay" },
     { value: "15 ngày", label: "15 ngày" },
@@ -279,78 +295,117 @@
     shipText,
     sourceRow,
     sourceModule,
+    options,
   ) {
+    options = options || {};
+    var force = !!options.force;
     var $bill = $form.find('[name="bill_street"]');
     var $ship = $form.find('[name="ship_street"]');
-    if ($bill.length && billText) {
-      $bill.val(billText).trigger("change");
+    billText = billText || "";
+    shipText = shipText || "";
+
+    if ($bill.length) {
+      if (billText || force) {
+        $bill.val(billText).trigger("change");
+      }
     }
-    if ($ship.length && shipText) {
-      $ship.val(shipText).trigger("change");
+    if ($ship.length) {
+      if (shipText || force) {
+        // If ship empty but bill has value, copy bill for convenience (no checkbox UI).
+        var shipValue = shipText || (force ? billText : "");
+        $ship.val(shipValue).trigger("change");
+      }
     }
-    if (sourceRow && sourceModule) {
+    if (sourceRow && sourceModule && (billText || shipText)) {
       syncHiddenAddressFields($form, sourceRow, sourceModule, "bill");
       syncHiddenAddressFields($form, sourceRow, sourceModule, "ship");
     }
-    syncShipSameAsBill($form);
   }
 
-  function fillAddressFromAccount($form, accountId) {
+  function fillAddressFromAccount($form, accountId, options) {
     accountId = parseInt(accountId, 10) || 0;
+    options = options || {};
     if (!accountId) {
       return $.Deferred().reject().promise();
     }
     return getRecordDetails(accountId, "Accounts").then(function (data) {
       var row = data && data.data;
       if (!row) {
-        return;
+        if (options.force) {
+          setFormAddresses($form, "", "", null, null, { force: true });
+        }
+        return false;
       }
-      setFormAddresses(
-        $form,
-        formatAccountAddress(row, "bill"),
-        formatAccountAddress(row, "ship"),
-        row,
-        "Accounts",
-      );
+      var billText = formatAccountAddress(row, "bill");
+      var shipText = formatAccountAddress(row, "ship");
+      if (!billText && !shipText) {
+        if (options.force) {
+          setFormAddresses($form, "", "", null, null, { force: true });
+        }
+        return false;
+      }
+      setFormAddresses($form, billText, shipText, row, "Accounts", options);
+      return true;
     });
   }
 
-  function fillAddressFromContact($form, contactId) {
+  function fillAddressFromContact($form, contactId, options) {
     contactId = parseInt(contactId, 10) || 0;
+    options = options || {};
     if (!contactId) {
       return $.Deferred().reject().promise();
     }
     return getRecordDetails(contactId, "Contacts").then(function (data) {
       var row = data && data.data;
       if (!row) {
-        return;
+        if (options.force) {
+          setFormAddresses($form, "", "", null, null, { force: true });
+        }
+        return false;
       }
-      setFormAddresses(
-        $form,
-        formatContactAddress(row, "bill"),
-        formatContactAddress(row, "ship"),
-        row,
-        "Contacts",
-      );
+      var billText = formatContactAddress(row, "bill");
+      var shipText = formatContactAddress(row, "ship");
+      if (!billText && !shipText) {
+        if (options.force) {
+          setFormAddresses($form, "", "", null, null, { force: true });
+        }
+        return false;
+      }
+      setFormAddresses($form, billText, shipText, row, "Contacts", options);
+      return true;
     });
   }
 
-  function fillAddressFromPotential($form) {
+  function fillAddressFromPotential($form, options) {
+    options = options || {};
     var potId = parseInt($form.find('[name="potential_id"]').val(), 10) || 0;
     if (!potId) {
+      if (options.force) {
+        setFormAddresses($form, "", "", null, null, { force: true });
+      }
       return;
     }
     getRecordDetails(potId, "Potentials").then(function (data) {
       var row = data && data.data;
       if (!row) {
+        if (options.force) {
+          setFormAddresses($form, "", "", null, null, { force: true });
+        }
         return;
       }
       var accountId = parseInt(row.related_to, 10) || 0;
       var contactId = parseInt(row.contact_id, 10) || 0;
+      var fillOpts = { force: !!options.force };
       if (accountId) {
-        fillAddressFromAccount($form, accountId);
+        fillAddressFromAccount($form, accountId, fillOpts).then(function (ok) {
+          if (!ok && contactId) {
+            fillAddressFromContact($form, contactId, fillOpts);
+          }
+        });
       } else if (contactId) {
-        fillAddressFromContact($form, contactId);
+        fillAddressFromContact($form, contactId, fillOpts);
+      } else if (fillOpts.force) {
+        setFormAddresses($form, "", "", null, null, { force: true });
       }
     });
   }
@@ -398,6 +453,13 @@
   }
 
   function injectShipSameCheckbox($form) {
+    // Quotes uses the rail address editor without "same as billing" checkbox.
+    var moduleName =
+      ($form.find('[name="module"]').val() || $("body").attr("data-module") || "").toString();
+    if (moduleName === "Quotes") {
+      $form.find("#mkInvShipSameAsBill").closest("label.mk-inv-ship-same").remove();
+      return;
+    }
     if ($form.find("#mkInvShipSameAsBill").length) {
       return;
     }
@@ -437,21 +499,21 @@
 
     var onOpp = function () {
       setTimeout(function () {
-        fillAddressFromPotential($form);
+        fillAddressFromPotential($form, { force: true });
       }, 120);
     };
     var onAccount = function () {
       var accountId =
         parseInt($form.find('[name="account_id"]').val(), 10) || 0;
       if (accountId) {
-        fillAddressFromAccount($form, accountId);
+        fillAddressFromAccount($form, accountId, { force: false });
       }
     };
     var onContact = function () {
       var contactId =
         parseInt($form.find('[name="contact_id"]').val(), 10) || 0;
       if (contactId) {
-        fillAddressFromContact($form, contactId);
+        fillAddressFromContact($form, contactId, { force: false });
       }
     };
 
@@ -466,7 +528,9 @@
       parseInt($form.find('[name="potential_id"]').val(), 10) || 0;
     if (initialPot) {
       setTimeout(function () {
-        fillAddressFromPotential($form);
+        // On edit load: fill only when address fields are still empty.
+        var bill = $.trim($form.find('[name="bill_street"]').val() || "");
+        fillAddressFromPotential($form, { force: !bill });
       }, 400);
     }
   }
@@ -607,6 +671,166 @@
       sum += qty * price;
     });
     return sum;
+  }
+
+  function resolveInvoiceTierFromTotal(total) {
+    total = parseMoney(total);
+    if (total >= 7000000) {
+      return "gte_7m";
+    }
+    if (total >= 5000000) {
+      return "gte_5m";
+    }
+    if (total >= 3000000) {
+      return "gte_3m";
+    }
+    if (total >= 1000000) {
+      return "gte_1m";
+    }
+    return "lt_1m";
+  }
+
+  function invoiceTierLabel(tierKey) {
+    var label = tierKey || "";
+    INVOICE_TIER_OPTIONS.some(function (item) {
+      if (item.value === tierKey) {
+        label = item.label;
+        return true;
+      }
+      return false;
+    });
+    return label;
+  }
+
+  function getInvoiceTierSelection($form) {
+    var value = String(
+      $form.find('[name="mk_invoice_price_tier"]').first().val() || "auto",
+    ).trim();
+    if (value === "auto" || INVOICE_TIER_FIELDS[value]) {
+      return value;
+    }
+    return "auto";
+  }
+
+  function findCatalogProduct(productId) {
+    var id = String(productId || "");
+    var found = null;
+    (productCatalogCache || []).some(function (item) {
+      if (String(item.id || "") === id) {
+        found = item;
+        return true;
+      }
+      return false;
+    });
+    return found;
+  }
+
+  function getProductMetaForRow($row) {
+    var $opt = $row.find(".mk-inv-product-select option:selected").first();
+    var meta = readProductMetaFromOption($opt);
+    var productId = String(
+      $row.find("input.selectedModuleId").first().val() ||
+        $row.find(".mk-inv-product-select").first().val() ||
+        "",
+    );
+    var catalogMeta = findCatalogProduct(productId);
+    if (catalogMeta) {
+      $.each(catalogMeta, function (key, value) {
+        if (meta[key] == null || meta[key] === "") {
+          meta[key] = value;
+        }
+      });
+    }
+    return meta;
+  }
+
+  function resolveInvoiceTierPrice(meta, tierKey) {
+    meta = meta || {};
+    var field = INVOICE_TIER_FIELDS[tierKey];
+    if (field && meta[field] !== undefined && meta[field] !== null && meta[field] !== "") {
+      return parseMoney(meta[field]);
+    }
+    return parseMoney(meta.price || 0);
+  }
+
+  function applyInvoiceTierPriceToRow($row, $form, tierKey) {
+    if (!rowHasSelectedProduct($row)) {
+      return false;
+    }
+    var price = resolveInvoiceTierPrice(getProductMetaForRow($row), tierKey);
+    var $listPrice = $row.find("input.listPrice").first();
+    if (!$listPrice.length) {
+      return false;
+    }
+    $listPrice.val(price).attr("data-mk-invoice-tier", tierKey);
+    syncRowAmounts($row, $form);
+    return true;
+  }
+
+  function syncInvoiceTierUi($form, selectedValue, resolvedTier) {
+    var $wrap = $form.find(".mk-inv-price-tier").first();
+    if (!$wrap.length) {
+      return;
+    }
+    $wrap.find(".mk-inv-tier-chip").each(function () {
+      var active = $(this).attr("data-value") === selectedValue;
+      $(this).toggleClass("is-active", active);
+      $(this).attr("aria-pressed", active ? "true" : "false");
+    });
+    var detail =
+      selectedValue === "auto"
+        ? "Đang áp dụng: " + invoiceTierLabel(resolvedTier)
+        : "Đang áp dụng cho tất cả sản phẩm";
+    $wrap.find(".mk-inv-price-tier__status").text(detail);
+  }
+
+  function applyInvoiceTierPricing($form) {
+    if (!$form || !$form.length || $form.data("mkInvApplyingTier")) {
+      return;
+    }
+    var selectedValue = getInvoiceTierSelection($form);
+    var resolvedTier =
+      selectedValue === "auto"
+        ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
+        : selectedValue;
+    var changed = false;
+    $form.data("mkInvApplyingTier", true);
+    try {
+      $form.find("tr.lineItemRow").each(function () {
+        changed =
+          applyInvoiceTierPriceToRow($(this), $form, resolvedTier) || changed;
+      });
+      syncInvoiceTierUi($form, selectedValue, resolvedTier);
+      if (changed) {
+        var $firstRow = $form
+          .find("tr.lineItemRow")
+          .filter(function () {
+            return rowHasSelectedProduct($(this));
+          })
+          .first();
+        if ($firstRow.length) {
+          triggerLineRecalc($firstRow, $form);
+        }
+        syncTotalsDisplay($form);
+      }
+    } finally {
+      $form.data("mkInvApplyingTier", false);
+    }
+  }
+
+  function scheduleInvoiceTierPricing($form, delay) {
+    if (!$form || !$form.length || $form.data("mkInvApplyingTier")) {
+      return;
+    }
+    var prior = $form.data("mkInvTierTimer");
+    if (prior) {
+      clearTimeout(prior);
+    }
+    var timer = setTimeout(function () {
+      $form.removeData("mkInvTierTimer");
+      applyInvoiceTierPricing($form);
+    }, delay == null ? 160 : delay);
+    $form.data("mkInvTierTimer", timer);
   }
 
   function ensureGroupTaxMode($form) {
@@ -753,13 +977,41 @@
   }
 
   function shouldShowLineDelete($row, $form) {
-    if (isTemplateLineItemRow($row)) {
-      return false;
+    // Always allow deleting a real line — including the last remaining row.
+    return !isTemplateLineItemRow($row);
+  }
+
+  function patchLegacyLineDeleteGuard() {
+    if (typeof Inventory_Edit_Js === "undefined") {
+      return;
     }
-    if (rowHasSelectedProduct($row)) {
-      return true;
+    if (Inventory_Edit_Js.prototype.__mkInvAlwaysShowDelete) {
+      return;
     }
-    return countVisibleLineItemRows($form) > 1;
+    Inventory_Edit_Js.prototype.__mkInvAlwaysShowDelete = true;
+    Inventory_Edit_Js.prototype.checkLineItemRow = function () {
+      this.showLineItemsDeleteIcon();
+      try {
+        var $form = this.getForm ? this.getForm() : jQuery("#EditView");
+        if ($form && $form.length) {
+          syncLineDeleteVisibility($form);
+        }
+      } catch (ignore) {
+        /* ignore */
+      }
+    };
+    Inventory_Edit_Js.prototype.hideLineItemsDeleteIcon = function () {
+      // Keep delete visible even when only one line remains.
+      this.showLineItemsDeleteIcon();
+      try {
+        var $form = this.getForm ? this.getForm() : jQuery("#EditView");
+        if ($form && $form.length) {
+          syncLineDeleteVisibility($form);
+        }
+      } catch (ignore2) {
+        /* ignore */
+      }
+    };
   }
 
   function normalizeItemTypeKey(type) {
@@ -787,6 +1039,56 @@
       : "fa fa-cube";
   }
 
+  function pauseLineItemRestyle($form, ms) {
+    if (!$form || !$form.length) {
+      return;
+    }
+    ms = ms || 700;
+    $form.data("mkInvRestylePausedUntil", Date.now() + ms);
+  }
+
+  function isLineItemRestylePaused($form) {
+    if (!$form || !$form.length) {
+      return false;
+    }
+    var until = $form.data("mkInvRestylePausedUntil") || 0;
+    return Date.now() < until;
+  }
+
+  function performLineItemDelete($form, $trigger) {
+    if (!$form || !$form.length || !$trigger || !$trigger.length) {
+      return;
+    }
+    var $row = $trigger.closest("tr.lineItemRow");
+    if (!$row.length || isTemplateLineItemRow($row)) {
+      return;
+    }
+    pauseLineItemRestyle($form, 900);
+    var inst = getInventoryEditInstance($form);
+    if (inst && typeof inst.getClosestLineItemRow === "function") {
+      $row = inst.getClosestLineItemRow($trigger);
+    }
+    if (!$row || !$row.length || !$row.closest("body").length) {
+      return;
+    }
+    $row.remove();
+    if (inst) {
+      if (typeof inst.checkLineItemRow === "function") {
+        inst.checkLineItemRow();
+      }
+      if (typeof inst.lineItemDeleteActions === "function") {
+        inst.lineItemDeleteActions();
+      }
+    }
+    syncLineDeleteVisibility($form);
+    syncCreditTermsVisibility($form);
+    scheduleInvoiceTierPricing($form, 0);
+    var syncFn = $form.data("mkScheduleRealtimeSync");
+    if (syncFn) {
+      syncFn();
+    }
+  }
+
   function ensureLineDeleteButton($row, $form) {
     if (isTemplateLineItemRow($row)) {
       return;
@@ -803,14 +1105,44 @@
 
     $row.find("> td.mk-inv-col-amount .mk-inv-line-del").remove();
 
-    var $del = $row.find(".deleteRow").first();
-    if (!$del.length) {
-      $del = $(
-        '<i class="fa fa-trash deleteRow cursorPointer" title="Xóa dòng"></i>',
-      );
+    var $lineDel = $tools.find(".mk-inv-line-del").first();
+    var $btnWrap = $lineDel.find(".mk-inv-del-btn").first();
+    var $del = $btnWrap.find(".mk-inv-del-icon").first();
+
+    if (
+      $row.data("mkDelMounted") &&
+      $lineDel.length &&
+      $btnWrap.length &&
+      $del.length &&
+      $btnWrap.closest(".mk-inv-line-del")[0] === $lineDel[0]
+    ) {
+      if (shouldShowLineDelete($row, $form)) {
+        $lineDel.show();
+        $btnWrap.show().removeClass("mk-inv-hide-legacy");
+        $del.show().removeClass("mk-inv-hide-legacy");
+      } else {
+        $lineDel.hide();
+        $btnWrap.hide();
+        $del.hide();
+      }
+      return;
     }
 
-    var $lineDel = $tools.find(".mk-inv-line-del").first();
+    var $legacyDel = $row.find(".deleteRow").not(".mk-inv-del-btn").first();
+    if ($legacyDel.length && !$del.length) {
+      $del = $legacyDel;
+    }
+    if (!$del.length) {
+      $del = $(
+        '<i class="fa fa-trash mk-inv-del-icon cursorPointer" title="Xóa dòng"></i>',
+      );
+    } else {
+      $del
+        .removeClass("deleteRow")
+        .addClass("mk-inv-del-icon")
+        .attr("title", "Xóa dòng");
+    }
+
     if (!$lineDel.length) {
       $lineDel = $(
         '<span class="mk-inv-line-del mk-inv-line-del--left" title="Xóa dòng"></span>',
@@ -818,27 +1150,31 @@
       $tools.prepend($lineDel);
     }
 
-    var $btnWrap = $del.closest(".mk-inv-del-btn");
-    if (
-      $btnWrap.length &&
-      $btnWrap.closest(".mk-inv-line-del")[0] !== $lineDel[0]
-    ) {
-      $btnWrap.detach().appendTo($lineDel);
-    } else if (!$del.closest(".mk-inv-line-del").length) {
-      $lineDel.empty();
-      if ($btnWrap.length) {
-        $btnWrap.appendTo($lineDel);
-      } else {
-        $del.wrap('<span class="mk-inv-del-btn" title="Xóa dòng"></span>');
-        $del.closest(".mk-inv-del-btn").appendTo($lineDel);
+    if (!$btnWrap.length) {
+      $btnWrap = $(
+        '<span class="mk-inv-del-btn cursorPointer" title="Xóa dòng"></span>',
+      );
+      $lineDel.empty().append($btnWrap);
+    } else {
+      $btnWrap.addClass("cursorPointer").attr("title", "Xóa dòng");
+      if ($btnWrap.closest(".mk-inv-line-del")[0] !== $lineDel[0]) {
+        $btnWrap.detach().appendTo($lineDel);
       }
     }
 
+    if (!$del.parent().is($btnWrap)) {
+      $btnWrap.empty().append($del);
+    }
+
+    $row.data("mkDelMounted", true);
+
     if (shouldShowLineDelete($row, $form)) {
       $lineDel.show();
+      $btnWrap.show().removeClass("mk-inv-hide-legacy");
       $del.show().removeClass("mk-inv-hide-legacy");
     } else {
       $lineDel.hide();
+      $btnWrap.hide();
       $del.hide();
     }
   }
@@ -873,6 +1209,7 @@
       triggerLineRecalc($row, $form);
       ensureLineDeleteButton($row, $form);
       syncCreditTermsVisibility($form);
+      scheduleInvoiceTierPricing($form, 0);
       return;
     }
 
@@ -896,11 +1233,21 @@
       if ($listPrice.length && fallbackPrice > 0) {
         $listPrice.val(fallbackPrice);
       }
+      var immediateTier = getInvoiceTierSelection($form);
+      applyInvoiceTierPriceToRow(
+        $row,
+        $form,
+        immediateTier === "auto"
+          ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
+          : immediateTier,
+      );
+      syncRowUnitFromProduct($row);
       enforceQtyAgainstStock($row, $form);
       triggerLineRecalc($row, $form);
       syncRowStockHint($row, $form);
       ensureLineDeleteButton($row, $form);
       syncCreditTermsVisibility($form);
+      scheduleInvoiceTierPricing($form, 0);
       return;
     }
 
@@ -919,6 +1266,15 @@
           .find('input.lineItemType, input[name^="lineItemType"]')
           .val("ProductsServices");
         inst.mapResultsToFields($row, data[0]);
+        var responseTier = getInvoiceTierSelection($form);
+        applyInvoiceTierPriceToRow(
+          $row,
+          $form,
+          responseTier === "auto"
+            ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
+            : responseTier,
+        );
+        syncRowUnitFromProduct($row);
         syncRowTaxPill($row, $form);
         syncRowAmounts($row, $form);
         enforceQtyAgainstStock($row, $form);
@@ -926,6 +1282,7 @@
         syncRowStockHint($row, $form);
         ensureLineDeleteButton($row, $form);
         syncCreditTermsVisibility($form);
+        scheduleInvoiceTierPricing($form, 0);
         return;
       }
       $hiddenId.val(productId);
@@ -933,11 +1290,21 @@
       if ($listPrice.length) {
         $listPrice.val(fallbackPrice > 0 ? fallbackPrice : $listPrice.val());
       }
+      var fallbackTier = getInvoiceTierSelection($form);
+      applyInvoiceTierPriceToRow(
+        $row,
+        $form,
+        fallbackTier === "auto"
+          ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
+          : fallbackTier,
+      );
+      syncRowUnitFromProduct($row);
       enforceQtyAgainstStock($row, $form);
       triggerLineRecalc($row, $form);
       syncRowStockHint($row, $form);
       ensureLineDeleteButton($row, $form);
       syncCreditTermsVisibility($form);
+      scheduleInvoiceTierPricing($form, 0);
     });
   }
 
@@ -1273,6 +1640,11 @@
           .attr("value", id)
           .attr("data-name", displayName)
           .attr("data-price", p.price || 0)
+          .attr("data-price-lt-1m", p.price_lt_1m)
+          .attr("data-price-gte-1m", p.price_gte_1m)
+          .attr("data-price-gte-3m", p.price_gte_3m)
+          .attr("data-price-gte-5m", p.price_gte_5m)
+          .attr("data-price-gte-7m", p.price_gte_7m)
           .attr("data-sku", p.sku || "")
           .attr("data-unit", p.unit || "")
           .attr("data-type", p.type || "")
@@ -1633,6 +2005,11 @@
       ) {
         return;
       }
+      $existing
+        .off("pointerdown.mkInvTaxPause")
+        .on("pointerdown.mkInvTaxPause", function () {
+          pauseLineItemRestyle($form, 900);
+        });
       // Keep only the tax select visible in this cell.
       $taxTd
         .children()
@@ -1671,15 +2048,19 @@
     $row.data("mkTaxPct", currentPct);
 
     $sel
-      .on("mousedown.mkInvTax focus.mkInvTax", function () {
-        $sel.data("mkTaxOpen", true);
-      })
+      .on(
+        "pointerdown.mkInvTax mousedown.mkInvTax focus.mkInvTax click.mkInvTax",
+        function () {
+          $sel.data("mkTaxOpen", true);
+          pauseLineItemRestyle($form, 900);
+        },
+      )
       .on("blur.mkInvTax", function () {
         setTimeout(function () {
           $sel.data("mkTaxOpen", false);
-        }, 200);
+        }, 400);
       })
-      .on("change.mkInvTax", function () {
+      .on("input.mkInvTax change.mkInvTax", function () {
         $sel.data("mkUserChanged", true);
         $sel.data("mkTaxOpen", false);
         var val = $(this).val();
@@ -2110,18 +2491,67 @@
       var custom = window.prompt("Nhập đơn vị:", "Đơn vị");
       if (custom && String(custom).trim()) {
         custom = String(custom).trim();
-        if (
-          !$sel.find('option[value="' + custom.replace(/"/g, "") + '"]').length
-        ) {
-          $sel
-            .find('option[value="__search__"]')
-            .before($("<option></option>").attr("value", custom).text(custom));
-        }
+        ensureUnitOptionOnSelect($sel, custom);
         $sel.val(custom);
       } else {
-        $sel.val("Đơn vị");
+        $sel.val("");
       }
     });
+  }
+
+  function normalizeUnitToken(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function ensureUnitOptionOnSelect($sel, unit) {
+    unit = String(unit || "").trim();
+    if (!$sel || !$sel.length || !unit) {
+      return "";
+    }
+    var token = normalizeUnitToken(unit);
+    var resolved = "";
+    $sel.find("option").each(function () {
+      var val = String($(this).attr("value") || "");
+      if (!val || val === "__search__") {
+        return;
+      }
+      var valToken = normalizeUnitToken(val);
+      var labelToken = normalizeUnitToken($(this).text());
+      if (valToken === token || labelToken.indexOf(token) >= 0) {
+        resolved = val;
+        return false;
+      }
+    });
+    if (!resolved) {
+      $sel
+        .find('option[value="__search__"]')
+        .before($("<option></option>").attr("value", unit).text(unit));
+      resolved = unit;
+    }
+    return resolved;
+  }
+
+  function syncRowUnitFromProduct($row) {
+    if (!$row || !$row.length) {
+      return;
+    }
+    var meta = getProductMetaForRow($row);
+    var unit = String(meta.unit || "").trim();
+    if (!unit) {
+      return;
+    }
+    var $sel = $row.find(".mk-inv-unit-select").first();
+    if (!$sel.length) {
+      return;
+    }
+    var resolved = ensureUnitOptionOnSelect($sel, unit);
+    if (resolved) {
+      $sel.val(resolved);
+    }
   }
 
   function syncRowStockHint($row, $form) {
@@ -2414,8 +2844,30 @@
     return $amountTd;
   }
 
+  function rowTaxSelectIsActive($row) {
+    if (!$row || !$row.length) {
+      return false;
+    }
+    var active = false;
+    $row.find(".mk-inv-tax-select").each(function () {
+      var $sel = $(this);
+      if (
+        document.activeElement === this ||
+        $sel.data("mkTaxOpen") ||
+        $sel.is(":focus")
+      ) {
+        active = true;
+        return false;
+      }
+    });
+    return active;
+  }
+
   function normalizeModernLineItemRow($row, $form) {
     if (isTemplateLineItemRow($row)) {
+      return;
+    }
+    if (rowTaxSelectIsActive($row)) {
       return;
     }
 
@@ -2473,6 +2925,12 @@
     if (isTemplateLineItemRow($row) || $row.hasClass("mk-inv-section-row")) {
       return;
     }
+    if (!$form || !$form.length) {
+      $form = $row.closest("form");
+    }
+    if (isLineItemRestylePaused($form) || rowTaxSelectIsActive($row)) {
+      return;
+    }
 
     $row.removeData("mkTaxAmountReordered");
 
@@ -2488,6 +2946,7 @@
     if ($unitTd.length) {
       $unitTd.removeClass("mk-inv-hide-legacy");
       injectUnitSelect($row, $unitTd);
+      syncRowUnitFromProduct($row);
     }
 
     ensureModernPriceColumn($row);
@@ -2517,6 +2976,12 @@
 
   function refreshLineItemRow($row, $form) {
     if (!$row || !$row.length || isTemplateLineItemRow($row)) {
+      return;
+    }
+    if (!$form || !$form.length) {
+      $form = $row.closest("form");
+    }
+    if (isLineItemRestylePaused($form) || rowTaxSelectIsActive($row)) {
       return;
     }
     neutralizeLegacyProductInput($row);
@@ -2561,6 +3026,7 @@
     }
     // Never restyle while user is searching/selecting a product or tax — prevents stutter.
     if (
+      isLineItemRestylePaused($form) ||
       isAnyProductSelectOpen($form) ||
       isAnyProductSelectOpen($(document.body)) ||
       isAnyTaxSelectOpen($form) ||
@@ -2596,9 +3062,14 @@
     }
     delays.forEach(function (ms) {
       setTimeout(function () {
-        if ($form.closest("body").length && $form.find("#lineItemTab").length) {
-          restyleLineItemRows($form);
+        if (
+          isLineItemRestylePaused($form) ||
+          !$form.closest("body").length ||
+          !$form.find("#lineItemTab").length
+        ) {
+          return;
         }
+        restyleLineItemRows($form);
       }, ms);
     });
   }
@@ -2608,16 +3079,22 @@
       return;
     }
     $form.data("mkInvDelSync", true);
-    $form.on("click.mkInvDelSync", ".deleteRow", function () {
-      setTimeout(function () {
-        syncLineDeleteVisibility($form);
-        syncCreditTermsVisibility($form);
-      }, 0);
-      setTimeout(function () {
-        syncLineDeleteVisibility($form);
-        syncCreditTermsVisibility($form);
-      }, 120);
-    });
+    $form.on(
+      "pointerdown.mkInvDel",
+      ".mk-inv-line-del, .mk-inv-del-btn",
+      function () {
+        pauseLineItemRestyle($form, 900);
+      },
+    );
+    $form.on(
+      "click.mkInvDelSync",
+      ".mk-inv-line-del, .mk-inv-del-btn, .mk-inv-del-icon",
+      function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        performLineItemDelete($form, $(this));
+      },
+    );
   }
 
   function bindInventoryRestyleHooks($form) {
@@ -2927,9 +3404,7 @@
       .addClass("mk-inv-totals-row mk-inv-totals-row--tax");
     $taxRow
       .find("td:first")
-      .html(
-        '<div class="mk-inv-totals-label">Thuế GTGT ' + safePct + "%</div>",
-      );
+      .html('<div class="mk-inv-totals-label">Thuế GTGT</div>');
     $taxRow.find("#tax_final").addClass("mk-inv-vnd-amount");
   }
 
@@ -3005,6 +3480,9 @@
         _mutTimer = setTimeout(function () {
           _mutTimer = null;
           syncTotalsDisplay($form);
+          if (isAnyTaxSelectOpen($form)) {
+            return;
+          }
           $form.find("tr.lineItemRow").each(function () {
             var $r = $(this);
             syncRowAmounts($r, $form);
@@ -3072,7 +3550,11 @@
           syncRowAmounts($row, $form);
         }
         setTimeout(function () {
-          if (isAnyTaxSelectOpen($form) || isEditingLineField($form)) {
+          if (
+            isLineItemRestylePaused($form) ||
+            isAnyTaxSelectOpen($form) ||
+            isEditingLineField($form)
+          ) {
             syncTotalsDisplay($form);
             return;
           }
@@ -3091,6 +3573,9 @@
           enforceQtyAgainstStock($row, $form, { silent: true });
         }
         scheduleRealtimeSync();
+        if (!$form.data("mkInvApplyingTier")) {
+          scheduleInvoiceTierPricing($form, 220);
+        }
       },
     );
 
@@ -3149,7 +3634,11 @@
           changed = true;
         }
       });
-      if (changed) {
+      if (
+        changed &&
+        !isLineItemRestylePaused($form) &&
+        !isAnyTaxSelectOpen($form)
+      ) {
         scheduleRealtimeSync();
       }
     }, 500);
@@ -3388,6 +3877,11 @@
         .attr("value", id)
         .attr("data-name", displayName)
         .attr("data-price", meta.price || 0)
+        .attr("data-price-lt-1m", meta.price_lt_1m)
+        .attr("data-price-gte-1m", meta.price_gte_1m)
+        .attr("data-price-gte-3m", meta.price_gte_3m)
+        .attr("data-price-gte-5m", meta.price_gte_5m)
+        .attr("data-price-gte-7m", meta.price_gte_7m)
         .attr("data-sku", meta.sku || "")
         .attr("data-unit", meta.unit || "")
         .attr("data-type", meta.type || "")
@@ -3400,6 +3894,36 @@
       $opt
         .attr("data-name", decodeText(meta.name))
         .attr("data-price", meta.price || $opt.attr("data-price") || 0)
+        .attr(
+          "data-price-lt-1m",
+          meta.price_lt_1m != null
+            ? meta.price_lt_1m
+            : $opt.attr("data-price-lt-1m"),
+        )
+        .attr(
+          "data-price-gte-1m",
+          meta.price_gte_1m != null
+            ? meta.price_gte_1m
+            : $opt.attr("data-price-gte-1m"),
+        )
+        .attr(
+          "data-price-gte-3m",
+          meta.price_gte_3m != null
+            ? meta.price_gte_3m
+            : $opt.attr("data-price-gte-3m"),
+        )
+        .attr(
+          "data-price-gte-5m",
+          meta.price_gte_5m != null
+            ? meta.price_gte_5m
+            : $opt.attr("data-price-gte-5m"),
+        )
+        .attr(
+          "data-price-gte-7m",
+          meta.price_gte_7m != null
+            ? meta.price_gte_7m
+            : $opt.attr("data-price-gte-7m"),
+        )
         .attr("data-sku", meta.sku || $opt.attr("data-sku") || "")
         .attr("data-unit", meta.unit || $opt.attr("data-unit") || "")
         .attr("data-type", meta.type || $opt.attr("data-type") || "")
@@ -3425,6 +3949,11 @@
     return {
       name: $opt.attr("data-name") || $opt.text() || "",
       price: $opt.attr("data-price") || 0,
+      price_lt_1m: $opt.attr("data-price-lt-1m"),
+      price_gte_1m: $opt.attr("data-price-gte-1m"),
+      price_gte_3m: $opt.attr("data-price-gte-3m"),
+      price_gte_5m: $opt.attr("data-price-gte-5m"),
+      price_gte_7m: $opt.attr("data-price-gte-7m"),
       sku: $opt.attr("data-sku") || "",
       unit: $opt.attr("data-unit") || "",
       type: $opt.attr("data-type") || "",
@@ -3679,7 +4208,7 @@
     });
   }
 
-  function hasSelectedLineProducts($form) {
+  function hasSelectedServiceLines($form) {
     if (!$form || !$form.length) {
       return false;
     }
@@ -3688,7 +4217,12 @@
       .find("#lineItemTab tr.lineItemRow")
       .not(".hide, .lineItemCloneCopy, #row0")
       .each(function () {
-        if (rowHasSelectedProduct($(this))) {
+        var $row = $(this);
+        if (!rowHasSelectedProduct($row)) {
+          return;
+        }
+        var meta = getProductMetaForRow($row);
+        if (normalizeItemTypeKey(meta.type) === "service") {
           found = true;
           return false;
         }
@@ -3788,7 +4322,8 @@
     if (!$wrap.length) {
       return;
     }
-    var show = hasSelectedLineProducts($form);
+    // Công nợ chỉ áp dụng cho dòng dịch vụ — sản phẩm thường không hiện.
+    var show = hasSelectedServiceLines($form);
     $wrap.toggleClass("mk-inv-credit-terms--visible", show);
     $wrap.attr("aria-hidden", show ? "false" : "true");
     if (!show) {
@@ -3849,6 +4384,96 @@
       $chip.toggleClass("is-active", $chip.attr("data-value") === value);
       $chip.attr("aria-pressed", $chip.attr("data-value") === value ? "true" : "false");
     });
+  }
+
+  function rebuildInvoiceTierSelect($select, currentValue) {
+    $select.empty();
+    INVOICE_TIER_OPTIONS.forEach(function (item) {
+      $select.append(
+        $("<option></option>").attr("value", item.value).text(item.label),
+      );
+    });
+    var resolved =
+      currentValue === "auto" || INVOICE_TIER_FIELDS[currentValue]
+        ? currentValue
+        : "auto";
+    $select.val(resolved);
+    return resolved;
+  }
+
+  function initInvoicePriceTier($form) {
+    var $lineBlock = $form.find(".mk-inv-lineitems-odoo");
+    if (!$lineBlock.length || $lineBlock.data("mkInvPriceTier")) {
+      return;
+    }
+    $lineBlock.data("mkInvPriceTier", true);
+
+    var $container = $lineBlock.find(".lineitemTableContainer");
+    if (!$container.length || $container.find(".mk-inv-price-tier").length) {
+      return;
+    }
+
+    var $existing = $form.find('[name="mk_invoice_price_tier"]').first();
+    var currentValue = String($existing.val() || "auto").trim();
+    if ($existing.length) {
+      $existing.closest("tr").addClass("mk-inv-hide-legacy");
+    }
+
+    var $select;
+    if ($existing.length && $existing.is("select")) {
+      $select = $existing.detach().attr("id", "mkInvInvoicePriceTierSelect");
+    } else {
+      $select = $(
+        '<select name="mk_invoice_price_tier" id="mkInvInvoicePriceTierSelect"></select>',
+      );
+    }
+    currentValue = rebuildInvoiceTierSelect($select, currentValue);
+
+    var chipsHtml = INVOICE_TIER_OPTIONS.map(function (item) {
+      return (
+        '<button type="button" class="mk-inv-tier-chip" data-value="' +
+        $("<div>").text(item.value).html() +
+        '" aria-pressed="false">' +
+        $("<div>").text(item.label).html() +
+        "</button>"
+      );
+    }).join("");
+
+    var $wrap = $(
+      '<div class="mk-inv-price-tier mk-inv-price-tier--modern"></div>',
+    );
+    $wrap.append(
+      '<div class="mk-inv-price-tier__row">' +
+        '<span class="mk-inv-price-tier__icon" aria-hidden="true"></span>' +
+        '<div class="mk-inv-price-tier__content">' +
+        '<div class="mk-inv-price-tier__head">' +
+        '<label class="mk-inv-price-tier__label" for="mkInvInvoicePriceTierSelect">Bảng giá</label>' +
+        '<span class="mk-inv-price-tier__hint">Đơn giá lấy từ Hàng hoá và cập nhật khi tổng đơn thay đổi</span>' +
+        "</div>" +
+        '<div class="mk-inv-price-tier__chips" role="group" aria-label="Bảng giá">' +
+        chipsHtml +
+        "</div>" +
+        '<div class="mk-inv-price-tier__status" aria-live="polite"></div>' +
+        '<div class="mk-inv-price-tier__field--sr"></div>' +
+        "</div></div>",
+    );
+    $wrap.find(".mk-inv-price-tier__field--sr").append($select);
+    $container.prepend($wrap);
+
+    $wrap.on("click", ".mk-inv-tier-chip", function (event) {
+      event.preventDefault();
+      var value = $(this).attr("data-value") || "auto";
+      $select.val(value).trigger("change");
+    });
+    $select.on("change.mkInvPriceTier", function () {
+      applyInvoiceTierPricing($form);
+    });
+
+    var resolved =
+      currentValue === "auto"
+        ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
+        : currentValue;
+    syncInvoiceTierUi($form, currentValue, resolved);
   }
 
   function initPaymentTerms($form) {
@@ -4302,6 +4927,7 @@
       $lineBlock.find("> br").addClass("mk-inv-hide-legacy");
 
       initOdooTabs($lineBlock);
+      initInvoicePriceTier($form);
       initPaymentTerms($form);
       initAddLineButton($form);
       initLineActionLinks();
@@ -4312,6 +4938,7 @@
       loadProductCatalog().always(function () {
         initQuickProductSearch($form);
         scheduleLineItemsRestyle($form, [0, 200, 500]);
+        scheduleInvoiceTierPricing($form, 0);
       });
 
       $form
@@ -4349,6 +4976,8 @@
     }
     initAddressOdoo($form);
     initLineItemsOdoo($form);
+    patchLegacyLineDeleteGuard();
+    syncLineDeleteVisibility($form);
     bindSubmitTotalsGuard($form);
     if (options.hideDescriptionBlock !== false) {
       hideDescriptionBlock($form);
@@ -4363,6 +4992,7 @@
     restyleLineItemRows: restyleLineItemRows,
     scheduleLineItemsRestyle: scheduleLineItemsRestyle,
     initQuickProductSearch: initQuickProductSearch,
+    syncLineDeleteVisibility: syncLineDeleteVisibility,
     syncTotalsDisplay: syncTotalsDisplay,
     refreshTotals: function ($form) {
       initTotalsOdoo($form);

@@ -740,6 +740,99 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-h
 	border-right: 1px solid #e2e8f0 !important;
 }
 
+/* Opportunity reference field — polished lookup UI */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .input-group,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .mk-qt-opp-ref-group {
+	border-radius: 12px !important;
+	border: 1.5px solid #dbe3ef !important;
+	background: #fff !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	overflow: visible !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .input-group:focus-within {
+	border-color: var(--mk-qt-navy) !important;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.12) !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .mk-qt-opp-actions {
+	display: flex !important;
+	align-items: center !important;
+	flex-shrink: 0;
+	gap: 2px;
+	padding: 0 6px;
+	border-left: 1px solid #e2e8f0;
+	background: #f8fafc;
+	border-radius: 0 10px 10px 0;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .clearReferenceSelection {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	margin: 0;
+	border-radius: 8px;
+	color: #64748b !important;
+	font-size: 0 !important;
+	text-decoration: none !important;
+	background: transparent;
+	flex-shrink: 0;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .clearReferenceSelection.hide {
+	display: none !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .clearReferenceSelection::before {
+	content: "×";
+	font-size: 20px;
+	line-height: 1;
+	font-weight: 500;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .clearReferenceSelection:hover {
+	background: #fee2e2;
+	color: #b91c1c !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .input-group-addon {
+	width: 34px !important;
+	height: 34px !important;
+	min-width: 34px;
+	border: none !important;
+	border-left: none !important;
+	border-radius: 8px !important;
+	background: transparent !important;
+	color: #475569 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .relatedPopup,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .createReferenceRecord {
+	color: #475569 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .relatedPopup:hover,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-ref .createReferenceRecord:hover {
+	color: var(--mk-qt-navy) !important;
+	background: #e8eef5 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-field .input-group input.autoComplete {
+	padding-left: 14px !important;
+	padding-right: 8px !important;
+	font-weight: 600;
+	color: #0f172a;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-opp-field .input-group input.autoComplete:disabled {
+	background: transparent !important;
+	color: #0f172a !important;
+	-webkit-text-fill-color: #0f172a;
+	opacity: 1;
+}
+
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .select2-container,
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-block td.fieldValue > .select2-container {
 	width: 100% !important;

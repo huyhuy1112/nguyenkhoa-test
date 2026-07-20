@@ -446,7 +446,10 @@
 			if (fname === 'productsservicesname' || fname === 'sku') {
 				$field.addClass('mk-ps-compact-field--hero');
 			}
-			if (fname === 'price' || fname === 'wholesale_price') {
+			if (fname === 'price' || fname === 'wholesale_price'
+				|| fname === 'price_lt_1m' || fname === 'price_gte_1m'
+				|| fname === 'price_gte_3m' || fname === 'price_gte_5m'
+				|| fname === 'price_gte_7m') {
 				$field.addClass('mk-ps-compact-field--money');
 			}
 			if (fname === 'specification' || fname === 'description') {

@@ -8,16 +8,45 @@
  * All Rights Reserved.
  *************************************************************************************/
 class Quotes_Save_Action extends Inventory_Save_Action {
-	protected function normalizeOpportunityNameForQuoteSubject($name) {
-		$name = trim((string) $name);
-		// remove leading YYMMDD- (e.g. 260313-)
-		$name = preg_replace('/^\d{6}-/', '', $name);
-		$name = trim($name);
-		if ($name === '') return '';
-		if (!preg_match('/^TDB Quo-/i', $name)) {
-			$name = 'TDB Quo-' . $name;
+	/**
+	 * Resolve customer display name for quote subject from Opportunity.
+	 * Prefer Account (related_to), then Contact.
+	 */
+	protected function resolveCustomerNameFromPotentialId($potentialId) {
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			return '';
 		}
-		return $name;
+		try {
+			$potential = Vtiger_Record_Model::getInstanceById($potentialId, 'Potentials');
+			if (!$potential) {
+				return '';
+			}
+			$accountId = (int) $potential->get('related_to');
+			if ($accountId > 0) {
+				$account = Vtiger_Record_Model::getInstanceById($accountId, 'Accounts');
+				if ($account) {
+					$name = trim((string) $account->get('accountname'));
+					if ($name === '') {
+						$name = trim((string) $account->getName());
+					}
+					if ($name !== '') {
+						return $name;
+					}
+				}
+			}
+			require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+			$contactId = (int) $potential->get('contact_id');
+			if ($contactId <= 0) {
+				$contactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId($potentialId);
+			}
+			if ($contactId > 0) {
+				return trim((string) Vtiger_MkSalesCustomerName_Helper::readContactNameById($contactId));
+			}
+		} catch (Exception $e) {
+			return '';
+		}
+		return '';
 	}
 
 	protected function getRecordModelFromRequest(Vtiger_Request $request) {
@@ -31,26 +60,18 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 	}
 
 	public function saveRecord($request) {
-		// Auto-fill subject from Opportunity name if subject is empty.
-		// This does not change any inventory/tax math; it only ensures a consistent Quote subject.
+		$potentialId = (int) $request->get('potential_id');
+		if ($potentialId <= 0) {
+			throw new AppException('Vui lòng chọn Tên Cơ hội trước khi lưu báo giá.');
+		}
+
+		// Auto-fill subject (Tên khách hàng / quote title) from Opportunity customer.
 		try {
 			$subject = trim((string) $request->get('subject'));
 			if ($subject === '') {
-				$potentialId = (int) $request->get('potential_id');
-				if ($potentialId > 0) {
-					$potential = Vtiger_Record_Model::getInstanceById($potentialId, 'Potentials');
-					$oppName = '';
-					if ($potential) {
-						// In vtiger, Opportunity name field is typically "potentialname"
-						$oppName = (string) $potential->get('potentialname');
-						if ($oppName === '') {
-							$oppName = (string) $potential->getName();
-						}
-					}
-					$oppName = $this->normalizeOpportunityNameForQuoteSubject($oppName);
-					if ($oppName !== '') {
-						$request->set('subject', $oppName);
-					}
+				$customerName = $this->resolveCustomerNameFromPotentialId($potentialId);
+				if ($customerName !== '') {
+					$request->set('subject', $customerName);
 				}
 			}
 		} catch (Exception $e) {
@@ -59,7 +80,6 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 
 		try {
 			$contactId = (int) $request->get('contact_id');
-			$potentialId = (int) $request->get('potential_id');
 			if ($contactId <= 0 && $potentialId > 0) {
 				require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
 				$potContactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId($potentialId);

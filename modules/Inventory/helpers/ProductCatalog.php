@@ -14,9 +14,16 @@ class Inventory_ProductCatalog_Helper {
 
 		$hasUnit = self::columnExists($db, 'vtiger_productsservices', 'unit');
 		$unitCol = $hasUnit ? ', ps.unit' : '';
+		$tierCols = array();
+		foreach (array('price_lt_1m', 'price_gte_1m', 'price_gte_3m', 'price_gte_5m', 'price_gte_7m') as $col) {
+			if (self::columnExists($db, 'vtiger_productsservices', $col)) {
+				$tierCols[] = 'ps.' . $col;
+			}
+		}
+		$tierSelect = $tierCols ? (', ' . implode(', ', $tierCols)) : '';
 
 		$rs = $db->pquery(
-			"SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku{$unitCol}
+			"SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku{$unitCol}{$tierSelect}
 			 FROM vtiger_productsservices ps
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 			 ORDER BY ps.productsservicesname ASC
@@ -42,7 +49,7 @@ class Inventory_ProductCatalog_Helper {
 				$unit = Warehouse_Stock_Helper::decodeDisplayText($unit);
 			}
 			$ids[] = $id;
-			$out[] = array(
+			$item = array(
 				'id' => $id,
 				'name' => $name,
 				'price' => (float) (isset($row['price']) ? $row['price'] : 0),
@@ -52,7 +59,13 @@ class Inventory_ProductCatalog_Helper {
 				'stock' => 0.0,
 				'qty_po' => 0.0,
 				'qty_so' => 0.0,
+				'price_lt_1m' => isset($row['price_lt_1m']) ? (float) $row['price_lt_1m'] : null,
+				'price_gte_1m' => isset($row['price_gte_1m']) ? (float) $row['price_gte_1m'] : null,
+				'price_gte_3m' => isset($row['price_gte_3m']) ? (float) $row['price_gte_3m'] : null,
+				'price_gte_5m' => isset($row['price_gte_5m']) ? (float) $row['price_gte_5m'] : null,
+				'price_gte_7m' => isset($row['price_gte_7m']) ? (float) $row['price_gte_7m'] : null,
 			);
+			$out[] = $item;
 		}
 
 		$stockMap = self::mapWarehouseStock($db, $ids);
