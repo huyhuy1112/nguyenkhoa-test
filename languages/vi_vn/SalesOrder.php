@@ -94,5 +94,5 @@ $languageStrings = array(
 );
 
 $jsLanguageStrings = array(
-"JS_PLEASE_REMOVE_LINE_ITEM_THAT_IS_DELETED" => "Please remove line item that is deleted",
+"JS_PLEASE_REMOVE_LINE_ITEM_THAT_IS_DELETED" => "Vui lòng xóa mục đã bị xóa khỏi hệ thống",
 );

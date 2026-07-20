@@ -427,13 +427,28 @@
     var list = $("mk-td-tags-list");
     if (!list) return;
 
+    function displayTagText(tag) {
+      tag = String(tag || "").trim();
+      if (!tag) return "";
+      if (tag === "individual" || tag === "ca_nhan") return "#cá nhân";
+      if (tag === "company") return "#doanh nghiệp";
+      return "#" + tag;
+    }
+
     var tags = collectTags();
     if (!tags.length) {
       list.innerHTML = '<span class="mk-td-tag-pill mk-td-tag-pill--empty">Chưa có tag</span>';
     } else {
       list.innerHTML = tags
         .map(function (t) {
-          return '<span class="mk-td-tag-pill" data-tag="' + t + '">#' + t + "</span>";
+          var label = displayTagText(t);
+          return (
+            '<span class="mk-td-tag-pill" data-tag="' +
+            esc(t) +
+            '">' +
+            esc(label) +
+            "</span>"
+          );
         })
         .join("");
     }

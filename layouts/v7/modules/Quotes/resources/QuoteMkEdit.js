@@ -257,7 +257,7 @@
 				'<div class="modal-dialog modal-lg mk-qt-terms-modal-dialog" role="document">' +
 				'<div class="modal-content mk-qt-terms-modal-content">' +
 				'<div class="modal-header">' +
-				'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+				'<button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
 				'<h4 class="modal-title" id="' +
 				TERMS_MODAL_ID +
 				'Label">Ghi chú</h4>' +
@@ -708,8 +708,8 @@
 					'<input id="contact_id_display" name="contact_id_display" data-fieldname="contact_id" data-fieldtype="reference" type="text" ' +
 						'class="marginLeftZero autoComplete inputElement" value="" placeholder="Nhập để tìm kiếm"/>' +
 					'<a href="#" class="clearReferenceSelection hide" tabindex="-1"> x </a>' +
-					'<span class="input-group-addon relatedPopup cursorPointer" title="Select"><i class="fa fa-search"></i></span>' +
-					'<span class="input-group-addon createReferenceRecord cursorPointer clearfix" title="Create"><i class="fa fa-plus"></i></span>' +
+					'<span class="input-group-addon relatedPopup cursorPointer" title="Tìm kiếm"><i class="fa fa-search"></i></span>' +
+					'<span class="input-group-addon createReferenceRecord cursorPointer clearfix" title="Tạo mới"><i class="fa fa-plus"></i></span>' +
 				'</div>' +
 			'</div>'
 		);

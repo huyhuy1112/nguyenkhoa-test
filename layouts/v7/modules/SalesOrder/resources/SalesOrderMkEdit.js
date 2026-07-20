@@ -525,7 +525,7 @@
 				'<div class="modal-dialog modal-lg mk-so-terms-modal-dialog" role="document">' +
 				'<div class="modal-content mk-so-terms-modal-content">' +
 				'<div class="modal-header">' +
-				'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+				'<button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
 				'<h4 class="modal-title" id="' +
 				TERMS_MODAL_ID +
 				'Label">Điều khoản &amp; điều kiện</h4>' +

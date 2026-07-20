@@ -64,6 +64,23 @@
   var PURCHASE_TAGS = ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"];
   var TIER_TAGS = ["vang", "bac", "dong"];
 
+  // Customer type tags (used across Leads/Leads UI + inline tags).
+  // Keep canonical keys as stored in CRM tags.
+  TAG_META_RAW["individual"] = {
+    vi: "Cá nhân",
+    en: "Individual",
+    cat: "customer-type",
+    cls: "mk-tag--individual",
+  };
+  TAG_META_RAW["company"] = {
+    vi: "Doanh nghiệp",
+    en: "Company",
+    cat: "customer-type",
+    cls: "mk-tag--company",
+  };
+  // Some flows may store normalized Vietnamese keys.
+  TAG_META_RAW["ca_nhan"] = TAG_META_RAW["individual"];
+
   var PRESET_SEGMENTS = [
     { id: "new", nameVi: "Khách mới", nameEn: "New customers", filters: { purchase: "mua_lan_dau" } },
     { id: "gold", nameVi: "Khách vàng", nameEn: "Gold customers", filters: { tier: "vang" } },

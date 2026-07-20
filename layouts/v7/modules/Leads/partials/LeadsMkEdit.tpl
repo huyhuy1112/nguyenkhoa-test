@@ -11,26 +11,26 @@
 <div class="mk-td-create" id="mk-td-create" data-record-id="{$MK_LEAD_RECORD_ID|escape:'html'}"{if $MK_IS_EDIT} data-mode="edit"{/if}>
 	<header class="mk-td-create__head">
 		<nav class="mk-td-create__crumb" aria-label="Breadcrumb">
-			<a href="{$MK_LIST_URL}">Leads</a>
+			<a href="{$MK_LIST_URL}">Khách hàng tiềm năng</a>
 			<span class="mk-td-create__crumb-sep">/</span>
 			{if $MK_IS_EDIT}
 				<a href="{$MK_DETAIL_URL}" id="mk-td-crumb-record">{$MK_LEAD_RECORD_ID|escape}</a>
 				<span class="mk-td-create__crumb-sep">/</span>
-				<span>Edit</span>
+				<span>Chỉnh sửa</span>
 			{else}
-				<span>New</span>
+				<span>Mới</span>
 			{/if}
 		</nav>
 		<div class="mk-td-create__head-row">
 			<div>
-				<h1 class="mk-td-create__title">{if $MK_IS_EDIT}Edit Lead{else}Create Lead{/if}</h1>
+				<h1 class="mk-td-create__title">{if $MK_IS_EDIT}Chỉnh sửa khách hàng tiềm năng{else}Tạo khách hàng tiềm năng{/if}</h1>
 				<p class="mk-td-create__subtitle">Mỗi lựa chọn sẽ tự động gắn tag để hệ thống chạy đúng workflow, journey &amp; script bán hàng.</p>
 			</div>
 			<div class="mk-td-create__head-actions">
-				<a class="mk-td-btn mk-td-btn--ghost" href="{$MK_CANCEL_URL}">Cancel</a>
+				<a class="mk-td-btn mk-td-btn--ghost" href="{$MK_CANCEL_URL}">Hủy</a>
 				<button type="button" class="mk-td-btn mk-td-btn--dark" id="mk-td-save-top">
 					<span class="mk-td-btn__ic" aria-hidden="true">💾</span>
-					{if $MK_IS_EDIT}Save Changes{else}Save Lead{/if}
+					{if $MK_IS_EDIT}Lưu thay đổi{else}Lưu khách hàng tiềm năng{/if}
 				</button>
 			</div>
 		</div>
@@ -42,19 +42,19 @@
 				<header class="mk-td-card__head">
 					<span class="mk-td-card__num">00</span>
 					<div>
-						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">👤</span> Customer Type</h2>
+						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">👤</span> Loại khách</h2>
 						<p class="mk-td-card__desc">Cá nhân hay Doanh nghiệp — gắn tag <code>individual</code> / <code>company</code></p>
 					</div>
 				</header>
 				<div class="mk-td-card__body">
-					<div class="mk-td-choice-row mk-td-choice-row--2" role="group" aria-label="Customer type">
+					<div class="mk-td-choice-row mk-td-choice-row--2" role="group" aria-label="Loại khách">
 						<button type="button" class="mk-td-choice is-on" data-tag="individual" data-group="customer-type" data-value="individual">
 							<span class="mk-td-choice__ico">👤</span>
-							<span class="mk-td-choice__label">Individual</span>
+							<span class="mk-td-choice__label">Cá nhân</span>
 						</button>
 						<button type="button" class="mk-td-choice" data-tag="company" data-group="customer-type" data-value="company">
 							<span class="mk-td-choice__ico">🏢</span>
-							<span class="mk-td-choice__label">Company</span>
+							<span class="mk-td-choice__label">Doanh nghiệp</span>
 						</button>
 					</div>
 					<div id="mk-td-company-panel" class="mk-td-company-panel" hidden>
@@ -144,12 +144,12 @@
 				<header class="mk-td-card__head">
 					<span class="mk-td-card__num">02</span>
 					<div>
-						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">◎</span> Lead Source</h2>
+						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">◎</span> Nguồn lead</h2>
 						<p class="mk-td-card__desc"><strong>QUAN TRỌNG NHẤT</strong> — quyết định kênh</p>
 					</div>
 				</header>
 				<div class="mk-td-card__body">
-					<div class="mk-td-choice-row mk-td-choice-row--5" role="group" aria-label="Lead source">
+					<div class="mk-td-choice-row mk-td-choice-row--5" role="group" aria-label="Nguồn lead">
 						<button type="button" class="mk-td-choice mk-td-choice--tile" data-tag="facebook" data-group="lead-source" data-value="facebook">
 							<span class="mk-td-choice__ico">f</span>
 							<span class="mk-td-choice__label">Facebook</span>
@@ -340,12 +340,12 @@
 				<header class="mk-td-card__head">
 					<span class="mk-td-card__num">05</span>
 					<div>
-						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">🛍</span> Purchase Status</h2>
+						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">🛍</span> Tình trạng mua</h2>
 						<p class="mk-td-card__desc">Xương sống của flow</p>
 					</div>
 				</header>
 				<div class="mk-td-card__body">
-					<div class="mk-td-choice-row mk-td-choice-row--4" role="group" aria-label="Purchase status">
+					<div class="mk-td-choice-row mk-td-choice-row--4" role="group" aria-label="Tình trạng mua">
 						<button type="button" class="mk-td-choice mk-td-choice--wide" data-tag="mua_lan_dau" data-group="purchase-status" data-value="first">Mua lần đầu</button>
 						<button type="button" class="mk-td-choice mk-td-choice--wide" data-tag="mua_lai" data-group="purchase-status" data-value="repeat">Mua lại</button>
 						<button type="button" class="mk-td-choice mk-td-choice--wide" data-tag="khong_mua" data-group="purchase-status" data-value="not" data-needs-reason="1">Không mua</button>
@@ -363,12 +363,12 @@
 				<header class="mk-td-card__head">
 					<span class="mk-td-card__num">06</span>
 					<div>
-						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">👑</span> Customer Tier</h2>
+						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">👑</span> Hạng khách</h2>
 						<p class="mk-td-card__desc">Vàng / Bạc / Đồng</p>
 					</div>
 				</header>
 				<div class="mk-td-card__body">
-					<div class="mk-td-choice-row mk-td-choice-row--3" role="group" aria-label="Customer tier">
+					<div class="mk-td-choice-row mk-td-choice-row--3" role="group" aria-label="Hạng khách">
 						<button type="button" class="mk-td-choice mk-td-choice--tier" data-tag="vang" data-group="customer-tier" data-value="gold">
 							<span class="mk-td-tier-ic mk-td-tier-ic--gold">👑</span>
 							<span class="mk-td-choice__label">Vàng</span>
@@ -398,7 +398,7 @@
 				</header>
 				<p class="mk-td-tags-panel__desc">Tự động sinh từ các lựa chọn ở form. Đây là đầu vào duy nhất của workflow CRM.</p>
 				<div class="mk-td-tags-panel__list" id="mk-td-tags-list">
-					<span class="mk-td-tag-pill" data-tag="individual">#individual</span>
+					<span class="mk-td-tag-pill" data-tag="individual">#cá nhân</span>
 				</div>
 			</div>
 		</aside>
