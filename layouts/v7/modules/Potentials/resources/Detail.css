@@ -976,7 +976,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	grid-template-columns: minmax(320px, 1fr) minmax(0, 2fr);
 	grid-template-areas:
 		"key activities"
-		"key comments"
+		"key interaction-log"
 		"key contacts"
 		"key service-contracts"
 		"key documents"
@@ -989,9 +989,9 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__key       { grid-area: key; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__activities{ grid-area: activities; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__interaction-log { grid-area: interaction-log; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__service-contracts { grid-area: service-contracts; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__documents { grid-area: documents; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__comments  { grid-area: comments; align-self: start; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__products  { grid-area: products; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-grid__contacts  { grid-area: contacts; align-self: start; }
 
@@ -1001,7 +1001,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 		grid-template-areas:
 			"key"
 			"activities"
-			"comments"
+			"interaction-log"
 			"contacts"
 			"service-contracts"
 			"documents"
@@ -3714,4 +3714,174 @@ body[data-module="Potentials"] #mk-opp-section-purchases {
 .myModal .mk-opp-tags-modal .tag .tagLabel,
 .modal .mk-opp-tags-modal .tag .tagLabel {
 	max-width: 200px;
+}
+
+/* Interaction log + Call customer (Opp detail) */
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-interaction-log__head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-interaction-log__ic {
+	font-size: 16px;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-interaction-log__hint {
+	margin: 0 16px 10px;
+	font-size: 12px;
+	color: #64748b;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-interaction-log__body {
+	padding: 0 16px 16px;
+	max-height: 420px;
+	overflow-y: auto;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-interaction-log__empty {
+	margin: 0;
+	padding: 12px 0;
+	color: #94a3b8;
+	font-size: 13px;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border-left: 2px solid #e2e8f0;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__item {
+	position: relative;
+	padding: 0 0 14px 16px;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__item:last-child {
+	padding-bottom: 0;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__dot {
+	position: absolute;
+	left: -6px;
+	top: 4px;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: #94a3b8;
+	border: 2px solid #fff;
+	box-shadow: 0 0 0 1px #e2e8f0;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__item--call .mk-opp-ilog__dot { background: #16a34a; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__item--stage .mk-opp-ilog__dot { background: #7c3aed; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__item--meeting .mk-opp-ilog__dot { background: #2563eb; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__item--note .mk-opp-ilog__dot { background: #f59e0b; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 10px;
+	align-items: center;
+	margin-bottom: 2px;
+	font-size: 11px;
+	color: #64748b;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__stage {
+	display: inline-flex;
+	padding: 1px 8px;
+	border-radius: 999px;
+	font-weight: 600;
+	background: #f1f5f9;
+	color: #475569;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__stage--lead { background: #ecfdf5; color: #047857; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__stage--opportunity { background: #ede9fe; color: #6d28d9; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__title {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: #0f172a;
+	line-height: 1.35;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-ilog__text {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: #64748b;
+	white-space: pre-wrap;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-contact-call {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: 8px;
+	padding: 2px 8px;
+	border-radius: 999px;
+	border: 1px solid #bbf7d0;
+	background: #f0fdf4;
+	color: #15803d;
+	font-size: 11px;
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: none;
+	vertical-align: middle;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opp-contact-call:hover {
+	background: #dcfce7;
+	color: #166534;
+	text-decoration: none;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] #mkOppCallCustomerBtn.mk-opportunity-detail-btn--primary {
+	background: #16a34a !important;
+	border-color: #16a34a !important;
+	color: #fff !important;
+}
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] #mkOppCallCustomerBtn.mk-opportunity-detail-btn--primary:hover {
+	background: #15803d !important;
+}
+.mk-opp-call-modal-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 10050;
+	background: rgba(15, 23, 42, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+}
+.mk-opp-call-modal {
+	width: 100%;
+	max-width: 420px;
+	background: #fff;
+	border-radius: 14px;
+	box-shadow: 0 20px 48px rgba(15, 23, 42, 0.2);
+	overflow: hidden;
+}
+.mk-opp-call-modal__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 16px;
+	border-bottom: 1px solid #e2e8f0;
+}
+.mk-opp-call-modal__head h3 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+}
+.mk-opp-call-modal__body {
+	padding: 16px;
+}
+.mk-opp-call-modal__label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #475569;
+}
+.mk-opp-call-modal__body select,
+.mk-opp-call-modal__body textarea {
+	width: 100%;
+	margin-bottom: 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 8px 10px;
+	font-size: 13px;
+}
+.mk-opp-call-modal__foot {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 12px 16px 16px;
 }

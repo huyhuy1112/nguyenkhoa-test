@@ -18,9 +18,10 @@
 			<ul class="mk-contact-class-panel__list">
 				{if isset($CLASS_REG.logs) && $CLASS_REG.logs|@count gt 0}
 					{foreach from=$CLASS_REG.logs item=REG_LOG}
-						<li class="mk-contact-class-panel__item{if !empty($REG_LOG.is_retake)} is-retake{/if}" data-id="{$REG_LOG.id|escape}" data-kind="{$REG_LOG.kind|default:'register'|escape}">
+						<li class="mk-contact-class-panel__item{if !empty($REG_LOG.is_retake)} is-retake{/if}" data-id="{$REG_LOG.id|escape}" data-kind="{$REG_LOG.kind|default:'register'|escape}" data-class-code="{$REG_LOG.class_code|default:'mqbb'|escape}">
 							<div class="mk-contact-class-panel__item-main">
 								<span class="mk-contact-class-panel__n{if !empty($REG_LOG.is_retake)} is-retake{/if}">{if !empty($REG_LOG.badge)}{$REG_LOG.badge|escape}{else}Lần {$REG_LOG.n|escape}{/if}</span>
+								<span class="mk-contact-class-panel__class-tag">{$REG_LOG.class_label|default:'MQBB'|escape}</span>
 								<span class="mk-contact-class-panel__text">{$REG_LOG.label|escape}</span>
 							</div>
 							{if !empty($REG_LOG.show_retake_btn)}
@@ -56,6 +57,15 @@
 			{/if}
 			{if !isset($CLASS_REG.can_add) || !empty($CLASS_REG.can_add)}
 				<div class="mk-contact-class-panel__add">
+					<select class="mk-contact-class-panel__select mk-contact-class-panel__class-select inputElement" name="class_code" aria-label="Chọn lớp học">
+						{foreach from=$CLASS_REG.class_options|default:[] item=OPT}
+							<option value="{$OPT.code|escape}">{$OPT.label|escape}</option>
+						{/foreach}
+						{if empty($CLASS_REG.class_options)}
+							<option value="mqbb">MQBB</option>
+							<option value="pcth">PCTH</option>
+						{/if}
+					</select>
 					<input type="date"
 						class="mk-contact-class-panel__date mk-contact-class-panel__register-date inputElement"
 						{if !empty($CLASS_REG.date_min)}min="{$CLASS_REG.date_min|escape}"{/if}
@@ -63,7 +73,7 @@
 						aria-label="Chọn ngày đăng ký học" />
 					<button type="button" class="mk-contact-class-panel__btn mk-contact-class-panel__btn--outline mk-contact-class-panel__add-btn">
 						<i class="fa fa-plus" aria-hidden="true"></i>
-						<span>{if empty($CLASS_REG.first_on)}Thêm đăng ký{else}Đăng ký lần mới{/if}</span>
+						<span>Thêm đăng ký</span>
 					</button>
 				</div>
 			{/if}

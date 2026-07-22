@@ -15,7 +15,7 @@
 
 	function refreshRelatedBadges() {
 		var nodes = document.querySelectorAll(
-			'.mk-contact-detail-related-tabs li[data-module] > a .numberCircle'
+			'.mk-contact-detail-related-tabs li[data-module] > a .numberCircle, .mk-contact-related-icons-row li[data-module] > a .numberCircle'
 		);
 		for (var i = 0; i < nodes.length; i++) {
 			var el = nodes[i];
@@ -48,13 +48,90 @@
 	function apiPost(data, done) {
 		if (typeof app !== 'undefined' && app.request && app.request.post) {
 			app.request.post({ data: data }).then(function (err, res) {
-				done(err, res);
+				if (err) {
+					done(err, null);
+					return;
+				}
+				if (res && res.success === false) {
+					done((res.error && res.error.message) || res.error || res, res);
+					return;
+				}
+				done(null, res);
 			});
 			return;
 		}
 		$.ajax({ url: 'index.php', type: 'POST', dataType: 'json', data: data })
-			.done(function (r) { done(null, r && r.result ? r.result : r); })
-			.fail(function () { done({ message: 'Không kết nối được máy chủ.' }, null); });
+			.done(function (r) {
+				if (r && r.success === false) {
+					done((r.error && r.error.message) || r.error || r, null);
+					return;
+				}
+				done(null, r && r.result ? r.result : r);
+			})
+			.fail(function (xhr) {
+				done({ message: xhr && xhr.responseText ? xhr.responseText : 'Không kết nối được máy chủ.' }, null);
+			});
+	}
+
+	function decodeEntities(s) {
+		if (s == null || s === '') return '';
+		var str = String(s);
+		if (str.indexOf('&') === -1) return str;
+		var ta = document.createElement('textarea');
+		ta.innerHTML = str;
+		var once = ta.value;
+		if (once.indexOf('&') !== -1) {
+			ta.innerHTML = once;
+			return ta.value;
+		}
+		return once;
+	}
+
+	function setCredentialSelect($select, value) {
+		if (!$select || !$select.length) return;
+		var v = decodeEntities(value == null ? '' : String(value));
+		if (!v) return;
+		if ($select.find('option').filter(function () {
+			return decodeEntities($(this).val()) === v;
+		}).length) {
+			$select.find('option').each(function () {
+				if (decodeEntities($(this).val()) === v) {
+					$select.val($(this).val());
+					return false;
+				}
+			});
+			return;
+		}
+		$select.val(v);
+	}
+
+	function applyCredentialState($panel, creds) {
+		if (!$panel.length || !creds) return;
+		setCredentialSelect($panel.find('[name="da_cap_bang"]'), creds.da_cap_bang);
+		setCredentialSelect($panel.find('[name="da_cap_tai_khoan"]'), creds.da_cap_tai_khoan);
+	}
+
+	function getSelectedClassCode($panel) {
+		var $sel = $panel.find('.mk-contact-class-panel__class-select, [name="class_code"]').first();
+		return String($sel.val() || 'mqbb').trim() || 'mqbb';
+	}
+
+	function applyRegisterDateMin($panel, summary) {
+		var $date = $panel.find('.mk-contact-class-panel__register-date').first();
+		if (!$date.length) return;
+		var code = getSelectedClassCode($panel);
+		var byClass = (summary && summary.by_class) || {};
+		var meta = byClass[code] || {};
+		if (meta.date_min) {
+			$date.attr('min', meta.date_min);
+		} else {
+			$date.removeAttr('min');
+		}
+		if (meta.date_max) {
+			$date.attr('max', meta.date_max);
+		} else {
+			$date.removeAttr('max');
+		}
 	}
 
 	function renderClassReg($panel, summary) {
@@ -70,8 +147,6 @@
 		}
 		$rights.text(summary.rights_label || '');
 		$rights.toggleClass('is-active', !!summary.retake_available);
-		$rights.toggleClass('is-expired', !!summary.first_on && !summary.retake_available && !summary.retake_used && !!summary.until_on);
-		$rights.toggleClass('is-used', !!summary.retake_used);
 
 		var $hint = $panel.find('.mk-contact-class-panel__hint');
 		if (!$hint.length) {
@@ -88,13 +163,16 @@
 			$list.html(logs.map(function (log) {
 				var badge = log.badge || ('Lần ' + (log.n || ''));
 				var retakeClass = log.is_retake ? ' is-retake' : '';
+				var classCode = log.class_code || 'mqbb';
+				var classLabel = log.class_label || classCode.toUpperCase();
 				var btn = log.show_retake_btn
-					? '<button type="button" class="mk-contact-class-panel__btn mk-contact-class-panel__btn--retake mk-contact-class-panel__retake-open" title="Chọn ngày học lại">' +
+					? '<button type="button" class="mk-contact-class-panel__btn mk-contact-class-panel__btn--retake mk-contact-class-panel__retake-open" data-class-code="' + classCode + '" title="Chọn ngày học lại lớp ' + classLabel + '">' +
 						'<i class="fa fa-refresh" aria-hidden="true"></i><span>Học lại</span></button>'
 					: '';
-				return '<li class="mk-contact-class-panel__item' + retakeClass + '" data-id="' + (log.id || '') + '" data-kind="' + (log.kind || 'register') + '">' +
+				return '<li class="mk-contact-class-panel__item' + retakeClass + '" data-id="' + (log.id || '') + '" data-kind="' + (log.kind || 'register') + '" data-class-code="' + classCode + '">' +
 					'<div class="mk-contact-class-panel__item-main">' +
 					'<span class="mk-contact-class-panel__n' + retakeClass + '">' + $('<div/>').text(badge).html() + '</span>' +
+					'<span class="mk-contact-class-panel__class-tag">' + $('<div/>').text(classLabel).html() + '</span>' +
 					'<span class="mk-contact-class-panel__text">' + $('<div/>').text(log.label || '').html() + '</span>' +
 					'</div>' + btn +
 					'</li>';
@@ -102,64 +180,42 @@
 		}
 
 		var $retakeForm = $panel.find('[data-retake-form="1"]');
-		if (summary.retake_available) {
-			if (!$retakeForm.length) {
-				$retakeForm = $(
-					'<div class="mk-contact-class-panel__retake-form hide" data-retake-form="1">' +
-						'<label class="mk-contact-class-panel__retake-label">Chọn ngày Học lại lần 1</label>' +
-						'<div class="mk-contact-class-panel__retake-row">' +
-						'<input type="date" class="mk-contact-class-panel__date mk-contact-class-panel__retake-date inputElement" aria-label="Chọn ngày học lại" />' +
-						'<button type="button" class="mk-contact-class-panel__btn mk-contact-class-panel__btn--retake mk-contact-class-panel__retake-save">' +
-						'<i class="fa fa-check" aria-hidden="true"></i><span>Lưu học lại</span></button>' +
-						'<button type="button" class="mk-contact-class-panel__btn mk-contact-class-panel__btn--outline mk-contact-class-panel__retake-cancel"><span>Hủy</span></button>' +
-						'</div></div>'
-				);
-				$list.after($retakeForm);
-			}
-			$retakeForm.addClass('hide');
-			var $rDate = $retakeForm.find('.mk-contact-class-panel__retake-date');
-			if (summary.retake_date_min) {
-				$rDate.attr('min', summary.retake_date_min);
-			} else {
-				$rDate.removeAttr('min');
-			}
-			if (summary.retake_date_max) {
-				$rDate.attr('max', summary.retake_date_max);
-			} else {
-				$rDate.removeAttr('max');
-			}
-			$rDate.val('');
-		} else {
-			$retakeForm.remove();
+		if (!$retakeForm.length) {
+			$retakeForm = $(
+				'<div class="mk-contact-class-panel__retake-form hide" data-retake-form="1" data-class-code="">' +
+					'<label class="mk-contact-class-panel__retake-label">Chọn ngày Học lại</label>' +
+					'<div class="mk-contact-class-panel__retake-row">' +
+					'<input type="date" class="mk-contact-class-panel__date mk-contact-class-panel__retake-date inputElement" aria-label="Chọn ngày học lại" />' +
+					'<button type="button" class="mk-contact-class-panel__btn mk-contact-class-panel__btn--retake mk-contact-class-panel__retake-save">' +
+					'<i class="fa fa-check" aria-hidden="true"></i><span>Lưu học lại</span></button>' +
+					'<button type="button" class="mk-contact-class-panel__btn mk-contact-class-panel__btn--outline mk-contact-class-panel__retake-cancel"><span>Hủy</span></button>' +
+					'</div></div>'
+			);
+			$list.after($retakeForm);
 		}
+		$retakeForm.addClass('hide').attr('data-class-code', '');
 
 		var $add = $panel.find('.mk-contact-class-panel__add');
-		var $date = $panel.find('.mk-contact-class-panel__register-date');
-		if (!$date.length) {
-			$date = $panel.find('.mk-contact-class-panel__add .mk-contact-class-panel__date').first();
-		}
 		if (summary.can_add === false) {
 			$add.hide();
 		} else {
 			$add.show();
-			if (summary.date_min) {
-				$date.attr('min', summary.date_min);
-			} else {
-				$date.removeAttr('min');
+			var $classSel = $add.find('.mk-contact-class-panel__class-select');
+			if ($classSel.length && summary.class_options && summary.class_options.length) {
+				var current = $classSel.val() || 'mqbb';
+				$classSel.html(summary.class_options.map(function (opt) {
+					return '<option value="' + opt.code + '">' + $('<div/>').text(opt.label).html() + '</option>';
+				}).join(''));
+				if ($classSel.find('option[value="' + current + '"]').length) {
+					$classSel.val(current);
+				}
 			}
-			if (summary.date_max) {
-				$date.attr('max', summary.date_max);
-			} else {
-				$date.removeAttr('max');
-			}
-			$date.val('');
-			$add.find('.mk-contact-class-panel__add-btn span').text(
-				summary.first_on ? 'Đăng ký lần mới' : 'Thêm đăng ký'
-			);
+			applyRegisterDateMin($panel, summary);
+			$panel.find('.mk-contact-class-panel__register-date').val('');
 		}
 	}
 
-	function postClassReg($panel, recordId, dateVal, kind, okMsg, $busyBtn) {
+	function postClassReg($panel, recordId, dateVal, kind, classCode, okMsg, $busyBtn) {
 		if ($busyBtn && $busyBtn.length) {
 			$busyBtn.prop('disabled', true);
 		}
@@ -169,7 +225,8 @@
 			mode: 'class_reg_add',
 			record: recordId,
 			registered_on: dateVal,
-			entry_kind: kind || 'register'
+			entry_kind: kind || 'register',
+			class_code: classCode || getSelectedClassCode($panel)
 		}, function (err, res) {
 			if ($busyBtn && $busyBtn.length) {
 				$busyBtn.prop('disabled', false);
@@ -213,18 +270,47 @@
 				$date.focus();
 				return;
 			}
-			postClassReg($panel, recordId, dateVal, 'register', 'Đã ghi nhận đăng ký học.', $btn);
+			var classCode = getSelectedClassCode($panel);
+			postClassReg($panel, recordId, dateVal, 'register', classCode, 'Đã ghi nhận đăng ký học.', $btn);
+		});
+
+		$panel.off('change.mkClassReg').on('change.mkClassReg', '.mk-contact-class-panel__class-select', function () {
+			var summary = $panel.data('mkClassRegSummary');
+			applyRegisterDateMin($panel, summary);
+			$panel.find('.mk-contact-class-panel__register-date').val('');
 		});
 
 		$panel.on('click.mkClassReg', '.mk-contact-class-panel__retake-open', function (e) {
 			e.preventDefault();
+			var $item = $(this).closest('.mk-contact-class-panel__item');
+			var classCode = $item.attr('data-class-code') || $(this).attr('data-class-code') || 'mqbb';
+			var summary = $panel.data('mkClassRegSummary') || {};
+			var byClass = summary.by_class || {};
+			var meta = byClass[classCode] || {};
 			var $form = $panel.find('[data-retake-form="1"]');
 			if (!$form.length) {
 				notifyError('Không còn quyền học lại.');
 				return;
 			}
+			$form.attr('data-class-code', classCode);
+			var classLabel = (meta.class_label || classCode.toUpperCase());
+			$form.find('.mk-contact-class-panel__retake-label').text('Chọn ngày Học lại lớp ' + classLabel);
+			var $rDate = $form.find('.mk-contact-class-panel__retake-date');
+			if (meta.retake_date_min) {
+				$rDate.attr('min', meta.retake_date_min);
+			} else if (meta.date_min) {
+				$rDate.attr('min', meta.date_min);
+			} else {
+				$rDate.removeAttr('min');
+			}
+			if (meta.retake_date_max) {
+				$rDate.attr('max', meta.retake_date_max);
+			} else {
+				$rDate.removeAttr('max');
+			}
+			$rDate.val('');
 			$form.removeClass('hide');
-			$form.find('.mk-contact-class-panel__retake-date').focus();
+			$rDate.focus();
 		});
 
 		$panel.on('click.mkClassReg', '.mk-contact-class-panel__retake-cancel', function (e) {
@@ -244,7 +330,9 @@
 				$date.focus();
 				return;
 			}
-			postClassReg($panel, recordId, dateVal, 'retake', 'Đã ghi nhận Học lại lần 1.', $btn);
+			var $form = $panel.find('[data-retake-form="1"]');
+			var classCode = $form.attr('data-class-code') || 'mqbb';
+			postClassReg($panel, recordId, dateVal, 'retake', classCode, 'Đã ghi nhận Học lại.', $btn);
 		});
 
 		$panel.off('click.mkCreds').on('click.mkCreds', '.mk-contact-class-panel__creds-save', function (e) {
@@ -269,14 +357,7 @@
 					return;
 				}
 				var creds = res.credentials || (res.result && res.result.credentials) || null;
-				if (creds) {
-					if (creds.da_cap_bang) {
-						$panel.find('[name="da_cap_bang"]').val(creds.da_cap_bang);
-					}
-					if (creds.da_cap_tai_khoan) {
-						$panel.find('[name="da_cap_tai_khoan"]').val(creds.da_cap_tai_khoan);
-					}
-				}
+				applyCredentialState($panel, creds);
 				notifyOk('Đã lưu trạng thái cấp bằng / tài khoản.');
 			});
 		});
@@ -343,21 +424,31 @@
 		}
 	}
 
+	function initRelatedTabsToggle() {
+		if (typeof window.MkSalesRelatedTabsToggle === 'function') {
+			window.MkSalesRelatedTabsToggle();
+		}
+	}
+
 	function boot() {
 		if (!isScopedBody()) {
 			return;
 		}
 		refreshRelatedBadges();
+		initRelatedTabsToggle();
 		bindClassPanel();
 		injectCccdField();
 
 		if (typeof app !== 'undefined' && app.event && app.event.on) {
 			app.event.on('post.summaryview.load', function () {
 				refreshRelatedBadges();
+				initRelatedTabsToggle();
+				bindClassPanel();
 				injectCccdField();
 			});
 			app.event.on('post.detailedview.load', function () {
 				refreshRelatedBadges();
+				initRelatedTabsToggle();
 				injectCccdField();
 			});
 		}

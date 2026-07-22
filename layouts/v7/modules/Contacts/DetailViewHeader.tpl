@@ -10,7 +10,6 @@
 		<div class="mk-contact-detail-hero__tags">
 			{include file="DetailViewTagList.tpl"|vtemplate_path:$MODULE}
 		</div>
-		{include file="partials/ContactClassRegPanel.tpl"|vtemplate_path:$MODULE}
 	</div>
 </div>
 {else}

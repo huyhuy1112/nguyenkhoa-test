@@ -41,6 +41,10 @@
                 </button>
             {/foreach}
 
+			<button type="button" class="btn btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--primary" id="mkOppCallCustomerBtn" title="Gọi khách hàng">
+				<span class="mk-opportunity-detail-btn__ic" aria-hidden="true">📞</span>
+				<span class="mk-opportunity-detail-btn__txt">Gọi khách hàng</span>
+			</button>
 			<button type="button" class="btn btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost" id="mkOppConvertToCustomerBtn">
 				<span class="mk-opportunity-detail-btn__ic" aria-hidden="true">{include file="partials/OpportunityDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='EDIT'}</span>
 				<span class="mk-opportunity-detail-btn__txt">Chuyển sang Khách hàng</span>

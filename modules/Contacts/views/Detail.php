@@ -110,11 +110,13 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 			} catch (Exception $e) {
 				$viewer->assign('MK_CLASS_REG', array(
 					'logs' => array(),
-					'hint' => '',
+					'hint' => 'Chọn lớp và ngày đăng ký. Mỗi lớp có Lần 1, Lần 2… riêng.',
 					'can_add' => true,
 					'rights_label' => '',
 					'date_min' => '',
 					'date_max' => '',
+					'class_options' => Contacts_ModernService::getClassRegOptions(),
+					'by_class' => array(),
 				));
 				$viewer->assign('MK_CREDENTIALS', array(
 					'da_cap_bang' => 'Chưa cấp',

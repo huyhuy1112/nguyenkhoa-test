@@ -49,19 +49,20 @@
 			</div>
 		</section>
 
-		{if $COMMENTS_WIDGET_MODEL}
-		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--comments mk-opportunity-detail-grid__comments" aria-labelledby="mk-opportunity-detail-comments-title">
-			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">
-				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header mk-opportunity-detail-card__head">
-						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-						<h2 id="mk-opportunity-detail-comments-title" class="mk-opportunity-detail-card__title">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
-					</div>
-					<div class="widget_contents"></div>
+		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--interaction-log mk-opportunity-detail-grid__interaction-log" id="mk-opp-section-interaction-log" aria-labelledby="mk-opp-interaction-log-title">
+			<div class="mk-opportunity-detail-card__head mk-opp-interaction-log__head">
+				<span class="mk-opp-interaction-log__ic" aria-hidden="true">📋</span>
+				<h2 id="mk-opp-interaction-log-title" class="mk-opportunity-detail-card__title">Lịch sử tương tác</h2>
+				<div class="mk-opportunity-detail-card__actions pull-right">
+					<button type="button" class="btn btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost" id="mkOppLogCallBtn">+ Ghi cuộc gọi</button>
 				</div>
 			</div>
+			<p class="mk-opp-interaction-log__hint">Tất cả hành động sale từ giai đoạn Lead đến từng giai đoạn Cơ hội.</p>
+			<script type="application/json" id="mk-opp-interaction-log-boot">{$MK_OPP_INTERACTION_LOG_JSON|default:'{"phone":"","contact_id":0,"contact_name":"","lead_id":0,"items":[]}' nofilter}</script>
+			<div class="mk-opp-interaction-log__body" id="mk-opp-interaction-log-body">
+				<p class="mk-opp-interaction-log__empty">Đang hiển thị lịch sử…</p>
+			</div>
 		</section>
-		{/if}
 
 		{if $CONTACT_WIDGET_MODEL}
 		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--contacts mk-opportunity-detail-grid__contacts" aria-labelledby="mk-opportunity-detail-contacts-title">

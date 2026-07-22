@@ -93,6 +93,41 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		Potentials_SalesAppGuard::assignViewer($request, $this->getViewer($request));
 	}
 
+	/**
+	 * Boot interaction log into the summary template so Opp detail never hangs on AJAX.
+	 */
+	protected function assignInteractionLogBoot(Vtiger_Request $request, $recordId) {
+		$recordId = (int) $recordId;
+		$viewer = $this->getViewer($request);
+		$empty = array(
+			'phone' => '',
+			'contact_id' => 0,
+			'contact_name' => '',
+			'lead_id' => 0,
+			'items' => array(),
+		);
+		if ($recordId <= 0) {
+			$viewer->assign('MK_OPP_INTERACTION_LOG_JSON', json_encode($empty));
+			return;
+		}
+		try {
+			require_once 'modules/Potentials/models/InteractionLogService.php';
+			$log = Potentials_InteractionLogService::getLog($recordId);
+			if (!is_array($log)) {
+				$log = $empty;
+			}
+			$viewer->assign(
+				'MK_OPP_INTERACTION_LOG_JSON',
+				json_encode(
+					$log,
+					JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+				)
+			);
+		} catch (Exception $e) {
+			$viewer->assign('MK_OPP_INTERACTION_LOG_JSON', json_encode($empty));
+		}
+	}
+
 	protected function assignLinkedLeadAddress(Vtiger_Request $request, $recordId) {
 		$recordId = (int)$recordId;
 		if ($recordId <= 0) {
@@ -149,8 +184,15 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		$recordId = (int)$request->get('record');
 		if ($recordId > 0 && strtolower((string)$request->get('view')) === 'detail') {
 			require_once 'modules/Leads/models/ConvertService.php';
-			Leads_ConvertService::ensurePotentialTagsFromLead($recordId);
+			try {
+				Leads_ConvertService::ensurePotentialTagsFromLead($recordId);
+			} catch (Exception $e) {
+				// never block Opp detail on tag sync
+			}
 			$this->assignLinkedLeadAddress($request, $recordId);
+			$this->assignInteractionLogBoot($request, $recordId);
+		} else {
+			$this->getViewer($request)->assign('MK_OPP_INTERACTION_LOG_JSON', '{"phone":"","contact_id":0,"contact_name":"","lead_id":0,"items":[]}');
 		}
 		try {
 			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
@@ -166,6 +208,15 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		if ($display) {
 			$this->preProcessDisplay($request);
 		}
+	}
+
+	/**
+	 * Summary tab AJAX reload — keep interaction log boot available.
+	 */
+	public function showModuleBasicView(Vtiger_Request $request) {
+		$recordId = (int) $request->get('record');
+		$this->assignInteractionLogBoot($request, $recordId);
+		parent::showModuleBasicView($request);
 	}
 	/**
 	 * Function to get activities

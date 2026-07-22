@@ -29,6 +29,9 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function process(Vtiger_Request $request) {
 		global $current_user;
+		if (session_status() === PHP_SESSION_ACTIVE) {
+			@session_write_close();
+		}
 		$response = new Vtiger_Response();
 		$mode = strtolower((string)$request->get('mode'));
 		$userId = (int)$current_user->id;
@@ -68,9 +71,13 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 					if ($kind === null || $kind === '') {
 						$kind = 'register';
 					}
+					$classCode = $request->get('class_code');
+					if ($classCode === null || $classCode === '') {
+						$classCode = $request->get('class');
+					}
 					$response->setResult(array(
 						'success' => true,
-						'class_reg' => Contacts_ModernService::addClassRegLog($recordId, $date, $userId, $kind),
+						'class_reg' => Contacts_ModernService::addClassRegLog($recordId, $date, $userId, $kind, $classCode),
 					));
 					break;
 				case 'credential_get':
