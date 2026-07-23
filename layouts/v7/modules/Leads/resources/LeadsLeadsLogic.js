@@ -266,6 +266,30 @@
 		return days + "d ago";
 	}
 
+	/** Decode HTML entities from CRM (e.g. Kh&ocirc;ng → Không) before re-escaping for HTML. */
+	function decodeHtmlEntities(str) {
+		var s = String(str == null ? "" : str);
+		if (!s || s.indexOf("&") < 0) {
+			return s;
+		}
+		try {
+			var ta = document.createElement("textarea");
+			var prev = s;
+			var i;
+			for (i = 0; i < 3; i++) {
+				ta.innerHTML = prev;
+				var next = ta.value;
+				if (next === prev) {
+					break;
+				}
+				prev = next;
+			}
+			return prev;
+		} catch (e) {
+			return s;
+		}
+	}
+
 	/**
 	 * Cột / field "Tương tác gần đây" = log Last Touch Call (không dùng Today/Nd ago).
 	 */
@@ -296,7 +320,14 @@
 							(c.n || "") +
 							" Kết quả: " +
 							(c.result || "");
-					return '<div class="mk-leads-call-log__item">' + esc(line) + "</div>";
+					if (c.note && String(line).indexOf("Ghi chú:") < 0) {
+						line += " Ghi chú: " + c.note;
+					}
+					return (
+						'<div class="mk-leads-call-log__item">' +
+						esc(decodeHtmlEntities(line)) +
+						"</div>"
+					);
 				})
 				.join("") +
 			"</div>"
@@ -311,14 +342,17 @@
 		}
 		return calls
 			.map(function (c) {
-				return (
+				var line =
 					c.label ||
 					(c.called_at_label || "") +
 						" Call #" +
 						(c.n || "") +
 						" Kết quả: " +
-						(c.result || "")
-				);
+						(c.result || "");
+				if (c.note && String(line).indexOf("Ghi chú:") < 0) {
+					line += " Ghi chú: " + c.note;
+				}
+				return decodeHtmlEntities(line);
 			})
 			.join("\n");
 	}
@@ -459,6 +493,7 @@
     daysSince: daysSince,
     fmtVND: fmtVND,
     touchLabel: touchLabel,
+    decodeHtmlEntities: decodeHtmlEntities,
     lastTouchCallLogHtml: lastTouchCallLogHtml,
     lastTouchCallLogText: lastTouchCallLogText,
     ownerInitials: ownerInitials,

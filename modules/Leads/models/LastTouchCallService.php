@@ -82,17 +82,18 @@ class Leads_LastTouchCallService {
 			while ($row = $adb->fetchByAssoc($res)) {
 				$calledAt = (string)$row['called_at'];
 				$n = (int)$row['call_n'];
-				$note = trim((string)$row['note']);
+				$result = decode_html((string)$row['result_label']);
+				$note = trim(decode_html((string)$row['note']));
 				$rows[] = array(
 					'id' => (int)$row['id'],
 					'n' => $n,
 					'called_at' => $calledAt,
 					'called_at_label' => self::formatStamp($calledAt),
-					'result' => (string)$row['result_label'],
+					'result' => $result,
 					'note' => $note,
 					'activity_id' => $row['activity_id'] !== null ? (int)$row['activity_id'] : 0,
 					'reminder_activity_id' => $row['reminder_activity_id'] !== null ? (int)$row['reminder_activity_id'] : 0,
-					'label' => self::formatLogLine($n, $calledAt, (string)$row['result_label'], $note),
+					'label' => self::formatLogLine($n, $calledAt, $result, $note),
 				);
 			}
 		}

@@ -301,7 +301,11 @@
 					esc(String(c.n || '')) +
 					'</span>' +
 					'<span class="mk-lead-last-touch__text">' +
-					esc(c.label || '') +
+					esc(
+						window.LeadsLeadsLogic && window.LeadsLeadsLogic.decodeHtmlEntities
+							? window.LeadsLeadsLogic.decodeHtmlEntities(c.label || '')
+							: c.label || ''
+					) +
 					'</span></li>'
 				);
 			})
