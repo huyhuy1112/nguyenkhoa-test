@@ -698,10 +698,23 @@
     if (!tbody) return;
 
     if (!pageRows.length) {
+      var emptyMsg =
+        all.length === 0
+          ? t(
+              "JS_MK_NO_LEADS_LOADED",
+              "Chưa có lead để hiển thị. Bấm Tải lại danh sách (hoặc F5). Nhiều lead cũ đã bị xóa mềm — không phải do bộ lọc.",
+            )
+          : t("JS_MK_NO_LEADS_MATCH", "Không có lead phù hợp bộ lọc.");
+      var extraBtn = "";
+      if (all.length === 0) {
+        extraBtn =
+          '<div style="margin-top:12px"><button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-reload-list">Tải lại danh sách</button></div>';
+      } else if (activeFilterCount() > 0) {
+        extraBtn =
+          '<div style="margin-top:12px"><button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-clear-filters-empty">Xóa bộ lọc</button></div>';
+      }
       tbody.innerHTML =
-        '<tr><td colspan="12" class="mk-leads-empty">' +
-        esc(t("JS_MK_NO_LEADS_MATCH", "Không có lead phù hợp bộ lọc.")) +
-        "</td></tr>";
+        '<tr><td colspan="12" class="mk-leads-empty">' + esc(emptyMsg) + extraBtn + "</td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (l) {
@@ -727,8 +740,8 @@
           var nonSourceTags = (l.tags || []).filter(function (tg) {
             return SOURCE_TAGS.indexOf(tg) < 0;
           });
-          var tags = nonSourceTags.slice(0, 3);
-          var extra = nonSourceTags.length - tags.length;
+          var tags = nonSourceTags;
+          var extra = 0;
           var checked = state.selected[l.id] ? " checked" : "";
           var crmId = leadCrmId(l);
           var createdLabel = formatCreatedLabel(l.createdtime);
@@ -1008,6 +1021,35 @@
         if (search) search.value = "";
         renderAll();
       });
+
+    document.addEventListener("click", function (e) {
+      var t = e.target;
+      if (!t || !t.id) return;
+      if (t.id === "mk-leads-reload-list") {
+        e.preventDefault();
+        var boot = store.refreshLeadsList
+          ? store.refreshLeadsList()
+          : store.ready
+            ? store.ready()
+            : Promise.resolve();
+        boot.then(function () {
+          state.page = 1;
+          renderAll();
+        }).catch(function (err) {
+          console.error("Leads reload failed", err);
+          window.alert("Không tải được danh sách lead. Thử F5 hoặc đăng nhập lại.");
+        });
+        return;
+      }
+      if (t.id === "mk-leads-clear-filters-empty") {
+        e.preventDefault();
+        state.filters = Object.assign({}, EMPTY);
+        state.activeSegment = null;
+        state.page = 1;
+        if (search) search.value = "";
+        renderAll();
+      }
+    });
 
     document.addEventListener("change", function (e) {
       var t = e.target;

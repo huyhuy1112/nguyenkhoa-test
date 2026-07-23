@@ -295,7 +295,7 @@ c) Bên A sẽ gửi các tài liệu hướng dẫn, thông báo và các thay 
 16.2 Trường hợp xảy ra mâu thuẫn hoặc tranh chấp phát sinh giữa hai bên trong quá trình thực hiện hợp đồng mà không thể thống nhất hòa giải và thương lượng được. Hai bên thỏa thuận, đồng ý yêu cầu các cơ quan chức năng có thẩm quyền và tòa án giải quyết theo quy định của pháp luật.<br/>
 16.3 Hợp đồng này được làm thành 02 (hai) bản mỗi bản gồm 15 (mười lăm) tờ, có giá trị pháp lý như nhau, mỗi bên giữ 01 bản.</p>
 
-<br pagebreak="true"/>
+<br/><br/>
 <table class="sign-table" cellpadding="0" cellspacing="0" width="100%" border="0" nobr="true">
 	<tr>
 		<td width="50%" align="center" valign="top">
