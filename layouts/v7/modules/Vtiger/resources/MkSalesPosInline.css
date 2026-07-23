@@ -786,3 +786,91 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 	font-size: 13px;
 	color: #94a3b8;
 }
+
+/* PDF preview modal (Tuibao franchise inline print) */
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 10050;
+	background: rgba(15, 23, 42, 0.45);
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview.is-open {
+	display: flex;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__dialog {
+	width: min(960px, 96vw);
+	max-height: 92vh;
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__head,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 16px;
+	border-bottom: 1px solid #e5e7eb;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__foot {
+	border-bottom: 0;
+	border-top: 1px solid #e5e7eb;
+	justify-content: flex-end;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__head h3 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 600;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__close {
+	border: 0;
+	background: transparent;
+	font-size: 24px;
+	line-height: 1;
+	cursor: pointer;
+	color: #64748b;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__body {
+	flex: 1;
+	min-height: 420px;
+	background: #f8fafc;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__frame {
+	width: 100%;
+	height: 100%;
+	min-height: 420px;
+	border: 0;
+	background: #fff;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__cancel,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__print,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__download {
+	border-radius: 8px;
+	padding: 8px 14px;
+	font-size: 13px;
+	cursor: pointer;
+	border: 1px solid #d1d5db;
+	background: #fff;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__print {
+	background: #16a34a;
+	border-color: #16a34a;
+	color: #fff;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-print-preview__download {
+	background: #0f766e;
+	border-color: #0f766e;
+	color: #fff;
+}
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"]) .mk-so-inline-detail__print-btn {
+	border-color: #0f766e;
+	color: #0f766e;
+}

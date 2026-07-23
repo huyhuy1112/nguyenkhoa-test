@@ -57,6 +57,9 @@ class Accounts_Detail_View extends Vtiger_Detail_View {
 			array('createdtime', 'Ngày tạo'),
 		));
 		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, $app, $infoFields, $title, $subtitle);
+		$rid = (int) $recordModel->getId();
+		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=Accounts&action=ExportFranchisePDF&record=' . $rid . '&preview=1');
+		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=Accounts&action=ExportFranchisePDF&record=' . $rid);
 
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
@@ -76,6 +79,12 @@ class Accounts_Detail_View extends Vtiger_Detail_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		try {
+			require_once 'modules/Accounts/helpers/FranchiseContractService.php';
+			Accounts_FranchiseContractService_Helper::ensureFranchiseFields();
+		} catch (Exception $e) {
+			// best-effort schema ensure
+		}
 		$this->assignModernAccountsDetailUi($request);
 		parent::preProcess($request, false);
 		$this->assignModernAccountsDetailUi($request);

@@ -133,6 +133,97 @@
 		});
 	}
 
+	function closeInlinePrintPreview() {
+		var $modal = $('#mk-crm-inline-print-preview');
+		$modal.removeClass('is-open').attr('aria-hidden', 'true');
+		$modal.find('iframe').attr('src', 'about:blank');
+		$('body').removeClass('mk-so-inline-print-open');
+	}
+
+	function ensureInlinePrintPreviewModal() {
+		var $modal = $('#mk-crm-inline-print-preview');
+		if ($modal.length) {
+			return $modal;
+		}
+		$modal = $(
+			'<div id="mk-crm-inline-print-preview" class="mk-so-inline-print-preview" aria-hidden="true">' +
+				'<div class="mk-so-inline-print-preview__dialog" role="dialog" aria-labelledby="mk-crm-inline-print-title">' +
+					'<div class="mk-so-inline-print-preview__head">' +
+						'<h3 id="mk-crm-inline-print-title">Hợp đồng nhượng quyền TUI BAO</h3>' +
+						'<button type="button" class="mk-so-inline-print-preview__close" aria-label="Đóng">&times;</button>' +
+					'</div>' +
+					'<div class="mk-so-inline-print-preview__body">' +
+						'<iframe class="mk-so-inline-print-preview__frame" title="Xem trước PDF hợp đồng"></iframe>' +
+					'</div>' +
+					'<div class="mk-so-inline-print-preview__foot">' +
+						'<button type="button" class="mk-so-inline-print-preview__cancel">Đóng</button>' +
+						'<button type="button" class="mk-so-inline-print-preview__print"><i class="fa fa-print" aria-hidden="true"></i> In ngay</button>' +
+						'<button type="button" class="mk-so-inline-print-preview__download"><i class="fa fa-download" aria-hidden="true"></i> Tải PDF</button>' +
+					'</div>' +
+				'</div>' +
+			'</div>'
+		);
+		$('body').append($modal);
+		$modal.on('click', '.mk-so-inline-print-preview__close, .mk-so-inline-print-preview__cancel', function (e) {
+			e.preventDefault();
+			closeInlinePrintPreview();
+		});
+		$modal.on('click', function (e) {
+			if ($(e.target).is('#mk-crm-inline-print-preview')) {
+				closeInlinePrintPreview();
+			}
+		});
+		$modal.on('click', '.mk-so-inline-print-preview__print', function (e) {
+			e.preventDefault();
+			var $iframe = $('#mk-crm-inline-print-preview iframe');
+			if (!$iframe.length) return;
+			try {
+				var frameWindow = $iframe[0].contentWindow;
+				if (frameWindow) {
+					frameWindow.focus();
+					frameWindow.print();
+				}
+			} catch (err) {
+				var src = $iframe.attr('src');
+				if (src && src !== 'about:blank') {
+					window.open(src, '_blank');
+				}
+			}
+		});
+		$modal.on('click', '.mk-so-inline-print-preview__download', function (e) {
+			e.preventDefault();
+			var $panel = $modal.data('mkPrintPanel');
+			var downloadUrl =
+				($panel && ($panel.data('print-download-url') || $panel.find('.mk-so-inline-detail__print-btn').data('print-download-url'))) || '';
+			if (downloadUrl) {
+				window.open(downloadUrl, '_blank');
+			}
+			closeInlinePrintPreview();
+		});
+		return $modal;
+	}
+
+	function openInlinePrintPreview($panel, recordId) {
+		var mod = String($panel.data('module') || moduleName());
+		var printUrl =
+			$panel.data('print-url') ||
+			$panel.find('.mk-so-inline-detail__print-btn').data('print-url');
+		if (!printUrl) {
+			printUrl =
+				'index.php?module=' +
+				encodeURIComponent(mod) +
+				'&action=ExportFranchisePDF&record=' +
+				encodeURIComponent(recordId) +
+				'&preview=1';
+		}
+		var $modal = ensureInlinePrintPreviewModal();
+		$modal.data('mkPrintPanel', $panel);
+		$modal.data('mkPrintRecordId', recordId);
+		$modal.find('iframe').attr('src', printUrl);
+		$modal.addClass('is-open').attr('aria-hidden', 'false');
+		$('body').addClass('mk-so-inline-print-open');
+	}
+
 	function initPanel($detailRow) {
 		var $panel = $detailRow.find('.mk-so-inline-detail');
 		if (!$panel.length || $panel.data('mkPosInlineInit')) {
@@ -153,6 +244,12 @@
 			e.preventDefault();
 			var url = $panel.attr('data-edit-url');
 			if (url) window.location.href = url;
+		});
+		$panel.on('click', '.mk-so-inline-detail__print-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!recordId) return;
+			openInlinePrintPreview($panel, recordId);
 		});
 		$panel.on('click', '.mk-so-inline-detail__edit-toggle', function (e) {
 			e.preventDefault();

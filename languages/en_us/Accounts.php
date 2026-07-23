@@ -64,6 +64,8 @@ $languageStrings = array(
 	'LBL_ACC_DETAIL_HEALTH_TITLE' => 'Health overview',
 	'LBL_ACC_DETAIL_HEALTH_PROJECT' => 'Project compliance',
 	'LBL_ACC_DETAIL_HEALTH_ASSET' => 'Asset utilization',
+	'LBL_TB_FRANCHISE_CONTRACT' => 'Franchise contract',
+	'LBL_PRINT_FRANCHISE_CONTRACT' => 'Print contract',
 );
 
 $jsLanguageStrings = array(

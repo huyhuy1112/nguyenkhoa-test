@@ -113,6 +113,12 @@
 			</button>
 		</div>
 		<div class="mk-so-inline-detail__actions-right">
+			{if $MODULE eq 'Accounts' && !empty($INLINE_PRINT_URL)}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__print-btn" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|default:$INLINE_PRINT_URL|escape}" title="In hợp đồng nhượng quyền TUI BAO">
+				<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+				<span class="mk-so-inline-detail__print-label">In hợp đồng</span>
+			</button>
+			{/if}
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__save-btn">
 				<i class="fa fa-save" aria-hidden="true"></i>
 				<span>Lưu</span>

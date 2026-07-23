@@ -18,8 +18,8 @@
 					<h1 class="mk-ac-page-head__title">{vtranslate('LBL_EDITING', $MODULE)} {vtranslate('SINGLE_Accounts', $MODULE)}</h1>
 					{if !empty($RECORD_STRUCTURE_MODEL)}<p class="mk-ac-page-head__sub">{$RECORD_STRUCTURE_MODEL->getRecordName()|escape}</p>{else}<p class="mk-ac-page-head__sub">{vtranslate('LBL_ACCOUNT_INFORMATION', $MODULE)}</p>{/if}
 				{else}
-					<h1 class="mk-ac-page-head__title">{vtranslate('LBL_CREATING_NEW', $MODULE)} {vtranslate('SINGLE_Accounts', $MODULE)}</h1>
-					<p class="mk-ac-page-head__sub">{vtranslate('LBL_ACCOUNT_INFORMATION', $MODULE)}</p>
+					<h1 class="mk-ac-page-head__title">Tạo Tuibao — Hợp đồng nhượng quyền</h1>
+					<p class="mk-ac-page-head__sub">Nhập đủ thông tin Bên B + phí để in hợp đồng TUI BAO hoàn chỉnh</p>
 				{/if}
 			</div>
 			<div class="mk-ac-page-head__actions">

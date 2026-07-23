@@ -8,7 +8,7 @@
  *************************************************************************************/
 
 $languageStrings = array(
-"Account Name" => "Tên ngắn gọn thường gọi",
+"Account Name" => "Tên công ty",
 "Fullname" => "Tên đầy đủ",
 "Account No" => "Số hiệu tổ chức",
 "Accounts" => "Tổ chức",
@@ -21,7 +21,7 @@ $languageStrings = array(
 "Integrator" => "Nhà phân tích",
 "Investor" => "Nhà đầu tư",
 "LBL_ACCOUNT_INFORMATION" => "Chi tiết tổ chức",
-"LBL_ADD_RECORD" => "Thêm tổ chức",
+"LBL_ADD_RECORD" => "Thêm Tuibao",
 "LBL_COPY_BILLING_ADDRESS" => "Địa chỉ xuất hóa đơn",
 "LBL_COPY_SHIPPING_ADDRESS" => "Địa chỉ giao dịch",
 "LBL_DUPLICATES_EXIST" => "Tên tổ chức đã tồn tại",
@@ -53,6 +53,8 @@ $languageStrings = array(
 "LBL_ACC_DETAIL_HEALTH_TITLE" => "Tổng quan sức khỏe",
 "LBL_ACC_DETAIL_HEALTH_PROJECT" => "Tuân thủ dự án",
 "LBL_ACC_DETAIL_HEALTH_ASSET" => "Sử dụng tài sản",
+"LBL_TB_FRANCHISE_CONTRACT" => "Hợp đồng nhượng quyền",
+"LBL_PRINT_FRANCHISE_CONTRACT" => "In hợp đồng",
 );
 
 $jsLanguageStrings = array(

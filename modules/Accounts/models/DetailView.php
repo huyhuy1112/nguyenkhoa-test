@@ -23,6 +23,15 @@ class Accounts_DetailView_Model extends Vtiger_DetailView_Model {
 
 		$linkModelList = parent::getDetailViewLinks($linkParams);
 
+		// In hợp đồng nhượng quyền TUI BAO (Tuibao)
+		$franchisePdfLink = array(
+			'linktype' => 'DETAILVIEWBASIC',
+			'linklabel' => 'LBL_PRINT_FRANCHISE_CONTRACT',
+			'linkurl' => 'index.php?module=Accounts&action=ExportFranchisePDF&record=' . $recordModel->getId(),
+			'linkicon' => ''
+		);
+		$linkModelList['DETAILVIEWBASIC'][] = Vtiger_Link_Model::getInstanceFromValues($franchisePdfLink);
+
 		if($currentUserModel->hasModulePermission($emailModuleModel->getId())) {
 			$basicActionLink = array(
 				'linktype' => 'DETAILVIEWBASIC',

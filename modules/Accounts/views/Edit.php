@@ -62,6 +62,12 @@ class Accounts_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function process(Vtiger_Request $request) {
+		try {
+			require_once 'modules/Accounts/helpers/FranchiseContractService.php';
+			Accounts_FranchiseContractService_Helper::ensureFranchiseFields();
+		} catch (Exception $e) {
+			// best-effort schema ensure for franchise fields
+		}
 		if ($this->isMkModernOrganizationCreate($request)) {
 			$this->assignModernContext($request);
 		}
@@ -81,15 +87,7 @@ class Accounts_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function getHeaderScripts(Vtiger_Request $request) {
-		$headerScriptInstances = parent::getHeaderScripts($request);
-		if ($this->isMkModernOrganizationCreate($request)) {
-			$jsFileNames = array(
-				'~layouts/v7/modules/Accounts/resources/AccountMkEdit.js',
-			);
-			$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
-			return array_merge($headerScriptInstances, $jsScriptInstances);
-		}
-		return $headerScriptInstances;
+		return parent::getHeaderScripts($request);
 	}
 }
 
