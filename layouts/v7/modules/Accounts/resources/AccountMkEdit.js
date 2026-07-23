@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260723_ac_edit8';
+	var MK_BUILD = '20260723_ac_edit10';
 
 	var ORDER_DEFAULTS = {
 		tb_order_min_free: '10000000',
@@ -449,7 +449,114 @@
 		}
 	}
 
+	function fieldByName(name) {
+		return $form().find('[name="' + name + '"]').filter(':input').first();
+	}
+
+	function digitsOnly(value) {
+		return String(value || '').replace(/\D/g, '');
+	}
+
+	function showFieldError($input, message) {
+		var $cell = $input.closest('td.fieldValue');
+		$cell.find('.mk-ac-field-error').remove();
+		$input.addClass('mk-ac-input-invalid');
+		$cell.append($('<div>', { class: 'mk-ac-field-error', text: message }));
+	}
+
+	function clearFieldError($input) {
+		$input.removeClass('mk-ac-input-invalid');
+		$input.closest('td.fieldValue').find('.mk-ac-field-error').remove();
+	}
+
+	function bindDigitFieldLimits() {
+		var $phone = fieldByName('phone');
+		var $cccd = fieldByName('tb_party_b_cccd');
+
+		if ($phone.length && !$phone.data('mk-digit-bound')) {
+			$phone.attr({ maxlength: 10, inputmode: 'numeric', pattern: '[0-9]*', autocomplete: 'tel' });
+			$phone
+				.off('input.mkAcPhone keypress.mkAcPhone')
+				.on('input.mkAcPhone', function () {
+					var next = digitsOnly(this.value).slice(0, 10);
+					if (this.value !== next) {
+						this.value = next;
+					}
+					clearFieldError($phone);
+				})
+				.on('keypress.mkAcPhone', function (e) {
+					if (e.ctrlKey || e.metaKey || e.which < 32) {
+						return;
+					}
+					if (!/[0-9]/.test(String.fromCharCode(e.which))) {
+						e.preventDefault();
+					}
+				});
+			$phone.data('mk-digit-bound', 1);
+		}
+
+		if ($cccd.length && !$cccd.data('mk-digit-bound')) {
+			$cccd.attr({ maxlength: 12, inputmode: 'numeric', pattern: '[0-9]*', autocomplete: 'off' });
+			$cccd
+				.off('input.mkAcCccd keypress.mkAcCccd')
+				.on('input.mkAcCccd', function () {
+					var next = digitsOnly(this.value).slice(0, 12);
+					if (this.value !== next) {
+						this.value = next;
+					}
+					clearFieldError($cccd);
+				})
+				.on('keypress.mkAcCccd', function (e) {
+					if (e.ctrlKey || e.metaKey || e.which < 32) {
+						return;
+					}
+					if (!/[0-9]/.test(String.fromCharCode(e.which))) {
+						e.preventDefault();
+					}
+				});
+			$cccd.data('mk-digit-bound', 1);
+		}
+	}
+
+	function validatePartyFields() {
+		var $phone = fieldByName('phone');
+		var $cccd = fieldByName('tb_party_b_cccd');
+		var ok = true;
+
+		if ($phone.length) {
+			clearFieldError($phone);
+			var phoneDigits = digitsOnly($phone.val());
+			$phone.val(phoneDigits);
+			if (phoneDigits.length > 10) {
+				showFieldError($phone, 'Số điện thoại tối đa 10 số.');
+				ok = false;
+			}
+		}
+
+		if ($cccd.length) {
+			clearFieldError($cccd);
+			var cccdDigits = digitsOnly($cccd.val());
+			$cccd.val(cccdDigits);
+			if (cccdDigits.length !== 12) {
+				showFieldError($cccd, 'CCCD phải đủ đúng 12 số (không dư, không thiếu).');
+				ok = false;
+			}
+		}
+
+		if (!ok) {
+			var $first = $form().find('.mk-ac-input-invalid').first();
+			if ($first.length) {
+				$('html, body').animate({ scrollTop: Math.max(0, $first.offset().top - 120) }, 200);
+				$first.trigger('focus');
+			}
+		}
+		return ok;
+	}
+
 	function triggerSave() {
+		if (!validatePartyFields()) {
+			return;
+		}
 		var $save = $form().find('.saveButton').first();
 		if ($save.length) {
 			$save.trigger('click');
@@ -464,6 +571,26 @@
 			.on('click.mkAcSave', function (e) {
 				e.preventDefault();
 				triggerSave();
+			});
+
+		$form()
+			.off('click.mkAcSaveBtn', '.saveButton')
+			.on('click.mkAcSaveBtn', '.saveButton', function (e) {
+				if (!validatePartyFields()) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					return false;
+				}
+			});
+
+		$form()
+			.off('submit.mkAcValidate')
+			.on('submit.mkAcValidate', function (e) {
+				if (!validatePartyFields()) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					return false;
+				}
 			});
 
 		$(document)
@@ -489,6 +616,7 @@
 		styleFieldBlocks();
 		reflowAllBlocks();
 		applyFieldDefaults();
+		bindDigitFieldLimits();
 		maybeReinitDateFields();
 		bindActions();
 		markReady();

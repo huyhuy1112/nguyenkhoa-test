@@ -1021,14 +1021,17 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .re
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group,
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .referencefield-wrapper .input-group {
 	display: flex !important;
-	align-items: center !important;
+	align-items: stretch !important;
 	flex-wrap: nowrap;
 	width: 100% !important;
 	max-width: 100% !important;
+	height: 40px !important;
+	min-height: 40px !important;
+	max-height: 40px !important;
 	margin: 0 !important;
 	border: 1px solid #e2e8f0 !important;
 	border-radius: 12px !important;
-	overflow: visible;
+	overflow: hidden !important;
 	background: #fafafa !important;
 	box-shadow: none !important;
 	box-sizing: border-box;
@@ -1051,8 +1054,9 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	min-width: 0;
 	width: auto !important;
 	max-width: none !important;
-	height: 40px !important;
-	min-height: 40px !important;
+	height: 100% !important;
+	min-height: 0 !important;
+	max-height: none !important;
 	margin: 0 !important;
 	padding: 0 14px !important;
 	border: none !important;
@@ -1060,16 +1064,19 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	box-shadow: none !important;
 	background: transparent !important;
 	font-size: 15px !important;
-	line-height: 40px !important;
+	line-height: 38px !important;
 	box-sizing: border-box !important;
 }
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon {
-	flex: 0 0 48px;
-	width: 48px;
-	min-width: 48px;
-	height: 40px !important;
-	min-height: 40px !important;
+	flex: 0 0 36px;
+	width: 36px !important;
+	min-width: 36px !important;
+	max-width: 36px !important;
+	height: auto !important;
+	min-height: 0 !important;
+	max-height: none !important;
+	align-self: stretch !important;
 	margin: 0 !important;
 	padding: 0 !important;
 	border: none !important;
@@ -1081,7 +1088,7 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	justify-content: center !important;
 	box-shadow: none !important;
 	line-height: 1 !important;
-	font-size: 15px !important;
+	font-size: 12px !important;
 	font-weight: 600;
 	color: #64748b;
 	text-align: center;
@@ -1092,13 +1099,57 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	border-right: 1px solid #e2e8f0 !important;
 }
 
+/* Currency ₫ prefix — compact, not oversized */
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group:has(.currencyField) .input-group-addon:first-child,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon.currency-symbol,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon:first-child {
+	flex: 0 0 32px;
+	width: 32px !important;
+	min-width: 32px !important;
+	max-width: 32px !important;
+	font-size: 12px !important;
+	font-weight: 500 !important;
+	letter-spacing: 0;
+	line-height: 1 !important;
+	color: #94a3b8 !important;
+	background: #f8fafc !important;
+	text-decoration: none !important;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon:first-child,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon:first-child * {
+	text-decoration: none !important;
+	font-size: 12px !important;
+	font-weight: 500 !important;
+	line-height: 1 !important;
+}
+
+/* Date calendar addon — flush with field, soft icon */
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group:has(.dateField) .input-group-addon,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group.inputElement .input-group-addon {
+	flex: 0 0 38px;
+	width: 38px !important;
+	min-width: 38px !important;
+	max-width: 38px !important;
+	background: #f8fafc !important;
+	color: #64748b !important;
+	cursor: pointer;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group:has(.dateField) .input-group-addon:hover,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group.inputElement .input-group-addon:hover {
+	background: #eef2f7 !important;
+	color: var(--mk-ac-navy) !important;
+}
+
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon .fa,
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon i {
 	display: block !important;
 	line-height: 1 !important;
 	margin: 0 !important;
-	font-size: 14px !important;
-	color: #64748b !important;
+	padding: 0 !important;
+	font-size: 13px !important;
+	color: inherit !important;
 	vertical-align: middle;
 	cursor: pointer;
 }
@@ -1117,7 +1168,7 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	justify-content: center !important;
 	margin: 0 4px;
 	padding: 0 10px;
-	height: 32px;
+	height: 28px;
 	min-width: 28px;
 	border: none !important;
 	border-radius: 8px;
@@ -1125,6 +1176,20 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	color: #475569;
 	text-decoration: none;
 	line-height: 1;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-field-error {
+	margin-top: 6px;
+	font-size: 12px;
+	font-weight: 500;
+	color: #dc2626;
+	line-height: 1.35;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.mk-ac-input-invalid,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .mk-ac-input-invalid {
+	border-color: #fca5a5 !important;
+	background: #fff7f7 !important;
 }
 
 body[data-module="Accounts"][data-view="Edit"] .datepicker.dropdown-menu,
