@@ -151,17 +151,57 @@
     var key = normalizeTag(tag);
     var raw = TAG_META_RAW[key];
     if (!raw) {
-      return { label: String(tag || ""), cat: "other", cls: "mk-tag--other" };
+      return { label: String(tag || ""), cat: "other", cls: "mk-tag--other", key: key };
     }
     return {
       label: pickLabel(raw.vi, raw.en),
       cat: raw.cat,
       cls: raw.cls,
+      key: key,
     };
+  }
+
+  function labelForTag(key, fallback) {
+    var meta = tagMeta(key);
+    if (meta && meta.label) return meta.label;
+    return fallback || key;
   }
 
   function isAllowedContactTag(tag) {
     return !!TAG_META_RAW[normalizeTag(tag)];
+  }
+
+  /** Groups for list / inline tag editor — same BA buckets as Opp / Leads. */
+  var CREATE_TAG_GROUPS = [
+    { id: "tier", labelVi: "Hạng khách", labelEn: "Tier", tags: TIER_TAGS },
+    { id: "customerRank", labelVi: "Loại khách", labelEn: "Customer type", tags: CUSTOMER_RANK_TAGS },
+    { id: "class", labelVi: "Tag lớp học", labelEn: "Class", tags: CLASS_TAGS },
+    { id: "material", labelVi: "Tag nguyên liệu", labelEn: "Material", tags: MATERIAL_TAGS },
+    { id: "franchise", labelVi: "Tag nhượng quyền", labelEn: "Franchise", tags: FRANCHISE_TAGS },
+  ];
+
+  function getCreateTagCatalog() {
+    return CREATE_TAG_GROUPS.map(function (g) {
+      return {
+        id: g.id,
+        label: pickLabel(g.labelVi, g.labelEn),
+        tags: (g.tags || []).map(function (k) {
+          var meta = tagMeta(k);
+          return { key: meta.key || normalizeTag(k) || k, label: meta.label || k };
+        }),
+      };
+    });
+  }
+
+  function getCreateTagKeys() {
+    var keys = [];
+    CREATE_TAG_GROUPS.forEach(function (g) {
+      (g.tags || []).forEach(function (k) {
+        var nk = normalizeTag(k);
+        if (nk && keys.indexOf(nk) < 0) keys.push(nk);
+      });
+    });
+    return keys;
   }
 
   root.ContactsLovableRef = {
@@ -171,12 +211,16 @@
     MATERIAL_TAGS: MATERIAL_TAGS,
     FRANCHISE_TAGS: FRANCHISE_TAGS,
     TIER_TAGS: TIER_TAGS,
+    CREATE_TAG_GROUPS: CREATE_TAG_GROUPS,
     isVi: isVi,
     pickLabel: pickLabel,
     normalizeTag: normalizeTag,
     findTagInPool: findTagInPool,
     categorizeTags: categorizeTags,
     tagMeta: tagMeta,
+    labelForTag: labelForTag,
     isAllowedContactTag: isAllowedContactTag,
+    getCreateTagCatalog: getCreateTagCatalog,
+    getCreateTagKeys: getCreateTagKeys,
   };
 })(typeof window !== "undefined" ? window : this);

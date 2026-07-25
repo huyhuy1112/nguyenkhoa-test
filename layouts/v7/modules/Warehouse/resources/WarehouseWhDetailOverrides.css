@@ -123,16 +123,17 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh
 }
 
 body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-btn--primary {
-	background: linear-gradient(135deg, #c9a227 0%, #eab308 50%, #08A045 100%);
+	background: #eab308;
 	color: #1c1917;
-	border: 1px solid rgba(180, 130, 20, 0.45);
-	box-shadow: 0 4px 14px rgba(201, 162, 39, 0.35);
+	border: 1px solid rgba(180, 130, 20, 0.55);
+	box-shadow: 0 4px 14px rgba(234, 179, 8, 0.35);
 	font-weight: 800;
 }
 
 body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-btn--primary:hover {
-	background: linear-gradient(135deg, #b8921f 0%, #0B6E4F 100%);
+	background: #ca8a04;
 	color: #0f172a;
+	box-shadow: 0 6px 16px rgba(202, 138, 4, 0.4);
 }
 
 body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-table th {
@@ -467,4 +468,313 @@ body.mk-wh-inbound-print-open {
 	height: 0;
 	border: 0;
 	visibility: hidden;
+}
+
+/* Role card + audit history button */
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-role {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	min-width: 300px;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-btn--history {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	width: 100%;
+	border: 1px solid rgba(64, 98, 126, 0.22);
+	background: #fff;
+	color: #334155;
+	font-weight: 700;
+	border-radius: 10px;
+	padding: 9px 12px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-btn--history:hover {
+	background: #f8fafc;
+	border-color: rgba(8, 160, 69, 0.35);
+	color: #0f172a;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-btn--history .mk-wh-proto-btn__ic {
+	display: inline-flex;
+	color: #08a045;
+}
+
+/* Audit history modal (CRM-style activity log) */
+body.mk-wh-audit-open {
+	overflow: hidden;
+}
+
+.mk-wh-audit-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 12050;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	background: rgba(15, 23, 42, 0.55);
+	backdrop-filter: blur(3px);
+}
+
+.mk-wh-audit-modal.is-open {
+	display: flex;
+}
+
+.mk-wh-audit-modal__dialog {
+	width: min(920px, 100%);
+	max-height: min(860px, calc(100vh - 48px));
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border-radius: 16px;
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
+	overflow: hidden;
+}
+
+.mk-wh-audit-modal__head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 18px 20px 14px;
+	border-bottom: 1px solid #eef2f7;
+	background: linear-gradient(180deg, #fffdf5 0%, #ffffff 100%);
+}
+
+.mk-wh-audit-modal__head h3 {
+	margin: 0 0 4px;
+	font-size: 18px;
+	font-weight: 800;
+	color: #0f172a;
+}
+
+.mk-wh-audit-modal__sub {
+	margin: 0;
+	font-size: 13px;
+	color: #64748b;
+	line-height: 1.4;
+}
+
+.mk-wh-audit-modal__close {
+	border: 0;
+	background: transparent;
+	font-size: 24px;
+	line-height: 1;
+	color: #64748b;
+	cursor: pointer;
+	padding: 0 4px;
+}
+
+.mk-wh-audit-modal__tabs {
+	display: flex;
+	gap: 8px;
+	padding: 12px 20px 0;
+	border-bottom: 1px solid #eef2f7;
+}
+
+.mk-wh-audit-tab {
+	appearance: none;
+	border: 0;
+	background: transparent;
+	padding: 10px 14px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #64748b;
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+}
+
+.mk-wh-audit-tab.is-active {
+	color: #0f172a;
+	border-bottom-color: #eab308;
+}
+
+.mk-wh-audit-modal__toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+	padding: 12px 20px;
+	border-bottom: 1px solid #f1f5f9;
+}
+
+.mk-wh-audit-modal__search {
+	flex: 1 1 220px;
+	min-width: 180px;
+	height: 38px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 0 12px;
+	font-size: 13px;
+}
+
+.mk-wh-audit-modal__meta {
+	font-size: 12px;
+	font-weight: 600;
+	color: #64748b;
+}
+
+.mk-wh-audit-modal__body {
+	flex: 1;
+	overflow: auto;
+	padding: 8px 12px 20px;
+	background: #f8fafc;
+}
+
+.mk-wh-audit-empty {
+	margin: 40px 16px;
+	text-align: center;
+	color: #94a3b8;
+	font-size: 14px;
+}
+
+.mk-wh-audit-list {
+	list-style: none;
+	margin: 0;
+	padding: 8px 8px 4px;
+}
+
+.mk-wh-audit-item {
+	display: grid;
+	grid-template-columns: 18px minmax(0, 1fr);
+	gap: 12px;
+	position: relative;
+	padding: 0 8px 18px 4px;
+}
+
+.mk-wh-audit-item:not(:last-child)::before {
+	content: "";
+	position: absolute;
+	left: 11px;
+	top: 22px;
+	bottom: 0;
+	width: 2px;
+	background: #e2e8f0;
+}
+
+.mk-wh-audit-item__dot {
+	width: 12px;
+	height: 12px;
+	margin-top: 6px;
+	border-radius: 50%;
+	background: #eab308;
+	border: 2px solid #fff;
+	box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.35);
+	z-index: 1;
+}
+
+.mk-wh-audit-item--cancel .mk-wh-audit-item__dot,
+.mk-wh-audit-item--reject .mk-wh-audit-item__dot {
+	background: #ef4444;
+	box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+}
+
+.mk-wh-audit-item--create .mk-wh-audit-item__dot {
+	background: #08a045;
+	box-shadow: 0 0 0 2px rgba(8, 160, 69, 0.25);
+}
+
+.mk-wh-audit-card {
+	background: #fff;
+	border: 1px solid #e8eef5;
+	border-radius: 12px;
+	padding: 12px 14px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.mk-wh-audit-card__top {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 8px 12px;
+	margin-bottom: 6px;
+}
+
+.mk-wh-audit-card__action {
+	font-size: 14px;
+	font-weight: 700;
+	color: #0f172a;
+	line-height: 1.35;
+}
+
+.mk-wh-audit-card__time {
+	font-size: 12px;
+	font-weight: 600;
+	color: #64748b;
+	white-space: nowrap;
+}
+
+.mk-wh-audit-card__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 10px;
+	align-items: center;
+	font-size: 12px;
+	color: #475569;
+	margin-bottom: 8px;
+}
+
+.mk-wh-audit-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 700;
+	background: #f1f5f9;
+	color: #334155;
+	border: 1px solid #e2e8f0;
+}
+
+.mk-wh-audit-pill--doc {
+	background: #eff6ff;
+	border-color: #bfdbfe;
+	color: #1d4ed8;
+}
+
+.mk-wh-audit-card__note {
+	font-size: 12.5px;
+	color: #334155;
+	background: #f8fafc;
+	border-radius: 8px;
+	padding: 8px 10px;
+	margin-top: 4px;
+	line-height: 1.45;
+}
+
+.mk-wh-audit-lines {
+	margin: 8px 0 0;
+	padding: 0;
+	list-style: none;
+	border-top: 1px dashed #e2e8f0;
+	padding-top: 8px;
+}
+
+.mk-wh-audit-lines li {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 8px;
+	font-size: 12px;
+	padding: 3px 0;
+	color: #475569;
+}
+
+.mk-wh-audit-lines strong {
+	color: #0f172a;
+	font-weight: 700;
+}
+
+.mk-wh-audit-lines__qty {
+	font-weight: 700;
+	color: #0f172a;
+	white-space: nowrap;
 }

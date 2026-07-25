@@ -33,6 +33,11 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function process(Vtiger_Request $request) {
 		global $current_user;
+		// Keep AJAX JSON clean even when config.inc.php enables display_errors (local/dev).
+		$prevDisplayErrors = ini_get('display_errors');
+		ini_set('display_errors', '0');
+		$obLevel = ob_get_level();
+		ob_start();
 		$response = new Vtiger_Response();
 		$mode = strtolower((string)$request->get('mode'));
 		$userId = (int)$current_user->id;
@@ -341,6 +346,11 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			$response->setError($e->getMessage());
 		}
 
+		// Discard any accidental notice/warning HTML before JSON emit.
+		while (ob_get_level() > $obLevel) {
+			ob_end_clean();
+		}
+		ini_set('display_errors', $prevDisplayErrors);
 		$response->emit();
 	}
 

@@ -143,58 +143,8 @@
 		</div>
 
 		<aside class="mk-qt-rail" id="mkQtQuoteRail" aria-label="Quote summary">
-			<div class="mk-qt-rail-card mk-qt-rail-card--summary">
-				<div class="mk-qt-rail-card__head">
-					<span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-file-text-o"></i></span>
-					<h2 class="mk-qt-rail-card__title">{vtranslate('LBL_MK_QUOTE_SUMMARY', $MODULE)}</h2>
-				</div>
-				<dl class="mk-qt-summary-list">
-					<div class="mk-qt-summary-list__row">
-						<dt>Pipeline stage</dt>
-						<dd id="mkQtRailStage">Nháp</dd>
-					</div>
-					<div class="mk-qt-summary-list__row">
-						<dt>Người liên hệ</dt>
-						<dd id="mkQtRailOrganization">—</dd>
-					</div>
-					<div class="mk-qt-summary-list__row">
-						<dt>Opportunity</dt>
-						<dd id="mkQtRailOpportunity">—</dd>
-					</div>
-					<div class="mk-qt-summary-list__row mk-qt-summary-list__row--total">
-						<dt>Grand total</dt>
-						<dd id="mkQtRailTotal">—</dd>
-					</div>
-				</dl>
-			</div>
-
-			<div class="mk-qt-rail-card">
-				<div class="mk-qt-rail-card__head">
-					<span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-user"></i></span>
-					<h2 class="mk-qt-rail-card__title">Assigned To</h2>
-				</div>
-				<p class="mk-qt-rail-meta" id="mkQtRailOwner">{$MK_QUOTE_OWNER_NAME|escape}</p>
-			</div>
-
-			<div class="mk-qt-rail-card mk-qt-rail-card--muted">
-				<div class="mk-qt-rail-card__head">
-					<span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-clock-o"></i></span>
-					<h2 class="mk-qt-rail-card__title">Activity</h2>
-				</div>
-				<p class="mk-qt-rail-placeholder">Timeline appears after the quote is saved.</p>
-			</div>
-
-			<div class="mk-qt-rail-card mk-qt-rail-card--ai">
-				<div class="mk-qt-rail-card__head">
-					<span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-magic"></i></span>
-					<h2 class="mk-qt-rail-card__title">Suggestions</h2>
-				</div>
-				<ul class="mk-qt-ai-list">
-					<li>Add products to improve quote completeness</li>
-					<li>Link an opportunity for pipeline tracking</li>
-				</ul>
-				<p class="mk-qt-rail-note">Visual guidance only — no automated changes.</p>
-			</div>
+			{* Quote info (Khách hàng / Ghi chú) is moved here by QuoteMkEdit.js *}
+			{* Address card is injected by QuoteMkBa.js *}
 		</aside>
 	</div>
 </div>

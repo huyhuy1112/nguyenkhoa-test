@@ -6,6 +6,10 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 	border-radius: 10px;
 	margin: 8px 10px 12px;
 	box-shadow: 0 4px 16px rgba(8, 160, 69, 0.08);
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
+	box-sizing: border-box;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail--loading,
@@ -413,10 +417,10 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__actions {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
+	justify-content: flex-end;
+	gap: 8px;
 	flex-wrap: wrap;
-	padding-top: 12px;
+	padding-top: 10px;
 	border-top: 1px solid #eef2f7;
 }
 
@@ -424,22 +428,34 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__actions-right {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 6px;
 	flex-wrap: wrap;
+	max-width: 100%;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__actions-left {
+	margin-right: auto;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__action {
 	display: inline-flex;
 	align-items: center;
-	gap: 7px;
-	height: 38px;
-	padding: 0 14px;
-	border-radius: 10px;
-	font-size: 13px;
+	justify-content: center;
+	gap: 5px;
+	height: 30px;
+	padding: 0 10px;
+	border-radius: 7px;
+	font-size: 12px;
 	font-weight: 600;
+	line-height: 1;
 	text-decoration: none;
 	border: 1px solid transparent;
 	white-space: nowrap;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__action > i {
+	font-size: 12px;
+	line-height: 1;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__action--ghost {
@@ -458,6 +474,250 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 	background: #08A045;
 	border-color: #067a37;
 	color: #fff;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch {
+	margin: 0 0 14px;
+	padding: 10px 12px;
+	border: 1px solid #dbe4f0;
+	border-radius: 10px;
+	background: #f8fafc;
+	max-width: 480px;
+	width: 100%;
+	box-sizing: border-box;
+	min-width: 0;
+	overflow: hidden;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 6px;
+	flex-wrap: wrap;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-title-wrap {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-title {
+	font-size: 13px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 36px;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1.4;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-badge.is-open {
+	background: #ccfbf1;
+	color: #0f766e;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-badge.is-done {
+	background: #e2e8f0;
+	color: #64748b;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-hint {
+	margin: 0 0 8px;
+	font-size: 11px;
+	line-height: 1.4;
+	color: #64748b;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	max-width: 100%;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	background: #fff;
+	overflow: hidden;
+	max-width: 100%;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	padding: 8px 10px;
+	border-top: 1px solid #f1f5f9;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-item:first-child {
+	border-top: 0;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-n {
+	flex: 0 0 auto;
+	min-width: 48px;
+	padding: 2px 6px;
+	border-radius: 6px;
+	background: #ecfdf5;
+	color: #0f766e;
+	font-size: 11px;
+	font-weight: 700;
+	text-align: center;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-text {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: 12px;
+	line-height: 1.45;
+	color: #334155;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-empty {
+	padding: 8px 10px;
+	font-size: 12px;
+	color: #94a3b8;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch .mk-so-inline-detail__call-btn {
+	flex: 0 0 auto;
+	white-space: nowrap;
+	height: 28px;
+	padding: 0 9px;
+	font-size: 11px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--call {
+	background: #0f766e;
+	border-color: #0f766e;
+	color: #fff;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--call:hover {
+	background: #0d9488;
+	border-color: #0f766e;
+	color: #fff;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--call.is-locked,
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--call:disabled {
+	background: #e8edf4;
+	border-color: #c5d0de;
+	color: #64748b;
+	cursor: not-allowed;
+	opacity: 0.92;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 12000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal[hidden] {
+	display: none !important;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.45);
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__dialog {
+	position: relative;
+	z-index: 1;
+	width: min(440px, calc(100vw - 32px));
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+	overflow: hidden;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__head h3 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__x {
+	border: 0;
+	background: transparent;
+	font-size: 22px;
+	line-height: 1;
+	color: #64748b;
+	cursor: pointer;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__body {
+	padding: 16px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__meta {
+	margin: 0 0 12px;
+	font-size: 13px;
+	color: #64748b;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__label {
+	display: block;
+	margin: 0 0 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #334155;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__select,
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__note {
+	width: 100%;
+	margin-bottom: 12px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__tip {
+	margin: 0;
+	font-size: 12px;
+	color: #64748b;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-lt-modal .mk-lead-lt-modal__foot {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 12px 16px 16px;
+	border-top: 1px solid #e2e8f0;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--convert {
@@ -479,6 +739,30 @@ body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--convert:d
 	color: #64748b;
 	cursor: not-allowed;
 	opacity: 0.92;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--to-customer {
+	background: #0f766e;
+	border-color: #0f766e;
+	color: #fff;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--to-customer:hover {
+	background: #0d9488;
+	border-color: #0f766e;
+	color: #fff;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-bulk-btn--convert {
+	background: #ecfdf5;
+	border-color: #99f6e4;
+	color: #0f766e;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-leads-bulk-btn--convert:hover {
+	background: #ccfbf1;
+	border-color: #5eead4;
+	color: #115e59;
 }
 
 @media (max-width: 1100px) {
@@ -667,15 +951,19 @@ body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-so-inline-detail-
 	background: #f0fdf4 !important;
 	border-bottom: 1px solid #d1fae5 !important;
 	width: 100%;
+	max-width: 0;
+	overflow: hidden;
 }
 
-/* Expanded panel fills full table width */
+/* Expanded panel fills available width without stretching the table */
 body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-so-inline-detail-row .mk-so-inline-detail {
 	display: block;
 	box-sizing: border-box;
-	width: auto;
-	max-width: none;
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
 	margin: 8px 10px 12px;
+	overflow: hidden;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-leads-table tr.mk-leads-row {
@@ -785,6 +1073,86 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__tags-empty {
 	font-size: 13px;
 	color: #94a3b8;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__tags-hint,
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__lock-hint {
+	font-size: 11px;
+	font-weight: 500;
+	color: #94a3b8;
+	text-transform: none;
+	letter-spacing: 0;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__tags-picker {
+	margin-top: 10px;
+	max-height: 220px;
+	overflow: auto;
+	padding: 8px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #f8fafc;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-tag-group {
+	margin-bottom: 10px;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-tag-group__title {
+	font-size: 11px;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	margin-bottom: 6px;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-tag-group__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-tag-chip {
+	border: 1px solid #cbd5e1;
+	background: #fff;
+	color: #334155;
+	border-radius: 999px;
+	padding: 4px 10px;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-tag-chip.is-on {
+	background: #dbeafe;
+	border-color: #93c5fd;
+	color: #1d4ed8;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__next-action.is-locked .mk-so-inline-detail__next-action-input {
+	background: #f1f5f9 !important;
+	color: #64748b !important;
+	cursor: not-allowed;
+	opacity: 0.95;
+	resize: none;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__next-action-meta {
+	margin-top: 8px;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__next-action-time {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.2;
+	background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+	color: #92400e;
+	border: 1px solid #fcd34d;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__next-action-time.is-overdue {
+	background: #fee2e2;
+	color: #b91c1c;
+	border-color: #fecaca;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__next-action-time-rule {
+	font-weight: 600;
+	opacity: 0.85;
 }
 
 /* PDF preview modal (Tuibao franchise inline print) */

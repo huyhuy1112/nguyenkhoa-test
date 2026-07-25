@@ -17,6 +17,10 @@
   var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"];
   var PURCHASE_TAGS = ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"];
   var TIER_TAGS = ["vang", "bac", "dong"];
+  var CUSTOMER_TAGS = ["individual", "company", "ca_nhan", "co_quan", "chuan_bi_mo", "gia_dinh"];
+  var REGION_TAGS = ["kv1", "kv2", "kv3"];
+  // Hide tags that already have dedicated list columns.
+  var COLUMN_TAG_KEYS = SOURCE_TAGS.concat(CUSTOMER_TAGS, REGION_TAGS);
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -75,7 +79,220 @@
   }
 
   function tagMeta(t) {
-    return ref && ref.tagMeta ? ref.tagMeta(t) : { label: t, cls: "mk-tag" };
+    return ref && ref.tagMeta ? ref.tagMeta(t) : { label: t, cls: "mk-tag", key: t };
+  }
+
+  function normalizeTagKey(tag) {
+    if (ref && ref.normalizeTagKey) return ref.normalizeTagKey(tag);
+    return String(tag || "").trim();
+  }
+
+  function resolveTagLabel(tag, labelOverride) {
+    if (labelOverride) return labelOverride;
+    if (ref && ref.labelForTag) return ref.labelForTag(tag);
+    var m = tagMeta(tag);
+    return (m && m.label) || tag;
+  }
+
+  function isColumnTag(tag, segmentKey, typeTag) {
+    var key = normalizeTagKey(tag);
+    if (!key) return true;
+    if (COLUMN_TAG_KEYS.indexOf(key) >= 0) return true;
+    if (segmentKey && key === normalizeTagKey(segmentKey)) return true;
+    if (typeTag && key === normalizeTagKey(typeTag)) return true;
+    return false;
+  }
+
+  function displayTagsForLead(lead) {
+    var segmentKey = lead && lead.segment ? normalizeTagKey(lead.segment) : null;
+    var typeTag = (lead.tags || []).find(function (tg) {
+      var k = normalizeTagKey(tg);
+      return k === "individual" || k === "company" || k === "ca_nhan";
+    });
+    if (typeTag) typeTag = normalizeTagKey(typeTag);
+    var seen = {};
+    var out = [];
+    (lead.tags || []).forEach(function (tg) {
+      var key = normalizeTagKey(tg);
+      if (!key || seen[key]) return;
+      if (isColumnTag(key, segmentKey, typeTag)) return;
+      seen[key] = true;
+      out.push(key);
+    });
+    return out;
+  }
+
+  function regionKeyOf(lead) {
+    var tags = (lead && lead.tags) || [];
+    var i;
+    for (i = 0; i < tags.length; i++) {
+      var k = normalizeTagKey(tags[i]);
+      if (REGION_TAGS.indexOf(k) >= 0) return k;
+    }
+    var district = String((lead && lead.district) || "").trim();
+    var m = district.match(/khu\s*v[ựuùúủũụ]\s*c\s*([123])/i) || district.match(/^kv\s*([123])$/i);
+    if (!m) {
+      m = String((lead && lead.area) || "").match(/khu\s*v[ựuùúủũụ]\s*c\s*([123])/i);
+    }
+    if (m) return "kv" + m[1];
+    return "";
+  }
+
+  function addressOf(lead) {
+    if (!lead) return "";
+    var address = String(lead.address || "").trim();
+    if (address) return address;
+    var area = String(lead.area || "").trim();
+    if (!area) return "";
+    // "Khu vực 1, 131 da ad" → take the address part
+    var split = area.match(/^khu\s*v[ựuùúủũụ]\s*c\s*[123]\s*,\s*(.+)$/i);
+    if (split) return split[1].trim();
+    // Plain area that is actually an address (no KV prefix)
+    if (!/^khu\s*v[ựuùúủũụ]\s*c\s*[123]$/i.test(area) && !/^kv[123]$/i.test(area)) {
+      return area;
+    }
+    return "";
+  }
+
+  function regionSelectHtml(leadId, regionKey) {
+    var opts = [
+      ["", "— Chọn khu vực —"],
+      ["kv1", "Khu vực 1"],
+      ["kv2", "Khu vực 2"],
+      ["kv3", "Khu vực 3"],
+    ];
+    return (
+      '<select class="mk-leads-region-select" data-field="region" data-lead-id="' +
+      esc(leadId) +
+      '" title="Chọn khu vực">' +
+      opts
+        .map(function (o) {
+          return (
+            '<option value="' +
+            esc(o[0]) +
+            '"' +
+            (regionKey === o[0] ? " selected" : "") +
+            ">" +
+            esc(o[1]) +
+            "</option>"
+          );
+        })
+        .join("") +
+      "</select>"
+    );
+  }
+
+  function editableCellHtml(field, value, leadId, placeholder) {
+    var display = value
+      ? esc(value)
+      : '<span class="mk-leads-muted">' + esc(placeholder || "—") + "</span>";
+    return (
+      '<button type="button" class="mk-leads-inline-edit" data-field="' +
+      esc(field) +
+      '" data-lead-id="' +
+      esc(leadId) +
+      '" title="Nhấn để sửa">' +
+      display +
+      "</button>"
+    );
+  }
+
+  function commitInlineEdit(input) {
+    if (!input || !input.getAttribute) return;
+    var field = input.getAttribute("data-field");
+    var leadId = input.getAttribute("data-lead-id");
+    if (!field || !leadId || !store || !store.update) {
+      renderTable();
+      return;
+    }
+    var val = input.value.trim();
+    if (field === "phone" && val && !/^\d{10}$/.test(val.replace(/\s+/g, ""))) {
+      window.alert("Số điện thoại phải đủ 10 số.");
+      renderTable();
+      return;
+    }
+    if (field === "phone") {
+      val = val.replace(/\s+/g, "");
+    }
+    var patch = {};
+    if (field === "address") {
+      patch.address = val;
+      var lead = getLeads().find(function (l) {
+        return String(l.id) === String(leadId) || String(leadCrmId(l)) === String(leadId);
+      });
+      var regionKey = regionKeyOf(lead || {});
+      var districtLabel = regionKey ? "Khu vực " + regionKey.replace("kv", "") : (lead && lead.district) || "";
+      patch.district = districtLabel;
+      patch.area = districtLabel && val ? districtLabel + ", " + val : districtLabel || val;
+    } else {
+      patch[field] = val;
+    }
+    input.disabled = true;
+    store
+      .update(leadId, patch)
+      .then(function () {
+        renderTable();
+      })
+      .catch(function (err) {
+        console.error("Inline save failed", err);
+        window.alert("Không lưu được " + field + ".");
+        renderTable();
+      });
+  }
+
+  function commitRegionChange(select) {
+    if (!select || !store || !store.update) return;
+    var leadId = select.getAttribute("data-lead-id");
+    var regionKey = select.value;
+    var lead = getLeads().find(function (l) {
+      return String(l.id) === String(leadId) || String(leadCrmId(l)) === String(leadId);
+    });
+    if (!lead) return;
+    var tags = (lead.tags || [])
+      .map(normalizeTagKey)
+      .filter(function (k) {
+        return k && REGION_TAGS.indexOf(k) < 0;
+      });
+    if (regionKey) tags.push(regionKey);
+    var districtLabel = regionKey ? "Khu vực " + regionKey.replace("kv", "") : "";
+    var addr = addressOf(lead);
+    select.disabled = true;
+    store
+      .update(leadId, {
+        tags: tags,
+        district: districtLabel,
+        address: addr,
+        area: districtLabel && addr ? districtLabel + ", " + addr : districtLabel || addr,
+      })
+      .then(function () {
+        renderTable();
+      })
+      .catch(function (err) {
+        console.error(err);
+        window.alert("Không lưu được khu vực.");
+        renderTable();
+      });
+  }
+
+  function beginInlineEdit(btn) {
+    if (!btn || !btn.getAttribute) return;
+    var field = btn.getAttribute("data-field");
+    var leadId = btn.getAttribute("data-lead-id");
+    var current = btn.textContent.trim();
+    if (current === "—") current = "";
+    var input = document.createElement("input");
+    input.type = field === "phone" ? "tel" : "text";
+    input.className = "mk-leads-inline-input";
+    input.value = current;
+    input.setAttribute("data-field", field);
+    input.setAttribute("data-lead-id", leadId);
+    if (field === "phone") {
+      input.setAttribute("inputmode", "numeric");
+      input.setAttribute("maxlength", "10");
+    }
+    btn.replaceWith(input);
+    input.focus();
+    input.select();
   }
 
   function esc(s) {
@@ -126,11 +343,11 @@
   }
 
   function promptOrderCategory() {
-    var fallback = window.prompt("Loại Opportunity: gõ Internal hoặc Project", "Internal");
+    var fallback = window.prompt("Loại Cơ hội: gõ Internal (Nội bộ) hoặc Project (Dự án)", "Internal");
     if (fallback === null) return null;
     var cat = String(fallback).trim();
     if (cat !== "Internal" && cat !== "Project") {
-      window.alert("Chỉ chấp nhận Internal hoặc Project.");
+      window.alert("Chỉ chấp nhận Internal (Nội bộ) hoặc Project (Dự án).");
       return null;
     }
     return cat;
@@ -152,20 +369,20 @@
       '<div class="modal-dialog mk-lead-convert-modal mk-leads-bulk-convert-modal">' +
       '<div class="modal-content">' +
       '<div class="modal-header">' +
-      '<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-      '<h4 class="modal-title">Convert to Opp</h4>' +
+      '<button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
+      '<h4 class="modal-title">Chuyển sang Cơ hội</h4>' +
       "</div>" +
       '<div class="modal-body">' +
       '<p class="mk-lead-convert-modal__intro">' +
       introHtml +
       "</p>" +
-      '<div class="mk-lead-convert-modal__choices" role="radiogroup" aria-label="Order category">' +
+      '<div class="mk-lead-convert-modal__choices" role="radiogroup" aria-label="Loại đơn hàng">' +
       '<label class="mk-lead-convert-modal__choice is-selected">' +
       '<input type="radio" name="' +
       radioName +
       '" value="Internal" checked />' +
       '<span class="mk-lead-convert-modal__choice-body">' +
-      '<span class="mk-lead-convert-modal__choice-title">Internal</span>' +
+      '<span class="mk-lead-convert-modal__choice-title">Nội bộ</span>' +
       '<span class="mk-lead-convert-modal__choice-desc">Đơn nội bộ / bán hàng thông thường</span>' +
       "</span></label>" +
       '<label class="mk-lead-convert-modal__choice">' +
@@ -173,13 +390,13 @@
       radioName +
       '" value="Project" />' +
       '<span class="mk-lead-convert-modal__choice-body">' +
-      '<span class="mk-lead-convert-modal__choice-title">Project</span>' +
-      '<span class="mk-lead-convert-modal__choice-desc">Đơn dự án / triển khai theo project</span>' +
+      '<span class="mk-lead-convert-modal__choice-title">Dự án</span>' +
+      '<span class="mk-lead-convert-modal__choice-desc">Đơn dự án / triển khai theo dự án</span>' +
       "</span></label>" +
       "</div></div>" +
       '<div class="modal-footer">' +
       '<button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>' +
-      '<button type="button" class="btn btn-primary mk-leads-bulk-convert-modal__submit">Convert to Opp</button>' +
+      '<button type="button" class="btn btn-primary mk-leads-bulk-convert-modal__submit">Chuyển sang Cơ hội</button>' +
       "</div></div></div>";
 
     app.helper.showModal(modalHtml, {
@@ -195,7 +412,7 @@
         $root.find(".mk-leads-bulk-convert-modal__submit").on("click", function () {
           var cat = $root.find('input[name="' + radioName + '"]:checked').val();
           if (cat !== "Internal" && cat !== "Project") {
-            window.alert("Vui lòng chọn Internal hoặc Project.");
+            window.alert("Vui lòng chọn Nội bộ hoặc Dự án.");
             return;
           }
           app.helper.hideModal();
@@ -208,7 +425,7 @@
   function openBulkConvertModal(rows) {
     var convertible = rows.filter(isLeadConvertible);
     if (!convertible.length) {
-      window.alert("Các lead đã chọn đều đã convert hoặc không thể convert.");
+      window.alert("Các lead đã chọn đều đã chuyển sang Cơ hội hoặc không thể chuyển.");
       return;
     }
     openConvertOrderCategoryModal({
@@ -216,7 +433,7 @@
       introHtml:
         "Chuyển <strong>" +
         convertible.length +
-        "</strong> lead đã chọn sang <strong>Contact + Account + Opportunity</strong>. Chọn loại đơn hàng:",
+        "</strong> lead đã chọn sang <strong>Liên hệ + Tổ chức + Cơ hội</strong>. Chọn loại đơn hàng:",
       onConfirm: function (cat) {
         runBulkConvert(rows, cat);
       },
@@ -228,10 +445,362 @@
     btn.classList.add("is-converted");
     btn.disabled = true;
     btn.setAttribute("aria-disabled", "true");
-    btn.setAttribute("title", "Đã convert sang Opportunity");
+    btn.setAttribute("title", "Đã chuyển sang Cơ hội");
     var label = btn.querySelector("span");
-    if (label) label.textContent = "Đã convert";
+    if (label) label.textContent = "Đã chuyển";
     if (potentialUrl) btn.setAttribute("data-potential-url", potentialUrl);
+  }
+
+  function escHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function decodeHtmlEntities(s) {
+    if (logic && logic.decodeHtmlEntities) return logic.decodeHtmlEntities(s);
+    var ta = document.createElement("textarea");
+    ta.innerHTML = String(s == null ? "" : s);
+    return ta.value;
+  }
+
+  function renderInlineLastTouchPanel(panelOrBtn, lt) {
+    if (!lt) return;
+    var panel =
+      panelOrBtn && panelOrBtn.classList && panelOrBtn.classList.contains("mk-so-inline-detail")
+        ? panelOrBtn
+        : panelOrBtn && panelOrBtn.closest
+          ? panelOrBtn.closest(".mk-so-inline-detail")
+          : null;
+    if (!panel) return;
+    var host = panel.querySelector('[data-role="last-touch"]');
+    if (!host) return;
+
+    var canAdd = lt.can_add !== false;
+    var nextN = lt.next_n || 1;
+    var count = typeof lt.count === "number" ? lt.count : (lt.calls || []).length;
+    var max = lt.max_calls || 3;
+    var SHORT_LT_HINT =
+      "Gọi #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → Cơ hội.";
+    var hint =
+      lt.count > 0 || lt.can_add === false
+        ? lt.hint || SHORT_LT_HINT
+        : SHORT_LT_HINT;
+    var hintFull = lt.hint || SHORT_LT_HINT;
+    var reminder = lt.reminder_at_label || "";
+
+    host.setAttribute("data-lt-next", String(nextN));
+    host.setAttribute("data-lt-hint", hintFull);
+    host.setAttribute("data-lt-count", String(count));
+    host.setAttribute("data-lt-max", String(max));
+    if (reminder) host.setAttribute("data-lt-reminder", reminder);
+    else host.removeAttribute("data-lt-reminder");
+    if (canAdd) host.removeAttribute("data-lt-locked");
+    else host.setAttribute("data-lt-locked", "1");
+
+    var badge = host.querySelector('[data-role="lt-badge"]');
+    if (badge) {
+      badge.textContent = count + "/" + max;
+      badge.className =
+        "mk-so-inline-detail__last-touch-badge" + (canAdd ? " is-open" : " is-done");
+    }
+    var hintEl = host.querySelector('[data-role="lt-hint"]');
+    if (hintEl) {
+      hintEl.textContent = hint;
+      hintEl.setAttribute("title", hintFull);
+    }
+
+    var list = host.querySelector('[data-role="lt-list"]');
+    if (list) {
+      var calls = lt.calls || [];
+      if (!calls.length) {
+        list.innerHTML =
+          '<li class="mk-so-inline-detail__last-touch-empty">Chưa có Call #1 — bấm “Ghi cuộc gọi”.</li>';
+      } else {
+        list.innerHTML = calls
+          .map(function (c) {
+            var line =
+              c.label ||
+              (c.called_at_label || "") +
+                " Call #" +
+                (c.n || "") +
+                " Kết quả: " +
+                (c.result || "");
+            if (c.note && String(line).indexOf("Ghi chú:") < 0) {
+              line += " Ghi chú: " + c.note;
+            }
+            return (
+              '<li class="mk-so-inline-detail__last-touch-item">' +
+              '<span class="mk-so-inline-detail__last-touch-n">Call #' +
+              escHtml(String(c.n || "")) +
+              "</span>" +
+              '<span class="mk-so-inline-detail__last-touch-text">' +
+              escHtml(decodeHtmlEntities(line)) +
+              "</span></li>"
+            );
+          })
+          .join("");
+      }
+    }
+
+    var btn = host.querySelector(".mk-so-inline-detail__call-btn");
+    if (!btn) return;
+    btn.setAttribute("data-lt-next", String(nextN));
+    btn.setAttribute("data-lt-hint", hint);
+    if (reminder) btn.setAttribute("data-lt-reminder", reminder);
+    else btn.removeAttribute("data-lt-reminder");
+    var label = btn.querySelector("span");
+    if (canAdd) {
+      btn.classList.remove("is-locked");
+      btn.disabled = false;
+      btn.removeAttribute("aria-disabled");
+      btn.setAttribute("title", "Ghi cuộc gọi Last Touch #" + nextN);
+      if (label) label.textContent = "Ghi cuộc gọi";
+    } else {
+      markInlineCallLocked(btn, hint);
+      if (label) label.textContent = "Đã đủ gọi";
+    }
+  }
+
+  function ensureListLastTouchModal() {
+    var existing = document.getElementById("mk-leads-lt-modal");
+    if (existing) return existing;
+    var wrap = document.createElement("div");
+    wrap.id = "mk-leads-lt-modal";
+    wrap.className = "mk-lead-lt-modal mk-leads-lt-modal";
+    wrap.hidden = true;
+    wrap.setAttribute("aria-hidden", "true");
+    wrap.innerHTML =
+      '<div class="mk-lead-lt-modal__backdrop" data-mk-lt-close="1"></div>' +
+      '<div class="mk-lead-lt-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mk-leads-lt-title">' +
+      '<div class="mk-lead-lt-modal__head">' +
+      '<h3 id="mk-leads-lt-title">Ghi Last Touch — Call</h3>' +
+      '<button type="button" class="mk-lead-lt-modal__x" data-mk-lt-close="1" aria-label="Đóng">&times;</button>' +
+      "</div>" +
+      '<div class="mk-lead-lt-modal__body">' +
+      '<p class="mk-lead-lt-modal__meta" id="mk-leads-lt-meta"></p>' +
+      '<label class="mk-lead-lt-modal__label" for="mk-leads-lt-result">Kết quả cuộc gọi</label>' +
+      '<select id="mk-leads-lt-result" class="mk-lead-lt-modal__select inputElement">' +
+      '<option value="Không nghe máy">Không nghe máy</option>' +
+      '<option value="Nghe máy">Nghe máy</option>' +
+      "</select>" +
+      '<label class="mk-lead-lt-modal__label" for="mk-leads-lt-note">Ghi chú</label>' +
+      '<textarea id="mk-leads-lt-note" class="mk-lead-lt-modal__note inputElement" rows="3" placeholder="Ví dụ: Khách quan tâm lớp học"></textarea>' +
+      '<p class="mk-lead-lt-modal__tip">Chọn <strong>Nghe máy</strong> sẽ tự chuyển Lead sang Cơ hội. <strong>Không nghe máy</strong> → nhắc gọi lần sau sau khoảng 5 giờ.</p>' +
+      "</div>" +
+      '<div class="mk-lead-lt-modal__foot">' +
+      '<button type="button" class="btn btn-default" data-mk-lt-close="1">Hủy</button>' +
+      '<button type="button" class="btn btn-success" id="mk-leads-lt-save">Lưu cuộc gọi</button>' +
+      "</div></div>";
+    document.body.appendChild(wrap);
+    wrap.addEventListener("click", function (e) {
+      var t = e.target;
+      if (t && t.getAttribute && t.getAttribute("data-mk-lt-close") === "1") {
+        e.preventDefault();
+        closeListLastTouchModal();
+      }
+    });
+    var saveBtn = document.getElementById("mk-leads-lt-save");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        submitListLastTouchCall();
+      });
+    }
+    return wrap;
+  }
+
+  function closeListLastTouchModal() {
+    var modal = document.getElementById("mk-leads-lt-modal");
+    if (!modal) return;
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    modal._mkLeadId = "";
+    modal._mkCallBtn = null;
+  }
+
+  function openListLastTouchModal(btn) {
+    var panel = btn && btn.closest ? btn.closest(".mk-so-inline-detail") : null;
+    var host = panel ? panel.querySelector('[data-role="last-touch"]') : null;
+    var recordId = String(
+      (btn && btn.getAttribute("data-record-id")) ||
+        (host && host.getAttribute("data-record-id")) ||
+        (panel && panel.getAttribute("data-record-id")) ||
+        ""
+    );
+    if (!recordId) return;
+
+    if (
+      (btn && (btn.disabled || btn.classList.contains("is-locked"))) ||
+      (host && host.getAttribute("data-lt-locked") === "1")
+    ) {
+      window.alert(
+        (btn && btn.getAttribute("data-lt-hint")) ||
+          (host && host.getAttribute("data-lt-hint")) ||
+          "Không thể ghi thêm cuộc gọi Last Touch."
+      );
+      return;
+    }
+
+    var modal = ensureListLastTouchModal();
+    var nextN =
+      parseInt(
+        (btn && btn.getAttribute("data-lt-next")) ||
+          (host && host.getAttribute("data-lt-next")) ||
+          "1",
+        10
+      ) || 1;
+    var reminder = String(
+      (btn && btn.getAttribute("data-lt-reminder")) ||
+        (host && host.getAttribute("data-lt-reminder")) ||
+        ""
+    ).trim();
+    var meta = document.getElementById("mk-leads-lt-meta");
+    if (meta) {
+      meta.textContent =
+        "Ghi nhận Call #" +
+        nextN +
+        (reminder ? " · Nhắc lần trước: " + reminder : "") +
+        ". Khoảng 5 giờ giữa các lần gọi (chuông Thông báo).";
+    }
+    var resultEl = document.getElementById("mk-leads-lt-result");
+    var noteEl = document.getElementById("mk-leads-lt-note");
+    if (resultEl) resultEl.value = "Không nghe máy";
+    if (noteEl) noteEl.value = "";
+    modal._mkLeadId = recordId;
+    modal._mkCallBtn = btn;
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function markInlineCallLocked(btn, hint) {
+    if (!btn) return;
+    btn.classList.add("is-locked");
+    btn.disabled = true;
+    btn.setAttribute("aria-disabled", "true");
+    if (hint) {
+      btn.setAttribute("data-lt-hint", hint);
+      btn.setAttribute("title", hint);
+    }
+  }
+
+  function submitListLastTouchCall() {
+    var modal = document.getElementById("mk-leads-lt-modal");
+    var leadId = modal && modal._mkLeadId;
+    var callBtn = modal && modal._mkCallBtn;
+    if (!leadId) return;
+    var resultEl = document.getElementById("mk-leads-lt-result");
+    var noteEl = document.getElementById("mk-leads-lt-note");
+    var saveBtn = document.getElementById("mk-leads-lt-save");
+    var result = resultEl ? String(resultEl.value || "").trim() : "";
+    var note = noteEl ? String(noteEl.value || "").trim() : "";
+    if (!result) {
+      window.alert("Vui lòng chọn kết quả cuộc gọi.");
+      return;
+    }
+    if (saveBtn) saveBtn.disabled = true;
+    if (window.app && app.helper && app.helper.showProgress) {
+      app.helper.showProgress();
+    }
+    var postData = {
+      module: "Leads",
+      action: "ModernApi",
+      mode: "last_touch_call_log",
+      id: leadId,
+      record: leadId,
+      call_result: result,
+      note: note,
+    };
+    function done(err, res) {
+      if (saveBtn) saveBtn.disabled = false;
+      if (window.app && app.helper && app.helper.hideProgress) {
+        app.helper.hideProgress();
+      }
+      if (err || !res || res.success === false) {
+        var msg =
+          (err && err.message) ||
+          (res && res.error) ||
+          "Không ghi được cuộc gọi Last Touch.";
+        if (typeof msg === "object" && msg.message) msg = msg.message;
+        window.alert(String(msg));
+        return;
+      }
+      closeListLastTouchModal();
+      var lt = res.lastTouchCalls || null;
+      var lead = findLeadByRecordId(leadId);
+      if (lead && lt) {
+        lead.lastTouchCalls = lt;
+        if (lt.logged && lt.logged.called_at) {
+          lead.last_touch = lt.logged.called_at;
+        }
+      }
+      if (callBtn) {
+        renderInlineLastTouchPanel(callBtn, lt);
+      }
+      var convert = res.convert || (lt && lt.convert) || null;
+      var panel = callBtn && callBtn.closest ? callBtn.closest(".mk-so-inline-detail") : null;
+      var parentRow = panel && panel.closest
+        ? panel.closest("tr.mk-so-inline-detail-row")
+        : null;
+      var dataRow = parentRow && parentRow.previousElementSibling
+        ? parentRow.previousElementSibling
+        : null;
+      if (dataRow && dataRow.classList && dataRow.classList.contains("mk-leads-row") && lead) {
+        var touchTd = dataRow.querySelector(".mk-leads-td--touch");
+        if (touchTd && logic && logic.lastTouchCallLogHtml) {
+          touchTd.innerHTML = logic.lastTouchCallLogHtml(lead, escHtml);
+          var meta = logic.derive ? logic.derive(lead) : null;
+          if (meta) {
+            touchTd.classList.toggle("mk-leads-td--stale", !!meta.stale);
+          }
+        }
+        if (lt && lt.lead && lt.lead.next_action != null && panel) {
+          var nextTa = panel.querySelector(".mk-so-inline-detail__next-action-input");
+          if (nextTa) nextTa.value = String(lt.lead.next_action || "");
+        }
+      }
+      var refresh =
+        store && store.refreshLeadsList ? store.refreshLeadsList() : Promise.resolve();
+      refresh.then(function () {
+        if (result === "Nghe máy" && convert) {
+          renderAll();
+          var url =
+            convert.redirect ||
+            convert.potentialUrl ||
+            (convert.potentialId
+              ? "index.php?module=Potentials&view=Detail&record=" +
+                convert.potentialId +
+                "&app=SALES"
+              : "");
+          if (window.app && app.helper && app.helper.showSuccessNotification) {
+            app.helper.showSuccessNotification({
+              message: "Nghe máy — đã chuyển sang Cơ hội.",
+            });
+          } else {
+            window.alert("Nghe máy — đã chuyển sang Cơ hội.");
+          }
+          if (url && window.confirm("Mở Cơ hội vừa tạo?")) {
+            window.location.href = url;
+          }
+          return;
+        }
+        var logged = (lt && lt.logged) || {};
+        if (window.app && app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({
+            message: logged.label || "Đã ghi Last Touch Call.",
+          });
+        }
+      });
+    }
+    if (typeof app !== "undefined" && app.request && app.request.post) {
+      app.request.post({ data: postData }).then(function (err, res) {
+        done(err, res);
+      });
+    } else {
+      done({ message: "Không kết nối được máy chủ." }, null);
+    }
   }
 
   function findLeadByRecordId(recordId) {
@@ -259,8 +828,8 @@
       (btn && (btn.classList.contains("is-converted") || btn.disabled))
     ) {
       var url = btn && btn.getAttribute("data-potential-url");
-      window.alert("Lead này đã được convert sang Opportunity.");
-      if (url && window.confirm("Mở Opportunity?")) {
+      window.alert("Lead này đã được chuyển sang Cơ hội.");
+      if (url && window.confirm("Mở Cơ hội?")) {
         window.location.href = url;
       }
       return;
@@ -269,7 +838,7 @@
     openConvertOrderCategoryModal({
       radioName: "mk_leads_inline_convert_order_category",
       introHtml:
-        "Chuyển lead sang <strong>Contact + Account + Opportunity</strong>. Chọn loại đơn hàng:",
+        "Chuyển lead sang <strong>Liên hệ + Tổ chức + Cơ hội</strong>. Chọn loại đơn hàng:",
       onConfirm: function (cat) {
         if (window.app && app.helper && app.helper.showProgress) {
           app.helper.showProgress();
@@ -296,11 +865,11 @@
             return refresh.then(function () {
               renderAll();
               if (res && res.already_converted) {
-                window.alert("Lead này đã được convert trước đó.");
+                window.alert("Lead này đã được chuyển trước đó.");
               } else {
-                window.alert("Đã convert sang Opportunity.");
+                window.alert("Đã chuyển sang Cơ hội.");
               }
-              if (potentialUrl && window.confirm("Mở Opportunity vừa tạo?")) {
+              if (potentialUrl && window.confirm("Mở Cơ hội vừa tạo?")) {
                 window.location.href = potentialUrl;
               }
             });
@@ -309,7 +878,7 @@
             if (window.app && app.helper && app.helper.hideProgress) {
               app.helper.hideProgress();
             }
-            window.alert((err && err.message) || "Convert thất bại");
+            window.alert((err && err.message) || "Chuyển sang Cơ hội thất bại");
           });
       },
     });
@@ -319,7 +888,7 @@
     var convertible = rows.filter(isLeadConvertible);
     var skipped = rows.length - convertible.length;
     if (!convertible.length) {
-      window.alert("Không có lead nào có thể convert.");
+      window.alert("Không có lead nào có thể chuyển sang Cơ hội.");
       return;
     }
     if (window.app && app.helper && app.helper.showProgress) {
@@ -350,9 +919,8 @@
         return refresh.then(function () {
           clearSelection();
           renderAll();
-          var msg = "Đã convert " + ok + " lead.";
-          if (ok !== 1) msg = "Đã convert " + ok + " leads.";
-          if (already) msg += " " + already + " đã convert trước đó.";
+          var msg = "Đã chuyển " + ok + " lead sang Cơ hội.";
+          if (already) msg += " " + already + " đã chuyển trước đó.";
           if (skipped) msg += " " + skipped + " bỏ qua.";
           if (failed) msg += " " + failed + " lỗi.";
           window.alert(msg);
@@ -382,7 +950,7 @@
     return leads.filter(function (l) {
       var d = logic.derive(l);
       if (q) {
-        var hay = [l.name, l.phone, l.email || "", l.companyName || "", l.area || ""].join(" ").toLowerCase();
+        var hay = [l.name, l.phone, l.email || "", l.companyName || "", l.area || "", addressOf(l), regionKeyOf(l)].join(" ").toLowerCase();
         if (hay.indexOf(q) < 0) return false;
       }
       if (f.source !== ANY && (l.tags || []).indexOf(f.source) < 0) return false;
@@ -429,20 +997,20 @@
     if (!raw) return "";
     var d = new Date(raw);
     if (isNaN(d.getTime())) return String(raw);
-    var mm = String(d.getMonth() + 1).padStart
-      ? String(d.getMonth() + 1).padStart(2, "0")
-      : ("0" + (d.getMonth() + 1)).slice(-2);
-    var dd = String(d.getDate()).padStart
-      ? String(d.getDate()).padStart(2, "0")
-      : ("0" + d.getDate()).slice(-2);
-    var yyyy = d.getFullYear();
-    var h = d.getHours();
-    var m = d.getMinutes();
-    var ampm = h >= 12 ? "PM" : "AM";
-    var h12 = h % 12;
-    if (h12 === 0) h12 = 12;
-    var mmins = String(m).padStart ? String(m).padStart(2, "0") : ("0" + m).slice(-2);
-    return mm + "-" + dd + "-" + yyyy + " " + h12 + ":" + mmins + " " + ampm;
+    function pad(n) {
+      return n < 10 ? "0" + n : String(n);
+    }
+    return (
+      pad(d.getDate()) +
+      "/" +
+      pad(d.getMonth() + 1) +
+      "/" +
+      d.getFullYear() +
+      " " +
+      pad(d.getHours()) +
+      ":" +
+      pad(d.getMinutes())
+    );
   }
 
   function computeKpis(leads) {
@@ -562,7 +1130,7 @@
           "</button>" +
           '<button type="button" class="mk-leads-segment-chip__del" data-del-segment="' +
           esc(s.id) +
-          '" aria-label="Delete segment">' +
+          '" aria-label="Xóa phân đoạn">' +
           ic("close") +
           "</button></span>"
         );
@@ -675,16 +1243,152 @@
   }
 
   function tagBadgeHtml(tag, labelOverride) {
-    var m = tagMeta(tag);
-    var key = String(tag || "").trim();
-    var label = labelOverride || (m && m.label) || key;
+    var raw = String(tag || "").trim();
+    var key = normalizeTagKey(raw);
+    var label = labelOverride || "";
+    // Always force full call-attempt names — never show bare "1"/"2".
+    var callMatch = /^goi_lan_(\d+)$/.exec(key) || /^(\d{1,2})$/.exec(key);
+    if (callMatch) {
+      key = "goi_lan_" + parseInt(callMatch[1], 10);
+      label = "Gọi lần " + parseInt(callMatch[1], 10);
+    } else if (!label) {
+      label = resolveTagLabel(key || raw);
+    }
+    if (!label || /^\d+$/.test(String(label).trim())) {
+      label = resolveTagLabel(key || raw) || humanizeFallback(key || raw);
+    }
     return (
       '<span class="mk-tag" data-tag="' +
-      esc(key) +
+      esc(key || raw) +
+      '" title="' +
+      esc(label) +
       '">' +
       esc(label) +
       "</span>"
     );
+  }
+
+  function humanizeFallback(key) {
+    if (ref && ref.humanizeTagKey) return ref.humanizeTagKey(key);
+    return String(key || "").replace(/_/g, " ");
+  }
+
+  function closeTagPopover() {
+    var pop = $("mk-leads-tag-popover");
+    if (pop) pop.remove();
+  }
+
+  function openTagPopover(anchor, lead) {
+    closeTagPopover();
+    if (!lead || !store) return;
+    var catalog =
+      ref && ref.getCreateTagCatalog
+        ? ref.getCreateTagCatalog()
+        : [];
+    var selected = {};
+    (lead.tags || []).forEach(function (tg) {
+      var k = normalizeTagKey(tg);
+      if (k) selected[k] = true;
+    });
+    // Keep system call tags even if not in create catalog.
+    Object.keys(selected).forEach(function (k) {
+      if (/^goi_lan_\d+$/.test(k) && !selected[k]) selected[k] = true;
+    });
+
+    var pop = document.createElement("div");
+    pop.id = "mk-leads-tag-popover";
+    pop.className = "mk-leads-tag-popover";
+    pop.setAttribute("data-lead-id", String(lead.id));
+    var groupsHtml = catalog
+      .map(function (g) {
+        var chips = (g.tags || [])
+          .map(function (item) {
+            var on = !!selected[item.key];
+            return (
+              '<button type="button" class="mk-leads-tag-chip' +
+              (on ? " is-on" : "") +
+              '" data-tag="' +
+              esc(item.key) +
+              '" aria-pressed="' +
+              (on ? "true" : "false") +
+              '">' +
+              esc(item.label) +
+              "</button>"
+            );
+          })
+          .join("");
+        return (
+          '<div class="mk-leads-tag-popover__group">' +
+          '<div class="mk-leads-tag-popover__group-title">' +
+          esc(g.label) +
+          "</div>" +
+          '<div class="mk-leads-tag-popover__chips">' +
+          chips +
+          "</div></div>"
+        );
+      })
+      .join("");
+
+    pop.innerHTML =
+      '<div class="mk-leads-tag-popover__head"><strong>Sửa thẻ</strong>' +
+      '<button type="button" class="mk-leads-tag-popover__close" aria-label="Đóng">&times;</button></div>' +
+      '<div class="mk-leads-tag-popover__body">' +
+      groupsHtml +
+      "</div>" +
+      '<div class="mk-leads-tag-popover__foot">' +
+      '<button type="button" class="mk-leads-btn mk-leads-btn--outline" data-tag-cancel="1">Hủy</button>' +
+      '<button type="button" class="mk-leads-btn" data-tag-save="1">Lưu thẻ</button>' +
+      "</div>";
+
+    document.body.appendChild(pop);
+    var rect = anchor.getBoundingClientRect();
+    var top = rect.bottom + window.scrollY + 6;
+    var left = Math.min(rect.left + window.scrollX, window.scrollX + window.innerWidth - 360);
+    pop.style.top = top + "px";
+    pop.style.left = Math.max(8, left) + "px";
+
+    pop.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var chip = e.target.closest && e.target.closest(".mk-leads-tag-chip");
+      if (chip) {
+        chip.classList.toggle("is-on");
+        chip.setAttribute("aria-pressed", chip.classList.contains("is-on") ? "true" : "false");
+        return;
+      }
+      if (e.target.closest && (e.target.closest("[data-tag-cancel]") || e.target.closest(".mk-leads-tag-popover__close"))) {
+        closeTagPopover();
+        return;
+      }
+      if (e.target.closest && e.target.closest("[data-tag-save]")) {
+        var nextTags = [];
+        pop.querySelectorAll(".mk-leads-tag-chip.is-on").forEach(function (el) {
+          nextTags.push(el.getAttribute("data-tag"));
+        });
+        // Preserve tags not in Create catalog (custom / system call tags).
+        var catalogKeys =
+          ref && ref.getCreateTagKeys ? ref.getCreateTagKeys() : [];
+        (lead.tags || []).forEach(function (tg) {
+          var k = normalizeTagKey(tg);
+          if (!k) return;
+          if (catalogKeys.indexOf(k) < 0 && nextTags.indexOf(k) < 0) {
+            nextTags.push(k);
+          }
+        });
+        var saveBtn = e.target.closest("[data-tag-save]");
+        if (saveBtn) saveBtn.disabled = true;
+        store
+          .update(lead.id, { tags: nextTags })
+          .then(function () {
+            closeTagPopover();
+            renderAll();
+          })
+          .catch(function (err) {
+            console.error(err);
+            window.alert("Không lưu được thẻ.");
+            if (saveBtn) saveBtn.disabled = false;
+          });
+      }
+    });
   }
 
   function renderTable() {
@@ -714,7 +1418,7 @@
           '<div style="margin-top:12px"><button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-clear-filters-empty">Xóa bộ lọc</button></div>';
       }
       tbody.innerHTML =
-        '<tr><td colspan="12" class="mk-leads-empty">' + esc(emptyMsg) + extraBtn + "</td></tr>";
+        '<tr><td colspan="13" class="mk-leads-empty">' + esc(emptyMsg) + extraBtn + "</td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (l) {
@@ -737,14 +1441,15 @@
             : typeTag
               ? tagMeta(typeTag).label || typeTag
               : null;
-          var nonSourceTags = (l.tags || []).filter(function (tg) {
-            return SOURCE_TAGS.indexOf(tg) < 0;
-          });
+          var nonSourceTags = displayTagsForLead(l);
           var tags = nonSourceTags;
           var extra = 0;
           var checked = state.selected[l.id] ? " checked" : "";
           var crmId = leadCrmId(l);
           var createdLabel = formatCreatedLabel(l.createdtime);
+          var tagsHtml = tags.length
+            ? tags.map(tagBadgeHtml).join("")
+            : '<span class="mk-leads-muted">Thêm thẻ…</span>';
           return (
             '<tr class="mk-leads-row' +
             (d.high ? " mk-leads-row--hot" : "") +
@@ -767,19 +1472,21 @@
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--lead">' +
             '<span class="mk-leads-lead-cell">' +
-            (d.high ? '<span class="mk-leads-fire" title="High priority">&#9832;</span>' : ic("user")) +
+            (d.high ? '<span class="mk-leads-fire" title="Ưu tiên cao">&#9832;</span>' : ic("user")) +
             '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' +
             detailUrl(l.id) +
             '">' +
             esc(l.name) +
             "</a>" +
-            (l.companyName ? '<div class="mk-leads-sub">' + esc(l.companyName) + "</div>" : "") +
             "</span></span></td>" +
-            '<td class="mk-leads-td">' +
-            esc(l.phone) +
+            '<td class="mk-leads-td mk-leads-td--phone">' +
+            editableCellHtml("phone", l.phone, l.id, "Nhập SĐT") +
             "</td>" +
-            '<td class="mk-leads-td">' +
-            (l.area ? esc(l.area) : '<span class="mk-leads-muted">—</span>') +
+            '<td class="mk-leads-td mk-leads-td--area">' +
+            regionSelectHtml(l.id, regionKeyOf(l)) +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--address">' +
+            editableCellHtml("address", addressOf(l), l.id, "Nhập địa chỉ") +
             "</td>" +
             '<td class="mk-leads-td">' +
             (src ? tagBadgeHtml(src) : '<span class="mk-leads-muted">—</span>') +
@@ -789,11 +1496,6 @@
               ? tagBadgeHtml(custKey, custLabel)
               : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
-            '<td class="mk-leads-td">' +
-            (d.tierKey
-              ? tagBadgeHtml(d.tierKey, d.tier)
-              : '<span class="mk-leads-muted">—</span>') +
-            "</td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner"><span class="mk-owner-avatar" style="background:' +
             logic.ownerColor(l.owner) +
             '">' +
@@ -801,10 +1503,12 @@
             '</span><span>' +
             esc(l.owner) +
             "</span></span></td>" +
-            '<td class="mk-leads-td mk-leads-td--tags"><div class="mk-leads-tags-stack">' +
-            (tags.length ? tags.map(tagBadgeHtml).join("") : '<span class="mk-leads-muted">—</span>') +
+            '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-lead-id="' +
+            esc(l.id) +
+            '" title="Sửa thẻ"><div class="mk-leads-tags-stack">' +
+            tagsHtml +
             (extra > 0 ? '<span class="mk-leads-tag-more">+' + extra + "</span>" : "") +
-            "</div></td>" +
+            "</div></button></td>" +
             '<td class="mk-leads-td mk-leads-td--touch' +
             (d.stale ? " mk-leads-td--stale" : "") +
             '">' +
@@ -813,9 +1517,25 @@
               : logic.touchLabel(d.days)) +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--next">' +
+            (logic.nextActionCellHtml
+              ? logic.nextActionCellHtml(l, esc)
+              : (function () {
+                  var next = logic.deriveNextAction ? logic.deriveNextAction(l) : l.next_action || "";
+                  return next ? esc(next) : '<span class="mk-leads-muted">—</span>';
+                })()) +
+            "</td>" +
+            '<td class="mk-leads-td" data-col="notes">' +
             (function () {
-              var next = logic.deriveNextAction ? logic.deriveNextAction(l) : l.next_action || "";
-              return next ? esc(next) : '<span class="mk-leads-muted">—</span>';
+              var n = String(l.notes || "").trim();
+              if (!n) return '<span class="mk-leads-muted">—</span>';
+              var short = n.length > 80 ? n.slice(0, 80) + "…" : n;
+              return (
+                '<span class="mk-leads-notes-cell" title="' +
+                esc(n) +
+                '">' +
+                esc(short) +
+                "</span>"
+              );
             })() +
             "</td></tr>"
           );
@@ -922,23 +1642,23 @@
       "</span>" +
       '<span class="mk-leads-bulk-bar__count"><strong>' +
       n +
-      "</strong> selected</span>" +
+      "</strong> đã chọn</span>" +
       "</div>" +
       '<div class="mk-leads-bulk-bar__actions">' +
       '<button type="button" class="mk-leads-bulk-btn mk-leads-bulk-btn--convert" data-bulk="convert">' +
       '<span class="mk-leads-bulk-btn__ic">' +
       ic("convert") +
-      "</span><span>Convert to Opp</span></button>" +
+      "</span><span>Chuyển sang Cơ hội</span></button>" +
       '<button type="button" class="mk-leads-bulk-btn" data-bulk="export">' +
       '<span class="mk-leads-bulk-btn__ic">' +
       ic("export") +
-      "</span><span>Export</span></button>" +
+      "</span><span>Xuất file</span></button>" +
       '<button type="button" class="mk-leads-bulk-btn mk-leads-bulk-btn--danger" data-bulk="delete">' +
       '<span class="mk-leads-bulk-btn__ic">' +
       ic("trash") +
       "</span><span>Xóa</span></button>" +
       "</div>" +
-      '<button type="button" class="mk-leads-bulk-clear" data-bulk="clear">Clear</button>' +
+      '<button type="button" class="mk-leads-bulk-clear" data-bulk="clear">Bỏ chọn</button>' +
       "</div>";
   }
 
@@ -1023,6 +1743,27 @@
       });
 
     document.addEventListener("click", function (e) {
+      var editBtn = e.target.closest && e.target.closest(".mk-leads-inline-edit");
+      if (editBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        beginInlineEdit(editBtn);
+        return;
+      }
+      var tagsBtn = e.target.closest && e.target.closest(".mk-leads-tags-edit");
+      if (tagsBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var leadId = tagsBtn.getAttribute("data-lead-id");
+        var lead = getLeads().find(function (l) {
+          return String(l.id) === String(leadId) || String(leadCrmId(l)) === String(leadId);
+        });
+        if (lead) openTagPopover(tagsBtn, lead);
+        return;
+      }
+      if (!(e.target.closest && e.target.closest("#mk-leads-tag-popover"))) {
+        closeTagPopover();
+      }
       var t = e.target;
       if (!t || !t.id) return;
       if (t.id === "mk-leads-reload-list") {
@@ -1054,6 +1795,11 @@
     document.addEventListener("change", function (e) {
       var t = e.target;
       if (!t || !t.getAttribute) return;
+      if (t.classList && t.classList.contains("mk-leads-region-select")) {
+        e.stopPropagation();
+        commitRegionChange(t);
+        return;
+      }
       var key = t.getAttribute("data-fkey");
       if (!key) return;
       if (t.type === "checkbox") state.filters[key] = t.checked;
@@ -1117,7 +1863,7 @@
 
     $("mk-leads-save-segment") &&
       $("mk-leads-save-segment").addEventListener("click", function () {
-        var name = prompt("Segment name");
+        var name = prompt("Tên phân đoạn");
         if (!name || !store) return;
         var list = store.getSegments();
         list.push({ id: "seg_" + Date.now(), name: name, filters: Object.assign({}, state.filters) });
@@ -1125,6 +1871,43 @@
           renderSegments();
         });
       });
+
+    document.addEventListener(
+      "focusout",
+      function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains("mk-leads-inline-input")) {
+          commitInlineEdit(e.target);
+        }
+      },
+      true,
+    );
+
+    document.addEventListener("keydown", function (e) {
+      if (!e.target || !e.target.classList || !e.target.classList.contains("mk-leads-inline-input")) {
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        commitInlineEdit(e.target);
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        renderTable();
+      }
+    });
+
+    document.addEventListener("mk-leads-list-field-updated", function (e) {
+      if (!e || !e.detail || !store || !store.getLeads) return;
+      var detail = e.detail;
+      var leads = store.getLeads();
+      var idx = leads.findIndex(function (l) {
+        return String(leadCrmId(l)) === String(detail.id) || String(l.id) === String(detail.id);
+      });
+      if (idx < 0) return;
+      leads[idx] = Object.assign({}, leads[idx], detail.patch || {});
+      if (store.setLeads) store.setLeads(leads);
+      renderTable();
+    });
 
     $("mk-leads-table") &&
       $("mk-leads-table").addEventListener("click", function (e) {
@@ -1163,6 +1946,14 @@
     });
 
     document.addEventListener("click", function (e) {
+      var inlineCallBtn =
+        e.target.closest && e.target.closest(".mk-so-inline-detail__call-btn");
+      if (inlineCallBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openListLastTouchModal(inlineCallBtn);
+        return;
+      }
       var inlineConvertBtn =
         e.target.closest && e.target.closest(".mk-so-inline-detail__convert-btn");
       if (inlineConvertBtn) {

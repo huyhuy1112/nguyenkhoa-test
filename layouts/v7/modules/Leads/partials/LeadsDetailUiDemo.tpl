@@ -61,6 +61,8 @@
 							<span class="caret"></span>
 						</button>
 						<ul class="dropdown-menu dropdown-menu-right">
+							<li><a href="javascript:void(0)" data-mk-demo-action="call">{vtranslate('LBL_MK_CREATE_CALL', $MODULE_NAME)}</a></li>
+							<li class="divider"></li>
 							<li><a href="javascript:void(0)" data-mk-demo-action="duplicate">{vtranslate('LBL_DUPLICATE', $MODULE_NAME)}</a></li>
 							<li><a href="javascript:void(0)" data-mk-demo-action="delete">{vtranslate('LBL_DELETE', $MODULE_NAME)}</a></li>
 						</ul>

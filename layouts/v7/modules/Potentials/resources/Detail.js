@@ -91,28 +91,45 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 				app.helper.showErrorNotification({ message: 'Không tìm thấy Opportunity ID.' });
 				return;
 			}
-			app.helper.showProgress && app.helper.showProgress();
-			app.request
-				.post({
-					data: {
-						module: 'Potentials',
-						action: 'ConvertToCustomer',
-						record: recordId
-					}
-				})
-				.then(function (err, res) {
-					app.helper.hideProgress && app.helper.hideProgress();
-					if (err || !res || res.success === false) {
-						app.helper.showErrorNotification({ message: (res && res.message) ? res.message : 'Không chuyển được sang Khách hàng.' });
-						return;
-					}
-					var contactId = res.contact_id || (res.result && res.result.contact_id);
-					if (!contactId) {
-						app.helper.showErrorNotification({ message: 'Không tìm thấy Contact để chuyển.' });
-						return;
-					}
-					window.location.href = 'index.php?module=Contacts&view=Detail&record=' + encodeURIComponent(contactId) + '&app=SALES';
-				});
+			var pick = (typeof window.MkOppPickCustomerTier === 'function')
+				? window.MkOppPickCustomerTier({ count: 1 })
+				: Promise.resolve(window.prompt('Chọn hạng: vang / bac / dong', 'dong'));
+			pick.then(function (tierRaw) {
+				if (tierRaw === null || tierRaw === undefined || tierRaw === '') {
+					return;
+				}
+				var tier = String(tierRaw).trim().toLowerCase();
+				if (tier === 'gold' || tier === 'vàng') tier = 'vang';
+				if (tier === 'silver' || tier === 'bạc') tier = 'bac';
+				if (tier === 'bronze' || tier === 'đồng') tier = 'dong';
+				if (['vang', 'bac', 'dong'].indexOf(tier) < 0) {
+					app.helper.showErrorNotification({ message: 'Vui lòng chọn hạng Vàng / Bạc / Đồng.' });
+					return;
+				}
+				app.helper.showProgress && app.helper.showProgress();
+				app.request
+					.post({
+						data: {
+							module: 'Potentials',
+							action: 'ConvertToCustomer',
+							record: recordId,
+							tier: tier
+						}
+					})
+					.then(function (err, res) {
+						app.helper.hideProgress && app.helper.hideProgress();
+						if (err || !res || res.success === false) {
+							app.helper.showErrorNotification({ message: (res && res.message) ? res.message : 'Không chuyển được sang Khách hàng.' });
+							return;
+						}
+						var contactId = res.contact_id || (res.result && res.result.contact_id);
+						if (!contactId) {
+							app.helper.showErrorNotification({ message: 'Không tìm thấy Contact để chuyển.' });
+							return;
+						}
+						window.location.href = 'index.php?module=Contacts&view=Detail&record=' + encodeURIComponent(contactId) + '&app=SALES';
+					});
+			});
 		});
 	},
 

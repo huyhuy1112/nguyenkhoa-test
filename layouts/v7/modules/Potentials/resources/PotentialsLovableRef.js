@@ -8,16 +8,18 @@
     try {
       var lang =
         typeof app !== "undefined" && app.getUserLanguage
-          ? String(app.getUserLanguage() || "")
+          ? String(app.getUserLanguage() || "").toLowerCase()
           : "";
-      return !lang || lang.indexOf("vi") === 0 || lang === "vn";
+      if (!lang) return true;
+      if (lang.indexOf("en") === 0) return false;
+      return true;
     } catch (e) {
       return true;
     }
   }
 
   function pickLabel(vi, en) {
-    return isVi() ? vi : en || vi;
+    return vi || en || "";
   }
 
   var TAG_ALIASES = {
@@ -74,12 +76,40 @@
     gold: "vang",
     silver: "bac",
     bronze: "dong",
+    first_purchase: "mua_lan_dau",
+    new_purchase: "mua_lan_dau",
+    repeat_purchase: "mua_lai",
+    not_buying: "khong_mua",
+    stopped_buying: "ngung_mua",
+    free_online: "mien_phi_online",
+    free_offline: "mien_phi_offline",
+    free_class: "mien_phi_online",
+    franchise: "nhuong_quyen",
+    operations: "van_hanh",
+    marketing: "mkt",
+    other_class: "lop_khac",
+    not_studied: "chua_hoc",
+    studied: "da_hoc",
+    potential: "tiem_nang",
+    confirmed: "xac_nhan_tham_gia",
+    not_joining: "khong_xac_nhan_tham_gia",
+    not_participating: "khong_xac_nhan_tham_gia",
+    deposited: "da_ky_quy",
+    family: "gia_dinh",
+    has_store: "co_quan",
+    preparing_to_open: "chuan_bi_mo",
+    in_care: "dang_cham_soc",
+    consulting: "dang_tu_van",
+    considering: "kh_can_nhac",
+    stable_purchase: "mua_on_dinh",
+    attended_free: "da_tg_free",
+    tuesday: "thu_3",
   };
 
   var TAG_META_RAW = {
-    kv1: { vi: "KV1", en: "KV1", cat: "area", cls: "mk-tag--kv1" },
-    kv2: { vi: "KV2", en: "KV2", cat: "area", cls: "mk-tag--kv2" },
-    kv3: { vi: "KV3", en: "KV3", cat: "area", cls: "mk-tag--kv3" },
+    kv1: { vi: "Khu vực 1", en: "Area 1", cat: "area", cls: "mk-tag--kv1" },
+    kv2: { vi: "Khu vực 2", en: "Area 2", cat: "area", cls: "mk-tag--kv2" },
+    kv3: { vi: "Khu vực 3", en: "Area 3", cat: "area", cls: "mk-tag--kv3" },
     facebook: { vi: "Facebook", en: "Facebook", cat: "source", cls: "mk-tag--facebook" },
     tiktok: { vi: "TikTok", en: "TikTok", cat: "source", cls: "mk-tag--tiktok" },
     ladipage_fb: { vi: "Ladipage FB", en: "Ladipage FB", cat: "source", cls: "mk-tag--ladipage" },
@@ -218,19 +248,62 @@
 
   function tagMeta(tag) {
     var key = normalizeTag(tag);
+    var raw = TAG_META_RAW[key];
+    if (raw) {
+      return {
+        label: pickLabel(raw.vi, raw.en),
+        cat: raw.cat,
+        cls: raw.cls,
+        key: key,
+      };
+    }
     var catalogName = catalogLabel(tag);
     if (catalogName) {
-      return { label: catalogName, cat: "custom", cls: "mk-tag--custom" };
+      return { label: catalogName, cat: "custom", cls: "mk-tag--custom", key: key };
     }
-    var raw = TAG_META_RAW[key];
-    if (!raw) {
-      return { label: String(tag || ""), cat: "other", cls: "mk-tag--other" };
-    }
-    return {
-      label: pickLabel(raw.vi, raw.en),
-      cat: raw.cat,
-      cls: raw.cls,
-    };
+    return { label: String(tag || ""), cat: "other", cls: "mk-tag--other", key: key };
+  }
+
+  function labelForTag(key, fallback) {
+    var meta = tagMeta(key);
+    if (meta && meta.label) return meta.label;
+    return fallback || key;
+  }
+
+  /** Groups for list / inline tag editor (BA columns + confirm + tier). */
+  var CREATE_TAG_GROUPS = [
+    { id: "area", labelVi: "Khu vực", labelEn: "Region", tags: AREA_TAGS },
+    { id: "source", labelVi: "Nguồn data", labelEn: "Source", tags: SOURCE_TAGS },
+    { id: "customer", labelVi: "Dạng khách hàng", labelEn: "Customer type", tags: CUSTOMER_TAGS },
+    { id: "class", labelVi: "Tag lớp học", labelEn: "Class", tags: CLASS_TAGS },
+    { id: "material", labelVi: "Tag nguyên liệu", labelEn: "Material", tags: MATERIAL_TAGS },
+    { id: "franchise", labelVi: "Tag nhượng quyền", labelEn: "Franchise", tags: FRANCHISE_TAGS },
+    { id: "confirm", labelVi: "Xác nhận tham gia", labelEn: "Confirm", tags: CONFIRM_TAGS },
+    { id: "tier", labelVi: "Hạng khách", labelEn: "Tier", tags: TIER_TAGS },
+  ];
+
+  function getCreateTagCatalog() {
+    return CREATE_TAG_GROUPS.map(function (g) {
+      return {
+        id: g.id,
+        label: pickLabel(g.labelVi, g.labelEn),
+        tags: (g.tags || []).map(function (k) {
+          var meta = tagMeta(k);
+          return { key: meta.key || normalizeTag(k) || k, label: meta.label || k };
+        }),
+      };
+    });
+  }
+
+  function getCreateTagKeys() {
+    var keys = [];
+    CREATE_TAG_GROUPS.forEach(function (g) {
+      (g.tags || []).forEach(function (k) {
+        var nk = normalizeTag(k);
+        if (nk && keys.indexOf(nk) < 0) keys.push(nk);
+      });
+    });
+    return keys;
   }
 
   root.PotentialsLovableRef = {
@@ -244,6 +317,7 @@
     CONFIRM_TAGS: CONFIRM_TAGS,
     TIER_TAGS: TIER_TAGS,
     ALL_KNOWN_TAGS: ALL_KNOWN_TAGS,
+    CREATE_TAG_GROUPS: CREATE_TAG_GROUPS,
     catalogLabel: catalogLabel,
     isCatalogScopedTag: isCatalogScopedTag,
     isVi: isVi,
@@ -252,5 +326,8 @@
     findTagInPool: findTagInPool,
     categorizeTags: categorizeTags,
     tagMeta: tagMeta,
+    labelForTag: labelForTag,
+    getCreateTagCatalog: getCreateTagCatalog,
+    getCreateTagKeys: getCreateTagKeys,
   };
 })(typeof window !== "undefined" ? window : this);

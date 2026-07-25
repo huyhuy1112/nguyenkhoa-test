@@ -3,7 +3,7 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-opps-ui-ready', 'mk-opportunity-list-sales');</script>
-<script type="text/javascript">window.__MK_OPPS_UI_BUILD__ = "20260717_opp_tag_col1";</script>
+<script type="text/javascript">window.__MK_OPPS_UI_BUILD__ = "20260724_opp_next1";</script>
 <script type="text/javascript">window.MK_OPPS_API_READY = true;</script>
 {if isset($MK_OPPS_ASSIGNABLE_USERS)}
 <script type="text/javascript">window.MK_OPPS_ASSIGNABLE_USERS = {Zend_Json::encode($MK_OPPS_ASSIGNABLE_USERS)};</script>
@@ -13,9 +13,9 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkListShell.css')}&mk_v=20260711_segments_ui2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260711_segments_ui2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20260711_segments_ui2" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260711_segments_ui2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260724_opp_next1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260715_opp_palette1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkList.css')}&mk_v=20260715_opp_palette1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkList.css')}&mk_v=20260724_opp_next1" />
 <style type="text/css">
 html.mk-opps-ui-ready body[data-module="Potentials"][data-view="List"] .main-container .content-area,
 html.mk-opps-ui-ready body[data-module="Potentials"][data-view="List"] #listViewContent,
@@ -29,24 +29,26 @@ html.mk-opps-ui-ready body[data-module="Potentials"][data-view="List"] #mk-dash-
 </style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListShared.css')}" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLovableRef.js')}&mk_v=20260711_segments_ui2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLovableRef.js')}&mk_v=20260724_vi_force1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}?mk_v=20260711_segments_ui2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsLovableRef.js')}&mk_v=20260717_opp_tag_col1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsLocalStore.js')}&mk_v=20260713_bulk1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkList.js')}&mk_v=20260717_opp_tag_col1"></script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260716_inline_edit1" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLeadsLogic.js')}&mk_v=20260724_vi_force1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsLovableRef.js')}&mk_v=20260724_vi_force1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsLocalStore.js')}&mk_v=20260724_vi_force1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsConvertCustomerTier.js')}&mk_v=20260724_vi_force1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkList.js')}&mk_v=20260724_vi_force1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260724_opp_next1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
 	module: 'Potentials',
 	tableSelector: '#mk-opps-table',
 	rowSelector: 'tr.mk-leads-row',
-	colspan: 12,
+	colspan: 15,
 	enabledSelector: '[data-mk-opportunity-list]',
 	loadingText: 'Đang tải chi tiết cơ hội...',
 	errorText: 'Không tải được chi tiết cơ hội.'
 };
 </script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260716_inline_edit1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260724_opp_next1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-opportunity-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

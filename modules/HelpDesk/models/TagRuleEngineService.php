@@ -1338,6 +1338,87 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	/**
+	 * Kịch bản tiếp theo + khung thời gian (alert_days) từ Tag Rule khớp thẻ.
+	 * Dùng chung Leads / Potentials.
+	 *
+	 * @param array $tags
+	 * @param string|null $lastTouchRaw
+	 * @param string $manualNextAction
+	 * @return array
+	 */
+	public function resolveNextActionMeta(array $tags, $lastTouchRaw = null, $manualNextAction = '') {
+		$meta = array(
+			'next_action' => trim((string)$manualNextAction),
+			'rule_id' => null,
+			'rule_name' => null,
+			'rule_alert_days' => null,
+			'next_action_due_at' => null,
+			'next_action_overdue' => false,
+			'next_action_days_remaining' => null,
+			'next_action_days_overdue' => null,
+			'timeframe_label' => '',
+		);
+		$match = $this->matchRules($tags, true);
+		$best = !empty($match['best']) ? $match['best'] : null;
+		if (!$best) {
+			return $meta;
+		}
+		$meta['rule_id'] = isset($best['id']) ? (string)$best['id'] : null;
+		$meta['rule_name'] = isset($best['name']) ? (string)$best['name'] : null;
+		if ($meta['next_action'] === '' && !empty($best['next_action'])) {
+			$meta['next_action'] = (string)$best['next_action'];
+		}
+		if ($best['alert_days'] === null || (int)$best['alert_days'] <= 0) {
+			return $meta;
+		}
+		$alertDays = (int)$best['alert_days'];
+		$meta['rule_alert_days'] = $alertDays;
+		$lastTs = $lastTouchRaw ? strtotime((string)$lastTouchRaw) : false;
+		if (!$lastTs) {
+			$meta['timeframe_label'] = 'Trong ' . $alertDays . ' ngày';
+			return $meta;
+		}
+		$meta['next_action_due_at'] = date('c', strtotime('+' . $alertDays . ' days', $lastTs));
+		$daysIdle = max(0, (int)floor((time() - $lastTs) / 86400));
+		$remaining = $alertDays - $daysIdle;
+		if ($remaining < 0) {
+			$meta['next_action_overdue'] = true;
+			$meta['next_action_days_overdue'] = -$remaining;
+			$meta['timeframe_label'] = 'Quá hạn ' . (-$remaining) . ' ngày';
+		} elseif ($remaining === 0) {
+			$meta['next_action_days_remaining'] = 0;
+			$meta['timeframe_label'] = 'Hôm nay';
+		} else {
+			$meta['next_action_days_remaining'] = $remaining;
+			$meta['timeframe_label'] = 'Còn ' . $remaining . ' ngày';
+		}
+		return $meta;
+	}
+
+	public function getRecordTagLabels($moduleName, $recordId) {
+		$recordId = (int)$recordId;
+		$moduleName = (string)$moduleName;
+		if ($recordId <= 0 || $moduleName === '') {
+			return array();
+		}
+		$res = $this->db->pquery(
+			"SELECT t.tag
+			 FROM vtiger_freetagged_objects fo
+			 INNER JOIN vtiger_freetags t ON t.id = fo.tag_id
+			 WHERE fo.module = ? AND fo.object_id = ?
+			 ORDER BY fo.tagged_on ASC",
+			array($moduleName, $recordId)
+		);
+		$tags = array();
+		if ($res) {
+			while ($row = $this->db->fetchByAssoc($res)) {
+				$tags[] = decode_html($row['tag']);
+			}
+		}
+		return $tags;
+	}
+
+	/**
 	 * Ghi next_action từ rule thắng (priority cao nhất) vào bace_lead_profile.
 	 * @return string label đã ghi (có thể rỗng nếu không match)
 	 */

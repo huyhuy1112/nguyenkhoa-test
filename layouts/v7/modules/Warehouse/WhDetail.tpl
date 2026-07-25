@@ -22,6 +22,12 @@
 							<option value="manager" selected="selected">Quản lý kho — QL Tuấn</option>
 						</select>
 					</div>
+					<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--history" id="mkWhAuditHistoryBtn" title="Xem lịch sử tạo / chỉnh sửa phiếu nhập &amp; xuất">
+						<span class="mk-wh-proto-btn__ic" aria-hidden="true">
+							<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 4.5v4h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						</span>
+						Lịch sử chỉnh sửa
+					</button>
 				</div>
 			</header>
 

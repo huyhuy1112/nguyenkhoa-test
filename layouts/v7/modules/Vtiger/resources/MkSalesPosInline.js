@@ -89,7 +89,10 @@
 		var isEdit = !!enable;
 		$panel.toggleClass('is-edit-mode', isEdit);
 		$panel.find('.mk-so-inline-detail__edit-toggle').attr('aria-pressed', isEdit ? 'true' : 'false');
-		$panel.find('.mk-so-inline-detail__notes-input').prop('readonly', !isEdit);
+		$panel.find('.mk-so-inline-detail__notes-input').not('[disabled], .mk-so-inline-detail__next-action-input[readonly]').prop('readonly', !isEdit);
+		$panel.find('.mk-so-inline-detail__next-action.is-locked .mk-so-inline-detail__next-action-input')
+			.prop('readonly', true)
+			.prop('disabled', true);
 		if (isEdit && typeof vtUtils !== 'undefined' && vtUtils.applyFieldElementsView) {
 			vtUtils.applyFieldElementsView(
 				$panel.find('.mk-so-inline-detail__field-edit .dateField').closest('.mk-so-inline-detail__field-edit')
@@ -224,6 +227,97 @@
 		$('body').addClass('mk-so-inline-print-open');
 	}
 
+	function initLeadTagPicker($panel) {
+		if (!$panel || !$panel.length) return;
+		if (String($panel.attr('data-editable-tags') || $panel.find('[data-editable-tags]').attr('data-editable-tags') || '') !== '1'
+			&& !$panel.find('.mk-so-inline-detail__tags[data-editable-tags="1"]').length) {
+			return;
+		}
+		var $wrap = $panel.find('.mk-so-inline-detail__tags[data-editable-tags="1"]');
+		if (!$wrap.length || $wrap.data('mkTagPickerInit')) return;
+		$wrap.data('mkTagPickerInit', true);
+		var mod = String($panel.data('module') || moduleName());
+		var ref = window.LeadsLovableRef;
+		if (mod === 'Potentials' && window.PotentialsLovableRef) ref = window.PotentialsLovableRef;
+		else if (mod === 'Contacts' && window.ContactsLovableRef) ref = window.ContactsLovableRef;
+		var catalog = ref && ref.getCreateTagCatalog ? ref.getCreateTagCatalog() : [];
+		var $picker = $wrap.find('[data-role="tag-picker"]');
+		var $list = $wrap.find('[data-role="selected-tags"]');
+		if (!$picker.length) return;
+
+		function selectedKeys() {
+			var keys = [];
+			$list.find('.mk-tag[data-tag], [data-tag]').each(function () {
+				var k = $(this).attr('data-tag');
+				if (ref && ref.normalizeTag) k = ref.normalizeTag(k);
+				else if (ref && ref.normalizeTagKey) k = ref.normalizeTagKey(k);
+				if (k && keys.indexOf(k) < 0) keys.push(k);
+			});
+			return keys;
+		}
+
+		function catalogKeySet() {
+			var set = {};
+			if (ref && ref.getCreateTagKeys) {
+				ref.getCreateTagKeys().forEach(function (k) { set[k] = true; });
+			}
+			return set;
+		}
+
+		function renderSelected(keys) {
+			if (!keys.length) {
+				$list.html('<span class="mk-so-inline-detail__tags-empty">Chưa có tag</span>');
+				return;
+			}
+			$list.html(keys.map(function (key) {
+				var label = key;
+				if (ref && ref.labelForTag) label = ref.labelForTag(key);
+				else if (ref && ref.tagMeta) label = (ref.tagMeta(key).label) || key;
+				return '<span class="mk-tag" data-tag="' + $('<div/>').text(key).html() + '" title="' +
+					$('<div/>').text(label).html() + '">' + $('<div/>').text(label).html() + '</span>';
+			}).join(''));
+		}
+
+		function renderPicker() {
+			var selected = {};
+			selectedKeys().forEach(function (k) { selected[k] = true; });
+			var html = catalog.map(function (g) {
+				var chips = (g.tags || []).map(function (item) {
+					var on = !!selected[item.key];
+					return '<button type="button" class="mk-so-inline-tag-chip' + (on ? ' is-on' : '') +
+						'" data-tag="' + $('<div/>').text(item.key).html() + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+						$('<div/>').text(item.label).html() + '</button>';
+				}).join('');
+				return '<div class="mk-so-inline-tag-group"><div class="mk-so-inline-tag-group__title">' +
+					$('<div/>').text(g.label).html() + '</div><div class="mk-so-inline-tag-group__chips">' + chips + '</div></div>';
+			}).join('');
+			$picker.html(html || '<span class="mk-so-inline-detail__tags-empty">Không có danh mục tag</span>');
+		}
+
+		renderPicker();
+		$picker.on('click', '.mk-so-inline-tag-chip', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $chip = $(this);
+			var key = $chip.attr('data-tag');
+			var keys = selectedKeys();
+			var inCatalog = catalogKeySet();
+			var idx = keys.indexOf(key);
+			if ($chip.hasClass('is-on')) {
+				if (idx >= 0) keys.splice(idx, 1);
+				$chip.removeClass('is-on').attr('aria-pressed', 'false');
+			} else {
+				if (idx < 0) keys.push(key);
+				$chip.addClass('is-on').attr('aria-pressed', 'true');
+			}
+			// Keep custom/non-catalog tags that were already on the lead.
+			Object.keys(inCatalog).forEach(function () {});
+			renderSelected(keys);
+			renderPicker();
+		});
+		$panel.data('mkGetEditableTags', selectedKeys);
+	}
+
 	function initPanel($detailRow) {
 		var $panel = $detailRow.find('.mk-so-inline-detail');
 		if (!$panel.length || $panel.data('mkPosInlineInit')) {
@@ -234,6 +328,7 @@
 		var mod = String($panel.data('module') || moduleName());
 		var snapshot = captureSnapshot($panel);
 		setEditMode($panel, true);
+		initLeadTagPicker($panel);
 
 		$panel.on('click', '.mk-so-inline-detail__view-full-btn', function (e) {
 			e.preventDefault();
@@ -255,10 +350,7 @@
 			e.preventDefault();
 			e.stopPropagation();
 			setEditMode($panel, true);
-			var $focus = $panel.find('.mk-so-inline-detail__next-action-input');
-			if (!$focus.length) {
-				$focus = $panel.find('.mk-so-inline-detail__notes-input[name="description"]');
-			}
+			var $focus = $panel.find('.mk-so-inline-detail__notes-input[name="description"]');
 			$focus.focus();
 		});
 		$panel.on('click', '.mk-so-inline-detail__cancel-edit', function (e) {
@@ -485,33 +577,49 @@
 					} else {
 						key = slugifyInlineTag(raw) || key;
 					}
-					if (ref && ref.tagMeta) {
+					if (ref && ref.labelForTag) {
+						label = ref.labelForTag(key, label);
+					} else if (ref && ref.tagMeta) {
 						var meta = ref.tagMeta(key) || ref.tagMeta(raw);
 						label = meta.label || label;
 						if (meta.cls) cls = meta.cls;
 					} else if (key) {
 						cls = "mk-tag mk-tag--" + String(key).replace(/_/g, "-");
 					}
+					if (/^goi_lan_(\d+)$/.test(key) || /^\d{1,2}$/.test(key)) {
+						var nCall = parseInt(RegExp.$1 || key, 10);
+						key = 'goi_lan_' + nCall;
+						label = 'Gọi lần ' + nCall;
+					}
+					if (/^kv([123])$/.test(key)) {
+						label = 'Khu vực ' + RegExp.$1;
+					}
 					return '<span class="' + cls + '" data-tag="' + $('<div/>').text(key).html() + '" title="' + $('<div/>').text(String(raw)).html() + '">' +
 						$('<div/>').text(String(label)).html() + '</span>';
 				}).join('');
 				$list.html(html);
 			}
-			function applyOppConfirmToList(recordId, confirmKey) {
+			function applyOppConfirmToList(recordId, confirmKey, confirmedAt) {
 				if (window.PotentialsLocalStore && typeof window.PotentialsLocalStore.setConfirmTag === 'function') {
-					window.PotentialsLocalStore.setConfirmTag(recordId, confirmKey);
+					window.PotentialsLocalStore.setConfirmTag(recordId, confirmKey, confirmedAt || '');
 				}
 				try {
 					document.dispatchEvent(new CustomEvent('mk-opps-confirm-updated', {
-						detail: { id: String(recordId), confirm: confirmKey || '' }
+						detail: {
+							id: String(recordId),
+							confirm: confirmKey || '',
+							confirmed_at: confirmedAt || ''
+						}
 					}));
 				} catch (e) { /* IE */ }
 				var $row = $('tr.mk-leads-row[data-crmid="' + recordId + '"], tr.mk-leads-row[data-id="' + recordId + '"]').first();
 				if (!$row.length) return;
-				var $td = $row.children('td.mk-leads-td').eq(10);
+				var $td = $row.children('td[data-col="confirm"]');
+				var $join = $row.children('td[data-col="confirmed_at"]');
 				if (!$td.length) return;
 				if (!confirmKey) {
 					$td.html('<span class="mk-leads-muted">—</span>');
+					if ($join.length) $join.html('<span class="mk-leads-muted">—</span>');
 					return;
 				}
 				var ref = window.PotentialsLovableRef;
@@ -535,9 +643,28 @@
 					$('<div/>').text(label).html() +
 					'</span>'
 				);
+				if ($join.length) {
+					if (confirmKey === 'xac_nhan_tham_gia' && confirmedAt) {
+						var d = new Date(confirmedAt);
+						var labelAt = confirmedAt;
+						if (!isNaN(d.getTime())) {
+							function pad(n) { return n < 10 ? '0' + n : String(n); }
+							labelAt =
+								pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() +
+								' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+						}
+						$join.text(labelAt);
+					} else {
+						$join.html('<span class="mk-leads-muted">—</span>');
+					}
+				}
 			}
 			function finishSave(response) {
+				var scrollHost = document.querySelector('.mk-leads-table-scroll') || document.querySelector('.mk-dash-main');
+				var scrollTop = scrollHost ? scrollHost.scrollTop : 0;
+				var winScroll = window.pageYOffset || document.documentElement.scrollTop || 0;
 				if (response) {
+					var listPatch = {};
 					$panel.find('.mk-so-inline-detail__field-edit :input').each(function () {
 						var name = $(this).attr('name');
 						if (!name || name.indexOf('mk_') === 0) return;
@@ -548,9 +675,50 @@
 								.find('.mk-so-inline-detail__field[data-field-name="' + name + '"] .mk-so-inline-detail__field-view')
 								.text($('<div/>').html(displayValue).text());
 						}
+						if (mod === 'Leads' && (name === 'phone' || name === 'mk_address')) {
+							listPatch[name === 'mk_address' ? 'address' : name] = $(this).val() || '';
+						}
+						if (mod === 'Leads' && name === 'mk_region') {
+							listPatch.region = $(this).val() || '';
+						}
 					});
+					if (mod === 'Leads' && Object.keys(listPatch).length) {
+						applyLeadListFieldUpdate(recordId, listPatch);
+					}
 					if (response.description && response.description.value !== undefined) {
 						$panel.find('.mk-so-inline-detail__notes-input[name="description"]').val(response.description.value);
+					}
+					var noteVal = $panel.find('.mk-so-inline-detail__notes-input[name="description"]').val() || '';
+					if (response.description && response.description.value !== undefined) {
+						noteVal = response.description.value;
+					}
+					var $row = $('tr.mk-leads-row[data-crmid="' + recordId + '"], tr.mk-leads-row[data-id="' + recordId + '"]').first();
+					if ($row.length) {
+						var $notesTd = $row.children('td[data-col="notes"]');
+						if ($notesTd.length) {
+							var short = String(noteVal || '').trim();
+							if (!short) {
+								$notesTd.html('<span class="mk-leads-muted">—</span>');
+							} else {
+								var shown = short.length > 80 ? short.slice(0, 80) + '…' : short;
+								$notesTd.html(
+									'<span class="mk-leads-notes-cell" title="' +
+									$('<div/>').text(short).html() +
+									'">' +
+									$('<div/>').text(shown).html() +
+									'</span>'
+								);
+							}
+						}
+					}
+					if (mod === 'Potentials' && window.PotentialsLocalStore && PotentialsLocalStore.patchOpportunity) {
+						PotentialsLocalStore.patchOpportunity(recordId, { notes: noteVal });
+					}
+					if (mod === 'Leads' && window.LeadsLocalStore && typeof window.LeadsLocalStore.patchLead === 'function') {
+						window.LeadsLocalStore.patchLead(recordId, { notes: noteVal });
+					}
+					if (mod === 'Contacts' && window.ContactsLocalStore && typeof window.ContactsLocalStore.patchContact === 'function') {
+						window.ContactsLocalStore.patchContact(recordId, { notes: noteVal });
 					}
 				} else {
 					updateViewValues($panel);
@@ -562,6 +730,38 @@
 					app.helper.showSuccessNotification({
 						message: app.vtranslate ? app.vtranslate('JS_RECORD_UPDATED') : 'Đã lưu thay đổi.'
 					});
+				}
+				window.setTimeout(function () {
+					if (scrollHost) scrollHost.scrollTop = scrollTop;
+					window.scrollTo(0, winScroll);
+				}, 0);
+			}
+			function applyLeadListFieldUpdate(recordId, patch) {
+				if (!patch) return;
+				try {
+					document.dispatchEvent(new CustomEvent('mk-leads-list-field-updated', {
+						detail: { id: String(recordId), patch: patch }
+					}));
+				} catch (e) { /* IE */ }
+				// Full row re-render is handled by list event; keep light DOM sync for phone/address.
+				var $row = $('tr.mk-leads-row[data-crmid="' + recordId + '"], tr.mk-leads-row[data-id="' + recordId + '"]').first();
+				if (!$row.length) return;
+				var $tds = $row.children('td.mk-leads-td');
+				if (Object.prototype.hasOwnProperty.call(patch, 'phone') && $tds.length > 3) {
+					var phone = patch.phone || '';
+					$tds.eq(3).html(
+						phone
+							? '<button type="button" class="mk-leads-inline-edit" data-field="phone" data-lead-id="' + $('<div/>').text(String(recordId)).html() + '" title="Nhấn để sửa">' + $('<div/>').text(phone).html() + '</button>'
+							: '<button type="button" class="mk-leads-inline-edit" data-field="phone" data-lead-id="' + $('<div/>').text(String(recordId)).html() + '" title="Nhấn để sửa"><span class="mk-leads-muted">Nhập SĐT</span></button>'
+					);
+				}
+				if (Object.prototype.hasOwnProperty.call(patch, 'address') && $tds.length > 5) {
+					var address = patch.address || '';
+					$tds.eq(5).html(
+						address
+							? '<button type="button" class="mk-leads-inline-edit" data-field="address" data-lead-id="' + $('<div/>').text(String(recordId)).html() + '" title="Nhấn để sửa">' + $('<div/>').text(address).html() + '</button>'
+							: '<button type="button" class="mk-leads-inline-edit" data-field="address" data-lead-id="' + $('<div/>').text(String(recordId)).html() + '" title="Nhấn để sửa"><span class="mk-leads-muted">Nhập địa chỉ</span></button>'
+					);
 				}
 			}
 			function applyLeadCategoriesToList(recId, cats) {
@@ -575,30 +775,25 @@
 						return '<span class="mk-leads-muted">—</span>';
 					}
 					var label = key;
-					if (ref && ref.tagMeta) {
+					if (ref && ref.labelForTag) {
+						label = ref.labelForTag(key);
+					} else if (ref && ref.tagMeta) {
 						label = (ref.tagMeta(key).label) || key;
-					} else if (window.Vtiger === undefined) {
-						/* keep key */
 					}
-					var known = {
-						facebook: 'Facebook', tiktok: 'TikTok', website: 'Website', zalo: 'Zalo', other: 'Khác',
-						individual: 'Cá nhân', company: 'Công ty', co_quan: 'Có quán', chuan_bi_mo: 'Chuẩn bị mở', gia_dinh: 'Gia đình',
-						mua_lan_dau: 'Mua lần đầu', mua_lai: 'Mua lại', khong_mua: 'Không mua', ngung_mua: 'Ngừng mua',
-						vang: 'Vàng', bac: 'Bạc', dong: 'Đồng'
-					};
-					if (known[key]) label = known[key];
-					return '<span class="mk-tag" data-tag="' + $('<div/>').text(key).html() + '">' +
+					if (/^goi_lan_(\d+)$/.test(String(key)) || /^\d{1,2}$/.test(String(key))) {
+						var n = parseInt(RegExp.$1 || key, 10);
+						label = 'Gọi lần ' + n;
+						key = 'goi_lan_' + n;
+					}
+					return '<span class="mk-tag" data-tag="' + $('<div/>').text(key).html() + '" title="' + $('<div/>').text(label).html() + '">' +
 						$('<div/>').text(label).html() + '</span>';
 				}
-				// 0 check, 1 created, 2 lead, 3 phone, 4 area, 5 source, 6 customer, 7 tier
-				if (Object.prototype.hasOwnProperty.call(cats, 'source') && $tds.length > 5) {
-					$tds.eq(5).html(cellHtml(cats.source || ''));
+				// 0 check, 1 created, 2 lead, 3 phone, 4 region, 5 address, 6 source, 7 customer, 8 owner
+				if (Object.prototype.hasOwnProperty.call(cats, 'source') && $tds.length > 6) {
+					$tds.eq(6).html(cellHtml(cats.source || ''));
 				}
-				if (Object.prototype.hasOwnProperty.call(cats, 'customer') && $tds.length > 6) {
-					$tds.eq(6).html(cellHtml(cats.customer || ''));
-				}
-				if (Object.prototype.hasOwnProperty.call(cats, 'tier') && $tds.length > 7) {
-					$tds.eq(7).html(cellHtml(cats.tier || ''));
+				if (Object.prototype.hasOwnProperty.call(cats, 'customer') && $tds.length > 7) {
+					$tds.eq(7).html(cellHtml(cats.customer || ''));
 				}
 				try {
 					document.dispatchEvent(new CustomEvent('mk-leads-category-updated', {
@@ -610,7 +805,9 @@
 				var chain = $.Deferred().resolve(null, null).promise();
 				var leadCategoryRes = null;
 				var $nextInput = $panel.find('.mk-so-inline-detail__next-action-input');
-				if ($nextInput.length && mod === 'Leads') {
+				var nextLocked = $panel.find('.mk-so-inline-detail__next-action.is-locked').length > 0
+					|| ($nextInput.length && ($nextInput.prop('readonly') || $nextInput.prop('disabled')));
+				if ($nextInput.length && mod === 'Leads' && !nextLocked) {
 					chain = chain.then(function (err) {
 						if (err) return $.Deferred().resolve(err, null).promise();
 						return postRequest({
@@ -622,11 +819,65 @@
 						});
 					});
 				}
+				var getTags = $panel.data('mkGetEditableTags');
+				var $region = $panel.find(':input[name="mk_region"]');
+				var $address = $panel.find(':input[name="mk_address"]');
+				if (mod === 'Leads' && (typeof getTags === 'function' || $region.length || $address.length)) {
+					chain = chain.then(function (err) {
+						if (err) return $.Deferred().resolve(err, null).promise();
+						var tags = typeof getTags === 'function' ? getTags().slice() : [];
+						var regionKey = $region.length ? String($region.val() || '').toLowerCase() : '';
+						tags = tags.filter(function (t) {
+							return !/^kv[123]$/i.test(String(t || ''));
+						});
+						if (regionKey && /^kv[123]$/.test(regionKey)) {
+							tags.push(regionKey);
+						}
+						var addressVal = $address.length ? ($address.val() || '') : '';
+						var districtLabel = regionKey ? ('Khu vực ' + regionKey.replace('kv', '')) : '';
+						var payload = {
+							tags: tags,
+							district: districtLabel,
+							address: addressVal,
+							area: districtLabel && addressVal ? (districtLabel + ', ' + addressVal) : (districtLabel || addressVal)
+						};
+						return postRequest({
+							module: 'Leads',
+							action: 'ModernApi',
+							mode: 'save',
+							record: recordId,
+							payload: JSON.stringify(payload)
+						}).then(function (eTags, rTags) {
+							if (!eTags && rTags && rTags.lead) {
+								if (rTags.lead.tags) {
+									refreshInlineTags($panel, rTags.lead.tags);
+								}
+								applyLeadListFieldUpdate(recordId, {
+									address: addressVal,
+									region: regionKey,
+									tags: (rTags.lead && rTags.lead.tags) || tags
+								});
+								try {
+									document.dispatchEvent(new CustomEvent('mk-leads-list-field-updated', {
+										detail: {
+											id: String(recordId),
+											patch: {
+												tags: (rTags.lead && rTags.lead.tags) || tags,
+												address: addressVal,
+												district: districtLabel,
+												area: payload.area
+											}
+										}
+									}));
+								} catch (e) { /* IE */ }
+							}
+							return $.Deferred().resolve(eTags, rTags).promise();
+						});
+					});
+				}
 				var $src = $panel.find(':input[name="mk_source"]');
 				var $cust = $panel.find(':input[name="mk_customer"]');
-				var $stage = $panel.find(':input[name="mk_stage"]');
-				var $tier = $panel.find(':input[name="mk_tier"]');
-				if (mod === 'Leads' && ($src.length || $cust.length || $stage.length || $tier.length)) {
+				if (mod === 'Leads' && ($src.length || $cust.length)) {
 					chain = chain.then(function (err) {
 						if (err) return $.Deferred().resolve(err, null).promise();
 						return postRequest({
@@ -635,9 +886,7 @@
 							mode: 'save_inline_category_tags',
 							record: recordId,
 							mk_source: $src.length ? ($src.val() || '') : '',
-							mk_customer: $cust.length ? ($cust.val() || '') : '',
-							mk_stage: $stage.length ? ($stage.val() || '') : '',
-							mk_tier: $tier.length ? ($tier.val() || '') : ''
+							mk_customer: $cust.length ? ($cust.val() || '') : ''
 						}).then(function (e2, r2) {
 							if (!e2) leadCategoryRes = r2;
 							return $.Deferred().resolve(e2, r2).promise();
@@ -657,6 +906,80 @@
 						});
 					});
 				}
+				var $oppRegion = $panel.find(':input[name="mk_region"]');
+				var $oppAddress = $panel.find(':input[name="mk_address"]');
+				if (mod === 'Potentials' && ($oppRegion.length || $oppAddress.length)) {
+					chain = chain.then(function (err, prevRes) {
+						if (err) return $.Deferred().resolve(err, null).promise();
+						return postRequest({
+							module: 'Potentials',
+							action: 'ModernApi',
+							mode: 'save_inline_location',
+							record: recordId,
+							mk_region: $oppRegion.length ? ($oppRegion.val() || '') : '',
+							mk_address: $oppAddress.length ? ($oppAddress.val() || '') : ''
+						}).then(function (eLoc, rLoc) {
+							if (!eLoc && rLoc) {
+								if (window.PotentialsLocalStore && PotentialsLocalStore.patchOpportunity) {
+									PotentialsLocalStore.patchOpportunity(recordId, {
+										address: rLoc.address || '',
+										district: rLoc.district || '',
+										tags: rLoc.tags || undefined
+									});
+								}
+								var $row = $('tr.mk-leads-row[data-crmid="' + recordId + '"], tr.mk-leads-row[data-id="' + recordId + '"]').first();
+								if ($row.length) {
+									var regionLabel = '';
+									var rk = String(($oppRegion.val() || '')).toLowerCase();
+									if (/^kv([123])$/.test(rk)) regionLabel = 'Khu vực ' + RegExp.$1;
+									$row.children('td[data-col="region"]').html(
+										regionLabel
+											? $('<div/>').text(regionLabel).html()
+											: '<span class="mk-leads-muted">—</span>'
+									);
+									var addr = $oppAddress.length ? String($oppAddress.val() || '').trim() : '';
+									$row.children('td[data-col="address"]').html(
+										addr
+											? $('<div/>').text(addr).html()
+											: '<span class="mk-leads-muted">—</span>'
+									);
+								}
+								if (rLoc.tags) refreshInlineTags($panel, rLoc.tags);
+							}
+							return $.Deferred().resolve(eLoc || null, prevRes || rLoc).promise();
+						});
+					});
+				}
+				var getEditableTags = $panel.data('mkGetEditableTags');
+				if ((mod === 'Potentials' || mod === 'Contacts') && typeof getEditableTags === 'function') {
+					chain = chain.then(function (err) {
+						if (err) return $.Deferred().resolve(err, null).promise();
+						var tags = getEditableTags().slice();
+						return postRequest({
+							module: mod,
+							action: 'ModernApi',
+							mode: 'save_tags',
+							record: recordId,
+							tags: JSON.stringify(tags)
+						}).then(function (eTags, rTags) {
+							if (!eTags && rTags && rTags.tags) {
+								refreshInlineTags($panel, rTags.tags);
+								if (mod === 'Potentials' && window.PotentialsLocalStore && PotentialsLocalStore.patchOpportunity) {
+									PotentialsLocalStore.patchOpportunity(recordId, { tags: rTags.tags });
+								}
+								if (mod === 'Contacts' && window.ContactsLocalStore && ContactsLocalStore.patchContact) {
+									ContactsLocalStore.patchContact(recordId, { tags: rTags.tags });
+								}
+								try {
+									document.dispatchEvent(new CustomEvent('mk-record-tags-updated', {
+										detail: { module: mod, id: String(recordId), tags: rTags.tags }
+									}));
+								} catch (e) { /* IE */ }
+							}
+							return $.Deferred().resolve(eTags, rTags).promise();
+						});
+					});
+				}
 				$.when(chain).then(function (extraErr, extraRes) {
 					$saveBtn.prop('disabled', false);
 					if (extraErr) {
@@ -668,7 +991,9 @@
 						if (extraRes && extraRes.confirm !== undefined) {
 							confirmKey = extraRes.confirm || '';
 						}
-						applyOppConfirmToList(recordId, confirmKey);
+						var confirmedAt =
+							(extraRes && (extraRes.confirmed_at || extraRes.confirmed_at_label)) || '';
+						applyOppConfirmToList(recordId, confirmKey, confirmedAt);
 						if (extraRes && extraRes.tags) {
 							refreshInlineTags($panel, extraRes.tags);
 						}
@@ -770,7 +1095,7 @@
 
 	function isInteraction(target) {
 		return !!(target.closest && target.closest(
-			'.mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-control-td, .mk-leads-td--check, a, button, input, select, textarea, .dropdown-menu, label.mk-leads-check'
+			'.mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-control-td, .mk-leads-td--check, .mk-leads-inline-edit, .mk-leads-inline-input, .mk-leads-region-select, .mk-leads-tags-edit, #mk-leads-tag-popover, a, button, input, select, textarea, .dropdown-menu, label.mk-leads-check'
 		));
 	}
 

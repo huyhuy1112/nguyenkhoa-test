@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260711_so_status1';
+	var MK_BUILD = '20260724_so_quote_ui5';
 	var WAREHOUSE_MODAL_ID = 'mkSoWarehouseModal';
 	var warehouseConfirmed = false;
 	var warehousePickerOpen = false;
@@ -387,9 +387,38 @@
 		$editForm.trigger('submit');
 	}
 
+	function hasRequiredQuote() {
+		var $editForm = $form();
+		if (!$editForm.length) {
+			return false;
+		}
+		if (!isCreateMode()) {
+			return true;
+		}
+		return (parseInt($editForm.find('[name="quote_id"]').val(), 10) || 0) > 0;
+	}
+
+	function notifyQuoteRequired() {
+		var msg = 'Vui lòng chọn Báo giá trước khi tạo đơn hàng.';
+		try {
+			if (window.app && app.helper && app.helper.showErrorNotification) {
+				app.helper.showErrorNotification({ message: msg });
+			} else {
+				window.alert(msg);
+			}
+		} catch (err) {
+			window.alert(msg);
+		}
+		$form().find('[name="quote_id_display"]').trigger('focus');
+	}
+
 	function triggerSave() {
 		var $editForm = $form();
 		if (!$editForm.length) {
+			return;
+		}
+		if (!hasRequiredQuote()) {
+			notifyQuoteRequired();
 			return;
 		}
 		// Create stays as Phiếu tạm — warehouse outbound is created on confirm, not on save.
@@ -706,30 +735,38 @@
 		if (!$editForm.length) {
 			return;
 		}
-		// Subject is mandatory in vtiger Inventory modules; keep it filled even if hidden.
+		// Subject is mandatory in vtiger Inventory modules; keep it filled from quote name (field is hidden).
+		syncSubjectFromQuote();
 		var $subject = $editForm.find('input[name="subject"]').first();
-		if ($subject.length && !$subject.val()) {
-			var contactText = $.trim($editForm.find('[name="contact_id_display"]').val() || $editForm.find('[name="contact_id"]').closest('td').find('.select2-chosen').text());
-			var accountText = contactText || $.trim($editForm.find('[name="account_id_display"]').val() || $editForm.find('[name="account_id"]').closest('td').find('.select2-chosen').text());
-			$subject.val(('Đơn hàng' + (accountText ? ' - ' + accountText : '')).trim());
+		if ($subject.length && !$.trim($subject.val())) {
+			$subject.val('Đơn hàng');
 		}
-		// Assigned user is mandatory but usually prefilled; ensure it has something.
+		// Assigned user is mandatory; always default to the current user (no UI picker).
 		var $assigned = $editForm.find('[name="assigned_user_id"]').first();
-		if ($assigned.length && !$assigned.val()) {
-			var fallback = $editForm.find('[name="assigned_user_id"] option').first().val();
-			if (fallback) {
-				$assigned.val(fallback);
+		if ($assigned.length) {
+			var uid = '';
+			try {
+				if (window._USERMETA && _USERMETA.id) {
+					uid = String(_USERMETA.id);
+				} else if (window.app && typeof app.getUserId === 'function') {
+					uid = String(app.getUserId() || '');
+				}
+			} catch (e) {}
+			if (!uid) {
+				uid = String($assigned.val() || $editForm.find('[name="assigned_user_id"] option').first().val() || '');
+			}
+			if (uid) {
+				if ($assigned.is('select') && !$assigned.find('option[value="' + uid + '"]').length) {
+					$assigned.append($('<option/>', { value: uid, text: uid }));
+				}
+				$assigned.val(uid);
 			}
 		}
-		// Keep subject synced when contact/account changes (prefer contact label).
+		// Keep subject synced from quote label when contact/account changes (prefer quote).
 		$editForm
-			.off('change.mkSoSubjectSync', '[name="contact_id_display"], [name="account_id_display"]')
-			.on('change.mkSoSubjectSync', '[name="contact_id_display"], [name="account_id_display"]', function () {
-				if ($subject.length && !$subject.val()) {
-					var contactText = $.trim($editForm.find('[name="contact_id_display"]').val());
-					var txt = contactText || $.trim($(this).val());
-					$subject.val(('Đơn hàng' + (txt ? ' - ' + txt : '')).trim());
-				}
+			.off('change.mkSoSubjectSync', '[name="quote_id_display"], [name="contact_id_display"], [name="account_id_display"]')
+			.on('change.mkSoSubjectSync', '[name="quote_id_display"], [name="contact_id_display"], [name="account_id_display"]', function () {
+				syncSubjectFromQuote();
 			});
 	}
 
@@ -833,12 +870,12 @@
 			return;
 		}
 
-		// Only: Tiêu đề, Tên cơ hội, Ghi chú (+ Trạng thái on edit) + Chi tiết đơn hàng.
+		// Only: Báo giá, Ghi chú (+ Trạng thái on edit) + Chi tiết đơn hàng.
+		// Subject stays in DOM (mandatory) but hidden — auto-filled from quote name.
 		// On create: hide Trạng thái and auto-set Phiếu tạm (Created).
 		var allowNames = {
-			subject: true,
-			potential_id: true,
-			potential_id_display: true,
+			quote_id: true,
+			quote_id_display: true,
 			description: true
 		};
 		if (!isCreateMode()) {
@@ -925,7 +962,7 @@
 			'leadid',
 			'account_id',
 			'contact_id',
-			'quote_id',
+			'potential_id',
 			'carrier',
 			'shipping',
 			'salescommission',
@@ -933,14 +970,15 @@
 			'currency_id',
 			'conversion_rate',
 			'assigned_user_id',
-			'enable_recurring'
+			'enable_recurring',
+			'subject'
 		];
 		forceHideNames.forEach(function (name) {
 			$editForm.find('[name="' + name + '"], [name="' + name + '_display"]').each(function () {
 				hideFieldPair($(this).closest('td.fieldValue'));
 			});
 		});
-		var hideLabelRe = /mã\s*số\s*khách\s*hàng|mua\s*đặt\s*hàng|đang\s*chờ\s*xử\s*lý|excise\s*duty|mục\s*đích|remaining\s*amount|^lead$|người\s*đặt|người\s*duyệt|ghi\s*chú\s*duyệt|chi\s*phí|thời\s*điểm\s*cần/i;
+		var hideLabelRe = /mã\s*số\s*khách\s*hàng|mua\s*đặt\s*hàng|đang\s*chờ\s*xử\s*lý|excise\s*duty|mục\s*đích|remaining\s*amount|^lead$|người\s*đặt|người\s*duyệt|ghi\s*chú\s*duyệt|chi\s*phí|thời\s*điểm\s*cần|tên\s*cơ\s*hội|để\s*mục\s*cơ\s*hội|^tiêu\s*đề$/i;
 		$editForm.find('td.fieldLabel').each(function () {
 			var $labelTd = $(this);
 			var text = $.trim($labelTd.text() || '').replace(/\*/g, '');
@@ -952,7 +990,7 @@
 				return;
 			}
 			var $valueTd = $labelTd.next('td.fieldValue');
-			if ($valueTd.find('[name="description"], [name="subject"], [name="potential_id"], [name="potential_id_display"]').length) {
+			if ($valueTd.find('[name="description"], [name="quote_id"], [name="quote_id_display"]').length) {
 				return;
 			}
 			$labelTd.addClass('mk-so-hide-legacy');
@@ -1031,8 +1069,8 @@
 
 		var labelMap = {
 			subject: 'Tiêu đề',
-			potential_id: 'Tên cơ hội',
-			potential_id_display: 'Tên cơ hội',
+			quote_id: 'Báo giá',
+			quote_id_display: 'Báo giá',
 			sostatus: 'Trạng thái',
 			description: 'Ghi chú'
 		};
@@ -1089,6 +1127,284 @@
 		}
 	}
 
+	function syncSubjectFromQuote() {
+		var $editForm = $form();
+		var $subject = $editForm.find('input[name="subject"]').first();
+		if (!$subject.length) {
+			return;
+		}
+		var quoteLabel = $.trim($editForm.find('[name="quote_id_display"]').val() || '');
+		if (quoteLabel) {
+			$subject.val(quoteLabel);
+			return;
+		}
+		if (!$.trim($subject.val())) {
+			$subject.val('Đơn hàng');
+		}
+	}
+
+	function polishQuoteReferenceField() {
+		var $editForm = $form();
+		var $display = $editForm.find('[name="quote_id_display"]').first();
+		if (!$display.length) {
+			return;
+		}
+		var $ref = $display.closest('.referencefield-wrapper');
+		if (!$ref.length) {
+			$ref = $display.closest('td.fieldValue').find('.referencefield-wrapper').first();
+		}
+		$ref.addClass('mk-qt-opp-ref mk-so-quote-ref');
+		$display
+			.attr('placeholder', 'Chọn báo giá để tạo đơn hàng...')
+			.attr('data-rule-required', 'true')
+			.addClass('required');
+		$editForm.find('[name="quote_id"]').attr('data-rule-required', 'true').addClass('required');
+		$editForm
+			.find('[name="quote_id"]')
+			.closest('td.fieldValue')
+			.prev('td.fieldLabel')
+			.find('label')
+			.first()
+			.html('Tên báo giá <span class="redColor">*</span>');
+
+		// Quote is the primary field — show its row first in the rail info card.
+		var $quoteValue = $editForm.find('[name="quote_id"]').closest('td.fieldValue');
+		var $quoteRow = $quoteValue.closest('tr');
+		var $infoTable = $editForm
+			.find('.fieldBlockContainer[data-block="LBL_SO_INFORMATION"] table.table-borderless > tbody')
+			.first();
+		if ($quoteRow.length && $infoTable.length && $infoTable.children('tr').first()[0] !== $quoteRow[0]) {
+			$infoTable.prepend($quoteRow);
+		}
+
+		var $group = $ref.find('.input-group').first();
+		if ($group.length && !$group.hasClass('mk-qt-opp-ref-group')) {
+			var $clear = $group.find('.clearReferenceSelection').first();
+			var $addons = $group.find('.input-group-addon');
+			var $actions = $('<div class="mk-qt-opp-actions"></div>');
+			if ($clear.length) {
+				$actions.append($clear);
+			}
+			if ($addons.length) {
+				$actions.append($addons);
+			}
+			$group.append($actions);
+			$group.addClass('mk-qt-opp-ref-group');
+		}
+
+		// Hide + create on quote (must pick existing quote).
+		$ref.find('.createReferenceRecord').addClass('mk-so-hide-legacy').hide();
+
+		syncSubjectFromQuote();
+
+		// Selecting a quote on create → reload so line items copy from that quote.
+		if (isCreateMode() && !$editForm.data('mkSoQuoteReloadBound')) {
+			$editForm.data('mkSoQuoteReloadBound', 1);
+			var reloadFromQuote = function () {
+				syncSubjectFromQuote();
+				var id = parseInt($editForm.find('[name="quote_id"]').val(), 10) || 0;
+				if (id <= 0) {
+					return;
+				}
+				var cur = parseInt(
+					(window.location.search.match(/[?&]quote_id=(\d+)/) || [])[1] || '0',
+					10
+				);
+				if (cur === id) {
+					return;
+				}
+				window.location.href =
+					'index.php?module=SalesOrder&view=Edit&app=SALES&quote_id=' + id;
+			};
+			$editForm.on(
+				(window.Vtiger_Edit_Js && Vtiger_Edit_Js.referenceSelectionEvent
+					? Vtiger_Edit_Js.referenceSelectionEvent
+					: 'Vtiger.Reference.Selection') + '.mkSoQuote',
+				'[name="quote_id"]',
+				function () {
+					setTimeout(reloadFromQuote, 80);
+				}
+			);
+			$editForm.on('change.mkSoQuote', '[name="quote_id"]', function () {
+				setTimeout(reloadFromQuote, 80);
+			});
+		}
+	}
+
+	function pinTotalsBelowOrderDetails() {
+		var $editForm = $form();
+		var $items = $editForm.find('#lineItemTab').closest('.fieldBlockContainer').first();
+		var $totals = $editForm.find('#lineItemResult').closest('.fieldBlockContainer').first();
+		if (!$items.length || !$totals.length) {
+			return;
+		}
+		if (!$items.find('#lineItemResult').length) {
+			$items.append($totals.detach());
+		}
+		$totals = $items.find('#lineItemResult').closest('.fieldBlockContainer').first();
+		$totals.addClass('mk-qt-totals-below mk-inv-totals-odoo mk-so-block--totals');
+
+		var $result = $items.find('#lineItemResult');
+		if (!$result.length) {
+			return;
+		}
+		var $preTax = $result.find('#preTaxTotal').closest('tr');
+		var $net = $result.find('#netTotal, .netTotal').closest('tr');
+		var $sub = $preTax.length ? $preTax : $net;
+		var $tax = $result.find('#group_tax_row');
+		var $grand = $result.find('#grandTotal, .grandTotal').closest('tr');
+		if ($sub.length) {
+			$sub.removeClass('mk-inv-totals-hide hide').addClass('mk-inv-totals-row mk-inv-totals-row--sub').show();
+			if (!$sub.find('.mk-inv-totals-label').length) {
+				$sub.find('td:first').html('<div class="mk-inv-totals-label">Số tiền trước thuế</div>');
+			}
+			if ($preTax.length && $net.length && !$net.is($preTax)) {
+				$net.addClass('mk-inv-totals-hide').hide();
+			}
+		}
+		if ($tax.length) {
+			$tax.removeClass('mk-inv-totals-hide hide').addClass('mk-inv-totals-row mk-inv-totals-row--tax').show();
+			if (!$tax.find('.mk-inv-totals-label').length) {
+				$tax.find('td:first').html('<div class="mk-inv-totals-label">Thuế GTGT</div>');
+			}
+		}
+		if ($grand.length) {
+			$grand.removeClass('mk-inv-totals-hide hide').addClass('mk-inv-totals-row mk-inv-totals-row--grand').show();
+			if (!$grand.find('.mk-inv-totals-label').length) {
+				$grand.find('td:first').html('<div class="mk-inv-totals-label">Tổng cộng</div>');
+			}
+		}
+	}
+
+	function lockAssignedAndMoveSoInfoToRail() {
+		var $editForm = $form();
+		var $rail = $('#mkSoOrderRail');
+		if (!$editForm.length || !$rail.length) {
+			return;
+		}
+
+		var $assigned = $editForm.find('[name="assigned_user_id"]').first();
+		if ($assigned.length) {
+			$assigned.closest('tr').addClass('mk-so-hide-legacy mk-qt-hide-legacy');
+			var uid = '';
+			try {
+				if (window._USERMETA && _USERMETA.id) {
+					uid = String(_USERMETA.id);
+				} else if (window.app && typeof app.getUserId === 'function') {
+					uid = String(app.getUserId() || '');
+				}
+			} catch (e) {}
+			if (uid) {
+				if ($assigned.is('select')) {
+					if (!$assigned.find('option[value="' + uid + '"]').length) {
+						$assigned.append($('<option/>', { value: uid, text: uid }));
+					}
+					$assigned.val(uid);
+				} else {
+					$assigned.val(uid);
+				}
+				try {
+					$assigned.trigger('change');
+				} catch (e2) {}
+			}
+		}
+
+		$rail.find('.mk-qt-rail-card').filter(function () {
+			return /assigned\s*to|phụ\s*trách/i.test($.trim($(this).find('.mk-qt-rail-card__title').text() || ''));
+		}).remove();
+
+		var $host = $editForm.find('[name="editContent"]').first();
+		if (!$host.length) {
+			$host = $editForm.find('.editViewContents').first();
+		}
+		if (!$host.length) {
+			$host = $editForm;
+		}
+		// Always enforce single-column outer shell once rail lives inside the form.
+		$host.addClass('mk-qt-edit-split mk-so-edit-split');
+		$('.mk-qt-create__grid, .mk-so-create__grid').addClass('mk-qt-create__grid--single');
+		if (!$editForm.find('#mkSoOrderRail').length) {
+			$rail.addClass('mk-qt-rail--in-form mk-so-rail--in-form');
+			$host.append($rail.detach());
+		} else {
+			$rail.addClass('mk-qt-rail--in-form mk-so-rail--in-form');
+		}
+		// Remove empty outer rail slots left behind after detach.
+		$('.mk-qt-create__grid > .mk-qt-rail, .mk-so-create__grid > .mk-so-rail')
+			.not($rail)
+			.remove();
+
+		// IMPORTANT: do not use .mk-so-edit-main here — page <main> already has that class,
+		// so closest('.mk-so-edit-main') would always match and skip moving line items.
+		var $main = $host.children('.mk-qt-edit-main').first();
+		if (!$main.length) {
+			$main = $('<div class="mk-qt-edit-main" data-mk-so-split-main="1"></div>');
+			$host.prepend($main);
+		}
+		var $items = $editForm.find('#lineItemTab').closest('.fieldBlockContainer').first();
+		if ($items.length && !$items.parent().is($main)) {
+			$main.append($items.detach());
+		}
+
+		var $info = $editForm.find('.fieldBlockContainer[data-block="LBL_SO_INFORMATION"]').first();
+		if ($info.length && !$info.closest('#mkSoOrderRail').length) {
+			$info.addClass('mk-qt-block mk-qt-rail-quote-info mk-so-rail-info');
+			var $h = $info.find('.fieldBlockHeader').first();
+			if ($h.length) {
+				var $icon = $h.find('.mk-so-block__icon, .mk-qt-block__icon').detach();
+				$h.empty();
+				if ($icon.length) {
+					$h.append($icon);
+				}
+				$h.append(document.createTextNode(' Chi tiết bán hàng'));
+			}
+			var $addr = $rail.find('.mk-qt-address-rail, .mk-qt-rail-card--address').first();
+			if ($addr.length) {
+				$info.insertBefore($addr);
+			} else {
+				$rail.prepend($info);
+			}
+		}
+
+		// Compact leftover empty rows in rail info (subject is hidden).
+		$info = $rail.find('.mk-so-rail-info, .mk-qt-rail-quote-info').first();
+		if ($info.length) {
+			$info.find('tr').each(function () {
+				var $tr = $(this);
+				if ($tr.find('[name="quote_id"], [name="quote_id_display"], [name="description"], .mk-so-terms-preview, .mk-qt-terms-preview').length) {
+					return;
+				}
+				if ($tr.find('[name="subject"]').length) {
+					$tr.addClass('mk-so-hide-legacy mk-qt-hide-legacy');
+					return;
+				}
+				var hasVisible = $tr.find('input:visible, select:visible, textarea:visible, .referencefield-wrapper:visible').length;
+				if (!hasVisible) {
+					$tr.addClass('mk-so-hide-legacy mk-qt-hide-legacy');
+				}
+			});
+		}
+
+		pinTotalsBelowOrderDetails();
+	}
+
+	function requireQuoteBeforeSave() {
+		var $editForm = $form();
+		if (!$editForm.length || $editForm.data('mkSoQuoteRequiredBound')) {
+			return;
+		}
+		$editForm.data('mkSoQuoteRequiredBound', 1);
+		$editForm.on('submit.mkSoQuoteReq', function (e) {
+			if (hasRequiredQuote()) {
+				return true;
+			}
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			notifyQuoteRequired();
+			return false;
+		});
+	}
+
 	function initStickyHead() {
 		var $head = $('#mkSoStickyHead');
 		if (!$head.length || $head.data('mkStickyBound')) {
@@ -1105,28 +1421,19 @@
 		if (!isScoped()) {
 			return;
 		}
-		var quoteShell = usesQuoteShell();
 		hideLegacyChrome();
-
-		// If SalesOrder is using Quote UI shell, let QuoteMkEdit.js own all styling/layout.
-		// We keep only SO-specific behaviors (warehouse modal save + mandatory defaults).
-		if (quoteShell) {
-			ensureCreateStatusPhieuTam();
-			ensureSubjectSyncFromAccount();
-			bindWarehouseInterceptOnly();
-			fixFormDisplayEncoding();
-			ensureMandatoryHiddenDefaults();
-			markOppCommerceRefreshOnSubmit();
-			// Reveal via QuoteMkEdit (mk-inv-ui-ready). Keep fallback as safety.
-			setTimeout(revealPage, 1500);
-			return;
-		}
-
 		styleFieldBlocks();
 		initOdooInventoryUi();
+		if (window.MkQuoteBa && typeof window.MkQuoteBa.init === 'function') {
+			window.MkQuoteBa.init($form());
+		}
 		simplifySalesOrderForm();
+		polishQuoteReferenceField();
+		lockAssignedAndMoveSoInfoToRail();
+		pinTotalsBelowOrderDetails();
 		pinAddProductToLineHeader();
 		initTermsRichEditor();
+		requireQuoteBeforeSave();
 		bindActions();
 		initStickyHead();
 		fixFormDisplayEncoding();
@@ -1135,8 +1442,15 @@
 		revealPage();
 		setTimeout(function () {
 			simplifySalesOrderForm();
+			polishQuoteReferenceField();
+			lockAssignedAndMoveSoInfoToRail();
+			pinTotalsBelowOrderDetails();
 			fixFormDisplayEncoding();
 		}, 300);
+		setTimeout(function () {
+			lockAssignedAndMoveSoInfoToRail();
+			pinTotalsBelowOrderDetails();
+		}, 1200);
 	}
 
 	function bindWarehouseInterceptOnly() {
@@ -1158,14 +1472,9 @@
 			return;
 		}
 		$editForm
-			.off('change.mkSoSubjectSync', '[name="contact_id_display"], [name="account_id_display"]')
-			.on('change.mkSoSubjectSync', '[name="contact_id_display"], [name="account_id_display"]', function () {
-				var $subject = $editForm.find('[name="subject"]');
-				if ($subject.length && !$.trim($subject.val())) {
-					var contactText = $.trim($editForm.find('[name="contact_id_display"]').val());
-					var txt = contactText || $.trim($(this).val());
-					$subject.val(txt ? ('Đơn hàng - ' + txt) : '');
-				}
+			.off('change.mkSoSubjectSync', '[name="quote_id_display"], [name="contact_id_display"], [name="account_id_display"]')
+			.on('change.mkSoSubjectSync', '[name="quote_id_display"], [name="contact_id_display"], [name="account_id_display"]', function () {
+				syncSubjectFromQuote();
 			});
 	}
 

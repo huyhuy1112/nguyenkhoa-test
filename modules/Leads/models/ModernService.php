@@ -109,10 +109,11 @@ class Leads_ModernService {
 		if (!self::isInstalled($adb)) {
 			return array();
 		}
+		self::ensureModernProfilesForAliveLeads();
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-				la.phone, ce.smownerid, ce.createdtime
+				la.phone, ce.smownerid, ce.createdtime, ce.description
 			FROM bace_lead_profile p
 			INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
@@ -136,6 +137,35 @@ class Leads_ModernService {
 			$out[] = self::composeCacheRow($row, $tagsByLead[$leadId] ?? array(), $purchasesByLead[$leadId] ?? array(), $tasksByLead[$leadId] ?? array());
 		}
 		return $out;
+	}
+
+	/**
+	 * Ensure every alive CRM lead has a modern profile row so List API can surface it.
+	 */
+	protected static function ensureModernProfilesForAliveLeads() {
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			"SELECT e.crmid
+			 FROM vtiger_crmentity e
+			 INNER JOIN vtiger_leaddetails ld ON ld.leadid = e.crmid
+			 LEFT JOIN bace_lead_profile p ON p.leadid = e.crmid
+			 WHERE e.setype = 'Leads' AND e.deleted = 0 AND p.leadid IS NULL",
+			array()
+		);
+		if (!$res) {
+			return;
+		}
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			self::ensureModernProfile((int)$adb->query_result($res, $i, 'crmid'));
+		}
+		// Re-enable profiles that were soft-flagged off.
+		$adb->pquery(
+			"UPDATE bace_lead_profile p
+			 INNER JOIN vtiger_crmentity e ON e.crmid = p.leadid AND e.deleted = 0 AND e.setype = 'Leads'
+			 SET p.is_modern = 1
+			 WHERE p.is_modern <> 1 OR p.is_modern IS NULL",
+			array()
+		);
 	}
 
 	public static function getLead($idOrCacheId, $userId = null) {
@@ -650,6 +680,57 @@ class Leads_ModernService {
 		return $text;
 	}
 
+	/**
+	 * Kịch bản tiếp theo + khung thời gian (alert_days) từ Tag Rule khớp thẻ.
+	 * @return array{next_action:string,rule_id:?string,rule_name:?string,rule_alert_days:?int,next_action_due_at:?string,next_action_overdue:bool,next_action_days_remaining:?int,next_action_days_overdue:?int}
+	 */
+	protected static function resolveRuleNextActionMeta(array $tags, $lastTouchRaw, $manualNextAction) {
+		$meta = array(
+			'next_action' => (string)$manualNextAction,
+			'rule_id' => null,
+			'rule_name' => null,
+			'rule_alert_days' => null,
+			'next_action_due_at' => null,
+			'next_action_overdue' => false,
+			'next_action_days_remaining' => null,
+			'next_action_days_overdue' => null,
+		);
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			$ruleMatch = HelpDesk_TagRuleEngineService::getInstance()->matchRules($tags, true);
+			$best = !empty($ruleMatch['best']) ? $ruleMatch['best'] : null;
+			if (!$best) {
+				return $meta;
+			}
+			$meta['rule_id'] = isset($best['id']) ? (string)$best['id'] : null;
+			$meta['rule_name'] = isset($best['name']) ? (string)$best['name'] : null;
+			if ($meta['next_action'] === '' && !empty($best['next_action'])) {
+				$meta['next_action'] = (string)$best['next_action'];
+			}
+			if ($best['alert_days'] === null || (int)$best['alert_days'] <= 0) {
+				return $meta;
+			}
+			$alertDays = (int)$best['alert_days'];
+			$meta['rule_alert_days'] = $alertDays;
+			$lastTs = $lastTouchRaw ? strtotime((string)$lastTouchRaw) : false;
+			if (!$lastTs) {
+				return $meta;
+			}
+			$meta['next_action_due_at'] = date('c', strtotime('+' . $alertDays . ' days', $lastTs));
+			$daysIdle = max(0, (int)floor((time() - $lastTs) / 86400));
+			$remaining = $alertDays - $daysIdle;
+			if ($remaining < 0) {
+				$meta['next_action_overdue'] = true;
+				$meta['next_action_days_overdue'] = -$remaining;
+			} else {
+				$meta['next_action_days_remaining'] = $remaining;
+			}
+		} catch (Exception $e) {
+			// ignore — rule metadata is best-effort
+		}
+		return $meta;
+	}
+
 	protected static function composeDisplayName($firstname, $lastname) {
 		$firstname = self::decodeText(trim((string)$firstname));
 		$lastname = self::decodeText(trim((string)$lastname));
@@ -686,19 +767,13 @@ class Leads_ModernService {
 		}
 		$company = self::decodeText(isset($row['company']) ? $row['company'] : '');
 		$storedNext = self::decodeText(isset($row['next_action']) ? $row['next_action'] : '');
-		// Hành động tiếp theo = ghi chú tự do đã lưu (không derive từ Calendar / Last Touch).
-		$nextAction = self::sanitizeManualNextAction($storedNext);
-		if ($nextAction === '') {
-			try {
-				require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
-				$ruleMatch = HelpDesk_TagRuleEngineService::getInstance()->matchRules($tags, true);
-				if (!empty($ruleMatch['best']['next_action'])) {
-					$nextAction = (string)$ruleMatch['best']['next_action'];
-				}
-			} catch (Exception $e) {
-				$nextAction = '';
-			}
-		}
+		// Hành động tiếp theo = ghi chú tự do đã lưu; khung thời gian = alert_days từ Tag Rule khớp thẻ.
+		$ruleMeta = self::resolveRuleNextActionMeta(
+			$tags,
+			!empty($row['last_touch']) ? $row['last_touch'] : null,
+			self::sanitizeManualNextAction($storedNext)
+		);
+		$nextAction = $ruleMeta['next_action'];
 
 		$conversion = Leads_ConvertService::getConversionStatus($leadId);
 
@@ -730,6 +805,13 @@ class Leads_ModernService {
 			'lastTouchCalls' => $lastTouchCalls,
 			'createdtime' => $createdTime,
 			'next_action' => $nextAction,
+			'rule_id' => $ruleMeta['rule_id'],
+			'rule_name' => $ruleMeta['rule_name'],
+			'rule_alert_days' => $ruleMeta['rule_alert_days'],
+			'next_action_due_at' => $ruleMeta['next_action_due_at'],
+			'next_action_overdue' => $ruleMeta['next_action_overdue'],
+			'next_action_days_remaining' => $ruleMeta['next_action_days_remaining'],
+			'next_action_days_overdue' => $ruleMeta['next_action_days_overdue'],
 			'segment' => self::decodeText(isset($row['segment']) ? $row['segment'] : ''),
 			'district' => self::decodeText(isset($row['district']) ? $row['district'] : ''),
 			'address' => self::decodeText(isset($row['address_line']) ? $row['address_line'] : ''),
@@ -738,7 +820,7 @@ class Leads_ModernService {
 			'purchases' => $purchases,
 			'calendarTasks' => $calendarTasks,
 			'activities' => array(),
-			'notes' => '',
+			'notes' => self::decodeText(isset($row['description']) ? $row['description'] : ''),
 		);
 	}
 
@@ -1162,6 +1244,18 @@ class Leads_ModernService {
 		return (int)$fallbackUserId;
 	}
 
+	
+	protected static function sanitizeOwnerDisplayName($name) {
+		$name = trim((string)$name);
+		if ($name === '') {
+			return '';
+		}
+		// Bỏ hậu tố role tiếng Anh thường gặp trong userlabel demo.
+		$cleaned = preg_replace('/\s+(Administrator|Admin|Manager|User)$/iu', '', $name);
+		$cleaned = trim((string)$cleaned);
+		return $cleaned !== '' ? $cleaned : $name;
+	}
+
 	protected static function getOwnerLabel($userId) {
 		$userId = (int)$userId;
 		if ($userId <= 0) {
@@ -1170,12 +1264,12 @@ class Leads_ModernService {
 		try {
 			$userRecord = Users_Record_Model::getInstanceById($userId, 'Users');
 			if (method_exists($userRecord, 'getName')) {
-				$name = trim(decode_html($userRecord->getName()));
+				$name = self::sanitizeOwnerDisplayName(decode_html($userRecord->getName()));
 				if ($name !== '') {
 					return $name;
 				}
 			}
-			$label = trim(decode_html((string)$userRecord->get('userlabel')));
+			$label = self::sanitizeOwnerDisplayName(decode_html((string)$userRecord->get('userlabel')));
 			if ($label !== '') {
 				return $label;
 			}
@@ -1188,17 +1282,17 @@ class Leads_ModernService {
 			array($userId)
 		);
 		if ($res && $adb->num_rows($res) > 0) {
-			$userlabel = self::decodeText($adb->query_result($res, 0, 'userlabel'));
+			$userlabel = self::sanitizeOwnerDisplayName(self::decodeText($adb->query_result($res, 0, 'userlabel')));
 			if ($userlabel !== '') {
 				return $userlabel;
 			}
 			$first = self::decodeText($adb->query_result($res, 0, 'first_name'));
 			$last = self::decodeText($adb->query_result($res, 0, 'last_name'));
-			$full = trim($first . ' ' . $last);
+			$full = self::sanitizeOwnerDisplayName(trim($first . ' ' . $last));
 			if ($full !== '') {
 				return $full;
 			}
-			return self::decodeText($adb->query_result($res, 0, 'user_name'));
+			return self::sanitizeOwnerDisplayName(self::decodeText($adb->query_result($res, 0, 'user_name')));
 		}
 		return '';
 	}

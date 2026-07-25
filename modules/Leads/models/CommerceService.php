@@ -252,14 +252,20 @@ class Leads_CommerceService {
 				$soId = (int)$soId;
 				$meta = $metaByOrder[$soId] ?? array();
 				$lines = $linesByOrder[$soId] ?? array();
+				$orderId = isset($meta['orderId']) && $meta['orderId'] !== '' ? (string)$meta['orderId'] : (string)$soId;
+				$orderName = isset($meta['orderName']) && $meta['orderName'] !== ''
+					? (string)$meta['orderName']
+					: ($orderId !== '' ? $orderId : ('SO #' . $soId));
+				$orderDate = isset($meta['date']) ? $meta['date'] : '';
+				$orderTotal = isset($meta['orderTotal']) ? (float)$meta['orderTotal'] : 0.0;
 				if (empty($lines) && !empty($meta)) {
 					$rows[] = array(
-						'orderId' => $meta['orderId'],
-						'orderName' => $meta['orderName'],
-						'product' => $meta['orderName'],
+						'orderId' => $orderId,
+						'orderName' => $orderName,
+						'product' => $orderName,
 						'qty' => 1,
-						'value' => (float)$meta['orderTotal'],
-						'date' => $meta['date'],
+						'value' => $orderTotal,
+						'date' => $orderDate,
 						'source' => 'salesorder',
 						'crmid' => $soId,
 					);
@@ -267,12 +273,12 @@ class Leads_CommerceService {
 				}
 				foreach ($lines as $line) {
 					$rows[] = array(
-						'orderId' => $meta['orderId'] ?: (string)$soId,
-						'orderName' => $meta['orderName'] ?: ($meta['orderId'] ?: ('SO #' . $soId)),
+						'orderId' => $orderId,
+						'orderName' => $orderName,
 						'product' => $line['product'],
 						'qty' => (int)$line['qty'],
 						'value' => (float)$line['value'],
-						'date' => $meta['date'],
+						'date' => $orderDate,
 						'source' => 'salesorder',
 						'crmid' => $soId,
 					);
@@ -804,14 +810,20 @@ class Leads_CommerceService {
 				$soId = (int)$soId;
 				$meta = $metaByOrder[$soId] ?? array();
 				$lines = $linesByOrder[$soId] ?? array();
+				$orderId = isset($meta['orderId']) && $meta['orderId'] !== '' ? (string)$meta['orderId'] : (string)$soId;
+				$orderName = isset($meta['orderName']) && $meta['orderName'] !== ''
+					? (string)$meta['orderName']
+					: ($orderId !== '' ? $orderId : ('SO #' . $soId));
+				$orderDate = isset($meta['date']) ? $meta['date'] : '';
+				$orderTotal = isset($meta['orderTotal']) ? (float)$meta['orderTotal'] : 0.0;
 				if (empty($lines) && !empty($meta)) {
 					$rows[] = array(
-						'orderId' => $meta['orderId'],
-						'orderName' => $meta['orderName'],
-						'product' => $meta['orderName'],
+						'orderId' => $orderId,
+						'orderName' => $orderName,
+						'product' => $orderName,
 						'qty' => 1,
-						'value' => (float)$meta['orderTotal'],
-						'date' => $meta['date'],
+						'value' => $orderTotal,
+						'date' => $orderDate,
 						'source' => 'salesorder',
 						'crmid' => $soId,
 					);
@@ -819,12 +831,12 @@ class Leads_CommerceService {
 				}
 				foreach ($lines as $line) {
 					$rows[] = array(
-						'orderId' => $meta['orderId'] ?: (string)$soId,
-						'orderName' => $meta['orderName'] ?: ($meta['orderId'] ?: ('SO #' . $soId)),
+						'orderId' => $orderId,
+						'orderName' => $orderName,
 						'product' => $line['product'],
 						'qty' => (int)$line['qty'],
 						'value' => (float)$line['value'],
-						'date' => $meta['date'],
+						'date' => $orderDate,
 						'source' => 'salesorder',
 						'crmid' => $soId,
 					);
@@ -943,14 +955,20 @@ class Leads_CommerceService {
 				$soId = (int)$soId;
 				$meta = $metaByOrder[$soId] ?? array();
 				$lines = $linesByOrder[$soId] ?? array();
+				$orderId = isset($meta['orderId']) && $meta['orderId'] !== '' ? (string)$meta['orderId'] : (string)$soId;
+				$orderName = isset($meta['orderName']) && $meta['orderName'] !== ''
+					? (string)$meta['orderName']
+					: ($orderId !== '' ? $orderId : ('SO #' . $soId));
+				$orderDate = isset($meta['date']) ? $meta['date'] : '';
+				$orderTotal = isset($meta['orderTotal']) ? (float)$meta['orderTotal'] : 0.0;
 				if (empty($lines) && !empty($meta)) {
 					$rows[] = array(
-						'orderId' => $meta['orderId'],
-						'orderName' => $meta['orderName'],
-						'product' => $meta['orderName'],
+						'orderId' => $orderId,
+						'orderName' => $orderName,
+						'product' => $orderName,
 						'qty' => 1,
-						'value' => (float)$meta['orderTotal'],
-						'date' => $meta['date'],
+						'value' => $orderTotal,
+						'date' => $orderDate,
 						'source' => 'salesorder',
 						'crmid' => $soId,
 					);
@@ -958,12 +976,12 @@ class Leads_CommerceService {
 				}
 				foreach ($lines as $line) {
 					$rows[] = array(
-						'orderId' => $meta['orderId'] ?: (string)$soId,
-						'orderName' => $meta['orderName'] ?: ($meta['orderId'] ?: ('SO #' . $soId)),
+						'orderId' => $orderId,
+						'orderName' => $orderName,
 						'product' => $line['product'],
 						'qty' => (int)$line['qty'],
 						'value' => (float)$line['value'],
-						'date' => $meta['date'],
+						'date' => $orderDate,
 						'source' => 'salesorder',
 						'crmid' => $soId,
 					);

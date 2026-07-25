@@ -69,12 +69,18 @@ class Vtiger_MkSalesInlineDetailHelper {
 		'da_pcth' => 'Đã PCTH',
 		'chua_pcth' => 'Chưa PCTH',
 		'ca_nhan' => 'Cá nhân',
-		'chua_mqbb' => 'chua_MQBB',
-		'da_mqbb' => 'da_MQBB',
-		'da_mqbb_chua_pcth' => 'da_MQBB_chua_PCTH',
-		'da_mqbb_da_pcth' => 'da_MQBB_da_PCTH',
-		'chua_mqbb_chua_pcth' => 'chua_MQBB_chua_PCTH',
-		'chua_mqbb_da_pcth' => 'chua_MQBB_da_PCTH',
+		'dung_cham_soc' => 'Dừng chăm sóc',
+		'mua_it_lai' => 'Mua ít lại',
+		'mien_bac' => 'Miền Bắc',
+		'tham_khao' => 'Tham khảo',
+		'khong_du_tai_chinh' => 'Không đủ tài chính',
+		'ngu' => 'ngu',
+		'chua_mqbb' => 'Chưa MQBB',
+		'da_mqbb' => 'Đã MQBB',
+		'da_mqbb_chua_pcth' => 'Đã MQBB + Chưa PCTH',
+		'da_mqbb_da_pcth' => 'Đã MQBB + Đã PCTH',
+		'chua_mqbb_chua_pcth' => 'Chưa MQBB + Chưa PCTH',
+		'chua_mqbb_da_pcth' => 'Chưa MQBB + Đã PCTH',
 	);
 
 	protected static $tagAliases = array(
@@ -162,6 +168,9 @@ class Vtiger_MkSalesInlineDetailHelper {
 		if (isset(self::$tagAliases[$s])) {
 			$s = self::$tagAliases[$s];
 		}
+		if (preg_match('/^\d{1,2}$/', $s)) {
+			return 'goi_lan_' . (int) $s;
+		}
 		if (preg_match('/^goi_lan_(\d+)$/', $s, $m)) {
 			return 'goi_lan_' . (int) $m[1];
 		}
@@ -169,11 +178,15 @@ class Vtiger_MkSalesInlineDetailHelper {
 	}
 
 	public static function labelForTag($key, $fallback = '') {
+		$key = self::normalizeTagKey($key);
 		if ($key !== '' && isset(self::$tagLabels[$key])) {
 			return self::$tagLabels[$key];
 		}
 		if (preg_match('/^goi_lan_(\d+)$/', $key, $m)) {
 			return 'Gọi lần ' . (int) $m[1];
+		}
+		if (preg_match('/^kv([123])$/', $key, $m)) {
+			return 'Khu vực ' . $m[1];
 		}
 		$fallback = self::decodeText($fallback);
 		return $fallback !== '' ? $fallback : $key;

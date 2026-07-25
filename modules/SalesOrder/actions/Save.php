@@ -220,7 +220,7 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 		}
 		$quoteId = (int) $request->get('quote_id');
 		if ($quoteId <= 0) {
-			return;
+			throw new AppException('Vui lòng chọn Báo giá trước khi tạo đơn hàng.');
 		}
 		$quoteModel = Vtiger_Record_Model::getInstanceById($quoteId, 'Quotes');
 		if ($quoteModel instanceof Quotes_Record_Model && $quoteModel->hasLinkedSalesOrder()) {
@@ -250,6 +250,26 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 			exit;
 		}
 
+		try {
+			$this->assertQuoteCanCreateSalesOrder($request);
+		} catch (AppException $e) {
+			if ($request->isAjax()) {
+				$response = new Vtiger_Response();
+				$response->setError('Validation Error', $e->getMessage(), $e->getMessage());
+				$response->emit();
+				return;
+			}
+			throw $e;
+		} catch (Exception $e) {
+			if ($request->isAjax()) {
+				$response = new Vtiger_Response();
+				$response->setError('Validation Error', $e->getMessage(), $e->getMessage());
+				$response->emit();
+				return;
+			}
+			throw $e;
+		}
+
 		parent::process($request);
 	}
 
@@ -264,6 +284,11 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 			$recordId = (int) $request->get('record');
 			if ($recordId <= 0) {
 				$recordModel->set('sostatus', 'Created');
+			}
+			// Always assign to the user who is saving (no UI to pick another owner).
+			$currentUser = Users_Record_Model::getCurrentUserModel();
+			if ($currentUser) {
+				$recordModel->set('assigned_user_id', $currentUser->getId());
 			}
 			return $recordModel;
 		}

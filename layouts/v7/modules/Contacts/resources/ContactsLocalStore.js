@@ -72,5 +72,29 @@
         });
       });
     },
+    patchContact: function (id, patch) {
+      var oid = String(id || "");
+      if (!patch) return null;
+      for (var i = 0; i < _contacts.length; i++) {
+        var c = _contacts[i];
+        if (String(c.id) !== oid && String(c.crmid || "") !== oid) continue;
+        Object.keys(patch).forEach(function (k) {
+          c[k] = patch[k];
+        });
+        return c;
+      }
+      return null;
+    },
+    saveTags: function (id, tags) {
+      var oid = String(id || "");
+      return apiRequest("save_tags", {
+        record: oid,
+        tags: JSON.stringify(tags || []),
+      }).then(function (res) {
+        var next = (res && res.tags) || tags || [];
+        root.ContactsLocalStore.patchContact(oid, { tags: next });
+        return next;
+      });
+    },
   };
 })(window);

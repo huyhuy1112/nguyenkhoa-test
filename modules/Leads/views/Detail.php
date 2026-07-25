@@ -95,10 +95,32 @@ class Leads_Detail_View extends Vtiger_Index_View {
 			$title = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('lastname')), ENT_QUOTES, 'UTF-8'));
 		}
 		$subtitle = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('lead_no')), ENT_QUOTES, 'UTF-8'));
+		$profileAddress = '';
+		$profileDistrict = '';
+		try {
+			$adb = PearDatabase::getInstance();
+			$areaRes = $adb->pquery(
+				'SELECT area, address_line, district FROM bace_lead_profile WHERE leadid = ?',
+				array($recordId)
+			);
+			if ($areaRes && $adb->num_rows($areaRes) > 0) {
+				$profileAddress = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($areaRes, 0, 'address_line'));
+				$profileDistrict = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($areaRes, 0, 'district'));
+				if ($profileAddress === '') {
+					$areaRaw = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($areaRes, 0, 'area'));
+					if (preg_match('/^khu\s*vực\s*[123]\s*,\s*(.+)$/iu', $areaRaw, $am)) {
+						$profileAddress = trim($am[1]);
+					} elseif ($areaRaw !== '' && !preg_match('/^khu\s*vực\s*[123]$/iu', $areaRaw)) {
+						$profileAddress = $areaRaw;
+					}
+				}
+			}
+		} catch (Exception $e) {
+			$profileAddress = '';
+			$profileDistrict = '';
+		}
 		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
 			array('phone', 'Điện thoại'),
-			array('email', 'Email'),
-			array('company', 'Công ty'),
 			array('assigned_user_id', 'Phụ trách'),
 			array('createdtime', 'Ngày tạo'),
 		));
@@ -134,6 +156,40 @@ class Leads_Detail_View extends Vtiger_Index_View {
 			return Vtiger_MkSalesInlineDetailHelper::labelForTag($key, $key);
 		};
 
+		$regionKey = $pick(array('kv1', 'kv2', 'kv3', 'KV1', 'KV2', 'KV3'));
+		$regionKey = strtolower($regionKey);
+		if ($regionKey === '' && preg_match('/khu\s*vực\s*([123])/iu', $profileDistrict, $rm)) {
+			$regionKey = 'kv' . $rm[1];
+		}
+		$regionLabel = $regionKey !== '' ? ('Khu vực ' . substr($regionKey, -1)) : '—';
+
+		$locationFields = array(
+			array(
+				'name' => 'mk_region',
+				'label' => 'Khu vực',
+				'value' => $regionLabel,
+				'raw_value' => $regionKey,
+				'data_type' => 'picklist',
+				'editable' => true,
+				'picklist_values' => array(
+					'' => '— Chọn khu vực —',
+					'kv1' => 'Khu vực 1',
+					'kv2' => 'Khu vực 2',
+					'kv3' => 'Khu vực 3',
+				),
+			),
+			array(
+				'name' => 'mk_address',
+				'label' => 'Địa chỉ',
+				'value' => $profileAddress !== '' ? $profileAddress : '—',
+				'raw_value' => $profileAddress,
+				'data_type' => 'string',
+				'editable' => true,
+				'picklist_values' => array(),
+			),
+		);
+		array_splice($infoFields, 1, 0, $locationFields);
+
 		$sourceKey = $pick(array('facebook', 'tiktok', 'website', 'zalo', 'other', 'other_source'));
 		if ($sourceKey === 'other_source') {
 			$sourceKey = 'other';
@@ -142,8 +198,6 @@ class Leads_Detail_View extends Vtiger_Index_View {
 		if ($customerKey === 'ca_nhan') {
 			$customerKey = 'individual';
 		}
-		$stageKey = $pick(array('mua_lan_dau', 'mua_lai', 'khong_mua', 'ngung_mua'));
-		$tierKey = $pick(array('vang', 'bac', 'dong'));
 
 		$categoryFields = array(
 			array(
@@ -178,51 +232,44 @@ class Leads_Detail_View extends Vtiger_Index_View {
 					'gia_dinh' => 'Gia đình',
 				),
 			),
-			array(
-				'name' => 'mk_stage',
-				'label' => 'Giai đoạn',
-				'value' => $labelOf($stageKey),
-				'raw_value' => $stageKey,
-				'data_type' => 'picklist',
-				'editable' => true,
-				'picklist_values' => array(
-					'' => '—',
-					'mua_lan_dau' => 'Mua lần đầu',
-					'mua_lai' => 'Mua lại',
-					'khong_mua' => 'Không mua',
-					'ngung_mua' => 'Ngừng mua',
-				),
-			),
-			array(
-				'name' => 'mk_tier',
-				'label' => 'Hạng',
-				'value' => $labelOf($tierKey),
-				'raw_value' => $tierKey,
-				'data_type' => 'picklist',
-				'editable' => true,
-				'picklist_values' => array(
-					'' => '—',
-					'vang' => 'Vàng',
-					'bac' => 'Bạc',
-					'dong' => 'Đồng',
-				),
-			),
 		);
-		// Insert category fields after company (index 2)
+		// Insert category fields after address (index 3)
 		array_splice($infoFields, 3, 0, $categoryFields);
 
 		$nextAction = '';
+		$nextActionTimeframe = '';
+		$nextActionOverdue = false;
+		$nextActionAlertDays = null;
 		try {
 			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
 			$ruleSvc = HelpDesk_TagRuleEngineService::getInstance();
-			$nextAction = $ruleSvc->getNextActionForLead($recordId);
-			if ($nextAction === '') {
-				$adb = PearDatabase::getInstance();
-				$naRes = $adb->pquery('SELECT next_action FROM bace_lead_profile WHERE leadid = ?', array($recordId));
-				if ($naRes && $adb->num_rows($naRes) > 0) {
-					$nextAction = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($naRes, 0, 'next_action'));
+			$adb = PearDatabase::getInstance();
+			$manualNext = '';
+			$lastTouchRaw = null;
+			$naRes = $adb->pquery(
+				'SELECT next_action, last_touch FROM bace_lead_profile WHERE leadid = ?',
+				array($recordId)
+			);
+			if ($naRes && $adb->num_rows($naRes) > 0) {
+				$manualNext = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($naRes, 0, 'next_action'));
+				$lastTouchRaw = $adb->query_result($naRes, 0, 'last_touch');
+			}
+			if (!$lastTouchRaw) {
+				$ceRes = $adb->pquery(
+					'SELECT modifiedtime FROM vtiger_crmentity WHERE crmid = ? AND deleted = 0',
+					array($recordId)
+				);
+				if ($ceRes && $adb->num_rows($ceRes) > 0) {
+					$lastTouchRaw = $adb->query_result($ceRes, 0, 'modifiedtime');
 				}
-			} else {
+			}
+			$tags = $ruleSvc->getLeadTagLabels($recordId);
+			$ruleMeta = $ruleSvc->resolveNextActionMeta($tags, $lastTouchRaw, $manualNext);
+			$nextAction = $ruleMeta['next_action'];
+			$nextActionTimeframe = $ruleMeta['timeframe_label'];
+			$nextActionOverdue = !empty($ruleMeta['next_action_overdue']);
+			$nextActionAlertDays = $ruleMeta['rule_alert_days'];
+			if ($nextAction !== '') {
 				$ruleSvc->applyNextActionToLead($recordId);
 			}
 		} catch (Exception $e) {
@@ -241,12 +288,32 @@ class Leads_Detail_View extends Vtiger_Index_View {
 			$potentialUrl = '';
 		}
 
+		$lastTouch = array(
+			'can_add' => true,
+			'next_n' => 1,
+			'count' => 0,
+			'max_calls' => 3,
+			'hint' => '',
+			'reminder_at_label' => '',
+		);
+		try {
+			require_once 'modules/Leads/models/LastTouchCallService.php';
+			$lastTouch = Leads_LastTouchCallService::getSummary($recordId);
+		} catch (Exception $e) {
+			// keep defaults
+		}
+
 		$viewer = $this->getViewer($request);
 		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, 'SALES', $infoFields, $title, $subtitle);
 		$viewer->assign('INLINE_SHOW_NEXT_ACTION', true);
 		$viewer->assign('INLINE_NEXT_ACTION', $nextAction);
+		$viewer->assign('INLINE_NEXT_ACTION_LOCKED', true);
+		$viewer->assign('INLINE_NEXT_ACTION_TIMEFRAME', $nextActionTimeframe);
+		$viewer->assign('INLINE_NEXT_ACTION_OVERDUE', $nextActionOverdue);
+		$viewer->assign('INLINE_NEXT_ACTION_ALERT_DAYS', $nextActionAlertDays);
 		$viewer->assign('INLINE_CAN_CONVERT', $canConvert);
 		$viewer->assign('INLINE_POTENTIAL_URL', $potentialUrl);
+		$viewer->assign('INLINE_LAST_TOUCH', $lastTouch);
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 

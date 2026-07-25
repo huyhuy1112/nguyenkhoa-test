@@ -15,6 +15,8 @@
 		plus: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
 		search: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
 		chevron: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+		clock: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+		note: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/><path d="M10 13h4"/><path d="M10 17h4"/></svg>',
 	};
 
 	function esc(s) {
@@ -441,19 +443,31 @@
 					return tagChip(tagMap[tid] ? tagMap[tid].name : '?');
 				}).join('');
 				if (!tagHtml) tagHtml = '<span class="mk-tre-muted">(chưa có tag)</span>';
-				var thenHtml = esc(r.next_action || '—');
+
+				var thenMeta = '';
 				if (r.require_note) {
-					thenHtml += ' <span class="mk-tre-chip mk-tre-chip--warn">Bắt buộc ghi chú</span>';
+					thenMeta +=
+						'<span class="mk-tre-chip mk-tre-chip--warn">' +
+						ICONS.note +
+						' Bắt buộc ghi chú</span>';
 				}
-				if (r.alert_days != null) {
-					thenHtml += ' <span class="mk-tre-chip">Cảnh báo ' + esc(r.alert_days) + ' ngày</span>';
+				if (r.alert_days != null && r.alert_days !== '') {
+					thenMeta +=
+						'<span class="mk-tre-chip mk-tre-chip--alert">' +
+						ICONS.clock +
+						' Cảnh báo ' +
+						esc(r.alert_days) +
+						' ngày</span>';
 				}
 
 				return ''
 					+ '<tr>'
 					+ '  <td><div class="mk-tre-rule-name">' + esc(r.status_label) + '</div><div class="mk-tre-rule-sub">' + esc(r.name) + '</div></td>'
 					+ '  <td><div class="mk-tre-if"><span class="mk-tre-if__label">Nếu</span><div class="mk-tre-chips">' + tagHtml + '</div></div></td>'
-					+ '  <td><div class="mk-tre-then"><span class="mk-tre-then__label">Thì</span><div class="mk-tre-then__text">' + thenHtml + '</div></div></td>'
+					+ '  <td><div class="mk-tre-then"><span class="mk-tre-then__label">Thì</span>'
+					+ '    <div class="mk-tre-then__text">' + esc(r.next_action || '—') + '</div>'
+					+ (thenMeta ? '<div class="mk-tre-then__meta mk-tre-chips">' + thenMeta + '</div>' : '')
+					+ '  </div></td>'
 					+ '  <td><span class="mk-tre-priority">' + esc(r.priority) + '</span></td>'
 					+ '  <td><label class="mk-tre-switch"><input type="checkbox" class="js-tre-rule-toggle" data-id="' + esc(r.id) + '"' + (r.is_active ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></label></td>'
 					+ '  <td class="mk-tre-actions">'

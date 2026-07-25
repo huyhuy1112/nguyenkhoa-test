@@ -75,7 +75,7 @@
     /**
      * Replace confirm tags on a cached opportunity without full API reload.
      */
-    setConfirmTag: function (id, confirmTag) {
+    setConfirmTag: function (id, confirmTag, confirmedAt) {
       var oid = String(id || "");
       var confirmPool = ["xac_nhan_tham_gia", "khong_xac_nhan_tham_gia"];
       var ref = root.PotentialsLovableRef;
@@ -93,9 +93,38 @@
           tags.push(confirmTag);
         }
         o.tags = tags;
+        if (confirmTag === "xac_nhan_tham_gia") {
+          o.confirmed_at = confirmedAt || o.confirmed_at || new Date().toISOString();
+        } else {
+          o.confirmed_at = "";
+        }
         return o;
       }
       return null;
+    },
+    patchOpportunity: function (id, patch) {
+      var oid = String(id || "");
+      if (!patch) return null;
+      for (var i = 0; i < _opps.length; i++) {
+        var o = _opps[i];
+        if (String(o.id) !== oid && String(o.crmid || "") !== oid) continue;
+        Object.keys(patch).forEach(function (k) {
+          o[k] = patch[k];
+        });
+        return o;
+      }
+      return null;
+    },
+    saveTags: function (id, tags) {
+      var oid = String(id || "");
+      return apiRequest("save_tags", {
+        record: oid,
+        tags: JSON.stringify(tags || []),
+      }).then(function (res) {
+        var next = (res && res.tags) || tags || [];
+        root.PotentialsLocalStore.patchOpportunity(oid, { tags: next });
+        return next;
+      });
     },
   };
 })(window);

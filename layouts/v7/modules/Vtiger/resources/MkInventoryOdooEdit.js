@@ -19,6 +19,8 @@
   ];
   var DEFAULT_PAYMENT_METHOD = "Chuyển khoản";
 
+  var DEFAULT_INVOICE_TIER = "lt_1m";
+
   var INVOICE_TIER_OPTIONS = [
     { value: "auto", label: "Tự động theo tổng đơn" },
     { value: "lt_1m", label: "Giá < 1 triệu" },
@@ -704,12 +706,13 @@
 
   function getInvoiceTierSelection($form) {
     var value = String(
-      $form.find('[name="mk_invoice_price_tier"]').first().val() || "auto",
+      $form.find('[name="mk_invoice_price_tier"]').first().val() ||
+        DEFAULT_INVOICE_TIER,
     ).trim();
     if (value === "auto" || INVOICE_TIER_FIELDS[value]) {
       return value;
     }
-    return "auto";
+    return DEFAULT_INVOICE_TIER;
   }
 
   function findCatalogProduct(productId) {
@@ -772,15 +775,14 @@
     if (!$wrap.length) {
       return;
     }
-    $wrap.find(".mk-inv-tier-chip").each(function () {
-      var active = $(this).attr("data-value") === selectedValue;
-      $(this).toggleClass("is-active", active);
-      $(this).attr("aria-pressed", active ? "true" : "false");
-    });
+    var $select = $wrap.find("#mkInvInvoicePriceTierSelect, [name='mk_invoice_price_tier']").first();
+    if ($select.length && String($select.val() || "") !== String(selectedValue || "")) {
+      $select.val(selectedValue);
+    }
     var detail =
       selectedValue === "auto"
         ? "Đang áp dụng: " + invoiceTierLabel(resolvedTier)
-        : "Đang áp dụng cho tất cả sản phẩm";
+        : "Đang áp dụng: " + invoiceTierLabel(selectedValue);
     $wrap.find(".mk-inv-price-tier__status").text(detail);
   }
 
@@ -4625,7 +4627,7 @@
     var resolved =
       currentValue === "auto" || INVOICE_TIER_FIELDS[currentValue]
         ? currentValue
-        : "auto";
+        : DEFAULT_INVOICE_TIER;
     $select.val(resolved);
     return resolved;
   }
@@ -4643,9 +4645,20 @@
     }
 
     var $existing = $form.find('[name="mk_invoice_price_tier"]').first();
-    var currentValue = String($existing.val() || "auto").trim();
+    var currentValue = String($existing.val() || "").trim();
+    var isCreate = !String($form.find('input[name="record"]').val() || "").trim();
+    // New documents default to Giá < 1 triệu (not auto / empty).
+    if (!currentValue || (isCreate && (currentValue === "auto" || !INVOICE_TIER_FIELDS[currentValue] && currentValue !== "auto"))) {
+      currentValue = DEFAULT_INVOICE_TIER;
+    }
+    if (currentValue !== "auto" && !INVOICE_TIER_FIELDS[currentValue]) {
+      currentValue = DEFAULT_INVOICE_TIER;
+    }
     if ($existing.length) {
       $existing.closest("tr").addClass("mk-inv-hide-legacy");
+      if ($existing.is("select") || $existing.is("input")) {
+        $existing.val(currentValue);
+      }
     }
 
     var $select;
@@ -4653,47 +4666,32 @@
       $select = $existing.detach().attr("id", "mkInvInvoicePriceTierSelect");
     } else {
       $select = $(
-        '<select name="mk_invoice_price_tier" id="mkInvInvoicePriceTierSelect"></select>',
+        '<select name="mk_invoice_price_tier" id="mkInvInvoicePriceTierSelect" class="mk-inv-price-tier__select"></select>',
       );
     }
+    $select.addClass("mk-inv-price-tier__select");
     currentValue = rebuildInvoiceTierSelect($select, currentValue);
 
-    var chipsHtml = INVOICE_TIER_OPTIONS.map(function (item) {
-      return (
-        '<button type="button" class="mk-inv-tier-chip" data-value="' +
-        $("<div>").text(item.value).html() +
-        '" aria-pressed="false">' +
-        $("<div>").text(item.label).html() +
-        "</button>"
-      );
-    }).join("");
-
     var $wrap = $(
-      '<div class="mk-inv-price-tier mk-inv-price-tier--modern"></div>',
+      '<div class="mk-inv-price-tier mk-inv-price-tier--modern mk-inv-price-tier--dropdown"></div>',
     );
     $wrap.append(
       '<div class="mk-inv-price-tier__row">' +
         '<span class="mk-inv-price-tier__icon" aria-hidden="true"></span>' +
         '<div class="mk-inv-price-tier__content">' +
         '<div class="mk-inv-price-tier__head">' +
+        '<div class="mk-inv-price-tier__titles">' +
         '<label class="mk-inv-price-tier__label" for="mkInvInvoicePriceTierSelect">Bảng giá</label>' +
         '<span class="mk-inv-price-tier__hint">Đơn giá lấy từ Hàng hoá và cập nhật khi tổng đơn thay đổi</span>' +
         "</div>" +
-        '<div class="mk-inv-price-tier__chips" role="group" aria-label="Bảng giá">' +
-        chipsHtml +
+        '<div class="mk-inv-price-tier__control"></div>' +
         "</div>" +
         '<div class="mk-inv-price-tier__status" aria-live="polite"></div>' +
-        '<div class="mk-inv-price-tier__field--sr"></div>' +
         "</div></div>",
     );
-    $wrap.find(".mk-inv-price-tier__field--sr").append($select);
+    $wrap.find(".mk-inv-price-tier__control").append($select);
     $container.prepend($wrap);
 
-    $wrap.on("click", ".mk-inv-tier-chip", function (event) {
-      event.preventDefault();
-      var value = $(this).attr("data-value") || "auto";
-      $select.val(value).trigger("change");
-    });
     $select.on("change.mkInvPriceTier", function () {
       applyInvoiceTierPricing($form);
     });
@@ -4703,6 +4701,8 @@
         ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
         : currentValue;
     syncInvoiceTierUi($form, currentValue, resolved);
+    // Ensure pricing applies with the default tier on first paint.
+    applyInvoiceTierPricing($form);
   }
 
   function initPaymentTerms($form) {

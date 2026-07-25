@@ -2,9 +2,13 @@
 /*+***********************************************************************************
  * Potentials → Customer (Contacts) conversion helper.
  * Workflow: when consulting finishes, jump to the Customer (Contact) record.
+ * Tier (Vàng/Bạc/Đồng) is chosen at convert time (no longer set on Lead).
  *************************************************************************************/
 
 class Potentials_ConvertToCustomer_Action extends Vtiger_Action_Controller {
+	/** Canonical Contact tier tags. */
+	private static $TIER_KEYS = array('vang', 'bac', 'dong');
+
 	public function checkPermission(Vtiger_Request $request) {
 		$recordId = $request->get('record');
 		if (!$recordId) {
@@ -19,6 +23,16 @@ class Potentials_ConvertToCustomer_Action extends Vtiger_Action_Controller {
 		$response = new Vtiger_Response();
 		$recordId = (int) $request->get('record');
 		try {
+			$tier = $this->normalizeTier($request->get('tier'));
+			if ($tier === '') {
+				$response->setResult(array(
+					'success' => false,
+					'message' => 'Vui lòng chọn hạng khách hàng (Vàng / Bạc / Đồng).'
+				));
+				$response->emit();
+				return;
+			}
+
 			$opp = Vtiger_Record_Model::getInstanceById($recordId, 'Potentials');
 			$contactId = (int) $opp->get('contact_id');
 			if ($contactId <= 0) {
@@ -49,14 +63,120 @@ class Potentials_ConvertToCustomer_Action extends Vtiger_Action_Controller {
 				return;
 			}
 
+			// Sync Opp tags first, then apply chosen tier so it wins over any old tier on Opp.
+			$this->syncAllowedTagsFromOpportunity($recordId, $contactId);
+			$this->applyCustomerTierTag($contactId, $tier);
+
 			$response->setResult(array(
 				'success' => true,
-				'contact_id' => $contactId
+				'contact_id' => $contactId,
+				'tier' => $tier
 			));
 		} catch (Exception $e) {
 			$response->setError($e->getCode(), $e->getMessage());
 		}
 		$response->emit();
+	}
+
+	/**
+	 * @param mixed $raw
+	 * @return string vang|bac|dong|''
+	 */
+	private function normalizeTier($raw) {
+		$s = strtolower(trim(decode_html((string) $raw)));
+		if ($s === '') {
+			return '';
+		}
+		$map = array(
+			'vang' => 'vang',
+			'gold' => 'vang',
+			'vàng' => 'vang',
+			'bac' => 'bac',
+			'silver' => 'bac',
+			'bạc' => 'bac',
+			'dong' => 'dong',
+			'bronze' => 'dong',
+			'đồng' => 'dong',
+		);
+		if (isset($map[$s])) {
+			return $map[$s];
+		}
+		// Strip accents fallback
+		$ascii = $s;
+		if (function_exists('transliterator_transliterate')) {
+			$ascii = strtolower(transliterator_transliterate('Any-Latin; Latin-ASCII', $s));
+		}
+		$ascii = str_replace(array('đ', 'Đ'), array('d', 'd'), $ascii);
+		if (isset($map[$ascii])) {
+			return $map[$ascii];
+		}
+		return in_array($s, self::$TIER_KEYS, true) ? $s : '';
+	}
+
+	/**
+	 * Set exclusive Hạng KH tag (vang|bac|dong) on Contact.
+	 */
+	private function applyCustomerTierTag($contactId, $tier) {
+		global $current_user;
+		$contactId = (int) $contactId;
+		$tier = $this->normalizeTier($tier);
+		if ($contactId <= 0 || $tier === '') {
+			return;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
+		if (!Contacts_ContactTagCatalog::isAllowed($tier)) {
+			return;
+		}
+
+		$userId = (int) $current_user->id;
+		$existing = Vtiger_Tag_Model::getAllAccessible($userId, 'Contacts', $contactId);
+		$existingIds = array();
+		$keepIds = array();
+		foreach ($existing as $tagModel) {
+			$tid = (int) $tagModel->getId();
+			$existingIds[] = $tid;
+			$name = decode_html((string) $tagModel->getName());
+			$key = Contacts_ContactTagCatalog::normalizeKey($name);
+			if (in_array($key, self::$TIER_KEYS, true)) {
+				continue; // drop old tiers
+			}
+			$keepIds[] = $tid;
+		}
+
+		$tagModel = Vtiger_Tag_Model::getInstanceByName($tier, $userId);
+		if ($tagModel) {
+			$tierId = (int) $tagModel->getId();
+		} else {
+			$newTag = new Vtiger_Tag_Model();
+			$newTag->setName($tier)->setType(Vtiger_Tag_Model::PUBLIC_TYPE);
+			$tierId = (int) $newTag->create();
+		}
+		if ($tierId <= 0) {
+			return;
+		}
+
+		$targetIds = array_values(array_unique(array_filter(array_merge($keepIds, array($tierId)))));
+		$toAdd = array_diff($targetIds, $existingIds);
+		$toRemove = array_diff($existingIds, $targetIds);
+		if (!empty($toAdd)) {
+			Vtiger_Tag_Model::saveForRecord($contactId, $toAdd, $userId, 'Contacts');
+		}
+		if (!empty($toRemove)) {
+			Vtiger_Tag_Model::deleteForRecord($contactId, $toRemove, $userId, 'Contacts');
+		}
+	}
+
+	/**
+	 * Best-effort: copy BA-allowed Opp tags onto Contact (tier already applied exclusively).
+	 */
+	private function syncAllowedTagsFromOpportunity($potentialId, $contactId) {
+		try {
+			require_once 'modules/Leads/models/ConvertService.php';
+			Leads_ConvertService::syncContactTagsFromPotentials((int) $contactId);
+		} catch (Exception $e) {
+			// ignore — convert still succeeds with tier
+		}
 	}
 
 	private function createContactFromOpportunity(Vtiger_Record_Model $opp) {
@@ -134,4 +254,3 @@ class Potentials_ConvertToCustomer_Action extends Vtiger_Action_Controller {
 		}
 	}
 }
-

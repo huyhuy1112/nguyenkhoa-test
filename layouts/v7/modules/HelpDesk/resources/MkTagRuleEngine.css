@@ -883,6 +883,25 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	box-shadow: 0 1px 4px rgba(8, 160, 69, 0.12);
 }
 
+.mk-tre-chip--alert {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 4px 10px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.01em;
+	background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+	color: #92400e;
+	border: 1px solid #fcd34d;
+	box-shadow: 0 1px 2px rgba(146, 64, 14, 0.08);
+}
+
+.mk-tre-chip--alert svg {
+	flex-shrink: 0;
+	opacity: 0.9;
+}
+
 .mk-tre-actions {
 	text-align: right;
 	white-space: nowrap;
@@ -2323,9 +2342,21 @@ body[data-module="SupportFAQ"] .mk-sf-faq-page {
 }
 
 .mk-tre-chip--warn {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 4px 10px;
+	font-size: 11px;
+	font-weight: 700;
 	background: #fff7ed;
-	border-color: #fdba74;
+	border: 1px solid #fdba74;
 	color: #9a3412;
+	box-shadow: 0 1px 2px rgba(154, 52, 18, 0.08);
+}
+
+.mk-tre-chip--warn svg {
+	flex-shrink: 0;
+	opacity: 0.9;
 }
 
 .mk-tre-if,
@@ -2350,6 +2381,10 @@ body[data-module="SupportFAQ"] .mk-sf-faq-page {
 	line-height: 1.45;
 	color: #0f172a;
 	max-width: 360px;
+}
+
+.mk-tre-then__meta {
+	margin-top: 2px;
 }
 
 .mk-tre-form-hint {

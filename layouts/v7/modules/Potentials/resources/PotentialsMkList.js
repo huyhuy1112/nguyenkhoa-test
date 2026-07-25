@@ -7,7 +7,7 @@
   var ref = window.PotentialsLovableRef;
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 12;
+  var COL_COUNT = 15;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -104,20 +104,20 @@
 
   function stageLabel(stage) {
     var map = {
-      Prospecting: pick("Báo giá", "Prospecting"),
-      Qualification: pick("Chất lượng", "Qualification"),
-      "Needs Analysis": pick("Phân tích nhu cầu", "Needs Analysis"),
-      "Proposal/Price Quote": pick("Đề nghị/Báo giá", "Proposal/Price Quote"),
-      "Negotiation/Review": pick("Đàm phán/Xem xét", "Negotiation/Review"),
-      "Closed Won": pick("Hoàn thành", "Closed Won"),
-      "Closed Lost": pick("Không thành công", "Closed Lost"),
+      Prospecting: "Báo giá",
+      Qualification: "Chất lượng",
+      "Needs Analysis": "Phân tích nhu cầu",
+      "Proposal/Price Quote": "Đề nghị/Báo giá",
+      "Negotiation/Review": "Đàm phán/Xem xét",
+      "Closed Won": "Hoàn thành",
+      "Closed Lost": "Không thành công",
     };
     return map[stage] || stage || "—";
   }
 
   function categoryLabel(cat) {
-    if (cat === "Internal") return pick("Nội bộ", "Internal");
-    if (cat === "Project") return pick("Dự án", "Project");
+    if (cat === "Internal") return "Nội bộ";
+    if (cat === "Project") return "Dự án";
     return cat || "";
   }
 
@@ -178,7 +178,7 @@
     return rows.filter(function (o) {
       var cats = categorize(o.tags);
       if (q) {
-        var hay = [o.name, o.account, o.contact, o.owner, (o.tags || []).join(" ")]
+        var hay = [o.name, o.account, o.contact, o.owner, o.phone, o.address, o.notes, (o.tags || []).join(" ")]
           .join(" ")
           .toLowerCase();
         if (hay.indexOf(q) < 0) return false;
@@ -200,6 +200,177 @@
     });
   }
 
+  function formatDateTimeFull(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) {
+      var m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+      if (!m) return String(iso);
+      return (
+        m[3] +
+        "/" +
+        m[2] +
+        "/" +
+        m[1] +
+        (m[4] ? " " + m[4] + ":" + m[5] + ":" + (m[6] || "00") : "")
+      );
+    }
+    function pad(n) {
+      return n < 10 ? "0" + n : String(n);
+    }
+    return (
+      pad(d.getDate()) +
+      "/" +
+      pad(d.getMonth() + 1) +
+      "/" +
+      d.getFullYear() +
+      " " +
+      pad(d.getHours()) +
+      ":" +
+      pad(d.getMinutes()) +
+      ":" +
+      pad(d.getSeconds())
+    );
+  }
+
+  function regionLabel(o, cats) {
+    var area = cats && cats.area ? cats.area : "";
+    if (area) {
+      var key = ref && ref.normalizeTag ? ref.normalizeTag(area) : String(area);
+      if (/^kv([123])$/i.test(key)) return "Khu vực " + RegExp.$1;
+      return tagMeta(area).label || area;
+    }
+    var dist = String(o.district || "").trim();
+    if (/khu\s*vực\s*([123])/iu.test(dist)) return "Khu vực " + RegExp.$1;
+    return dist;
+  }
+
+  function stackedTagsHtml(cats) {
+    var parts = [];
+    [cats.classTag, cats.material, cats.franchise, cats.tier]
+      .concat(cats.custom || [])
+      .forEach(function (tg) {
+        if (tg) parts.push(tagBadgeHtml(tg));
+      });
+    return parts.length ? parts.join(" ") : '<span class="mk-leads-muted">Thêm thẻ…</span>';
+  }
+
+  function closeTagPopover() {
+    var old = document.getElementById("mk-opps-tag-popover");
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+  }
+
+  function openTagPopover(anchor, opp) {
+    closeTagPopover();
+    if (!opp || !store) return;
+    var catalog = ref && ref.getCreateTagCatalog ? ref.getCreateTagCatalog() : [];
+    var selected = {};
+    (opp.tags || []).forEach(function (tg) {
+      var k = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "");
+      if (k) selected[k] = true;
+    });
+    var pop = document.createElement("div");
+    pop.id = "mk-opps-tag-popover";
+    pop.className = "mk-leads-tag-popover";
+    pop.setAttribute("data-opp-id", String(opp.id));
+    var groupsHtml = catalog
+      .map(function (g) {
+        var chips = (g.tags || [])
+          .map(function (item) {
+            var on = !!selected[item.key];
+            return (
+              '<button type="button" class="mk-leads-tag-chip' +
+              (on ? " is-on" : "") +
+              '" data-tag="' +
+              esc(item.key) +
+              '" aria-pressed="' +
+              (on ? "true" : "false") +
+              '">' +
+              esc(item.label) +
+              "</button>"
+            );
+          })
+          .join("");
+        return (
+          '<div class="mk-leads-tag-popover__group">' +
+          '<div class="mk-leads-tag-popover__group-title">' +
+          esc(g.label) +
+          "</div>" +
+          '<div class="mk-leads-tag-popover__chips">' +
+          chips +
+          "</div></div>"
+        );
+      })
+      .join("");
+    pop.innerHTML =
+      '<div class="mk-leads-tag-popover__head"><strong>Sửa thẻ</strong>' +
+      '<button type="button" class="mk-leads-tag-popover__close" aria-label="Đóng">&times;</button></div>' +
+      '<div class="mk-leads-tag-popover__body">' +
+      groupsHtml +
+      "</div>" +
+      '<div class="mk-leads-tag-popover__foot">' +
+      '<button type="button" class="mk-leads-btn mk-leads-btn--outline" data-tag-cancel="1">Hủy</button>' +
+      '<button type="button" class="mk-leads-btn" data-tag-save="1">Lưu thẻ</button>' +
+      "</div>";
+    document.body.appendChild(pop);
+    var rect = anchor.getBoundingClientRect();
+    pop.style.top = rect.bottom + window.scrollY + 6 + "px";
+    pop.style.left =
+      Math.max(8, Math.min(rect.left + window.scrollX, window.scrollX + window.innerWidth - 360)) + "px";
+    pop.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var chip = e.target.closest && e.target.closest(".mk-leads-tag-chip");
+      if (chip) {
+        chip.classList.toggle("is-on");
+        chip.setAttribute("aria-pressed", chip.classList.contains("is-on") ? "true" : "false");
+        return;
+      }
+      if (e.target.closest && (e.target.closest("[data-tag-cancel]") || e.target.closest(".mk-leads-tag-popover__close"))) {
+        closeTagPopover();
+        return;
+      }
+      if (e.target.closest && e.target.closest("[data-tag-save]")) {
+        var nextTags = [];
+        pop.querySelectorAll(".mk-leads-tag-chip.is-on").forEach(function (el) {
+          nextTags.push(el.getAttribute("data-tag"));
+        });
+        var catalogKeys = ref && ref.getCreateTagKeys ? ref.getCreateTagKeys() : [];
+        (opp.tags || []).forEach(function (tg) {
+          var k = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "");
+          if (!k) return;
+          if (catalogKeys.indexOf(k) < 0 && nextTags.indexOf(k) < 0) nextTags.push(k);
+        });
+        var saveBtn = e.target.closest("[data-tag-save]");
+        if (saveBtn) saveBtn.disabled = true;
+        var saveFn = store.saveTags
+          ? store.saveTags(opp.crmid || opp.id, nextTags)
+          : Promise.reject(new Error("saveTags unavailable"));
+        saveFn
+          .then(function () {
+            closeTagPopover();
+            renderAll();
+          })
+          .catch(function () {
+            window.alert("Không lưu được thẻ.");
+            if (saveBtn) saveBtn.disabled = false;
+          });
+      }
+    });
+  }
+
+  function notesCell(text) {
+    var s = String(text || "").trim();
+    if (!s) return '<span class="mk-leads-muted">—</span>';
+    var short = s.length > 80 ? s.slice(0, 80) + "…" : s;
+    return (
+      '<span class="mk-leads-notes-cell" title="' +
+      esc(s) +
+      '">' +
+      esc(short) +
+      "</span>"
+    );
+  }
+
   function sortOpps(rows) {
     var key = state.sortKey;
     var dir = state.sortDir === "asc" ? 1 : -1;
@@ -209,6 +380,12 @@
       if (key === "amount") {
         av = Number(av) || 0;
         bv = Number(bv) || 0;
+      } else if (key === "converted_at" || key === "confirmed_at" || key === "createdtime") {
+        av = new Date(av || 0).getTime() || 0;
+        bv = new Date(bv || 0).getTime() || 0;
+      } else if (key === "name") {
+        av = String(a.contact || a.account || a.name || "").toLowerCase();
+        bv = String(b.contact || b.account || b.name || "").toLowerCase();
       } else {
         av = String(av || "").toLowerCase();
         bv = String(bv || "").toLowerCase();
@@ -426,21 +603,66 @@
             '<td class="mk-leads-td mk-leads-td--check"><label class="mk-leads-check">' +
             '<input type="checkbox" class="mk-leads-check__input mk-opps-row-check" data-id="' + esc(o.id) + '"' + checked + " />" +
             '<span class="mk-leads-check__ui" aria-hidden="true"></span></label></td>' +
+            '<td class="mk-leads-td" data-col="converted_at">' +
+            (o.converted_at || o.createdtime
+              ? esc(formatDateTimeFull(o.converted_at || o.createdtime))
+              : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
             '<td class="mk-leads-td mk-leads-td--lead"><a class="mk-leads-name" href="' + detailUrl(o.crmid || o.id) + '">' +
             (customerName ? esc(customerName) : '<span class="mk-leads-muted">—</span>') +
             "</a></td>" +
+            '<td class="mk-leads-td" data-col="phone">' +
+            (o.phone ? esc(o.phone) : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td" data-col="region">' +
+            (function () {
+              var rl = regionLabel(o, cats);
+              return rl ? esc(rl) : '<span class="mk-leads-muted">—</span>';
+            })() +
+            "</td>" +
+            '<td class="mk-leads-td" data-col="address">' +
+            (o.address ? esc(o.address) : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td" data-col="source">' + tagBadgeHtml(cats.source) + "</td>" +
+            '<td class="mk-leads-td" data-col="customer">' + tagBadgeHtml(cats.customer) + "</td>" +
             '<td class="mk-leads-td"><span class="mk-pill ' + stagePillClass(o.sales_stage) + '">' + esc(stageLabel(o.sales_stage)) + "</span></td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.area) + "</td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.source) + "</td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.customer) + "</td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.classTag) + "</td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.material) + "</td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.franchise) + "</td>" +
-            '<td class="mk-leads-td">' + tagCellHtml(null, cats.custom) + "</td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.confirm) + "</td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(o.owner) + '">' + esc(ownerInitials(o.owner)) + "</span>" +
-            "<span>" + esc(o.owner || "—") + "</span></span></td></tr>"
+            "<span>" + esc(o.owner || "—") + "</span></span></td>" +
+            '<td class="mk-leads-td" data-col="tags"><button type="button" class="mk-leads-tags-edit" data-opp-id="' +
+            esc(o.id) +
+            '" title="Sửa thẻ">' +
+            stackedTagsHtml(cats) +
+            "</button></td>" +
+            '<td class="mk-leads-td" data-col="confirm">' + tagBadgeHtml(cats.confirm) + "</td>" +
+            '<td class="mk-leads-td" data-col="confirmed_at">' +
+            (o.confirmed_at
+              ? esc(formatDateTimeFull(o.confirmed_at))
+              : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--next">' +
+            (function () {
+              var logic = window.LeadsLeadsLogic;
+              if (logic && logic.nextActionCellHtml) {
+                return logic.nextActionCellHtml(o, esc);
+              }
+              var next = String(o.next_action || "").trim();
+              var tf = String(o.next_action_timeframe || "").trim();
+              if (!next && !tf) return '<span class="mk-leads-muted">—</span>';
+              var html = '<div class="mk-leads-next-action">';
+              if (next) html += '<span class="mk-leads-next-action__text">' + esc(next) + "</span>";
+              if (tf) {
+                html +=
+                  '<span class="mk-leads-next-action__time' +
+                  (o.next_action_overdue ? " mk-leads-next-action__time--overdue" : "") +
+                  '">' +
+                  esc(tf) +
+                  "</span>";
+              }
+              return html + "</div>";
+            })() +
+            "</td>" +
+            '<td class="mk-leads-td" data-col="notes">' + notesCell(o.notes) + "</td></tr>"
           );
         })
         .join("");
@@ -481,6 +703,152 @@
     renderTable();
   }
 
+  function pickTier(count) {
+    if (typeof window.MkOppPickCustomerTier === "function") {
+      return window.MkOppPickCustomerTier({ count: count || 1 });
+    }
+    var raw = window.prompt("Chọn hạng khách hàng: vang / bac / dong", "dong");
+    if (raw === null) return Promise.resolve(null);
+    var s = String(raw).trim().toLowerCase();
+    if (s === "gold" || s === "vàng") s = "vang";
+    if (s === "silver" || s === "bạc") s = "bac";
+    if (s === "bronze" || s === "đồng") s = "dong";
+    if (["vang", "bac", "dong"].indexOf(s) < 0) {
+      window.alert("Hạng không hợp lệ. Chọn vang, bac hoặc dong.");
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(s);
+  }
+
+  function convertOppToCustomer(recordId, tier) {
+    var id = String(recordId || "");
+    var tierKey = String(tier || "").trim().toLowerCase();
+    if (!id) {
+      return Promise.reject(new Error("Không tìm thấy ID Cơ hội."));
+    }
+    if (["vang", "bac", "dong"].indexOf(tierKey) < 0) {
+      return Promise.reject(new Error("Vui lòng chọn hạng khách hàng (Vàng / Bạc / Đồng)."));
+    }
+    return new Promise(function (resolve, reject) {
+      if (!(window.app && app.request && app.request.post)) {
+        reject(new Error("Không kết nối được máy chủ."));
+        return;
+      }
+      app.request
+        .post({
+          data: {
+            module: "Potentials",
+            action: "ConvertToCustomer",
+            record: id,
+            tier: tierKey,
+          },
+        })
+        .then(function (err, res) {
+          if (err || !res || res.success === false) {
+            var msg =
+              (res && res.message) ||
+              (err && err.message) ||
+              "Không chuyển được sang Khách hàng.";
+            reject(new Error(String(msg)));
+            return;
+          }
+          var contactId = res.contact_id || (res.result && res.result.contact_id);
+          if (!contactId) {
+            reject(new Error("Không tìm thấy Contact để chuyển."));
+            return;
+          }
+          resolve({
+            contactId: contactId,
+            tier: tierKey,
+            url:
+              "index.php?module=Contacts&view=Detail&record=" +
+              encodeURIComponent(contactId) +
+              "&app=SALES",
+          });
+        });
+    });
+  }
+
+  function runBulkConvertToCustomer(rows) {
+    if (!rows || !rows.length) return;
+    pickTier(rows.length).then(function (tier) {
+      if (!tier) return;
+      if (window.app && app.helper && app.helper.showProgress) {
+        app.helper.showProgress();
+      }
+      var ok = 0;
+      var fail = 0;
+      var firstUrl = "";
+      var chain = Promise.resolve();
+      rows.forEach(function (o) {
+        chain = chain.then(function () {
+          return convertOppToCustomer(o.crmid || o.id, tier)
+            .then(function (res) {
+              ok += 1;
+              if (!firstUrl && res && res.url) firstUrl = res.url;
+            })
+            .catch(function () {
+              fail += 1;
+            });
+        });
+      });
+      chain.then(function () {
+        if (window.app && app.helper && app.helper.hideProgress) {
+          app.helper.hideProgress();
+        }
+        var msg = "Đã chuyển " + ok + " cơ hội sang Khách hàng.";
+        if (fail) msg += " " + fail + " thất bại.";
+        if (window.app && app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({ message: msg });
+        } else {
+          window.alert(msg);
+        }
+        clearSelection();
+        if (ok === 1 && firstUrl && window.confirm("Mở Khách hàng vừa chuyển?")) {
+          window.location.href = firstUrl;
+        }
+      });
+    });
+  }
+
+  function openInlineConvertToCustomer(btn) {
+    var recordId = String((btn && btn.getAttribute("data-record-id")) || "");
+    if (!recordId) {
+      var panel = btn && btn.closest ? btn.closest(".mk-so-inline-detail") : null;
+      recordId = String((panel && panel.getAttribute("data-record-id")) || "");
+    }
+    if (!recordId) return;
+    pickTier(1).then(function (tier) {
+      if (!tier) return;
+      if (btn) btn.disabled = true;
+      if (window.app && app.helper && app.helper.showProgress) {
+        app.helper.showProgress();
+      }
+      convertOppToCustomer(recordId, tier)
+        .then(function (res) {
+          if (window.app && app.helper && app.helper.hideProgress) {
+            app.helper.hideProgress();
+          }
+          if (btn) btn.disabled = false;
+          if (window.app && app.helper && app.helper.showSuccessNotification) {
+            app.helper.showSuccessNotification({
+              message: "Đã chuyển sang Khách hàng.",
+            });
+          }
+          if (res && res.url && window.confirm("Mở Khách hàng vừa chuyển?")) {
+            window.location.href = res.url;
+          }
+        })
+        .catch(function (err) {
+          if (window.app && app.helper && app.helper.hideProgress) {
+            app.helper.hideProgress();
+          }
+          if (btn) btn.disabled = false;
+          window.alert((err && err.message) || "Không chuyển được sang Khách hàng.");
+        });
+    });
+  }
+
   function renderBulkBar() {
     var bar = $("mk-opps-bulk");
     if (!bar) return;
@@ -499,19 +867,23 @@
       "</span>" +
       '<span class="mk-leads-bulk-bar__count"><strong>' +
       n +
-      "</strong> selected</span>" +
+      "</strong> đã chọn</span>" +
       "</div>" +
       '<div class="mk-leads-bulk-bar__actions">' +
+      '<button type="button" class="mk-leads-bulk-btn mk-leads-bulk-btn--convert" data-bulk="to_customer">' +
+      '<span class="mk-leads-bulk-btn__ic">' +
+      ic("convert") +
+      "</span><span>Chuyển sang khách hàng</span></button>" +
       '<button type="button" class="mk-leads-bulk-btn" data-bulk="export">' +
       '<span class="mk-leads-bulk-btn__ic">' +
       ic("export") +
-      "</span><span>Export</span></button>" +
+      "</span><span>Xuất file</span></button>" +
       '<button type="button" class="mk-leads-bulk-btn mk-leads-bulk-btn--danger" data-bulk="delete">' +
       '<span class="mk-leads-bulk-btn__ic">' +
       ic("trash") +
       "</span><span>Xóa</span></button>" +
       "</div>" +
-      '<button type="button" class="mk-leads-bulk-clear" data-bulk="clear">Clear</button>' +
+      '<button type="button" class="mk-leads-bulk-clear" data-bulk="clear">Bỏ chọn</button>' +
       "</div>";
   }
 
@@ -646,6 +1018,29 @@
     });
 
     document.addEventListener("click", function (e) {
+      var tagsBtn = e.target.closest && e.target.closest(".mk-leads-tags-edit[data-opp-id]");
+      if (tagsBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var oid = tagsBtn.getAttribute("data-opp-id");
+        var opp = getOpps().find(function (o) {
+          return String(o.id) === String(oid);
+        });
+        if (opp) openTagPopover(tagsBtn, opp);
+        return;
+      }
+      if (!e.target.closest || !e.target.closest("#mk-opps-tag-popover")) {
+        closeTagPopover();
+      }
+      var inlineToCustomer =
+        e.target.closest &&
+        e.target.closest(".mk-so-inline-detail__to-customer-btn");
+      if (inlineToCustomer) {
+        e.preventDefault();
+        e.stopPropagation();
+        openInlineConvertToCustomer(inlineToCustomer);
+        return;
+      }
       var bulkBtn = e.target.closest && e.target.closest("#mk-opps-bulk [data-bulk]");
       if (!bulkBtn) return;
       e.preventDefault();
@@ -655,6 +1050,10 @@
       if (!rows.length && action !== "clear") return;
       if (action === "clear") {
         clearSelection();
+        return;
+      }
+      if (action === "to_customer") {
+        runBulkConvertToCustomer(rows);
         return;
       }
       if (action === "export") {

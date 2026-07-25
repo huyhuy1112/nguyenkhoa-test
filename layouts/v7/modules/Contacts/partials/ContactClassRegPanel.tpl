@@ -12,6 +12,9 @@
 					{$CLASS_REG.rights_label|escape}
 				</div>
 			{/if}
+			{if !empty($CLASS_REG.warning)}
+				<div class="mk-contact-class-panel__warning" role="status">{$CLASS_REG.warning|escape}</div>
+			{/if}
 			{if !empty($CLASS_REG.hint)}
 				<p class="mk-contact-class-panel__hint">{$CLASS_REG.hint|escape}</p>
 			{/if}

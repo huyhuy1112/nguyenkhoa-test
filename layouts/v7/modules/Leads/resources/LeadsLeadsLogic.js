@@ -9,16 +9,18 @@
     try {
       var lang =
         typeof app !== "undefined" && app.getUserLanguage
-          ? String(app.getUserLanguage() || "")
+          ? String(app.getUserLanguage() || "").toLowerCase()
           : "";
-      return !lang || lang.indexOf("vi") === 0 || lang === "vn";
+      if (!lang) return true;
+      if (lang.indexOf("en") === 0) return false;
+      return true;
     } catch (e) {
       return true;
     }
   }
 
   function pick(vi, en) {
-    return isVi() ? vi : en || vi;
+    return vi || en || "";
   }
 
   var PURCHASE_MAP_RAW = {
@@ -237,6 +239,74 @@
     return stored;
   }
 
+  /** Khung thời gian hành động tiếp theo từ rule (alert_days + last_touch). */
+  function nextActionTimeframeMeta(lead) {
+    var alertDays = lead.rule_alert_days;
+    if (alertDays == null || alertDays <= 0) return null;
+    if (lead.next_action_overdue) {
+      return {
+        kind: "overdue",
+        days: lead.next_action_days_overdue || 0,
+        alertDays: alertDays,
+      };
+    }
+    if (lead.next_action_days_remaining != null) {
+      return {
+        kind: "remaining",
+        days: lead.next_action_days_remaining,
+        alertDays: alertDays,
+      };
+    }
+    var idle = daysSince(lead.last_touch);
+    var rem = alertDays - idle;
+    if (rem < 0) {
+      return { kind: "overdue", days: -rem, alertDays: alertDays };
+    }
+    return { kind: "remaining", days: rem, alertDays: alertDays };
+  }
+
+  function nextActionTimeframeLabel(lead) {
+    var meta = nextActionTimeframeMeta(lead);
+    if (!meta) return "";
+    if (meta.kind === "overdue") {
+      return pick("Quá hạn " + meta.days + " ngày", "Overdue " + meta.days + "d");
+    }
+    if (meta.days === 0) {
+      return pick("Hôm nay", "Today");
+    }
+    if (meta.kind === "remaining") {
+      return pick("Còn " + meta.days + " ngày", meta.days + "d left");
+    }
+    return pick("Còn " + meta.alertDays + " ngày", meta.alertDays + "d left");
+  }
+
+  function nextActionCellHtml(lead, escFn) {
+    var esc =
+      typeof escFn === "function"
+        ? escFn
+        : function (s) {
+            return String(s == null ? "" : s);
+          };
+    var next = deriveNextAction(lead);
+    var tf = nextActionTimeframeLabel(lead);
+    if (!next && !tf) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    var html = "";
+    if (next) {
+      html += '<span class="mk-leads-next-action__text">' + esc(next) + "</span>";
+    }
+    if (tf) {
+      var meta = nextActionTimeframeMeta(lead);
+      var cls = "mk-leads-next-action__time";
+      if (meta && meta.kind === "overdue") {
+        cls += " mk-leads-next-action__time--overdue";
+      }
+      html += '<span class="' + cls + '">' + esc(tf) + "</span>";
+    }
+    return '<div class="mk-leads-next-action">' + html + "</div>";
+  }
+
   function openCalendarTasks(lead) {
     return (lead.calendarTasks || [])
       .filter(function (t) {
@@ -262,8 +332,8 @@
   }
 
 	function touchLabel(days) {
-		if (days <= 0) return "Today";
-		return days + "d ago";
+		if (days <= 0) return pick("Hôm nay", "Today");
+		return pick(days + " ngày trước", days + "d ago");
 	}
 
 	/** Decode HTML entities from CRM (e.g. Kh&ocirc;ng → Không) before re-escaping for HTML. */
@@ -530,6 +600,9 @@
     ordersInLastDays: ordersInLastDays,
     ordersOutsideLastDays: ordersOutsideLastDays,
     deriveNextAction: deriveNextAction,
+    nextActionTimeframeMeta: nextActionTimeframeMeta,
+    nextActionTimeframeLabel: nextActionTimeframeLabel,
+    nextActionCellHtml: nextActionCellHtml,
     openCalendarTasks: openCalendarTasks,
     purchasesInLastDays: purchasesInLastDays,
     CSKH_ALERT_DAYS: CSKH_ALERT_DAYS,

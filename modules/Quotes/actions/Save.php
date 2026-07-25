@@ -56,20 +56,35 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 			require_once 'modules/Quotes/helpers/QuoteBaService.php';
 			$recordModel->set('quotestage', Quotes_QuoteBaService_Helper::resolveDraftQuoteStage());
 		}
+		// Always assign to the user who is saving (no UI to pick another owner).
+		$currentUser = Users_Record_Model::getCurrentUserModel();
+		if ($currentUser) {
+			$recordModel->set('assigned_user_id', $currentUser->getId());
+		}
 		return $recordModel;
 	}
 
 	public function saveRecord($request) {
 		$potentialId = (int) $request->get('potential_id');
-		if ($potentialId <= 0) {
-			throw new AppException('Vui lòng chọn Tên Cơ hội trước khi lưu báo giá.');
+		$contactId = (int) $request->get('contact_id');
+		$subject = trim((string) $request->get('subject'));
+
+		if ($potentialId <= 0 && $contactId <= 0 && $subject === '') {
+			throw new AppException('Vui lòng chọn Khách hàng trước khi lưu báo giá.');
 		}
 
-		// Auto-fill subject (Tên khách hàng / quote title) from Opportunity customer.
+		// Auto-fill subject from Opportunity / Contact when empty.
 		try {
-			$subject = trim((string) $request->get('subject'));
-			if ($subject === '') {
+			if ($subject === '' && $potentialId > 0) {
 				$customerName = $this->resolveCustomerNameFromPotentialId($potentialId);
+				if ($customerName !== '') {
+					$request->set('subject', $customerName);
+					$subject = $customerName;
+				}
+			}
+			if ($subject === '' && $contactId > 0) {
+				require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+				$customerName = trim((string) Vtiger_MkSalesCustomerName_Helper::readContactNameById($contactId));
 				if ($customerName !== '') {
 					$request->set('subject', $customerName);
 				}

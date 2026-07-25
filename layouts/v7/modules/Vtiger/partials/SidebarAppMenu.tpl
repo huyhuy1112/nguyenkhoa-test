@@ -85,6 +85,8 @@
 									{assign var='translatedModuleLabel' value='Khách hàng'}
 								{elseif $moduleName eq 'ProductsServices'}
 									{assign var='translatedModuleLabel' value='Hàng hoá'}
+								{elseif $moduleName eq 'ServiceContracts'}
+									{assign var='translatedModuleLabel' value='Khách chuyển nhượng'}
 								{elseif $moduleName eq 'SupportFAQ'}
 									{assign var='translatedModuleLabel' value='Cảnh báo'}
 								{/if}

@@ -21,9 +21,10 @@ class Contacts_ModernService {
 		$adb = PearDatabase::getInstance();
 		self::ensureEventTimeColumns($adb);
 		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.title, cd.email, cd.phone, cd.mobile,
-				cd.accountid, ce.smownerid, ce.createdtime, ce.modifiedtime,
+				cd.accountid, ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname,
-				cf.thoigian_dangky, cf.thoigian_pcth, cf.thoigian_mqbb
+				cf.thoigian_dangky, cf.thoigian_pcth, cf.thoigian_mqbb,
+				cf.da_cap_bang, cf.da_cap_tai_khoan
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = cd.accountid
@@ -525,6 +526,17 @@ class Contacts_ModernService {
 			'thoigian_dangky' => self::toIsoDateTime(isset($row['thoigian_dangky']) ? $row['thoigian_dangky'] : ''),
 			'thoigian_pcth' => self::toIsoDateTime(isset($row['thoigian_pcth']) ? $row['thoigian_pcth'] : ''),
 			'thoigian_mqbb' => self::toIsoDateTime(isset($row['thoigian_mqbb']) ? $row['thoigian_mqbb'] : ''),
+			'da_cap_bang' => self::normalizeCredentialPick(
+				self::decodeCredentialText(isset($row['da_cap_bang']) ? $row['da_cap_bang'] : ''),
+				array('Chưa cấp', 'Đã cấp'),
+				'Chưa cấp'
+			),
+			'da_cap_tai_khoan' => self::normalizeCredentialPick(
+				self::decodeCredentialText(isset($row['da_cap_tai_khoan']) ? $row['da_cap_tai_khoan'] : ''),
+				array('Chưa cấp tài khoản', 'Đã cấp tài khoản'),
+				'Chưa cấp tài khoản'
+			),
+			'notes' => decode_html(trim((string)(isset($row['description']) ? $row['description'] : ''))),
 		);
 	}
 
@@ -975,6 +987,37 @@ class Contacts_ModernService {
 			$hint = 'Chọn lớp và ngày Đăng ký lần 1.';
 		}
 
+		// Cảnh báo trước 1 tháng: sắp mở Học lại (sau cooldown 1 năm) hoặc sắp hết hạn cửa sổ Học lại.
+		$warning = '';
+		$warningLevel = '';
+		$warningDays = null;
+		$todayTs = strtotime(date('Y-m-d'));
+		if ($retakeCooldown && $nextRetakeOpenOn !== '') {
+			$openTs = strtotime($nextRetakeOpenOn);
+			if ($openTs !== false) {
+				$days = (int) floor(($openTs - $todayTs) / 86400);
+				if ($days >= 0 && $days <= 30) {
+					$warningLevel = 'retake_soon';
+					$warningDays = $days;
+					$warning = $days === 0
+						? 'Lớp này mở Học lại từ hôm nay (' . self::formatClassRegDate($nextRetakeOpenOn) . ').'
+						: ('Lớp này còn ' . $days . ' ngày nữa sẽ được Học lại (từ ' . self::formatClassRegDate($nextRetakeOpenOn) . ').');
+				}
+			}
+		} elseif ($retakeAvailable && $retakeDateMax !== '') {
+			$maxTs = strtotime($retakeDateMax);
+			if ($maxTs !== false) {
+				$days = (int) floor(($maxTs - $todayTs) / 86400);
+				if ($days >= 0 && $days <= 30) {
+					$warningLevel = 'retake_expiring';
+					$warningDays = $days;
+					$warning = $days === 0
+						? 'Hôm nay là hạn cuối Học lại (đến ' . self::formatClassRegDate($retakeDateMax) . ').'
+						: ('Còn ' . $days . ' ngày nữa hết hạn Học lại (đến ' . self::formatClassRegDate($retakeDateMax) . ').');
+				}
+			}
+		}
+
 		return array(
 			'logs' => $logs,
 			'count' => count($logs),
@@ -1004,6 +1047,9 @@ class Contacts_ModernService {
 			'retake_date_max' => $retakeDateMax,
 			'rights_label' => $rightsLabel,
 			'hint' => $hint,
+			'warning' => $warning,
+			'warning_level' => $warningLevel,
+			'warning_days' => $warningDays,
 		);
 	}
 
@@ -1022,6 +1068,7 @@ class Contacts_ModernService {
 		$allLogs = array();
 		$byClass = array();
 		$rightsParts = array();
+		$warningParts = array();
 		$anyRetakeAvailable = false;
 
 		foreach (array_keys(self::CLASS_REG_CODES) as $code) {
@@ -1040,6 +1087,9 @@ class Contacts_ModernService {
 				'hint' => $state['hint'],
 				'first_on' => $state['first_on'],
 				'last_on' => $state['last_on'],
+				'warning' => isset($state['warning']) ? $state['warning'] : '',
+				'warning_level' => isset($state['warning_level']) ? $state['warning_level'] : '',
+				'warning_days' => isset($state['warning_days']) ? $state['warning_days'] : null,
 			);
 			foreach ($state['logs'] as $log) {
 				$allLogs[] = $log;
@@ -1047,6 +1097,9 @@ class Contacts_ModernService {
 			if (!empty($state['retake_available'])) {
 				$anyRetakeAvailable = true;
 				$rightsParts[] = self::getClassRegCodeLabel($code) . ': ' . $state['rights_label'];
+			}
+			if (!empty($state['warning'])) {
+				$warningParts[] = self::getClassRegCodeLabel($code) . ': ' . $state['warning'];
 			}
 		}
 
@@ -1089,6 +1142,8 @@ class Contacts_ModernService {
 			'retake_date_max' => '',
 			'rights_label' => $rightsLabel,
 			'hint' => $hint,
+			'warning' => !empty($warningParts) ? implode(' ', $warningParts) : '',
+			'warning_level' => !empty($warningParts) ? 'retake_soon' : '',
 		);
 	}
 
@@ -1262,6 +1317,82 @@ class Contacts_ModernService {
 			);
 		}
 		return $userOptions;
+	}
+
+	/**
+	 * Replace Contact tags (whitelist via ContactTagCatalog).
+	 * @param array $tagNames
+	 * @return array{success:bool,tags:string[]}
+	 */
+	public static function saveTags($contactId, array $tagNames, $userId = null) {
+		global $current_user;
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			throw new Exception('Contact not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contactId)
+			&& !Users_Privileges_Model::isPermitted(self::MODULE, 'DetailView', $contactId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		if ($userId === null) {
+			$userId = (int) $current_user->id;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
+
+		$clean = array();
+		foreach ($tagNames as $name) {
+			$name = trim(decode_html((string) $name));
+			if ($name === '' || !Contacts_ContactTagCatalog::isAllowed($name)) {
+				continue;
+			}
+			$key = Contacts_ContactTagCatalog::normalizeKey($name);
+			if ($key === '') {
+				continue;
+			}
+			$clean[] = $key;
+		}
+		$clean = array_values(array_unique($clean));
+
+		$existing = Vtiger_Tag_Model::getAllAccessible($userId, self::MODULE, $contactId);
+		$existingByName = array();
+		$existingIds = array();
+		foreach ($existing as $tagModel) {
+			$name = decode_html((string) $tagModel->getName());
+			$existingByName[strtolower($name)] = (int) $tagModel->getId();
+			$existingIds[] = (int) $tagModel->getId();
+		}
+		$targetIds = array();
+		foreach ($clean as $name) {
+			$lk = strtolower($name);
+			if (isset($existingByName[$lk])) {
+				$targetIds[] = $existingByName[$lk];
+				continue;
+			}
+			$tagModel = Vtiger_Tag_Model::getInstanceByName($name, $userId);
+			if ($tagModel) {
+				$targetIds[] = (int) $tagModel->getId();
+				continue;
+			}
+			$newTag = new Vtiger_Tag_Model();
+			$newTag->setName($name)->setType(Vtiger_Tag_Model::PUBLIC_TYPE);
+			$targetIds[] = (int) $newTag->create();
+		}
+		$targetIds = array_values(array_unique(array_filter($targetIds)));
+		$toAdd = array_diff($targetIds, $existingIds);
+		$toRemove = array_diff($existingIds, $targetIds);
+		if (!empty($toAdd)) {
+			Vtiger_Tag_Model::saveForRecord($contactId, $toAdd, $userId, self::MODULE);
+		}
+		if (!empty($toRemove)) {
+			Vtiger_Tag_Model::deleteForRecord($contactId, $toRemove, $userId, self::MODULE);
+		}
+		$tagsMap = self::getTagsForContactIds(array($contactId), $userId);
+		$raw = isset($tagsMap[$contactId]) ? array_values($tagsMap[$contactId]) : array();
+		return array(
+			'success' => true,
+			'tags' => Contacts_ContactTagCatalog::filterTagNames($raw),
+		);
 	}
 
 	public static function deleteContact($contactId) {

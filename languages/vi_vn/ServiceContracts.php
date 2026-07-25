@@ -10,13 +10,13 @@
  * *********************************************************************************** */
 $languageStrings = array(
 	// Basic Strings
-	'ServiceContracts' => 'Hợp đồng dịch vụ',
-	'Service Contracts' => 'Hợp đồng dịch vụ',
-	'SINGLE_ServiceContracts' => 'Hợp đồng dịch vụ',
-	'LBL_ADD_RECORD' => 'Thêm hợp đồng dịch vụ',
-	'LBL_RECORDS_LIST' => 'Danh sách hợp đồng dịch vụ',
+	'ServiceContracts' => 'Khách chuyển nhượng',
+	'Service Contracts' => 'Khách chuyển nhượng',
+	'SINGLE_ServiceContracts' => 'Khách chuyển nhượng',
+	'LBL_ADD_RECORD' => 'Thêm khách chuyển nhượng',
+	'LBL_RECORDS_LIST' => 'Danh sách khách chuyển nhượng',
 	// Blocks
-	'LBL_SERVICE_CONTRACT_INFORMATION' => 'Chi tiết hợp đồng dịch vụ',
+	'LBL_SERVICE_CONTRACT_INFORMATION' => 'Chi tiết khách chuyển nhượng',
 	
 	//Field Labels
 	'Contract No' => 'Mã bản ghi',

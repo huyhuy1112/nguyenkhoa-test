@@ -48,9 +48,10 @@
 		</div>
 	{/if}
 
-	<div class="mk-so-inline-detail__tags">
-		<label class="mk-so-inline-detail__field-label">Tags</label>
-		<div class="mk-so-inline-detail__tags-list">
+	{assign var=MK_EDITABLE_TAGS value=($MODULE eq 'Leads' || $MODULE eq 'Potentials' || $MODULE eq 'Contacts')}
+	<div class="mk-so-inline-detail__tags{if $MK_EDITABLE_TAGS} is-editable{/if}"{if $MK_EDITABLE_TAGS} data-editable-tags="1"{/if}>
+		<label class="mk-so-inline-detail__field-label">Tags{if $MK_EDITABLE_TAGS} <span class="mk-so-inline-detail__tags-hint">(chọn theo nhóm)</span>{/if}</label>
+		<div class="mk-so-inline-detail__tags-list" data-role="selected-tags">
 			{if isset($INLINE_TAGS) && $INLINE_TAGS|@count gt 0}
 				{foreach from=$INLINE_TAGS item=TAG}
 					<span class="{if !empty($TAG.cls)}{$TAG.cls|escape}{else}mk-tag{/if}" data-tag="{$TAG.key|escape}" title="{$TAG.name|escape}">{$TAG.label|escape}</span>
@@ -59,7 +60,61 @@
 				<span class="mk-so-inline-detail__tags-empty">Chưa có tag</span>
 			{/if}
 		</div>
+		{if $MK_EDITABLE_TAGS}
+			<div class="mk-so-inline-detail__tags-picker" data-role="tag-picker"></div>
+		{/if}
 	</div>
+
+	{if $MODULE eq 'Leads'}
+		{assign var=LT value=$INLINE_LAST_TOUCH|default:[]}
+		{assign var=LT_CAN_ADD value=true}
+		{if isset($LT.can_add) && empty($LT.can_add)}{assign var=LT_CAN_ADD value=false}{/if}
+		{assign var=LT_NEXT value=$LT.next_n|default:1}
+		{assign var=LT_COUNT value=$LT.count|default:0}
+		{assign var=LT_MAX value=$LT.max_calls|default:3}
+		{assign var=LT_HINT value=$LT.hint|default:''}
+		{assign var=LT_CALLS value=$LT.calls|default:[]}
+		<div class="mk-so-inline-detail__last-touch"
+			data-role="last-touch"
+			data-record-id="{$RECORD->getId()|escape}"
+			data-lt-next="{$LT_NEXT|escape}"
+			data-lt-hint="{$LT_HINT|escape}"
+			data-lt-count="{$LT_COUNT|escape}"
+			data-lt-max="{$LT_MAX|escape}"
+			{if !empty($LT.reminder_at_label)} data-lt-reminder="{$LT.reminder_at_label|escape}"{/if}
+			{if empty($LT_CAN_ADD)} data-lt-locked="1"{/if}>
+			<div class="mk-so-inline-detail__last-touch-head">
+				<div class="mk-so-inline-detail__last-touch-title-wrap">
+					<strong class="mk-so-inline-detail__last-touch-title">Last Touch (Call)</strong>
+					<span class="mk-so-inline-detail__last-touch-badge{if empty($LT_CAN_ADD)} is-done{else} is-open{/if}" data-role="lt-badge">{$LT_COUNT|escape}/{$LT_MAX|escape}</span>
+				</div>
+				<button type="button"
+					class="mk-so-inline-detail__action mk-so-inline-detail__action--call mk-so-inline-detail__call-btn{if empty($LT_CAN_ADD)} is-locked{/if}"
+					data-record-id="{$RECORD->getId()|escape}"
+					data-lt-next="{$LT_NEXT|escape}"
+					data-lt-hint="{$LT_HINT|escape}"
+					{if !empty($LT.reminder_at_label)} data-lt-reminder="{$LT.reminder_at_label|escape}"{/if}
+					{if empty($LT_CAN_ADD)} disabled="disabled" aria-disabled="true"{/if}
+					title="{if empty($LT_CAN_ADD)}{if $LT_HINT neq ''}{$LT_HINT|escape}{else}Đã đủ số lần gọi Last Touch{/if}{else}Ghi cuộc gọi Last Touch #{if $LT_NEXT}{$LT_NEXT|escape}{else}1{/if}{/if}">
+					<i class="fa fa-phone" aria-hidden="true"></i>
+					<span>{if empty($LT_CAN_ADD)}Đã đủ gọi{else}Ghi cuộc gọi{/if}</span>
+				</button>
+			</div>
+			<p class="mk-so-inline-detail__last-touch-hint" data-role="lt-hint" title="{if $LT_HINT neq ''}{$LT_HINT|escape}{/if}">{if $LT_HINT neq '' && ($LT_COUNT gt 0 || empty($LT_CAN_ADD))}{$LT_HINT|escape}{else}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → Opp.{/if}</p>
+			<ul class="mk-so-inline-detail__last-touch-list" data-role="lt-list">
+				{if $LT_CALLS|@count gt 0}
+					{foreach from=$LT_CALLS item=CALL}
+						<li class="mk-so-inline-detail__last-touch-item">
+							<span class="mk-so-inline-detail__last-touch-n">Call #{$CALL.n|escape}</span>
+							<span class="mk-so-inline-detail__last-touch-text">{if !empty($CALL.label)}{$CALL.label|escape}{else}{$CALL.called_at_label|escape} Kết quả: {$CALL.result|escape}{if !empty($CALL.note)} Ghi chú: {$CALL.note|escape}{/if}{/if}</span>
+						</li>
+					{/foreach}
+				{else}
+					<li class="mk-so-inline-detail__last-touch-empty">Chưa có Call #1 — bấm “Ghi cuộc gọi”.</li>
+				{/if}
+			</ul>
+		</div>
+	{/if}
 
 	<div class="mk-so-inline-detail__bottom{if !empty($INLINE_SHOW_NEXT_ACTION) || !empty($INLINE_SHOW_CLASS_REG)} mk-so-inline-detail__bottom--split{/if}">
 		{if !empty($INLINE_SHOW_CLASS_REG)}
@@ -90,9 +145,33 @@
 				{/if}
 			</div>
 		{elseif !empty($INLINE_SHOW_NEXT_ACTION)}
-			<div class="mk-so-inline-detail__notes mk-so-inline-detail__next-action">
-				<label class="mk-so-inline-detail__notes-label" for="mk-crm-inline-next-{$RECORD->getId()}">Hành động tiếp theo</label>
-				<textarea id="mk-crm-inline-next-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input mk-so-inline-detail__next-action-input inputElement" name="next_action" rows="3">{$INLINE_NEXT_ACTION|escape}</textarea>
+			<div class="mk-so-inline-detail__notes mk-so-inline-detail__next-action{if !empty($INLINE_NEXT_ACTION_LOCKED)} is-locked{/if}">
+				<label class="mk-so-inline-detail__notes-label" for="mk-crm-inline-next-{$RECORD->getId()}">
+					Hành động tiếp theo{if !empty($INLINE_NEXT_ACTION_LOCKED)} <span class="mk-so-inline-detail__lock-hint">(tự động — không sửa)</span>{/if}
+				</label>
+				<textarea id="mk-crm-inline-next-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input mk-so-inline-detail__next-action-input inputElement" name="next_action" rows="3"{if !empty($INLINE_NEXT_ACTION_LOCKED)} readonly="readonly" disabled="disabled" aria-readonly="true"{/if}>{$INLINE_NEXT_ACTION|escape}</textarea>
+				{if !empty($INLINE_NEXT_ACTION_TIMEFRAME)}
+					<div class="mk-so-inline-detail__next-action-meta">
+						<span class="mk-so-inline-detail__next-action-time{if !empty($INLINE_NEXT_ACTION_OVERDUE)} is-overdue{/if}" data-alert-days="{$INLINE_NEXT_ACTION_ALERT_DAYS|default:''|escape}">
+							{if !empty($INLINE_NEXT_ACTION_OVERDUE)}
+								<i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+							{else}
+								<i class="fa fa-clock-o" aria-hidden="true"></i>
+							{/if}
+							<span class="mk-so-inline-detail__next-action-time-label">{$INLINE_NEXT_ACTION_TIMEFRAME|escape}</span>
+							{if isset($INLINE_NEXT_ACTION_ALERT_DAYS) && $INLINE_NEXT_ACTION_ALERT_DAYS neq '' && empty($INLINE_NEXT_ACTION_OVERDUE)}
+								<span class="mk-so-inline-detail__next-action-time-rule">(cảnh báo {$INLINE_NEXT_ACTION_ALERT_DAYS|escape} ngày)</span>
+							{/if}
+						</span>
+					</div>
+				{elseif isset($INLINE_NEXT_ACTION_ALERT_DAYS) && $INLINE_NEXT_ACTION_ALERT_DAYS neq ''}
+					<div class="mk-so-inline-detail__next-action-meta">
+						<span class="mk-so-inline-detail__next-action-time" data-alert-days="{$INLINE_NEXT_ACTION_ALERT_DAYS|escape}">
+							<i class="fa fa-clock-o" aria-hidden="true"></i>
+							<span class="mk-so-inline-detail__next-action-time-label">Cảnh báo {$INLINE_NEXT_ACTION_ALERT_DAYS|escape} ngày</span>
+						</span>
+					</div>
+				{/if}
 			</div>
 		{/if}
 		<div class="mk-so-inline-detail__notes"{if empty($INLINE_SHOW_NEXT_ACTION) && empty($INLINE_SHOW_CLASS_REG)} style="grid-column: 1 / -1; width: 100%;"{/if}>
@@ -107,25 +186,25 @@
 				<i class="fa fa-times" aria-hidden="true"></i>
 				<span>Hủy sửa</span>
 			</button>
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--ghost mk-so-inline-detail__view-full-btn">
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--ghost mk-so-inline-detail__view-full-btn" title="Xem đầy đủ">
 				<i class="fa fa-expand" aria-hidden="true"></i>
-				<span>Xem đầy đủ</span>
+				<span>Chi tiết</span>
 			</button>
 		</div>
 		<div class="mk-so-inline-detail__actions-right">
 			{if $MODULE eq 'Accounts' && !empty($INLINE_PRINT_URL)}
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__print-btn" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|default:$INLINE_PRINT_URL|escape}" title="In hợp đồng nhượng quyền TUI BAO">
 				<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
-				<span class="mk-so-inline-detail__print-label">In hợp đồng</span>
+				<span class="mk-so-inline-detail__print-label">In HĐ</span>
 			</button>
 			{/if}
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__save-btn">
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__save-btn" title="Lưu">
 				<i class="fa fa-save" aria-hidden="true"></i>
 				<span>Lưu</span>
 			</button>
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__edit-btn">
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__edit-btn" title="Mở form sửa">
 				<i class="fa fa-external-link" aria-hidden="true"></i>
-				<span>Mở form sửa</span>
+				<span>Sửa</span>
 			</button>
 			{if $MODULE eq 'Leads'}
 				{assign var=INLINE_CAN_CONVERT value=$INLINE_CAN_CONVERT|default:true}
@@ -136,7 +215,16 @@
 					{if empty($INLINE_CAN_CONVERT)} disabled="disabled" aria-disabled="true"{/if}
 					title="{if empty($INLINE_CAN_CONVERT)}Đã convert sang Opportunity{else}Convert to Opp{/if}">
 					<i class="fa fa-exchange" aria-hidden="true"></i>
-					<span>{if empty($INLINE_CAN_CONVERT)}Đã convert{else}Convert to Opp{/if}</span>
+					<span>{if empty($INLINE_CAN_CONVERT)}Đã convert{else}Convert{/if}</span>
+				</button>
+			{/if}
+			{if $MODULE eq 'Potentials'}
+				<button type="button"
+					class="mk-so-inline-detail__action mk-so-inline-detail__action--to-customer mk-so-inline-detail__to-customer-btn"
+					data-record-id="{$RECORD->getId()|escape}"
+					title="Chuyển sang khách hàng">
+					<i class="fa fa-user" aria-hidden="true"></i>
+					<span>Sang khách hàng</span>
 				</button>
 			{/if}
 		</div>

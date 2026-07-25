@@ -2674,6 +2674,19 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 	color: #1d4ed8;
 }
 
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__warning,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__warning {
+	margin: 0 0 10px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	border: 1px solid #fcd34d;
+	background: #fffbeb;
+	color: #92400e;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.45;
+}
+
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__hint,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__hint {
 	margin: 0 0 10px;

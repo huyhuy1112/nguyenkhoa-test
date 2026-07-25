@@ -22,7 +22,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save'), true)) {
+		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -103,6 +103,21 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 							$request->get('da_cap_tai_khoan')
 						),
 					));
+					break;
+				case 'save_tags':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$tagsRaw = $request->get('tags');
+					if (is_string($tagsRaw)) {
+						$decoded = json_decode($tagsRaw, true);
+						$tagsRaw = is_array($decoded) ? $decoded : preg_split('/\s*,\s*/', $tagsRaw);
+					}
+					if (!is_array($tagsRaw)) {
+						$tagsRaw = array();
+					}
+					$response->setResult(Contacts_ModernService::saveTags($recordId, $tagsRaw, $userId));
 					break;
 				case 'delete':
 					$recordId = $request->get('record');

@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260710_quote_contact3';
+	var MK_BUILD = '20260724_quote_customer6';
 	var autosaveTimer;
 	var TERMS_MODAL_ID = 'mkQtTermsModal';
 	var TERMS_EDITOR_ID = 'mkQtTermsEditor';
@@ -492,6 +492,7 @@
 			'carrier',
 			'shipping',
 			'inventorymanager',
+			'assigned_user_id',
 			'assigned_user_id1',
 			'bill_pobox',
 			'bill_city',
@@ -505,6 +506,10 @@
 			'ship_country'
 		];
 		if (isSalesOrder()) {
+			// SO still shows Assigned To in rail — don't hide assigned_user_id via this list.
+			hideFields = hideFields.filter(function (n) {
+				return n !== 'assigned_user_id';
+			});
 			hideFields = hideFields.concat([
 				'salescommission',
 				'leadsource',
@@ -523,6 +528,20 @@
 			hideFields.push('quotestage');
 			// Hide "Có giá trị đến" (validtill) on Quotes create/edit SALES form.
 			hideFields.push('validtill');
+			// Price tier UI lives in line items — hide leftover label in quote info.
+			hideFields.push(
+				'mk_invoice_price_tier',
+				'currency_id',
+				'conversion_rate',
+				'account_id',
+				'quote_no',
+				'hdnTaxType',
+				'pre_tax_total',
+				'hdnSubTotal',
+				'hdnGrandTotal',
+				'txtAdjustment',
+				'hdnS_H_Amount'
+			);
 		}
 		hideFields.forEach(function (name) {
 			hideQuoteFieldPair(name);
@@ -534,7 +553,6 @@
 
 		if (!isSalesOrder()) {
 			ensureDraftQuoteStage();
-			ensureContactFieldVisible();
 			layoutQuoteHeaderFields();
 		}
 	}
@@ -562,96 +580,498 @@
 	}
 
 	/**
-	 * Quote header: Opportunity first (required) → Customer name (subject title).
+	 * Always ensure a visible "Khách hàng" row at the top of Chi tiết báo giá.
+	 * Does not rely on stock contact/potential cells (those may be hidden).
 	 */
-	function layoutQuoteHeaderFields() {
+	function ensureCustomerFieldVisible() {
 		var $f = $form();
 		if (!$f.length || isSalesOrder()) {
 			return;
 		}
 
-		var $subjectInput = $f.find('[name="subject"]').first();
-		var $potentialInput = $f.find('[name="potential_id"]').first();
-		if (!$subjectInput.length || !$potentialInput.length) {
+		var $infoBlock = $f.find('.fieldBlockContainer[data-block="LBL_QUOTE_INFORMATION"]').first();
+		var $infoTable = $infoBlock.find('table.table-borderless').first();
+		var $infoBody = $infoTable.children('tbody').first();
+		if (!$infoBody.length && $infoTable.length) {
+			$infoBody = $infoTable;
+		}
+		if (!$infoBody.length) {
 			return;
 		}
 
-		var $subjectValue = $subjectInput.closest('td.fieldValue');
-		var $subjectLabel = $subjectValue.prev('td.fieldLabel');
-		var $potentialValue = $potentialInput.closest('td.fieldValue');
-		var $potentialLabel = $potentialValue.prev('td.fieldLabel');
-		if (!$subjectValue.length || !$potentialValue.length) {
-			return;
-		}
-
-		var $subjectRow = $subjectValue.closest('tr');
-		var $potentialRow = $potentialValue.closest('tr');
-
-		// Same row (2-col): put Opportunity on the left, Customer name on the right.
-		if ($subjectRow.length && $potentialRow.length && $subjectRow[0] === $potentialRow[0]) {
-			var $cells = $subjectRow.children('td');
-			if ($cells.length >= 4) {
-				var subjectIsLeft = $cells.eq(1).find('[name="subject"]').length > 0;
-				if (subjectIsLeft) {
-					var $leftLabel = $cells.eq(0);
-					var $leftValue = $cells.eq(1);
-					var $rightLabel = $cells.eq(2);
-					var $rightValue = $cells.eq(3);
-					$leftLabel.before($rightLabel.add($rightValue));
-					// Re-query after move
-					$subjectValue = $subjectInput.closest('td.fieldValue');
-					$subjectLabel = $subjectValue.prev('td.fieldLabel');
-					$potentialValue = $potentialInput.closest('td.fieldValue');
-					$potentialLabel = $potentialValue.prev('td.fieldLabel');
-				}
-			}
-		} else if ($subjectRow.length && $potentialRow.length && $subjectRow[0] !== $potentialRow[0]) {
-			// Different rows: Opportunity row first.
-			$potentialRow.insertBefore($subjectRow);
-		}
-
-		function setFieldLabel($labelTd, text, required) {
-			if (!$labelTd || !$labelTd.length) {
+		// Hide stock Opportunity + Subject (kept in DOM for save).
+		['potential_id', 'subject'].forEach(function (name) {
+			var $el = $f.find('[name="' + name + '"]').first();
+			if (!$el.length) {
 				return;
 			}
-			var $label = $labelTd.find('label').first();
-			if (!$label.length) {
-				$label = $('<label class="muted"></label>').appendTo($labelTd.empty());
+			var $val = $el.closest('td.fieldValue');
+			if ($val.length) {
+				$val.addClass('mk-qt-hide-legacy');
+				$val.prev('td.fieldLabel').addClass('mk-qt-hide-legacy');
 			}
-			$label.empty().append(document.createTextNode(text));
-			if (required) {
-				$label.append(document.createTextNode(' '));
-				$label.append($('<span class="redColor">*</span>'));
+			$el.removeAttr('data-rule-required').removeClass('required');
+			$f.find('[name="' + name + '_display"]').removeAttr('data-rule-required').removeClass('required');
+		});
+
+		var $existingRow = $f.find('tr.mk-qt-customer-row').first();
+		var $contact = $f.find('[name="contact_id"]').first();
+		var $contactDisplay = $f.find('[name="contact_id_display"]').first();
+
+		if (!$existingRow.length) {
+			var $row = $(
+				'<tr class="mk-qt-customer-row mk-qt-contact-injected">' +
+					'<td class="fieldLabel alignMiddle">' +
+						'<label class="muted">Khách hàng <span class="redColor">*</span></label>' +
+					'</td>' +
+					'<td class="fieldValue mk-qt-customer-field" colspan="3"></td>' +
+				'</tr>'
+			);
+			var $valueTd = $row.find('td.fieldValue');
+
+			if ($contact.length && $contactDisplay.length) {
+				// Move existing contact reference UI into the new row.
+				var $refWrap = $contactDisplay.closest('.referencefield-wrapper');
+				if (!$refWrap.length) {
+					$refWrap = $contact.closest('.referencefield-wrapper');
+				}
+				if ($refWrap.length) {
+					$valueTd.append($refWrap.detach());
+				} else {
+					$valueTd.append($contact.detach()).append($contactDisplay.detach());
+				}
+				// Hide leftover empty cells from old contact placement.
+				var $oldVal = $f.find('td.fieldValue').filter(function () {
+					return $(this).find('[name="contact_id"], [name="contact_id_display"]').length === 0
+						&& $(this).text().replace(/\s+/g, '') === ''
+						&& $(this).children().length === 0;
+				});
+			} else {
+				$valueTd.append(buildContactReferenceHtml());
+				registerInjectedContactEvents($valueTd);
 			}
-			$labelTd.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+
+			$infoBody.prepend($row);
+			$existingRow = $row;
+			$contact = $f.find('[name="contact_id"]').first();
+			$contactDisplay = $f.find('[name="contact_id_display"]').first();
+		} else {
+			$infoBody.prepend($existingRow);
 		}
 
-		setFieldLabel($potentialLabel, 'Tên Cơ hội', true);
-		setFieldLabel($subjectLabel, 'Tên khách hàng', false);
-		$potentialValue.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
-		$subjectValue.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
-		$potentialRow.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
-		$subjectRow.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
-
-		// Opportunity is the required primary key for creating a quote.
-		var $potentialDisplay = $f.find('[name="potential_id_display"]').first();
-		if ($potentialDisplay.length) {
-			$potentialDisplay.attr('data-rule-required', 'true').addClass('required');
-			$potentialDisplay.attr('placeholder', 'Nhập để tìm kiếm cơ hội...');
-			var $refWrap = $potentialDisplay.closest('.referencefield-wrapper');
-			$refWrap.addClass('mk-qt-opp-ref');
-			$potentialValue.addClass('mk-qt-opp-field');
-			polishOppReferenceField($refWrap);
-			// Show clear (x) when a value is selected.
-			if ($.trim($potentialInput.val() || '') || $.trim($potentialDisplay.val() || '')) {
-				$refWrap.find('.clearReferenceSelection').removeClass('hide');
+		// Hide any other stock contact cells outside our row (avoid duplicates).
+		$f.find('[name="contact_id"], [name="contact_id_display"]').each(function () {
+			var $cell = $(this).closest('td.fieldValue');
+			if (!$cell.closest('tr.mk-qt-customer-row').length) {
+				$cell.addClass('mk-qt-hide-legacy');
+				$cell.prev('td.fieldLabel').addClass('mk-qt-hide-legacy');
 			}
-		}
-		$potentialInput.attr('data-rule-required', 'true');
+		});
 
-		// Subject is auto-filled from customer; keep it editable but not the primary gate.
-		$subjectInput.removeAttr('data-rule-required').removeClass('required');
-		$subjectInput.attr('placeholder', 'Tự điền khi chọn cơ hội');
+		$existingRow.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy').show();
+		$existingRow.find('td').removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
+
+		var $refWrap = $existingRow.find('.referencefield-wrapper').first();
+		$refWrap.addClass('mk-qt-opp-ref mk-qt-customer-ref');
+		$refWrap.find('input[name="popupReferenceModule"]').val('Contacts');
+		// Kill stock Contacts popup on this field — we open the tabbed picker instead.
+		$refWrap.find('.relatedPopup').off('click').attr('data-mk-custom-search', '1');
+		polishOppReferenceField($refWrap);
+
+		if ($contactDisplay.length) {
+			$contactDisplay
+				.attr('placeholder', 'Tìm khách hàng / cơ hội / KH tiềm năng...')
+				.attr('data-rule-required', 'true')
+				.addClass('required');
+		}
+		if ($contact.length) {
+			$contact.removeAttr('data-rule-required').removeClass('required');
+		}
+		if (($contact.length && $.trim($contact.val() || '')) || ($contactDisplay.length && $.trim($contactDisplay.val() || ''))) {
+			$refWrap.find('.clearReferenceSelection').removeClass('hide');
+		}
+
+		registerUnifiedCustomerPicker();
+	}
+
+	/**
+	 * Quote header: one "Khách hàng" field (search Contacts/Opp/Leads + create Contact).
+	 */
+	function layoutQuoteHeaderFields() {
+		ensureCustomerFieldVisible();
+	}
+
+	function clearQuoteCustomerFields() {
+		var $f = $form();
+		$f.find('[name="contact_id"]').val('');
+		$f.find('[name="contact_id_display"]').val('').removeData('mkCustomerModule').removeData('mkLeadId');
+		$f.find('[name="potential_id"]').val('');
+		$f.find('[name="potential_id_display"]').val('');
+		$f.find('[name="subject"]').val('');
+		$f.find('.mk-qt-customer-ref .clearReferenceSelection').addClass('hide');
+		$f.find('.mk-qt-customer-ref').removeClass('selected');
+	}
+
+	function setHiddenRef($f, field, id, label) {
+		id = parseInt(id, 10) || 0;
+		label = $.trim(label || '');
+		$f.find('[name="' + field + '"]').val(id > 0 ? id : '');
+		var $disp = $f.find('[name="' + field + '_display"]');
+		if ($disp.length) {
+			$disp.val(label);
+		}
+	}
+
+	function applyUnifiedCustomerSelection(item) {
+		var $f = $form();
+		if (!item || !item.module) {
+			return;
+		}
+		var label = $.trim(item.label || '');
+		var $display = $f.find('[name="contact_id_display"]').first();
+		$display.val(label).data('mkCustomerModule', item.module);
+		if (item.lead_id) {
+			$display.data('mkLeadId', item.lead_id);
+		} else {
+			$display.removeData('mkLeadId');
+		}
+
+		if (item.module === 'Contacts') {
+			setHiddenRef($f, 'contact_id', item.contact_id || item.id, label);
+			setHiddenRef($f, 'potential_id', 0, '');
+			$f.find('[name="subject"]').val(label).trigger('change');
+		} else if (item.module === 'Potentials') {
+			setHiddenRef($f, 'potential_id', item.potential_id || item.id, label);
+			if (item.contact_id) {
+				setHiddenRef($f, 'contact_id', item.contact_id, label);
+			} else {
+				setHiddenRef($f, 'contact_id', 0, '');
+				// Keep display label even without contact_id (subject carries the name).
+				$display.val(label);
+			}
+			$f.find('[name="subject"]').val(label).trigger('change');
+			$f.find('[name="potential_id"]').trigger('change');
+		} else if (item.module === 'Leads') {
+			setHiddenRef($f, 'potential_id', 0, '');
+			setHiddenRef($f, 'contact_id', 0, '');
+			$display.val(label);
+			$f.find('[name="subject"]').val(label).trigger('change');
+		}
+
+		$f.find('.mk-qt-customer-ref .clearReferenceSelection').removeClass('hide');
+		$f.find('.mk-qt-customer-ref').addClass('selected');
+		closeCustomerSearchUi();
+	}
+
+	function searchQuoteCustomers(q, scope) {
+		var deferred = $.Deferred();
+		q = $.trim(q || '');
+		scope = scope || 'all';
+		if (!(window.app && app.request && app.request.post)) {
+			deferred.reject(new Error('No request'));
+			return deferred.promise();
+		}
+		app.request
+			.post({
+				data: {
+					module: 'Quotes',
+					action: 'SearchCustomer',
+					q: q,
+					scope: scope,
+					limit: 40
+				}
+			})
+			.then(function (err, res) {
+				if (err || !res || res.success === false) {
+					deferred.resolve({ results: [], grouped: { Contacts: [], Potentials: [], Leads: [] }, counts: {} });
+					return;
+				}
+				deferred.resolve({
+					results: res.results || (res.result && res.result.results) || [],
+					grouped: res.grouped || (res.result && res.result.grouped) || {
+						Contacts: [],
+						Potentials: [],
+						Leads: []
+					},
+					counts: res.counts || (res.result && res.result.counts) || {}
+				});
+			});
+		return deferred.promise();
+	}
+
+	function closeCustomerSearchUi() {
+		$('#mk-qt-customer-ac, #mk-qt-customer-modal').remove();
+		$('body').removeClass('mk-qt-customer-modal-open');
+		$('body > .modal-backdrop').remove();
+	}
+
+	function escHtml(s) {
+		return $('<div/>').text(s == null ? '' : String(s)).html();
+	}
+
+	function renderCustomerResultList(items) {
+		if (!items || !items.length) {
+			return (
+				'<div class="mk-qt-customer-empty">' +
+				'<span class="mk-qt-customer-empty__ico" aria-hidden="true">⌕</span>' +
+				'<strong>Không có kết quả</strong>' +
+				'<p>Thử từ khóa khác hoặc đổi tab Opp / Leads / Khách hàng</p>' +
+				'</div>'
+			);
+		}
+		return items
+			.map(function (it, idx) {
+				var tone =
+					it.module === 'Potentials' ? 'opp' : it.module === 'Leads' ? 'lead' : 'contact';
+				return (
+					'<button type="button" class="mk-qt-customer-item mk-qt-customer-item--' +
+					tone +
+					'" data-idx="' +
+					idx +
+					'">' +
+					'<span class="mk-qt-customer-item__avatar" aria-hidden="true">' +
+					escHtml((it.label || '?').charAt(0).toUpperCase()) +
+					'</span>' +
+					'<span class="mk-qt-customer-item__main">' +
+					'<span class="mk-qt-customer-item__label">' +
+					escHtml(it.label || '') +
+					'</span>' +
+					(it.subtitle
+						? '<span class="mk-qt-customer-item__sub">' + escHtml(it.subtitle) + '</span>'
+						: '') +
+					'</span>' +
+					'<span class="mk-qt-customer-item__badge">' +
+					escHtml(it.module_label || it.module || '') +
+					'</span>' +
+					'</button>'
+				);
+			})
+			.join('');
+	}
+
+	function showCustomerAutocomplete($input, items) {
+		$('#mk-qt-customer-ac').remove();
+		if (!$input || !$input.length || !items || !items.length) {
+			return;
+		}
+		var $box = $('<div id="mk-qt-customer-ac" class="mk-qt-customer-ac" role="listbox"></div>');
+		$box.html(renderCustomerResultList(items));
+		$('body').append($box);
+		var rect = $input[0].getBoundingClientRect();
+		$box.css({
+			top: rect.bottom + window.scrollY + 4,
+			left: Math.max(8, rect.left + window.scrollX),
+			width: Math.max(rect.width, 360)
+		});
+		$box.on('mousedown', '.mk-qt-customer-item', function (e) {
+			e.preventDefault();
+			var idx = parseInt($(this).attr('data-idx'), 10);
+			if (!isNaN(idx) && items[idx]) {
+				applyUnifiedCustomerSelection(items[idx]);
+			}
+		});
+	}
+
+	function openCustomerSearchModal(initialQ) {
+		closeCustomerSearchUi();
+		// Close stock Vtiger popup if it already opened.
+		try {
+			$('.myModal, .modal-backdrop, #popupModal').remove();
+			$('body').removeClass('modal-open');
+		} catch (e) {}
+
+		var state = {
+			tab: 'Potentials',
+			q: $.trim(initialQ || ''),
+			grouped: { Contacts: [], Potentials: [], Leads: [] },
+			counts: { Contacts: 0, Potentials: 0, Leads: 0 },
+			visible: []
+		};
+
+		var $modal = $(
+			'<div id="mk-qt-customer-modal" class="mk-qt-customer-modal" role="dialog" aria-modal="true">' +
+				'<div class="mk-qt-customer-modal__backdrop" data-mk-cust-close="1"></div>' +
+				'<div class="mk-qt-customer-modal__panel">' +
+				'<header class="mk-qt-customer-modal__head">' +
+				'<div class="mk-qt-customer-modal__head-text">' +
+				'<span class="mk-qt-customer-modal__eyebrow">Báo giá · chọn nguồn</span>' +
+				'<h3>Chọn khách hàng</h3>' +
+				'</div>' +
+				'<button type="button" class="mk-qt-customer-modal__x" data-mk-cust-close="1" aria-label="Đóng">&times;</button>' +
+				'</header>' +
+				'<div class="mk-qt-customer-modal__search">' +
+				'<span class="mk-qt-customer-modal__search-ico" aria-hidden="true">⌕</span>' +
+				'<input type="search" class="mk-qt-customer-modal__input" placeholder="Tìm tên, SĐT, công ty… (áp dụng cả 3 tab)" autocomplete="off" />' +
+				'</div>' +
+				'<div class="mk-qt-customer-modal__tabs" role="tablist">' +
+				'<button type="button" class="mk-qt-customer-tab is-on" data-tab="Potentials" role="tab">' +
+				'<span class="mk-qt-customer-tab__dot mk-qt-customer-tab__dot--opp"></span>Opp' +
+				'<em class="mk-qt-customer-tab__count" data-count="Potentials">0</em></button>' +
+				'<button type="button" class="mk-qt-customer-tab" data-tab="Leads" role="tab">' +
+				'<span class="mk-qt-customer-tab__dot mk-qt-customer-tab__dot--lead"></span>Leads' +
+				'<em class="mk-qt-customer-tab__count" data-count="Leads">0</em></button>' +
+				'<button type="button" class="mk-qt-customer-tab" data-tab="Contacts" role="tab">' +
+				'<span class="mk-qt-customer-tab__dot mk-qt-customer-tab__dot--contact"></span>Khách hàng' +
+				'<em class="mk-qt-customer-tab__count" data-count="Contacts">0</em></button>' +
+				'</div>' +
+				'<div class="mk-qt-customer-modal__body">' +
+				'<div class="mk-qt-customer-modal__list"></div>' +
+				'</div></div></div>'
+		);
+		$('body').append($modal).addClass('mk-qt-customer-modal-open');
+		var $input = $modal.find('.mk-qt-customer-modal__input');
+		var $list = $modal.find('.mk-qt-customer-modal__list');
+		var timer = null;
+		var killStock = setInterval(function () {
+			if (!$('#mk-qt-customer-modal').length) {
+				clearInterval(killStock);
+				return;
+			}
+			$('.myModal, #popupModal').remove();
+			$('body > .modal-backdrop').remove();
+		}, 80);
+
+		function updateCounts() {
+			['Contacts', 'Potentials', 'Leads'].forEach(function (key) {
+				var n = (state.grouped[key] || []).length;
+				state.counts[key] = n;
+				$modal.find('[data-count="' + key + '"]').text(String(n));
+			});
+		}
+
+		function renderActiveTab() {
+			state.visible = state.grouped[state.tab] || [];
+			$list.html(renderCustomerResultList(state.visible));
+			$modal.find('.mk-qt-customer-tab').each(function () {
+				$(this).toggleClass('is-on', $(this).attr('data-tab') === state.tab);
+			});
+		}
+
+		function runSearch(q) {
+			state.q = $.trim(q || '');
+			$list.html('<div class="mk-qt-customer-empty mk-qt-customer-empty--loading">Đang tải...</div>');
+			searchQuoteCustomers(state.q, 'all').then(function (payload) {
+				state.grouped = payload.grouped || { Contacts: [], Potentials: [], Leads: [] };
+				updateCounts();
+				renderActiveTab();
+			});
+		}
+
+		$modal.on('click', '[data-mk-cust-close]', function () {
+			closeCustomerSearchUi();
+		});
+		$modal.on('click', '.mk-qt-customer-tab', function () {
+			state.tab = $(this).attr('data-tab') || 'Contacts';
+			renderActiveTab();
+		});
+		$modal.on('mousedown', '.mk-qt-customer-item', function (e) {
+			e.preventDefault();
+			var idx = parseInt($(this).attr('data-idx'), 10);
+			if (!isNaN(idx) && state.visible[idx]) {
+				applyUnifiedCustomerSelection(state.visible[idx]);
+			}
+		});
+		$input.on('input', function () {
+			var q = $.trim($input.val() || '');
+			clearTimeout(timer);
+			timer = setTimeout(function () {
+				runSearch(q);
+			}, 200);
+		});
+		$input.val(state.q);
+		runSearch(state.q);
+		setTimeout(function () {
+			$input.trigger('focus');
+		}, 40);
+	}
+
+	function registerUnifiedCustomerPicker() {
+		var $f = $form();
+		if (!$f.length || $f.data('mkUnifiedCustomerBound')) {
+			return;
+		}
+		$f.data('mkUnifiedCustomerBound', 1);
+
+		var $display = $f.find('[name="contact_id_display"]').first();
+		if (!$display.length) {
+			return;
+		}
+
+		// Disable stock autocomplete; we use multi-module search instead.
+		try {
+			if ($display.data('autocomplete')) {
+				$display.autocomplete('destroy');
+			}
+		} catch (e) {}
+		$display.removeClass('ui-autocomplete-input');
+
+		var acTimer = null;
+		$display.on('input.mkQtCustomer', function () {
+			var q = $.trim($display.val() || '');
+			clearTimeout(acTimer);
+			if (!q) {
+				clearQuoteCustomerFields();
+				$('#mk-qt-customer-ac').remove();
+				return;
+			}
+			acTimer = setTimeout(function () {
+				searchQuoteCustomers(q, 'all').then(function (payload) {
+					showCustomerAutocomplete($display, payload.results || []);
+				});
+			}, 220);
+		});
+
+		// Capture phase on document so stock Vtiger popup never opens.
+		document.addEventListener(
+			'click',
+			function (e) {
+				var btn = e.target && e.target.closest
+					? e.target.closest(
+							'.mk-qt-customer-ref .relatedPopup, tr.mk-qt-customer-row .relatedPopup, [data-mk-custom-search="1"]'
+					  )
+					: null;
+				if (!btn) {
+					return;
+				}
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) {
+					e.stopImmediatePropagation();
+				}
+				openCustomerSearchModal($.trim($display.val() || ''));
+			},
+			true
+		);
+
+		$f.on('click.mkQtCustomerSearch', '.mk-qt-customer-ref .relatedPopup, tr.mk-qt-customer-row .relatedPopup', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			openCustomerSearchModal($.trim($display.val() || ''));
+			return false;
+		});
+
+		$f.on('click.mkQtCustomerClear', '.mk-qt-customer-ref .clearReferenceSelection', function () {
+			setTimeout(clearQuoteCustomerFields, 0);
+		});
+
+		// + creates Contact via stock Quick Create (popupReferenceModule=Contacts).
+		$f.find('.mk-qt-customer-ref input[name="popupReferenceModule"]').val('Contacts');
+
+		$f.on(Vtiger_Edit_Js.referenceSelectionEvent + '.mkQtCustomer', '[name="contact_id"]', function () {
+			var id = parseInt($f.find('[name="contact_id"]').val(), 10) || 0;
+			var label = $.trim($f.find('[name="contact_id_display"]').val() || '');
+			if (id > 0 && label) {
+				$f.find('[name="subject"]').val(label).trigger('change');
+				$f.find('.mk-qt-customer-ref .clearReferenceSelection').removeClass('hide');
+				$f.find('.mk-qt-customer-ref').addClass('selected');
+			}
+		});
+
+		$(document).on('mousedown.mkQtCustomerOutside', function (e) {
+			if (!$(e.target).closest('#mk-qt-customer-ac, #mk-qt-customer-modal, .mk-qt-customer-ref').length) {
+				$('#mk-qt-customer-ac').remove();
+			}
+		});
 	}
 
 	function hideQuoteFieldPair(name) {
@@ -743,7 +1163,11 @@
 		if (typeof editInstance.registerReferenceCreate === 'function') {
 			editInstance.registerReferenceCreate($container);
 		}
-		if (typeof editInstance.referenceModulePopupRegisterEvent === 'function') {
+		// Do not register stock relatedPopup for customer field — tabbed modal handles search.
+		if (
+			!$container.closest('.mk-qt-customer-ref, tr.mk-qt-customer-row').length &&
+			typeof editInstance.referenceModulePopupRegisterEvent === 'function'
+		) {
 			editInstance.referenceModulePopupRegisterEvent($container);
 		}
 	}
@@ -811,21 +1235,68 @@
 	}
 
 	function ensureContactFieldVisible() {
-		var $contact = $form().find('[name="contact_id"], [name="contact_id_display"]').first();
-		if (!$contact.length) {
-			injectContactField();
-			$contact = $form().find('[name="contact_id"], [name="contact_id_display"]').first();
-			if (!$contact.length) {
-				return;
+		ensureCustomerFieldVisible();
+	}
+
+	function pinTotalsBelowOrderDetails() {
+		if (isSalesOrder()) {
+			return;
+		}
+		var $editForm = $form();
+		var $items = $editForm.find('#lineItemTab').closest('.fieldBlockContainer').first();
+		var $totals = $editForm.find('#lineItemResult').closest('.fieldBlockContainer').first();
+		if (!$items.length || !$totals.length) {
+			return;
+		}
+		// Keep totals as the last section inside "Chi tiết đơn hàng".
+		if (!$items.find('#lineItemResult').length) {
+			$items.append($totals.detach());
+		}
+		$totals = $items.find('#lineItemResult').closest('.fieldBlockContainer').first();
+		$totals.addClass('mk-qt-totals-below mk-inv-totals-odoo mk-qt-block mk-qt-block--totals');
+
+		var $result = $items.find('#lineItemResult');
+		if (!$result.length) {
+			return;
+		}
+		// Always keep: Số tiền trước thuế + Thuế GTGT + Tổng cộng
+		var $preTax = $result.find('#preTaxTotal').closest('tr');
+		var $net = $result.find('#netTotal, .netTotal').closest('tr');
+		var $sub = $preTax.length ? $preTax : $net;
+		var $tax = $result.find('#group_tax_row');
+		var $grand = $result.find('#grandTotal, .grandTotal').closest('tr');
+
+		if ($sub.length) {
+			$sub
+				.removeClass('mk-inv-totals-hide hide')
+				.addClass('mk-inv-totals-row mk-inv-totals-row--sub')
+				.show();
+			if (!$sub.find('.mk-inv-totals-label').length) {
+				$sub.find('td:first').html('<div class="mk-inv-totals-label">Số tiền trước thuế</div>');
+			}
+			$sub.find('#preTaxTotal, #netTotal, .netTotal').addClass('mk-inv-vnd-amount');
+			// Hide the duplicate net row when preTax is used.
+			if ($preTax.length && $net.length && !$net.is($preTax)) {
+				$net.addClass('mk-inv-totals-hide').hide();
 			}
 		}
-		var $valueTd = $contact.closest('td.fieldValue');
-		$valueTd.removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
-		$valueTd.prev('td.fieldLabel').removeClass('mk-qt-hide-legacy mk-inv-hide-legacy');
-		$valueTd.closest('tr').removeClass('mk-qt-hide-legacy');
-		var $label = $valueTd.prev('td.fieldLabel').find('label').first();
-		if ($label.length) {
-			$label.text('Người liên hệ');
+		if ($tax.length) {
+			$tax
+				.removeClass('mk-inv-totals-hide hide')
+				.addClass('mk-inv-totals-row mk-inv-totals-row--tax')
+				.show();
+			if (!$tax.find('.mk-inv-totals-label').length) {
+				$tax.find('td:first').html('<div class="mk-inv-totals-label">Thuế GTGT</div>');
+			}
+		}
+		if ($grand.length) {
+			$grand
+				.removeClass('mk-inv-totals-hide hide')
+				.addClass('mk-inv-totals-row mk-inv-totals-row--grand')
+				.show();
+			if (!$grand.find('.mk-inv-totals-label').length) {
+				$grand.find('td:first').html('<div class="mk-inv-totals-label">Tổng cộng</div>');
+			}
 		}
 	}
 
@@ -834,14 +1305,25 @@
 		var infoBlock = isSalesOrder() ? 'LBL_SO_INFORMATION' : 'LBL_QUOTE_INFORMATION';
 		var $info = $editForm.find('.fieldBlockContainer[data-block="' + infoBlock + '"]').first();
 		var $items = $editForm.find('#lineItemTab').closest('.fieldBlockContainer').first();
-		var $totals = $editForm.find('#lineItemResult').closest('.fieldBlockContainer').first();
 		var $addr = $editForm.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]').first();
 		var $terms = $editForm.find('.fieldBlockContainer[data-block="LBL_TERMS_INFORMATION"]').first();
-		if ($info.length && $items.length) {
+		// Main column: line items first (totals pinned inside that card).
+		if (!isSalesOrder() && $items.length) {
+			var $host = $editForm.find('[name="editContent"]').first();
+			if (!$host.length) {
+				$host = $editForm.find('.editViewContents').first();
+			}
+			if ($host.length) {
+				var $main = $host.children('.mk-qt-edit-main').first();
+				if (!$main.length) {
+					$main = $('<div class="mk-qt-edit-main"></div>');
+					$host.prepend($main);
+				}
+				$main.append($items.detach());
+			}
+			pinTotalsBelowOrderDetails();
+		} else if ($info.length && $items.length) {
 			$items.insertAfter($info);
-		}
-		if ($totals.length && $items.length) {
-			$totals.insertAfter($items);
 		}
 		if ($addr.length) {
 			$addr.addClass('mk-qt-hide-legacy');
@@ -1002,32 +1484,166 @@
 			.remove();
 	}
 
-	function moveAssignedToIntoRail() {
+	/**
+	 * Hide Assigned To UI and lock owner to the logged-in user.
+	 * Quote details block moves into the right rail (replacing Assigned To).
+	 * Rail is relocated inside #EditView so fields still submit.
+	 */
+	function lockAssignedAndMoveQuoteInfoToRail() {
+		if (isSalesOrder()) {
+			return;
+		}
 		var $editForm = $form();
-		var $rail = isSalesOrder() ? $('#mkSoOrderRail') : $('#mkQtQuoteRail');
+		var $rail = $('#mkQtQuoteRail');
 		if (!$editForm.length || !$rail.length) {
 			return;
 		}
+
 		var $assigned = $editForm.find('[name="assigned_user_id"]').first();
 		if ($assigned.length) {
 			$assigned.closest('tr').addClass('mk-qt-hide-legacy');
+			var uid = '';
+			try {
+				if (window._USERMETA && _USERMETA.id) {
+					uid = String(_USERMETA.id);
+				} else if (window.app && typeof app.getUserId === 'function') {
+					uid = String(app.getUserId() || '');
+				}
+			} catch (e) {}
+			if (uid) {
+				if ($assigned.is('select')) {
+					if (!$assigned.find('option[value="' + uid + '"]').length) {
+						$assigned.append($('<option/>', { value: uid, text: uid }));
+					}
+					$assigned.val(uid);
+				} else {
+					$assigned.val(uid);
+				}
+				try {
+					$assigned.trigger('change');
+					if ($assigned.data('select2')) {
+						$assigned.select2('val', uid);
+					}
+				} catch (e2) {}
+			}
 		}
-		var ownerSel = isSalesOrder() ? '#mkSoRailOwner' : '#mkQtRailOwner';
-		var $card = $rail.find('.mk-qt-rail-card:has(' + ownerSel + ')').first();
-		if (!$card.length || $card.data('mkQtAssignedReady')) {
+
+		// Remove Assigned To card from rail.
+		$rail
+			.find('.mk-qt-rail-card')
+			.filter(function () {
+				var $card = $(this);
+				if ($card.find('#mkQtRailOwner').length) {
+					return true;
+				}
+				return /assigned\s*to|phụ\s*trách/i.test($.trim($card.find('.mk-qt-rail-card__title').text() || ''));
+			})
+			.remove();
+
+		// Keep rail inside the form so moved fields still POST on save.
+		if (!$editForm.find('#mkQtQuoteRail').length) {
+			var $mount = $editForm.find('[name="editContent"]').first();
+			if (!$mount.length) {
+				$mount = $editForm.find('.editViewContents').first();
+			}
+			if (!$mount.length) {
+				$mount = $editForm;
+			}
+			$mount.addClass('mk-qt-edit-split');
+			$rail.addClass('mk-qt-rail--in-form');
+			$mount.append($rail.detach());
+			// Outer aside slot no longer needed.
+			$('.mk-qt-create__grid > .mk-qt-rail').not($rail).remove();
+			$('.mk-qt-create__grid').addClass('mk-qt-create__grid--single');
+		}
+
+		// Ensure totals sit under order details with all 3 rows.
+		pinTotalsBelowOrderDetails();
+
+		var $info = $editForm.find('.fieldBlockContainer[data-block="LBL_QUOTE_INFORMATION"]').first();
+		if (!$info.length) {
 			return;
 		}
-		$card.data('mkQtAssignedReady', true);
-		var $host = $('<div class="mk-qt-rail-field"></div>');
-		if ($assigned.length) {
-			$host.append($assigned.detach());
-			$card.find(ownerSel).replaceWith($host);
-			try {
-				if (typeof vtUtils !== 'undefined' && vtUtils.applyFieldElementsView) {
-					vtUtils.applyFieldElementsView($card);
-				}
-			} catch (e) { /* ignore */ }
+		if ($info.closest('#mkQtQuoteRail').length) {
+			compactQuoteInfoRail($info);
+			return;
 		}
+		$info.addClass('mk-qt-block mk-qt-rail-quote-info');
+		var $addr = $rail.find('.mk-qt-address-rail, .mk-qt-rail-card--address').first();
+		if ($addr.length) {
+			$info.insertBefore($addr);
+		} else {
+			$rail.prepend($info);
+		}
+		compactQuoteInfoRail($info);
+	}
+
+	/** Drop leftover empty rows (e.g. Bảng giá) and tighten spacing. */
+	function compactQuoteInfoRail($info) {
+		if (!$info || !$info.length) {
+			return;
+		}
+		$info.find('tr').each(function () {
+			var $tr = $(this);
+			if ($tr.hasClass('mk-qt-customer-row')) {
+				return;
+			}
+			if ($tr.find('[name="terms_conditions"], .mk-qt-terms-preview, .mk-qt-terms-source').length) {
+				return;
+			}
+			var hasVisibleControl = $tr.find('input, select, textarea, .referencefield-wrapper, .mk-qt-terms-preview').filter(function () {
+				var $el = $(this);
+				if ($el.hasClass('mk-qt-hide-legacy') || $el.closest('.mk-qt-hide-legacy, .mk-inv-hide-legacy, .hide').length) {
+					return false;
+				}
+				if ($el.is('[type="hidden"]')) {
+					return false;
+				}
+				return $el.is(':visible') || $el.closest('td.fieldValue').is(':visible');
+			}).length;
+			if (!hasVisibleControl) {
+				$tr.addClass('mk-qt-hide-legacy');
+			}
+		});
+		// Always hide price-tier / currency leftovers by label text.
+		$info.find('td.fieldLabel').each(function () {
+			var t = $.trim($(this).text() || '').replace(/\*/g, '');
+			if (/^bảng\s*giá$/i.test(t) || /^currency$/i.test(t) || /^loại\s*tiền/i.test(t)) {
+				$(this).closest('tr').addClass('mk-qt-hide-legacy');
+			}
+		});
+	}
+
+	function moveAssignedToIntoRail() {
+		// Legacy name kept for call sites — Quotes now locks owner + moves quote info.
+		if (isSalesOrder()) {
+			var $editForm = $form();
+			var $rail = $('#mkSoOrderRail');
+			if (!$editForm.length || !$rail.length) {
+				return;
+			}
+			var $assigned = $editForm.find('[name="assigned_user_id"]').first();
+			if ($assigned.length) {
+				$assigned.closest('tr').addClass('mk-qt-hide-legacy');
+			}
+			var $card = $rail.find('.mk-qt-rail-card:has(#mkSoRailOwner)').first();
+			if (!$card.length || $card.data('mkQtAssignedReady')) {
+				return;
+			}
+			$card.data('mkQtAssignedReady', true);
+			var $host = $('<div class="mk-qt-rail-field"></div>');
+			if ($assigned.length) {
+				$host.append($assigned.detach());
+				$card.find('#mkSoRailOwner').replaceWith($host);
+				try {
+					if (typeof vtUtils !== 'undefined' && vtUtils.applyFieldElementsView) {
+						vtUtils.applyFieldElementsView($card);
+					}
+				} catch (e) { /* ignore */ }
+			}
+			return;
+		}
+		lockAssignedAndMoveQuoteInfoToRail();
 	}
 
 	function moveNotesIntoQuoteInfo() {
@@ -1225,13 +1841,12 @@
 		styleFieldBlocks();
 		simplifyQuoteForm();
 		ensureDraftQuoteStage();
-		ensureContactFieldVisible();
-		if (!isSalesOrder()) {
-			layoutQuoteHeaderFields();
-		}
 		reorderQuoteBlocks();
 		initOdooInventoryUi();
 		pinAddProductToLineHeader();
+		if (!isSalesOrder()) {
+			pinTotalsBelowOrderDetails();
+		}
 		if (window.MkInventoryOdooEdit && window.MkInventoryOdooEdit.scheduleLineItemsRestyle) {
 			window.MkInventoryOdooEdit.scheduleLineItemsRestyle($form());
 		}
@@ -1239,11 +1854,15 @@
 			window.MkInventoryOdooEdit.syncLineDeleteVisibility($form());
 		}
 		hideRailNoiseCards();
+		initBaForm();
 		moveAssignedToIntoRail();
 		moveNotesIntoQuoteInfo();
+		// Customer row last so it stays at top of Chi tiết báo giá (above Ghi chú).
+		if (!isSalesOrder()) {
+			layoutQuoteHeaderFields();
+		}
 		forceRenameTermsToNotes();
 		fixFormDisplayEncoding();
-		initBaForm();
 		initTermsRichEditor();
 		syncRail();
 		bindActions();
@@ -1252,6 +1871,14 @@
 		setTimeout(fixFormDisplayEncoding, 300);
 		setTimeout(function () {
 			fixFormDisplayEncoding();
+			if (!isSalesOrder()) {
+				layoutQuoteHeaderFields();
+				lockAssignedAndMoveQuoteInfoToRail();
+				pinTotalsBelowOrderDetails();
+				compactQuoteInfoRail(
+					$form().find('.mk-qt-rail-quote-info, .fieldBlockContainer[data-block="LBL_QUOTE_INFORMATION"]').first()
+				);
+			}
 			syncRail();
 			if (!document.documentElement.classList.contains('mk-inv-ui-ready')) {
 				document.documentElement.classList.add('mk-inv-ui-ready', 'mk-quote-create-enhanced');

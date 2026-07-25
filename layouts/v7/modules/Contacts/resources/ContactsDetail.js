@@ -148,10 +148,21 @@
 		$rights.text(summary.rights_label || '');
 		$rights.toggleClass('is-active', !!summary.retake_available);
 
+		var $warn = $panel.find('.mk-contact-class-panel__warning');
+		if (summary.warning) {
+			if (!$warn.length) {
+				$warn = $('<div class="mk-contact-class-panel__warning" role="status"></div>');
+				$rights.after($warn);
+			}
+			$warn.text(summary.warning).show();
+		} else if ($warn.length) {
+			$warn.hide().text('');
+		}
+
 		var $hint = $panel.find('.mk-contact-class-panel__hint');
 		if (!$hint.length) {
 			$hint = $('<p class="mk-contact-class-panel__hint"></p>');
-			$rights.after($hint);
+			($warn.length ? $warn : $rights).after($hint);
 		}
 		$hint.text(summary.hint || '');
 

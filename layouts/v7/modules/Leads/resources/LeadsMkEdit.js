@@ -430,6 +430,10 @@
     function displayTagText(tag) {
       tag = String(tag || "").trim();
       if (!tag) return "";
+      var ref = window.LeadsLovableRef;
+      if (ref && ref.labelForTag) {
+        return "#" + ref.labelForTag(tag, tag);
+      }
       if (tag === "individual" || tag === "ca_nhan") return "#cá nhân";
       if (tag === "company") return "#doanh nghiệp";
       return "#" + tag;

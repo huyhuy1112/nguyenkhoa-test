@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 13;
+  var COL_COUNT = 12;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -349,6 +349,135 @@
     );
   }
 
+  function stackedContactTags(tags) {
+    var list = tags || [];
+    if (!list.length) return '<span class="mk-leads-muted">Thêm thẻ…</span>';
+    var seen = {};
+    var parts = [];
+    list.forEach(function (tg) {
+      var key = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "");
+      if (!key || seen[key]) return;
+      seen[key] = true;
+      parts.push(tagBadgeHtml(tg));
+    });
+    return parts.length ? parts.join(" ") : '<span class="mk-leads-muted">Thêm thẻ…</span>';
+  }
+
+  function credentialPill(value, kind) {
+    var v = String(value || "").trim();
+    var done =
+      kind === "tk"
+        ? /đã\s*cấp/i.test(v)
+        : /đã\s*cấp/i.test(v) && !/chưa/i.test(v);
+    if (!v) {
+      v = kind === "tk" ? "Chưa cấp tài khoản" : "Chưa cấp";
+      done = false;
+    }
+    return (
+      '<span class="mk-pill ' +
+      (done ? "mk-pill--blue" : "mk-pill--orange") +
+      '">' +
+      esc(v) +
+      "</span>"
+    );
+  }
+
+  function closeTagPopover() {
+    var old = document.getElementById("mk-contacts-tag-popover");
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+  }
+
+  function openTagPopover(anchor, contact) {
+    closeTagPopover();
+    if (!contact || !store) return;
+    var catalog = ref && ref.getCreateTagCatalog ? ref.getCreateTagCatalog() : [];
+    var selected = {};
+    (contact.tags || []).forEach(function (tg) {
+      var k = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "");
+      if (k) selected[k] = true;
+    });
+    var pop = document.createElement("div");
+    pop.id = "mk-contacts-tag-popover";
+    pop.className = "mk-leads-tag-popover";
+    var groupsHtml = catalog
+      .map(function (g) {
+        var chips = (g.tags || [])
+          .map(function (item) {
+            var on = !!selected[item.key];
+            return (
+              '<button type="button" class="mk-leads-tag-chip' +
+              (on ? " is-on" : "") +
+              '" data-tag="' +
+              esc(item.key) +
+              '" aria-pressed="' +
+              (on ? "true" : "false") +
+              '">' +
+              esc(item.label) +
+              "</button>"
+            );
+          })
+          .join("");
+        return (
+          '<div class="mk-leads-tag-popover__group">' +
+          '<div class="mk-leads-tag-popover__group-title">' +
+          esc(g.label) +
+          "</div>" +
+          '<div class="mk-leads-tag-popover__chips">' +
+          chips +
+          "</div></div>"
+        );
+      })
+      .join("");
+    pop.innerHTML =
+      '<div class="mk-leads-tag-popover__head"><strong>Sửa thẻ</strong>' +
+      '<button type="button" class="mk-leads-tag-popover__close" aria-label="Đóng">&times;</button></div>' +
+      '<div class="mk-leads-tag-popover__body">' +
+      groupsHtml +
+      "</div>" +
+      '<div class="mk-leads-tag-popover__foot">' +
+      '<button type="button" class="mk-leads-btn mk-leads-btn--outline" data-tag-cancel="1">Hủy</button>' +
+      '<button type="button" class="mk-leads-btn" data-tag-save="1">Lưu thẻ</button>' +
+      "</div>";
+    document.body.appendChild(pop);
+    var rect = anchor.getBoundingClientRect();
+    pop.style.top = rect.bottom + window.scrollY + 6 + "px";
+    pop.style.left =
+      Math.max(8, Math.min(rect.left + window.scrollX, window.scrollX + window.innerWidth - 360)) + "px";
+    pop.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var chip = e.target.closest && e.target.closest(".mk-leads-tag-chip");
+      if (chip) {
+        chip.classList.toggle("is-on");
+        chip.setAttribute("aria-pressed", chip.classList.contains("is-on") ? "true" : "false");
+        return;
+      }
+      if (e.target.closest && (e.target.closest("[data-tag-cancel]") || e.target.closest(".mk-leads-tag-popover__close"))) {
+        closeTagPopover();
+        return;
+      }
+      if (e.target.closest && e.target.closest("[data-tag-save]")) {
+        var nextTags = [];
+        pop.querySelectorAll(".mk-leads-tag-chip.is-on").forEach(function (el) {
+          nextTags.push(el.getAttribute("data-tag"));
+        });
+        var saveBtn = e.target.closest("[data-tag-save]");
+        if (saveBtn) saveBtn.disabled = true;
+        var saveFn = store.saveTags
+          ? store.saveTags(contact.crmid || contact.id, nextTags)
+          : Promise.reject(new Error("saveTags unavailable"));
+        saveFn
+          .then(function () {
+            closeTagPopover();
+            renderAll();
+          })
+          .catch(function () {
+            window.alert("Không lưu được thẻ.");
+            if (saveBtn) saveBtn.disabled = false;
+          });
+      }
+    });
+  }
+
   function renderTable() {
     var all = getContacts();
     var rows = sortContacts(filterContacts(all));
@@ -369,7 +498,6 @@
     } else {
       tbody.innerHTML = pageRows
         .map(function (c) {
-          var cats = categorize(c.tags);
           var crmId = c.crmid != null && c.crmid !== "" ? String(c.crmid) : String(c.id || "");
           var checked = state.selected[c.id] ? " checked" : "";
           return (
@@ -390,17 +518,33 @@
             "</span></span></td>" +
             '<td class="mk-leads-td">' + (c.phone ? esc(c.phone) : '<span class="mk-leads-muted">—</span>') + "</td>" +
             '<td class="mk-leads-td">' + (c.account ? '<span class="mk-pill mk-pill--blue">' + esc(c.account) + "</span>" : '<span class="mk-leads-muted">—</span>') + "</td>" +
-            '<td class="mk-leads-td">' + tierPill(c.tags) + "</td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.customerRank) + "</td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.classTag) + "</td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.material) + "</td>" +
-            '<td class="mk-leads-td">' + tagBadgeHtml(cats.franchise) + "</td>" +
+            '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-contact-id="' +
+            esc(c.id) +
+            '" title="Sửa thẻ">' +
+            stackedContactTags(c.tags) +
+            "</button></td>" +
+            '<td class="mk-leads-td">' + credentialPill(c.da_cap_bang, "bang") + "</td>" +
+            '<td class="mk-leads-td">' + credentialPill(c.da_cap_tai_khoan, "tk") + "</td>" +
             '<td class="mk-leads-td">' + dateCell(c.thoigian_dangky) + "</td>" +
             '<td class="mk-leads-td">' + dateCell(c.thoigian_pcth) + "</td>" +
             '<td class="mk-leads-td">' + dateCell(c.thoigian_mqbb) + "</td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(c.owner) + '">' + esc(ownerInitials(c.owner)) + "</span>" +
-            "<span>" + esc(c.owner || "—") + "</span></span></td></tr>"
+            "<span>" + esc(c.owner || "—") + "</span></span></td>" +
+            '<td class="mk-leads-td" data-col="notes">' +
+            (function () {
+              var n = String(c.notes || "").trim();
+              if (!n) return '<span class="mk-leads-muted">—</span>';
+              var short = n.length > 80 ? n.slice(0, 80) + "…" : n;
+              return (
+                '<span class="mk-leads-notes-cell" title="' +
+                esc(n) +
+                '">' +
+                esc(short) +
+                "</span>"
+              );
+            })() +
+            "</td></tr>"
           );
         })
         .join("");
@@ -604,6 +748,20 @@
     });
 
     document.addEventListener("click", function (e) {
+      var tagsBtn = e.target.closest && e.target.closest(".mk-leads-tags-edit[data-contact-id]");
+      if (tagsBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var cid = tagsBtn.getAttribute("data-contact-id");
+        var contact = getContacts().find(function (c) {
+          return String(c.id) === String(cid);
+        });
+        if (contact) openTagPopover(tagsBtn, contact);
+        return;
+      }
+      if (!e.target.closest || !e.target.closest("#mk-contacts-tag-popover")) {
+        closeTagPopover();
+      }
       var bulkBtn = e.target.closest && e.target.closest("#mk-contacts-bulk [data-bulk]");
       if (!bulkBtn) return;
       e.preventDefault();

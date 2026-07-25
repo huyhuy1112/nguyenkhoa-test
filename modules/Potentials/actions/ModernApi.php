@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'delete'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_tags', 'delete'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -53,6 +53,34 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					$result = Potentials_ModernService::setConfirmTag($recordId, $confirm);
 					$response->setResult(array('success' => true) + $result);
+					break;
+				case 'save_inline_location':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$result = Potentials_ModernService::saveInlineLocation(
+						$recordId,
+						$request->get('mk_region'),
+						$request->get('mk_address')
+					);
+					$response->setResult($result);
+					break;
+				case 'save_tags':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$tagsRaw = $request->get('tags');
+					if (is_string($tagsRaw)) {
+						$decoded = json_decode($tagsRaw, true);
+						$tagsRaw = is_array($decoded) ? $decoded : preg_split('/\s*,\s*/', $tagsRaw);
+					}
+					if (!is_array($tagsRaw)) {
+						$tagsRaw = array();
+					}
+					$result = Potentials_ModernService::saveTags($recordId, $tagsRaw, $userId);
+					$response->setResult($result);
 					break;
 				case 'delete':
 					$recordId = $request->get('record');

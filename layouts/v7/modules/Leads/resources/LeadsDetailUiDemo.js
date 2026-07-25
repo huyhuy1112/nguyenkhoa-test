@@ -249,19 +249,29 @@
 		var nextN = lt && lt.next_n ? lt.next_n : 1;
 		var count = lt && typeof lt.count === 'number' ? lt.count : 0;
 		var max = (lt && lt.max_calls) || 3;
+		var titleLocked =
+			(lt && lt.hint) || 'Đã đủ ' + count + '/' + max + ' lần gọi Last Touch.';
+		var titleOpen = 'Last Touch Call #' + nextN + ' (tối đa ' + max + ' lần)';
 		document.querySelectorAll('[data-mk-log="call"]').forEach(function (btn) {
 			if (!canAdd) {
 				btn.setAttribute('disabled', 'disabled');
 				btn.classList.add('mk-lead-activity-log__menu-btn--locked');
-				btn.setAttribute(
-					'title',
-					(lt && lt.hint) ||
-						'Đã đủ ' + count + '/' + max + ' lần gọi Last Touch.'
-				);
+				btn.setAttribute('title', titleLocked);
 			} else {
 				btn.removeAttribute('disabled');
 				btn.classList.remove('mk-lead-activity-log__menu-btn--locked');
-				btn.setAttribute('title', 'Last Touch Call #' + nextN + ' (tối đa ' + max + ' lần)');
+				btn.setAttribute('title', titleOpen);
+			}
+		});
+		document.querySelectorAll('[data-mk-demo-action="call"]').forEach(function (el) {
+			if (!canAdd) {
+				el.classList.add('is-disabled');
+				el.setAttribute('aria-disabled', 'true');
+				el.setAttribute('title', titleLocked);
+			} else {
+				el.classList.remove('is-disabled');
+				el.removeAttribute('aria-disabled');
+				el.setAttribute('title', titleOpen);
 			}
 		});
 	}
@@ -413,7 +423,7 @@
 					lead.potentialUrl;
 				if (app.helper && app.helper.showSuccessNotification) {
 					app.helper.showSuccessNotification({
-						message: 'Nghe máy — đã chuyển sang Opportunity.',
+						message: 'Nghe máy — đã chuyển sang Cơ hội.',
 					});
 				}
 				if (url) {
@@ -1040,12 +1050,33 @@
 			window.LeadsLeadsLogic && window.LeadsLeadsLogic.lastTouchCallLogHtml
 				? window.LeadsLeadsLogic.lastTouchCallLogHtml(lead, esc)
 				: esc(lead.last_touch || '—');
+		var nextActionText = window.LeadsLeadsLogic
+			? window.LeadsLeadsLogic.deriveNextAction(lead)
+			: lead.next_action || '';
+		var nextActionTimeframe = window.LeadsLeadsLogic
+			? window.LeadsLeadsLogic.nextActionTimeframeLabel(lead)
+			: '';
+		var nextActionHtml = '';
+		if (nextActionText || nextActionTimeframe) {
+			nextActionHtml = detailField(
+				'Hành động tiếp theo',
+				(nextActionText ? esc(nextActionText) : '') +
+					(nextActionTimeframe
+						? '<div class="mk-leads-next-action__time' +
+							(lead.next_action_overdue ? ' mk-leads-next-action__time--overdue' : '') +
+							'">' +
+							esc(nextActionTimeframe) +
+							'</div>'
+						: ''),
+				true
+			);
+		}
 		var manageFields =
 			detailField('Phụ trách', esc(lead.owner || '—')) +
 			detailField('Giá trị', esc(formatVnd(lead.value))) +
 			detailField('Ngày dự kiến', esc(lead.closeDate || '—')) +
 			detailField('Tương tác gần đây', touchLogHtml, true) +
-			(lead.next_action ? detailField('Hành động tiếp theo', esc(lead.next_action), true) : '') +
+			nextActionHtml +
 			(lead.notes ? detailField('Ghi chú', esc(lead.notes), true) : '');
 
 		host.innerHTML =
@@ -2019,7 +2050,7 @@
 			(potentialId ? potentialDetailUrl(potentialId) : '');
 		var msg = leadLabel(
 			'LBL_MK_ALREADY_CONVERTED',
-			'Lead này đã được convert sang Opportunity.'
+			'Lead này đã được chuyển sang Cơ hội.'
 		);
 		if (url && app.helper && app.helper.showConfirmationBox) {
 			app.helper
@@ -2028,7 +2059,7 @@
 						msg +
 						'<br><br><a href="' +
 						url +
-						'" class="btn btn-primary btn-sm">Mở Opportunity</a>',
+						'" class="btn btn-primary btn-sm">Mở Cơ hội</a>',
 					htmlSupportEnable: true,
 					buttons: {
 						cancel: {
@@ -2036,7 +2067,7 @@
 							className: 'btn-default confirm-box-btn-pad pull-right',
 						},
 						confirm: {
-							label: leadLabel('LBL_VIEW_OPPORTUNITY', 'Xem Opportunity'),
+							label: leadLabel('LBL_VIEW_OPPORTUNITY', 'Xem Cơ hội'),
 							className: 'confirm-box-ok confirm-box-btn-pad btn-primary',
 						},
 					},
@@ -2063,7 +2094,7 @@
 				btn.setAttribute('aria-disabled', 'true');
 				btn.setAttribute(
 					'title',
-					leadLabel('LBL_MK_ALREADY_CONVERTED', 'Đã convert sang Opportunity')
+					leadLabel('LBL_MK_ALREADY_CONVERTED', 'Đã chuyển sang Cơ hội')
 				);
 				if (txt) {
 					txt.textContent = leadLabel('LBL_MK_ALREADY_CONVERTED_SHORT', 'Đã convert');
@@ -2073,7 +2104,7 @@
 				btn.removeAttribute('aria-disabled');
 				btn.removeAttribute('title');
 				if (txt) {
-					txt.textContent = leadLabel('LBL_CONVERT_LEAD', 'Convert Lead');
+					txt.textContent = leadLabel('LBL_CONVERT_LEAD', 'Chuyển sang Cơ hội');
 				}
 			}
 		});
@@ -2103,7 +2134,7 @@
 							debug: res && res.debug ? res.debug : null,
 						});
 					} catch (e) {}
-					window.alert((err && err.message) || (res && res.error) || 'Convert thất bại');
+					window.alert((err && err.message) || (res && res.error) || 'Chuyển sang Cơ hội thất bại');
 					return;
 				}
 				if (res.already_converted) {
@@ -2145,11 +2176,11 @@
 	function openConvertLeadModalInner(lead) {
 		if (!lead || !lead.id) return;
 		if (!$jq || typeof app === 'undefined' || !app.helper || !app.helper.showModal) {
-			var fallback = window.prompt('Loại Opportunity: gõ Internal hoặc Project', 'Internal');
+			var fallback = window.prompt('Loại Cơ hội: gõ Internal (Nội bộ) hoặc Project (Dự án)', 'Internal');
 			if (fallback === null) return;
 			var cat = String(fallback).trim();
 			if (cat !== 'Internal' && cat !== 'Project') {
-				window.alert('Chỉ chấp nhận Internal hoặc Project.');
+				window.alert('Chỉ chấp nhận Internal (Nội bộ) hoặc Project (Dự án).');
 				return;
 			}
 			runConvertLead(lead, cat);
@@ -2160,28 +2191,28 @@
 			'<div class="modal-dialog mk-lead-convert-modal">' +
 			'<div class="modal-content">' +
 			'<div class="modal-header">' +
-			'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-			'<h4 class="modal-title">Convert Lead</h4>' +
+			'<button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
+			'<h4 class="modal-title">Chuyển Lead sang Cơ hội</h4>' +
 			'</div>' +
 			'<div class="modal-body">' +
-			'<p class="mk-lead-convert-modal__intro">Chuyển sang <strong>Contact + Account + Opportunity</strong>. Chọn loại đơn hàng cho Opportunity:</p>' +
-			'<div class="mk-lead-convert-modal__choices" role="radiogroup" aria-label="Order category">' +
+			'<p class="mk-lead-convert-modal__intro">Chuyển sang <strong>Liên hệ + Tổ chức + Cơ hội</strong>. Chọn loại đơn hàng cho Cơ hội:</p>' +
+			'<div class="mk-lead-convert-modal__choices" role="radiogroup" aria-label="Loại đơn hàng">' +
 			'<label class="mk-lead-convert-modal__choice is-selected">' +
 			'<input type="radio" name="mk_lead_convert_order_category" value="Internal" checked />' +
 			'<span class="mk-lead-convert-modal__choice-body">' +
-			'<span class="mk-lead-convert-modal__choice-title">Internal</span>' +
+			'<span class="mk-lead-convert-modal__choice-title">Nội bộ</span>' +
 			'<span class="mk-lead-convert-modal__choice-desc">Đơn nội bộ / bán hàng thông thường</span>' +
 			'</span></label>' +
 			'<label class="mk-lead-convert-modal__choice">' +
 			'<input type="radio" name="mk_lead_convert_order_category" value="Project" />' +
 			'<span class="mk-lead-convert-modal__choice-body">' +
-			'<span class="mk-lead-convert-modal__choice-title">Project</span>' +
+			'<span class="mk-lead-convert-modal__choice-title">Dự án</span>' +
 			'<span class="mk-lead-convert-modal__choice-desc">Đơn dự án / triển khai theo project</span>' +
 			'</span></label>' +
 			'</div></div>' +
 			'<div class="modal-footer">' +
 			'<button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>' +
-			'<button type="button" class="btn btn-primary mk-lead-convert-modal__submit">Convert</button>' +
+			'<button type="button" class="btn btn-primary mk-lead-convert-modal__submit">Chuyển sang Cơ hội</button>' +
 			'</div></div></div>';
 
 		app.helper.showModal(modalHtml, {
@@ -2197,7 +2228,7 @@
 				$root.find('.mk-lead-convert-modal__submit').on('click', function () {
 					var cat = $root.find('input[name="mk_lead_convert_order_category"]:checked').val();
 					if (cat !== 'Internal' && cat !== 'Project') {
-						window.alert('Vui lòng chọn Internal hoặc Project.');
+						window.alert('Vui lòng chọn Nội bộ hoặc Dự án.');
 						return;
 					}
 					app.helper.hideModal();
@@ -2226,6 +2257,18 @@
 						return;
 					}
 					openConvertLeadModal(lead);
+					return;
+				}
+				if (action === 'call') {
+					e.preventDefault();
+					if (btn.classList.contains('is-disabled') || btn.getAttribute('aria-disabled') === 'true') {
+						showToast(
+							(lead.lastTouchCalls && lead.lastTouchCalls.hint) ||
+								'Không thể ghi thêm cuộc gọi Last Touch.'
+						);
+						return;
+					}
+					openQuickCreateModal('call', lead, btn);
 					return;
 				}
 				if (action !== 'duplicate' && action !== 'delete') {

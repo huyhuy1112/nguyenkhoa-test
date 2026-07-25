@@ -1735,6 +1735,169 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier__c
 	gap: 8px;
 }
 
+/* Bảng giá — polished dropdown card */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown {
+	background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 55%, #f7faff 100%);
+	border: 1px solid #d4e4fb;
+	border-left: none;
+	border-radius: 16px;
+	padding: 14px 16px 14px 18px;
+	margin-bottom: 14px;
+	box-shadow: 0 6px 20px rgba(37, 99, 235, 0.06);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown::before {
+	width: 4px;
+	background: linear-gradient(180deg, #2563eb 0%, #60a5fa 100%);
+	border-radius: 16px 0 0 16px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__row {
+	align-items: center;
+	gap: 12px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__icon {
+	width: 42px;
+	height: 42px;
+	border-radius: 12px;
+	background: linear-gradient(160deg, #ffffff 0%, #eff6ff 100%) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' viewBox='0 0 24 24'%3E%3Cpath d='M4 7.5h16M7 4v7M17 13v7M4 16.5h16' stroke='%232563eb' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='7' cy='16.5' r='2' fill='white' stroke='%232563eb' stroke-width='1.8'/%3E%3Ccircle cx='17' cy='7.5' r='2' fill='white' stroke='%232563eb' stroke-width='1.8'/%3E%3C/svg%3E") center/20px no-repeat;
+	border: 1px solid #dbeafe;
+	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__chips {
+	display: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px 16px;
+	margin-bottom: 0;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__titles {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+	flex: 1 1 220px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__label {
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+	color: #0f172a;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__hint {
+	font-size: 12px;
+	font-weight: 500;
+	color: #64748b;
+	line-height: 1.35;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__control {
+	flex: 0 1 280px;
+	max-width: 280px;
+	min-width: 200px;
+	margin: 0;
+	position: relative;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__select,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown #mkInvInvoicePriceTierSelect {
+	display: block !important;
+	width: 100% !important;
+	max-width: none;
+	height: 42px !important;
+	min-height: 42px !important;
+	padding: 0 40px 0 14px !important;
+	border: 1.5px solid #bfd3f5 !important;
+	border-radius: 12px !important;
+	background-color: #fff !important;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%232563eb' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+	background-repeat: no-repeat !important;
+	background-position: right 14px center !important;
+	background-size: 12px !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+	font-size: 13.5px !important;
+	font-weight: 600 !important;
+	color: #0f172a !important;
+	appearance: none !important;
+	-webkit-appearance: none !important;
+	cursor: pointer;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__select:hover,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown #mkInvInvoicePriceTierSelect:hover {
+	border-color: #93b4f0 !important;
+	background-color: #fbfdff !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__select:focus,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown #mkInvInvoicePriceTierSelect:focus {
+	outline: none !important;
+	border-color: #2563eb !important;
+	box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16) !important;
+	background-color: #fff !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__status {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 10px;
+	padding: 5px 10px;
+	border-radius: 999px;
+	background: rgba(37, 99, 235, 0.08);
+	border: 1px solid rgba(37, 99, 235, 0.14);
+	color: #1d4ed8;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.2;
+	width: fit-content;
+	max-width: 100%;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__status:empty {
+	display: none;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__status::before {
+	content: "";
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: #2563eb;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+	flex-shrink: 0;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__field--sr {
+	position: static !important;
+	width: auto !important;
+	height: auto !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: visible !important;
+	clip: auto !important;
+	white-space: normal !important;
+}
+
+@media (max-width: 720px) {
+	body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-price-tier--dropdown .mk-inv-price-tier__control {
+		flex: 1 1 100%;
+		max-width: none;
+		min-width: 0;
+	}
+}
+
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-tier-chip {
 	appearance: none;
 	border: 1px solid #cbdcf4;

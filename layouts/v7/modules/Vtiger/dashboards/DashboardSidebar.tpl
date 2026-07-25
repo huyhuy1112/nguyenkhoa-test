@@ -122,7 +122,7 @@
 									{assign var=_mkModActive value=true}
 								{/if}
 								<a class="mk-dash-mod-link{if $_mkModActive} mk-dash-mod-link--active{/if}" href="{$moduleModel->getDefaultUrl()}&app={$APP_NAME}">
-									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'SupportFAQ'}Cảnh báo{elseif $moduleName eq 'Accounts'}Tuibao{elseif $moduleName eq 'Contacts'}Khách hàng{elseif $moduleName eq 'ProductsServices'}Hàng hoá{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
+									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'SupportFAQ'}Cảnh báo{elseif $moduleName eq 'Accounts'}Tuibao{elseif $moduleName eq 'Contacts'}Khách hàng{elseif $moduleName eq 'ProductsServices'}Hàng hoá{elseif $moduleName eq 'ServiceContracts'}Khách chuyển nhượng{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
 								</a>
 							{/if}
 						{/foreach}
