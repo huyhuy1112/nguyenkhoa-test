@@ -513,8 +513,8 @@ class Quotes_QuoteExcelExport_Helper {
 		$company = $ctx['company'];
 		$isSalesOrder = ($moduleName === 'SalesOrder');
 		$sheetTitle = $isSalesOrder ? 'Don hang' : 'Bao gia';
-		$docTitle = $isSalesOrder ? 'HÓA ĐƠN ĐẶT HÀNG' : 'HÓA ĐƠN ĐẶT HÀNG';
-		$docNoLabel = $isSalesOrder ? 'Mã đơn hàng: ' : 'Mã đơn hàng: ';
+		$docTitle = $isSalesOrder ? 'HÓA ĐƠN ĐẶT HÀNG' : 'BÁO GIÁ';
+		$docNoLabel = $isSalesOrder ? 'Mã đơn hàng: ' : 'Mã báo giá: ';
 
 		$book = new PHPExcel();
 		$book->getDefaultStyle()->getFont()->setName(self::FONT)->setSize(10);

@@ -118,7 +118,6 @@
     ],
     entryBranch: ["van_hanh", "mkt", "lop_khac", "nhuong_quyen"],
     purchaseStatus: ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"],
-    tier: ["vang", "bac", "dong"],
     region: ["KV1", "KV2", "KV3"],
   };
 
@@ -147,7 +146,6 @@
     entryBranch: null,
     purchaseStatus: null,
     purchaseReason: "",
-    tier: null,
     extraGroupTags: {},
   };
 
@@ -378,7 +376,6 @@
     pushTag(state.entryBranch);
     pushTag(state.purchaseStatus);
     pushTag(state.franchise);
-    pushTag(state.tier);
     pushTag(state.regionTag);
     Object.keys(state.extraGroupTags || {}).forEach(function (gid) {
       pushTag(state.extraGroupTags[gid]);
@@ -474,18 +471,16 @@
 
   function setChoiceGroup(group, btn, opts) {
     opts = opts || {};
-    var toggleable = group === "purchase-status" || group === "customer-tier";
+    var toggleable = group === "purchase-status";
     var alreadyOn = btn.classList.contains("is-on");
 
-    // Hình 3 #05/#06: bấm lại option đang chọn → huỷ pick (cho phép không chọn).
+    // Hình 3 #05: bấm lại option đang chọn → huỷ pick (cho phép không chọn).
     // hydrate từ lead (force) thì không toggle-off.
     if (toggleable && alreadyOn && !opts.force) {
       btn.classList.remove("is-on");
       if (group === "purchase-status") {
         state.purchaseStatus = null;
         syncPurchaseReasonPanel(null);
-      } else if (group === "customer-tier") {
-        state.tier = null;
       }
       renderTags();
       return;
@@ -504,7 +499,7 @@
     } else if (group === "purchase-status") {
       state.purchaseStatus = tag;
       syncPurchaseReasonPanel(btn);
-    } else if (group === "customer-tier") state.tier = tag;
+    }
     renderTags();
   }
 
@@ -701,7 +696,6 @@
     activateChoice("lead-source", findTag(tags, TAG_POOLS.leadSource));
     // Purchase Status trước — không để purchase tag spill sang Nguyên liệu
     activateChoice("purchase-status", findTag(tags, TAG_POOLS.purchaseStatus));
-    activateChoice("customer-tier", findTag(tags, TAG_POOLS.tier));
     setSelectByTag("mk-td-district", findTag(tags, TAG_POOLS.region));
     setSelectByTag("mk-td-intent", findTag(tags, TAG_POOLS.intent));
     setSelectByTag("mk-td-franchise", findTag(tags, TAG_POOLS.franchise));
@@ -855,11 +849,7 @@
   }
 
   function potentialDetailUrl(potentialId) {
-    return (
-      "index.php?module=Potentials&view=Detail&record=" +
-      encodeURIComponent(potentialId || "") +
-      "&app=SALES"
-    );
+    return "index.php?module=Potentials&view=List&app=SALES";
   }
 
   function autoConvertToOppIfNeeded(lead) {
@@ -986,7 +976,14 @@
         }
 
         var leadObj = lead && lead.id ? lead : { id: (lead && (lead.crmid || lead.id)) || recordId };
-        return Promise.resolve(autoConvertToOppIfNeeded(leadObj)).then(function () {
+        return Promise.resolve(autoConvertToOppIfNeeded(leadObj)).then(function (convertRes) {
+          if (convertRes && (convertRes.success !== false) && (convertRes.potentialId || convertRes.redirect)) {
+            window.location.href =
+              convertRes.redirect ||
+              convertRes.potentialUrl ||
+              "index.php?module=Potentials&view=List&app=SALES";
+            return;
+          }
           window.location.href = LIST_URL;
         });
       })

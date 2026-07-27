@@ -23,15 +23,8 @@ class Potentials_ConvertToCustomer_Action extends Vtiger_Action_Controller {
 		$response = new Vtiger_Response();
 		$recordId = (int) $request->get('record');
 		try {
+			// Tier optional — staff sets Vàng/Bạc/Đồng later via Contact dropdown.
 			$tier = $this->normalizeTier($request->get('tier'));
-			if ($tier === '') {
-				$response->setResult(array(
-					'success' => false,
-					'message' => 'Vui lòng chọn hạng khách hàng (Vàng / Bạc / Đồng).'
-				));
-				$response->emit();
-				return;
-			}
 
 			$opp = Vtiger_Record_Model::getInstanceById($recordId, 'Potentials');
 			$contactId = (int) $opp->get('contact_id');
@@ -63,14 +56,18 @@ class Potentials_ConvertToCustomer_Action extends Vtiger_Action_Controller {
 				return;
 			}
 
-			// Sync Opp tags first, then apply chosen tier so it wins over any old tier on Opp.
+			// Sync Opp tags first; apply tier only when explicitly chosen.
 			$this->syncAllowedTagsFromOpportunity($recordId, $contactId);
-			$this->applyCustomerTierTag($contactId, $tier);
+			if ($tier !== '') {
+				$this->applyCustomerTierTag($contactId, $tier);
+			}
 
 			$response->setResult(array(
 				'success' => true,
 				'contact_id' => $contactId,
-				'tier' => $tier
+				'tier' => $tier,
+				'list_url' => 'index.php?module=Contacts&view=List&app=SALES',
+				'detail_url' => 'index.php?module=Contacts&view=Detail&record=' . $contactId . '&app=SALES',
 			));
 		} catch (Exception $e) {
 			$response->setError($e->getCode(), $e->getMessage());

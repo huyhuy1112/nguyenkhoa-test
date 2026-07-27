@@ -47,6 +47,10 @@
 	<div class="modal-overlay-footer">
 		<div class="row clearfix">
 			<div class="textAlignCenter col-lg-12 col-md-12 col-sm-12">
+				{if $MODULE eq 'Quotes'}
+					{* Print lives in sticky header (#mkQtPreviewPrintBtn); keep hidden flag for save+print flow. *}
+					<input type="hidden" name="mk_open_print" id="mkQtOpenPrint" value="" />
+				{/if}
 				<button class="btn btn-success saveButton" type="submit">{vtranslate('LBL_SAVE', $MODULE)}</button>
 				<a class="cancelLink" href="javascript:history.{if $DUPLICATE_RECORDS}go(-2){else}back(){/if}" type="reset">{vtranslate('LBL_CANCEL', $MODULE)}</a>
 			</div>

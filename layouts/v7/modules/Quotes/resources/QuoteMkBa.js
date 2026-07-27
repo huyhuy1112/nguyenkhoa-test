@@ -219,7 +219,14 @@
 	function markReadonlyComputed($form) {
 		$field($form, 'mk_vat_amount').prop('readonly', true);
 		$field($form, 'mk_amount_in_words').prop('readonly', true);
-		$field($form, 'quote_no').prop('readonly', true);
+		var $quoteNo = $field($form, 'quote_no');
+		$quoteNo.prop('readonly', true);
+		var recordId = $.trim($form.find('[name="record"], #recordId').first().val() || '');
+		if ((!recordId || recordId === '0') && window.__MK_QUOTE_NEXT_NO) {
+			// Preview only — clear on submit so CRM auto-assigns BG#####.
+			$quoteNo.val(String(window.__MK_QUOTE_NEXT_NO));
+			$quoteNo.attr('data-mk-preview-no', '1');
+		}
 	}
 
 	function syncVatAndWords($form) {

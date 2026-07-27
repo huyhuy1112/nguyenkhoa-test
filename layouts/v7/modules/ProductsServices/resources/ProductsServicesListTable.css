@@ -135,8 +135,8 @@ html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listV
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td[data-name="productsservicesname"],
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th.mk-col-ps-name,
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td[data-name="productsservicesname"] {
-	width: 34% !important;
-	min-width: 160px !important;
+	width: 30% !important;
+	min-width: 140px !important;
 	max-width: none !important;
 }
 
@@ -153,14 +153,25 @@ body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewCo
 	text-decoration: underline !important;
 }
 
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th.mk-col-ps-sku,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.mk-col-ps-sku,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="sku"]),
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td[data-name="sku"],
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th.mk-col-ps-sku,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td[data-name="sku"] {
+	width: 12% !important;
+	min-width: 90px !important;
+	max-width: none !important;
+}
+
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th.mk-col-ps-type,
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.mk-col-ps-type,
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th:has(a[data-columnname="item_type"]),
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td[data-name="item_type"],
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table th.mk-col-ps-type,
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td[data-name="item_type"] {
-	width: 14% !important;
-	min-width: 110px !important;
+	width: 12% !important;
+	min-width: 100px !important;
 	max-width: none !important;
 }
 

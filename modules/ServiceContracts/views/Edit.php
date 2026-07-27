@@ -13,6 +13,7 @@ class ServiceContracts_Edit_View extends Vtiger_Edit_View {
 	protected function assignModernContext(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
+		$recordId = $request->get('record');
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
@@ -21,6 +22,8 @@ class ServiceContracts_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'ServiceContracts');
 		$viewer->assign('MK_MODERN_SERVICE_CONTRACT_CREATE', true);
 		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
+		$viewer->assign('RECORD_ID', $recordId);
+		$viewer->assign('RECORD', $recordId);
 	}
 
 	protected function redirectSupportToSales(Vtiger_Request $request) {

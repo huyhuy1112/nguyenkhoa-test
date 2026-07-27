@@ -34,6 +34,22 @@ $languageStrings = array(
 	'LBL_MK_COL_NOTES' => 'Notes',
 	// Blocks
 	'LBL_SERVICE_CONTRACT_INFORMATION' => 'Service Contract Details',
+	'LBL_MK_SC_FRANCHISE_FORM_SUB' => 'Franchise customer form — AFF code is generated on save',
+	'LBL_MK_SC_FRANCHISE_INFO' => 'Franchise customer info',
+	'LBL_MK_SC_INTERACTIONS' => 'Interactions',
+	'LBL_MK_SC_RECEIVED_DATE' => 'Date received',
+	'LBL_MK_SC_FULL_NAME' => 'Full name',
+	'LBL_MK_SC_PHONE' => 'Phone',
+	'LBL_MK_SC_BUSINESS_NOTE' => 'Business address / Note',
+	'LBL_MK_SC_FRANCHISE_STATUS' => 'Status',
+	'LBL_MK_SC_FANPAGE' => 'Fanpage',
+	'LBL_MK_SC_DATA_SOURCE' => 'Data source',
+	'LBL_MK_SC_REFERRER' => 'Referrer',
+	'LBL_MK_SC_CONTACT_STATUS' => 'Contact status',
+	'LBL_MK_SC_INTERACTION_1' => 'Interaction 1',
+	'LBL_MK_SC_INTERACTION_2' => 'Interaction 2',
+	'LBL_MK_SC_INTERACTION_3' => 'Interaction 3',
+	'LBL_MK_SC_INTERACTION_MATERIALS' => 'Materials / machinery interaction',
 	
 	//Field Labels
 	'Contract No' => 'Contract Number',

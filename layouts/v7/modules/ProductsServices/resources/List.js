@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var CANONICAL_HEADERS = ['productsservicesname', 'item_type', 'price', 'supplier', 'unit'];
+	var CANONICAL_HEADERS = ['productsservicesname', 'sku', 'item_type', 'price', 'supplier', 'unit'];
 	var GLOBAL_SEARCH_FIELDS = ['productsservicesname', 'sku'];
 	var GLOBAL_SEARCH_DEBOUNCE_MS = 600;
 	var globalSearchTimer = null;
@@ -16,6 +16,7 @@
 
 	var COL_CLASS_BY_FIELD = {
 		productsservicesname: 'mk-col-ps-name',
+		sku: 'mk-col-ps-sku',
 		item_type: 'mk-col-ps-type',
 		price: 'mk-col-ps-price',
 		supplier: 'mk-col-ps-supplier',
@@ -23,7 +24,7 @@
 	};
 
 	var MK_COL_CLASS_NAMES =
-		'mk-col-control mk-col-ps-name mk-col-ps-type mk-col-ps-price mk-col-ps-supplier mk-col-ps-unit';
+		'mk-col-control mk-col-ps-name mk-col-ps-sku mk-col-ps-type mk-col-ps-price mk-col-ps-supplier mk-col-ps-unit';
 
 	function isPsSalesList() {
 		var b = document.body;
@@ -142,16 +143,18 @@
 			var $col = $('<col>');
 			if ($th.hasClass('mk-col-control') || $th.find('.listViewEntriesMainCheckBox, .mk-ps-check').length) {
 				$col.css({ width: '48px' });
+			} else if (field === 'sku' || $th.hasClass('mk-col-ps-sku')) {
+				$col.css({ width: '12%' });
 			} else if (field === 'item_type' || $th.hasClass('mk-col-ps-type')) {
-				$col.css({ width: '14%' });
+				$col.css({ width: '12%' });
 			} else if (field === 'price' || $th.hasClass('mk-col-ps-price')) {
-				$col.css({ width: '16%' });
+				$col.css({ width: '14%' });
 			} else if (field === 'supplier' || $th.hasClass('mk-col-ps-supplier')) {
-				$col.css({ width: '20%' });
+				$col.css({ width: '16%' });
 			} else if (field === 'unit' || $th.hasClass('mk-col-ps-unit')) {
 				$col.css({ width: '10%' });
 			} else if (field === 'productsservicesname' || $th.hasClass('mk-col-ps-name')) {
-				$col.css({ width: '34%' });
+				$col.css({ width: '30%' });
 			} else {
 				$col.css({ width: 'auto' });
 			}
@@ -170,16 +173,18 @@
 			var w;
 			if ($th.hasClass('mk-col-control') || $th.find('.listViewEntriesMainCheckBox, .mk-ps-check').length) {
 				w = '48px';
+			} else if (field === 'sku' || $th.hasClass('mk-col-ps-sku')) {
+				w = '12%';
 			} else if (field === 'item_type' || $th.hasClass('mk-col-ps-type')) {
-				w = '14%';
+				w = '12%';
 			} else if (field === 'price' || $th.hasClass('mk-col-ps-price')) {
-				w = '16%';
+				w = '14%';
 			} else if (field === 'supplier' || $th.hasClass('mk-col-ps-supplier')) {
-				w = '20%';
+				w = '16%';
 			} else if (field === 'unit' || $th.hasClass('mk-col-ps-unit')) {
 				w = '10%';
 			} else if (field === 'productsservicesname' || $th.hasClass('mk-col-ps-name')) {
-				w = '34%';
+				w = '30%';
 			} else {
 				w = '';
 			}

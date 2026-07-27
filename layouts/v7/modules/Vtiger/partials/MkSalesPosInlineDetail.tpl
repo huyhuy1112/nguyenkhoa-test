@@ -212,10 +212,10 @@
 					class="mk-so-inline-detail__action mk-so-inline-detail__action--convert mk-so-inline-detail__convert-btn{if empty($INLINE_CAN_CONVERT)} is-converted{/if}"
 					data-record-id="{$RECORD->getId()|escape}"
 					{if !empty($INLINE_POTENTIAL_URL)} data-potential-url="{$INLINE_POTENTIAL_URL|escape}"{/if}
-					{if empty($INLINE_CAN_CONVERT)} disabled="disabled" aria-disabled="true"{/if}
-					title="{if empty($INLINE_CAN_CONVERT)}Đã convert sang Opportunity{else}Convert to Opp{/if}">
+					{if empty($INLINE_CAN_CONVERT)} disabled="disabled" aria-disabled="true" hidden="hidden" style="display:none"{/if}
+					title="{if empty($INLINE_CAN_CONVERT)}Đã chuyển sang Cơ hội{else}Convert{/if}">
 					<i class="fa fa-exchange" aria-hidden="true"></i>
-					<span>{if empty($INLINE_CAN_CONVERT)}Đã convert{else}Convert{/if}</span>
+					<span>{if empty($INLINE_CAN_CONVERT)}Đã chuyển{else}Convert{/if}</span>
 				</button>
 			{/if}
 			{if $MODULE eq 'Potentials'}

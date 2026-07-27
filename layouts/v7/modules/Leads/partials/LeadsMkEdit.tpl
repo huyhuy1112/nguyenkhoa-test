@@ -359,35 +359,6 @@
 				</div>
 			</section>
 
-			<section class="mk-td-card" data-section="customer-tier">
-				<header class="mk-td-card__head">
-					<span class="mk-td-card__num">06</span>
-					<div>
-						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">👑</span> Hạng khách</h2>
-						<p class="mk-td-card__desc">Vàng / Bạc / Đồng</p>
-					</div>
-				</header>
-				<div class="mk-td-card__body">
-					<div class="mk-td-choice-row mk-td-choice-row--3" role="group" aria-label="Hạng khách">
-						<button type="button" class="mk-td-choice mk-td-choice--tier" data-tag="vang" data-group="customer-tier" data-value="gold">
-							<span class="mk-td-tier-ic mk-td-tier-ic--gold">👑</span>
-							<span class="mk-td-choice__label">Vàng</span>
-							<span class="mk-td-choice__hint">tag: vang</span>
-						</button>
-						<button type="button" class="mk-td-choice mk-td-choice--tier" data-tag="bac" data-group="customer-tier" data-value="silver">
-							<span class="mk-td-tier-ic mk-td-tier-ic--silver">👑</span>
-							<span class="mk-td-choice__label">Bạc</span>
-							<span class="mk-td-choice__hint">tag: bac</span>
-						</button>
-						<button type="button" class="mk-td-choice mk-td-choice--tier" data-tag="dong" data-group="customer-tier" data-value="bronze">
-							<span class="mk-td-tier-ic mk-td-tier-ic--bronze">👑</span>
-							<span class="mk-td-choice__label">Đồng</span>
-							<span class="mk-td-choice__hint">tag: dong</span>
-						</button>
-					</div>
-				</div>
-			</section>
-
 		</div>
 
 		<aside class="mk-td-create__aside" aria-label="Tags preview">

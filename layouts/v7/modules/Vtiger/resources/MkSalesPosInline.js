@@ -302,13 +302,20 @@
 			var key = $chip.attr('data-tag');
 			var keys = selectedKeys();
 			var inCatalog = catalogKeySet();
+			var groupKeys = [];
+			$chip.closest('.mk-so-inline-tag-group').find('.mk-so-inline-tag-chip').each(function () {
+				var gk = $(this).attr('data-tag');
+				if (gk) groupKeys.push(gk);
+			});
 			var idx = keys.indexOf(key);
 			if ($chip.hasClass('is-on')) {
 				if (idx >= 0) keys.splice(idx, 1);
-				$chip.removeClass('is-on').attr('aria-pressed', 'false');
 			} else {
-				if (idx < 0) keys.push(key);
-				$chip.addClass('is-on').attr('aria-pressed', 'true');
+				// Single-select per group: clear other tags in the same group.
+				keys = keys.filter(function (k) {
+					return groupKeys.indexOf(k) < 0;
+				});
+				keys.push(key);
 			}
 			// Keep custom/non-catalog tags that were already on the lead.
 			Object.keys(inCatalog).forEach(function () {});
@@ -563,12 +570,19 @@
 				if (!$.isArray(tags)) return;
 				var $list = $panelEl.find('.mk-so-inline-detail__tags-list');
 				if (!$list.length) return;
-				if (!tags.length) {
+				var panelMod = String(($panelEl && $panelEl.data && $panelEl.data('module')) || moduleName() || '');
+				var hideTier = panelMod === 'Leads';
+				var visible = tags.filter(function (raw) {
+					if (!hideTier) return true;
+					var k = slugifyInlineTag(raw);
+					return k !== 'vang' && k !== 'bac' && k !== 'dong';
+				});
+				if (!visible.length) {
 					$list.html('<span class="mk-so-inline-detail__tags-empty">Chưa có tag</span>');
 					return;
 				}
 				var ref = window.PotentialsLovableRef || window.LeadsLovableRef;
-				var html = tags.map(function (raw) {
+				var html = visible.map(function (raw) {
 					var key = String(raw || "").trim();
 					var label = key;
 					var cls = "mk-tag";
@@ -678,12 +692,22 @@
 						if (mod === 'Leads' && (name === 'phone' || name === 'mk_address')) {
 							listPatch[name === 'mk_address' ? 'address' : name] = $(this).val() || '';
 						}
+						if (mod === 'Contacts' && name === 'mailingstreet') {
+							listPatch.address = $(this).val() || '';
+						}
 						if (mod === 'Leads' && name === 'mk_region') {
 							listPatch.region = $(this).val() || '';
 						}
 					});
 					if (mod === 'Leads' && Object.keys(listPatch).length) {
 						applyLeadListFieldUpdate(recordId, listPatch);
+					}
+					if (mod === 'Contacts' && Object.keys(listPatch).length) {
+						try {
+							document.dispatchEvent(new CustomEvent('mk-contacts-list-field-updated', {
+								detail: { id: String(recordId), patch: listPatch }
+							}));
+						} catch (e) { /* IE */ }
 					}
 					if (response.description && response.description.value !== undefined) {
 						$panel.find('.mk-so-inline-detail__notes-input[name="description"]').val(response.description.value);
@@ -828,7 +852,8 @@
 						var tags = typeof getTags === 'function' ? getTags().slice() : [];
 						var regionKey = $region.length ? String($region.val() || '').toLowerCase() : '';
 						tags = tags.filter(function (t) {
-							return !/^kv[123]$/i.test(String(t || ''));
+							var k = slugifyInlineTag(t);
+							return k !== 'vang' && k !== 'bac' && k !== 'dong' && !/^kv[123]$/i.test(String(t || ''));
 						});
 						if (regionKey && /^kv[123]$/.test(regionKey)) {
 							tags.push(regionKey);

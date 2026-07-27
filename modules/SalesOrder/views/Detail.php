@@ -339,7 +339,7 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 	}
 
 	/**
-	 * Attach product usage unit (đơn vị tính) for Excel preview / export labels.
+	 * Attach product usage unit + SKU for inline previews / exports.
 	 */
 	protected function enrichLineUsageUnits(array $products) {
 		$db = PearDatabase::getInstance();
@@ -351,22 +351,18 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 			$productId = (int) ($products[$i]['hdnProductId' . $i] ?? 0);
 			if ($productId <= 0) {
 				$products[$i]['usageunit' . $i] = '';
+				$products[$i]['lineSku' . $i] = '';
 				continue;
 			}
-			$entityType = (string) ($products[$i]['entityType' . $i] ?? 'Products');
 			$unit = '';
-			if (strcasecmp($entityType, 'Services') === 0) {
-				$rs = $db->pquery('SELECT service_usageunit FROM vtiger_service WHERE serviceid = ?', array($productId));
-				if ($rs && $db->num_rows($rs) > 0) {
-					$unit = (string) $db->query_result($rs, 0, 'service_usageunit');
-				}
-			} else {
-				$rs = $db->pquery('SELECT usageunit FROM vtiger_products WHERE productid = ?', array($productId));
-				if ($rs && $db->num_rows($rs) > 0) {
-					$unit = (string) $db->query_result($rs, 0, 'usageunit');
-				}
+			$sku = '';
+			$rs = $db->pquery('SELECT unit, sku FROM vtiger_productsservices WHERE productsservicesid = ?', array($productId));
+			if ($rs && $db->num_rows($rs) > 0) {
+				$unit = (string) $db->query_result($rs, 0, 'unit');
+				$sku = (string) $db->query_result($rs, 0, 'sku');
 			}
 			$products[$i]['usageunit' . $i] = trim(decode_html($unit));
+			$products[$i]['lineSku' . $i] = trim(decode_html($sku));
 		}
 		return $products;
 	}

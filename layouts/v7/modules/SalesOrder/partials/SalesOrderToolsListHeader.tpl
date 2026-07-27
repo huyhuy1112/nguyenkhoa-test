@@ -47,7 +47,7 @@
 					</ul>
 				</div>
 			{/if}
-			{if $ADD_ACTION}
+			{if false && $ADD_ACTION}
 				<button type="button" id="{$MODULE}_listView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($ADD_ACTION->getLabel())}" class="mk-opportunity-btn mk-opportunity-btn--primary"
 						{if stripos($ADD_ACTION->getUrl(), 'javascript:')===0}
 					onclick='{$ADD_ACTION->getUrl()|substr:strlen("javascript:")};'

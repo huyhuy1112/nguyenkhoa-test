@@ -324,8 +324,16 @@
       e.stopPropagation();
       var chip = e.target.closest && e.target.closest(".mk-leads-tag-chip");
       if (chip) {
-        chip.classList.toggle("is-on");
-        chip.setAttribute("aria-pressed", chip.classList.contains("is-on") ? "true" : "false");
+        var group = chip.closest(".mk-leads-tag-popover__group");
+        var turningOn = !chip.classList.contains("is-on");
+        if (group && turningOn) {
+          group.querySelectorAll(".mk-leads-tag-chip.is-on").forEach(function (el) {
+            el.classList.remove("is-on");
+            el.setAttribute("aria-pressed", "false");
+          });
+        }
+        chip.classList.toggle("is-on", turningOn);
+        chip.setAttribute("aria-pressed", turningOn ? "true" : "false");
         return;
       }
       if (e.target.closest && (e.target.closest("[data-tag-cancel]") || e.target.closest(".mk-leads-tag-popover__close"))) {
@@ -729,22 +737,23 @@
     if (!id) {
       return Promise.reject(new Error("Không tìm thấy ID Cơ hội."));
     }
-    if (["vang", "bac", "dong"].indexOf(tierKey) < 0) {
-      return Promise.reject(new Error("Vui lòng chọn hạng khách hàng (Vàng / Bạc / Đồng)."));
+    if (tierKey && ["vang", "bac", "dong"].indexOf(tierKey) < 0) {
+      tierKey = "";
     }
     return new Promise(function (resolve, reject) {
       if (!(window.app && app.request && app.request.post)) {
         reject(new Error("Không kết nối được máy chủ."));
         return;
       }
+      var postData = {
+        module: "Potentials",
+        action: "ConvertToCustomer",
+        record: id,
+      };
+      if (tierKey) postData.tier = tierKey;
       app.request
         .post({
-          data: {
-            module: "Potentials",
-            action: "ConvertToCustomer",
-            record: id,
-            tier: tierKey,
-          },
+          data: postData,
         })
         .then(function (err, res) {
           if (err || !res || res.success === false) {
@@ -763,10 +772,7 @@
           resolve({
             contactId: contactId,
             tier: tierKey,
-            url:
-              "index.php?module=Contacts&view=Detail&record=" +
-              encodeURIComponent(contactId) +
-              "&app=SALES",
+            url: "index.php?module=Contacts&view=List&app=SALES",
           });
         });
     });
@@ -774,8 +780,7 @@
 
   function runBulkConvertToCustomer(rows) {
     if (!rows || !rows.length) return;
-    pickTier(rows.length).then(function (tier) {
-      if (!tier) return;
+    (function () {
       if (window.app && app.helper && app.helper.showProgress) {
         app.helper.showProgress();
       }
@@ -785,7 +790,7 @@
       var chain = Promise.resolve();
       rows.forEach(function (o) {
         chain = chain.then(function () {
-          return convertOppToCustomer(o.crmid || o.id, tier)
+          return convertOppToCustomer(o.crmid || o.id, "")
             .then(function (res) {
               ok += 1;
               if (!firstUrl && res && res.url) firstUrl = res.url;
@@ -807,11 +812,15 @@
           window.alert(msg);
         }
         clearSelection();
-        if (ok === 1 && firstUrl && window.confirm("Mở Khách hàng vừa chuyển?")) {
-          window.location.href = firstUrl;
+        if (ok > 0) {
+          window.setTimeout(function () {
+            window.location.href = firstUrl || "index.php?module=Contacts&view=List&app=SALES";
+          }, 400);
+        } else {
+          renderAll();
         }
       });
-    });
+    })();
   }
 
   function openInlineConvertToCustomer(btn) {
@@ -821,13 +830,11 @@
       recordId = String((panel && panel.getAttribute("data-record-id")) || "");
     }
     if (!recordId) return;
-    pickTier(1).then(function (tier) {
-      if (!tier) return;
-      if (btn) btn.disabled = true;
-      if (window.app && app.helper && app.helper.showProgress) {
-        app.helper.showProgress();
-      }
-      convertOppToCustomer(recordId, tier)
+    if (btn) btn.disabled = true;
+    if (window.app && app.helper && app.helper.showProgress) {
+      app.helper.showProgress();
+    }
+    convertOppToCustomer(recordId, "")
         .then(function (res) {
           if (window.app && app.helper && app.helper.hideProgress) {
             app.helper.hideProgress();
@@ -838,9 +845,10 @@
               message: "Đã chuyển sang Khách hàng.",
             });
           }
-          if (res && res.url && window.confirm("Mở Khách hàng vừa chuyển?")) {
-            window.location.href = res.url;
-          }
+          window.setTimeout(function () {
+            window.location.href =
+              (res && res.url) || "index.php?module=Contacts&view=List&app=SALES";
+          }, 400);
         })
         .catch(function (err) {
           if (window.app && app.helper && app.helper.hideProgress) {
@@ -849,7 +857,6 @@
           if (btn) btn.disabled = false;
           window.alert((err && err.message) || "Không chuyển được sang Khách hàng.");
         });
-    });
   }
 
   function renderBulkBar() {

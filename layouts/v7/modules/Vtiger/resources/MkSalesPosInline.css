@@ -757,12 +757,9 @@ body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--convert:h
 }
 
 body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--convert.is-converted,
-body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--convert:disabled {
-	background: #e8edf4;
-	border-color: #c5d0de;
-	color: #64748b;
-	cursor: not-allowed;
-	opacity: 0.92;
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--convert:disabled,
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--convert[hidden] {
+	display: none !important;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--to-customer {

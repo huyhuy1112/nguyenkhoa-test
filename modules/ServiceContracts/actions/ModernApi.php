@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * Modern ServiceContracts API — list for SALES Lovable-style UI.
+ * Modern ServiceContracts API — list + franchise Create/Edit (spreadsheet fields).
  *************************************************************************************/
 
 require_once 'modules/ServiceContracts/models/ModernService.php';
@@ -22,7 +22,7 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'save_tags', 'save_next_action'), true)) {
+		if (in_array($mode, array('delete', 'save_tags', 'save_next_action', 'save', 'save_franchise'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -43,6 +43,55 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 						'success' => true,
 						'contracts' => ServiceContracts_ModernService::listContracts($userId),
 						'assignable_users' => ServiceContracts_ModernService::listAssignableUsers(),
+					));
+					break;
+				case 'get':
+				case 'get_franchise':
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$response->setResult(array(
+						'success' => true,
+						'contract' => ServiceContracts_ModernService::getFranchise($recordId),
+						'picklists' => ServiceContracts_ModernService::franchisePicklists(),
+					));
+					break;
+				case 'meta':
+				case 'picklists':
+					$response->setResult(array(
+						'success' => true,
+						'picklists' => ServiceContracts_ModernService::franchisePicklists(),
+					));
+					break;
+				case 'save':
+				case 'save_franchise':
+					$payload = $request->get('payload');
+					if (is_string($payload)) {
+						$decoded = json_decode($payload, true);
+						$payload = is_array($decoded) ? $decoded : array();
+					}
+					if (!is_array($payload)) {
+						$payload = array();
+					}
+					// Also accept flat request fields (form POST).
+					$keys = array(
+						'id', 'record', 'full_name', 'phone', 'received_date', 'business_note',
+						'franchise_status', 'fanpage', 'data_source', 'referrer', 'contact_status',
+						'interaction_1', 'interaction_2', 'interaction_3', 'interaction_materials',
+					);
+					foreach ($keys as $k) {
+						if (!isset($payload[$k]) && $request->get($k) !== null && $request->get($k) !== '') {
+							$payload[$k] = $request->get($k);
+						}
+					}
+					if (empty($payload['id']) && $request->get('record')) {
+						$payload['id'] = $request->get('record');
+					}
+					$saved = ServiceContracts_ModernService::saveFranchise($payload, $userId);
+					$response->setResult(array(
+						'success' => true,
+						'contract' => $saved,
 					));
 					break;
 				case 'save_next_action':

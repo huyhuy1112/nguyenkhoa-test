@@ -11,6 +11,7 @@ class ProductsServices_List_View extends Vtiger_List_View {
 	protected function getCanonicalListHeaders() {
 		return array(
 			self::NAME_FIELD,
+			'sku',
 			'item_type',
 			'price',
 			'supplier',
@@ -21,6 +22,7 @@ class ProductsServices_List_View extends Vtiger_List_View {
 	protected function getHeaderLabelOverrides() {
 		return array(
 			'productsservicesname' => 'Tên sản phẩm',
+			'sku' => 'SKU',
 			'item_type' => 'Loại',
 			'price' => 'Giá',
 			'supplier' => 'Nhà cung cấp',

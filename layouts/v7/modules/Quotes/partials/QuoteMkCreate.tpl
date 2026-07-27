@@ -28,6 +28,9 @@
 			</div>
 			<div class="mk-qt-sticky-head__actions">
 				<a class="mk-qt-btn mk-qt-btn--ghost" href="{$MK_LIST_URL}">{vtranslate('LBL_CANCEL', $MODULE)}</a>
+				<button type="button" class="mk-qt-btn mk-qt-btn--secondary mk-qt-preview-print-btn" id="mkQtPreviewPrintBtn" title="Xem bản in báo giá">
+					<i class="fa fa-print" aria-hidden="true"></i> In
+				</button>
 				<button type="button" class="mk-qt-btn mk-qt-btn--secondary" id="mkQtSaveSendTop" title="Save the quote first to send by email">
 					Save &amp; Send
 				</button>

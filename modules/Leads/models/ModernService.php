@@ -119,6 +119,7 @@ class Leads_ModernService {
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
 			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
 			WHERE p.is_modern = 1
+			  AND (p.potential_id IS NULL OR p.potential_id = 0)
 			ORDER BY p.last_touch DESC, p.leadid DESC";
 		$res = $adb->pquery($sql, array());
 		$rows = array();

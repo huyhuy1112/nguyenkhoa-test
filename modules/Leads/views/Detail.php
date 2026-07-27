@@ -122,7 +122,6 @@ class Leads_Detail_View extends Vtiger_Index_View {
 		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
 			array('phone', 'Điện thoại'),
 			array('assigned_user_id', 'Phụ trách'),
-			array('createdtime', 'Ngày tạo'),
 		));
 		foreach ($infoFields as &$infoField) {
 			if (!empty($infoField['value']) && $infoField['value'] !== '—') {

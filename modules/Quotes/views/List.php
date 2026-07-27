@@ -45,19 +45,21 @@ class Quotes_List_View extends Inventory_List_View {
 			return;
 		}
 
+		require_once 'include/utils/MkEntityNumbering.php';
+		MkEntityNumbering::ensureModuleSequence('Quotes');
+
 		$moduleModel = Vtiger_Module_Model::getInstance('Quotes');
 		if (!$moduleModel) {
 			return;
 		}
 
 		$preferredHeaders = array(
-			'subject',
-			'quotestage',
-			'potential_id',
+			'quote_no',
 			'account_id',
 			'assigned_user_id',
+			'potential_id',
 			'total',
-			'hdnGrandTotal',
+			'quotestage',
 		);
 
 		$resolvedHeaders = array();

@@ -90,6 +90,10 @@
 										{assign var=HEADER_TRANSLATED_LABEL value='Trạng thái'}
 									{elseif $LIST_HEADER_NAME eq 'account_id'}
 										{assign var=HEADER_TRANSLATED_LABEL value='Người liên hệ'}
+									{elseif $LIST_HEADER_NAME eq 'quote_no'}
+										{assign var=HEADER_TRANSLATED_LABEL value='Số'}
+									{elseif $LIST_HEADER_NAME eq 'assigned_user_id'}
+										{assign var=HEADER_TRANSLATED_LABEL value='Nhân viên sale'}
 									{/if}
 									<span class="mk-so-pos-th-label">{$HEADER_TRANSLATED_LABEL}</span>
 								</a>

@@ -17,6 +17,8 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		$moduleName = $request->getModule();
 		$user = Users_Record_Model::getCurrentUserModel();
 		require_once 'modules/Quotes/helpers/QuoteBaService.php';
+		require_once 'include/utils/MkEntityNumbering.php';
+		MkEntityNumbering::ensureModuleSequence('Quotes');
 		$baContext = Quotes_QuoteBaService_Helper::getBaContext();
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
@@ -28,6 +30,7 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('IS_DUPLICATE', $this->isDuplicateRequest($request));
 		$viewer->assign('MK_QUOTE_OWNER_NAME', trim($user->getName()));
 		$viewer->assign('MK_QUOTE_BA_CONFIG_JSON', Zend_Json::encode($baContext));
+		$viewer->assign('MK_QUOTE_NEXT_NO', MkEntityNumbering::previewNextNumber('Quotes'));
 		require_once 'modules/Inventory/helpers/ProductCatalog.php';
 		Inventory_ProductCatalog_Helper::assignToViewer($viewer);
 	}

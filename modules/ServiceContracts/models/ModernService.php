@@ -17,6 +17,36 @@ class ServiceContracts_ModernService {
 		'vang', 'bac', 'dong',
 	);
 
+	/** Picklists — DATA KHÁCH HÀNG NHƯỢNG QUYỀN spreadsheet. */
+	public static function franchisePicklists() {
+		return array(
+			'franchise_status' => array(
+				'Quan Tâm/Tham Khảo',
+				'Không đủ tài chính',
+				'Đã Kí Quỹ',
+				'Đang chăm sóc',
+				'Chuyển sang Nguyên Khoa',
+			),
+			'fanpage' => array(
+				'FB Nhượng quyền TaiRao',
+				'Hotline',
+				'Nguyên Khoa F&B',
+				'Chủ quán giới thiệu',
+			),
+			'data_source' => array(
+				'Ads Nhượng Quyền',
+				'Lớp Học Miễn Phí',
+				'FCTH',
+			),
+			'contact_status' => array(
+				'Chưa gọi',
+				'Đã gửi tư vấn',
+				'Thuê bao',
+				'Ko nghe Máy Lần 1',
+			),
+		);
+	}
+
 	public static function installSchema(PearDatabase $adb = null) {
 		if ($adb === null) {
 			$adb = PearDatabase::getInstance();
@@ -35,6 +65,17 @@ class ServiceContracts_ModernService {
 			last_touch DATETIME DEFAULT NULL,
 			next_action VARCHAR(255) DEFAULT NULL,
 			customer_type VARCHAR(32) DEFAULT NULL,
+			received_date DATE DEFAULT NULL,
+			business_note TEXT,
+			franchise_status VARCHAR(128) DEFAULT NULL,
+			fanpage VARCHAR(128) DEFAULT NULL,
+			data_source VARCHAR(128) DEFAULT NULL,
+			referrer VARCHAR(255) DEFAULT NULL,
+			contact_status VARCHAR(128) DEFAULT NULL,
+			interaction_1 TEXT,
+			interaction_2 TEXT,
+			interaction_3 TEXT,
+			interaction_materials TEXT,
 			is_modern TINYINT(1) DEFAULT 1,
 			created_at DATETIME DEFAULT NULL,
 			modified_at DATETIME DEFAULT NULL,
@@ -42,6 +83,8 @@ class ServiceContracts_ModernService {
 			UNIQUE KEY uniq_affiliate_code (affiliate_code),
 			KEY idx_last_touch (last_touch)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8", array());
+
+		self::ensureFranchiseColumns($adb);
 
 		$adb->pquery("CREATE TABLE IF NOT EXISTS bace_sc_segments (
 			id INT(11) NOT NULL AUTO_INCREMENT,
@@ -52,6 +95,30 @@ class ServiceContracts_ModernService {
 			PRIMARY KEY (id),
 			KEY idx_user (userid)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8", array());
+	}
+
+	/** ALTER existing installs to add franchise spreadsheet columns. */
+	protected static function ensureFranchiseColumns(PearDatabase $adb) {
+		$cols = array(
+			'received_date' => 'DATE DEFAULT NULL',
+			'business_note' => 'TEXT',
+			'franchise_status' => 'VARCHAR(128) DEFAULT NULL',
+			'fanpage' => 'VARCHAR(128) DEFAULT NULL',
+			'data_source' => 'VARCHAR(128) DEFAULT NULL',
+			'referrer' => 'VARCHAR(255) DEFAULT NULL',
+			'contact_status' => 'VARCHAR(128) DEFAULT NULL',
+			'interaction_1' => 'TEXT',
+			'interaction_2' => 'TEXT',
+			'interaction_3' => 'TEXT',
+			'interaction_materials' => 'TEXT',
+		);
+		foreach ($cols as $name => $def) {
+			$check = $adb->pquery("SHOW COLUMNS FROM bace_sc_profile LIKE ?", array($name));
+			if ($check && $adb->num_rows($check) > 0) {
+				continue;
+			}
+			$adb->pquery("ALTER TABLE bace_sc_profile ADD COLUMN `{$name}` {$def}", array());
+		}
 	}
 
 	public static function isInstalled(PearDatabase $adb = null) {
@@ -287,6 +354,210 @@ class ServiceContracts_ModernService {
 			// best-effort
 		}
 		return $meta;
+	}
+
+	/**
+	 * Load franchise Create/Edit payload (13 spreadsheet fields + AFF).
+	 */
+	public static function getFranchise($contractId) {
+		$contractId = (int) $contractId;
+		if ($contractId <= 0) {
+			throw new Exception('Record not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'DetailView', $contractId)
+			&& !Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contractId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		self::ensureAffiliateCode($contractId);
+
+		$res = $adb->pquery(
+			"SELECT sc.subject, p.affiliate_code, p.phone, p.received_date, p.business_note,
+				p.franchise_status, p.fanpage, p.data_source, p.referrer, p.contact_status,
+				p.interaction_1, p.interaction_2, p.interaction_3, p.interaction_materials
+			 FROM vtiger_servicecontracts sc
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
+			 LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid
+			 WHERE sc.servicecontractsid = ?",
+			array($contractId)
+		);
+		if (!$res || $adb->num_rows($res) <= 0) {
+			throw new Exception('Record not found.');
+		}
+		$row = $adb->query_result_rowdata($res, 0);
+		$received = isset($row['received_date']) ? (string) $row['received_date'] : '';
+		if ($received === '0000-00-00') {
+			$received = '';
+		}
+		return array(
+			'id' => (string) $contractId,
+			'crmid' => $contractId,
+			'affiliate_code' => self::decodeText(isset($row['affiliate_code']) ? $row['affiliate_code'] : ''),
+			'full_name' => self::decodeText(isset($row['subject']) ? $row['subject'] : ''),
+			'phone' => self::decodeText(isset($row['phone']) ? $row['phone'] : ''),
+			'received_date' => $received,
+			'business_note' => self::decodeText(isset($row['business_note']) ? $row['business_note'] : ''),
+			'franchise_status' => self::decodeText(isset($row['franchise_status']) ? $row['franchise_status'] : ''),
+			'fanpage' => self::decodeText(isset($row['fanpage']) ? $row['fanpage'] : ''),
+			'data_source' => self::decodeText(isset($row['data_source']) ? $row['data_source'] : ''),
+			'referrer' => self::decodeText(isset($row['referrer']) ? $row['referrer'] : ''),
+			'contact_status' => self::decodeText(isset($row['contact_status']) ? $row['contact_status'] : ''),
+			'interaction_1' => self::decodeText(isset($row['interaction_1']) ? $row['interaction_1'] : ''),
+			'interaction_2' => self::decodeText(isset($row['interaction_2']) ? $row['interaction_2'] : ''),
+			'interaction_3' => self::decodeText(isset($row['interaction_3']) ? $row['interaction_3'] : ''),
+			'interaction_materials' => self::decodeText(isset($row['interaction_materials']) ? $row['interaction_materials'] : ''),
+			'picklists' => self::franchisePicklists(),
+		);
+	}
+
+	/**
+	 * Create or update franchise customer from spreadsheet form.
+	 * @param array $payload
+	 * @param int|null $userId
+	 * @return array getFranchise()-shaped result
+	 */
+	public static function saveFranchise(array $payload, $userId = null) {
+		global $current_user;
+		if ($userId === null) {
+			$userId = (int) $current_user->id;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+
+		$contractId = isset($payload['id']) ? (int) $payload['id'] : 0;
+		if ($contractId <= 0 && isset($payload['record'])) {
+			$contractId = (int) $payload['record'];
+		}
+
+		$fullName = trim(self::decodeText(isset($payload['full_name']) ? $payload['full_name'] : ''));
+		$phone = trim(self::decodeText(isset($payload['phone']) ? $payload['phone'] : ''));
+		if ($fullName === '' || $phone === '') {
+			throw new Exception('Họ tên và SĐT là bắt buộc.');
+		}
+
+		$picklists = self::franchisePicklists();
+		$franchiseStatus = self::normalizePick(
+			isset($payload['franchise_status']) ? $payload['franchise_status'] : '',
+			$picklists['franchise_status']
+		);
+		$fanpage = self::normalizePick(isset($payload['fanpage']) ? $payload['fanpage'] : '', $picklists['fanpage']);
+		$dataSource = self::normalizePick(
+			isset($payload['data_source']) ? $payload['data_source'] : '',
+			$picklists['data_source']
+		);
+		$contactStatus = self::normalizePick(
+			isset($payload['contact_status']) ? $payload['contact_status'] : '',
+			$picklists['contact_status']
+		);
+		$receivedDate = self::normalizeDate(isset($payload['received_date']) ? $payload['received_date'] : '');
+		$businessNote = trim(self::decodeText(isset($payload['business_note']) ? $payload['business_note'] : ''));
+		$referrer = trim(self::decodeText(isset($payload['referrer']) ? $payload['referrer'] : ''));
+		$interaction1 = trim(self::decodeText(isset($payload['interaction_1']) ? $payload['interaction_1'] : ''));
+		$interaction2 = trim(self::decodeText(isset($payload['interaction_2']) ? $payload['interaction_2'] : ''));
+		$interaction3 = trim(self::decodeText(isset($payload['interaction_3']) ? $payload['interaction_3'] : ''));
+		$interactionMaterials = trim(self::decodeText(
+			isset($payload['interaction_materials']) ? $payload['interaction_materials'] : ''
+		));
+
+		if ($contractId > 0) {
+			if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contractId)) {
+				throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+			}
+			$recordModel = Vtiger_Record_Model::getInstanceById($contractId, self::MODULE);
+			$recordModel->set('id', $contractId);
+			$recordModel->set('mode', 'edit');
+		} else {
+			if (!Users_Privileges_Model::isPermitted(self::MODULE, 'CreateView')) {
+				throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+			}
+			$recordModel = Vtiger_Record_Model::getCleanInstance(self::MODULE);
+			$recordModel->set('assigned_user_id', $userId);
+			$recordModel->set('contract_status', 'In Progress');
+			$recordModel->set('contract_type', 'Support');
+		}
+
+		$recordModel->set('subject', $fullName);
+		$recordModel->save();
+		$contractId = (int) $recordModel->getId();
+		if ($contractId <= 0) {
+			throw new Exception('Không lưu được khách chuyển nhượng.');
+		}
+
+		self::ensureAffiliateCode($contractId);
+		$now = date('Y-m-d H:i:s');
+		$receivedSql = $receivedDate !== '' ? $receivedDate : null;
+		$adb->pquery(
+			'UPDATE bace_sc_profile SET
+				phone = ?,
+				received_date = ?,
+				business_note = ?,
+				franchise_status = ?,
+				fanpage = ?,
+				data_source = ?,
+				referrer = ?,
+				contact_status = ?,
+				interaction_1 = ?,
+				interaction_2 = ?,
+				interaction_3 = ?,
+				interaction_materials = ?,
+				address_line = ?,
+				last_touch = COALESCE(last_touch, ?),
+				modified_at = ?,
+				is_modern = 1
+			 WHERE servicecontractsid = ?',
+			array(
+				$phone,
+				$receivedSql,
+				$businessNote,
+				$franchiseStatus,
+				$fanpage,
+				$dataSource,
+				$referrer,
+				$contactStatus,
+				$interaction1,
+				$interaction2,
+				$interaction3,
+				$interactionMaterials,
+				$businessNote,
+				$now,
+				$now,
+				$contractId,
+			)
+		);
+
+		return self::getFranchise($contractId);
+	}
+
+	protected static function normalizePick($value, array $allowed) {
+		$value = trim(self::decodeText($value));
+		if ($value === '') {
+			return '';
+		}
+		foreach ($allowed as $opt) {
+			if (strcasecmp($opt, $value) === 0) {
+				return $opt;
+			}
+		}
+		return '';
+	}
+
+	protected static function normalizeDate($raw) {
+		$raw = trim((string) $raw);
+		if ($raw === '') {
+			return '';
+		}
+		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $raw, $m)) {
+			return $m[1] . '-' . $m[2] . '-' . $m[3];
+		}
+		if (preg_match('/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/', $raw, $m)) {
+			return sprintf('%04d-%02d-%02d', (int) $m[3], (int) $m[2], (int) $m[1]);
+		}
+		$ts = strtotime($raw);
+		if ($ts) {
+			return date('Y-m-d', $ts);
+		}
+		return '';
 	}
 
 	public static function saveNextAction($contractId, $nextAction) {

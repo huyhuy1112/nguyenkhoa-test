@@ -183,11 +183,9 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		if (!$quoteModel instanceof Quotes_Record_Model || !$quoteModel->hasLinkedSalesOrder()) {
 			return;
 		}
-		$redirectUrl = $quoteModel->getLinkedSalesOrderDetailViewUrl();
-		if ($redirectUrl) {
-			header('Location: ' . $redirectUrl);
-			exit;
-		}
+		$redirectUrl = 'index.php?module=SalesOrder&view=List&app=SALES';
+		header('Location: ' . $redirectUrl);
+		exit;
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {

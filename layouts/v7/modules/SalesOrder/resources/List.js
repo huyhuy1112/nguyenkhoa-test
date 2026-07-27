@@ -381,11 +381,11 @@
     });
     rows.push([]);
     rows.push([
-      "Mã hàng",
+      "SKU",
       "Tên hàng",
       "Số lượng",
       "Đơn giá",
-      "Giảm giá",
+      "Thuế",
       "Giá bán",
       "Thành tiền",
     ]);

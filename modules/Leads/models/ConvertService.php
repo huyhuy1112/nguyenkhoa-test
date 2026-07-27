@@ -122,7 +122,7 @@ class Leads_ConvertService {
 				$company = trim((string)$recordModel->get('company'));
 				$entityValues['entities'][$module]['accountname'] =
 					($company === '' || $company === '-')
-						? trim($recordModel->get('firstname') . ' ' . $recordModel->get('lastname'))
+						? self::composeLeadFullName($recordModel)
 						: $company;
 			}
 			if (empty($convertLeadFields[$module])) {
@@ -253,6 +253,22 @@ class Leads_ConvertService {
 		return 'Internal';
 	}
 
+	/**
+	 * Same order as Leads list display (lastname + firstname).
+	 * Vtiger stores given name in firstname (last token) and family+middle in lastname.
+	 */
+	protected static function composeLeadFullName(Vtiger_Record_Model $lead) {
+		$firstname = self::decodeLeadField(trim((string)$lead->get('firstname')));
+		$lastname = self::decodeLeadField(trim((string)$lead->get('lastname')));
+		if ($firstname === '' || $firstname === '.') {
+			return $lastname;
+		}
+		if ($lastname === '' || $lastname === '.') {
+			return $firstname;
+		}
+		return trim($lastname . ' ' . $firstname);
+	}
+
 	protected static function defaultOrderCategory() {
 		return 'Internal';
 	}
@@ -261,7 +277,7 @@ class Leads_ConvertService {
 		$fieldName = $fieldModel->getName();
 		if ($targetModule === 'Potentials') {
 			if ($fieldName === 'potentialname') {
-				return self::decodeLeadField(trim($lead->get('firstname') . ' ' . $lead->get('lastname')));
+				return self::composeLeadFullName($lead);
 			}
 			if ($fieldName === 'order_category') {
 				return self::resolveOrderCategory($orderCategory);
@@ -299,7 +315,7 @@ class Leads_ConvertService {
 		}
 		if ($targetModule === 'Accounts' && $fieldName === 'accountname') {
 			$company = trim((string)$lead->get('company'));
-			return ($company === '' || $company === '-') ? trim($lead->get('firstname') . ' ' . $lead->get('lastname')) : $company;
+			return ($company === '' || $company === '-') ? self::composeLeadFullName($lead) : $company;
 		}
 		return $lead->get($fieldName);
 	}
@@ -461,11 +477,16 @@ class Leads_ConvertService {
 		return array_values(array_unique(array_filter($ids)));
 	}
 
+	public static function potentialsListUrl() {
+		return 'index.php?module=Potentials&view=List&app=SALES';
+	}
+
+	/**
+	 * Post-convert navigation target (Opp list — not detail).
+	 * $potentialId kept for call-site compatibility.
+	 */
 	public static function potentialDetailUrl($potentialId) {
-		if (!$potentialId) {
-			return '';
-		}
-		return 'index.php?module=Potentials&view=Detail&record=' . (int)$potentialId . '&app=SALES';
+		return self::potentialsListUrl();
 	}
 
 	protected static function relateRecords($crmid, $module, $relcrmid, $relmodule) {
@@ -484,14 +505,12 @@ class Leads_ConvertService {
 	}
 
 	protected static function fillPotentialDefaults(array &$potentialEntity, Vtiger_Record_Model $lead, $orderCategory, $assignId) {
-		// Hard defaults for common mandatory fields
-		if (empty($potentialEntity['potentialname'])) {
-			$name = trim((string)self::decodeLeadField(trim($lead->get('firstname') . ' ' . $lead->get('lastname'))));
-			if ($name === '') {
-				$name = 'Lead #' . (int)$lead->getId();
-			}
-			$potentialEntity['potentialname'] = $name;
+		// Always use list display order (lastname + firstname), never firstname-first.
+		$name = self::composeLeadFullName($lead);
+		if ($name === '') {
+			$name = 'Lead #' . (int)$lead->getId();
 		}
+		$potentialEntity['potentialname'] = $name;
 		if (empty($potentialEntity['closingdate'])) {
 			$potentialEntity['closingdate'] = date('Y-m-d', strtotime('+30 days'));
 		}

@@ -9,6 +9,7 @@ class ProductsServices_ListView_Model extends Vtiger_ListView_Model {
 
 	const CANONICAL_HEADERS = array(
 		'productsservicesname',
+		'sku',
 		'item_type',
 		'price',
 		'supplier',

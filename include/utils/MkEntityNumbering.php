@@ -10,6 +10,7 @@ class MkEntityNumbering {
 		'Potentials' => array('prefix' => 'CH', 'width' => 5, 'start' => '00001'), // Cơ hội (Opportunity)
 		'Contacts'   => array('prefix' => 'LH', 'width' => 5, 'start' => '00001'), // Liên hệ
 		'Accounts'   => array('prefix' => 'KH', 'width' => 5, 'start' => '00001'), // Khách hàng / Tổ chức
+		'Quotes'     => array('prefix' => 'BG', 'width' => 5, 'start' => '00001'), // Báo giá
 	);
 
 	public static function getPaddingWidth($module) {
@@ -73,5 +74,138 @@ class MkEntityNumbering {
 			$results[$module] = self::resetModuleSequence($module);
 		}
 		return $results;
+	}
+
+	/**
+	 * Ensure active prefix/padding for a module without resetting cur_id when already correct.
+	 * Quotes: also migrate legacy QUO* → BG#####.
+	 */
+	public static function ensureModuleSequence($module) {
+		global $adb;
+
+		if (!isset(self::$PADDED_MODULES[$module])) {
+			return false;
+		}
+
+		$cfg = self::$PADDED_MODULES[$module];
+		$prefix = $cfg['prefix'];
+		$start = $cfg['start'];
+		$width = (int) $cfg['width'];
+
+		$active = $adb->pquery(
+			'SELECT num_id, prefix, cur_id FROM vtiger_modentity_num WHERE semodule = ? AND active = 1 LIMIT 1',
+			array($module)
+		);
+		$needsSwitch = true;
+		$oldCurId = null;
+		if ($active && $adb->num_rows($active) > 0) {
+			$activePrefix = (string) $adb->query_result($active, 0, 'prefix');
+			$oldCurId = $adb->query_result($active, 0, 'cur_id');
+			if ($activePrefix === $prefix) {
+				$needsSwitch = false;
+			}
+		}
+
+		if ($needsSwitch) {
+			$adb->pquery('UPDATE vtiger_modentity_num SET active = 0 WHERE semodule = ?', array($module));
+
+			$check = $adb->pquery(
+				'SELECT num_id, cur_id FROM vtiger_modentity_num WHERE semodule = ? AND prefix = ?',
+				array($module, $prefix)
+			);
+			if ($check && $adb->num_rows($check) > 0) {
+				$numId = $adb->query_result($check, 0, 'num_id');
+				$curId = $adb->query_result($check, 0, 'cur_id');
+				if ($curId === '' || $curId === null) {
+					$curId = $start;
+				}
+				// Prefer continuing from the previous active sequence when switching (QUO → BG).
+				if ($oldCurId !== null && $oldCurId !== '' && (int) $oldCurId > (int) $curId) {
+					$curId = $oldCurId;
+				}
+				$adb->pquery(
+					'UPDATE vtiger_modentity_num SET start_id = ?, cur_id = ?, active = 1 WHERE num_id = ?',
+					array($start, $curId, $numId)
+				);
+			} else {
+				$nextFromOld = $start;
+				if ($oldCurId !== null && $oldCurId !== '') {
+					$nextFromOld = self::nextSequenceId($oldCurId, $width);
+				}
+				$numId = $adb->getUniqueId('vtiger_modentity_num');
+				$adb->pquery(
+					'INSERT INTO vtiger_modentity_num (num_id, semodule, prefix, start_id, cur_id, active) VALUES (?,?,?,?,?,?)',
+					array($numId, $module, $prefix, $start, $nextFromOld, 1)
+				);
+			}
+		}
+
+		if ($module === 'Quotes') {
+			self::migrateQuotesQuoToBg($width);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Rewrite legacy quote_no values QUO### → BG#####.
+	 */
+	protected static function migrateQuotesQuoToBg($width = 5) {
+		global $adb;
+		$width = max(1, (int) $width);
+		$res = $adb->pquery(
+			"SELECT quoteid, quote_no FROM vtiger_quotes
+			 WHERE quote_no IS NOT NULL AND quote_no <> '' AND UPPER(quote_no) LIKE 'QUO%'",
+			array()
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return;
+		}
+		$maxNum = 0;
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			$quoteId = (int) $adb->query_result($res, $i, 'quoteid');
+			$old = trim((string) $adb->query_result($res, $i, 'quote_no'));
+			if (!preg_match('/^QUO\s*0*(\d+)$/i', $old, $m)) {
+				continue;
+			}
+			$num = (int) $m[1];
+			if ($num > $maxNum) {
+				$maxNum = $num;
+			}
+			$newNo = self::formatNumber('BG', $num, $width);
+			$adb->pquery('UPDATE vtiger_quotes SET quote_no = ? WHERE quoteid = ?', array($newNo, $quoteId));
+		}
+		if ($maxNum > 0) {
+			$next = self::nextSequenceId($maxNum, $width);
+			$adb->pquery(
+				'UPDATE vtiger_modentity_num SET cur_id = ?
+				 WHERE semodule = ? AND prefix = ? AND active = 1
+				   AND CAST(cur_id AS UNSIGNED) <= ?',
+				array($next, 'Quotes', 'BG', $maxNum)
+			);
+		}
+	}
+
+	/**
+	 * Preview next auto number without consuming sequence (e.g. BG00001).
+	 */
+	public static function previewNextNumber($module) {
+		global $adb;
+
+		if (!isset(self::$PADDED_MODULES[$module])) {
+			return '';
+		}
+		self::ensureModuleSequence($module);
+		$cfg = self::$PADDED_MODULES[$module];
+		$res = $adb->pquery(
+			'SELECT prefix, cur_id FROM vtiger_modentity_num WHERE semodule = ? AND active = 1 LIMIT 1',
+			array($module)
+		);
+		if (!$res || $adb->num_rows($res) === 0) {
+			return self::formatNumber($cfg['prefix'], $cfg['start'], $cfg['width']);
+		}
+		$prefix = (string) $adb->query_result($res, 0, 'prefix');
+		$curId = $adb->query_result($res, 0, 'cur_id');
+		return self::formatNumber($prefix, $curId, $cfg['width']);
 	}
 }

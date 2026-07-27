@@ -716,15 +716,18 @@
 		modal.innerHTML =
 			'<div class="mk-wh-inbound-print-preview__dialog" role="dialog" aria-labelledby="mkWhOutboundPrintTitle">' +
 				'<div class="mk-wh-inbound-print-preview__head">' +
-					'<h3 id="mkWhOutboundPrintTitle">Xem trước phiếu xuất</h3>' +
+					'<h3 id="mkWhOutboundPrintTitle">Xem trước bản in</h3>' +
 					'<button type="button" class="mk-wh-inbound-print-preview__close" data-mk-print-close="1" aria-label="Đóng">&times;</button>' +
 				'</div>' +
 				'<div class="mk-wh-inbound-print-preview__body">' +
-					'<div class="mk-wh-inbound-print-preview__hint" data-mk-print-hint="1">Xem trước phiếu xuất. Tải PDF chỉ bật sau khi bản xem trước đã tải xong.</div>' +
+					'<div class="mk-wh-inbound-print-preview__hint" data-mk-print-hint="1">Xem trước bản in phiếu xuất. Có thể in trực tiếp hoặc tải PDF sau khi bản xem trước tải xong.</div>' +
 					'<iframe class="mk-wh-inbound-print-preview__frame" title="Xem trước phiếu xuất" src="about:blank"></iframe>' +
 				'</div>' +
 				'<div class="mk-wh-inbound-print-preview__foot">' +
 					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-print-close="1">Đóng</button>' +
+					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--outline" data-mk-print-direct="1">' +
+						'<i class="fa fa-print" aria-hidden="true"></i> In ngay' +
+					'</button>' +
 					'<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--primary" data-mk-print-download="1" disabled aria-disabled="true" title="Xem trước xong mới tải được PDF">' +
 						'<i class="fa fa-download" aria-hidden="true"></i> Tải PDF' +
 					'</button>' +
@@ -762,6 +765,22 @@
 				}
 			});
 		}
+		var printBtn = modal.querySelector('[data-mk-print-direct="1"]');
+		if (printBtn) {
+			printBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var frame = modal.querySelector('iframe');
+				try {
+					if (frame && frame.contentWindow) {
+						frame.contentWindow.focus();
+						frame.contentWindow.print();
+					}
+				} catch (err) {
+					/* ignore */
+				}
+			});
+		}
 		return modal;
 	}
 
@@ -769,23 +788,23 @@
 		var t = String(outboundType || 'internal');
 		if (t === 'transfer') {
 			return {
-				title: 'Xem trước phiếu chuyển hàng',
-				hint: 'Mẫu PHIẾU CHUYỂN HÀNG (xuất chuyển kho). Tải PDF sau khi xem trước xong.',
+				title: 'Xem trước bản in phiếu chuyển hàng',
+				hint: 'Mẫu PHIẾU CHUYỂN HÀNG (xuất chuyển kho). Có thể in trực tiếp hoặc tải PDF sau khi xem trước xong.',
 				readyTitle: 'Tải bản PDF phiếu chuyển hàng',
 			};
 		}
 		if (t === 'sale' || t === 'scrap') {
 			return {
-				title: 'Xem trước phiếu xuất kho',
+				title: 'Xem trước bản in phiếu xuất kho',
 				hint: t === 'scrap'
-					? 'Mẫu PHIẾU XUẤT KHO (02 - VT) dùng cho xuất huỷ. Tải PDF sau khi xem trước xong.'
-					: 'Mẫu PHIẾU XUẤT KHO (02 - VT) dành cho xuất bán. Tải PDF sau khi xem trước xong.',
+					? 'Mẫu PHIẾU XUẤT KHO (02 - VT) dùng cho xuất huỷ. Có thể in trực tiếp hoặc tải PDF sau khi xem trước xong.'
+					: 'Mẫu PHIẾU XUẤT KHO (02 - VT) dành cho xuất bán. Có thể in trực tiếp hoặc tải PDF sau khi xem trước xong.',
 				readyTitle: 'Tải bản PDF phiếu xuất kho',
 			};
 		}
 		return {
-			title: 'Xem trước phiếu xuất nội bộ',
-			hint: 'Mẫu Xuất dùng nội bộ. Tải PDF sau khi xem trước xong.',
+			title: 'Xem trước bản in phiếu xuất nội bộ',
+			hint: 'Mẫu Xuất dùng nội bộ. Có thể in trực tiếp hoặc tải PDF sau khi xem trước xong.',
 			readyTitle: 'Tải bản PDF xuất dùng nội bộ',
 		};
 	}

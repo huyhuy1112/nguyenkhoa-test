@@ -58,13 +58,12 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 			array('phone', 'Điện thoại'),
 			array('mobile', 'Di động'),
 			array('email', 'Email'),
-			array('account_id', 'Tổ chức'),
+			array('mailingstreet', 'Địa chỉ'),
 			array('title', 'Chức danh'),
 			array('thoigian_dangky', 'Thời gian Đăng Ký'),
 			array('thoigian_pcth', 'Thời gian tham gia PCTH'),
 			array('thoigian_mqbb', 'Thời gian tham gia MQBB'),
 			array('assigned_user_id', 'Phụ trách'),
-			array('createdtime', 'Ngày tạo'),
 		));
 
 		$viewer = $this->getViewer($request);

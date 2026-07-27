@@ -534,7 +534,6 @@
 				'currency_id',
 				'conversion_rate',
 				'account_id',
-				'quote_no',
 				'hdnTaxType',
 				'pre_tax_total',
 				'hdnSubTotal',
@@ -1390,6 +1389,216 @@
 		$form().trigger('submit');
 	}
 
+	function bindPreviewPrint() {
+		if (isSalesOrder()) {
+			return;
+		}
+		$form()
+			.off('submit.mkQtClearPreviewNo')
+			.on('submit.mkQtClearPreviewNo', function () {
+				var $qn = $form().find('[name="quote_no"]');
+				if ($qn.attr('data-mk-preview-no') === '1') {
+					$qn.val('');
+				}
+			});
+
+		function quotePrintReady() {
+			var $f = $form();
+			var subject = $.trim($f.find('[name="subject"]').val() || '');
+			var contactId = $.trim($f.find('[name="contact_id"]').val() || '');
+			var potentialId = $.trim($f.find('[name="potential_id"]').val() || '');
+			var hasLine = false;
+			$f.find('input[name^="hdnProductId"]').each(function () {
+				if ($.trim($(this).val() || '') !== '') {
+					hasLine = true;
+					return false;
+				}
+			});
+			return !!(subject || contactId || potentialId) && hasLine;
+		}
+
+		function syncPrintBtnState() {
+			var $btn = $('#mkQtPreviewPrintBtn');
+			if (!$btn.length) {
+				return;
+			}
+			var ready = quotePrintReady();
+			$btn.prop('disabled', !ready);
+			$btn.toggleClass('is-disabled', !ready);
+			$btn.attr(
+				'title',
+				ready
+					? 'Xem bản in báo giá'
+					: 'Điền khách hàng và ít nhất 1 dòng hàng rồi bấm In'
+			);
+		}
+
+		function getQuoteRecordId() {
+			return $.trim($form().find('[name="record"], #recordId').first().val() || '');
+		}
+
+		function quotePrintPreviewUrl(recordId) {
+			return (
+				'index.php?module=Quotes&action=ExportPDF&record=' +
+				encodeURIComponent(recordId) +
+				'&preview=1&app=SALES'
+			);
+		}
+
+		function quotePrintDownloadUrl(recordId) {
+			return (
+				'index.php?module=Quotes&action=ExportPDF&record=' +
+				encodeURIComponent(recordId) +
+				'&app=SALES'
+			);
+		}
+
+		function closeCreatePrintPreview() {
+			var $modal = $('#mk-qt-create-print-preview');
+			$modal.removeClass('is-open').attr('aria-hidden', 'true');
+			$modal.find('iframe').attr('src', 'about:blank');
+			$('body').removeClass('mk-qt-create-print-open');
+		}
+
+		function ensureCreatePrintPreviewModal() {
+			var $modal = $('#mk-qt-create-print-preview');
+			if ($modal.length) {
+				return $modal;
+			}
+			$modal = $(
+				'<div id="mk-qt-create-print-preview" class="mk-qt-create-print-preview" aria-hidden="true">' +
+					'<div class="mk-qt-create-print-preview__dialog" role="dialog" aria-labelledby="mk-qt-create-print-title">' +
+					'<div class="mk-qt-create-print-preview__head">' +
+					'<h3 id="mk-qt-create-print-title">Xem trước bản in</h3>' +
+					'<button type="button" class="mk-qt-create-print-preview__close" aria-label="Đóng">&times;</button>' +
+					'</div>' +
+					'<div class="mk-qt-create-print-preview__body">' +
+					'<iframe class="mk-qt-create-print-preview__frame" title="Xem trước PDF báo giá"></iframe>' +
+					'</div>' +
+					'<div class="mk-qt-create-print-preview__foot">' +
+					'<button type="button" class="mk-qt-create-print-preview__cancel">Đóng</button>' +
+					'<button type="button" class="mk-qt-create-print-preview__print"><i class="fa fa-print" aria-hidden="true"></i> In ngay</button>' +
+					'<button type="button" class="mk-qt-create-print-preview__download"><i class="fa fa-download" aria-hidden="true"></i> Tải PDF</button>' +
+					'</div></div></div>'
+			);
+			$('body').append($modal);
+			$modal.on(
+				'click',
+				'.mk-qt-create-print-preview__close, .mk-qt-create-print-preview__cancel',
+				function (e) {
+					e.preventDefault();
+					closeCreatePrintPreview();
+				}
+			);
+			$modal.on('click', function (e) {
+				if ($(e.target).is('#mk-qt-create-print-preview')) {
+					closeCreatePrintPreview();
+				}
+			});
+			$modal.on('click', '.mk-qt-create-print-preview__print', function (e) {
+				e.preventDefault();
+				var frame = $modal.find('iframe').get(0);
+				try {
+					if (frame && frame.contentWindow) {
+						frame.contentWindow.focus();
+						frame.contentWindow.print();
+					}
+				} catch (err) {
+					/* ignore */
+				}
+			});
+			$modal.on('click', '.mk-qt-create-print-preview__download', function (e) {
+				e.preventDefault();
+				var recordId = $modal.data('mkPrintRecordId');
+				if (!recordId) {
+					return;
+				}
+				var $frame = $('#mk-qt-create-print-download-frame');
+				if (!$frame.length) {
+					$frame = $(
+						'<iframe id="mk-qt-create-print-download-frame" class="mk-qt-create-print-download-frame" title="Tải PDF báo giá"></iframe>'
+					);
+					$('body').append($frame);
+				}
+				$frame.attr('src', quotePrintDownloadUrl(recordId));
+			});
+			return $modal;
+		}
+
+		function openCreatePrintPreview(recordId) {
+			if (!recordId || !/^\d+$/.test(String(recordId))) {
+				return;
+			}
+			var $modal = ensureCreatePrintPreviewModal();
+			$modal.data('mkPrintRecordId', String(recordId));
+			$modal.find('iframe').attr('src', quotePrintPreviewUrl(recordId));
+			$modal.addClass('is-open').attr('aria-hidden', 'false');
+			$('body').addClass('mk-qt-create-print-open');
+		}
+
+		function maybeOpenPrintFromQuery() {
+			try {
+				var params = new URLSearchParams(window.location.search || '');
+				if (params.get('mk_show_print') !== '1') {
+					return;
+				}
+				var recordId = getQuoteRecordId() || params.get('record') || '';
+				if (!recordId || !/^\d+$/.test(String(recordId))) {
+					return;
+				}
+				params.delete('mk_show_print');
+				var next =
+					window.location.pathname +
+					(params.toString() ? '?' + params.toString() : '') +
+					(window.location.hash || '');
+				if (window.history && window.history.replaceState) {
+					window.history.replaceState({}, document.title, next);
+				}
+				window.setTimeout(function () {
+					openCreatePrintPreview(recordId);
+				}, 250);
+			} catch (e) {
+				/* ignore */
+			}
+		}
+
+		$(document)
+			.off('click.mkQtPreviewPrint', '#mkQtPreviewPrintBtn')
+			.on('click.mkQtPreviewPrint', '#mkQtPreviewPrintBtn', function (e) {
+				e.preventDefault();
+				var $f = $form();
+				var recordId = getQuoteRecordId();
+				if (!quotePrintReady()) {
+					if (window.app && app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({
+							message: 'Vui lòng chọn khách hàng và thêm hàng hóa trước khi in báo giá.',
+						});
+					} else {
+						window.alert('Vui lòng chọn khách hàng và thêm hàng hóa trước khi in báo giá.');
+					}
+					return;
+				}
+				if (recordId && /^\d+$/.test(recordId)) {
+					openCreatePrintPreview(recordId);
+					return;
+				}
+				// New quote: save first, then return to Edit and open overlay.
+				$f.find('#mkQtOpenPrint').val('1');
+				triggerSave();
+			});
+
+		$form()
+			.off('change.mkQtPrintReady input.mkQtPrintReady')
+			.on('change.mkQtPrintReady input.mkQtPrintReady', 'input, select, textarea', syncPrintBtnState);
+		$(document)
+			.off('inventory_line_items_changed.mkQtPrintReady')
+			.on('inventory_line_items_changed.mkQtPrintReady', syncPrintBtnState);
+		setTimeout(syncPrintBtnState, 0);
+		setTimeout(syncPrintBtnState, 400);
+		setTimeout(syncPrintBtnState, 1200);
+		maybeOpenPrintFromQuery();
+	}
+
 	function decodeHtmlText(value) {
 		if (value === null || value === undefined) {
 			return '';
@@ -1889,6 +2098,7 @@
 		initTermsRichEditor();
 		syncRail();
 		bindActions();
+		bindPreviewPrint();
 		observeTotals();
 		initStickyHead();
 		setTimeout(fixFormDisplayEncoding, 300);

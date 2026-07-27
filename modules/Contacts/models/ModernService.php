@@ -23,11 +23,13 @@ class Contacts_ModernService {
 		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.title, cd.email, cd.phone, cd.mobile,
 				cd.accountid, ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname,
+				ca.mailingstreet, ca.mailingcity, ca.mailingstate, ca.mailingcountry,
 				cf.thoigian_dangky, cf.thoigian_pcth, cf.thoigian_mqbb,
 				cf.da_cap_bang, cf.da_cap_tai_khoan
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = cd.accountid
+			LEFT JOIN vtiger_contactaddress ca ON ca.contactaddressid = cd.contactid
 			LEFT JOIN vtiger_contactscf cf ON cf.contactid = cd.contactid
 			ORDER BY ce.modifiedtime DESC, cd.contactid DESC";
 		$res = $adb->pquery($sql, array());
@@ -509,6 +511,15 @@ class Contacts_ModernService {
 		$email = decode_html((string)$row['email']);
 		$accountName = decode_html((string)$row['accountname']);
 		$modified = !empty($row['modifiedtime']) ? date('c', strtotime($row['modifiedtime'])) : date('c');
+		$addressParts = array();
+		foreach (array('mailingstreet', 'mailingcity', 'mailingstate', 'mailingcountry') as $addrKey) {
+			$part = decode_html(trim((string)(isset($row[$addrKey]) ? $row[$addrKey] : '')));
+			if ($part !== '' && $part !== '-' && $part !== '--') {
+				$addressParts[] = $part;
+			}
+		}
+		$address = implode(', ', $addressParts);
+		$convertedAt = !empty($row['createdtime']) ? date('c', strtotime($row['createdtime'])) : '';
 
 		return array(
 			'id' => (string)$contactId,
@@ -520,6 +531,8 @@ class Contacts_ModernService {
 			'email' => ($email === '' || $email === '--') ? '' : $email,
 			'phone' => ($phone === '' || $phone === '--') ? '' : $phone,
 			'account' => ($accountName === '' || $accountName === '-') ? '' : $accountName,
+			'address' => $address,
+			'converted_at' => $convertedAt,
 			'owner' => self::getOwnerLabel((int)$row['smownerid']),
 			'tags' => array_values($tags),
 			'last_touch' => $modified,

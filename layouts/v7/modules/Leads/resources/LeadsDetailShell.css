@@ -1768,17 +1768,9 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--converted,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--converted:hover,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--converted:focus {
-	background: #e8edf4 !important;
-	border-color: #c5d0de !important;
-	color: #64748b !important;
-	cursor: not-allowed !important;
-	opacity: 0.92;
-	box-shadow: none !important;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--converted .mk-lead-detail-btn__ic {
-	opacity: 0.55;
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--converted:focus,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] [data-mk-demo-action="convert"][hidden] {
+	display: none !important;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-details-row .blockToggle {

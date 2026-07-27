@@ -282,6 +282,124 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--s
 	color: var(--mk-qt-ink);
 }
 
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mkQtPreviewPrintBtn.is-disabled,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mkQtPreviewPrintBtn:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+/* Create/Edit print preview overlay (same UX as list inline print) */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 10070;
+	background: rgba(15, 23, 42, 0.45);
+	padding: 24px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview.is-open {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__dialog {
+	width: min(1100px, 100%);
+	height: min(92vh, 900px);
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__head,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__foot {
+	border-bottom: 0;
+	border-top: 1px solid #e2e8f0;
+	justify-content: flex-end;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__head h3 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	color: #067a37;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__close {
+	border: 0;
+	background: transparent;
+	font-size: 24px;
+	line-height: 1;
+	color: #64748b;
+	cursor: pointer;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__body {
+	flex: 1;
+	min-height: 0;
+	padding: 0;
+	background: #f8fafc;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__frame {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	background: #fff;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__cancel,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__print,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__download {
+	border: 0;
+	border-radius: 8px;
+	padding: 8px 14px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__cancel {
+	background: #f1f5f9;
+	color: #334155;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__print {
+	background: #067a37;
+	color: #fff;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-preview__download {
+	background: #0f766e;
+	color: #fff;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create-print-download-frame {
+	position: absolute;
+	width: 0;
+	height: 0;
+	border: 0;
+	opacity: 0;
+	pointer-events: none;
+}
+
+body.mk-qt-create-print-open {
+	overflow: hidden;
+}
+
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--ghost,
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--ghost {
 	background: transparent;

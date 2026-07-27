@@ -38,7 +38,6 @@
     if (ref && ref.getPresetSegments) return ref.getPresetSegments();
     return [
       { id: "new", name: "Khách mới", filters: { purchase: "mua_lan_dau" } },
-      { id: "gold", name: "Khách vàng", filters: { tier: "vang" } },
       { id: "repeat", name: "Khách mua lại", filters: { purchase: "mua_lai" } },
       { id: "nobuy", name: "Khách không mua", filters: { purchase: "khong_mua" } },
       { id: "chain", name: "Khách chuỗi (PCTH)", filters: { program: "pcth" } },
@@ -115,6 +114,7 @@
     (lead.tags || []).forEach(function (tg) {
       var key = normalizeTagKey(tg);
       if (!key || seen[key]) return;
+      if (TIER_TAGS.indexOf(key) >= 0) return;
       if (isColumnTag(key, segmentKey, typeTag)) return;
       seen[key] = true;
       out.push(key);
@@ -342,102 +342,46 @@
     });
   }
 
-  function promptOrderCategory() {
-    var fallback = window.prompt("Loại Cơ hội: gõ Internal (Nội bộ) hoặc Project (Dự án)", "Internal");
-    if (fallback === null) return null;
-    var cat = String(fallback).trim();
-    if (cat !== "Internal" && cat !== "Project") {
-      window.alert("Chỉ chấp nhận Internal (Nội bộ) hoặc Project (Dự án).");
-      return null;
+
+  function showConvertToast(message, isError) {
+    var msg = String(message || "").trim();
+    if (!msg) return;
+    if (window.app && app.helper) {
+      if (!isError && app.helper.showSuccessNotification) {
+        app.helper.showSuccessNotification({ message: msg }, { delay: 2800 });
+        return;
+      }
+      if (isError && app.helper.showErrorNotification) {
+        app.helper.showErrorNotification({ message: msg });
+        return;
+      }
     }
-    return cat;
-  }
-
-  function openConvertOrderCategoryModal(options) {
-    options = options || {};
-    var introHtml = options.introHtml || "";
-    var onConfirm = options.onConfirm || function () {};
-    var radioName = options.radioName || "mk_leads_convert_order_category";
-
-    if (!window.app || !app.helper || !app.helper.showModal) {
-      var cat = promptOrderCategory();
-      if (cat) onConfirm(cat);
-      return;
-    }
-
-    var modalHtml =
-      '<div class="modal-dialog mk-lead-convert-modal mk-leads-bulk-convert-modal">' +
-      '<div class="modal-content">' +
-      '<div class="modal-header">' +
-      '<button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
-      '<h4 class="modal-title">Chuyển sang Cơ hội</h4>' +
-      "</div>" +
-      '<div class="modal-body">' +
-      '<p class="mk-lead-convert-modal__intro">' +
-      introHtml +
-      "</p>" +
-      '<div class="mk-lead-convert-modal__choices" role="radiogroup" aria-label="Loại đơn hàng">' +
-      '<label class="mk-lead-convert-modal__choice is-selected">' +
-      '<input type="radio" name="' +
-      radioName +
-      '" value="Internal" checked />' +
-      '<span class="mk-lead-convert-modal__choice-body">' +
-      '<span class="mk-lead-convert-modal__choice-title">Nội bộ</span>' +
-      '<span class="mk-lead-convert-modal__choice-desc">Đơn nội bộ / bán hàng thông thường</span>' +
-      "</span></label>" +
-      '<label class="mk-lead-convert-modal__choice">' +
-      '<input type="radio" name="' +
-      radioName +
-      '" value="Project" />' +
-      '<span class="mk-lead-convert-modal__choice-body">' +
-      '<span class="mk-lead-convert-modal__choice-title">Dự án</span>' +
-      '<span class="mk-lead-convert-modal__choice-desc">Đơn dự án / triển khai theo dự án</span>' +
-      "</span></label>" +
-      "</div></div>" +
-      '<div class="modal-footer">' +
-      '<button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>' +
-      '<button type="button" class="btn btn-primary mk-leads-bulk-convert-modal__submit">Chuyển sang Cơ hội</button>' +
-      "</div></div></div>";
-
-    app.helper.showModal(modalHtml, {
-      backdrop: "static",
-      keyboard: false,
-      cb: function (container) {
-        var $root = container.find(".mk-leads-bulk-convert-modal");
-        $root.find(".mk-lead-convert-modal__choice").on("click", function () {
-          $root.find(".mk-lead-convert-modal__choice").removeClass("is-selected");
-          window.jQuery(this).addClass("is-selected");
-          window.jQuery(this).find('input[type="radio"]').prop("checked", true);
-        });
-        $root.find(".mk-leads-bulk-convert-modal__submit").on("click", function () {
-          var cat = $root.find('input[name="' + radioName + '"]:checked').val();
-          if (cat !== "Internal" && cat !== "Project") {
-            window.alert("Vui lòng chọn Nội bộ hoặc Dự án.");
-            return;
-          }
-          app.helper.hideModal();
-          onConfirm(cat);
-        });
-      },
-    });
+    var old = document.getElementById("mk-leads-convert-toast");
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+    var el = document.createElement("div");
+    el.id = "mk-leads-convert-toast";
+    el.className = "mk-leads-convert-toast" + (isError ? " is-error" : "");
+    el.setAttribute("role", "status");
+    el.textContent = msg;
+    document.body.appendChild(el);
+    window.setTimeout(function () {
+      el.classList.add("is-show");
+    }, 10);
+    window.setTimeout(function () {
+      el.classList.remove("is-show");
+      window.setTimeout(function () {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }, 280);
+    }, 2800);
   }
 
   function openBulkConvertModal(rows) {
     var convertible = rows.filter(isLeadConvertible);
     if (!convertible.length) {
-      window.alert("Các lead đã chọn đều đã chuyển sang Cơ hội hoặc không thể chuyển.");
+      showConvertToast("Các lead đã chọn đều đã chuyển sang Cơ hội hoặc không thể chuyển.", true);
       return;
     }
-    openConvertOrderCategoryModal({
-      radioName: "mk_leads_bulk_convert_order_category",
-      introHtml:
-        "Chuyển <strong>" +
-        convertible.length +
-        "</strong> lead đã chọn sang <strong>Liên hệ + Tổ chức + Cơ hội</strong>. Chọn loại đơn hàng:",
-      onConfirm: function (cat) {
-        runBulkConvert(rows, cat);
-      },
-    });
+    runBulkConvert(rows, "Internal");
   }
 
   function markInlineConvertDone(btn, potentialUrl) {
@@ -445,6 +389,8 @@
     btn.classList.add("is-converted");
     btn.disabled = true;
     btn.setAttribute("aria-disabled", "true");
+    btn.setAttribute("hidden", "hidden");
+    btn.style.display = "none";
     btn.setAttribute("title", "Đã chuyển sang Cơ hội");
     var label = btn.querySelector("span");
     if (label) label.textContent = "Đã chuyển";
@@ -769,11 +715,7 @@
           var url =
             convert.redirect ||
             convert.potentialUrl ||
-            (convert.potentialId
-              ? "index.php?module=Potentials&view=Detail&record=" +
-                convert.potentialId +
-                "&app=SALES"
-              : "");
+            "index.php?module=Potentials&view=List&app=SALES";
           if (window.app && app.helper && app.helper.showSuccessNotification) {
             app.helper.showSuccessNotification({
               message: "Nghe máy — đã chuyển sang Cơ hội.",
@@ -814,6 +756,47 @@
     return { id: id, crmid: id, canConvert: true };
   }
 
+  function runInlineConvert(btn, lead, recordId) {
+    if (window.app && app.helper && app.helper.showProgress) {
+      app.helper.showProgress();
+    }
+    convertSingleLead(leadCrmId(lead) || recordId, "Internal")
+      .then(function (res) {
+        if (window.app && app.helper && app.helper.hideProgress) {
+          app.helper.hideProgress();
+        }
+        var potentialUrl =
+          (res && (res.redirect || res.potentialUrl)) ||
+          "index.php?module=Potentials&view=List&app=SALES";
+        if (lead) {
+          lead.converted = true;
+          lead.canConvert = false;
+          if (res && res.potentialId) lead.potentialId = res.potentialId;
+        }
+        markInlineConvertDone(btn, potentialUrl);
+        var refresh = store && store.refreshLeadsList ? store.refreshLeadsList() : Promise.resolve();
+        return refresh.then(function () {
+          renderAll();
+          if (res && res.already_converted) {
+            showConvertToast("Lead này đã được chuyển trước đó.");
+          } else {
+            showConvertToast("Đã chuyển sang Cơ hội.");
+          }
+          if (potentialUrl) {
+            window.setTimeout(function () {
+              window.location.href = potentialUrl;
+            }, 450);
+          }
+        });
+      })
+      .catch(function (err) {
+        if (window.app && app.helper && app.helper.hideProgress) {
+          app.helper.hideProgress();
+        }
+        showConvertToast((err && err.message) || "Chuyển sang Cơ hội thất bại", true);
+      });
+  }
+
   function openInlineConvertModal(btn) {
     var recordId = String((btn && btn.getAttribute("data-record-id")) || "");
     if (!recordId) {
@@ -828,67 +811,23 @@
       (btn && (btn.classList.contains("is-converted") || btn.disabled))
     ) {
       var url = btn && btn.getAttribute("data-potential-url");
-      window.alert("Lead này đã được chuyển sang Cơ hội.");
-      if (url && window.confirm("Mở Cơ hội?")) {
-        window.location.href = url;
+      showConvertToast("Lead này đã được chuyển sang Cơ hội.");
+      if (url) {
+        window.setTimeout(function () {
+          window.location.href = url;
+        }, 400);
       }
       return;
     }
 
-    openConvertOrderCategoryModal({
-      radioName: "mk_leads_inline_convert_order_category",
-      introHtml:
-        "Chuyển lead sang <strong>Liên hệ + Tổ chức + Cơ hội</strong>. Chọn loại đơn hàng:",
-      onConfirm: function (cat) {
-        if (window.app && app.helper && app.helper.showProgress) {
-          app.helper.showProgress();
-        }
-        convertSingleLead(leadCrmId(lead) || recordId, cat)
-          .then(function (res) {
-            if (window.app && app.helper && app.helper.hideProgress) {
-              app.helper.hideProgress();
-            }
-            var potentialUrl =
-              (res && (res.redirect || res.potentialUrl)) ||
-              (res && res.potentialId
-                ? "index.php?module=Potentials&view=Detail&record=" +
-                  res.potentialId +
-                  "&app=SALES"
-                : "");
-            if (lead) {
-              lead.converted = true;
-              lead.canConvert = false;
-              if (res && res.potentialId) lead.potentialId = res.potentialId;
-            }
-            markInlineConvertDone(btn, potentialUrl);
-            var refresh = store && store.refreshLeadsList ? store.refreshLeadsList() : Promise.resolve();
-            return refresh.then(function () {
-              renderAll();
-              if (res && res.already_converted) {
-                window.alert("Lead này đã được chuyển trước đó.");
-              } else {
-                window.alert("Đã chuyển sang Cơ hội.");
-              }
-              if (potentialUrl && window.confirm("Mở Cơ hội vừa tạo?")) {
-                window.location.href = potentialUrl;
-              }
-            });
-          })
-          .catch(function (err) {
-            if (window.app && app.helper && app.helper.hideProgress) {
-              app.helper.hideProgress();
-            }
-            window.alert((err && err.message) || "Chuyển sang Cơ hội thất bại");
-          });
-      },
-    });
+    runInlineConvert(btn, lead, recordId);
   }
 
   function runBulkConvert(rows, orderCategory) {
     var convertible = rows.filter(isLeadConvertible);
     var skipped = rows.length - convertible.length;
     if (!convertible.length) {
-      window.alert("Không có lead nào có thể chuyển sang Cơ hội.");
+      showConvertToast("Không có lead nào có thể chuyển sang Cơ hội.", true);
       return;
     }
     if (window.app && app.helper && app.helper.showProgress) {
@@ -923,7 +862,7 @@
           if (already) msg += " " + already + " đã chuyển trước đó.";
           if (skipped) msg += " " + skipped + " bỏ qua.";
           if (failed) msg += " " + failed + " lỗi.";
-          window.alert(msg);
+          showConvertToast(msg, failed > 0);
         });
       })
       .catch(function () {
@@ -948,6 +887,8 @@
     var f = state.filters;
     var q = f.search.trim().toLowerCase();
     return leads.filter(function (l) {
+      // Converted leads live only as Opp — never show them on Leads list.
+      if (l.converted || l.potentialId || l.canConvert === false) return false;
       var d = logic.derive(l);
       if (q) {
         var hay = [l.name, l.phone, l.email || "", l.companyName || "", l.area || "", addressOf(l), regionKeyOf(l)].join(" ").toLowerCase();
@@ -1060,12 +1001,11 @@
       { label: t("JS_MK_KPI_NEW_TODAY", "Mới hôm nay"), value: kpis.newToday, trend: "+12%", up: true },
       { label: t("JS_MK_KPI_QUALIFIED", "Đủ điều kiện"), value: kpis.qualified, trend: "+5%", up: true },
       { label: t("JS_MK_KPI_REPEAT", "Mua lại"), value: kpis.repeat, trend: "+3%", up: true },
-      { label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: kpis.gold, trend: "+2", up: true },
       { label: t("JS_MK_KPI_STALE", "Cần CSKH"), value: kpis.stale, trend: "-4%", up: false, linkAlerts: true },
       { label: t("JS_MK_KPI_CONV", "Tỷ lệ chuyển đổi"), value: kpis.conv + "%", trend: "+1.4%", up: true },
     ];
     var kpiIcons = (icons && icons.KPI) || [];
-    var kpiTones = (icons && icons.KPI_TONES) || ["blue", "violet", "emerald", "cyan", "amber", "rose", "indigo"];
+    var kpiTones = (icons && icons.KPI_TONES) || ["blue", "violet", "emerald", "cyan", "rose", "indigo"];
     host.innerHTML = items
       .map(function (k, i) {
         var tone = kpiTones[i] || "blue";
@@ -1176,7 +1116,6 @@
       fieldSelect(t("JS_MK_FILTER_SOURCE", "Nguồn"), "source", f.source, SOURCE_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_PROGRAM", "Chương trình"), "program", f.program, PROGRAM_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_PURCHASE", "Trạng thái mua"), "purchase", f.purchase, PURCHASE_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
-      fieldSelect(t("JS_MK_FILTER_TIER", "Hạng"), "tier", f.tier, TIER_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", f.owner, owners.map(function (o) { return [o, o]; })) +
       fieldSelect(t("JS_MK_FILTER_AREA", "Khu vực"), "area", f.area, areas.map(function (a) { return [a, a]; })) +
       fieldSelect(t("JS_MK_FILTER_CUSTOMER_TYPE", "Loại khách"), "segment", f.segment, Object.keys(segmentLabels).map(function (k) { return [k, segmentLabels[k]]; })) +
@@ -1351,8 +1290,16 @@
       e.stopPropagation();
       var chip = e.target.closest && e.target.closest(".mk-leads-tag-chip");
       if (chip) {
-        chip.classList.toggle("is-on");
-        chip.setAttribute("aria-pressed", chip.classList.contains("is-on") ? "true" : "false");
+        var group = chip.closest(".mk-leads-tag-popover__group");
+        var turningOn = !chip.classList.contains("is-on");
+        if (group && turningOn) {
+          group.querySelectorAll(".mk-leads-tag-chip.is-on").forEach(function (el) {
+            el.classList.remove("is-on");
+            el.setAttribute("aria-pressed", "false");
+          });
+        }
+        chip.classList.toggle("is-on", turningOn);
+        chip.setAttribute("aria-pressed", turningOn ? "true" : "false");
         return;
       }
       if (e.target.closest && (e.target.closest("[data-tag-cancel]") || e.target.closest(".mk-leads-tag-popover__close"))) {
@@ -1369,10 +1316,13 @@
           ref && ref.getCreateTagKeys ? ref.getCreateTagKeys() : [];
         (lead.tags || []).forEach(function (tg) {
           var k = normalizeTagKey(tg);
-          if (!k) return;
+          if (!k || TIER_TAGS.indexOf(k) >= 0) return;
           if (catalogKeys.indexOf(k) < 0 && nextTags.indexOf(k) < 0) {
             nextTags.push(k);
           }
+        });
+        nextTags = nextTags.filter(function (k) {
+          return TIER_TAGS.indexOf(normalizeTagKey(k)) < 0;
         });
         var saveBtn = e.target.closest("[data-tag-save]");
         if (saveBtn) saveBtn.disabled = true;

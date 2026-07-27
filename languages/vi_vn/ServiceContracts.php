@@ -34,6 +34,22 @@ $languageStrings = array(
 	'LBL_MK_COL_NOTES' => 'Ghi chú',
 	// Blocks
 	'LBL_SERVICE_CONTRACT_INFORMATION' => 'Chi tiết khách chuyển nhượng',
+	'LBL_MK_SC_FRANCHISE_FORM_SUB' => 'Nhập theo bảng DATA KHÁCH HÀNG NHƯỢNG QUYỀN — mã AFF tự sinh khi lưu',
+	'LBL_MK_SC_FRANCHISE_INFO' => 'Thông tin khách nhượng quyền',
+	'LBL_MK_SC_INTERACTIONS' => 'Tương tác',
+	'LBL_MK_SC_RECEIVED_DATE' => 'Ngày tiếp nhận Thông tin KH',
+	'LBL_MK_SC_FULL_NAME' => 'Họ tên',
+	'LBL_MK_SC_PHONE' => 'SĐT',
+	'LBL_MK_SC_BUSINESS_NOTE' => 'Đ/c kinh doanh / Note',
+	'LBL_MK_SC_FRANCHISE_STATUS' => 'Trạng Thái',
+	'LBL_MK_SC_FANPAGE' => 'Fanpage',
+	'LBL_MK_SC_DATA_SOURCE' => 'Nguồn data',
+	'LBL_MK_SC_REFERRER' => 'Thông tin Người giới thiệu',
+	'LBL_MK_SC_CONTACT_STATUS' => 'Liên hệ',
+	'LBL_MK_SC_INTERACTION_1' => 'Tương tác lần 1',
+	'LBL_MK_SC_INTERACTION_2' => 'Tương tác lần 2',
+	'LBL_MK_SC_INTERACTION_3' => 'Tương tác lần 3',
+	'LBL_MK_SC_INTERACTION_MATERIALS' => 'Tương tác tự nguyên liệu máy móc',
 	
 	//Field Labels
 	'Contract No' => 'Mã bản ghi',

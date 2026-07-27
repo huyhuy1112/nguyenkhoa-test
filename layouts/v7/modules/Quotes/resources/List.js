@@ -6,16 +6,27 @@
   "use strict";
 
   var SEARCH_PLACEHOLDERS = {
+    quote_no: "Số",
     subject: "Subject",
-    quotestage: "Quote stage",
-    account_id: "Organization",
-    potential_id: "Opportunity",
+    quotestage: "Trạng thái",
+    account_id: "Khách hàng",
+    potential_id: "Hoạt động",
     contact_id: "Contact",
-    total: "Total",
-    hdnGrandTotal: "Total",
-    assigned_user_id: "Created by",
+    total: "Tổng",
+    hdnGrandTotal: "Tổng",
+    assigned_user_id: "Nhân viên sale",
     created_user_id: "Created by",
     smcreatorid: "Created by",
+  };
+
+  var HEADER_LABEL_OVERRIDES = {
+    quote_no: "Số",
+    account_id: "Khách hàng",
+    assigned_user_id: "Nhân viên sale",
+    potential_id: "Hoạt động",
+    total: "Tổng",
+    hdnGrandTotal: "Tổng",
+    quotestage: "Trạng thái",
   };
 
   var CREATOR_SELECTORS = [
@@ -404,11 +415,11 @@
     });
     rows.push([]);
     rows.push([
-      "Mã hàng",
+      "SKU",
       "Tên hàng",
       "Số lượng",
       "Đơn giá",
-      "Giảm giá",
+      "Thuế",
       "Giá bán",
       "Thành tiền",
     ]);
@@ -2259,6 +2270,7 @@
     relocatePagination();
     markTable();
     moveTotalColumnAfterAssigned($table);
+    relabelListHeaders();
     fixEncodedTextCells($table);
     fixCurrencySpacing($table);
     enhanceQuoteStage(document);
@@ -2275,6 +2287,44 @@
     setReadyState();
   }
 
+  function relabelListHeaders() {
+    var $table = $("#listview-table");
+    if (!$table.length) {
+      return;
+    }
+    $table.find("thead tr.listViewContentHeader th").each(function () {
+      var $th = $(this);
+      var field =
+        $th.find("a[data-columnname]").attr("data-columnname") ||
+        $th.attr("data-columnname") ||
+        "";
+      var label = HEADER_LABEL_OVERRIDES[field];
+      if (!label) {
+        return;
+      }
+      var $link = $th.find("a.listViewContentHeaderValues").first();
+      if ($link.length) {
+        var $span = $link.find(".mk-so-pos-th-label").first();
+        if ($span.length) {
+          $span.text(label);
+        } else {
+          var $text = $link.contents().filter(function () {
+            return this.nodeType === 3;
+          });
+          if ($text.length) {
+            $text[0].nodeValue = label;
+          } else {
+            $link.append(
+              $("<span>", { class: "mk-so-pos-th-label", text: label })
+            );
+          }
+        }
+      } else {
+        $th.find(".listViewEntryValue, .listViewHeaders").first().text(label);
+      }
+    });
+  }
+
   function init() {
     if (!isQuotesSalesList()) {
       return;
@@ -2286,6 +2336,7 @@
     bindQtSelectionEvents();
     bindInlineDetailCapture();
     patchInlineDetailRowClick();
+    relabelListHeaders();
 
     var root = $("#listViewContent");
     if (!root.length) {

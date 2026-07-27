@@ -110,6 +110,64 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 		require_once 'modules/Quotes/helpers/QuoteBaService.php';
 		Quotes_QuoteBaService_Helper::applySaveDefaults($request);
 
+		require_once 'include/utils/MkEntityNumbering.php';
+		MkEntityNumbering::ensureModuleSequence('Quotes');
+
 		return parent::saveRecord($request);
+	}
+
+	public function process(Vtiger_Request $request) {
+		$openPrint = trim((string) $request->get('mk_open_print')) === '1';
+		if (!$openPrint) {
+			parent::process($request);
+			return;
+		}
+		try {
+			$recordModel = $this->saveRecord($request);
+			$recordId = $recordModel ? (int) $recordModel->getId() : 0;
+			if ($recordId <= 0) {
+				parent::process($request);
+				return;
+			}
+			$loadUrl = 'index.php?module=Quotes&view=Edit&record=' . $recordId . '&app=SALES&mk_show_print=1';
+			if (ob_get_level() > 0) {
+				ob_clean();
+			}
+			header('Location: ' . $loadUrl);
+			exit;
+		} catch (DuplicateException $e) {
+			$requestData = $request->getAll();
+			$moduleName = $request->getModule();
+			unset($requestData['action']);
+			unset($requestData['__vtrftk']);
+			unset($requestData['mk_open_print']);
+			if ($request->isAjax()) {
+				$response = new Vtiger_Response();
+				$response->setError($e->getMessage(), $e->getDuplicationMessage(), $e->getMessage());
+				$response->emit();
+				return;
+			}
+			$requestData['view'] = 'Edit';
+			$requestData['duplicateRecords'] = $e->getDuplicateRecordIds();
+			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+			$viewer = new Vtiger_Viewer();
+			$viewer->assign('REQUEST_DATA', $requestData);
+			$viewer->assign('REQUEST_URL', $moduleModel->getCreateRecordUrl() . '&record=' . $request->get('record'));
+			$viewer->view('RedirectToEditView.tpl', 'Vtiger');
+		} catch (Exception $e) {
+			global $log;
+			if ($log) {
+				$log->error('Quotes print-preview save error: ' . $e->getMessage());
+			}
+			if ($request->isAjax()) {
+				$response = new Vtiger_Response();
+				$response->setError('Error', $e->getMessage(), $e->getMessage());
+				$response->emit();
+				return;
+			}
+			$viewer = new Vtiger_Viewer();
+			$viewer->assign('ERROR_MESSAGE', $e->getMessage());
+			$viewer->view('OperationNotPermitted.tpl', 'Vtiger');
+		}
 	}
 }

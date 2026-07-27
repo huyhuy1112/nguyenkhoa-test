@@ -42,9 +42,10 @@
 									<span class="mk-leads-check__ui" aria-hidden="true"></span>
 								</label>
 							</th>
+							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="converted_at"><span class="mk-leads-th__inner">Ngày chuyển<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="name"><span class="mk-leads-th__inner">{vtranslate('Contact Name', 'Contacts')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th" scope="col">{vtranslate('Office Phone', 'Contacts')}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('Account Name', 'Accounts')}</th>
+							<th class="mk-leads-th" scope="col">Địa chỉ</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_TAGS', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('da_cap_bang', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('da_cap_tai_khoan', 'Contacts')}</th>

@@ -78,8 +78,6 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		}
 
 		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
-			array('amount', 'Giá trị'),
-			array('sales_stage', 'Giai đoạn'),
 			array('closingdate', 'Ngày đóng'),
 			array('related_to', 'Tổ chức'),
 			array('contact_id', 'Liên hệ'),
@@ -112,7 +110,7 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 				'picklist_values' => array(),
 			),
 		);
-		array_splice($infoFields, 3, 0, $locationFields);
+		array_splice($infoFields, 1, 0, $locationFields);
 
 		$confirmKey = '';
 		$confirmLabel = '—';

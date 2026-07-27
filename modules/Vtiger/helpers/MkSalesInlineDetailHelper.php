@@ -287,7 +287,13 @@ class Vtiger_MkSalesInlineDetailHelper {
 		$viewer->assign('INLINE_EDIT_URL', $recordModel->getEditViewUrl() . '&app=' . $app);
 		$viewer->assign('INLINE_DETAIL_URL', $recordModel->getDetailViewUrl() . '&app=' . $app);
 		$viewer->assign('INLINE_INFO_FIELDS', $infoFields);
-		$viewer->assign('INLINE_ASSIGNED_USERS', $currentUser->getAccessibleUsersForModule($moduleName));
+		$assignedUsers = $currentUser->getAccessibleUsersForModule($moduleName);
+		if (is_array($assignedUsers)) {
+			foreach ($assignedUsers as $uid => $uname) {
+				$assignedUsers[$uid] = self::decodeText($uname);
+			}
+		}
+		$viewer->assign('INLINE_ASSIGNED_USERS', $assignedUsers);
 		$viewer->assign('INLINE_TAGS', self::buildInlineTags($moduleName, $recordModel->getId()));
 	}
 }

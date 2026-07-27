@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 12;
+  var COL_COUNT = 13;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -135,7 +135,7 @@
     return rows.filter(function (c) {
       var cats = categorize(c.tags);
       if (q) {
-        var hay = [c.name, c.title, c.account, c.email, c.phone, c.owner, (c.tags || []).join(" ")]
+        var hay = [c.name, c.title, c.account, c.address, c.email, c.phone, c.owner, (c.tags || []).join(" ")]
           .join(" ")
           .toLowerCase();
         if (hay.indexOf(q) < 0) return false;
@@ -160,7 +160,7 @@
     return rows.slice().sort(function (a, b) {
       var av = a[key];
       var bv = b[key];
-      if (key === "thoigian_dangky" || key === "thoigian_pcth" || key === "thoigian_mqbb") {
+      if (key === "thoigian_dangky" || key === "thoigian_pcth" || key === "thoigian_mqbb" || key === "converted_at") {
         av = av ? new Date(av).getTime() : 0;
         bv = bv ? new Date(bv).getTime() : 0;
         if (av < bv) return -1 * dir;
@@ -476,8 +476,16 @@
       e.stopPropagation();
       var chip = e.target.closest && e.target.closest(".mk-leads-tag-chip");
       if (chip) {
-        chip.classList.toggle("is-on");
-        chip.setAttribute("aria-pressed", chip.classList.contains("is-on") ? "true" : "false");
+        var group = chip.closest(".mk-leads-tag-popover__group");
+        var turningOn = !chip.classList.contains("is-on");
+        if (group && turningOn) {
+          group.querySelectorAll(".mk-leads-tag-chip.is-on").forEach(function (el) {
+            el.classList.remove("is-on");
+            el.setAttribute("aria-pressed", "false");
+          });
+        }
+        chip.classList.toggle("is-on", turningOn);
+        chip.setAttribute("aria-pressed", turningOn ? "true" : "false");
         return;
       }
       if (e.target.closest && (e.target.closest("[data-tag-cancel]") || e.target.closest(".mk-leads-tag-popover__close"))) {
@@ -553,13 +561,14 @@
             '<td class="mk-leads-td mk-leads-td--check"><label class="mk-leads-check">' +
             '<input type="checkbox" class="mk-leads-check__input mk-contacts-row-check" data-id="' + esc(c.id) + '"' + checked + " />" +
             '<span class="mk-leads-check__ui" aria-hidden="true"></span></label></td>' +
+            '<td class="mk-leads-td">' + dateCell(c.converted_at) + "</td>" +
             '<td class="mk-leads-td mk-leads-td--lead"><span class="mk-leads-lead-cell">' +
             ic("user") +
             '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' + detailUrl(c.crmid || c.id) + '">' + esc(c.name) + "</a>" +
             (c.title ? '<div class="mk-leads-sub">' + esc(c.title) + "</div>" : "") +
             "</span></span></td>" +
             '<td class="mk-leads-td">' + (c.phone ? esc(c.phone) : '<span class="mk-leads-muted">—</span>') + "</td>" +
-            '<td class="mk-leads-td">' + (c.account ? '<span class="mk-pill mk-pill--blue">' + esc(c.account) + "</span>" : '<span class="mk-leads-muted">—</span>') + "</td>" +
+            '<td class="mk-leads-td">' + (c.address ? esc(c.address) : '<span class="mk-leads-muted">—</span>') + "</td>" +
             '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-contact-id="' +
             esc(c.id) +
             '" title="Sửa thẻ">' +
@@ -906,6 +915,13 @@
         renderAll();
       });
     }
+
+    document.addEventListener("mk-contacts-list-field-updated", function (e) {
+      if (!e || !e.detail || !store || !store.patchContact) return;
+      var detail = e.detail;
+      if (!store.patchContact(detail.id, detail.patch || {})) return;
+      renderTable();
+    });
 
     if ($("mk-contacts-import-ic")) $("mk-contacts-import-ic").innerHTML = ic("import");
     if ($("mk-contacts-create-ic")) $("mk-contacts-create-ic").innerHTML = ic("plus");

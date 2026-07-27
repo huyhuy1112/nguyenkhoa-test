@@ -89,7 +89,10 @@ class SalesOrder_SaleInvoicePdf_Helper {
 		$pdf->setPrintFooter(false);
 		$pdf->SetCreator('Nguyên Khoa');
 		$pdf->SetAuthor($companyName);
-		$pdf->SetTitle('HÓA ĐƠN ĐẶT HÀNG ' . $docNo);
+		$isQuote = ($moduleName === 'Quotes');
+		$docTitle = $isQuote ? 'BÁO GIÁ' : 'HÓA ĐƠN ĐẶT HÀNG';
+		$docNoLabel = $isQuote ? 'Mã báo giá: ' : 'Mã đơn hàng: ';
+		$pdf->SetTitle($docTitle . ' ' . $docNo);
 		$pdf->SetMargins(14, 12, 14);
 		$pdf->SetAutoPageBreak(true, 14);
 		$pdf->AddPage();
@@ -115,9 +118,9 @@ class SalesOrder_SaleInvoicePdf_Helper {
 		$pdf->Ln(4);
 
 		$pdf->SetFont(self::FONT, 'B', 13);
-		$pdf->Cell($pageW, 7, self::utf('HÓA ĐƠN ĐẶT HÀNG'), 0, 1, 'C');
+		$pdf->Cell($pageW, 7, self::utf($docTitle), 0, 1, 'C');
 		$pdf->SetFont(self::FONT, '', 10);
-		$pdf->Cell($pageW, 5, self::utf('Mã đơn hàng: ' . $docNo), 0, 1, 'C');
+		$pdf->Cell($pageW, 5, self::utf($docNoLabel . $docNo), 0, 1, 'C');
 		$pdf->Cell($pageW, 5, self::utf($dateLabel), 0, 1, 'C');
 		$pdf->Ln(4);
 
