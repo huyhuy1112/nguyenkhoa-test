@@ -283,9 +283,12 @@ class Quotes_QuoteBaService_Helper {
 			$request->set('terms_conditions', self::stripSignatureFromTermsHtml($terms));
 		}
 
-		// New quotes always start as Nháp.
+		// New quotes: honor save mode (draft on leave / confirm on Lưu).
 		$recordId = (int) $request->get('record');
-		if ($recordId <= 0) {
+		$mode = strtolower(trim((string) $request->get('mk_quote_save_mode')));
+		if ($mode === 'confirm') {
+			$request->set('quotestage', self::resolveConfirmedQuoteStage());
+		} elseif ($mode === 'draft' || $recordId <= 0) {
 			$request->set('quotestage', self::resolveDraftQuoteStage());
 		}
 
@@ -367,6 +370,83 @@ class Quotes_QuoteBaService_Helper {
 			return $resolved;
 		}
 		$candidates = array('Nháp', 'Created', 'Draft', 'Đã tạo');
+		$resolved = self::resolveQuoteStageFromCandidates($candidates, 'Nháp');
+		return $resolved;
+	}
+
+	/**
+	 * Prefer "Báo giá"; fall back to legacy confirmed values if needed.
+	 */
+	public static function resolveConfirmedQuoteStage() {
+		static $resolved = null;
+		if ($resolved !== null) {
+			return $resolved;
+		}
+		$candidates = array('Báo giá', 'Xác nhận', 'Accepted', 'Confirmed', 'Chấp nhận', 'Delivered');
+		$resolved = self::resolveQuoteStageFromCandidates($candidates, 'Accepted');
+		return $resolved;
+	}
+
+	public static function isDraftQuoteStage($stage) {
+		$stage = trim((string) $stage);
+		if ($stage === '') {
+			return true;
+		}
+		$drafts = array('Nháp', 'Created', 'Draft', 'Đã tạo');
+		foreach ($drafts as $draft) {
+			if (strcasecmp($stage, $draft) === 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static function isConfirmedQuoteStage($stage) {
+		if (self::isDraftQuoteStage($stage)) {
+			return false;
+		}
+		$stage = trim((string) $stage);
+		if ($stage === '') {
+			return false;
+		}
+		$confirmed = array('Báo giá', 'Xác nhận', 'Accepted', 'Confirmed', 'Chấp nhận', 'Delivered');
+		foreach ($confirmed as $value) {
+			if (strcasecmp($stage, $value) === 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static function getQuoteStageDisplayLabel($stage) {
+		$stage = trim((string) $stage);
+		if ($stage === '') {
+			return '';
+		}
+		$map = array(
+			'Created' => 'Nháp',
+			'Nháp' => 'Nháp',
+			'Draft' => 'Nháp',
+			'Đã tạo' => 'Nháp',
+			'Báo giá' => 'Báo giá',
+			'Accepted' => 'Báo giá',
+			'Confirmed' => 'Báo giá',
+			'Xác nhận' => 'Báo giá',
+			'Chấp nhận' => 'Báo giá',
+			'Delivered' => 'Báo giá',
+		);
+		if (isset($map[$stage])) {
+			return $map[$stage];
+		}
+		foreach ($map as $key => $label) {
+			if (strcasecmp($key, $stage) === 0 || strcasecmp($label, $stage) === 0) {
+				return $label;
+			}
+		}
+		return $stage;
+	}
+
+	protected static function resolveQuoteStageFromCandidates(array $candidates, $fallback) {
 		try {
 			$moduleModel = Vtiger_Module_Model::getInstance('Quotes');
 			$fieldModel = $moduleModel ? Vtiger_Field_Model::getInstance('quotestage', $moduleModel) : null;
@@ -376,13 +456,11 @@ class Quotes_QuoteBaService_Helper {
 			if (is_array($values) && !empty($values)) {
 				foreach ($candidates as $candidate) {
 					if (isset($values[$candidate])) {
-						$resolved = $candidate;
-						return $resolved;
+						return $candidate;
 					}
 					foreach ($values as $key => $label) {
 						if (strcasecmp((string) $key, $candidate) === 0 || strcasecmp((string) $label, $candidate) === 0) {
-							$resolved = (string) $key;
-							return $resolved;
+							return (string) $key;
 						}
 					}
 				}
@@ -390,7 +468,6 @@ class Quotes_QuoteBaService_Helper {
 		} catch (Exception $e) {
 			// fall through
 		}
-		$resolved = 'Nháp';
-		return $resolved;
+		return $fallback;
 	}
 }

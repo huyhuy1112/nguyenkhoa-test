@@ -59,6 +59,10 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('INLINE_EDIT_URL', $recordModel->getEditViewUrl() . '&app=SALES');
 		$viewer->assign('INLINE_DETAIL_URL', $recordModel->getDetailViewUrl() . '&app=SALES');
 		$viewer->assign('INLINE_CONFIRM_URL', 'index.php?module=Quotes&action=ConfirmSalesOrder&record=' . (int) $recordId);
+		require_once 'modules/Quotes/helpers/QuoteBaService.php';
+		$quoteStage = (string) $recordModel->get('quotestage');
+		$viewer->assign('INLINE_QUOTE_STAGE', $quoteStage);
+		$viewer->assign('INLINE_CAN_CONFIRM_ORDER', Quotes_QuoteBaService_Helper::isConfirmedQuoteStage($quoteStage));
 		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=Quotes&action=ExportPDF&record=' . (int) $recordId . '&preview=1');
 		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=Quotes&action=ExportPDF&record=' . (int) $recordId);
 		$currentUser = Users_Record_Model::getCurrentUserModel();
@@ -168,6 +172,48 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		$displayProducts[1]['final_details']['grandTotal'] = $formatMoney($grand);
 		$displayProducts[1]['final_details']['amount_in_words'] = Quotes_QuoteBaService_Helper::amountInWordsVi($grand);
 
+		$displayProducts = $this->enrichInlineLineTax($displayProducts, $rawProducts, $subTotal, $discount, $tax, $recordModel, $formatMoney);
+
+		return $displayProducts;
+	}
+
+	/**
+	 * Group-tax quotes do not populate per-line taxTotal in core inventory; distribute for inline list.
+	 */
+	protected function enrichInlineLineTax(array $displayProducts, array $rawProducts, $subTotal, $discount, $tax, Vtiger_Record_Model $recordModel, callable $formatMoney) {
+		$taxableBase = max(0, (float) $subTotal - (float) $discount);
+		$mkVatPercent = 8.0;
+		$candidatePct = (float) $recordModel->get('mk_vat_percent');
+		if ($candidatePct > 0 && $candidatePct <= 100) {
+			$mkVatPercent = $candidatePct;
+		}
+
+		$productsCount = php7_count($rawProducts);
+		for ($i = 1; $i <= $productsCount; $i++) {
+			if (!isset($displayProducts[$i]) || empty($rawProducts[$i]['hdnProductId' . $i])) {
+				continue;
+			}
+			$existingTax = (float) ($rawProducts[$i]['taxTotal' . $i] ?? 0);
+			if ($existingTax > 0) {
+				$displayProducts[$i]['taxTotal' . $i] = $formatMoney($existingTax);
+				continue;
+			}
+
+			$lineTotal = (float) ($rawProducts[$i]['productTotal' . $i] ?? 0);
+			if ($lineTotal <= 0) {
+				$lineTotal = (float) ($rawProducts[$i]['totalAfterDiscount' . $i] ?? 0);
+			}
+			$lineTax = 0.0;
+			if ($lineTotal > 0) {
+				if ($taxableBase > 0 && $tax > 0) {
+					$lineTax = round(((float) $tax) * $lineTotal / $taxableBase);
+				} elseif ($mkVatPercent > 0) {
+					$lineTax = round($lineTotal * $mkVatPercent / 100);
+				}
+			}
+			$displayProducts[$i]['taxTotal' . $i] = $formatMoney($lineTax);
+		}
+
 		return $displayProducts;
 	}
 
@@ -220,6 +266,12 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 			'Nháp' => 'Nháp',
 			'Draft' => 'Nháp',
 			'Đã tạo' => 'Nháp',
+			'Báo giá' => 'Báo giá',
+			'Accepted' => 'Báo giá',
+			'Confirmed' => 'Báo giá',
+			'Xác nhận' => 'Báo giá',
+			'Chấp nhận' => 'Báo giá',
+			'Delivered' => 'Báo giá',
 		);
 	}
 
@@ -348,6 +400,19 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		$picklistValues = array();
 		if ($dataType === 'picklist') {
 			$picklistValues = $fieldModel->getPicklistValues();
+			if ($this->isQuoteStageFieldName($fieldName) && is_array($picklistValues)) {
+				$mapped = array();
+				foreach ($picklistValues as $key => $label) {
+					$mapped[$key] = $this->resolveQuoteStageLabel($key);
+					if ($mapped[$key] === $key) {
+						$mapped[$key] = $this->resolveQuoteStageLabel($label);
+					}
+					if ($mapped[$key] === $key) {
+						$mapped[$key] = $label;
+					}
+				}
+				$picklistValues = $mapped;
+			}
 		}
 		$readOnlyFields = array('smcreatorid', 'created_user_id', 'createdtime', 'modifiedtime', 'modifiedby');
 		return array(

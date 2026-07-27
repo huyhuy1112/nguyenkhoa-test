@@ -1,7 +1,7 @@
 {* KiotViet-style inline quote detail (expanded under list row) *}
 {strip}
 {assign var=FINAL_DETAILS value=$RELATED_PRODUCTS.1.final_details}
-<div class="mk-so-inline-detail" data-record-id="{$RECORD->getId()}" data-module="Quotes" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-edit-url="{$INLINE_EDIT_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=Quotes&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$FINAL_DETAILS.amount_in_words|default:''|escape}" data-created-date="{$RECORD->getDisplayValue('createdtime')|escape}">
+<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="Quotes" data-quote-stage="{$INLINE_QUOTE_STAGE|default:''|escape}" data-can-confirm-order="{if !empty($INLINE_CAN_CONFIRM_ORDER)}1{else}0{/if}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-edit-url="{$INLINE_EDIT_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=Quotes&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$FINAL_DETAILS.amount_in_words|default:''|escape}" data-created-date="{$RECORD->getDisplayValue('createdtime')|escape}">
 	<div class="mk-so-inline-detail__tabs" role="tablist">
 		<button type="button" class="mk-so-inline-detail__tab is-active" role="tab" aria-selected="true">Thông tin</button>
 	</div>
@@ -10,9 +10,6 @@
 		<div class="mk-so-inline-detail__hero-main">
 			<div class="mk-so-inline-detail__customer">
 				<span class="mk-so-inline-detail__customer-name">{$INLINE_CUSTOMER_NAME|escape}</span>
-				<button type="button" class="mk-so-inline-detail__edit-toggle" title="Chỉnh sửa" aria-label="Chỉnh sửa" aria-pressed="false">
-					<i class="fa fa-pencil" aria-hidden="true"></i>
-				</button>
 			</div>
 			<div class="mk-so-inline-detail__order-no">{$RECORD->getDisplayValue('quote_no')}</div>
 		</div>
@@ -141,7 +138,7 @@
 				<i class="fa fa-copy" aria-hidden="true"></i>
 				<span>Nhân bản</span>
 			</a>
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn" data-confirm-url="{$INLINE_CONFIRM_URL|escape}" title="Xác nhận và chuyển thành đơn hàng">
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn{if empty($INLINE_CAN_CONFIRM_ORDER)} is-hidden{/if}" data-confirm-url="{$INLINE_CONFIRM_URL|escape}" title="Xác nhận và chuyển thành đơn hàng">
 				<i class="fa fa-shopping-cart" aria-hidden="true"></i>
 				<span>Xác nhận đơn hàng</span>
 			</button>

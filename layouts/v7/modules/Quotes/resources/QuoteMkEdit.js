@@ -6,6 +6,10 @@
 
 	var MK_BUILD = '20260724_quote_customer6';
 	var autosaveTimer;
+	var draftAutosaveTimer;
+	var draftSaveInFlight = false;
+	var confirmSaveRequested = false;
+	var formDirty = false;
 	var TERMS_MODAL_ID = 'mkQtTermsModal';
 	var TERMS_EDITOR_ID = 'mkQtTermsEditor';
 	var termsModalOpen = false;
@@ -1087,35 +1091,285 @@
 			});
 	}
 
-	function ensureDraftQuoteStage() {
-		var $stage = $form().find('select[name="quotestage"], [name="quotestage"]').first();
-		if (!$stage.length) {
-			return;
+	function ensureSaveModeField() {
+		var $f = $form();
+		if (!$f.length) {
+			return $();
 		}
-		var preferred = ['Nháp', 'Created', 'Draft', 'Đã tạo'];
-		var current = $.trim($stage.val() || '');
+		var $mode = $f.find('input[name="mk_quote_save_mode"]');
+		if (!$mode.length) {
+			$mode = $('<input type="hidden" name="mk_quote_save_mode" value="draft" />');
+			$f.append($mode);
+		}
+		var $ajax = $f.find('input[name="mk_quote_ajax"]');
+		if (!$ajax.length) {
+			$ajax = $('<input type="hidden" name="mk_quote_ajax" value="0" />');
+			$f.append($ajax);
+		}
+		return $mode;
+	}
+
+	function setQuoteSaveMode(mode) {
+		var $mode = ensureSaveModeField();
+		$mode.val(mode === 'confirm' ? 'confirm' : 'draft');
+		$form().find('input[name="mk_quote_ajax"]').val('0');
+	}
+
+	function pickQuoteStageValue($stage, preferred) {
 		var pick = '';
-		preferred.forEach(function (cand) {
+		(preferred || []).forEach(function (cand) {
 			if (pick) {
 				return;
 			}
 			$stage.find('option').each(function () {
 				var v = String($(this).attr('value') || '');
 				var t = $.trim($(this).text() || '');
-				if (v === cand || t === cand || v.toLowerCase() === cand.toLowerCase() || t.toLowerCase() === cand.toLowerCase()) {
+				if (
+					v === cand ||
+					t === cand ||
+					v.toLowerCase() === cand.toLowerCase() ||
+					t.toLowerCase() === cand.toLowerCase()
+				) {
 					pick = v || cand;
 					return false;
 				}
 				return true;
 			});
 		});
-		if (!pick) {
-			pick = 'Nháp';
+		return pick;
+	}
+
+	function ensureDraftQuoteStage() {
+		var $stage = $form().find('select[name="quotestage"], [name="quotestage"]').first();
+		if (!$stage.length) {
+			return;
 		}
-		if (!current || preferred.indexOf(current) >= 0 || /nháp|draft|created|đã tạo/i.test(current)) {
-			$stage.val(pick);
-		}
+		var preferred = ['Nháp', 'Created', 'Draft', 'Đã tạo'];
+		var pick = pickQuoteStageValue($stage, preferred) || 'Nháp';
+		$stage.val(pick);
 		$('#mkQtRailStage, #mkQtHeadStageBadge').text('Nháp');
+	}
+
+	function ensureConfirmedQuoteStage() {
+		var $stage = $form().find('select[name="quotestage"], [name="quotestage"]').first();
+		if (!$stage.length) {
+			return;
+		}
+		var preferred = ['Báo giá', 'Xác nhận', 'Accepted', 'Confirmed', 'Chấp nhận', 'Delivered'];
+		var pick = pickQuoteStageValue($stage, preferred) || 'Accepted';
+		$stage.val(pick);
+		$('#mkQtRailStage, #mkQtHeadStageBadge').text('Báo giá');
+	}
+
+	function quoteCanDraftSave() {
+		var $f = $form();
+		if (!$f.length || isSalesOrder()) {
+			return false;
+		}
+		var subject = $.trim($f.find('[name="subject"]').val() || '');
+		var contactId = $.trim($f.find('[name="contact_id"]').val() || '');
+		var potentialId = $.trim($f.find('[name="potential_id"]').val() || '');
+		return !!(subject || contactId || potentialId);
+	}
+
+	function applyDraftRecordId(recordId) {
+		recordId = String(recordId || '');
+		if (!recordId || !/^\d+$/.test(recordId)) {
+			return;
+		}
+		var $f = $form();
+		var $record = $f.find('[name="record"], #recordId').first();
+		if ($record.length) {
+			$record.val(recordId);
+		} else {
+			$f.append($('<input type="hidden" name="record" />').val(recordId));
+		}
+		try {
+			var params = new URLSearchParams(window.location.search || '');
+			if (params.get('record') !== recordId) {
+				params.set('record', recordId);
+				params.set('module', 'Quotes');
+				params.set('view', 'Edit');
+				if (!params.get('app')) {
+					params.set('app', 'SALES');
+				}
+				var next =
+					window.location.pathname +
+					'?' +
+					params.toString() +
+					(window.location.hash || '');
+				if (window.history && window.history.replaceState) {
+					window.history.replaceState({}, document.title, next);
+				}
+			}
+		} catch (e) {
+			/* ignore */
+		}
+	}
+
+	function getInventoryEditInstance() {
+		try {
+			if (typeof Quotes_Edit_Js !== 'undefined' && Quotes_Edit_Js.getInstance) {
+				return Quotes_Edit_Js.getInstance();
+			}
+			if (typeof SalesOrder_Edit_Js !== 'undefined' && SalesOrder_Edit_Js.getInstance) {
+				return SalesOrder_Edit_Js.getInstance();
+			}
+			if (typeof Inventory_Edit_Js !== 'undefined' && Inventory_Edit_Js.getInstance) {
+				return Inventory_Edit_Js.getInstance();
+			}
+		} catch (e) {
+			/* ignore */
+		}
+		return null;
+	}
+
+	function syncAddressRailToForm() {
+		var $f = $form();
+		if (!$f.length) {
+			return;
+		}
+		if (window.MkQuoteBa && typeof MkQuoteBa.syncAddressRailToForm === 'function') {
+			MkQuoteBa.syncAddressRailToForm($f);
+		}
+	}
+
+	function syncFormBeforeSave() {
+		syncTermsToSource();
+		syncAddressRailToForm();
+		syncInventoryFormBeforeSave();
+	}
+
+	function syncInventoryFormBeforeSave() {
+		var $f = $form();
+		if (!$f.length) {
+			return;
+		}
+		var inst = getInventoryEditInstance();
+		if (inst) {
+			try {
+				if (typeof inst.updateLineItemElementByOrder === 'function') {
+					inst.updateLineItemElementByOrder();
+				}
+				if (typeof inst.saveProductCount === 'function') {
+					inst.saveProductCount();
+				}
+				if (typeof inst.saveSubTotalValue === 'function') {
+					inst.saveSubTotalValue();
+				}
+				if (typeof inst.saveTotalValue === 'function') {
+					inst.saveTotalValue();
+				}
+				if (typeof inst.savePreTaxTotalValue === 'function') {
+					inst.savePreTaxTotalValue();
+				}
+			} catch (e) {
+				/* ignore */
+			}
+			return;
+		}
+		var rowCount = $f
+			.find('#lineItemTab tr.lineItemRow')
+			.not('.hide, .lineItemCloneCopy, #row0')
+			.length;
+		if (rowCount > 0) {
+			$f.find('#totalProductCount').val(rowCount);
+		}
+	}
+
+	function saveQuoteDraftAjax(opts) {
+		opts = opts || {};
+		if (isSalesOrder() || confirmSaveRequested || draftSaveInFlight) {
+			return $.Deferred().reject().promise();
+		}
+		if (!quoteCanDraftSave()) {
+			return $.Deferred().reject().promise();
+		}
+		var $f = $form();
+		if (!$f.length || !$f[0]) {
+			return $.Deferred().reject().promise();
+		}
+		syncFormBeforeSave();
+		setQuoteSaveMode('draft');
+		ensureDraftQuoteStage();
+		$f.find('input[name="mk_quote_ajax"]').val('1');
+		$f.find('#mkQtOpenPrint').val('0');
+
+		var deferred = $.Deferred();
+		draftSaveInFlight = true;
+		var formData = new FormData($f[0]);
+		formData.set('module', 'Quotes');
+		formData.set('action', 'Save');
+		formData.set('mk_quote_save_mode', 'draft');
+		formData.set('mk_quote_ajax', '1');
+		formData.set('mk_open_print', '0');
+
+		var finish = function (ok, payload) {
+			draftSaveInFlight = false;
+			$f.find('input[name="mk_quote_ajax"]').val('0');
+			if (ok) {
+				formDirty = false;
+				if (payload && payload.record) {
+					applyDraftRecordId(payload.record);
+				}
+				var $el = $('#mkQtAutosave');
+				$el.removeClass('is-dirty').addClass('is-saved');
+				$el.find('.mk-qt-autosave__text').text('Đã lưu nháp');
+				deferred.resolve(payload);
+			} else {
+				deferred.reject(payload);
+			}
+		};
+
+		if (opts.keepalive && window.fetch) {
+			try {
+				window.fetch('index.php', {
+					method: 'POST',
+					body: formData,
+					credentials: 'same-origin',
+					keepalive: true,
+				});
+				finish(true, {});
+			} catch (e) {
+				finish(false, e);
+			}
+			return deferred.promise();
+		}
+
+		$.ajax({
+			url: 'index.php',
+			type: 'POST',
+			data: formData,
+			processData: false,
+			contentType: false,
+			dataType: 'json',
+		})
+			.done(function (res) {
+				var result = res && (res.result || res);
+				if (result && (result.success || result.record)) {
+					finish(true, result);
+					return;
+				}
+				finish(false, res);
+			})
+			.fail(function (xhr) {
+				finish(false, xhr);
+			});
+
+		return deferred.promise();
+	}
+
+	function scheduleDraftAutosave() {
+		if (isSalesOrder() || confirmSaveRequested) {
+			return;
+		}
+		clearTimeout(draftAutosaveTimer);
+		draftAutosaveTimer = setTimeout(function () {
+			if (!formDirty || confirmSaveRequested) {
+				return;
+			}
+			saveQuoteDraftAjax();
+		}, 2500);
 	}
 
 	function buildContactReferenceHtml() {
@@ -1380,7 +1634,15 @@
 				$modal.find('#mkQtTermsSaveBtn').trigger('click');
 			}
 		}
-		syncTermsToSource();
+		syncFormBeforeSave();
+		if (!isSalesOrder()) {
+			setQuoteSaveMode(confirmSaveRequested ? 'confirm' : 'draft');
+			if (confirmSaveRequested) {
+				ensureConfirmedQuoteStage();
+			} else {
+				ensureDraftQuoteStage();
+			}
+		}
 		var $save = $form().find('.saveButton').first();
 		if ($save.length) {
 			$save.trigger('click');
@@ -1402,19 +1664,40 @@
 				}
 			});
 
-		function quotePrintReady() {
-			var $f = $form();
-			var subject = $.trim($f.find('[name="subject"]').val() || '');
-			var contactId = $.trim($f.find('[name="contact_id"]').val() || '');
-			var potentialId = $.trim($f.find('[name="potential_id"]').val() || '');
+		function quoteHasLineItems($f) {
 			var hasLine = false;
-			$f.find('input[name^="hdnProductId"]').each(function () {
+			$f.find('input[name^="hdnProductId"], input.selectedModuleId').each(function () {
 				if ($.trim($(this).val() || '') !== '') {
 					hasLine = true;
 					return false;
 				}
 			});
-			return !!(subject || contactId || potentialId) && hasLine;
+			if (hasLine) {
+				return true;
+			}
+			$f.find('#lineItemTab tr.lineItemRow')
+				.not('.hide, .lineItemCloneCopy, #row0')
+				.each(function () {
+					var id = $.trim(
+						$(this)
+							.find('input.selectedModuleId, input[name^="hdnProductId"]')
+							.first()
+							.val() || ''
+					);
+					if (id) {
+						hasLine = true;
+						return false;
+					}
+				});
+			return hasLine;
+		}
+
+		function quotePrintReady() {
+			var $f = $form();
+			var subject = $.trim($f.find('[name="subject"]').val() || '');
+			var contactId = $.trim($f.find('[name="contact_id"]').val() || '');
+			var potentialId = $.trim($f.find('[name="potential_id"]').val() || '');
+			return !!(subject || contactId || potentialId) && quoteHasLineItems($f);
 		}
 
 		function syncPrintBtnState() {
@@ -1579,10 +1862,17 @@
 					return;
 				}
 				if (recordId && /^\d+$/.test(recordId)) {
-					openCreatePrintPreview(recordId);
+					syncFormBeforeSave();
+					setQuoteSaveMode('draft');
+					ensureDraftQuoteStage();
+					$f.find('#mkQtOpenPrint').val('1');
+					triggerSave();
 					return;
 				}
-				// New quote: save first, then return to Edit and open overlay.
+				// New quote: save draft first, then return to Edit and open overlay.
+				confirmSaveRequested = false;
+				setQuoteSaveMode('draft');
+				ensureDraftQuoteStage();
 				$f.find('#mkQtOpenPrint').val('1');
 				triggerSave();
 			});
@@ -1590,9 +1880,24 @@
 		$form()
 			.off('change.mkQtPrintReady input.mkQtPrintReady')
 			.on('change.mkQtPrintReady input.mkQtPrintReady', 'input, select, textarea', syncPrintBtnState);
+		if (typeof app !== 'undefined' && app.event && typeof app.event.on === 'function') {
+			app.event
+				.off('post.lineItem.New.mkQtPrintReady')
+				.on('post.lineItem.New.mkQtPrintReady', function () {
+					syncPrintBtnState();
+					markDirty();
+				});
+		}
 		$(document)
 			.off('inventory_line_items_changed.mkQtPrintReady')
 			.on('inventory_line_items_changed.mkQtPrintReady', syncPrintBtnState);
+		var $lineTab = $form().find('#lineItemTab').get(0);
+		if ($lineTab && typeof MutationObserver !== 'undefined') {
+			var lineObs = new MutationObserver(function () {
+				syncPrintBtnState();
+			});
+			lineObs.observe($lineTab, { childList: true, subtree: true, attributes: true });
+		}
 		setTimeout(syncPrintBtnState, 0);
 		setTimeout(syncPrintBtnState, 400);
 		setTimeout(syncPrintBtnState, 1200);
@@ -1933,17 +2238,25 @@
 	}
 
 	function markDirty() {
+		formDirty = true;
 		var $el = $('#mkQtAutosave');
 		$el.addClass('is-dirty').removeClass('is-saved');
-		$el.find('.mk-qt-autosave__text').text('Unsaved changes');
+		$el.find('.mk-qt-autosave__text').text('Chưa lưu');
 		clearTimeout(autosaveTimer);
 		autosaveTimer = setTimeout(function () {
 			$el.removeClass('is-dirty').addClass('is-saved');
-			$el.find('.mk-qt-autosave__text').text('Ready to save');
+			$el.find('.mk-qt-autosave__text').text('Sẵn sàng lưu');
 		}, 1800);
+		scheduleDraftAutosave();
 	}
 
 	function bindActions() {
+		ensureSaveModeField();
+		if (!isSalesOrder()) {
+			setQuoteSaveMode('draft');
+			ensureDraftQuoteStage();
+		}
+
 		$('#mkQtSaveTop, #mkSoSaveTop')
 			.off('click.mkQtSave')
 			.on('click.mkQtSave', function (e) {
@@ -1952,6 +2265,10 @@
 					window.__mkSoCreateSave(e);
 					return;
 				}
+				confirmSaveRequested = true;
+				clearTimeout(draftAutosaveTimer);
+				setQuoteSaveMode('confirm');
+				ensureConfirmedQuoteStage();
 				triggerSave();
 			});
 
@@ -1959,6 +2276,10 @@
 			.off('click.mkQtSaveSend')
 			.on('click.mkQtSaveSend', function (e) {
 				e.preventDefault();
+				confirmSaveRequested = true;
+				clearTimeout(draftAutosaveTimer);
+				setQuoteSaveMode('confirm');
+				ensureConfirmedQuoteStage();
 				triggerSave();
 			});
 
@@ -1979,6 +2300,7 @@
 				setTimeout(function () {
 					fixFormDisplayEncoding();
 					syncRail();
+					markDirty();
 				}, 0);
 			});
 
@@ -1988,6 +2310,7 @@
 				setTimeout(function () {
 					fixFormDisplayEncoding();
 					syncRail();
+					markDirty();
 				}, 0);
 			});
 
@@ -2003,9 +2326,39 @@
 						window.__mkSoCreateSave(e);
 						return;
 					}
+					confirmSaveRequested = true;
+					clearTimeout(draftAutosaveTimer);
+					setQuoteSaveMode('confirm');
+					ensureConfirmedQuoteStage();
 					triggerSave();
 				}
 			});
+
+		if (!isSalesOrder()) {
+			if (typeof app !== 'undefined' && app.event && typeof app.event.on === 'function') {
+				app.event
+					.off('post.lineItem.New.mkQtDraft')
+					.on('post.lineItem.New.mkQtDraft', function () {
+						markDirty();
+					});
+			}
+
+			$(window)
+				.off('pagehide.mkQtDraft beforeunload.mkQtDraft')
+				.on('pagehide.mkQtDraft', function () {
+					if (confirmSaveRequested || !formDirty) {
+						return;
+					}
+					saveQuoteDraftAjax({ keepalive: true });
+				})
+				.on('beforeunload.mkQtDraft', function () {
+					if (confirmSaveRequested || !formDirty || !quoteCanDraftSave()) {
+						return;
+					}
+					// Best-effort draft save if user leaves without clicking Lưu.
+					saveQuoteDraftAjax({ keepalive: true });
+				});
+		}
 	}
 
 	function initStickyHead() {

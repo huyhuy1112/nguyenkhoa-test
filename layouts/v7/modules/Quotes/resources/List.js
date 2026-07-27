@@ -35,6 +35,218 @@
     'td[data-name="assigned_user_id"] .value',
   ];
 
+  var DRAFT_QUOTE_STAGES = ["Nháp", "Created", "Draft", "Đã tạo"];
+  var CONFIRMED_QUOTE_STAGES = [
+    "Báo giá",
+    "Xác nhận",
+    "Accepted",
+    "Confirmed",
+    "Chấp nhận",
+    "Delivered",
+  ];
+
+  function normalizeQuoteStageValue(stage) {
+    return String(stage || "")
+      .trim()
+      .toLowerCase();
+  }
+
+  function isDraftQuoteStage(stage) {
+    var value = normalizeQuoteStageValue(stage);
+    if (!value) {
+      return true;
+    }
+    return DRAFT_QUOTE_STAGES.some(function (item) {
+      return normalizeQuoteStageValue(item) === value;
+    });
+  }
+
+  function isConfirmedQuoteStage(stage) {
+    if (isDraftQuoteStage(stage)) {
+      return false;
+    }
+    var value = normalizeQuoteStageValue(stage);
+    return CONFIRMED_QUOTE_STAGES.some(function (item) {
+      return normalizeQuoteStageValue(item) === value;
+    });
+  }
+
+  function getPanelQuoteStage($panel) {
+    var $select = $panel.find('select[name="quotestage"]');
+    if ($select.length) {
+      return $.trim($select.val() || "");
+    }
+    return $.trim($panel.attr("data-quote-stage") || "");
+  }
+
+  function syncQuoteConfirmOrderButton($panel) {
+    var $btn = $panel.find(".mk-so-inline-detail__confirm-order-btn");
+    if (!$btn.length) {
+      return;
+    }
+    var canConfirm = isConfirmedQuoteStage(getPanelQuoteStage($panel));
+    $panel.attr("data-can-confirm-order", canConfirm ? "1" : "0");
+    $btn.toggleClass("is-hidden", !canConfirm);
+    $btn.prop("disabled", !canConfirm);
+  }
+
+  function showQuoteConvertConfirm() {
+    var deferred = $.Deferred();
+    var title = "Xác nhận chuyển đơn hàng";
+    var message =
+      '<div class="mk-quote-convert-modal__body">' +
+      '<div class="mk-quote-convert-modal__icon" aria-hidden="true"><i class="fa fa-shopping-cart"></i></div>' +
+      '<p class="mk-quote-convert-modal__title">Chuyển báo giá thành đơn hàng?</p>' +
+      '<p class="mk-quote-convert-modal__hint">Hệ thống sẽ tạo phiếu đơn hàng tạm và ẩn báo giá này khỏi danh sách.</p>' +
+      "</div>";
+
+    if (typeof bootbox !== "undefined" && bootbox.dialog) {
+      var dlg = bootbox.dialog({
+        title: title,
+        message: message,
+        className: "mk-quote-convert-modal",
+        closeButton: true,
+        buttons: {
+          cancel: {
+            label: "Hủy",
+            className:
+              "btn mk-quote-convert-modal__btn mk-quote-convert-modal__btn--ghost",
+            callback: function () {
+              deferred.reject();
+            },
+          },
+          confirm: {
+            label: "Xác nhận",
+            className:
+              "btn mk-quote-convert-modal__btn mk-quote-convert-modal__btn--primary",
+            callback: function () {
+              deferred.resolve();
+            },
+          },
+        },
+        onEscape: function () {
+          deferred.reject();
+        },
+      });
+      if (dlg) {
+        $(dlg).addClass("mk-quote-convert-modal");
+      }
+      return deferred.promise();
+    }
+
+    if (window.confirm("Xác nhận chuyển báo giá thành đơn hàng?")) {
+      deferred.resolve();
+    } else {
+      deferred.reject();
+    }
+    return deferred.promise();
+  }
+
+  function executeQuoteConvertToOrder(recordId, $btn, $panel) {
+    window.__mkQuoteConfirmBusy = true;
+    $btn.data("mkBusy", 1).prop("disabled", true).addClass("is-busy");
+    $panel.find(".mk-so-inline-detail__confirm-order-btn").prop("disabled", true);
+    var csrf = "";
+    if (typeof app !== "undefined") {
+      if (typeof app.getCsrfToken === "function") {
+        csrf = app.getCsrfToken();
+      } else if (typeof csrfMagicToken !== "undefined") {
+        csrf = csrfMagicToken;
+      } else if (typeof csrfMagicName !== "undefined") {
+        csrf = jQuery('[name="' + csrfMagicName + '"]').val() || "";
+      }
+    }
+    var postData = {
+      module: "Quotes",
+      action: "ConfirmSalesOrder",
+      record: recordId,
+    };
+    if (csrf) {
+      postData.__vtrftk = csrf;
+    }
+    $.ajax({
+      url: "index.php",
+      type: "POST",
+      dataType: "json",
+      data: postData,
+    })
+      .done(function (resp) {
+        var result = resp && resp.result ? resp.result : resp;
+        var errMsg = "";
+        if (resp && resp.success === false) {
+          errMsg =
+            (resp.error && (resp.error.message || resp.error)) ||
+            "Không tạo được đơn hàng từ báo giá.";
+        } else if (!result || result.success === false) {
+          errMsg =
+            result && result.message
+              ? result.message
+              : resp && resp.error && resp.error.message
+                ? resp.error.message
+                : "Không tạo được đơn hàng từ báo giá.";
+        }
+        if (errMsg) {
+          if (
+            typeof app !== "undefined" &&
+            app.helper &&
+            app.helper.showErrorNotification
+          ) {
+            app.helper.showErrorNotification({ message: String(errMsg) });
+          } else {
+            window.alert(String(errMsg));
+          }
+          window.__mkQuoteConfirmBusy = false;
+          $btn.data("mkBusy", 0).prop("disabled", false).removeClass("is-busy");
+          $panel
+            .find(".mk-so-inline-detail__confirm-order-btn")
+            .prop("disabled", false);
+          return;
+        }
+        var soUrl =
+          result.list_url ||
+          "index.php?module=SalesOrder&view=List&app=SALES";
+        if (
+          typeof app !== "undefined" &&
+          app.helper &&
+          app.helper.showSuccessNotification
+        ) {
+          app.helper.showSuccessNotification({
+            message: result.already_exists
+              ? "Đơn hàng đã tồn tại. Đang mở danh sách đơn hàng..."
+              : "Đã tạo đơn hàng (Phiếu tạm). Đang mở danh sách đơn hàng...",
+          });
+        }
+        window.location.href = soUrl;
+      })
+      .fail(function (xhr) {
+        var msg = "Không tạo được đơn hàng từ báo giá.";
+        try {
+          var parsed = JSON.parse(xhr.responseText || "{}");
+          if (parsed && parsed.error) {
+            msg = parsed.error.message || parsed.error || msg;
+          } else if (parsed && parsed.result && parsed.result.message) {
+            msg = parsed.result.message;
+          }
+        } catch (ignore) {
+          /* ignore */
+        }
+        if (
+          typeof app !== "undefined" &&
+          app.helper &&
+          app.helper.showErrorNotification
+        ) {
+          app.helper.showErrorNotification({ message: String(msg) });
+        } else {
+          window.alert(String(msg));
+        }
+        window.__mkQuoteConfirmBusy = false;
+        $btn.data("mkBusy", 0).prop("disabled", false).removeClass("is-busy");
+        $panel
+          .find(".mk-so-inline-detail__confirm-order-btn")
+          .prop("disabled", false);
+      });
+  }
+
   function isQuotesSalesList() {
     var b = document.body;
     if (
@@ -904,7 +1116,14 @@
       if (name) snapshot.fields[name] = $(this).val();
     });
 
+    function isAlwaysEdit() {
+      return String($panel.attr("data-always-edit") || "") === "1";
+    }
+
     function setEditMode(enable) {
+      if (isAlwaysEdit()) {
+        enable = true;
+      }
       var isEdit = !!enable;
       $panel.toggleClass("is-edit-mode", isEdit);
       $panel
@@ -923,6 +1142,17 @@
         );
       }
     }
+
+    // Always editable — no pencil toggle needed.
+    setEditMode(true);
+    syncQuoteConfirmOrderButton($panel);
+    $panel.on(
+      "change.mkQtStageConfirm",
+      'select[name="quotestage"]',
+      function () {
+        syncQuoteConfirmOrderButton($panel);
+      },
+    );
 
     function restoreSnapshot() {
       $.each(snapshot.fields || {}, function (name, value) {
@@ -1024,7 +1254,8 @@
           var name = $(this).attr("name");
           if (name) snapshot.fields[name] = $(this).val();
         });
-        setEditMode(false);
+        setEditMode(true);
+        syncQuoteConfirmOrderButton($panel);
         if (app.helper && app.helper.showSuccessNotification) {
           app.helper.showSuccessNotification({
             message: app.vtranslate
@@ -1074,119 +1305,29 @@
       if ($btn.data("mkBusy") || window.__mkQuoteConfirmBusy) {
         return;
       }
-      if (
-        !window.confirm(
-          "Xác nhận chuyển báo giá thành đơn hàng?",
-        )
-      ) {
+      if (!isConfirmedQuoteStage(getPanelQuoteStage($panel))) {
+        if (
+          typeof app !== "undefined" &&
+          app.helper &&
+          app.helper.showErrorNotification
+        ) {
+          app.helper.showErrorNotification({
+            message:
+              "Chỉ báo giá ở trạng thái Báo giá mới được xác nhận đơn hàng.",
+          });
+        } else {
+          window.alert(
+            "Chỉ báo giá ở trạng thái Báo giá mới được xác nhận đơn hàng.",
+          );
+        }
         return;
       }
-      window.__mkQuoteConfirmBusy = true;
-      $btn.data("mkBusy", 1).prop("disabled", true).addClass("is-busy");
-      $panel
-        .find(".mk-so-inline-detail__confirm-order-btn")
-        .prop("disabled", true);
-      var csrf = "";
-      if (typeof app !== "undefined") {
-        if (typeof app.getCsrfToken === "function") {
-          csrf = app.getCsrfToken();
-        } else if (typeof csrfMagicToken !== "undefined") {
-          csrf = csrfMagicToken;
-        } else if (typeof csrfMagicName !== "undefined") {
-          csrf = jQuery('[name="' + csrfMagicName + '"]').val() || "";
-        }
-      }
-      var postData = {
-        module: "Quotes",
-        action: "ConfirmSalesOrder",
-        record: recordId,
-      };
-      if (csrf) {
-        postData.__vtrftk = csrf;
-      }
-      $.ajax({
-        url: "index.php",
-        type: "POST",
-        dataType: "json",
-        data: postData,
-      })
-        .done(function (resp) {
-          var result = resp && resp.result ? resp.result : resp;
-          var errMsg = "";
-          if (resp && resp.success === false) {
-            errMsg =
-              (resp.error && (resp.error.message || resp.error)) ||
-              "Không tạo được đơn hàng từ báo giá.";
-          } else if (!result || result.success === false) {
-            errMsg =
-              result && result.message
-                ? result.message
-                : resp && resp.error && resp.error.message
-                  ? resp.error.message
-                  : "Không tạo được đơn hàng từ báo giá.";
-          }
-          if (errMsg) {
-            if (
-              typeof app !== "undefined" &&
-              app.helper &&
-              app.helper.showErrorNotification
-            ) {
-              app.helper.showErrorNotification({ message: String(errMsg) });
-            } else {
-              window.alert(String(errMsg));
-            }
-            window.__mkQuoteConfirmBusy = false;
-            $btn
-              .data("mkBusy", 0)
-              .prop("disabled", false)
-              .removeClass("is-busy");
-            $panel
-              .find(".mk-so-inline-detail__confirm-order-btn")
-              .prop("disabled", false);
-            return;
-          }
-          var soUrl =
-            result.list_url ||
-            "index.php?module=SalesOrder&view=List&app=SALES";
-          if (
-            typeof app !== "undefined" &&
-            app.helper &&
-            app.helper.showSuccessNotification
-          ) {
-            app.helper.showSuccessNotification({
-              message: result.already_exists
-                ? "Đơn hàng đã tồn tại. Đang mở danh sách đơn hàng..."
-                : "Đã tạo đơn hàng (Phiếu tạm). Đang mở danh sách đơn hàng...",
-            });
-          }
-          window.location.href = soUrl;
+      showQuoteConvertConfirm()
+        .then(function () {
+          executeQuoteConvertToOrder(recordId, $btn, $panel);
         })
-        .fail(function (xhr) {
-          var msg = "Không tạo được đơn hàng từ báo giá.";
-          try {
-            var parsed = JSON.parse(xhr.responseText || "{}");
-            if (parsed && parsed.error) {
-              msg = parsed.error.message || parsed.error || msg;
-            } else if (parsed && parsed.result && parsed.result.message) {
-              msg = parsed.result.message;
-            }
-          } catch (ignore) {
-            /* ignore */
-          }
-          if (
-            typeof app !== "undefined" &&
-            app.helper &&
-            app.helper.showErrorNotification
-          ) {
-            app.helper.showErrorNotification({ message: String(msg) });
-          } else {
-            window.alert(String(msg));
-          }
-          window.__mkQuoteConfirmBusy = false;
-          $btn.data("mkBusy", 0).prop("disabled", false).removeClass("is-busy");
-          $panel
-            .find(".mk-so-inline-detail__confirm-order-btn")
-            .prop("disabled", false);
+        .fail(function () {
+          /* cancelled */
         });
     });
 
@@ -2019,6 +2160,12 @@
       Draft: "Nháp",
       "Đã tạo": "Nháp",
       Nháp: "Nháp",
+      "Báo giá": "Báo giá",
+      Accepted: "Báo giá",
+      Confirmed: "Báo giá",
+      "Chấp nhận": "Báo giá",
+      "Xác nhận": "Báo giá",
+      Delivered: "Báo giá",
     };
     $(context)
       .find('td[data-name="quotestage"] .value')

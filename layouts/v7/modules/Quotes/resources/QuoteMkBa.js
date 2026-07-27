@@ -160,6 +160,25 @@
 		}
 	}
 
+	function syncAddressRailToForm($form) {
+		var $rail = getQuoteRail();
+		if (!$rail.length) {
+			return;
+		}
+		var isSo = $rail.attr('id') === 'mkSoOrderRail';
+		var prefix = isSo ? 'mkSo' : 'mkQt';
+		var $bill = $form.find('[name="bill_street"]').first();
+		var $ship = $form.find('[name="ship_street"]').first();
+		var $billRail = $('#' + prefix + 'BillStreetRail');
+		var $shipRail = $('#' + prefix + 'ShipStreetRail');
+		if ($billRail.length && $bill.length) {
+			$bill.val($billRail.val() || '');
+		}
+		if ($shipRail.length && $ship.length) {
+			$ship.val($shipRail.val() || '');
+		}
+	}
+
 	function injectAddressEditorToRail($form) {
 		var $rail = getQuoteRail();
 		if (!$rail.length || $rail.find('.mk-qt-address-rail').length) {
@@ -332,6 +351,9 @@
 			markReadonlyComputed($form);
 			syncVatAndWords($form);
 			syncAddressRailFromForm($form);
+			setTimeout(function () {
+				syncAddressRailFromForm($form);
+			}, 900);
 		};
 
 		if (global.__MK_QUOTE_BA_CONFIG) {
@@ -359,6 +381,8 @@
 	global.MkQuoteBa = {
 		init: init,
 		syncVatAndWords: syncVatAndWords,
+		syncAddressRailFromForm: syncAddressRailFromForm,
+		syncAddressRailToForm: syncAddressRailToForm,
 		amountInWordsVi: amountInWordsVi,
 		cfg: cfg
 	};

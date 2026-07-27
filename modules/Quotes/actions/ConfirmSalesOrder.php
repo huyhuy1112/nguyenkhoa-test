@@ -27,9 +27,15 @@ class Quotes_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				throw new Exception('Bản ghi không phải báo giá.');
 			}
 
+			require_once 'modules/Quotes/helpers/QuoteBaService.php';
 			$quoteModel = Vtiger_Record_Model::getInstanceById($quoteId, 'Quotes');
 			if (!$quoteModel || $quoteModel->getModuleName() !== 'Quotes') {
 				throw new Exception('Không tìm thấy báo giá.');
+			}
+
+			$quoteStage = (string) $quoteModel->get('quotestage');
+			if (!Quotes_QuoteBaService_Helper::isConfirmedQuoteStage($quoteStage)) {
+				throw new Exception('Chỉ báo giá ở trạng thái Báo giá mới được xác nhận đơn hàng.');
 			}
 
 			if (method_exists($quoteModel, 'hasLinkedSalesOrder') && $quoteModel->hasLinkedSalesOrder()) {

@@ -51,9 +51,12 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 
 	protected function getRecordModelFromRequest(Vtiger_Request $request) {
 		$recordModel = parent::getRecordModelFromRequest($request);
+		require_once 'modules/Quotes/helpers/QuoteBaService.php';
+		$mode = strtolower(trim((string) $request->get('mk_quote_save_mode')));
 		$recordId = (int) $request->get('record');
-		if ($recordId <= 0) {
-			require_once 'modules/Quotes/helpers/QuoteBaService.php';
+		if ($mode === 'confirm') {
+			$recordModel->set('quotestage', Quotes_QuoteBaService_Helper::resolveConfirmedQuoteStage());
+		} elseif ($mode === 'draft' || $recordId <= 0) {
 			$recordModel->set('quotestage', Quotes_QuoteBaService_Helper::resolveDraftQuoteStage());
 		}
 		// Always assign to the user who is saving (no UI to pick another owner).
@@ -117,8 +120,33 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 	}
 
 	public function process(Vtiger_Request $request) {
+		$isAjaxSave = trim((string) $request->get('mk_quote_ajax')) === '1';
+		if ($isAjaxSave) {
+			try {
+				$recordModel = $this->saveRecord($request);
+				$recordId = $recordModel ? (int) $recordModel->getId() : 0;
+				$response = new Vtiger_Response();
+				$response->setResult(array(
+					'success' => true,
+					'record' => $recordId,
+					'quotestage' => $recordModel ? (string) $recordModel->get('quotestage') : '',
+					'mode' => (string) $request->get('mk_quote_save_mode'),
+				));
+				$response->emit();
+			} catch (Exception $e) {
+				$response = new Vtiger_Response();
+				$response->setError('Error', $e->getMessage(), $e->getMessage());
+				$response->emit();
+			}
+			return;
+		}
+
 		$openPrint = trim((string) $request->get('mk_open_print')) === '1';
 		if (!$openPrint) {
+			$request->set('returnToList', '1');
+			if (!$request->get('appName')) {
+				$request->set('appName', '&app=SALES');
+			}
 			parent::process($request);
 			return;
 		}

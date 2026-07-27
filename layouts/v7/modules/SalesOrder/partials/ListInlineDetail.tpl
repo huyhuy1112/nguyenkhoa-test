@@ -2,7 +2,7 @@
 {strip}
 {assign var=FINAL_DETAILS value=$RELATED_PRODUCTS.1.final_details}
 {assign var=INLINE_SOSTATUS value=$RECORD->get('sostatus')}
-<div class="mk-so-inline-detail" data-record-id="{$RECORD->getId()}" data-module="SalesOrder" data-sostatus="{$INLINE_SOSTATUS|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=SalesOrder&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$INLINE_AMOUNT_WORDS|default:''|escape}" data-created-date="{$INLINE_CREATED_DATE|default:''|escape}" data-grand-raw="{$INLINE_GRAND_RAW|default:0|escape}" data-paid-field="{$INLINE_PAID_FIELD|default:'received'|escape}">
+<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="SalesOrder" data-sostatus="{$INLINE_SOSTATUS|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=SalesOrder&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$INLINE_AMOUNT_WORDS|default:''|escape}" data-created-date="{$INLINE_CREATED_DATE|default:''|escape}" data-grand-raw="{$INLINE_GRAND_RAW|default:0|escape}" data-paid-field="{$INLINE_PAID_FIELD|default:'received'|escape}">
 	<div class="mk-so-inline-detail__tabs" role="tablist">
 		<button type="button" class="mk-so-inline-detail__tab is-active" role="tab" aria-selected="true">Thông tin</button>
 	</div>
@@ -11,9 +11,6 @@
 		<div class="mk-so-inline-detail__hero-main">
 			<div class="mk-so-inline-detail__customer">
 				<span class="mk-so-inline-detail__customer-name">{if isset($INLINE_CUSTOMER_NAME) && $INLINE_CUSTOMER_NAME neq '' && $INLINE_CUSTOMER_NAME neq '—'}{$INLINE_CUSTOMER_NAME}{else}--{/if}</span>
-				<button type="button" class="mk-so-inline-detail__edit-toggle" title="Chỉnh sửa" aria-label="Chỉnh sửa" aria-pressed="false">
-					<i class="fa fa-pencil" aria-hidden="true"></i>
-				</button>
 			</div>
 			<div class="mk-so-inline-detail__order-no">{$RECORD->getDisplayValue('salesorder_no')}</div>
 		</div>

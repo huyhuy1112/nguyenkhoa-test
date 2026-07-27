@@ -312,10 +312,14 @@
       }
     }
     if ($ship.length) {
-      if (shipText || force) {
-        // If ship empty but bill has value, copy bill for convenience (no checkbox UI).
-        var shipValue = shipText || (force ? billText : "");
-        $ship.val(shipValue).trigger("change");
+      var currentShip = $.trim($ship.val() || "");
+      if (shipText) {
+        $ship.val(shipText).trigger("change");
+      } else if (force || !currentShip) {
+        var shipValue = billText || "";
+        if (shipValue || force) {
+          $ship.val(shipValue).trigger("change");
+        }
       }
     }
     if (sourceRow && sourceModule && (billText || shipText)) {

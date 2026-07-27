@@ -1313,7 +1313,14 @@
     return data;
   }
 
+  function isInlineAlwaysEdit($panel) {
+    return String($panel.attr("data-always-edit") || "") === "1";
+  }
+
   function setInlineDetailEditMode($panel, enable) {
+    if (isInlineAlwaysEdit($panel)) {
+      enable = true;
+    }
     var isEdit = !!enable;
     $panel.toggleClass("is-edit-mode", isEdit);
     $panel
@@ -1472,6 +1479,9 @@
       $notes.val(decodeHtmlEntities($notes.val()));
     }
 
+    // Always editable — no pencil toggle needed.
+    setInlineDetailEditMode($panel, true);
+
     $panel.on("click", ".mk-so-inline-detail__edit-toggle", function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -1541,7 +1551,7 @@
       }
       saveInlineDetailPanel($panel, recordId).then(function () {
         snapshot = captureInlineDetailSnapshot($panel);
-        setInlineDetailEditMode($panel, false);
+        setInlineDetailEditMode($panel, true);
       });
     });
 

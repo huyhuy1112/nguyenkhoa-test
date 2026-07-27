@@ -8,7 +8,12 @@
  * All Rights Reserved.
  *************************************************************************************/
 $languageStrings = array(
-	'Accepted'=>'Chấp nhận',
+	'Accepted'=>'Báo giá',
+	'Confirmed'=>'Báo giá',
+	'Báo giá'=>'Báo giá',
+	'Xác nhận'=>'Báo giá',
+	'Chấp nhận'=>'Báo giá',
+	'Delivered'=>'Báo giá',
 	'Inventory Manager'=>'Quản lý hàng tồn',
 	'LBL_EXPORT_TO_EXCEL' => 'Xuất Excel',
 	'LBL_EXPORT_TO_EXCEL_FOR_SALE' => 'Xuất Excel bán hàng',

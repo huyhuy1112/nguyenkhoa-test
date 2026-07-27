@@ -335,6 +335,48 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 			}
 		}
 
+		$displayProducts = $this->enrichInlineLineTax($displayProducts, $rawProducts, $subTotal, $discount, $tax, $recordModel, $formatMoney);
+
+		return $displayProducts;
+	}
+
+	/**
+	 * Group-tax orders do not populate per-line taxTotal in core inventory; distribute for inline list.
+	 */
+	protected function enrichInlineLineTax(array $displayProducts, array $rawProducts, $subTotal, $discount, $tax, Vtiger_Record_Model $recordModel, callable $formatMoney) {
+		$taxableBase = max(0, (float) $subTotal - (float) $discount);
+		$mkVatPercent = 8.0;
+		$candidatePct = (float) $recordModel->get('mk_vat_percent');
+		if ($candidatePct > 0 && $candidatePct <= 100) {
+			$mkVatPercent = $candidatePct;
+		}
+
+		$productsCount = php7_count($rawProducts);
+		for ($i = 1; $i <= $productsCount; $i++) {
+			if (!isset($displayProducts[$i]) || empty($rawProducts[$i]['hdnProductId' . $i])) {
+				continue;
+			}
+			$existingTax = (float) ($rawProducts[$i]['taxTotal' . $i] ?? 0);
+			if ($existingTax > 0) {
+				$displayProducts[$i]['taxTotal' . $i] = $formatMoney($existingTax);
+				continue;
+			}
+
+			$lineTotal = (float) ($rawProducts[$i]['productTotal' . $i] ?? 0);
+			if ($lineTotal <= 0) {
+				$lineTotal = (float) ($rawProducts[$i]['totalAfterDiscount' . $i] ?? 0);
+			}
+			$lineTax = 0.0;
+			if ($lineTotal > 0) {
+				if ($taxableBase > 0 && $tax > 0) {
+					$lineTax = round(((float) $tax) * $lineTotal / $taxableBase);
+				} elseif ($mkVatPercent > 0) {
+					$lineTax = round($lineTotal * $mkVatPercent / 100);
+				}
+			}
+			$displayProducts[$i]['taxTotal' . $i] = $formatMoney($lineTax);
+		}
+
 		return $displayProducts;
 	}
 

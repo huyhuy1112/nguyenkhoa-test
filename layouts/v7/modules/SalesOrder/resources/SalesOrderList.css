@@ -2283,6 +2283,37 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 	display: inline-flex !important;
 }
 
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__edit-toggle,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__cancel-edit {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__field[data-editable="1"] .mk-so-inline-detail__field-view {
+	display: none;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__field[data-editable="1"] .mk-so-inline-detail__field-edit {
+	display: block;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__notes-input,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__paid-input {
+	background: #fff;
+	border-color: #cbd5e1;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__paid-view {
+	display: none;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__paid-input {
+	display: inline-block !important;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__save-btn {
+	display: inline-flex !important;
+}
+
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__action[disabled] {
 	opacity: 0.6;
 	cursor: not-allowed;
