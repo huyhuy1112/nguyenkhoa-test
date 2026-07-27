@@ -2851,6 +2851,7 @@ class Warehouse_WhMgmtService {
 		return array(
 			'issue' => array(
 				'id' => (string) $row['code'],
+				'salesorderId' => $salesOrderId,
 				'receiver' => $customer,
 				'receiverAddress' => $receiverAddress,
 				'receiverPerson' => self::decodeDisplayTextDeep((string) (isset($meta['receiverPerson']) ? $meta['receiverPerson'] : '')),

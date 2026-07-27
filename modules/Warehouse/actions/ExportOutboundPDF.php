@@ -10,6 +10,7 @@ require_once 'modules/Warehouse/models/WhMgmtService.php';
 require_once 'modules/Warehouse/helpers/OutboundIssuePdf.php';
 require_once 'modules/Warehouse/helpers/OutboundInternalPdf.php';
 require_once 'modules/Warehouse/helpers/OutboundTransferPdf.php';
+require_once 'modules/SalesOrder/helpers/SaleInvoicePdf.php';
 
 // Ensure TCPDF is loaded (absolute paths — không phụ thuộc cwd).
 if (!class_exists('TCPDF')) {
@@ -80,9 +81,24 @@ class Warehouse_ExportOutboundPDF_Action extends Vtiger_Action_Controller {
 			if (isset($payload['issue']['outboundType'])) {
 				$outboundType = (string) $payload['issue']['outboundType'];
 			}
+			$salesOrderId = 0;
+			if (isset($payload['issue']['salesorderId'])) {
+				$salesOrderId = (int) $payload['issue']['salesorderId'];
+			}
 			$template = $this->resolveTemplate($outboundType);
 			$isPreview = $request->get('preview') === '1' || $request->get('mode') === 'inline';
 			$format = strtolower((string) $request->get('format'));
+
+			// Xuất bán phải dùng đúng form HÓA ĐƠN ĐẶT HÀNG như SalesOrder preview.
+			if ($template === 'sale' && $salesOrderId > 0) {
+				$focus = CRMEntity::getInstance('SalesOrder');
+				$focus->retrieve_entity_info($salesOrderId, 'SalesOrder');
+				$focus->apply_field_security();
+				$focus->id = $salesOrderId;
+				$fileName = 'HoaDonDatHang_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', (string) $salesOrderId) . '.pdf';
+				SalesOrder_SaleInvoicePdf_Helper::output($focus, 'SalesOrder', $fileName, $isPreview ? 'I' : 'D');
+				exit;
+			}
 
 			if ($isPreview || $format === 'html') {
 				if ($template === 'transfer') {

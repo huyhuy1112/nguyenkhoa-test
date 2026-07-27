@@ -795,11 +795,11 @@
 		}
 		if (t === 'sale' || t === 'scrap') {
 			return {
-				title: 'Xem trước bản in phiếu xuất kho',
+				title: t === 'sale' ? 'Xem trước bản in hóa đơn đặt hàng' : 'Xem trước bản in phiếu xuất kho',
 				hint: t === 'scrap'
 					? 'Mẫu PHIẾU XUẤT KHO (02 - VT) dùng cho xuất huỷ. Có thể in trực tiếp hoặc tải PDF sau khi xem trước xong.'
-					: 'Mẫu PHIẾU XUẤT KHO (02 - VT) dành cho xuất bán. Có thể in trực tiếp hoặc tải PDF sau khi xem trước xong.',
-				readyTitle: 'Tải bản PDF phiếu xuất kho',
+					: 'Xuất bán dùng đúng form HÓA ĐƠN ĐẶT HÀNG giống màn in đơn hàng. Có thể in trực tiếp hoặc tải PDF sau khi xem trước xong.',
+				readyTitle: t === 'sale' ? 'Tải bản PDF hóa đơn đặt hàng' : 'Tải bản PDF phiếu xuất kho',
 			};
 		}
 		return {
