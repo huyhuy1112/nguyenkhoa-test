@@ -386,8 +386,14 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-inv-lineitems
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-inv-lineitems-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand,
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-inv-lineitems-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--sub,
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-inv-lineitems-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--tax,
-body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-inv-lineitems-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand {
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-inv-lineitems-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-inv-lineitems-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--sub.mk-inv-totals-hide,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-inv-lineitems-odoo .mk-inv-totals-odoo #lineItemResult tr[data-mk-totals-row="pre-tax"],
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-inv-lineitems-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--sub.mk-inv-totals-hide,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-inv-lineitems-odoo .mk-inv-totals-odoo #lineItemResult tr[data-mk-totals-row="pre-tax"] {
 	display: table-row !important;
+	visibility: visible !important;
+	height: auto !important;
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info,

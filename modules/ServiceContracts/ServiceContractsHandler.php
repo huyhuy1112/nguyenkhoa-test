@@ -98,6 +98,12 @@ class ServiceContractsHandler extends VTEventHandler {
 					$scFocus->retrieve_entity_info($contractId,'ServiceContracts');
 					$scFocus->calculateProgress();
 				}
+				try {
+					require_once 'modules/ServiceContracts/models/ModernService.php';
+					ServiceContracts_ModernService::ensureAffiliateCode((int) $contractId);
+				} catch (Exception $e) {
+					// affiliate generation is best-effort
+				}
 			}
 		}
 	}

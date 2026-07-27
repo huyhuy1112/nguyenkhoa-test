@@ -435,6 +435,22 @@
     background: #dcfce7; border-color: #86efac; color: #047857;
 }
 
+.mk-tag[data-tag="da_cap_bang"],
+.mk-td-tag-pill[data-tag="da_cap_bang"],
+.tag[data-tag="da_cap_bang"],
+.mk-lead-detail-tag-chip[data-tag="da_cap_bang"] {
+    border: 1px solid transparent;
+    background: #e0e7ff; border-color: #a5b4fc; color: #3730a3;
+}
+
+.mk-tag[data-tag="da_cap_tai_khoan"],
+.mk-td-tag-pill[data-tag="da_cap_tai_khoan"],
+.tag[data-tag="da_cap_tai_khoan"],
+.mk-lead-detail-tag-chip[data-tag="da_cap_tai_khoan"] {
+    border: 1px solid transparent;
+    background: #cffafe; border-color: #67e8f9; color: #0e7490;
+}
+
 .mk-tag[data-tag="nhuong_quyen"],
 .mk-td-tag-pill[data-tag="nhuong_quyen"],
 .tag[data-tag="nhuong_quyen"],
@@ -576,6 +592,8 @@
 .mk-leads-bulk-dot[data-tag="company"] { background: #c4b5fd; border-color: #c4b5fd; }
 .mk-leads-bulk-dot[data-tag="da_990k"] { background: #86efac; border-color: #86efac; }
 .mk-leads-bulk-dot[data-tag="da_co_quan_he"] { background: #fda4af; border-color: #fda4af; }
+.mk-leads-bulk-dot[data-tag="da_cap_bang"] { background: #a5b4fc; border-color: #a5b4fc; }
+.mk-leads-bulk-dot[data-tag="da_cap_tai_khoan"] { background: #67e8f9; border-color: #67e8f9; }
 .mk-leads-bulk-dot[data-tag="da_hoc"] { background: #bfdbfe; border-color: #bfdbfe; }
 .mk-leads-bulk-dot[data-tag="da_ky_quy"] { background: #facc15; border-color: #facc15; }
 .mk-leads-bulk-dot[data-tag="da_MQBB"] { background: #d1d5db; border-color: #d1d5db; }

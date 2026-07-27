@@ -2715,3 +2715,17 @@ html.mk-inv-odoo-active:not(.mk-inv-ui-ready) body[data-view="Edit"] .lineitemTa
 	visibility: hidden !important;
 	opacity: 0 !important;
 }
+
+/* Force-show core totals rows (pre-tax / VAT / grand) even if mk-inv-totals-hide remains */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--sub,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--tax,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--sub.mk-inv-totals-hide,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--tax.mk-inv-totals-hide,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand.mk-inv-totals-hide,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr[data-mk-totals-row="pre-tax"] {
+	display: table-row !important;
+	visibility: visible !important;
+	height: auto !important;
+	opacity: 1 !important;
+}

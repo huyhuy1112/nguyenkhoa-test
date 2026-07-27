@@ -142,7 +142,8 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					$action = trim((string) $request->get('actionKey'));
 					$note = $this->readActionNote($request);
 					$role = trim((string) $request->get('role'));
-					$result = Warehouse_WhMgmtService::applyReceiptAction($whId, $code, $action, $role, $note, $userId);
+					$targetStatus = trim((string) $request->get('targetStatus'));
+					$result = Warehouse_WhMgmtService::applyReceiptAction($whId, $code, $action, $role, $note, $userId, $targetStatus);
 					$response->setResult(array_merge(array('success' => true), $result));
 					break;
 
@@ -157,7 +158,8 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					$action = trim((string) $request->get('actionKey'));
 					$note = $this->readActionNote($request);
 					$role = trim((string) $request->get('role'));
-					$result = Warehouse_WhMgmtService::applyIssueAction($whId, $code, $action, $role, $note, $userId);
+					$targetStatus = trim((string) $request->get('targetStatus'));
+					$result = Warehouse_WhMgmtService::applyIssueAction($whId, $code, $action, $role, $note, $userId, $targetStatus);
 					$response->setResult(array_merge(array('success' => true), $result));
 					break;
 

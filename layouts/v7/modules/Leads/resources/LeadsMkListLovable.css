@@ -905,12 +905,19 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
 }
 .mk-leads-lead-text { min-width: max-content; }
 .mk-leads-tags-stack {
-    display: inline-flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 4px;
-    min-width: max-content;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 6px;
+    align-items: start;
+    justify-items: start;
+    width: 100%;
+    min-width: 0;
+    max-width: 220px;
+}
+.mk-leads-tags-stack .mk-tag {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .mk-pill--support {
     display: inline-flex;
@@ -963,7 +970,7 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
 .mk-leads-tags-edit {
     display: block;
     width: 100%;
-    min-width: max-content;
+    min-width: 0;
     padding: 0;
     margin: 0;
     border: 0;

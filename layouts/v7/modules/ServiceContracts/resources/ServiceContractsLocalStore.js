@@ -1,18 +1,21 @@
 /**
- * Contacts list store — CRM API (MK_CONTACTS_API_READY).
+ * ServiceContracts list store — CRM API (MK_SC_API_READY).
  */
 (function (root) {
   "use strict";
 
-  var _contacts = [];
+  var _contracts = [];
   var _readyPromise = null;
 
   function useApi() {
-    return !!root.MK_CONTACTS_API_READY;
+    return !!root.MK_SC_API_READY;
   }
 
   function apiRequest(mode, extra) {
-    var params = Object.assign({ module: "Contacts", action: "ModernApi", mode: mode }, extra || {});
+    var params = Object.assign(
+      { module: "ServiceContracts", action: "ModernApi", mode: mode },
+      extra || {}
+    );
     return new Promise(function (resolve, reject) {
       if (root.app && root.app.request && root.app.request.post) {
         root.app.request.post({ data: params }).then(function (err, res) {
@@ -34,31 +37,31 @@
 
   function bootstrap() {
     if (!useApi()) {
-      _contacts = [];
-      return Promise.resolve(_contacts);
+      _contracts = [];
+      return Promise.resolve(_contracts);
     }
     if (_readyPromise) {
       return _readyPromise;
     }
     _readyPromise = apiRequest("list")
       .then(function (res) {
-        _contacts = Array.isArray(res.contacts) ? res.contacts : [];
+        _contracts = Array.isArray(res.contracts) ? res.contracts : [];
         if (Array.isArray(res.assignable_users)) {
-          root.MK_CONTACTS_ASSIGNABLE_USERS = res.assignable_users;
+          root.MK_SC_ASSIGNABLE_USERS = res.assignable_users;
         }
-        return _contacts;
+        return _contracts;
       })
       .catch(function () {
-        _contacts = [];
-        return _contacts;
+        _contracts = [];
+        return _contracts;
       });
     return _readyPromise;
   }
 
-  root.ContactsLocalStore = {
+  root.ServiceContractsLocalStore = {
     bootstrap: bootstrap,
-    getContacts: function () {
-      return _contacts.slice();
+    getContracts: function () {
+      return _contracts.slice();
     },
     refresh: function () {
       _readyPromise = null;
@@ -67,16 +70,16 @@
     remove: function (id) {
       var oid = String(id || "");
       return apiRequest("delete", { id: oid }).then(function () {
-        _contacts = _contacts.filter(function (c) {
+        _contracts = _contracts.filter(function (c) {
           return String(c.id) !== oid && String(c.crmid || "") !== oid;
         });
       });
     },
-    patchContact: function (id, patch) {
+    patchContract: function (id, patch) {
       var oid = String(id || "");
       if (!patch) return null;
-      for (var i = 0; i < _contacts.length; i++) {
-        var c = _contacts[i];
+      for (var i = 0; i < _contracts.length; i++) {
+        var c = _contracts[i];
         if (String(c.id) !== oid && String(c.crmid || "") !== oid) continue;
         Object.keys(patch).forEach(function (k) {
           c[k] = patch[k];
@@ -92,23 +95,19 @@
         tags: JSON.stringify(tags || []),
       }).then(function (res) {
         var next = (res && res.tags) || tags || [];
-        root.ContactsLocalStore.patchContact(oid, { tags: next });
+        root.ServiceContractsLocalStore.patchContract(oid, { tags: next });
         return next;
       });
     },
-    saveCredentials: function (id, daCapBang, daCapTaiKhoan) {
+    saveNextAction: function (id, nextAction) {
       var oid = String(id || "");
-      return apiRequest("credential_save", {
+      return apiRequest("save_next_action", {
         record: oid,
-        da_cap_bang: daCapBang || "Chưa cấp",
-        da_cap_tai_khoan: daCapTaiKhoan || "Chưa cấp tài khoản",
+        next_action: nextAction || "",
       }).then(function (res) {
-        var creds = (res && res.credentials) || {};
-        root.ContactsLocalStore.patchContact(oid, {
-          da_cap_bang: creds.da_cap_bang || daCapBang,
-          da_cap_tai_khoan: creds.da_cap_tai_khoan || daCapTaiKhoan,
-        });
-        return creds;
+        var next = (res && res.next_action) != null ? res.next_action : nextAction || "";
+        root.ServiceContractsLocalStore.patchContract(oid, { next_action: next });
+        return next;
       });
     },
   };

@@ -112,22 +112,28 @@
 }
 
 .mk-opps-page .mk-leads-tags-stack {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	align-items: flex-start;
-	gap: 4px;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 4px 6px;
+	align-items: start;
+	justify-items: start;
+	width: 100%;
+	min-width: 0;
+	max-width: 220px;
 }
 
 .mk-opps-page .mk-leads-tags-stack .mk-tag {
 	font-size: 10px;
 	padding: 2px 8px;
-	max-width: none;
+	max-width: 100%;
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .mk-opps-page .mk-leads-td--tags {
-	min-width: 180px;
+	min-width: 160px;
+	max-width: 240px;
 }
 
 @media (max-width: 1400px) {

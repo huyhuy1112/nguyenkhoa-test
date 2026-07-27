@@ -348,7 +348,7 @@
 			});
 			return def.promise();
 		},
-		receiptAction: function (whId, code, actionKey, role, note) {
+		receiptAction: function (whId, code, actionKey, role, note, targetStatus) {
 			if (!useDb) {
 				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
 			}
@@ -362,7 +362,8 @@
 				role: role || '',
 				qcNote: qcNote,
 				note: qcNote,
-				payload: JSON.stringify({ qcNote: qcNote }),
+				targetStatus: targetStatus || '',
+				payload: JSON.stringify({ qcNote: qcNote, targetStatus: targetStatus || '' }),
 			}).then(function (res) {
 				if (res && res.data) {
 					patchData(whId, function () { return res.data; });
@@ -371,7 +372,7 @@
 			}).fail(function (err) { def.reject(err); });
 			return def.promise();
 		},
-		issueAction: function (whId, code, actionKey, role, note) {
+		issueAction: function (whId, code, actionKey, role, note, targetStatus) {
 			if (!useDb) {
 				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
 			}
@@ -383,6 +384,7 @@
 				actionKey: actionKey,
 				role: role || '',
 				note: note || '',
+				targetStatus: targetStatus || '',
 			}).then(function (res) {
 				if (res && res.data) {
 					patchData(whId, function () { return res.data; });

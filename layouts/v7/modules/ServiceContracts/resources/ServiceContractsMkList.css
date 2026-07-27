@@ -1,0 +1,57 @@
+/* ServiceContracts MkList — small SC-only overrides on Leads shell */
+.mk-sc-aff-code {
+	display: inline-block;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	padding: 2px 8px;
+	border-radius: 6px;
+	background: #eef6ff;
+	color: #1d4ed8;
+	border: 1px solid #bfdbfe;
+}
+
+.mk-sc-td--aff {
+	white-space: nowrap;
+}
+
+.mk-leads-next-edit {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+	background: transparent;
+	border: 0;
+	padding: 0;
+	text-align: left;
+	cursor: pointer;
+	max-width: 220px;
+}
+
+.mk-leads-next-text {
+	font-size: 13px;
+	line-height: 1.35;
+	color: inherit;
+}
+
+.mk-leads-next-alert {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 1px 7px;
+	border-radius: 999px;
+	background: #ecfdf5;
+	color: #047857;
+	border: 1px solid #a7f3d0;
+}
+
+.mk-leads-next-alert.is-overdue {
+	background: #fef2f2;
+	color: #b91c1c;
+	border-color: #fecaca;
+}
+
+html.mk-sc-ui-ready .mk-sc-list-hide-legacy {
+	display: none !important;
+}

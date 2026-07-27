@@ -778,3 +778,118 @@ body.mk-wh-audit-open {
 	color: #0f172a;
 	white-space: nowrap;
 }
+
+/* Chevron status path (phiếu xuất / nhập) — click previous step to revert */
+.mk-wh-status-path {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	gap: 0;
+	margin: 0 0 12px;
+	width: 100%;
+}
+
+.mk-wh-status-path__step {
+	position: relative;
+	flex: 1 1 0;
+	min-width: 88px;
+	margin: 0;
+	padding: 9px 18px 9px 22px;
+	border: 1px solid #94a3b8;
+	border-right-width: 0;
+	background: #94a3b8;
+	color: #fff;
+	font: inherit;
+	font-size: 12.5px;
+	font-weight: 600;
+	line-height: 1.25;
+	text-align: center;
+	cursor: default;
+	clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%);
+}
+
+.mk-wh-status-path__step:first-child {
+	padding-left: 14px;
+	clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+	border-radius: 4px 0 0 4px;
+}
+
+.mk-wh-status-path__step:last-child {
+	border-right-width: 1px;
+	padding-right: 14px;
+	clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%);
+	border-radius: 0 4px 4px 0;
+}
+
+.mk-wh-status-path__step:first-child:last-child {
+	clip-path: none;
+	border-radius: 4px;
+	border-right-width: 1px;
+}
+
+.mk-wh-status-path__step--done {
+	background: #64748b;
+	border-color: #64748b;
+}
+
+.mk-wh-status-path__step--current {
+	background: #e0f2fe;
+	border-color: #38bdf8;
+	color: #0c4a6e;
+	z-index: 1;
+	box-shadow: inset 0 0 0 1px #7dd3fc;
+}
+
+.mk-wh-status-path__step--todo {
+	background: #e2e8f0;
+	border-color: #cbd5e1;
+	color: #64748b;
+}
+
+.mk-wh-status-path__step.is-clickable {
+	cursor: pointer;
+	background: #475569;
+	border-color: #475569;
+}
+
+.mk-wh-status-path__step.is-clickable:hover {
+	background: #334155;
+	border-color: #334155;
+}
+
+.mk-wh-status-path__step:disabled:not(.is-clickable) {
+	opacity: 1;
+	cursor: default;
+}
+
+.mk-wh-status-path__label {
+	display: block;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.mk-wh-status-path__hint {
+	margin: -4px 0 12px;
+	font-size: 12px;
+	color: #64748b;
+}
+
+.mk-wh-status-path__branch {
+	margin: -6px 0 10px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #b45309;
+}
+
+@media (max-width: 720px) {
+	.mk-wh-status-path__step {
+		min-width: 46%;
+		flex: 1 1 46%;
+		margin-bottom: 6px;
+		clip-path: none !important;
+		border-radius: 6px !important;
+		border-right-width: 1px !important;
+		padding: 8px 10px !important;
+	}
+}

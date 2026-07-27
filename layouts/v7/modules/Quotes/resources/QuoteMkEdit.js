@@ -1260,7 +1260,26 @@
 			return;
 		}
 		// Always keep: Số tiền trước thuế + Thuế GTGT + Tổng cộng
-		var $preTax = $result.find('#preTaxTotal').closest('tr');
+		var $preEl = $result.find('#preTaxTotal').first();
+		var $preTax = $preEl.length ? $preEl.closest('tr') : $();
+		if (!$preTax.length) {
+			var $anchor = $result.find('#group_tax_row').first();
+			if (!$anchor.length) {
+				$anchor = $result.find('#grandTotal, .grandTotal').closest('tr').first();
+			}
+			var $injected = $(
+				'<tr class="mk-inv-totals-row mk-inv-totals-row--sub" data-mk-totals-row="pre-tax">' +
+					'<td><div class="mk-inv-totals-label">Số tiền trước thuế</div></td>' +
+					'<td><span class="pull-right mk-inv-vnd-amount" id="preTaxTotal">0</span>' +
+					'<input type="hidden" id="pre_tax_total" name="pre_tax_total" value="0" /></td></tr>'
+			);
+			if ($anchor.length) {
+				$injected.insertBefore($anchor);
+			} else {
+				$result.prepend($injected);
+			}
+			$preTax = $injected;
+		}
 		var $net = $result.find('#netTotal, .netTotal').closest('tr');
 		var $sub = $preTax.length ? $preTax : $net;
 		var $tax = $result.find('#group_tax_row');
@@ -1270,9 +1289,13 @@
 			$sub
 				.removeClass('mk-inv-totals-hide hide')
 				.addClass('mk-inv-totals-row mk-inv-totals-row--sub')
-				.show();
+				.attr('data-mk-totals-row', 'pre-tax')
+				.show()
+				.css({ display: 'table-row', visibility: 'visible' });
 			if (!$sub.find('.mk-inv-totals-label').length) {
 				$sub.find('td:first').html('<div class="mk-inv-totals-label">Số tiền trước thuế</div>');
+			} else {
+				$sub.find('.mk-inv-totals-label').first().text('Số tiền trước thuế');
 			}
 			$sub.find('#preTaxTotal, #netTotal, .netTotal').addClass('mk-inv-vnd-amount');
 			// Hide the duplicate net row when preTax is used.

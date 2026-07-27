@@ -217,6 +217,100 @@
 		approved: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 	};
 
+	/** Happy-path steps shown on status chevron (xuất). */
+	var ISSUE_PATH = [
+		{ key: 'waiting_print', label: 'Chờ in phiếu' },
+		{ key: 'picking', label: 'Đang soạn' },
+		{ key: 'packed', label: 'Đã soạn' },
+		{ key: 'shipped', label: 'Đã giao' },
+	];
+
+	/** Happy-path steps (nhập). */
+	var RECEIPT_PATH = [
+		{ key: 'draft', label: 'Nháp' },
+		{ key: 'pending_qc', label: 'Chờ QC' },
+		{ key: 'qc_passed', label: 'QC đạt' },
+		{ key: 'approved', label: 'Đã duyệt' },
+		{ key: 'stored', label: 'Đã nhập kho' },
+	];
+
+	function normalizeIssuePathStatus(status) {
+		var s = String(status || '');
+		if (s === 'pending_approval' || s === 'draft') return 'waiting_print';
+		if (s === 'approved') return 'packed';
+		return s;
+	}
+
+	function normalizeReceiptPathStatus(status) {
+		var s = String(status || '');
+		if (s === 'qc_failed') return 'pending_qc';
+		return s;
+	}
+
+	function pathIndex(path, key) {
+		for (var i = 0; i < path.length; i++) {
+			if (path[i].key === key) return i;
+		}
+		return -1;
+	}
+
+	/**
+	 * Chevron status path — click previous steps to revert (ops only).
+	 */
+	function renderStatusPath(opts) {
+		opts = opts || {};
+		var path = opts.path || [];
+		var current = opts.current || '';
+		var docId = opts.docId || '';
+		var actionKey = opts.actionKey || '';
+		var canRevert = !!opts.canRevert;
+		var branchNote = opts.branchNote || '';
+		var curIdx = pathIndex(path, current);
+		if (curIdx < 0 && path.length) {
+			curIdx = 0;
+		}
+		var html = '<div class="mk-wh-status-path" role="list" aria-label="Quy trình trạng thái">';
+		path.forEach(function (step, idx) {
+			var state = 'todo';
+			if (idx < curIdx) state = 'done';
+			else if (idx === curIdx) state = 'current';
+			var clickable = canRevert && state === 'done';
+			var cls = 'mk-wh-status-path__step mk-wh-status-path__step--' + state;
+			if (clickable) cls += ' is-clickable';
+			var attrs = ' role="listitem" class="' + cls + '"';
+			if (clickable) {
+				attrs +=
+					' data-mk-action="' +
+					escapeHtml(actionKey) +
+					'" data-id="' +
+					escapeHtml(docId) +
+					'" data-target="' +
+					escapeHtml(step.key) +
+					'" title="Quay lại bước: ' +
+					escapeHtml(step.label) +
+					'"';
+			}
+			html +=
+				'<button type="button"' +
+				attrs +
+				(clickable ? '' : ' disabled tabindex="-1"') +
+				'>' +
+				'<span class="mk-wh-status-path__label">' +
+				escText(step.label) +
+				'</span>' +
+				'</button>';
+		});
+		html += '</div>';
+		if (branchNote) {
+			html += '<div class="mk-wh-status-path__branch">' + escText(branchNote) + '</div>';
+		}
+		if (canRevert && curIdx > 0) {
+			html +=
+				'<div class="mk-wh-status-path__hint">Ấn bước trước để quay lại (ghi vào lịch sử).</div>';
+		}
+		return html;
+	}
+
 	/** In phiếu xuất: mọi trạng thái đều in được (kể cả Đã soạn / Đã giao / Đã huỷ). */
 	function canPrintOutboundIssue(status) {
 		return true;
@@ -1064,6 +1158,23 @@
 			'</div>';
 
 		var role = getRole();
+		var onPath =
+			r.status !== 'cancelled' &&
+			(RECEIPT_PATH.some(function (s) {
+				return s.key === r.status;
+			}) ||
+				r.status === 'qc_failed');
+		var pathHtml = onPath
+			? renderStatusPath({
+					path: RECEIPT_PATH,
+					current: normalizeReceiptPathStatus(r.status),
+					docId: r.id,
+					actionKey: 'receipt-revert',
+					canRevert: isWarehouseOps(role) || role === 'manager' || role === 'qc',
+					branchNote: r.status === 'qc_failed' ? 'Nhánh hiện tại: QC không đạt — có thể quay về Chờ QC.' : '',
+				})
+			: '';
+
 		var actions = '';
 		if (r.status === 'draft' && isWarehouseOps(role)) {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
@@ -1094,6 +1205,7 @@
 			meta: 'NCC: ' + escText(r.supplier) + ' · PO: ' + escText(r.poRef),
 			body:
 				'<div style="margin-bottom:10px;"><span class="' + escapeHtml(st.cls || 'mk-wh-proto-pill') + '">' + escapeHtml(st.label) + '</span></div>' +
+				pathHtml +
 				renderQcResultPanel(qcInfo) +
 				'<div class="mk-wh-proto-dialog-grid">' +
 					'<div>' +
@@ -1130,6 +1242,21 @@
 			'</div>';
 
 		var role = getRole();
+		var pathStatus = normalizeIssuePathStatus(issue.status);
+		var onPath =
+			issue.status !== 'cancelled' &&
+			issue.status !== 'rejected' &&
+			pathIndex(ISSUE_PATH, pathStatus) >= 0;
+		var pathHtml = onPath
+			? renderStatusPath({
+					path: ISSUE_PATH,
+					current: pathStatus,
+					docId: issue.id,
+					actionKey: 'issue-revert',
+					canRevert: isWarehouseOps(role),
+				})
+			: '';
+
 		var actions = '';
 		if (issue.status === 'draft' && isWarehouseOps(role)) {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
@@ -1159,6 +1286,7 @@
 				' · ' + escText(getOutboundTypeMeta(issue.outboundType).soLabel) + ': ' + escText(issue.soRef || '—'),
 			body:
 				'<div style="margin-bottom:10px;"><span class="' + escapeHtml(st.cls || 'mk-wh-proto-pill') + '">' + escapeHtml(st.label) + '</span></div>' +
+				pathHtml +
 				'<div class="mk-wh-proto-dialog-grid">' +
 					'<div>' +
 						'<div class="mk-wh-proto-dialog-section-title">Chi tiết xuất hàng</div>' +
@@ -1228,6 +1356,7 @@
 	function classifyAuditAction(action) {
 		var a = String(action || '').toLowerCase();
 		if (/huỷ|huy|cancel|từ chối|tu choi|reject/.test(a)) return 'cancel';
+		if (/quay lại|revert|rollback/.test(a)) return 'update';
 		if (/tạo|tao|create/.test(a)) return 'create';
 		return 'update';
 	}
@@ -2669,15 +2798,26 @@
 			}
 
 			// Receipt actions
-			if (id && (action === 'send-qc' || action === 'qc-pass' || action === 'qc-fail' || action === 'mgr-approve' || action === 'store')) {
+			if (id && (action === 'send-qc' || action === 'qc-pass' || action === 'qc-fail' || action === 'mgr-approve' || action === 'store' || action === 'receipt-revert')) {
 				var role = getRole();
+				var receiptTarget = actionEl.getAttribute('data-target') || '';
+				if (action === 'receipt-revert') {
+					if (!receiptTarget) return;
+					var receiptStepLabel = '';
+					RECEIPT_PATH.forEach(function (s) {
+						if (s.key === receiptTarget) receiptStepLabel = s.label;
+					});
+					if (!window.confirm('Quay lại bước "' + (receiptStepLabel || receiptTarget) + '"?\nThao tác sẽ được ghi vào lịch sử.')) {
+						return;
+					}
+				}
 				if (S.useDb && S.useDb()) {
 					var note = '';
 					if (action === 'qc-pass' || action === 'qc-fail') {
 						note = readQcNoteFromDialog(actionEl);
 					}
 					S.warehouseDataActions
-						.receiptAction(whId, id, action, role, note)
+						.receiptAction(whId, id, action, role, note, receiptTarget)
 						.then(function (res) {
 							closeDialog();
 							refreshWarehouseUi();
@@ -2709,8 +2849,42 @@
 						addTimeline(r.timeline, 'Duyệt phiếu', role);
 					} else if (action === 'store') {
 						addStockFromReceiptLines(whId, r.lines || []);
+						r.stockStored = true;
 						r.status = 'stored';
 						addTimeline(r.timeline, 'Đã nhập kho', role, formatLocationNote(r.lines));
+					} else if (action === 'receipt-revert' && receiptTarget) {
+						var fromRaw = String(r.status || '');
+						var toRaw = String(receiptTarget || '');
+						if (fromRaw === 'qc_failed') {
+							if (toRaw !== 'pending_qc' && toRaw !== 'draft') {
+								return r;
+							}
+							if (toRaw === 'pending_qc') {
+								delete r.qc;
+							}
+							r.status = toRaw;
+							addTimeline(r.timeline, 'Quay lại: ' + (receiptStepLabel || toRaw), role, 'Từ QC không đạt');
+							return r;
+						}
+						var fromN = normalizeReceiptPathStatus(fromRaw);
+						var toN = normalizeReceiptPathStatus(toRaw);
+						var fromI = pathIndex(RECEIPT_PATH, fromN);
+						var toI = pathIndex(RECEIPT_PATH, toN);
+						var storedI = pathIndex(RECEIPT_PATH, 'stored');
+						var pendingQcI = pathIndex(RECEIPT_PATH, 'pending_qc');
+						if (fromI >= 0 && toI >= 0 && toI < fromI) {
+							if (fromI >= storedI && toI < storedI && (r.stockStored || fromN === 'stored')) {
+								deductStockFromIssueLines(whId, r.lines || []);
+								r.stockStored = false;
+							}
+							if (toI <= pendingQcI) {
+								delete r.qc;
+							}
+							var toLabel = RECEIPT_PATH[toI] ? RECEIPT_PATH[toI].label : toN;
+							var fromLabel = RECEIPT_PATH[fromI] ? RECEIPT_PATH[fromI].label : fromN;
+							r.status = toN;
+							addTimeline(r.timeline, 'Quay lại: ' + toLabel, role, 'Từ ' + fromLabel);
+						}
 					}
 					return r;
 				});
@@ -2720,8 +2894,19 @@
 			}
 
 			// Issue actions
-			if (id && (action === 'issue-submit' || action === 'issue-start-pick' || action === 'issue-finish-pick' || action === 'issue-ship' || action === 'issue-approve' || action === 'issue-reject' || action === 'issue-cancel')) {
+			if (id && (action === 'issue-submit' || action === 'issue-start-pick' || action === 'issue-finish-pick' || action === 'issue-ship' || action === 'issue-approve' || action === 'issue-reject' || action === 'issue-cancel' || action === 'issue-revert')) {
 				var role2 = getRole();
+				var targetStatus = actionEl.getAttribute('data-target') || '';
+				if (action === 'issue-revert') {
+					if (!targetStatus) return;
+					var stepLabel = '';
+					ISSUE_PATH.forEach(function (s) {
+						if (s.key === targetStatus) stepLabel = s.label;
+					});
+					if (!window.confirm('Quay lại bước "' + (stepLabel || targetStatus) + '"?\nThao tác sẽ được ghi vào lịch sử.')) {
+						return;
+					}
+				}
 				if (S.useDb && S.useDb()) {
 					var reasonDb = '';
 					if (action === 'issue-reject') {
@@ -2729,7 +2914,7 @@
 						reasonDb = rsDb ? String(rsDb.value || '').trim() : '';
 					}
 					S.warehouseDataActions
-						.issueAction(whId, id, action, role2, reasonDb)
+						.issueAction(whId, id, action, role2, reasonDb, targetStatus)
 						.then(function (res) {
 							closeDialog();
 							refreshWarehouseUi();
@@ -2777,6 +2962,28 @@
 					} else if (action === 'issue-ship') {
 						i.status = 'shipped';
 						addTimeline(i.timeline, 'Đã giao hàng', role2);
+					} else if (action === 'issue-revert' && targetStatus) {
+						var fromN = normalizeIssuePathStatus(i.status);
+						var toN = normalizeIssuePathStatus(targetStatus);
+						var fromI = pathIndex(ISSUE_PATH, fromN);
+						var toI = pathIndex(ISSUE_PATH, toN);
+						var packedI = pathIndex(ISSUE_PATH, 'packed');
+						if (fromI >= 0 && toI >= 0 && toI < fromI) {
+							if (fromI >= packedI && toI < packedI) {
+								if (i.stockDeducted) {
+									creditStockToWarehouse(whId, i.lines || []);
+									i.stockDeducted = false;
+								}
+								if ((i.outboundType || '') === 'transfer' && i.stockCreditedTo) {
+									deductStockFromIssueLines(i.stockCreditedTo, i.lines || []);
+									i.stockCreditedTo = '';
+								}
+							}
+							var toLabel = ISSUE_PATH[toI] ? ISSUE_PATH[toI].label : toN;
+							var fromLabel = ISSUE_PATH[fromI] ? ISSUE_PATH[fromI].label : fromN;
+							i.status = toN;
+							addTimeline(i.timeline, 'Quay lại: ' + toLabel, role2, 'Từ ' + fromLabel);
+						}
 					}
 					return i;
 				});

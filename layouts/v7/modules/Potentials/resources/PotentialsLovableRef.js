@@ -123,6 +123,8 @@
     co_quan: { vi: "Đã có quán", en: "Has store", cat: "customer", cls: "mk-tag--co-quan" },
     chuan_bi_mo: { vi: "CH chuẩn bị mở quán", en: "Preparing to open", cat: "customer", cls: "mk-tag--chuan-bi-mo" },
     gia_dinh: { vi: "Gia đình", en: "Family", cat: "customer", cls: "mk-tag--gia-dinh" },
+    da_cap_bang: { vi: "Đã cấp bằng", en: "Degree issued", cat: "customer", cls: "mk-tag--da-cap-bang" },
+    da_cap_tai_khoan: { vi: "Đã cấp tài khoản", en: "Account issued", cat: "customer", cls: "mk-tag--da-cap-tai-khoan" },
     mien_phi_online: { vi: "Miễn phí Online", en: "Free Online", cat: "class", cls: "mk-tag--free-online" },
     mien_phi_offline: { vi: "Miễn phí Offline", en: "Free Offline", cat: "class", cls: "mk-tag--free-offline" },
     da_tg_free: { vi: "Đã TG FREE", en: "Attended FREE", cat: "class", cls: "mk-tag--da-tg-free" },
@@ -160,6 +162,7 @@
     "other", "other_source",
   ];
   var CUSTOMER_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh"];
+  var CREDENTIAL_TAGS = ["da_cap_bang", "da_cap_tai_khoan"];
   var CLASS_TAGS = [
     "da_tg_free", "da_tg_fb1", "thu_3", "mien_phi_online", "mien_phi_offline",
     "chua_hoc", "da_hoc", "pcth", "van_hanh", "mkt", "lop_khac", "nguyen_lieu_chuoi",
@@ -176,7 +179,17 @@
   var CONFIRM_TAGS = ["xac_nhan_tham_gia", "khong_xac_nhan_tham_gia"];
   var TIER_TAGS = ["vang", "bac", "dong"];
   var ALL_KNOWN_TAGS = []
-    .concat(AREA_TAGS, SOURCE_TAGS, CUSTOMER_TAGS, CLASS_TAGS, MATERIAL_TAGS, FRANCHISE_TAGS, CONFIRM_TAGS, TIER_TAGS);
+    .concat(
+      AREA_TAGS,
+      SOURCE_TAGS,
+      CUSTOMER_TAGS,
+      CREDENTIAL_TAGS,
+      CLASS_TAGS,
+      MATERIAL_TAGS,
+      FRANCHISE_TAGS,
+      CONFIRM_TAGS,
+      TIER_TAGS
+    );
 
   function catalogLabel(tag) {
     var labels = root.MK_OPP_TAG_LABELS || {};
@@ -232,10 +245,18 @@
         custom.push(t);
       }
     });
+    var credentials = [];
+    (tags || []).forEach(function (t) {
+      var key = normalizeTag(t);
+      if (CREDENTIAL_TAGS.indexOf(key) >= 0 && credentials.indexOf(key) < 0) {
+        credentials.push(key);
+      }
+    });
     return {
       area: findTagInPool(tags, AREA_TAGS),
       source: findTagInPool(tags, SOURCE_TAGS),
       customer: findTagInPool(tags, CUSTOMER_TAGS),
+      credentials: credentials,
       classTag: findTagInPool(tags, CLASS_TAGS),
       material: findTagInPool(tags, MATERIAL_TAGS),
       franchise: findTagInPool(tags, FRANCHISE_TAGS),
@@ -274,7 +295,12 @@
   var CREATE_TAG_GROUPS = [
     { id: "area", labelVi: "Khu vực", labelEn: "Region", tags: AREA_TAGS },
     { id: "source", labelVi: "Nguồn data", labelEn: "Source", tags: SOURCE_TAGS },
-    { id: "customer", labelVi: "Dạng khách hàng", labelEn: "Customer type", tags: CUSTOMER_TAGS },
+    {
+      id: "customer",
+      labelVi: "Dạng khách hàng",
+      labelEn: "Customer type",
+      tags: CUSTOMER_TAGS.concat(CREDENTIAL_TAGS),
+    },
     { id: "class", labelVi: "Tag lớp học", labelEn: "Class", tags: CLASS_TAGS },
     { id: "material", labelVi: "Tag nguyên liệu", labelEn: "Material", tags: MATERIAL_TAGS },
     { id: "franchise", labelVi: "Tag nhượng quyền", labelEn: "Franchise", tags: FRANCHISE_TAGS },
@@ -311,6 +337,8 @@
     AREA_TAGS: AREA_TAGS,
     SOURCE_TAGS: SOURCE_TAGS,
     CUSTOMER_TAGS: CUSTOMER_TAGS,
+    CREDENTIAL_TAGS: CREDENTIAL_TAGS,
+    CREDENTIAL_TAGS: CREDENTIAL_TAGS,
     CLASS_TAGS: CLASS_TAGS,
     MATERIAL_TAGS: MATERIAL_TAGS,
     FRANCHISE_TAGS: FRANCHISE_TAGS,

@@ -778,11 +778,11 @@
             app.helper.showSuccessNotification({
               message: "Nghe máy — đã chuyển sang Cơ hội.",
             });
-          } else {
-            window.alert("Nghe máy — đã chuyển sang Cơ hội.");
           }
-          if (url && window.confirm("Mở Cơ hội vừa tạo?")) {
-            window.location.href = url;
+          if (url) {
+            window.setTimeout(function () {
+              window.location.href = url;
+            }, 400);
           }
           return;
         }

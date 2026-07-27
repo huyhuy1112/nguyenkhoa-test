@@ -103,6 +103,18 @@
     cat: "customer-type",
     cls: "mk-tag--gia-dinh",
   };
+  TAG_META_RAW["da_cap_bang"] = {
+    vi: "Đã cấp bằng",
+    en: "Degree issued",
+    cat: "customer-type",
+    cls: "mk-tag--da-cap-bang",
+  };
+  TAG_META_RAW["da_cap_tai_khoan"] = {
+    vi: "Đã cấp tài khoản",
+    en: "Account issued",
+    cat: "customer-type",
+    cls: "mk-tag--da-cap-tai-khoan",
+  };
   TAG_META_RAW["hotline"] = { vi: "Hotline", en: "Hotline", cat: "source", cls: "mk-tag--hotline" };
   TAG_META_RAW["ladipage_fb"] = { vi: "Ladipage FB", en: "Ladipage FB", cat: "source", cls: "mk-tag--ladipage" };
   TAG_META_RAW["nguyen_lieu_chuoi"] = { vi: "NL chuỗi", en: "Chain supply", cat: "program", cls: "mk-tag--nguyen-lieu-chuoi" };
@@ -168,7 +180,15 @@
       id: "customer",
       labelVi: "Loại / trạng thái khách",
       labelEn: "Customer",
-      tags: ["individual", "company", "co_quan", "chuan_bi_mo", "gia_dinh"],
+      tags: [
+        "individual",
+        "company",
+        "co_quan",
+        "chuan_bi_mo",
+        "gia_dinh",
+        "da_cap_bang",
+        "da_cap_tai_khoan",
+      ],
     },
     {
       id: "learning",

@@ -792,7 +792,7 @@ class Warehouse_WhMgmtService {
 		return $out;
 	}
 
-	public static function applyReceiptAction($warehouseCode, $receiptCode, $actionKey, $role, $note = '', $userId = 0) {
+	public static function applyReceiptAction($warehouseCode, $receiptCode, $actionKey, $role, $note = '', $userId = 0, $targetStatus = '') {
 		$db = PearDatabase::getInstance();
 		self::ensureInstalled();
 		require_once 'modules/GoodsReceipt/helpers/WorkflowSetup.php';
@@ -888,7 +888,20 @@ class Warehouse_WhMgmtService {
 				), $userId);
 			}
 			$locationNote = self::formatReceiptLocationNote($items);
+			$meta['stockStored'] = true;
 			self::pushTimeline($meta, 'Đã nhập kho', $role, $locationNote);
+		} else if ($actionKey === 'receipt-revert') {
+			$newStatus = self::revertReceiptStatus(
+				$db,
+				$warehouseCode,
+				$whName,
+				$receiptId,
+				$status,
+				$targetStatus,
+				$role,
+				$userId,
+				$meta
+			);
 		} else {
 			throw new Exception('Unsupported receipt action: ' . $actionKey);
 		}
@@ -1211,7 +1224,208 @@ class Warehouse_WhMgmtService {
 		$meta['stockDeducted'] = false;
 	}
 
-	public static function applyIssueAction($warehouseCode, $issueCode, $actionKey, $role, $note = '', $userId = 0) {
+	/**
+	 * Chuẩn hoá status xuất về bước trên path (happy path).
+	 */
+	protected static function normalizeIssuePathStatus($status) {
+		$status = trim((string) $status);
+		if ($status === 'pending_approval' || $status === 'draft') {
+			return 'waiting_print';
+		}
+		if ($status === 'approved') {
+			return 'packed';
+		}
+		return $status;
+	}
+
+	protected static function issuePathOrder() {
+		return array('waiting_print', 'picking', 'packed', 'shipped');
+	}
+
+	protected static function issuePathLabel($status) {
+		$map = array(
+			'waiting_print' => 'Chờ in phiếu',
+			'picking' => 'Đang soạn',
+			'packed' => 'Đã soạn',
+			'shipped' => 'Đã giao',
+		);
+		$norm = self::normalizeIssuePathStatus($status);
+		return isset($map[$norm]) ? $map[$norm] : $norm;
+	}
+
+	/**
+	 * Quay lại bước trước trên path xuất. Hoàn tồn nếu lùi qua mốc đã trừ kho (packed).
+	 * @return string new db status
+	 */
+	protected static function revertIssueStatus(
+		PearDatabase $db,
+		$warehouseCode,
+		$issueId,
+		$fromStatus,
+		$targetStatus,
+		$role,
+		$userId,
+		array &$meta
+	) {
+		$order = self::issuePathOrder();
+		$from = self::normalizeIssuePathStatus($fromStatus);
+		$to = self::normalizeIssuePathStatus($targetStatus);
+		$fromIdx = array_search($from, $order, true);
+		$toIdx = array_search($to, $order, true);
+		if ($fromIdx === false) {
+			throw new Exception('Không thể quay lại từ trạng thái hiện tại (' . self::issuePathLabel($fromStatus) . ').');
+		}
+		if ($toIdx === false) {
+			throw new Exception('Bước đích không hợp lệ.');
+		}
+		if ($toIdx >= $fromIdx) {
+			throw new Exception('Chỉ được quay lại bước trước đó.');
+		}
+		$packedIdx = array_search('packed', $order, true);
+		// Đã trừ tồn từ lúc "Đã soạn" — lùi về trước packed thì hoàn tồn.
+		if ($packedIdx !== false && $fromIdx >= $packedIdx && $toIdx < $packedIdx) {
+			self::restoreStockForCancelledIssue($db, $warehouseCode, $issueId, $userId, $meta);
+		}
+		self::pushTimeline(
+			$meta,
+			'Quay lại: ' . self::issuePathLabel($to),
+			$role,
+			'Từ ' . self::issuePathLabel($from)
+		);
+		return $to;
+	}
+
+	protected static function receiptPathOrder() {
+		return array('draft', 'pending_qc', 'qc_passed', 'approved', 'stored');
+	}
+
+	protected static function normalizeReceiptPathStatus($status) {
+		$status = trim((string) $status);
+		if ($status === 'qc_failed') {
+			return 'pending_qc';
+		}
+		return $status;
+	}
+
+	protected static function receiptPathLabel($status) {
+		$map = array(
+			'draft' => 'Nháp',
+			'pending_qc' => 'Chờ QC',
+			'qc_passed' => 'QC đạt',
+			'qc_failed' => 'QC không đạt',
+			'approved' => 'Đã duyệt',
+			'stored' => 'Đã nhập kho',
+		);
+		return isset($map[$status]) ? $map[$status] : $status;
+	}
+
+	/**
+	 * Hoàn tồn đã cộng khi nhập kho (store).
+	 */
+	protected static function reverseStoredReceiptStock(
+		PearDatabase $db,
+		$warehouseCode,
+		$receiptId,
+		$userId,
+		array &$meta
+	) {
+		if (empty($meta['stockStored'])) {
+			// Vẫn thử reverse nếu đang ở stored (phiếu cũ chưa gắn flag).
+			// Caller quyết định dựa trên status.
+		}
+		$items = self::loadReceiptItemsRaw($db, $receiptId);
+		$now = self::nowSql();
+		foreach ($items as $it) {
+			$qty = (float) (isset($it['quantity']) ? $it['quantity'] : 0);
+			if ($qty <= 0) {
+				continue;
+			}
+			$name = self::decodeDisplayTextDeep(isset($it['product_name']) ? $it['product_name'] : '');
+			$lot = self::decodeDisplayTextDeep(isset($it['serial_number']) ? $it['serial_number'] : '');
+			$sku = self::decodeDisplayTextDeep(isset($it['line_note']) ? $it['line_note'] : '');
+			$productId = (int) (isset($it['productid']) ? $it['productid'] : 0);
+			if ($sku === '' && $productId > 0) {
+				$sku = self::resolveProductSku($db, $productId);
+			}
+			self::deductQtyFromWarehouseStock(
+				$db,
+				$warehouseCode,
+				$qty,
+				$sku,
+				$lot,
+				$name,
+				$productId,
+				$userId,
+				$now,
+				true
+			);
+		}
+		$meta['stockStored'] = false;
+	}
+
+	/**
+	 * Quay lại bước trước trên path nhập.
+	 * @return string new status
+	 */
+	protected static function revertReceiptStatus(
+		PearDatabase $db,
+		$warehouseCode,
+		$whName,
+		$receiptId,
+		$fromStatus,
+		$targetStatus,
+		$role,
+		$userId,
+		array &$meta
+	) {
+		$order = self::receiptPathOrder();
+		$fromRaw = trim((string) $fromStatus);
+		$to = trim((string) $targetStatus);
+		$fromPath = self::normalizeReceiptPathStatus($fromRaw);
+		$toPath = self::normalizeReceiptPathStatus($to);
+
+		// Cho phép qc_failed → pending_qc / draft
+		if ($fromRaw === 'qc_failed') {
+			if (!in_array($to, array('pending_qc', 'draft'), true)) {
+				throw new Exception('Từ QC không đạt chỉ quay về Chờ QC hoặc Nháp.');
+			}
+			if ($to === 'pending_qc') {
+				unset($meta['qc']);
+			}
+			self::pushTimeline(
+				$meta,
+				'Quay lại: ' . self::receiptPathLabel($to),
+				$role,
+				'Từ QC không đạt'
+			);
+			return $to;
+		}
+
+		$fromIdx = array_search($fromPath, $order, true);
+		$toIdx = array_search($toPath, $order, true);
+		if ($fromIdx === false || $toIdx === false) {
+			throw new Exception('Không thể quay lại từ/đến trạng thái này.');
+		}
+		if ($toIdx >= $fromIdx) {
+			throw new Exception('Chỉ được quay lại bước trước đó.');
+		}
+		$storedIdx = array_search('stored', $order, true);
+		if ($storedIdx !== false && $fromIdx >= $storedIdx && $toIdx < $storedIdx) {
+			self::reverseStoredReceiptStock($db, $warehouseCode, $receiptId, $userId, $meta);
+		}
+		if ($toIdx <= array_search('pending_qc', $order, true)) {
+			unset($meta['qc']);
+		}
+		self::pushTimeline(
+			$meta,
+			'Quay lại: ' . self::receiptPathLabel($to),
+			$role,
+			'Từ ' . self::receiptPathLabel($fromRaw)
+		);
+		return $to;
+	}
+
+	public static function applyIssueAction($warehouseCode, $issueCode, $actionKey, $role, $note = '', $userId = 0, $targetStatus = '') {
 		$db = PearDatabase::getInstance();
 		self::ensureInstalled();
 		require_once 'modules/GoodsReceipt/helpers/WorkflowSetup.php';
@@ -1280,6 +1494,17 @@ class Warehouse_WhMgmtService {
 			self::restoreStockForCancelledIssue($db, $warehouseCode, $issueId, $userId, $meta);
 			$newDbStatus = 'cancelled';
 			self::pushTimeline($meta, 'Huỷ phiếu xuất', $role, (string) ($note !== '' ? $note : 'Huỷ xuất kho'));
+		} else if ($actionKey === 'issue-revert') {
+			$newDbStatus = self::revertIssueStatus(
+				$db,
+				$warehouseCode,
+				$issueId,
+				$dbStatus,
+				$targetStatus,
+				$role,
+				$userId,
+				$meta
+			);
 		} else {
 			throw new Exception('Unsupported issue action: ' . $actionKey);
 		}

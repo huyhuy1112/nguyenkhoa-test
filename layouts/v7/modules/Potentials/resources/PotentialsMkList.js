@@ -248,11 +248,14 @@
   function stackedTagsHtml(cats) {
     var parts = [];
     [cats.classTag, cats.material, cats.franchise, cats.tier]
+      .concat(cats.credentials || [])
       .concat(cats.custom || [])
       .forEach(function (tg) {
         if (tg) parts.push(tagBadgeHtml(tg));
       });
-    return parts.length ? parts.join(" ") : '<span class="mk-leads-muted">Thêm thẻ…</span>';
+    return parts.length
+      ? '<div class="mk-leads-tags-stack">' + parts.join("") + "</div>"
+      : '<span class="mk-leads-muted">Thêm thẻ…</span>';
   }
 
   function closeTagPopover() {

@@ -1,5 +1,5 @@
 /**
- * Contacts list — tag categories per BA Excel (distinct from Leads / Opp).
+ * ServiceContracts list — tag categories (same BA buckets as Contacts / Leads).
  */
 (function (root) {
   "use strict";
@@ -69,8 +69,6 @@
     co_quan: { vi: "Đã có quán", en: "Has store", cat: "customerRank", cls: "mk-tag--co-quan" },
     chuan_bi_mo: { vi: "Chưa có quán", en: "No store yet", cat: "customerRank", cls: "mk-tag--chuan-bi-mo" },
     gia_dinh: { vi: "Gia đình", en: "Family", cat: "customerRank", cls: "mk-tag--gia-dinh" },
-    da_cap_bang: { vi: "Đã cấp bằng", en: "Degree issued", cat: "customerRank", cls: "mk-tag--da-cap-bang" },
-    da_cap_tai_khoan: { vi: "Đã cấp tài khoản", en: "Account issued", cat: "customerRank", cls: "mk-tag--da-cap-tai-khoan" },
     chua_mqbh: { vi: "Chưa MQBH", en: "No MQBH", cat: "classTag", cls: "mk-tag--chua-mqbh" },
     da_tg_free: { vi: "Đã TG FREE", en: "Attended FREE", cat: "classTag", cls: "mk-tag--da-tg-free" },
     da_tg_fb1: { vi: "Đã TG F&B1", en: "Attended F&B1", cat: "classTag", cls: "mk-tag--da-tg-fb1" },
@@ -97,7 +95,6 @@
 
   /** Loại khách — khớp Trạng thái khách trên Lead (Đã/Chưa có quán, Gia đình). */
   var CUSTOMER_RANK_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh", "moi_quen", "da_co_quan_he"];
-  var CREDENTIAL_TAGS = ["da_cap_bang", "da_cap_tai_khoan"];
   var CLASS_TAGS = ["chua_mqbh", "da_tg_free", "da_tg_fb1", "thu_3", "pcth", "van_hanh", "mkt", "lop_khac"];
   var MATERIAL_TAGS = [
     "tiem_nang", "mua_lan_dau", "mua_lai", "mua_on_dinh", "dang_cham_soc",
@@ -170,19 +167,14 @@
     return fallback || key;
   }
 
-  function isAllowedContactTag(tag) {
+  function isAllowedTag(tag) {
     return !!TAG_META_RAW[normalizeTag(tag)];
   }
 
   /** Groups for list / inline tag editor — same BA buckets as Opp / Leads. */
   var CREATE_TAG_GROUPS = [
     { id: "tier", labelVi: "Hạng khách", labelEn: "Tier", tags: TIER_TAGS },
-    {
-      id: "customerRank",
-      labelVi: "Loại khách",
-      labelEn: "Customer type",
-      tags: CUSTOMER_RANK_TAGS.concat(CREDENTIAL_TAGS),
-    },
+    { id: "customerRank", labelVi: "Loại khách", labelEn: "Customer type", tags: CUSTOMER_RANK_TAGS },
     { id: "class", labelVi: "Tag lớp học", labelEn: "Class", tags: CLASS_TAGS },
     { id: "material", labelVi: "Tag nguyên liệu", labelEn: "Material", tags: MATERIAL_TAGS },
     { id: "franchise", labelVi: "Tag nhượng quyền", labelEn: "Franchise", tags: FRANCHISE_TAGS },
@@ -212,10 +204,9 @@
     return keys;
   }
 
-  root.ContactsLovableRef = {
+  root.ServiceContractsLovableRef = {
     TAG_META_RAW: TAG_META_RAW,
     CUSTOMER_RANK_TAGS: CUSTOMER_RANK_TAGS,
-    CREDENTIAL_TAGS: CREDENTIAL_TAGS,
     CLASS_TAGS: CLASS_TAGS,
     MATERIAL_TAGS: MATERIAL_TAGS,
     FRANCHISE_TAGS: FRANCHISE_TAGS,
@@ -228,7 +219,7 @@
     categorizeTags: categorizeTags,
     tagMeta: tagMeta,
     labelForTag: labelForTag,
-    isAllowedContactTag: isAllowedContactTag,
+    isAllowedTag: isAllowedTag,
     getCreateTagCatalog: getCreateTagCatalog,
     getCreateTagKeys: getCreateTagKeys,
   };

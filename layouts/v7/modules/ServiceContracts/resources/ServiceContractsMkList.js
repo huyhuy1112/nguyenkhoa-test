@@ -1,11 +1,11 @@
-/* Contacts list — Lovable UI (same shell as Leads / Potentials) */
+/* ServiceContracts list — Lovable UI (Leads shell) + affiliate column */
 (function () {
   "use strict";
 
   var ANY = "__any__";
   var PAGE_SIZE = 15;
-  var ref = window.ContactsLovableRef;
-  var store = window.ContactsLocalStore;
+  var ref = window.ServiceContractsLovableRef;
+  var store = window.ServiceContractsLocalStore;
   var icons = window.LeadsMkIcons;
   var COL_COUNT = 12;
 
@@ -21,7 +21,6 @@
     return ref && ref.pickLabel ? ref.pickLabel(vi, en) : vi;
   }
 
-  /** Loại khách chips — khớp Trạng thái khách trên Lead */
   function getPresetSegments() {
     return [
       { id: "tagged", name: pick("Có tag", "Has tag"), filters: { hasTag: true } },
@@ -32,6 +31,7 @@
       { id: "franchise", name: pick("Nhượng quyền", "Franchise"), filters: { franchise: "nhuong_quyen" } },
       { id: "deposit", name: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
       { id: "gold", name: pick("Hạng Vàng", "Gold tier"), filters: { tier: "vang" } },
+      { id: "stale", name: pick("Lâu chưa chăm", "Stale"), filters: { staleOnly: true } },
     ];
   }
 
@@ -45,7 +45,6 @@
     anyTag: ANY,
     owner: ANY,
     hasTag: false,
-    hasAccount: false,
     staleOnly: false,
   };
 
@@ -91,16 +90,22 @@
       .replace(/"/g, "&quot;");
   }
 
-  function getContacts() {
-    return store ? store.getContacts() : [];
+  function getContracts() {
+    return store ? store.getContracts() : [];
   }
 
   function detailUrl(id) {
-    return "index.php?module=Contacts&view=Detail&record=" + encodeURIComponent(id) + "&app=SALES";
+    return (
+      "index.php?module=ServiceContracts&view=Detail&record=" +
+      encodeURIComponent(id) +
+      "&app=SALES"
+    );
   }
 
   function ownerInitials(name) {
-    var parts = String(name || "").trim().split(/\s+/);
+    var parts = String(name || "")
+      .trim()
+      .split(/\s+/);
     if (!parts[0]) return "?";
     if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
@@ -129,23 +134,36 @@
     return false;
   }
 
-  function filterContacts(rows) {
+  function filterRows(rows) {
     var f = state.filters;
     var q = (f.search || "").toLowerCase().trim();
     return rows.filter(function (c) {
       var cats = categorize(c.tags);
       if (q) {
-        var hay = [c.name, c.title, c.account, c.email, c.phone, c.owner, (c.tags || []).join(" ")]
+        var hay = [
+          c.name,
+          c.affiliate_code,
+          c.contract_no,
+          c.account,
+          c.email,
+          c.phone,
+          c.owner,
+          c.area,
+          c.address,
+          c.district,
+          (c.tags || []).join(" "),
+        ]
           .join(" ")
           .toLowerCase();
         if (hay.indexOf(q) < 0) return false;
       }
       if (f.hasTag && !(c.tags || []).length) return false;
-      if (f.hasAccount && !c.account) return false;
-      if (f.customerRank !== ANY && (!cats.customerRank || ref.normalizeTag(cats.customerRank) !== f.customerRank)) return false;
+      if (f.customerRank !== ANY && (!cats.customerRank || ref.normalizeTag(cats.customerRank) !== f.customerRank))
+        return false;
       if (f.classTag !== ANY && (!cats.classTag || ref.normalizeTag(cats.classTag) !== f.classTag)) return false;
       if (f.material !== ANY && (!cats.material || ref.normalizeTag(cats.material) !== f.material)) return false;
-      if (f.franchise !== ANY && (!cats.franchise || ref.normalizeTag(cats.franchise) !== f.franchise)) return false;
+      if (f.franchise !== ANY && (!cats.franchise || ref.normalizeTag(cats.franchise) !== f.franchise))
+        return false;
       if (f.tier !== ANY && (!cats.tier || ref.normalizeTag(cats.tier) !== f.tier)) return false;
       if (f.anyTag !== ANY && !hasNormalizedTag(c.tags, f.anyTag)) return false;
       if (f.staleOnly && !isStale(c)) return false;
@@ -154,13 +172,13 @@
     });
   }
 
-  function sortContacts(rows) {
+  function sortRows(rows) {
     var key = state.sortKey;
     var dir = state.sortDir === "asc" ? 1 : -1;
     return rows.slice().sort(function (a, b) {
       var av = a[key];
       var bv = b[key];
-      if (key === "thoigian_dangky" || key === "thoigian_pcth" || key === "thoigian_mqbb") {
+      if (key === "last_touch" || key === "createdtime") {
         av = av ? new Date(av).getTime() : 0;
         bv = bv ? new Date(bv).getTime() : 0;
         if (av < bv) return -1 * dir;
@@ -179,19 +197,18 @@
     if (!raw) return "";
     var d = new Date(raw);
     if (isNaN(d.getTime())) return String(raw);
-    var mm = String(d.getMonth() + 1).padStart
-      ? String(d.getMonth() + 1).padStart(2, "0")
-      : ("0" + (d.getMonth() + 1)).slice(-2);
-    var dd = String(d.getDate()).padStart
-      ? String(d.getDate()).padStart(2, "0")
-      : ("0" + d.getDate()).slice(-2);
+    var mm = String(d.getMonth() + 1);
+    mm = mm.length < 2 ? "0" + mm : mm;
+    var dd = String(d.getDate());
+    dd = dd.length < 2 ? "0" + dd : dd;
     var yyyy = d.getFullYear();
     var h = d.getHours();
     var m = d.getMinutes();
     var ampm = h >= 12 ? "PM" : "AM";
     var h12 = h % 12;
     if (h12 === 0) h12 = 12;
-    var mmins = String(m).padStart ? String(m).padStart(2, "0") : ("0" + m).slice(-2);
+    var mmins = String(m);
+    mmins = mmins.length < 2 ? "0" + mmins : mmins;
     return mm + "-" + dd + "-" + yyyy + " " + h12 + ":" + mmins + " " + ampm;
   }
 
@@ -202,42 +219,148 @@
       : '<span class="mk-leads-muted">—</span>';
   }
 
+  function nextActionCell(c) {
+    var next = String(c.next_action || "").trim();
+    var overdue = !!c.next_action_overdue;
+    var days =
+      overdue && c.next_action_days_overdue != null
+        ? c.next_action_days_overdue
+        : c.next_action_days_remaining != null
+          ? c.next_action_days_remaining
+          : null;
+    var alertLabel = "";
+    if (c.rule_alert_days != null && Number(c.rule_alert_days) > 0) {
+      if (overdue) {
+        alertLabel = pick("Quá hạn " + days + " ngày", "Overdue " + days + "d");
+      } else if (days != null) {
+        alertLabel = pick("Còn " + days + " ngày", days + "d left");
+      } else {
+        alertLabel = pick("Cảnh báo " + c.rule_alert_days + " ngày", "Alert " + c.rule_alert_days + "d");
+      }
+    }
+    var chip =
+      alertLabel !== ""
+        ? '<span class="mk-leads-next-alert' +
+          (overdue ? " is-overdue" : "") +
+          '">' +
+          esc(alertLabel) +
+          "</span>"
+        : "";
+    return (
+      '<div class="mk-leads-next-cell" data-sc-id="' +
+      esc(c.id) +
+      '">' +
+      '<button type="button" class="mk-leads-next-edit" data-sc-next="' +
+      esc(c.id) +
+      '" title="' +
+      esc(pick("Sửa hành động tiếp theo", "Edit next action")) +
+      '">' +
+      (next
+        ? '<span class="mk-leads-next-text">' + esc(next) + "</span>"
+        : '<span class="mk-leads-muted">' + esc(pick("Thêm…", "Add…")) + "</span>") +
+      chip +
+      "</button></div>"
+    );
+  }
+
+  function stackedTags(tags) {
+    if (!tags || !tags.length) {
+      return '<span class="mk-leads-muted">' + esc(pick("Thêm thẻ", "Add tags")) + "</span>";
+    }
+    return tags
+      .map(function (tg) {
+        var meta = tagMeta(tg);
+        return '<span class="mk-tag ' + esc(meta.cls || "mk-tag") + '">' + esc(meta.label) + "</span>";
+      })
+      .join(" ");
+  }
+
   function computeKpis(rows) {
-    var withTags = rows.filter(function (c) { return (c.tags || []).length > 0; }).length;
-    var withEmail = rows.filter(function (c) { return !!c.email; }).length;
-    var withPhone = rows.filter(function (c) { return !!c.phone; }).length;
-    var withAccount = rows.filter(function (c) { return !!c.account; }).length;
+    var withTags = rows.filter(function (c) {
+      return (c.tags || []).length > 0;
+    }).length;
+    var withPhone = rows.filter(function (c) {
+      return !!c.phone;
+    }).length;
+    var withAff = rows.filter(function (c) {
+      return !!c.affiliate_code;
+    }).length;
+    var franchise = rows.filter(function (c) {
+      return categorize(c.tags).franchise;
+    }).length;
     var gold = rows.filter(function (c) {
       var tg = categorize(c.tags).tier;
       return tg && ref.normalizeTag(tg) === "vang";
     }).length;
-    var franchise = rows.filter(function (c) { return categorize(c.tags).franchise; }).length;
+    var stale = rows.filter(isStale).length;
     return [
-      { key: "total", label: t("JS_MK_KPI_TOTAL_CONTACT", "Tổng khách hàng"), value: rows.length, icon: "users", tone: "blue" },
-      { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "violet" },
-      { key: "email", label: t("JS_MK_KPI_EMAIL", "Có email"), value: withEmail, icon: "check", tone: "emerald" },
-      { key: "phone", label: t("JS_MK_KPI_PHONE", "Có SĐT"), value: withPhone, icon: "clock", tone: "cyan" },
-      { key: "account", label: t("JS_MK_KPI_ACCOUNT", "Có tổ chức"), value: withAccount, icon: "repeat", tone: "amber" },
+      {
+        key: "total",
+        label: t("JS_MK_KPI_TOTAL_SC", "Tổng khách CN"),
+        value: rows.length,
+        icon: "users",
+        tone: "blue",
+      },
+      {
+        key: "affiliate",
+        label: t("JS_MK_KPI_AFFILIATE", "Có mã AFF"),
+        value: withAff,
+        icon: "check",
+        tone: "emerald",
+      },
+      {
+        key: "tagged",
+        label: t("JS_MK_KPI_TAGGED", "Có tag"),
+        value: withTags,
+        icon: "crown",
+        tone: "violet",
+      },
+      {
+        key: "phone",
+        label: t("JS_MK_KPI_PHONE", "Có SĐT"),
+        value: withPhone,
+        icon: "clock",
+        tone: "cyan",
+      },
+      {
+        key: "franchise",
+        label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"),
+        value: franchise,
+        icon: "trend",
+        tone: "indigo",
+      },
       { key: "gold", label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: gold, icon: "crown", tone: "rose" },
-      { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "trend", tone: "indigo" },
+      {
+        key: "stale",
+        label: t("JS_MK_KPI_STALE", "Lâu chưa chăm"),
+        value: stale,
+        icon: "alert",
+        tone: "amber",
+      },
     ];
   }
 
   function renderKpi(rows) {
-    var host = $("mk-contacts-kpi");
+    var host = $("mk-sc-kpi");
     if (!host) return;
     host.innerHTML = computeKpis(rows)
       .map(function (k) {
         return (
-          '<article class="mk-leads-kpi-card mk-contacts-kpi-card" data-kpi="' + esc(k.key) + '">' +
+          '<article class="mk-leads-kpi-card" data-kpi="' +
+          esc(k.key) +
+          '">' +
           '<div class="mk-leads-kpi-card__top">' +
           '<span class="mk-leads-kpi-card__label">' +
-          '<span class="mk-leads-kpi-ic-wrap mk-leads-kpi-ic--' + esc(k.tone) + '">' +
+          '<span class="mk-leads-kpi-ic-wrap mk-leads-kpi-ic--' +
+          esc(k.tone) +
+          '">' +
           ic(k.icon) +
           "</span>" +
           esc(k.label) +
           "</span></div>" +
-          '<div class="mk-leads-kpi-card__value">' + esc(String(k.value)) + "</div>" +
+          '<div class="mk-leads-kpi-card__value">' +
+          esc(String(k.value)) +
+          "</div>" +
           "</article>"
         );
       })
@@ -245,7 +368,7 @@
   }
 
   function renderSegments() {
-    var host = $("mk-contacts-segments");
+    var host = $("mk-sc-segments");
     if (!host) return;
     var allOn = !state.activeSegment ? " is-active" : "";
     var html =
@@ -273,33 +396,17 @@
 
   function selectOptions(pairs) {
     return (
-      '<option value="' + ANY + '">' + esc(t("JS_MK_FILTER_ALL", "Tất cả")) + "</option>" +
-      pairs.map(function (p) {
-        return '<option value="' + esc(p[0]) + '">' + esc(p[1]) + "</option>";
-      }).join("")
+      '<option value="' +
+      ANY +
+      '">' +
+      esc(t("JS_MK_FILTER_ALL", "Tất cả")) +
+      "</option>" +
+      pairs
+        .map(function (p) {
+          return '<option value="' + esc(p[0]) + '">' + esc(p[1]) + "</option>";
+        })
+        .join("")
     );
-  }
-
-  function renderFiltersPanel() {
-    var host = $("mk-contacts-filters-panel");
-    if (!host || !ref) return;
-    var rows = getContacts();
-    var owners = [];
-    rows.forEach(function (c) {
-      if (c.owner && owners.indexOf(c.owner) < 0) owners.push(c.owner);
-    });
-    owners.sort();
-    host.innerHTML =
-      '<div class="mk-leads-filters-grid">' +
-      fieldSelect(t("JS_MK_FILTER_TIER", "Hạng khách hàng"), "tier", ref.TIER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
-      fieldSelect(t("JS_MK_FILTER_CUSTOMER_RANK", "Loại khách"), "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
-      fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
-      fieldSelect(t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"), "material", ref.MATERIAL_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
-      fieldSelect(t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"), "franchise", ref.FRANCHISE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
-      fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", owners.map(function (o) { return [o, o]; })) +
-      "</div>";
-    host.hidden = !state.filtersOpen;
-    syncFilterControls();
   }
 
   function fieldSelect(label, key, pairs) {
@@ -314,119 +421,101 @@
     );
   }
 
+  function renderFiltersPanel() {
+    var host = $("mk-sc-filters-panel");
+    if (!host || !ref) return;
+    var rows = getContracts();
+    var owners = [];
+    rows.forEach(function (c) {
+      if (c.owner && owners.indexOf(c.owner) < 0) owners.push(c.owner);
+    });
+    owners.sort();
+    host.innerHTML =
+      '<div class="mk-leads-filters-grid">' +
+      fieldSelect(
+        t("JS_MK_FILTER_TIER", "Hạng khách hàng"),
+        "tier",
+        ref.TIER_TAGS.map(function (tg) {
+          return [ref.normalizeTag(tg), tagMeta(tg).label];
+        })
+      ) +
+      fieldSelect(
+        t("JS_MK_FILTER_CUSTOMER_RANK", "Loại khách"),
+        "customerRank",
+        ref.CUSTOMER_RANK_TAGS.map(function (tg) {
+          return [ref.normalizeTag(tg), tagMeta(tg).label];
+        })
+      ) +
+      fieldSelect(
+        t("JS_MK_FILTER_CLASS", "Tag lớp học"),
+        "classTag",
+        ref.CLASS_TAGS.map(function (tg) {
+          return [ref.normalizeTag(tg), tagMeta(tg).label];
+        })
+      ) +
+      fieldSelect(
+        t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"),
+        "material",
+        ref.MATERIAL_TAGS.map(function (tg) {
+          return [ref.normalizeTag(tg), tagMeta(tg).label];
+        })
+      ) +
+      fieldSelect(
+        t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"),
+        "franchise",
+        ref.FRANCHISE_TAGS.map(function (tg) {
+          return [ref.normalizeTag(tg), tagMeta(tg).label];
+        })
+      ) +
+      fieldSelect(
+        t("JS_MK_FILTER_OWNER", "Phụ trách"),
+        "owner",
+        owners.map(function (o) {
+          return [o, o];
+        })
+      ) +
+      "</div>";
+    host.hidden = !state.filtersOpen;
+    syncFilterControls();
+  }
+
   function syncFilterControls() {
     var f = state.filters;
-    document.querySelectorAll("#mk-contacts-filters-panel [data-fkey]").forEach(function (el) {
+    document.querySelectorAll("#mk-sc-filters-panel [data-fkey]").forEach(function (el) {
       var key = el.getAttribute("data-fkey");
-      if (f[key] !== undefined) el.value = f[key];
+      if (key && f[key] != null) el.value = f[key];
     });
-  }
-
-  function tagBadgeHtml(tag) {
-    if (!tag) return '<span class="mk-leads-muted">—</span>';
-    var m = tagMeta(tag);
-    var key = ref.normalizeTag(tag) || String(tag || "").trim();
-    return (
-      '<span class="mk-tag" data-tag="' +
-      esc(key) +
-      '">' +
-      esc(m.label) +
-      "</span>"
-    );
-  }
-
-  function tierPill(tags) {
-    var tier = categorize(tags).tier;
-    if (!tier) return '<span class="mk-leads-muted">—</span>';
-    var m = tagMeta(tier);
-    var key = ref.normalizeTag(tier);
-    return (
-      '<span class="mk-tag" data-tag="' +
-      esc(key) +
-      '">' +
-      esc(m.label) +
-      "</span>"
-    );
-  }
-
-  function stackedContactTags(contact) {
-    var list = (contact && contact.tags) || [];
-    var seen = {};
-    var parts = [];
-    function pushTag(tg) {
-      var key = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "");
-      if (!key || seen[key]) return;
-      seen[key] = true;
-      parts.push(tagBadgeHtml(tg));
+    var reset = $("mk-sc-reset");
+    if (reset) {
+      var dirty =
+        f.search ||
+        f.hasTag ||
+        f.staleOnly ||
+        f.customerRank !== ANY ||
+        f.classTag !== ANY ||
+        f.material !== ANY ||
+        f.franchise !== ANY ||
+        f.tier !== ANY ||
+        f.owner !== ANY;
+      reset.hidden = !dirty && !state.activeSegment;
     }
-    list.forEach(pushTag);
-    // Sync credential columns into tag stack so list + dropdown stay aligned.
-    if (contact && isCredentialIssued(contact.da_cap_bang, "bang")) pushTag("da_cap_bang");
-    if (contact && isCredentialIssued(contact.da_cap_tai_khoan, "tk")) pushTag("da_cap_tai_khoan");
-    return parts.length
-      ? '<div class="mk-leads-tags-stack">' + parts.join("") + "</div>"
-      : '<span class="mk-leads-muted">Thêm thẻ…</span>';
-  }
-
-  function isCredentialIssued(value, kind) {
-    var v = String(value || "").trim();
-    if (!v) return false;
-    if (kind === "tk") return /đã\s*cấp/i.test(v) && !/chưa/i.test(v);
-    return /đã\s*cấp/i.test(v) && !/chưa/i.test(v);
-  }
-
-  function credentialSelectHtml(contact, kind) {
-    var field = kind === "tk" ? "da_cap_tai_khoan" : "da_cap_bang";
-    var options =
-      kind === "tk"
-        ? ["Chưa cấp tài khoản", "Đã cấp tài khoản"]
-        : ["Chưa cấp", "Đã cấp"];
-    var cur = String((contact && contact[field]) || "").trim() || options[0];
-    if (options.indexOf(cur) < 0) {
-      cur = isCredentialIssued(cur, kind) ? options[1] : options[0];
-    }
-    var opts = options
-      .map(function (opt) {
-        return (
-          '<option value="' +
-          esc(opt) +
-          '"' +
-          (opt === cur ? " selected" : "") +
-          ">" +
-          esc(opt) +
-          "</option>"
-        );
-      })
-      .join("");
-    return (
-      '<select class="mk-contacts-cred-select" data-cred-field="' +
-      esc(field) +
-      '" data-contact-id="' +
-      esc(contact.id) +
-      '" title="Sửa trạng thái">' +
-      opts +
-      "</select>"
-    );
   }
 
   function closeTagPopover() {
-    var old = document.getElementById("mk-contacts-tag-popover");
-    if (old && old.parentNode) old.parentNode.removeChild(old);
+    var pop = $("mk-sc-tag-popover");
+    if (pop && pop.parentNode) pop.parentNode.removeChild(pop);
   }
 
-  function openTagPopover(anchor, contact) {
+  function openTagPopover(anchor, contract) {
     closeTagPopover();
-    if (!contact || !store) return;
-    var catalog = ref && ref.getCreateTagCatalog ? ref.getCreateTagCatalog() : [];
+    if (!ref || !ref.getCreateTagCatalog) return;
+    var catalog = ref.getCreateTagCatalog();
     var selected = {};
-    (contact.tags || []).forEach(function (tg) {
-      var k = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "");
-      if (k) selected[k] = true;
+    (contract.tags || []).forEach(function (tg) {
+      selected[ref.normalizeTag(tg)] = true;
     });
-    if (isCredentialIssued(contact.da_cap_bang, "bang")) selected.da_cap_bang = true;
-    if (isCredentialIssued(contact.da_cap_tai_khoan, "tk")) selected.da_cap_tai_khoan = true;
     var pop = document.createElement("div");
-    pop.id = "mk-contacts-tag-popover";
+    pop.id = "mk-sc-tag-popover";
     pop.className = "mk-leads-tag-popover";
     var groupsHtml = catalog
       .map(function (g) {
@@ -480,7 +569,10 @@
         chip.setAttribute("aria-pressed", chip.classList.contains("is-on") ? "true" : "false");
         return;
       }
-      if (e.target.closest && (e.target.closest("[data-tag-cancel]") || e.target.closest(".mk-leads-tag-popover__close"))) {
+      if (
+        e.target.closest &&
+        (e.target.closest("[data-tag-cancel]") || e.target.closest(".mk-leads-tag-popover__close"))
+      ) {
         closeTagPopover();
         return;
       }
@@ -491,23 +583,10 @@
         });
         var saveBtn = e.target.closest("[data-tag-save]");
         if (saveBtn) saveBtn.disabled = true;
-        var hasBang = nextTags.indexOf("da_cap_bang") >= 0;
-        var hasTk = nextTags.indexOf("da_cap_tai_khoan") >= 0;
-        var bangVal = hasBang ? "Đã cấp" : "Chưa cấp";
-        var tkVal = hasTk ? "Đã cấp tài khoản" : "Chưa cấp tài khoản";
         var saveFn = store.saveTags
-          ? store.saveTags(contact.crmid || contact.id, nextTags)
+          ? store.saveTags(contract.crmid || contract.id, nextTags)
           : Promise.reject(new Error("saveTags unavailable"));
         saveFn
-          .then(function () {
-            if (store.saveCredentials) {
-              return store.saveCredentials(contact.crmid || contact.id, bangVal, tkVal);
-            }
-            store.patchContact(contact.crmid || contact.id, {
-              da_cap_bang: bangVal,
-              da_cap_tai_khoan: tkVal,
-            });
-          })
           .then(function () {
             closeTagPopover();
             renderAll();
@@ -520,14 +599,29 @@
     });
   }
 
+  function promptNextAction(contract) {
+    var current = String(contract.next_action || "");
+    var next = window.prompt(pick("Hành động tiếp theo", "Next action"), current);
+    if (next === null) return;
+    if (!store || !store.saveNextAction) return;
+    store
+      .saveNextAction(contract.crmid || contract.id, next)
+      .then(function () {
+        renderAll();
+      })
+      .catch(function () {
+        window.alert("Không lưu được hành động tiếp theo.");
+      });
+  }
+
   function renderTable() {
-    var all = getContacts();
-    var rows = sortContacts(filterContacts(all));
+    var all = getContracts();
+    var rows = sortRows(filterRows(all));
     var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
     if (state.page > totalPages) state.page = 1;
     var start = (state.page - 1) * PAGE_SIZE;
     var pageRows = rows.slice(start, start + PAGE_SIZE);
-    var tbody = $("mk-contacts-tbody");
+    var tbody = $("mk-sc-tbody");
     if (!tbody) return;
 
     if (!pageRows.length) {
@@ -535,15 +629,18 @@
         '<tr><td colspan="' +
         COL_COUNT +
         '" class="mk-leads-empty">' +
-        esc(t("JS_MK_NO_CONTACTS_MATCH", "Không có khách hàng phù hợp bộ lọc.")) +
+        esc(t("JS_MK_NO_SC_MATCH", "Không có khách chuyển nhượng phù hợp bộ lọc.")) +
         "</td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (c) {
           var crmId = c.crmid != null && c.crmid !== "" ? String(c.crmid) : String(c.id || "");
           var checked = state.selected[c.id] ? " checked" : "";
+          var aff = c.affiliate_code
+            ? '<code class="mk-sc-aff-code">' + esc(c.affiliate_code) + "</code>"
+            : '<span class="mk-leads-muted">—</span>';
           return (
-            '<tr class="mk-leads-row mk-contacts-row' +
+            '<tr class="mk-leads-row mk-sc-row' +
             (state.selected[c.id] ? " mk-leads-row--selected" : "") +
             '" data-id="' +
             esc(c.id) +
@@ -551,40 +648,66 @@
             (crmId && /^\d+$/.test(crmId) ? ' data-crmid="' + esc(crmId) + '"' : "") +
             ">" +
             '<td class="mk-leads-td mk-leads-td--check"><label class="mk-leads-check">' +
-            '<input type="checkbox" class="mk-leads-check__input mk-contacts-row-check" data-id="' + esc(c.id) + '"' + checked + " />" +
+            '<input type="checkbox" class="mk-leads-check__input mk-sc-row-check" data-id="' +
+            esc(c.id) +
+            '"' +
+            checked +
+            " />" +
             '<span class="mk-leads-check__ui" aria-hidden="true"></span></label></td>' +
+            '<td class="mk-leads-td">' +
+            dateCell(c.createdtime) +
+            "</td>" +
             '<td class="mk-leads-td mk-leads-td--lead"><span class="mk-leads-lead-cell">' +
             ic("user") +
-            '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' + detailUrl(c.crmid || c.id) + '">' + esc(c.name) + "</a>" +
-            (c.title ? '<div class="mk-leads-sub">' + esc(c.title) + "</div>" : "") +
+            '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' +
+            detailUrl(c.crmid || c.id) +
+            '">' +
+            esc(c.name) +
+            "</a>" +
+            (c.contract_no
+              ? '<div class="mk-leads-sub">' + esc(c.contract_no) + "</div>"
+              : "") +
             "</span></span></td>" +
-            '<td class="mk-leads-td">' + (c.phone ? esc(c.phone) : '<span class="mk-leads-muted">—</span>') + "</td>" +
-            '<td class="mk-leads-td">' + (c.account ? '<span class="mk-pill mk-pill--blue">' + esc(c.account) + "</span>" : '<span class="mk-leads-muted">—</span>') + "</td>" +
-            '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-contact-id="' +
+            '<td class="mk-leads-td mk-sc-td--aff">' +
+            aff +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            (c.phone ? esc(c.phone) : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            (c.area ? esc(c.area) : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            (c.address || c.district
+              ? esc([c.address, c.district].filter(Boolean).join(", "))
+              : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
+            '<span class="mk-owner-avatar" style="background:' +
+            ownerColor(c.owner) +
+            '">' +
+            esc(ownerInitials(c.owner)) +
+            "</span>" +
+            "<span>" +
+            esc(c.owner || "—") +
+            "</span></span></td>" +
+            '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-sc-id="' +
             esc(c.id) +
             '" title="Sửa thẻ">' +
-            stackedContactTags(c) +
+            stackedTags(c.tags) +
             "</button></td>" +
-            '<td class="mk-leads-td">' + credentialSelectHtml(c, "bang") + "</td>" +
-            '<td class="mk-leads-td">' + credentialSelectHtml(c, "tk") + "</td>" +
-            '<td class="mk-leads-td">' + dateCell(c.thoigian_dangky) + "</td>" +
-            '<td class="mk-leads-td">' + dateCell(c.thoigian_pcth) + "</td>" +
-            '<td class="mk-leads-td">' + dateCell(c.thoigian_mqbb) + "</td>" +
-            '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
-            '<span class="mk-owner-avatar" style="background:' + ownerColor(c.owner) + '">' + esc(ownerInitials(c.owner)) + "</span>" +
-            "<span>" + esc(c.owner || "—") + "</span></span></td>" +
+            '<td class="mk-leads-td">' +
+            dateCell(c.last_touch) +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            nextActionCell(c) +
+            "</td>" +
             '<td class="mk-leads-td" data-col="notes">' +
             (function () {
               var n = String(c.notes || "").trim();
               if (!n) return '<span class="mk-leads-muted">—</span>';
               var short = n.length > 80 ? n.slice(0, 80) + "…" : n;
-              return (
-                '<span class="mk-leads-notes-cell" title="' +
-                esc(n) +
-                '">' +
-                esc(short) +
-                "</span>"
-              );
+              return '<span class="mk-leads-notes-cell" title="' + esc(n) + '">' + esc(short) + "</span>";
             })() +
             "</td></tr>"
           );
@@ -592,24 +715,29 @@
         .join("");
     }
 
-    var summary = $("mk-contacts-filter-summary");
+    var summary = $("mk-sc-filter-summary");
     if (summary) {
       summary.textContent =
-        rows.length + " / " + all.length + " " + t("JS_MK_CONTACTS_COUNT_LABEL", "khách hàng");
+        rows.length + " / " + all.length + " " + t("JS_MK_SC_COUNT_LABEL", "khách chuyển nhượng");
     }
     renderPagination(rows.length, totalPages);
 
-    var checkAll = $("mk-contacts-check-all");
+    var checkAll = $("mk-sc-check-all");
     if (checkAll) {
-      var allOnPage = pageRows.length > 0 && pageRows.every(function (c) {
-        return !!state.selected[c.id];
-      });
+      var allOnPage =
+        pageRows.length > 0 &&
+        pageRows.every(function (c) {
+          return !!state.selected[c.id];
+        });
       checkAll.checked = allOnPage;
-      checkAll.indeterminate = !allOnPage && pageRows.some(function (c) {
-        return !!state.selected[c.id];
-      });
+      checkAll.indeterminate =
+        !allOnPage &&
+        pageRows.some(function (c) {
+          return !!state.selected[c.id];
+        });
     }
     renderBulkBar();
+    syncFilterControls();
   }
 
   function selectedCount() {
@@ -617,7 +745,7 @@
   }
 
   function selectedRows() {
-    return getContacts().filter(function (c) {
+    return getContracts().filter(function (c) {
       return !!state.selected[c.id];
     });
   }
@@ -628,7 +756,7 @@
   }
 
   function renderBulkBar() {
-    var bar = $("mk-contacts-bulk");
+    var bar = $("mk-sc-bulk");
     if (!bar) return;
     var n = selectedCount();
     if (!n) {
@@ -662,15 +790,18 @@
   }
 
   function exportCsv(rows) {
-    var lines = ["Name,Phone,Account,Owner,Tags"];
+    var lines = ["Name,Affiliate,Phone,Area,Address,Owner,Tags,NextAction"];
     rows.forEach(function (c) {
       lines.push(
         [
           c.name || "",
+          c.affiliate_code || "",
           c.phone || "",
-          c.account || "",
+          c.area || "",
+          c.address || "",
           c.owner || "",
           (c.tags || []).join("|"),
+          c.next_action || "",
         ]
           .map(function (v) {
             return '"' + String(v).replace(/"/g, '""') + '"';
@@ -682,7 +813,7 @@
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "contacts.csv";
+    a.download = "khach-chuyen-nhuong.csv";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -690,14 +821,16 @@
   }
 
   function renderPagination(total, totalPages) {
-    var host = $("mk-contacts-pagination");
+    var host = $("mk-sc-pagination");
     if (!host) return;
     if (totalPages <= 1) {
       host.innerHTML = "";
       return;
     }
     host.innerHTML =
-      '<button type="button" class="mk-leads-page-btn" data-page="prev"' + (state.page <= 1 ? " disabled" : "") + ">‹</button>" +
+      '<button type="button" class="mk-leads-page-btn" data-page="prev"' +
+      (state.page <= 1 ? " disabled" : "") +
+      ">‹</button>" +
       '<span class="mk-leads-page-info">' +
       esc(t("JS_MK_PAGE", "Trang")) +
       " " +
@@ -705,7 +838,9 @@
       " / " +
       totalPages +
       "</span>" +
-      '<button type="button" class="mk-leads-page-btn" data-page="next"' + (state.page >= totalPages ? " disabled" : "") + ">›</button>";
+      '<button type="button" class="mk-leads-page-btn" data-page="next"' +
+      (state.page >= totalPages ? " disabled" : "") +
+      ">›</button>";
   }
 
   function applySegment(segId) {
@@ -716,7 +851,9 @@
       renderAll();
       return;
     }
-    var seg = getPresetSegments().find(function (s) { return s.id === segId; });
+    var seg = getPresetSegments().find(function (s) {
+      return s.id === segId;
+    });
     state.activeSegment = segId;
     state.filters = Object.assign({}, EMPTY);
     if (seg && seg.filters) {
@@ -729,31 +866,31 @@
   }
 
   function renderAll() {
-    var rows = getContacts();
+    var rows = getContracts();
     renderKpi(rows);
     renderSegments();
     renderFiltersPanel();
     renderTable();
-    document.documentElement.classList.add("mk-contacts-list-ready");
+    document.documentElement.classList.add("mk-sc-list-ready");
   }
 
   function bindEvents() {
-    var search = $("mk-contacts-search");
+    var search = $("mk-sc-search");
     if (search) {
       search.addEventListener("input", function () {
         state.filters.search = search.value;
         state.page = 1;
         renderTable();
-        renderKpi(filterContacts(getContacts()));
+        renderKpi(filterRows(getContracts()));
       });
     }
 
-    var toggle = $("mk-contacts-filters-toggle");
+    var toggle = $("mk-sc-filters-toggle");
     if (toggle) {
       toggle.addEventListener("click", function () {
         state.filtersOpen = !state.filtersOpen;
         toggle.setAttribute("aria-expanded", state.filtersOpen ? "true" : "false");
-        var panel = $("mk-contacts-filters-panel");
+        var panel = $("mk-sc-filters-panel");
         if (panel) panel.hidden = !state.filtersOpen;
       });
     }
@@ -761,58 +898,15 @@
     document.addEventListener("change", function (e) {
       var el = e.target;
       if (!el) return;
-      if (el.classList && el.classList.contains("mk-contacts-cred-select")) {
-        var contactId = el.getAttribute("data-contact-id");
-        var field = el.getAttribute("data-cred-field");
-        var contact = getContacts().find(function (c) {
-          return String(c.id) === String(contactId);
-        });
-        if (!contact || !field) return;
-        var nextBang = field === "da_cap_bang" ? el.value : contact.da_cap_bang;
-        var nextTk = field === "da_cap_tai_khoan" ? el.value : contact.da_cap_tai_khoan;
-        el.disabled = true;
-        var saveCred = store.saveCredentials
-          ? store.saveCredentials(contact.crmid || contact.id, nextBang, nextTk)
-          : Promise.resolve(
-              store.patchContact(contact.crmid || contact.id, {
-                da_cap_bang: nextBang,
-                da_cap_tai_khoan: nextTk,
-              })
-            );
-        saveCred
-          .then(function () {
-            // Keep tag chips in sync with credential dropdowns.
-            var tags = (contact.tags || []).slice();
-            function setTag(key, on) {
-              var i = tags.indexOf(key);
-              if (on && i < 0) tags.push(key);
-              if (!on && i >= 0) tags.splice(i, 1);
-            }
-            setTag("da_cap_bang", isCredentialIssued(nextBang, "bang"));
-            setTag("da_cap_tai_khoan", isCredentialIssued(nextTk, "tk"));
-            if (store.saveTags) {
-              return store.saveTags(contact.crmid || contact.id, tags);
-            }
-            store.patchContact(contact.crmid || contact.id, { tags: tags });
-          })
-          .then(function () {
-            renderAll();
-          })
-          .catch(function () {
-            window.alert("Không lưu được trạng thái cấp bằng / tài khoản.");
-            renderTable();
-          });
-        return;
-      }
-      if (el.classList && el.classList.contains("mk-contacts-row-check")) {
+      if (el.classList && el.classList.contains("mk-sc-row-check")) {
         var id = el.getAttribute("data-id");
         if (el.checked) state.selected[id] = true;
         else delete state.selected[id];
         renderTable();
         return;
       }
-      if (el.id === "mk-contacts-check-all") {
-        var pageRows = sortContacts(filterContacts(getContacts())).slice(
+      if (el.id === "mk-sc-check-all") {
+        var pageRows = sortRows(filterRows(getContracts())).slice(
           (state.page - 1) * PAGE_SIZE,
           state.page * PAGE_SIZE
         );
@@ -823,7 +917,7 @@
         renderTable();
         return;
       }
-      if (!el.getAttribute || !el.closest("#mk-contacts-filters-panel")) return;
+      if (!el.getAttribute || !el.closest("#mk-sc-filters-panel")) return;
       var key = el.getAttribute("data-fkey");
       if (!key) return;
       state.filters[key] = el.value;
@@ -833,21 +927,48 @@
     });
 
     document.addEventListener("click", function (e) {
-      var tagsBtn = e.target.closest && e.target.closest(".mk-leads-tags-edit[data-contact-id]");
+      var sortTh = e.target.closest && e.target.closest("#mk-sc-table th[data-sort]");
+      if (sortTh) {
+        var sk = sortTh.getAttribute("data-sort");
+        if (state.sortKey === sk) {
+          state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+        } else {
+          state.sortKey = sk;
+          state.sortDir = sk === "name" ? "asc" : "desc";
+        }
+        renderTable();
+        return;
+      }
+
+      var tagsBtn = e.target.closest && e.target.closest(".mk-leads-tags-edit[data-sc-id]");
       if (tagsBtn) {
         e.preventDefault();
         e.stopPropagation();
-        var cid = tagsBtn.getAttribute("data-contact-id");
-        var contact = getContacts().find(function (c) {
+        var cid = tagsBtn.getAttribute("data-sc-id");
+        var contract = getContracts().find(function (c) {
           return String(c.id) === String(cid);
         });
-        if (contact) openTagPopover(tagsBtn, contact);
+        if (contract) openTagPopover(tagsBtn, contract);
         return;
       }
-      if (!e.target.closest || !e.target.closest("#mk-contacts-tag-popover")) {
+
+      var nextBtn = e.target.closest && e.target.closest("[data-sc-next]");
+      if (nextBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var nid = nextBtn.getAttribute("data-sc-next");
+        var row = getContracts().find(function (c) {
+          return String(c.id) === String(nid);
+        });
+        if (row) promptNextAction(row);
+        return;
+      }
+
+      if (!e.target.closest || !e.target.closest("#mk-sc-tag-popover")) {
         closeTagPopover();
       }
-      var bulkBtn = e.target.closest && e.target.closest("#mk-contacts-bulk [data-bulk]");
+
+      var bulkBtn = e.target.closest && e.target.closest("#mk-sc-bulk [data-bulk]");
       if (!bulkBtn) return;
       e.preventDefault();
       e.stopPropagation();
@@ -863,7 +984,7 @@
         return;
       }
       if (action === "delete") {
-        if (!window.confirm("Xóa " + rows.length + " khách hàng đã chọn?")) return;
+        if (!window.confirm("Xóa " + rows.length + " khách chuyển nhượng đã chọn?")) return;
         if (!store || !store.remove) return;
         Promise.all(
           rows.map(function (c) {
@@ -876,7 +997,7 @@
       }
     });
 
-    var segHost = $("mk-contacts-segments");
+    var segHost = $("mk-sc-segments");
     if (segHost) {
       segHost.addEventListener("click", function (e) {
         var btn = e.target.closest("[data-seg]");
@@ -885,7 +1006,7 @@
       });
     }
 
-    var pag = $("mk-contacts-pagination");
+    var pag = $("mk-sc-pagination");
     if (pag) {
       pag.addEventListener("click", function (e) {
         var btn = e.target.closest("[data-page]");
@@ -896,7 +1017,7 @@
       });
     }
 
-    var reset = $("mk-contacts-reset");
+    var reset = $("mk-sc-reset");
     if (reset) {
       reset.addEventListener("click", function () {
         state.filters = Object.assign({}, EMPTY);
@@ -907,15 +1028,15 @@
       });
     }
 
-    if ($("mk-contacts-import-ic")) $("mk-contacts-import-ic").innerHTML = ic("import");
-    if ($("mk-contacts-create-ic")) $("mk-contacts-create-ic").innerHTML = ic("plus");
-    if ($("mk-contacts-search-ic")) $("mk-contacts-search-ic").innerHTML = ic("search");
-    if ($("mk-contacts-segments-icon")) $("mk-contacts-segments-icon").innerHTML = ic("filter");
-    if ($("mk-contacts-filters-ic")) $("mk-contacts-filters-ic").innerHTML = ic("filter");
+    if ($("mk-sc-import-ic")) $("mk-sc-import-ic").innerHTML = ic("import");
+    if ($("mk-sc-create-ic")) $("mk-sc-create-ic").innerHTML = ic("plus");
+    if ($("mk-sc-search-ic")) $("mk-sc-search-ic").innerHTML = ic("search");
+    if ($("mk-sc-segments-icon")) $("mk-sc-segments-icon").innerHTML = ic("filter");
+    if ($("mk-sc-filters-ic")) $("mk-sc-filters-ic").innerHTML = ic("filter");
   }
 
   function init() {
-    if (!document.querySelector(".mk-contacts-page")) return;
+    if (!document.querySelector(".mk-sc-page--lovable")) return;
     bindEvents();
     var boot = store && store.bootstrap ? store.bootstrap() : Promise.resolve([]);
     boot.then(function () {

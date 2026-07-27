@@ -756,7 +756,8 @@
     return parseMoney(meta.price || 0);
   }
 
-  function applyInvoiceTierPriceToRow($row, $form, tierKey) {
+  function applyInvoiceTierPriceToRow($row, $form, tierKey, opts) {
+    opts = opts || {};
     if (!rowHasSelectedProduct($row)) {
       return false;
     }
@@ -765,7 +766,14 @@
     if (!$listPrice.length) {
       return false;
     }
+    // Keep user-typed unit price unless forced (tier dropdown / product pick).
+    if (!opts.force && String($listPrice.attr("data-mk-price-manual") || "") === "1") {
+      return false;
+    }
     $listPrice.val(price).attr("data-mk-invoice-tier", tierKey);
+    if (opts.force) {
+      $listPrice.removeAttr("data-mk-price-manual");
+    }
     syncRowAmounts($row, $form);
     return true;
   }
@@ -786,7 +794,8 @@
     $wrap.find(".mk-inv-price-tier__status").text(detail);
   }
 
-  function applyInvoiceTierPricing($form) {
+  function applyInvoiceTierPricing($form, opts) {
+    opts = opts || {};
     if (!$form || !$form.length || $form.data("mkInvApplyingTier")) {
       return;
     }
@@ -800,7 +809,7 @@
     try {
       $form.find("tr.lineItemRow").each(function () {
         changed =
-          applyInvoiceTierPriceToRow($(this), $form, resolvedTier) || changed;
+          applyInvoiceTierPriceToRow($(this), $form, resolvedTier, opts) || changed;
       });
       syncInvoiceTierUi($form, selectedValue, resolvedTier);
       if (changed) {
@@ -1234,7 +1243,7 @@
     }
 
     if ($listPrice.length && fallbackPrice > 0) {
-      $listPrice.val(fallbackPrice);
+      $listPrice.val(fallbackPrice).removeAttr("data-mk-price-manual");
     }
     var previewTier = getInvoiceTierSelection($form);
     applyInvoiceTierPriceToRow(
@@ -1243,7 +1252,13 @@
       previewTier === "auto"
         ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
         : previewTier,
+      { force: true },
     );
+    // Đảm bảo có SL > 0 để Tổng giá trị / Số tiền trước thuế hiện ra.
+    var $qty = $row.find("input.qty, .qty").first();
+    if ($qty.length && !(parseMoney($qty.val()) > 0)) {
+      $qty.val(1);
+    }
     syncRowUnitFromProduct($row);
     enforceQtyAgainstStock($row, $form);
     syncRowStockHint($row, $form);
@@ -1283,6 +1298,7 @@
           responseTier === "auto"
             ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
             : responseTier,
+          { force: true },
         );
         syncRowUnitFromProduct($row);
         syncRowTaxPill($row, $form);
@@ -1311,6 +1327,7 @@
         fallbackTier === "auto"
           ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
           : fallbackTier,
+        { force: true },
       );
       syncRowUnitFromProduct($row);
       enforceQtyAgainstStock($row, $form);
@@ -1457,6 +1474,42 @@
     }
   }
 
+  /** Giá hiển thị trong dropdown tìm SP — ưu tiên bảng giá đang chọn, không chỉ unit_price. */
+  function resolveOptionListPrice($opt, $form) {
+    if (!$opt || !$opt.length) {
+      return 0;
+    }
+    if (!$form || !$form.length) {
+      $form = $opt.closest("form");
+    }
+    if (!$form || !$form.length) {
+      $form = $("form#EditView, form[name='EditView']").first();
+    }
+    var meta = readProductMetaFromOption($opt);
+    var tier = DEFAULT_INVOICE_TIER;
+    if ($form && $form.length) {
+      tier = getInvoiceTierSelection($form);
+      if (tier === "auto") {
+        tier = resolveInvoiceTierFromTotal(sumLinePreTax($form)) || DEFAULT_INVOICE_TIER;
+      }
+    }
+    var price = resolveInvoiceTierPrice(meta, tier);
+    if (!(price > 0)) {
+      ["lt_1m", "gte_1m", "gte_3m", "gte_5m", "gte_7m"].some(function (k) {
+        var p = resolveInvoiceTierPrice(meta, k);
+        if (p > 0) {
+          price = p;
+          return true;
+        }
+        return false;
+      });
+    }
+    if (!(price > 0)) {
+      price = parseMoney(meta.price || 0);
+    }
+    return price;
+  }
+
   function formatQtyShort(n) {
     var x = Number(n);
     if (!isFinite(x)) {
@@ -1482,7 +1535,7 @@
     var stock = formatQtyShort($opt.attr("data-stock") || 0);
     var qtyPo = formatQtyShort($opt.attr("data-qty-po") || 0);
     var qtySo = formatQtyShort($opt.attr("data-qty-so") || 0);
-    var price = formatPriceVi($opt.attr("data-price") || 0);
+    var price = formatPriceVi(resolveOptionListPrice($opt));
     var unitHtml = unit
       ? '<span class="mk-inv-s2-unit">' + escapeHtml(unit) + "</span>"
       : "";
@@ -2257,10 +2310,8 @@
   function calcLineRowTotal($row, $form) {
     var qty = parseMoney($row.find(".qty").val());
     var price = parseMoney($row.find(".listPrice").val());
-    var preTax = qty * price;
-    var taxPct = getRowTaxPercent($row, $form);
-    var taxAmt = Math.round((preTax * taxPct) / 100);
-    return preTax + taxAmt;
+    // Line "Tổng giá trị" = trước thuế; thuế nằm ở cột Thuế / khối tổng.
+    return qty * price;
   }
 
   function reorderTaxBeforePriceColumns($row) {
@@ -2812,6 +2863,15 @@
       if (!opts.silent) {
         paintStockHint($row, max, true);
       }
+      return true;
+    }
+    // Báo giá / Đơn hàng: chỉ cảnh báo tồn, không ép SL về 0 (mất tiền dòng).
+    var moduleName = "";
+    if ($form && $form.length) {
+      moduleName = String($form.find('[name="module"]').val() || "");
+    }
+    if (moduleName === "Quotes" || moduleName === "SalesOrder") {
+      paintStockHint($row, max, false);
       return true;
     }
     var clamped = max;
@@ -3552,6 +3612,8 @@
       return;
     }
 
+    revealCoreTotalsRows($result);
+
     ensureGroupTaxMode($form);
 
     var preTax = readAmountRaw(
@@ -3643,18 +3705,19 @@
           var preTax = qty * price;
           var taxPct = getRowTaxPercent($r, $form);
           var lineTax = Math.round((preTax * taxPct) / 100);
-          var lineTotal = preTax + lineTax;
           preTaxSum += preTax;
           taxSum += lineTax;
           var $pt = $r.find(".productTotal");
           if ($pt.length) {
-            $pt.data("mkRawAmount", lineTotal);
-            writeAmountDisplay($pt, lineTotal);
+            // Cột Tổng giá trị = trước thuế
+            $pt.data("mkRawAmount", preTax);
+            writeAmountDisplay($pt, preTax);
           }
         });
         var grand = preTaxSum + taxSum;
         var $result = $form.find("#lineItemResult");
         if ($result.length) {
+          revealCoreTotalsRows($result);
           writeAmountDisplay($result.find("#netTotal, .netTotal"), preTaxSum);
           $result.find('#subtotal, input[name="subtotal"]').val(preTaxSum);
           writeAmountDisplay($result.find("#preTaxTotal"), preTaxSum);
@@ -3700,12 +3763,25 @@
       "input.mkInvTotRealtime keyup.mkInvTotRealtime change.mkInvTotRealtime",
       ".qty, .listPrice",
       function () {
-        var $row = $(this).closest("tr.lineItemRow");
-        if ($row.length && $(this).is("input.qty, .qty")) {
-          enforceQtyAgainstStock($row, $form, { silent: true });
+        var $el = $(this);
+        var $row = $el.closest("tr.lineItemRow");
+        var isPrice = $el.is("input.listPrice, .listPrice");
+        if (isPrice) {
+          // Preserve typed unit price — do not let auto-tier overwrite mid-edit.
+          $el.attr("data-mk-price-manual", "1");
+          if ($row.length) {
+            var $qty = $row.find("input.qty, .qty").first();
+            if ($qty.length && !(parseMoney($qty.val()) > 0) && parseMoney($el.val()) > 0) {
+              $qty.val(1);
+            }
+          }
+        }
+        if ($row.length) {
+          syncRowAmounts($row, $form);
         }
         scheduleRealtimeSync();
-        if (!$form.data("mkInvApplyingTier")) {
+        // Retier only when qty changes (auto bracket from total), never while typing price.
+        if (!isPrice && !$form.data("mkInvApplyingTier")) {
           scheduleInvoiceTierPricing($form, 220);
         }
       },
@@ -4693,7 +4769,7 @@
     $container.prepend($wrap);
 
     $select.on("change.mkInvPriceTier", function () {
-      applyInvoiceTierPricing($form);
+      applyInvoiceTierPricing($form, { force: true });
     });
 
     var resolved =
@@ -5082,49 +5158,111 @@
     setTimeout(bindSaveButtons, 500);
   }
 
+  function ensurePreTaxTotalRow($result) {
+    if (!$result || !$result.length) {
+      return $();
+    }
+    var $pre = $result.find("#preTaxTotal").first();
+    if ($pre.length) {
+      var $tr = $pre.closest("tr");
+      $tr
+        .removeClass("hide mk-inv-totals-hide")
+        .addClass("mk-inv-totals-row mk-inv-totals-row--sub")
+        .attr("data-mk-totals-row", "pre-tax")
+        .show()
+        .css({ display: "table-row", visibility: "visible" });
+      if (!$tr.find(".mk-inv-totals-label").length) {
+        $tr
+          .find("td:first")
+          .html('<div class="mk-inv-totals-label">Số tiền trước thuế</div>');
+      } else {
+        $tr.find(".mk-inv-totals-label").first().text("Số tiền trước thuế");
+      }
+      $pre.addClass("mk-inv-vnd-amount");
+      return $tr;
+    }
+    var $anchor = $result.find("#group_tax_row").first();
+    if (!$anchor.length) {
+      $anchor = $result.find("#grandTotal, .grandTotal").closest("tr").first();
+    }
+    var $new = $(
+      '<tr class="mk-inv-totals-row mk-inv-totals-row--sub" data-mk-totals-row="pre-tax">' +
+        '<td><div class="mk-inv-totals-label">Số tiền trước thuế</div></td>' +
+        '<td><span class="pull-right mk-inv-vnd-amount" id="preTaxTotal">0</span>' +
+        '<input type="hidden" id="pre_tax_total" name="pre_tax_total" value="0" /></td>' +
+        "</tr>",
+    );
+    if ($anchor.length) {
+      $new.insertBefore($anchor);
+    } else {
+      $result.prepend($new);
+    }
+    return $new;
+  }
+
+  /** Luôn giữ 3 hàng: trước thuế / GTGT / tổng cộng — gọi mỗi lần sync. */
+  function revealCoreTotalsRows($result) {
+    if (!$result || !$result.length) {
+      return;
+    }
+    var $sub = ensurePreTaxTotalRow($result);
+    var $taxRow = $result.find("#group_tax_row").first();
+    var $grand = $result.find("#grandTotal, .grandTotal").closest("tr").first();
+    var $net = $result.find("#netTotal, .netTotal").closest("tr");
+
+    if ($net.length && $sub.length && !$net.is($sub)) {
+      $net.addClass("mk-inv-totals-hide").hide();
+    }
+    if ($sub.length) {
+      $sub
+        .removeClass("mk-inv-totals-hide hide")
+        .addClass("mk-inv-totals-row mk-inv-totals-row--sub")
+        .show()
+        .css({ display: "table-row", visibility: "visible" });
+    }
+    if ($taxRow.length) {
+      $taxRow
+        .removeClass("hide mk-inv-totals-hide")
+        .addClass("mk-inv-totals-row mk-inv-totals-row--tax")
+        .show()
+        .css({ display: "table-row", visibility: "visible" });
+      if (!$taxRow.find(".mk-inv-totals-label").length) {
+        $taxRow
+          .find("td:first")
+          .html('<div class="mk-inv-totals-label">Thuế GTGT</div>');
+      }
+      $taxRow.find("#tax_final").addClass("mk-inv-vnd-amount");
+    }
+    if ($grand.length) {
+      $grand
+        .removeClass("mk-inv-totals-hide hide")
+        .addClass("mk-inv-totals-row mk-inv-totals-row--grand")
+        .show()
+        .css({ display: "table-row", visibility: "visible" });
+      if (!$grand.find(".mk-inv-totals-label").length) {
+        $grand
+          .find("td:first")
+          .html('<div class="mk-inv-totals-label">Tổng cộng</div>');
+      }
+      $grand.find("#grandTotal, .grandTotal").addClass("mk-inv-vnd-amount");
+    }
+  }
+
   function initTotalsOdoo($form) {
     var $result = $form.find("#lineItemResult");
-    if (!$result.length || $result.data("mkInvTotalsOdoo")) {
+    if (!$result.length) {
+      return;
+    }
+    if ($result.data("mkInvTotalsOdoo")) {
+      revealCoreTotalsRows($result);
       return;
     }
     $result.data("mkInvTotalsOdoo", true);
     var $block = $result.closest(".fieldBlockContainer");
     $block.addClass("mk-inv-totals-odoo");
 
-    $result.find("tr").addClass("mk-inv-totals-hide");
-
-    var $grand = $result.find("#grandTotal, .grandTotal").closest("tr");
-    var $preTax = $result.find("#preTaxTotal").closest("tr");
-    var $net = $result.find("#netTotal, .netTotal").closest("tr");
-    var $sub = $preTax.length ? $preTax : $net;
-
-    if ($sub.length) {
-      $sub
-        .removeClass("mk-inv-totals-hide")
-        .addClass("mk-inv-totals-row mk-inv-totals-row--sub");
-      $sub
-        .find("td:first")
-        .html('<div class="mk-inv-totals-label">Số tiền trước thuế</div>');
-      $sub
-        .find("#preTaxTotal, #netTotal, .netTotal")
-        .addClass("mk-inv-vnd-amount");
-    }
-    var $taxRow = $result.find("#group_tax_row");
-    if ($taxRow.length) {
-      $taxRow
-        .removeClass("hide mk-inv-totals-hide")
-        .addClass("mk-inv-totals-row mk-inv-totals-row--tax");
-      $taxRow.find("#tax_final").addClass("mk-inv-vnd-amount");
-    }
-    if ($grand.length) {
-      $grand
-        .removeClass("mk-inv-totals-hide")
-        .addClass("mk-inv-totals-row mk-inv-totals-row--grand");
-      $grand
-        .find("td:first")
-        .html('<div class="mk-inv-totals-label">Tổng cộng</div>');
-      $grand.find("#grandTotal, .grandTotal").addClass("mk-inv-vnd-amount");
-    }
+    $result.find("> tbody > tr, > tr").addClass("mk-inv-totals-hide");
+    revealCoreTotalsRows($result);
 
     syncTotalsDisplay($form);
     watchTotalsAndLines($form);
