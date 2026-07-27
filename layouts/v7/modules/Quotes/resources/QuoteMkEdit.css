@@ -1665,6 +1665,37 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-h
 	font-weight: 600;
 }
 
+/* Laptop / MacBook widths: stack rail so line-item columns (price) stay visible */
+@media (max-width: 1440px) {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-edit-split,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-edit-split,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-edit-split {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-edit-split > .mk-qt-rail--in-form,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-edit-split > .mk-qt-rail--in-form,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-edit-split > .mk-qt-rail--in-form,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-edit-split > .mk-so-rail {
+		grid-column: 1;
+		position: static;
+		width: 100%;
+		max-width: none;
+		order: -1;
+	}
+
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid {
+		grid-template-columns: 1fr;
+	}
+
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail,
+	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail {
+		position: static;
+		order: -1;
+	}
+}
+
 @media (max-width: 1200px) {
 	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid,
 	body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-create__grid {

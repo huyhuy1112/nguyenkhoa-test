@@ -66,13 +66,13 @@
   ];
 
   var MODERN_LINE_COLGROUP_WIDTHS = [
-    "72px",
-    "24%",
-    "92px",
+    "48px",
+    "26%",
+    "84px",
+    "112px",
+    "96px",
     "132px",
-    "104px",
-    "148px",
-    "156px",
+    "140px",
   ];
 
   var UNIT_OPTIONS = [
@@ -2536,22 +2536,22 @@
     var widths = [];
     $sample.children("td").each(function (idx) {
       if (idx === 0) {
-        widths.push("72px");
+        widths.push("48px");
       } else if (
         $(this).hasClass("mk-inv-col-product") ||
         $(this).find("select.mk-inv-product-native").length
       ) {
-        widths.push("24%");
+        widths.push("26%");
       } else if ($(this).hasClass("mk-inv-col-qty")) {
-        widths.push("92px");
+        widths.push("84px");
       } else if ($(this).hasClass("mk-inv-col-unit")) {
-        widths.push("132px");
+        widths.push("112px");
       } else if ($(this).hasClass("mk-inv-col-price")) {
-        widths.push("148px");
+        widths.push("132px");
       } else if ($(this).hasClass("mk-inv-col-amount")) {
-        widths.push("156px");
+        widths.push("140px");
       } else if ($(this).hasClass("mk-inv-col-tax")) {
-        widths.push("104px");
+        widths.push("96px");
       } else {
         widths.push("auto");
       }

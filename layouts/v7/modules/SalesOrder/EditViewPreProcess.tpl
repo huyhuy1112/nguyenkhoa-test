@@ -114,11 +114,11 @@ document.documentElement.classList.add('mk-inv-odoo-active', 'mk-so-create-guard
 </style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260603_no_dup_footer" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260725_pretax_show2" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260725_pretax_show2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260727_lines_resp1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260727_lines_resp1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.css')}&mk_v=20260724_so_quote_ui5" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260725_pretax_show2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260727_lines_resp1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}&mk_v=20260724_so_quote_ui5"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.js')}&mk_v=20260724_so_quote_ui5"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-sales-order-create="1">
