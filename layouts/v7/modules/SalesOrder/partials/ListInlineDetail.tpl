@@ -26,7 +26,7 @@
 			{foreach from=$INLINE_INFO_FIELDS item=INFO_FIELD}
 				<div class="mk-so-inline-detail__field" data-field-name="{$INFO_FIELD.name|escape}" data-field-type="{$INFO_FIELD.data_type|escape}" data-editable="{if $INFO_FIELD.editable}1{else}0{/if}">
 					<label class="mk-so-inline-detail__field-label">{$INFO_FIELD.label|escape}</label>
-					<div class="mk-so-inline-detail__field-view">{$INFO_FIELD.value}</div>
+					<div class="mk-so-inline-detail__field-view">{if !empty($INFO_FIELD.is_html)}{$INFO_FIELD.value nofilter}{else}{$INFO_FIELD.value}{/if}</div>
 					{if $INFO_FIELD.editable}
 						<div class="mk-so-inline-detail__field-edit">
 							{if $INFO_FIELD.data_type eq 'picklist'}

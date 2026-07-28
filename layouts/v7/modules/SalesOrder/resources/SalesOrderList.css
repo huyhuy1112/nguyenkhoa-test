@@ -2247,6 +2247,17 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 	color: #1e293b;
 }
 
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-quote-ref-link {
+	color: #1d4ed8;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-quote-ref-link:hover {
+	text-decoration: underline;
+	color: #1e40af;
+}
+
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__field-edit {
 	display: none;
 }

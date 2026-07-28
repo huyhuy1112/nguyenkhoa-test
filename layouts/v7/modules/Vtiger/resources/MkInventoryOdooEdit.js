@@ -784,10 +784,9 @@
 
   function syncInvoiceTierUi($form, selectedValue, resolvedTier) {
     var $wrap = $form.find(".mk-inv-price-tier").first();
-    if (!$wrap.length) {
-      return;
-    }
-    var $select = $wrap.find("#mkInvInvoicePriceTierSelect, [name='mk_invoice_price_tier']").first();
+    var $select = $form
+      .find("#mkInvInvoicePriceTierSelect, [name='mk_invoice_price_tier']")
+      .first();
     if ($select.length && String($select.val() || "") !== String(selectedValue || "")) {
       $select.val(selectedValue);
     }
@@ -795,7 +794,11 @@
       selectedValue === "auto"
         ? "Đang áp dụng: " + invoiceTierLabel(resolvedTier)
         : "Đang áp dụng: " + invoiceTierLabel(selectedValue);
-    $wrap.find(".mk-inv-price-tier__status").text(detail);
+    if ($wrap.length) {
+      $wrap.find(".mk-inv-price-tier__status").text(detail);
+    } else if ($select.length) {
+      $select.attr("title", detail);
+    }
   }
 
   function applyInvoiceTierPricing($form, opts) {
@@ -4630,17 +4633,21 @@
       return;
     }
     var $wrap = $form.find(".mk-inv-credit-terms").first();
-    if (!$wrap.length) {
-      return;
-    }
-    // Công nợ chỉ áp dụng cho dòng dịch vụ — sản phẩm thường không hiện.
+    var $row = $form.find("tr.mk-inv-credit-row").first();
     var show = hasSelectedServiceLines($form);
-    $wrap.toggleClass("mk-inv-credit-terms--visible", show);
-    $wrap.attr("aria-hidden", show ? "false" : "true");
+    if ($wrap.length) {
+      $wrap.toggleClass("mk-inv-credit-terms--visible", show);
+      $wrap.attr("aria-hidden", show ? "false" : "true");
+    }
+    if ($row.length) {
+      $row.toggleClass("mk-inv-hide-legacy", !show);
+    }
     if (!show) {
       return;
     }
-    var $sel = $wrap.find('[name="mk_payment_terms"]').first();
+    var $sel = $wrap.length
+      ? $wrap.find('[name="mk_payment_terms"]').first()
+      : $form.find("#mkInvCreditTermsSelect, [name='mk_payment_terms']").first();
     if (!$sel.length) {
       return;
     }
@@ -4943,6 +4950,250 @@
     }
 
     syncCreditTermsVisibility($form);
+  }
+
+  /**
+   * Compact payment + price tier as dropdown rows inside Chi tiết báo giá.
+   */
+  function buildQuoteInfoSelectRow(fieldName, label, $select) {
+    $select
+      .addClass("inputElement mk-inv-commerce-select")
+      .removeClass("mk-inv-price-tier__select");
+    return $(
+      '<tr class="mk-inv-quote-field-row" data-mk-field="' +
+        fieldName +
+        '">' +
+        '<td class="fieldLabel"><label class="muted">' +
+        label +
+        "</label></td>" +
+        '<td class="fieldValue"></td></tr>',
+    )
+      .find(".fieldValue")
+      .append($select)
+      .end();
+  }
+
+  function findQuoteInfoTableBody($form) {
+    var $info = $form
+      .find(
+        ".mk-qt-rail-quote-info, .mk-so-rail-info, .fieldBlockContainer[data-block='LBL_QUOTE_INFORMATION'], .fieldBlockContainer[data-block='LBL_SO_INFORMATION']",
+      )
+      .first();
+    if (!$info.length) {
+      $info = $("#mkQtQuoteRail, #mkSoOrderRail")
+        .find(
+          ".mk-qt-rail-quote-info, .mk-so-rail-info, .fieldBlockContainer[data-block='LBL_QUOTE_INFORMATION'], .fieldBlockContainer[data-block='LBL_SO_INFORMATION']",
+        )
+        .first();
+    }
+    if (!$info.length) {
+      return $();
+    }
+    return $info.find(".mk-qt-fields-table tbody, .mk-so-fields-table tbody, table tbody").first();
+  }
+
+  function integrateCommerceIntoQuoteInfo($form) {
+    if (!$form || !$form.length) {
+      $form = $("form#EditView, form[name='EditView']").first();
+    }
+    var $tbody = findQuoteInfoTableBody($form);
+    if (!$tbody.length) {
+      return false;
+    }
+    var $methodSelect = $form.find("#mkInvPaymentMethodSelect, [name='mk_payment_method']").first();
+    var $tierSelect = $form.find("#mkInvInvoicePriceTierSelect, [name='mk_invoice_price_tier']").first();
+    var $creditSelect = $form.find("#mkInvCreditTermsSelect, [name='mk_payment_terms']").first();
+
+    var hasMethodRow = $tbody.find('tr[data-mk-field="mk_payment_method"]').length > 0;
+    var hasTierRow = $tbody.find('tr[data-mk-field="mk_invoice_price_tier"]').length > 0;
+    var hasCreditRow = $tbody.find("tr.mk-inv-credit-row").length > 0;
+    var $tierPlaceholderTd = $tbody.find('tr.mk-qt-customer-row td.mk-qt-tier-field').first();
+    var hasTierInPlaceholder =
+      $tierPlaceholderTd.length &&
+      $tierPlaceholderTd.find("#mkInvInvoicePriceTierSelect, select[name='mk_invoice_price_tier']").length > 0;
+    var tierHasUi = hasTierRow || hasTierInPlaceholder;
+    if ($tbody.data("mkInvCommerceIntegrated")) {
+      var methodSynced = !$methodSelect.length || hasMethodRow;
+      // "Bảng giá" được xem là đã UI khi có select trong placeholder cạnh "Khách hàng"
+      // hoặc đã chèn thành dòng riêng.
+      var tierSynced = tierHasUi;
+      var creditSynced = !$creditSelect.length || hasCreditRow;
+      if (methodSynced && tierSynced && creditSynced) {
+        return true;
+      }
+      $tbody.removeData("mkInvCommerceIntegrated");
+    }
+
+    if (!$methodSelect.length && !$tierSelect.length) {
+      return false;
+    }
+
+    $form.find(".mk-inv-rail-commerce").remove();
+    $form.find(".mk-inv-payment-terms, .mk-inv-price-tier, .mk-inv-credit-terms").remove();
+
+    var $anchor = $tbody.find("tr.mk-qt-customer-row").first();
+    var insertAfter = function ($row) {
+      if ($anchor.length) {
+        $anchor.after($row);
+        $anchor = $row;
+      } else {
+        $tbody.prepend($row);
+        $anchor = $row;
+      }
+    };
+
+    if ($methodSelect.length && !$tbody.find('tr[data-mk-field="mk_payment_method"]').length) {
+      insertAfter(buildQuoteInfoSelectRow("mk_payment_method", "Hình thức thanh toán", $methodSelect.detach()));
+    }
+    var tierHasUiNow =
+      $tbody.find('tr[data-mk-field="mk_invoice_price_tier"]').length > 0 ||
+      ($tierPlaceholderTd.length &&
+        $tierPlaceholderTd.find("#mkInvInvoicePriceTierSelect, select[name='mk_invoice_price_tier']").length > 0);
+    if ($tierSelect.length && !tierHasUiNow) {
+      $tierPlaceholderTd = $tierPlaceholderTd.length
+        ? $tierPlaceholderTd
+        : $tbody.find('tr.mk-qt-customer-row td.mk-qt-tier-field').first();
+      if ($tierPlaceholderTd.length) {
+        var $detachedTier = $tierSelect.detach();
+        $detachedTier
+          .addClass("inputElement mk-inv-commerce-select")
+          .removeClass("mk-inv-price-tier__select");
+        $tierPlaceholderTd.empty().append($detachedTier);
+        $detachedTier.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
+          applyInvoiceTierPricing($form, { force: true });
+        });
+      } else {
+        insertAfter(buildQuoteInfoSelectRow("mk_invoice_price_tier", "Bảng giá", $tierSelect.detach()));
+        $tierSelect.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
+          applyInvoiceTierPricing($form, { force: true });
+        });
+      }
+    }
+    // Hard fallback: if tier select is still missing, build one directly in placeholder.
+    if (!$tierSelect.length) {
+      $tierPlaceholderTd = $tierPlaceholderTd.length
+        ? $tierPlaceholderTd
+        : $tbody.find('tr.mk-qt-customer-row td.mk-qt-tier-field').first();
+      if ($tierPlaceholderTd.length &&
+        !$tierPlaceholderTd.find("#mkInvInvoicePriceTierSelect, [name='mk_invoice_price_tier']").length) {
+        var currentTier =
+          String($form.find('[name="mk_invoice_price_tier"]').first().val() || "").trim() ||
+          DEFAULT_INVOICE_TIER;
+        if (currentTier !== "auto" && !INVOICE_TIER_FIELDS[currentTier]) {
+          currentTier = DEFAULT_INVOICE_TIER;
+        }
+        var $fallbackTier = $(
+          '<select name="mk_invoice_price_tier" id="mkInvInvoicePriceTierSelect" class="inputElement mk-inv-commerce-select"></select>',
+        );
+        rebuildInvoiceTierSelect($fallbackTier, currentTier);
+        $fallbackTier.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
+          applyInvoiceTierPricing($form, { force: true });
+        });
+        $tierPlaceholderTd.empty().append($fallbackTier);
+        applyInvoiceTierPricing($form, { force: true });
+      }
+    }
+    if ($creditSelect.length && !$tbody.find("tr.mk-inv-credit-row").length) {
+      var $creditRow = buildQuoteInfoSelectRow("mk_payment_terms", "Công nợ", $creditSelect.detach());
+      $creditRow.addClass("mk-inv-credit-row mk-inv-hide-legacy");
+      insertAfter($creditRow);
+      initCreditTermsSelect2($creditSelect);
+    }
+
+    // Fallback: sometimes "Bảng giá" select is rendered slightly later than "Hình thức thanh toán".
+    // Retry to insert "Bảng giá" under the payment row if it is still missing.
+    var hasTierRow = $tbody.find('tr[data-mk-field="mk_invoice_price_tier"]').length > 0;
+    var $tierPlaceholderTdNow = $tbody.find('tr.mk-qt-customer-row td.mk-qt-tier-field').first();
+    var hasTierInPlaceholderNow =
+      $tierPlaceholderTdNow.length &&
+      $tierPlaceholderTdNow.find("#mkInvInvoicePriceTierSelect, select[name='mk_invoice_price_tier']").length > 0;
+    if (!hasTierRow && !hasTierInPlaceholderNow && $tbody.data("mkInvTierRowRetrying") !== true) {
+      $tbody.data("mkInvTierRowRetrying", true);
+      var attempts = 0;
+      var maxAttempts = 8;
+      var intervalMs = 120;
+      var timer = setInterval(function () {
+        attempts += 1;
+        if (attempts > maxAttempts) {
+          clearInterval(timer);
+          $tbody.removeData("mkInvTierRowRetrying");
+          return;
+        }
+        var $methodRow = $tbody.find('tr[data-mk-field="mk_payment_method"]').first();
+        if (!$methodRow.length) {
+          return;
+        }
+
+        var $tierSelectNow = $form
+          .find("#mkInvInvoicePriceTierSelect, [name='mk_invoice_price_tier']")
+          .first();
+        var hasTierRowNow = $tbody.find('tr[data-mk-field="mk_invoice_price_tier"]').length > 0;
+        var $tierPlaceholderTdAttempt = $tbody
+          .find('tr.mk-qt-customer-row td.mk-qt-tier-field')
+          .first();
+        var hasTierInPlaceholderNowAttempt =
+          $tierPlaceholderTdAttempt.length &&
+          $tierPlaceholderTdAttempt.find("#mkInvInvoicePriceTierSelect, select[name='mk_invoice_price_tier']").length > 0;
+
+        if ($tierSelectNow.length && !hasTierRowNow && !hasTierInPlaceholderNowAttempt) {
+          if ($tierPlaceholderTdAttempt.length) {
+            var $detachedTier = $tierSelectNow.detach();
+            $detachedTier
+              .addClass("inputElement mk-inv-commerce-select")
+              .removeClass("mk-inv-price-tier__select");
+            $tierPlaceholderTdAttempt.empty().append($detachedTier);
+            $detachedTier.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
+              applyInvoiceTierPricing($form, { force: true });
+            });
+          } else {
+            var $detachedTier = $tierSelectNow.detach();
+            var $tierRow = buildQuoteInfoSelectRow(
+              "mk_invoice_price_tier",
+              "Bảng giá",
+              $detachedTier,
+            );
+            $methodRow.after($tierRow);
+            $detachedTier.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
+              applyInvoiceTierPricing($form, { force: true });
+            });
+          }
+
+          applyInvoiceTierPricing($form, { force: true });
+          clearInterval(timer);
+          $tbody.removeData("mkInvTierRowRetrying");
+        }
+        if (!$tierSelectNow.length && $tierPlaceholderTdAttempt.length && !hasTierInPlaceholderNowAttempt) {
+          var currentTierRetry =
+            String($form.find('[name="mk_invoice_price_tier"]').first().val() || "").trim() ||
+            DEFAULT_INVOICE_TIER;
+          if (currentTierRetry !== "auto" && !INVOICE_TIER_FIELDS[currentTierRetry]) {
+            currentTierRetry = DEFAULT_INVOICE_TIER;
+          }
+          var $fallbackTierRetry = $(
+            '<select name="mk_invoice_price_tier" id="mkInvInvoicePriceTierSelect" class="inputElement mk-inv-commerce-select"></select>',
+          );
+          rebuildInvoiceTierSelect($fallbackTierRetry, currentTierRetry);
+          $fallbackTierRetry.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
+            applyInvoiceTierPricing($form, { force: true });
+          });
+          $tierPlaceholderTdAttempt.empty().append($fallbackTierRetry);
+          applyInvoiceTierPricing($form, { force: true });
+          clearInterval(timer);
+          $tbody.removeData("mkInvTierRowRetrying");
+        }
+      }, intervalMs);
+    }
+
+    $tbody.data("mkInvCommerceIntegrated", true);
+    syncCreditTermsVisibility($form);
+    if (typeof vtUtils !== "undefined" && vtUtils.applyFieldElementsView) {
+      vtUtils.applyFieldElementsView($tbody.closest(".mk-qt-rail-quote-info, .mk-so-rail-info, .fieldBlockContainer"));
+    }
+    return true;
+  }
+
+  function relocateCommerceToRail($form) {
+    return integrateCommerceIntoQuoteInfo($form);
   }
 
   function persistRawTotalsBeforeSubmit($form) {
@@ -5300,6 +5551,7 @@
       initOdooTabs($lineBlock);
       initInvoicePriceTier($form);
       initPaymentTerms($form);
+      relocateCommerceToRail($form);
       initAddLineButton($form);
       initLineActionLinks();
       polishLineItemsShell($form);
@@ -5365,6 +5617,8 @@
     initQuickProductSearch: initQuickProductSearch,
     syncLineDeleteVisibility: syncLineDeleteVisibility,
     syncTotalsDisplay: syncTotalsDisplay,
+    relocateCommerceToRail: relocateCommerceToRail,
+    integrateCommerceIntoQuoteInfo: integrateCommerceIntoQuoteInfo,
     refreshTotals: function ($form) {
       initTotalsOdoo($form);
       syncTotalsDisplay($form);

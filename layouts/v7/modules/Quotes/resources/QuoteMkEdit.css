@@ -578,6 +578,255 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rail-i
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-customer-row .mk-qt-customer-ref {
 	max-width: 100%;
+	width: 100%;
+}
+
+/* Rail: stack Khách hàng label above input (match other Chi tiết báo giá rows) */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-rail-quote-info tr.mk-qt-customer-row,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-customer-row {
+	display: flex !important;
+	flex-direction: column;
+	gap: 4px;
+	margin-bottom: 10px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-rail-quote-info tr.mk-qt-customer-row > td,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-customer-row > td {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-rail-quote-info tr.mk-qt-customer-row td.fieldLabel,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-customer-row td.fieldLabel {
+	vertical-align: top !important;
+	padding-top: 0 !important;
+	width: 100% !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-rail-quote-info tr.mk-qt-customer-row td.fieldLabel label,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-customer-row td.fieldLabel label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #64748b;
+	margin: 0;
+}
+
+/* Rail: unified customer search box (input + action buttons) */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .input-group,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .mk-qt-opp-ref-group {
+	display: flex !important;
+	align-items: stretch !important;
+	width: 100% !important;
+	min-height: 38px;
+	border: 1px solid var(--mk-qt-border, #e2e8f0) !important;
+	border-radius: 10px !important;
+	overflow: hidden !important;
+	background: #fff !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .input-group:focus-within,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .mk-qt-opp-ref-group:focus-within {
+	border-color: var(--mk-qt-navy) !important;
+	box-shadow: 0 0 0 3px rgba(64, 98, 126, 0.1) !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .input-group input.autoComplete,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .input-group input[name="contact_id_display"] {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: 100%;
+	height: 38px !important;
+	min-height: 38px !important;
+	line-height: 1.35 !important;
+	padding: 8px 12px !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	font-weight: 400;
+	color: #1e293b;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .mk-qt-opp-actions {
+	display: flex !important;
+	align-items: center !important;
+	flex-shrink: 0;
+	gap: 0;
+	padding: 0 2px;
+	margin: 0;
+	border-left: 1px solid #e2e8f0;
+	background: #f8fafc;
+	border-radius: 0;
+	align-self: stretch;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .clearReferenceSelection {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	margin: 0;
+	border-radius: 6px;
+	color: #64748b !important;
+	font-size: 0 !important;
+	text-decoration: none !important;
+	background: transparent;
+	flex-shrink: 0;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .clearReferenceSelection.hide {
+	display: none !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .clearReferenceSelection::before {
+	content: "×";
+	font-size: 18px;
+	line-height: 1;
+	font-weight: 500;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .input-group-addon {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 32px !important;
+	height: 32px !important;
+	min-width: 32px;
+	margin: 0 1px;
+	padding: 0 !important;
+	border: none !important;
+	border-radius: 6px !important;
+	background: transparent !important;
+	color: #475569 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .input-group-addon a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	color: inherit !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .relatedPopup:hover,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-customer-ref .createReferenceRecord:hover {
+	color: var(--mk-qt-navy) !important;
+	background: #e8eef5 !important;
+	border-radius: 6px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-tier-row td.mk-qt-tier-field,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-tier-row td.mk-qt-tier-field,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rail-info tr.mk-qt-tier-row td.mk-qt-tier-field {
+	display: block !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-tier-row td.mk-qt-tier-field select,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-tier-row td.mk-qt-tier-field select,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rail-info tr.mk-qt-tier-row td.mk-qt-tier-field select {
+	width: 100% !important;
+	min-height: 38px;
+	padding: 8px 12px;
+	border: 1px solid var(--mk-qt-border, #e2e8f0);
+	border-radius: 10px;
+	background: #fff;
+	font-size: 14px;
+	color: #1e293b;
+	appearance: auto;
+	-webkit-appearance: menulist;
+	cursor: pointer;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-tier-row td.mk-qt-tier-field select#mkInvInvoicePriceTierSelect,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-tier-row td.mk-qt-tier-field select[name="mk_invoice_price_tier"],
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-inv-quote-field-row.mk-qt-tier-row select.mk-inv-commerce-select {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	position: relative !important;
+	left: auto !important;
+	top: auto !important;
+	right: auto !important;
+	bottom: auto !important;
+	transform: none !important;
+	clip: auto !important;
+	clip-path: none !important;
+	min-height: 38px;
+	height: auto !important;
+	overflow: visible !important;
+	z-index: 3 !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-tier-row td.mk-qt-tier-field .select2-container,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-tier-row td.mk-qt-tier-field .select2,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-qt-tier-row td.mk-qt-tier-field .selection {
+	display: none !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-address-inline,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-address-inline {
+	margin-top: 14px;
+	padding-top: 10px;
+	border-top: 1px solid #eef2f7;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-address-inline__head,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-address-inline__head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-address-inline__icon,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-address-inline__icon {
+	color: #64748b;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-address-inline__title,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-address-inline__title {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+/* Payment + price tier inside Chi tiết báo giá (compact dropdown) */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-inv-quote-field-row,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-inv-quote-field-row,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rail-info tr.mk-inv-quote-field-row {
+	display: flex !important;
+	flex-direction: column;
+	gap: 4px;
+	margin-bottom: 8px;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-inv-quote-field-row select.mk-inv-commerce-select,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-inv-quote-field-row select.mk-inv-commerce-select,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rail-info tr.mk-inv-quote-field-row select.mk-inv-commerce-select {
+	width: 100% !important;
+	min-height: 38px;
+	padding: 8px 12px;
+	border: 1px solid var(--mk-qt-border, #e2e8f0);
+	border-radius: 10px;
+	background: #fff;
+	font-size: 14px;
+	color: #1e293b;
+	appearance: auto;
+	-webkit-appearance: menulist;
+	cursor: pointer;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-inv-quote-field-row td.fieldLabel label,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info tr.mk-inv-quote-field-row td.fieldLabel label,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-so-rail-info tr.mk-inv-quote-field-row td.fieldLabel label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #64748b;
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-rail-quote-info .mk-qt-terms-preview,
@@ -894,6 +1143,38 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host 
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldLabel:nth-child(3) { grid-column: 2; grid-row: 1; }
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldValue:nth-child(4),
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr > td.fieldValue:nth-child(4) { grid-column: 2; grid-row: 2; }
+
+/* Rail Chi tiết báo giá: force stacked rows so Bảng giá aligns with Hình thức thanh toán */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-rail-quote-info .mk-qt-fields-table > tbody > tr,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-rail-quote-info .mk-qt-fields-table > tbody > tr,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-so-rail-info .mk-so-fields-table > tbody > tr,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-so-rail-info .mk-qt-fields-table > tbody > tr {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: stretch !important;
+	gap: 4px !important;
+	margin-bottom: 10px !important;
+	grid-template-columns: none !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-rail-quote-info .mk-qt-fields-table > tbody > tr > td,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-rail-quote-info .mk-qt-fields-table > tbody > tr > td,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-so-rail-info .mk-so-fields-table > tbody > tr > td,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-so-rail-info .mk-qt-fields-table > tbody > tr > td {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	grid-column: auto !important;
+	grid-row: auto !important;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-rail-quote-info tr.mk-qt-tier-row select.mk-inv-commerce-select,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-rail-quote-info tr[data-mk-field="mk_invoice_price_tier"] select.mk-inv-commerce-select {
+	box-sizing: border-box;
+	margin: 0;
+}
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr:has(> td.fieldValueWidth80),
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-host .mk-qt-fields-table > tbody > tr:has(> td.fieldValueWidth80) {

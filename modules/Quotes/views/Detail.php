@@ -21,6 +21,42 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		return strtoupper((string) $request->get('app')) === 'SALES';
 	}
 
+	protected function isSalesOrderQuoteRefRequest(Vtiger_Request $request) {
+		return trim((string) $request->get('mk_so_ref')) === '1';
+	}
+
+	public function checkPermission(Vtiger_Request $request) {
+		if ($this->isSalesOrderQuoteRefRequest($request)) {
+			$recordId = (int) $request->get('record');
+			require_once 'modules/Quotes/helpers/QuoteBaService.php';
+			if ($recordId > 0 && Quotes_QuoteBaService_Helper::hasActiveSalesOrderForQuote($recordId)) {
+				$recordEntityName = getSalesEntityType($recordId);
+				if ($recordEntityName === 'Quotes') {
+					return true;
+				}
+			}
+		}
+		return parent::checkPermission($request);
+	}
+
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		parent::preProcess($request, $display);
+		$viewer = $this->getViewer($request);
+		$isSoRef = $this->isSalesOrderQuoteRefRequest($request);
+		$viewer->assign('MK_QUOTE_SO_REF_VIEW', $isSoRef ? 1 : 0);
+		$converted = 0;
+		if ($isSoRef) {
+			$converted = 1;
+		} else {
+			$recordId = (int) $request->get('record');
+			if ($recordId > 0) {
+				require_once 'modules/Quotes/helpers/QuoteBaService.php';
+				$converted = Quotes_QuoteBaService_Helper::hasActiveSalesOrderForQuote($recordId) ? 1 : 0;
+			}
+		}
+		$viewer->assign('MK_QUOTE_CONVERTED_BADGE', $converted);
+	}
+
 	public function showListInlineDetail(Vtiger_Request $request) {
 		if (!$this->isSalesListInlineContext($request)) {
 			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));

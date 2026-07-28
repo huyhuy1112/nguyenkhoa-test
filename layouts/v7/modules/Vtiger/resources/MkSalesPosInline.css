@@ -264,13 +264,17 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__bottom {
 	display: grid;
-	grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
-	gap: 16px;
-	margin-bottom: 14px;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 8px;
+	margin-bottom: 10px;
+	max-width: 520px;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__bottom--split {
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	max-width: 520px;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__class-reg-hint {
@@ -366,14 +370,25 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__notes-input {
 	width: 100%;
-	min-height: 112px;
-	padding: 10px 12px;
+	max-width: 100%;
+	min-height: 52px;
+	max-height: 72px;
+	padding: 6px 8px;
 	border: 1px solid #e2e8f0;
-	border-radius: 10px;
+	border-radius: 8px;
 	background: #f8fafc;
 	resize: vertical;
-	font-size: 13px;
+	font-size: 12px;
+	line-height: 1.35;
 	color: #334155;
+	box-sizing: border-box;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__notes,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__next-action {
+	min-width: 0;
+	max-width: 100%;
+	overflow: hidden;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__totals {
@@ -441,7 +456,7 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__actions {
 	display: flex;
 	align-items: center;
-	justify-content: flex-end;
+	justify-content: flex-start;
 	gap: 8px;
 	flex-wrap: wrap;
 	padding-top: 10px;
@@ -458,7 +473,11 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__actions-left {
-	margin-right: auto;
+	margin-right: 0;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__actions-right:empty {
+	display: none;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__action {

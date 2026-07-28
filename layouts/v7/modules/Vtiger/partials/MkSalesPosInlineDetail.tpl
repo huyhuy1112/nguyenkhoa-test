@@ -39,7 +39,7 @@
 							{elseif $INFO_FIELD.data_type eq 'date' || $INFO_FIELD.data_type eq 'datetime'}
 								<input type="text" class="mk-so-inline-detail__input inputElement dateField" name="{$INFO_FIELD.name|escape}" value="{$INFO_FIELD.raw_value|escape}" data-date-format="{$USER_MODEL->get('date_format')|escape}" />
 							{else}
-								<input type="text" class="mk-so-inline-detail__input inputElement" name="{$INFO_FIELD.name|escape}" value="{$INFO_FIELD.raw_value|escape}" />
+								<input type="text" class="mk-so-inline-detail__input inputElement" name="{$INFO_FIELD.name|escape}" value="{$INFO_FIELD.raw_value|escape}"{if $INFO_FIELD.name eq 'mk_address' || $INFO_FIELD.name eq 'address'} placeholder="Nhập địa chỉ"{elseif $INFO_FIELD.name eq 'phone'} placeholder="Nhập SĐT"{/if} />
 							{/if}
 						</div>
 					{/if}
@@ -149,7 +149,7 @@
 				<label class="mk-so-inline-detail__notes-label" for="mk-crm-inline-next-{$RECORD->getId()}">
 					Hành động tiếp theo{if !empty($INLINE_NEXT_ACTION_LOCKED)} <span class="mk-so-inline-detail__lock-hint">(tự động — không sửa)</span>{/if}
 				</label>
-				<textarea id="mk-crm-inline-next-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input mk-so-inline-detail__next-action-input inputElement" name="next_action" rows="3"{if !empty($INLINE_NEXT_ACTION_LOCKED)} readonly="readonly" disabled="disabled" aria-readonly="true"{/if}>{$INLINE_NEXT_ACTION|escape}</textarea>
+				<textarea id="mk-crm-inline-next-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input mk-so-inline-detail__next-action-input inputElement" name="next_action" rows="2"{if !empty($INLINE_NEXT_ACTION_LOCKED)} readonly="readonly" disabled="disabled" aria-readonly="true"{/if}>{$INLINE_NEXT_ACTION|escape}</textarea>
 				{if !empty($INLINE_NEXT_ACTION_TIMEFRAME)}
 					<div class="mk-so-inline-detail__next-action-meta">
 						<span class="mk-so-inline-detail__next-action-time{if !empty($INLINE_NEXT_ACTION_OVERDUE)} is-overdue{/if}" data-alert-days="{$INLINE_NEXT_ACTION_ALERT_DAYS|default:''|escape}">
@@ -176,22 +176,12 @@
 		{/if}
 		<div class="mk-so-inline-detail__notes"{if empty($INLINE_SHOW_NEXT_ACTION) && empty($INLINE_SHOW_CLASS_REG)} style="grid-column: 1 / -1; width: 100%;"{/if}>
 			<label class="mk-so-inline-detail__notes-label" for="mk-crm-inline-note-{$RECORD->getId()}">Ghi chú</label>
-			<textarea id="mk-crm-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="description" rows="3">{$INLINE_NOTES|escape}</textarea>
+			<textarea id="mk-crm-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="description" rows="2">{$INLINE_NOTES|escape}</textarea>
 		</div>
 	</div>
 
 	<div class="mk-so-inline-detail__actions">
 		<div class="mk-so-inline-detail__actions-left">
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--ghost mk-so-inline-detail__cancel-edit">
-				<i class="fa fa-times" aria-hidden="true"></i>
-				<span>Hủy sửa</span>
-			</button>
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--ghost mk-so-inline-detail__view-full-btn" title="Xem đầy đủ">
-				<i class="fa fa-expand" aria-hidden="true"></i>
-				<span>Chi tiết</span>
-			</button>
-		</div>
-		<div class="mk-so-inline-detail__actions-right">
 			{if $MODULE eq 'Accounts' && !empty($INLINE_PRINT_URL)}
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__print-btn" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|default:$INLINE_PRINT_URL|escape}" title="In hợp đồng nhượng quyền TUI BAO">
 				<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
@@ -227,6 +217,16 @@
 					<span>Sang khách hàng</span>
 				</button>
 			{/if}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--ghost mk-so-inline-detail__cancel-edit">
+				<i class="fa fa-times" aria-hidden="true"></i>
+				<span>Hủy sửa</span>
+			</button>
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--ghost mk-so-inline-detail__view-full-btn" title="Xem đầy đủ">
+				<i class="fa fa-expand" aria-hidden="true"></i>
+				<span>Chi tiết</span>
+			</button>
+		</div>
+		<div class="mk-so-inline-detail__actions-right">
 		</div>
 	</div>
 </div>

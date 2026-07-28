@@ -446,6 +446,84 @@ class Quotes_QuoteBaService_Helper {
 		return $stage;
 	}
 
+	/**
+	 * Resolve quote reference for Sales Order (includes soft-deleted quotes).
+	 *
+	 * @param int $quoteId
+	 * @return array|null keys: quote_id, quote_no, subject, deleted
+	 */
+	public static function resolveQuoteReference($quoteId) {
+		$quoteId = (int) $quoteId;
+		if ($quoteId <= 0) {
+			return null;
+		}
+		$db = PearDatabase::getInstance();
+		$rs = $db->pquery(
+			'SELECT q.quoteid, q.quote_no, q.subject, ce.deleted
+			 FROM vtiger_quotes q
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = q.quoteid
+			 WHERE q.quoteid = ?
+			 LIMIT 1',
+			array($quoteId)
+		);
+		if (!$rs || $db->num_rows($rs) <= 0) {
+			return null;
+		}
+		$quoteNo = trim(decode_html((string) $db->query_result($rs, 0, 'quote_no')));
+		$subject = trim(decode_html((string) $db->query_result($rs, 0, 'subject')));
+		if ($quoteNo === '') {
+			$quoteNo = 'BG' . str_pad((string) $quoteId, 5, '0', STR_PAD_LEFT);
+		}
+		return array(
+			'quote_id' => (int) $db->query_result($rs, 0, 'quoteid'),
+			'quote_no' => $quoteNo,
+			'subject' => $subject,
+			'deleted' => (int) $db->query_result($rs, 0, 'deleted'),
+		);
+	}
+
+	/**
+	 * True when a non-deleted Sales Order points at this quote.
+	 */
+	public static function hasActiveSalesOrderForQuote($quoteId) {
+		$quoteId = (int) $quoteId;
+		if ($quoteId <= 0) {
+			return false;
+		}
+		$db = PearDatabase::getInstance();
+		$rs = $db->pquery(
+			'SELECT so.salesorderid
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid
+			 WHERE ce.deleted = 0 AND so.quoteid = ?
+			 LIMIT 1',
+			array($quoteId)
+		);
+		return ($rs && $db->num_rows($rs) > 0);
+	}
+
+	public static function buildQuoteRefDetailUrl($quoteId) {
+		$quoteId = (int) $quoteId;
+		if ($quoteId <= 0) {
+			return '';
+		}
+		return 'index.php?module=Quotes&view=Detail&record=' . $quoteId . '&app=SALES&mk_so_ref=1';
+	}
+
+	/**
+	 * Safe HTML for SO inline "Tham chiếu báo giá" field.
+	 */
+	public static function buildQuoteRefInlineHtml($quoteId) {
+		$ref = self::resolveQuoteReference($quoteId);
+		if (!$ref) {
+			return '—';
+		}
+		$url = self::buildQuoteRefDetailUrl($ref['quote_id']);
+		$label = htmlspecialchars($ref['quote_no'], ENT_QUOTES, 'UTF-8');
+		$urlEsc = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+		return '<a class="mk-so-quote-ref-link" href="' . $urlEsc . '" title="Xem báo giá gốc">' . $label . '</a>';
+	}
+
 	protected static function resolveQuoteStageFromCandidates(array $candidates, $fallback) {
 		try {
 			$moduleModel = Vtiger_Module_Model::getInstance('Quotes');

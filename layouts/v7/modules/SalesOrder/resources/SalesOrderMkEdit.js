@@ -1445,11 +1445,21 @@
 			polishQuoteReferenceField();
 			lockAssignedAndMoveSoInfoToRail();
 			pinTotalsBelowOrderDetails();
+			if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
+				window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($form());
+			} else if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.relocateCommerceToRail === 'function') {
+				window.MkInventoryOdooEdit.relocateCommerceToRail($form());
+			}
 			fixFormDisplayEncoding();
 		}, 300);
 		setTimeout(function () {
 			lockAssignedAndMoveSoInfoToRail();
 			pinTotalsBelowOrderDetails();
+			if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
+				window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($form());
+			} else if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.relocateCommerceToRail === 'function') {
+				window.MkInventoryOdooEdit.relocateCommerceToRail($form());
+			}
 		}, 1200);
 	}
 

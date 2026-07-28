@@ -13,6 +13,29 @@
  */
 class Quotes_Record_Model extends Inventory_Record_Model {
 
+	/**
+	 * Load quote even when soft-deleted (converted quote referenced from Sales Order).
+	 */
+	public static function getInstanceByIdIncludingDeleted($recordId, $module = 'Quotes') {
+		$recordId = (int) $recordId;
+		if ($recordId <= 0) {
+			throw new Exception(vtranslate('LBL_RECORD_NOT_FOUND'));
+		}
+		if (is_object($module) && is_a($module, 'Vtiger_Module_Model')) {
+			$moduleName = $module->get('name');
+			$moduleModel = $module;
+		} else {
+			$moduleName = $module ? (string) $module : 'Quotes';
+			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		}
+		$focus = CRMEntity::getInstance($moduleName);
+		$focus->id = $recordId;
+		$focus->retrieve_entity_info($recordId, $moduleName, true);
+		$modelClassName = Vtiger_Loader::getComponentClassName('Model', 'Record', $moduleName);
+		$instance = new $modelClassName();
+		return $instance->setData($focus->column_fields)->set('id', $recordId)->setModuleFromInstance($moduleModel)->setEntity($focus);
+	}
+
 	public function getCreateInvoiceUrl() {
 		$invoiceModuleModel = Vtiger_Module_Model::getInstance('Invoice');
 

@@ -823,9 +823,9 @@
       $panel.find(".mk-so-inline-detail__print-btn").data("print-url");
     if (!printUrl) {
       printUrl =
-        "index.php?module=SalesOrder&action=ExportPDF&record=" +
+        "index.php?module=SalesOrder&view=Print&record=" +
         encodeURIComponent(recordId) +
-        "&preview=1";
+        "&app=SALES";
     }
     return printUrl;
   }
@@ -844,12 +844,46 @@
 
   function openInlinePrintPreview($panel, recordId) {
     var printUrl = getInlinePrintPreviewUrl($panel, recordId);
-    var $modal = ensureInlinePrintPreviewModal();
-    $modal.data("mkPrintPanel", $panel);
-    $modal.data("mkPrintRecordId", recordId);
-    $modal.find("iframe").attr("src", printUrl);
-    $modal.addClass("is-open").attr("aria-hidden", "false");
-    $("body").addClass("mk-so-inline-print-open");
+    var $frame = $("#mk-so-inline-print-launch-frame");
+    if (!$frame.length) {
+      $frame = $(
+        '<iframe id="mk-so-inline-print-launch-frame" class="mk-so-inline-print-download-frame" title="In phiếu đơn hàng" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"></iframe>',
+      );
+      $("body").append($frame);
+    }
+    $.ajax({
+      url: printUrl,
+      method: "GET",
+      dataType: "html",
+      cache: false,
+    })
+      .done(function (html) {
+        try {
+          var frame = $frame.get(0);
+          var frameWindow = frame && frame.contentWindow;
+          if (!frameWindow || !frameWindow.document) {
+            window.open(printUrl, "_blank");
+            return;
+          }
+          frameWindow.document.open();
+          frameWindow.document.write(html);
+          frameWindow.document.close();
+          setTimeout(function () {
+            try {
+              frameWindow.document.title = "";
+              frameWindow.focus();
+              frameWindow.print();
+            } catch (err) {
+              window.open(printUrl, "_blank");
+            }
+          }, 220);
+        } catch (err) {
+          window.open(printUrl, "_blank");
+        }
+      })
+      .fail(function () {
+        window.open(printUrl, "_blank");
+      });
   }
 
   function downloadInlinePrintPdf($panel, recordId) {
@@ -884,17 +918,7 @@
   }
 
   function triggerInlinePrint($panel, recordId, $btn) {
-    var ready = $btn && String($btn.attr("data-print-ready")) === "1";
-    if (!ready) {
-      openInlinePrintPreview($panel, recordId);
-      if ($btn) {
-        $btn.attr("data-print-ready", "1");
-        $btn.find(".mk-so-inline-detail__print-label").text("Tải PDF");
-      }
-      return;
-    }
-    downloadInlinePrintPdf($panel, recordId);
-    closeInlinePrintPreview();
+    openInlinePrintPreview($panel, recordId);
     if ($btn) {
       $btn.attr("data-print-ready", "0");
       $btn.find(".mk-so-inline-detail__print-label").text("In");

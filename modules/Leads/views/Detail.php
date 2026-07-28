@@ -148,12 +148,6 @@ class Leads_Detail_View extends Vtiger_Index_View {
 			}
 			return '';
 		};
-		$labelOf = function ($key, $fallback = '—') {
-			if ($key === '') {
-				return $fallback;
-			}
-			return Vtiger_MkSalesInlineDetailHelper::labelForTag($key, $key);
-		};
 
 		$regionKey = $pick(array('kv1', 'kv2', 'kv3', 'KV1', 'KV2', 'KV3'));
 		$regionKey = strtolower($regionKey);
@@ -188,52 +182,6 @@ class Leads_Detail_View extends Vtiger_Index_View {
 			),
 		);
 		array_splice($infoFields, 1, 0, $locationFields);
-
-		$sourceKey = $pick(array('facebook', 'tiktok', 'website', 'zalo', 'other', 'other_source'));
-		if ($sourceKey === 'other_source') {
-			$sourceKey = 'other';
-		}
-		$customerKey = $pick(array('co_quan', 'chuan_bi_mo', 'gia_dinh', 'individual', 'company', 'ca_nhan'));
-		if ($customerKey === 'ca_nhan') {
-			$customerKey = 'individual';
-		}
-
-		$categoryFields = array(
-			array(
-				'name' => 'mk_source',
-				'label' => 'Nguồn',
-				'value' => $labelOf($sourceKey),
-				'raw_value' => $sourceKey,
-				'data_type' => 'picklist',
-				'editable' => true,
-				'picklist_values' => array(
-					'' => '—',
-					'facebook' => 'Facebook',
-					'tiktok' => 'TikTok',
-					'website' => 'Website',
-					'zalo' => 'Zalo',
-					'other' => 'Khác',
-				),
-			),
-			array(
-				'name' => 'mk_customer',
-				'label' => 'Loại khách',
-				'value' => $labelOf($customerKey),
-				'raw_value' => $customerKey,
-				'data_type' => 'picklist',
-				'editable' => true,
-				'picklist_values' => array(
-					'' => '—',
-					'individual' => 'Cá nhân',
-					'company' => 'Công ty',
-					'co_quan' => 'Có quán',
-					'chuan_bi_mo' => 'Chuẩn bị mở',
-					'gia_dinh' => 'Gia đình',
-				),
-			),
-		);
-		// Insert category fields after address (index 3)
-		array_splice($infoFields, 3, 0, $categoryFields);
 
 		$nextAction = '';
 		$nextActionTimeframe = '';

@@ -630,7 +630,7 @@
 					'<td class="fieldValue mk-qt-customer-field" colspan="3"></td>' +
 				'</tr>'
 			);
-			var $valueTd = $row.find('td.fieldValue');
+			var $customerTd = $row.find('td.fieldValue.mk-qt-customer-field').first();
 
 			if ($contact.length && $contactDisplay.length) {
 				// Move existing contact reference UI into the new row.
@@ -639,9 +639,9 @@
 					$refWrap = $contact.closest('.referencefield-wrapper');
 				}
 				if ($refWrap.length) {
-					$valueTd.append($refWrap.detach());
+					$customerTd.append($refWrap.detach());
 				} else {
-					$valueTd.append($contact.detach()).append($contactDisplay.detach());
+					$customerTd.append($contact.detach()).append($contactDisplay.detach());
 				}
 				// Hide leftover empty cells from old contact placement.
 				var $oldVal = $f.find('td.fieldValue').filter(function () {
@@ -650,8 +650,8 @@
 						&& $(this).children().length === 0;
 				});
 			} else {
-				$valueTd.append(buildContactReferenceHtml());
-				registerInjectedContactEvents($valueTd);
+				$customerTd.append(buildContactReferenceHtml());
+				registerInjectedContactEvents($customerTd);
 			}
 
 			$infoBody.prepend($row);
@@ -660,6 +660,14 @@
 			$contactDisplay = $f.find('[name="contact_id_display"]').first();
 		} else {
 			$infoBody.prepend($existingRow);
+			var $customerTd = $existingRow.find('td.mk-qt-customer-field').first();
+			if ($customerTd.length) {
+				$customerTd.attr('colspan', '3');
+			}
+			$existingRow.find('td.mk-qt-tier-field').remove();
+			$existingRow.find('td.fieldLabel').filter(function () {
+				return /bảng giá/i.test($.trim($(this).text() || ''));
+			}).remove();
 		}
 
 		// Hide any other stock contact cells outside our row (avoid duplicates).
@@ -695,6 +703,17 @@
 		}
 
 		registerUnifiedCustomerPicker();
+		ensureTierDropdownVisible($f);
+		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
+			setTimeout(function () {
+				window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($f);
+				ensureTierDropdownVisible($f);
+			}, 0);
+			setTimeout(function () {
+				window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($f);
+				ensureTierDropdownVisible($f);
+			}, 250);
+		}
 	}
 
 	/**
@@ -713,6 +732,118 @@
 		$f.find('[name="subject"]').val('');
 		$f.find('.mk-qt-customer-ref .clearReferenceSelection').addClass('hide');
 		$f.find('.mk-qt-customer-ref').removeClass('selected');
+	}
+
+	function normalizeTierQuoteRow($tierRow) {
+		if (!$tierRow || !$tierRow.length) {
+			return $();
+		}
+		$tierRow
+			.addClass('mk-inv-quote-field-row mk-qt-tier-row')
+			.attr('data-mk-field', 'mk_invoice_price_tier');
+		var $labelTd = $tierRow.find('td.fieldLabel').first();
+		if (!$labelTd.length) {
+			$labelTd = $('<td class="fieldLabel"><label class="muted">Bảng giá</label></td>');
+			$tierRow.prepend($labelTd);
+		} else {
+			$labelTd.removeClass('alignMiddle mk-qt-hide-legacy mk-inv-hide-legacy');
+			if (!$labelTd.find('label').length) {
+				$labelTd.html('<label class="muted">Bảng giá</label>');
+			} else {
+				$labelTd.find('label').addClass('muted');
+			}
+		}
+		var $valueTd = $tierRow.find('td.fieldValue').first();
+		if (!$valueTd.length) {
+			$valueTd = $('<td class="fieldValue"></td>');
+			$tierRow.append($valueTd);
+		}
+		$valueTd.removeAttr('colspan').removeClass('mk-qt-tier-field mk-qt-hide-legacy mk-inv-hide-legacy');
+		return $valueTd;
+	}
+
+	function ensureTierDropdownVisible($f) {
+		if (!$f || !$f.length || isSalesOrder()) {
+			return;
+		}
+		var $customerRow = $f.find('tr.mk-qt-customer-row').first();
+		if (!$customerRow.length) {
+			return;
+		}
+		var $tierRow = $f.find('tr.mk-qt-tier-row, tr[data-mk-field="mk_invoice_price_tier"]').first();
+		if (!$tierRow.length) {
+			$tierRow = $('<tr class="mk-inv-quote-field-row mk-qt-tier-row" data-mk-field="mk_invoice_price_tier"></tr>');
+			$customerRow.after($tierRow);
+		}
+		var $tierTd = normalizeTierQuoteRow($tierRow);
+		var $paymentRow = $f.find('tr[data-mk-field="mk_payment_method"]').first();
+		if ($paymentRow.length && $tierRow[0] !== $paymentRow[0]) {
+			$paymentRow.before($tierRow);
+		} else if (!$paymentRow.length) {
+			$customerRow.after($tierRow);
+		}
+
+		var $existingSelect = $f.find('#mkInvInvoicePriceTierSelect, select[name="mk_invoice_price_tier"]').first();
+		if ($existingSelect.length) {
+			try {
+				if ($existingSelect.data('select2')) {
+					$existingSelect.select2('destroy');
+				}
+			} catch (ignoreSelect2Destroy) {
+				/* ignore */
+			}
+			$existingSelect
+				.addClass('inputElement mk-inv-commerce-select')
+				.removeClass('select2-offscreen select2-hidden-accessible mk-inv-price-tier__select')
+				.removeAttr('style');
+			$existingSelect.siblings('.select2-container').remove();
+			if ($existingSelect.closest('tr.mk-qt-tier-row, tr[data-mk-field="mk_invoice_price_tier"]').length === 0) {
+				$tierTd.empty().append($existingSelect.detach());
+			} else if ($existingSelect.closest('td.fieldValue').length === 0) {
+				$tierTd.empty().append($existingSelect.detach());
+			}
+			return;
+		}
+		if ($tierTd.find('select[name="mk_invoice_price_tier"]').length) {
+			return;
+		}
+
+		var currentValue = $.trim($f.find('[name="mk_invoice_price_tier"]').first().val() || '');
+		if (!currentValue || !/^(auto|lt_1m|gte_1m|gte_3m|gte_5m|gte_7m)$/.test(currentValue)) {
+			currentValue = 'lt_1m';
+		}
+
+		var options = [
+			{ value: 'auto', label: 'Tự động theo tổng đơn' },
+			{ value: 'lt_1m', label: 'Giá < 1 triệu' },
+			{ value: 'gte_1m', label: 'Giá >= 1 triệu' },
+			{ value: 'gte_3m', label: 'Giá >= 3 triệu' },
+			{ value: 'gte_5m', label: 'Giá >= 5 triệu' },
+			{ value: 'gte_7m', label: 'Giá >= 7 triệu' }
+		];
+		var html = '<select name="mk_invoice_price_tier" id="mkInvInvoicePriceTierSelect" class="inputElement mk-inv-commerce-select">';
+		options.forEach(function (item) {
+			html +=
+				'<option value="' +
+				item.value +
+				'"' +
+				(item.value === currentValue ? ' selected="selected"' : '') +
+				'>' +
+				item.label +
+				'</option>';
+		});
+		html += '</select>';
+		var $select = $(html);
+		$tierTd.empty().append($select);
+
+		$select.on('change.mkQtTierFallback', function () {
+			var value = $.trim($(this).val() || '') || 'lt_1m';
+			$f.find('input[name="mk_invoice_price_tier"]').val(value);
+			if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
+				window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($f);
+			}
+			$(this).trigger('input').trigger('change');
+		});
 	}
 
 	function setHiddenRef($f, field, id, label) {
@@ -2108,7 +2239,18 @@
 		$info.addClass('mk-qt-block mk-qt-rail-quote-info');
 		var $addr = $rail.find('.mk-qt-address-rail, .mk-qt-rail-card--address').first();
 		if ($addr.length) {
-			$info.insertBefore($addr);
+			var $existingInlineAddr = $info.find('.mk-qt-address-inline').first();
+			if (!$existingInlineAddr.length) {
+				var $addrGrid = $addr.find('.mk-qt-addr-grid').first();
+				if ($addrGrid.length) {
+					var $inlineAddr = $('<div class="mk-qt-address-inline"></div>');
+					$inlineAddr.append('<div class="mk-qt-address-inline__head"><span class="mk-qt-address-inline__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h3 class="mk-qt-address-inline__title">Địa chỉ</h3></div>');
+					$inlineAddr.append($addrGrid.detach());
+					$info.append($inlineAddr);
+				}
+			}
+			$addr.remove();
+			$rail.prepend($info);
 		} else {
 			$rail.prepend($info);
 		}
@@ -2122,7 +2264,7 @@
 		}
 		$info.find('tr').each(function () {
 			var $tr = $(this);
-			if ($tr.hasClass('mk-qt-customer-row')) {
+			if ($tr.hasClass('mk-qt-customer-row') || $tr.hasClass('mk-qt-tier-row')) {
 				return;
 			}
 			if ($tr.find('[name="terms_conditions"], .mk-qt-terms-preview, .mk-qt-terms-source').length) {
@@ -2142,10 +2284,10 @@
 				$tr.addClass('mk-qt-hide-legacy');
 			}
 		});
-		// Always hide price-tier / currency leftovers by label text.
+		// Hide only currency leftovers by label text.
 		$info.find('td.fieldLabel').each(function () {
 			var t = $.trim($(this).text() || '').replace(/\*/g, '');
-			if (/^bảng\s*giá$/i.test(t) || /^currency$/i.test(t) || /^loại\s*tiền/i.test(t)) {
+			if (/^currency$/i.test(t) || /^loại\s*tiền/i.test(t)) {
 				$(this).closest('tr').addClass('mk-qt-hide-legacy');
 			}
 		});
@@ -2464,6 +2606,12 @@
 				compactQuoteInfoRail(
 					$form().find('.mk-qt-rail-quote-info, .fieldBlockContainer[data-block="LBL_QUOTE_INFORMATION"]').first()
 				);
+			}
+			if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
+				window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($form());
+				ensureTierDropdownVisible($form());
+			} else if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.relocateCommerceToRail === 'function') {
+				window.MkInventoryOdooEdit.relocateCommerceToRail($form());
 			}
 			syncRail();
 			if (!document.documentElement.classList.contains('mk-inv-ui-ready')) {

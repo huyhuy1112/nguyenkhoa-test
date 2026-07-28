@@ -295,6 +295,22 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-h
 	max-width: 100%;
 }
 
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-hero__converted-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 11px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.2;
+	background: #ecfdf5;
+	color: #047857;
+	border: 1px solid #a7f3d0;
+	white-space: nowrap;
+	max-width: 100%;
+}
+
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-hero__meta-item--total .mk-qt-detail-hero__meta-text {
 	font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
 	font-weight: 600;

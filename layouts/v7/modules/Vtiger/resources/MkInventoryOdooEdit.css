@@ -2749,3 +2749,91 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #
 	height: auto !important;
 	opacity: 1 !important;
 }
+
+/* Compact payment + pricebook in right rail (POS-like) */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 8px 0 10px;
+	padding: 0;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-payment-terms--rail,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-price-tier--rail,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-credit-terms--rail {
+	margin: 0 !important;
+	padding: 8px 10px !important;
+	border-radius: 10px !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-payment-terms--rail::before,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-price-tier--rail::before,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-credit-terms--rail::before {
+	width: 3px !important;
+	border-radius: 10px 0 0 10px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-payment-terms__icon,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-price-tier__icon {
+	display: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-payment-terms__hint,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-price-tier__hint {
+	display: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-payment-terms__row,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-price-tier__row {
+	gap: 0 !important;
+	align-items: stretch !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-payment-terms__head,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-price-tier__head {
+	flex-direction: column !important;
+	align-items: stretch !important;
+	gap: 6px !important;
+	margin-bottom: 0 !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-payment-terms__label,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-price-tier__label {
+	font-size: 12px !important;
+	margin: 0 0 2px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-pay-chip {
+	padding: 4px 10px !important;
+	font-size: 12px !important;
+	min-height: 28px !important;
+	border-radius: 999px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-payment-terms__chips {
+	gap: 6px !important;
+	flex-wrap: wrap !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-price-tier__control {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-price-tier__select,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce #mkInvInvoicePriceTierSelect {
+	width: 100% !important;
+	min-height: 34px !important;
+	padding: 6px 10px !important;
+	font-size: 12px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-rail-commerce .mk-inv-price-tier__status {
+	margin-top: 4px !important;
+	padding: 2px 8px !important;
+	font-size: 11px !important;
+}

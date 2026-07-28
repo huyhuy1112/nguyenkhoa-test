@@ -138,6 +138,10 @@
     return "";
   }
 
+  function digitsOnly(value) {
+    return String(value || "").replace(/\D+/g, "");
+  }
+
   function addressOf(lead) {
     if (!lead) return "";
     var address = String(lead.address || "").trim();
@@ -153,6 +157,11 @@
     }
     return "";
   }
+
+  var INLINE_PLACEHOLDERS = {
+    address: "Nhập địa chỉ",
+    phone: "Nhập SĐT",
+  };
 
   function regionSelectHtml(leadId, regionKey) {
     var opts = [
@@ -278,12 +287,18 @@
     if (!btn || !btn.getAttribute) return;
     var field = btn.getAttribute("data-field");
     var leadId = btn.getAttribute("data-lead-id");
+    var placeholder = INLINE_PLACEHOLDERS[field] || "";
     var current = btn.textContent.trim();
-    if (current === "—") current = "";
+    if (current === "—" || (placeholder && current === placeholder)) {
+      current = "";
+    }
     var input = document.createElement("input");
     input.type = field === "phone" ? "tel" : "text";
     input.className = "mk-leads-inline-input";
     input.value = current;
+    if (placeholder) {
+      input.setAttribute("placeholder", placeholder);
+    }
     input.setAttribute("data-field", field);
     input.setAttribute("data-lead-id", leadId);
     if (field === "phone") {
@@ -292,7 +307,9 @@
     }
     btn.replaceWith(input);
     input.focus();
-    input.select();
+    if (current) {
+      input.select();
+    }
   }
 
   function esc(s) {
@@ -886,13 +903,16 @@
   function filterLeads(leads) {
     var f = state.filters;
     var q = f.search.trim().toLowerCase();
+    var qDigits = digitsOnly(q);
     return leads.filter(function (l) {
       // Converted leads live only as Opp — never show them on Leads list.
       if (l.converted || l.potentialId || l.canConvert === false) return false;
       var d = logic.derive(l);
       if (q) {
         var hay = [l.name, l.phone, l.email || "", l.companyName || "", l.area || "", addressOf(l), regionKeyOf(l)].join(" ").toLowerCase();
-        if (hay.indexOf(q) < 0) return false;
+        var textMatch = hay.indexOf(q) >= 0;
+        var phoneMatch = qDigits.length >= 3 && digitsOnly(l.phone).indexOf(qDigits) >= 0;
+        if (!textMatch && !phoneMatch) return false;
       }
       if (f.source !== ANY && (l.tags || []).indexOf(f.source) < 0) return false;
       if (f.program !== ANY && (l.tags || []).indexOf(f.program) < 0) return false;

@@ -181,7 +181,7 @@
 
 	function injectAddressEditorToRail($form) {
 		var $rail = getQuoteRail();
-		if (!$rail.length || $rail.find('.mk-qt-address-rail').length) {
+		if (!$rail.length || $rail.find('.mk-qt-address-rail, .mk-qt-address-inline').length) {
 			return;
 		}
 		var isSo = $rail.attr('id') === 'mkSoOrderRail';
@@ -192,16 +192,25 @@
 			return;
 		}
 
-		var $card = $('<div class="mk-qt-rail-card mk-qt-rail-card--address mk-qt-address-rail"></div>');
-		$card.append('<div class="mk-qt-rail-card__head"><span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h2 class="mk-qt-rail-card__title">Địa chỉ</h2></div>');
-		$card.append(
+		var $addressBody = $(
 			'<div class="mk-qt-addr-grid">' +
 				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'BillStreetRail">Địa chỉ</label><textarea id="' + prefix + 'BillStreetRail" class="mk-qt-addr-ta" rows="4" placeholder="Tự điền từ cơ hội nếu có — hoặc nhập tay"></textarea></div>' +
 				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'ShipStreetRail">Địa chỉ vận chuyển</label><textarea id="' + prefix + 'ShipStreetRail" class="mk-qt-addr-ta" rows="4" placeholder="Nhập địa chỉ vận chuyển"></textarea></div>' +
 			'</div>'
 		);
+		var $addressSection = $('<div class="mk-qt-address-inline"></div>');
+		$addressSection.append('<div class="mk-qt-address-inline__head"><span class="mk-qt-address-inline__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h3 class="mk-qt-address-inline__title">Địa chỉ</h3></div>');
+		$addressSection.append($addressBody);
 
-		$rail.append($card);
+		var $infoCard = $rail.find('.mk-qt-rail-quote-info, .mk-so-rail-info').first();
+		if ($infoCard.length) {
+			$infoCard.append($addressSection);
+		} else {
+			var $card = $('<div class="mk-qt-rail-card mk-qt-rail-card--address mk-qt-address-rail"></div>');
+			$card.append('<div class="mk-qt-rail-card__head"><span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h2 class="mk-qt-rail-card__title">Địa chỉ</h2></div>');
+			$card.append($addressBody);
+			$rail.append($card);
+		}
 
 		var $billRail = $('#' + prefix + 'BillStreetRail');
 		var $shipRail = $('#' + prefix + 'ShipStreetRail');

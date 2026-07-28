@@ -109,7 +109,7 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('INLINE_CUSTOMER_NAME', $this->resolveInlineCustomerName($recordModel));
 		$viewer->assign('INLINE_EDIT_URL', $recordModel->getEditViewUrl() . '&app=SALES');
 		$viewer->assign('INLINE_DETAIL_URL', $recordModel->getDetailViewUrl() . '&app=SALES');
-		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=SalesOrder&action=ExportPDF&record=' . (int) $recordId . '&preview=1');
+		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=SalesOrder&view=Print&record=' . (int) $recordId . '&app=SALES');
 		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=SalesOrder&action=ExportPDF&record=' . (int) $recordId);
 		$viewer->assign('INLINE_CREATED_DATE', $this->formatInlineCreatedDateDmY($recordModel));
 		$amountWords = '';
@@ -655,6 +655,12 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 	protected function getInlineInfoFields(Vtiger_Module_Model $moduleModel, Vtiger_Record_Model $recordModel) {
 		$candidates = array(
 			array(
+				'names' => array(),
+				'label' => 'Tham chiếu báo giá',
+				'label_hints' => array('Tham chiếu báo giá', 'Quote', 'Quote Name'),
+				'virtual' => 'quote_ref',
+			),
+			array(
 				'names' => array('smcreatorid', 'created_user_id'),
 				'label' => 'Người tạo',
 				'label_hints' => array('Người tạo', 'Creator', 'Created By'),
@@ -703,6 +709,40 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		foreach ($candidates as $candidate) {
 			$label = $candidate['label'];
 			if (isset($seenLabels[$label])) {
+				continue;
+			}
+
+			if (!empty($candidate['virtual']) && $candidate['virtual'] === 'quote_ref') {
+				$quoteId = (int) $recordModel->get('quote_id');
+				if ($quoteId <= 0) {
+					$db = PearDatabase::getInstance();
+					$rs = $db->pquery(
+						'SELECT quoteid FROM vtiger_salesorder WHERE salesorderid = ?',
+						array((int) $recordModel->getId())
+					);
+					if ($rs && $db->num_rows($rs) > 0) {
+						$quoteId = (int) $db->query_result($rs, 0, 'quoteid');
+					}
+				}
+				$valueHtml = '—';
+				$rawValue = '';
+				if ($quoteId > 0) {
+					require_once 'modules/Quotes/helpers/QuoteBaService.php';
+					$valueHtml = Quotes_QuoteBaService_Helper::buildQuoteRefInlineHtml($quoteId);
+					$ref = Quotes_QuoteBaService_Helper::resolveQuoteReference($quoteId);
+					$rawValue = $ref ? $ref['quote_no'] : '';
+				}
+				$fields[] = array(
+					'name' => 'quote_id',
+					'label' => $label,
+					'value' => $valueHtml,
+					'raw_value' => $rawValue,
+					'data_type' => 'string',
+					'editable' => false,
+					'picklist_values' => array(),
+					'is_html' => true,
+				);
+				$seenLabels[$label] = true;
 				continue;
 			}
 

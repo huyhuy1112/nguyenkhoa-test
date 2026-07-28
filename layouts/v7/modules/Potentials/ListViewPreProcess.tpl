@@ -36,7 +36,7 @@ html.mk-opps-ui-ready body[data-module="Potentials"][data-view="List"] #mk-dash-
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsLocalStore.js')}&mk_v=20260724_vi_force1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsConvertCustomerTier.js')}&mk_v=20260724_vi_force1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkList.js')}&mk_v=20260727_conv_list1"></script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260725_inline_row1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260728_actions_left1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
 	module: 'Potentials',

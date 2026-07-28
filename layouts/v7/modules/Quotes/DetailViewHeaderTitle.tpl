@@ -61,6 +61,9 @@
 					</span>
 				</h1>
 				<div class="mk-qt-detail-hero__meta">
+					{if !empty($MK_QUOTE_CONVERTED_BADGE) || !empty($MK_QUOTE_SO_REF_VIEW)}
+						<span class="mk-qt-detail-hero__converted-badge" title="Báo giá đã chuyển thành đơn hàng">Đã chuyển đơn hàng</span>
+					{/if}
 					{if $MK_QT_STAGE_LABEL ne ''}
 						<span class="mk-qt-detail-hero__quote-stage" title="{vtranslate('quotestage', $MODULE)}">{$MK_QT_STAGE_LABEL}</span>
 					{/if}
