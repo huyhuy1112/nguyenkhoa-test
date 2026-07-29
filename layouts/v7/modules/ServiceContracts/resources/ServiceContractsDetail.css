@@ -1667,3 +1667,137 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #star
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-kv-wrap .summary-table tr.summaryViewEntries:empty {
 	display: none;
 }
+
+/* Franchise Mk Detail summary */
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail {
+	margin: 0 0 18px;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__card {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	padding: 20px 22px 18px;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__head h2 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__aff {
+	display: inline-flex;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: #ecfdf5;
+	border: 1px solid #86efac;
+	color: #047857;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px 28px;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__label {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #64748b;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__value {
+	font-size: 14px;
+	font-weight: 600;
+	color: #0f172a;
+	word-break: break-word;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__tags-wrap,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__interactions {
+	margin-top: 20px;
+	padding-top: 16px;
+	border-top: 1px solid #e2e8f0;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__tags-wrap h3,
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__interactions h3 {
+	margin: 0 0 10px;
+	font-size: 14px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__pill {
+	display: inline-flex;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: #eff6ff;
+	border: 1px solid #bfdbfe;
+	color: #1d4ed8;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__ix {
+	margin-bottom: 12px;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__ix-body {
+	margin-top: 4px;
+	padding: 10px 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #f8fafc;
+	white-space: pre-wrap;
+	font-size: 14px;
+	color: #0f172a;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__ix.is-materials .mk-sc-mk-detail__ix-body {
+	border-color: #86efac;
+	background: #f0fdf4;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__empty {
+	color: #94a3b8;
+	font-size: 13px;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail-hide-stock {
+	display: none !important;
+}
+
+@media (max-width: 720px) {
+	body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__grid {
+		grid-template-columns: 1fr;
+	}
+}

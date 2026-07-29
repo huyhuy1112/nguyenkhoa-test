@@ -623,7 +623,13 @@
             (customerName ? esc(customerName) : '<span class="mk-leads-muted">—</span>') +
             "</a></td>" +
             '<td class="mk-leads-td" data-col="phone">' +
-            (o.phone ? esc(o.phone) : '<span class="mk-leads-muted">—</span>') +
+            (o.phone
+              ? esc(
+                  window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function"
+                    ? window.MkPhoneFormat.format(o.phone) || o.phone
+                    : o.phone
+                )
+              : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
             '<td class="mk-leads-td" data-col="region">' +
             (function () {

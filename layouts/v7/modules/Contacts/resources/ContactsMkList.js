@@ -567,7 +567,15 @@
             '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' + detailUrl(c.crmid || c.id) + '">' + esc(c.name) + "</a>" +
             (c.title ? '<div class="mk-leads-sub">' + esc(c.title) + "</div>" : "") +
             "</span></span></td>" +
-            '<td class="mk-leads-td">' + (c.phone ? esc(c.phone) : '<span class="mk-leads-muted">—</span>') + "</td>" +
+            '<td class="mk-leads-td">' +
+            (c.phone
+              ? esc(
+                  window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function"
+                    ? window.MkPhoneFormat.format(c.phone) || c.phone
+                    : c.phone
+                )
+              : '<span class="mk-leads-muted">—</span>') +
+            "</td>" +
             '<td class="mk-leads-td">' + (c.address ? esc(c.address) : '<span class="mk-leads-muted">—</span>') + "</td>" +
             '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-contact-id="' +
             esc(c.id) +

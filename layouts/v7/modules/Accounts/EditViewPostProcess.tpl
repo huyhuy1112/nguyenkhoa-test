@@ -3,7 +3,7 @@
 		</main>
 	</div>
 </div>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountMkEdit.js')}?mk_v=20260723_ac_edit10"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountMkEdit.js')}?mk_v=20260729_ac_sc_search2"></script>
 <script type="text/javascript">
 (function () {
 	function revealAccountsCreate() {

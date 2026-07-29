@@ -192,8 +192,12 @@
   }
 
   function editableCellHtml(field, value, leadId, placeholder) {
-    var display = value
-      ? esc(value)
+    var shown = value;
+    if (field === "phone" && value && window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function") {
+      shown = window.MkPhoneFormat.format(value) || value;
+    }
+    var display = shown
+      ? esc(shown)
       : '<span class="mk-leads-muted">' + esc(placeholder || "—") + "</span>";
     return (
       '<button type="button" class="mk-leads-inline-edit" data-field="' +

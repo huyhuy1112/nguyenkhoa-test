@@ -1022,6 +1022,86 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
     color: #ffffff !important;
 }
 
+/* Nested module group (Tuibao dropdown) */
+.mk-dash-mod-group {
+    margin: 3px 0;
+}
+
+.mk-dash-mod-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 12px 10px 18px;
+    margin: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    font-size: var(--mk-sidebar-sub-fs);
+    line-height: var(--mk-sidebar-sub-lh);
+    font-weight: 500;
+    color: #475569;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.mk-dash-mod-toggle:hover,
+.mk-dash-mod-toggle:focus {
+    background: #0b6e4f !important;
+    color: #ffffff !important;
+    outline: none;
+}
+
+.mk-dash-mod-group--active > .mk-dash-mod-toggle {
+    background: #ecfdf3;
+    color: #0b6e4f;
+    font-weight: 600;
+    box-shadow: inset -4px 0 0 #08a045;
+}
+
+.mk-dash-mod-group--active > .mk-dash-mod-toggle:hover,
+.mk-dash-mod-group--active > .mk-dash-mod-toggle:focus {
+    background: #0b6e4f !important;
+    color: #ffffff !important;
+}
+
+.mk-dash-mod-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #94a3b8;
+    transition: transform 0.2s ease, color 0.18s ease;
+}
+
+.mk-dash-mod-group--open > .mk-dash-mod-toggle .mk-dash-mod-chevron {
+    transform: rotate(-180deg);
+}
+
+.mk-dash-mod-group--active > .mk-dash-mod-toggle .mk-dash-mod-chevron {
+    color: #0B6E4F;
+}
+
+.mk-dash-mod-panel {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 0 0 10px;
+    transition: max-height 0.2s ease, opacity 0.18s ease;
+}
+
+.mk-dash-mod-group--open > .mk-dash-mod-panel {
+    max-height: 200px;
+    opacity: 1;
+    padding-bottom: 4px;
+}
+
+.mk-dash-mod-link--nested {
+    padding-left: 22px;
+    font-size: calc(var(--mk-sidebar-sub-fs) - 0.5px);
+}
+
 .mk-dash-sidebar-mobile-toggle {
     display: none;
 }

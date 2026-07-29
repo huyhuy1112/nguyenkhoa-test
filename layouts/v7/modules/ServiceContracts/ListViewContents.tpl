@@ -42,17 +42,18 @@
 									<span class="mk-leads-check__ui" aria-hidden="true"></span>
 								</label>
 							</th>
-							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="createdtime"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_COL_CREATED', $MODULE)}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
-							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="name"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_COL_NAME', $MODULE)}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_AFFILIATE', $MODULE)}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_PHONE', $MODULE)}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_AREA', $MODULE)}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_ADDRESS', $MODULE)}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_OWNER', $MODULE)}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_TAGS', $MODULE)}</th>
-							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="last_touch"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_COL_LAST_TOUCH', $MODULE)}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_NEXT_ACTION', $MODULE)}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_NOTES', $MODULE)}</th>
+							<th class="mk-leads-th mk-leads-th--sort mk-sc-th--group-a" scope="col" data-sort="received_date"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_SC_RECEIVED_DATE', $MODULE)}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
+							<th class="mk-leads-th mk-leads-th--sort mk-sc-th--group-a" scope="col" data-sort="name"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_SC_FULL_NAME', $MODULE)}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
+							<th class="mk-leads-th mk-sc-th--group-a" scope="col">{vtranslate('LBL_MK_SC_PHONE', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--group-a" scope="col">{vtranslate('LBL_MK_SC_BUSINESS_NOTE', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--group-a" scope="col">{vtranslate('LBL_MK_SC_FRANCHISE_STATUS', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--group-a" scope="col">{vtranslate('LBL_MK_SC_DATA_SOURCE', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--group-a" scope="col">{vtranslate('LBL_MK_SC_REFERRER', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--group-b" scope="col">{vtranslate('LBL_MK_SC_CONTACT_STATUS', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--group-b" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_1', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--group-b" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_2', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--group-b" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_3', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--group-c" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_MATERIALS', $MODULE)}</th>
 						</tr>
 					</thead>
 					<tbody id="mk-sc-tbody"></tbody>

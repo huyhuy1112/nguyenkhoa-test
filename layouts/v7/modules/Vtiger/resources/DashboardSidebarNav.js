@@ -32,6 +32,17 @@
       $g.addClass("mk-dash-app-group--open");
       $btn.attr("aria-expanded", "true");
     });
+
+    // Nested module groups (e.g. Tuibao → Khách hàng / Hợp đồng nhượng quyền)
+    $nav.off("click.mkDashModAcc").on("click.mkDashModAcc", ".mk-dash-mod-toggle", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var $btn = $(this);
+      var $g = $btn.closest(".mk-dash-mod-group");
+      var isOpen = $g.hasClass("mk-dash-mod-group--open");
+      $g.toggleClass("mk-dash-mod-group--open", !isOpen);
+      $btn.attr("aria-expanded", !isOpen ? "true" : "false");
+    });
   }
 
   function initMobileDrawer() {

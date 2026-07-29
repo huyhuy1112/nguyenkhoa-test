@@ -10,6 +10,7 @@
 		groups: [],
 		rules: [],
 		scenarios: [],
+		affiliate_tiers: [],
 		alerts: [],
 		channel_options: [],
 		assignee_options: [],
@@ -28,6 +29,7 @@
 		if (Array.isArray(next.groups)) state.groups = next.groups;
 		if (Array.isArray(next.rules)) state.rules = next.rules;
 		if (Array.isArray(next.scenarios)) state.scenarios = next.scenarios;
+		if (Array.isArray(next.affiliate_tiers)) state.affiliate_tiers = next.affiliate_tiers;
 		if (Array.isArray(next.alerts)) state.alerts = next.alerts;
 		if (Array.isArray(next.channel_options)) state.channel_options = next.channel_options;
 		if (Array.isArray(next.assignee_options)) state.assignee_options = next.assignee_options;
@@ -172,6 +174,22 @@
 	function getScenarios() {
 		ensureBootstrapped();
 		return clone(state.scenarios || []);
+	}
+
+	function getAffiliateTiers() {
+		ensureBootstrapped();
+		return clone(state.affiliate_tiers || []).sort(function (a, b) {
+			return String(a.prefix || '').localeCompare(String(b.prefix || ''));
+		});
+	}
+
+	function getAffiliateTierById(id) {
+		if (!id) return null;
+		var list = getAffiliateTiers();
+		for (var i = 0; i < list.length; i++) {
+			if (list[i].id === id) return clone(list[i]);
+		}
+		return null;
 	}
 
 	function getChannelOptions() {
@@ -337,6 +355,35 @@
 		apiSync({ mode: 'delete_scenario', id: id });
 	}
 
+	function createAffiliateTier(payload) {
+		var body = apiSync({ mode: 'save_affiliate_tier', payload: JSON.stringify(payload || {}) });
+		return body && body.tier ? clone(body.tier) : null;
+	}
+
+	function updateAffiliateTier(id, payload) {
+		var data = Object.assign({}, payload || {}, { id: id });
+		var body = apiSync({ mode: 'save_affiliate_tier', payload: JSON.stringify(data) });
+		return body && body.tier ? clone(body.tier) : null;
+	}
+
+	function setAffiliateTierActive(id, isActive) {
+		var body = apiSync({
+			mode: 'set_affiliate_tier_active',
+			id: id,
+			is_active: isActive ? 1 : 0,
+		});
+		return body && body.tier ? clone(body.tier) : null;
+	}
+
+	function deleteAffiliateTier(id) {
+		apiSync({ mode: 'delete_affiliate_tier', id: id });
+	}
+
+	function resolveAffiliateReward(code) {
+		var body = apiSync({ mode: 'resolve_affiliate', code: code || '' });
+		return body && body.tier ? clone(body.tier) : null;
+	}
+
 	function reset() {
 		apiSync({ mode: 'reseed' });
 	}
@@ -375,6 +422,8 @@
 		getGroupById: getGroupById,
 		getRules: getRules,
 		getScenarios: getScenarios,
+		getAffiliateTiers: getAffiliateTiers,
+		getAffiliateTierById: getAffiliateTierById,
 		getChannelOptions: getChannelOptions,
 		getAssigneeOptions: getAssigneeOptions,
 		getCustomers: getCustomers,
@@ -398,6 +447,11 @@
 		createScenario: createScenario,
 		updateScenario: updateScenario,
 		deleteScenario: deleteScenario,
+		createAffiliateTier: createAffiliateTier,
+		updateAffiliateTier: updateAffiliateTier,
+		setAffiliateTierActive: setAffiliateTierActive,
+		deleteAffiliateTier: deleteAffiliateTier,
+		resolveAffiliateReward: resolveAffiliateReward,
 		upsertDismissal: upsertDismissal,
 		loadAlerts: loadAlerts,
 		dismissAlert: dismissAlert,

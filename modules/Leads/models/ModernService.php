@@ -109,6 +109,7 @@ class Leads_ModernService {
 		if (!self::isInstalled($adb)) {
 			return array();
 		}
+		self::installSchema($adb);
 		self::ensureModernProfilesForAliveLeads();
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,

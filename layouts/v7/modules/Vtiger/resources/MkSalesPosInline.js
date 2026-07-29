@@ -548,6 +548,54 @@
 					window.alert(message);
 				}
 			}
+			// Khách hàng nhượng quyền: lưu trạng thái/list fields qua ModernApi (không dùng stock contract_status).
+			if (mod === 'ServiceContracts') {
+				var inlinePayload = {
+					franchise_status: postData.franchise_status || '',
+					contact_status: postData.contact_status || '',
+					referrer: postData.referrer || '',
+					interaction_1: postData.interaction_1 || '',
+					interaction_2: postData.interaction_2 || '',
+					interaction_3: postData.interaction_3 || '',
+					interaction_materials: postData.interaction_materials || '',
+					assigned_user_id: postData.assigned_user_id || '',
+					description: postData.description || ''
+				};
+				postRequest({
+					module: 'ServiceContracts',
+					action: 'ModernApi',
+					mode: 'save_inline',
+					record: recordId,
+					payload: JSON.stringify(inlinePayload)
+				}).then(function (err, res) {
+					$saveBtn.prop('disabled', false);
+					if (err || !res || res.success === false) {
+						showSaveError(err || { message: (res && (res.error || res.message)) || 'Không lưu được.' });
+						return;
+					}
+					var c = (res && res.contract) || {};
+					function syncView(name, val) {
+						$panel.find('.mk-so-inline-detail__field[data-field-name="' + name + '"] .mk-so-inline-detail__field-view')
+							.text(val || '—');
+					}
+					syncView('franchise_status', c.franchise_status);
+					syncView('contact_status', c.contact_status);
+					syncView('referrer', c.referrer);
+					syncView('interaction_1', c.interaction_1);
+					syncView('interaction_2', c.interaction_2);
+					syncView('interaction_3', c.interaction_3);
+					syncView('interaction_materials', c.interaction_materials);
+					try {
+						document.dispatchEvent(new CustomEvent('mk-sc-inline-saved', {
+							detail: { id: String(recordId), contract: c }
+						}));
+					} catch (evErr) { /* IE */ }
+					if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
+						app.helper.showSuccessNotification({ message: 'Đã lưu.' });
+					}
+				});
+				return;
+			}
 			function slugifyInlineTag(raw) {
 				var s = String(raw || "").trim().toLowerCase();
 				if (!s) return "";

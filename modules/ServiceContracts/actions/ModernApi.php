@@ -22,7 +22,7 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'save_tags', 'save_next_action', 'save', 'save_franchise'), true)) {
+		if (in_array($mode, array('delete', 'save_tags', 'save_next_action', 'save', 'save_franchise', 'save_inline'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -59,10 +59,57 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 					break;
 				case 'meta':
 				case 'picklists':
+					$excludeId = (int) $request->get('record');
+					if ($excludeId <= 0) {
+						$excludeId = (int) $request->get('id');
+					}
 					$response->setResult(array(
 						'success' => true,
 						'picklists' => ServiceContracts_ModernService::franchisePicklists(),
+						'assignable_users' => ServiceContracts_ModernService::listAssignableUsers(),
+						'payment_options' => array('Chuyển khoản', 'Tiền mặt', 'Thẻ', 'Ví'),
+						'referrers' => ServiceContracts_ModernService::listReferrerOptions(
+							$excludeId > 0 ? $excludeId : null
+						),
+						'affiliate_tiers' => ServiceContracts_ModernService::listAffiliateTiers(),
 					));
+					break;
+				case 'list_referrers':
+					$excludeId = (int) $request->get('record');
+					if ($excludeId <= 0) {
+						$excludeId = (int) $request->get('id');
+					}
+					$response->setResult(array(
+						'success' => true,
+						'referrers' => ServiceContracts_ModernService::listReferrerOptions(
+							$excludeId > 0 ? $excludeId : null
+						),
+						'affiliate_tiers' => ServiceContracts_ModernService::listAffiliateTiers(),
+					));
+					break;
+				case 'save_inline':
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$payload = $request->get('payload');
+					if (is_string($payload)) {
+						$decoded = json_decode($payload, true);
+						$payload = is_array($decoded) ? $decoded : array();
+					}
+					if (!is_array($payload)) {
+						$payload = array();
+					}
+					foreach (array(
+						'franchise_status', 'contact_status', 'referrer', 'assigned_user_id', 'description', 'start_date',
+						'interaction_1', 'interaction_2', 'interaction_3', 'interaction_materials',
+					) as $k) {
+						if (!isset($payload[$k]) && $request->get($k) !== null && $request->get($k) !== '') {
+							$payload[$k] = $request->get($k);
+						}
+					}
+					$saved = ServiceContracts_ModernService::saveInlineFranchise($recordId, $payload, $userId);
+					$response->setResult(array('success' => true, 'contract' => $saved));
 					break;
 				case 'save':
 				case 'save_franchise':
@@ -77,8 +124,11 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 					// Also accept flat request fields (form POST).
 					$keys = array(
 						'id', 'record', 'full_name', 'phone', 'received_date', 'business_note',
-						'franchise_status', 'fanpage', 'data_source', 'referrer', 'contact_status',
+						'franchise_status', 'data_source', 'referrer', 'contact_status',
 						'interaction_1', 'interaction_2', 'interaction_3', 'interaction_materials',
+						'referral_code', 'registration_date', 'sale_owner', 'sale_owner_id',
+						'contract_signed_date', 'store_count', 'payment_condition', 'payment_date', 'tags',
+						'affiliate_tier_prefix',
 					);
 					foreach ($keys as $k) {
 						if (!isset($payload[$k]) && $request->get($k) !== null && $request->get($k) !== '') {
@@ -125,6 +175,30 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					ServiceContracts_ModernService::deleteContract($recordId);
 					$response->setResult(array('success' => true));
+					break;
+				case 'resolve_referral':
+					$code = (string) $request->get('code');
+					$asOf = $request->get('as_of');
+					$tier = ServiceContracts_ModernService::resolveReferralTier(
+						$code,
+						$asOf ? (string) $asOf : null
+					);
+					$response->setResult(array('success' => true, 'tier' => $tier));
+					break;
+				case 'check_duplicate':
+					$phone = (string) $request->get('phone');
+					$excludeId = (int) $request->get('record');
+					if ($excludeId <= 0) {
+						$excludeId = (int) $request->get('id');
+					}
+					$check = ServiceContracts_ModernService::checkDuplicateByPhone(
+						$phone,
+						$excludeId > 0 ? $excludeId : null
+					);
+					$response->setResult(array(
+						'success' => true,
+						'duplicate' => $check,
+					));
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

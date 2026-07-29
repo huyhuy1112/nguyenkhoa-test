@@ -1521,3 +1521,110 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-franchise-hint {
 		grid-row: 6 !important;
 	}
 }
+
+/* SC customer picker on Hợp đồng create */
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-wrap {
+	position: relative;
+	width: 100%;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-select-box {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	min-height: 40px;
+	border-radius: 10px;
+	border: 1px solid rgba(64, 98, 126, 0.22);
+	padding: 8px 12px;
+	font-size: 14px;
+	background: #fff;
+	box-sizing: border-box;
+	cursor: pointer;
+	user-select: none;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-select-box:hover {
+	border-color: #4caf50;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-select-label {
+	color: #94a3b8;
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-select-label--chosen {
+	color: #1e293b;
+	font-weight: 500;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-select-arrow {
+	margin-left: 8px;
+	color: #94a3b8;
+	font-size: 12px;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-drop-panel {
+	position: absolute;
+	z-index: 999;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background: #fff;
+	border: 1px solid rgba(64, 98, 126, 0.22);
+	border-top: none;
+	border-radius: 0 0 10px 10px;
+	box-shadow: 0 6px 16px rgba(0,0,0,0.10);
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-input {
+	width: 100% !important;
+	min-height: 36px;
+	border: none;
+	border-bottom: 1px solid #e2e8f0;
+	border-radius: 0;
+	padding: 8px 12px;
+	font-size: 14px;
+	background: #f8fafc;
+	box-sizing: border-box;
+	outline: none;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-results {
+	max-height: 220px;
+	overflow-y: auto;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-item {
+	padding: 8px 12px;
+	cursor: pointer;
+	font-size: 14px;
+	border-bottom: 1px solid #f1f5f9;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-item:hover,
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-item:focus {
+	background: #e8f5e9;
+	outline: none;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-phone {
+	color: #64748b;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-empty {
+	padding: 12px;
+	color: #94a3b8;
+	text-align: center;
+	font-size: 13px;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-pick-hint {
+	margin-top: 6px;
+	font-size: 12px;
+	color: #64748b;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}

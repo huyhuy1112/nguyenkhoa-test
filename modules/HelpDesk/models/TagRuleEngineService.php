@@ -10,7 +10,7 @@ class HelpDesk_TagRuleEngineService {
 	/** @var PearDatabase */
 	protected $db;
 
-	const SCHEMA_VERSION = 4;
+	const SCHEMA_VERSION = 5;
 	const CSKH_RULE_ID = 'rule-cskh';
 	const CSKH_ALERT_DAYS_DEFAULT = 7;
 
@@ -113,6 +113,20 @@ class HelpDesk_TagRuleEngineService {
 			INDEX idx_mk_tag_group_members_tag (tag_id)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+		$this->db->query("CREATE TABLE IF NOT EXISTS mk_affiliate_reward_tiers (
+			id VARCHAR(64) NOT NULL PRIMARY KEY,
+			prefix CHAR(1) NOT NULL,
+			tier_name VARCHAR(100) NOT NULL,
+			reward_amount DECIMAL(18,2) NOT NULL DEFAULT 0,
+			retention_days INT UNSIGNED NOT NULL DEFAULT 180,
+			effective_from DATE NOT NULL,
+			status VARCHAR(16) NOT NULL DEFAULT 'active',
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			UNIQUE KEY uq_mk_aff_tier_prefix (prefix),
+			INDEX idx_mk_aff_tier_status (status, effective_from)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
 		$this->ensureCatalogExtraColumns();
 
 		$ver = $this->getMeta('schema_version');
@@ -129,6 +143,7 @@ class HelpDesk_TagRuleEngineService {
 		if ($this->getMeta('cskh_alert_days') === null) {
 			$this->setMeta('cskh_alert_days', (string)self::CSKH_ALERT_DAYS_DEFAULT);
 		}
+		$this->seedAffiliateTiersIfEmpty();
 	}
 
 	protected function ensureCatalogExtraColumns() {
@@ -513,6 +528,7 @@ class HelpDesk_TagRuleEngineService {
 			'groups' => $this->getGroups(),
 			'rules' => $this->getRules(),
 			'scenarios' => $this->getScenarios(),
+			'affiliate_tiers' => $this->getAffiliateTiers(),
 			'channel_options' => $this->getScenarioChannelOptions(),
 			'assignee_options' => $this->getScenarioAssigneeOptions(),
 			'cskh_alert_days' => $this->getCskhAlertDays(),
@@ -1147,6 +1163,251 @@ class HelpDesk_TagRuleEngineService {
 		$this->db->pquery('UPDATE mk_tag_rules SET scenario_id = NULL WHERE scenario_id = ?', array($id));
 		$this->db->pquery('DELETE FROM mk_tag_scenarios WHERE id = ?', array($id));
 		return true;
+	}
+
+	/** ——— Affiliate reward tiers (Prefix → Hạng → Tiền thưởng) ——— */
+
+	public function seedAffiliateTiersIfEmpty($force = false) {
+		$res = $this->db->pquery('SELECT COUNT(*) AS c FROM mk_affiliate_reward_tiers', array());
+		$count = ($res && $this->db->num_rows($res) > 0) ? (int)$this->db->query_result($res, 0, 'c') : 0;
+		if (!$force && $count > 0) {
+			return false;
+		}
+		if ($force) {
+			$this->db->query('DELETE FROM mk_affiliate_reward_tiers');
+		}
+		$today = date('Y-m-d');
+		foreach ($this->seedAffiliateTiers() as $tier) {
+			$tier['effective_from'] = isset($tier['effective_from']) ? $tier['effective_from'] : $today;
+			$this->upsertAffiliateTier($tier, false);
+		}
+		return true;
+	}
+
+	protected function seedAffiliateTiers() {
+		return array(
+			array('id' => 'aff-tier-a', 'prefix' => 'A', 'tier_name' => 'Diamond', 'reward_amount' => 30000000, 'retention_days' => 180, 'status' => 'active'),
+			array('id' => 'aff-tier-b', 'prefix' => 'B', 'tier_name' => 'Gold', 'reward_amount' => 20000000, 'retention_days' => 180, 'status' => 'active'),
+			array('id' => 'aff-tier-c', 'prefix' => 'C', 'tier_name' => 'Silver', 'reward_amount' => 10000000, 'retention_days' => 180, 'status' => 'active'),
+			array('id' => 'aff-tier-d', 'prefix' => 'D', 'tier_name' => 'Standard', 'reward_amount' => 5000000, 'retention_days' => 180, 'status' => 'active'),
+		);
+	}
+
+	protected function mapAffiliateTierRow(array $row) {
+		return array(
+			'id' => (string)$row['id'],
+			'prefix' => strtoupper((string)$row['prefix']),
+			'tier_name' => decode_html($row['tier_name']),
+			'reward_amount' => (float)$row['reward_amount'],
+			'retention_days' => (int)$row['retention_days'],
+			'effective_from' => (string)$row['effective_from'],
+			'status' => ((string)$row['status'] === 'active') ? 'active' : 'inactive',
+			'is_active' => ((string)$row['status'] === 'active'),
+		);
+	}
+
+	public function getAffiliateTiers() {
+		$res = $this->db->pquery(
+			'SELECT id, prefix, tier_name, reward_amount, retention_days, effective_from, status
+			 FROM mk_affiliate_reward_tiers
+			 ORDER BY prefix ASC',
+			array()
+		);
+		$rows = array();
+		if ($res) {
+			while ($row = $this->db->fetchByAssoc($res)) {
+				$rows[] = $this->mapAffiliateTierRow($row);
+			}
+		}
+		return $rows;
+	}
+
+	public function getAffiliateTierById($id) {
+		if (!$id) {
+			return null;
+		}
+		$res = $this->db->pquery(
+			'SELECT id, prefix, tier_name, reward_amount, retention_days, effective_from, status
+			 FROM mk_affiliate_reward_tiers WHERE id = ?',
+			array($id)
+		);
+		if (!$res || $this->db->num_rows($res) === 0) {
+			return null;
+		}
+		return $this->mapAffiliateTierRow($this->db->fetchByAssoc($res));
+	}
+
+	public function upsertAffiliateTier(array $payload, $generateId = true) {
+		$id = isset($payload['id']) ? trim((string)$payload['id']) : '';
+		$prefix = isset($payload['prefix']) ? strtoupper(trim((string)$payload['prefix'])) : '';
+		$tierName = isset($payload['tier_name']) ? trim((string)$payload['tier_name']) : '';
+		if ($prefix === '' || !preg_match('/^[A-Z]$/', $prefix)) {
+			throw new Exception('Prefix phải là 1 chữ cái A–Z.');
+		}
+		if ($tierName === '') {
+			throw new Exception('Tên hạng là bắt buộc.');
+		}
+		$reward = isset($payload['reward_amount']) ? (float)$payload['reward_amount'] : 0;
+		if ($reward < 0) {
+			throw new Exception('Tiền thưởng không hợp lệ.');
+		}
+		$retention = isset($payload['retention_days']) ? (int)$payload['retention_days'] : 180;
+		if ($retention <= 0) {
+			$retention = 180;
+		}
+		$effectiveFrom = isset($payload['effective_from']) ? trim((string)$payload['effective_from']) : '';
+		if ($effectiveFrom === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $effectiveFrom)) {
+			$effectiveFrom = date('Y-m-d');
+		}
+		$status = 'active';
+		if (isset($payload['status'])) {
+			$status = (strtolower((string)$payload['status']) === 'inactive') ? 'inactive' : 'active';
+		} elseif (isset($payload['is_active'])) {
+			$active = $payload['is_active'];
+			$status = ($active === true || $active === 1 || $active === '1' || $active === 'true') ? 'active' : 'inactive';
+		}
+		if ($id === '' && $generateId) {
+			$id = 'aff-tier-' . strtolower($prefix);
+		}
+		if ($id === '') {
+			$id = 'aff-tier-' . substr(md5(uniqid('', true)), 0, 8);
+		}
+
+		$dup = $this->db->pquery(
+			'SELECT id FROM mk_affiliate_reward_tiers WHERE prefix = ? AND id <> ?',
+			array($prefix, $id)
+		);
+		if ($dup && $this->db->num_rows($dup) > 0) {
+			throw new Exception('Prefix "' . $prefix . '" đã tồn tại.');
+		}
+
+		$exists = $this->db->pquery('SELECT id FROM mk_affiliate_reward_tiers WHERE id = ?', array($id));
+		if ($exists && $this->db->num_rows($exists) > 0) {
+			$this->db->pquery(
+				'UPDATE mk_affiliate_reward_tiers
+				 SET prefix=?, tier_name=?, reward_amount=?, retention_days=?, effective_from=?, status=?
+				 WHERE id=?',
+				array($prefix, $tierName, $reward, $retention, $effectiveFrom, $status, $id)
+			);
+		} else {
+			$this->db->pquery(
+				'INSERT INTO mk_affiliate_reward_tiers
+				 (id, prefix, tier_name, reward_amount, retention_days, effective_from, status)
+				 VALUES (?,?,?,?,?,?,?)',
+				array($id, $prefix, $tierName, $reward, $retention, $effectiveFrom, $status)
+			);
+		}
+		return $this->getAffiliateTierById($id);
+	}
+
+	public function setAffiliateTierActive($id, $active) {
+		$tier = $this->getAffiliateTierById($id);
+		if (!$tier) {
+			throw new Exception('Không tìm thấy mã giới thiệu.');
+		}
+		$status = $active ? 'active' : 'inactive';
+		$this->db->pquery(
+			'UPDATE mk_affiliate_reward_tiers SET status = ? WHERE id = ?',
+			array($status, $id)
+		);
+		return $this->getAffiliateTierById($id);
+	}
+
+	public function deleteAffiliateTier($id) {
+		$this->db->pquery('DELETE FROM mk_affiliate_reward_tiers WHERE id = ?', array($id));
+		return true;
+	}
+
+	/**
+	 * Resolve referral code → active tier.
+	 * - AFF-######: lấy hạng A/B/C/D đã gán trên khách hàng nhượng quyền đó.
+	 * - A000123: lấy theo chữ cái đầu (legacy prefix code).
+	 *
+	 * @param string $code
+	 * @param string|null $asOfDate Y-m-d
+	 * @return array|null
+	 */
+	public function resolveAffiliateReward($code, $asOfDate = null) {
+		$code = strtoupper(trim((string)$code));
+		if ($code === '') {
+			return null;
+		}
+		$asOf = $asOfDate && preg_match('/^\d{4}-\d{2}-\d{2}$/', $asOfDate) ? $asOfDate : date('Y-m-d');
+		$prefix = '';
+		$referrerMeta = null;
+		if (preg_match('/^AFF-\d+$/', $code)) {
+			$referrerMeta = $this->lookupScAffiliateMeta($code);
+			if (!$referrerMeta || empty($referrerMeta['affiliate_tier_prefix'])) {
+				return null;
+			}
+			$prefix = strtoupper((string) $referrerMeta['affiliate_tier_prefix']);
+		} else {
+			$prefix = substr($code, 0, 1);
+		}
+		if (!preg_match('/^[A-Z]$/', $prefix)) {
+			return null;
+		}
+		$res = $this->db->pquery(
+			'SELECT id, prefix, tier_name, reward_amount, retention_days, effective_from, status
+			 FROM mk_affiliate_reward_tiers
+			 WHERE prefix = ? AND status = ? AND effective_from <= ?
+			 ORDER BY effective_from DESC
+			 LIMIT 1',
+			array($prefix, 'active', $asOf)
+		);
+		if (!$res || $this->db->num_rows($res) === 0) {
+			return null;
+		}
+		$tier = $this->mapAffiliateTierRow($this->db->fetchByAssoc($res));
+		$tier['referral_code'] = $code;
+		$tier['resolved_prefix'] = $prefix;
+		if ($referrerMeta) {
+			$tier['referrer_id'] = isset($referrerMeta['id']) ? (int) $referrerMeta['id'] : 0;
+			$tier['referrer_name'] = isset($referrerMeta['full_name']) ? $referrerMeta['full_name'] : '';
+			$tier['referrer_phone'] = isset($referrerMeta['phone']) ? $referrerMeta['phone'] : '';
+		}
+		return $tier;
+	}
+
+	/**
+	 * Lookup SC profile by AFF-###### (identity = referral code).
+	 * @return array|null
+	 */
+	protected function lookupScAffiliateMeta($affiliateCode) {
+		$code = strtoupper(trim((string) $affiliateCode));
+		if ($code === '' || !preg_match('/^AFF-\d+$/', $code)) {
+			return null;
+		}
+		try {
+			require_once 'modules/ServiceContracts/models/ModernService.php';
+			ServiceContracts_ModernService::installSchema($this->db);
+		} catch (Exception $e) {
+			// continue — SHOW COLUMNS may still fail if module missing
+		}
+		$res = $this->db->pquery(
+			"SELECT p.servicecontractsid, p.affiliate_code, p.affiliate_tier_prefix, p.phone, sc.subject
+			 FROM bace_sc_profile p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.servicecontractsid AND ce.deleted = 0
+			 INNER JOIN vtiger_servicecontracts sc ON sc.servicecontractsid = p.servicecontractsid
+			 WHERE UPPER(p.affiliate_code) = ?
+			 LIMIT 1",
+			array($code)
+		);
+		if (!$res || $this->db->num_rows($res) === 0) {
+			return null;
+		}
+		$row = $this->db->fetchByAssoc($res);
+		$prefix = isset($row['affiliate_tier_prefix']) ? strtoupper(trim((string) $row['affiliate_tier_prefix'])) : 'D';
+		if ($prefix === '' || !preg_match('/^[A-Z]$/', $prefix)) {
+			$prefix = 'D';
+		}
+		return array(
+			'id' => (int) $row['servicecontractsid'],
+			'affiliate_code' => strtoupper(trim((string) $row['affiliate_code'])),
+			'affiliate_tier_prefix' => $prefix,
+			'full_name' => decode_html(isset($row['subject']) ? $row['subject'] : ''),
+			'phone' => decode_html(isset($row['phone']) ? $row['phone'] : ''),
+		);
 	}
 
 	public function getRules($activeOnly = false) {

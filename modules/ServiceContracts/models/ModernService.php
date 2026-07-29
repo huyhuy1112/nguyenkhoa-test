@@ -27,22 +27,27 @@ class ServiceContracts_ModernService {
 				'Đang chăm sóc',
 				'Chuyển sang Nguyên Khoa',
 			),
-			'fanpage' => array(
-				'FB Nhượng quyền TaiRao',
-				'Hotline',
-				'Nguyên Khoa F&B',
-				'Chủ quán giới thiệu',
-			),
 			'data_source' => array(
-				'Ads Nhượng Quyền',
-				'Lớp Học Miễn Phí',
-				'FCTH',
+				'Facebook',
+				'TikTok',
+				'Website',
+				'Zalo',
+				'Khác',
 			),
 			'contact_status' => array(
 				'Chưa gọi',
 				'Đã gửi tư vấn',
 				'Thuê bao',
 				'Ko nghe Máy Lần 1',
+			),
+			'interaction' => array(
+				'Chưa liên hệ',
+				'Đang liên hệ',
+				'Đã liên hệ',
+				'Không nghe máy',
+				'Thuê bao',
+				'Hẹn gọi lại',
+				'Đã chốt',
 			),
 		);
 	}
@@ -111,6 +116,20 @@ class ServiceContracts_ModernService {
 			'interaction_2' => 'TEXT',
 			'interaction_3' => 'TEXT',
 			'interaction_materials' => 'TEXT',
+			'referral_code' => 'VARCHAR(64) DEFAULT NULL',
+			'referral_tier_name' => 'VARCHAR(100) DEFAULT NULL',
+			'referral_reward_amount' => 'DECIMAL(18,2) DEFAULT NULL',
+			'registration_date' => 'DATE DEFAULT NULL',
+			'duplicate_check_result' => 'VARCHAR(64) DEFAULT NULL',
+			'retention_expires_at' => 'DATE DEFAULT NULL',
+			'sale_owner' => 'VARCHAR(255) DEFAULT NULL',
+			'customer_status' => 'VARCHAR(128) DEFAULT NULL',
+			'contract_signed_date' => 'DATE DEFAULT NULL',
+			'store_count' => 'INT(11) DEFAULT NULL',
+			'payment_condition' => 'VARCHAR(255) DEFAULT NULL',
+			'payment_date' => 'DATE DEFAULT NULL',
+			/** Hạng A/B/C/D của chính khách này — dùng khi người khác nhập mã AFF của họ. */
+			'affiliate_tier_prefix' => "CHAR(1) DEFAULT 'D'",
 		);
 		foreach ($cols as $name => $def) {
 			$check = $adb->pquery("SHOW COLUMNS FROM bace_sc_profile LIKE ?", array($name));
@@ -118,6 +137,16 @@ class ServiceContracts_ModernService {
 				continue;
 			}
 			$adb->pquery("ALTER TABLE bace_sc_profile ADD COLUMN `{$name}` {$def}", array());
+		}
+		// Backfill hạng AFF mặc định Standard (D).
+		try {
+			$adb->pquery(
+				"UPDATE bace_sc_profile SET affiliate_tier_prefix = 'D'
+				 WHERE affiliate_tier_prefix IS NULL OR affiliate_tier_prefix = ''",
+				array()
+			);
+		} catch (Exception $e) {
+			// column may not exist yet on older DB mid-migration
 		}
 	}
 
@@ -161,9 +190,9 @@ class ServiceContracts_ModernService {
 		$code = self::nextAffiliateCode($adb);
 		$now = date('Y-m-d H:i:s');
 		$adb->pquery(
-			'INSERT INTO bace_sc_profile (servicecontractsid, affiliate_code, last_touch, is_modern, created_at, modified_at)
-			 VALUES (?, ?, ?, 1, ?, ?)',
-			array($contractId, $code, $now, $now, $now)
+			'INSERT INTO bace_sc_profile (servicecontractsid, affiliate_code, affiliate_tier_prefix, last_touch, is_modern, created_at, modified_at)
+			 VALUES (?, ?, ?, ?, 1, ?, ?)',
+			array($contractId, $code, 'D', $now, $now, $now)
 		);
 		return $code;
 	}
@@ -223,13 +252,15 @@ class ServiceContracts_ModernService {
 				sc.priority, sc.sc_related_to, sc.start_date, sc.end_date,
 				p.affiliate_code, p.phone, p.email, p.cccd, p.segment, p.district, p.address_line, p.area,
 				p.sc_value, p.last_touch, p.next_action, p.customer_type,
+				p.received_date, p.business_note, p.franchise_status, p.fanpage, p.data_source, p.referrer,
+				p.contact_status, p.interaction_1, p.interaction_2, p.interaction_3, p.interaction_materials,
 				ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname
 			FROM vtiger_servicecontracts sc
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
 			LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid
 			LEFT JOIN vtiger_account acc ON acc.accountid = sc.sc_related_to
-			ORDER BY COALESCE(p.last_touch, ce.modifiedtime) DESC, sc.servicecontractsid DESC";
+			ORDER BY ce.createdtime DESC, sc.servicecontractsid DESC";
 		$res = $adb->pquery($sql, array());
 		$rows = array();
 		$ids = array();
@@ -274,6 +305,14 @@ class ServiceContracts_ModernService {
 		}
 		$phone = self::decodeText(isset($row['phone']) ? $row['phone'] : '');
 		$email = self::decodeText(isset($row['email']) ? $row['email'] : '');
+		$businessNote = self::decodeText(isset($row['business_note']) ? $row['business_note'] : '');
+		if ($businessNote === '') {
+			$businessNote = self::decodeText(isset($row['address_line']) ? $row['address_line'] : '');
+		}
+		$receivedDate = '';
+		if (!empty($row['received_date']) && $row['received_date'] !== '0000-00-00') {
+			$receivedDate = (string) $row['received_date'];
+		}
 
 		return array(
 			'id' => (string) $id,
@@ -290,6 +329,16 @@ class ServiceContracts_ModernService {
 			'value' => (float) (isset($row['sc_value']) ? $row['sc_value'] : 0),
 			'last_touch' => $lastTouch,
 			'createdtime' => $createdTime,
+			'received_date' => $receivedDate,
+			'business_note' => $businessNote,
+			'franchise_status' => self::decodeText(isset($row['franchise_status']) ? $row['franchise_status'] : ''),
+			'data_source' => self::resolveDataSourceDisplay($row),
+			'referrer' => self::decodeText(isset($row['referrer']) ? $row['referrer'] : ''),
+			'contact_status' => self::decodeText(isset($row['contact_status']) ? $row['contact_status'] : ''),
+			'interaction_1' => self::decodeText(isset($row['interaction_1']) ? $row['interaction_1'] : ''),
+			'interaction_2' => self::decodeText(isset($row['interaction_2']) ? $row['interaction_2'] : ''),
+			'interaction_3' => self::decodeText(isset($row['interaction_3']) ? $row['interaction_3'] : ''),
+			'interaction_materials' => self::decodeText(isset($row['interaction_materials']) ? $row['interaction_materials'] : ''),
 			'next_action' => $ruleMeta['next_action'],
 			'rule_id' => $ruleMeta['rule_id'],
 			'rule_name' => $ruleMeta['rule_name'],
@@ -307,6 +356,31 @@ class ServiceContracts_ModernService {
 			'contract_type' => self::decodeText(isset($row['contract_type']) ? $row['contract_type'] : ''),
 			'notes' => self::decodeText(isset($row['description']) ? $row['description'] : ''),
 		);
+	}
+
+	/**
+	 * Nguồn data replaces Fanpage. Prefer data_source; fall back to legacy fanpage mapping.
+	 */
+	protected static function resolveDataSourceDisplay(array $row) {
+		$dataSource = self::decodeText(isset($row['data_source']) ? $row['data_source'] : '');
+		if ($dataSource !== '') {
+			return $dataSource;
+		}
+		$fanpage = self::decodeText(isset($row['fanpage']) ? $row['fanpage'] : '');
+		if ($fanpage === '') {
+			return '';
+		}
+		$map = array(
+			'FB Nhượng quyền TaiRao' => 'Facebook',
+			'FB Nhượng quyền TaiBao' => 'Facebook',
+			'Hotline' => 'Khác',
+			'Nguyên Khoa F&B' => 'Website',
+			'Chủ quán giới thiệu' => 'Khác',
+			'Ads Nhượng Quyền' => 'Facebook',
+			'Lớp Học Miễn Phí' => 'Khác',
+			'FCTH' => 'Khác',
+		);
+		return isset($map[$fanpage]) ? $map[$fanpage] : $fanpage;
 	}
 
 	protected static function resolveRuleNextActionMeta(array $tags, $lastTouchRaw, $manualNextAction) {
@@ -373,9 +447,13 @@ class ServiceContracts_ModernService {
 		self::ensureAffiliateCode($contractId);
 
 		$res = $adb->pquery(
-			"SELECT sc.subject, p.affiliate_code, p.phone, p.received_date, p.business_note,
+			"SELECT sc.subject, p.affiliate_code, p.affiliate_tier_prefix, p.phone, p.received_date, p.business_note,
 				p.franchise_status, p.fanpage, p.data_source, p.referrer, p.contact_status,
-				p.interaction_1, p.interaction_2, p.interaction_3, p.interaction_materials
+				p.interaction_1, p.interaction_2, p.interaction_3, p.interaction_materials,
+				p.referral_code, p.referral_tier_name, p.referral_reward_amount,
+				p.registration_date, p.duplicate_check_result, p.retention_expires_at,
+				p.sale_owner, p.customer_status, p.contract_signed_date, p.store_count,
+				p.payment_condition, p.payment_date
 			 FROM vtiger_servicecontracts sc
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
 			 LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid
@@ -390,23 +468,73 @@ class ServiceContracts_ModernService {
 		if ($received === '0000-00-00') {
 			$received = '';
 		}
+		$regDate = isset($row['registration_date']) ? (string) $row['registration_date'] : '';
+		if ($regDate === '0000-00-00') {
+			$regDate = '';
+		}
+		$retExp = isset($row['retention_expires_at']) ? (string) $row['retention_expires_at'] : '';
+		if ($retExp === '0000-00-00') {
+			$retExp = '';
+		}
+		$signed = isset($row['contract_signed_date']) ? (string) $row['contract_signed_date'] : '';
+		if ($signed === '0000-00-00') {
+			$signed = '';
+		}
+		$paid = isset($row['payment_date']) ? (string) $row['payment_date'] : '';
+		if ($paid === '0000-00-00') {
+			$paid = '';
+		}
+		$ownerId = 0;
+		$ownerRes = $adb->pquery(
+			'SELECT smownerid FROM vtiger_crmentity WHERE crmid = ? AND deleted = 0',
+			array($contractId)
+		);
+		if ($ownerRes && $adb->num_rows($ownerRes) > 0) {
+			$ownerId = (int) $adb->query_result($ownerRes, 0, 'smownerid');
+		}
+		$tagsMap = self::getTagsForIds(array($contractId));
+		$tags = isset($tagsMap[$contractId]) ? $tagsMap[$contractId] : array();
+		$ownTierPrefix = isset($row['affiliate_tier_prefix']) ? strtoupper(trim((string) $row['affiliate_tier_prefix'])) : 'D';
+		if ($ownTierPrefix === '' || !preg_match('/^[A-Z]$/', $ownTierPrefix)) {
+			$ownTierPrefix = 'D';
+		}
+		$ownTier = self::resolveTierByPrefix($ownTierPrefix);
+		$referralCode = self::decodeText(isset($row['referral_code']) ? $row['referral_code'] : '');
+		$affiliateCode = self::decodeText(isset($row['affiliate_code']) ? $row['affiliate_code'] : '');
 		return array(
 			'id' => (string) $contractId,
 			'crmid' => $contractId,
-			'affiliate_code' => self::decodeText(isset($row['affiliate_code']) ? $row['affiliate_code'] : ''),
+			'affiliate_code' => $affiliateCode,
+			'affiliate_tier_prefix' => $ownTierPrefix,
+			'affiliate_tier_name' => $ownTier ? $ownTier['tier_name'] : '',
+			'affiliate_reward_amount' => $ownTier ? (float) $ownTier['reward_amount'] : null,
 			'full_name' => self::decodeText(isset($row['subject']) ? $row['subject'] : ''),
 			'phone' => self::decodeText(isset($row['phone']) ? $row['phone'] : ''),
 			'received_date' => $received,
 			'business_note' => self::decodeText(isset($row['business_note']) ? $row['business_note'] : ''),
 			'franchise_status' => self::decodeText(isset($row['franchise_status']) ? $row['franchise_status'] : ''),
-			'fanpage' => self::decodeText(isset($row['fanpage']) ? $row['fanpage'] : ''),
-			'data_source' => self::decodeText(isset($row['data_source']) ? $row['data_source'] : ''),
+			'data_source' => self::resolveDataSourceDisplay($row),
 			'referrer' => self::decodeText(isset($row['referrer']) ? $row['referrer'] : ''),
 			'contact_status' => self::decodeText(isset($row['contact_status']) ? $row['contact_status'] : ''),
 			'interaction_1' => self::decodeText(isset($row['interaction_1']) ? $row['interaction_1'] : ''),
 			'interaction_2' => self::decodeText(isset($row['interaction_2']) ? $row['interaction_2'] : ''),
 			'interaction_3' => self::decodeText(isset($row['interaction_3']) ? $row['interaction_3'] : ''),
 			'interaction_materials' => self::decodeText(isset($row['interaction_materials']) ? $row['interaction_materials'] : ''),
+			'referral_code' => $referralCode !== '' ? $referralCode : '',
+			'referral_tier_name' => self::decodeText(isset($row['referral_tier_name']) ? $row['referral_tier_name'] : ''),
+			'referral_reward_amount' => isset($row['referral_reward_amount']) && $row['referral_reward_amount'] !== null
+				? (float) $row['referral_reward_amount'] : null,
+			'registration_date' => $regDate,
+			'duplicate_check_result' => self::decodeText(isset($row['duplicate_check_result']) ? $row['duplicate_check_result'] : ''),
+			'retention_expires_at' => $retExp,
+			'sale_owner' => self::decodeText(isset($row['sale_owner']) ? $row['sale_owner'] : ''),
+			'sale_owner_id' => $ownerId > 0 ? (string) $ownerId : '',
+			'contract_signed_date' => $signed,
+			'store_count' => isset($row['store_count']) && $row['store_count'] !== null && $row['store_count'] !== ''
+				? (int) $row['store_count'] : null,
+			'payment_condition' => self::decodeText(isset($row['payment_condition']) ? $row['payment_condition'] : ''),
+			'payment_date' => $paid,
+			'tags' => array_values($tags),
 			'picklists' => self::franchisePicklists(),
 		);
 	}
@@ -441,11 +569,12 @@ class ServiceContracts_ModernService {
 			isset($payload['franchise_status']) ? $payload['franchise_status'] : '',
 			$picklists['franchise_status']
 		);
-		$fanpage = self::normalizePick(isset($payload['fanpage']) ? $payload['fanpage'] : '', $picklists['fanpage']);
 		$dataSource = self::normalizePick(
 			isset($payload['data_source']) ? $payload['data_source'] : '',
 			$picklists['data_source']
 		);
+		// Fanpage retired — keep column cleared; Nguồn data is the channel field.
+		$fanpage = '';
 		$contactStatus = self::normalizePick(
 			isset($payload['contact_status']) ? $payload['contact_status'] : '',
 			$picklists['contact_status']
@@ -453,12 +582,78 @@ class ServiceContracts_ModernService {
 		$receivedDate = self::normalizeDate(isset($payload['received_date']) ? $payload['received_date'] : '');
 		$businessNote = trim(self::decodeText(isset($payload['business_note']) ? $payload['business_note'] : ''));
 		$referrer = trim(self::decodeText(isset($payload['referrer']) ? $payload['referrer'] : ''));
-		$interaction1 = trim(self::decodeText(isset($payload['interaction_1']) ? $payload['interaction_1'] : ''));
-		$interaction2 = trim(self::decodeText(isset($payload['interaction_2']) ? $payload['interaction_2'] : ''));
-		$interaction3 = trim(self::decodeText(isset($payload['interaction_3']) ? $payload['interaction_3'] : ''));
-		$interactionMaterials = trim(self::decodeText(
+		$interaction1 = self::normalizeInteraction(
+			isset($payload['interaction_1']) ? $payload['interaction_1'] : ''
+		);
+		$interaction2 = self::normalizeInteraction(
+			isset($payload['interaction_2']) ? $payload['interaction_2'] : ''
+		);
+		$interaction3 = self::normalizeInteraction(
+			isset($payload['interaction_3']) ? $payload['interaction_3'] : ''
+		);
+		$interactionMaterials = self::normalizeInteraction(
 			isset($payload['interaction_materials']) ? $payload['interaction_materials'] : ''
-		));
+		);
+
+		$referralCode = strtoupper(trim(self::decodeText(isset($payload['referral_code']) ? $payload['referral_code'] : '')));
+		$affiliateTierPrefix = strtoupper(trim(self::decodeText(
+			isset($payload['affiliate_tier_prefix']) ? $payload['affiliate_tier_prefix'] : 'D'
+		)));
+		if ($affiliateTierPrefix === '' || !preg_match('/^[A-Z]$/', $affiliateTierPrefix)) {
+			$affiliateTierPrefix = 'D';
+		}
+		$registrationDate = self::normalizeDate(isset($payload['registration_date']) ? $payload['registration_date'] : '');
+		if ($registrationDate === '') {
+			$registrationDate = $receivedDate !== '' ? $receivedDate : date('Y-m-d');
+		}
+		$saleOwner = trim(self::decodeText(isset($payload['sale_owner']) ? $payload['sale_owner'] : ''));
+		$saleOwnerId = isset($payload['sale_owner_id']) ? (int) $payload['sale_owner_id'] : 0;
+		if ($saleOwnerId > 0) {
+			foreach (self::listAssignableUsers() as $u) {
+				if ((int) $u['id'] === $saleOwnerId) {
+					$saleOwner = isset($u['label']) ? (string) $u['label'] : $saleOwner;
+					break;
+				}
+			}
+		}
+		// Mirror franchise_status into customer_status column for legacy storage only.
+		$customerStatus = $franchiseStatus;
+		$contractSignedDate = self::normalizeDate(isset($payload['contract_signed_date']) ? $payload['contract_signed_date'] : '');
+		$storeCountRaw = isset($payload['store_count']) ? $payload['store_count'] : '';
+		$storeCount = ($storeCountRaw === '' || $storeCountRaw === null) ? null : (int) $storeCountRaw;
+		$paymentAllowed = array('Chuyển khoản', 'Tiền mặt', 'Thẻ', 'Ví');
+		$paymentCondition = self::normalizePick(
+			isset($payload['payment_condition']) ? $payload['payment_condition'] : 'Chuyển khoản',
+			$paymentAllowed
+		);
+		if ($paymentCondition === '') {
+			$paymentCondition = 'Chuyển khoản';
+		}
+		$paymentDate = self::normalizeDate(isset($payload['payment_date']) ? $payload['payment_date'] : '');
+
+		$resolved = self::resolveReferralTier($referralCode, $registrationDate);
+		$referralTierName = $resolved ? $resolved['tier_name'] : '';
+		$referralReward = $resolved ? (float) $resolved['reward_amount'] : null;
+		$retentionDays = $resolved ? (int) $resolved['retention_days'] : 180;
+		$retentionExpires = '';
+		if ($registrationDate !== '') {
+			$retentionExpires = date('Y-m-d', strtotime($registrationDate . ' +' . $retentionDays . ' days'));
+		}
+
+		$dupCheck = self::checkDuplicateByPhone($phone, $contractId > 0 ? $contractId : null);
+		$duplicateResult = $dupCheck['result'];
+		// BA: trùng còn hiệu lực bảo lưu → không cho lưu (tránh tranh chấp quyền GT / tiền thưởng).
+		if (!empty($dupCheck['in_retention'])) {
+			$match = isset($dupCheck['match']) ? $dupCheck['match'] : array();
+			$msg = 'Trùng còn hiệu lực. Không được lưu khách mới.';
+			if (!empty($match['referral_code']) || !empty($match['referrer'])) {
+				$msg .= ' Người giới thiệu hiện tại: ' . (!empty($match['referral_code']) ? $match['referral_code'] : $match['referrer']) . '.';
+			}
+			if (!empty($match['sale_owner'])) {
+				$msg .= ' Sale phụ trách: ' . $match['sale_owner'] . '.';
+			}
+			throw new Exception($msg);
+		}
 
 		if ($contractId > 0) {
 			if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contractId)) {
@@ -472,12 +667,15 @@ class ServiceContracts_ModernService {
 				throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
 			}
 			$recordModel = Vtiger_Record_Model::getCleanInstance(self::MODULE);
-			$recordModel->set('assigned_user_id', $userId);
+			$recordModel->set('assigned_user_id', $saleOwnerId > 0 ? $saleOwnerId : $userId);
 			$recordModel->set('contract_status', 'In Progress');
 			$recordModel->set('contract_type', 'Support');
 		}
 
 		$recordModel->set('subject', $fullName);
+		if ($saleOwnerId > 0) {
+			$recordModel->set('assigned_user_id', $saleOwnerId);
+		}
 		$recordModel->save();
 		$contractId = (int) $recordModel->getId();
 		if ($contractId <= 0) {
@@ -487,6 +685,10 @@ class ServiceContracts_ModernService {
 		self::ensureAffiliateCode($contractId);
 		$now = date('Y-m-d H:i:s');
 		$receivedSql = $receivedDate !== '' ? $receivedDate : null;
+		$regSql = $registrationDate !== '' ? $registrationDate : null;
+		$retSql = $retentionExpires !== '' ? $retentionExpires : null;
+		$signedSql = $contractSignedDate !== '' ? $contractSignedDate : null;
+		$paidSql = $paymentDate !== '' ? $paymentDate : null;
 		$adb->pquery(
 			'UPDATE bace_sc_profile SET
 				phone = ?,
@@ -502,6 +704,19 @@ class ServiceContracts_ModernService {
 				interaction_3 = ?,
 				interaction_materials = ?,
 				address_line = ?,
+				referral_code = ?,
+				referral_tier_name = ?,
+				referral_reward_amount = ?,
+				registration_date = ?,
+				duplicate_check_result = ?,
+				retention_expires_at = ?,
+				sale_owner = ?,
+				customer_status = ?,
+				contract_signed_date = ?,
+				store_count = ?,
+				payment_condition = ?,
+				payment_date = ?,
+				affiliate_tier_prefix = ?,
 				last_touch = COALESCE(last_touch, ?),
 				modified_at = ?,
 				is_modern = 1
@@ -520,13 +735,310 @@ class ServiceContracts_ModernService {
 				$interaction3,
 				$interactionMaterials,
 				$businessNote,
+				$referralCode !== '' ? $referralCode : null,
+				$referralTierName !== '' ? $referralTierName : null,
+				$referralReward,
+				$regSql,
+				$duplicateResult,
+				$retSql,
+				$saleOwner !== '' ? $saleOwner : null,
+				$customerStatus !== '' ? $customerStatus : null,
+				$signedSql,
+				$storeCount,
+				$paymentCondition !== '' ? $paymentCondition : null,
+				$paidSql,
+				$affiliateTierPrefix,
 				$now,
 				$now,
 				$contractId,
 			)
 		);
 
+		if (isset($payload['tags']) && is_array($payload['tags'])) {
+			self::saveTags($contractId, $payload['tags'], $userId);
+		}
+
 		return self::getFranchise($contractId);
+	}
+
+	/**
+	 * Resolve referral code via Tag Rule Engine (AFF-###### → hạng của khách đó).
+	 * @return array|null
+	 */
+	public static function resolveReferralTier($code, $asOfDate = null) {
+		$code = trim((string) $code);
+		if ($code === '') {
+			return null;
+		}
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			$svc = HelpDesk_TagRuleEngineService::getInstance();
+			return $svc->resolveAffiliateReward($code, $asOfDate);
+		} catch (Exception $e) {
+			return null;
+		}
+	}
+
+	/** Resolve Rule tier by single-letter prefix A–D. */
+	public static function resolveTierByPrefix($prefix, $asOfDate = null) {
+		$prefix = strtoupper(trim((string) $prefix));
+		if ($prefix === '' || !preg_match('/^[A-Z]$/', $prefix)) {
+			return null;
+		}
+		return self::resolveReferralTier($prefix . '000000', $asOfDate);
+	}
+
+	/**
+	 * Danh sách mã AFF có thể chọn làm người giới thiệu (+ hạng/tiền thưởng theo Rule).
+	 * @param int|null $excludeId
+	 * @return array
+	 */
+	public static function listReferrerOptions($excludeId = null) {
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$sql = "SELECT p.servicecontractsid, p.affiliate_code, p.affiliate_tier_prefix, p.phone, p.sale_owner, sc.subject
+			FROM bace_sc_profile p
+			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.servicecontractsid AND ce.deleted = 0
+			INNER JOIN vtiger_servicecontracts sc ON sc.servicecontractsid = p.servicecontractsid
+			WHERE p.affiliate_code IS NOT NULL AND p.affiliate_code <> ''";
+		$params = array();
+		if ($excludeId) {
+			$sql .= ' AND p.servicecontractsid <> ?';
+			$params[] = (int) $excludeId;
+		}
+		$sql .= ' ORDER BY p.affiliate_code ASC';
+		$res = $adb->pquery($sql, $params);
+		$out = array();
+		if (!$res) {
+			return $out;
+		}
+		$n = $adb->num_rows($res);
+		for ($i = 0; $i < $n; $i++) {
+			$row = $adb->query_result_rowdata($res, $i);
+			$code = strtoupper(trim((string) $row['affiliate_code']));
+			$prefix = isset($row['affiliate_tier_prefix']) ? strtoupper(trim((string) $row['affiliate_tier_prefix'])) : 'D';
+			if ($prefix === '' || !preg_match('/^[A-Z]$/', $prefix)) {
+				$prefix = 'D';
+			}
+			$tier = self::resolveTierByPrefix($prefix);
+			$out[] = array(
+				'id' => (string) ((int) $row['servicecontractsid']),
+				'affiliate_code' => $code,
+				'full_name' => self::decodeText(isset($row['subject']) ? $row['subject'] : ''),
+				'phone' => self::decodeText(isset($row['phone']) ? $row['phone'] : ''),
+				'sale_owner' => self::decodeText(isset($row['sale_owner']) ? $row['sale_owner'] : ''),
+				'affiliate_tier_prefix' => $prefix,
+				'tier_name' => $tier ? $tier['tier_name'] : '',
+				'reward_amount' => $tier ? (float) $tier['reward_amount'] : null,
+				'retention_days' => $tier ? (int) $tier['retention_days'] : 180,
+				'label' => $code . ' — ' . self::decodeText(isset($row['subject']) ? $row['subject'] : '')
+					. ($tier ? (' (' . $tier['tier_name'] . ')' ) : ''),
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Danh sách hạng A/B/C/D từ Rule Engine (để chọn hạng cho khách này).
+	 * @return array
+	 */
+	public static function listAffiliateTiers() {
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			$svc = HelpDesk_TagRuleEngineService::getInstance();
+			$tiers = $svc->getAffiliateTiers();
+			$out = array();
+			foreach ($tiers as $t) {
+				if (isset($t['status']) && $t['status'] !== 'active') {
+					continue;
+				}
+				$out[] = array(
+					'prefix' => isset($t['prefix']) ? $t['prefix'] : '',
+					'tier_name' => isset($t['tier_name']) ? $t['tier_name'] : '',
+					'reward_amount' => isset($t['reward_amount']) ? (float) $t['reward_amount'] : 0,
+					'retention_days' => isset($t['retention_days']) ? (int) $t['retention_days'] : 180,
+				);
+			}
+			return $out;
+		} catch (Exception $e) {
+			return array(
+				array('prefix' => 'A', 'tier_name' => 'Diamond', 'reward_amount' => 30000000, 'retention_days' => 180),
+				array('prefix' => 'B', 'tier_name' => 'Gold', 'reward_amount' => 20000000, 'retention_days' => 180),
+				array('prefix' => 'C', 'tier_name' => 'Silver', 'reward_amount' => 10000000, 'retention_days' => 180),
+				array('prefix' => 'D', 'tier_name' => 'Standard', 'reward_amount' => 5000000, 'retention_days' => 180),
+			);
+		}
+	}
+
+	/**
+	 * Patch nhẹ từ panel list "Thông tin".
+	 * @param int $contractId
+	 * @param array $payload
+	 * @param int|null $userId
+	 * @return array
+	 */
+	public static function saveInlineFranchise($contractId, array $payload, $userId = null) {
+		global $current_user;
+		if ($userId === null) {
+			$userId = (int) $current_user->id;
+		}
+		$contractId = (int) $contractId;
+		if ($contractId <= 0) {
+			throw new Exception('Record not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contractId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		self::ensureAffiliateCode($contractId);
+
+		$franchise = self::getFranchise($contractId);
+		$picklists = self::franchisePicklists();
+		$franchiseStatus = array_key_exists('franchise_status', $payload)
+			? self::normalizePick($payload['franchise_status'], $picklists['franchise_status'])
+			: $franchise['franchise_status'];
+		$contactStatus = array_key_exists('contact_status', $payload)
+			? self::normalizePick($payload['contact_status'], $picklists['contact_status'])
+			: $franchise['contact_status'];
+		$referrer = array_key_exists('referrer', $payload)
+			? trim(self::decodeText($payload['referrer']))
+			: $franchise['referrer'];
+		$interaction1 = array_key_exists('interaction_1', $payload)
+			? self::normalizeInteraction($payload['interaction_1'])
+			: $franchise['interaction_1'];
+		$interaction2 = array_key_exists('interaction_2', $payload)
+			? self::normalizeInteraction($payload['interaction_2'])
+			: $franchise['interaction_2'];
+		$interaction3 = array_key_exists('interaction_3', $payload)
+			? self::normalizeInteraction($payload['interaction_3'])
+			: $franchise['interaction_3'];
+		$interactionMaterials = array_key_exists('interaction_materials', $payload)
+			? self::normalizeInteraction($payload['interaction_materials'])
+			: $franchise['interaction_materials'];
+
+		$adb->pquery(
+			'UPDATE bace_sc_profile SET franchise_status = ?, contact_status = ?, referrer = ?,
+				interaction_1 = ?, interaction_2 = ?, interaction_3 = ?, interaction_materials = ?,
+				customer_status = ?, modified_at = ? WHERE servicecontractsid = ?',
+			array(
+				$franchiseStatus !== '' ? $franchiseStatus : null,
+				$contactStatus !== '' ? $contactStatus : null,
+				$referrer !== '' ? $referrer : null,
+				$interaction1 !== '' ? $interaction1 : null,
+				$interaction2 !== '' ? $interaction2 : null,
+				$interaction3 !== '' ? $interaction3 : null,
+				$interactionMaterials !== '' ? $interactionMaterials : null,
+				$franchiseStatus !== '' ? $franchiseStatus : null,
+				date('Y-m-d H:i:s'),
+				$contractId,
+			)
+		);
+
+		$recordModel = Vtiger_Record_Model::getInstanceById($contractId, self::MODULE);
+		$recordModel->set('id', $contractId);
+		$recordModel->set('mode', 'edit');
+		if (array_key_exists('assigned_user_id', $payload) && (int) $payload['assigned_user_id'] > 0) {
+			$recordModel->set('assigned_user_id', (int) $payload['assigned_user_id']);
+		}
+		if (array_key_exists('description', $payload)) {
+			$recordModel->set('description', $payload['description']);
+		}
+		if (array_key_exists('start_date', $payload)) {
+			$sd = self::normalizeDate($payload['start_date']);
+			if ($sd !== '') {
+				$recordModel->set('start_date', $sd);
+			}
+		}
+		$recordModel->save();
+
+		return self::getFranchise($contractId);
+	}
+
+	protected static function normalizePhoneDigits($phone) {
+		return preg_replace('/\D+/', '', (string) $phone);
+	}
+
+	/**
+	 * Duplicate / retention check by phone (default BA criterion).
+	 * Results: Không trùng | Trùng còn hiệu lực | Trùng nhưng đã hết hạn
+	 *
+	 * @param string $phone
+	 * @param int|null $excludeId
+	 * @return array{result:string,in_retention:bool,match:?array}
+	 */
+	public static function checkDuplicateByPhone($phone, $excludeId = null) {
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$digits = self::normalizePhoneDigits($phone);
+		$empty = array(
+			'result' => 'Không trùng',
+			'in_retention' => false,
+			'match' => null,
+		);
+		if ($digits === '' || strlen($digits) < 8) {
+			return $empty;
+		}
+
+		$sql = "SELECT p.servicecontractsid, p.phone, p.referrer, p.referral_code, p.referral_tier_name,
+				p.referral_reward_amount, p.registration_date, p.retention_expires_at, p.sale_owner, sc.subject
+			FROM bace_sc_profile p
+			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.servicecontractsid AND ce.deleted = 0
+			INNER JOIN vtiger_servicecontracts sc ON sc.servicecontractsid = p.servicecontractsid
+			WHERE p.phone IS NOT NULL AND p.phone <> ''";
+		$params = array();
+		if ($excludeId) {
+			$sql .= ' AND p.servicecontractsid <> ?';
+			$params[] = (int) $excludeId;
+		}
+		$sql .= ' ORDER BY COALESCE(p.registration_date, p.received_date, ce.createdtime) DESC';
+		$res = $adb->pquery($sql, $params);
+		if (!$res) {
+			return $empty;
+		}
+		$today = date('Y-m-d');
+		$n = $adb->num_rows($res);
+		for ($i = 0; $i < $n; $i++) {
+			$row = $adb->query_result_rowdata($res, $i);
+			$rowDigits = self::normalizePhoneDigits(isset($row['phone']) ? $row['phone'] : '');
+			if ($rowDigits === '' || $rowDigits !== $digits) {
+				continue;
+			}
+			$expires = isset($row['retention_expires_at']) ? (string) $row['retention_expires_at'] : '';
+			if ($expires === '0000-00-00') {
+				$expires = '';
+			}
+			// Fallback: registration + 180 if expires missing but registration exists.
+			if ($expires === '' && !empty($row['registration_date']) && $row['registration_date'] !== '0000-00-00') {
+				$expires = date('Y-m-d', strtotime($row['registration_date'] . ' +180 days'));
+			}
+			$match = array(
+				'id' => (int) $row['servicecontractsid'],
+				'full_name' => self::decodeText(isset($row['subject']) ? $row['subject'] : ''),
+				'referrer' => self::decodeText(isset($row['referrer']) ? $row['referrer'] : ''),
+				'referral_code' => self::decodeText(isset($row['referral_code']) ? $row['referral_code'] : ''),
+				'referral_tier_name' => self::decodeText(isset($row['referral_tier_name']) ? $row['referral_tier_name'] : ''),
+				'referral_reward_amount' => isset($row['referral_reward_amount']) && $row['referral_reward_amount'] !== null
+					? (float) $row['referral_reward_amount'] : null,
+				'registration_date' => isset($row['registration_date']) && $row['registration_date'] !== '0000-00-00'
+					? (string) $row['registration_date'] : '',
+				'retention_expires_at' => $expires,
+				'sale_owner' => self::decodeText(isset($row['sale_owner']) ? $row['sale_owner'] : ''),
+			);
+			if ($expires !== '' && $expires >= $today) {
+				return array(
+					'result' => 'Trùng còn hiệu lực',
+					'in_retention' => true,
+					'match' => $match,
+				);
+			}
+			return array(
+				'result' => 'Trùng nhưng đã hết hạn',
+				'in_retention' => false,
+				'match' => $match,
+			);
+		}
+		return $empty;
 	}
 
 	protected static function normalizePick($value, array $allowed) {
@@ -540,6 +1052,22 @@ class ServiceContracts_ModernService {
 			}
 		}
 		return '';
+	}
+
+	/** Interaction: map to preset when possible, else keep free text (legacy). */
+	protected static function normalizeInteraction($value) {
+		$value = trim(self::decodeText($value));
+		if ($value === '') {
+			return '';
+		}
+		$pick = self::franchisePicklists();
+		$allowed = isset($pick['interaction']) ? $pick['interaction'] : array();
+		foreach ($allowed as $opt) {
+			if (strcasecmp($opt, $value) === 0) {
+				return $opt;
+			}
+		}
+		return $value;
 	}
 
 	protected static function normalizeDate($raw) {

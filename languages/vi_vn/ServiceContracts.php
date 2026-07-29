@@ -49,8 +49,21 @@ $languageStrings = array(
 	'LBL_MK_SC_INTERACTION_1' => 'Tương tác lần 1',
 	'LBL_MK_SC_INTERACTION_2' => 'Tương tác lần 2',
 	'LBL_MK_SC_INTERACTION_3' => 'Tương tác lần 3',
-	'LBL_MK_SC_INTERACTION_MATERIALS' => 'Tương tác tự nguyên liệu máy móc',
-	
+	'LBL_MK_SC_INTERACTION_MATERIALS' => 'TƯƠNG TÁC TỰ MỞ NGUYÊN LIỆU MÁY MÓC',
+	'LBL_MK_SC_REFERRAL_SECTION' => 'Mã giới thiệu & bảo lưu',
+	'LBL_MK_SC_REFERRAL_CODE' => 'Mã giới thiệu',
+	'LBL_MK_SC_REFERRAL_TIER' => 'Tên hạng',
+	'LBL_MK_SC_REFERRAL_REWARD' => 'Tiền thưởng phải trả',
+	'LBL_MK_SC_REGISTRATION_DATE' => 'Ngày đăng ký',
+	'LBL_MK_SC_DUPLICATE_RESULT' => 'Kết quả kiểm tra trùng',
+	'LBL_MK_SC_RETENTION_EXPIRES' => 'Ngày hết hạn bảo lưu',
+	'LBL_MK_SC_SALE_OWNER' => 'Sale phụ trách',
+	'LBL_MK_SC_CUSTOMER_STATUS' => 'Trạng thái khách',
+	'LBL_MK_SC_CONTRACT_SIGNED' => 'Ngày ký HĐ',
+	'LBL_MK_SC_STORE_COUNT' => 'Số cửa hàng',
+	'LBL_MK_SC_PAYMENT_CONDITION' => 'Điều kiện TT',
+	'LBL_MK_SC_PAYMENT_DATE' => 'Ngày đã thanh toán',
+
 	//Field Labels
 	'Contract No' => 'Mã bản ghi',
 	'Start Date' => 'Ngày bắt đầu',

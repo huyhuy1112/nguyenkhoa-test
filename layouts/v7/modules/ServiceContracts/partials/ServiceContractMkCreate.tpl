@@ -39,6 +39,7 @@
 	<div class="mk-sc-form-host" id="mkScFormHost">
 		<form class="mk-sc-franchise-form" id="mkScFranchiseForm" autocomplete="off" novalidate>
 			<input type="hidden" name="record" id="mkScRecordId" value="{$MK_RECORD_ID|escape:'html'}" />
+			<input type="hidden" name="duplicate_check_result" id="mkScDuplicateResultValue" value="" />
 
 			<section class="mk-sc-franchise-card">
 				<div class="mk-sc-franchise-card__head">
@@ -56,7 +57,7 @@
 					</label>
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_PHONE', $MODULE)} <em>*</em></span>
-						<input type="tel" class="mk-sc-input" name="phone" id="mkScPhone" required maxlength="64" placeholder="09xxxxxxxx" />
+						<input type="tel" class="mk-sc-input" name="phone" id="mkScPhone" required maxlength="64" placeholder="0934 567 890" inputmode="numeric" />
 					</label>
 					<label class="mk-sc-field mk-sc-field--wide">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_BUSINESS_NOTE', $MODULE)}</span>
@@ -69,12 +70,6 @@
 						</select>
 					</label>
 					<label class="mk-sc-field">
-						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_FANPAGE', $MODULE)}</span>
-						<select class="mk-sc-input mk-sc-select" name="fanpage" id="mkScFanpage">
-							<option value="">—</option>
-						</select>
-					</label>
-					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_DATA_SOURCE', $MODULE)}</span>
 						<select class="mk-sc-input mk-sc-select" name="data_source" id="mkScDataSource">
 							<option value="">—</option>
@@ -82,13 +77,72 @@
 					</label>
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_REFERRER', $MODULE)}</span>
-						<input type="text" class="mk-sc-input" name="referrer" id="mkScReferrer" maxlength="255" />
+						<select class="mk-sc-input mk-sc-select" name="referrer_aff" id="mkScReferrerAff">
+							<option value="">— Chọn mã AFF người giới thiệu —</option>
+						</select>
+						<input type="hidden" name="referrer" id="mkScReferrer" value="" />
 					</label>
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_CONTACT_STATUS', $MODULE)}</span>
 						<select class="mk-sc-input mk-sc-select" name="contact_status" id="mkScContactStatus">
 							<option value="">—</option>
 						</select>
+					</label>
+
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_REFERRAL_CODE', $MODULE)}</span>
+						<input type="text" class="mk-sc-input mk-sc-input--readonly" name="referral_code" id="mkScReferralCode" maxlength="64" readonly tabindex="-1" autocomplete="off" style="text-transform:uppercase" placeholder="AFF-######" />
+					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_REFERRAL_REWARD', $MODULE)}</span>
+						<input type="text" class="mk-sc-input mk-sc-input--readonly" name="referral_reward_display" id="mkScReferralReward" readonly tabindex="-1" />
+						<input type="hidden" name="referral_reward_amount" id="mkScReferralRewardAmount" value="" />
+					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">Hạng mã AFF của khách này</span>
+						<select class="mk-sc-input mk-sc-select" name="affiliate_tier_prefix" id="mkScOwnTier">
+							<option value="D">D — Standard</option>
+						</select>
+					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">Tiền thưởng khi dùng mã của khách này</span>
+						<input type="text" class="mk-sc-input mk-sc-input--readonly" id="mkScOwnTierReward" readonly tabindex="-1" />
+					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_REGISTRATION_DATE', $MODULE)}</span>
+						<input type="date" class="mk-sc-input" name="registration_date" id="mkScRegistrationDate" />
+					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_RETENTION_EXPIRES', $MODULE)}</span>
+						<input type="date" class="mk-sc-input mk-sc-input--readonly" name="retention_expires_at" id="mkScRetentionExpires" readonly tabindex="-1" />
+					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_SALE_OWNER', $MODULE)}</span>
+						<select class="mk-sc-input mk-sc-select" name="sale_owner_id" id="mkScSaleOwner">
+							<option value="">—</option>
+						</select>
+						<input type="hidden" name="sale_owner" id="mkScSaleOwnerLabel" value="" />
+					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_CONTRACT_SIGNED', $MODULE)}</span>
+						<input type="date" class="mk-sc-input" name="contract_signed_date" id="mkScContractSigned" />
+					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_STORE_COUNT', $MODULE)}</span>
+						<input type="number" class="mk-sc-input" name="store_count" id="mkScStoreCount" min="0" step="1" />
+					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_PAYMENT_CONDITION', $MODULE)}</span>
+						<select class="mk-sc-input mk-sc-select" name="payment_condition" id="mkScPaymentCondition">
+							<option value="Chuyển khoản">Chuyển khoản</option>
+							<option value="Tiền mặt">Tiền mặt</option>
+							<option value="Thẻ">Thẻ</option>
+							<option value="Ví">Ví</option>
+						</select>
+					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_PAYMENT_DATE', $MODULE)}</span>
+						<input type="date" class="mk-sc-input" name="payment_date" id="mkScPaymentDate" />
 					</label>
 				</div>
 			</section>
@@ -98,21 +152,21 @@
 					<h2>{vtranslate('LBL_MK_SC_INTERACTIONS', $MODULE)}</h2>
 				</div>
 				<div class="mk-sc-franchise-grid mk-sc-franchise-grid--stack">
-					<label class="mk-sc-field mk-sc-field--wide">
+					<label class="mk-sc-field mk-sc-field--wide" data-mk-interaction="1">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_INTERACTION_1', $MODULE)}</span>
-						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_1" id="mkScInteraction1" rows="3"></textarea>
+						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_1" id="mkScInteraction1" rows="3" placeholder="Ghi chú lần liên hệ / tư vấn đầu tiên…"></textarea>
 					</label>
-					<label class="mk-sc-field mk-sc-field--wide">
+					<label class="mk-sc-field mk-sc-field--wide" data-mk-interaction="2">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_INTERACTION_2', $MODULE)}</span>
-						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_2" id="mkScInteraction2" rows="3"></textarea>
+						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_2" id="mkScInteraction2" rows="3" placeholder="Follow-up lần 2…"></textarea>
 					</label>
-					<label class="mk-sc-field mk-sc-field--wide">
+					<label class="mk-sc-field mk-sc-field--wide" data-mk-interaction="3">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_INTERACTION_3', $MODULE)}</span>
-						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_3" id="mkScInteraction3" rows="3"></textarea>
+						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_3" id="mkScInteraction3" rows="3" placeholder="Follow-up lần 3…"></textarea>
 					</label>
-					<label class="mk-sc-field mk-sc-field--wide">
+					<label class="mk-sc-field mk-sc-field--wide mk-sc-field--materials">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_INTERACTION_MATERIALS', $MODULE)}</span>
-						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_materials" id="mkScInteractionMaterials" rows="4"></textarea>
+						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_materials" id="mkScInteractionMaterials" rows="4" placeholder="Ghi chú tương tác nguyên liệu / máy móc…"></textarea>
 					</label>
 				</div>
 			</section>

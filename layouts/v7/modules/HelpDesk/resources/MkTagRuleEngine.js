@@ -1,6 +1,6 @@
 /**
- * Tag Rule Engine — Quản lý (Rule / Tag / Kịch bản)
- * UI matches nguyenkhoa-tst.lovable.app/manage — in-memory only.
+ * Tag Rule Engine — Quản lý (Rule / Tag / Kịch bản / Mã giới thiệu)
+ * UI matches nguyenkhoa-tst.lovable.app/manage — DB-backed via MkTagRuleEngineStore.
  */
 (function ($, global) {
 	'use strict';
@@ -39,6 +39,11 @@
 		} else {
 			window.alert(msg);
 		}
+	}
+
+	function formatMoneyVnd(n) {
+		var num = Math.round(Number(n) || 0);
+		return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫';
 	}
 
 	function countActiveRules(rules) {
@@ -239,7 +244,7 @@
 		return hay.indexOf(q) >= 0;
 	}
 
-	var TAB_IDS = { rules: true, tags: true, scenarios: true };
+	var TAB_IDS = { rules: true, tags: true, scenarios: true, affiliate: true };
 	var TAB_STORAGE_KEY = 'mk_tre_active_tab';
 
 	function readPersistedTab() {
@@ -310,6 +315,7 @@
 		expandedGroupIds: {},
 		ruleSearch: '',
 		tagSearch: '',
+		affiliateSearch: '',
 
 		init: function () {
 			this.$root = $('#mk-tag-rule-engine');
@@ -329,6 +335,7 @@
 			if (this.$root && this.$root.length) {
 				this.$root.find('.mk-tre-tabs > .mk-tre-tab').removeClass('is-active');
 				this.$root.find('.mk-tre-tabs > .mk-tre-tab[data-tab="' + tab + '"]').addClass('is-active');
+				this.renderStats();
 				this.renderPanel();
 			}
 		},
@@ -363,6 +370,7 @@
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'rules' ? ' is-active' : '') + '" data-tab="rules">Rule</button>'
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'tags' ? ' is-active' : '') + '" data-tab="tags">Tag</button>'
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'scenarios' ? ' is-active' : '') + '" data-tab="scenarios">Kịch bản</button>'
+				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'affiliate' ? ' is-active' : '') + '" data-tab="affiliate">Mã giới thiệu</button>'
 				+ '    </div>'
 				+ '  </div>'
 				+ '  <div class="mk-tre-panel" id="mk-tre-panel"></div>'
@@ -385,6 +393,19 @@
 		},
 
 		renderStats: function () {
+			if (this.activeTab === 'affiliate') {
+				var tiers = store.getAffiliateTiers ? store.getAffiliateTiers() : [];
+				var activeTiers = tiers.filter(function (t) {
+					return t.is_active !== false && t.status !== 'inactive';
+				}).length;
+				var htmlAff = ''
+					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Tổng mã</span><strong class="mk-tre-stat-card__value">' + tiers.length + '</strong><span class="mk-tre-stat-card__hint">Prefix cấu hình</span></article>'
+					+ '<article class="mk-tre-stat-card mk-tre-stat-card--accent"><span class="mk-tre-stat-card__label">Đang Active</span><strong class="mk-tre-stat-card__value">' + activeTiers + '</strong><span class="mk-tre-stat-card__hint">Áp dụng khi nhập mã</span></article>'
+					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Prefix</span><strong class="mk-tre-stat-card__value">A–Z</strong><span class="mk-tre-stat-card__hint">Ký tự đầu mã GT</span></article>'
+					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Bảo lưu</span><strong class="mk-tre-stat-card__value">ngày</strong><span class="mk-tre-stat-card__hint">Theo từng hạng</span></article>';
+				$('#mk-tre-stats').html(htmlAff);
+				return;
+			}
 			var rules = store.getRules();
 			var active = countActiveRules(rules);
 			var tags = store.getTags().length;
@@ -415,6 +436,7 @@
 			var $panel = $('#mk-tre-panel');
 			if (this.activeTab === 'rules') $panel.html(this.renderRulesTab());
 			else if (this.activeTab === 'tags') $panel.html(this.renderTagsTab());
+			else if (this.activeTab === 'affiliate') $panel.html(this.renderAffiliateTab());
 			else $panel.html(this.renderScenariosTab());
 		},
 
@@ -715,6 +737,123 @@
 				'<button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-sc-create">' + ICONS.plus + ' Tạo kịch bản</button>',
 				'<div class="mk-tre-scenario-grid">' + cards + '</div>'
 			);
+		},
+
+		renderAffiliateTableBody: function () {
+			var self = this;
+			var tiers = store.getAffiliateTiers ? store.getAffiliateTiers() : [];
+			var q = String(self.affiliateSearch || '').trim().toLowerCase();
+			var filtered = tiers.filter(function (t) {
+				if (!q) return true;
+				var hay = [t.prefix, t.tier_name, String(t.reward_amount || ''), String(t.retention_days || '')]
+					.join(' ')
+					.toLowerCase();
+				return hay.indexOf(q) >= 0;
+			});
+			if (!filtered.length) {
+				return '<tr><td colspan="7" class="mk-tre-empty">' + (q ? 'Không tìm thấy mã phù hợp' : 'Chưa có mã giới thiệu nào') + '</td></tr>';
+			}
+			return filtered.map(function (t) {
+				var active = t.is_active !== false && t.status !== 'inactive';
+				return ''
+					+ '<tr>'
+					+ '  <td><strong class="mk-tre-aff-prefix">' + esc(t.prefix) + '</strong></td>'
+					+ '  <td>' + esc(t.tier_name) + '</td>'
+					+ '  <td>' + esc(formatMoneyVnd(t.reward_amount)) + '</td>'
+					+ '  <td>' + esc(t.retention_days) + ' ngày</td>'
+					+ '  <td>' + esc(t.effective_from || '—') + '</td>'
+					+ '  <td><label class="mk-tre-switch mk-tre-switch--inline" title="Active">'
+					+ '    <input type="checkbox" class="js-tre-aff-toggle" data-id="' + esc(t.id) + '"' + (active ? ' checked' : '') + ' />'
+					+ '    <span class="mk-tre-switch__track"></span>'
+					+ '  </label></td>'
+					+ '  <td class="mk-tre-td-actions">'
+					+ '    <button type="button" class="mk-tre-icon-btn js-tre-aff-edit" data-id="' + esc(t.id) + '" title="Sửa">' + ICONS.pencil + '</button>'
+					+ '    <button type="button" class="mk-tre-icon-btn mk-tre-icon-btn--danger js-tre-aff-del" data-id="' + esc(t.id) + '" data-prefix="' + esc(t.prefix) + '" data-name="' + esc(t.tier_name) + '" title="Xoá">' + ICONS.trash + '</button>'
+					+ '  </td>'
+					+ '</tr>';
+			}).join('');
+		},
+
+		updateAffiliateTable: function () {
+			$('#mk-tre-panel .js-tre-aff-tbody').html(this.renderAffiliateTableBody());
+		},
+
+		renderAffiliateTab: function () {
+			return ''
+				+ '<section class="mk-tre-section">'
+				+ '  <div class="mk-tre-section__head">'
+				+ '    <div class="mk-tre-section__titles">'
+				+ '      <h2 class="mk-tre-section__title">Chính sách mã giới thiệu</h2>'
+				+ '      <p class="mk-tre-section__sub">Prefix (ký tự đầu) → hạng → tiền thưởng. Đổi số tiền hoặc thêm hạng mới chỉ sửa cấu hình.</p>'
+				+ '    </div>'
+				+ '    <div class="mk-tre-section__actions">'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-aff-create">' + ICONS.plus + ' Thêm mã</button>'
+				+ '    </div>'
+				+ '  </div>'
+				+ '  <div class="mk-tre-section__filterbar">'
+				+ '    <label class="mk-tre-search-field mk-tre-search-field--bar">'
+				+ '      <span class="mk-tre-search-field__icon" aria-hidden="true">' + ICONS.search + '</span>'
+				+ '      <input type="search" class="mk-tre-input mk-tre-input--search js-tre-aff-search" placeholder="Tìm theo prefix, hạng, tiền thưởng…" value="' + esc(this.affiliateSearch) + '" autocomplete="off" />'
+				+ '    </label>'
+				+ '  </div>'
+				+ '  <div class="mk-tre-section__body">'
+				+ '    <div class="mk-tre-table-wrap"><table class="mk-tre-table">'
+				+ '<thead><tr>'
+				+ '<th>Prefix</th><th>Tên hạng</th><th>Tiền thưởng</th><th>Bảo lưu</th><th>Ngày áp dụng</th><th>Trạng thái</th><th class="mk-tre-th-actions">Thao tác</th>'
+				+ '</tr></thead>'
+				+ '<tbody class="js-tre-aff-tbody">' + this.renderAffiliateTableBody() + '</tbody>'
+				+ '</table></div>'
+				+ '  </div>'
+				+ '</section>';
+		},
+
+		openAffiliateForm: function (tierId) {
+			var isEdit = !!tierId;
+			var tier = isEdit && store.getAffiliateTierById
+				? store.getAffiliateTierById(tierId)
+				: {
+					prefix: '',
+					tier_name: '',
+					reward_amount: '',
+					retention_days: 180,
+					effective_from: '',
+					is_active: true,
+					status: 'active',
+				};
+			if (!tier) tier = { prefix: '', tier_name: '', reward_amount: '', retention_days: 180, effective_from: '', is_active: true };
+			var active = tier.is_active !== false && tier.status !== 'inactive';
+			var body = ''
+				+ '<div class="mk-tre-form">'
+				+ '  <div class="mk-tre-form-row">'
+				+ '    <label class="mk-tre-field"><span>Prefix (1 chữ A–Z)</span>'
+				+ '      <input class="mk-tre-input" name="prefix" maxlength="1" value="' + esc(tier.prefix || '') + '" placeholder="A" ' + (isEdit ? 'readonly' : '') + ' autocomplete="off" style="text-transform:uppercase" />'
+				+ '    </label>'
+				+ '    <label class="mk-tre-field"><span>Tên hạng</span>'
+				+ '      <input class="mk-tre-input" name="tier_name" value="' + esc(tier.tier_name || '') + '" placeholder="Diamond" autocomplete="off" />'
+				+ '    </label>'
+				+ '  </div>'
+				+ '  <div class="mk-tre-form-row">'
+				+ '    <label class="mk-tre-field"><span>Tiền thưởng (VNĐ)</span>'
+				+ '      <input class="mk-tre-input" type="number" name="reward_amount" min="0" step="1000" value="' + esc(tier.reward_amount == null ? '' : tier.reward_amount) + '" placeholder="30000000" />'
+				+ '    </label>'
+				+ '    <label class="mk-tre-field"><span>Bảo lưu (ngày)</span>'
+				+ '      <input class="mk-tre-input" type="number" name="retention_days" min="1" value="' + esc(tier.retention_days || 180) + '" />'
+				+ '    </label>'
+				+ '  </div>'
+				+ '  <label class="mk-tre-field"><span>Ngày áp dụng</span>'
+				+ '    <input class="mk-tre-input" type="date" name="effective_from" value="' + esc(tier.effective_from || '') + '" />'
+				+ '  </label>'
+				+ '  <label class="mk-tre-opt">'
+				+ '    <span class="mk-tre-opt__text"><strong>Active</strong><small>Dùng khi resolve mã giới thiệu</small></span>'
+				+ '    <span class="mk-tre-switch"><input type="checkbox" name="is_active"' + (active ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span>'
+				+ '  </label>'
+				+ '</div>';
+			var foot = ''
+				+ '<button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-modal-cancel">Huỷ</button>'
+				+ '<button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-aff-save" data-id="' + esc(tierId || '') + '">'
+				+ (isEdit ? 'Cập nhật' : 'Thêm mã')
+				+ '</button>';
+			this.openModal(isEdit ? 'Sửa mã giới thiệu' : 'Thêm mã giới thiệu', body, foot, { variant: 'form' });
 		},
 
 		openModal: function (title, bodyHtml, footHtml, opts) {
@@ -1040,6 +1179,13 @@
 				}
 			});
 
+			this.$root.on('input', '.js-tre-aff-search', function () {
+				self.affiliateSearch = $(this).val();
+				if (self.activeTab === 'affiliate') {
+					self.updateAffiliateTable();
+				}
+			});
+
 			this.$root.on('change', '.js-tre-rule-toggle', function () {
 				try {
 					store.setRuleActive($(this).data('id'), $(this).prop('checked'));
@@ -1120,6 +1266,30 @@
 					navigator.clipboard.writeText(text).then(function () { toast('Đã copy'); });
 				} else {
 					window.prompt('Copy:', text);
+				}
+			});
+
+			this.$root.on('click', '.js-tre-aff-create', function () { self.openAffiliateForm(null); });
+			this.$root.on('click', '.js-tre-aff-edit', function () { self.openAffiliateForm($(this).data('id')); });
+			this.$root.on('click', '.js-tre-aff-del', function () {
+				var prefix = $(this).data('prefix');
+				var name = $(this).data('name');
+				if (!window.confirm('Xoá mã "' + prefix + '" (' + name + ')?')) return;
+				try {
+					store.deleteAffiliateTier($(this).data('id'));
+					self.refreshAfterDataChange();
+					toast('Đã xoá mã giới thiệu');
+				} catch (e) {
+					window.alert(e.message || 'Không xoá được');
+				}
+			});
+			this.$root.on('change', '.js-tre-aff-toggle', function () {
+				try {
+					store.setAffiliateTierActive($(this).data('id'), $(this).prop('checked'));
+					self.renderStats();
+				} catch (e) {
+					window.alert(e.message || 'Không cập nhật được trạng thái');
+					$(this).prop('checked', !$(this).prop('checked'));
 				}
 			});
 
@@ -1317,6 +1487,37 @@
 					toast('Đã lưu');
 				} catch (e) {
 					window.alert(e.message || 'Không lưu được kịch bản');
+				}
+			});
+
+			$(document).on('click.mkTagRuleEngine', '.js-tre-aff-save', function () {
+				var id = $(this).data('id');
+				var data = self.readForm();
+				var prefix = String(data.prefix || '').trim().toUpperCase();
+				if (!/^[A-Z]$/.test(prefix)) {
+					window.alert('Prefix phải là 1 chữ cái A–Z.');
+					return;
+				}
+				if (!data.tier_name) {
+					window.alert('Vui lòng nhập tên hạng.');
+					return;
+				}
+				var payload = {
+					prefix: prefix,
+					tier_name: data.tier_name,
+					reward_amount: parseFloat(data.reward_amount) || 0,
+					retention_days: parseInt(data.retention_days, 10) || 180,
+					effective_from: data.effective_from || '',
+					is_active: !!data.is_active,
+				};
+				try {
+					if (id) store.updateAffiliateTier(id, payload);
+					else store.createAffiliateTier(payload);
+					self.closeModal();
+					self.refreshAfterDataChange();
+					toast('Đã lưu mã giới thiệu');
+				} catch (e) {
+					window.alert(e.message || 'Không lưu được');
 				}
 			});
 		},

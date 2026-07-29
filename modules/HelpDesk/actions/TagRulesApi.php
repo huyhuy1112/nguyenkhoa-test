@@ -27,6 +27,7 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 		$write = array(
 			'save_tag', 'delete_tag', 'save_group', 'delete_group', 'save_rule', 'delete_rule', 'set_rule_active',
 			'save_scenario', 'delete_scenario', 'reseed', 'dismiss', 'apply_lead',
+			'save_affiliate_tier', 'delete_affiliate_tier', 'set_affiliate_tier_active',
 		);
 		if (in_array($mode, $write, true)) {
 			$request->validateWriteAccess();
@@ -148,8 +149,45 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 					$response->setResult(array('success' => true, 'state' => $svc->bootstrap()));
 					break;
 
+				case 'save_affiliate_tier':
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id && empty($payload['id'])) {
+						$payload['id'] = $id;
+					}
+					$tier = $svc->upsertAffiliateTier($payload, true);
+					$response->setResult(array('success' => true, 'tier' => $tier, 'state' => $svc->bootstrap()));
+					break;
+
+				case 'set_affiliate_tier_active':
+					$id = (string)$request->get('id');
+					$active = $request->get('is_active');
+					$activeBool = ($active === true || $active === 1 || $active === '1' || $active === 'true');
+					$tier = $svc->setAffiliateTierActive($id, $activeBool);
+					$response->setResult(array('success' => true, 'tier' => $tier, 'state' => $svc->bootstrap()));
+					break;
+
+				case 'delete_affiliate_tier':
+					$svc->deleteAffiliateTier((string)$request->get('id'));
+					$response->setResult(array('success' => true, 'state' => $svc->bootstrap()));
+					break;
+
+				case 'resolve_affiliate':
+					$code = (string)$request->get('code');
+					if ($code === '') {
+						$payload = $this->decodePayload($request);
+						$code = isset($payload['code']) ? (string)$payload['code'] : '';
+					}
+					$asOf = $request->get('as_of');
+					$response->setResult(array(
+						'success' => true,
+						'tier' => $svc->resolveAffiliateReward($code, $asOf ? (string)$asOf : null),
+					));
+					break;
+
 				case 'reseed':
 					$svc->seedIfEmpty(true);
+					$svc->seedAffiliateTiersIfEmpty(true);
 					$response->setResult(array('success' => true, 'state' => $svc->bootstrap()));
 					break;
 

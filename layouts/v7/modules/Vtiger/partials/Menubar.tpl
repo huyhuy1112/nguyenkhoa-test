@@ -33,13 +33,13 @@
 		{elseif $moduleName eq 'Calendar' && $SELECTED_MENU_CATEGORY eq 'SUPPORT'}
 			{assign var='translatedModuleLabel' value=vtranslate('LBL_ACTIVITIES','Calendar')}
 		{elseif $moduleName eq 'Accounts'}
-			{assign var='translatedModuleLabel' value='Tuibao'}
+			{assign var='translatedModuleLabel' value='Hợp đồng nhượng quyền'}
 		{elseif $moduleName eq 'Contacts'}
 			{assign var='translatedModuleLabel' value='Khách hàng'}
 		{elseif $moduleName eq 'ProductsServices'}
 			{assign var='translatedModuleLabel' value='Hàng hoá'}
 		{elseif $moduleName eq 'ServiceContracts'}
-			{assign var='translatedModuleLabel' value='Khách chuyển nhượng'}
+			{assign var='translatedModuleLabel' value='Khách hàng nhượng quyền'}
 		{elseif $moduleName eq 'SupportFAQ'}
 			{assign var='translatedModuleLabel' value='Cảnh báo'}
 		{/if}

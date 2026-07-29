@@ -63,6 +63,7 @@ class Accounts_FranchiseContractService_Helper {
 			array('tb_party_b_phone', 'Điện thoại Bên B', 11, 'VARCHAR(50)', 'V~O', false),
 			array('tb_party_b_email', 'Email Bên B', 13, 'VARCHAR(100)', 'E~O', false),
 			array('tb_store_address', 'Địa chỉ cửa hàng', 19, 'TEXT', 'V~O', true),
+			array('tb_sc_customer_id', 'Khách hàng nhượng quyền (SC)', 7, 'VARCHAR(32)', 'V~O', false),
 			array('tb_fee_franchise', 'Phí nhượng quyền', 71, 'DECIMAL(25,2)', 'N~O', true),
 			array('tb_fee_marketing', 'Phí marketing thương hiệu', 71, 'DECIMAL(25,2)', 'N~O', true),
 			array('tb_fee_consult', 'Phí tư vấn / hỗ trợ vận hành', 71, 'DECIMAL(25,2)', 'N~O', true),

@@ -4,7 +4,9 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260723_ac_edit10';
+	var MK_BUILD = '20260729_ac_sc_link1';
+	var scCustomersCache = null;
+	var scCustomersLoading = null;
 
 	var ORDER_DEFAULTS = {
 		tb_order_min_free: '10000000',
@@ -565,6 +567,260 @@
 		$form().trigger('submit');
 	}
 
+	function escapeHtml(s) {
+		return String(s || '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
+	}
+
+	function setInputValue(name, value) {
+		var $el = fieldByName(name);
+		if (!$el.length) {
+			return;
+		}
+		$el.val(value == null ? '' : String(value)).trigger('change');
+		clearFieldError($el);
+	}
+
+	function applyScCustomer(c) {
+		if (!c) {
+			return;
+		}
+		var name = String(c.name || c.full_name || '').trim();
+		var phone = digitsOnly(c.phone).slice(0, 10);
+		var email = String(c.email || '').trim();
+		var note = String(c.business_note || c.address || '').trim();
+		if (name) {
+			setInputValue('accountname', name);
+			setInputValue('tb_party_b_name', name);
+		}
+		if (phone) {
+			setInputValue('phone', phone);
+			setInputValue('tb_party_b_phone', phone);
+		}
+		if (email) {
+			setInputValue('email1', email);
+			setInputValue('tb_party_b_email', email);
+		}
+		if (note) {
+			setInputValue('tb_party_b_permanent_addr', note);
+			setInputValue('tb_party_b_contact_addr', note);
+		}
+		var scId = String(c.crmid || c.id || '').trim();
+		setInputValue('tb_sc_customer_id', scId);
+		var $hint = $('#mkAcScCustomerHint');
+		if ($hint.length) {
+			var bits = [];
+			if (c.affiliate_code) {
+				bits.push(c.affiliate_code);
+			}
+			if (phone) {
+				bits.push(phone);
+			}
+			$hint.text(bits.length ? bits.join(' · ') : '').prop('hidden', !bits.length);
+		}
+	}
+
+	function fillScCustomerSelect(list) {
+		var $sel = $('#mkAcScCustomerPick');
+		if (!$sel.length) {
+			return;
+		}
+		var current = String(fieldByName('tb_sc_customer_id').val() || $sel.val() || '').trim();
+		var html = '<option value="">— Chọn khách hàng nhượng quyền —</option>';
+		(list || []).forEach(function (c) {
+			var id = String(c.crmid || c.id || '');
+			if (!id) {
+				return;
+			}
+			var label =
+				(c.affiliate_code ? c.affiliate_code + ' — ' : '') +
+				(c.name || '#' + id) +
+				(c.phone ? ' (' + c.phone + ')' : '');
+			html +=
+				'<option value="' +
+				escapeHtml(id) +
+				'"' +
+				(id === current ? ' selected' : '') +
+				'>' +
+				escapeHtml(label) +
+				'</option>';
+		});
+		$sel.html(html);
+		if (current) {
+			$sel.val(current);
+		}
+	}
+
+	function loadScCustomers() {
+		if (scCustomersCache) {
+			return $.Deferred().resolve(scCustomersCache).promise();
+		}
+		if (scCustomersLoading) {
+			return scCustomersLoading;
+		}
+		var deferred = $.Deferred();
+		scCustomersLoading = deferred.promise();
+		var postData = {
+			module: 'ServiceContracts',
+			action: 'ModernApi',
+			mode: 'list'
+		};
+		function done(err, res) {
+			scCustomersLoading = null;
+			if (err || !res || res.success === false) {
+				deferred.reject(err || res);
+				return;
+			}
+			scCustomersCache = Array.isArray(res.contracts) ? res.contracts : [];
+			deferred.resolve(scCustomersCache);
+		}
+		if (window.app && app.request && app.request.post) {
+			app.request.post({ data: postData }).then(done);
+		} else {
+			$.ajax({ url: 'index.php', type: 'POST', dataType: 'json', data: postData })
+				.done(function (r) {
+					done(null, r && r.result ? r.result : r);
+				})
+				.fail(function () {
+					done({ message: 'Không tải được danh sách khách.' }, null);
+				});
+		}
+		return scCustomersLoading;
+	}
+
+	function mountScCustomerPicker() {
+		var $block = $form().find('.fieldBlockContainer[data-block="LBL_ACCOUNT_INFORMATION"]').first();
+		if (!$block.length) return;
+		var $tbody = $block.find('table > tbody').first();
+		if (!$tbody.length) return;
+		if ($('#mkAcScSearchWrap').length) return;
+
+		var $row = $(
+			'<tr class="mk-ac-field-row mk-ac-sc-pick-row">' +
+				'<td class="fieldLabel alignMiddle" colspan="1">' +
+				'<label class="muted">Khách hàng nhượng quyền</label>' +
+				'</td>' +
+				'<td class="fieldValue" colspan="3">' +
+				'<div id="mkAcScSearchWrap" class="mk-ac-sc-search-wrap">' +
+				'<div class="mk-ac-sc-select-box" id="mkAcScSelectBox">' +
+				'<span class="mk-ac-sc-select-label" id="mkAcScSelectLabel">— Chọn khách hàng nhượng quyền —</span>' +
+				'<span class="mk-ac-sc-select-arrow">&#9662;</span>' +
+				'</div>' +
+				'<input type="hidden" id="mkAcScCustomerPick" name="tb_sc_customer_id_pick" value="" />' +
+				'<div id="mkAcScDropPanel" class="mk-ac-sc-drop-panel" hidden>' +
+				'<input type="text" id="mkAcScSearchInput" class="mk-ac-sc-search-input" placeholder="Tìm theo tên, SĐT, mã AFF…" autocomplete="off" />' +
+				'<div id="mkAcScSearchResults" class="mk-ac-sc-search-results"></div>' +
+				'</div>' +
+				'</div>' +
+				'<div class="mk-ac-sc-pick-hint" id="mkAcScCustomerHint" hidden></div>' +
+				'</td>' +
+				'</tr>'
+		);
+		$tbody.prepend($row);
+
+		var $selectBox = $('#mkAcScSelectBox');
+		var $label = $('#mkAcScSelectLabel');
+		var $panel = $('#mkAcScDropPanel');
+		var $input = $('#mkAcScSearchInput');
+		var $results = $('#mkAcScSearchResults');
+		var $hidden = $('#mkAcScCustomerPick');
+
+		function buildOptionHtml(c) {
+			var id = String(c.crmid || c.id || '');
+			var label =
+				(c.affiliate_code ? '<strong>' + escapeHtml(c.affiliate_code) + '</strong> — ' : '') +
+				escapeHtml(c.name || c.full_name || '#' + id) +
+				(c.phone ? ' <span class="mk-ac-sc-search-phone">(' + escapeHtml(c.phone) + ')</span>' : '');
+			return '<div class="mk-ac-sc-search-item" data-id="' + escapeHtml(id) + '" tabindex="0">' + label + '</div>';
+		}
+
+		function renderList(query) {
+			var q = String(query || '').trim().toLowerCase();
+			var list = (scCustomersCache || []);
+			if (q) {
+				list = list.filter(function (c) {
+					var haystack = [c.name, c.full_name, c.phone, c.affiliate_code, c.email, c.business_note].join(' ').toLowerCase();
+					return haystack.indexOf(q) >= 0;
+				});
+			}
+			if (!list.length) {
+				$results.html('<div class="mk-ac-sc-search-empty">Không tìm thấy</div>');
+				return;
+			}
+			$results.html(list.map(buildOptionHtml).join(''));
+		}
+
+		function openPanel() {
+			$panel.prop('hidden', false);
+			$input.val('').focus();
+			renderList('');
+		}
+
+		function closePanel() {
+			$panel.prop('hidden', true);
+		}
+
+		$selectBox.on('click.mkAcScToggle', function () {
+			if ($panel.prop('hidden')) {
+				openPanel();
+			} else {
+				closePanel();
+			}
+		});
+
+		$input.on('input.mkAcScSearch', function () {
+			renderList(this.value);
+		});
+
+		$(document).on('click.mkAcScSearchOut', function (e) {
+			if (!$(e.target).closest('#mkAcScSearchWrap').length) {
+				closePanel();
+			}
+		});
+
+		$results.on('click', '.mk-ac-sc-search-item', function () {
+			var id = $(this).attr('data-id');
+			$hidden.val(id);
+			setInputValue('tb_sc_customer_id', id);
+			var match = null;
+			(scCustomersCache || []).forEach(function (c) {
+				if (String(c.crmid || c.id) === id) match = c;
+			});
+			if (match) {
+				var displayText =
+					(match.affiliate_code ? match.affiliate_code + ' — ' : '') +
+					(match.name || match.full_name || '');
+				$label.text(displayText).addClass('mk-ac-sc-select-label--chosen');
+				applyScCustomer(match);
+			}
+			closePanel();
+		});
+
+		$results.on('keydown', '.mk-ac-sc-search-item', function (e) {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				$(this).trigger('click');
+			}
+		});
+
+		loadScCustomers().then(function () {
+			var currentId = String(fieldByName('tb_sc_customer_id').val() || '').trim();
+			if (currentId) {
+				(scCustomersCache || []).forEach(function (c) {
+					if (String(c.crmid || c.id) === currentId) {
+						$label.text(
+							(c.affiliate_code ? c.affiliate_code + ' — ' : '') +
+							(c.name || c.full_name || '')
+						).addClass('mk-ac-sc-select-label--chosen');
+					}
+				});
+			}
+		});
+	}
+
 	function bindActions() {
 		$('#mkAcSaveTop')
 			.off('click.mkAcSave')
@@ -615,6 +871,7 @@
 		applyFieldLabels();
 		styleFieldBlocks();
 		reflowAllBlocks();
+		mountScCustomerPicker();
 		applyFieldDefaults();
 		bindDigitFieldLimits();
 		maybeReinitDateFields();

@@ -7,7 +7,7 @@
   var ref = window.ServiceContractsLovableRef;
   var store = window.ServiceContractsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 12;
+  var COL_COUNT = 13;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -50,7 +50,7 @@
 
   var state = {
     filters: Object.assign({}, EMPTY),
-    sortKey: "last_touch",
+    sortKey: "createdtime",
     sortDir: "desc",
     page: 1,
     filtersOpen: true,
@@ -151,11 +151,26 @@
           c.area,
           c.address,
           c.district,
+          c.business_note,
+          c.franchise_status,
+          c.data_source,
+          c.referrer,
+          c.contact_status,
+          c.interaction_1,
+          c.interaction_2,
+          c.interaction_3,
+          c.interaction_materials,
           (c.tags || []).join(" "),
         ]
           .join(" ")
           .toLowerCase();
-        if (hay.indexOf(q) < 0) return false;
+        if (hay.indexOf(q) < 0) {
+          var qDigits = String(q).replace(/\D+/g, "");
+          var phoneDigits = String(c.phone || "").replace(/\D+/g, "");
+          if (!(qDigits.length >= 3 && phoneDigits.indexOf(qDigits) >= 0)) {
+            return false;
+          }
+        }
       }
       if (f.hasTag && !(c.tags || []).length) return false;
       if (f.customerRank !== ANY && (!cats.customerRank || ref.normalizeTag(cats.customerRank) !== f.customerRank))
@@ -178,17 +193,28 @@
     return rows.slice().sort(function (a, b) {
       var av = a[key];
       var bv = b[key];
-      if (key === "last_touch" || key === "createdtime") {
+      if (key === "last_touch" || key === "createdtime" || key === "received_date") {
         av = av ? new Date(av).getTime() : 0;
         bv = bv ? new Date(bv).getTime() : 0;
+        if (isNaN(av)) av = 0;
+        if (isNaN(bv)) bv = 0;
         if (av < bv) return -1 * dir;
         if (av > bv) return 1 * dir;
+        // Tie-break: mới hơn (id lớn hơn) đứng trên khi sort desc.
+        var aid = parseInt(a.crmid || a.id, 10) || 0;
+        var bid = parseInt(b.crmid || b.id, 10) || 0;
+        if (aid < bid) return -1 * dir;
+        if (aid > bid) return 1 * dir;
         return 0;
       }
       av = String(av || "").toLowerCase();
       bv = String(bv || "").toLowerCase();
       if (av < bv) return -1 * dir;
       if (av > bv) return 1 * dir;
+      var aid2 = parseInt(a.crmid || a.id, 10) || 0;
+      var bid2 = parseInt(b.crmid || b.id, 10) || 0;
+      if (aid2 < bid2) return -1 * dir;
+      if (aid2 > bid2) return 1 * dir;
       return 0;
     });
   }
@@ -217,6 +243,146 @@
     return label
       ? '<span class="mk-leads-date">' + esc(label) + "</span>"
       : '<span class="mk-leads-muted">—</span>';
+  }
+
+  function dateOnlyCell(raw) {
+    var s = String(raw || "").trim();
+    if (!s || s === "0000-00-00") {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    // YYYY-MM-DD -> MM-DD-YYYY
+    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      return '<span class="mk-leads-date">' + esc(m[2] + "-" + m[3] + "-" + m[1]) + "</span>";
+    }
+    return dateCell(s);
+  }
+
+  function phoneCell(raw) {
+    var phone = String(raw || "").trim();
+    if (!phone) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    var display =
+      window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function"
+        ? window.MkPhoneFormat.format(phone)
+        : phone;
+    return '<span class="mk-leads-phone">' + esc(display || phone) + "</span>";
+  }
+
+  function textCell(raw, opts) {
+    var n = String(raw || "").trim();
+    if (!n) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    var max = opts && opts.max ? opts.max : 80;
+    var short = n.length > max ? n.slice(0, max) + "…" : n;
+    return '<span class="mk-sc-cell-text" title="' + esc(n) + '">' + esc(short) + "</span>";
+  }
+
+  function pillClassFor(kind, value) {
+    var v = String(value || "").toLowerCase();
+    if (kind === "franchise_status") {
+      if (v.indexOf("quan tâm") >= 0 || v.indexOf("tham khảo") >= 0) return "mk-sc-pill mk-sc-pill--pink";
+      if (v.indexOf("tài chính") >= 0) return "mk-sc-pill mk-sc-pill--slate";
+      if (v.indexOf("ký quỹ") >= 0 || v.indexOf("ki quỹ") >= 0) return "mk-sc-pill mk-sc-pill--red";
+      if (v.indexOf("dừng") >= 0 || v.indexOf("ngưng") >= 0) return "mk-sc-pill mk-sc-pill--black";
+      if (v.indexOf("chăm sóc") >= 0) return "mk-sc-pill mk-sc-pill--green";
+      return "mk-sc-pill mk-sc-pill--slate";
+    }
+    if (kind === "data_source") {
+      if (v.indexOf("facebook") >= 0 || v.indexOf("fb") >= 0) return "mk-sc-pill mk-sc-pill--fb";
+      if (v.indexOf("tiktok") >= 0) return "mk-sc-pill mk-sc-pill--tiktok";
+      if (v.indexOf("website") >= 0) return "mk-sc-pill mk-sc-pill--web";
+      if (v.indexOf("zalo") >= 0) return "mk-sc-pill mk-sc-pill--zalo";
+      return "mk-sc-pill mk-sc-pill--slate";
+    }
+    if (kind === "contact_status") {
+      if (v.indexOf("chưa") >= 0) return "mk-sc-pill mk-sc-pill--red";
+      if (v.indexOf("đã") >= 0 || v.indexOf("tư vấn") >= 0) return "mk-sc-pill mk-sc-pill--green";
+      return "mk-sc-pill mk-sc-pill--slate";
+    }
+    return "mk-sc-pill";
+  }
+
+  function pillCell(kind, raw) {
+    var v = String(raw || "").trim();
+    if (!v) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    return '<span class="' + pillClassFor(kind, v) + '">' + esc(v) + "</span>";
+  }
+
+  function interactionNoteCell(field, value, recordId) {
+    var cur = String(value || "").trim();
+    return (
+      '<input type="text" class="mk-sc-ix-note" data-field="' +
+      esc(field) +
+      '" data-id="' +
+      esc(String(recordId || "")) +
+      '" data-prev="' +
+      esc(cur) +
+      '" value="' +
+      esc(cur) +
+      '" placeholder="Ghi chú…" title="' +
+      esc(cur || "Nhập ghi chú tương tác") +
+      '" />'
+    );
+  }
+
+  function saveInteractionField(recordId, field, value) {
+    var payload = {};
+    payload[field] = value;
+    var postData = {
+      module: "ServiceContracts",
+      action: "ModernApi",
+      mode: "save_inline",
+      record: recordId,
+      payload: JSON.stringify(payload),
+    };
+    function done(err, res) {
+      if (err || !res || res.success === false) {
+        var msg =
+          (err && err.message) ||
+          (res && (res.error || res.message)) ||
+          "Không lưu được tương tác.";
+        if (window.app && app.helper && app.helper.showErrorNotification) {
+          app.helper.showErrorNotification({ message: String(msg) });
+        } else {
+          window.alert(String(msg));
+        }
+        return;
+      }
+      var c = (res && res.contract) || {};
+      if (store && typeof store.patchContract === "function") {
+        var patch = {};
+        patch[field] = c[field] != null ? c[field] : value;
+        store.patchContract(String(recordId), patch);
+      }
+    }
+    if (window.app && app.request && app.request.post) {
+      app.request.post({ data: postData }).then(done);
+    } else {
+      fetch("index.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: Object.keys(postData)
+          .map(function (k) {
+            return encodeURIComponent(k) + "=" + encodeURIComponent(postData[k]);
+          })
+          .join("&"),
+        credentials: "same-origin",
+      })
+        .then(function (r) {
+          return r.json();
+        })
+        .then(function (r) {
+          done(null, r && r.result ? r.result : r);
+        })
+        .catch(function () {
+          done({ message: "Không kết nối được máy chủ." }, null);
+        });
+    }
   }
 
   function nextActionCell(c) {
@@ -636,9 +802,7 @@
         .map(function (c) {
           var crmId = c.crmid != null && c.crmid !== "" ? String(c.crmid) : String(c.id || "");
           var checked = state.selected[c.id] ? " checked" : "";
-          var aff = c.affiliate_code
-            ? '<code class="mk-sc-aff-code">' + esc(c.affiliate_code) + "</code>"
-            : '<span class="mk-leads-muted">—</span>';
+          var rowId = crmId || String(c.id || "");
           return (
             '<tr class="mk-leads-row mk-sc-row' +
             (state.selected[c.id] ? " mk-leads-row--selected" : "") +
@@ -655,7 +819,7 @@
             " />" +
             '<span class="mk-leads-check__ui" aria-hidden="true"></span></label></td>' +
             '<td class="mk-leads-td">' +
-            dateCell(c.createdtime) +
+            dateOnlyCell(c.received_date || c.createdtime) +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--lead"><span class="mk-leads-lead-cell">' +
             ic("user") +
@@ -664,51 +828,41 @@
             '">' +
             esc(c.name) +
             "</a>" +
-            (c.contract_no
-              ? '<div class="mk-leads-sub">' + esc(c.contract_no) + "</div>"
-              : "") +
+            (c.affiliate_code
+              ? '<div class="mk-leads-sub"><code class="mk-sc-aff-code">' + esc(c.affiliate_code) + "</code></div>"
+              : c.contract_no
+                ? '<div class="mk-leads-sub">' + esc(c.contract_no) + "</div>"
+                : "") +
             "</span></span></td>" +
-            '<td class="mk-leads-td mk-sc-td--aff">' +
-            aff +
+            '<td class="mk-leads-td mk-leads-td--phone">' +
+            phoneCell(c.phone) +
             "</td>" +
             '<td class="mk-leads-td">' +
-            (c.phone ? esc(c.phone) : '<span class="mk-leads-muted">—</span>') +
+            textCell(c.business_note || c.address, { max: 70 }) +
             "</td>" +
             '<td class="mk-leads-td">' +
-            (c.area ? esc(c.area) : '<span class="mk-leads-muted">—</span>') +
+            pillCell("franchise_status", c.franchise_status) +
             "</td>" +
             '<td class="mk-leads-td">' +
-            (c.address || c.district
-              ? esc([c.address, c.district].filter(Boolean).join(", "))
-              : '<span class="mk-leads-muted">—</span>') +
-            "</td>" +
-            '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
-            '<span class="mk-owner-avatar" style="background:' +
-            ownerColor(c.owner) +
-            '">' +
-            esc(ownerInitials(c.owner)) +
-            "</span>" +
-            "<span>" +
-            esc(c.owner || "—") +
-            "</span></span></td>" +
-            '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-sc-id="' +
-            esc(c.id) +
-            '" title="Sửa thẻ">' +
-            stackedTags(c.tags) +
-            "</button></td>" +
-            '<td class="mk-leads-td">' +
-            dateCell(c.last_touch) +
+            pillCell("data_source", c.data_source) +
             "</td>" +
             '<td class="mk-leads-td">' +
-            nextActionCell(c) +
+            textCell(c.referrer, { max: 40 }) +
             "</td>" +
-            '<td class="mk-leads-td" data-col="notes">' +
-            (function () {
-              var n = String(c.notes || "").trim();
-              if (!n) return '<span class="mk-leads-muted">—</span>';
-              var short = n.length > 80 ? n.slice(0, 80) + "…" : n;
-              return '<span class="mk-leads-notes-cell" title="' + esc(n) + '">' + esc(short) + "</span>";
-            })() +
+            '<td class="mk-leads-td">' +
+            pillCell("contact_status", c.contact_status) +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            interactionNoteCell("interaction_1", c.interaction_1, rowId) +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            interactionNoteCell("interaction_2", c.interaction_2, rowId) +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            interactionNoteCell("interaction_3", c.interaction_3, rowId) +
+            "</td>" +
+            '<td class="mk-leads-td">' +
+            interactionNoteCell("interaction_materials", c.interaction_materials, rowId) +
             "</td></tr>"
           );
         })
@@ -790,18 +944,28 @@
   }
 
   function exportCsv(rows) {
-    var lines = ["Name,Affiliate,Phone,Area,Address,Owner,Tags,NextAction"];
+    var lines = [
+      "NgayTiepNhan,HoTen,SDT,DiaChiKinhDoanh,TrangThai,NguonData,NguoiGioiThieu,LienHe,TuongTac1,TuongTac2,TuongTac3,TuongTacMayMoc",
+    ];
     rows.forEach(function (c) {
+      var phone =
+        window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function"
+          ? window.MkPhoneFormat.format(c.phone || "")
+          : c.phone || "";
       lines.push(
         [
+          c.received_date || "",
           c.name || "",
-          c.affiliate_code || "",
-          c.phone || "",
-          c.area || "",
-          c.address || "",
-          c.owner || "",
-          (c.tags || []).join("|"),
-          c.next_action || "",
+          phone,
+          c.business_note || c.address || "",
+          c.franchise_status || "",
+          c.data_source || "",
+          c.referrer || "",
+          c.contact_status || "",
+          c.interaction_1 || "",
+          c.interaction_2 || "",
+          c.interaction_3 || "",
+          c.interaction_materials || "",
         ]
           .map(function (v) {
             return '"' + String(v).replace(/"/g, '""') + '"';
@@ -895,9 +1059,48 @@
       });
     }
 
+    document.addEventListener("mk-sc-inline-saved", function (e) {
+      var detail = (e && e.detail) || {};
+      var c = detail.contract || {};
+      var id = String(detail.id || c.id || "");
+      if (!id || !store || typeof store.patchContract !== "function") return;
+      store.patchContract(id, {
+        franchise_status: c.franchise_status || "",
+        contact_status: c.contact_status || "",
+        referrer: c.referrer || "",
+        sale_owner: c.sale_owner || "",
+        interaction_1: c.interaction_1 || "",
+        interaction_2: c.interaction_2 || "",
+        interaction_3: c.interaction_3 || "",
+        interaction_materials: c.interaction_materials || "",
+      });
+      renderTable();
+    });
+
     document.addEventListener("change", function (e) {
       var el = e.target;
       if (!el) return;
+      if (el.classList && el.classList.contains("mk-sc-ix-note")) {
+        e.stopPropagation();
+        var rid = el.getAttribute("data-id");
+        var field = el.getAttribute("data-field");
+        var next = String(el.value || "").trim();
+        var prev = String(el.getAttribute("data-prev") || "").trim();
+        if (rid && field && next !== prev) {
+          el.setAttribute("data-prev", next);
+          saveInteractionField(rid, field, next);
+        }
+        return;
+      }
+      if (el.classList && el.classList.contains("mk-sc-ix-select")) {
+        e.stopPropagation();
+        var ridSel = el.getAttribute("data-id");
+        var fieldSel = el.getAttribute("data-field");
+        if (ridSel && fieldSel) {
+          saveInteractionField(ridSel, fieldSel, el.value || "");
+        }
+        return;
+      }
       if (el.classList && el.classList.contains("mk-sc-row-check")) {
         var id = el.getAttribute("data-id");
         if (el.checked) state.selected[id] = true;

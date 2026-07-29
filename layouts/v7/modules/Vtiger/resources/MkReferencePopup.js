@@ -403,12 +403,16 @@
 			}
 
 			var phone = info.mk_phone || '';
+			if (phone && window.MkPhoneFormat && typeof window.MkPhoneFormat.format === 'function') {
+				phone = window.MkPhoneFormat.format(phone) || phone;
+			}
 			if (typeof amountIdx === 'number') {
 				var $amountTd = $tds.eq(amountIdx);
 				$amountTd
 					.removeClass('currency')
 					.text(phone || '—')
-					.attr('title', phone || '');
+					.attr('title', phone || '')
+					.toggleClass('mk-ref-phone', !!phone);
 			}
 		});
 	}

@@ -49,6 +49,7 @@
 	{/if}
 
 	{assign var=MK_EDITABLE_TAGS value=($MODULE eq 'Leads' || $MODULE eq 'Potentials' || $MODULE eq 'Contacts')}
+	{if empty($INLINE_HIDE_TAGS)}
 	<div class="mk-so-inline-detail__tags{if $MK_EDITABLE_TAGS} is-editable{/if}"{if $MK_EDITABLE_TAGS} data-editable-tags="1"{/if}>
 		<label class="mk-so-inline-detail__field-label">Tags{if $MK_EDITABLE_TAGS} <span class="mk-so-inline-detail__tags-hint">(chọn theo nhóm)</span>{/if}</label>
 		<div class="mk-so-inline-detail__tags-list" data-role="selected-tags">
@@ -64,6 +65,7 @@
 			<div class="mk-so-inline-detail__tags-picker" data-role="tag-picker"></div>
 		{/if}
 	</div>
+	{/if}
 
 	{if $MODULE eq 'Leads'}
 		{assign var=LT value=$INLINE_LAST_TOUCH|default:[]}
