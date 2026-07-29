@@ -429,6 +429,7 @@
 			phoneVal = window.MkPhoneFormat.format(phoneVal) || phoneVal;
 		}
 		$("#mkScPhone").val(phoneVal);
+		$("#mkScEmail").val(data.email || "");
 		$("#mkScReceivedDate").val(data.received_date || "");
 		$("#mkScBusinessNote").val(data.business_note || "");
 		$("#mkScReferrer").val(data.referrer || "");
@@ -486,6 +487,7 @@
 			id: recordId(),
 			full_name: String($("#mkScFullName").val() || "").trim(),
 			phone: phone,
+			email: String($("#mkScEmail").val() || "").trim(),
 			received_date: String($("#mkScReceivedDate").val() || "").trim(),
 			business_note: String($("#mkScBusinessNote").val() || "").trim(),
 			franchise_status: String($("#mkScFranchiseStatus").val() || "").trim(),

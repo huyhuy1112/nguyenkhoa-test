@@ -59,6 +59,10 @@
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_PHONE', $MODULE)} <em>*</em></span>
 						<input type="tel" class="mk-sc-input" name="phone" id="mkScPhone" required maxlength="64" placeholder="0934 567 890" inputmode="numeric" />
 					</label>
+					<label class="mk-sc-field">
+						<span class="mk-sc-field__label">Email</span>
+						<input type="email" class="mk-sc-input" name="email" id="mkScEmail" maxlength="128" placeholder="email@example.com" />
+					</label>
 					<label class="mk-sc-field mk-sc-field--wide">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_BUSINESS_NOTE', $MODULE)}</span>
 						<input type="text" class="mk-sc-input" name="business_note" id="mkScBusinessNote" maxlength="512" placeholder="{vtranslate('LBL_MK_SC_BUSINESS_NOTE', $MODULE)}" />

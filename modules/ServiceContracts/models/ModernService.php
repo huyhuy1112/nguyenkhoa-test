@@ -447,7 +447,7 @@ class ServiceContracts_ModernService {
 		self::ensureAffiliateCode($contractId);
 
 		$res = $adb->pquery(
-			"SELECT sc.subject, p.affiliate_code, p.affiliate_tier_prefix, p.phone, p.received_date, p.business_note,
+			"SELECT sc.subject, p.affiliate_code, p.affiliate_tier_prefix, p.phone, p.email, p.received_date, p.business_note,
 				p.franchise_status, p.fanpage, p.data_source, p.referrer, p.contact_status,
 				p.interaction_1, p.interaction_2, p.interaction_3, p.interaction_materials,
 				p.referral_code, p.referral_tier_name, p.referral_reward_amount,
@@ -510,6 +510,7 @@ class ServiceContracts_ModernService {
 			'affiliate_reward_amount' => $ownTier ? (float) $ownTier['reward_amount'] : null,
 			'full_name' => self::decodeText(isset($row['subject']) ? $row['subject'] : ''),
 			'phone' => self::decodeText(isset($row['phone']) ? $row['phone'] : ''),
+			'email' => self::decodeText(isset($row['email']) ? $row['email'] : ''),
 			'received_date' => $received,
 			'business_note' => self::decodeText(isset($row['business_note']) ? $row['business_note'] : ''),
 			'franchise_status' => self::decodeText(isset($row['franchise_status']) ? $row['franchise_status'] : ''),
@@ -594,6 +595,8 @@ class ServiceContracts_ModernService {
 		$interactionMaterials = self::normalizeInteraction(
 			isset($payload['interaction_materials']) ? $payload['interaction_materials'] : ''
 		);
+
+		$email = trim(self::decodeText(isset($payload['email']) ? $payload['email'] : ''));
 
 		$referralCode = strtoupper(trim(self::decodeText(isset($payload['referral_code']) ? $payload['referral_code'] : '')));
 		$affiliateTierPrefix = strtoupper(trim(self::decodeText(
@@ -692,6 +695,7 @@ class ServiceContracts_ModernService {
 		$adb->pquery(
 			'UPDATE bace_sc_profile SET
 				phone = ?,
+				email = ?,
 				received_date = ?,
 				business_note = ?,
 				franchise_status = ?,
@@ -723,6 +727,7 @@ class ServiceContracts_ModernService {
 			 WHERE servicecontractsid = ?',
 			array(
 				$phone,
+				$email !== '' ? $email : null,
 				$receivedSql,
 				$businessNote,
 				$franchiseStatus,
@@ -796,7 +801,7 @@ class ServiceContracts_ModernService {
 	public static function listReferrerOptions($excludeId = null) {
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
-		$sql = "SELECT p.servicecontractsid, p.affiliate_code, p.affiliate_tier_prefix, p.phone, p.sale_owner, sc.subject
+		$sql = "SELECT p.servicecontractsid, p.affiliate_code, p.affiliate_tier_prefix, p.phone, p.email, p.sale_owner, sc.subject
 			FROM bace_sc_profile p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.servicecontractsid AND ce.deleted = 0
 			INNER JOIN vtiger_servicecontracts sc ON sc.servicecontractsid = p.servicecontractsid
@@ -826,6 +831,7 @@ class ServiceContracts_ModernService {
 				'affiliate_code' => $code,
 				'full_name' => self::decodeText(isset($row['subject']) ? $row['subject'] : ''),
 				'phone' => self::decodeText(isset($row['phone']) ? $row['phone'] : ''),
+				'email' => self::decodeText(isset($row['email']) ? $row['email'] : ''),
 				'sale_owner' => self::decodeText(isset($row['sale_owner']) ? $row['sale_owner'] : ''),
 				'affiliate_tier_prefix' => $prefix,
 				'tier_name' => $tier ? $tier['tier_name'] : '',
