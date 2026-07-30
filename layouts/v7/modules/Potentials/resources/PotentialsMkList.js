@@ -890,6 +890,27 @@
     return Promise.resolve(s);
   }
 
+  function removeOppFromList(recordId) {
+    removeOppsFromList([recordId]);
+  }
+
+  function removeOppsFromList(recordIds) {
+    var ids = (recordIds || []).map(function (id) {
+      return String(id || "");
+    }).filter(Boolean);
+    if (!ids.length) return;
+    ids.forEach(function (id) {
+      if (store && store.removeFromList) {
+        store.removeFromList(id);
+      }
+      delete state.selected[id];
+    });
+    if (typeof window.mkSalesPosInlineClose === "function") {
+      window.mkSalesPosInlineClose();
+    }
+    renderAll();
+  }
+
   function convertOppToCustomer(recordId, tier) {
     var id = String(recordId || "");
     var tierKey = String(tier || "").trim().toLowerCase();
@@ -945,14 +966,15 @@
       }
       var ok = 0;
       var fail = 0;
-      var firstUrl = "";
+      var convertedIds = [];
       var chain = Promise.resolve();
       rows.forEach(function (o) {
         chain = chain.then(function () {
-          return convertOppToCustomer(o.crmid || o.id, "")
-            .then(function (res) {
+          var oid = o.crmid || o.id;
+          return convertOppToCustomer(oid, "")
+            .then(function () {
               ok += 1;
-              if (!firstUrl && res && res.url) firstUrl = res.url;
+              convertedIds.push(oid);
             })
             .catch(function () {
               fail += 1;
@@ -971,10 +993,8 @@
           window.alert(msg);
         }
         clearSelection();
-        if (ok > 0) {
-          window.setTimeout(function () {
-            window.location.href = firstUrl || "index.php?module=Contacts&view=List&app=SALES";
-          }, 400);
+        if (convertedIds.length) {
+          removeOppsFromList(convertedIds);
         } else {
           renderAll();
         }
@@ -994,20 +1014,17 @@
       app.helper.showProgress();
     }
     convertOppToCustomer(recordId, "")
-        .then(function (res) {
+        .then(function () {
           if (window.app && app.helper && app.helper.hideProgress) {
             app.helper.hideProgress();
           }
           if (btn) btn.disabled = false;
           if (window.app && app.helper && app.helper.showSuccessNotification) {
             app.helper.showSuccessNotification({
-              message: "Đã chuyển sang Khách hàng.",
+              message: "Đã chuyển sang Khách hàng. Cơ hội đã được ẩn khỏi danh sách.",
             });
           }
-          window.setTimeout(function () {
-            window.location.href =
-              (res && res.url) || "index.php?module=Contacts&view=List&app=SALES";
-          }, 400);
+          removeOppFromList(recordId);
         })
         .catch(function (err) {
           if (window.app && app.helper && app.helper.hideProgress) {

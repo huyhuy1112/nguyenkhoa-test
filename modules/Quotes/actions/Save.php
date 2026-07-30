@@ -194,6 +194,7 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 				return;
 			}
 			$viewer = new Vtiger_Viewer();
+			$viewer->assign('MESSAGE', $e->getMessage());
 			$viewer->assign('ERROR_MESSAGE', $e->getMessage());
 			$viewer->view('OperationNotPermitted.tpl', 'Vtiger');
 		}

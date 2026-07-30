@@ -4,10 +4,11 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260724_quote_customer6';
+	var MK_BUILD = '20260730_quote_save_err';
 	var autosaveTimer;
 	var draftAutosaveTimer;
 	var draftSaveInFlight = false;
+	var quoteSaveInFlight = false;
 	var confirmSaveRequested = false;
 	var formDirty = false;
 	var TERMS_MODAL_ID = 'mkQtTermsModal';
@@ -1303,6 +1304,82 @@
 		return !!(subject || contactId || potentialId);
 	}
 
+	function quoteHasLineItems($f) {
+		$f = $f || $form();
+		var hasLine = false;
+		$f.find('input[name^="hdnProductId"], input.selectedModuleId').each(function () {
+			if ($.trim($(this).val() || '') !== '') {
+				hasLine = true;
+				return false;
+			}
+		});
+		if (hasLine) {
+			return true;
+		}
+		$f.find('#lineItemTab tr.lineItemRow')
+			.not('.hide, .lineItemCloneCopy, #row0')
+			.each(function () {
+				var id = $.trim(
+					$(this)
+						.find('input.selectedModuleId, input[name^="hdnProductId"]')
+						.first()
+						.val() || ''
+				);
+				if (id) {
+					hasLine = true;
+					return false;
+				}
+			});
+		return hasLine;
+	}
+
+	function showQuoteError(message) {
+		var msg = $.trim(String(message || '')) || 'Không thể lưu báo giá. Vui lòng kiểm tra lại thông tin bắt buộc.';
+		if (window.app && app.helper && app.helper.showErrorNotification) {
+			app.helper.showErrorNotification({ message: msg });
+			return;
+		}
+		window.alert(msg);
+	}
+
+	function parseQuoteSaveError(res, xhr) {
+		if (res && res.error) {
+			return res.error.message || res.error.code || String(res.error);
+		}
+		if (xhr && xhr.responseJSON && xhr.responseJSON.error) {
+			return xhr.responseJSON.error.message || xhr.responseJSON.error.code;
+		}
+		if (xhr && xhr.responseText) {
+			try {
+				var parsed = JSON.parse(xhr.responseText);
+				if (parsed && parsed.error) {
+					return parsed.error.message || parsed.error.code;
+				}
+			} catch (e) {
+				/* ignore */
+			}
+		}
+		return 'Không thể lưu báo giá. Vui lòng kiểm tra lại thông tin bắt buộc.';
+	}
+
+	function validateQuoteBeforeSave(mode) {
+		var $f = $form();
+		var subject = $.trim($f.find('[name="subject"]').val() || '');
+		var contactId = $.trim($f.find('[name="contact_id"]').val() || '');
+		var potentialId = $.trim($f.find('[name="potential_id"]').val() || '');
+		if (!subject && !contactId && !potentialId) {
+			return 'Vui lòng chọn Khách hàng trước khi lưu báo giá.';
+		}
+		if (mode === 'confirm' && !quoteHasLineItems($f)) {
+			return 'Vui lòng thêm ít nhất một hàng hóa/dịch vụ trước khi lưu báo giá.';
+		}
+		return '';
+	}
+
+	function getQuoteRecordId() {
+		return $.trim($form().find('[name="record"], #recordId').first().val() || '');
+	}
+
 	function applyDraftRecordId(recordId) {
 		recordId = String(recordId || '');
 		if (!recordId || !/^\d+$/.test(recordId)) {
@@ -1408,45 +1485,66 @@
 		}
 	}
 
-	function saveQuoteDraftAjax(opts) {
+	function saveQuoteAjax(opts) {
 		opts = opts || {};
-		if (isSalesOrder() || confirmSaveRequested || draftSaveInFlight) {
+		if (isSalesOrder()) {
 			return $.Deferred().reject().promise();
 		}
-		if (!quoteCanDraftSave()) {
+		var mode = opts.mode === 'confirm' ? 'confirm' : 'draft';
+		if (mode === 'draft' && !opts.force && !quoteCanDraftSave()) {
 			return $.Deferred().reject().promise();
 		}
+		var validationErr = validateQuoteBeforeSave(mode);
+		if (validationErr) {
+			if (!opts.silent) {
+				showQuoteError(validationErr);
+			}
+			return $.Deferred().reject(validationErr).promise();
+		}
+		if (quoteSaveInFlight) {
+			return $.Deferred().reject().promise();
+		}
+
 		var $f = $form();
 		if (!$f.length || !$f[0]) {
 			return $.Deferred().reject().promise();
 		}
 		syncFormBeforeSave();
-		setQuoteSaveMode('draft');
-		ensureDraftQuoteStage();
+		setQuoteSaveMode(mode);
+		if (mode === 'confirm') {
+			ensureConfirmedQuoteStage();
+		} else {
+			ensureDraftQuoteStage();
+		}
+
+		var openPrint = opts.openPrint === true || $f.find('#mkQtOpenPrint').val() === '1';
 		$f.find('input[name="mk_quote_ajax"]').val('1');
-		$f.find('#mkQtOpenPrint').val('0');
+		$f.find('#mkQtOpenPrint').val(openPrint ? '1' : '0');
 
 		var deferred = $.Deferred();
-		draftSaveInFlight = true;
+		quoteSaveInFlight = true;
 		var formData = new FormData($f[0]);
 		formData.set('module', 'Quotes');
 		formData.set('action', 'Save');
-		formData.set('mk_quote_save_mode', 'draft');
+		formData.set('mk_quote_save_mode', mode);
 		formData.set('mk_quote_ajax', '1');
-		formData.set('mk_open_print', '0');
+		formData.set('mk_open_print', openPrint ? '1' : '0');
 
 		var finish = function (ok, payload) {
-			draftSaveInFlight = false;
+			quoteSaveInFlight = false;
 			$f.find('input[name="mk_quote_ajax"]').val('0');
+			$f.find('#mkQtOpenPrint').val('0');
 			if (ok) {
 				formDirty = false;
 				if (payload && payload.record) {
 					applyDraftRecordId(payload.record);
 				}
-				var $el = $('#mkQtAutosave');
-				$el.removeClass('is-dirty').addClass('is-saved');
-				$el.find('.mk-qt-autosave__text').text('Đã lưu nháp');
-				deferred.resolve(payload);
+				if (mode === 'draft') {
+					var $el = $('#mkQtAutosave');
+					$el.removeClass('is-dirty').addClass('is-saved');
+					$el.find('.mk-qt-autosave__text').text('Đã lưu nháp');
+				}
+				deferred.resolve(payload || {});
 			} else {
 				deferred.reject(payload);
 			}
@@ -1467,6 +1565,8 @@
 			return deferred.promise();
 		}
 
+		$('#mkQtSaveTop, #mkQtSaveSendTop').prop('disabled', true);
+
 		$.ajax({
 			url: 'index.php',
 			type: 'POST',
@@ -1481,13 +1581,44 @@
 					finish(true, result);
 					return;
 				}
-				finish(false, res);
+				var errMsg = parseQuoteSaveError(res);
+				if (!opts.silent) {
+					showQuoteError(errMsg);
+				}
+				finish(false, errMsg);
 			})
 			.fail(function (xhr) {
-				finish(false, xhr);
+				var errMsg = parseQuoteSaveError(null, xhr);
+				if (!opts.silent) {
+					showQuoteError(errMsg);
+				}
+				finish(false, errMsg);
+			})
+			.always(function () {
+				$('#mkQtSaveTop, #mkQtSaveSendTop').prop('disabled', false);
 			});
 
 		return deferred.promise();
+	}
+
+	function saveQuoteDraftAjax(opts) {
+		opts = opts || {};
+		if (isSalesOrder() || confirmSaveRequested || draftSaveInFlight) {
+			return $.Deferred().reject().promise();
+		}
+		if (!quoteCanDraftSave()) {
+			return $.Deferred().reject().promise();
+		}
+		draftSaveInFlight = true;
+		return saveQuoteAjax(
+			$.extend({}, opts, {
+				mode: 'draft',
+				silent: true,
+			})
+		)
+			.always(function () {
+				draftSaveInFlight = false;
+			});
 	}
 
 	function scheduleDraftAutosave() {
@@ -1767,12 +1898,37 @@
 		}
 		syncFormBeforeSave();
 		if (!isSalesOrder()) {
-			setQuoteSaveMode(confirmSaveRequested ? 'confirm' : 'draft');
-			if (confirmSaveRequested) {
-				ensureConfirmedQuoteStage();
-			} else {
-				ensureDraftQuoteStage();
-			}
+			var mode = confirmSaveRequested ? 'confirm' : 'draft';
+			var openPrint = $form().find('#mkQtOpenPrint').val() === '1';
+			saveQuoteAjax({
+				mode: mode,
+				openPrint: openPrint,
+			})
+				.done(function (result) {
+					var recordId = result && result.record ? String(result.record) : getQuoteRecordId();
+					if (openPrint && recordId) {
+						if (typeof window.__mkQtOpenPrintPreview === 'function') {
+							window.__mkQtOpenPrintPreview(recordId);
+						} else {
+							window.location.href =
+								'index.php?module=Quotes&view=Edit&record=' +
+								encodeURIComponent(recordId) +
+								'&app=SALES&mk_show_print=1';
+						}
+						confirmSaveRequested = false;
+						return;
+					}
+					if (mode === 'confirm') {
+						window.location.href = 'index.php?module=Quotes&view=List&app=SALES';
+						return;
+					}
+					confirmSaveRequested = false;
+				})
+				.fail(function () {
+					confirmSaveRequested = false;
+					$form().find('#mkQtOpenPrint').val('0');
+				});
+			return;
 		}
 		var $save = $form().find('.saveButton').first();
 		if ($save.length) {
@@ -1794,34 +1950,6 @@
 					$qn.val('');
 				}
 			});
-
-		function quoteHasLineItems($f) {
-			var hasLine = false;
-			$f.find('input[name^="hdnProductId"], input.selectedModuleId').each(function () {
-				if ($.trim($(this).val() || '') !== '') {
-					hasLine = true;
-					return false;
-				}
-			});
-			if (hasLine) {
-				return true;
-			}
-			$f.find('#lineItemTab tr.lineItemRow')
-				.not('.hide, .lineItemCloneCopy, #row0')
-				.each(function () {
-					var id = $.trim(
-						$(this)
-							.find('input.selectedModuleId, input[name^="hdnProductId"]')
-							.first()
-							.val() || ''
-					);
-					if (id) {
-						hasLine = true;
-						return false;
-					}
-				});
-			return hasLine;
-		}
 
 		function quotePrintReady() {
 			var $f = $form();
@@ -1845,10 +1973,6 @@
 					? 'Xem bản in báo giá'
 					: 'Điền khách hàng và ít nhất 1 dòng hàng rồi bấm In'
 			);
-		}
-
-		function getQuoteRecordId() {
-			return $.trim($form().find('[name="record"], #recordId').first().val() || '');
 		}
 
 		function quotePrintPreviewUrl(recordId) {
@@ -1949,6 +2073,7 @@
 			$modal.addClass('is-open').attr('aria-hidden', 'false');
 			$('body').addClass('mk-qt-create-print-open');
 		}
+		window.__mkQtOpenPrintPreview = openCreatePrintPreview;
 
 		function maybeOpenPrintFromQuery() {
 			try {
@@ -2397,6 +2522,30 @@
 		if (!isSalesOrder()) {
 			setQuoteSaveMode('draft');
 			ensureDraftQuoteStage();
+			$form()
+				.off('submit.mkQtAjaxSave click.mkQtAjaxSave')
+				.on('submit.mkQtAjaxSave', function (e) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					if (!confirmSaveRequested) {
+						confirmSaveRequested = true;
+						setQuoteSaveMode('confirm');
+						ensureConfirmedQuoteStage();
+					}
+					triggerSave();
+					return false;
+				})
+				.on('click.mkQtAjaxSave', '.saveButton', function (e) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					if (!confirmSaveRequested) {
+						confirmSaveRequested = true;
+						setQuoteSaveMode('confirm');
+						ensureConfirmedQuoteStage();
+					}
+					triggerSave();
+					return false;
+				});
 		}
 
 		$('#mkQtSaveTop, #mkSoSaveTop')

@@ -18,7 +18,7 @@
 		<tr>
 			<td rowspan='2' width='11%'><img src="{vimage_path('denied.gif')}" ></td>
 			<td style='border-bottom: 1px solid rgb(204, 204, 204);' nowrap='nowrap' width='70%'>
-				<span class='genHeaderSmall'>{vtranslate($MESSAGE)}</span></td>
+				<span class='genHeaderSmall'>{if !empty($ERROR_MESSAGE)}{$ERROR_MESSAGE|escape}{else}{vtranslate($MESSAGE)}{/if}</span></td>
 		</tr>
 		<tr>
 			<td class='small' align='right' nowrap='nowrap'>

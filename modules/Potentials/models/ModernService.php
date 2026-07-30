@@ -22,10 +22,22 @@ class Potentials_ModernService {
 				district VARCHAR(128) DEFAULT NULL,
 				address_line VARCHAR(255) DEFAULT NULL,
 				confirmed_at DATETIME NULL,
+				converted_to_customer_at DATETIME NULL,
+				contact_customer_id INT UNSIGNED DEFAULT NULL,
 				modified_at DATETIME NULL
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 			array()
 		);
+		self::ensureProfileColumn($adb, 'converted_to_customer_at', 'DATETIME NULL');
+		self::ensureProfileColumn($adb, 'contact_customer_id', 'INT UNSIGNED DEFAULT NULL');
+	}
+
+	protected static function ensureProfileColumn(PearDatabase $adb, $column, $definition) {
+		$res = $adb->pquery("SHOW COLUMNS FROM bace_potential_profile LIKE ?", array($column));
+		if ($res && $adb->num_rows($res) > 0) {
+			return;
+		}
+		$adb->pquery("ALTER TABLE bace_potential_profile ADD COLUMN {$column} {$definition}", array());
 	}
 
 	public static function listPotentials($userId = null) {
@@ -49,6 +61,7 @@ class Potentials_ModernService {
 			LEFT JOIN vtiger_contactdetails cd ON cd.contactid = p.contact_id
 			LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
 			LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
+			WHERE pp.converted_to_customer_at IS NULL
 			ORDER BY ce.modifiedtime DESC, p.potentialid DESC";
 		$res = $adb->pquery($sql, array());
 		$rows = array();
@@ -568,6 +581,30 @@ class Potentials_ModernService {
 			'success' => true,
 			'tags' => isset($tagsMap[$potentialId]) ? array_values($tagsMap[$potentialId]) : array(),
 		);
+	}
+
+	public static function markConvertedToCustomer($potentialId, $contactId = 0) {
+		$potentialId = (int) $potentialId;
+		$contactId = (int) $contactId;
+		if ($potentialId <= 0) {
+			throw new Exception('Opportunity not found.');
+		}
+		$adb = PearDatabase::getInstance();
+		self::ensureProfileSchema($adb);
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT potentialid FROM bace_potential_profile WHERE potentialid = ?', array($potentialId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE bace_potential_profile SET converted_to_customer_at = ?, contact_customer_id = ?, modified_at = ? WHERE potentialid = ?',
+				array($now, $contactId > 0 ? $contactId : null, $now, $potentialId)
+			);
+		} else {
+			$adb->pquery(
+				'INSERT INTO bace_potential_profile (potentialid, converted_to_customer_at, contact_customer_id, modified_at) VALUES (?,?,?,?)',
+				array($potentialId, $now, $contactId > 0 ? $contactId : null, $now)
+			);
+		}
+		return true;
 	}
 
 	public static function deletePotential($potentialId) {

@@ -64,6 +64,13 @@
       _readyPromise = null;
       return bootstrap();
     },
+    removeFromList: function (id) {
+      var oid = String(id || "");
+      _opps = _opps.filter(function (o) {
+        return String(o.id) !== oid && String(o.crmid || "") !== oid;
+      });
+      return _opps;
+    },
     remove: function (id) {
       var oid = String(id || "");
       return apiRequest("delete", { id: oid }).then(function () {

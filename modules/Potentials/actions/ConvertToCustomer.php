@@ -62,6 +62,9 @@ class Potentials_ConvertToCustomer_Action extends Vtiger_Action_Controller {
 				$this->applyCustomerTierTag($contactId, $tier);
 			}
 
+			require_once 'modules/Potentials/models/ModernService.php';
+			Potentials_ModernService::markConvertedToCustomer($recordId, $contactId);
+
 			$response->setResult(array(
 				'success' => true,
 				'contact_id' => $contactId,

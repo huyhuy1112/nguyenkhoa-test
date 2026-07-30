@@ -118,6 +118,7 @@ class Vtiger_Save_Action extends Vtiger_Action_Controller {
 			} else {
 				// Show error page instead of blank page
 				$viewer = new Vtiger_Viewer();
+				$viewer->assign('MESSAGE', $e->getMessage());
 				$viewer->assign('ERROR_MESSAGE', $e->getMessage());
 				$viewer->view('OperationNotPermitted.tpl', 'Vtiger');
 				return;

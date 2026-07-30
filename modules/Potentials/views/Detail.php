@@ -79,10 +79,7 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 
 		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
 			array('closingdate', 'Ngày đóng'),
-			array('related_to', 'Tổ chức'),
-			array('contact_id', 'Liên hệ'),
 			array('assigned_user_id', 'Phụ trách'),
-			array('createdtime', 'Ngày chuyển từ Lead'),
 		));
 
 		$locationFields = array(
