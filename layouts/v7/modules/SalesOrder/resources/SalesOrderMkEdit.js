@@ -28,6 +28,12 @@
 	var TERMS_MODAL_ID = 'mkSoTermsModal';
 	var TERMS_EDITOR_ID = 'mkSoTermsEditor';
 	var termsModalOpen = false;
+	var DEFAULT_DELIVERY_NOTE_TEXT = [
+		'- Khi nhận hàng: Nếu có sai lệch về số lượng kiện hàng thực tế so với PGH / phiếu giao nhận của dịch vụ vận chuyển, hãy liên hệ ngay với NVKD để được giải quyết (chúng tôi chỉ giải quyết khiếu nại về giao nhận kiện hàng trong ngày Quý khách nhận được hàng).',
+		'- Về đơn hàng: Chúng tôi chỉ giải quyết khiếu nại trong vòng 3 ngày kể từ ngày Quý khách nhận được hàng (Bao gồm tất cả các trường hợp về số lượng sản phẩm, tình trạng hàng hóa như: vỡ hỏng, móp méo, lỗi). Quý khách hãy cung cấp hình ảnh, video hàng hóa thực nhận cho NVKD để khiếu nại.',
+		'',
+		'Mọi ý kiến đóng góp của Quý khách về chất lượng sản phẩm, dịch vụ xin vui lòng liên hệ SĐT 0964.468.929.'
+	].join('\n');
 
 	var TERMS_CK_TOOLBAR = [
 		{
@@ -1065,6 +1071,11 @@
 			}
 			$descRow.find('td.fieldLabel label').first().text('Ghi chú');
 			$desc.closest('td.fieldValue').addClass('fieldValueWidth80');
+			// Keep BA delivery-note policy prefilled for new/empty notes.
+			var currentDesc = String($desc.val() || '').trim();
+			if (!currentDesc) {
+				$desc.val(DEFAULT_DELIVERY_NOTE_TEXT);
+			}
 		}
 
 		var labelMap = {

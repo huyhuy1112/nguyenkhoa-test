@@ -30,3 +30,29 @@
 	</td></tr>
 	</table>
 </div>
+<script type="text/javascript">
+(function () {
+	try {
+		var msgNode = document.querySelector('.genHeaderSmall');
+		var message = msgNode ? (msgNode.textContent || msgNode.innerText || '') : '';
+		message = String(message || '').trim();
+		if (!message) {
+			return;
+		}
+		if (window.app && app.helper && typeof app.helper.showErrorNotification === 'function') {
+			app.helper.showErrorNotification({ message: message });
+		} else if (window.parent && window.parent.app && window.parent.app.helper && typeof window.parent.app.helper.showErrorNotification === 'function') {
+			window.parent.app.helper.showErrorNotification({ message: message });
+		} else {
+			window.alert(message);
+		}
+		if (window.history && window.history.length > 1) {
+			setTimeout(function () {
+				window.history.back();
+			}, 150);
+		}
+	} catch (e) {
+		/* ignore */
+	}
+})();
+</script>

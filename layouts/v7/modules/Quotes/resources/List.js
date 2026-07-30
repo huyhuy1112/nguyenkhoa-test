@@ -1537,7 +1537,20 @@
     );
   }
 
-  function loadPosLikeList(extraParams) {
+  function getPersistedSortParams() {
+    var $lv = getListViewContainer();
+    var orderBy = $.trim($lv.find("#orderBy").val() || "");
+    var sortOrder = $.trim($lv.find("#sortOrder").val() || "");
+    if (!orderBy) {
+      return {};
+    }
+    return {
+      orderby: orderBy,
+      sortorder: sortOrder || "DESC",
+    };
+  }
+
+  function loadPosListRecords(extraParams) {
     var listInstance =
       Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
     if (!listInstance || !listInstance.loadListViewRecords) {
@@ -1550,7 +1563,8 @@
     } catch (e) {
       /* ignore */
     }
-    listInstance.loadListViewRecords(extraParams || {});
+    var params = $.extend({}, getPersistedSortParams(), extraParams || {});
+    listInstance.loadListViewRecords(params);
   }
 
   function resolvePosSearchField(fieldName) {
@@ -1570,53 +1584,50 @@
     return fallback[fieldName] || fieldName;
   }
 
-  function buildPosSearchParams(query) {
-    query = (query || "").toString().trim();
-    if (!query.length) {
-      return [];
+  function applyQuotesClientSearch(query) {
+    var q = String(query || "").toLowerCase().trim();
+    var $tbody = $("#listview-table tbody");
+    if (!$tbody.length) return;
+    var $rows = $tbody.find("tr.listViewEntries");
+    $tbody.find("tr.mk-qt-search-empty").remove();
+    if (!q) {
+      $rows.show();
+      $tbody.find("tr.mk-so-inline-detail-row").show();
+      return;
     }
-    // Multi-field OR: mã, tiêu đề, người liên hệ (Họ/Tên), cơ hội, tổ chức.
-    // Vtiger: group[0]=AND glue, group[1]=OR glue → keep empty first group.
-    var fields = [
-      "quote_no",
-      "subject",
-      resolvePosSearchField("contact_id"),
-      "contact_id ; (Contacts) firstname",
-      resolvePosSearchField("potential_id"),
-      resolvePosSearchField("account_id"),
-    ];
-    var conditions = [];
-    var seen = {};
-    for (var i = 0; i < fields.length; i++) {
-      var f = fields[i];
-      if (!f || seen[f]) continue;
-      seen[f] = true;
-      conditions.push([f, "c", query]);
+    var visibleCount = 0;
+    $rows.each(function () {
+      var $row = $(this);
+      var text = String($row.text() || "").toLowerCase();
+      var ok = text.indexOf(q) >= 0;
+      $row.toggle(ok);
+      var rowId = String($row.attr("data-id") || "");
+      if (rowId) {
+        $tbody
+          .find('tr.mk-so-inline-detail-row[data-parent-id="' + rowId + '"]')
+          .toggle(ok);
+      }
+      if (ok) visibleCount += 1;
+    });
+    if (!visibleCount) {
+      var colCount =
+        $("#listview-table thead tr.listViewContentHeader th").length || 1;
+      $tbody.append(
+        '<tr class="mk-qt-search-empty"><td colspan="' +
+          colCount +
+          '" class="mk-leads-empty">Không có báo giá phù hợp từ khóa.</td></tr>',
+      );
     }
-    if (!conditions.length) {
-      return [];
-    }
-    return [[], conditions];
   }
 
   function runPosQuickSearch(query) {
     query = query != null ? String(query).trim() : qtLiveSearchQuery;
     qtLiveSearchQuery = query;
-    var quickParams = buildPosSearchParams(query);
-    var payload = JSON.stringify(quickParams);
-    if (payload === qtLastSearchPayload) {
+    if (query === qtLastSearchPayload) {
       return;
     }
-    qtLastSearchPayload = payload;
-    var listInstance =
-      Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
-    if (!listInstance || !listInstance.loadListViewRecords) {
-      return;
-    }
-    listInstance.filterClick = false;
-    // #currentSearchParams expects field→meta map, not OR search payload.
-    $("#listViewContent").find("#currentSearchParams").val("");
-    loadPosLikeList({ page: "1", search_params: payload, nolistcache: "1" });
+    qtLastSearchPayload = query;
+    applyQuotesClientSearch(query);
   }
 
   function schedulePosQuickSearch(immediate) {
@@ -1957,15 +1968,21 @@
     $(document)
       .off("input.mkQtPosSearch", "#mk-qt-pos-search")
       .on("input.mkQtPosSearch", "#mk-qt-pos-search", function () {
-        if (!isQuotesSalesList()) return;
         var val = $.trim($(this).val());
         qtLiveSearchQuery = val;
         $("#mk-qt-pos-search-clear").prop("hidden", !val);
         schedulePosQuickSearch();
       })
+      .off("search.mkQtPosSearch", "#mk-qt-pos-search")
+      .on("search.mkQtPosSearch", "#mk-qt-pos-search", function () {
+        // Handles native clear (x) on <input type="search"> in WebKit browsers.
+        var val = $.trim($(this).val());
+        qtLiveSearchQuery = val;
+        $("#mk-qt-pos-search-clear").prop("hidden", !val);
+        schedulePosQuickSearch(true);
+      })
       .off("keydown.mkQtPosSearch", "#mk-qt-pos-search")
       .on("keydown.mkQtPosSearch", "#mk-qt-pos-search", function (ev) {
-        if (!isQuotesSalesList()) return;
         if (ev.key === "Enter") {
           ev.preventDefault();
           schedulePosQuickSearch(true);
@@ -1981,7 +1998,6 @@
       })
       .off("click.mkQtPosSearchClear", "#mk-qt-pos-search-clear")
       .on("click.mkQtPosSearchClear", "#mk-qt-pos-search-clear", function (e) {
-        if (!isQuotesSalesList()) return;
         e.preventDefault();
         qtLiveSearchQuery = "";
         qtLastSearchPayload = "";
@@ -2083,13 +2099,14 @@
   }
 
   function applyPosListChrome() {
-    if (!isPosListEnabled()) return;
     bindPosToolbarEvents();
+    if (!isPosListEnabled()) return;
     bindInlineDetailCapture();
     patchInlineDetailRowClick();
     if (qtLiveSearchQuery) {
       $("#mk-qt-pos-search").val(qtLiveSearchQuery);
       $("#mk-qt-pos-search-clear").prop("hidden", !qtLiveSearchQuery);
+      runPosQuickSearch(qtLiveSearchQuery);
     }
     injectSummaryRow($("#listViewContent #listview-table"));
   }
@@ -2331,6 +2348,10 @@
     } catch (e2) {
       /* ignore */
     }
+  }
+
+  function syncQuotesLayoutMode() {
+    applyLayoutMode(getSavedLayoutMode());
   }
 
   function bindViewLayoutToggle() {
@@ -2604,15 +2625,17 @@
   }
 })(jQuery);
 
-Inventory_List_Js(
-  "Quotes_List_Js",
-  {},
-  {
-    postLoadListViewRecords: function () {
-      this._super();
-      if (window.__mkQuotesListUi && window.__mkQuotesListUi.afterListLayout) {
-        setTimeout(window.__mkQuotesListUi.afterListLayout, 100);
-      }
+if (typeof Inventory_List_Js === "function") {
+  Inventory_List_Js(
+    "Quotes_List_Js",
+    {},
+    {
+      postLoadListViewRecords: function () {
+        this._super();
+        if (window.__mkQuotesListUi && window.__mkQuotesListUi.afterListLayout) {
+          setTimeout(window.__mkQuotesListUi.afterListLayout, 100);
+        }
+      },
     },
-  },
-);
+  );
+}

@@ -253,7 +253,7 @@ class SalesOrder_SaleInvoicePdf_Helper {
 body{margin:0;padding:16px;font:13px/1.45 "DejaVu Sans",Arial,Helvetica,sans-serif;color:#111;background:#fff}
 .sheet{max-width:900px;margin:0 auto;display:flex;flex-direction:column;min-height:740px}
 .head{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
-.mk-ph-logo{width:88px;height:auto;object-fit:contain}
+.mk-ph-logo{width:170px;height:auto;object-fit:contain}
 .head-main{flex:1;min-width:0}
 .company{font-size:16px;font-weight:700;margin:0 0 4px}
 .meta{color:#c44a1c;font-size:12px;margin:0}
@@ -275,15 +275,15 @@ td.r,th.r{text-align:right}
 .totals-row{display:flex;justify-content:space-between;gap:12px;margin:2px 0;font-size:13px}
 .totals-row.strong{font-weight:700;font-size:14px}
 .words{font-style:italic;margin:10px 0 10px}
-.date{text-align:right;margin:8px 0 18px}
-.signs{display:flex;gap:8px;margin:34px 0 0}
+.date{text-align:right;margin:8px 0 8px}
+.signs{display:flex;gap:8px;margin:14px 0 0}
 .sign{flex:1;text-align:center}
 .sign b{display:block;margin-bottom:4px}
 .sign span{font-size:11px;font-style:italic;color:#444}
 .note-title{font-weight:700;text-decoration:underline;margin:0 0 6px}
 .note-list{margin:0;padding-left:18px}
 .note-phone{color:#c44a1c;margin-top:8px}
-.mk-note{margin-top:auto}
+.mk-note{margin-top:150px}
 @media print{body{padding:0}.no-print{display:none!important}}
 </style></head><body><div class="sheet">'
 			. '<div class="head">' . $logo
@@ -322,9 +322,9 @@ td.r,th.r{text-align:right}
 			. '<div class="sign"><b>Khách hàng</b><span>(Ký và ghi rõ họ tên)</span></div>'
 			. '</div>'
 			. '<div class="mk-note"><p class="note-title">Lưu ý:</p><ul class="note-list">'
-			. '<li>Khi nhận hàng quý khách vui lòng kiểm tra kỹ hàng hóa trước khi nhận.</li>'
-			. '<li>Khiếu nại về hàng hóa xin vui lòng phản hồi trong vòng 3 ngày kể từ ngày nhận hàng.</li>'
-			. '</ul><p class="note-phone">Mọi thắc mắc xin vui lòng liên hệ: ' . $h($data['company_phone']) . '</p></div>'
+			. '<li>Khi nhận hàng: Nếu có sai lệch về số lượng kiện hàng thực tế so với PGH / phiếu giao nhận của dịch vụ vận chuyển, hãy liên hệ ngay với NVKD để được giải quyết (chúng tôi chỉ giải quyết khiếu nại về giao nhận kiện hàng trong ngày Quý khách nhận được hàng).</li>'
+			. '<li>Về đơn hàng: Chúng tôi chỉ giải quyết khiếu nại trong vòng 3 ngày kể từ ngày Quý khách nhận được hàng (Bao gồm tất cả các trường hợp về số lượng sản phẩm, tình trạng hàng hóa như: vỡ hỏng, móp méo, lỗi). Quý khách hãy cung cấp hình ảnh, video hàng hóa thực nhận cho NVKD để khiếu nại.</li>'
+			. '</ul><p class="note-phone">Mọi ý kiến đóng góp của Quý khách về chất lượng sản phẩm, dịch vụ xin vui lòng liên hệ SĐT 0964.468.929.</p></div>'
 			. '</div>' . $autoScript . '</body></html>';
 	}
 
@@ -579,7 +579,7 @@ td.r,th.r{text-align:right}
 		$y = $pdf->GetY();
 
 		// —— Header: logo left + company meta ——
-		$logoW = 28;
+		$logoW = 44;
 		$logoH = 0;
 		$headerRightX = $x;
 		if ($logoPath !== '' && is_readable($logoPath) && Quotes_QuoteBaService_Helper::isValidQuoteLogoImage($logoPath)) {
@@ -744,7 +744,7 @@ td.r,th.r{text-align:right}
 		$pdf->Ln(4);
 		$pdf->SetFont(self::FONT, '', 10);
 		$pdf->Cell($pageW, 5, self::utf($dateLabel), 0, 1, 'R');
-		$pdf->Ln(6);
+		$pdf->Ln(2);
 
 		// —— Signatures ——
 		$sigW = $pageW / 3;
@@ -757,17 +757,17 @@ td.r,th.r{text-align:right}
 			$pdf->SetFont(self::FONT, 'I', 8);
 			$pdf->Cell($sigW, 4, self::utf('(Ký và ghi rõ họ tên)'), 0, 0, 'C');
 		}
-		$pdf->SetY($sigY + 28);
+		$pdf->SetY($sigY + 104);
 
 		// —— Footer notes ——
 		$pdf->SetFont(self::FONT, 'U', 10);
 		$pdf->Cell($pageW, 5, self::utf('Lưu ý:'), 0, 1, 'L');
 		$pdf->SetFont(self::FONT, '', 9);
-		$pdf->MultiCell($pageW, 4.5, self::utf('- Khi nhận hàng quý khách vui lòng kiểm tra kỹ hàng hóa trước khi nhận.'), 0, 'L', false, 1);
-		$pdf->MultiCell($pageW, 4.5, self::utf('- Khiếu nại về hàng hóa xin vui lòng phản hồi trong vòng 3 ngày kể từ ngày nhận hàng.'), 0, 'L', false, 1);
+		$pdf->MultiCell($pageW, 4.5, self::utf('- Khi nhận hàng: Nếu có sai lệch về số lượng kiện hàng thực tế so với PGH / phiếu giao nhận của dịch vụ vận chuyển, hãy liên hệ ngay với NVKD để được giải quyết (chúng tôi chỉ giải quyết khiếu nại về giao nhận kiện hàng trong ngày Quý khách nhận được hàng).'), 0, 'L', false, 1);
+		$pdf->MultiCell($pageW, 4.5, self::utf('- Về đơn hàng: Chúng tôi chỉ giải quyết khiếu nại trong vòng 3 ngày kể từ ngày Quý khách nhận được hàng (Bao gồm tất cả các trường hợp về số lượng sản phẩm, tình trạng hàng hóa như: vỡ hỏng, móp méo, lỗi). Quý khách hãy cung cấp hình ảnh, video hàng hóa thực nhận cho NVKD để khiếu nại.'), 0, 'L', false, 1);
 		$pdf->Ln(1);
 		$pdf->SetTextColor(self::ACCENT[0], self::ACCENT[1], self::ACCENT[2]);
-		$pdf->MultiCell($pageW, 4.5, self::utf('Mọi thắc mắc xin vui lòng liên hệ: ' . $phone), 0, 'L', false, 1);
+		$pdf->MultiCell($pageW, 4.5, self::utf('Mọi ý kiến đóng góp của Quý khách về chất lượng sản phẩm, dịch vụ xin vui lòng liên hệ SĐT 0964.468.929.'), 0, 'L', false, 1);
 		$pdf->SetTextColor(0, 0, 0);
 
 		return $pdf;
