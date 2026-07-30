@@ -327,7 +327,8 @@
   }
 
   function esc(s) {
-    return String(s || "")
+    // Use == null so numeric 0 is preserved (KPI "Mới hôm nay" etc.)
+    return String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/"/g, "&quot;");
@@ -999,7 +1000,8 @@
     leads.forEach(function (l) {
       var tags = l.tags || [];
       var d = logic.derive(l);
-      if (new Date(l.last_touch).getTime() >= todayStart.getTime()) newToday++;
+      var createdMs = l.createdtime ? new Date(l.createdtime).getTime() : NaN;
+      if (!isNaN(createdMs) && createdMs >= todayStart.getTime()) newToday++;
       if (tags.indexOf("mua_lan_dau") >= 0 || tags.indexOf("mua_lai") >= 0) qualified++;
       if (tags.indexOf("mua_lai") >= 0) repeat++;
       if (tags.indexOf("vang") >= 0) gold++;
