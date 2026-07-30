@@ -5,7 +5,7 @@
 	<div class="mk-so-pos-toolbar__search-wrap">
 		<div class="mk-so-pos-search" role="search">
 			<span class="mk-so-pos-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>
-			<input id="mk-so-pos-search" class="mk-so-pos-search__input" type="search" placeholder="Theo mã phiếu đặt" autocomplete="off" />
+			<input id="mk-so-pos-search" class="mk-so-pos-search__input" type="search" placeholder="Tìm theo mã, tên KH, cơ hội…" autocomplete="off" />
 			<div class="mk-so-pos-search__actions">
 				<button type="button" class="mk-so-pos-search__filter" id="mk-so-pos-filter-btn" title="Bộ lọc nâng cao" aria-label="Bộ lọc">
 					<i class="fa fa-sliders"></i>

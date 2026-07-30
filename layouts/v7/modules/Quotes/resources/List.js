@@ -1543,7 +1543,31 @@
     if (!listInstance || !listInstance.loadListViewRecords) {
       return;
     }
+    try {
+      if (typeof app !== "undefined" && app.helper && app.helper.showProgress) {
+        app.helper.showProgress();
+      }
+    } catch (e) {
+      /* ignore */
+    }
     listInstance.loadListViewRecords(extraParams || {});
+  }
+
+  function resolvePosSearchField(fieldName) {
+    if (
+      window.MkSalesListShared &&
+      typeof window.MkSalesListShared.resolveReferenceSearchFieldName === "function"
+    ) {
+      return window.MkSalesListShared.resolveReferenceSearchFieldName(fieldName, {
+        type: "reference",
+      });
+    }
+    var fallback = {
+      account_id: "account_id ; (Accounts) accountname",
+      contact_id: "contact_id ; (Contacts) lastname",
+      potential_id: "potential_id ; (Potentials) potentialname",
+    };
+    return fallback[fieldName] || fieldName;
   }
 
   function buildPosSearchParams(query) {
@@ -1551,10 +1575,26 @@
     if (!query.length) {
       return [];
     }
-    var fields = ["quote_no", "subject", "account_id", "potential_id"];
+    // Multi-field OR: mã, tiêu đề, người liên hệ (Họ/Tên), cơ hội, tổ chức.
+    // Vtiger: group[0]=AND glue, group[1]=OR glue → keep empty first group.
+    var fields = [
+      "quote_no",
+      "subject",
+      resolvePosSearchField("contact_id"),
+      "contact_id ; (Contacts) firstname",
+      resolvePosSearchField("potential_id"),
+      resolvePosSearchField("account_id"),
+    ];
     var conditions = [];
+    var seen = {};
     for (var i = 0; i < fields.length; i++) {
-      conditions.push([fields[i], "c", query]);
+      var f = fields[i];
+      if (!f || seen[f]) continue;
+      seen[f] = true;
+      conditions.push([f, "c", query]);
+    }
+    if (!conditions.length) {
+      return [];
     }
     return [[], conditions];
   }
@@ -1574,7 +1614,8 @@
       return;
     }
     listInstance.filterClick = false;
-    $("#listViewContent").find("#currentSearchParams").val(payload);
+    // #currentSearchParams expects field→meta map, not OR search payload.
+    $("#listViewContent").find("#currentSearchParams").val("");
     loadPosLikeList({ page: "1", search_params: payload, nolistcache: "1" });
   }
 

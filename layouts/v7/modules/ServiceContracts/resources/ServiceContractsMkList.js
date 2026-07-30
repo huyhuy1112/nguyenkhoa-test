@@ -21,31 +21,63 @@
     return ref && ref.pickLabel ? ref.pickLabel(vi, en) : vi;
   }
 
+  var FRANCHISE_STATUS_OPTS = [
+    "Quan Tâm/Tham Khảo",
+    "Không đủ tài chính",
+    "Đã Kí Quỹ",
+    "Đang chăm sóc",
+    "Chuyển sang Nguyên Khoa",
+  ];
+  var DATA_SOURCE_OPTS = ["Facebook", "TikTok", "Website", "Zalo", "Khác"];
+  var CONTACT_STATUS_OPTS = ["Chưa gọi", "Đã gửi tư vấn", "Thuê bao", "Ko nghe Máy Lần 1"];
+
   function getPresetSegments() {
     return [
-      { id: "tagged", name: pick("Có tag", "Has tag"), filters: { hasTag: true } },
-      { id: "has_store", name: pick("Đã có quán", "Has store"), filters: { customerRank: "co_quan" } },
-      { id: "no_store", name: pick("Chưa có quán", "No store yet"), filters: { customerRank: "chuan_bi_mo" } },
-      { id: "family", name: pick("Gia đình", "Family"), filters: { customerRank: "gia_dinh" } },
-      { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
-      { id: "franchise", name: pick("Nhượng quyền", "Franchise"), filters: { franchise: "nhuong_quyen" } },
-      { id: "deposit", name: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
-      { id: "gold", name: pick("Hạng Vàng", "Gold tier"), filters: { tier: "vang" } },
-      { id: "stale", name: pick("Lâu chưa chăm", "Stale"), filters: { staleOnly: true } },
+      {
+        id: "caring",
+        name: pick("Đang chăm sóc", "In care"),
+        filters: { franchiseStatus: "Đang chăm sóc" },
+      },
+      {
+        id: "interested",
+        name: pick("Quan tâm / Tham khảo", "Interested"),
+        filters: { franchiseStatus: "Quan Tâm/Tham Khảo" },
+      },
+      {
+        id: "deposit",
+        name: pick("Đã ký quỹ", "Deposited"),
+        filters: { franchiseStatus: "Đã Kí Quỹ" },
+      },
+      {
+        id: "zalo",
+        name: "Zalo",
+        filters: { dataSource: "Zalo" },
+      },
+      {
+        id: "facebook",
+        name: "Facebook",
+        filters: { dataSource: "Facebook" },
+      },
+      {
+        id: "tiktok",
+        name: "TikTok",
+        filters: { dataSource: "TikTok" },
+      },
+      {
+        id: "no_call",
+        name: pick("Chưa gọi", "Not called"),
+        filters: { contactStatus: "Chưa gọi" },
+      },
     ];
   }
 
   var EMPTY = {
     search: "",
-    customerRank: ANY,
-    classTag: ANY,
-    material: ANY,
-    franchise: ANY,
-    tier: ANY,
-    anyTag: ANY,
+    franchiseStatus: ANY,
+    dataSource: ANY,
+    contactStatus: ANY,
+    referrer: ANY,
     owner: ANY,
-    hasTag: false,
-    staleOnly: false,
   };
 
   var state = {
@@ -134,11 +166,14 @@
     return false;
   }
 
+  function ownerLabel(c) {
+    return String((c && (c.sale_owner || c.owner)) || "").trim();
+  }
+
   function filterRows(rows) {
     var f = state.filters;
     var q = (f.search || "").toLowerCase().trim();
     return rows.filter(function (c) {
-      var cats = categorize(c.tags);
       if (q) {
         var hay = [
           c.name,
@@ -147,7 +182,7 @@
           c.account,
           c.email,
           c.phone,
-          c.owner,
+          ownerLabel(c),
           c.area,
           c.address,
           c.district,
@@ -160,7 +195,7 @@
           c.interaction_2,
           c.interaction_3,
           c.interaction_materials,
-          (c.tags || []).join(" "),
+          c.notes,
         ]
           .join(" ")
           .toLowerCase();
@@ -172,17 +207,11 @@
           }
         }
       }
-      if (f.hasTag && !(c.tags || []).length) return false;
-      if (f.customerRank !== ANY && (!cats.customerRank || ref.normalizeTag(cats.customerRank) !== f.customerRank))
-        return false;
-      if (f.classTag !== ANY && (!cats.classTag || ref.normalizeTag(cats.classTag) !== f.classTag)) return false;
-      if (f.material !== ANY && (!cats.material || ref.normalizeTag(cats.material) !== f.material)) return false;
-      if (f.franchise !== ANY && (!cats.franchise || ref.normalizeTag(cats.franchise) !== f.franchise))
-        return false;
-      if (f.tier !== ANY && (!cats.tier || ref.normalizeTag(cats.tier) !== f.tier)) return false;
-      if (f.anyTag !== ANY && !hasNormalizedTag(c.tags, f.anyTag)) return false;
-      if (f.staleOnly && !isStale(c)) return false;
-      if (f.owner !== ANY && c.owner !== f.owner) return false;
+      if (f.franchiseStatus !== ANY && String(c.franchise_status || "") !== f.franchiseStatus) return false;
+      if (f.dataSource !== ANY && String(c.data_source || "") !== f.dataSource) return false;
+      if (f.contactStatus !== ANY && String(c.contact_status || "") !== f.contactStatus) return false;
+      if (f.referrer !== ANY && String(c.referrer || "") !== f.referrer) return false;
+      if (f.owner !== ANY && ownerLabel(c) !== f.owner) return false;
       return true;
     });
   }
@@ -442,23 +471,24 @@
   }
 
   function computeKpis(rows) {
-    var withTags = rows.filter(function (c) {
-      return (c.tags || []).length > 0;
-    }).length;
     var withPhone = rows.filter(function (c) {
       return !!c.phone;
     }).length;
     var withAff = rows.filter(function (c) {
       return !!c.affiliate_code;
     }).length;
-    var franchise = rows.filter(function (c) {
-      return categorize(c.tags).franchise;
+    var caring = rows.filter(function (c) {
+      return String(c.franchise_status || "") === "Đang chăm sóc";
     }).length;
-    var gold = rows.filter(function (c) {
-      var tg = categorize(c.tags).tier;
-      return tg && ref.normalizeTag(tg) === "vang";
+    var interested = rows.filter(function (c) {
+      return String(c.franchise_status || "") === "Quan Tâm/Tham Khảo";
     }).length;
-    var stale = rows.filter(isStale).length;
+    var deposited = rows.filter(function (c) {
+      return String(c.franchise_status || "") === "Đã Kí Quỹ";
+    }).length;
+    var noCall = rows.filter(function (c) {
+      return String(c.contact_status || "") === "Chưa gọi";
+    }).length;
     return [
       {
         key: "total",
@@ -475,13 +505,6 @@
         tone: "emerald",
       },
       {
-        key: "tagged",
-        label: t("JS_MK_KPI_TAGGED", "Có tag"),
-        value: withTags,
-        icon: "crown",
-        tone: "violet",
-      },
-      {
         key: "phone",
         label: t("JS_MK_KPI_PHONE", "Có SĐT"),
         value: withPhone,
@@ -489,17 +512,30 @@
         tone: "cyan",
       },
       {
-        key: "franchise",
-        label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"),
-        value: franchise,
+        key: "caring",
+        label: t("JS_MK_KPI_CARING", "Đang chăm sóc"),
+        value: caring,
         icon: "trend",
         tone: "indigo",
       },
-      { key: "gold", label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: gold, icon: "crown", tone: "rose" },
       {
-        key: "stale",
-        label: t("JS_MK_KPI_STALE", "Lâu chưa chăm"),
-        value: stale,
+        key: "interested",
+        label: t("JS_MK_KPI_INTERESTED", "Quan tâm"),
+        value: interested,
+        icon: "crown",
+        tone: "violet",
+      },
+      {
+        key: "deposit",
+        label: t("JS_MK_KPI_DEPOSIT", "Đã ký quỹ"),
+        value: deposited,
+        icon: "check",
+        tone: "rose",
+      },
+      {
+        key: "no_call",
+        label: t("JS_MK_KPI_NO_CALL", "Chưa gọi"),
+        value: noCall,
         icon: "alert",
         tone: "amber",
       },
@@ -587,56 +623,73 @@
     );
   }
 
+  function uniqueSorted(values) {
+    var out = [];
+    (values || []).forEach(function (v) {
+      var s = String(v || "").trim();
+      if (s && out.indexOf(s) < 0) out.push(s);
+    });
+    out.sort(function (a, b) {
+      return a.localeCompare(b, "vi");
+    });
+    return out;
+  }
+
+  function mergePickOptions(defaults, fromRows) {
+    return uniqueSorted((defaults || []).concat(fromRows || []));
+  }
+
   function renderFiltersPanel() {
     var host = $("mk-sc-filters-panel");
-    if (!host || !ref) return;
+    if (!host) return;
     var rows = getContracts();
+    var statusVals = [];
+    var sourceVals = [];
+    var contactVals = [];
+    var referrers = [];
     var owners = [];
     rows.forEach(function (c) {
-      if (c.owner && owners.indexOf(c.owner) < 0) owners.push(c.owner);
+      if (c.franchise_status) statusVals.push(c.franchise_status);
+      if (c.data_source) sourceVals.push(c.data_source);
+      if (c.contact_status) contactVals.push(c.contact_status);
+      if (c.referrer) referrers.push(c.referrer);
+      var o = ownerLabel(c);
+      if (o) owners.push(o);
     });
-    owners.sort();
     host.innerHTML =
       '<div class="mk-leads-filters-grid">' +
       fieldSelect(
-        t("JS_MK_FILTER_TIER", "Hạng khách hàng"),
-        "tier",
-        ref.TIER_TAGS.map(function (tg) {
-          return [ref.normalizeTag(tg), tagMeta(tg).label];
+        t("LBL_MK_SC_FRANCHISE_STATUS", "Trạng thái"),
+        "franchiseStatus",
+        mergePickOptions(FRANCHISE_STATUS_OPTS, statusVals).map(function (v) {
+          return [v, v];
         })
       ) +
       fieldSelect(
-        t("JS_MK_FILTER_CUSTOMER_RANK", "Loại khách"),
-        "customerRank",
-        ref.CUSTOMER_RANK_TAGS.map(function (tg) {
-          return [ref.normalizeTag(tg), tagMeta(tg).label];
+        t("LBL_MK_SC_DATA_SOURCE", "Nguồn data"),
+        "dataSource",
+        mergePickOptions(DATA_SOURCE_OPTS, sourceVals).map(function (v) {
+          return [v, v];
         })
       ) +
       fieldSelect(
-        t("JS_MK_FILTER_CLASS", "Tag lớp học"),
-        "classTag",
-        ref.CLASS_TAGS.map(function (tg) {
-          return [ref.normalizeTag(tg), tagMeta(tg).label];
+        t("LBL_MK_SC_CONTACT_STATUS", "Liên hệ"),
+        "contactStatus",
+        mergePickOptions(CONTACT_STATUS_OPTS, contactVals).map(function (v) {
+          return [v, v];
         })
       ) +
       fieldSelect(
-        t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"),
-        "material",
-        ref.MATERIAL_TAGS.map(function (tg) {
-          return [ref.normalizeTag(tg), tagMeta(tg).label];
+        t("LBL_MK_SC_REFERRER", "Người giới thiệu"),
+        "referrer",
+        uniqueSorted(referrers).map(function (v) {
+          return [v, v];
         })
       ) +
       fieldSelect(
-        t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"),
-        "franchise",
-        ref.FRANCHISE_TAGS.map(function (tg) {
-          return [ref.normalizeTag(tg), tagMeta(tg).label];
-        })
-      ) +
-      fieldSelect(
-        t("JS_MK_FILTER_OWNER", "Phụ trách"),
+        t("LBL_MK_SC_SALE_OWNER", "Sale phụ trách"),
         "owner",
-        owners.map(function (o) {
+        uniqueSorted(owners).map(function (o) {
           return [o, o];
         })
       ) +
@@ -655,13 +708,10 @@
     if (reset) {
       var dirty =
         f.search ||
-        f.hasTag ||
-        f.staleOnly ||
-        f.customerRank !== ANY ||
-        f.classTag !== ANY ||
-        f.material !== ANY ||
-        f.franchise !== ANY ||
-        f.tier !== ANY ||
+        f.franchiseStatus !== ANY ||
+        f.dataSource !== ANY ||
+        f.contactStatus !== ANY ||
+        f.referrer !== ANY ||
         f.owner !== ANY;
       reset.hidden = !dirty && !state.activeSegment;
     }
@@ -821,8 +871,7 @@
             '<td class="mk-leads-td">' +
             dateOnlyCell(c.received_date || c.createdtime) +
             "</td>" +
-            '<td class="mk-leads-td mk-leads-td--lead"><span class="mk-leads-lead-cell">' +
-            ic("user") +
+            '<td class="mk-leads-td mk-leads-td--lead"><span class="mk-leads-lead-cell mk-sc-name-cell">' +
             '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' +
             detailUrl(c.crmid || c.id) +
             '">' +

@@ -5,7 +5,7 @@
 	<div class="mk-so-pos-toolbar__search-wrap">
 		<div class="mk-so-pos-search" role="search">
 			<span class="mk-so-pos-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>
-			<input id="mk-qt-pos-search" class="mk-so-pos-search__input" type="search" placeholder="Theo mã báo giá" autocomplete="off" />
+			<input id="mk-qt-pos-search" class="mk-so-pos-search__input" type="search" placeholder="Tìm theo mã, tên KH, cơ hội…" autocomplete="off" />
 			<div class="mk-so-pos-search__actions">
 				<button type="button" class="mk-so-pos-search__clear" id="mk-qt-pos-search-clear" aria-label="Xóa" hidden>
 					<i class="fa fa-times"></i>

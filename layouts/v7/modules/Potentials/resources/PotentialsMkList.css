@@ -3,12 +3,30 @@
 	grid-template-columns: repeat(8, minmax(0, 1fr));
 }
 
+.mk-opps-page .mk-leads-kpi-card {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.mk-opps-page .mk-leads-kpi-card__value {
+	min-width: 0;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: clamp(13px, 1.35vw, 22px);
+	line-height: 1.2;
+	letter-spacing: -0.03em;
+}
+
 .mk-opps-page .mk-opps-kpi-card[data-kpi="pipeline"] .mk-leads-kpi-card__value {
 	color: #7c3aed;
+	font-size: clamp(12px, 1.2vw, 20px);
 }
 
 .mk-opps-page .mk-opps-kpi-card[data-kpi="closing"] .mk-leads-kpi-card__value {
 	color: #4f46e5;
+	font-size: clamp(12px, 1.2vw, 20px);
 }
 
 .mk-opps-page .mk-leads-segment-chip.is-active {
@@ -136,14 +154,42 @@
 	max-width: 240px;
 }
 
-@media (max-width: 1400px) {
+/* Laptop trở xuống: 4 cột — tránh số tiền Pipeline lố khi 8 card trên 1 hàng */
+@media (max-width: 1600px) {
+	.mk-opps-page .mk-leads-kpi-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	.mk-opps-page .mk-leads-kpi-card__value {
+		font-size: clamp(14px, 1.1vw, 22px);
+	}
+
+	.mk-opps-page .mk-opps-kpi-card[data-kpi="pipeline"] .mk-leads-kpi-card__value,
+	.mk-opps-page .mk-opps-kpi-card[data-kpi="closing"] .mk-leads-kpi-card__value {
+		font-size: clamp(13px, 1.05vw, 20px);
+	}
+}
+
+@media (max-width: 1365px) {
 	.mk-opps-page .mk-leads-kpi-grid {
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
 	.mk-opps-page .mk-leads-kpi-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 767px) {
+	.mk-opps-page .mk-leads-kpi-grid {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+@media (max-width: 480px) {
+	.mk-opps-page .mk-leads-kpi-grid {
+		grid-template-columns: 1fr;
 	}
 }

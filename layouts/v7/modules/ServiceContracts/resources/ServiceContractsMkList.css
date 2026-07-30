@@ -1,4 +1,16 @@
 /* ServiceContracts MkList — small SC-only overrides on Leads shell */
+.mk-sc-name-cell.mk-leads-lead-cell {
+	display: block;
+	padding-left: 0;
+	gap: 0;
+	min-width: 0;
+}
+
+.mk-sc-name-cell .mk-leads-lead-text {
+	display: block;
+	min-width: 0;
+}
+
 .mk-sc-aff-code {
 	display: inline-block;
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;

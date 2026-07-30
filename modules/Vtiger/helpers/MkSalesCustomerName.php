@@ -359,8 +359,9 @@ class Vtiger_MkSalesCustomerName_Helper {
 				array($contactId)
 			);
 			if ($result && $db->num_rows($result) > 0) {
+				// Vietnamese display: Họ + đệm + tên (lastname then firstname).
 				$parts = array();
-				foreach (array('firstname', 'lastname') as $field) {
+				foreach (array('lastname', 'firstname') as $field) {
 					$part = trim((string) $db->query_result($result, 0, $field));
 					if ($part !== '') {
 						$parts[] = $part;

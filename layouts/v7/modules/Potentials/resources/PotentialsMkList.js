@@ -607,7 +607,11 @@
           "</span>" +
           esc(k.label) +
           "</span></div>" +
-          '<div class="mk-leads-kpi-card__value">' + esc(String(k.value)) + "</div>" +
+          '<div class="mk-leads-kpi-card__value" title="' +
+          esc(String(k.value)) +
+          '">' +
+          esc(String(k.value)) +
+          "</div>" +
           "</article>"
         );
       })

@@ -2270,9 +2270,63 @@
     return cfg.dueField || "hdnGrandTotal";
   }
 
+  function resolvePosSearchField(fieldName) {
+    if (
+      window.MkSalesListShared &&
+      typeof window.MkSalesListShared.resolveReferenceSearchFieldName === "function"
+    ) {
+      return window.MkSalesListShared.resolveReferenceSearchFieldName(fieldName, {
+        type: "reference",
+      });
+    }
+    var fallback = {
+      account_id: "account_id ; (Accounts) accountname",
+      contact_id: "contact_id ; (Contacts) lastname",
+      potential_id: "potential_id ; (Potentials) potentialname",
+      quote_id: "quote_id ; (Quotes) subject",
+    };
+    return fallback[fieldName] || fieldName;
+  }
+
   function globalSearchFields() {
     var cfg = listConfig();
-    return cfg.globalSearchFields || ["salesorder_no", "customerno", "subject"];
+    var raw =
+      cfg.globalSearchFields || [
+        "salesorder_no",
+        "subject",
+        "account_id",
+        "contact_id",
+      ];
+    var out = [];
+    var seen = {};
+    var i;
+    for (i = 0; i < raw.length; i++) {
+      var name = raw[i];
+      if (!name || name === "customerno") {
+        // customerno often missing — skip to avoid breaking OR search group.
+        continue;
+      }
+      if (name === "account_id" || name === "contact_id" || name === "potential_id" || name === "quote_id") {
+        var resolved = resolvePosSearchField(name);
+        if (resolved && !seen[resolved]) {
+          seen[resolved] = true;
+          out.push(resolved);
+        }
+        if (name === "contact_id") {
+          var fn = "contact_id ; (Contacts) firstname";
+          if (!seen[fn]) {
+            seen[fn] = true;
+            out.push(fn);
+          }
+        }
+        continue;
+      }
+      if (!seen[name]) {
+        seen[name] = true;
+        out.push(name);
+      }
+    }
+    return out;
   }
 
   function parseMoneyText(text) {
@@ -2636,19 +2690,28 @@
       }
     }
     if (quickParams && quickParams.length) {
-      if (quickParams[0] && quickParams[0].length) {
-        absorbGroup(quickParams[0], "and");
-      }
-      if (quickParams.length > 1 && quickParams[1] && quickParams[1].length) {
+      // Preserve Vtiger OR convention: [[], orConditions] → group index 1 uses OR glue.
+      if (quickParams.length > 1 && (!quickParams[0] || !quickParams[0].length)) {
         absorbGroup(quickParams[1], "or");
+      } else {
+        if (quickParams[0] && quickParams[0].length) {
+          absorbGroup(quickParams[0], "and");
+        }
+        if (quickParams.length > 1 && quickParams[1] && quickParams[1].length) {
+          absorbGroup(quickParams[1], "or");
+        }
       }
     }
 
     var merged = [];
     if (andGroup.length) {
       merged.push(andGroup);
-    }
-    if (orGroup.length) {
+      if (orGroup.length) {
+        merged.push(orGroup);
+      }
+    } else if (orGroup.length) {
+      // Empty first group is required: group[0] glue=AND, group[1] glue=OR.
+      merged.push([]);
       merged.push(orGroup);
     }
     return merged;
@@ -2689,7 +2752,7 @@
       return;
     }
     listInstance.filterClick = false;
-    getListViewContainer().find("#currentSearchParams").val(payload);
+    getListViewContainer().find("#currentSearchParams").val("");
     try {
       if (typeof app !== "undefined" && app.helper && app.helper.showProgress) {
         app.helper.showProgress();
@@ -3022,9 +3085,11 @@
     for (i = 0; i < fields.length; i++) {
       conditions.push([fields[i], "c", query]);
     }
-    if (conditions.length === 1) {
-      return [conditions];
+    if (!conditions.length) {
+      return [];
     }
+    // Vtiger list search: group index 0 = AND, group index 1 = OR.
+    // Always put quick-search conditions in group 1.
     return [[], conditions];
   }
 
@@ -3047,7 +3112,8 @@
       return;
     }
     listInstance.filterClick = false;
-    getListViewContainer().find("#currentSearchParams").val(payload);
+    // Do not write OR payload into #currentSearchParams (that field expects a field→meta map).
+    getListViewContainer().find("#currentSearchParams").val("");
     try {
       if (typeof app !== "undefined" && app.helper && app.helper.showProgress) {
         app.helper.showProgress();

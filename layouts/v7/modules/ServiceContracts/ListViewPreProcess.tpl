@@ -12,7 +12,7 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20260711_segments_ui2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260724_rule_time1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260715_tag_color_v1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.css')}?mk_v=20260730_list_ux1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.css')}?mk_v=20260730_sc_filter2" />
 <style type="text/css">
 html.mk-sc-ui-ready body[data-module="ServiceContracts"][data-view="List"] .main-container .content-area,
 html.mk-sc-ui-ready body[data-module="ServiceContracts"][data-view="List"] #listViewContent,
@@ -28,7 +28,7 @@ html.mk-sc-ui-ready body[data-module="ServiceContracts"][data-view="List"] #mk-d
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260711_segments_ui2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLovableRef.js')}&mk_v=20260725_sc_list1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLocalStore.js')}&mk_v=20260725_sc_list1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.js')}&mk_v=20260730_list_ux1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.js')}&mk_v=20260730_sc_filter2"></script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260730_list_ux1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {

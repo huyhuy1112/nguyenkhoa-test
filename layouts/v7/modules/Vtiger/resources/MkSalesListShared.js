@@ -1738,7 +1738,17 @@
 		}
 		try {
 			var url = new URL(window.location.href);
-			if (!searchParams || !searchParams.length || !searchParams[0] || !searchParams[0].length) {
+			var hasConditions = false;
+			var gi;
+			if (searchParams && searchParams.length) {
+				for (gi = 0; gi < searchParams.length; gi++) {
+					if (searchParams[gi] && searchParams[gi].length) {
+						hasConditions = true;
+						break;
+					}
+				}
+			}
+			if (!hasConditions) {
 				url.searchParams.delete('search_params');
 			} else {
 				url.searchParams.set('search_params', JSON.stringify(searchParams));
@@ -1768,7 +1778,17 @@
 			pendingSalesSearchRowState = null;
 		}
 		var searchParams = getListSearchParamsSafe(listInstance, false);
-		if (!searchParams.length || !searchParams[0] || !searchParams[0].length) {
+		var hasConditions = false;
+		var gi;
+		if (searchParams && searchParams.length) {
+			for (gi = 0; gi < searchParams.length; gi++) {
+				if (searchParams[gi] && searchParams[gi].length) {
+					hasConditions = true;
+					break;
+				}
+			}
+		}
+		if (!hasConditions) {
 			getSalesTableRoot().find('#currentSearchParams').val('');
 			searchParams = [];
 		}
