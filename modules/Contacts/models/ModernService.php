@@ -1333,6 +1333,48 @@ class Contacts_ModernService {
 	}
 
 	/**
+	 * Inline list save for phone + mailing address.
+	 * @return array{success:bool,phone:string,address:string}
+	 */
+	public static function saveInlineFields($contactId, $phone = null, $address = null) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			throw new Exception('Contact not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contactId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$recordModel = Vtiger_Record_Model::getInstanceById($contactId, self::MODULE);
+		$recordModel->set('id', $contactId);
+		$recordModel->set('mode', 'edit');
+		$outPhone = decode_html((string) $recordModel->get('phone'));
+		if ($outPhone === '' || $outPhone === '--') {
+			$outPhone = decode_html((string) $recordModel->get('mobile'));
+		}
+		$outAddress = decode_html((string) $recordModel->get('mailingstreet'));
+		if ($phone !== null) {
+			$digits = preg_replace('/\D+/', '', (string) $phone);
+			$digits = substr((string) $digits, 0, 10);
+			if ($digits !== '' && strlen($digits) !== 10) {
+				throw new Exception('Số điện thoại phải đủ 10 số.');
+			}
+			$recordModel->set('phone', $digits);
+			$outPhone = $digits;
+		}
+		if ($address !== null) {
+			$addr = trim(decode_html((string) $address));
+			$recordModel->set('mailingstreet', $addr);
+			$outAddress = $addr;
+		}
+		$recordModel->save();
+		return array(
+			'success' => true,
+			'phone' => $outPhone === '--' ? '' : $outPhone,
+			'address' => $outAddress === '--' ? '' : $outAddress,
+		);
+	}
+
+	/**
 	 * Replace Contact tags (whitelist via ContactTagCatalog).
 	 * @param array $tagNames
 	 * @return array{success:bool,tags:string[]}

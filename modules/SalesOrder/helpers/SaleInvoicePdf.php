@@ -357,7 +357,7 @@ td.r,th.r{text-align:right}
 			$logoPath = $ctx['company']['logo_path'];
 		}
 
-		$docNo = $ctx['quote_no'] !== '' ? $ctx['quote_no'] : (($moduleName === 'SalesOrder' ? 'SO' : 'DH') . $focus->id);
+		$docNo = $ctx['quote_no'] !== '' ? $ctx['quote_no'] : (($moduleName === 'SalesOrder' ? 'DH' : 'DH') . $focus->id);
 		$dateLabel = Quotes_QuoteExcelExport_Helper::formatDateViLongPublic($ctx['quote_date']);
 		$customer = trim((string) ($ctx['receiver'] ?? ''));
 		if ($customer === '') {

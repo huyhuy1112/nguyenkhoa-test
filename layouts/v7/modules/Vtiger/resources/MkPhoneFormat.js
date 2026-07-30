@@ -20,27 +20,14 @@
 		if (digits.length === 10) {
 			return digits.slice(0, 4) + " " + digits.slice(4, 7) + " " + digits.slice(7);
 		}
-		if (digits.length === 11 && digits.charAt(0) === "0") {
-			return digits.slice(0, 4) + " " + digits.slice(4, 7) + " " + digits.slice(7);
-		}
 		if (digits.length === 9) {
 			return digits.slice(0, 3) + " " + digits.slice(3, 6) + " " + digits.slice(6);
-		}
-		if (digits.length > 10) {
-			return (
-				digits.slice(0, 4) +
-				" " +
-				digits.slice(4, 7) +
-				" " +
-				digits.slice(7, 10) +
-				(digits.length > 10 ? " " + digits.slice(10) : "")
-			);
 		}
 		return digits;
 	}
 
 	function formatPhoneInput(value) {
-		var digits = digitsOnly(value).slice(0, 11);
+		var digits = digitsOnly(value).slice(0, 10);
 		return formatPhoneDisplay(digits);
 	}
 

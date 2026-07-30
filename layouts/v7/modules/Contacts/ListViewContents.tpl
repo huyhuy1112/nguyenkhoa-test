@@ -19,7 +19,7 @@
 					<span class="mk-leads-search__ic" id="mk-contacts-search-ic" aria-hidden="true"></span>
 					<input class="mk-leads-search__input" id="mk-contacts-search" type="search" placeholder="{vtranslate('LBL_MK_CONTACTS_SEARCH_PLACEHOLDER', 'Contacts')}" autocomplete="off" />
 				</div>
-				<button type="button" class="mk-leads-btn mk-leads-btn--outline mk-leads-filters-toggle" id="mk-contacts-filters-toggle" aria-expanded="true">
+				<button type="button" class="mk-leads-btn mk-leads-btn--outline mk-leads-filters-toggle" id="mk-contacts-filters-toggle" aria-expanded="false">
 					<span id="mk-contacts-filters-ic" aria-hidden="true"></span>
 					{vtranslate('LBL_FILTERS', 'Vtiger')}
 					<span id="mk-contacts-filters-chev" aria-hidden="true"></span>
@@ -27,7 +27,7 @@
 				<button type="button" class="mk-leads-reset" id="mk-contacts-reset" hidden>{vtranslate('LBL_CLEAR', 'Vtiger')}</button>
 				<div class="mk-leads-filters-count" id="mk-contacts-filter-summary"></div>
 			</div>
-			<div id="mk-contacts-filters-panel" class="mk-leads-filters-panel"></div>
+			<div id="mk-contacts-filters-panel" class="mk-leads-filters-panel" hidden></div>
 		</div>
 
 		<div class="mk-so-table-card mk-leads-table-card mk-contacts-table-card" role="region" aria-label="{vtranslate('LBL_MK_CONTACTS_TABLE', 'Contacts')}">

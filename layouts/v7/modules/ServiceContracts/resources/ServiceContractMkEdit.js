@@ -5,7 +5,7 @@
 (function ($) {
 	"use strict";
 
-	var MK_BUILD = "20260729_sc_franchise_ux4";
+	var MK_BUILD = "20260730_sc_dup_ui1";
 	var DEFAULT_PICKLISTS = {
 		franchise_status: [
 			"Quan Tâm/Tham Khảo",
@@ -66,11 +66,71 @@
 
 	function showError(msg) {
 		var $el = $("#mkScFormError");
-		if (!$el.length) {
-			window.alert(msg);
+		if (!$el.length) return;
+		$el.text(msg || "").prop("hidden", !msg);
+	}
+
+	function clearDupBanner() {
+		$("#mkScDupSlot").prop("hidden", true);
+		$("#mkScDupBanner").empty().removeClass("mk-sc-dup-banner--warn mk-sc-dup-banner--ok");
+		$("#mkScPhone").removeClass("mk-sc-input--dup");
+	}
+
+	function showDupBanner(dup) {
+		var $slot = $("#mkScDupSlot");
+		var $banner = $("#mkScDupBanner");
+		if (!$slot.length || !$banner.length) return;
+		var m = (dup && dup.match) || {};
+		var referrer = m.referral_code || m.referrer || "—";
+		var sale = m.sale_owner || "—";
+		var reg = m.registration_date || "—";
+		var exp = m.retention_expires_at || "—";
+
+		if (dup && dup.in_retention) {
+			$banner
+				.addClass("mk-sc-dup-banner--warn")
+				.removeClass("mk-sc-dup-banner--ok")
+				.html(
+					'<div class="mk-sc-dup-banner__title">SĐT này đang được bảo lưu — không thể tạo mới</div>' +
+						'<div class="mk-sc-dup-banner__grid">' +
+						'<div><span>Người giới thiệu</span><strong>' +
+						escapeHtml(referrer) +
+						"</strong></div>" +
+						"<div><span>Sale phụ trách</span><strong>" +
+						escapeHtml(sale) +
+						"</strong></div>" +
+						"<div><span>Ngày đăng ký</span><strong>" +
+						escapeHtml(reg) +
+						"</strong></div>" +
+						"<div><span>Hết hạn bảo lưu</span><strong>" +
+						escapeHtml(exp) +
+						"</strong></div>" +
+						"</div>" +
+						'<p class="mk-sc-dup-banner__note">Không được nhận quyền giới thiệu mới cho đến khi hết hạn bảo lưu.</p>'
+				);
+			$slot.prop("hidden", false);
+			$("#mkScPhone").addClass("mk-sc-input--dup");
+			try {
+				$slot[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+			} catch (e) {}
 			return;
 		}
-		$el.text(msg || "").prop("hidden", !msg);
+
+		var result = (dup && dup.result) || "";
+		if (result.indexOf("hết hạn") >= 0) {
+			$banner
+				.addClass("mk-sc-dup-banner--ok")
+				.removeClass("mk-sc-dup-banner--warn")
+				.html(
+					'<div class="mk-sc-dup-banner__title">SĐT trùng nhưng đã hết hạn bảo lưu</div>' +
+						'<p class="mk-sc-dup-banner__note">Có thể đăng ký lại và gán người giới thiệu mới.</p>'
+				);
+			$slot.prop("hidden", false);
+			$("#mkScPhone").removeClass("mk-sc-input--dup");
+			return;
+		}
+
+		clearDupBanner();
 	}
 
 	function escapeHtml(s) {
@@ -113,6 +173,35 @@
 		$sel.html(html);
 	}
 
+	function enhanceSearchableSelect($sel, opts) {
+		if (!$sel || !$sel.length || !$.fn.select2) return;
+		opts = opts || {};
+		try {
+			if ($sel.data("select2")) {
+				$sel.select2("destroy");
+			}
+		} catch (e) {}
+		$sel.select2({
+			placeholder: opts.placeholder || "— Chọn —",
+			allowClear: opts.allowClear !== false,
+			width: "100%",
+			dropdownCssClass: "mk-sc-s2-drop",
+			minimumResultsForSearch: 0,
+			formatNoMatches: function () {
+				return "Không tìm thấy";
+			},
+			formatSearching: function () {
+				return "Đang tìm…";
+			},
+		});
+		var val = $sel.val();
+		if (val) {
+			$sel.select2("val", val);
+		} else {
+			$sel.select2("val", "");
+		}
+	}
+
 	function fillUserSelect(selectedId, selectedLabel) {
 		var html = '<option value="">—</option>';
 		var found = false;
@@ -147,6 +236,9 @@
 				"</option>";
 		}
 		$("#mkScSaleOwner").html(html);
+		enhanceSearchableSelect($("#mkScSaleOwner"), {
+			placeholder: "— Tìm / chọn sale phụ trách —",
+		});
 		syncSaleOwnerLabel();
 	}
 
@@ -228,6 +320,9 @@
 				"</option>";
 		});
 		$("#mkScReferrerAff").html(html);
+		enhanceSearchableSelect($("#mkScReferrerAff"), {
+			placeholder: "— Tìm / chọn mã AFF người giới thiệu —",
+		});
 	}
 
 	function fillOwnTierSelect(selectedPrefix) {
@@ -357,40 +452,17 @@
 			});
 	}
 
-	function dupAlertMessage(dup) {
-		var result = (dup && dup.result) || "";
-		var m = (dup && dup.match) || {};
-		if (dup && dup.in_retention) {
-			return (
-				"Trùng còn hiệu lực.\n\n" +
-				"Người giới thiệu hiện tại: " +
-				(m.referral_code || m.referrer || "—") +
-				"\nSale phụ trách: " +
-				(m.sale_owner || m.full_name || "—") +
-				"\nNgày đăng ký: " +
-				(m.registration_date || "—") +
-				"\nHết hạn bảo lưu: " +
-				(m.retention_expires_at || "—") +
-				"\n\nKhông được nhận quyền giới thiệu mới."
-			);
-		}
-		if (result.indexOf("hết hạn") >= 0) {
-			return (
-				"Trùng nhưng đã hết hạn bảo lưu.\n\nCó thể đăng ký lại và gán người giới thiệu mới."
-			);
-		}
-		return "";
-	}
-
 	function runDuplicateCheck() {
 		var phoneRaw = String($("#mkScPhone").val() || "").trim();
 		var phone =
 			window.MkPhoneFormat && typeof window.MkPhoneFormat.digitsOnly === "function"
 				? window.MkPhoneFormat.digitsOnly(phoneRaw)
 				: phoneRaw.replace(/\D+/g, "");
+		phone = String(phone || "").slice(0, 10);
 		if (!phone || phone.length < 8) {
 			dupState = { result: "", in_retention: false, match: null };
 			$("#mkScDuplicateResultValue").val("");
+			clearDupBanner();
 			showError("");
 			return Promise.resolve(null);
 		}
@@ -403,14 +475,16 @@
 					match: dup.match || null,
 				};
 				$("#mkScDuplicateResultValue").val(dupState.result);
-				if (dup.in_retention) {
-					showError(dupAlertMessage(dup).replace(/\n/g, " — "));
-				} else {
+				if (dup.in_retention || (dup.result || "").indexOf("hết hạn") >= 0) {
+					showDupBanner(dup);
 					showError("");
-					if ((dup.result || "").indexOf("hết hạn") >= 0) {
+					if (!dup.in_retention && (dup.result || "").indexOf("hết hạn") >= 0) {
 						$("#mkScRegistrationDate").val(todayYmd());
 						recomputeRetentionExpiry();
 					}
+				} else {
+					clearDupBanner();
+					showError("");
 				}
 				return dup;
 			})
@@ -470,6 +544,7 @@
 			window.MkPhoneFormat && typeof window.MkPhoneFormat.digitsOnly === "function"
 				? window.MkPhoneFormat.digitsOnly(phoneRaw)
 				: phoneRaw.replace(/\D+/g, "");
+		phone = String(phone || "").slice(0, 10);
 		syncSaleOwnerLabel();
 		ensureRegistrationDate();
 		recomputeRetentionExpiry();
@@ -535,7 +610,7 @@
 	}
 
 	function setSaving(on) {
-		$("#mkScSaveTop, #mkScSaveBottom").prop("disabled", !!on);
+		$("#mkScSaveTop").prop("disabled", !!on);
 		$("#mkScFranchiseForm").toggleClass("is-saving", !!on);
 	}
 
@@ -548,13 +623,19 @@
 			else $("#mkScPhone").focus();
 			return;
 		}
+		if (String(payload.phone).replace(/\D+/g, "").length > 10) {
+			showError("SĐT chỉ được tối đa 10 số.");
+			$("#mkScPhone").focus();
+			return;
+		}
 
 		setSaving(true);
 		runDuplicateCheck()
 			.then(function (dup) {
 				if (dup && dup.in_retention) {
 					setSaving(false);
-					window.alert(dupAlertMessage(dup));
+					showDupBanner(dup);
+					$("#mkScPhone").focus();
 					return null;
 				}
 				payload = collectPayload();
@@ -661,7 +742,22 @@
 			});
 
 		$("#mkScPhone")
-			.off("blur.mkScDup")
+			.off("input.mkScPhone blur.mkScDup")
+			.on("input.mkScPhone", function () {
+				var raw = String(this.value || "");
+				var digits =
+					window.MkPhoneFormat && typeof window.MkPhoneFormat.digitsOnly === "function"
+						? window.MkPhoneFormat.digitsOnly(raw)
+						: raw.replace(/\D+/g, "");
+				digits = digits.slice(0, 10);
+				var next =
+					window.MkPhoneFormat && typeof window.MkPhoneFormat.formatInput === "function"
+						? window.MkPhoneFormat.formatInput(digits)
+						: digits;
+				if (next !== raw) {
+					this.value = next;
+				}
+			})
 			.on("blur.mkScDup", function () {
 				runDuplicateCheck();
 			});

@@ -57,7 +57,7 @@
     sortKey: "last_touch",
     sortDir: "desc",
     page: 1,
-    filtersOpen: true,
+    filtersOpen: false,
     activeSegment: null,
     selected: {},
   };
@@ -245,6 +245,157 @@
     return dist;
   }
 
+  function regionKeyOf(o, cats) {
+    var area = cats && cats.area ? cats.area : "";
+    var key = ref && ref.normalizeTag ? ref.normalizeTag(area) : String(area || "");
+    if (/^kv[123]$/i.test(key)) return key.toLowerCase();
+    var dist = String((o && o.district) || "").trim();
+    var m = dist.match(/khu\s*v[ựuùúủũụ]\s*c\s*([123])/i);
+    if (m) return "kv" + m[1];
+    return "";
+  }
+
+  function editableCellHtml(field, value, recordId, placeholder) {
+    var shown = value;
+    if (field === "phone" && value && window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function") {
+      shown = window.MkPhoneFormat.format(value) || value;
+    }
+    var display = shown
+      ? esc(shown)
+      : '<span class="mk-leads-muted">' + esc(placeholder || "—") + "</span>";
+    return (
+      '<button type="button" class="mk-leads-inline-edit" data-field="' +
+      esc(field) +
+      '" data-opp-id="' +
+      esc(recordId) +
+      '" title="Nhấn để sửa">' +
+      display +
+      "</button>"
+    );
+  }
+
+  function regionSelectHtml(recordId, regionKey) {
+    var opts = [
+      ["", "— Chọn khu vực —"],
+      ["kv1", "Khu vực 1"],
+      ["kv2", "Khu vực 2"],
+      ["kv3", "Khu vực 3"],
+    ];
+    return (
+      '<select class="mk-leads-region-select" data-field="region" data-opp-id="' +
+      esc(recordId) +
+      '" title="Chọn khu vực">' +
+      opts
+        .map(function (o) {
+          return (
+            '<option value="' +
+            esc(o[0]) +
+            '"' +
+            (regionKey === o[0] ? " selected" : "") +
+            ">" +
+            esc(o[1]) +
+            "</option>"
+          );
+        })
+        .join("") +
+      "</select>"
+    );
+  }
+
+  function beginInlineEdit(btn) {
+    if (!btn || !btn.getAttribute) return;
+    var field = btn.getAttribute("data-field");
+    var recordId = btn.getAttribute("data-opp-id");
+    var current = btn.textContent.trim();
+    if (current === "—" || current === "Nhập SĐT" || current === "Nhập địa chỉ") current = "";
+    var input = document.createElement("input");
+    input.type = field === "phone" ? "tel" : "text";
+    input.className = "mk-leads-inline-input";
+    input.value = current;
+    input.setAttribute("data-field", field);
+    input.setAttribute("data-opp-id", recordId);
+    if (field === "phone") {
+      input.setAttribute("inputmode", "numeric");
+      input.setAttribute("maxlength", "12");
+      input.addEventListener("input", function () {
+        var next =
+          window.MkPhoneFormat && typeof window.MkPhoneFormat.formatInput === "function"
+            ? window.MkPhoneFormat.formatInput(input.value)
+            : String(input.value || "").replace(/\D+/g, "").slice(0, 10);
+        if (next !== input.value) input.value = next;
+      });
+    }
+    btn.replaceWith(input);
+    input.focus();
+    if (current) input.select();
+  }
+
+  function commitInlineEdit(input) {
+    if (!input || !input.getAttribute || !store) {
+      renderTable();
+      return;
+    }
+    var field = input.getAttribute("data-field");
+    var recordId = input.getAttribute("data-opp-id");
+    var val = String(input.value || "").trim();
+    if (field === "phone") {
+      val = val.replace(/\s+/g, "");
+      if (val && !/^\d{10}$/.test(val)) {
+        window.alert("Số điện thoại phải đủ 10 số.");
+        renderTable();
+        return;
+      }
+      input.disabled = true;
+      store
+        .saveInlinePhone(recordId, val)
+        .then(function () {
+          renderTable();
+        })
+        .catch(function (err) {
+          window.alert((err && err.message) || "Không lưu được SĐT.");
+          renderTable();
+        });
+      return;
+    }
+    if (field === "address") {
+      var opp = getOpps().find(function (o) {
+        return String(o.id) === String(recordId) || String(o.crmid || "") === String(recordId);
+      });
+      var cats = categorize((opp && opp.tags) || []);
+      var regionKey = regionKeyOf(opp || {}, cats);
+      input.disabled = true;
+      store
+        .saveInlineLocation(recordId, regionKey, val)
+        .then(function () {
+          renderTable();
+        })
+        .catch(function (err) {
+          window.alert((err && err.message) || "Không lưu được địa chỉ.");
+          renderTable();
+        });
+    }
+  }
+
+  function commitRegionChange(select) {
+    if (!select || !store) return;
+    var recordId = select.getAttribute("data-opp-id");
+    var regionKey = select.value || "";
+    var opp = getOpps().find(function (o) {
+      return String(o.id) === String(recordId) || String(o.crmid || "") === String(recordId);
+    });
+    var address = opp ? String(opp.address || "").trim() : "";
+    select.disabled = true;
+    store
+      .saveInlineLocation(recordId, regionKey, address)
+      .then(function () {
+        renderTable();
+      })
+      .catch(function (err) {
+        window.alert((err && err.message) || "Không lưu được khu vực.");
+        renderTable();
+      });
+  }
+
   function stackedTagsHtml(cats) {
     var parts = [];
     [cats.classTag, cats.material, cats.franchise, cats.tier]
@@ -253,9 +404,16 @@
       .forEach(function (tg) {
         if (tg) parts.push(tagBadgeHtml(tg));
       });
-    return parts.length
-      ? '<div class="mk-leads-tags-stack">' + parts.join("") + "</div>"
-      : '<span class="mk-leads-muted">Thêm thẻ…</span>';
+    if (!parts.length) return '<span class="mk-leads-muted">Thêm thẻ…</span>';
+    var maxShow = 2;
+    var shown = parts.slice(0, maxShow);
+    var extra = parts.length - shown.length;
+    return (
+      '<div class="mk-leads-tags-stack">' +
+      shown.join("") +
+      (extra > 0 ? '<span class="mk-leads-tag-more">+' + extra + "</span>" : "") +
+      "</div>"
+    );
   }
 
   function closeTagPopover() {
@@ -623,22 +781,13 @@
             (customerName ? esc(customerName) : '<span class="mk-leads-muted">—</span>') +
             "</a></td>" +
             '<td class="mk-leads-td" data-col="phone">' +
-            (o.phone
-              ? esc(
-                  window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function"
-                    ? window.MkPhoneFormat.format(o.phone) || o.phone
-                    : o.phone
-                )
-              : '<span class="mk-leads-muted">—</span>') +
+            editableCellHtml("phone", o.phone, o.crmid || o.id, "Nhập SĐT") +
             "</td>" +
             '<td class="mk-leads-td" data-col="region">' +
-            (function () {
-              var rl = regionLabel(o, cats);
-              return rl ? esc(rl) : '<span class="mk-leads-muted">—</span>';
-            })() +
+            regionSelectHtml(o.crmid || o.id, regionKeyOf(o, cats)) +
             "</td>" +
             '<td class="mk-leads-td" data-col="address">' +
-            (o.address ? esc(o.address) : '<span class="mk-leads-muted">—</span>') +
+            editableCellHtml("address", o.address, o.crmid || o.id, "Nhập địa chỉ") +
             "</td>" +
             '<td class="mk-leads-td" data-col="source">' + tagBadgeHtml(cats.source) + "</td>" +
             '<td class="mk-leads-td" data-col="customer">' + tagBadgeHtml(cats.customer) + "</td>" +
@@ -1005,6 +1154,11 @@
     document.addEventListener("change", function (e) {
       var el = e.target;
       if (!el) return;
+      if (el.classList && el.classList.contains("mk-leads-region-select") && el.getAttribute("data-opp-id")) {
+        e.stopPropagation();
+        commitRegionChange(el);
+        return;
+      }
       if (el.classList && el.classList.contains("mk-opps-row-check")) {
         var id = el.getAttribute("data-id");
         if (el.checked) state.selected[id] = true;
@@ -1034,6 +1188,13 @@
     });
 
     document.addEventListener("click", function (e) {
+      var editBtn = e.target.closest && e.target.closest(".mk-leads-inline-edit[data-opp-id]");
+      if (editBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        beginInlineEdit(editBtn);
+        return;
+      }
       var tagsBtn = e.target.closest && e.target.closest(".mk-leads-tags-edit[data-opp-id]");
       if (tagsBtn) {
         e.preventDefault();
@@ -1138,6 +1299,23 @@
         renderAll();
       });
     }
+
+    document.addEventListener(
+      "focusout",
+      function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains("mk-leads-inline-input") && e.target.getAttribute("data-opp-id")) {
+          commitInlineEdit(e.target);
+        }
+      },
+      true
+    );
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      if (e.target && e.target.classList && e.target.classList.contains("mk-leads-inline-input") && e.target.getAttribute("data-opp-id")) {
+        e.preventDefault();
+        e.target.blur();
+      }
+    });
 
     if ($("mk-opps-import-ic")) $("mk-opps-import-ic").innerHTML = ic("import");
     if ($("mk-opps-create-ic")) $("mk-opps-create-ic").innerHTML = ic("plus");

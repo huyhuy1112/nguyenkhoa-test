@@ -13,6 +13,9 @@
 			{if $INLINE_SUBTITLE neq ''}
 				<div class="mk-so-inline-detail__order-no">{$INLINE_SUBTITLE|escape}</div>
 			{/if}
+			{if $MODULE eq 'ServiceContracts' && $INLINE_NOTES neq ''}
+				<div class="mk-so-inline-detail__hero-note">{$INLINE_NOTES|escape}</div>
+			{/if}
 		</div>
 	</div>
 
@@ -51,7 +54,15 @@
 	{assign var=MK_EDITABLE_TAGS value=($MODULE eq 'Leads' || $MODULE eq 'Potentials' || $MODULE eq 'Contacts')}
 	{if empty($INLINE_HIDE_TAGS)}
 	<div class="mk-so-inline-detail__tags{if $MK_EDITABLE_TAGS} is-editable{/if}"{if $MK_EDITABLE_TAGS} data-editable-tags="1"{/if}>
-		<label class="mk-so-inline-detail__field-label">Tags{if $MK_EDITABLE_TAGS} <span class="mk-so-inline-detail__tags-hint">(chọn theo nhóm)</span>{/if}</label>
+		<div class="mk-so-inline-detail__tags-head">
+			<label class="mk-so-inline-detail__field-label">
+				Tags
+				{if $MK_EDITABLE_TAGS}
+					<button type="button" class="mk-so-inline-detail__tags-toggle" data-role="tag-edit-toggle" aria-expanded="false">Sửa thẻ</button>
+					<span class="mk-so-inline-detail__tags-hint">(chọn theo nhóm)</span>
+				{/if}
+			</label>
+		</div>
 		<div class="mk-so-inline-detail__tags-list" data-role="selected-tags">
 			{if isset($INLINE_TAGS) && $INLINE_TAGS|@count gt 0}
 				{foreach from=$INLINE_TAGS item=TAG}
@@ -62,7 +73,7 @@
 			{/if}
 		</div>
 		{if $MK_EDITABLE_TAGS}
-			<div class="mk-so-inline-detail__tags-picker" data-role="tag-picker"></div>
+			<div class="mk-so-inline-detail__tags-picker" data-role="tag-picker" hidden></div>
 		{/if}
 	</div>
 	{/if}

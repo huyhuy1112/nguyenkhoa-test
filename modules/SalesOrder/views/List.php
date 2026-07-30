@@ -423,6 +423,8 @@ class SalesOrder_List_View extends Inventory_List_View {
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		$this->applyToolsOrdersDefaults($request);
+		require_once 'include/utils/MkEntityNumbering.php';
+		MkEntityNumbering::ensureModuleSequence('SalesOrder');
 		$posMeta = null;
 		if ($this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
 			$this->clearSalesPosListHeadersSession($request);

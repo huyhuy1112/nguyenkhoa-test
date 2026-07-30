@@ -24,6 +24,9 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 	protected function assignModernContext(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
+		require_once 'include/utils/MkEntityNumbering.php';
+		MkEntityNumbering::ensureModuleSequence('SalesOrder');
+		$viewer->assign('MK_SO_NEXT_NO', MkEntityNumbering::previewNextNumber('SalesOrder'));
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));

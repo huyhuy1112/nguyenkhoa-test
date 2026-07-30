@@ -18,7 +18,7 @@
 					<span class="mk-leads-search__ic" id="mk-leads-search-ic" aria-hidden="true"></span>
 					<input class="mk-leads-search__input" id="mk-leads-search" type="search" placeholder="{vtranslate('LBL_MK_LEADS_SEARCH_PLACEHOLDER', 'Leads')}" autocomplete="off" />
 				</div>
-				<button type="button" class="mk-leads-btn mk-leads-btn--outline mk-leads-filters-toggle" id="mk-leads-filters-toggle" aria-expanded="true">
+				<button type="button" class="mk-leads-btn mk-leads-btn--outline mk-leads-filters-toggle" id="mk-leads-filters-toggle" aria-expanded="false">
 					<span id="mk-leads-filters-ic" aria-hidden="true"></span>
 					{vtranslate('LBL_FILTERS', 'Vtiger')}
 					<span id="mk-leads-filters-chev" aria-hidden="true"></span>
@@ -27,7 +27,7 @@
 				<button type="button" class="mk-leads-reset" id="mk-leads-reset" hidden>{vtranslate('LBL_CLEAR', 'Vtiger')}</button>
 				<div class="mk-leads-filters-count" id="mk-leads-filter-summary"></div>
 			</div>
-			<div id="mk-leads-filters-panel" class="mk-leads-filters-panel"></div>
+			<div id="mk-leads-filters-panel" class="mk-leads-filters-panel" hidden></div>
 		</div>
 
 		<div class="mk-so-table-card mk-leads-table-card" role="region" aria-label="{vtranslate('LBL_MK_LEADS_TABLE', 'Leads')}">

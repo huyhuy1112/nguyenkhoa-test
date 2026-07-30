@@ -12,6 +12,16 @@
 	border: 1px solid #bfdbfe;
 }
 
+.mk-sc-name-note {
+	color: #64748b;
+	font-size: 12px;
+	line-height: 1.35;
+	max-width: 260px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .mk-sc-td--aff {
 	white-space: nowrap;
 }

@@ -295,6 +295,15 @@
 		}
 
 		renderPicker();
+		$picker.prop('hidden', true);
+		$wrap.find('[data-role="tag-edit-toggle"]').off('click.mkTagToggle').on('click.mkTagToggle', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var open = $picker.prop('hidden');
+			$picker.prop('hidden', !open);
+			$(this).attr('aria-expanded', open ? 'true' : 'false').text(open ? 'Thu gọn thẻ' : 'Sửa thẻ');
+			if (open) renderPicker();
+		});
 		$picker.on('click', '.mk-so-inline-tag-chip', function (e) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -553,7 +562,9 @@
 				var inlinePayload = {
 					franchise_status: postData.franchise_status || '',
 					contact_status: postData.contact_status || '',
-					referrer: postData.referrer || '',
+					data_source: postData.data_source || '',
+					phone: postData.phone || '',
+					business_note: postData.business_note || '',
 					interaction_1: postData.interaction_1 || '',
 					interaction_2: postData.interaction_2 || '',
 					interaction_3: postData.interaction_3 || '',
@@ -580,7 +591,9 @@
 					}
 					syncView('franchise_status', c.franchise_status);
 					syncView('contact_status', c.contact_status);
-					syncView('referrer', c.referrer);
+					syncView('data_source', c.data_source);
+					syncView('phone', c.phone);
+					syncView('business_note', c.business_note);
 					syncView('interaction_1', c.interaction_1);
 					syncView('interaction_2', c.interaction_2);
 					syncView('interaction_3', c.interaction_3);

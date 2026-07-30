@@ -1,0 +1,261 @@
+/**
+ * CRM responsive — Mobile / Tablet / Laptop
+ * PC (≥1441px) already tuned; these layers refine smaller viewports.
+ *
+ * Breakpoints:
+ *  - Laptop:  max-width 1440px
+ *  - Tablet:  max-width 1024px
+ *  - Mobile:  max-width 767px
+ */
+
+/* ========== Laptop (≤1440px) ========== */
+@media (max-width: 1440px) {
+	body[data-app="SALES"] .mk-dash-main.mk-leads-list-main,
+	body[data-app="SALES"] .mk-dash-main.mk-opportunity-list-main,
+	body[data-app="SALES"] .mk-dash-main.mk-contacts-list-main,
+	body[data-app="SALES"] .mk-dash-main.mk-sc-list-main,
+	body[data-app="SALES"] .mk-dash-main.mk-so-list-main {
+		padding-left: 18px !important;
+		padding-right: 18px !important;
+	}
+
+	body[data-app="SALES"] .mk-leads-kpi-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 12px;
+	}
+
+	body[data-app="SALES"] .mk-leads-filters-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	body[data-app="SALES"] .mk-leads-table-scroll,
+	body[data-app="SALES"] .mk-so-pos-list-enabled .listview-table-container {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+}
+
+/* ========== Tablet (≤1024px) ========== */
+@media (max-width: 1024px) {
+	body[data-app="SALES"] .mk-dash-split-root,
+	body[data-app="SALES"] #mk-dash-split-root {
+		--mk-sidebar-w: 72px;
+	}
+
+	body[data-app="SALES"] .mk-dash-main {
+		padding: 14px 14px 28px !important;
+	}
+
+	body[data-app="SALES"] .mk-leads-page-head,
+	body[data-app="SALES"] .mk-sc-page-head,
+	body[data-app="SALES"] .mk-so-page-head {
+		flex-wrap: wrap;
+		gap: 12px;
+	}
+
+	body[data-app="SALES"] .mk-leads-page-head__actions,
+	body[data-app="SALES"] .mk-sc-page-head__actions {
+		width: 100%;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
+
+	body[data-app="SALES"] .mk-leads-kpi-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 10px;
+	}
+
+	body[data-app="SALES"] .mk-leads-kpi-card__value {
+		font-size: 22px;
+	}
+
+	body[data-app="SALES"] .mk-leads-filters-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px;
+	}
+
+	body[data-app="SALES"] .mk-leads-toolbar,
+	body[data-app="SALES"] .mk-leads-search-row {
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	body[data-app="SALES"] .mk-leads-search {
+		min-width: 0;
+		flex: 1 1 220px;
+	}
+
+	body[data-app="SALES"] .mk-leads-segments {
+		overflow-x: auto;
+		flex-wrap: nowrap;
+		-webkit-overflow-scrolling: touch;
+		padding-bottom: 4px;
+	}
+
+	body[data-app="SALES"] .mk-leads-segment-btn {
+		flex: 0 0 auto;
+	}
+
+	body[data-app="SALES"] .mk-leads-table-scroll table,
+	body[data-app="SALES"] #listview-table {
+		min-width: 960px;
+	}
+
+	body[data-app="SALES"] .mk-so-inline-detail {
+		max-width: min(520px, calc(100vw - 48px));
+	}
+
+	body[data-app="SALES"] .mk-so-inline-detail__fields {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+/* ========== Mobile (≤767px) ========== */
+@media (max-width: 767px) {
+	body[data-app="SALES"] .mk-dash-main {
+		padding: 10px 10px 72px !important;
+	}
+
+	body[data-app="SALES"] .mk-topbar {
+		padding-left: 8px !important;
+		padding-right: 8px !important;
+	}
+
+	body[data-app="SALES"] .mk-leads-page-head__title,
+	body[data-app="SALES"] .mk-sc-page-head__title {
+		font-size: 20px;
+		line-height: 1.25;
+	}
+
+	body[data-app="SALES"] .mk-leads-page-head__actions .mk-leads-btn,
+	body[data-app="SALES"] .mk-sc-page-head__actions .mk-sc-btn {
+		flex: 1 1 auto;
+		justify-content: center;
+	}
+
+	body[data-app="SALES"] .mk-leads-kpi-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px;
+	}
+
+	body[data-app="SALES"] .mk-leads-kpi-card {
+		padding: 10px 12px;
+	}
+
+	body[data-app="SALES"] .mk-leads-kpi-card__value {
+		font-size: 18px;
+	}
+
+	body[data-app="SALES"] .mk-leads-kpi-card__label {
+		font-size: 11px;
+	}
+
+	body[data-app="SALES"] .mk-leads-filters-grid {
+		grid-template-columns: 1fr;
+	}
+
+	body[data-app="SALES"] .mk-leads-filters-panel {
+		padding: 12px;
+	}
+
+	body[data-app="SALES"] .mk-leads-toolbar {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	body[data-app="SALES"] .mk-leads-search {
+		width: 100%;
+		flex: 1 1 auto;
+	}
+
+	body[data-app="SALES"] .mk-leads-table-scroll {
+		margin-left: -10px;
+		margin-right: -10px;
+		padding-left: 10px;
+		padding-right: 10px;
+		border-radius: 0;
+	}
+
+	body[data-app="SALES"] .mk-leads-table-scroll table,
+	body[data-app="SALES"] #listview-table {
+		min-width: 880px;
+		font-size: 12.5px;
+	}
+
+	body[data-app="SALES"] .mk-leads-td,
+	body[data-app="SALES"] .mk-leads-th {
+		padding: 8px 10px;
+	}
+
+	body[data-app="SALES"] .mk-leads-bulk-bar {
+		left: 10px;
+		right: 10px;
+		bottom: 12px;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	body[data-app="SALES"] .mk-so-inline-detail {
+		position: fixed !important;
+		left: 8px !important;
+		right: 8px !important;
+		top: auto !important;
+		bottom: 8px !important;
+		max-width: none !important;
+		width: auto !important;
+		max-height: min(78vh, 640px);
+		overflow: auto;
+		z-index: 1200;
+		border-radius: 14px;
+	}
+
+	body[data-app="SALES"] .mk-so-inline-detail__fields {
+		grid-template-columns: 1fr;
+	}
+
+	body[data-app="SALES"] .mk-so-inline-detail__tags-head .mk-so-inline-detail__field-label {
+		gap: 6px;
+	}
+
+	body[data-app="SALES"] .mk-leads-tag-popover {
+		position: fixed !important;
+		left: 8px !important;
+		right: 8px !important;
+		width: auto !important;
+		max-width: none !important;
+		max-height: 70vh;
+		overflow: auto;
+		z-index: 1300;
+	}
+
+	body[data-app="SALES"] .mk-sc-franchise-grid {
+		grid-template-columns: 1fr !important;
+	}
+
+	body[data-app="SALES"] .mk-sc-page-head__row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	body[data-module="SalesOrder"][data-view="Edit"] .mk-ac-form-host,
+	body[data-module="Quotes"][data-view="Edit"] .mk-qt-form-host,
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host {
+		padding: 0 4px;
+	}
+}
+
+/* ========== Small phones (≤430px) ========== */
+@media (max-width: 430px) {
+	body[data-app="SALES"] .mk-leads-kpi-grid {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	body[data-app="SALES"] .mk-leads-page-head__title {
+		font-size: 18px;
+	}
+
+	body[data-app="SALES"] .mk-leads-segment-btn {
+		font-size: 12px;
+		padding: 6px 10px;
+	}
+}

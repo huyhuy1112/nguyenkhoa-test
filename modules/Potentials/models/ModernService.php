@@ -155,6 +155,7 @@ class Potentials_ModernService {
 			'order_category' => decode_html((string)$row['order_category']),
 			'account' => ($accountName === '' || $accountName === '-') ? '' : $accountName,
 			'contact' => ($contactName === '' || $contactName === '.') ? '' : $contactName,
+			'contact_id' => (int)$row['contact_id'] > 0 ? (int)$row['contact_id'] : 0,
 			'phone' => $phone,
 			'district' => $district,
 			'address' => $address,
@@ -447,6 +448,45 @@ class Potentials_ModernService {
 			'address' => $address,
 			'region' => $regionKey,
 			'tags' => isset($tagsMap[$potentialId]) ? array_values($tagsMap[$potentialId]) : array(),
+		);
+	}
+
+	/**
+	 * Update phone on related Contact of an Opportunity.
+	 * @return array{success:bool,phone:string,contact_id:int}
+	 */
+	public static function saveInlinePhone($potentialId, $phone) {
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			throw new Exception('Opportunity not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $potentialId)
+			&& !Users_Privileges_Model::isPermitted(self::MODULE, 'DetailView', $potentialId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$digits = preg_replace('/\D+/', '', (string) $phone);
+		$digits = substr((string) $digits, 0, 10);
+		if ($digits !== '' && strlen($digits) !== 10) {
+			throw new Exception('Số điện thoại phải đủ 10 số.');
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery('SELECT contact_id FROM vtiger_potential WHERE potentialid = ?', array($potentialId));
+		$contactId = ($res && $adb->num_rows($res) > 0) ? (int) $adb->query_result($res, 0, 'contact_id') : 0;
+		if ($contactId <= 0) {
+			throw new Exception('Cơ hội chưa gắn khách hàng — không lưu được SĐT.');
+		}
+		if (!Users_Privileges_Model::isPermitted('Contacts', 'EditView', $contactId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$recordModel = Vtiger_Record_Model::getInstanceById($contactId, 'Contacts');
+		$recordModel->set('id', $contactId);
+		$recordModel->set('mode', 'edit');
+		$recordModel->set('phone', $digits);
+		$recordModel->save();
+		return array(
+			'success' => true,
+			'phone' => $digits,
+			'contact_id' => $contactId,
 		);
 	}
 

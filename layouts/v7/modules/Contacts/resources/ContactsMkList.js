@@ -54,7 +54,7 @@
     sortKey: "last_touch",
     sortDir: "desc",
     page: 1,
-    filtersOpen: true,
+    filtersOpen: false,
     activeSegment: null,
     selected: {},
   };
@@ -363,9 +363,98 @@
     // Sync credential columns into tag stack so list + dropdown stay aligned.
     if (contact && isCredentialIssued(contact.da_cap_bang, "bang")) pushTag("da_cap_bang");
     if (contact && isCredentialIssued(contact.da_cap_tai_khoan, "tk")) pushTag("da_cap_tai_khoan");
-    return parts.length
-      ? '<div class="mk-leads-tags-stack">' + parts.join("") + "</div>"
-      : '<span class="mk-leads-muted">Thêm thẻ…</span>';
+    if (!parts.length) return '<span class="mk-leads-muted">Thêm thẻ…</span>';
+    var maxShow = 2;
+    var shown = parts.slice(0, maxShow);
+    var extra = parts.length - shown.length;
+    return (
+      '<div class="mk-leads-tags-stack">' +
+      shown.join("") +
+      (extra > 0 ? '<span class="mk-leads-tag-more">+' + extra + "</span>" : "") +
+      "</div>"
+    );
+  }
+
+  function editableCellHtml(field, value, recordId, placeholder) {
+    var shown = value;
+    if (field === "phone" && value && window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function") {
+      shown = window.MkPhoneFormat.format(value) || value;
+    }
+    var display = shown
+      ? esc(shown)
+      : '<span class="mk-leads-muted">' + esc(placeholder || "—") + "</span>";
+    return (
+      '<button type="button" class="mk-leads-inline-edit" data-field="' +
+      esc(field) +
+      '" data-contact-id="' +
+      esc(recordId) +
+      '" title="Nhấn để sửa">' +
+      display +
+      "</button>"
+    );
+  }
+
+  function beginInlineEdit(btn) {
+    if (!btn || !btn.getAttribute) return;
+    var field = btn.getAttribute("data-field");
+    var recordId = btn.getAttribute("data-contact-id");
+    var current = btn.textContent.trim();
+    if (current === "—" || current === "Nhập SĐT" || current === "Nhập địa chỉ") current = "";
+    var input = document.createElement("input");
+    input.type = field === "phone" ? "tel" : "text";
+    input.className = "mk-leads-inline-input";
+    input.value = current;
+    input.setAttribute("data-field", field);
+    input.setAttribute("data-contact-id", recordId);
+    if (field === "phone") {
+      input.setAttribute("inputmode", "numeric");
+      input.setAttribute("maxlength", "12");
+      input.addEventListener("input", function () {
+        var next =
+          window.MkPhoneFormat && typeof window.MkPhoneFormat.formatInput === "function"
+            ? window.MkPhoneFormat.formatInput(input.value)
+            : String(input.value || "").replace(/\D+/g, "").slice(0, 10);
+        if (next !== input.value) input.value = next;
+      });
+    }
+    btn.replaceWith(input);
+    input.focus();
+    if (current) input.select();
+  }
+
+  function commitInlineEdit(input) {
+    if (!input || !input.getAttribute || !store || !store.saveInlineFields) {
+      renderTable();
+      return;
+    }
+    var field = input.getAttribute("data-field");
+    var recordId = input.getAttribute("data-contact-id");
+    var val = String(input.value || "").trim();
+    var patch = {};
+    if (field === "phone") {
+      val = val.replace(/\s+/g, "");
+      if (val && !/^\d{10}$/.test(val)) {
+        window.alert("Số điện thoại phải đủ 10 số.");
+        renderTable();
+        return;
+      }
+      patch.phone = val;
+    } else if (field === "address") {
+      patch.address = val;
+    } else {
+      renderTable();
+      return;
+    }
+    input.disabled = true;
+    store
+      .saveInlineFields(recordId, patch)
+      .then(function () {
+        renderTable();
+      })
+      .catch(function (err) {
+        window.alert((err && err.message) || "Không lưu được.");
+        renderTable();
+      });
   }
 
   function isCredentialIssued(value, kind) {
@@ -568,15 +657,11 @@
             (c.title ? '<div class="mk-leads-sub">' + esc(c.title) + "</div>" : "") +
             "</span></span></td>" +
             '<td class="mk-leads-td">' +
-            (c.phone
-              ? esc(
-                  window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function"
-                    ? window.MkPhoneFormat.format(c.phone) || c.phone
-                    : c.phone
-                )
-              : '<span class="mk-leads-muted">—</span>') +
+            editableCellHtml("phone", c.phone, c.crmid || c.id, "Nhập SĐT") +
             "</td>" +
-            '<td class="mk-leads-td">' + (c.address ? esc(c.address) : '<span class="mk-leads-muted">—</span>') + "</td>" +
+            '<td class="mk-leads-td">' +
+            editableCellHtml("address", c.address, c.crmid || c.id, "Nhập địa chỉ") +
+            "</td>" +
             '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-contact-id="' +
             esc(c.id) +
             '" title="Sửa thẻ">' +
@@ -850,6 +935,13 @@
     });
 
     document.addEventListener("click", function (e) {
+      var editBtn = e.target.closest && e.target.closest(".mk-leads-inline-edit[data-contact-id]");
+      if (editBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        beginInlineEdit(editBtn);
+        return;
+      }
       var tagsBtn = e.target.closest && e.target.closest(".mk-leads-tags-edit[data-contact-id]");
       if (tagsBtn) {
         e.preventDefault();
@@ -923,6 +1015,23 @@
         renderAll();
       });
     }
+
+    document.addEventListener(
+      "focusout",
+      function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains("mk-leads-inline-input") && e.target.getAttribute("data-contact-id")) {
+          commitInlineEdit(e.target);
+        }
+      },
+      true
+    );
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      if (e.target && e.target.classList && e.target.classList.contains("mk-leads-inline-input") && e.target.getAttribute("data-contact-id")) {
+        e.preventDefault();
+        e.target.blur();
+      }
+    });
 
     document.addEventListener("mk-contacts-list-field-updated", function (e) {
       if (!e || !e.detail || !store || !store.patchContact) return;

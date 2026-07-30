@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_tags', 'delete'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_tags', 'delete'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -63,6 +63,17 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						$recordId,
 						$request->get('mk_region'),
 						$request->get('mk_address')
+					);
+					$response->setResult($result);
+					break;
+				case 'save_inline_phone':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$result = Potentials_ModernService::saveInlinePhone(
+						$recordId,
+						$request->get('phone')
 					);
 					$response->setResult($result);
 					break;

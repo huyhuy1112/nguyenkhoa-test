@@ -53,7 +53,7 @@
     sortKey: "createdtime",
     sortDir: "desc",
     page: 1,
-    filtersOpen: true,
+    filtersOpen: false,
     activeSegment: null,
     selected: {},
   };
@@ -833,6 +833,9 @@
               : c.contract_no
                 ? '<div class="mk-leads-sub">' + esc(c.contract_no) + "</div>"
                 : "") +
+            (c.notes
+              ? '<div class="mk-leads-sub mk-sc-name-note" title="' + esc(c.notes) + '">' + esc(c.notes.length > 60 ? c.notes.slice(0, 60) + "…" : c.notes) + "</div>"
+              : "") +
             "</span></span></td>" +
             '<td class="mk-leads-td mk-leads-td--phone">' +
             phoneCell(c.phone) +
@@ -1067,8 +1070,12 @@
       store.patchContract(id, {
         franchise_status: c.franchise_status || "",
         contact_status: c.contact_status || "",
+        data_source: c.data_source || "",
+        phone: c.phone || "",
+        business_note: c.business_note || "",
         referrer: c.referrer || "",
         sale_owner: c.sale_owner || "",
+        notes: c.notes || c.description || "",
         interaction_1: c.interaction_1 || "",
         interaction_2: c.interaction_2 || "",
         interaction_3: c.interaction_3 || "",

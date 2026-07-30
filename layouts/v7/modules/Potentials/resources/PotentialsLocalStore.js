@@ -126,5 +126,32 @@
         return next;
       });
     },
+    saveInlineLocation: function (id, region, address) {
+      var oid = String(id || "");
+      return apiRequest("save_inline_location", {
+        record: oid,
+        mk_region: region || "",
+        mk_address: address || "",
+      }).then(function (res) {
+        root.PotentialsLocalStore.patchOpportunity(oid, {
+          address: (res && res.address) || address || "",
+          district: (res && res.district) || "",
+          tags: (res && res.tags) || undefined,
+        });
+        return res;
+      });
+    },
+    saveInlinePhone: function (id, phone) {
+      var oid = String(id || "");
+      return apiRequest("save_inline_phone", {
+        record: oid,
+        phone: phone || "",
+      }).then(function (res) {
+        root.PotentialsLocalStore.patchOpportunity(oid, {
+          phone: (res && res.phone) || phone || "",
+        });
+        return res;
+      });
+    },
   };
 })(window);

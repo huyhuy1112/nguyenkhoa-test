@@ -567,7 +567,7 @@ class Quotes_QuoteExcelExport_Helper {
 			'alignment' => array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER),
 		));
 
-		$docNo = $ctx['quote_no'] !== '' ? $ctx['quote_no'] : (($isSalesOrder ? 'SO' : 'DH') . $focus->id);
+		$docNo = $ctx['quote_no'] !== '' ? $ctx['quote_no'] : (($isSalesOrder ? 'DH' : 'BG') . $focus->id);
 		$sheet->mergeCells('B8:H8');
 		$sheet->setCellValue('B8', $docNoLabel . $docNo);
 		$sheet->getStyle('B8')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);

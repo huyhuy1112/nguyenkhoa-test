@@ -156,6 +156,8 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 
 	public function saveRecord($request) {
 		$this->assertQuoteCanCreateSalesOrder($request);
+		require_once 'include/utils/MkEntityNumbering.php';
+		MkEntityNumbering::ensureModuleSequence('SalesOrder');
 		try {
 			$contactId = (int) $request->get('contact_id');
 			$potentialId = (int) $request->get('potential_id');

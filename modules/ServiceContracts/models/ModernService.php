@@ -453,7 +453,7 @@ class ServiceContracts_ModernService {
 				p.referral_code, p.referral_tier_name, p.referral_reward_amount,
 				p.registration_date, p.duplicate_check_result, p.retention_expires_at,
 				p.sale_owner, p.customer_status, p.contract_signed_date, p.store_count,
-				p.payment_condition, p.payment_date
+				p.payment_condition, p.payment_date, ce.description
 			 FROM vtiger_servicecontracts sc
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
 			 LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid
@@ -535,6 +535,8 @@ class ServiceContracts_ModernService {
 				? (int) $row['store_count'] : null,
 			'payment_condition' => self::decodeText(isset($row['payment_condition']) ? $row['payment_condition'] : ''),
 			'payment_date' => $paid,
+			'notes' => self::decodeText(isset($row['description']) ? $row['description'] : ''),
+			'description' => self::decodeText(isset($row['description']) ? $row['description'] : ''),
 			'tags' => array_values($tags),
 			'picklists' => self::franchisePicklists(),
 		);
@@ -907,9 +909,20 @@ class ServiceContracts_ModernService {
 		$contactStatus = array_key_exists('contact_status', $payload)
 			? self::normalizePick($payload['contact_status'], $picklists['contact_status'])
 			: $franchise['contact_status'];
-		$referrer = array_key_exists('referrer', $payload)
-			? trim(self::decodeText($payload['referrer']))
-			: $franchise['referrer'];
+		$dataSource = array_key_exists('data_source', $payload)
+			? self::normalizePick($payload['data_source'], $picklists['data_source'])
+			: $franchise['data_source'];
+		$phone = array_key_exists('phone', $payload)
+			? trim(self::decodeText($payload['phone']))
+			: $franchise['phone'];
+		$phoneDigits = self::normalizePhoneDigits($phone);
+		if ($phoneDigits !== '') {
+			$phoneDigits = substr($phoneDigits, 0, 10);
+			$phone = $phoneDigits;
+		}
+		$businessNote = array_key_exists('business_note', $payload)
+			? trim(self::decodeText($payload['business_note']))
+			: $franchise['business_note'];
 		$interaction1 = array_key_exists('interaction_1', $payload)
 			? self::normalizeInteraction($payload['interaction_1'])
 			: $franchise['interaction_1'];
@@ -924,13 +937,17 @@ class ServiceContracts_ModernService {
 			: $franchise['interaction_materials'];
 
 		$adb->pquery(
-			'UPDATE bace_sc_profile SET franchise_status = ?, contact_status = ?, referrer = ?,
+			'UPDATE bace_sc_profile SET franchise_status = ?, contact_status = ?, data_source = ?,
+				phone = ?, business_note = ?, address_line = ?,
 				interaction_1 = ?, interaction_2 = ?, interaction_3 = ?, interaction_materials = ?,
 				customer_status = ?, modified_at = ? WHERE servicecontractsid = ?',
 			array(
 				$franchiseStatus !== '' ? $franchiseStatus : null,
 				$contactStatus !== '' ? $contactStatus : null,
-				$referrer !== '' ? $referrer : null,
+				$dataSource !== '' ? $dataSource : null,
+				$phone !== '' ? $phone : null,
+				$businessNote !== '' ? $businessNote : null,
+				$businessNote !== '' ? $businessNote : null,
 				$interaction1 !== '' ? $interaction1 : null,
 				$interaction2 !== '' ? $interaction2 : null,
 				$interaction3 !== '' ? $interaction3 : null,

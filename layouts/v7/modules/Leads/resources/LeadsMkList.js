@@ -70,7 +70,7 @@
     page: 1,
     selected: {},
     activeSegment: null,
-    filtersOpen: true,
+    filtersOpen: false,
   };
 
   function $(id) {
@@ -307,7 +307,17 @@
     input.setAttribute("data-lead-id", leadId);
     if (field === "phone") {
       input.setAttribute("inputmode", "numeric");
-      input.setAttribute("maxlength", "10");
+      // Formatted display is "xxxx xxx xxx" (12 chars) for 10 digits.
+      input.setAttribute("maxlength", "12");
+      input.addEventListener("input", function () {
+        var next =
+          window.MkPhoneFormat && typeof window.MkPhoneFormat.formatInput === "function"
+            ? window.MkPhoneFormat.formatInput(input.value)
+            : String(input.value || "").replace(/\D+/g, "").slice(0, 10);
+        if (next !== input.value) {
+          input.value = next;
+        }
+      });
     }
     btn.replaceWith(input);
     input.focus();
@@ -1416,14 +1426,17 @@
               ? tagMeta(typeTag).label || typeTag
               : null;
           var nonSourceTags = displayTagsForLead(l);
-          var tags = nonSourceTags;
-          var extra = 0;
+          var maxTagShow = 2;
+          var tags = nonSourceTags.slice(0, maxTagShow);
+          var extra = Math.max(0, nonSourceTags.length - maxTagShow);
           var checked = state.selected[l.id] ? " checked" : "";
           var crmId = leadCrmId(l);
           var createdLabel = formatCreatedLabel(l.createdtime);
           var tagsHtml = tags.length
             ? tags.map(tagBadgeHtml).join("")
-            : '<span class="mk-leads-muted">Thêm thẻ…</span>';
+            : nonSourceTags.length === 0
+              ? '<span class="mk-leads-muted">Thêm thẻ…</span>'
+              : "";
           return (
             '<tr class="mk-leads-row' +
             (d.high ? " mk-leads-row--hot" : "") +

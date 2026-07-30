@@ -630,6 +630,8 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 
 		$focus = CRMEntity::getInstance('SalesOrder');
 		if ($focus && method_exists($focus, 'setModuleSeqNumber')) {
+			require_once 'include/utils/MkEntityNumbering.php';
+			MkEntityNumbering::ensureModuleSequence('SalesOrder');
 			$seq = $focus->setModuleSeqNumber('increment', 'SalesOrder');
 			if (is_string($seq) && $seq !== '') {
 				$db->pquery('UPDATE vtiger_salesorder SET salesorder_no = ? WHERE salesorderid = ?', array($seq, $newId));

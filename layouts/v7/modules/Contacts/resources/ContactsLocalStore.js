@@ -96,6 +96,23 @@
         return next;
       });
     },
+    saveInlineFields: function (id, patch) {
+      var oid = String(id || "");
+      var data = { record: oid };
+      if (patch && Object.prototype.hasOwnProperty.call(patch, "phone")) {
+        data.phone = patch.phone;
+      }
+      if (patch && Object.prototype.hasOwnProperty.call(patch, "address")) {
+        data.address = patch.address;
+      }
+      return apiRequest("save_inline_fields", data).then(function (res) {
+        root.ContactsLocalStore.patchContact(oid, {
+          phone: res && res.phone != null ? res.phone : patch.phone,
+          address: res && res.address != null ? res.address : patch.address,
+        });
+        return res;
+      });
+    },
     saveCredentials: function (id, daCapBang, daCapTaiKhoan) {
       var oid = String(id || "");
       return apiRequest("credential_save", {

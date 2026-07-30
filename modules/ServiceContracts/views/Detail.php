@@ -55,9 +55,15 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 		foreach ($pick['contact_status'] as $opt) {
 			$contactOpts[$opt] = $opt;
 		}
+		$sourceOpts = array('' => '—');
+		foreach ($pick['data_source'] as $opt) {
+			$sourceOpts[$opt] = $opt;
+		}
 		$fs = isset($franchise['franchise_status']) ? (string) $franchise['franchise_status'] : '';
 		$cs = isset($franchise['contact_status']) ? (string) $franchise['contact_status'] : '';
-		$ref = isset($franchise['referrer']) ? (string) $franchise['referrer'] : '';
+		$ds = isset($franchise['data_source']) ? (string) $franchise['data_source'] : '';
+		$phone = isset($franchise['phone']) ? (string) $franchise['phone'] : '';
+		$biz = isset($franchise['business_note']) ? (string) $franchise['business_note'] : '';
 		$i1 = isset($franchise['interaction_1']) ? (string) $franchise['interaction_1'] : '';
 		$i2 = isset($franchise['interaction_2']) ? (string) $franchise['interaction_2'] : '';
 		$i3 = isset($franchise['interaction_3']) ? (string) $franchise['interaction_3'] : '';
@@ -73,10 +79,28 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 				'picklist_values' => $statusOpts,
 			),
 			array(
-				'name' => 'referrer',
-				'label' => 'Liên quan tới',
-				'value' => $ref !== '' ? $ref : '—',
-				'raw_value' => $ref,
+				'name' => 'data_source',
+				'label' => 'Nguồn data',
+				'value' => $ds !== '' ? $ds : '—',
+				'raw_value' => $ds,
+				'data_type' => 'picklist',
+				'editable' => true,
+				'picklist_values' => $sourceOpts,
+			),
+			array(
+				'name' => 'phone',
+				'label' => 'SĐT',
+				'value' => $phone !== '' ? $phone : '—',
+				'raw_value' => $phone,
+				'data_type' => 'string',
+				'editable' => true,
+				'picklist_values' => array(),
+			),
+			array(
+				'name' => 'business_note',
+				'label' => 'Địa chỉ kinh doanh',
+				'value' => $biz !== '' ? $biz : '—',
+				'raw_value' => $biz,
 				'data_type' => 'string',
 				'editable' => true,
 				'picklist_values' => array(),

@@ -11,6 +11,7 @@ class MkEntityNumbering {
 		'Contacts'   => array('prefix' => 'LH', 'width' => 5, 'start' => '00001'), // Liên hệ
 		'Accounts'   => array('prefix' => 'KH', 'width' => 5, 'start' => '00001'), // Khách hàng / Tổ chức
 		'Quotes'     => array('prefix' => 'BG', 'width' => 5, 'start' => '00001'), // Báo giá
+		'SalesOrder' => array('prefix' => 'DH', 'width' => 5, 'start' => '00001'), // Đơn hàng
 	);
 
 	public static function getPaddingWidth($module) {
@@ -79,6 +80,7 @@ class MkEntityNumbering {
 	/**
 	 * Ensure active prefix/padding for a module without resetting cur_id when already correct.
 	 * Quotes: also migrate legacy QUO* → BG#####.
+	 * SalesOrder: also migrate legacy SO* → DH#####.
 	 */
 	public static function ensureModuleSequence($module) {
 		global $adb;
@@ -143,6 +145,9 @@ class MkEntityNumbering {
 		if ($module === 'Quotes') {
 			self::migrateQuotesQuoToBg($width);
 		}
+		if ($module === 'SalesOrder') {
+			self::migrateSalesOrderSoToDh($width);
+		}
 
 		return true;
 	}
@@ -182,6 +187,45 @@ class MkEntityNumbering {
 				 WHERE semodule = ? AND prefix = ? AND active = 1
 				   AND CAST(cur_id AS UNSIGNED) <= ?',
 				array($next, 'Quotes', 'BG', $maxNum)
+			);
+		}
+	}
+
+	/**
+	 * Rewrite legacy salesorder_no values SO### → DH#####.
+	 */
+	protected static function migrateSalesOrderSoToDh($width = 5) {
+		global $adb;
+		$width = max(1, (int) $width);
+		$res = $adb->pquery(
+			"SELECT salesorderid, salesorder_no FROM vtiger_salesorder
+			 WHERE salesorder_no IS NOT NULL AND salesorder_no <> '' AND UPPER(salesorder_no) LIKE 'SO%'",
+			array()
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return;
+		}
+		$maxNum = 0;
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			$soId = (int) $adb->query_result($res, $i, 'salesorderid');
+			$old = trim((string) $adb->query_result($res, $i, 'salesorder_no'));
+			if (!preg_match('/^SO\s*0*(\d+)$/i', $old, $m)) {
+				continue;
+			}
+			$num = (int) $m[1];
+			if ($num > $maxNum) {
+				$maxNum = $num;
+			}
+			$newNo = self::formatNumber('DH', $num, $width);
+			$adb->pquery('UPDATE vtiger_salesorder SET salesorder_no = ? WHERE salesorderid = ?', array($newNo, $soId));
+		}
+		if ($maxNum > 0) {
+			$next = self::nextSequenceId($maxNum, $width);
+			$adb->pquery(
+				'UPDATE vtiger_modentity_num SET cur_id = ?
+				 WHERE semodule = ? AND prefix = ? AND active = 1
+				   AND CAST(cur_id AS UNSIGNED) <= ?',
+				array($next, 'SalesOrder', 'DH', $maxNum)
 			);
 		}
 	}

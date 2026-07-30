@@ -57,12 +57,15 @@
 					</label>
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_PHONE', $MODULE)} <em>*</em></span>
-						<input type="tel" class="mk-sc-input" name="phone" id="mkScPhone" required maxlength="64" placeholder="0934 567 890" inputmode="numeric" />
+						<input type="tel" class="mk-sc-input" name="phone" id="mkScPhone" required maxlength="12" placeholder="0934 567 890" inputmode="numeric" />
 					</label>
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">Email</span>
 						<input type="email" class="mk-sc-input" name="email" id="mkScEmail" maxlength="128" placeholder="email@example.com" />
 					</label>
+					<div class="mk-sc-field mk-sc-field--wide mk-sc-dup-slot" id="mkScDupSlot" hidden>
+						<div class="mk-sc-dup-banner" id="mkScDupBanner" role="alert" aria-live="polite"></div>
+					</div>
 					<label class="mk-sc-field mk-sc-field--wide">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_BUSINESS_NOTE', $MODULE)}</span>
 						<input type="text" class="mk-sc-input" name="business_note" id="mkScBusinessNote" maxlength="512" placeholder="{vtranslate('LBL_MK_SC_BUSINESS_NOTE', $MODULE)}" />
@@ -177,8 +180,6 @@
 
 			<div class="mk-sc-franchise-foot">
 				<p class="mk-sc-franchise-error" id="mkScFormError" hidden></p>
-				<a class="mk-sc-btn mk-sc-btn--ghost" href="{$MK_LIST_URL}">{vtranslate('LBL_CANCEL', $MODULE)}</a>
-				<button type="submit" class="mk-sc-btn mk-sc-btn--primary" id="mkScSaveBottom">{vtranslate('LBL_SAVE', $MODULE)}</button>
 			</div>
 		</form>
 	</div>
