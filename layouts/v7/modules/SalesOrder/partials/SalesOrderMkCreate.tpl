@@ -49,7 +49,8 @@
 				var keepNames = {
 					quote_id: 1,
 					quote_id_display: 1,
-					description: 1
+					description: 1,
+					mk_list_note: 1
 				};
 				function baseName(name) {
 					return String(name || '').replace(/\[\]$/, '').replace(/_display$/, '');
@@ -96,7 +97,7 @@
 							descLabel.classList.remove('mk-so-hide-legacy');
 							var lab = descLabel.querySelector('label');
 							if (lab) {
-								lab.textContent = 'Ghi chú';
+								lab.textContent = 'Ghi chú hợp đồng';
 							}
 						}
 					}

@@ -1918,3 +1918,108 @@ body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-
 		position: static;
 	}
 }
+
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box {
+	border: 1px solid var(--mk-sc-border);
+	border-radius: 14px;
+	padding: 14px 16px;
+	background: #fff;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box__title-wrap {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box__badge {
+	display: inline-flex;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	background: #ccfbf1;
+	color: #0f766e;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box__badge.is-done {
+	background: #e2e8f0;
+	color: #475569;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box__btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	border: 0;
+	border-radius: 10px;
+	padding: 10px 14px;
+	background: #0f5132;
+	color: #fff;
+	font-weight: 600;
+	cursor: pointer;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box__btn:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box__hint {
+	margin: 0 0 10px;
+	color: #64748b;
+	font-size: 13px;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box__list {
+	list-style: none;
+	margin: 0;
+	padding: 10px 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #f8fafc;
+	min-height: 56px;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box__empty,
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-last-touch-box__item {
+	font-size: 13px;
+	color: #475569;
+	margin: 0 0 6px;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-textarea--xl {
+	min-height: 180px;
+	font-size: 15px;
+	line-height: 1.5;
+	padding: 14px 16px;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-lt-modal .mk-sc-lt-modal__dialog {
+	width: min(640px, calc(100vw - 32px));
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-lt-modal .mk-lead-lt-modal__note {
+	min-height: 140px;
+	height: auto !important;
+	color: #0f172a !important;
+	font-size: 15px;
+	line-height: 1.45;
+	padding: 12px 14px;
+	box-sizing: border-box;
+}
+body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-sc-lt-modal .mk-lead-lt-modal__select {
+	display: block;
+	width: 100%;
+	min-height: 44px !important;
+	height: auto !important;
+	max-height: none !important;
+	padding: 10px 12px !important;
+	margin-bottom: 12px;
+	font-size: 15px !important;
+	line-height: 1.4 !important;
+	color: #0f172a !important;
+	background: #fff !important;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	box-sizing: border-box;
+	appearance: auto;
+	-webkit-appearance: menulist;
+	overflow: visible;
+}

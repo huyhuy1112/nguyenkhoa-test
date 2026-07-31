@@ -1229,15 +1229,16 @@
   }
 
   function captureInlineDetailSnapshot($panel) {
-    var snapshot = { fields: {}, description: "", paid: "" };
+    var snapshot = { fields: {}, description: "", mk_list_note: "", paid: "" };
     $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
       var name = $(this).attr("name");
       if (name) {
         snapshot.fields[name] = $(this).val();
       }
     });
-    snapshot.description =
+    snapshot.mk_list_note =
       $panel.find(".mk-so-inline-detail__notes-input").val() || "";
+    snapshot.description = snapshot.mk_list_note;
     snapshot.paid = $panel.find(".mk-so-inline-detail__paid-input").val() || "";
     return snapshot;
   }
@@ -1253,7 +1254,7 @@
     });
     $panel
       .find(".mk-so-inline-detail__notes-input")
-      .val(snapshot.description || "");
+      .val(snapshot.mk_list_note || snapshot.description || "");
     if (snapshot.paid !== undefined) {
       $panel.find(".mk-so-inline-detail__paid-input").val(snapshot.paid);
       $panel.find(".mk-so-inline-detail__paid-view").text(snapshot.paid || "0");
@@ -1332,7 +1333,7 @@
         "received";
       data[paidName] = $paidInput.val() || "0";
     }
-    data.description =
+    data.mk_list_note =
       $panel.find(".mk-so-inline-detail__notes-input").val() || "";
     return data;
   }
@@ -1437,8 +1438,9 @@
                 .html(displayValue);
             }
           });
-        if (response.description) {
-          var noteValue = response.description.value;
+        if (response.mk_list_note || response.description) {
+          var noteResp = response.mk_list_note || response.description;
+          var noteValue = noteResp.value;
           if (noteValue !== undefined) {
             $panel
               .find(".mk-so-inline-detail__notes-input")

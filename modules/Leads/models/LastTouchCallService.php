@@ -150,7 +150,7 @@ class Leads_LastTouchCallService {
 		if ($ts === false) {
 			return $ymdHis;
 		}
-		return date('d/m/Y: H:i:s', $ts);
+		return date('d/m/Y H:i', $ts);
 	}
 
 	public static function formatLogLine($n, $calledAt, $result, $note = '') {

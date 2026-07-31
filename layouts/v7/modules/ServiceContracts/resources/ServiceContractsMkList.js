@@ -250,21 +250,31 @@
 
   function formatDateTimeLabel(raw) {
     if (!raw) return "";
+    var s = String(raw).trim();
+    // Already dd/mm/yyyy HH:mm
+    if (/^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}/.test(s)) {
+      return s.slice(0, 16);
+    }
+    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::\d{2})?)?/);
+    if (m) {
+      var out = m[3] + "/" + m[2] + "/" + m[1];
+      if (m[4] != null) {
+        out += " " + m[4] + ":" + m[5];
+      }
+      return out;
+    }
     var d = new Date(raw);
-    if (isNaN(d.getTime())) return String(raw);
-    var mm = String(d.getMonth() + 1);
-    mm = mm.length < 2 ? "0" + mm : mm;
+    if (isNaN(d.getTime())) return s;
     var dd = String(d.getDate());
     dd = dd.length < 2 ? "0" + dd : dd;
+    var mm = String(d.getMonth() + 1);
+    mm = mm.length < 2 ? "0" + mm : mm;
     var yyyy = d.getFullYear();
-    var h = d.getHours();
-    var m = d.getMinutes();
-    var ampm = h >= 12 ? "PM" : "AM";
-    var h12 = h % 12;
-    if (h12 === 0) h12 = 12;
-    var mmins = String(m);
-    mmins = mmins.length < 2 ? "0" + mmins : mmins;
-    return mm + "-" + dd + "-" + yyyy + " " + h12 + ":" + mmins + " " + ampm;
+    var hh = String(d.getHours());
+    hh = hh.length < 2 ? "0" + hh : hh;
+    var mi = String(d.getMinutes());
+    mi = mi.length < 2 ? "0" + mi : mi;
+    return dd + "/" + mm + "/" + yyyy + " " + hh + ":" + mi;
   }
 
   function dateCell(raw) {
@@ -279,10 +289,10 @@
     if (!s || s === "0000-00-00") {
       return '<span class="mk-leads-muted">—</span>';
     }
-    // YYYY-MM-DD -> MM-DD-YYYY
+    // YYYY-MM-DD -> DD/MM/YYYY
     var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (m) {
-      return '<span class="mk-leads-date">' + esc(m[2] + "-" + m[3] + "-" + m[1]) + "</span>";
+      return '<span class="mk-leads-date">' + esc(m[3] + "/" + m[2] + "/" + m[1]) + "</span>";
     }
     return dateCell(s);
   }
@@ -344,18 +354,63 @@
 
   function interactionNoteCell(field, value, recordId) {
     var cur = String(value || "").trim();
+    var isMaterials = field === "interaction_materials";
+    var cls = "mk-sc-ix-note" + (isMaterials ? " mk-sc-ix-note--lg" : "");
+    var rows = "2";
     return (
-      '<input type="text" class="mk-sc-ix-note" data-field="' +
+      '<textarea class="' +
+      cls +
+      '" data-field="' +
       esc(field) +
       '" data-id="' +
       esc(String(recordId || "")) +
       '" data-prev="' +
       esc(cur) +
-      '" value="' +
-      esc(cur) +
+      '" rows="' +
+      rows +
       '" placeholder="Ghi chú…" title="' +
-      esc(cur || "Nhập ghi chú tương tác") +
-      '" />'
+      esc(cur || "Nhập ghi chú") +
+      '">' +
+      esc(cur) +
+      "</textarea>"
+    );
+  }
+
+  function lastTouchCallCell(c) {
+    var lt = (c && c.lastTouchCalls) || {};
+    var calls = lt.calls || [];
+    var count = typeof lt.count === "number" ? lt.count : calls.length;
+    var max = lt.max_calls || 3;
+    if (!calls.length) {
+      return (
+        '<div class="mk-sc-lt-cell">' +
+        '<span class="mk-sc-lt-badge is-open">' +
+        esc(String(count) + "/" + String(max)) +
+        "</span>" +
+        '<span class="mk-leads-muted">Chưa có cuộc gọi</span></div>'
+      );
+    }
+    return (
+      '<div class="mk-sc-lt-cell">' +
+      '<span class="mk-sc-lt-badge ' +
+      (lt.can_add === false ? "is-done" : "is-open") +
+      '">' +
+      esc(String(count) + "/" + String(max)) +
+      "</span>" +
+      '<div class="mk-sc-lt-log">' +
+      calls
+        .map(function (call) {
+          var line =
+            call.label ||
+            (call.called_at_label || "") +
+              " Call #" +
+              (call.n || "") +
+              " Kết quả: " +
+              (call.result || "");
+          return '<div class="mk-sc-lt-log__item" title="' + esc(line) + '">' + esc(line) + "</div>";
+        })
+        .join("") +
+      "</div></div>"
     );
   }
 
@@ -913,7 +968,7 @@
             '<td class="mk-leads-td">' +
             interactionNoteCell("interaction_3", c.interaction_3, rowId) +
             "</td>" +
-            '<td class="mk-leads-td">' +
+            '<td class="mk-leads-td mk-sc-td--notes">' +
             interactionNoteCell("interaction_materials", c.interaction_materials, rowId) +
             "</td></tr>"
           );
@@ -1090,6 +1145,301 @@
     document.documentElement.classList.add("mk-sc-list-ready");
   }
 
+  function ensureScLastTouchModal() {
+    var existing = document.getElementById("mk-sc-lt-modal");
+    if (existing) return existing;
+    var wrap = document.createElement("div");
+    wrap.id = "mk-sc-lt-modal";
+    wrap.className = "mk-lead-lt-modal mk-leads-lt-modal mk-sc-lt-modal";
+    wrap.hidden = true;
+    wrap.setAttribute("aria-hidden", "true");
+    wrap.innerHTML =
+      '<div class="mk-lead-lt-modal__backdrop" data-mk-sc-lt-close="1"></div>' +
+      '<div class="mk-lead-lt-modal__dialog mk-sc-lt-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mk-sc-lt-title">' +
+      '<div class="mk-lead-lt-modal__head">' +
+      '<h3 id="mk-sc-lt-title">Ghi Last Touch — Call</h3>' +
+      '<button type="button" class="mk-lead-lt-modal__x" data-mk-sc-lt-close="1" aria-label="Đóng">&times;</button>' +
+      "</div>" +
+      '<div class="mk-lead-lt-modal__body">' +
+      '<p class="mk-lead-lt-modal__meta" id="mk-sc-lt-meta"></p>' +
+      '<label class="mk-lead-lt-modal__label" for="mk-sc-lt-result">Kết quả cuộc gọi</label>' +
+      '<select id="mk-sc-lt-result" class="mk-lead-lt-modal__select" autocomplete="off">' +
+      '<option value="Không nghe máy">Không nghe máy</option>' +
+      '<option value="Nghe máy">Nghe máy</option>' +
+      "</select>" +
+      '<label class="mk-lead-lt-modal__label" for="mk-sc-lt-note">Ghi chú</label>' +
+      '<textarea id="mk-sc-lt-note" class="mk-lead-lt-modal__note inputElement" rows="6" placeholder="Ví dụ: Khách quan tâm mặt bằng / cần tư vấn thêm"></textarea>' +
+      '<p class="mk-lead-lt-modal__tip">Chọn <strong>Nghe máy</strong> → Liên hệ = Đã gửi tư vấn (không sang Opp). Ghi chú Call #N hiện ở Tương tác lần N. <strong>Không nghe máy</strong> → nhắc sau khoảng 5 giờ.</p>' +
+      "</div>" +
+      '<div class="mk-lead-lt-modal__foot">' +
+      '<button type="button" class="btn btn-default" data-mk-sc-lt-close="1">Hủy</button>' +
+      '<button type="button" class="btn btn-success" id="mk-sc-lt-save">Lưu cuộc gọi</button>' +
+      "</div></div>";
+    document.body.appendChild(wrap);
+    wrap.addEventListener("click", function (e) {
+      var t = e.target;
+      if (t && t.getAttribute && t.getAttribute("data-mk-sc-lt-close") === "1") {
+        e.preventDefault();
+        closeScLastTouchModal();
+      }
+    });
+    var saveBtn = document.getElementById("mk-sc-lt-save");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        submitScLastTouchCall();
+      });
+    }
+    return wrap;
+  }
+
+  function closeScLastTouchModal() {
+    var modal = document.getElementById("mk-sc-lt-modal");
+    if (!modal) return;
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    modal._mkScId = "";
+    modal._mkCallBtn = null;
+  }
+
+  function openScLastTouchModal(btn) {
+    var panel = btn && btn.closest ? btn.closest(".mk-so-inline-detail") : null;
+    var host = panel ? panel.querySelector('[data-role="last-touch"]') : null;
+    var recordId = String(
+      (btn && btn.getAttribute("data-record-id")) ||
+        (host && host.getAttribute("data-record-id")) ||
+        (panel && panel.getAttribute("data-record-id")) ||
+        ""
+    );
+    if (!recordId) return;
+    if (
+      (btn && (btn.disabled || btn.classList.contains("is-locked"))) ||
+      (host && host.getAttribute("data-lt-locked") === "1")
+    ) {
+      window.alert(
+        (btn && btn.getAttribute("data-lt-hint")) ||
+          (host && host.getAttribute("data-lt-hint")) ||
+          "Không thể ghi thêm cuộc gọi Last Touch."
+      );
+      return;
+    }
+    var modal = ensureScLastTouchModal();
+    var nextN =
+      parseInt(
+        (btn && btn.getAttribute("data-lt-next")) ||
+          (host && host.getAttribute("data-lt-next")) ||
+          "1",
+        10
+      ) || 1;
+    var reminder = String(
+      (btn && btn.getAttribute("data-lt-reminder")) ||
+        (host && host.getAttribute("data-lt-reminder")) ||
+        ""
+    ).trim();
+    var meta = document.getElementById("mk-sc-lt-meta");
+    if (meta) {
+      meta.textContent =
+        "Ghi nhận Call #" +
+        nextN +
+        (reminder ? " · Nhắc lần trước: " + reminder : "") +
+        ". Khoảng 5 giờ giữa các lần gọi (chuông Thông báo).";
+    }
+    var resultEl = document.getElementById("mk-sc-lt-result");
+    var noteEl = document.getElementById("mk-sc-lt-note");
+    if (resultEl) resultEl.value = "Không nghe máy";
+    if (noteEl) noteEl.value = "";
+    modal._mkScId = recordId;
+    modal._mkCallBtn = btn;
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function applyScLastTouchToPanel(panel, lt) {
+    if (!panel || !lt) return;
+    var host = panel.querySelector('[data-role="last-touch"]');
+    if (!host) return;
+    var canAdd = lt.can_add !== false;
+    var nextN = lt.next_n || 1;
+    var count = typeof lt.count === "number" ? lt.count : (lt.calls || []).length;
+    var max = lt.max_calls || 3;
+    var hint = lt.hint || "Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → dừng chuỗi gọi.";
+    host.setAttribute("data-lt-next", String(nextN));
+    host.setAttribute("data-lt-hint", hint);
+    host.setAttribute("data-lt-count", String(count));
+    host.setAttribute("data-lt-max", String(max));
+    if (lt.reminder_at_label) host.setAttribute("data-lt-reminder", lt.reminder_at_label);
+    else host.removeAttribute("data-lt-reminder");
+    if (canAdd) host.removeAttribute("data-lt-locked");
+    else host.setAttribute("data-lt-locked", "1");
+    var badge = host.querySelector('[data-role="lt-badge"]');
+    if (badge) {
+      badge.textContent = count + "/" + max;
+      badge.className =
+        "mk-so-inline-detail__last-touch-badge" + (canAdd ? " is-open" : " is-done");
+    }
+    var hintEl = host.querySelector('[data-role="lt-hint"]');
+    if (hintEl) {
+      hintEl.textContent = hint;
+      hintEl.setAttribute("title", hint);
+    }
+    var list = host.querySelector('[data-role="lt-list"]');
+    if (list) {
+      var calls = lt.calls || [];
+      if (!calls.length) {
+        list.innerHTML =
+          '<li class="mk-so-inline-detail__last-touch-empty">Chưa có Call #1 — bấm “Ghi cuộc gọi”.</li>';
+      } else {
+        list.innerHTML = calls
+          .map(function (c) {
+            var line =
+              c.label ||
+              (c.called_at_label || "") +
+                " Call #" +
+                (c.n || "") +
+                " Kết quả: " +
+                (c.result || "");
+            return (
+              '<li class="mk-so-inline-detail__last-touch-item">' +
+              '<span class="mk-so-inline-detail__last-touch-n">Call #' +
+              esc(String(c.n || "")) +
+              "</span>" +
+              '<span class="mk-so-inline-detail__last-touch-text">' +
+              esc(line) +
+              "</span></li>"
+            );
+          })
+          .join("");
+      }
+    }
+    var btn = host.querySelector(".mk-so-inline-detail__call-btn");
+    if (btn) {
+      btn.setAttribute("data-lt-next", String(nextN));
+      btn.setAttribute("data-lt-hint", hint);
+      var label = btn.querySelector("span");
+      if (canAdd) {
+        btn.classList.remove("is-locked");
+        btn.disabled = false;
+        btn.removeAttribute("aria-disabled");
+        if (label) label.textContent = "Ghi cuộc gọi";
+      } else {
+        btn.classList.add("is-locked");
+        btn.disabled = true;
+        btn.setAttribute("aria-disabled", "true");
+        if (label) label.textContent = "Đã đủ gọi";
+      }
+    }
+  }
+
+  function submitScLastTouchCall() {
+    var modal = document.getElementById("mk-sc-lt-modal");
+    var recordId = modal && modal._mkScId;
+    if (!recordId) return;
+    var resultEl = document.getElementById("mk-sc-lt-result");
+    var noteEl = document.getElementById("mk-sc-lt-note");
+    var saveBtn = document.getElementById("mk-sc-lt-save");
+    var result = resultEl ? String(resultEl.value || "").trim() : "";
+    var note = noteEl ? String(noteEl.value || "").trim() : "";
+    if (!result) {
+      window.alert("Vui lòng chọn kết quả cuộc gọi.");
+      return;
+    }
+    if (saveBtn) saveBtn.disabled = true;
+    if (window.app && app.helper && app.helper.showProgress) {
+      app.helper.showProgress();
+    }
+    var postData = {
+      module: "ServiceContracts",
+      action: "ModernApi",
+      mode: "last_touch_call_log",
+      id: recordId,
+      record: recordId,
+      call_result: result,
+      note: note,
+    };
+    function done(err, res) {
+      if (saveBtn) saveBtn.disabled = false;
+      if (window.app && app.helper && app.helper.hideProgress) {
+        app.helper.hideProgress();
+      }
+      if (err || !res || res.success === false) {
+        var msg =
+          (err && err.message) ||
+          (res && (res.error || res.message)) ||
+          "Không ghi được cuộc gọi Last Touch.";
+        if (window.app && app.helper && app.helper.showErrorNotification) {
+          app.helper.showErrorNotification({ message: String(msg) });
+        } else {
+          window.alert(String(msg));
+        }
+        return;
+      }
+      var lt = res.lastTouchCalls || res;
+      if (store && typeof store.patchContract === "function") {
+        var patch = { lastTouchCalls: lt };
+        if (res.contract) {
+          patch.contact_status = res.contract.contact_status || "";
+          patch.last_touch = res.contract.last_touch || "";
+          patch.interaction_1 = res.contract.interaction_1;
+          patch.interaction_2 = res.contract.interaction_2;
+          patch.interaction_3 = res.contract.interaction_3;
+          patch.interaction_materials = res.contract.interaction_materials;
+        }
+        store.patchContract(String(recordId), patch);
+      }
+      var panel = document.querySelector(
+        '.mk-so-inline-detail[data-record-id="' + recordId + '"]'
+      );
+      applyScLastTouchToPanel(panel, lt);
+      if (panel && res.contract) {
+        var c = res.contract;
+        function patchField(name, val) {
+          var field = panel.querySelector(
+            '.mk-so-inline-detail__field[data-field-name="' + name + '"]'
+          );
+          if (!field) return;
+          var view = field.querySelector(".mk-so-inline-detail__field-view");
+          if (view) view.textContent = val || "—";
+          var input = field.querySelector('[name="' + name + '"]');
+          if (input) input.value = val || "";
+        }
+        patchField("contact_status", c.contact_status);
+        patchField("interaction_1", c.interaction_1);
+        patchField("interaction_2", c.interaction_2);
+        patchField("interaction_3", c.interaction_3);
+      }
+      closeScLastTouchModal();
+      renderTable();
+      if (window.app && app.helper && app.helper.showSuccessNotification) {
+        app.helper.showSuccessNotification({
+          message: (res.logged && res.logged.label) || "Đã ghi Last Touch Call.",
+        });
+      }
+    }
+    if (window.app && app.request && app.request.post) {
+      app.request.post({ data: postData }).then(done);
+    } else {
+      fetch("index.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: Object.keys(postData)
+          .map(function (k) {
+            return encodeURIComponent(k) + "=" + encodeURIComponent(postData[k]);
+          })
+          .join("&"),
+        credentials: "same-origin",
+      })
+        .then(function (r) {
+          return r.json();
+        })
+        .then(function (r) {
+          done(null, r && r.result ? r.result : r);
+        })
+        .catch(function () {
+          done({ message: "Không kết nối được máy chủ." }, null);
+        });
+    }
+  }
+
   function bindEvents() {
     var search = $("mk-sc-search");
     if (search) {
@@ -1129,8 +1479,19 @@
         interaction_2: c.interaction_2 || "",
         interaction_3: c.interaction_3 || "",
         interaction_materials: c.interaction_materials || "",
+        lastTouchCalls: c.lastTouchCalls || detail.lastTouchCalls || undefined,
       });
       renderTable();
+    });
+
+    document.addEventListener("click", function (e) {
+      var callBtn =
+        e.target && e.target.closest && e.target.closest(".mk-so-inline-detail__call-btn");
+      if (callBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openScLastTouchModal(callBtn);
+      }
     });
 
     document.addEventListener("change", function (e) {

@@ -45,6 +45,9 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
 		}
 
+		require_once 'modules/SalesOrder/helpers/ListNoteField.php';
+		SalesOrder_ListNoteField_Helper::ensure();
+
 		$recordId = $request->get('record');
 		if (empty($recordId)) {
 			return '';

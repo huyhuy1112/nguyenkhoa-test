@@ -57,7 +57,7 @@
 		<table class="mk-so-inline-detail__lines">
 			<thead>
 				<tr>
-					<th>SKU</th>
+					<th>Mã đơn hàng</th>
 					<th>Tên hàng</th>
 					<th class="is-num">Số lượng</th>
 					<th class="is-num">Đơn giá</th>
@@ -102,7 +102,7 @@
 	<div class="mk-so-inline-detail__bottom">
 		<div class="mk-so-inline-detail__notes">
 			<label class="mk-so-inline-detail__notes-label" for="mk-so-inline-note-{$RECORD->getId()}">Ghi chú</label>
-			<textarea id="mk-so-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="description" rows="4" readonly>{decode_html($RECORD->get('description'))|escape}</textarea>
+			<textarea id="mk-so-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="mk_list_note" rows="4" readonly>{decode_html($RECORD->get('mk_list_note'))|escape}</textarea>
 		</div>
 		<div class="mk-so-inline-detail__totals">
 			<div class="mk-so-inline-detail__total-row">

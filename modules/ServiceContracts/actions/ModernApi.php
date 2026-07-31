@@ -22,7 +22,9 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'save_tags', 'save_next_action', 'save', 'save_franchise', 'save_inline'), true)) {
+		if (in_array($mode, array(
+			'delete', 'save_tags', 'save_next_action', 'save', 'save_franchise', 'save_inline', 'last_touch_call_log',
+		), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -199,6 +201,41 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 						'success' => true,
 						'duplicate' => $check,
 					));
+					break;
+				case 'last_touch_call_list':
+					require_once 'modules/ServiceContracts/models/LastTouchCallService.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$response->setResult(array(
+						'success' => true,
+						'lastTouchCalls' => ServiceContracts_LastTouchCallService::getSummary($recordId),
+					));
+					break;
+				case 'last_touch_call_log':
+					require_once 'modules/ServiceContracts/models/LastTouchCallService.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$result = $request->get('call_result');
+					if ($result === null || $result === '') {
+						$result = $request->get('result');
+					}
+					$note = $request->get('note');
+					if ($note === null || $note === '') {
+						$note = $request->get('call_note');
+					}
+					$logged = ServiceContracts_LastTouchCallService::logCall(
+						$recordId,
+						(string) $result,
+						(string) $note,
+						$userId
+					);
+					$response->setResult(array_merge(array('success' => true), $logged, array(
+						'lastTouchCalls' => $logged,
+					)));
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

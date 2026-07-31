@@ -68,7 +68,7 @@
 					</div>
 					<label class="mk-sc-field mk-sc-field--wide">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_BUSINESS_NOTE', $MODULE)}</span>
-						<input type="text" class="mk-sc-input" name="business_note" id="mkScBusinessNote" maxlength="512" placeholder="{vtranslate('LBL_MK_SC_BUSINESS_NOTE', $MODULE)}" />
+						<textarea class="mk-sc-input mk-sc-textarea" name="business_note" id="mkScBusinessNote" rows="2" placeholder="{vtranslate('LBL_MK_SC_BUSINESS_NOTE', $MODULE)}"></textarea>
 					</label>
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_FRANCHISE_STATUS', $MODULE)}</span>
@@ -150,30 +150,6 @@
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_PAYMENT_DATE', $MODULE)}</span>
 						<input type="date" class="mk-sc-input" name="payment_date" id="mkScPaymentDate" />
-					</label>
-				</div>
-			</section>
-
-			<section class="mk-sc-franchise-card">
-				<div class="mk-sc-franchise-card__head">
-					<h2>{vtranslate('LBL_MK_SC_INTERACTIONS', $MODULE)}</h2>
-				</div>
-				<div class="mk-sc-franchise-grid mk-sc-franchise-grid--stack">
-					<label class="mk-sc-field mk-sc-field--wide" data-mk-interaction="1">
-						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_INTERACTION_1', $MODULE)}</span>
-						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_1" id="mkScInteraction1" rows="3" placeholder="Ghi chú lần liên hệ / tư vấn đầu tiên…"></textarea>
-					</label>
-					<label class="mk-sc-field mk-sc-field--wide" data-mk-interaction="2">
-						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_INTERACTION_2', $MODULE)}</span>
-						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_2" id="mkScInteraction2" rows="3" placeholder="Follow-up lần 2…"></textarea>
-					</label>
-					<label class="mk-sc-field mk-sc-field--wide" data-mk-interaction="3">
-						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_INTERACTION_3', $MODULE)}</span>
-						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_3" id="mkScInteraction3" rows="3" placeholder="Follow-up lần 3…"></textarea>
-					</label>
-					<label class="mk-sc-field mk-sc-field--wide mk-sc-field--materials">
-						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_INTERACTION_MATERIALS', $MODULE)}</span>
-						<textarea class="mk-sc-input mk-sc-textarea" name="interaction_materials" id="mkScInteractionMaterials" rows="4" placeholder="Ghi chú tương tác nguyên liệu / máy móc…"></textarea>
 					</label>
 				</div>
 			</section>

@@ -253,32 +253,32 @@ class SalesOrder_SaleInvoicePdf_Helper {
 body{margin:0;padding:16px;font:13px/1.45 "DejaVu Sans",Arial,Helvetica,sans-serif;color:#111;background:#fff}
 .sheet{max-width:900px;margin:0 auto;display:flex;flex-direction:column;min-height:740px}
 .head{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
-.mk-ph-logo{width:170px;height:auto;object-fit:contain}
+.mk-ph-logo{width:170px;height:auto;object-fit:contain;flex:0 0 auto}
 .head-main{flex:1;min-width:0}
 .company{font-size:16px;font-weight:700;margin:0 0 4px}
 .meta{color:#c44a1c;font-size:12px;margin:0}
-.branch-meta{margin:0 0 6px;font-size:12px;font-weight:600;color:#334155}
-.head-right{text-align:right;font-size:12px;color:#334155;font-weight:600;white-space:nowrap;margin-top:2px}
 .title{text-align:center;margin:14px 0 4px;font-size:22px;font-weight:800;letter-spacing:.02em}
-.docno{text-align:center;font-size:14px;font-weight:700;margin:0 0 14px}
+.docno{text-align:center;font-size:14px;font-weight:400;margin:0 0 14px}
 .info{display:flex;gap:24px;margin-bottom:12px}
 .info-col{flex:1;min-width:0}
 .info-row{margin:0 0 4px}
-.info-row b{display:inline-block;min-width:88px}
+.info-row b{display:inline-block;min-width:88px;font-weight:700}
 table{width:100%;border-collapse:collapse;margin:8px 0 12px}
 th,td{border:1px solid #222;padding:6px 8px;vertical-align:top}
-th{background:#f3f3f3;font-size:12px}
+th{background:#f3f3f3;font-size:12px;font-weight:700}
 td.c,th.c{text-align:center}
 td.r,th.r{text-align:right}
-.summary{display:flex;flex-direction:column;align-items:flex-start;margin-top:8px}
-.totals{width:280px;margin-left:0}
-.totals-row{display:flex;justify-content:space-between;gap:12px;margin:2px 0;font-size:13px}
-.totals-row.strong{font-weight:700;font-size:14px}
-.words{font-style:italic;margin:10px 0 10px}
-.date{text-align:right;margin:8px 0 8px}
-.signs{display:flex;gap:8px;margin:14px 0 0}
+.summary{display:block;margin-top:8px;width:100%}
+.totals{width:100%;margin:0}
+.totals-row{display:grid;grid-template-columns:7% 14% 30% 8% 14% 15% 12%;align-items:baseline;margin:3px 0;font-size:13px;width:100%}
+.totals-row .t-label{grid-column:1 / 6;font-weight:700;text-align:left}
+.totals-row .t-value{grid-column:6;font-weight:400;text-align:right}
+.totals-row .t-value.is-bold{font-weight:700}
+.words{font-style:italic;font-weight:700;margin:10px 0 10px}
+.signs{display:flex;gap:8px;margin:18px 0 0;align-items:flex-start}
 .sign{flex:1;text-align:center}
-.sign b{display:block;margin-bottom:4px}
+.sign .date-above{margin:0 0 6px;font-weight:400;font-size:13px;line-height:1.3;min-height:1.3em}
+.sign b{display:block;margin-bottom:4px;font-weight:700}
 .sign span{font-size:11px;font-style:italic;color:#444}
 .note-title{font-weight:700;text-decoration:underline;margin:0 0 6px}
 .note-list{margin:0;padding-left:18px}
@@ -289,8 +289,7 @@ td.r,th.r{text-align:right}
 			. '<div class="head">' . $logo
 			. '<div class="head-main"><p class="company">' . $h($data['company_name']) . '</p>'
 			. '<p class="meta">Địa chỉ: ' . $h($data['company_address']) . '</p>'
-			. '<p class="meta">Điện thoại: ' . $h($data['company_phone']) . '</p></div>'
-			. '<div class="head-right">' . $h($data['branch'] . ' - Bán hàng') . '</div></div>'
+			. '<p class="meta">Điện thoại: ' . $h($data['company_phone']) . '</p></div></div>'
 			. '<h1 class="title">' . $h($data['doc_title']) . '</h1>'
 			. '<p class="docno">' . $h($data['doc_no_label'] . $data['doc_no']) . '</p>'
 			. '<div class="info"><div class="info-col">'
@@ -304,22 +303,21 @@ td.r,th.r{text-align:right}
 			. '<p class="info-row"><b>SĐT:</b> ' . $h($data['sales_phone']) . '</p>'
 			. '</div></div>'
 			. '<table><thead><tr>'
-			. '<th class="c" style="width:7%">STT</th><th style="width:14%">SKU</th><th style="width:30%">Tên Hàng</th>'
+			. '<th class="c" style="width:7%">STT</th><th style="width:14%">Mã đơn hàng</th><th style="width:30%">Tên Hàng</th>'
 			. '<th class="c" style="width:8%">SL</th><th class="r" style="width:14%">Đơn Giá</th>'
 			. '<th class="r" style="width:15%">Thành Tiền</th><th style="width:12%">Ghi Chú</th>'
 			. '</tr></thead><tbody>' . $rows . '</tbody></table>'
 			. '<div class="summary"><div class="totals">'
-			. '<div class="totals-row"><span>Tổng Cộng:</span><span>' . $h($money($data['sub_total'])) . '</span></div>'
-			. '<div class="totals-row"><span>Chiết Khấu:</span><span>' . $h($money($data['discount'])) . '</span></div>'
-			. '<div class="totals-row strong"><span>Tổng Thanh Toán:</span><span>' . $h($money($data['payable'])) . '</span></div>'
+			. '<div class="totals-row"><span class="t-label">Tổng Cộng:</span><span class="t-value is-bold">' . $h($money($data['sub_total'])) . '</span></div>'
+			. '<div class="totals-row"><span class="t-label">Chiết Khấu:</span><span class="t-value">' . $h($money($data['discount'])) . '</span></div>'
+			. '<div class="totals-row"><span class="t-label">Tổng Thanh Toán:</span><span class="t-value">' . $h($money($data['payable'])) . '</span></div>'
 			. '</div>'
 			. (!empty($data['amount_words']) ? '<p class="words">Tổng thanh toán bằng chữ: ' . $h($data['amount_words']) . '</p>' : '')
 			. '</div>'
-			. '<p class="date">' . $h($data['date_label']) . '</p>'
 			. '<div class="signs">'
-			. '<div class="sign"><b>Thủ Kho</b><span>(Ký và ghi rõ họ tên)</span></div>'
-			. '<div class="sign"><b>Vận chuyển</b><span>(Ký và ghi rõ họ tên)</span></div>'
-			. '<div class="sign"><b>Khách hàng</b><span>(Ký và ghi rõ họ tên)</span></div>'
+			. '<div class="sign"><div class="date-above">&nbsp;</div><b>Thủ Kho</b><span>(Ký và ghi rõ họ tên)</span></div>'
+			. '<div class="sign"><div class="date-above">&nbsp;</div><b>Vận chuyển</b><span>(Ký và ghi rõ họ tên)</span></div>'
+			. '<div class="sign"><div class="date-above">' . $h($data['date_label']) . '</div><b>Khách hàng</b><span>(Ký và ghi rõ họ tên)</span></div>'
 			. '</div>'
 			. '<div class="mk-note"><p class="note-title">Lưu ý:</p><ul class="note-list">'
 			. '<li>Khi nhận hàng: Nếu có sai lệch về số lượng kiện hàng thực tế so với PGH / phiếu giao nhận của dịch vụ vận chuyển, hãy liên hệ ngay với NVKD để được giải quyết (chúng tôi chỉ giải quyết khiếu nại về giao nhận kiện hàng trong ngày Quý khách nhận được hàng).</li>'
@@ -578,7 +576,7 @@ td.r,th.r{text-align:right}
 		$x = $margins['left'];
 		$y = $pdf->GetY();
 
-		// —— Header: logo left + company meta ——
+		// —— Header: logo trái + thông tin công ty ——
 		$logoW = 44;
 		$logoH = 0;
 		$headerRightX = $x;
@@ -601,20 +599,13 @@ td.r,th.r{text-align:right}
 		$pdf->MultiCell($pageW - ($headerRightX - $x), 4, self::utf('Điện thoại: ' . $phone), 0, 'L', false, 1);
 		$pdf->SetTextColor(0, 0, 0);
 
-		$metaY = $y;
-		$pdf->SetXY($x + $pageW * 0.62, $metaY);
-		$pdf->SetFont(self::FONT, '', 8);
-		$pdf->MultiCell($pageW * 0.38, 4, self::utf($branch . ' - Bán hàng'), 0, 'R', false, 1);
-		$pdf->SetX($x + $pageW * 0.62);
-		$pdf->MultiCell($pageW * 0.38, 4, self::utf($printedAt), 0, 'R', false, 1);
-
 		$afterHeaderY = max($pdf->GetY(), $y + max($logoH, 18)) + 4;
 		$pdf->SetY($afterHeaderY);
 
 		// —— Title ——
 		$pdf->SetFont(self::FONT, 'B', 16);
 		$pdf->Cell($pageW, 8, self::utf($docTitle), 0, 1, 'C');
-		$pdf->SetFont(self::FONT, 'B', 11);
+		$pdf->SetFont(self::FONT, '', 11);
 		$pdf->Cell($pageW, 6, self::utf($docNoLabel . $docNo), 0, 1, 'C');
 		$pdf->Ln(3);
 
@@ -651,7 +642,7 @@ td.r,th.r{text-align:right}
 		// —— Items table ——
 		$cols = array(
 			array('w' => $pageW * 0.07, 'label' => 'STT', 'align' => 'C'),
-			array('w' => $pageW * 0.14, 'label' => 'Mã Hàng', 'align' => 'L'),
+			array('w' => $pageW * 0.14, 'label' => 'Mã đơn hàng', 'align' => 'L'),
 			array('w' => $pageW * 0.30, 'label' => 'Tên Hàng', 'align' => 'L'),
 			array('w' => $pageW * 0.08, 'label' => 'SL', 'align' => 'C'),
 			array('w' => $pageW * 0.14, 'label' => 'Đơn Giá', 'align' => 'R'),
@@ -719,45 +710,64 @@ td.r,th.r{text-align:right}
 
 		$pdf->Ln(2);
 
-		// —— Totals (right) ——
+		// —— Totals: chữ trái, số căn cột Thành Tiền ——
+		// boldValue: true = số Tổng Cộng đậm; false = số thường (Tổng Thanh Toán không đậm)
+		$thanhTienX = $x;
+		for ($ci = 0; $ci < 5; $ci++) {
+			$thanhTienX += $cols[$ci]['w'];
+		}
+		$thanhTienW = $cols[5]['w'];
+		$labelW = $thanhTienX - $x;
 		$totals = array(
-			array('Tổng Cộng', $subTotal, false),
-			array('Chiết Khấu', $discountAmount, false),
-			array('Tổng Thanh Toán', $payable, true),
+			array('Tổng Cộng:', $subTotal, true),
+			array('Chiết Khấu:', $discountAmount, false),
+			array('Tổng Thanh Toán:', $payable, false),
 		);
-		$labelW = 40;
-		$valueW = 36;
-		$totalsX = $x + $pageW - $labelW - $valueW;
 		foreach ($totals as $item) {
-			$pdf->SetX($totalsX);
-			$pdf->SetFont(self::FONT, $item[2] ? 'B' : '', $item[2] ? 11 : 10);
-			$pdf->Cell($labelW, 6, self::utf($item[0] . ':'), 0, 0, 'L');
-			$pdf->Cell($valueW, 6, self::utf(Quotes_QuoteExcelExport_Helper::formatMoneyVnPublic($item[1])), 0, 1, 'R');
+			$pdf->SetX($x);
+			$pdf->SetFont(self::FONT, 'B', 10);
+			$pdf->Cell($labelW, 6, self::utf($item[0]), 0, 0, 'L');
+			$pdf->SetFont(self::FONT, $item[2] ? 'B' : '', 10);
+			$pdf->Cell(
+				$thanhTienW,
+				6,
+				self::utf(Quotes_QuoteExcelExport_Helper::formatMoneyVnPublic($item[1])),
+				0,
+				1,
+				'R'
+			);
 		}
 
 		if ($amountWords !== '') {
 			$pdf->Ln(1);
-			$pdf->SetFont(self::FONT, 'I', 10);
+			$pdf->SetFont(self::FONT, 'BI', 10);
 			$pdf->MultiCell($pageW, 5, self::utf('Tổng thanh toán bằng chữ: ' . $amountWords), 0, 'L', false, 1);
 		}
 
-		$pdf->Ln(4);
-		$pdf->SetFont(self::FONT, '', 10);
-		$pdf->Cell($pageW, 5, self::utf($dateLabel), 0, 1, 'R');
-		$pdf->Ln(2);
+		$pdf->Ln(6);
 
-		// —— Signatures ——
+		// —— Signatures: ngày nằm trên cột Khách hàng (như mẫu) ——
 		$sigW = $pageW / 3;
 		$sigY = $pdf->GetY();
 		$sigs = array('Thủ Kho', 'Vận chuyển', 'Khách hàng');
 		foreach ($sigs as $i => $label) {
-			$pdf->SetXY($x + $i * $sigW, $sigY);
+			$cx = $x + $i * $sigW;
+			$pdf->SetXY($cx, $sigY);
+			if ($i === 2) {
+				$pdf->SetFont(self::FONT, '', 10);
+				$pdf->Cell($sigW, 5, self::utf($dateLabel), 0, 2, 'C');
+				$pdf->SetX($cx);
+			} else {
+				$pdf->Cell($sigW, 5, '', 0, 2, 'C');
+				$pdf->SetX($cx);
+			}
 			$pdf->SetFont(self::FONT, 'B', 10);
 			$pdf->Cell($sigW, 5, self::utf($label), 0, 2, 'C');
+			$pdf->SetX($cx);
 			$pdf->SetFont(self::FONT, 'I', 8);
 			$pdf->Cell($sigW, 4, self::utf('(Ký và ghi rõ họ tên)'), 0, 0, 'C');
 		}
-		$pdf->SetY($sigY + 104);
+		$pdf->SetY($sigY + 110);
 
 		// —— Footer notes ——
 		$pdf->SetFont(self::FONT, 'U', 10);

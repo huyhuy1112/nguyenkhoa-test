@@ -9,65 +9,175 @@ class Accounts_FranchiseContractHtml_Helper {
 	public static function template() {
 		return <<<'HTML'
 <style>
-	body, p, td, div, li { font-family: freeserif, 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.45; color: #000; text-align: justify; }
-	.h-center { text-align: center; }
-	.h-title { font-family: freeserif, 'Times New Roman', Times, serif; font-size: 14pt; font-weight: bold; text-align: center; margin: 10px 0 6px; }
-	.h-sub { text-align: center; margin: 0 0 12px; font-size: 12pt; }
-	.muted { font-style: italic; }
-	.art { font-weight: bold; margin-top: 12px; margin-bottom: 6px; font-size: 12pt; }
-	.sub-art { font-weight: bold; margin-top: 8px; margin-bottom: 4px; }
-	.sign-table { width: 100%; }
-	.sign-table td { width: 50%; text-align: center; vertical-align: top; font-size: 12pt; padding: 0 6px; }
-	.sign-head { font-weight: bold; line-height: 1.35; }
+	body, p, td, div, li {
+		font-family: freeserif, 'Times New Roman', Times, serif;
+		font-size: 13pt;
+		line-height: 1.55;
+		color: #000;
+		text-align: justify;
+	}
+	p { margin: 0 0 8pt; }
+	.h-nation {
+		text-align: center;
+		font-weight: bold;
+		font-size: 13pt;
+		line-height: 1.35;
+		margin: 0 0 2pt;
+	}
+	.h-motto {
+		text-align: center;
+		font-weight: bold;
+		font-size: 13pt;
+		text-decoration: underline;
+		line-height: 1.35;
+		margin: 0 0 14pt;
+	}
+	.h-date {
+		text-align: right;
+		font-size: 13pt;
+		font-style: italic;
+		margin: 0 0 18pt;
+	}
+	.h-title {
+		font-family: freeserif, 'Times New Roman', Times, serif;
+		font-size: 16pt;
+		font-weight: bold;
+		text-align: center;
+		margin: 6pt 0 4pt;
+		text-transform: uppercase;
+	}
+	.h-sub {
+		text-align: center;
+		margin: 0 0 16pt;
+		font-size: 13pt;
+	}
+	.legal {
+		text-align: left;
+		margin: 0 0 4pt;
+		font-size: 13pt;
+		line-height: 1.5;
+	}
+	.intro {
+		text-align: left;
+		margin: 12pt 0 10pt;
+	}
+	.party-h {
+		font-weight: bold;
+		margin: 10pt 0 4pt;
+		text-align: left;
+	}
+	.party-line {
+		margin: 0 0 3pt;
+		text-align: left;
+		line-height: 1.5;
+	}
+	.party-name {
+		font-weight: bold;
+		margin: 0 0 3pt;
+		text-align: left;
+		text-transform: uppercase;
+	}
+	.party-table { width: 100%; border-collapse: collapse; margin: 0 0 3pt; }
+	.party-table td {
+		vertical-align: top;
+		padding: 0;
+		text-align: left;
+		font-size: 13pt;
+		line-height: 1.5;
+	}
+	.party-table .right { text-align: left; }
+	.muted {
+		font-style: italic;
+		margin: 10pt 0 12pt;
+		text-align: left;
+	}
+	.recital {
+		font-style: italic;
+		margin: 0 0 10pt;
+		text-align: justify;
+	}
+	.gap { margin: 0; padding: 0; height: 10pt; line-height: 10pt; font-size: 8pt; }
+	.art {
+		font-weight: bold;
+		margin-top: 16pt;
+		margin-bottom: 8pt;
+		font-size: 13pt;
+	}
+	.sub-art {
+		font-weight: bold;
+		margin-top: 12pt;
+		margin-bottom: 6pt;
+		font-size: 13pt;
+	}
+	.sign-table { width: 100%; margin-top: 18pt; }
+	.sign-table td { width: 50%; text-align: center; vertical-align: top; font-size: 13pt; padding: 0 10px; }
+	.sign-head { font-weight: bold; line-height: 1.4; }
 	.sign-note { font-style: italic; font-weight: normal; }
-	.sign-gap { height: 110px; line-height: 110px; font-size: 1pt; }
+	.sign-gap { height: 120px; line-height: 120px; font-size: 1pt; }
 	.sign-name { font-weight: bold; text-transform: uppercase; }
-	.small { font-size: 12pt; }
-	.party-h { font-weight: bold; }
-	.fee-line { margin: 2px 0 2px 12px; }
-	.dot-line { margin: 2px 0; }
-	.clause { margin: 4px 0; }
-	.bu { font-size: 8pt; }
+	.fee-line { margin: 2pt 0 2pt 14pt; text-align: left; }
+	.dot-line { margin: 2pt 0; text-align: left; }
+	.clause { margin: 6pt 0; }
+	.bu { font-size: 9pt; }
+	.section-cap { font-weight: bold; margin: 8pt 0 4pt; }
 </style>
 
-<p class="h-center"><strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br/>Độc lập – Tự do – Hạnh phúc</p>
-<p class="h-center">TP. Hồ Chí Minh, ngày {{sign_day}} tháng {{sign_month}} năm {{sign_year}}</p>
+<p class="h-nation">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+<p class="h-motto">Độc lập – Tự do – Hạnh phúc</p>
+<p class="h-date">TP. Hồ Chí Minh, ngày {{sign_day}} tháng {{sign_month}} năm {{sign_year}}</p>
 
 <p class="h-title">HỢP ĐỒNG NHƯỢNG QUYỀN</p>
 <p class="h-sub">(Số: {{contract_no}}/HĐHTKD)</p>
 
-<p class="small">- Căn cứ Luật sở hữu trí tuệ của nước Cộng hòa xã hội chủ nghĩa Việt Nam số 50/2005/QH11 ban hành ngày 12/12/2005;<br/>
-- Căn cứ Luật thương mại của Quốc hội nước Cộng hòa xã hội chủ nghĩa Việt Nam số 36/2005/QH11 ngày 14 tháng 06 năm 2005;<br/>
-- Căn cứ năng lực và nhu cầu của các bên.</p>
+<p class="legal">- Căn cứ Luật sở hữu trí tuệ của nước Cộng hòa xã hội chủ nghĩa Việt Nam số 50/2005/QH11 ban hành ngày 12/12/2005;</p>
+<p class="legal">- Căn cứ Luật thương mại của Quốc hội nước Cộng hòa xã hội chủ nghĩa Việt Nam số 36/2005/QH11 ngày 14 tháng 06 năm 2005;</p>
+<p class="legal">- Căn cứ năng lực và nhu cầu của các bên.</p>
 
-<p>Hôm nay, ngày {{sign_day}} tháng {{sign_month}} năm {{sign_year}}, Chúng tôi hai bên trong hợp đồng gồm có:</p>
+<p class="intro">Hôm nay, ngày {{sign_day}} tháng {{sign_month}} năm {{sign_year}}, Chúng tôi hai bên trong hợp đồng gồm có:</p>
 
-<p><span class="party-h">Bên A (BÊN NHƯỢNG QUYỀN):</span><br/>
-<span class="party-h">CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ SẢN XUẤT NGUYÊN KHOA</span><br/>
-Địa chỉ: 9A Nguyễn Sĩ Cố, Phường Phú Định, Thành Phố Hồ Chí Minh<br/>
-Mã số thuế: 0318269556<br/>
-Đại diện theo pháp luật: Ông Nguyễn Đình Quốc Dũng &nbsp;&nbsp;&nbsp;&nbsp; Chức vụ: Giám Đốc</p>
+<p class="party-h">Bên A (BÊN NHƯỢNG QUYỀN):</p>
+<p class="party-name">CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ SẢN XUẤT NGUYÊN KHOA</p>
+<p class="party-line">Địa chỉ: 9A Nguyễn Sĩ Cố, Phường Phú Định, Thành Phố Hồ Chí Minh</p>
+<p class="party-line">Mã số thuế: 0318269556</p>
+<table class="party-table" cellpadding="0" cellspacing="0" border="0">
+	<tr>
+		<td width="68%">Đại diện theo pháp luật: <strong>Ông Nguyễn Đình Quốc Dũng</strong></td>
+		<td width="32%" class="right">Chức vụ: Giám Đốc</td>
+	</tr>
+</table>
+<p class="gap">&nbsp;</p>
 
-<p><span class="party-h">Bên B (BÊN NHẬN NHƯỢNG QUYỀN):</span><br/>
-{{party_b_name}}<br/>
-CCCD số: {{party_b_cccd}} &nbsp;&nbsp;&nbsp;&nbsp; Ngày cấp: {{party_b_cccd_date}}<br/>
-Nơi cấp: {{party_b_cccd_place}}<br/>
-Nơi thường trú: {{party_b_permanent_addr}}<br/>
-Địa chỉ liên hệ: {{party_b_contact_addr}}<br/>
-Điện thoại: {{party_b_phone}} &nbsp;&nbsp;&nbsp;&nbsp; Email: {{party_b_email}}</p>
+<p class="party-h">Bên B (BÊN NHẬN NHƯỢNG QUYỀN):</p>
+<p class="party-line"><strong>{{party_b_name}}</strong></p>
+<table class="party-table" cellpadding="0" cellspacing="0" border="0">
+	<tr>
+		<td width="55%">CCCD số: {{party_b_cccd}}</td>
+		<td width="45%">Ngày cấp: {{party_b_cccd_date}}</td>
+	</tr>
+</table>
+<p class="party-line">Nơi cấp: {{party_b_cccd_place}}</p>
+<p class="party-line">Nơi thường trú: {{party_b_permanent_addr}}</p>
+<p class="party-line">Địa chỉ liên hệ: {{party_b_contact_addr}}</p>
+<table class="party-table" cellpadding="0" cellspacing="0" border="0">
+	<tr>
+		<td width="50%">Điện thoại: {{party_b_phone}}</td>
+		<td width="50%">Email: {{party_b_email}}</td>
+	</tr>
+</table>
 
-<p class="muted">(“Bên A, Bên B gọi chung là “Các Bên”, gọi riêng là “Bên”)</p>
+<p class="muted">(“Bên A, Bên B gọi chung là “<strong>Các Bên</strong>”, gọi riêng là “<strong>Bên</strong>”)</p>
 
-<p>Bên A là đơn vị được chủ sở hữu hợp pháp của nhãn hiệu "TUI BAO" theo Giấy chứng nhận đăng ký nhãn hiệu số 595392 do Cục Sở hữu trí tuệ cấp, ủy quyền khai thác, sử dụng và phát triển hệ thống nhượng quyền thương mại theo Hợp đồng ủy quyền khai thác và sử dụng nhãn hiệu được ký kết hợp pháp giữa chủ sở hữu nhãn hiệu và Bên A. Hồ sơ pháp lý về nhãn hiệu và các tài liệu liên quan là một phần không tách rời của Hợp đồng này.</p>
+<p class="recital">Bên A là đơn vị được chủ sở hữu hợp pháp của nhãn hiệu "TUI BAO" theo Giấy chứng nhận đăng ký nhãn hiệu số 595392 do Cục Sở hữu trí tuệ cấp, ủy quyền khai thác, sử dụng và phát triển hệ thống nhượng quyền thương mại theo Hợp đồng ủy quyền khai thác và sử dụng nhãn hiệu được ký kết hợp pháp giữa chủ sở hữu nhãn hiệu và Bên A. Hồ sơ pháp lý về nhãn hiệu và các tài liệu liên quan là một phần không tách rời của Hợp đồng này.</p>
 <p>Bên B có khả năng về tài chính và đã tham khảo sự hoạt động cũng như sự phát triển của hệ thống chuỗi TUI BAO và mong muốn trở thành thành viên của chuỗi trà sữa TUI BAO để sử dụng nhãn hiệu TUI BAO cho hoạt động kinh doanh của mình.</p>
 <p>Sau khi trao đổi, thống nhất hai bên cùng ký kết Hợp đồng sử dụng nhãn hiệu với các điều khoản sau:</p>
 
 <p class="art">Điều 1. Đối tượng hợp đồng</p>
-<p>1.1 Bên A bằng Hợp đồng này cho phép Bên B được quyền tiến hành mở 01 cơ sở kinh doanh (sau đây gọi tắt là “Cửa hàng”) để kinh doanh dịch vụ cung cấp thức uống và sản phẩm trà sữa mang nhãn hiệu “TUI BAO” theo hệ thống, thiết kế mà Bên A đã xây dựng, thiết lập, vận hành và Bên B được quyền gắn nhãn hiệu “TUI BAO” các chỉ dẫn thương mại khác như: kiểu dáng của sản phẩm, khẩu hiệu kinh doanh, biểu tượng kinh doanh, bí mật kinh doanh, quảng cáo thuộc sở hữu của Bên A trong hoạt động kinh doanh tại Cửa hàng của Bên B, cụ thể như sau:<br/>
-(a) Được gắn lên các biển hiệu Cửa hàng, sản phẩm thức uống trà sữa, giấy tờ giao dịch, phương tiện kinh doanh tại Cửa hàng của Bên B.<br/>
-(b) Được quyền sử dụng kiểu dáng của sản phẩm trà sữa “TUI BAO” theo hình ảnh và logo chuẩn được cung cấp.<br/>
-(c) Được sử dụng bí mật kinh doanh của Bên A là các công thức pha chế thức uống, phương thức hoạt động và các định hướng chiến lược kinh doanh, quảng cáo do Bên A xây dựng để thực hiện hoạt động kinh doanh tại Cửa hàng của Bên B.<br/>
-(d) Được sử dụng các nội dung trong các băng rôn, biển hiệu quảng cáo của Bên A đã và đang sử dụng để quảng cáo cho Hệ thống khi Bên B được cơ quan nhà nước có thẩm quyền cho phép theo quy định của Luật Quảng Cáo.</p>
+<p>1.1 Bên A bằng Hợp đồng này cho phép Bên B được quyền tiến hành mở 01 cơ sở kinh doanh (sau đây gọi tắt là “Cửa hàng”) để kinh doanh dịch vụ cung cấp thức uống và sản phẩm trà sữa mang nhãn hiệu “TUI BAO” theo hệ thống, thiết kế mà Bên A đã xây dựng, thiết lập, vận hành và Bên B được quyền gắn nhãn hiệu “TUI BAO” các chỉ dẫn thương mại khác như: kiểu dáng của sản phẩm, khẩu hiệu kinh doanh, biểu tượng kinh doanh, bí mật kinh doanh, quảng cáo thuộc sở hữu của Bên A trong hoạt động kinh doanh tại Cửa hàng của Bên B, cụ thể như sau:</p>
+<p>(a) Được gắn lên các biển hiệu Cửa hàng, sản phẩm thức uống trà sữa, giấy tờ giao dịch, phương tiện kinh doanh tại Cửa hàng của Bên B.</p>
+<p>(b) Được quyền sử dụng kiểu dáng của sản phẩm trà sữa “TUI BAO” theo hình ảnh và logo chuẩn được cung cấp.</p>
+<p>(c) Được sử dụng bí mật kinh doanh của Bên A là các công thức pha chế thức uống, phương thức hoạt động và các định hướng chiến lược kinh doanh, quảng cáo do Bên A xây dựng để thực hiện hoạt động kinh doanh tại Cửa hàng của Bên B.</p>
+<p>(d) Được sử dụng các nội dung trong các băng rôn, biển hiệu quảng cáo của Bên A đã và đang sử dụng để quảng cáo cho Hệ thống khi Bên B được cơ quan nhà nước có thẩm quyền cho phép theo quy định của Luật Quảng Cáo.</p>
+<p class="gap">&nbsp;</p>
 <p>1.2 Trong khi thực hiện Hợp đồng này, Bên B chịu sự kiểm soát của Bên A trong quá trình hoạt động kinh doanh tại Cửa hàng.</p>
 
 <p class="art">Điều 2. Phạm vi sử dụng thương hiệu</p>
@@ -75,7 +185,7 @@ Nơi thường trú: {{party_b_permanent_addr}}<br/>
 <p>2.2 Bên B chỉ được thay đổi địa điểm Cửa hàng trong thời gian Hợp đồng có hiệu lực khi Bên B nhận được sự đồng ý chính thức bằng văn bản từ Bên A (là pháp nhân sẽ sở hữu nhãn hiệu “TUI BAO”).</p>
 <p>2.3 Khai thác những lợi ích hữu hình, vô hình trên nền tảng uy tín của thương hiệu TUI BAO để giảm thiểu rủi ro trong kinh doanh đồng thời tiết kiệm thời gian và công sức cho việc quảng bá cửa hàng.</p>
 <p>2.4 Cửa hàng được phép sử dụng thương hiệu TUI BAO là tài sản thuộc quyền sở hữu của Bên B, khi đó bên B sẽ được hưởng các quyền lợi đồng thời phải cam kết thực hiện các nghĩa vụ phát sinh. Cửa hàng được phép sử dụng thương hiệu TUI BAO sẽ đóng vai trò như một chủ thể pháp nhân riêng biệt, có tài khoản riêng, tự mình chịu mọi rủi ro và là người chịu trách nhiệm duy nhất cho lợi nhuận cũng như những thua lỗ của cửa hàng do mình là chủ sở hữu.</p>
-
+<p class="gap">&nbsp;</p>
 <p class="art">Điều 3. Giá trị và thời hạn hợp đồng, phương thức thanh toán</p>
 <p>3.1 Bên B được quyền sử dụng nhãn hiệu, hệ thống nhận diện thương hiệu, bí quyết kinh doanh, quy trình vận hành và các quyền thương mại khác thuộc hệ thống TUI BAO theo phạm vi quy định tại Hợp đồng này của Bên A trong thời hạn {{term_years_display}} năm.</p>
 <p>3.2 Giá trị hợp đồng dịch vụ này bao gồm:</p>
@@ -86,60 +196,61 @@ Nơi thường trú: {{party_b_permanent_addr}}<br/>
 <p class="dot-line"><span class="bu">&#8226;</span> Tổng giá trị dịch vụ: {{fee_total}} đồng (Bằng chữ: {{fee_total_words}})</p>
 <p class="dot-line"><span class="bu">&#8226;</span> Số tiền trên đã bao gồm thuế GTGT.</p>
 <p class="dot-line"><span class="bu">&#8226;</span> Tiền ký quỹ bảo đảm thực hiện Hợp đồng: {{fee_deposit}} đồng (Bằng chữ: {{fee_deposit_words}}). Khoản tiền này là khoản để bảo đảm việc thực hiện các nghĩa vụ theo Hợp đồng, không phải là phí nhượng quyền hoặc bất kỳ khoản phí dịch vụ nào khác và sẽ được Bên A hoàn trả cho Bên B khi Hợp đồng chấm dứt, sau khi Bên B hoàn thành đầy đủ các nghĩa vụ theo Hợp đồng và không phát sinh nghĩa vụ bồi thường, công nợ hoặc các khoản phải thanh toán khác. Trường hợp Bên B vi phạm nghĩa vụ theo Hợp đồng, Bên A có quyền khấu trừ hoặc sử dụng khoản tiền ký quỹ để bù đắp thiệt hại theo quy định của Hợp đồng.</p>
-<p>3.3 Phương thức thanh toán:<br/>
-- Đợt 1: Thanh toán {{pay_1}} đồng tiền ký quỹ bảo đảm thực hiện Hợp đồng.<br/>
-- Đợt 2: Đặt cọc hợp đồng nhượng quyền: {{pay_2}} đồng ngay sau khi Bên B chuẩn bị mặt bằng để Bên A triển khai các công việc tư vấn, khảo sát mặt bằng và hỗ trợ vận hành cửa hàng cho Bên B.<br/>
-- Đợt 3: Thanh toán phần giá trị còn lại của hợp đồng này {{pay_3}} đồng ngay sau khi Bên B có và hoàn thiện mặt bằng.</p>
-<p>3.4 Các đơn hàng nguyên liệu tiếp theo:<br/>
-(a) Các Bên sẽ lập bảng kê chi tiết theo Phụ lục kèm theo Hợp đồng này.<br/>
-(b) Phương thức thanh toán: Theo Điều 8 Hợp đồng này.</p>
-
+<p>3.3 Phương thức thanh toán:</p>
+<p class="fee-line">- Đợt 1: Thanh toán {{pay_1}} đồng tiền ký quỹ bảo đảm thực hiện Hợp đồng.</p>
+<p class="fee-line">- Đợt 2: Đặt cọc hợp đồng nhượng quyền: {{pay_2}} đồng ngay sau khi Bên B chuẩn bị mặt bằng để Bên A triển khai các công việc tư vấn, khảo sát mặt bằng và hỗ trợ vận hành cửa hàng cho Bên B.</p>
+<p class="fee-line">- Đợt 3: Thanh toán phần giá trị còn lại của hợp đồng này {{pay_3}} đồng ngay sau khi Bên B có và hoàn thiện mặt bằng.</p>
+<p>3.4 Các đơn hàng nguyên liệu tiếp theo:</p>
+<p>(a) Các Bên sẽ lập bảng kê chi tiết theo Phụ lục kèm theo Hợp đồng này.</p>
+<p>(b) Phương thức thanh toán: Theo Điều 8 Hợp đồng này.</p>
+<p class="gap">&nbsp;</p>
 <p class="art">Điều 4: Các tiêu chí hình thành Cửa hàng TUI BAO</p>
 <p>Nhằm tạo ra chuỗi cửa hàng TUI BAO mang phong cách riêng, với mục tiêu chung trong việc chiếm lĩnh thị trường tiềm năng cho các sản phẩm và dịch vụ TUI BAO. Cửa hàng cần đảm bảo những tiêu chí sau:</p>
-<p><strong>4.1 ĐỊA ĐIỂM</strong><br/>
-4.1.1 Lựa chọn và thẩm định địa điểm<br/>
-(a) Địa điểm đóng một vai trò rất quan trọng trong việc quyết định sự thành công trong kinh doanh của mô hình Cửa hàng TUI BAO. Vì vậy Bên B phải xem xét đánh giá cẩn thận trước khi quyết định thuê mặt bằng.<br/>
-(b) Quy định về việc lựa chọn địa điểm: Để trở thành một Cửa hàng TUI BAO, BÊN B phải có một địa điểm thỏa mãn một trong các yêu cầu sau:<br/>
-&#40;i&#41; Diện tích kinh doanh:<br/>
-<span class="bu">&#8226;</span> Diện tích kinh doanh được hiểu là phần diện tích kinh doanh thực, không bao gồm công trình phụ (nhà vệ sinh, nhà bếp, kho…).<br/>
-<span class="bu">&#8226;</span> Diện tích kinh doanh phải đáp ứng được: mặt tiền 3,5m trở lên, diện tích đối với địa điểm kinh doanh tối thiểu là 28m2<br/>
-&#40;ii&#41; Địa điểm kinh doanh: Là địa điểm có khả năng đầu tư vào mặt bằng cao và hội đủ một trong các điều kiện sau:<br/>
-<span class="bu">&#8226;</span> Là nơi tập trung đông dân cư: gần chợ, trường học, nhà thờ, khu công nghiệp, ký túc xá….<br/>
-<span class="bu">&#8226;</span> Là nơi dễ thấy, dễ nhìn: không có những vật cản lớn xung quanh.<br/>
-<span class="bu">&#8226;</span> Là nơi tập trung đông người có thu nhập trung bình thấp.<br/>
-(c) Ưu tiên những người có mặt bằng là chủ sở hữu địa điểm kinh doanh. Trường hợp mặt bằng thuê thì hợp đồng thuê nhà phải có thời hạn ít nhất 03 năm.</p>
-<p>4.1.2 Tiến trình thuê mặt bằng: Ngay sau khi xác định được vị trí, địa điểm thuận tiện kinh doanh, Bên B phải thông báo bằng văn bản ngay cho Bên A biết để nhận được sự đồng ý về điều kiện địa điểm nêu tại Điều 4.1.1 (Bên B không thông báo cho bên A khảo sát và đánh giá thì bên A có quyền không tiến hành kí hợp đồng) Sau đó mới tiến hành ký kết hợp đồng thuê mặt bằng.<br/>
-Để làm rõ, Bên A chỉ thực hiện thẩm định những yếu tố thương mại tại điểm 4.1.1 của nội dung hợp đồng này để đưa ra quyết định. Bên B có nghĩa vụ thẩm định toàn bộ các yếu tố kinh doanh theo điều 4.1<br/>
-Sau khi hoàn thành các thủ tục thuê mặt bằng và ký hợp đồng sử dụng thương hiệu TUI BAO của Bên A. Bên B sẽ tiến hành xây dựng, sửa chữa và trang trí nội thất Cửa hàng. Việc thiết kế và thi công nội thất phải thực hiện theo đúng bản vẽ thiết kế nội thất đã được bên A phê duyệt. Tùy theo đặc thù từng địa điểm Bên B phải tiến hành sửa chữa hoặc xây dựng Cửa hàng trong vòng 45 ngày. Nếu quá thời hạn 45 ngày mà Cửa hàng vẫn chưa hoạt động kinh doanh thì Bên A có quyền xem xét chấm dứt Hợp đồng trước thời hạn. Trường hợp ngoại lệ cần phải có văn bản do Bên B gửi cho Bên A để xem xét việc kéo dài thời gian thi công nhưng tổng thời gian thi công không được kéo dài quá 90 ngày. Trường hợp kéo dài trên 90 ngày, Bên A có quyền đơn phương chấm dứt Hợp đồng trước thời hạn mà không phải hoàn trả cho Bên B bất cứ một khoản chi phí nào mà Bên B đã thanh toán cho Bên A.</p>
-<p><strong>4.2 CỬA HÀNG HỢP TÁC : Điều kiện sau</strong><br/>
-(a) Có thiện chí hợp tác.<br/>
-(b) Ưu tiên người có kinh nghiệm kinh doanh trong ngành dịch vụ.<br/>
-(c) Hiểu biết về thị trường sẽ kinh doanh, có khả năng quản lý.<br/>
-(d) Biết sử dụng Mail, Facebook, Zalo…</p>
-<p><strong>4.3 TUÂN THỦ KHOẢNG CÁCH SO VỚI CÁC BÊN ĐƯỢC PHÉP SỬ DỤNG NHÃN HIỆU CỦA BÊN A HIỆN CÓ</strong><br/>
-Địa điểm Cửa hàng của Bên B phải tuân thủ khoảng cách (Được đo bằng đường đi của xe máy trên google map) so với cửa hàng TUI BAO hiện có tối thiểu 800m (nếu khác trục đường), 1km (nếu cùng trục đường) đối với khu vực nội thành Hà Nội, nội thành Hồ Chí Minh, các thành phố đông dân và tối thiểu là 2km đối với các khu vực nông thôn, cư dân thưa thớt, ngoại ô các thành phố. Việc xác định khoảng cách tối thiểu này công ty sẽ tiến hành kiểm tra mật độ dân cư và đưa ra quyết định cuối cùng nhằm mục đích không cho đối thủ mở quán để cạnh tranh hệ thống chuỗi TUI BAO.</p>
+<p class="section-cap">4.1 ĐỊA ĐIỂM</p>
+<p>4.1.1 Lựa chọn và thẩm định địa điểm</p>
+<p>(a) Địa điểm đóng một vai trò rất quan trọng trong việc quyết định sự thành công trong kinh doanh của mô hình Cửa hàng TUI BAO. Vì vậy Bên B phải xem xét đánh giá cẩn thận trước khi quyết định thuê mặt bằng.</p>
+<p>(b) Quy định về việc lựa chọn địa điểm: Để trở thành một Cửa hàng TUI BAO, BÊN B phải có một địa điểm thỏa mãn một trong các yêu cầu sau:</p>
+<p>&#40;i&#41; Diện tích kinh doanh:</p>
+<p class="dot-line"><span class="bu">&#8226;</span> Diện tích kinh doanh được hiểu là phần diện tích kinh doanh thực, không bao gồm công trình phụ (nhà vệ sinh, nhà bếp, kho…).</p>
+<p class="dot-line"><span class="bu">&#8226;</span> Diện tích kinh doanh phải đáp ứng được: mặt tiền 3,5m trở lên, diện tích đối với địa điểm kinh doanh tối thiểu là 28m2</p>
+<p>&#40;ii&#41; Địa điểm kinh doanh: Là địa điểm có khả năng đầu tư vào mặt bằng cao và hội đủ một trong các điều kiện sau:</p>
+<p class="dot-line"><span class="bu">&#8226;</span> Là nơi tập trung đông dân cư: gần chợ, trường học, nhà thờ, khu công nghiệp, ký túc xá….</p>
+<p class="dot-line"><span class="bu">&#8226;</span> Là nơi dễ thấy, dễ nhìn: không có những vật cản lớn xung quanh.</p>
+<p class="dot-line"><span class="bu">&#8226;</span> Là nơi tập trung đông người có thu nhập trung bình thấp.</p>
+<p>(c) Ưu tiên những người có mặt bằng là chủ sở hữu địa điểm kinh doanh. Trường hợp mặt bằng thuê thì hợp đồng thuê nhà phải có thời hạn ít nhất 03 năm.</p>
+<p class="gap">&nbsp;</p>
+<p>4.1.2 Tiến trình thuê mặt bằng: Ngay sau khi xác định được vị trí, địa điểm thuận tiện kinh doanh, Bên B phải thông báo bằng văn bản ngay cho Bên A biết để nhận được sự đồng ý về điều kiện địa điểm nêu tại Điều 4.1.1 (Bên B không thông báo cho bên A khảo sát và đánh giá thì bên A có quyền không tiến hành kí hợp đồng) Sau đó mới tiến hành ký kết hợp đồng thuê mặt bằng.</p>
+<p>Để làm rõ, Bên A chỉ thực hiện thẩm định những yếu tố thương mại tại điểm 4.1.1 của nội dung hợp đồng này để đưa ra quyết định. Bên B có nghĩa vụ thẩm định toàn bộ các yếu tố kinh doanh theo điều 4.1</p>
+<p>Sau khi hoàn thành các thủ tục thuê mặt bằng và ký hợp đồng sử dụng thương hiệu TUI BAO của Bên A. Bên B sẽ tiến hành xây dựng, sửa chữa và trang trí nội thất Cửa hàng. Việc thiết kế và thi công nội thất phải thực hiện theo đúng bản vẽ thiết kế nội thất đã được bên A phê duyệt. Tùy theo đặc thù từng địa điểm Bên B phải tiến hành sửa chữa hoặc xây dựng Cửa hàng trong vòng 45 ngày. Nếu quá thời hạn 45 ngày mà Cửa hàng vẫn chưa hoạt động kinh doanh thì Bên A có quyền xem xét chấm dứt Hợp đồng trước thời hạn. Trường hợp ngoại lệ cần phải có văn bản do Bên B gửi cho Bên A để xem xét việc kéo dài thời gian thi công nhưng tổng thời gian thi công không được kéo dài quá 90 ngày. Trường hợp kéo dài trên 90 ngày, Bên A có quyền đơn phương chấm dứt Hợp đồng trước thời hạn mà không phải hoàn trả cho Bên B bất cứ một khoản chi phí nào mà Bên B đã thanh toán cho Bên A.</p>
+<p class="section-cap">4.2 CỬA HÀNG HỢP TÁC : Điều kiện sau</p>
+<p>(a) Có thiện chí hợp tác.</p>
+<p>(b) Ưu tiên người có kinh nghiệm kinh doanh trong ngành dịch vụ.</p>
+<p>(c) Hiểu biết về thị trường sẽ kinh doanh, có khả năng quản lý.</p>
+<p>(d) Biết sử dụng Mail, Facebook, Zalo…</p>
+<p class="section-cap">4.3 TUÂN THỦ KHOẢNG CÁCH SO VỚI CÁC BÊN ĐƯỢC PHÉP SỬ DỤNG NHÃN HIỆU CỦA BÊN A HIỆN CÓ</p>
+<p>Địa điểm Cửa hàng của Bên B phải tuân thủ khoảng cách (Được đo bằng đường đi của xe máy trên google map) so với cửa hàng TUI BAO hiện có tối thiểu 800m (nếu khác trục đường), 1km (nếu cùng trục đường) đối với khu vực nội thành Hà Nội, nội thành Hồ Chí Minh, các thành phố đông dân và tối thiểu là 2km đối với các khu vực nông thôn, cư dân thưa thớt, ngoại ô các thành phố. Việc xác định khoảng cách tối thiểu này công ty sẽ tiến hành kiểm tra mật độ dân cư và đưa ra quyết định cuối cùng nhằm mục đích không cho đối thủ mở quán để cạnh tranh hệ thống chuỗi TUI BAO.</p>
 
 <p class="art">Điều 5. Nghĩa vụ và quyền lợi của Bên A</p>
-<p>5.1 Nghĩa vụ:<br/>
-5.1.1 Bên A có nghĩa vụ duy trì và phát triển phương thức hoạt động của hệ thống cửa hàng TUI BAO với các tiêu chí như sau:<br/>
-(a) Tiêu chuẩn của Cửa hàng TUI BAO: Địa điểm, các biển hiệu, biển quảng cáo, thiết kế trang trí nội thất, vật dụng pha chế thức uống, đồng phục của nhân viên, menu của hệ thống, đặt hàng và phương thức thanh toán được thống nhất thiết kế theo phong cách của toàn bộ hệ thống TUI BAO.<br/>
-(b) Tiêu chuẩn về nhân sự, hệ thống quản lý: Được tuyển chọn, đào tạo và xác lập theo quy định của hệ thống TUI BAO.<br/>
-(c) Tiêu chuẩn về hàng hóa cung cấp cho các cửa hàng được phép sử dụng thương hiệu TUI BAO: là các sản phẩm do Bên A cung cấp hoặc chỉ định cung cấp và theo cam kết chất lượng của Bên A.<br/>
-5.1.2 Bên A tư vấn thiết kế Cửa hàng có chỗ ngồi lại miễn phí. Việc trang trí nội ngoại thất cho cửa hàng theo quy định và phong cách của Bên A.<br/>
-5.1.3 Quảng bá thương hiệu TUI BAO của Bên A luôn là một trong những thương hiệu trà sữa TUI BAO hàng đầu Việt Nam.<br/>
-5.1.4 Bên A chịu trách nhiệm, hỗ trợ kịp thời cho cửa hàng. Nhằm đảm bảo chất lượng sản phẩm và dịch vụ do Bên A cung cấp. Tư vấn giải pháp kinh doanh nhằm giúp Bên B kinh doanh hiệu quả.<br/>
-5.1.5 Bên A đảm bảo việc sở hữu quyền khai thác và sử dụng thương hiệu TUI BAO và cấp quyền sử dụng thương hiệu TUI BAO cho Bên B.<br/>
-5.1.6 Bảo mật các thông tin liên quan đến hoạt động kinh doanh.<br/>
-5.1.7 Bên A cung cấp đầy đủ giấy chứng nhận chất lượng sản phẩm và giấy chứng nhận VSATTP đối với các sản phẩm mà Bên A cung cấp hoặc chỉ định cung cấp cho Bên B.<br/>
-5.1.8 Cung cấp đầy đủ tài liệu hướng dẫn vận hành về hệ thống dịch vụ và sản phẩm trà sữa mang thương hiệu TUI BAO cho Bên B.<br/>
-5.1.9 Bên A có trách nhiệm cung cấp cho Bên B danh mục chi tiết các hạng mục cần xây dựng, các thiết bị cần mua sắm để đáp ứng yêu cầu nhận diện thương hiệu TUI BAO nói trên (bao gồm thiết kế bảng hiệu hình ảnh logo, nội ngoại thất, bàn ghế, vật dụng pha chế, menu, order, đồng phục…) và hướng dẫn thiết kế, trưng bày, trang trí Cửa hàng cho Bên B theo quy định chung của Bên A.</p>
+<p>5.1 Nghĩa vụ:</p>
+<p>5.1.1 Bên A có nghĩa vụ duy trì và phát triển phương thức hoạt động của hệ thống cửa hàng TUI BAO với các tiêu chí như sau:</p>
+<p>(a) Tiêu chuẩn của Cửa hàng TUI BAO: Địa điểm, các biển hiệu, biển quảng cáo, thiết kế trang trí nội thất, vật dụng pha chế thức uống, đồng phục của nhân viên, menu của hệ thống, đặt hàng và phương thức thanh toán được thống nhất thiết kế theo phong cách của toàn bộ hệ thống TUI BAO.</p>
+<p>(b) Tiêu chuẩn về nhân sự, hệ thống quản lý: Được tuyển chọn, đào tạo và xác lập theo quy định của hệ thống TUI BAO.</p>
+<p>(c) Tiêu chuẩn về hàng hóa cung cấp cho các cửa hàng được phép sử dụng thương hiệu TUI BAO: là các sản phẩm do Bên A cung cấp hoặc chỉ định cung cấp và theo cam kết chất lượng của Bên A.</p>
+<p>5.1.2 Bên A tư vấn thiết kế Cửa hàng có chỗ ngồi lại miễn phí. Việc trang trí nội ngoại thất cho cửa hàng theo quy định và phong cách của Bên A.</p>
+<p>5.1.3 Quảng bá thương hiệu TUI BAO của Bên A luôn là một trong những thương hiệu trà sữa TUI BAO hàng đầu Việt Nam.</p>
+<p>5.1.4 Bên A chịu trách nhiệm, hỗ trợ kịp thời cho cửa hàng. Nhằm đảm bảo chất lượng sản phẩm và dịch vụ do Bên A cung cấp. Tư vấn giải pháp kinh doanh nhằm giúp Bên B kinh doanh hiệu quả.</p>
+<p>5.1.5 Bên A đảm bảo việc sở hữu quyền khai thác và sử dụng thương hiệu TUI BAO và cấp quyền sử dụng thương hiệu TUI BAO cho Bên B.</p>
+<p>5.1.6 Bảo mật các thông tin liên quan đến hoạt động kinh doanh.</p>
+<p>5.1.7 Bên A cung cấp đầy đủ giấy chứng nhận chất lượng sản phẩm và giấy chứng nhận VSATTP đối với các sản phẩm mà Bên A cung cấp hoặc chỉ định cung cấp cho Bên B.</p>
+<p>5.1.8 Cung cấp đầy đủ tài liệu hướng dẫn vận hành về hệ thống dịch vụ và sản phẩm trà sữa mang thương hiệu TUI BAO cho Bên B.</p>
+<p>5.1.9 Bên A có trách nhiệm cung cấp cho Bên B danh mục chi tiết các hạng mục cần xây dựng, các thiết bị cần mua sắm để đáp ứng yêu cầu nhận diện thương hiệu TUI BAO nói trên (bao gồm thiết kế bảng hiệu hình ảnh logo, nội ngoại thất, bàn ghế, vật dụng pha chế, menu, order, đồng phục…) và hướng dẫn thiết kế, trưng bày, trang trí Cửa hàng cho Bên B theo quy định chung của Bên A.</p>
 <p class="sub-art">5.2 Quyền lợi</p>
-<p>5.2.1 Quyền sở hữu về thương hiệu TUI BAO như: kiểu dáng của sản phẩm, bí mật kinh doanh, quảng cáo thuộc sở hữu của Bên A, chiến lược kinh doanh, biểu tượng kinh doanh, công thức pha chế, nguyên liệu pha chế và tất cả các tài sản sở hữu trí tuệ hữu hình và vô hình khác mang tính chất nhận diện thương hiệu TUI BAO.<br/>
-5.2.2 Được thanh toán đầy đủ và đúng thời hạn phí sử dụng thương hiệu TUI BAO.<br/>
-5.2.3 Được giám sát quá trình thi công cửa hàng của Bên B để đáp ứng đúng theo quy định của Bên A. Được kiểm tra định kỳ hoặc đột xuất hoạt động kinh doanh của Bên B nhằm đảm bảo đúng quy định của Bên A. Nhằm mục đích duy trì hiệu quả kinh doanh cho Bên B<br/>
-5.2.4 Được yêu cầu Bên B báo cáo các vấn đề phát sinh trong quá trình kinh doanh và cung cấp dữ liệu kinh doanh của cửa hàng để Bên A thuận tiện trong quá trình giám sát hoạt động kinh doanh của Bên B. và chấn chỉnh kịp thời nhưng sai sót phát sinh.<br/>
-5.2.5 Được quyền thay đổi phần mềm, hệ thống tính tiền, công thức pha chế, nguyên liệu, menu và các tiêu chuẩn vận hành khác khi Bên A nhận thấy cần thiết.<br/>
-5.2.6 Được quyền đặt thêm địa điểm kinh doanh cách địa điểm bên B tối thiểu 800m đối với khu vực nội thành Hà Nội, nội thành Hồ Chí Minh, các thành phố đông dân và tối thiểu là 2km đối với các khu vực nông thôn, cư dân thưa thớt, ngoại ô các thành phố. Việc xác định khoảng cách tối thiểu này do Bên A tiến hành kiểm tra mật độ dân cư và quyết định.</p>
+<p>5.2.1 Quyền sở hữu về thương hiệu TUI BAO như: kiểu dáng của sản phẩm, bí mật kinh doanh, quảng cáo thuộc sở hữu của Bên A, chiến lược kinh doanh, biểu tượng kinh doanh, công thức pha chế, nguyên liệu pha chế và tất cả các tài sản sở hữu trí tuệ hữu hình và vô hình khác mang tính chất nhận diện thương hiệu TUI BAO.</p>
+<p>5.2.2 Được thanh toán đầy đủ và đúng thời hạn phí sử dụng thương hiệu TUI BAO.</p>
+<p>5.2.3 Được giám sát quá trình thi công cửa hàng của Bên B để đáp ứng đúng theo quy định của Bên A. Được kiểm tra định kỳ hoặc đột xuất hoạt động kinh doanh của Bên B nhằm đảm bảo đúng quy định của Bên A. Nhằm mục đích duy trì hiệu quả kinh doanh cho Bên B</p>
+<p>5.2.4 Được yêu cầu Bên B báo cáo các vấn đề phát sinh trong quá trình kinh doanh và cung cấp dữ liệu kinh doanh của cửa hàng để Bên A thuận tiện trong quá trình giám sát hoạt động kinh doanh của Bên B. và chấn chỉnh kịp thời nhưng sai sót phát sinh.</p>
+<p>5.2.5 Được quyền thay đổi phần mềm, hệ thống tính tiền, công thức pha chế, nguyên liệu, menu và các tiêu chuẩn vận hành khác khi Bên A nhận thấy cần thiết.</p>
+<p>5.2.6 Được quyền đặt thêm địa điểm kinh doanh cách địa điểm bên B tối thiểu 800m đối với khu vực nội thành Hà Nội, nội thành Hồ Chí Minh, các thành phố đông dân và tối thiểu là 2km đối với các khu vực nông thôn, cư dân thưa thớt, ngoại ô các thành phố. Việc xác định khoảng cách tối thiểu này do Bên A tiến hành kiểm tra mật độ dân cư và quyết định.</p>
 
 <p class="art">Điều 6. Nghĩa vụ &amp; quyền lợi của bên B</p>
 <p>6.1 Nghĩa vụ:<br/>

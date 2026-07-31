@@ -136,17 +136,22 @@ html.mk-sc-ui-ready .mk-sc-list-hide-legacy {
 
 #mk-sc-table .mk-sc-ix-note {
 	display: block;
-	width: 100%;
-	min-width: 120px;
-	max-width: 200px;
-	height: 32px;
-	padding: 4px 8px;
+	width: 190px;
+	min-width: 190px;
+	max-width: 190px;
+	min-height: 48px;
+	height: 48px;
+	padding: 6px 8px;
 	border: 1px solid #cbd5e1;
 	border-radius: 8px;
 	background: #fff;
 	font-size: 12px;
-	line-height: 1.3;
+	line-height: 1.35;
 	color: #0f172a;
+	resize: vertical;
+	white-space: pre-wrap;
+	overflow: auto;
+	box-sizing: border-box;
 }
 
 #mk-sc-table .mk-sc-ix-note:focus {
@@ -158,21 +163,106 @@ html.mk-sc-ui-ready .mk-sc-list-hide-legacy {
 #mk-sc-table .mk-sc-ix-select {
 	display: block;
 	width: 100%;
-	min-width: 128px;
-	max-width: 180px;
-	height: 32px;
-	padding: 2px 8px;
+	min-width: 160px;
+	max-width: 220px;
+	min-height: 36px;
+	height: auto;
+	padding: 6px 10px;
 	border: 1px solid #cbd5e1;
 	border-radius: 8px;
 	background: #fff;
 	font-size: 12px;
-	line-height: 1.3;
+	line-height: 1.35;
 	color: #0f172a;
 	cursor: pointer;
+	box-sizing: border-box;
+	appearance: auto;
+	-webkit-appearance: menulist;
 }
 
 #mk-sc-table .mk-sc-ix-select:focus {
 	outline: none;
 	border-color: #3b82f6;
 	box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Last Touch + large notes */
+.mk-sc-lt-cell {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 6px;
+	min-width: 180px;
+	max-width: 280px;
+}
+.mk-sc-lt-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1.3;
+}
+.mk-sc-lt-badge.is-open {
+	background: #ccfbf1;
+	color: #0f766e;
+}
+.mk-sc-lt-badge.is-done {
+	background: #e2e8f0;
+	color: #475569;
+}
+.mk-sc-lt-log {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	width: 100%;
+}
+.mk-sc-lt-log__item {
+	font-size: 12px;
+	line-height: 1.4;
+	color: #334155;
+	white-space: pre-wrap;
+	word-break: break-word;
+	max-width: 280px;
+}
+#mk-sc-table .mk-sc-ix-note--lg {
+	width: 210px;
+	min-width: 210px;
+	max-width: 210px;
+	min-height: 48px;
+	height: 48px;
+}
+body[data-view="List"][data-app="SALES"] .mk-sc-lt-modal .mk-sc-lt-modal__dialog {
+	width: min(640px, calc(100vw - 32px));
+}
+body[data-view="List"][data-app="SALES"] .mk-sc-lt-modal .mk-lead-lt-modal__note {
+	min-height: 140px;
+	height: auto !important;
+	color: #0f172a !important;
+	font-size: 15px;
+	line-height: 1.45;
+	padding: 12px 14px;
+	box-sizing: border-box;
+}
+/* Fix select: height cố định + padding lớn làm chữ bị cắt / không hiện */
+body[data-view="List"][data-app="SALES"] .mk-sc-lt-modal .mk-lead-lt-modal__select,
+body[data-view="List"][data-app="SALES"] .mk-lead-lt-modal .mk-lead-lt-modal__select {
+	display: block;
+	width: 100%;
+	min-height: 44px !important;
+	height: auto !important;
+	max-height: none !important;
+	padding: 10px 12px !important;
+	margin-bottom: 12px;
+	font-size: 15px !important;
+	line-height: 1.4 !important;
+	color: #0f172a !important;
+	background: #fff !important;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	box-sizing: border-box;
+	appearance: auto;
+	-webkit-appearance: menulist;
+	overflow: visible;
 }

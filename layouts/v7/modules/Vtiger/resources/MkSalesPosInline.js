@@ -586,8 +586,12 @@
 					}
 					var c = (res && res.contract) || {};
 					function syncView(name, val) {
-						$panel.find('.mk-so-inline-detail__field[data-field-name="' + name + '"] .mk-so-inline-detail__field-view')
-							.text(val || '—');
+						var $view = $panel.find('.mk-so-inline-detail__field[data-field-name="' + name + '"] .mk-so-inline-detail__field-view');
+						var text = val || '—';
+						$view.empty().text(text);
+					}
+					function syncInput(name, val) {
+						$panel.find('.mk-so-inline-detail__field[data-field-name="' + name + '"] :input[name="' + name + '"]').val(val || '');
 					}
 					syncView('franchise_status', c.franchise_status);
 					syncView('contact_status', c.contact_status);
@@ -598,6 +602,15 @@
 					syncView('interaction_2', c.interaction_2);
 					syncView('interaction_3', c.interaction_3);
 					syncView('interaction_materials', c.interaction_materials);
+					syncInput('franchise_status', c.franchise_status);
+					syncInput('contact_status', c.contact_status);
+					syncInput('data_source', c.data_source);
+					syncInput('phone', c.phone);
+					syncInput('business_note', c.business_note);
+					syncInput('interaction_1', c.interaction_1);
+					syncInput('interaction_2', c.interaction_2);
+					syncInput('interaction_3', c.interaction_3);
+					syncInput('interaction_materials', c.interaction_materials);
 					try {
 						document.dispatchEvent(new CustomEvent('mk-sc-inline-saved', {
 							detail: { id: String(recordId), contract: c }

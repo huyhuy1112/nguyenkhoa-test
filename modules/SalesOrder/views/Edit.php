@@ -26,6 +26,8 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		$moduleName = $request->getModule();
 		require_once 'include/utils/MkEntityNumbering.php';
 		MkEntityNumbering::ensureModuleSequence('SalesOrder');
+		require_once 'modules/SalesOrder/helpers/ListNoteField.php';
+		SalesOrder_ListNoteField_Helper::ensure();
 		$viewer->assign('MK_SO_NEXT_NO', MkEntityNumbering::previewNextNumber('SalesOrder'));
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);

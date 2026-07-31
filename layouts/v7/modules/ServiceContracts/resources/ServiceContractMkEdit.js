@@ -15,7 +15,7 @@
 			"Chuyển sang Nguyên Khoa",
 		],
 		data_source: ["Facebook", "TikTok", "Website", "Zalo", "Khác"],
-		contact_status: ["Chưa gọi", "Đã gửi tư vấn", "Thuê bao", "Ko nghe Máy Lần 1"],
+		contact_status: ["Chưa gọi", "Đã gửi tư vấn", "Thuê bao", "Ko nghe Máy Lần 1", "Ko nghe Máy Lần 2", "Ko nghe Máy Lần 3"],
 	};
 	var PAYMENT_OPTIONS = ["Chuyển khoản", "Tiền mặt", "Thẻ", "Ví"];
 	var DEFAULT_RETENTION_DAYS = 180;
@@ -493,6 +493,151 @@
 			});
 	}
 
+	function escapeHtml(s) {
+		return String(s == null ? "" : s)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;");
+	}
+
+	function refreshLastTouchPanel(id) {
+		var rid = String(id || recordId() || "").trim();
+		var $badge = $("#mkScLtBadge");
+		var $hint = $("#mkScLtHint");
+		var $list = $("#mkScLtList");
+		var $btn = $("#mkScLtLogBtn");
+		if (!$badge.length) return;
+		if (!rid) {
+			$badge.text("0/3").removeClass("is-done").addClass("is-open");
+			$hint.text("Lưu khách trước rồi mới ghi cuộc gọi Last Touch.");
+			$list.html('<li class="mk-sc-last-touch-box__empty">Chưa có Call #1 — bấm “Ghi cuộc gọi”.</li>');
+			$btn.prop("disabled", true).attr("data-lt-locked", "1");
+			return;
+		}
+		apiRequest("last_touch_call_list", { record: rid, id: rid })
+			.then(function (res) {
+				var lt = (res && res.lastTouchCalls) || {};
+				var calls = lt.calls || [];
+				var count = typeof lt.count === "number" ? lt.count : calls.length;
+				var max = lt.max_calls || 3;
+				var canAdd = lt.can_add !== false;
+				$badge
+					.text(count + "/" + max)
+					.toggleClass("is-open", canAdd)
+					.toggleClass("is-done", !canAdd);
+				$hint.text(
+					lt.hint ||
+						"Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → dừng chuỗi gọi."
+				);
+				if (!calls.length) {
+					$list.html(
+						'<li class="mk-sc-last-touch-box__empty">Chưa có Call #1 — bấm “Ghi cuộc gọi”.</li>'
+					);
+				} else {
+					$list.html(
+						calls
+							.map(function (c) {
+								var line =
+									c.label ||
+									(c.called_at_label || "") +
+										" Call #" +
+										(c.n || "") +
+										" Kết quả: " +
+										(c.result || "");
+								return (
+									'<li class="mk-sc-last-touch-box__item"><strong>Call #' +
+									escapeHtml(String(c.n || "")) +
+									"</strong> " +
+									escapeHtml(line) +
+									"</li>"
+								);
+							})
+							.join("")
+					);
+				}
+				$btn
+					.prop("disabled", !canAdd)
+					.attr("data-lt-next", String(lt.next_n || 1))
+					.attr("data-lt-hint", lt.hint || "")
+					.attr("data-record-id", rid);
+				if (canAdd) $btn.removeAttr("data-lt-locked");
+				else $btn.attr("data-lt-locked", "1");
+				$btn.find("span").text(canAdd ? "Ghi cuộc gọi" : "Đã đủ gọi");
+			})
+			.catch(function () {
+				$hint.text("Không tải được Last Touch Call.");
+			});
+	}
+
+	function ensureEditLastTouchModal() {
+		var existing = document.getElementById("mk-sc-edit-lt-modal");
+		if (existing) return existing;
+		var wrap = document.createElement("div");
+		wrap.id = "mk-sc-edit-lt-modal";
+		wrap.className = "mk-lead-lt-modal mk-leads-lt-modal mk-sc-lt-modal";
+		wrap.hidden = true;
+		wrap.innerHTML =
+			'<div class="mk-lead-lt-modal__backdrop" data-mk-sc-edit-lt-close="1"></div>' +
+			'<div class="mk-lead-lt-modal__dialog mk-sc-lt-modal__dialog" role="dialog" aria-modal="true">' +
+			'<div class="mk-lead-lt-modal__head"><h3>Ghi Last Touch — Call</h3>' +
+			'<button type="button" class="mk-lead-lt-modal__x" data-mk-sc-edit-lt-close="1">&times;</button></div>' +
+			'<div class="mk-lead-lt-modal__body">' +
+			'<p class="mk-lead-lt-modal__meta" id="mk-sc-edit-lt-meta"></p>' +
+			'<label class="mk-lead-lt-modal__label" for="mk-sc-edit-lt-result">Kết quả cuộc gọi</label>' +
+			'<select id="mk-sc-edit-lt-result" class="mk-lead-lt-modal__select" autocomplete="off">' +
+			'<option value="Không nghe máy">Không nghe máy</option>' +
+			'<option value="Nghe máy">Nghe máy</option></select>' +
+			'<label class="mk-lead-lt-modal__label" for="mk-sc-edit-lt-note">Ghi chú</label>' +
+			'<textarea id="mk-sc-edit-lt-note" class="mk-lead-lt-modal__note inputElement" rows="6" placeholder="Ví dụ: Khách quan tâm mặt bằng"></textarea>' +
+			'<p class="mk-lead-lt-modal__tip">Chọn <strong>Nghe máy</strong> → Liên hệ = Đã gửi tư vấn (không sang Opp). Ghi chú Call #N hiện ở Tương tác lần N. <strong>Không nghe máy</strong> → nhắc sau khoảng 5 giờ.</p>' +
+			"</div>" +
+			'<div class="mk-lead-lt-modal__foot">' +
+			'<button type="button" class="btn btn-default" data-mk-sc-edit-lt-close="1">Hủy</button>' +
+			'<button type="button" class="btn btn-success" id="mk-sc-edit-lt-save">Lưu cuộc gọi</button>' +
+			"</div></div>";
+		document.body.appendChild(wrap);
+		wrap.addEventListener("click", function (e) {
+			if (e.target && e.target.getAttribute && e.target.getAttribute("data-mk-sc-edit-lt-close") === "1") {
+				wrap.hidden = true;
+			}
+		});
+		$("#mk-sc-edit-lt-save").on("click", function () {
+			var rid = wrap._mkScId;
+			var result = String($("#mk-sc-edit-lt-result").val() || "").trim();
+			var note = String($("#mk-sc-edit-lt-note").val() || "").trim();
+			if (!rid || !result) return;
+			apiRequest("last_touch_call_log", {
+				record: rid,
+				id: rid,
+				call_result: result,
+				note: note,
+			})
+				.then(function () {
+					wrap.hidden = true;
+					refreshLastTouchPanel(rid);
+					// Reload form fields so Liên hệ + Tương tác lần N cập nhật
+					apiRequest("get_franchise", { record: rid, id: rid }).then(function (res) {
+						if (res && res.contract) {
+							fillForm($.extend({}, res.contract, { picklists: res.picklists }));
+						}
+					});
+					if (window.app && app.helper && app.helper.showSuccessNotification) {
+						app.helper.showSuccessNotification({ message: "Đã ghi Last Touch Call." });
+					}
+				})
+				.catch(function (err) {
+					var msg = (err && err.message) || "Không ghi được cuộc gọi.";
+					if (window.app && app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({ message: String(msg) });
+					} else {
+						window.alert(String(msg));
+					}
+				});
+		});
+		return wrap;
+	}
+
 	function fillForm(data) {
 		if (!data) return;
 		$("#mkScRecordId").val(data.id || data.crmid || "");
@@ -507,10 +652,6 @@
 		$("#mkScReceivedDate").val(data.received_date || "");
 		$("#mkScBusinessNote").val(data.business_note || "");
 		$("#mkScReferrer").val(data.referrer || "");
-		$("#mkScInteraction1").val(data.interaction_1 || "");
-		$("#mkScInteraction2").val(data.interaction_2 || "");
-		$("#mkScInteraction3").val(data.interaction_3 || "");
-		$("#mkScInteractionMaterials").val(data.interaction_materials || "");
 
 		fillReferrerAffSelect(data.referral_code || "");
 		$("#mkScReferralCode").val(String(data.referral_code || "").toUpperCase());
@@ -569,10 +710,6 @@
 			data_source: String($("#mkScDataSource").val() || "").trim(),
 			referrer: referrerName,
 			contact_status: String($("#mkScContactStatus").val() || "").trim(),
-			interaction_1: String($("#mkScInteraction1").val() || "").trim(),
-			interaction_2: String($("#mkScInteraction2").val() || "").trim(),
-			interaction_3: String($("#mkScInteraction3").val() || "").trim(),
-			interaction_materials: String($("#mkScInteractionMaterials").val() || "").trim(),
 			referral_code: affCode,
 			affiliate_tier_prefix: String($("#mkScOwnTier").val() || "D").trim().toUpperCase(),
 			registration_date: String($("#mkScRegistrationDate").val() || "").trim(),

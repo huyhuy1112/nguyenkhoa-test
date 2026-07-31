@@ -277,6 +277,19 @@ class Accounts_FranchiseContractService_Helper {
 		foreach ($ctx as $key => $value) {
 			$html = str_replace('{{' . $key . '}}', htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'), $html);
 		}
+		return self::expandPdfSpacing($html);
+	}
+
+	/**
+	 * TCPDF gom đoạn chặt hơn Google Doc — chèn khoảng trống giữa các điều khoản / mục con.
+	 */
+	protected static function expandPdfSpacing($html) {
+		$html = preg_replace('/<p class="art">/', '<p class="gap">&nbsp;</p><p class="art">', $html);
+		$html = preg_replace(
+			'/<p>(\d+\.\d+[^<]*)<\/p>\s*<p class="art">/',
+			'<p>$1</p><p class="gap">&nbsp;</p><p class="art">',
+			$html
+		);
 		return $html;
 	}
 
@@ -294,10 +307,12 @@ class Accounts_FranchiseContractService_Helper {
 		$pdf->SetCreator('Nguyên Khoa');
 		$pdf->SetAuthor('Công ty CP TM DV SX Nguyên Khoa');
 		$pdf->SetTitle('Hợp đồng nhượng quyền TUI BAO');
-		$pdf->SetMargins(16, 14, 16);
-		$pdf->SetAutoPageBreak(true, 16);
+		// Google Doc gốc ~17 trang: lề rộng + Times 13pt + giãn dòng 1.55
+		$pdf->SetMargins(28, 22, 28);
+		$pdf->SetAutoPageBreak(true, 22);
+		$pdf->setCellHeightRatio(1.55);
 		$pdf->AddPage();
-		$pdf->SetFont(self::FONT, '', 12);
+		$pdf->SetFont(self::FONT, '', 13);
 		$pdf->writeHTML($html, true, false, true, false, '');
 		return $pdf->Output($fileName, $dest);
 	}

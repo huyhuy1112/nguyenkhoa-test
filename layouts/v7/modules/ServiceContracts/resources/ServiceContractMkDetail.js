@@ -117,7 +117,7 @@
 			["TƯƠNG TÁC TỰ MỞ NGUYÊN LIỆU MÁY MÓC", data.interaction_materials],
 		];
 		$("#mkScMkInteractions").html(
-			'<h3>Tương tác</h3>' +
+			"<h3>Tương tác</h3>" +
 				ix
 					.map(function (item) {
 						return (

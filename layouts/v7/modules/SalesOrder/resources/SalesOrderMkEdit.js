@@ -37,12 +37,20 @@
 
 	var TERMS_CK_TOOLBAR = [
 		{
+			name: 'document',
+			items: ['Source', '-', 'Preview', 'Print']
+		},
+		{
 			name: 'clipboard',
-			items: ['Undo', 'Redo']
+			items: ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo']
+		},
+		{
+			name: 'editing',
+			items: ['Find', 'Replace', '-', 'SelectAll']
 		},
 		{
 			name: 'basicstyles',
-			items: ['Bold', 'Italic', 'Underline', 'Strike']
+			items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat']
 		},
 		{
 			name: 'paragraph',
@@ -53,6 +61,9 @@
 				'Outdent',
 				'Indent',
 				'-',
+				'Blockquote',
+				'CreateDiv',
+				'-',
 				'JustifyLeft',
 				'JustifyCenter',
 				'JustifyRight',
@@ -60,22 +71,30 @@
 			]
 		},
 		{
+			name: 'links',
+			items: ['Link', 'Unlink', 'Anchor']
+		},
+		{
+			name: 'insert',
+			items: ['Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak']
+		},
+		{
 			name: 'styles',
-			items: ['Format', 'Font', 'FontSize']
+			items: ['Styles', 'Format', 'Font', 'FontSize']
 		},
 		{
 			name: 'colors',
 			items: ['TextColor', 'BGColor']
 		},
 		{
-			name: 'insert',
-			items: ['Table', 'HorizontalRule']
-		},
-		{
 			name: 'tools',
-			items: ['RemoveFormat', 'Maximize']
+			items: ['Maximize', 'ShowBlocks']
 		}
 	];
+
+	var DESC_MODAL_ID = 'mkSoDescModal';
+	var DESC_EDITOR_ID = 'mkSoDescEditor';
+	var descModalOpen = false;
 
 	var BLOCK_ICONS = {
 		LBL_SO_INFORMATION: 'fa-info-circle',
@@ -684,6 +703,194 @@
 			});
 	}
 
+	function syncDescPreview($ta, $preview) {
+		if (!$ta.length || !$preview.length) {
+			return;
+		}
+		var html = prepareTermsHtml($ta.val() || '', true);
+		if (!$.trim($('<div/>').html(html).text())) {
+			$preview.html(
+				'<span class="mk-so-desc-preview__placeholder">Nhấn để soạn Ghi chú hợp đồng (trình soạn thảo kiểu Word)…</span>'
+			);
+			return;
+		}
+		$preview.html(html);
+	}
+
+	function destroyDescCkEditor() {
+		if (typeof CKEDITOR === 'undefined') {
+			return;
+		}
+		var inst = CKEDITOR.instances[DESC_EDITOR_ID];
+		if (inst) {
+			try {
+				inst.updateElement();
+				inst.destroy(true);
+			} catch (e) {
+				CKEDITOR.remove(inst);
+			}
+			delete CKEDITOR.instances[DESC_EDITOR_ID];
+		}
+		$('#' + DESC_MODAL_ID)
+			.find('.cke')
+			.remove();
+	}
+
+	function resetDescEditorTextarea() {
+		var $modal = $('#' + DESC_MODAL_ID);
+		var $body = $modal.find('.modal-body');
+		var currentVal = '';
+		var $existing = $('#' + DESC_EDITOR_ID);
+		if ($existing.length) {
+			currentVal = $existing.val() || '';
+		}
+		$body.html(
+			'<textarea id="' +
+				DESC_EDITOR_ID +
+				'" class="form-control mk-so-desc-editor-ta" rows="18"></textarea>'
+		);
+		$('#' + DESC_EDITOR_ID).val(currentVal);
+	}
+
+	function ensureDescModal() {
+		if ($('#' + DESC_MODAL_ID).length) {
+			return;
+		}
+		var $modal = $(
+			'<div class="modal fade" id="' +
+				DESC_MODAL_ID +
+				'" tabindex="-1" role="dialog" aria-labelledby="' +
+				DESC_MODAL_ID +
+				'Label" aria-hidden="true">' +
+				'<div class="modal-dialog modal-lg mk-so-desc-modal-dialog" role="document">' +
+				'<div class="modal-content mk-so-desc-modal-content">' +
+				'<div class="modal-header">' +
+				'<button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
+				'<h4 class="modal-title" id="' +
+				DESC_MODAL_ID +
+				'Label">Ghi chú hợp đồng</h4>' +
+				'</div>' +
+				'<div class="modal-body">' +
+				'<textarea id="' +
+				DESC_EDITOR_ID +
+				'" class="form-control" rows="18"></textarea>' +
+				'</div>' +
+				'<div class="modal-footer">' +
+				'<button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>' +
+				'<button type="button" class="btn btn-success" id="mkSoDescSaveBtn">Lưu nội dung</button>' +
+				'</div></div></div></div>'
+		);
+		$('body').append($modal);
+
+		$modal.off('hidden.bs.modal.mkSoDesc').on('hidden.bs.modal.mkSoDesc', function () {
+			descModalOpen = false;
+			destroyDescCkEditor();
+		});
+
+		$modal.off('click.mkSoDescSave', '#mkSoDescSaveBtn').on('click.mkSoDescSave', '#mkSoDescSaveBtn', function () {
+			var html = '';
+			if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[DESC_EDITOR_ID]) {
+				html = CKEDITOR.instances[DESC_EDITOR_ID].getData();
+			} else {
+				html = $('#' + DESC_EDITOR_ID).val();
+			}
+			html = prepareTermsHtml(html, false);
+			var $ta = $form().find('textarea[name="description"]').first();
+			if ($ta.length) {
+				$ta.val(html).trigger('change');
+				syncDescPreview($ta, $ta.siblings('.mk-so-desc-preview'));
+			}
+			destroyDescCkEditor();
+			descModalOpen = false;
+			$modal.modal('hide');
+		});
+	}
+
+	function initDescCkEditorOnce() {
+		if (typeof CKEDITOR === 'undefined' || typeof Vtiger_CkEditor_Js === 'undefined') {
+			return;
+		}
+		if (CKEDITOR.instances[DESC_EDITOR_ID]) {
+			return;
+		}
+		var $editor = $('#' + DESC_EDITOR_ID);
+		if (!$editor.length) {
+			return;
+		}
+		var ck = new Vtiger_CkEditor_Js();
+		ck.loadCkEditor($editor, {
+			height: 460,
+			toolbar: TERMS_CK_TOOLBAR,
+			fullPage: false,
+			allowedContent: true,
+			extraPlugins: 'justify,font,colorbutton,colordialog,find,print,pagebreak'
+		});
+	}
+
+	function openDescEditor($ta) {
+		if (!$ta.length || descModalOpen) {
+			return;
+		}
+		ensureDescModal();
+		var $modal = $('#' + DESC_MODAL_ID);
+		if ($modal.hasClass('in') || $modal.is(':visible')) {
+			return;
+		}
+		descModalOpen = true;
+		destroyDescCkEditor();
+		resetDescEditorTextarea();
+		var cleanVal = prepareTermsHtml($ta.val() || '', true);
+		$('#' + DESC_EDITOR_ID).val(cleanVal);
+
+		$modal.off('shown.bs.modal.mkSoDesc').on('shown.bs.modal.mkSoDesc', function () {
+			destroyDescCkEditor();
+			resetDescEditorTextarea();
+			$('#' + DESC_EDITOR_ID).val(cleanVal);
+			initDescCkEditorOnce();
+		});
+
+		$modal.modal('show');
+	}
+
+	function initDescriptionRichEditor() {
+		var $ta = $form().find('textarea[name="description"]').first();
+		if (!$ta.length || $ta.data('mkSoDescReady')) {
+			return;
+		}
+		$ta.data('mkSoDescReady', true);
+
+		var cleaned = prepareTermsHtml($ta.val() || '', true);
+		$ta.val(cleaned);
+
+		var $preview = $(
+			'<div class="mk-so-desc-preview inputElement textAreaElement col-lg-12" role="button" tabindex="0" title="Nhấn để soạn Ghi chú hợp đồng"></div>'
+		);
+		$ta.addClass('mk-so-desc-source').attr({ 'aria-hidden': 'true', tabindex: '-1' });
+		$ta.after($preview);
+		syncDescPreview($ta, $preview);
+
+		$preview
+			.off('click.mkSoDesc keydown.mkSoDesc')
+			.on('click.mkSoDesc', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				openDescEditor($ta);
+			})
+			.on('keydown.mkSoDesc', function (e) {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					e.stopPropagation();
+					openDescEditor($ta);
+				}
+			});
+
+		$form()
+			.off('submit.mkSoDesc')
+			.on('submit.mkSoDesc', function () {
+				destroyDescCkEditor();
+			});
+	}
+
 	function decodeHtmlText(value) {
 		if (value === null || value === undefined) {
 			return '';
@@ -869,6 +1076,54 @@
 		}
 	}
 
+	function ensureListNoteField($editForm) {
+		if (!$editForm || !$editForm.length) {
+			return;
+		}
+		var $existing = $editForm.find('textarea[name="mk_list_note"]').first();
+		var $infoBlock = $editForm.find('.fieldBlockContainer[data-block="LBL_SO_INFORMATION"]').first();
+		var $infoTable = $infoBlock.find('table.table-borderless > tbody').first();
+		if (!$infoTable.length) {
+			return;
+		}
+
+		if ($existing.length) {
+			var $row = $existing.closest('tr');
+			showFieldPairFor($existing.closest('td.fieldValue'));
+			$row.removeClass('mk-so-hide-legacy mk-inv-hide-legacy');
+			if (!$infoBlock.find('textarea[name="mk_list_note"]').length) {
+				$infoTable.append($row);
+			}
+			$row.find('td.fieldLabel label').first().text('Ghi chú');
+			$existing.attr('placeholder', 'Ghi chú hiển thị trên list…');
+			$existing.closest('td.fieldValue').addClass('fieldValueWidth80');
+			return;
+		}
+
+		var $row = $(
+			'<tr class="mk-so-list-note-row">' +
+				'<td class="fieldLabel">' +
+				'<label class="muted pull-right marginRight10px">Ghi chú</label>' +
+				'</td>' +
+				'<td class="fieldValue fieldValueWidth80">' +
+				'<textarea class="inputElement textAreaElement col-lg-12" name="mk_list_note" rows="3" placeholder="Ghi chú hiển thị trên list…"></textarea>' +
+				'</td>' +
+				'</tr>'
+		);
+		$infoTable.append($row);
+	}
+
+	function showFieldPairFor($valueTd) {
+		if (!$valueTd || !$valueTd.length) {
+			return;
+		}
+		$valueTd.removeClass('mk-so-hide-legacy mk-inv-hide-legacy');
+		var $label = $valueTd.prev('td.fieldLabel');
+		if ($label.length) {
+			$label.removeClass('mk-so-hide-legacy mk-inv-hide-legacy');
+		}
+	}
+
 	function simplifySalesOrderForm() {
 		$form().data('mkSoSimplified', true);
 		var $editForm = $form();
@@ -876,17 +1131,15 @@
 			return;
 		}
 
-		// Only: Báo giá, Ghi chú (+ Trạng thái on edit) + Chi tiết đơn hàng.
+		// Only: Báo giá, Ghi chú hợp đồng, Ghi chú (list) + Chi tiết đơn hàng.
 		// Subject stays in DOM (mandatory) but hidden — auto-filled from quote name.
-		// On create: hide Trạng thái and auto-set Phiếu tạm (Created).
+		// Trạng thái hidden on create & edit (create still auto-sets Phiếu tạm in background).
 		var allowNames = {
 			quote_id: true,
 			quote_id_display: true,
-			description: true
+			description: true,
+			mk_list_note: true
 		};
-		if (!isCreateMode()) {
-			allowNames.sostatus = true;
-		}
 
 		function fieldNameAllowed(name) {
 			if (!name) {
@@ -977,6 +1230,7 @@
 			'conversion_rate',
 			'assigned_user_id',
 			'enable_recurring',
+			'sostatus',
 			'subject'
 		];
 		forceHideNames.forEach(function (name) {
@@ -996,7 +1250,7 @@
 				return;
 			}
 			var $valueTd = $labelTd.next('td.fieldValue');
-			if ($valueTd.find('[name="description"], [name="quote_id"], [name="quote_id_display"]').length) {
+			if ($valueTd.find('[name="description"], [name="mk_list_note"], [name="quote_id"], [name="quote_id_display"]').length) {
 				return;
 			}
 			$labelTd.addClass('mk-so-hide-legacy');
@@ -1069,7 +1323,7 @@
 			if ($descBlock.length && $descBlock.attr('data-block') === 'LBL_DESCRIPTION_INFORMATION') {
 				$descBlock.addClass('mk-so-hide-legacy mk-inv-hide-legacy');
 			}
-			$descRow.find('td.fieldLabel label').first().text('Ghi chú');
+			$descRow.find('td.fieldLabel label').first().text('Ghi chú hợp đồng');
 			$desc.closest('td.fieldValue').addClass('fieldValueWidth80');
 			// Keep BA delivery-note policy prefilled for new/empty notes.
 			var currentDesc = String($desc.val() || '').trim();
@@ -1078,12 +1332,19 @@
 			}
 		}
 
+		ensureListNoteField($editForm);
+
+		// Always hide Trạng thái on this SO create/edit shell.
+		$editForm.find('[name="sostatus"]').each(function () {
+			hideFieldPair($(this).closest('td.fieldValue'));
+		});
+
 		var labelMap = {
 			subject: 'Tiêu đề',
 			quote_id: 'Báo giá',
 			quote_id_display: 'Báo giá',
-			sostatus: 'Trạng thái',
-			description: 'Ghi chú'
+			description: 'Ghi chú hợp đồng',
+			mk_list_note: 'Ghi chú'
 		};
 		Object.keys(labelMap).forEach(function (name) {
 			$editForm
@@ -1382,7 +1643,7 @@
 		if ($info.length) {
 			$info.find('tr').each(function () {
 				var $tr = $(this);
-				if ($tr.find('[name="quote_id"], [name="quote_id_display"], [name="description"], .mk-so-terms-preview, .mk-qt-terms-preview').length) {
+				if ($tr.find('[name="quote_id"], [name="quote_id_display"], [name="description"], [name="mk_list_note"], .mk-so-terms-preview, .mk-qt-terms-preview, .mk-so-desc-preview').length) {
 					return;
 				}
 				if ($tr.find('[name="subject"]').length) {
@@ -1444,6 +1705,7 @@
 		pinTotalsBelowOrderDetails();
 		pinAddProductToLineHeader();
 		initTermsRichEditor();
+		initDescriptionRichEditor();
 		requireQuoteBeforeSave();
 		bindActions();
 		initStickyHead();
@@ -1456,6 +1718,7 @@
 			polishQuoteReferenceField();
 			lockAssignedAndMoveSoInfoToRail();
 			pinTotalsBelowOrderDetails();
+			initDescriptionRichEditor();
 			if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
 				window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($form());
 			} else if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.relocateCommerceToRail === 'function') {

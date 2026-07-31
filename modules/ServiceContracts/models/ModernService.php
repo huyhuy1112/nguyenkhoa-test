@@ -39,6 +39,8 @@ class ServiceContracts_ModernService {
 				'Đã gửi tư vấn',
 				'Thuê bao',
 				'Ko nghe Máy Lần 1',
+				'Ko nghe Máy Lần 2',
+				'Ko nghe Máy Lần 3',
 			),
 			'interaction' => array(
 				'Chưa liên hệ',
@@ -270,11 +272,88 @@ class ServiceContracts_ModernService {
 			$rows[] = $row;
 		}
 		$tagsById = self::getTagsForIds($ids, $userId);
+		$ltById = self::getLastTouchSummariesForIds($ids);
 		$out = array();
 		foreach ($rows as $row) {
 			$id = (int) $row['servicecontractsid'];
 			$tags = isset($tagsById[$id]) ? $tagsById[$id] : array();
-			$out[] = self::composeCacheRow($row, $tags);
+			$item = self::composeCacheRow($row, $tags);
+			$item['lastTouchCalls'] = isset($ltById[$id]) ? $ltById[$id] : array(
+				'calls' => array(),
+				'count' => 0,
+				'next_n' => 1,
+				'can_add' => true,
+				'max_calls' => 3,
+				'hint' => '',
+			);
+			$out[] = $item;
+		}
+		return $out;
+	}
+
+	/**
+	 * @param int[] $ids
+	 * @return array<int,array>
+	 */
+	protected static function getLastTouchSummariesForIds(array $ids) {
+		$out = array();
+		$ids = array_values(array_filter(array_map('intval', $ids)));
+		if (!$ids) {
+			return $out;
+		}
+		try {
+			require_once 'modules/ServiceContracts/models/LastTouchCallService.php';
+			ServiceContracts_LastTouchCallService::ensureSchema();
+		} catch (Exception $e) {
+			return $out;
+		}
+		$adb = PearDatabase::getInstance();
+		$placeholders = implode(',', array_fill(0, count($ids), '?'));
+		$res = $adb->pquery(
+			"SELECT servicecontractsid, call_n, called_at, result_label, note
+			 FROM bace_sc_last_touch_call
+			 WHERE servicecontractsid IN ($placeholders)
+			 ORDER BY servicecontractsid ASC, call_n ASC",
+			$ids
+		);
+		$byId = array();
+		if ($res) {
+			while ($row = $adb->fetchByAssoc($res)) {
+				$id = (int) $row['servicecontractsid'];
+				if (!isset($byId[$id])) {
+					$byId[$id] = array();
+				}
+				$n = (int) $row['call_n'];
+				$calledAt = (string) $row['called_at'];
+				$result = decode_html((string) $row['result_label']);
+				$note = trim(decode_html((string) $row['note']));
+				$byId[$id][] = array(
+					'n' => $n,
+					'called_at' => $calledAt,
+					'called_at_label' => ServiceContracts_LastTouchCallService::formatStamp($calledAt),
+					'result' => $result,
+					'note' => $note,
+					'label' => ServiceContracts_LastTouchCallService::formatLogLine($n, $calledAt, $result, $note),
+				);
+			}
+		}
+		foreach ($ids as $id) {
+			$calls = isset($byId[$id]) ? $byId[$id] : array();
+			$count = count($calls);
+			$lastResult = $count > 0 ? $calls[$count - 1]['result'] : '';
+			$canAdd = $count < 3 && $lastResult !== 'Nghe máy';
+			$out[$id] = array(
+				'calls' => $calls,
+				'count' => $count,
+				'next_n' => $canAdd ? ($count + 1) : 0,
+				'can_add' => $canAdd,
+				'max_calls' => 3,
+				'hint' => $canAdd
+					? ('Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → dừng chuỗi gọi.')
+					: ($lastResult === 'Nghe máy'
+						? 'Đã nghe máy — kết thúc chuỗi Last Touch Call.'
+						: 'Đã đủ 3 lần gọi Last Touch.'),
+			);
 		}
 		return $out;
 	}
