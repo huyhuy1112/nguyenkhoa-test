@@ -896,16 +896,15 @@ class Home_AdminKpiService {
 
 	protected static function detailOrders() {
 		$db = PearDatabase::getInstance();
+		// Theo trạng thái (bán hàng): không lẫn trạng thái kho (chờ soạn / đã soạn)
 		$statusMap = array(
 			'draft' => array('Created', 'Nháp', 'Phiếu tạm', 'Draft'),
-			'pending' => array('Pending', 'Sent', 'waiting_print', 'Chờ xác nhận', 'Đang chờ', 'Chờ in phiếu'),
-			'confirmed' => array('Approved', 'Xác nhận', 'Đã xác nhận', 'picking', 'Đang soạn'),
-			'delivered' => array('Delivered', 'Hoàn thành', 'shipped', 'Đã giao', 'packed', 'Đã soạn'),
+			'pending' => array('Pending', 'Sent', 'Chờ xác nhận', 'Đang chờ'),
+			'delivered' => array('Delivered', 'Hoàn thành', 'shipped', 'Đã giao'),
 		);
 		$labels = array(
 			'draft' => 'Nháp',
 			'pending' => 'Chờ xác nhận',
-			'confirmed' => 'Xác nhận',
 			'delivered' => 'Đã giao',
 		);
 		$statusOut = array();
@@ -933,15 +932,21 @@ class Home_AdminKpiService {
 		);
 		if (self::tableExists($db, 'vtiger_goodsissue')) {
 			$whMap = array(
-				'waiting' => array('waiting_print', 'draft', 'pending_approval', 'picking'),
-				'packed' => array('packed', 'prepared', 'approved'),
+				'waiting' => array('waiting_print', 'picking'),
+				'packed' => array('packed', 'prepared'),
 				'delivered' => array('shipped', 'completed'),
 			);
 			foreach ($whMap as $key => $vals) {
 				$ph = implode(',', array_fill(0, count($vals), '?'));
+				// Đếm theo đơn hàng có phiếu xuất (khớp danh sách drill), bỏ GI orphan
 				$r = $db->pquery(
-					"SELECT COUNT(*) AS c FROM vtiger_goodsissue gi
-					 WHERE gi.deleted = 0 AND gi.status IN ($ph)",
+					"SELECT COUNT(DISTINCT gi.salesorder_id) AS c
+					 FROM vtiger_goodsissue gi
+					 INNER JOIN vtiger_salesorder so ON so.salesorderid = gi.salesorder_id
+					 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+					 WHERE gi.deleted = 0
+					   AND gi.salesorder_id IS NOT NULL AND gi.salesorder_id > 0
+					   AND gi.status IN ($ph)",
 					$vals
 				);
 				$warehouse[] = array(
@@ -953,9 +958,9 @@ class Home_AdminKpiService {
 			}
 		} else {
 			$whFromSo = array(
-				'waiting' => array('waiting_print', 'picking', 'Created', 'Pending'),
-				'packed' => array('packed'),
-				'delivered' => array('shipped', 'Delivered'),
+				'waiting' => array('waiting_print', 'picking', 'Approved', 'Đã xác nhận'),
+				'packed' => array('packed', 'Đã soạn'),
+				'delivered' => array('shipped', 'Delivered', 'Đã giao', 'Hoàn thành'),
 			);
 			foreach ($whFromSo as $key => $vals) {
 				$ph = implode(',', array_fill(0, count($vals), '?'));
@@ -1992,9 +1997,8 @@ class Home_AdminKpiService {
 	protected static function orderStatusValues($key) {
 		$map = array(
 			'draft' => array('Created', 'Nháp', 'Phiếu tạm', 'Draft'),
-			'pending' => array('Pending', 'Sent', 'waiting_print', 'Chờ xác nhận', 'Đang chờ', 'Chờ in phiếu'),
-			'confirmed' => array('Approved', 'Xác nhận', 'Đã xác nhận', 'picking', 'Đang soạn'),
-			'delivered' => array('Delivered', 'Hoàn thành', 'shipped', 'Đã giao', 'packed', 'Đã soạn'),
+			'pending' => array('Pending', 'Sent', 'Chờ xác nhận', 'Đang chờ'),
+			'delivered' => array('Delivered', 'Hoàn thành', 'shipped', 'Đã giao'),
 		);
 		return isset($map[$key]) ? $map[$key] : array();
 	}
@@ -2019,7 +2023,6 @@ class Home_AdminKpiService {
 		$titles = array(
 			'draft' => 'Đơn Nháp',
 			'pending' => 'Đơn chờ xác nhận',
-			'confirmed' => 'Đơn đã xác nhận',
 			'delivered' => 'Đơn đã giao',
 		);
 		return array(
@@ -2033,8 +2036,8 @@ class Home_AdminKpiService {
 	protected static function drillSalesOrdersByWarehouseKey(PearDatabase $db, $key) {
 		if (self::tableExists($db, 'vtiger_goodsissue')) {
 			$whMap = array(
-				'waiting' => array('waiting_print', 'draft', 'pending_approval', 'picking'),
-				'packed' => array('packed', 'prepared', 'approved'),
+				'waiting' => array('waiting_print', 'picking'),
+				'packed' => array('packed', 'prepared'),
 				'delivered' => array('shipped', 'completed'),
 			);
 			$vals = isset($whMap[$key]) ? $whMap[$key] : array();
@@ -2042,20 +2045,46 @@ class Home_AdminKpiService {
 				return array('title' => 'Theo kho', 'module' => 'SalesOrder', 'rows' => array());
 			}
 			$ph = implode(',', array_fill(0, count($vals), '?'));
+			// Hiển thị trạng thái phiếu xuất (kho), không lấy sostatus bán hàng
 			$r = $db->pquery(
-				"SELECT so.salesorderid AS id, so.salesorder_no AS no, so.total, so.sostatus AS status, ce.createdtime AS created,
+				"SELECT so.salesorderid AS id, so.salesorder_no AS no, so.total, gi.status AS status, ce.createdtime AS created,
 					TRIM(CONCAT(COALESCE(cd.firstname,''), ' ', COALESCE(cd.lastname,''))) AS contact_name
 				 FROM vtiger_goodsissue gi
 				 INNER JOIN vtiger_salesorder so ON so.salesorderid = gi.salesorder_id
 				 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
 				 LEFT JOIN vtiger_contactdetails cd ON cd.contactid = so.contactid
-				 WHERE gi.deleted = 0 AND gi.status IN ($ph)
+				 WHERE gi.deleted = 0
+				   AND gi.salesorder_id IS NOT NULL AND gi.salesorder_id > 0
+				   AND gi.status IN ($ph)
+				 GROUP BY so.salesorderid
 				 ORDER BY ce.createdtime DESC
 				 LIMIT 100",
 				$vals
 			);
 		} else {
-			return self::drillSalesOrdersByStatusKey($db, $key === 'waiting' ? 'pending' : ($key === 'packed' ? 'confirmed' : 'delivered'));
+			$fallbackKey = ($key === 'waiting') ? 'pending' : 'delivered';
+			if ($key === 'packed') {
+				$vals = array('packed', 'Đã soạn');
+				$ph = implode(',', array_fill(0, count($vals), '?'));
+				$r = $db->pquery(
+					"SELECT so.salesorderid AS id, so.salesorder_no AS no, so.total, so.sostatus AS status, ce.createdtime AS created,
+						TRIM(CONCAT(COALESCE(cd.firstname,''), ' ', COALESCE(cd.lastname,''))) AS contact_name
+					 FROM vtiger_salesorder so
+					 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+					 LEFT JOIN vtiger_contactdetails cd ON cd.contactid = so.contactid
+					 WHERE so.sostatus IN ($ph)
+					 ORDER BY ce.createdtime DESC
+					 LIMIT 100",
+					$vals
+				);
+				return array(
+					'title' => 'Đã soạn',
+					'module' => 'SalesOrder',
+					'columns' => array('no', 'contact', 'status', 'total', 'actions'),
+					'rows' => self::mapSalesOrderRows($db, $r),
+				);
+			}
+			return self::drillSalesOrdersByStatusKey($db, $fallbackKey);
 		}
 		$titles = array(
 			'waiting' => 'Đang chờ soạn',

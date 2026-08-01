@@ -874,19 +874,40 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 }
 
 .mk-dash-app-toggle:hover,
-.mk-dash-app-toggle:focus {
+.mk-dash-app-toggle:focus-visible:hover {
     background: #0b6e4f;
     color: #ffffff !important;
     outline: none;
 }
 
 .mk-dash-app-toggle:hover .mk-dash-svg,
-.mk-dash-app-toggle:focus .mk-dash-svg,
+.mk-dash-app-toggle:focus-visible:hover .mk-dash-svg,
 .mk-dash-app-toggle:hover .mk-dash-app-label,
-.mk-dash-app-toggle:focus .mk-dash-app-label,
+.mk-dash-app-toggle:focus-visible:hover .mk-dash-app-label,
 .mk-dash-app-toggle:hover .mk-dash-app-chevron,
-.mk-dash-app-toggle:focus .mk-dash-app-chevron {
+.mk-dash-app-toggle:focus-visible:hover .mk-dash-app-chevron {
     color: #ffffff !important;
+}
+
+/* Never leave white label on transparent after click focus */
+.mk-dash-app-toggle:focus,
+.mk-dash-app-toggle:focus-visible {
+    outline: none;
+}
+
+.mk-dash-app-toggle:focus:not(:hover),
+.mk-dash-app-toggle:focus-visible:not(:hover) {
+    background: transparent !important;
+    color: #475569 !important;
+}
+
+.mk-dash-app-toggle:focus:not(:hover) .mk-dash-svg,
+.mk-dash-app-toggle:focus:not(:hover) .mk-dash-app-label,
+.mk-dash-app-toggle:focus:not(:hover) .mk-dash-app-chevron,
+.mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-svg,
+.mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-app-label,
+.mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-app-chevron {
+    color: #475569 !important;
 }
 
 .mk-dash-app-group--active > .mk-dash-app-toggle {
@@ -901,17 +922,17 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
 }
 
 .mk-dash-app-group--active > .mk-dash-app-toggle:hover,
-.mk-dash-app-group--active > .mk-dash-app-toggle:focus {
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:hover {
     background: #0b6e4f !important;
     color: #ffffff !important;
 }
 
 .mk-dash-app-group--active > .mk-dash-app-toggle:hover .mk-dash-svg,
-.mk-dash-app-group--active > .mk-dash-app-toggle:focus .mk-dash-svg,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:hover .mk-dash-svg,
 .mk-dash-app-group--active > .mk-dash-app-toggle:hover .mk-dash-app-label,
-.mk-dash-app-group--active > .mk-dash-app-toggle:focus .mk-dash-app-label,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:hover .mk-dash-app-label,
 .mk-dash-app-group--active > .mk-dash-app-toggle:hover .mk-dash-app-chevron,
-.mk-dash-app-group--active > .mk-dash-app-toggle:focus .mk-dash-app-chevron {
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:hover .mk-dash-app-chevron {
     color: #ffffff !important;
 }
 
@@ -922,21 +943,62 @@ html[data-theme="dark"] .mk-dash-bace-logo--dark {
     box-shadow: none;
 }
 
-.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle .mk-dash-svg {
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle .mk-dash-svg,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle .mk-dash-app-label,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle .mk-dash-app-chevron {
     color: #475569;
 }
 
 .mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:hover,
-.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus {
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus-visible:hover {
     background: #0b6e4f;
     color: #ffffff !important;
 }
 
 .mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:hover .mk-dash-svg,
-.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus .mk-dash-svg,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus-visible:hover .mk-dash-svg,
 .mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:hover .mk-dash-app-label,
-.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus .mk-dash-app-label {
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus-visible:hover .mk-dash-app-label {
     color: #ffffff !important;
+}
+
+/* Keep label readable when button keeps keyboard/:focus after click (no hover) */
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus:not(:hover),
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus:not(:hover),
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus-visible:not(:hover),
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:not(:hover) {
+    background: transparent !important;
+    color: #475569 !important;
+}
+
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus:not(:hover) .mk-dash-app-label,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus:not(:hover) .mk-dash-app-chevron,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus:not(:hover) .mk-dash-svg,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus:not(:hover) .mk-dash-app-label,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus:not(:hover) .mk-dash-app-chevron,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus:not(:hover) .mk-dash-svg,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-app-label,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-app-chevron,
+.mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-svg,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-app-label,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-app-chevron,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-svg {
+    color: #475569 !important;
+}
+
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus:not(:hover),
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:not(:hover) {
+    background: #ecfdf3 !important;
+    color: #0b6e4f !important;
+}
+
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus:not(:hover) .mk-dash-svg,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus:not(:hover) .mk-dash-app-label,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus:not(:hover) .mk-dash-app-chevron,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-svg,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-app-label,
+.mk-dash-app-group--active > .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-app-chevron {
+    color: #0b6e4f !important;
 }
 
 .mk-dash-app-ic {

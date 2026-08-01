@@ -169,30 +169,42 @@
 		return '';
 	}
 
-	// UI roles: qc | manager (stock/keeper legacy → manager ops)
+	// Real CRM permissions from #mkWhDetailRoot data-* (no prototype role picker).
+	function getAccess() {
+		var root = qs('#mkWhDetailRoot');
+		return {
+			canWrite: !!(root && root.getAttribute('data-can-write') === '1'),
+			canQc: !!(root && root.getAttribute('data-can-qc') === '1'),
+			userName: root ? String(root.getAttribute('data-user-name') || '').trim() : '',
+		};
+	}
+
+	/** API/timeline role key: manager (write/QC) | viewer */
 	function getRole() {
-		var sel = qs('#mkWhDetailRole');
-		var val = sel ? sel.value : 'manager';
-		if (val === 'stock' || val === 'keeper') return 'manager';
-		return val || 'manager';
+		var a = getAccess();
+		if (a.canWrite || a.canQc) return 'manager';
+		return 'viewer';
 	}
 
 	function setRoleUI(roleKey) {
-		var sel = qs('#mkWhDetailRole');
-		if (!sel) return;
-		var uiVal = (roleKey === 'keeper' || roleKey === 'stock') ? 'manager' : roleKey;
-		if (uiVal !== 'qc' && uiVal !== 'manager') uiVal = 'manager';
-		if (sel.value !== uiVal) sel.value = uiVal;
+		/* Prototype role select removed — permissions come from CRM Profile. */
 	}
 
-	/** Ops formerly done by Thủ kho — now owned by Quản lý kho. */
+	/** Ops formerly done by Thủ kho — now owned by warehouse write roles. */
 	function isWarehouseOps(role) {
+		if (getAccess().canWrite) return true;
 		return role === 'manager' || role === 'keeper' || role === 'stock';
 	}
 
+	function canDoQc() {
+		return getAccess().canQc || getAccess().canWrite;
+	}
+
 	function roleActorName(role) {
-		if (role === 'qc') return 'QC Minh';
-		return 'QL Tuấn';
+		var name = getAccess().userName;
+		if (name) return name;
+		if (role === 'qc') return 'QC';
+		return 'Kho';
 	}
 
 	var RECEIPT_STATUS = {
@@ -633,8 +645,8 @@
 	}
 
 	function openInboundPrintPreview(receiptId) {
-		if (getRole() !== 'manager') {
-			showError('Chỉ Quản lý kho được in phiếu nhập.');
+		if (!isWarehouseOps(getRole())) {
+			showError('Bạn không có quyền in phiếu nhập.');
 			return;
 		}
 		if (!receiptId) return;
@@ -810,8 +822,8 @@
 	}
 
 	function openOutboundPrintPreview(issueId) {
-		if (getRole() !== 'manager') {
-			showError('Chỉ Quản lý kho được in phiếu xuất.');
+		if (!isWarehouseOps(getRole())) {
+			showError('Bạn không có quyền in phiếu xuất.');
 			return;
 		}
 		if (!issueId) return;
@@ -899,7 +911,7 @@
 				'<td><span class="' + escapeHtml(st.cls) + '">' + escapeHtml(st.label) + '</span></td>' +
 				'<td class="mk-wh-proto-td-right mk-wh-proto-actions">' +
 					'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="inbound-detail" data-id="' + escapeHtml(r.id) + '">Mở</button>' +
-					(getRole() === 'manager'
+					(isWarehouseOps(getRole())
 						? ' <button class="mk-wh-proto-mini-btn mk-wh-proto-mini-btn--print" type="button" data-mk-action="inbound-print" data-id="' + escapeHtml(r.id) + '">In</button>'
 						: '') +
 				'</td>' +
@@ -926,7 +938,7 @@
 				'</td>' +
 				'<td>' + escText(it.qty || '—') + '</td>' +
 				'<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-action="qc-record" data-id="' + escapeHtml(r.id) + '"' +
-					(getRole() !== 'qc' ? ' disabled' : '') +
+					(!canDoQc() ? ' disabled' : '') +
 				'>Ghi nhận QC</button></td>' +
 			'</tr>');
 		});
@@ -1018,7 +1030,7 @@
 						? '<button class="mk-wh-proto-mini-btn mk-wh-proto-mini-btn--cancel" type="button" data-mk-action="outbound-cancel" data-id="' + escText(i.id) + '">Huỷ</button> '
 						: '') +
 					'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="outbound-detail" data-id="' + escText(i.id) + '">Chi tiết</button>' +
-					(getRole() === 'manager' && canPrintOutboundIssue(i.status)
+					(isWarehouseOps(getRole()) && canPrintOutboundIssue(i.status)
 						? ' <button class="mk-wh-proto-mini-btn mk-wh-proto-mini-btn--print" type="button" data-mk-action="outbound-print" data-id="' + escText(i.id) + '">In</button>'
 						: '') +
 				'</td>' +
@@ -1189,7 +1201,7 @@
 					current: normalizeReceiptPathStatus(r.status),
 					docId: r.id,
 					actionKey: 'receipt-revert',
-					canRevert: isWarehouseOps(role) || role === 'manager' || role === 'qc',
+					canRevert: isWarehouseOps(role) || canDoQc(),
 					branchNote: r.status === 'qc_failed' ? 'Nhánh hiện tại: QC không đạt — có thể quay về Chờ QC.' : '',
 				})
 			: '';
@@ -1200,7 +1212,7 @@
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="send-qc" data-id="' + escapeHtml(r.id) + '">Gửi QC</button>' +
 				'</div>';
 		}
-		if (r.status === 'pending_qc' && role === 'qc') {
+		if (r.status === 'pending_qc' && canDoQc()) {
 			actions = '<div class="mk-wh-proto-dialog-section-title" style="margin-top:12px;">Ghi nhận kết quả QC</div>' +
 				'<textarea class="mk-wh-proto-textarea" data-mk-qc-note="1" placeholder="Ghi chú kiểm tra (cảm quan, chứng từ, bao bì...)"></textarea>' +
 				'<div class="mk-wh-proto-cta-row">' +
@@ -1208,7 +1220,7 @@
 				'<button class="mk-wh-proto-cta mk-wh-proto-cta--fail" type="button" data-mk-action="qc-fail" data-id="' + escapeHtml(r.id) + '"><span>✕</span> Không đạt</button>' +
 				'</div>';
 		}
-		if (r.status === 'qc_passed' && role === 'manager') {
+		if (r.status === 'qc_passed' && isWarehouseOps(role)) {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="mgr-approve" data-id="' + escapeHtml(r.id) + '">Duyệt phiếu</button>' +
 				'</div>';
@@ -2454,7 +2466,7 @@
 					notes: notes || undefined,
 					status: 'waiting_print',
 					createdAt: now,
-					createdBy: 'QL Tuấn',
+					createdBy: (getAccess().userName || 'User'),
 					lines: outLines,
 					timeline: [],
 					stockDeducted: false,
@@ -2576,7 +2588,7 @@
 				supplier: supplier,
 				poRef: poRef,
 				createdAt: nowIn,
-				createdBy: 'QL Tuấn',
+				createdBy: (getAccess().userName || 'User'),
 				status: sendQc ? 'pending_qc' : 'stored',
 				lines: lines,
 				timeline: [],
@@ -2636,11 +2648,7 @@
 			});
 		});
 
-		var roleSel = qs('#mkWhDetailRole');
-		if (roleSel) roleSel.addEventListener('change', function () {
-			updateRoleBanner();
-			renderAll();
-		});
+		// Role select removed — permissions from data-can-write / data-can-qc
 
 		var auditBtn = qs('#mkWhAuditHistoryBtn');
 		if (auditBtn) {
@@ -2742,7 +2750,7 @@
 			}
 			if (action === 'outbound-cancel' && id) {
 				if (!isWarehouseOps(getRole())) {
-					showError('Chỉ Quản lý kho / Thủ kho được huỷ phiếu xuất.');
+					showError('Bạn không có quyền huỷ phiếu xuất.');
 					return;
 				}
 				var cancelIssue = (d.issues || []).find(function (x) { return x.id === id; });

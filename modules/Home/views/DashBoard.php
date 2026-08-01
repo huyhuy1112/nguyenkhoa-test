@@ -8,6 +8,22 @@ require_once 'modules/Home/helpers/AdminKpiAccess.php';
 class Home_DashBoard_View extends Vtiger_DashBoard_View {
 
 	/**
+	 * KPI shell does not use classic Dashboard widgets — do not require Dashboard module.
+	 * Parent Vtiger_DashBoard_View would otherwise block Sale/Ke toan/Kho when Dashboard tab is denied.
+	 */
+	public function requiresPermission(\Vtiger_Request $request) {
+		return array();
+	}
+
+	public function checkPermission(Vtiger_Request $request) {
+		$currentUser = Users_Record_Model::getCurrentUserModel();
+		if (!$currentUser || !$currentUser->getId()) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		return true;
+	}
+
+	/**
 	 * Menu = Main Page (MANAGEMENT), CSS trang = theme gốc (PAGE_THEME_APP).
 	 */
 	public function preProcess(Vtiger_Request $request, $display = true) {

@@ -312,11 +312,16 @@
 	};
 
 	var ROLES = {
-		qc: { label: 'QC', user: 'QC Minh', perms: 'Ghi nhận kết quả QC (Đạt/Không đạt) • Ghi chú kiểm tra' },
+		qc: { label: 'QC', user: 'QC', perms: 'Ghi nhận kết quả QC' },
 		manager: {
-			label: 'Quản lý kho',
-			user: 'QL Tuấn',
-			perms: 'Tạo phiếu nhập/xuất • Gửi QC • Nhập kho • Soạn & giao hàng • Duyệt phiếu sau QC • Xem tồn kho',
+			label: 'Kho',
+			user: 'Kho',
+			perms: 'Tạo phiếu nhập/xuất • QC • Duyệt • Xem tồn kho',
+		},
+		viewer: {
+			label: 'Xem',
+			user: 'User',
+			perms: 'Chỉ xem tồn kho',
 		},
 	};
 
@@ -325,15 +330,28 @@
 		return root ? (root.getAttribute('data-wh-id') || '') : '';
 	}
 
+	function getAccess() {
+		var root = qs('#mkWhDetailRoot');
+		return {
+			canWrite: !!(root && root.getAttribute('data-can-write') === '1'),
+			canQc: !!(root && root.getAttribute('data-can-qc') === '1'),
+			userName: root ? String(root.getAttribute('data-user-name') || '').trim() : '',
+		};
+	}
+
 	function getRole() {
-		var sel = qs('#mkWhDetailRole');
-		var val = sel ? sel.value : 'manager';
-		if (val === 'stock' || val === 'keeper') return 'manager';
-		return val || 'manager';
+		var a = getAccess();
+		if (a.canWrite || a.canQc) return 'manager';
+		return 'viewer';
 	}
 
 	function isWarehouseOps(role) {
+		if (getAccess().canWrite) return true;
 		return role === 'manager' || role === 'keeper' || role === 'stock';
+	}
+
+	function canDoQc() {
+		return getAccess().canQc || getAccess().canWrite;
 	}
 
 	function getWarehouse() {
@@ -466,7 +484,7 @@
 							'<td>HSD: ' + escapeHtml(l.expiry || '—') + '</td>' +
 							'<td>' + escapeHtml(l.qty) + '</td>' +
 							'<td class="mk-wh-proto-td-right"><button class="mk-wh-proto-mini-btn" type="button" data-mk-open-receipt="' + escapeHtml(r.id) + '"' +
-								(getRole() !== 'qc' ? ' disabled' : '') +
+								(!canDoQc() ? ' disabled' : '') +
 							'>Ghi nhận QC</button></td>' +
 						'</tr>'
 					);
@@ -572,7 +590,7 @@
 						'<td>' + escapeHtml(l.name) + ' (' + escapeHtml(l.sku) + ')</td><td>' + escapeHtml(l.lot) + '</td>' +
 						'<td>' + escapeHtml(l.expiry) + '</td><td>' + l.qty + '</td>' +
 						'<td class="mk-wh-proto-td-right"><button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-open-receipt="' + escapeHtml(r.id) + '"' +
-						(getRole() !== 'qc' ? ' disabled' : '') + '>Ghi nhận QC</button></td></tr>');
+						(!canDoQc() ? ' disabled' : '') + '>Ghi nhận QC</button></td></tr>');
 				});
 			});
 			html = qcRows.length
@@ -619,7 +637,6 @@
 	function bindDetailEvents() {
 		var root = qs('#mkWhMgmtRoot');
 		var tabs = qs('#mkWhDetailTabs');
-		var roleSel = qs('#mkWhDetailRole');
 		var activeTab = 'inbound';
 
 		if (!root) return;
@@ -643,9 +660,7 @@
 			});
 		}
 
-		if (roleSel) {
-			roleSel.addEventListener('change', refresh);
-		}
+		// Prototype role select removed — CRM Profile drives can-write / can-qc
 
 		root.addEventListener('click', function (e) {
 			var rid = e.target.getAttribute && e.target.getAttribute('data-mk-open-receipt');
@@ -794,7 +809,8 @@
 
 	function addTimeline(list, action, role) {
 		var me = ROLES[role] || ROLES.manager;
-		list.push({ at: S.nowISO(), by: me.user, role: role, action: action });
+		var by = getAccess().userName || me.user;
+		list.push({ at: S.nowISO(), by: by, role: role === 'viewer' ? 'manager' : role, action: action });
 	}
 
 	function bindReceiptActions() {
@@ -1024,7 +1040,7 @@
 			var id = e.target.getAttribute && e.target.getAttribute('data-mk-trf-id');
 			if (!action || !id) return;
 			e.preventDefault();
-			if (action === 'approve') S.transferActions.approve(id, 'QL Tuấn');
+			if (action === 'approve') S.transferActions.approve(id, getAccess().userName || 'User');
 			else if (action === 'cancel') S.transferActions.cancel(id);
 			else if (action === 'ship') S.transferActions.ship(id);
 			else if (action === 'complete') S.transferActions.complete(id);
@@ -1054,7 +1070,7 @@
 					lot: s.lot,
 					qty: qty,
 					reason: reason || '—',
-					requestedBy: 'QL Tuấn',
+					requestedBy: (getAccess().userName || 'User'),
 				});
 				closeModal();
 				renderTransfers();

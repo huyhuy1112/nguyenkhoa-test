@@ -2,7 +2,11 @@
 {strip}
 <div class="mk-gi-page">
 	<div class="mk-gi-suite-card mk-wh-proto-suite" id="mkWhPrototypeRoot">
-	<section class="mk-wh-proto" id="mkWhDetailRoot" data-wh-id="{$MK_WH_ID|escape:'html'}">
+	<section class="mk-wh-proto" id="mkWhDetailRoot"
+		data-wh-id="{$MK_WH_ID|escape:'html'}"
+		data-can-write="{$MK_WH_CAN_WRITE|default:0}"
+		data-can-qc="{$MK_WH_CAN_QC|default:0}"
+		data-user-name="{$MK_WH_USER_NAME|escape:'html'}">
 		<header class="mk-wh-proto-head">
 			<div class="mk-wh-proto-title">
 				<div class="mk-wh-mgmt-breadcrumb">
@@ -11,17 +15,7 @@
 				<h1 class="mk-wh-proto-title__h1" id="mkWhDetailTitle">Kho</h1>
 				<p class="mk-wh-proto-title__sub" id="mkWhDetailDesc"></p>
 			</div>
-				<div class="mk-wh-proto-role">
-					<div class="mk-wh-proto-role__label">Đang đăng nhập với vai trò</div>
-					<div class="mk-wh-proto-role__control">
-						<span class="mk-wh-proto-role__ic" aria-hidden="true">
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="1.6"/><path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-						</span>
-						<select class="mk-wh-proto-select" id="mkWhDetailRole">
-							<option value="qc">QC — QC Minh</option>
-							<option value="manager" selected="selected">Quản lý kho — QL Tuấn</option>
-						</select>
-					</div>
+				<div class="mk-wh-proto-actions">
 					<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--history" id="mkWhAuditHistoryBtn" title="Xem lịch sử tạo / chỉnh sửa phiếu nhập &amp; xuất">
 						<span class="mk-wh-proto-btn__ic" aria-hidden="true">
 							<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 4.5v4h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>

@@ -101,6 +101,8 @@
 							{if $APP_NAME eq 'MANAGEMENT' && $moduleName eq 'Home'}{continue}{/if}
 							{* SUPPORT: ẩn Schedule/Calendar — chỉ dùng Activities (Schedule chỉ ở MANAGEMENT) *}
 							{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Calendar' || $moduleName eq 'Schedule')}{continue}{/if}
+							{* SUPPORT: Hợp đồng nhượng quyền (Accounts) chỉ nằm ở BÁN HÀNG → Tuibao *}
+							{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Accounts' || $moduleName eq 'ServiceContracts')}{continue}{/if}
 							{if $moduleName eq 'Calendar'}{assign var=_mkHasCalendar value=true}{/if}
 							{if $moduleName eq 'Leads'}{assign var=_mkHasLeads value=true}{/if}
 							{if $moduleName eq 'Accounts'}{assign var=_mkHasAccounts value=true}{/if}
@@ -198,13 +200,6 @@
 							{assign var=_mkActivitiesActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Activities')}
 							<a class="mk-dash-mod-link{if $_mkActivitiesActive} mk-dash-mod-link--active{/if}" href="index.php?module=Activities&amp;view=List&amp;app=SUPPORT">
 								<span class="mk-dash-mod-label">{vtranslate('LBL_ACTIVITIES','Calendar')}</span>
-							</a>
-						{/if}
-						{* SUPPORT: Organizations (Accounts) when missing from MenuEditor *}
-						{if ($_mkHasAccounts eq false) && ($APP_NAME eq 'SUPPORT')}
-							{assign var=_mkAccountsActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Accounts')}
-							<a class="mk-dash-mod-link{if $_mkAccountsActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SUPPORT">
-								<span class="mk-dash-mod-label">Hợp đồng nhượng quyền</span>
 							</a>
 						{/if}
 

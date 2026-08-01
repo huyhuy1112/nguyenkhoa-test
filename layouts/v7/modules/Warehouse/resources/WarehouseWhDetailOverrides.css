@@ -42,6 +42,13 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh
 	background: linear-gradient(180deg, #ffffff, #f8fafc);
 }
 
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
 body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-perms {
 	background: linear-gradient(90deg, #eef2ff 0%, #faf5ff 100%);
 	border-color: rgba(99, 102, 241, 0.22);

@@ -167,7 +167,7 @@ class Vtiger_MenuStructure_Model extends Vtiger_Base_Model {
 	function regroupMenuByParent($menuGroupedByParent) {
 		$editionsToAppMap = array(
 									'Contacts'		=> array('MARKETING', 'SALES', 'INVENTORY', 'SUPPORT', 'PROJECT'),
-									'Accounts'		=> array('MARKETING', 'SALES', 'INVENTORY', 'SUPPORT', 'PROJECT'),
+									'Accounts'		=> array('MARKETING', 'SALES', 'INVENTORY', 'PROJECT'),
 									'Campaigns'		=> array('MARKETING'),
 									'Leads'			=> array('MARKETING'),
 									'Potentials'	=> array('SALES'),
