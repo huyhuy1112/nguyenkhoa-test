@@ -192,7 +192,8 @@
     var h12 = h % 12;
     if (h12 === 0) h12 = 12;
     var mmins = String(m).padStart ? String(m).padStart(2, "0") : ("0" + m).slice(-2);
-    return mm + "-" + dd + "-" + yyyy + " " + h12 + ":" + mmins + " " + ampm;
+    // DD-MM-YYYY (ngày → tháng), khớp yêu cầu list Contacts
+    return dd + "-" + mm + "-" + yyyy + " " + h12 + ":" + mmins + " " + ampm;
   }
 
   function dateCell(raw) {
@@ -204,9 +205,13 @@
 
   function computeKpis(rows) {
     var withTags = rows.filter(function (c) { return (c.tags || []).length > 0; }).length;
-    var withEmail = rows.filter(function (c) { return !!c.email; }).length;
     var withPhone = rows.filter(function (c) { return !!c.phone; }).length;
-    var withAccount = rows.filter(function (c) { return !!c.account; }).length;
+    var withCapTk = rows.filter(function (c) {
+      return isCredentialIssued(c.da_cap_tai_khoan, "tk");
+    }).length;
+    var withCapBang = rows.filter(function (c) {
+      return isCredentialIssued(c.da_cap_bang, "bang");
+    }).length;
     var gold = rows.filter(function (c) {
       var tg = categorize(c.tags).tier;
       return tg && ref.normalizeTag(tg) === "vang";
@@ -215,9 +220,9 @@
     return [
       { key: "total", label: t("JS_MK_KPI_TOTAL_CONTACT", "Tổng khách hàng"), value: rows.length, icon: "users", tone: "blue" },
       { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "violet" },
-      { key: "email", label: t("JS_MK_KPI_EMAIL", "Có email"), value: withEmail, icon: "check", tone: "emerald" },
+      { key: "cap_tk", label: t("JS_MK_KPI_CAP_TK", "Đã cấp tài khoản"), value: withCapTk, icon: "check", tone: "emerald" },
       { key: "phone", label: t("JS_MK_KPI_PHONE", "Có SĐT"), value: withPhone, icon: "clock", tone: "cyan" },
-      { key: "account", label: t("JS_MK_KPI_ACCOUNT", "Có tổ chức"), value: withAccount, icon: "repeat", tone: "amber" },
+      { key: "cap_bang", label: t("JS_MK_KPI_CAP_BANG", "Đã cấp bằng"), value: withCapBang, icon: "repeat", tone: "amber" },
       { key: "gold", label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: gold, icon: "crown", tone: "rose" },
       { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "trend", tone: "indigo" },
     ];
@@ -356,13 +361,11 @@
     function pushTag(tg) {
       var key = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "");
       if (!key || seen[key]) return;
+      if (key === "da_cap_bang" || key === "da_cap_tai_khoan") return;
       seen[key] = true;
       parts.push(tagBadgeHtml(tg));
     }
     list.forEach(pushTag);
-    // Sync credential columns into tag stack so list + dropdown stay aligned.
-    if (contact && isCredentialIssued(contact.da_cap_bang, "bang")) pushTag("da_cap_bang");
-    if (contact && isCredentialIssued(contact.da_cap_tai_khoan, "tk")) pushTag("da_cap_tai_khoan");
     if (!parts.length) return '<span class="mk-leads-muted">Thêm thẻ…</span>';
     var maxShow = 2;
     var shown = parts.slice(0, maxShow);
@@ -510,10 +513,9 @@
     var selected = {};
     (contact.tags || []).forEach(function (tg) {
       var k = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "");
+      if (k === "da_cap_bang" || k === "da_cap_tai_khoan") return;
       if (k) selected[k] = true;
     });
-    if (isCredentialIssued(contact.da_cap_bang, "bang")) selected.da_cap_bang = true;
-    if (isCredentialIssued(contact.da_cap_tai_khoan, "tk")) selected.da_cap_tai_khoan = true;
     var pop = document.createElement("div");
     pop.id = "mk-contacts-tag-popover";
     pop.className = "mk-leads-tag-popover";
@@ -584,27 +586,16 @@
       if (e.target.closest && e.target.closest("[data-tag-save]")) {
         var nextTags = [];
         pop.querySelectorAll(".mk-leads-tag-chip.is-on").forEach(function (el) {
-          nextTags.push(el.getAttribute("data-tag"));
+          var key = el.getAttribute("data-tag");
+          if (key === "da_cap_bang" || key === "da_cap_tai_khoan") return;
+          nextTags.push(key);
         });
         var saveBtn = e.target.closest("[data-tag-save]");
         if (saveBtn) saveBtn.disabled = true;
-        var hasBang = nextTags.indexOf("da_cap_bang") >= 0;
-        var hasTk = nextTags.indexOf("da_cap_tai_khoan") >= 0;
-        var bangVal = hasBang ? "Đã cấp" : "Chưa cấp";
-        var tkVal = hasTk ? "Đã cấp tài khoản" : "Chưa cấp tài khoản";
         var saveFn = store.saveTags
           ? store.saveTags(contact.crmid || contact.id, nextTags)
           : Promise.reject(new Error("saveTags unavailable"));
         saveFn
-          .then(function () {
-            if (store.saveCredentials) {
-              return store.saveCredentials(contact.crmid || contact.id, bangVal, tkVal);
-            }
-            store.patchContact(contact.crmid || contact.id, {
-              da_cap_bang: bangVal,
-              da_cap_tai_khoan: tkVal,
-            });
-          })
           .then(function () {
             closeTagPopover();
             renderAll();
@@ -883,15 +874,11 @@
             );
         saveCred
           .then(function () {
-            // Keep tag chips in sync with credential dropdowns.
-            var tags = (contact.tags || []).slice();
-            function setTag(key, on) {
-              var i = tags.indexOf(key);
-              if (on && i < 0) tags.push(key);
-              if (!on && i >= 0) tags.splice(i, 1);
-            }
-            setTag("da_cap_bang", isCredentialIssued(nextBang, "bang"));
-            setTag("da_cap_tai_khoan", isCredentialIssued(nextTk, "tk"));
+            // Strip legacy credential tags — status lives on dropdowns only.
+            var tags = ((contact.tags || []).slice()).filter(function (tg) {
+              var k = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "");
+              return k !== "da_cap_bang" && k !== "da_cap_tai_khoan";
+            });
             if (store.saveTags) {
               return store.saveTags(contact.crmid || contact.id, tags);
             }

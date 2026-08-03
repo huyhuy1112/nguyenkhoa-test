@@ -142,7 +142,7 @@ class Contacts_ModernService {
 	}
 
 	/**
-	 * Đã cấp bằng / Đã cấp tài khoản — chỉ Create + Detail (không list/dropdown).
+	 * Đã cấp bằng / Đã cấp tài khoản — hiện trên Create/Edit (displaytype=1) + List.
 	 */
 	public static function ensureCredentialFields($adb = null, $tabid = null, $blockid = null) {
 		static $done = false;
@@ -195,9 +195,9 @@ class Contacts_ModernService {
 			$fieldid = 0;
 			if ($exists && $adb->num_rows($exists) > 0) {
 				$fieldid = (int)$adb->query_result($exists, 0, 'fieldid');
-				// Create/Edit only in stock layout; Detail uses custom panel.
+				// Editable on Create/Edit stock form (was 3 = list-only, blocked EditView).
 				$adb->pquery(
-					'UPDATE vtiger_field SET displaytype = 3, summaryfield = 0 WHERE fieldid = ?',
+					'UPDATE vtiger_field SET displaytype = 1, summaryfield = 0, presence = 2 WHERE fieldid = ?',
 					array($fieldid)
 				);
 			} else {
@@ -216,7 +216,7 @@ class Contacts_ModernService {
 					 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 					array(
 						$tabid, $fieldid, $col, 'vtiger_contactscf', 2, '15', $col, $meta['label'],
-						0, 2, $meta['default'], 100, $sequence, $blockid, 3, 'V~O',
+						0, 2, $meta['default'], 100, $sequence, $blockid, 1, 'V~O',
 						1, null, 'BAS', 1, '', 0, 0,
 					)
 				);

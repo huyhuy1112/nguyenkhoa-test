@@ -48,7 +48,6 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_ADDRESS', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_SOURCE', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CUSTOMER_TYPE', 'Potentials')}</th>
-							<th class="mk-leads-th" scope="col">{vtranslate('LBL_SALES_STAGE', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_ASSIGNED_TO', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_TAGS', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CONFIRM_TAG', 'Potentials')}</th>

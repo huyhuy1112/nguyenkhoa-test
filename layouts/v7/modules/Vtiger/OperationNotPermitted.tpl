@@ -12,6 +12,76 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
+/* Full-viewport canvas — no white gutters from Settings/vtiger chrome */
+html.mk-access-deny-page,
+body.mk-access-deny-page,
+html:has(.mk-access-deny),
+body:has(.mk-access-deny) {
+	--mk-deny-bg:
+		radial-gradient(1100px 640px at 12% -8%, rgba(13, 143, 85, 0.18), transparent 58%),
+		radial-gradient(900px 520px at 100% 8%, rgba(196, 92, 38, 0.11), transparent 52%),
+		radial-gradient(900px 560px at 50% 100%, rgba(13, 143, 85, 0.1), transparent 58%),
+		linear-gradient(165deg, #f7fbf8 0%, #eef3f0 45%, #e8efe9 100%);
+	height: 100% !important;
+	min-height: 100% !important;
+	min-height: 100vh !important;
+	min-height: 100dvh !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: var(--mk-deny-bg) !important;
+	background-color: #eef3f0 !important;
+	background-attachment: fixed !important;
+	overflow-x: hidden !important;
+}
+body.mk-access-deny-page,
+body:has(.mk-access-deny) {
+	overflow: hidden !important;
+}
+body:has(.mk-access-deny) #page,
+body:has(.mk-access-deny) #page.container-fluid,
+body:has(.mk-access-deny) .main-container,
+body:has(.mk-access-deny) .settingsPageDiv,
+body:has(.mk-access-deny) .settingsIndexPage,
+body:has(.mk-access-deny) .contentsDiv,
+body:has(.mk-access-deny) .content-area,
+body:has(.mk-access-deny) .bodyContents,
+body:has(.mk-access-deny) .col-sm-12,
+body:has(.mk-access-deny) .row,
+body.mk-access-deny-page #page,
+body.mk-access-deny-page #page.container-fluid,
+body.mk-access-deny-page .main-container,
+body.mk-access-deny-page .settingsPageDiv,
+body.mk-access-deny-page .settingsIndexPage,
+body.mk-access-deny-page .contentsDiv,
+body.mk-access-deny-page .content-area,
+body.mk-access-deny-page .bodyContents {
+	background: transparent !important;
+	background-color: transparent !important;
+	box-shadow: none !important;
+	min-height: 0 !important;
+	height: auto !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+}
+body:has(.mk-access-deny) .app-fixed-navbar,
+body:has(.mk-access-deny) .navbar,
+body:has(.mk-access-deny) .settingsNav,
+body:has(.mk-access-deny) .settingsgroup,
+body:has(.mk-access-deny) .module-nav,
+body:has(.mk-access-deny) .sidebar-essentials,
+body:has(.mk-access-deny) footer,
+body:has(.mk-access-deny) .footer,
+body.mk-access-deny-page .app-fixed-navbar,
+body.mk-access-deny-page .navbar,
+body.mk-access-deny-page .settingsNav,
+body.mk-access-deny-page .settingsgroup,
+body.mk-access-deny-page .module-nav,
+body.mk-access-deny-page .sidebar-essentials,
+body.mk-access-deny-page footer,
+body.mk-access-deny-page .footer {
+	display: none !important;
+}
 .mk-access-deny {
 	--mk-ink: #13241c;
 	--mk-muted: #5a6f64;
@@ -21,34 +91,58 @@
 	--mk-warn: #c45c26;
 	--mk-soft: #eef6f1;
 	--mk-card: rgba(255, 255, 255, 0.92);
+	--mk-bg:
+		radial-gradient(1100px 640px at 12% -8%, rgba(13, 143, 85, 0.18), transparent 58%),
+		radial-gradient(900px 520px at 100% 8%, rgba(196, 92, 38, 0.11), transparent 52%),
+		radial-gradient(900px 560px at 50% 100%, rgba(13, 143, 85, 0.1), transparent 58%),
+		linear-gradient(165deg, #f7fbf8 0%, #eef3f0 45%, #e8efe9 100%);
 	box-sizing: border-box;
-	min-height: 72vh;
-	margin: 0;
-	padding: 48px 20px 64px;
+	position: fixed !important;
+	top: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	inset: 0 !important;
+	z-index: 2147483000;
+	width: 100vw !important;
+	width: 100dvw !important;
+	min-width: 100% !important;
+	height: 100vh !important;
+	height: 100dvh !important;
+	min-height: 100vh !important;
+	min-height: 100dvh !important;
+	max-height: none !important;
+	margin: 0 !important;
+	padding: 48px 20px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
 	color: var(--mk-ink);
-	background:
-		radial-gradient(900px 420px at 12% -10%, rgba(13, 143, 85, 0.16), transparent 55%),
-		radial-gradient(700px 380px at 100% 0%, rgba(196, 92, 38, 0.1), transparent 50%),
-		linear-gradient(165deg, #f7fbf8 0%, #eef3f0 42%, #f5f2ec 100%);
-	position: relative;
-	overflow: hidden;
+	background: var(--mk-bg) !important;
+	background-color: #eef3f0 !important;
+	overflow: auto;
+	-webkit-overflow-scrolling: touch;
 }
 .mk-access-deny *,
 .mk-access-deny *::before,
 .mk-access-deny *::after { box-sizing: border-box; }
 .mk-access-deny__grid {
-	position: absolute;
-	inset: 0;
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	height: 100dvh;
 	background-image:
-		linear-gradient(rgba(19, 36, 28, 0.035) 1px, transparent 1px),
-		linear-gradient(90deg, rgba(19, 36, 28, 0.035) 1px, transparent 1px);
+		linear-gradient(rgba(19, 36, 28, 0.045) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(19, 36, 28, 0.045) 1px, transparent 1px);
 	background-size: 48px 48px;
-	mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+	opacity: 0.95;
 	pointer-events: none;
+	z-index: 0;
 }
 .mk-access-deny__card {
 	position: relative;
@@ -178,7 +272,7 @@
 	color: var(--mk-muted);
 }
 @media (max-width: 520px) {
-	.mk-access-deny { padding: 28px 14px 40px; min-height: 64vh; }
+	.mk-access-deny { padding: 24px 14px; }
 	.mk-access-deny__card { padding: 32px 22px 26px; border-radius: 20px; }
 	.mk-access-deny__actions { flex-direction: column; }
 	.mk-access-deny__btn { width: 100%; }
@@ -217,15 +311,31 @@
 </div>
 <script type="text/javascript">
 (function () {
-	var btn = document.getElementById('mkAccessDenyBack');
-	if (!btn) return;
-	btn.addEventListener('click', function () {
-		if (window.history && window.history.length > 1) {
-			window.history.back();
-			return;
-		}
-		window.location.href = 'index.php?module=Home&view=MainPage&app=MANAGEMENT';
-	});
+	function mount() {
+		try {
+			document.documentElement.classList.add('mk-access-deny-page');
+			if (document.body) {
+				document.body.classList.add('mk-access-deny-page');
+				/* Escape Settings/transform ancestors so fixed covers the real viewport */
+				var panel = document.querySelector('.mk-access-deny');
+				if (panel && panel.parentNode !== document.body) {
+					document.body.appendChild(panel);
+				}
+			}
+		} catch (e) {}
+		var btn = document.getElementById('mkAccessDenyBack');
+		if (!btn || btn.getAttribute('data-mk-bound') === '1') return;
+		btn.setAttribute('data-mk-bound', '1');
+		btn.addEventListener('click', function () {
+			if (window.history && window.history.length > 1) {
+				window.history.back();
+				return;
+			}
+			window.location.href = 'index.php?module=Home&view=MainPage&app=MANAGEMENT';
+		});
+	}
+	if (document.body) mount();
+	else document.addEventListener('DOMContentLoaded', mount);
 })();
 </script>
 {/strip}

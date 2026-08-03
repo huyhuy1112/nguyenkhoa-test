@@ -162,7 +162,8 @@
     "other", "other_source",
   ];
   var CUSTOMER_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh"];
-  var CREDENTIAL_TAGS = ["da_cap_bang", "da_cap_tai_khoan"];
+  // Credential tags (Đã cấp bằng / Đã cấp tài khoản) belong to Contacts only — not Opp/Leads pickers.
+  var CREDENTIAL_TAGS = [];
   var CLASS_TAGS = [
     "da_tg_free", "da_tg_fb1", "thu_3", "mien_phi_online", "mien_phi_offline",
     "chua_hoc", "da_hoc", "pcth", "van_hanh", "mkt", "lop_khac", "nguyen_lieu_chuoi",
@@ -299,7 +300,7 @@
       id: "customer",
       labelVi: "Dạng khách hàng",
       labelEn: "Customer type",
-      tags: CUSTOMER_TAGS.concat(CREDENTIAL_TAGS),
+      tags: CUSTOMER_TAGS,
     },
     { id: "class", labelVi: "Tag lớp học", labelEn: "Class", tags: CLASS_TAGS },
     { id: "material", labelVi: "Tag nguyên liệu", labelEn: "Material", tags: MATERIAL_TAGS },

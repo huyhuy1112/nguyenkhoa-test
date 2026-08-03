@@ -7,7 +7,7 @@
   var ref = window.PotentialsLovableRef;
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 15;
+  var COL_COUNT = 14;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -27,11 +27,10 @@
       { id: "quote", name: pick("Báo giá", "Quotes"), filters: { sales_stage: "Prospecting" } },
       { id: "prospecting", name: pick("Tiềm năng", "Prospecting"), filters: { sales_stage: "Prospecting" } },
       { id: "internal", name: pick("Nội bộ", "Internal"), filters: { order_category: "Internal" } },
-      { id: "project", name: pick("Dự án", "Project"), filters: { order_category: "Project" } },
+      { id: "confirmed", name: pick("Xác nhận tham gia", "Confirmed"), filters: { confirm: "xac_nhan_tham_gia" } },
       { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
       { id: "franchise", name: pick("Nhượng quyền", "Franchise"), filters: { franchise: "nhuong_quyen" } },
       { id: "deposit", name: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
-      { id: "confirmed", name: pick("Xác nhận TG", "Confirmed"), filters: { confirm: "xac_nhan_tham_gia" } },
     ];
   }
 
@@ -569,7 +568,6 @@
     var total = rows.length;
     var pipeline = rows.reduce(function (s, o) { return s + (Number(o.amount) || 0); }, 0);
     var internal = rows.filter(function (o) { return o.order_category === "Internal"; }).length;
-    var project = rows.filter(function (o) { return o.order_category === "Project"; }).length;
     var withTags = rows.filter(function (o) { return (o.tags || []).length > 0; }).length;
     var franchise = rows.filter(function (o) { return categorize(o.tags).franchise; }).length;
     var confirmed = rows.filter(function (o) {
@@ -585,11 +583,10 @@
       { key: "total", label: t("JS_MK_KPI_TOTAL_OPP", "Tổng cơ hội"), value: total, icon: "users", tone: "blue" },
       { key: "pipeline", label: t("JS_MK_KPI_PIPELINE", "Pipeline"), value: formatMoney(pipeline), icon: "trend", tone: "violet" },
       { key: "internal", label: pick("Nội bộ", "Internal"), value: internal, icon: "check", tone: "emerald" },
-      { key: "project", label: pick("Dự án", "Project"), value: project, icon: "bookmark", tone: "cyan" },
+      { key: "confirmed", label: pick("Xác nhận tham gia", "Confirmed"), value: confirmed, icon: "bookmark", tone: "cyan" },
       { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "amber" },
       { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "repeat", tone: "rose" },
       { key: "closing", label: t("JS_MK_KPI_CLOSING", "Đóng trong 30 ngày"), value: closingSoon, icon: "clock", tone: "indigo" },
-      { key: "confirmed", label: t("JS_MK_KPI_CONFIRMED", "Xác nhận TG"), value: confirmed, icon: "check", tone: "emerald" },
     ];
   }
 
@@ -795,7 +792,6 @@
             "</td>" +
             '<td class="mk-leads-td" data-col="source">' + tagBadgeHtml(cats.source) + "</td>" +
             '<td class="mk-leads-td" data-col="customer">' + tagBadgeHtml(cats.customer) + "</td>" +
-            '<td class="mk-leads-td"><span class="mk-pill ' + stagePillClass(o.sales_stage) + '">' + esc(stageLabel(o.sales_stage)) + "</span></td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(o.owner) + '">' + esc(ownerInitials(o.owner)) + "</span>" +
             "<span>" + esc(o.owner || "—") + "</span></span></td>" +

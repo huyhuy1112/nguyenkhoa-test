@@ -77,7 +77,10 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-dash-main
 	width: 100%;
 	max-width: none;
 	min-width: 0;
-	background: linear-gradient(160deg, #f7f9fb 0%, #f8fafc 40%, #f7f9fb 100%);
+	background:
+		radial-gradient(900px 420px at 8% -10%, rgba(8, 160, 69, 0.12), transparent 55%),
+		radial-gradient(700px 380px at 100% 0%, rgba(64, 98, 126, 0.1), transparent 50%),
+		linear-gradient(165deg, #f3f7f5 0%, #eef3f0 45%, #f5f3ee 100%);
 	box-sizing: border-box;
 }
 
@@ -107,18 +110,21 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-creat
 	box-sizing: border-box;
 }
 
-body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-create-body {
+body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-create-body,
+body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-create-body--edit,
+body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-create-body--solo {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
-	gap: 24px;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 0;
 	align-items: start;
-	max-width: none;
-	margin: 0;
+	max-width: 920px;
+	margin: 0 auto;
 	box-sizing: border-box;
+	padding: 0 20px 48px;
 }
 
-body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-create-body--edit {
-	grid-template-columns: minmax(0, 1fr);
+body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside {
+	display: none !important;
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-create-main {
@@ -158,15 +164,26 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-
 
 /* ========== Page header (create) ========== */
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-page-head {
-	margin-bottom: 24px;
+	margin-bottom: 20px;
 	padding: 22px 28px;
-	max-width: 1280px;
+	max-width: 920px;
 	margin-left: auto;
 	margin-right: auto;
 	border-radius: 18px;
-	background: var(--mk-opp-white);
+	background: linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(236, 253, 245, 0.9) 100%);
 	border: 1px solid var(--mk-opp-border);
 	box-shadow: var(--mk-opp-shadow);
+	position: relative;
+	overflow: hidden;
+}
+body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-page-head::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 5px;
+	background: linear-gradient(180deg, #08a045, #40627e);
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-page-head__crumb {
@@ -1145,9 +1162,9 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-
 }
 
 body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-form-host .mk-opp-block td.fieldLabel {
-	font-size: 13px !important;
+	font-size: 14px !important;
 	font-weight: 600 !important;
-	color: #475569 !important;
+	color: #334155 !important;
 	line-height: 1.4;
 	padding: 0 0 10px !important;
 	text-align: left !important;
@@ -1555,11 +1572,7 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-float
 		grid-template-columns: 1fr;
 	}
 	body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-aside {
-		position: static;
-		max-height: none;
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-		gap: 14px;
+		display: none !important;
 	}
 }
 
@@ -1594,4 +1607,524 @@ body[data-module="Potentials"][data-view="Edit"][data-app="SALES"] .mk-opp-float
 		flex-direction: column;
 		align-items: stretch;
 	}
+}
+
+/* Hidden stock noise — class + native :has() so fields stay gone even if JS races */
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-hide-field,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-hide-block,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-hide-legacy {
+	display: none !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: 0 !important;
+}
+
+/* Hide stock CRM fields by input name (Create/Edit Opp slim form) */
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="amount"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="amount"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="opportunity_type"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="opportunity_type"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="closingdate"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="closingdate"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="leadsource"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="leadsource"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="nextstep"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="nextstep"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="sales_stage"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="sales_stage"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="campaignid"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="campaignid"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="campaignid_display"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="campaignid_display"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="probability"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="probability"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="forecast_amount"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="forecast_amount"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="order_category"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="order_category"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="related_to"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="related_to"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="related_to_display"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="related_to_display"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="contact_id"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="contact_id"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="contact_id_display"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="contact_id_display"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="cf_859"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="cf_859"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldValue:has([name="description"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost td.fieldLabel:has(+ td.fieldValue [name="description"]),
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost .fieldBlockContainer[data-block="LBL_CUSTOM_INFORMATION"],
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost .fieldBlockContainer[data-block="LBL_DESCRIPTION_INFORMATION"] {
+	display: none !important;
+}
+
+/* Merged opportunity + list extras inside one card */
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-block--merged {
+	position: relative;
+	overflow: hidden;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-block--merged::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 4px;
+	background: linear-gradient(180deg, #08a045 0%, #40627e 55%, #f59e0b 100%);
+	border-radius: 4px 0 0 4px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-block__badge {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 999px;
+	margin-right: 8px;
+	background: linear-gradient(135deg, #08a045, #34d399);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.18);
+	vertical-align: middle;
+}
+
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-extras {
+	margin: 28px 0 0;
+	padding: 0;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-extras__divider {
+	height: 1px;
+	margin: 0 0 22px;
+	background: linear-gradient(90deg, rgba(8, 160, 69, 0.4), rgba(64, 98, 126, 0.14), transparent);
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-extras__head {
+	margin-bottom: 18px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-extras__title {
+	margin: 0 0 6px;
+	font-family: var(--mk-opp-display);
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: var(--mk-opp-navy);
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-extras__hint {
+	margin: 0;
+	font-size: 13px;
+	color: var(--mk-opp-muted);
+}
+
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-list-parity__grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	column-gap: 40px;
+	row-gap: 22px;
+	margin-bottom: 22px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-list-parity__field {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	min-width: 0;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-list-parity__label,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-list-parity__tags-label {
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	color: #334155;
+	line-height: 1.4;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-list-parity__tags-label {
+	margin: 4px 0 12px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-list-parity__field .inputElement {
+	width: 100%;
+	box-sizing: border-box;
+	font-weight: 400;
+	font-size: 15px;
+	color: var(--mk-opp-text);
+	border-radius: 12px;
+	border: 1px solid #e2e8f0;
+	min-height: 46px;
+	padding: 12px 16px;
+	background: #fafafa;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-list-parity__field .inputElement:focus {
+	outline: none;
+	border-color: var(--mk-opp-navy);
+	background: #fff;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1);
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group {
+	margin-bottom: 16px;
+	padding: 14px 16px;
+	border-radius: 14px;
+	background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+	border: 1px solid rgba(64, 98, 126, 0.1);
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__title {
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: #64748b;
+	margin-bottom: 10px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip {
+	appearance: none;
+	border: 1px solid #d8dee6;
+	background: #f8fafc;
+	color: #334155;
+	border-radius: 999px;
+	padding: 7px 12px;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+	opacity: 0.72;
+	filter: saturate(0.85);
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip:hover {
+	opacity: 1;
+	filter: saturate(1);
+	transform: translateY(-1px);
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.is-on {
+	opacity: 1;
+	filter: saturate(1.05);
+	font-weight: 700;
+	box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+	transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+	body[data-module="Potentials"][data-view="Edit"] .mk-opp-list-parity__grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Tag color template (aligned with Contacts / list mk-tag palette) */
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--facebook { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--tiktok { background: #fce7f3; border-color: #f9a8d4; color: #be185d; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--zalo { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--website { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--ladipage { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--hotline { background: #ffedd5; border-color: #fdba74; color: #c2410c; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--other { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--individual { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--company { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--co-quan { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--chuan-bi-mo { background: #fce7f3; border-color: #f9a8d4; color: #be185d; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--gia-dinh { background: #dcfce7; border-color: #86efac; color: #047857; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--da-cap-bang { background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--da-cap-tai-khoan { background: #e0f2fe; border-color: #7dd3fc; color: #075985; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--kv1 { background: #dcfce7; border-color: #86efac; color: #166534; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--kv2 { background: #e0f2fe; border-color: #7dd3fc; color: #075985; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--kv3 { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--free-online,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--mien_phi_online { background: #cffafe; border-color: #67e8f9; color: #0e7490; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--free-offline,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--mien_phi_offline { background: #ccfbf1; border-color: #5eead4; color: #0f766e; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--da-tg-free { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--da-tg-fb1 { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--thu-3 { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--chua-hoc { background: #dcfce7; border-color: #86efac; color: #073B3A; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--da-hoc { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--pcth { background: #f3e8ff; border-color: #c4b5fd; color: #7e22ce; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--nguyen-lieu-chuoi { background: #ecfccb; border-color: #bef264; color: #3f6212; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--van-hanh { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--mkt { background: #fae8ff; border-color: #e879f9; color: #a21caf; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--lop-khac { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--tiem-nang { background: #fef9c3; border-color: #fde047; color: #854d0e; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--mua-lan-dau { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--mua-lai { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--mua-on-dinh { background: #ccfbf1; border-color: #5eead4; color: #0f766e; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--dang-cham-soc { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--dang-tu-van { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--kh-can-nhac { background: #fff7ed; border-color: #fdba74; color: #c2410c; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--khong-mua { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--ngung-mua { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--nhuong-quyen { background: #fce7f3; border-color: #f9a8d4; color: #be185d; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--da-ky-quy { background: #dcfce7; border-color: #86efac; color: #166534; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--xac-nhan { background: #dcfce7; border-color: #86efac; color: #166534; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--khong-xac-nhan { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--vang { background: #fef3c7; border-color: #fbbf24; color: #92400e; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--bac { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.mk-tag--dong { background: #ffedd5; border-color: #fb923c; color: #9a3412; }
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-ref {
+	position: relative;
+	width: 100%;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-bar {
+	display: flex;
+	align-items: stretch;
+	width: 100%;
+	min-height: 46px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fafafa;
+	overflow: hidden;
+	box-sizing: border-box;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-bar:focus-within {
+	border-color: var(--mk-opp-navy);
+	background: #fff;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1);
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-ref .mk-opp-name-display {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 46px !important;
+	min-height: 46px !important;
+	margin: 0 !important;
+	padding: 0 16px !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	font-size: 15px !important;
+	color: var(--mk-opp-text);
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-ref .mk-opp-name-display:focus {
+	outline: none !important;
+	box-shadow: none !important;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-actions {
+	display: flex;
+	align-items: stretch;
+	flex: 0 0 auto;
+	border-left: 1px solid #e2e8f0;
+	background: #f8fafc;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-btn {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-right: 1px solid #e2e8f0;
+	background: transparent;
+	color: #64748b;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-btn:last-child {
+	border-right: 0;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-btn:hover {
+	background: #ecfdf5;
+	color: #166534;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-btn--accent {
+	background: rgba(8, 160, 69, 0.08);
+	color: #0a6b40;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-btn--accent:hover {
+	background: #08a045;
+	color: #fff;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-btn.hide {
+	display: none !important;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-btn .fa {
+	font-size: 14px;
+	line-height: 1;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-suggest {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: calc(100% + 6px);
+	z-index: 40;
+	max-height: 260px;
+	overflow: auto;
+	background: #fff;
+	border: 1px solid rgba(64, 98, 126, 0.16);
+	border-radius: 12px;
+	box-shadow: 0 16px 36px rgba(26, 40, 52, 0.14);
+	padding: 6px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-suggest__item {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	width: 100%;
+	border: 0;
+	background: transparent;
+	text-align: left;
+	padding: 10px 12px;
+	border-radius: 8px;
+	cursor: pointer;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-suggest__item:hover {
+	background: #ecfdf5;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-suggest__name {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1a2834;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-name-suggest__sub {
+	font-size: 12px;
+	color: #64748b;
+}
+
+/* Lead picker modal (magnifier on Tên Opp) */
+body.mk-opp-lead-picker-open {
+	overflow: hidden;
+}
+.mk-opp-lead-picker {
+	position: fixed;
+	inset: 0;
+	z-index: 12000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+}
+.mk-opp-lead-picker__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.45);
+}
+.mk-opp-lead-picker__panel {
+	position: relative;
+	z-index: 1;
+	width: min(1100px, 100%);
+	max-height: min(82vh, 820px);
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border-radius: 16px;
+	box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
+	overflow: hidden;
+}
+.mk-opp-lead-picker__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 18px;
+	background: #0f172a;
+	color: #fff;
+}
+.mk-opp-lead-picker__title {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+}
+.mk-opp-lead-picker__close {
+	border: 0;
+	background: transparent;
+	color: #fff;
+	font-size: 28px;
+	line-height: 1;
+	cursor: pointer;
+	opacity: 0.85;
+}
+.mk-opp-lead-picker__close:hover { opacity: 1; }
+.mk-opp-lead-picker__toolbar {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #e2e8f0;
+	background: #f8fafc;
+}
+.mk-opp-lead-picker__search {
+	flex: 1 1 auto;
+	min-height: 40px;
+	border-radius: 10px !important;
+}
+.mk-opp-lead-picker__count {
+	font-size: 12px;
+	font-weight: 600;
+	color: #64748b;
+	white-space: nowrap;
+}
+.mk-opp-lead-picker__table-wrap {
+	overflow: auto;
+	flex: 1 1 auto;
+}
+.mk-opp-lead-picker__table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+.mk-opp-lead-picker__table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	text-align: left;
+	padding: 12px 14px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #64748b;
+	background: #f1ebe3;
+	border-bottom: 1px solid #e7dfd4;
+}
+.mk-opp-lead-picker__table tbody td {
+	padding: 12px 14px;
+	border-bottom: 1px solid #eef2f7;
+	vertical-align: middle;
+	color: #1e293b;
+}
+.mk-opp-lead-picker__row {
+	cursor: pointer;
+}
+.mk-opp-lead-picker__row:nth-child(even) {
+	background: #fbfaf7;
+}
+.mk-opp-lead-picker__row:hover,
+.mk-opp-lead-picker__row:focus {
+	outline: none;
+	background: #ecfdf5 !important;
+	box-shadow: inset 3px 0 0 #08a045;
+}
+.mk-opp-lead-picker__name {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 700;
+	color: #0f172a;
+}
+.mk-opp-lead-picker__avatar {
+	color: #94a3b8;
+	font-size: 18px;
+}
+.mk-opp-lead-picker__region {
+	display: inline-block;
+	min-width: 140px;
+	padding: 6px 10px;
+	border: 1px solid #d8dee6;
+	border-radius: 8px;
+	background: #fff;
+	color: #475569;
+	font-size: 12px;
+}
+.mk-opp-lead-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	border: 1px solid transparent;
+}
+.mk-opp-lead-muted {
+	color: #94a3b8;
 }

@@ -1025,7 +1025,7 @@ body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form
 	width: 100%;
 }
 
-body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form-host .mk-ct-block > table > tbody > tr {
+body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form-host .mk-ct-block > table > tbody > tr:not(.mk-ct-hide-field) {
 	display: grid !important;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	column-gap: 40px;
@@ -1047,7 +1047,7 @@ body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form
 	grid-template-columns: 1fr !important;
 }
 
-body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form-host .mk-ct-block td {
+body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form-host .mk-ct-block td:not(.mk-ct-hide-field) {
 	display: block !important;
 	width: 100% !important;
 	max-width: 100% !important;
@@ -1068,9 +1068,9 @@ body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form
 }
 
 body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form-host .mk-ct-block td.fieldLabel {
-	font-size: 13px !important;
+	font-size: 14px !important;
 	font-weight: 600 !important;
-	color: #475569 !important;
+	color: #334155 !important;
 	line-height: 1.4;
 	padding: 0 0 10px !important;
 	text-align: left !important;
@@ -1173,7 +1173,7 @@ body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-hos
 }
 
 /* Each vtiger row → 2-column grid; label stacked above input */
-body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .mk-ct-block > table > tbody > tr {
+body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .mk-ct-block > table > tbody > tr:not(.mk-ct-hide-field) {
 	display: grid !important;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	column-gap: 40px;
@@ -1199,7 +1199,7 @@ body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-hos
 	grid-template-columns: 1fr !important;
 }
 
-body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .mk-ct-block td {
+body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .mk-ct-block td:not(.mk-ct-hide-field) {
 	display: block !important;
 	width: 100% !important;
 	max-width: 100% !important;
@@ -1220,9 +1220,9 @@ body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-hos
 }
 
 body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .mk-ct-block td.fieldLabel {
-	font-size: 13px !important;
+	font-size: 14px !important;
 	font-weight: 600 !important;
-	color: #475569 !important;
+	color: #334155 !important;
 	line-height: 1.4;
 	padding: 0 0 10px !important;
 	text-align: left !important;
@@ -1762,5 +1762,613 @@ body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-hos
 body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .addProduct,
 body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .addService {
 	border-radius: 10px !important;
+	font-weight: 600;
+}
+
+/* Hide stock fields — MUST beat `.mk-ct-block td { display:block !important }` */
+body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .mk-ct-block td.mk-ct-hide-field,
+body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .mk-ct-block tr.mk-ct-hide-field,
+body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .mk-ct-hide-block,
+body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .mk-ct-hide-legacy,
+body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form-host .mk-ct-block td.mk-ct-hide-field,
+body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form-host .mk-ct-block tr.mk-ct-hide-field,
+body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form-host .mk-ct-hide-block,
+body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form-host .mk-ct-hide-legacy,
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost .mk-ct-hide-field,
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost .mk-ct-hide-block,
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost .mk-ct-hide-legacy,
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-hide-field,
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-hide-block,
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-hide-legacy {
+	display: none !important;
+	height: 0 !important;
+	max-height: 0 !important;
+	overflow: hidden !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: 0 !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+
+/* CSS :has fallback — hide noise even if JS class miss / race */
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="firstname"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="firstname"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="lastname"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="lastname"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="salutationtype"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="salutationtype"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="mobile"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="mobile"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="homephone"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="homephone"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="otherphone"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="otherphone"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="fax"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="fax"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="birthday"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="birthday"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="reportsto"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="reportsto"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="reportsto_display"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="reportsto_display"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="title"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="title"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="department"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="department"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="leadsource"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="leadsource"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="assistant"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="assistant"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="assistantphone"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="assistantphone"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="secondaryemail"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="secondaryemail"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="emailoptout"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="emailoptout"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="donotcall"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="donotcall"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="reference"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="reference"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="notify_owner"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="notify_owner"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="support_start_date"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="support_start_date"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="support_end_date"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="support_end_date"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="mailingcity"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="mailingcity"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="mailingstate"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="mailingstate"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="mailingzip"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="mailingzip"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="mailingcountry"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="mailingcountry"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="mailingpobox"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="mailingpobox"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="othercity"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="othercity"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="otherstate"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="otherstate"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="otherzip"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="otherzip"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="othercountry"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="othercountry"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="otherpobox"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="otherpobox"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="mailingstreet"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="mailingstreet"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldValue:has([name="otherstreet"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost td.fieldLabel:has(+ td.fieldValue [name="otherstreet"]),
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost .fieldBlockContainer[data-block="LBL_DESCRIPTION_INFORMATION"],
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost .fieldBlockContainer[data-block="LBL_CUSTOM_INFORMATION"],
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost .fieldBlockContainer[data-block="LBL_IMAGE_INFORMATION"],
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost .fieldBlockContainer[data-block="LBL_PORTAL_INFORMATION"],
+body[data-module="Contacts"][data-view="Edit"] #mkCtFormHost .fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"] {
+	display: none !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: 0 !important;
+}
+
+/* Also hide full rows when every field cell is hidden via :has */
+body[data-module="Contacts"][data-view="Edit"][data-app="SALES"] .mk-ct-form-host .mk-ct-block > table > tbody > tr.mk-ct-hide-field,
+body[data-module="Contacts"][data-view="Edit"][data-app="MARKETING"] .mk-ct-form-host .mk-ct-block > table > tbody > tr.mk-ct-hide-field {
+	display: none !important;
+	grid-template-columns: none !important;
+	margin: 0 !important;
+	height: 0 !important;
+}
+
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-extras {
+	margin: 28px 0 0;
+	padding: 0;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-extras__divider {
+	height: 1px;
+	margin: 0 0 22px;
+	background: linear-gradient(90deg, rgba(8, 160, 69, 0.4), rgba(64, 98, 126, 0.14), transparent);
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-extras__head {
+	margin-bottom: 16px;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-extras__title {
+	margin: 0 0 6px;
+	font-family: var(--mk-ct-display);
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: var(--mk-ct-navy);
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-extras__hint {
+	margin: 0;
+	font-size: 13px;
+	color: var(--mk-ct-muted);
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-tag-group {
+	margin-bottom: 14px;
+	padding: 14px 16px;
+	border-radius: 14px;
+	background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+	border: 1px solid rgba(64, 98, 126, 0.1);
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-tag-group__title {
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: #64748b;
+	margin-bottom: 10px;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-tag-group__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-tag-chip {
+	appearance: none;
+	border: 1px solid #d8dee6;
+	background: #f8fafc;
+	color: #334155;
+	border-radius: 999px;
+	padding: 7px 12px;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+	opacity: 0.78;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-tag-chip:hover {
+	opacity: 1;
+	transform: translateY(-1px);
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-tag-chip.is-on {
+	opacity: 1;
+	border-color: #08a045;
+	background: #dcfce7;
+	color: #166534;
+	font-weight: 700;
+	box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+}
+
+/* Tên khách hàng — Opp search bar */
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-ref {
+	position: relative;
+	width: 100%;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-bar {
+	display: flex;
+	align-items: stretch;
+	width: 100%;
+	min-height: 46px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fafafa;
+	overflow: hidden;
+	box-sizing: border-box;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-bar:focus-within {
+	border-color: var(--mk-ct-navy);
+	background: #fff;
+	box-shadow: 0 0 0 4px rgba(64, 98, 126, 0.1);
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-display {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 46px !important;
+	min-height: 46px !important;
+	margin: 0 !important;
+	padding: 0 16px !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	font-size: 15px !important;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-actions {
+	display: flex;
+	align-items: stretch;
+	flex: 0 0 auto;
+	border-left: 1px solid #e2e8f0;
+	background: #f8fafc;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-btn {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-right: 1px solid #e2e8f0;
+	background: transparent;
+	color: #64748b;
+	cursor: pointer;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-btn:last-child {
+	border-right: 0;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-btn:hover {
+	background: #ecfdf5;
+	color: #166534;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-btn.hide {
+	display: none !important;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-suggest {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: calc(100% + 6px);
+	z-index: 40;
+	max-height: 260px;
+	overflow: auto;
+	background: #fff;
+	border: 1px solid rgba(64, 98, 126, 0.16);
+	border-radius: 12px;
+	box-shadow: 0 16px 36px rgba(26, 40, 52, 0.14);
+	padding: 6px;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-suggest__item {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	width: 100%;
+	border: 0;
+	background: transparent;
+	text-align: left;
+	padding: 10px 12px;
+	border-radius: 8px;
+	cursor: pointer;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-suggest__item:hover {
+	background: #ecfdf5;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-suggest__name {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1a2834;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-cust-suggest__sub {
+	font-size: 12px;
+	color: #64748b;
+}
+
+body.mk-ct-opp-picker-open {
+	overflow: hidden;
+}
+.mk-ct-opp-picker {
+	position: fixed;
+	inset: 0;
+	z-index: 12000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+}
+.mk-ct-opp-picker[hidden] {
+	display: none !important;
+}
+.mk-ct-opp-picker__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.45);
+}
+.mk-ct-opp-picker__panel {
+	position: relative;
+	z-index: 1;
+	width: min(960px, 100%);
+	max-height: min(80vh, 720px);
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border-radius: 16px;
+	box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+	overflow: hidden;
+}
+.mk-ct-opp-picker__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 20px;
+	border-bottom: 1px solid #e2e8f0;
+}
+.mk-ct-opp-picker__head h3 {
+	margin: 0;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: #1a2834;
+}
+.mk-ct-opp-picker__close {
+	appearance: none;
+	border: 0;
+	background: #f1f5f9;
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	color: #475569;
+}
+.mk-ct-opp-picker__search {
+	padding: 14px 20px;
+	border-bottom: 1px solid #eef2f7;
+}
+.mk-ct-opp-picker__search .inputElement {
+	width: 100%;
+	min-height: 42px;
+	border-radius: 10px;
+	border: 1px solid #e2e8f0;
+	padding: 8px 12px;
+}
+.mk-ct-opp-picker__table-wrap {
+	overflow: auto;
+	flex: 1 1 auto;
+}
+.mk-ct-opp-picker__table {
+	width: 100%;
+	border-collapse: collapse;
+}
+.mk-ct-opp-picker__table th,
+.mk-ct-opp-picker__table td {
+	padding: 12px 16px;
+	text-align: left;
+	border-bottom: 1px solid #f1f5f9;
+	font-size: 13.5px;
+}
+.mk-ct-opp-picker__table th {
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #64748b;
+	background: #f8fafc;
+	position: sticky;
+	top: 0;
+}
+.mk-ct-opp-picker__row {
+	cursor: pointer;
+}
+.mk-ct-opp-picker__row:hover {
+	background: #ecfdf5;
+}
+.mk-ct-opp-picker__empty {
+	text-align: center;
+	color: #94a3b8;
+	padding: 28px !important;
+}
+
+/* Slim create layout — 1 field per card, 2-column balanced grid */
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block--slim > table > tbody {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	column-gap: 40px;
+	row-gap: 22px;
+	width: 100%;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block--slim > table > tbody > tr.mk-ct-field-row,
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block--slim > table > tbody > tr:not(.mk-ct-hide-field) {
+	display: flex !important;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 10px;
+	margin: 0 !important;
+	padding: 0 !important;
+	grid-template-columns: none !important;
+	width: auto !important;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block--slim > table > tbody > tr > td.fieldLabel,
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block--slim > table > tbody > tr > td.fieldValue {
+	grid-column: auto !important;
+	grid-row: auto !important;
+	width: 100% !important;
+	padding: 0 !important;
+}
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-page-head__crumb,
+body[data-module="Contacts"][data-view="Edit"] .mk-ct-page-head__sub {
+	display: none !important;
+}
+@media (max-width: 720px) {
+	body[data-module="Contacts"][data-view="Edit"] .mk-ct-form-host .mk-ct-block--slim > table > tbody {
+		grid-template-columns: 1fr !important;
+	}
+}
+
+/* Opp picker — premium modal */
+.mk-ct-opp-picker__panel {
+	width: min(1040px, 100%);
+	max-height: min(84vh, 820px);
+	border-radius: 20px;
+	border: 1px solid rgba(64, 98, 126, 0.12);
+	box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
+	background:
+		radial-gradient(700px 280px at 0% 0%, rgba(8, 160, 69, 0.1), transparent 55%),
+		#fff;
+}
+.mk-ct-opp-picker__backdrop {
+	background: rgba(15, 23, 42, 0.52);
+	backdrop-filter: blur(2px);
+}
+.mk-ct-opp-picker__head {
+	padding: 22px 24px 16px;
+	border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+	align-items: flex-start;
+	gap: 16px;
+}
+.mk-ct-opp-picker__eyebrow {
+	margin: 0 0 4px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #08a045;
+}
+.mk-ct-opp-picker__head h3 {
+	margin: 0;
+	font-size: 1.35rem;
+	font-weight: 700;
+	color: #0f172a;
+	letter-spacing: -0.02em;
+}
+.mk-ct-opp-picker__sub {
+	margin: 6px 0 0;
+	font-size: 13px;
+	color: #64748b;
+}
+.mk-ct-opp-picker__close {
+	width: 40px;
+	height: 40px;
+	border-radius: 12px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	color: #475569;
+	flex-shrink: 0;
+}
+.mk-ct-opp-picker__close:hover {
+	background: #ecfdf5;
+	border-color: #86efac;
+	color: #166534;
+}
+.mk-ct-opp-picker__search {
+	position: relative;
+	padding: 16px 24px 8px;
+	border-bottom: 0;
+}
+.mk-ct-opp-picker__search-ic {
+	position: absolute;
+	left: 40px;
+	top: 50%;
+	transform: translateY(-30%);
+	color: #94a3b8;
+	pointer-events: none;
+}
+.mk-ct-opp-picker__search .inputElement {
+	width: 100%;
+	min-height: 48px;
+	border-radius: 14px;
+	border: 1px solid #e2e8f0;
+	padding: 12px 16px 12px 44px;
+	background: #f8fafc;
+	font-size: 15px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.mk-ct-opp-picker__search .inputElement:focus {
+	outline: none;
+	border-color: #08a045;
+	background: #fff;
+	box-shadow: 0 0 0 4px rgba(8, 160, 69, 0.14);
+}
+.mk-ct-opp-picker__meta {
+	padding: 0 24px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #64748b;
+}
+.mk-ct-opp-picker__table-wrap {
+	margin: 0 12px 12px;
+	border: 1px solid #eef2f7;
+	border-radius: 16px;
+	overflow: auto;
+	background: #fff;
+}
+.mk-ct-opp-picker__table th {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #64748b;
+	background: #f8fafc;
+	padding: 14px 16px;
+	border-bottom: 1px solid #eef2f7;
+}
+.mk-ct-opp-picker__table td {
+	padding: 14px 16px;
+	font-size: 14px;
+	color: #334155;
+	border-bottom: 1px solid #f1f5f9;
+	vertical-align: middle;
+}
+.mk-ct-opp-picker__row {
+	cursor: pointer;
+	transition: background 0.12s ease;
+}
+.mk-ct-opp-picker__row:hover {
+	background: #ecfdf5 !important;
+}
+.mk-ct-opp-picker__row:hover td {
+	color: #0f172a;
+}
+.mk-ct-opp-picker__name {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+}
+.mk-ct-opp-picker__avatar {
+	flex: 0 0 auto;
+	width: 36px;
+	height: 36px;
+	border-radius: 11px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 700;
+	color: #166534;
+	background: linear-gradient(145deg, #dcfce7, #bbf7d0);
+}
+.mk-ct-opp-picker__name-text {
+	font-weight: 650;
+	color: #0f172a;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.mk-ct-opp-picker__addr {
+	display: inline-block;
+	max-width: 280px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #64748b;
+}
+.mk-ct-opp-picker__empty {
+	padding: 0 !important;
+	border: 0 !important;
+}
+.mk-ct-opp-picker__empty-card {
+	margin: 28px;
+	padding: 28px;
+	text-align: center;
+	border-radius: 14px;
+	background: #f8fafc;
+	color: #94a3b8;
 	font-weight: 600;
 }

@@ -97,7 +97,8 @@
 
   /** Loại khách — khớp Trạng thái khách trên Lead (Đã/Chưa có quán, Gia đình). */
   var CUSTOMER_RANK_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh", "moi_quen", "da_co_quan_he"];
-  var CREDENTIAL_TAGS = ["da_cap_bang", "da_cap_tai_khoan"];
+  // Credential status uses list dropdowns only — not tag chips.
+  var CREDENTIAL_TAGS = [];
   var CLASS_TAGS = ["chua_mqbh", "da_tg_free", "da_tg_fb1", "thu_3", "pcth", "van_hanh", "mkt", "lop_khac"];
   var MATERIAL_TAGS = [
     "tiem_nang", "mua_lan_dau", "mua_lai", "mua_on_dinh", "dang_cham_soc",
@@ -181,7 +182,7 @@
       id: "customerRank",
       labelVi: "Loại khách",
       labelEn: "Customer type",
-      tags: CUSTOMER_RANK_TAGS.concat(CREDENTIAL_TAGS),
+      tags: CUSTOMER_RANK_TAGS,
     },
     { id: "class", labelVi: "Tag lớp học", labelEn: "Class", tags: CLASS_TAGS },
     { id: "material", labelVi: "Tag nguyên liệu", labelEn: "Material", tags: MATERIAL_TAGS },
@@ -195,7 +196,11 @@
         label: pickLabel(g.labelVi, g.labelEn),
         tags: (g.tags || []).map(function (k) {
           var meta = tagMeta(k);
-          return { key: meta.key || normalizeTag(k) || k, label: meta.label || k };
+          return {
+            key: meta.key || normalizeTag(k) || k,
+            label: meta.label || k,
+            cls: meta.cls || "",
+          };
         }),
       };
     });

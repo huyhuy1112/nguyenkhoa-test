@@ -186,8 +186,6 @@
         "co_quan",
         "chuan_bi_mo",
         "gia_dinh",
-        "da_cap_bang",
-        "da_cap_tai_khoan",
       ],
     },
     {

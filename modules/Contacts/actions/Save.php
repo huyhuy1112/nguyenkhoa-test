@@ -22,4 +22,43 @@ class Contacts_Save_Action extends Vtiger_Save_Action {
 		Contacts_PhoneField_Helper::validateRequest($request);
 		parent::process($request);
 	}
+
+	public function saveRecord($request) {
+		$recordModel = parent::saveRecord($request);
+		$this->applyModernListExtras($request, $recordModel);
+		return $recordModel;
+	}
+
+	/**
+	 * Persist list-parity extras from modern Create/Edit (tags).
+	 */
+	protected function applyModernListExtras(Vtiger_Request $request, $recordModel) {
+		if (!$recordModel) {
+			return;
+		}
+		$recordId = (int) $recordModel->getId();
+		if ($recordId <= 0) {
+			return;
+		}
+		$tagsRaw = $request->get('mk_tags');
+		if ($tagsRaw === null || $tagsRaw === '') {
+			return;
+		}
+		try {
+			require_once 'modules/Contacts/models/ModernService.php';
+			if (is_string($tagsRaw)) {
+				$decoded = json_decode($tagsRaw, true);
+				$tagsRaw = is_array($decoded) ? $decoded : preg_split('/\s*,\s*/', $tagsRaw);
+			}
+			if (!is_array($tagsRaw)) {
+				$tagsRaw = array();
+			}
+			Contacts_ModernService::saveTags($recordId, $tagsRaw);
+		} catch (Exception $e) {
+			global $log;
+			if ($log) {
+				$log->error('Contacts mk_tags save: ' . $e->getMessage());
+			}
+		}
+	}
 }
