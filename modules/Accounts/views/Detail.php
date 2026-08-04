@@ -58,8 +58,10 @@ class Accounts_Detail_View extends Vtiger_Detail_View {
 		));
 		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, $app, $infoFields, $title, $subtitle);
 		$rid = (int) $recordModel->getId();
-		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=Accounts&action=ExportFranchisePDF&record=' . $rid . '&preview=1');
-		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=Accounts&action=ExportFranchisePDF&record=' . $rid);
+		// Preview opens in CRM; download is filled .docx
+		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=Accounts&action=ExportFranchiseWord&record=' . $rid . '&preview=1');
+		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=Accounts&action=ExportFranchiseWord&record=' . $rid);
+		$viewer->assign('INLINE_WORD_DOWNLOAD_URL', 'index.php?module=Accounts&action=ExportFranchiseWord&record=' . $rid);
 
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}

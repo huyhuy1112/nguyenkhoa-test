@@ -231,10 +231,16 @@
 	<div class="mk-so-inline-detail__actions">
 		<div class="mk-so-inline-detail__actions-left">
 			{if $MODULE eq 'Accounts' && !empty($INLINE_PRINT_URL)}
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__print-btn" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|default:$INLINE_PRINT_URL|escape}" title="In hợp đồng nhượng quyền TUI BAO">
-				<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
-				<span class="mk-so-inline-detail__print-label">In HĐ</span>
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__print-btn mk-so-inline-detail__preview-btn" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|default:$INLINE_WORD_DOWNLOAD_URL|escape}"{if !empty($INLINE_WORD_DOWNLOAD_URL)} data-word-download-url="{$INLINE_WORD_DOWNLOAD_URL|escape}"{/if} title="{vtranslate('LBL_PREVIEW_FRANCHISE_CONTRACT_HINT', 'Accounts')}">
+				<i class="fa fa-eye" aria-hidden="true"></i>
+				<span class="mk-so-inline-detail__print-label">{vtranslate('LBL_PREVIEW_FRANCHISE_CONTRACT', 'Accounts')}</span>
 			</button>
+			{if !empty($INLINE_WORD_DOWNLOAD_URL)}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__word-btn" data-word-download-url="{$INLINE_WORD_DOWNLOAD_URL|escape}" title="{vtranslate('LBL_PRINT_FRANCHISE_CONTRACT_HINT', 'Accounts')}">
+				<i class="fa fa-file-word-o" aria-hidden="true"></i>
+				<span>{vtranslate('LBL_PRINT_FRANCHISE_CONTRACT', 'Accounts')}</span>
+			</button>
+			{/if}
 			{/if}
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__save-btn" title="Lưu">
 				<i class="fa fa-save" aria-hidden="true"></i>

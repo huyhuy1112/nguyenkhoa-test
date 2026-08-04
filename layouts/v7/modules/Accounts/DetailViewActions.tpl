@@ -19,16 +19,25 @@
 				</button>
 			{/if}
 			{if !empty($RECORD)}
+			<button type="button" class="btn btn-default mk-acc-detail-btn mk-acc-detail-btn--ghost" id="Accounts_detailView_previewFranchiseContract"
+				data-record-id="{$RECORD->getId()}"
+				data-preview-url="index.php?module=Accounts&amp;action=ExportFranchiseWord&amp;record={$RECORD->getId()}&amp;preview=1"
+				data-word-url="index.php?module=Accounts&amp;action=ExportFranchiseWord&amp;record={$RECORD->getId()}"
+				title="{vtranslate('LBL_PREVIEW_FRANCHISE_CONTRACT_HINT', $MODULE_NAME)}">
+				<span class="mk-acc-detail-btn__ic" aria-hidden="true"><i class="fa fa-eye"></i></span>
+				<span class="mk-acc-detail-btn__txt">{vtranslate('LBL_PREVIEW_FRANCHISE_CONTRACT', $MODULE_NAME)}</span>
+			</button>
 			<button type="button" class="btn btn-default mk-acc-detail-btn mk-acc-detail-btn--ghost" id="Accounts_detailView_printFranchiseContract"
-				onclick="window.open('index.php?module=Accounts&amp;action=ExportFranchisePDF&amp;record={$RECORD->getId()}&amp;preview=1', '_blank')"
-				title="{vtranslate('LBL_PRINT_FRANCHISE_CONTRACT', $MODULE_NAME)}">
-				<span class="mk-acc-detail-btn__ic" aria-hidden="true"><i class="fa fa-file-pdf-o"></i></span>
+				data-record-id="{$RECORD->getId()}"
+				data-word-url="index.php?module=Accounts&amp;action=ExportFranchiseWord&amp;record={$RECORD->getId()}"
+				title="{vtranslate('LBL_PRINT_FRANCHISE_CONTRACT_HINT', $MODULE_NAME)}">
+				<span class="mk-acc-detail-btn__ic" aria-hidden="true"><i class="fa fa-file-word-o"></i></span>
 				<span class="mk-acc-detail-btn__txt">{vtranslate('LBL_PRINT_FRANCHISE_CONTRACT', $MODULE_NAME)}</span>
 			</button>
 			{/if}
 			{foreach item=DETAIL_VIEW_BASIC_LINK from=$DETAILVIEW_LINKS['DETAILVIEWBASIC']}
 				{assign var=MK_BASIC_LBL value=$DETAIL_VIEW_BASIC_LINK->getLabel()}
-				{if $MK_BASIC_LBL eq 'LBL_PRINT_FRANCHISE_CONTRACT'}{continue}{/if}
+				{if $MK_BASIC_LBL eq 'LBL_PRINT_FRANCHISE_CONTRACT' || $MK_BASIC_LBL eq 'LBL_EXPORT_FRANCHISE_CONTRACT_WORD'}{continue}{/if}
 				{assign var=MK_BASIC_ICON value='EDIT'}
 				{if $MK_BASIC_LBL eq 'LBL_SEND_EMAIL'}{assign var=MK_BASIC_ICON value='EMAIL'}{/if}
 				<button type="button" class="btn btn-default mk-acc-detail-btn {if $MK_BASIC_LBL eq 'LBL_SEND_EMAIL'}mk-acc-detail-btn--primary{else}mk-acc-detail-btn--ghost{/if}" id="{$MODULE_NAME}_detailView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_BASIC_LBL)}"

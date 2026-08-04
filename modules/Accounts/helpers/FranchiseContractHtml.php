@@ -7,127 +7,222 @@
 class Accounts_FranchiseContractHtml_Helper {
 
 	public static function template() {
+		// Lề mm = same as Word gốc / PDF (top-right-bottom 8.01, left 20, …)
 		return <<<'HTML'
 <style>
+	/* Page margins = Word gốc: top/right/bottom 454 twip (~8mm), left 1134 (~20mm) */
+	@page {
+		size: A4;
+		margin-top: 8.01mm;
+		margin-right: 8.01mm;
+		margin-bottom: 8.01mm;
+		margin-left: 20mm;
+	}
+	html, body { margin: 0; padding: 0; }
 	body, p, td, div, li {
 		font-family: freeserif, 'Times New Roman', Times, serif;
-		font-size: 13pt;
-		line-height: 1.55;
+		font-size: 12pt;
+		line-height: 1.15;
 		color: #000;
 		text-align: justify;
 	}
-	p { margin: 0 0 8pt; }
+	p { margin: 0; padding: 0; }
+
 	.h-nation {
 		text-align: center;
 		font-weight: bold;
-		font-size: 13pt;
-		line-height: 1.35;
-		margin: 0 0 2pt;
+		font-size: 12pt;
+		line-height: 1.15;
+		margin: 0;
+		padding: 0;
 	}
 	.h-motto {
 		text-align: center;
 		font-weight: bold;
-		font-size: 13pt;
+		font-size: 12pt;
+		line-height: 1.15;
+		margin: 0;
+		padding: 0;
 		text-decoration: underline;
-		line-height: 1.35;
-		margin: 0 0 14pt;
+	}
+	.gap-head {
+		margin: 0; padding: 0;
+		height: 8pt; line-height: 8pt; font-size: 1pt;
 	}
 	.h-date {
 		text-align: right;
-		font-size: 13pt;
+		font-size: 12pt;
 		font-style: italic;
-		margin: 0 0 18pt;
+		margin: 0; padding: 0;
+		line-height: 1.15;
+	}
+	.gap-title {
+		margin: 0; padding: 0;
+		height: 5pt; line-height: 5pt; font-size: 1pt;
 	}
 	.h-title {
 		font-family: freeserif, 'Times New Roman', Times, serif;
 		font-size: 16pt;
 		font-weight: bold;
 		text-align: center;
-		margin: 6pt 0 4pt;
+		margin: 0; padding: 0;
 		text-transform: uppercase;
+		line-height: 1.15;
 	}
 	.h-sub {
 		text-align: center;
-		margin: 0 0 16pt;
-		font-size: 13pt;
+		margin: 0 0 4pt; padding: 0;
+		font-size: 12pt;
+		font-weight: normal;
 	}
+	.gap-legal {
+		margin: 0; padding: 0;
+		height: 4pt; line-height: 4pt; font-size: 1pt;
+	}
+	/* Legal: italic + hanging (Word left 883 / hanging 162) */
 	.legal {
-		text-align: left;
-		margin: 0 0 4pt;
-		font-size: 13pt;
-		line-height: 1.5;
+		font-style: italic;
+		font-size: 12pt;
+		text-align: justify;
+		margin: 0 0 2pt;
+		padding-left: 15.6mm;
+		text-indent: -2.9mm;
+		line-height: 1.15;
 	}
 	.intro {
-		text-align: left;
-		margin: 12pt 0 10pt;
+		font-style: normal;
+		text-align: justify;
+		margin: 8pt 0 12pt;
+		padding: 0;
 	}
+	/* Party block: left 720 twip via padding (TCPDF ignores text-indent often) */
 	.party-h {
 		font-weight: bold;
-		margin: 10pt 0 4pt;
+		margin: 0;
+		padding-left: 12.7mm;
+		text-indent: 0;
 		text-align: left;
-	}
-	.party-line {
-		margin: 0 0 3pt;
-		text-align: left;
-		line-height: 1.5;
+		line-height: 1.0;
 	}
 	.party-name {
 		font-weight: bold;
-		margin: 0 0 3pt;
+		margin: 0;
+		padding-left: 12.7mm;
+		text-indent: 0;
 		text-align: left;
 		text-transform: uppercase;
+		line-height: 1.0;
 	}
-	.party-table { width: 100%; border-collapse: collapse; margin: 0 0 3pt; }
-	.party-table td {
+	.party-line {
+		font-weight: normal;
+		margin: 0;
+		padding-left: 12.7mm;
+		text-indent: 0;
+		text-align: left;
+		line-height: 1.0;
+	}
+	.party-split {
+		margin: 0 0 0 0;
+		padding: 0;
+		width: 100%;
+		border-collapse: collapse;
+	}
+	/* outer left indent for dual-field rows */
+	.party-split-wrap {
+		margin: 0;
+		padding-left: 12.7mm;
+	}
+	.party-split td {
+		font-size: 12pt;
+		line-height: 1.0;
 		vertical-align: top;
 		padding: 0;
 		text-align: left;
-		font-size: 13pt;
-		line-height: 1.5;
+		border: 0;
 	}
-	.party-table .right { text-align: left; }
+	.party-split .ps-left { width: 58%; }
+	.party-split .ps-right { width: 42%; }
+	.gap-party {
+		margin: 0; padding: 0;
+		height: 10pt; line-height: 10pt; font-size: 1pt;
+	}
 	.muted {
-		font-style: italic;
-		margin: 10pt 0 12pt;
-		text-align: left;
+		margin: 4pt 0 10pt;
+		padding-left: 12.9mm;
+		text-align: justify;
+		font-style: normal;
 	}
 	.recital {
-		font-style: italic;
-		margin: 0 0 10pt;
+		font-style: normal;
+		margin: 0 0 8pt;
+		padding-left: 12.9mm;
 		text-align: justify;
 	}
-	.gap { margin: 0; padding: 0; height: 10pt; line-height: 10pt; font-size: 8pt; }
+	.recital-ital {
+		font-style: italic;
+		margin: 0 0 8pt;
+		padding-left: 12.9mm;
+		text-align: justify;
+	}
+	.gap { margin: 0; padding: 0; height: 6pt; line-height: 6pt; font-size: 1pt; }
 	.art {
 		font-weight: bold;
-		margin-top: 16pt;
-		margin-bottom: 8pt;
-		font-size: 13pt;
+		margin-top: 10pt;
+		margin-bottom: 0;
+		font-size: 12pt;
+		text-align: left;
+		padding: 0;
 	}
 	.sub-art {
 		font-weight: bold;
-		margin-top: 12pt;
-		margin-bottom: 6pt;
-		font-size: 13pt;
+		margin-top: 6pt;
+		margin-bottom: 0;
+		font-size: 12pt;
+		text-align: left;
 	}
-	.sign-table { width: 100%; margin-top: 18pt; }
-	.sign-table td { width: 50%; text-align: center; vertical-align: top; font-size: 13pt; padding: 0 10px; }
-	.sign-head { font-weight: bold; line-height: 1.4; }
+	.sign-table { width: 100%; margin-top: 12pt; }
+	.sign-table td { width: 50%; text-align: center; vertical-align: top; font-size: 12pt; padding: 0 10px; }
+	.sign-head { font-weight: bold; line-height: 1.2; }
 	.sign-note { font-style: italic; font-weight: normal; }
-	.sign-gap { height: 120px; line-height: 120px; font-size: 1pt; }
+	.sign-gap { height: 100px; line-height: 100px; font-size: 1pt; }
 	.sign-name { font-weight: bold; text-transform: uppercase; }
-	.fee-line { margin: 2pt 0 2pt 14pt; text-align: left; }
-	.dot-line { margin: 2pt 0; text-align: left; }
-	.clause { margin: 6pt 0; }
+	.fee-line {
+		margin: 0;
+		padding-left: 12.7mm;
+		text-align: justify;
+		line-height: 1.5;
+	}
+	.dot-line {
+		margin: 0;
+		padding-left: 12.7mm;
+		text-align: justify;
+		line-height: 1.5;
+	}
+	.clause-l1 {
+		margin: 0;
+		padding-left: 12.7mm;
+		text-indent: -12.7mm;
+		text-align: justify;
+	}
+	.clause-l2 {
+		margin: 0;
+		padding-left: 25.4mm;
+		text-align: justify;
+	}
+	.clause { margin: 0; }
 	.bu { font-size: 9pt; }
-	.section-cap { font-weight: bold; margin: 8pt 0 4pt; }
+	.section-cap { font-weight: bold; margin: 6pt 0 0; text-align: left; }
 </style>
 
 <p class="h-nation">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
 <p class="h-motto">Độc lập – Tự do – Hạnh phúc</p>
+<p class="gap-head">&nbsp;</p>
 <p class="h-date">TP. Hồ Chí Minh, ngày {{sign_day}} tháng {{sign_month}} năm {{sign_year}}</p>
+<p class="gap-title">&nbsp;</p>
 
 <p class="h-title">HỢP ĐỒNG NHƯỢNG QUYỀN</p>
 <p class="h-sub">(Số: {{contract_no}}/HĐHTKD)</p>
+<p class="gap-legal">&nbsp;</p>
 
 <p class="legal">- Căn cứ Luật sở hữu trí tuệ của nước Cộng hòa xã hội chủ nghĩa Việt Nam số 50/2005/QH11 ban hành ngày 12/12/2005;</p>
 <p class="legal">- Căn cứ Luật thương mại của Quốc hội nước Cộng hòa xã hội chủ nghĩa Việt Nam số 36/2005/QH11 ngày 14 tháng 06 năm 2005;</p>
@@ -139,56 +234,62 @@ class Accounts_FranchiseContractHtml_Helper {
 <p class="party-name">CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ SẢN XUẤT NGUYÊN KHOA</p>
 <p class="party-line">Địa chỉ: 9A Nguyễn Sĩ Cố, Phường Phú Định, Thành Phố Hồ Chí Minh</p>
 <p class="party-line">Mã số thuế: 0318269556</p>
-<table class="party-table" cellpadding="0" cellspacing="0" border="0">
+<div class="party-split-wrap">
+<table class="party-split" cellpadding="0" cellspacing="0" border="0" width="100%">
 	<tr>
-		<td width="68%">Đại diện theo pháp luật: <strong>Ông Nguyễn Đình Quốc Dũng</strong></td>
-		<td width="32%" class="right">Chức vụ: Giám Đốc</td>
+		<td class="ps-left">Đại diện theo pháp luật: Ông Nguyễn Đình Quốc Dũng</td>
+		<td class="ps-right">Chức vụ: Giám Đốc</td>
 	</tr>
 </table>
-<p class="gap">&nbsp;</p>
+</div>
+<p class="gap-party">&nbsp;</p>
 
 <p class="party-h">Bên B (BÊN NHẬN NHƯỢNG QUYỀN):</p>
 <p class="party-line"><strong>{{party_b_name}}</strong></p>
-<table class="party-table" cellpadding="0" cellspacing="0" border="0">
+<div class="party-split-wrap">
+<table class="party-split" cellpadding="0" cellspacing="0" border="0" width="100%">
 	<tr>
-		<td width="55%">CCCD số: {{party_b_cccd}}</td>
-		<td width="45%">Ngày cấp: {{party_b_cccd_date}}</td>
+		<td class="ps-left">CCCD số: {{party_b_cccd}}</td>
+		<td class="ps-right">Ngày cấp: {{party_b_cccd_date}}</td>
 	</tr>
 </table>
+</div>
 <p class="party-line">Nơi cấp: {{party_b_cccd_place}}</p>
 <p class="party-line">Nơi thường trú: {{party_b_permanent_addr}}</p>
 <p class="party-line">Địa chỉ liên hệ: {{party_b_contact_addr}}</p>
-<table class="party-table" cellpadding="0" cellspacing="0" border="0">
+<div class="party-split-wrap">
+<table class="party-split" cellpadding="0" cellspacing="0" border="0" width="100%">
 	<tr>
-		<td width="50%">Điện thoại: {{party_b_phone}}</td>
-		<td width="50%">Email: {{party_b_email}}</td>
+		<td class="ps-left">Điện thoại: {{party_b_phone}}</td>
+		<td class="ps-right">Email: {{party_b_email}}</td>
 	</tr>
 </table>
+</div>
 
 <p class="muted">(“Bên A, Bên B gọi chung là “<strong>Các Bên</strong>”, gọi riêng là “<strong>Bên</strong>”)</p>
 
-<p class="recital">Bên A là đơn vị được chủ sở hữu hợp pháp của nhãn hiệu "TUI BAO" theo Giấy chứng nhận đăng ký nhãn hiệu số 595392 do Cục Sở hữu trí tuệ cấp, ủy quyền khai thác, sử dụng và phát triển hệ thống nhượng quyền thương mại theo Hợp đồng ủy quyền khai thác và sử dụng nhãn hiệu được ký kết hợp pháp giữa chủ sở hữu nhãn hiệu và Bên A. Hồ sơ pháp lý về nhãn hiệu và các tài liệu liên quan là một phần không tách rời của Hợp đồng này.</p>
-<p>Bên B có khả năng về tài chính và đã tham khảo sự hoạt động cũng như sự phát triển của hệ thống chuỗi TUI BAO và mong muốn trở thành thành viên của chuỗi trà sữa TUI BAO để sử dụng nhãn hiệu TUI BAO cho hoạt động kinh doanh của mình.</p>
-<p>Sau khi trao đổi, thống nhất hai bên cùng ký kết Hợp đồng sử dụng nhãn hiệu với các điều khoản sau:</p>
+<p class="recital-ital">Bên A là đơn vị được chủ sở hữu hợp pháp của nhãn hiệu "TUI BAO" theo Giấy chứng nhận đăng ký nhãn hiệu số 595392 do Cục Sở hữu trí tuệ cấp, ủy quyền khai thác, sử dụng và phát triển hệ thống nhượng quyền thương mại theo Hợp đồng ủy quyền khai thác và sử dụng nhãn hiệu được ký kết hợp pháp giữa chủ sở hữu nhãn hiệu và Bên A. Hồ sơ pháp lý về nhãn hiệu và các tài liệu liên quan là một phần không tách rời của Hợp đồng này.</p>
+<p class="recital">Bên B có khả năng về tài chính và đã tham khảo sự hoạt động cũng như sự phát triển của hệ thống chuỗi TUI BAO và mong muốn trở thành thành viên của chuỗi trà sữa TUI BAO để sử dụng nhãn hiệu TUI BAO cho hoạt động kinh doanh của mình.</p>
+<p class="recital">Sau khi trao đổi, thống nhất hai bên cùng ký kết Hợp đồng sử dụng nhãn hiệu với các điều khoản sau:</p>
 
 <p class="art">Điều 1. Đối tượng hợp đồng</p>
-<p>1.1 Bên A bằng Hợp đồng này cho phép Bên B được quyền tiến hành mở 01 cơ sở kinh doanh (sau đây gọi tắt là “Cửa hàng”) để kinh doanh dịch vụ cung cấp thức uống và sản phẩm trà sữa mang nhãn hiệu “TUI BAO” theo hệ thống, thiết kế mà Bên A đã xây dựng, thiết lập, vận hành và Bên B được quyền gắn nhãn hiệu “TUI BAO” các chỉ dẫn thương mại khác như: kiểu dáng của sản phẩm, khẩu hiệu kinh doanh, biểu tượng kinh doanh, bí mật kinh doanh, quảng cáo thuộc sở hữu của Bên A trong hoạt động kinh doanh tại Cửa hàng của Bên B, cụ thể như sau:</p>
-<p>(a) Được gắn lên các biển hiệu Cửa hàng, sản phẩm thức uống trà sữa, giấy tờ giao dịch, phương tiện kinh doanh tại Cửa hàng của Bên B.</p>
-<p>(b) Được quyền sử dụng kiểu dáng của sản phẩm trà sữa “TUI BAO” theo hình ảnh và logo chuẩn được cung cấp.</p>
-<p>(c) Được sử dụng bí mật kinh doanh của Bên A là các công thức pha chế thức uống, phương thức hoạt động và các định hướng chiến lược kinh doanh, quảng cáo do Bên A xây dựng để thực hiện hoạt động kinh doanh tại Cửa hàng của Bên B.</p>
-<p>(d) Được sử dụng các nội dung trong các băng rôn, biển hiệu quảng cáo của Bên A đã và đang sử dụng để quảng cáo cho Hệ thống khi Bên B được cơ quan nhà nước có thẩm quyền cho phép theo quy định của Luật Quảng Cáo.</p>
+<p class="clause-l1">1.1 Bên A bằng Hợp đồng này cho phép Bên B được quyền tiến hành mở 01 cơ sở kinh doanh (sau đây gọi tắt là “Cửa hàng”) để kinh doanh dịch vụ cung cấp thức uống và sản phẩm trà sữa mang nhãn hiệu “TUI BAO” theo hệ thống, thiết kế mà Bên A đã xây dựng, thiết lập, vận hành và Bên B được quyền gắn nhãn hiệu “TUI BAO” các chỉ dẫn thương mại khác như: kiểu dáng của sản phẩm, khẩu hiệu kinh doanh, biểu tượng kinh doanh, bí mật kinh doanh, quảng cáo thuộc sở hữu của Bên A trong hoạt động kinh doanh tại Cửa hàng của Bên B, cụ thể như sau:</p>
+<p class="clause-l2">(a) Được gắn lên các biển hiệu Cửa hàng, sản phẩm thức uống trà sữa, giấy tờ giao dịch, phương tiện kinh doanh tại Cửa hàng của Bên B.</p>
+<p class="clause-l2">(b) Được quyền sử dụng kiểu dáng của sản phẩm trà sữa “TUI BAO” theo hình ảnh và logo chuẩn được cung cấp.</p>
+<p class="clause-l2">(c) Được sử dụng bí mật kinh doanh của Bên A là các công thức pha chế thức uống, phương thức hoạt động và các định hướng chiến lược kinh doanh, quảng cáo do Bên A xây dựng để thực hiện hoạt động kinh doanh tại Cửa hàng của Bên B.</p>
+<p class="clause-l2">(d) Được sử dụng các nội dung trong các băng rôn, biển hiệu quảng cáo của Bên A đã và đang sử dụng để quảng cáo cho Hệ thống khi Bên B được cơ quan nhà nước có thẩm quyền cho phép theo quy định của Luật Quảng Cáo.</p>
 <p class="gap">&nbsp;</p>
-<p>1.2 Trong khi thực hiện Hợp đồng này, Bên B chịu sự kiểm soát của Bên A trong quá trình hoạt động kinh doanh tại Cửa hàng.</p>
+<p class="clause-l1">1.2 Trong khi thực hiện Hợp đồng này, Bên B chịu sự kiểm soát của Bên A trong quá trình hoạt động kinh doanh tại Cửa hàng.</p>
 
 <p class="art">Điều 2. Phạm vi sử dụng thương hiệu</p>
-<p>2.1 Bên B được phép sử dụng thương hiệu của Bên A tại địa điểm duy nhất: {{store_address}}</p>
-<p>2.2 Bên B chỉ được thay đổi địa điểm Cửa hàng trong thời gian Hợp đồng có hiệu lực khi Bên B nhận được sự đồng ý chính thức bằng văn bản từ Bên A (là pháp nhân sẽ sở hữu nhãn hiệu “TUI BAO”).</p>
-<p>2.3 Khai thác những lợi ích hữu hình, vô hình trên nền tảng uy tín của thương hiệu TUI BAO để giảm thiểu rủi ro trong kinh doanh đồng thời tiết kiệm thời gian và công sức cho việc quảng bá cửa hàng.</p>
-<p>2.4 Cửa hàng được phép sử dụng thương hiệu TUI BAO là tài sản thuộc quyền sở hữu của Bên B, khi đó bên B sẽ được hưởng các quyền lợi đồng thời phải cam kết thực hiện các nghĩa vụ phát sinh. Cửa hàng được phép sử dụng thương hiệu TUI BAO sẽ đóng vai trò như một chủ thể pháp nhân riêng biệt, có tài khoản riêng, tự mình chịu mọi rủi ro và là người chịu trách nhiệm duy nhất cho lợi nhuận cũng như những thua lỗ của cửa hàng do mình là chủ sở hữu.</p>
+<p class="clause-l1">2.1 Bên B được phép sử dụng thương hiệu của Bên A tại địa điểm duy nhất: {{store_address}}</p>
+<p class="clause-l1">2.2 Bên B chỉ được thay đổi địa điểm Cửa hàng trong thời gian Hợp đồng có hiệu lực khi Bên B nhận được sự đồng ý chính thức bằng văn bản từ Bên A (là pháp nhân sẽ sở hữu nhãn hiệu “TUI BAO”).</p>
+<p class="clause-l1">2.3 Khai thác những lợi ích hữu hình, vô hình trên nền tảng uy tín của thương hiệu TUI BAO để giảm thiểu rủi ro trong kinh doanh đồng thời tiết kiệm thời gian và công sức cho việc quảng bá cửa hàng.</p>
+<p class="clause-l1">2.4 Cửa hàng được phép sử dụng thương hiệu TUI BAO là tài sản thuộc quyền sở hữu của Bên B, khi đó bên B sẽ được hưởng các quyền lợi đồng thời phải cam kết thực hiện các nghĩa vụ phát sinh. Cửa hàng được phép sử dụng thương hiệu TUI BAO sẽ đóng vai trò như một chủ thể pháp nhân riêng biệt, có tài khoản riêng, tự mình chịu mọi rủi ro và là người chịu trách nhiệm duy nhất cho lợi nhuận cũng như những thua lỗ của cửa hàng do mình là chủ sở hữu.</p>
 <p class="gap">&nbsp;</p>
 <p class="art">Điều 3. Giá trị và thời hạn hợp đồng, phương thức thanh toán</p>
-<p>3.1 Bên B được quyền sử dụng nhãn hiệu, hệ thống nhận diện thương hiệu, bí quyết kinh doanh, quy trình vận hành và các quyền thương mại khác thuộc hệ thống TUI BAO theo phạm vi quy định tại Hợp đồng này của Bên A trong thời hạn {{term_years_display}} năm.</p>
-<p>3.2 Giá trị hợp đồng dịch vụ này bao gồm:</p>
+<p class="clause-l1">3.1 Bên B được quyền sử dụng nhãn hiệu, hệ thống nhận diện thương hiệu, bí quyết kinh doanh, quy trình vận hành và các quyền thương mại khác thuộc hệ thống TUI BAO theo phạm vi quy định tại Hợp đồng này của Bên A trong thời hạn {{term_years_display}} năm.</p>
+<p class="clause-l1">3.2 Giá trị hợp đồng dịch vụ này bao gồm:</p>
 <p class="fee-line">- Phí nhượng quyền: {{fee_franchise}} đồng (Bằng chữ: {{fee_franchise_words}})</p>
 <p class="fee-line">- Phí marketing thương hiệu: {{fee_marketing}} đồng (Bằng chữ: {{fee_marketing_words}})</p>
 <p class="fee-line">- Phí tư vấn triển khai và hỗ trợ vận hành cửa hàng: {{fee_consult}} đồng (Bằng chữ: {{fee_consult_words}})</p>
@@ -196,13 +297,13 @@ class Accounts_FranchiseContractHtml_Helper {
 <p class="dot-line"><span class="bu">&#8226;</span> Tổng giá trị dịch vụ: {{fee_total}} đồng (Bằng chữ: {{fee_total_words}})</p>
 <p class="dot-line"><span class="bu">&#8226;</span> Số tiền trên đã bao gồm thuế GTGT.</p>
 <p class="dot-line"><span class="bu">&#8226;</span> Tiền ký quỹ bảo đảm thực hiện Hợp đồng: {{fee_deposit}} đồng (Bằng chữ: {{fee_deposit_words}}). Khoản tiền này là khoản để bảo đảm việc thực hiện các nghĩa vụ theo Hợp đồng, không phải là phí nhượng quyền hoặc bất kỳ khoản phí dịch vụ nào khác và sẽ được Bên A hoàn trả cho Bên B khi Hợp đồng chấm dứt, sau khi Bên B hoàn thành đầy đủ các nghĩa vụ theo Hợp đồng và không phát sinh nghĩa vụ bồi thường, công nợ hoặc các khoản phải thanh toán khác. Trường hợp Bên B vi phạm nghĩa vụ theo Hợp đồng, Bên A có quyền khấu trừ hoặc sử dụng khoản tiền ký quỹ để bù đắp thiệt hại theo quy định của Hợp đồng.</p>
-<p>3.3 Phương thức thanh toán:</p>
+<p class="clause-l1">3.3 Phương thức thanh toán:</p>
 <p class="fee-line">- Đợt 1: Thanh toán {{pay_1}} đồng tiền ký quỹ bảo đảm thực hiện Hợp đồng.</p>
 <p class="fee-line">- Đợt 2: Đặt cọc hợp đồng nhượng quyền: {{pay_2}} đồng ngay sau khi Bên B chuẩn bị mặt bằng để Bên A triển khai các công việc tư vấn, khảo sát mặt bằng và hỗ trợ vận hành cửa hàng cho Bên B.</p>
 <p class="fee-line">- Đợt 3: Thanh toán phần giá trị còn lại của hợp đồng này {{pay_3}} đồng ngay sau khi Bên B có và hoàn thiện mặt bằng.</p>
-<p>3.4 Các đơn hàng nguyên liệu tiếp theo:</p>
-<p>(a) Các Bên sẽ lập bảng kê chi tiết theo Phụ lục kèm theo Hợp đồng này.</p>
-<p>(b) Phương thức thanh toán: Theo Điều 8 Hợp đồng này.</p>
+<p class="clause-l1">3.4 Các đơn hàng nguyên liệu tiếp theo:</p>
+<p class="clause-l2">(a) Các Bên sẽ lập bảng kê chi tiết theo Phụ lục kèm theo Hợp đồng này.</p>
+<p class="clause-l2">(b) Phương thức thanh toán: Theo Điều 8 Hợp đồng này.</p>
 <p class="gap">&nbsp;</p>
 <p class="art">Điều 4: Các tiêu chí hình thành Cửa hàng TUI BAO</p>
 <p>Nhằm tạo ra chuỗi cửa hàng TUI BAO mang phong cách riêng, với mục tiêu chung trong việc chiếm lĩnh thị trường tiềm năng cho các sản phẩm và dịch vụ TUI BAO. Cửa hàng cần đảm bảo những tiêu chí sau:</p>

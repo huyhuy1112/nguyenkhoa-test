@@ -1,11 +1,13 @@
 <?php
 /*+***********************************************************************************
- * Legacy route: cùng ExportFranchiseWord (preview PDF / download .docx).
+ * Tải / xem trước Hợp đồng nhượng quyền TUI BAO.
+ * ?preview=1  → PDF (LibreOffice convert từ cùng .docx đã điền) — xem trên CRM
+ * mặc định    → tải .docx (in chuẩn: Microsoft Word)
  *************************************************************************************/
 
 require_once 'modules/Accounts/helpers/FranchiseContractService.php';
 
-class Accounts_ExportFranchisePDF_Action extends Vtiger_Action_Controller {
+class Accounts_ExportFranchiseWord_Action extends Vtiger_Action_Controller {
 
 	public function requiresPermission(Vtiger_Request $request) {
 		$permissions = parent::requiresPermission($request);
@@ -34,7 +36,9 @@ class Accounts_ExportFranchisePDF_Action extends Vtiger_Action_Controller {
 		$safeNo = preg_replace('/[^A-Za-z0-9_-]+/', '_', $contractNo);
 		$fileName = 'HopDong_NhuongQuyen_TUI_BAO_' . $safeNo . '.docx';
 
-		if ($request->get('preview') === '1' || $request->get('mode') === 'inline') {
+		$isPreview = $request->get('preview') === '1' || $request->get('mode') === 'inline';
+		if ($isPreview) {
+			// PDF from same filled DOCX — native browser viewer in modal iframe
 			@set_time_limit(180);
 			Accounts_FranchiseContractService_Helper::outputWordPreviewPdf(
 				$recordModel,

@@ -136,10 +136,45 @@
 		});
 	}
 
+	function stripExportQueryFlags(url) {
+		return String(url || '')
+			.replace(/([?&])preview=1(&?)/g, function (m, a, b) {
+				return b ? a : '';
+			})
+			.replace(/([?&])autoprint=1(&?)/g, function (m, a, b) {
+				return b ? a : '';
+			})
+			.replace(/([?&])_pv=\d+(&?)/g, function (m, a, b) {
+				return b ? a : '';
+			})
+			.replace(/\?&/, '?')
+			.replace(/&&+/g, '&')
+			.replace(/[?&]$/, '');
+	}
+
+	function withPreviewQuery(url) {
+		url = stripExportQueryFlags(url);
+		if (!url) {
+			return '';
+		}
+		if (url.indexOf('preview=1') === -1) {
+			url += (url.indexOf('?') >= 0 ? '&' : '?') + 'preview=1';
+		}
+		return url;
+	}
+
 	function closeInlinePrintPreview() {
 		var $modal = $('#mk-crm-inline-print-preview');
-		$modal.removeClass('is-open').attr('aria-hidden', 'true');
-		$modal.find('iframe').attr('src', 'about:blank');
+		$modal.removeClass('is-open').attr('aria-hidden', 'true').removeData('mkFranchiseMode');
+		// Restore iframe for non-franchise reuses
+		var $body = $modal.find('.mk-so-inline-print-preview__body');
+		if ($body.length && !$body.find('iframe').length) {
+			$body.empty().append(
+				$('<iframe class="mk-so-inline-print-preview__frame" title="Xem trước hợp đồng"></iframe>')
+			);
+		} else {
+			$modal.find('iframe').attr('src', 'about:blank');
+		}
 		$('body').removeClass('mk-so-inline-print-open');
 	}
 
@@ -153,15 +188,17 @@
 				'<div class="mk-so-inline-print-preview__dialog" role="dialog" aria-labelledby="mk-crm-inline-print-title">' +
 					'<div class="mk-so-inline-print-preview__head">' +
 						'<h3 id="mk-crm-inline-print-title">Hợp đồng nhượng quyền TUI BAO</h3>' +
+						'<p class="mk-so-inline-print-preview__hint" style="display:none;margin:4px 0 0;font-size:12px;opacity:.85;font-weight:normal;line-height:1.35;"></p>' +
 						'<button type="button" class="mk-so-inline-print-preview__close" aria-label="Đóng">&times;</button>' +
 					'</div>' +
 					'<div class="mk-so-inline-print-preview__body">' +
-						'<iframe class="mk-so-inline-print-preview__frame" title="Xem trước PDF hợp đồng"></iframe>' +
+						'<iframe class="mk-so-inline-print-preview__frame" title="Xem trước hợp đồng"></iframe>' +
 					'</div>' +
 					'<div class="mk-so-inline-print-preview__foot">' +
 						'<button type="button" class="mk-so-inline-print-preview__cancel">Đóng</button>' +
 						'<button type="button" class="mk-so-inline-print-preview__print"><i class="fa fa-print" aria-hidden="true"></i> In ngay</button>' +
-						'<button type="button" class="mk-so-inline-print-preview__download"><i class="fa fa-download" aria-hidden="true"></i> Tải PDF</button>' +
+						'<button type="button" class="mk-so-inline-print-preview__download" style="display:none"><i class="fa fa-download" aria-hidden="true"></i> Tải PDF</button>' +
+						'<button type="button" class="mk-so-inline-print-preview__download-word" style="display:none"><i class="fa fa-file-word-o" aria-hidden="true"></i> Tải / in Word</button>' +
 					'</div>' +
 				'</div>' +
 			'</div>'
@@ -178,6 +215,14 @@
 		});
 		$modal.on('click', '.mk-so-inline-print-preview__print', function (e) {
 			e.preventDefault();
+			// Franchise: HTML only for skim — real print is Word download
+			if ($modal.data('mkFranchiseMode')) {
+				var wordFromPrint = $modal.data('mkWordUrl') || '';
+				if (wordFromPrint) {
+					window.location.href = wordFromPrint;
+				}
+				return;
+			}
 			var $iframe = $('#mk-crm-inline-print-preview iframe');
 			if (!$iframe.length) return;
 			try {
@@ -203,28 +248,175 @@
 			}
 			closeInlinePrintPreview();
 		});
+		$modal.on('click', '.mk-so-inline-print-preview__download-word', function (e) {
+			e.preventDefault();
+			var wordUrl = $modal.data('mkWordUrl') || '';
+			if (wordUrl) {
+				window.location.href = wordUrl;
+			}
+		});
 		return $modal;
 	}
 
-	function openInlinePrintPreview($panel, recordId) {
-		var mod = String($panel.data('module') || moduleName());
-		var printUrl =
-			$panel.data('print-url') ||
-			$panel.find('.mk-so-inline-detail__print-btn').data('print-url');
-		if (!printUrl) {
-			printUrl =
-				'index.php?module=' +
-				encodeURIComponent(mod) +
-				'&action=ExportFranchisePDF&record=' +
-				encodeURIComponent(recordId) +
-				'&preview=1';
+	/**
+	 * Accounts franchise: filled .docx download URL (Word = print source of truth).
+	 */
+	function resolveFranchiseDownloadUrl($panel, recordId, opts) {
+		opts = opts || {};
+		var rid = encodeURIComponent(recordId);
+		var wordUrl =
+			opts.wordUrl ||
+			opts.downloadUrl ||
+			($panel &&
+				($panel.data('word-download-url') ||
+					$panel.data('print-download-url') ||
+					$panel.find('.mk-so-inline-detail__word-btn').data('word-download-url') ||
+					$panel.find('.mk-so-inline-detail__print-btn').data('word-download-url') ||
+					$panel.find('.mk-so-inline-detail__print-btn').data('print-download-url'))) ||
+			'';
+		wordUrl = stripExportQueryFlags(wordUrl);
+		if (!wordUrl || wordUrl.indexOf('ExportFranchise') === -1) {
+			wordUrl = 'index.php?module=Accounts&action=ExportFranchiseWord&record=' + rid;
 		}
+		return wordUrl;
+	}
+
+	function resolveFranchisePreviewUrl($panel, recordId, opts) {
+		opts = opts || {};
+		var rid = encodeURIComponent(recordId);
+		var previewUrl =
+			opts.previewUrl ||
+			opts.printUrl ||
+			($panel &&
+				($panel.data('print-url') ||
+					$panel.find('.mk-so-inline-detail__print-btn').data('print-url') ||
+					$panel.find('.mk-so-inline-detail__preview-btn').data('print-url'))) ||
+			'';
+		previewUrl = String(previewUrl || '');
+		if (!previewUrl || previewUrl.indexOf('ExportFranchise') === -1) {
+			previewUrl =
+				'index.php?module=Accounts&action=ExportFranchiseWord&record=' + rid + '&preview=1';
+		} else {
+			previewUrl = withPreviewQuery(previewUrl);
+		}
+		previewUrl += (previewUrl.indexOf('?') >= 0 ? '&' : '?') + '_pv=' + Date.now();
+		return previewUrl;
+	}
+
+	/**
+	 * Franchise «Xem trước»: modal iframe PDF (LibreOffice từ cùng DOCX đã điền).
+	 * Không auto-download. In chuẩn: Tải / in Word.
+	 * @param {string|number} recordId
+	 * @param {object} [opts] previewUrl, wordUrl, $panel
+	 */
+	function openFranchisePreview(recordId, opts) {
+		opts = opts || {};
+		recordId = String(recordId || '').trim();
+		if (!recordId) {
+			return;
+		}
+		var $panel = opts.$panel || $();
+		var wordUrl = resolveFranchiseDownloadUrl($panel, recordId, opts);
+		var previewUrl = resolveFranchisePreviewUrl($panel, recordId, opts);
+
 		var $modal = ensureInlinePrintPreviewModal();
+		// Ensure iframe body (not message placeholder)
+		var $body = $modal.find('.mk-so-inline-print-preview__body');
+		if (!$body.find('iframe').length) {
+			$body.empty().append(
+				$(
+					'<iframe class="mk-so-inline-print-preview__frame" title="Xem trước hợp đồng PDF"></iframe>'
+				)
+			);
+		} else {
+			// loading state
+			$modal.find('iframe').attr('src', 'about:blank');
+		}
+
 		$modal.data('mkPrintPanel', $panel);
 		$modal.data('mkPrintRecordId', recordId);
-		$modal.find('iframe').attr('src', printUrl);
+		$modal.data('mkWordUrl', wordUrl);
+		$modal.data('mkFranchiseMode', true);
+		$modal.find('#mk-crm-inline-print-title').text('Xem trước hợp đồng (PDF)');
+		$modal
+			.find('.mk-so-inline-print-preview__hint')
+			.text(
+				'PDF chuyển từ file Word đã điền (LibreOffice). In chuẩn: Tải / in Word → Microsoft Word.'
+			)
+			.show();
+		$modal.find('.mk-so-inline-print-preview__print').hide();
+		$modal.find('.mk-so-inline-print-preview__download').hide();
+		$modal
+			.find('.mk-so-inline-print-preview__download-word')
+			.show()
+			.html('<i class="fa fa-file-word-o" aria-hidden="true"></i> Tải / in Word');
+		// Load PDF — no DOCX download
+		$modal.find('iframe').attr('src', previewUrl);
 		$modal.addClass('is-open').attr('aria-hidden', 'false');
 		$('body').addClass('mk-so-inline-print-open');
+	}
+
+	/**
+	 * @param {jQuery} $panel
+	 * @param {string|number} recordId
+	 * @param {object} [options]
+	 */
+	function openInlinePrintPreview($panel, recordId, options) {
+		options = options || {};
+		var mod = String(($panel && $panel.data('module')) || moduleName() || 'Accounts');
+
+		if (mod === 'Accounts') {
+			openFranchisePreview(recordId, {
+				$panel: $panel,
+				wordUrl: options.wordUrl || options.downloadUrl,
+			});
+			return;
+		}
+
+		// Non-Accounts: keep existing modal flow
+		var printUrl =
+			($panel && ($panel.data('print-url') || $panel.find('.mk-so-inline-detail__print-btn').data('print-url'))) ||
+			'';
+		if (!printUrl) {
+			return;
+		}
+		printUrl = String(printUrl);
+		printUrl += (printUrl.indexOf('?') >= 0 ? '&' : '?') + '_pv=' + Date.now();
+
+		var $modal = ensureInlinePrintPreviewModal();
+		// Ensure iframe exists (franchise may have replaced body)
+		var $body = $modal.find('.mk-so-inline-print-preview__body');
+		if (!$body.find('iframe').length) {
+			$body.empty().append(
+				$('<iframe class="mk-so-inline-print-preview__frame" title="Xem trước"></iframe>')
+			);
+		}
+		$modal.data('mkPrintPanel', $panel || $());
+		$modal.data('mkPrintRecordId', recordId);
+		$modal.data('mkFranchiseMode', false);
+		$modal.removeData('mkWordUrl');
+		$modal.find('#mk-crm-inline-print-title').text('Xem trước');
+		$modal.find('.mk-so-inline-print-preview__hint').hide().text('');
+		$modal.find('iframe').attr('src', printUrl);
+		$modal.find('.mk-so-inline-print-preview__print').show();
+		$modal.find('.mk-so-inline-print-preview__download').show();
+		$modal.find('.mk-so-inline-print-preview__download-word').hide();
+		$modal.addClass('is-open').attr('aria-hidden', 'false');
+		$('body').addClass('mk-so-inline-print-open');
+	}
+
+	/**
+	 * Franchise contract: download filled DOCX for Word print.
+	 * @param {string|number} recordId
+	 * @param {object} [opts] wordUrl / downloadUrl optional
+	 */
+	function openFranchisePrint(recordId, opts) {
+		opts = opts || {};
+		recordId = String(recordId || '').trim();
+		if (!recordId) {
+			return;
+		}
+		window.location.href = resolveFranchiseDownloadUrl(null, recordId, opts);
 	}
 
 	function initLeadTagPicker($panel) {
@@ -361,6 +553,18 @@
 			e.stopPropagation();
 			if (!recordId) return;
 			openInlinePrintPreview($panel, recordId);
+		});
+		$panel.on('click', '.mk-so-inline-detail__word-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!recordId) return;
+			openFranchisePrint(recordId, {
+				wordUrl:
+					$(this).data('word-download-url') ||
+					$panel.data('word-download-url') ||
+					$panel.find('.mk-so-inline-detail__print-btn').data('word-download-url') ||
+					'',
+			});
 		});
 		$panel.on('click', '.mk-so-inline-detail__edit-toggle', function (e) {
 			e.preventDefault();
@@ -1241,5 +1445,12 @@
 	}
 
 	$(document).ready(bind);
-	window.MkSalesPosInline = { bind: bind, collapse: collapse, toggle: toggle };
+	window.MkSalesPosInline = {
+		bind: bind,
+		collapse: collapse,
+		toggle: toggle,
+		openFranchisePrint: openFranchisePrint,
+		openFranchisePreview: openFranchisePreview,
+		openInlinePrintPreview: openInlinePrintPreview,
+	};
 })(jQuery);

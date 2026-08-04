@@ -54,7 +54,11 @@ $languageStrings = array(
 "LBL_ACC_DETAIL_HEALTH_PROJECT" => "Tuân thủ dự án",
 "LBL_ACC_DETAIL_HEALTH_ASSET" => "Sử dụng tài sản",
 "LBL_TB_FRANCHISE_CONTRACT" => "Hợp đồng nhượng quyền",
-"LBL_PRINT_FRANCHISE_CONTRACT" => "In hợp đồng",
+"LBL_PREVIEW_FRANCHISE_CONTRACT" => "Xem trước",
+"LBL_PREVIEW_FRANCHISE_CONTRACT_HINT" => "Xem trên CRM (PDF từ file Word đã điền). In chuẩn: Tải / in Word.",
+"LBL_PRINT_FRANCHISE_CONTRACT" => "Tải / in Word",
+"LBL_PRINT_FRANCHISE_CONTRACT_HINT" => "Tải file Word — mở bằng Microsoft Word để in đúng format (~12 trang)",
+"LBL_EXPORT_FRANCHISE_CONTRACT_WORD" => "Tải Word",
 );
 
 $jsLanguageStrings = array(

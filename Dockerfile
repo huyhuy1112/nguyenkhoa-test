@@ -5,6 +5,11 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libzip-dev \
+    # Franchise contract preview: DOCX → PDF (same filled file as download)
+    libreoffice-writer \
+    fonts-liberation \
+    fonts-dejavu-core \
+    fonts-noto-core \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     mysqli \
@@ -18,10 +23,11 @@ RUN apt-get update && apt-get install -y \
 RUN a2enmod rewrite
 
 # Campaign attachments + large form saves (default PHP 8M post limit breaks uploads)
+# LibreOffice convert can take >30s on large franchise templates
 RUN { \
     echo 'upload_max_filesize = 64M'; \
     echo 'post_max_size = 64M'; \
-    echo 'memory_limit = 256M'; \
+    echo 'memory_limit = 512M'; \
     echo 'max_execution_time = 300'; \
 } > /usr/local/etc/php/conf.d/99-uploads.ini
 
