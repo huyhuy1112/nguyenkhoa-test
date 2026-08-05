@@ -29,7 +29,7 @@ html.mk-sc-ui-ready body[data-module="ServiceContracts"][data-view="List"] #mk-d
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLovableRef.js')}&mk_v=20260725_sc_list1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLocalStore.js')}&mk_v=20260725_sc_list1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.js')}&mk_v=20260731_sc_lt9"></script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260731_sc_lt9" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260805_lt_sm1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
 	module: 'ServiceContracts',
