@@ -2483,12 +2483,74 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
-	flex-wrap: wrap;
 	padding-top: 12px;
 	border-top: 1px solid #eef2f7;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__confirm-split {
+	display: inline-flex;
+	align-items: stretch;
+	position: relative;
+	vertical-align: middle;
+	margin: 0;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__confirm-split > .mk-so-inline-detail__confirm-order-btn {
+	border-top-right-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__confirm-split > .mk-so-inline-detail__confirm-caret {
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+	border-left: 1px solid rgba(255, 255, 255, 0.28) !important;
+	padding: 0 8px !important;
+	min-width: 30px;
+	margin: 0 !important;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__confirm-split > .mk-so-inline-detail__confirm-caret .caret {
+	margin: 0;
+	border-top-color: #fff;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__confirm-menu {
+	min-width: 220px;
+	padding: 6px 0;
+	margin-top: 4px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+	z-index: 60;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__confirm-menu > li > a {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	color: #1e293b;
+	font-size: 13px;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__confirm-menu > li > a:hover,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__confirm-menu > li > a:focus {
+	background: #f1f5f9;
+	color: #0b6e4f;
+	text-decoration: none;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__confirm-menu .fa {
+	width: 14px;
+	text-align: center;
+	color: #64748b;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions-left,

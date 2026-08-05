@@ -998,14 +998,17 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
 .mk-leads-tag-popover {
     position: absolute;
     z-index: 1200;
-    width: 360px;
+    width: min(420px, calc(100vw - 24px));
+    max-width: min(420px, calc(100vw - 24px));
     max-height: 70vh;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
     padding: 12px;
+    box-sizing: border-box;
 }
 .mk-leads-tag-popover__head {
     display: flex;
@@ -1022,8 +1025,18 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
     cursor: pointer;
     color: #64748b;
 }
+.mk-leads-tag-popover__body {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+}
 .mk-leads-tag-popover__group {
     margin-bottom: 12px;
+    min-width: 0;
+    max-width: 100%;
 }
 .mk-leads-tag-popover__group-title {
     font-size: 11px;
@@ -1033,14 +1046,38 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
     letter-spacing: 0.04em;
     margin-bottom: 6px;
 }
+/* Horizontal scroll for long tag chips (Leads / Contacts / Opp / SC popover) */
 .mk-leads-tag-popover__chips,
 .mk-so-inline-tag-group__chips {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
     gap: 6px;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 2px 8px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+.mk-leads-tag-popover__chips::-webkit-scrollbar,
+.mk-so-inline-tag-group__chips::-webkit-scrollbar {
+    height: 6px;
+}
+.mk-leads-tag-popover__chips::-webkit-scrollbar-thumb,
+.mk-so-inline-tag-group__chips::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+.mk-leads-tag-popover__chips::-webkit-scrollbar-track,
+.mk-so-inline-tag-group__chips::-webkit-scrollbar-track {
+    background: transparent;
 }
 .mk-leads-tag-chip,
 .mk-so-inline-tag-chip {
+    flex: 0 0 auto;
     border: 1px solid #cbd5e1;
     background: #f8fafc;
     color: #334155;
@@ -1049,6 +1086,10 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
+    white-space: nowrap;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
 }
 .mk-leads-tag-chip.is-on,
 .mk-so-inline-tag-chip.is-on {

@@ -57,6 +57,27 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('MK_QUOTE_CONVERTED_BADGE', $converted);
 	}
 
+	/**
+	 * Full detail + list inline: normalize totals (có thuế) + SKU line tax như list dropdown.
+	 */
+	public function showLineItemDetails(Vtiger_Request $request) {
+		parent::showLineItemDetails($request);
+		$viewer = $this->getViewer($request);
+		$displayProducts = $viewer->getTemplateVars('RELATED_PRODUCTS');
+		$recordModel = $viewer->getTemplateVars('RECORD');
+		if (!is_array($displayProducts) || empty($displayProducts) || !$recordModel) {
+			return;
+		}
+		$moduleName = $request->getModule() ?: 'Quotes';
+		$rawProducts = Inventory_Record_Model::getInstanceById($recordModel->getId(), $moduleName)->getProducts();
+		if (!is_array($rawProducts) || empty($rawProducts)) {
+			$rawProducts = $displayProducts;
+		}
+		$displayProducts = $this->normalizeInlineMoneyTotals($displayProducts, $rawProducts, $recordModel);
+		$displayProducts = $this->enrichLineUsageUnits($displayProducts);
+		$viewer->assign('RELATED_PRODUCTS', $displayProducts);
+	}
+
 	public function showListInlineDetail(Vtiger_Request $request) {
 		if (!$this->isSalesListInlineContext($request)) {
 			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));

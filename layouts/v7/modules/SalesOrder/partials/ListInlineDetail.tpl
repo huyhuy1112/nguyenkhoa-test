@@ -145,12 +145,31 @@
 				|| $INLINE_SOSTATUS eq 'Chờ in phiếu' || $INLINE_SOSTATUS eq 'Đang soạn' || $INLINE_SOSTATUS eq 'Đã soạn'
 				|| $INLINE_SOSTATUS eq 'Từ chối'
 			)}
-			{if !$SO_ALREADY_CONFIRMED}
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn" title="Xác nhận đơn hàng và tạo phiếu xuất kho">
-				<i class="fa fa-check" aria-hidden="true"></i>
-				<span>Xác nhận đơn hàng</span>
-			</button>
-			{/if}
+			<div class="mk-so-inline-detail__confirm-split btn-group">
+				{if !$SO_ALREADY_CONFIRMED}
+				<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn" title="Xác nhận đơn hàng và tạo phiếu xuất kho">
+					<i class="fa fa-check" aria-hidden="true"></i>
+					<span>Xác nhận đơn hàng</span>
+				</button>
+				<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-caret dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Thêm thao tác" aria-label="Thêm thao tác">
+					<span class="caret" aria-hidden="true"></span>
+				</button>
+				{else}
+				<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__misa-standalone-btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Thao tác kế toán">
+					<i class="fa fa-share-square-o" aria-hidden="true"></i>
+					<span>Kế toán</span>
+					<span class="caret" aria-hidden="true"></span>
+				</button>
+				{/if}
+				<ul class="dropdown-menu dropdown-menu-right mk-so-inline-detail__confirm-menu" role="menu">
+					<li role="presentation">
+						<a href="#" role="menuitem" class="mk-so-inline-detail__misa-btn" data-record-id="{$RECORD->getId()}" title="Chuyển đơn hàng sang kế toán MISA">
+							<i class="fa fa-share-square-o" aria-hidden="true"></i>
+							<span>Chuyển đến kế toán MISA</span>
+						</a>
+					</li>
+				</ul>
+			</div>
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__process-btn" title="Mở form chỉnh sửa">
 				<i class="fa fa-pencil" aria-hidden="true"></i>
 				<span>Sửa đơn</span>

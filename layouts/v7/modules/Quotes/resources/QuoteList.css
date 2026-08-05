@@ -1511,17 +1511,22 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-e
 	text-align: left !important;
 }
 
-/* Summary row */
-body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th {
+/* Summary row — cuối list (tbody) */
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.mk-so-summary-row td {
 	background: #f8fafc;
+	border-top: 1px solid #e2e8f0 !important;
 	border-bottom: 1px solid #e2e8f0 !important;
-	padding: 6px 12px 8px !important;
+	padding: 10px 12px !important;
 	font-weight: 600;
-	height: 36px;
+	height: 40px;
+	vertical-align: middle;
 }
 
-body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th.mk-so-summary-cell--due {
-	text-align: right !important;
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th.mk-so-summary-cell--due,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.mk-so-summary-row td.mk-so-summary-cell--due {
+	/* Cùng căn trái với số “Tổng cộng” trên từng dòng list */
+	text-align: left !important;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-summary-cell--label .mk-so-summary-label {
@@ -1534,13 +1539,14 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-summary-ce
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-summary-cell--due .mk-so-summary-value {
-	display: block;
-	text-align: right;
-	font-family: ui-monospace, 'Roboto Mono', monospace;
+	display: inline-block;
+	text-align: left;
+	font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	font-size: 14px;
 	font-weight: 700;
 	color: #0f172a;
 	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
 }
 
 /* Stage pills reuse existing mk-qt-stage-pill; align with SO status cell */

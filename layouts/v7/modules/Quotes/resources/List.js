@@ -12,8 +12,8 @@
     account_id: "Khách hàng",
     potential_id: "Hoạt động",
     contact_id: "Contact",
-    total: "Tổng",
-    hdnGrandTotal: "Tổng",
+    total: "Tổng cộng",
+    hdnGrandTotal: "Tổng cộng",
     assigned_user_id: "Nhân viên sale",
     created_user_id: "Created by",
     smcreatorid: "Created by",
@@ -24,8 +24,8 @@
     account_id: "Khách hàng",
     assigned_user_id: "Nhân viên sale",
     potential_id: "Hoạt động",
-    total: "Tổng",
-    hdnGrandTotal: "Tổng",
+    total: "Tổng cộng",
+    hdnGrandTotal: "Tổng cộng",
     quotestage: "Trạng thái",
   };
 
@@ -632,13 +632,12 @@
       "Số lượng",
       "Đơn giá",
       "Thuế",
-      "Giá bán",
       "Thành tiền",
     ]);
     $panel.find(".mk-so-inline-detail__lines tbody tr").each(function () {
       var $cells = $(this).find("td");
       if (
-        $cells.length < 7 ||
+        $cells.length < 6 ||
         $cells.first().hasClass("mk-so-inline-detail__empty-lines")
       ) {
         return;
@@ -650,7 +649,6 @@
         $.trim($cells.eq(3).text()),
         $.trim($cells.eq(4).text()),
         $.trim($cells.eq(5).text()),
-        $.trim($cells.eq(6).text()),
       ]);
     });
     rows.push([]);
@@ -2052,50 +2050,87 @@
 
   function injectSummaryRow($table) {
     if (!$table || !$table.length) return;
-    var dueField = $table.find('thead a[data-columnname="hdnGrandTotal"]')
-      .length
-      ? "hdnGrandTotal"
-      : $table.find('thead a[data-columnname="total"]').length
-        ? "total"
-        : "";
     var $headerRow = $table.find("thead tr.listViewContentHeader").first();
     if (!$headerRow.length) return;
-    $table.find("thead tr.mk-so-summary-row").remove();
+    // Xóa bản tổng cũ (thead hoặc tbody)
+    $table.find("tr.mk-so-summary-row").remove();
     var $rows = $table.find("tbody tr.listViewEntries");
     if (!$rows.length) return;
-    var hasDueColumn =
-      dueField &&
-      $headerRow.find('a[data-columnname="' + dueField + '"]').length > 0;
-    var dueTotal = 0;
-    if (hasDueColumn) {
-      $rows.each(function () {
-        dueTotal += cellMoneyAmount(
-          $(this)
-            .find('td[data-name="' + dueField + '"]')
-            .first(),
-        );
+
+    var $sample = $rows.first();
+    // Ưu tiên cột data-name khớp body (đúng vị trí cột sau khi reorder)
+    var dueField = "";
+    if ($sample.find('td[data-name="hdnGrandTotal"]').length) {
+      dueField = "hdnGrandTotal";
+    } else if ($sample.find('td[data-name="total"]').length) {
+      dueField = "total";
+    } else if ($headerRow.find('a[data-columnname="hdnGrandTotal"]').length) {
+      dueField = "hdnGrandTotal";
+    } else if ($headerRow.find('a[data-columnname="total"]').length) {
+      dueField = "total";
+    }
+    if (!dueField) return;
+
+    var $dueTd = $sample.find('td[data-name="' + dueField + '"]').first();
+    var dueColIdx = $dueTd.length ? $dueTd.index() : -1;
+    if (dueColIdx < 0) {
+      // Fallback header: tìm th theo data-columnname hoặc data-name
+      $headerRow.children("th").each(function (i) {
+        var $th = $(this);
+        var name =
+          $th.find("a[data-columnname]").attr("data-columnname") ||
+          $th.attr("data-columnname") ||
+          $th.attr("data-name") ||
+          "";
+        if (name === dueField || name === "total" || name === "hdnGrandTotal") {
+          dueColIdx = i;
+          return false;
+        }
       });
     }
+    if (dueColIdx < 0) return;
+
+    var dueTotal = 0;
+    $rows.each(function () {
+      dueTotal += cellMoneyAmount(
+        $(this)
+          .find('td[data-name="' + dueField + '"]')
+          .first(),
+      );
+    });
+
+    // Build cells theo đúng số cột của 1 dòng data (tránh lệch header/body)
+    var colCount = $sample.children("td").length;
+    if (!colCount) {
+      colCount = $headerRow.children("th").length;
+    }
     var html = '<tr class="mk-so-summary-row">';
-    $headerRow.children("th").each(function () {
-      var $th = $(this);
-      var field = $th.find("a[data-columnname]").attr("data-columnname") || "";
+    for (var i = 0; i < colCount; i++) {
       var cls = "mk-so-summary-cell";
       var content = "";
-      if ($th.hasClass("mk-so-pos-control-th")) {
-        cls += " mk-so-summary-cell--label";
-        content = '<span class="mk-so-summary-label">Tổng</span>';
-      } else if (field === dueField && hasDueColumn) {
-        cls += " mk-so-summary-cell--due";
+      var $hdr = $headerRow.children("th").eq(i);
+      if (i === 0 || ($hdr.length && $hdr.hasClass("mk-so-pos-control-th"))) {
+        if (i === 0) {
+          cls += " mk-so-summary-cell--label";
+          content = '<span class="mk-so-summary-label">Tổng</span>';
+        }
+      }
+      if (i === dueColIdx) {
+        cls += " mk-so-summary-cell--due mk-so-col-due";
         content =
           '<span class="mk-so-summary-value">' +
           formatMoneyNumber(dueTotal) +
           "</span>";
       }
-      html += '<th class="' + cls + '">' + content + "</th>";
-    });
+      html += '<td class="' + cls + '">' + content + "</td>";
+    }
     html += "</tr>";
-    $headerRow.after(html);
+    var $tbody = $table.find("tbody").first();
+    if ($tbody.length) {
+      $tbody.append(html);
+    } else {
+      $headerRow.after(html);
+    }
   }
 
   function applyPosListChrome() {

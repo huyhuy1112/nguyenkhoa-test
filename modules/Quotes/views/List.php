@@ -53,24 +53,36 @@ class Quotes_List_View extends Inventory_List_View {
 			return;
 		}
 
+		// Cột list: Số | KH | Sale | Tổng cộng (có thuế) | Trạng thái — không dùng Hoạt động (potential_id)
+		// `total` = grand total đã lưu (gồm thuế); ListView_Model format lại hiển thị.
 		$preferredHeaders = array(
 			'quote_no',
 			'account_id',
 			'assigned_user_id',
-			'potential_id',
 			'total',
+			'hdnGrandTotal',
 			'quotestage',
 		);
 
 		$resolvedHeaders = array();
 		$seen = array();
+		$hasTotal = false;
 		foreach ($preferredHeaders as $fieldName) {
 			if (isset($seen[$fieldName])) {
 				continue;
 			}
+			// Chỉ 1 cột tổng tiền (ưu tiên hdnGrandTotal = grand total có thuế)
+			if ($fieldName === 'total' || $fieldName === 'hdnGrandTotal') {
+				if ($hasTotal) {
+					continue;
+				}
+			}
 			if ($this->isSalesListFieldAvailable($moduleModel, $fieldName)) {
 				$resolvedHeaders[] = $fieldName;
 				$seen[$fieldName] = true;
+				if ($fieldName === 'total' || $fieldName === 'hdnGrandTotal') {
+					$hasTotal = true;
+				}
 			}
 		}
 

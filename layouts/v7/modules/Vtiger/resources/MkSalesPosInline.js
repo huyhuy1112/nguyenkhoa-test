@@ -630,14 +630,29 @@
 			var selected = {};
 			selectedKeys().forEach(function (k) { selected[k] = true; });
 			var html = catalog.map(function (g) {
-				var chips = (g.tags || []).map(function (item) {
+				var tags = g.tags || [];
+				function chipBtn(item) {
 					var on = !!selected[item.key];
 					return '<button type="button" class="mk-so-inline-tag-chip' + (on ? ' is-on' : '') +
-						'" data-tag="' + $('<div/>').text(item.key).html() + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+						'" data-tag="' + $('<div/>').text(item.key).html() + '" data-group="' +
+						$('<div/>').text(g.id || '').html() + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
 						$('<div/>').text(item.label).html() + '</button>';
-				}).join('');
-				return '<div class="mk-so-inline-tag-group"><div class="mk-so-inline-tag-group__title">' +
-					$('<div/>').text(g.label).html() + '</div><div class="mk-so-inline-tag-group__chips">' + chips + '</div></div>';
+				}
+				// Chăm sóc / nhóm dài: luôn 2 hàng (dòng), chia đều — không 1 hàng + scroll ngang
+				var use2Rows = (g.id === 'care' || tags.length > 10) && tags.length > 1;
+				var chipsHtml;
+				if (use2Rows) {
+					var mid = Math.ceil(tags.length / 2);
+					chipsHtml =
+						'<div class="mk-so-inline-tag-group__row">' + tags.slice(0, mid).map(chipBtn).join('') + '</div>' +
+						'<div class="mk-so-inline-tag-group__row">' + tags.slice(mid).map(chipBtn).join('') + '</div>';
+				} else {
+					chipsHtml = tags.map(chipBtn).join('');
+				}
+				return '<div class="mk-so-inline-tag-group" data-group="' + $('<div/>').text(g.id || '').html() + '">' +
+					'<div class="mk-so-inline-tag-group__title">' + $('<div/>').text(g.label).html() + '</div>' +
+					'<div class="mk-so-inline-tag-group__chips' + (use2Rows ? ' mk-so-inline-tag-group__chips--2rows' : '') + '">' +
+					chipsHtml + '</div></div>';
 			}).join('');
 			$picker.html(html || '<span class="mk-so-inline-detail__tags-empty">Không có danh mục tag</span>');
 		}

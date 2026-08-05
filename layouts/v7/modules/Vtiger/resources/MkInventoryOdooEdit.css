@@ -370,15 +370,13 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow td.mk-inv-col-drag {
-	width: 72px;
+	width: 56px;
+	max-width: 56px;
 	text-align: center;
-	padding-left: 4px !important;
-	padding-right: 4px !important;
+	vertical-align: middle !important;
+	padding: 10px 4px !important;
 	white-space: nowrap;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
+	/* Keep table-cell layout (display:flex on <td> breaks column width / alignment) */
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-del--left {
@@ -929,14 +927,16 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tabs {
 	/* Full-width continuous rule; active tab green sits above it (not overlapping) */
 	border-bottom: 1px solid #e2e8f0;
 	margin-bottom: 0;
-	/* Giữ ô tìm/thêm SP cố định; list dài chỉ scroll khi user chủ động kéo */
+	/* Giữ ô tìm/thêm SP cố định — nền trắng kín để không che title */
 	position: sticky;
 	top: calc(var(--mk-dash-topbar-h, 56px) + var(--mk-so-sticky-head-h, 0px) + 8px);
-	z-index: 12;
-	background: #fff;
-	padding-top: 4px;
-	padding-bottom: 0;
-	box-shadow: none;
+	z-index: 20;
+	background: #ffffff !important;
+	padding-top: 8px;
+	padding-bottom: 10px;
+	box-shadow: 0 1px 0 #e2e8f0;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-header-actions,
@@ -3035,4 +3035,757 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-quick-search 
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .lineitemTableContainer {
 	padding: 0 4px 4px;
+}
+
+/* —— v6: Chi tiết đơn hàng — modern line card + denser row chrome —— */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lineitems-odoo {
+	border: 1px solid #e6edf5;
+	border-radius: 20px;
+	padding: 16px 16px 12px;
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.9) inset,
+		0 12px 36px rgba(15, 23, 42, 0.06);
+	background:
+		radial-gradient(120% 80% at 100% 0%, rgba(8, 160, 69, 0.04) 0%, transparent 55%),
+		#fff;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lines-card {
+	border: 1px solid #eef2f7;
+	border-radius: 16px;
+	padding: 2px 8px 6px;
+	background: #fbfdff;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tab {
+	font-size: 15px;
+	letter-spacing: -0.015em;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tab.is-active {
+	color: #0b1f14;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tab.is-active::after {
+	height: 3px;
+	background: linear-gradient(90deg, #07963f 0%, #22c55e 55%, #4ade80 100%);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-quick-search .select2-choice {
+	border-radius: 12px !important;
+	min-height: 42px !important;
+	line-height: 40px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fff !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+	padding-left: 14px !important;
+	font-size: 13.5px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table {
+	min-width: 820px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow td {
+	padding: 14px 8px !important;
+	vertical-align: middle !important;
+	border-bottom: 1px solid #eef2f7 !important;
+	background: transparent;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow:hover td {
+	background: rgba(240, 253, 244, 0.55) !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow td.mk-inv-col-product {
+	padding-left: 6px !important;
+	padding-right: 10px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag .mk-inv-del-btn {
+	width: 34px;
+	height: 34px;
+	border-radius: 10px;
+	color: #94a3b8;
+	transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag .mk-inv-del-btn:hover {
+	color: #ef4444;
+	background: #fef2f2;
+	transform: translateY(-1px);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag img {
+	width: 11px;
+	opacity: 0.38;
+	margin-left: 2px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table select.mk-inv-product-native,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-unit-select,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .qty,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines input[name^="qty"],
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .listPrice,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines input[name^="listPrice"] {
+	min-height: 40px !important;
+	border-radius: 11px !important;
+	border-color: #e2e8f0 !important;
+	box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+	font-weight: 600;
+	color: #0f172a;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .itemNameDiv .select2-container .select2-choice {
+	min-height: 40px !important;
+	height: 40px !important;
+	line-height: 38px !important;
+	border-radius: 11px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fff !important;
+	box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+	padding-left: 12px !important;
+	font-weight: 600 !important;
+	color: #0f172a !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .itemNameDiv .select2-container-active .select2-choice,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table select.mk-inv-product-native:focus,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-unit-select:focus,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .qty:focus,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines input[name^="qty"]:focus {
+	border-color: #08a045 !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.12) !important;
+	outline: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-tax-select {
+	min-height: 40px !important;
+	border-radius: 999px !important;
+	border: 1px solid #bbf7d0 !important;
+	background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%) !important;
+	color: #047857 !important;
+	font-weight: 700 !important;
+	box-shadow: 0 1px 0 rgba(8, 160, 69, 0.08);
+	padding: 8px 28px 8px 12px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-qty {
+	width: 88px;
+	min-width: 80px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-unit,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-unit-head {
+	width: 100px;
+	min-width: 92px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-stock-hint {
+	margin-top: 7px;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: #f1f5f9;
+	color: #64748b;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-stock-hint strong {
+	color: #0f172a;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-stock-hint.mk-inv-stock-warn,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-stock-warn {
+	background: #fef2f2;
+	color: #b91c1c;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-price .mk-inv-money-wrap,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-amount .mk-inv-money-wrap {
+	min-height: 40px;
+	height: 40px;
+	border-radius: 11px;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	padding: 0 10px 0 11px;
+	box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap:focus-within {
+	border-color: #08a045;
+	background: #fff;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.11);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-prefix {
+	font-size: 12px;
+	font-weight: 700;
+	color: #94a3b8;
+	margin-right: 4px;
+	letter-spacing: 0.02em;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap--total {
+	background: #f8fafc;
+	border-color: #e2e8f0;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult {
+	max-width: 340px;
+	padding: 16px 18px !important;
+	border-radius: 18px;
+	border: 1px solid rgba(8, 160, 69, 0.16) !important;
+	background:
+		radial-gradient(120% 90% at 100% 0%, rgba(8, 160, 69, 0.1) 0%, transparent 50%),
+		linear-gradient(165deg, #ffffff 0%, #f4fbf7 60%, #edf9f2 100%);
+	box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo .mk-inv-totals-label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #64748b;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .mk-inv-totals-label {
+	font-size: 15px;
+	font-weight: 800;
+	color: #0f172a;
+	letter-spacing: -0.01em;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .mk-inv-vnd__num,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand #grandTotal,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .grandTotal {
+	font-size: 22px !important;
+	letter-spacing: -0.02em;
+}
+
+html.mk-inv-odoo-active body[data-view="Edit"] #lineItemTab tr.mk-inv-header-row td.mk-inv-col-drag {
+	width: 56px;
+}
+
+/* —— v7: world-class CRM line items (Attio / Linear density + green brand) —— */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lineitems-odoo {
+	--mk-line-border: #e8edf4;
+	--mk-line-surface: #ffffff;
+	--mk-line-muted: #64748b;
+	--mk-line-ink: #0f172a;
+	--mk-line-green: #08a045;
+	--mk-line-green-soft: rgba(8, 160, 69, 0.1);
+	--mk-line-tabs-stick-top: calc(var(--mk-dash-topbar-h, 56px) + var(--mk-so-sticky-head-h, 0px) + 4px);
+	--mk-line-tabs-h: 58px;
+	position: relative;
+	border: 1px solid var(--mk-line-border);
+	border-radius: 22px;
+	padding: 0;
+	/* sticky + overflow:hidden makes search overlay column titles */
+	overflow: visible;
+	background:
+		radial-gradient(90% 60% at 100% -10%, rgba(8, 160, 69, 0.07) 0%, transparent 55%),
+		linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.95) inset,
+		0 18px 48px rgba(15, 23, 42, 0.06);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lineitems-odoo > .mk-inv-odoo-tabs,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tabs {
+	margin: 0 !important;
+	padding: 12px 18px !important;
+	border-bottom: 1px solid #edf1f6 !important;
+	/* Opaque bar — no transparent blur that ghosts titles underneath */
+	background: #ffffff !important;
+	position: sticky;
+	top: var(--mk-line-tabs-stick-top, calc(var(--mk-dash-topbar-h, 56px) + var(--mk-so-sticky-head-h, 0px) + 4px));
+	z-index: 20;
+	backdrop-filter: none !important;
+	-webkit-backdrop-filter: none !important;
+	box-shadow: 0 1px 0 #edf1f6;
+	align-items: center;
+	min-height: var(--mk-line-tabs-h, 58px);
+	box-sizing: border-box;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tab {
+	padding: 12px 2px 14px;
+	font-size: 14.5px;
+	font-weight: 600;
+	color: #94a3b8;
+	letter-spacing: -0.015em;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tab.is-active {
+	color: var(--mk-line-ink);
+	font-weight: 750;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tab.is-active::after {
+	height: 3px;
+	border-radius: 999px 999px 0 0;
+	background: linear-gradient(90deg, #067a38, #08a045 40%, #34d399);
+	box-shadow: 0 0 12px rgba(8, 160, 69, 0.35);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-quick-search .select2-choice {
+	min-height: 42px !important;
+	height: 42px !important;
+	line-height: 40px !important;
+	border-radius: 12px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fff !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+	font-size: 13.5px !important;
+	font-weight: 500 !important;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-quick-search .select2-container-active .select2-choice,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-quick-search .select2-choice:hover {
+	border-color: #86efac !important;
+	box-shadow: 0 0 0 3px var(--mk-line-green-soft) !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lines-card {
+	margin: 12px 14px 14px;
+	padding: 0;
+	border: 1px solid #eef2f7;
+	border-radius: 16px;
+	background: #fff;
+	box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+	overflow-x: auto;
+	overflow-y: visible;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .lineitemTableContainer {
+	padding: 0 !important;
+	border: none !important;
+	background: transparent !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table {
+	min-width: 900px;
+	border-collapse: separate !important;
+	border-spacing: 0;
+}
+
+/* Hide row number ghosts next to drag/delete (legacy text/inputs leakage) */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag input,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag .rowNumber,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag input.rowNumber {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	border: 0 !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.mk-inv-header-row td,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines > tr:first-child td,
+html.mk-inv-odoo-active body[data-view="Edit"] #lineItemTab tr.mk-inv-header-row td {
+	position: sticky !important;
+	top: calc(var(--mk-line-tabs-stick-top, 60px) + var(--mk-line-tabs-h, 58px));
+	z-index: 12;
+	background: #f7f9fc !important;
+	border: none !important;
+	border-bottom: 1px solid #e8edf4 !important;
+	padding: 11px 10px !important;
+	color: #64748b;
+	box-shadow: 0 1px 0 #e8edf4;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-th-label,
+html.mk-inv-odoo-active body[data-view="Edit"] #lineItemTab tr.mk-inv-header-row .mk-inv-th-label {
+	font-size: 10.5px;
+	font-weight: 750;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #64748b;
+	visibility: visible !important;
+	opacity: 1 !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow td {
+	padding: 14px 10px !important;
+	vertical-align: middle !important;
+	border: none !important;
+	border-bottom: 1px solid #f1f5f9 !important;
+	background: #fff;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow:last-child td {
+	border-bottom: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow:hover td {
+	background: #f7fdf9 !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow td.mk-inv-col-drag {
+	width: 52px;
+	max-width: 52px;
+	padding: 14px 4px !important;
+	text-align: center;
+	vertical-align: middle !important;
+	position: relative;
+	white-space: nowrap;
+	font-size: 0;
+	line-height: 0;
+	color: transparent;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag .mk-inv-line-del,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag .mk-inv-del-btn,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag img,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag a {
+	font-size: 14px;
+	line-height: 1;
+	color: #94a3b8;
+	vertical-align: middle;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag .mk-inv-del-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 10px;
+	color: #94a3b8;
+	background: transparent;
+	transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag .mk-inv-del-btn:hover {
+	color: #ef4444;
+	background: #fef2f2;
+	transform: translateY(-1px);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-drag img {
+	width: 11px;
+	opacity: 0.4;
+	margin-left: 2px;
+	cursor: grab;
+}
+
+/* Unified control chrome */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table select.mk-inv-product-native,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-unit-select,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .qty,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines input[name^="qty"] {
+	min-height: 42px !important;
+	border-radius: 12px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fbfcfe !important;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+	font-weight: 600;
+	font-size: 13.5px !important;
+	color: var(--mk-line-ink);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .itemNameDiv .select2-container .select2-choice {
+	min-height: 42px !important;
+	height: 42px !important;
+	line-height: 40px !important;
+	border-radius: 12px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fbfcfe !important;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+	padding-left: 14px !important;
+	font-weight: 600 !important;
+	font-size: 13.5px !important;
+	color: var(--mk-line-ink) !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .itemNameDiv .select2-container-active .select2-choice,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table select.mk-inv-product-native:focus,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-unit-select:focus,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .qty:focus,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines input[name^="qty"]:focus {
+	border-color: var(--mk-line-green) !important;
+	background: #fff !important;
+	box-shadow: 0 0 0 3px var(--mk-line-green-soft) !important;
+	outline: none !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-tax-select {
+	min-height: 42px !important;
+	border-radius: 999px !important;
+	border: 1px solid #bbf7d0 !important;
+	background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%) !important;
+	color: #047857 !important;
+	font-weight: 750 !important;
+	font-size: 13px !important;
+	box-shadow: 0 1px 0 rgba(8, 160, 69, 0.08);
+	padding: 8px 28px 8px 12px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-price .mk-inv-money-wrap,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-amount .mk-inv-money-wrap {
+	min-height: 42px;
+	height: 42px;
+	border-radius: 12px;
+	border: 1px solid #e2e8f0;
+	background: #fbfcfe;
+	padding: 0 12px 0 12px;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+	gap: 4px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap:focus-within {
+	border-color: var(--mk-line-green);
+	background: #fff;
+	box-shadow: 0 0 0 3px var(--mk-line-green-soft);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-prefix {
+	font-size: 12px;
+	font-weight: 700;
+	color: #94a3b8;
+	margin-right: 2px;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap--total {
+	background: #f1f5f9;
+	border-color: #e2e8f0;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-stock-hint {
+	margin-top: 8px;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 9px;
+	border-radius: 999px;
+	background: #f1f5f9;
+	border: 1px solid #e2e8f0;
+	color: #64748b;
+	font-size: 11px;
+	font-weight: 650;
+	line-height: 1.3;
+	letter-spacing: 0.01em;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-stock-hint strong {
+	color: #0f172a;
+	font-weight: 750;
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-stock-hint.mk-inv-stock-warn,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-stock-warn {
+	background: #fef2f2;
+	border-color: #fecaca;
+	color: #b91c1c;
+}
+
+/* Totals summary — receipt card */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo {
+	padding: 4px 8px 8px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult {
+	max-width: 340px;
+	padding: 18px 20px !important;
+	border-radius: 18px;
+	border: 1px solid rgba(8, 160, 69, 0.16) !important;
+	background:
+		radial-gradient(110% 90% at 100% 0%, rgba(8, 160, 69, 0.12) 0%, transparent 52%),
+		linear-gradient(165deg, #ffffff 0%, #f3fbf6 58%, #eaf8f0 100%);
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.9) inset,
+		0 16px 36px rgba(15, 23, 42, 0.07);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row td {
+	padding: 10px 0 !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo .mk-inv-totals-label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #64748b;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--tax td {
+	border-bottom: 1px solid rgba(148, 163, 184, 0.28) !important;
+	padding-bottom: 14px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand td {
+	padding-top: 14px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .mk-inv-totals-label {
+	font-size: 15px;
+	font-weight: 800;
+	color: #0f172a;
+	letter-spacing: -0.015em;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .mk-inv-vnd__num,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand #grandTotal,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--grand .grandTotal {
+	font-size: 24px !important;
+	letter-spacing: -0.03em;
+	color: #08a045 !important;
+	font-weight: 800 !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-header-actions .mk-inv-add-line-btn,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-qt-line-actions .mk-inv-add-line-btn {
+	border-radius: 999px !important;
+	border: 1px solid #bbf7d0 !important;
+	background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%) !important;
+	color: #047857 !important;
+	font-weight: 750 !important;
+	box-shadow: 0 1px 0 rgba(8, 160, 69, 0.1);
+	padding: 9px 16px !important;
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-header-actions .mk-inv-add-line-btn:hover,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-qt-line-actions .mk-inv-add-line-btn:hover {
+	background: #dcfce7 !important;
+	border-color: #86efac !important;
+	color: #166534 !important;
+}
+
+
+/* —— Final layout guards: search must never cover column titles —— */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lineitems-odoo {
+	overflow: visible !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-tabs,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lineitems-odoo > .mk-inv-odoo-tabs,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-inv-odoo-tabs.mk-so-line-tabs--sticky,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-inv-odoo-tabs {
+	position: sticky !important;
+	top: calc(var(--mk-dash-topbar-h, 56px) + var(--mk-so-sticky-head-h, 0px) + 4px) !important;
+	z-index: 25 !important;
+	background: #ffffff !important;
+	backdrop-filter: none !important;
+	-webkit-backdrop-filter: none !important;
+	padding: 12px 16px !important;
+	margin: 0 0 10px 0 !important;
+	border-bottom: 1px solid #e8edf4 !important;
+	box-shadow: none !important;
+	min-height: 56px;
+	box-sizing: border-box;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lines-card {
+	position: relative;
+	z-index: 1;
+	margin-top: 0 !important;
+	clear: both;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.mk-inv-header-row,
+html.mk-inv-odoo-active body[data-view="Edit"] #lineItemTab tr.mk-inv-header-row {
+	display: table-row !important;
+	visibility: visible !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.mk-inv-header-row td,
+html.mk-inv-odoo-active body[data-view="Edit"] #lineItemTab tr.mk-inv-header-row td {
+	position: relative !important;
+	top: auto !important;
+	z-index: 1;
+	visibility: visible !important;
+	opacity: 1 !important;
+	background: #f7f9fc !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-th-label {
+	visibility: visible !important;
+	opacity: 1 !important;
+	color: #64748b !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-line-header-actions,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-qt-line-actions {
+	flex: 0 1 380px;
+	max-width: min(400px, 48vw);
+	min-width: 200px;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-quick-search {
+	max-width: 100%;
+}
+
+
+/* —— Align line filters on one horizontal baseline —— */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow > td,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table tr.lineItemRow > td {
+	vertical-align: top !important;
+	padding-top: 12px !important;
+	padding-bottom: 12px !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow > td.mk-inv-col-drag {
+	vertical-align: top !important;
+	padding-top: 16px !important;
+	line-height: 0 !important;
+	font-size: 0 !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow > td.mk-inv-col-qty {
+	vertical-align: top !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-qty .qty,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-qty input[name^="qty"] {
+	display: block;
+	width: 100% !important;
+	min-height: 42px !important;
+	height: 42px !important;
+	margin: 0 !important;
+	box-sizing: border-box;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-stock-hint {
+	display: inline-flex !important;
+	margin-top: 6px !important;
+	position: relative;
+	z-index: 0;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-unit-select,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-tax-select,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table select.mk-inv-product-native {
+	min-height: 42px !important;
+	height: 42px !important;
+	box-sizing: border-box;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .itemNameDiv .select2-container .select2-choice,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .itemNameDiv .select2-container {
+	min-height: 42px !important;
+	height: 42px !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-odoo-lines-table .itemNameDiv .select2-container .select2-choice {
+	line-height: 40px !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-price .mk-inv-money-wrap,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-amount .mk-inv-money-wrap,
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-money-wrap {
+	min-height: 42px !important;
+	height: 42px !important;
+	box-sizing: border-box;
+	align-items: center !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow > td.mk-inv-col-tax {
+	vertical-align: top !important;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow > td.mk-inv-col-tax .mk-inv-tax-select {
+	display: block;
+	width: 100%;
+	margin: 0 auto;
 }

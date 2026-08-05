@@ -687,29 +687,42 @@
 		if (!body) return;
 		body.innerHTML = catalog
 			.map(function (g) {
-				var chips = (g.tags || [])
-					.map(function (item) {
-						var on = !!selectedTags[item.key];
-						var cls = item.cls || '';
-						if (!cls && ref() && ref().tagMeta) {
-							cls = (ref().tagMeta(item.key) || {}).cls || '';
-						}
-						return (
-							'<button type="button" class="mk-ct-tag-chip' +
-							(cls ? ' ' + esc(cls) : '') +
-							(on ? ' is-on' : '') +
-							'" data-tag="' +
-							esc(item.key) +
-							'" data-group="' +
-							esc(g.id) +
-							'" aria-pressed="' +
-							(on ? 'true' : 'false') +
-							'">' +
-							esc(item.label) +
-							'</button>'
-						);
-					})
-					.join('');
+				var tags = g.tags || [];
+				function chipBtn(item) {
+					var on = !!selectedTags[item.key];
+					var cls = item.cls || '';
+					if (!cls && ref() && ref().tagMeta) {
+						cls = (ref().tagMeta(item.key) || {}).cls || '';
+					}
+					return (
+						'<button type="button" class="mk-ct-tag-chip' +
+						(cls ? ' ' + esc(cls) : '') +
+						(on ? ' is-on' : '') +
+						'" data-tag="' +
+						esc(item.key) +
+						'" data-group="' +
+						esc(g.id) +
+						'" aria-pressed="' +
+						(on ? 'true' : 'false') +
+						'">' +
+						esc(item.label) +
+						'</button>'
+					);
+				}
+				// Chăm sóc / nhóm dài: luôn 2 hàng (dòng), chia đều — không 1 hàng + scroll ngang
+				var use2Rows = g.id === 'care' || tags.length > 10;
+				var chipsHtml;
+				if (use2Rows && tags.length > 1) {
+					var mid = Math.ceil(tags.length / 2);
+					chipsHtml =
+						'<div class="mk-ct-tag-group__row">' +
+						tags.slice(0, mid).map(chipBtn).join('') +
+						'</div><div class="mk-ct-tag-group__row">' +
+						tags.slice(mid).map(chipBtn).join('') +
+						'</div>';
+				} else {
+					chipsHtml = tags.map(chipBtn).join('');
+				}
 				return (
 					'<div class="mk-ct-tag-group" data-group="' +
 					esc(g.id) +
@@ -717,8 +730,10 @@
 					'<div class="mk-ct-tag-group__title">' +
 					esc(g.label) +
 					'</div>' +
-					'<div class="mk-ct-tag-group__chips">' +
-					chips +
+					'<div class="mk-ct-tag-group__chips' +
+					(use2Rows && tags.length > 1 ? ' mk-ct-tag-group__chips--2rows' : '') +
+					'">' +
+					chipsHtml +
 					'</div></div>'
 				);
 			})

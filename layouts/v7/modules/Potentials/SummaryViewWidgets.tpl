@@ -14,8 +14,6 @@
 			{assign var=CONTACT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 		{elseif ($DETAIL_VIEW_WIDGET->get('linkName') eq 'ProductsServices')}
 			{assign var=PRODUCT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
-		{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'ModComments')}
-			{assign var=COMMENTS_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 		{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'LBL_UPDATES')}
 			{assign var=UPDATES_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 		{/if}
@@ -227,17 +225,7 @@
 		<div id="relatedActivities">
 			{$RELATED_ACTIVITIES}
 		</div>
-		{if $COMMENTS_WIDGET_MODEL}
-			<div class="summaryWidgetContainer">
-				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header clearfix">
-						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-						<h4 class="display-inline-block">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
-					</div>
-					<div class="widget_contents"></div>
-				</div>
-			</div>
-		{/if}
+		
 	</div>
 
 	<div class="right-block col-lg-4 col-sm-4 col-md-4">

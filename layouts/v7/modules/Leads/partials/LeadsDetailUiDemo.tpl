@@ -104,12 +104,6 @@
 							&nbsp;<span class="numberCircle" data-count="0" data-badge="calendar">0</span>
 						</a>
 					</li>
-					<li class="tab-item" data-module="ModComments" data-mk-scroll="comments" title="{vtranslate('ModComments', 'ModComments')}">
-						<a href="javascript:void(0)" class="textOverflowEllipsis">
-							<span class="tab-icon mk-lead-tab-icon">{include file="partials/LeadDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='ModComments'}</span>
-							&nbsp;<span class="numberCircle" data-count="0" data-badge="comments">0</span>
-						</a>
-					</li>
 				</ul>
 			</div>
 		</nav>
@@ -129,6 +123,28 @@
 								<div class="summaryViewFields mk-lead-detail-kv-wrap" id="mk-ld-ui-key-fields"></div>
 							</div>
 						</section>
+						</div>
+
+						<div class="mk-lead-detail-summary-stack mk-lead-detail-summary-stack--right">
+						<section class="mk-lead-detail-card mk-lead-detail-card--activities mk-lead-detail-grid__activities" id="mk-ld-ui-section-activities">
+							<div id="relatedActivities" class="mk-lead-detail-related-activities">
+								<div class="summaryWidgetContainer">
+									<div class="widget_header clearfix">
+										<h4 class="display-inline-block pull-left mk-lead-detail-card__title">{vtranslate('LBL_ACTIVITIES', 'Calendar')}</h4>
+										<div class="pull-right" style="margin-top: -5px;">
+											<button type="button" class="btn addButton btn-sm btn-default mk-lead-detail-btn mk-lead-detail-btn--ghost createActivity toDotask" data-mk-qc="task" title="{vtranslate('LBL_ADD_TASK', 'Calendar')}">
+												<i class="fa fa-plus"></i>&nbsp;&nbsp;{vtranslate('LBL_ADD_TASK', 'Calendar')}
+											</button>&nbsp;&nbsp;
+											<button type="button" class="btn addButton btn-sm btn-default mk-lead-detail-btn mk-lead-detail-btn--ghost createActivity" data-mk-qc="meeting" data-name="Events" title="{vtranslate('LBL_ADD_EVENT', 'Calendar')}">
+												<i class="fa fa-plus"></i>&nbsp;&nbsp;{vtranslate('LBL_ADD_EVENT', 'Calendar')}
+											</button>
+										</div>
+									</div>
+									<div class="widget_contents" id="mk-ld-ui-activities"></div>
+								</div>
+							</div>
+						</section>
+						</div>
 
 						<section class="mk-lead-detail-card mk-lead-detail-card--activity-log mk-lead-detail-grid__activity-log" id="mk-ld-ui-section-activity-log">
 							<div class="mk-lead-detail-card__head mk-lead-activity-log__head">
@@ -208,51 +224,6 @@
 								</div>
 							</div>
 						</section>
-						</div>
-
-						<div class="mk-lead-detail-summary-stack mk-lead-detail-summary-stack--right">
-						<section class="mk-lead-detail-card mk-lead-detail-card--activities mk-lead-detail-grid__activities" id="mk-ld-ui-section-activities">
-							<div id="relatedActivities" class="mk-lead-detail-related-activities">
-								<div class="summaryWidgetContainer">
-									<div class="widget_header clearfix">
-										<h4 class="display-inline-block pull-left mk-lead-detail-card__title">{vtranslate('LBL_ACTIVITIES', 'Calendar')}</h4>
-										<div class="pull-right" style="margin-top: -5px;">
-											<button type="button" class="btn addButton btn-sm btn-default mk-lead-detail-btn mk-lead-detail-btn--ghost createActivity toDotask" data-mk-qc="task" title="{vtranslate('LBL_ADD_TASK', 'Calendar')}">
-												<i class="fa fa-plus"></i>&nbsp;&nbsp;{vtranslate('LBL_ADD_TASK', 'Calendar')}
-											</button>&nbsp;&nbsp;
-											<button type="button" class="btn addButton btn-sm btn-default mk-lead-detail-btn mk-lead-detail-btn--ghost createActivity" data-mk-qc="meeting" data-name="Events" title="{vtranslate('LBL_ADD_EVENT', 'Calendar')}">
-												<i class="fa fa-plus"></i>&nbsp;&nbsp;{vtranslate('LBL_ADD_EVENT', 'Calendar')}
-											</button>
-										</div>
-									</div>
-									<div class="widget_contents" id="mk-ld-ui-activities"></div>
-								</div>
-							</div>
-						</section>
-
-						<section class="mk-lead-detail-card mk-lead-detail-card--comments mk-lead-detail-grid__comments" id="mk-ld-ui-section-comments">
-							<div class="summaryWidgetContainer mk-lead-detail-widget-host">
-								<div class="widgetContainer_comments">
-									<div class="widget_header mk-lead-detail-card__head">
-										<h2 class="mk-lead-detail-card__title">{vtranslate('ModComments', 'ModComments')}</h2>
-									</div>
-									<div class="widget_contents">
-										<div class="commentContainer">
-											<div class="addCommentBlock">
-												<textarea class="commentTextArea" id="mk-ld-ui-comment" rows="5" placeholder="{vtranslate('LBL_POST_YOUR_COMMENT_HERE', 'Vtiger')}"></textarea>
-												<div class="row" style="margin-top: 8px;">
-													<div class="col-lg-12 text-right">
-														<button type="button" class="btn btn-success saveComment" id="mk-ld-ui-post-comment">{vtranslate('LBL_POST', 'ModComments')}</button>
-													</div>
-												</div>
-											</div>
-											<div class="recentCommentsBody" id="mk-ld-ui-comments-list"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</section>
-						</div>
 					</div>
 				</div>
 			</form>

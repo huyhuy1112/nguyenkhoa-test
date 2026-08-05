@@ -3,8 +3,6 @@
 {foreach item=DETAIL_VIEW_WIDGET from=$DETAILVIEW_LINKS['DETAILVIEWWIDGET']}
 	{if ($DETAIL_VIEW_WIDGET->getLabel() eq 'Documents') }
 		{assign var=DOCUMENT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
-	{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'ModComments')}
-		{assign var=COMMENTS_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 	{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'LBL_UPDATES')}
 		{assign var=UPDATES_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 	{/if}
@@ -113,17 +111,7 @@
 			{$RELATED_ACTIVITIES}
 		</div>
 
-		{if $COMMENTS_WIDGET_MODEL}
-			<div class="summaryWidgetContainer">
-				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header">
-						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-						<h4 class="display-inline-block">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
-					</div>
-					<div class="widget_contents"></div>
-				</div>
-			</div>
-		{/if}
+		
 	</div>
 {/if}
 {/strip}

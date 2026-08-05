@@ -1759,10 +1759,11 @@ body[data-module="Potentials"][data-view="Edit"] .mk-opp-list-parity__field .inp
 }
 body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group {
 	margin-bottom: 16px;
-	padding: 14px 16px;
+	padding: 14px 16px 16px;
 	border-radius: 14px;
 	background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
 	border: 1px solid rgba(64, 98, 126, 0.1);
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__title {
 	font-size: 12px;
@@ -1770,38 +1771,104 @@ body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__title {
 	letter-spacing: 0.05em;
 	text-transform: uppercase;
 	color: #64748b;
-	margin-bottom: 10px;
+	margin-bottom: 12px;
 }
 body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__chips {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 }
+/* Chăm sóc / trạng thái — đúng 2 hàng, mỗi hàng scroll ngang nếu dài */
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group[data-group="care"] .mk-opp-tag-group__chips,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__chips--cols2,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__chips--wrap,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__chips--2rows {
+	display: flex;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	gap: 8px;
+	align-items: stretch;
+	max-width: 100%;
+	min-width: 0;
+	overflow: visible;
+	padding: 0;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__row {
+	display: flex;
+	flex-wrap: nowrap;
+	gap: 8px;
+	align-items: center;
+	min-width: 0;
+	max-width: 100%;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior-x: contain;
+	scrollbar-width: thin;
+	scrollbar-color: #94a3b8 #f1f5f9;
+	padding: 2px 2px 8px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__row::-webkit-scrollbar {
+	height: 8px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__row::-webkit-scrollbar-track {
+	background: #f1f5f9;
+	border-radius: 999px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__row::-webkit-scrollbar-thumb {
+	background: #94a3b8;
+	border-radius: 999px;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group[data-group="care"] .mk-opp-tag-group__col,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__chips--cols2 .mk-opp-tag-group__col {
+	display: contents;
+}
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group[data-group="care"] .mk-opp-tag-chip,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__chips--2rows .mk-opp-tag-chip,
+body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__row .mk-opp-tag-chip {
+	flex: 0 0 auto;
+	max-width: none;
+	white-space: nowrap;
+	padding: 6px 11px;
+	font-size: 12.5px;
+	line-height: 1.25;
+}
+@media (max-width: 720px) {
+	body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group[data-group="care"] .mk-opp-tag-group__chips,
+	body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-group__chips--2rows {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		overflow: visible;
+	}
+}
 body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip {
 	appearance: none;
-	border: 1px solid #d8dee6;
-	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	background: #fff;
 	color: #334155;
 	border-radius: 999px;
 	padding: 7px 12px;
 	font-size: 13px;
 	font-weight: 600;
-	line-height: 1.2;
+	line-height: 1.25;
 	cursor: pointer;
-	transition: transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
-	opacity: 0.72;
-	filter: saturate(0.85);
+	transition: transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
+	opacity: 0.92;
+	filter: saturate(0.92);
+	box-shadow: 0 1px 1px rgba(15, 23, 42, 0.03);
 }
 body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip:hover {
 	opacity: 1;
 	filter: saturate(1);
 	transform: translateY(-1px);
+	box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
 }
 body[data-module="Potentials"][data-view="Edit"] .mk-opp-tag-chip.is-on {
 	opacity: 1;
 	filter: saturate(1.05);
 	font-weight: 700;
-	box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+	box-shadow: 0 0 0 1px rgba(8, 160, 69, 0.12), 0 4px 12px rgba(8, 160, 69, 0.1);
 	transform: translateY(-1px);
 }
 

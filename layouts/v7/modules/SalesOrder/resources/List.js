@@ -2260,6 +2260,102 @@
           confirmSalesOrderWithWarehouse($panel, recordId, $btn);
         },
       );
+
+    $(document)
+      .off("click.mkSoMisa", ".mk-so-inline-detail__misa-btn")
+      .on("click.mkSoMisa", ".mk-so-inline-detail__misa-btn", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $link = $(this);
+        var $panel = $link.closest(".mk-so-inline-detail");
+        var recordId =
+          String($link.attr("data-record-id") || "") ||
+          String($panel.data("record-id") || "");
+        if (!recordId) {
+          return;
+        }
+        transferSalesOrderToMisa(recordId, $link);
+      });
+  }
+
+  function transferSalesOrderToMisa(recordId, $trigger) {
+    recordId = String(recordId || "");
+    if (!recordId) {
+      return;
+    }
+    if ($trigger && $trigger.data("mkBusy")) {
+      return;
+    }
+    var message =
+      "Chuyển đơn hàng #" + recordId + " đến kế toán MISA?";
+    var run = function () {
+      if ($trigger && $trigger.length) {
+        $trigger.data("mkBusy", 1);
+      }
+      var postData = {
+        module: "SalesOrder",
+        action: "TransferToMisa",
+        record: recordId,
+        app: "SALES",
+      };
+      if (app.helper && app.helper.showProgress) {
+        app.helper.showProgress();
+      }
+      var finish = function () {
+        if (app.helper && app.helper.hideProgress) {
+          app.helper.hideProgress();
+        }
+        if ($trigger && $trigger.length) {
+          $trigger.data("mkBusy", 0);
+        }
+        try {
+          $trigger.closest(".btn-group.open").removeClass("open");
+        } catch (e) {
+          /* ignore */
+        }
+      };
+      if (!app.request || !app.request.post) {
+        finish();
+        if (app.helper && app.helper.showErrorNotification) {
+          app.helper.showErrorNotification({
+            message: "Không gọi được API chuyển MISA.",
+          });
+        } else {
+          window.alert("Không gọi được API chuyển MISA.");
+        }
+        return;
+      }
+      app.request.post({ data: postData }).then(function (err, res) {
+        finish();
+        if (err) {
+          if (app.helper && app.helper.showErrorNotification) {
+            app.helper.showErrorNotification({
+              message:
+                (err && err.message) ||
+                "Không chuyển được đơn sang MISA.",
+            });
+          } else {
+            window.alert(
+              (err && err.message) || "Không chuyển được đơn sang MISA.",
+            );
+          }
+          return;
+        }
+        var okMsg =
+          (res && (res.message || res.msg)) ||
+          "Đã gửi đơn hàng sang kế toán MISA.";
+        if (app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({ message: okMsg });
+        } else {
+          window.alert(okMsg);
+        }
+      });
+    };
+    if (app.helper && app.helper.showConfirmationBox) {
+      app.helper.showConfirmationBox({ message: message }).then(run);
+    } else if (window.confirm(message)) {
+      run();
+    }
   }
 
   function paidFieldName() {

@@ -975,18 +975,18 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-r
 }
 
 /* ============================================================================
- * SUMMARY GRID: left = Key + Documents, right = Activities + Comments
+ * SUMMARY GRID — slim: key | activities, documents full width
  * ========================================================================== */
 
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid {
-	margin: 24px 0 0;
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid--slim {
+	margin: 20px 0 0;
 	display: grid;
-	grid-template-columns: minmax(300px, 1fr) minmax(0, 1.4fr);
+	grid-template-columns: minmax(0, 1.55fr) minmax(260px, 0.85fr);
 	grid-template-areas:
 		"key activities"
-		"overview overview"
-		"documents comments";
-	gap: 20px;
+		"documents documents";
+	gap: 16px;
 	align-items: start;
 	width: 100%;
 	min-width: 0;
@@ -1002,7 +1002,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__overview {
-	grid-area: overview;
+	display: none !important;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__documents {
@@ -1010,7 +1010,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__comments {
-	grid-area: comments;
+	display: none !important;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__recent,
@@ -1019,14 +1019,13 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-c
 }
 
 @media (max-width: 991px) {
-	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid {
+	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid,
+	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid--slim {
 		grid-template-columns: 1fr;
 		grid-template-areas:
 			"key"
 			"activities"
-			"overview"
-			"documents"
-			"comments";
+			"documents";
 	}
 }
 
@@ -1104,19 +1103,19 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-c
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card--key {
-	min-height: 220px;
+	min-height: 0;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card--activities {
-	min-height: 170px;
+	min-height: 0;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card--documents {
-	min-height: 170px;
+	min-height: 0;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card--comments {
-	min-height: 230px;
+	display: none !important;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card__head {
@@ -1204,11 +1203,21 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-heading-
 }
 
 /* ============================================================================
- * KEY FIELDS card: label-above-value, vertical rhythm
+ * KEY FIELDS card: dense 2-column chips (like Create summary rail)
  * ========================================================================== */
 
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card--key {
+	min-height: 0;
+	padding: 20px 22px;
+}
+
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card--key .mk-qt-detail-card__head {
-	padding: 0 0 10px;
+	padding: 0 0 14px;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card--activities {
+	min-height: 0;
+	padding: 20px 22px;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap {
@@ -1225,22 +1234,27 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-k
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table tbody {
-	display: flex;
-	flex-direction: column;
-	gap: 0;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px 14px;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table tr.summaryViewEntries {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
-	row-gap: 4px;
-	align-items: start;
-	padding: 10px 0;
-	border-bottom: 1px solid #f1ebde;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	align-items: stretch;
+	margin: 0;
+	padding: 12px 14px;
+	border: 1px solid #e8eef4;
+	border-radius: 10px;
+	background: #f8fafc;
+	box-sizing: border-box;
+	min-width: 0;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table tr.summaryViewEntries:last-child {
-	border-bottom: none;
+	border-bottom: 1px solid #e8eef4;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table td {
@@ -1256,33 +1270,38 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-k
 	display: block !important;
 	width: 100% !important;
 	font-size: 11px;
-	font-weight: 700;
-	letter-spacing: 0.08em;
+	font-weight: 600;
+	letter-spacing: 0.04em;
 	text-transform: uppercase;
-	color: #94a3b8;
-	margin-bottom: 2px;
+	color: #64748b;
+	margin-bottom: 0;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table td.fieldLabel label {
 	margin: 0;
 	font-weight: inherit;
 	color: inherit;
+	text-transform: inherit;
+	letter-spacing: inherit;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table td.fieldValue {
 	display: block !important;
 	width: 100% !important;
-	font-size: 15px;
+	font-size: 14px;
 	font-weight: 600;
-	color: #2b2b2b;
+	color: #0f172a;
 	text-align: left;
 	word-break: break-word;
+	min-height: 1.25em;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table td.fieldValue .value {
 	font-weight: 600;
 	color: inherit;
-	font-size: 15px;
+	font-size: 14px;
+	white-space: normal;
+	display: block;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table td.fieldValue a {
@@ -1293,6 +1312,18 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-k
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table td.fieldValue a:hover {
 	color: #08A045;
 	text-decoration: underline;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table .mk-qt-summary-currency,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table td.fieldValue .mk-qt-summary-currency {
+	color: #0B6E4F;
+	font-size: 15px;
+}
+
+@media (max-width: 640px) {
+	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-kv-wrap .summary-table tbody {
+		grid-template-columns: 1fr;
+	}
 }
 
 /* ============================================================================
@@ -1876,6 +1907,347 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-d
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .blockToggle {
 	opacity: 0.65;
+}
+
+/* ---------- Tab Chi tiết: field cards + line items modern ---------- */
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .block {
+	margin: 0 !important;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	padding: 18px 20px 20px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .block > div:first-child h4 {
+	font-family: Inter, system-ui, sans-serif;
+	font-size: 13px;
+	font-weight: 700;
+	margin: 0 0 14px;
+	padding: 0 0 10px;
+	border-bottom: 1px solid #f1f5f9;
+	color: #0f172a;
+	text-transform: none;
+	letter-spacing: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .block > div:first-child h4 .blockToggle {
+	order: -1;
+	opacity: 0.55;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .block hr {
+	display: none;
+}
+
+/* Ẩn field / block thừa (Create không dùng) */
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_carrier,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_carrier,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_shipping,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_shipping,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_inventorymanager,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_inventorymanager,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_assigned_user_id1,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_assigned_user_id1,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_bill_pobox,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_bill_pobox,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_bill_city,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_bill_city,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_bill_state,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_bill_state,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_bill_code,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_bill_code,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_bill_country,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_bill_country,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_ship_pobox,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_ship_pobox,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_ship_city,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_ship_city,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_ship_state,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_ship_state,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_ship_code,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_ship_code,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_ship_country,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_ship_country,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_source,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_source,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_campaignid,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_campaignid,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_terms_conditions,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_terms_conditions,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldLabel_potential_id,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #Quotes_detailView_fieldValue_potential_id,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .block[data-block="LBL_DESCRIPTION_INFORMATION"],
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .block_LBL_DESCRIPTION_INFORMATION,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .block[data-block="LBL_TERMS_INFORMATION"],
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .block_LBL_TERMS_INFORMATION,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .block[data-block="LBL_TERMS_AND_CONDITIONS"],
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .mk-qt-block--empty {
+	display: none !important;
+}
+
+/* Field card grid — equal cells, no jagged gaps */
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+	margin: 0;
+	width: 100%;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+	padding: 12px 14px;
+	border: 1px solid #e8eef4;
+	border-radius: 12px;
+	background: linear-gradient(180deg, #f8fafc 0%, #ffffff 70%);
+	box-sizing: border-box;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card--wide {
+	grid-column: span 2;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card__label {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #64748b;
+	line-height: 1.3;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card__value {
+	font-size: 14px;
+	font-weight: 600;
+	color: #0f172a;
+	line-height: 1.4;
+	word-break: break-word;
+	position: relative;
+	min-height: 1.25em;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card__value .value {
+	font-weight: 600;
+	color: inherit;
+	white-space: normal;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card__value a {
+	color: #0b6e4f;
+	text-decoration: none;
+	font-weight: 600;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card__value a:hover {
+	color: #08a045;
+	text-decoration: underline;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card__edit {
+	opacity: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+	transition: opacity 0.12s ease;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card:hover .mk-qt-field-card__edit {
+	opacity: 0.55;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card[data-field="quotestage"] .mk-qt-field-card__value .value {
+	display: inline-flex;
+	align-items: center;
+	padding: 3px 10px;
+	border-radius: 999px;
+	background: #ecfdf5;
+	color: #047857;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+/* Hide legacy tables once JS built the grid (fallback before JS: keep readable) */
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-block--fields .detailview-table {
+	display: none !important;
+}
+
+@media (max-width: 1100px) {
+	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card--wide {
+		grid-column: span 2;
+	}
+}
+
+@media (max-width: 640px) {
+	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-grid {
+		grid-template-columns: 1fr;
+	}
+	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-field-card--wide {
+		grid-column: span 1;
+	}
+}
+
+/* —— Line items + totals —— */
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-lineitems-host.details.block,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView > .details.block {
+	padding: 0;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+	overflow: visible;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable {
+	margin: 0 !important;
+	border: none !important;
+	width: 100%;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable thead th.lineItemBlockHeader {
+	background: #0f172a;
+	color: #f8fafc !important;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: none;
+	padding: 12px 16px !important;
+	border: none !important;
+	vertical-align: middle;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable thead th.lineItemBlockHeader:not(:last-child) {
+	border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable tbody tr td.lineItemFieldName {
+	background: #f8fafc;
+	border-color: #eef2f7 !important;
+	color: #475569;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	padding: 10px 12px !important;
+	vertical-align: middle;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable tbody tr td.lineItemFieldName .redColor {
+	display: none;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable tbody tr td {
+	border-color: #eef2f7 !important;
+	padding: 12px !important;
+	vertical-align: middle;
+	font-size: 13px;
+	color: #0f172a;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable tbody tr:hover td {
+	background: #fafbfc;
+}
+
+/* Compact nested discount lines inside list-price column */
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable tbody tr td .individualDiscount,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable tbody tr td small,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable tbody tr td .discountUI {
+	font-size: 12px;
+	color: #64748b;
+	font-weight: 500;
+}
+
+/* Totals card */
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv + table.lineItemsTable,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-lineitems-host > table.lineItemsTable {
+	width: min(420px, 100%);
+	margin: 14px 0 0 auto;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 14px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	overflow: hidden;
+	border-collapse: separate;
+	border-spacing: 0;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv + table.lineItemsTable tr td,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-lineitems-host > table.lineItemsTable tr td {
+	border: none !important;
+	padding: 10px 16px !important;
+	font-size: 13px;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv + table.lineItemsTable tr td:first-child,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-lineitems-host > table.lineItemsTable tr td:first-child {
+	color: #64748b;
+	font-weight: 600;
+	text-align: left;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv + table.lineItemsTable tr td:last-child,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-lineitems-host > table.lineItemsTable tr td:last-child {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv + table.lineItemsTable tr td a,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-lineitems-host > table.lineItemsTable tr td a {
+	color: #0b6e4f;
+	font-weight: 600;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-totals-row--zero {
+	display: none !important;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-totals-row--grand td,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv + table.lineItemsTable tr:last-child td,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-lineitems-host > table.lineItemsTable tr:last-child td {
+	padding-top: 14px !important;
+	padding-bottom: 14px !important;
+	border-top: 1px solid #eef2f7 !important;
+	background: linear-gradient(180deg, rgba(8, 160, 69, 0.07) 0%, #fff 75%);
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-totals-row--grand td:first-child,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv + table.lineItemsTable tr:last-child td:first-child,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-lineitems-host > table.lineItemsTable tr:last-child td:first-child {
+	color: #0b6e4f !important;
+	font-size: 14px !important;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-totals-row--grand td:last-child,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv + table.lineItemsTable tr:last-child td:last-child,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .mk-qt-lineitems-host > table.lineItemsTable tr:last-child td:last-child {
+	font-size: 18px !important;
+	color: #0b6e4f !important;
 }
 
 /* Related / Updates tab containers */
@@ -2854,4 +3226,141 @@ body[data-module="Quotes"][data-view="Detail"] .mk-inventory-terms-rendered p {
 .mk-inventory-terms-rendered strong,
 .mk-inventory-terms-rendered em {
 	color: #0f172a;
+}
+
+/* —— Quotes line items (detail): mirror list inline dropdown —— */
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 18px;
+	align-items: center;
+	padding: 12px 16px;
+	margin: 0;
+	background: linear-gradient(180deg, #eef7f1 0%, #e5f0e9 100%);
+	border: 1px solid #d5e6db;
+	border-radius: 10px 10px 0 0;
+	font-size: 13px;
+	color: #3d5c48;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__meta-item strong {
+	font-weight: 700;
+	color: #1f3d2b;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table-wrap {
+	overflow-x: auto;
+	border: 1px solid #e2e8f0;
+	border-top: none;
+	border-radius: 0 0 10px 10px;
+	background: #fff;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table {
+	width: 100%;
+	border-collapse: collapse;
+	min-width: 640px;
+	margin: 0;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table thead th {
+	padding: 10px 12px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #2f5a40;
+	background: #f4faf6;
+	border-bottom: 1px solid #dfece4;
+	text-align: left;
+	white-space: nowrap;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table thead th.is-num,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table td.is-num {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table tbody td {
+	padding: 12px;
+	font-size: 14px;
+	color: #1e293b;
+	border-bottom: 1px solid #f1f5f9;
+	vertical-align: middle;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table tbody tr:last-child td {
+	border-bottom: none;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table td.is-code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 12px;
+	color: #64748b;
+	white-space: nowrap;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table td.is-name a {
+	color: #0f766e;
+	font-weight: 600;
+	text-decoration: none;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table td.is-name a:hover {
+	text-decoration: underline;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__table td.is-total {
+	font-weight: 700;
+	color: #14532d;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__empty {
+	text-align: center;
+	color: #94a3b8;
+	padding: 28px 12px !important;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__totals {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	max-width: 320px;
+	margin: 16px 0 0 auto;
+	padding: 12px 16px;
+	background: #f8faf9;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__total-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 16px;
+	padding: 8px 0;
+	font-size: 13px;
+	color: #475569;
+	border-bottom: 1px dashed #e2e8f0;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__total-row:last-child {
+	border-bottom: none;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__total-row strong {
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+	color: #0f172a;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__total-row--grand {
+	margin-top: 4px;
+	padding: 10px 12px;
+	margin-left: -4px;
+	margin-right: -4px;
+	background: #e8f5ec;
+	border-radius: 8px;
+	border-bottom: none;
+	font-size: 14px;
+	font-weight: 700;
+	color: #14532d;
+}
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lines-detail__total-row--grand strong {
+	font-size: 16px;
+	color: #14532d;
+}
+/* Ẩn layout inventory cổ điển khi đã có bảng gọn */
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lineitems-host .lineItemTableDiv,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-lineitems-host > table.lineItemsTable {
+	display: none !important;
 }

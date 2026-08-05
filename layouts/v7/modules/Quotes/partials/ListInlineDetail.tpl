@@ -56,7 +56,6 @@
 					<th class="is-num">Số lượng</th>
 					<th class="is-num">Đơn giá</th>
 					<th class="is-num">Thuế</th>
-					<th class="is-num">Giá bán</th>
 					<th class="is-num">Thành tiền</th>
 				</tr>
 			</thead>
@@ -65,7 +64,7 @@
 				{foreach from=$RELATED_PRODUCTS key=IDX item=LINE}
 					{if $IDX > 0 && $LINE["hdnProductId$IDX"]|default:'' neq ''}
 						{assign var=HAS_LINE_ITEMS value=true}
-						<tr data-qty="{$LINE["qty$IDX"]|default:'1'|escape}" data-price="{$LINE["listPrice$IDX"]|default:$LINE["unitPrice$IDX"]|default:'0'|escape}" data-total="{$LINE["productTotal$IDX"]|default:'0'|escape}" data-unit="{$LINE["usageunit$IDX"]|default:''|escape}">
+						<tr data-qty="{$LINE["qty$IDX"]|default:'1'|escape}" data-price="{$LINE["listPrice$IDX"]|default:$LINE["unitPrice$IDX"]|default:'0'|escape}" data-total="{$LINE["netPrice$IDX"]|default:$LINE["productTotal$IDX"]|default:'0'|escape}" data-unit="{$LINE["usageunit$IDX"]|default:''|escape}">
 							<td class="is-code">
 								{if $LINE["hdnProductId$IDX"]|default:'' neq ''}
 									<a href="index.php?module={$LINE["entityType$IDX"]|default:'Products'}&view=Detail&record={$LINE["hdnProductId$IDX"]}" target="_blank" rel="noopener">
@@ -79,14 +78,13 @@
 							<td class="is-num">{$LINE["qty$IDX"]|default:'0'}</td>
 							<td class="is-num">{$LINE["listPrice$IDX"]|default:'0'}</td>
 							<td class="is-num">{$LINE["taxTotal$IDX"]|default:'0'}</td>
-							<td class="is-num">{$LINE["unitPrice$IDX"]|default:$LINE["listPrice$IDX"]|default:'0'}</td>
-							<td class="is-num is-total">{$LINE["productTotal$IDX"]|default:'0'}</td>
+							<td class="is-num is-total">{$LINE["netPrice$IDX"]|default:$LINE["productTotal$IDX"]|default:'0'}</td>
 						</tr>
 					{/if}
 				{/foreach}
 				{if !$HAS_LINE_ITEMS}
 					<tr>
-						<td colspan="7" class="mk-so-inline-detail__empty-lines">Chưa có hàng hóa trong báo giá.</td>
+						<td colspan="6" class="mk-so-inline-detail__empty-lines">Chưa có hàng hóa trong báo giá.</td>
 					</tr>
 				{/if}
 			</tbody>
@@ -106,10 +104,6 @@
 			<div class="mk-so-inline-detail__total-row">
 				<span class="mk-so-inline-detail__total-label">Thuế</span>
 				<strong class="mk-so-inline-detail__total-value">{$FINAL_DETAILS.tax_totalamount|default:'0'}</strong>
-			</div>
-			<div class="mk-so-inline-detail__total-row">
-				<span class="mk-so-inline-detail__total-label">Giảm giá báo giá</span>
-				<strong class="mk-so-inline-detail__total-value">{$FINAL_DETAILS.discountTotal_final|default:$FINAL_DETAILS.discount_amount_final|default:'0'}</strong>
 			</div>
 			<div class="mk-so-inline-detail__total-row mk-so-inline-detail__total-row--grand">
 				<span class="mk-so-inline-detail__total-label">Tổng cộng</span>
