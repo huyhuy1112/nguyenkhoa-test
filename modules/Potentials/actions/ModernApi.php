@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_tags', 'delete'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_tags', 'delete', 'last_touch_call_log'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -100,6 +100,38 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					Potentials_ModernService::deletePotential($recordId);
 					$response->setResult(array('success' => true));
+					break;
+				case 'last_touch_call_list':
+					require_once 'modules/Potentials/models/LastTouchCallService.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$response->setResult(array(
+						'success' => true,
+						'lastTouchCalls' => Potentials_LastTouchCallService::getSummary($recordId),
+					));
+					break;
+				case 'last_touch_call_log':
+					require_once 'modules/Potentials/models/LastTouchCallService.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$result = $request->get('call_result');
+					if ($result === null || $result === '') {
+						$result = $request->get('result');
+					}
+					$note = $request->get('note');
+					if ($note === null) {
+						$note = '';
+					}
+					$logged = Potentials_LastTouchCallService::logCall($recordId, $result, $note, $userId);
+					$response->setResult(array(
+						'success' => true,
+						'lastTouchCalls' => $logged,
+						'logged' => isset($logged['logged']) ? $logged['logged'] : null,
+					));
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

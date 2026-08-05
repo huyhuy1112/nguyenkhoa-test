@@ -7,7 +7,7 @@
   var ref = window.PotentialsLovableRef;
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 14;
+  var COL_COUNT = 15;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -566,7 +566,6 @@
 
   function computeKpis(rows) {
     var total = rows.length;
-    var pipeline = rows.reduce(function (s, o) { return s + (Number(o.amount) || 0); }, 0);
     var internal = rows.filter(function (o) { return o.order_category === "Internal"; }).length;
     var withTags = rows.filter(function (o) { return (o.tags || []).length > 0; }).length;
     var franchise = rows.filter(function (o) { return categorize(o.tags).franchise; }).length;
@@ -581,7 +580,6 @@
     }).length;
     return [
       { key: "total", label: t("JS_MK_KPI_TOTAL_OPP", "Tổng cơ hội"), value: total, icon: "users", tone: "blue" },
-      { key: "pipeline", label: t("JS_MK_KPI_PIPELINE", "Pipeline"), value: formatMoney(pipeline), icon: "trend", tone: "violet" },
       { key: "internal", label: pick("Nội bộ", "Internal"), value: internal, icon: "check", tone: "emerald" },
       { key: "confirmed", label: pick("Xác nhận tham gia", "Confirmed"), value: confirmed, icon: "bookmark", tone: "cyan" },
       { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "amber" },
@@ -827,6 +825,13 @@
               }
               return html + "</div>";
             })() +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--touch" data-col="last_touch">' +
+            (window.MkLastTouchCall && window.MkLastTouchCall.lastTouchCallLogHtml
+              ? window.MkLastTouchCall.lastTouchCallLogHtml(o, esc)
+              : window.LeadsLeadsLogic && window.LeadsLeadsLogic.lastTouchCallLogHtml
+                ? window.LeadsLeadsLogic.lastTouchCallLogHtml(o, esc)
+                : '<span class="mk-leads-muted">Chưa có cuộc gọi</span>') +
             "</td>" +
             '<td class="mk-leads-td" data-col="notes">' + notesCell(o.notes) + "</td></tr>"
           );
@@ -1343,6 +1348,42 @@
 
   function init() {
     if (!document.querySelector(".mk-opps-page")) return;
+    if (window.MkLastTouchCall && window.MkLastTouchCall.create) {
+      window.__mkOppLastTouch = window.MkLastTouchCall.create({
+        module: "Potentials",
+        onLogged: function (recordId, lt, res, callBtn) {
+          var opps = getOpps();
+          var row = opps.find(function (o) {
+            return String(o.id) === String(recordId) || String(o.crmid) === String(recordId);
+          });
+          if (row && lt) {
+            row.lastTouchCalls = lt;
+            if (lt.logged && lt.logged.called_at) {
+              row.last_touch = lt.logged.called_at;
+            }
+            if (store && store.patchOpportunity) {
+              store.patchOpportunity(row.id, {
+                lastTouchCalls: lt,
+                last_touch: row.last_touch,
+              });
+            }
+          }
+          if (window.__mkOppLastTouch) {
+            window.__mkOppLastTouch.applyToPanel(callBtn, lt);
+          }
+          var touchTd = document.querySelector(
+            'tr.mk-opps-row[data-id="' +
+              String((row && row.id) || recordId) +
+              '"] .mk-leads-td--touch'
+          );
+          if (touchTd && row) {
+            touchTd.innerHTML = window.MkLastTouchCall.lastTouchCallLogHtml(row, esc);
+          } else {
+            renderTable();
+          }
+        },
+      });
+    }
     bindEvents();
     var boot = store && store.bootstrap ? store.bootstrap() : Promise.resolve([]);
     boot.then(function () {

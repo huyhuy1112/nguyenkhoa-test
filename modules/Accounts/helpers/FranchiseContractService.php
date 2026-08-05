@@ -551,33 +551,67 @@ class Accounts_FranchiseContractService_Helper {
 	}
 
 	/**
-	 * In-CRM preview: PDF from the same filled DOCX as download (LibreOffice).
-	 * Print truth remains: Tải Word → Microsoft Word.
+	 * In-CRM preview dual-path (Method C):
+	 * - LibreOffice available → PDF (native browser viewer; local Docker).
+	 * - No soffice / convert fail → stream same filled DOCX (X-Mk-Preview: docx)
+	 *   for client docx-preview; print truth remains Tải Word.
 	 *
 	 * @param Vtiger_Record_Model|CRMEntity $record
 	 * @param string $title unused (kept for call-site compat)
 	 * @param bool $autoPrint unused
 	 * @param string $streamUrl unused
+	 * @param bool $forceDocx force DOCX stream (skip LO)
 	 */
-	public static function outputWordPreviewPdf($record, $title = 'Hợp đồng nhượng quyền TUI BAO', $autoPrint = false, $streamUrl = '') {
+	public static function outputWordPreviewPdf($record, $title = 'Hợp đồng nhượng quyền TUI BAO', $autoPrint = false, $streamUrl = '', $forceDocx = false) {
 		try {
 			$docx = self::buildDocxBinary($record);
-			$pdf = self::convertDocxBinaryToPdf($docx);
 		} catch (Exception $e) {
 			return self::outputPreviewErrorHtml($e->getMessage());
 		} catch (Throwable $e) {
 			return self::outputPreviewErrorHtml($e->getMessage());
 		}
 
+		if (!$forceDocx && self::findSofficeBinary() !== null) {
+			try {
+				$pdf = self::convertDocxBinaryToPdf($docx);
+				while (ob_get_level() > 0) {
+					ob_end_clean();
+				}
+				header('Content-Type: application/pdf');
+				header('X-Mk-Preview: pdf');
+				header('Content-Disposition: inline; filename="HopDong_NhuongQuyen_TUI_BAO_preview.pdf"');
+				header('Content-Length: ' . strlen($pdf));
+				header('Cache-Control: private, max-age=0, must-revalidate');
+				header('Pragma: public');
+				echo $pdf;
+				return true;
+			} catch (Exception $e) {
+				// fall through to DOCX stream
+			} catch (Throwable $e) {
+				// fall through to DOCX stream
+			}
+		}
+
+		return self::outputWordPreviewDocxStream($docx, 'HopDong_NhuongQuyen_TUI_BAO_preview.docx');
+	}
+
+	/**
+	 * Stream filled DOCX for client-side preview (no LibreOffice).
+	 *
+	 * @param string $docxBinary
+	 * @param string $fileName
+	 */
+	public static function outputWordPreviewDocxStream($docxBinary, $fileName = 'HopDong_NhuongQuyen_TUI_BAO_preview.docx') {
 		while (ob_get_level() > 0) {
 			ob_end_clean();
 		}
-		header('Content-Type: application/pdf');
-		header('Content-Disposition: inline; filename="HopDong_NhuongQuyen_TUI_BAO_preview.pdf"');
-		header('Content-Length: ' . strlen($pdf));
+		header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+		header('X-Mk-Preview: docx');
+		header('Content-Disposition: inline; filename="' . str_replace('"', '', $fileName) . '"');
+		header('Content-Length: ' . strlen($docxBinary));
 		header('Cache-Control: private, max-age=0, must-revalidate');
 		header('Pragma: public');
-		echo $pdf;
+		echo $docxBinary;
 		return true;
 	}
 

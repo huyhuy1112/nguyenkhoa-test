@@ -105,7 +105,7 @@
     {/foreach}
 
     <script type="text/javascript" src="{vresource_url('layouts/v7/resources/v7_client_compat.js')}"></script>
-    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkReferencePopup.js')}?mk_v=20260713_opp_popup2"></script>
+    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkReferencePopup.js')}?mk_v=20260805_popup_hx1"></script>
     <!-- Added in the end since it should be after less file loaded -->
     <script type="text/javascript" src="{vresource_url('libraries/bootstrap/js/less.min.js')}"></script>
 

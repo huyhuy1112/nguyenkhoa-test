@@ -97,7 +97,7 @@
 							descLabel.classList.remove('mk-so-hide-legacy');
 							var lab = descLabel.querySelector('label');
 							if (lab) {
-								lab.textContent = 'Ghi chú hợp đồng';
+								lab.textContent = 'Điều khoản hợp đồng';
 							}
 						}
 					}

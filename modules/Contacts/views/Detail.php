@@ -66,10 +66,27 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 			array('assigned_user_id', 'Phụ trách'),
 		));
 
+		$lastTouch = array(
+			'can_add' => true,
+			'next_n' => 1,
+			'count' => 0,
+			'max_calls' => 3,
+			'hint' => '',
+			'reminder_at_label' => '',
+			'calls' => array(),
+		);
+		try {
+			require_once 'modules/Contacts/models/LastTouchCallService.php';
+			$lastTouch = Contacts_LastTouchCallService::getSummary($recordId);
+		} catch (Exception $e) {
+			// keep defaults
+		}
+
 		$viewer = $this->getViewer($request);
 		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, $app, $infoFields, $title, $subtitle);
 		// Class-reg + bằng/tài khoản chỉ trên Detail — không hiện trong dropdown list.
 		$viewer->assign('INLINE_SHOW_CLASS_REG', false);
+		$viewer->assign('INLINE_LAST_TOUCH', $lastTouch);
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 

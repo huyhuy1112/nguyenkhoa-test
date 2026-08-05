@@ -1013,13 +1013,16 @@ class Home_AdminKpiService {
 		);
 		$leads = $r ? (int) $db->query_result($r, 0, 'c') : 0;
 
+		// Align with SALES Potentials list (ModernService): exclude converted-to-customer.
 		$opps = 0;
 		if (self::tableExists($db, 'vtiger_potential')) {
-			$r = $db->pquery(
-				'SELECT COUNT(*) AS c FROM vtiger_potential p
-				 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0',
-				array()
-			);
+			$oppsSql = 'SELECT COUNT(*) AS c FROM vtiger_potential p
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0';
+			if (self::tableExists($db, 'bace_potential_profile')) {
+				$oppsSql .= ' LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
+					 WHERE pp.converted_to_customer_at IS NULL';
+			}
+			$r = $db->pquery($oppsSql, array());
 			$opps = $r ? (int) $db->query_result($r, 0, 'c') : 0;
 		}
 
@@ -1049,12 +1052,13 @@ class Home_AdminKpiService {
 		);
 		$won = $r ? (int) $db->query_result($r, 0, 'c') : 0;
 
+		// Always open new SALES list shells (Quotes/SO ListViewPreProcess needs app=SALES).
 		$stages = array(
-			array('key' => 'leads', 'label' => 'KH tiềm năng', 'count' => $leads, 'url' => 'index.php?module=Leads&view=List'),
-			array('key' => 'opps', 'label' => 'Cơ hội', 'count' => $opps, 'url' => 'index.php?module=Potentials&view=List'),
-			array('key' => 'quotes', 'label' => 'Báo giá', 'count' => $quotes, 'url' => 'index.php?module=Quotes&view=List'),
-			array('key' => 'orders', 'label' => 'Đơn hàng', 'count' => $orders, 'url' => 'index.php?module=SalesOrder&view=List'),
-			array('key' => 'won', 'label' => 'Đã chốt', 'count' => $won, 'url' => 'index.php?module=SalesOrder&view=List'),
+			array('key' => 'leads', 'label' => 'KH tiềm năng', 'count' => $leads, 'url' => 'index.php?module=Leads&view=List&app=SALES'),
+			array('key' => 'opps', 'label' => 'Cơ hội', 'count' => $opps, 'url' => 'index.php?module=Potentials&view=List&app=SALES'),
+			array('key' => 'quotes', 'label' => 'Báo giá', 'count' => $quotes, 'url' => 'index.php?module=Quotes&view=List&app=SALES'),
+			array('key' => 'orders', 'label' => 'Đơn hàng', 'count' => $orders, 'url' => 'index.php?module=SalesOrder&view=List&app=SALES'),
+			array('key' => 'won', 'label' => 'Đã chốt', 'count' => $won, 'url' => 'index.php?module=SalesOrder&view=List&app=SALES'),
 		);
 		$max = 1;
 		foreach ($stages as $s) {

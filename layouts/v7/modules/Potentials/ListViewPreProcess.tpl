@@ -35,20 +35,21 @@ html.mk-opps-ui-ready body[data-module="Potentials"][data-view="List"] #mk-dash-
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsLovableRef.js')}&mk_v=20260725_cred_tags1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsLocalStore.js')}&mk_v=20260730_opp_convert_hide"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsConvertCustomerTier.js')}&mk_v=20260724_vi_force1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkList.js')}&mk_v=20260803_kpi_confirm1"></script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260730_resp1" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkLastTouchCall.js')}?mk_v=20260805_lt1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkList.js')}&mk_v=20260805_no_pipeline1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260805_lt1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
 	module: 'Potentials',
 	tableSelector: '#mk-opps-table',
 	rowSelector: 'tr.mk-leads-row',
-	colspan: 15,
+	colspan: 16,
 	enabledSelector: '[data-mk-opportunity-list]',
 	loadingText: 'Đang tải chi tiết cơ hội...',
 	errorText: 'Không tải được chi tiết cơ hội.'
 };
 </script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260730_resp1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260805_lt1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-opportunity-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

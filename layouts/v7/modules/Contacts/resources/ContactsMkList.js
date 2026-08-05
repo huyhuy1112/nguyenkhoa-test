@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 13;
+  var COL_COUNT = 14;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -666,6 +666,11 @@
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(c.owner) + '">' + esc(ownerInitials(c.owner)) + "</span>" +
             "<span>" + esc(c.owner || "—") + "</span></span></td>" +
+            '<td class="mk-leads-td mk-leads-td--touch" data-col="last_touch">' +
+            (window.MkLastTouchCall && window.MkLastTouchCall.lastTouchCallLogHtml
+              ? window.MkLastTouchCall.lastTouchCallLogHtml(c, esc)
+              : '<span class="mk-leads-muted">Chưa có cuộc gọi</span>') +
+            "</td>" +
             '<td class="mk-leads-td" data-col="notes">' +
             (function () {
               var n = String(c.notes || "").trim();
@@ -1036,6 +1041,42 @@
 
   function init() {
     if (!document.querySelector(".mk-contacts-page")) return;
+    if (window.MkLastTouchCall && window.MkLastTouchCall.create) {
+      window.__mkContactsLastTouch = window.MkLastTouchCall.create({
+        module: "Contacts",
+        onLogged: function (recordId, lt, res, callBtn) {
+          var rows = getContacts();
+          var row = rows.find(function (c) {
+            return String(c.id) === String(recordId) || String(c.crmid) === String(recordId);
+          });
+          if (row && lt) {
+            row.lastTouchCalls = lt;
+            if (lt.logged && lt.logged.called_at) {
+              row.last_touch = lt.logged.called_at;
+            }
+            if (store && store.patchContact) {
+              store.patchContact(row.id, {
+                lastTouchCalls: lt,
+                last_touch: row.last_touch,
+              });
+            }
+          }
+          if (window.__mkContactsLastTouch) {
+            window.__mkContactsLastTouch.applyToPanel(callBtn, lt);
+          }
+          var touchTd = document.querySelector(
+            'tr.mk-contacts-row[data-id="' +
+              String((row && row.id) || recordId) +
+              '"] .mk-leads-td--touch'
+          );
+          if (touchTd && row) {
+            touchTd.innerHTML = window.MkLastTouchCall.lastTouchCallLogHtml(row, esc);
+          } else {
+            renderTable();
+          }
+        },
+      });
+    }
     bindEvents();
     var boot = store && store.bootstrap ? store.bootstrap() : Promise.resolve([]);
     boot.then(function () {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Ensure SalesOrder has mk_list_note (Ghi chú list) separate from description (Ghi chú hợp đồng).
+ * Ensure SalesOrder has mk_list_note (Ghi chú list) separate from description (Điều khoản hợp đồng).
  */
 class SalesOrder_ListNoteField_Helper {
 

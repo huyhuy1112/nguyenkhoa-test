@@ -554,23 +554,29 @@
       '<div class="mk-lead-lt-modal__backdrop" data-mk-lt-close="1"></div>' +
       '<div class="mk-lead-lt-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mk-leads-lt-title">' +
       '<div class="mk-lead-lt-modal__head">' +
+      '<div class="mk-lead-lt-modal__head-main">' +
+      '<span class="mk-lead-lt-modal__icon" aria-hidden="true"><i class="fa fa-phone"></i></span>' +
+      "<div>" +
       '<h3 id="mk-leads-lt-title">Ghi Last Touch — Call</h3>' +
+      '<p class="mk-lead-lt-modal__sub">Theo dõi chuỗi tối đa 3 cuộc gọi</p>' +
+      "</div></div>" +
       '<button type="button" class="mk-lead-lt-modal__x" data-mk-lt-close="1" aria-label="Đóng">&times;</button>' +
       "</div>" +
       '<div class="mk-lead-lt-modal__body">' +
-      '<p class="mk-lead-lt-modal__meta" id="mk-leads-lt-meta"></p>' +
+      '<div class="mk-lead-lt-modal__meta-card" id="mk-leads-lt-meta"></div>' +
       '<label class="mk-lead-lt-modal__label" for="mk-leads-lt-result">Kết quả cuộc gọi</label>' +
+      '<div class="mk-lead-lt-modal__select-wrap">' +
       '<select id="mk-leads-lt-result" class="mk-lead-lt-modal__select inputElement">' +
       '<option value="Không nghe máy">Không nghe máy</option>' +
       '<option value="Nghe máy">Nghe máy</option>' +
-      "</select>" +
+      "</select></div>" +
       '<label class="mk-lead-lt-modal__label" for="mk-leads-lt-note">Ghi chú</label>' +
-      '<textarea id="mk-leads-lt-note" class="mk-lead-lt-modal__note inputElement" rows="3" placeholder="Ví dụ: Khách quan tâm lớp học"></textarea>' +
+      '<textarea id="mk-leads-lt-note" class="mk-lead-lt-modal__note inputElement" rows="6" placeholder="Ví dụ: Khách quan tâm lớp học"></textarea>' +
       '<p class="mk-lead-lt-modal__tip">Chọn <strong>Nghe máy</strong> sẽ tự chuyển Lead sang Cơ hội. <strong>Không nghe máy</strong> → nhắc gọi lần sau sau khoảng 5 giờ.</p>' +
       "</div>" +
       '<div class="mk-lead-lt-modal__foot">' +
-      '<button type="button" class="btn btn-default" data-mk-lt-close="1">Hủy</button>' +
-      '<button type="button" class="btn btn-success" id="mk-leads-lt-save">Lưu cuộc gọi</button>' +
+      '<button type="button" class="mk-lead-lt-modal__btn mk-lead-lt-modal__btn--ghost" data-mk-lt-close="1">Hủy</button>' +
+      '<button type="button" class="mk-lead-lt-modal__btn mk-lead-lt-modal__btn--primary" id="mk-leads-lt-save"><i class="fa fa-check" aria-hidden="true"></i> Lưu cuộc gọi</button>' +
       "</div></div>";
     document.body.appendChild(wrap);
     wrap.addEventListener("click", function (e) {
@@ -637,11 +643,13 @@
     ).trim();
     var meta = document.getElementById("mk-leads-lt-meta");
     if (meta) {
-      meta.textContent =
-        "Ghi nhận Call #" +
-        nextN +
+      meta.innerHTML =
+        '<span class="mk-lead-lt-modal__meta-n">Call #' +
+        String(nextN) +
+        "</span>" +
+        '<span class="mk-lead-lt-modal__meta-text">Khoảng 5 giờ giữa các lần gọi (chuông Thông báo)' +
         (reminder ? " · Nhắc lần trước: " + reminder : "") +
-        ". Khoảng 5 giờ giữa các lần gọi (chuông Thông báo).";
+        ".</span>";
     }
     var resultEl = document.getElementById("mk-leads-lt-result");
     var noteEl = document.getElementById("mk-leads-lt-note");

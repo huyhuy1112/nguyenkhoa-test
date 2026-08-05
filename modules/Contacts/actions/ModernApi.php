@@ -22,7 +22,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields'), true)) {
+		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'last_touch_call_log'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -141,6 +141,38 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					Contacts_ModernService::deleteContact($recordId);
 					$response->setResult(array('success' => true));
+					break;
+				case 'last_touch_call_list':
+					require_once 'modules/Contacts/models/LastTouchCallService.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$response->setResult(array(
+						'success' => true,
+						'lastTouchCalls' => Contacts_LastTouchCallService::getSummary($recordId),
+					));
+					break;
+				case 'last_touch_call_log':
+					require_once 'modules/Contacts/models/LastTouchCallService.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$result = $request->get('call_result');
+					if ($result === null || $result === '') {
+						$result = $request->get('result');
+					}
+					$note = $request->get('note');
+					if ($note === null) {
+						$note = '';
+					}
+					$logged = Contacts_LastTouchCallService::logCall($recordId, $result, $note, $userId);
+					$response->setResult(array(
+						'success' => true,
+						'lastTouchCalls' => $logged,
+						'logged' => isset($logged['logged']) ? $logged['logged'] : null,
+					));
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

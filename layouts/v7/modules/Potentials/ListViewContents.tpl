@@ -53,6 +53,7 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CONFIRM_TAG', 'Potentials')}</th>
 							<th class="mk-leads-th mk-leads-th--sort" scope="col" data-sort="confirmed_at"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_COL_JOIN_AT', 'Potentials')}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_NEXT_ACTION', 'Potentials')}</th>
+							<th class="mk-leads-th" scope="col">Tương tác gần đây</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_NOTES', 'Potentials')}</th>
 						</tr>
 					</thead>

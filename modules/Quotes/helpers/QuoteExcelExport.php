@@ -589,12 +589,14 @@ class Quotes_QuoteExcelExport_Helper {
 		$sheet->mergeCells('C' . $row . ':H' . $row);
 		$sheet->setCellValue('C' . $row, $ctx['address']);
 		$row++;
-		// Ghi chú = description (create / list inline), not default terms boilerplate.
+		// Notes / điều khoản (description) — center for print layout
 		$notes = isset($ctx['notes']) ? trim((string) $ctx['notes']) : self::resolveExportNotes($focus, $ctx['terms_html'] ?? '');
 		$sheet->setCellValue('B' . $row, 'Ghi chú:');
 		$sheet->mergeCells('C' . $row . ':H' . $row);
 		$sheet->setCellValue('C' . $row, $notes !== '' ? $notes : '');
 		$sheet->getStyle('C' . $row)->getAlignment()->setWrapText(true);
+		$sheet->getStyle('C' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+		$sheet->getStyle('C' . $row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 		$sheet->getRowDimension($row)->setRowHeight(-1);
 		$row++;
 		$row++;

@@ -42,6 +42,13 @@ class Contacts_ModernService {
 		}
 		$tagsByContact = self::getTagsForContactIds($contactIds, $userId);
 		$segmentsByContact = self::getLeadSegmentsForContactIds($contactIds);
+		$ltById = array();
+		try {
+			require_once 'modules/Contacts/models/LastTouchCallService.php';
+			$ltById = Contacts_LastTouchCallService::getSummariesForIds($contactIds);
+		} catch (Exception $e) {
+			$ltById = array();
+		}
 		$out = array();
 		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
 		foreach ($rows as $row) {
@@ -52,7 +59,11 @@ class Contacts_ModernService {
 				$rawTags[] = $segment;
 			}
 			$tags = Contacts_ContactTagCatalog::filterTagNames($rawTags);
-			$out[] = self::composeCacheRow($row, $tags);
+			$out[] = self::composeCacheRow(
+				$row,
+				$tags,
+				isset($ltById[$contactId]) ? $ltById[$contactId] : null
+			);
 		}
 		return $out;
 	}
@@ -496,7 +507,7 @@ class Contacts_ModernService {
 		return '';
 	}
 
-	protected static function composeCacheRow(array $row, array $tags) {
+	protected static function composeCacheRow(array $row, array $tags, $lastTouchCalls = null) {
 		$contactId = (int)$row['contactid'];
 		$first = decode_html((string)$row['firstname']);
 		$last = decode_html((string)$row['lastname']);
@@ -511,6 +522,18 @@ class Contacts_ModernService {
 		$email = decode_html((string)$row['email']);
 		$accountName = decode_html((string)$row['accountname']);
 		$modified = !empty($row['modifiedtime']) ? date('c', strtotime($row['modifiedtime'])) : date('c');
+		if (!is_array($lastTouchCalls)) {
+			$lastTouchCalls = array(
+				'calls' => array(),
+				'count' => 0,
+				'can_add' => true,
+				'next_n' => 1,
+				'max_calls' => 3,
+				'hint' => '',
+			);
+		}
+		$ltLastAt = !empty($lastTouchCalls['last_at']) ? $lastTouchCalls['last_at'] : '';
+		$lastTouchIso = $ltLastAt !== '' ? date('c', strtotime($ltLastAt)) : $modified;
 		$addressParts = array();
 		foreach (array('mailingstreet', 'mailingcity', 'mailingstate', 'mailingcountry') as $addrKey) {
 			$part = decode_html(trim((string)(isset($row[$addrKey]) ? $row[$addrKey] : '')));
@@ -535,7 +558,8 @@ class Contacts_ModernService {
 			'converted_at' => $convertedAt,
 			'owner' => self::getOwnerLabel((int)$row['smownerid']),
 			'tags' => array_values($tags),
-			'last_touch' => $modified,
+			'last_touch' => $lastTouchIso,
+			'lastTouchCalls' => $lastTouchCalls,
 			'thoigian_dangky' => self::toIsoDateTime(isset($row['thoigian_dangky']) ? $row['thoigian_dangky'] : ''),
 			'thoigian_pcth' => self::toIsoDateTime(isset($row['thoigian_pcth']) ? $row['thoigian_pcth'] : ''),
 			'thoigian_mqbb' => self::toIsoDateTime(isset($row['thoigian_mqbb']) ? $row['thoigian_mqbb'] : ''),

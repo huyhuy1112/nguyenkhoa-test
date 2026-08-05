@@ -30,6 +30,7 @@ class Potentials_ModernService {
 		);
 		self::ensureProfileColumn($adb, 'converted_to_customer_at', 'DATETIME NULL');
 		self::ensureProfileColumn($adb, 'contact_customer_id', 'INT UNSIGNED DEFAULT NULL');
+		self::ensureProfileColumn($adb, 'last_touch', 'DATETIME NULL');
 	}
 
 	protected static function ensureProfileColumn(PearDatabase $adb, $column, $definition) {
@@ -53,7 +54,7 @@ class Potentials_ModernService {
 				acc.accountname,
 				cd.firstname AS contact_firstname, cd.lastname AS contact_lastname,
 				cd.phone AS contact_phone, cd.mobile AS contact_mobile,
-				pp.district AS pot_district, pp.address_line AS pot_address, pp.confirmed_at,
+				pp.district AS pot_district, pp.address_line AS pot_address, pp.confirmed_at, pp.last_touch AS pot_last_touch,
 				lp.district AS lead_district, lp.address_line AS lead_address, lp.area AS lead_area
 			FROM vtiger_potential p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
@@ -73,19 +74,27 @@ class Potentials_ModernService {
 		}
 		$tagsByPotential = self::getTagsForPotentialIds($potentialIds, $userId);
 		$confirmAtByTag = self::getConfirmTaggedOn($potentialIds);
+		$ltById = array();
+		try {
+			require_once 'modules/Potentials/models/LastTouchCallService.php';
+			$ltById = Potentials_LastTouchCallService::getSummariesForIds($potentialIds);
+		} catch (Exception $e) {
+			$ltById = array();
+		}
 		$out = array();
 		foreach ($rows as $row) {
 			$potentialId = (int)$row['potentialid'];
 			$out[] = self::composeCacheRow(
 				$row,
 				$tagsByPotential[$potentialId] ?? array(),
-				isset($confirmAtByTag[$potentialId]) ? $confirmAtByTag[$potentialId] : ''
+				isset($confirmAtByTag[$potentialId]) ? $confirmAtByTag[$potentialId] : '',
+				isset($ltById[$potentialId]) ? $ltById[$potentialId] : null
 			);
 		}
 		return $out;
 	}
 
-	protected static function composeCacheRow(array $row, array $tags, $taggedConfirmAt = '') {
+	protected static function composeCacheRow(array $row, array $tags, $taggedConfirmAt = '', $lastTouchCalls = null) {
 		$potentialId = (int)$row['potentialid'];
 		$ownerName = self::getOwnerLabel((int)$row['smownerid']);
 		$contactName = trim(decode_html((string)$row['contact_firstname']) . ' ' . decode_html((string)$row['contact_lastname']));
@@ -145,12 +154,26 @@ class Potentials_ModernService {
 			'next_action_days_overdue' => null,
 			'timeframe_label' => '',
 		);
+		if (!is_array($lastTouchCalls)) {
+			$lastTouchCalls = array(
+				'calls' => array(),
+				'count' => 0,
+				'can_add' => true,
+				'next_n' => 1,
+				'max_calls' => 3,
+				'hint' => '',
+			);
+		}
+		$profileTouch = !empty($row['pot_last_touch']) ? $row['pot_last_touch'] : '';
+		$ltLastAt = !empty($lastTouchCalls['last_at']) ? $lastTouchCalls['last_at'] : '';
+		$touchRaw = $ltLastAt !== '' ? $ltLastAt : ($profileTouch !== '' ? $profileTouch : (!empty($row['modifiedtime']) ? $row['modifiedtime'] : null));
+		$lastTouchIso = $touchRaw ? date('c', strtotime($touchRaw)) : $modified;
+
 		try {
 			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
-			$lastTouchRaw = !empty($row['modifiedtime']) ? $row['modifiedtime'] : null;
 			$ruleMeta = HelpDesk_TagRuleEngineService::getInstance()->resolveNextActionMeta(
 				$tags,
-				$lastTouchRaw,
+				$touchRaw,
 				''
 			);
 		} catch (Exception $e) {
@@ -178,7 +201,8 @@ class Potentials_ModernService {
 			'confirmed_at' => $confirmedAt,
 			'owner' => $ownerName,
 			'tags' => array_values($tags),
-			'last_touch' => $modified,
+			'last_touch' => $lastTouchIso,
+			'lastTouchCalls' => $lastTouchCalls,
 			'next_action' => $ruleMeta['next_action'],
 			'rule_id' => $ruleMeta['rule_id'],
 			'rule_name' => $ruleMeta['rule_name'],

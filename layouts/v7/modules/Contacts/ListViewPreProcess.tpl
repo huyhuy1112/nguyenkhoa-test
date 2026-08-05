@@ -32,20 +32,21 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] #mk-das
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260711_segments_ui2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsLovableRef.js')}&mk_v=20260725_cred_tags1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsLocalStore.js')}&mk_v=20260730_list_ux1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkList.js')}&mk_v=20260803_kpi_cred1"></script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260730_resp1" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkLastTouchCall.js')}?mk_v=20260805_lt1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkList.js')}&mk_v=20260805_lt1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260805_lt1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
 	module: 'Contacts',
 	tableSelector: '#mk-contacts-table',
 	rowSelector: 'tr.mk-leads-row',
-	colspan: 12,
+	colspan: 15,
 	enabledSelector: '[data-mk-contacts-list]',
 	loadingText: 'Đang tải chi tiết khách hàng...',
 	errorText: 'Không tải được chi tiết khách hàng.'
 };
 </script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260730_resp1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260805_lt1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-contacts-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

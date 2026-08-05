@@ -562,14 +562,23 @@ jQuery.Class(
       var messageBar = jQuery("#messageBar");
       messageBar.removeClass("hide");
       var messageHTML = "";
-      if (message !== undefined) {
-        messageHTML = '<div class="message"><span>' + message + "</span></div>";
+      if (message !== undefined && message !== null && String(message).length) {
+        messageHTML =
+          '<div class="mk-nk-loader__msg"><span>' +
+          jQuery("<div/>").text(String(message)).html() +
+          "</span></div>";
       }
+      // Logo Nguyên Khoa + modern rings (thay loading.gif 3 chấm)
+      var logoSrc = "layouts/v7/resources/Images/nguyenkhoa-logo.png";
       messageBar.html(
-        '<div style="text-align:center;position:fixed;top:50%;left:40%;"><img src="' +
-          app.vimage_path("loading.gif") +
-          '">' +
+        '<div class="mk-nk-loader" role="status" aria-live="polite" aria-busy="true">' +
+          '<div class="mk-nk-loader__panel">' +
+          '<div class="mk-nk-loader__ring" aria-hidden="true"></div>' +
+          '<img class="mk-nk-loader__logo" src="' +
+          logoSrc +
+          '" alt="Nguyên Khoa" />' +
           messageHTML +
+          "</div>" +
           "</div>"
       );
     },
@@ -577,6 +586,7 @@ jQuery.Class(
     hideProgress: function () {
       var messageBar = jQuery("#messageBar");
       messageBar.addClass("hide");
+      messageBar.empty();
     },
 
     getSelect2FromSelect: function (selectEle) {

@@ -263,6 +263,8 @@ body{margin:0;padding:16px;font:13px/1.45 "DejaVu Sans",Arial,Helvetica,sans-ser
 .info-col{flex:1;min-width:0}
 .info-row{margin:0 0 4px}
 .info-row b{display:inline-block;min-width:88px;font-weight:700}
+.info-row--notes{text-align:center}
+.info-row--notes b{display:block;min-width:0;margin-bottom:4px}
 table{width:100%;border-collapse:collapse;margin:8px 0 12px}
 th,td{border:1px solid #222;padding:6px 8px;vertical-align:top}
 th{background:#f3f3f3;font-size:12px;font-weight:700}
@@ -280,7 +282,6 @@ td.r,th.r{text-align:right}
 .sign .date-above{margin:0 0 6px;font-weight:400;font-size:13px;line-height:1.3;min-height:1.3em}
 .sign b{display:block;margin-bottom:4px;font-weight:700}
 .sign span{font-size:11px;font-style:italic;color:#444}
-.note-title{font-weight:700;text-decoration:underline;margin:0 0 6px}
 .note-list{margin:0;padding-left:18px}
 .note-phone{color:#c44a1c;margin-top:8px}
 .mk-note{margin-top:150px}
@@ -296,7 +297,7 @@ td.r,th.r{text-align:right}
 			. '<p class="info-row"><b>Khách Hàng:</b> ' . $h($data['customer']) . '</p>'
 			. '<p class="info-row"><b>SĐT:</b> ' . $h($data['customer_phone']) . '</p>'
 			. '<p class="info-row"><b>Địa chỉ:</b> ' . $h($data['customer_address']) . '</p>'
-			. '<p class="info-row"><b>Ghi chú:</b> ' . $h($data['notes']) . '</p>'
+			. '<p class="info-row info-row--notes"><b>Ghi chú:</b> ' . $h($data['notes']) . '</p>'
 			. '</div><div class="info-col">'
 			. '<p class="info-row"><b>Chi nhánh:</b> ' . $h($data['branch']) . '</p>'
 			. '<p class="info-row"><b>NVBH:</b> ' . $h($data['sales_name']) . '</p>'
@@ -446,7 +447,7 @@ td.r,th.r{text-align:right}
 		self::writeLabelValue($pdf, $pageW, 'Khách hàng:', $customer !== '' ? $customer : '—');
 		self::writeLabelValue($pdf, $pageW, 'SĐT:', $customerPhone !== '' ? $customerPhone : '—');
 		self::writeLabelValue($pdf, $pageW, 'Địa chỉ:', $customerAddress !== '' ? $customerAddress : '—');
-		self::writeLabelValue($pdf, $pageW, 'Ghi chú:', $notes !== '' ? $notes : '—');
+		self::writeCenteredNote($pdf, $pageW, 'Ghi chú:', $notes !== '' ? $notes : '—');
 		$pdf->Ln(3);
 
 		$colItem = $pageW * 0.62;
@@ -875,6 +876,18 @@ td.r,th.r{text-align:right}
 		$pdf->Cell($labelW, 5, self::utf($label), 0, 0, 'L');
 		$pdf->SetFont(self::FONT, '', 10);
 		$pdf->MultiCell($pageW - $labelW, 5, self::utf($value), 0, 'L', false, 1);
+	}
+
+	/** Centered note/terms block (Điều khoản hợp đồng / Ghi chú). */
+	protected static function writeCenteredNote(Vtiger_PDF_TCPDF $pdf, $pageW, $label, $value) {
+		$pdf->SetFont(self::FONT, 'B', 10);
+		$pdf->Cell($pageW, 5, self::utf($label), 0, 1, 'C');
+		$pdf->SetFont(self::FONT, '', 10);
+		$plain = trim(html_entity_decode(strip_tags((string) $value), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+		if ($plain === '') {
+			$plain = '—';
+		}
+		$pdf->MultiCell($pageW, 5, self::utf($plain), 0, 'C', false, 1);
 	}
 
 	protected static function utf($text) {

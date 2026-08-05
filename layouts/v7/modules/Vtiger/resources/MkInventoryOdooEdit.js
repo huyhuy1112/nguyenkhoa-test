@@ -106,7 +106,33 @@
   }
 
   function getLineItemHeaderRow($table) {
-    return getLineItemsTableBody($table).children("tr").first();
+    if (!$table || !$table.length) {
+      return $();
+    }
+    var $body = getLineItemsTableBody($table);
+    var $existing = $body.children("tr.mk-inv-header-row").first();
+    if ($existing.length) {
+      return $existing;
+    }
+    // Prefer a non-product first row (legacy label row). Never convert #row0 or lineItemRow.
+    var $first = $body.children("tr").first();
+    if (
+      $first.length &&
+      !$first.hasClass("lineItemRow") &&
+      !$first.hasClass("lineItemCloneCopy") &&
+      $first.attr("id") !== "row0"
+    ) {
+      return $first;
+    }
+    var $header = $(
+      '<tr class="mk-inv-header-row end-section" data-mk-header="1"></tr>',
+    );
+    if ($first.length) {
+      $header.insertBefore($first);
+    } else {
+      $body.prepend($header);
+    }
+    return $header;
   }
 
   function getLineItemTemplateRow($table) {
@@ -2587,7 +2613,16 @@
     if (!$header.length) {
       return false;
     }
-    buildModernLineItemHeader($header);
+    // Skip DOM wipe if modern labels already present (avoids thrash during restyles).
+    var alreadyModern =
+      $header.hasClass("mk-inv-header-row") &&
+      $header.find(".mk-inv-th-label").length >= 4 &&
+      $header.children("td").length >= MODERN_LINE_HEADER_COLUMNS.length;
+    if (!alreadyModern) {
+      buildModernLineItemHeader($header);
+    } else {
+      $header.removeClass("hide").show();
+    }
     applyLineItemColgroup($table);
     return true;
   }
@@ -3254,7 +3289,8 @@
       return;
     }
     if (!delays) {
-      delays = [0, 120, 320, 650, 1100, 1800, 2800];
+      // Keep light: heavy multi-delay chains caused SO Edit lag.
+      delays = [0, 350, 1000];
     }
     delays.forEach(function (ms) {
       setTimeout(function () {
@@ -3493,6 +3529,20 @@
 
       if (typeof inst.checkLineItemRow === "function") {
         inst.checkLineItemRow();
+      }
+      // Blur any focus that Inventory core put on the new row (causes jump-to-bottom).
+      try {
+        var ae = document.activeElement;
+        if (
+          ae &&
+          newLineItem[0] &&
+          newLineItem[0].contains(ae) &&
+          typeof ae.blur === "function"
+        ) {
+          ae.blur();
+        }
+      } catch (ignoreBlur) {
+        /* ignore */
       }
       // Do NOT registerLineItemAutoComplete — product picker is Select2; autocomplete adds lag.
     } catch (err) {
@@ -3835,28 +3885,42 @@
     $form.data("mkBindDirectPriceEvents", bindDirectPriceEvents);
     $form.data("mkScheduleRealtimeSync", scheduleRealtimeSync);
 
-    var _lastPriceSnapshot = {};
-    setInterval(function () {
-      var changed = false;
-      $form.find("tr.lineItemRow").each(function () {
-        var $r = $(this);
-        var rowId = $r.attr("id") || $r.index();
-        var curPrice = $r.find(".listPrice").val() || "";
-        var curQty = $r.find(".qty").val() || "";
-        var key = curQty + "|" + curPrice;
-        if (_lastPriceSnapshot[rowId] !== key) {
-          _lastPriceSnapshot[rowId] = key;
-          changed = true;
+    // Event-driven sync only (input/change). Avoid 500ms full-table polls — major SO Edit lag source.
+    if (!$form.data("mkInvIdleTotalsTick")) {
+      $form.data("mkInvIdleTotalsTick", true);
+      var _lastPriceSnapshot = {};
+      var pollMs = 2500;
+      setInterval(function () {
+        if (
+          typeof document !== "undefined" &&
+          document.hidden
+        ) {
+          return;
         }
-      });
-      if (
-        changed &&
-        !isLineItemRestylePaused($form) &&
-        !isAnyTaxSelectOpen($form)
-      ) {
-        scheduleRealtimeSync();
-      }
-    }, 500);
+        if (
+          isLineItemRestylePaused($form) ||
+          isAnyTaxSelectOpen($form) ||
+          isEditingLineField($form)
+        ) {
+          return;
+        }
+        var changed = false;
+        $form.find("tr.lineItemRow").each(function () {
+          var $r = $(this);
+          var rowId = $r.attr("id") || $r.index();
+          var curPrice = $r.find(".listPrice").val() || "";
+          var curQty = $r.find(".qty").val() || "";
+          var key = curQty + "|" + curPrice;
+          if (_lastPriceSnapshot[rowId] !== key) {
+            _lastPriceSnapshot[rowId] = key;
+            changed = true;
+          }
+        });
+        if (changed) {
+          scheduleRealtimeSync();
+        }
+      }, pollMs);
+    }
 
     $form.on("mkSoWarehouseSelected.mkInv", function (_e, warehouse) {
       if (warehouse && warehouse.id) {
@@ -4305,6 +4369,73 @@
     syncCreditTermsVisibility($form);
   }
 
+  function captureScrollLock() {
+    var nodes = [];
+    try {
+      document
+        .querySelectorAll(
+          ".mk-app-shell, .main-container, #page, .mk-inv-lines-card, .lineitemTableContainer, .mk-so-form-host, .fieldBlockContainer, body, html",
+        )
+        .forEach(function (el) {
+          if (!el) {
+            return;
+          }
+          nodes.push({ el: el, t: el.scrollTop || 0, l: el.scrollLeft || 0 });
+        });
+    } catch (ignoreQ) {
+      /* ignore */
+    }
+    return {
+      x: window.pageXOffset || document.documentElement.scrollLeft || 0,
+      y: window.pageYOffset || document.documentElement.scrollTop || 0,
+      nodes: nodes,
+    };
+  }
+
+  function restoreScrollLock(lock) {
+    if (!lock) {
+      return;
+    }
+    try {
+      window.scrollTo(lock.x, lock.y);
+    } catch (ignoreW) {
+      /* ignore */
+    }
+    (lock.nodes || []).forEach(function (n) {
+      try {
+        if (n.el) {
+          n.el.scrollTop = n.t;
+          n.el.scrollLeft = n.l;
+        }
+      } catch (ignoreN) {
+        /* ignore */
+      }
+    });
+  }
+
+  /** Keep viewport frozen while adding lines — no auto jump to bottom. */
+  function holdScrollLock(ms) {
+    var lock = captureScrollLock();
+    var until = Date.now() + (ms || 600);
+    function tick() {
+      restoreScrollLock(lock);
+      if (Date.now() < until) {
+        if (typeof requestAnimationFrame === "function") {
+          requestAnimationFrame(tick);
+        } else {
+          setTimeout(tick, 16);
+        }
+      }
+    }
+    tick();
+    [0, 30, 80, 150, 280, 450, 700].forEach(function (d) {
+      setTimeout(function () {
+        restoreScrollLock(lock);
+      }, d);
+    });
+    return lock;
+  }
+
   function addProductFromQuickSearch($form, productId, meta) {
     if (!$form || !$form.length || !productId) {
       return;
@@ -4313,6 +4444,9 @@
       return;
     }
     $form.data("mkInvQuickAdding", true);
+    // Lock scroll BEFORE DOM changes so new rows never pull the page down.
+    var scrollLock = holdScrollLock(900);
+
     var $row = findEmptyProductLineRow($form);
     if (!$row || !$row.length) {
       $row = createInventoryLineItemRow(
@@ -4322,10 +4456,36 @@
     } else {
       styleNewLineItemFast($form, $row);
     }
+    restoreScrollLock(scrollLock);
+
+    function refocusQuickSearchNoScroll() {
+      restoreScrollLock(scrollLock);
+      try {
+        var $qs = $form.find("select.mk-inv-quick-product-search").first();
+        if (!$qs.length) {
+          return;
+        }
+        var $cont = $qs.siblings(".select2-container").first();
+        var focusEl =
+          $cont.find(".select2-focusser, .select2-input, a.select2-choice").get(0) ||
+          null;
+        if (focusEl && typeof focusEl.focus === "function") {
+          try {
+            focusEl.focus({ preventScroll: true });
+          } catch (e1) {
+            focusEl.focus();
+          }
+        }
+      } catch (ignoreF) {
+        /* ignore */
+      }
+      restoreScrollLock(scrollLock);
+    }
 
     function tryApply(attempt) {
       if (!$row || !$row.length || !$row.closest("body").length) {
         $form.removeData("mkInvQuickAdding");
+        restoreScrollLock(scrollLock);
         return;
       }
       var $sel = $row.find("select.mk-inv-product-select").first();
@@ -4338,20 +4498,19 @@
         applyProductToLineRow($row, $form, productId, meta);
         ensureQtyEditable($row);
         $form.removeData("mkInvQuickAdding");
+        restoreScrollLock(scrollLock);
+        // Do NOT focus qty on the new row — that auto-scrolls to the bottom.
         setTimeout(function () {
-          var $qty = $row.find("input.qty, .qty").first();
-          if ($qty.length) {
-            ensureQtyEditable($row);
-            try {
-              $qty.focus().select();
-            } catch (ignoreFocus) {
-              /* ignore */
-            }
-          }
+          restoreScrollLock(scrollLock);
           if (typeof $form.data("mkRefreshQuickSearch") === "function") {
             $form.data("mkRefreshQuickSearch")();
           }
-        }, 80);
+          refocusQuickSearchNoScroll();
+          restoreScrollLock(scrollLock);
+        }, 40);
+        setTimeout(function () {
+          restoreScrollLock(scrollLock);
+        }, 200);
         return;
       }
       setTimeout(function () {
@@ -5557,10 +5716,12 @@
       polishLineItemsShell($form);
       ensureModernLineItemsTable($form);
       bindInventoryRestyleHooks($form);
+      // Immediate paint so headers show before catalog AJAX returns
+      scheduleLineItemsRestyle($form, [0, 200]);
 
       loadProductCatalog().always(function () {
         initQuickProductSearch($form);
-        scheduleLineItemsRestyle($form, [0, 200, 500]);
+        scheduleLineItemsRestyle($form, [0, 400]);
         scheduleInvoiceTierPricing($form, 0);
       });
 
@@ -5569,9 +5730,11 @@
         .on("post.lineItem.New.mkInvOdoo", function (e, newLineItem) {
           handleNewLineItemRow($form, newLineItem);
         });
+      return;
     }
 
-    scheduleLineItemsRestyle($form);
+    // Subsequent init() calls: light restyle only, do not stack timeouts.
+    scheduleLineItemsRestyle($form, [0]);
   }
 
   function hideDescriptionBlock($form) {

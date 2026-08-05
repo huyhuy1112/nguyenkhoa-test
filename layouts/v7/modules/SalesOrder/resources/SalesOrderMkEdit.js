@@ -4,10 +4,13 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260724_so_quote_ui5';
+	var MK_BUILD = '20260805_so_perf1';
 	var WAREHOUSE_MODAL_ID = 'mkSoWarehouseModal';
 	var warehouseConfirmed = false;
 	var warehousePickerOpen = false;
+	var enhanceFullDone = false;
+	var lightRefreshTimer = null;
+	var pinObserverTimer = null;
 
 	function revealPage() {
 		requestAnimationFrame(function () {
@@ -35,6 +38,7 @@
 		'Mọi ý kiến đóng góp của Quý khách về chất lượng sản phẩm, dịch vụ xin vui lòng liên hệ SĐT 0964.468.929.'
 	].join('\n');
 
+	/* Modern Word-like toolbar (đủ tính năng soạn thảo, 2 hàng gọn) */
 	var TERMS_CK_TOOLBAR = [
 		{
 			name: 'document',
@@ -52,6 +56,7 @@
 			name: 'basicstyles',
 			items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat']
 		},
+		'/',
 		{
 			name: 'paragraph',
 			items: [
@@ -61,9 +66,6 @@
 				'Outdent',
 				'Indent',
 				'-',
-				'Blockquote',
-				'CreateDiv',
-				'-',
 				'JustifyLeft',
 				'JustifyCenter',
 				'JustifyRight',
@@ -72,7 +74,7 @@
 		},
 		{
 			name: 'links',
-			items: ['Link', 'Unlink', 'Anchor']
+			items: ['Link', 'Unlink']
 		},
 		{
 			name: 'insert',
@@ -80,7 +82,7 @@
 		},
 		{
 			name: 'styles',
-			items: ['Styles', 'Format', 'Font', 'FontSize']
+			items: ['Format', 'Font', 'FontSize']
 		},
 		{
 			name: 'colors',
@@ -88,9 +90,11 @@
 		},
 		{
 			name: 'tools',
-			items: ['Maximize', 'ShowBlocks']
+			items: ['Maximize']
 		}
 	];
+
+	var DESC_LABEL = 'Điều khoản hợp đồng';
 
 	var DESC_MODAL_ID = 'mkSoDescModal';
 	var DESC_EDITOR_ID = 'mkSoDescEditor';
@@ -523,6 +527,91 @@
 		return text.trim();
 	}
 
+	/**
+	 * Ensure block-level content is center-aligned for print/Word-like export.
+	 */
+	function ensureCenteredHtml(html) {
+		var text = prepareTermsHtml(html, false);
+		if (!text) {
+			return '';
+		}
+		// Plain text / no HTML tags → wrap centered paragraphs
+		if (!/<\/?[a-z][\s\S]*>/i.test(text)) {
+			return text
+				.split(/\n+/)
+				.map(function (line) {
+					var safe = $('<div/>').text(line).html();
+					return '<p style="text-align:center">' + safe + '</p>';
+				})
+				.join('');
+		}
+		var $wrap = $('<div/>').html(text);
+		$wrap.find('p, div, li, h1, h2, h3, h4, h5, h6, td, th').each(function () {
+			var $el = $(this);
+			var style = String($el.attr('style') || '');
+			if (!/text-align\s*:/i.test(style)) {
+				$el.css('text-align', 'center');
+			}
+		});
+		// Top-level text nodes without block tags
+		if (!$wrap.children().length) {
+			return '<p style="text-align:center">' + $wrap.html() + '</p>';
+		}
+		return $wrap.html();
+	}
+
+	function buildCkEditorConfig(height) {
+		return {
+			height: height || 420,
+			toolbar: TERMS_CK_TOOLBAR,
+			fullPage: false,
+			allowedContent: true,
+			extraPlugins: 'justify,font,colorbutton,colordialog,find,print,pagebreak',
+			removePlugins: 'elementspath',
+			resize_enabled: true,
+			startupFocus: true
+		};
+	}
+
+	function afterCkReady(editorInstance) {
+		if (!editorInstance) {
+			return;
+		}
+		function applyCenter() {
+			try {
+				var body = editorInstance.document && editorInstance.document.getBody();
+				if (body) {
+					body.setStyle('text-align', 'center');
+					body.setStyle('font-family', 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif');
+					body.setStyle('font-size', '14px');
+					body.setStyle('line-height', '1.55');
+					body.setStyle('color', '#18181b');
+				}
+				editorInstance.execCommand('justifycenter');
+			} catch (e) { /* ignore */ }
+		}
+		if (editorInstance.status === 'ready') {
+			applyCenter();
+		} else {
+			editorInstance.on('instanceReady', applyCenter);
+		}
+	}
+
+	function wireCkAfterLoad(editorId) {
+		var tries = 0;
+		function tick() {
+			var inst = typeof CKEDITOR !== 'undefined' ? CKEDITOR.instances[editorId] : null;
+			if (inst) {
+				afterCkReady(inst);
+				return;
+			}
+			if (++tries < 30) {
+				setTimeout(tick, 40);
+			}
+		}
+		tick();
+	}
+
 	function syncTermsPreview($ta, $preview) {
 		if (!$ta.length || !$preview.length) {
 			return;
@@ -632,11 +721,8 @@
 			return;
 		}
 		var ck = new Vtiger_CkEditor_Js();
-		ck.loadCkEditor($editor, {
-			height: 380,
-			toolbar: TERMS_CK_TOOLBAR,
-			fullPage: false
-		});
+		ck.loadCkEditor($editor, buildCkEditorConfig(380));
+		wireCkAfterLoad(TERMS_EDITOR_ID);
 	}
 
 	function openTermsEditor($ta) {
@@ -710,7 +796,9 @@
 		var html = prepareTermsHtml($ta.val() || '', true);
 		if (!$.trim($('<div/>').html(html).text())) {
 			$preview.html(
-				'<span class="mk-so-desc-preview__placeholder">Nhấn để soạn Ghi chú hợp đồng (trình soạn thảo kiểu Word)…</span>'
+				'<span class="mk-so-desc-preview__placeholder">Nhấn để soạn ' +
+					DESC_LABEL +
+					'…</span>'
 			);
 			return;
 		}
@@ -768,7 +856,9 @@
 				'<button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
 				'<h4 class="modal-title" id="' +
 				DESC_MODAL_ID +
-				'Label">Ghi chú hợp đồng</h4>' +
+				'Label">' +
+				DESC_LABEL +
+				'</h4>' +
 				'</div>' +
 				'<div class="modal-body">' +
 				'<textarea id="' +
@@ -794,7 +884,7 @@
 			} else {
 				html = $('#' + DESC_EDITOR_ID).val();
 			}
-			html = prepareTermsHtml(html, false);
+			html = ensureCenteredHtml(html);
 			var $ta = $form().find('textarea[name="description"]').first();
 			if ($ta.length) {
 				$ta.val(html).trigger('change');
@@ -818,13 +908,8 @@
 			return;
 		}
 		var ck = new Vtiger_CkEditor_Js();
-		ck.loadCkEditor($editor, {
-			height: 460,
-			toolbar: TERMS_CK_TOOLBAR,
-			fullPage: false,
-			allowedContent: true,
-			extraPlugins: 'justify,font,colorbutton,colordialog,find,print,pagebreak'
-		});
+		ck.loadCkEditor($editor, buildCkEditorConfig(460));
+		wireCkAfterLoad(DESC_EDITOR_ID);
 	}
 
 	function openDescEditor($ta) {
@@ -863,7 +948,9 @@
 		$ta.val(cleaned);
 
 		var $preview = $(
-			'<div class="mk-so-desc-preview inputElement textAreaElement col-lg-12" role="button" tabindex="0" title="Nhấn để soạn Ghi chú hợp đồng"></div>'
+			'<div class="mk-so-desc-preview inputElement textAreaElement col-lg-12" role="button" tabindex="0" title="Nhấn để soạn ' +
+				DESC_LABEL +
+				'"></div>'
 		);
 		$ta.addClass('mk-so-desc-source').attr({ 'aria-hidden': 'true', tabindex: '-1' });
 		$ta.after($preview);
@@ -1131,7 +1218,7 @@
 			return;
 		}
 
-		// Only: Báo giá, Ghi chú hợp đồng, Ghi chú (list) + Chi tiết đơn hàng.
+		// Only: Báo giá, Điều khoản hợp đồng, Ghi chú (list) + Chi tiết đơn hàng.
 		// Subject stays in DOM (mandatory) but hidden — auto-filled from quote name.
 		// Trạng thái hidden on create & edit (create still auto-sets Phiếu tạm in background).
 		var allowNames = {
@@ -1323,14 +1410,34 @@
 			if ($descBlock.length && $descBlock.attr('data-block') === 'LBL_DESCRIPTION_INFORMATION') {
 				$descBlock.addClass('mk-so-hide-legacy mk-inv-hide-legacy');
 			}
-			$descRow.find('td.fieldLabel label').first().text('Ghi chú hợp đồng');
+			$descRow.find('td.fieldLabel label').first().text(DESC_LABEL);
+			// Rail / Odoo often flattens labels — set any label siblings near description
+			$desc.closest('tr, .mk-so-desc-preview, td, .fieldValue')
+				.closest('tr, .mk-inv-rail-field, .mk-qt-rail-field, .mk-so-rail-info, .mk-qt-rail-quote-info')
+				.find('label, .fieldLabel, .muted')
+				.filter(function () {
+					var t = $.trim($(this).text() || '').replace(/\*/g, '');
+					return /^ghi\s*chú$/i.test(t) || t === 'Description' || t === 'Description Information';
+				})
+				.each(function () {
+					if ($(this).is('label') || $(this).hasClass('muted')) {
+						$(this).text(DESC_LABEL);
+					} else {
+						$(this).find('label').first().text(DESC_LABEL);
+						if (!$(this).find('label').length) {
+							$(this).text(DESC_LABEL);
+						}
+					}
+				});
 			$desc.closest('td.fieldValue').addClass('fieldValueWidth80');
 			// Keep BA delivery-note policy prefilled for new/empty notes.
 			var currentDesc = String($desc.val() || '').trim();
 			if (!currentDesc) {
-				$desc.val(DEFAULT_DELIVERY_NOTE_TEXT);
+				$desc.val(ensureCenteredHtml(DEFAULT_DELIVERY_NOTE_TEXT));
 			}
 		}
+
+		forceDescriptionContractLabel($editForm);
 
 		ensureListNoteField($editForm);
 
@@ -1343,7 +1450,7 @@
 			subject: 'Tiêu đề',
 			quote_id: 'Báo giá',
 			quote_id_display: 'Báo giá',
-			description: 'Ghi chú hợp đồng',
+			description: DESC_LABEL,
 			mk_list_note: 'Ghi chú'
 		};
 		Object.keys(labelMap).forEach(function (name) {
@@ -1373,16 +1480,61 @@
 		}
 	}
 
+	function forceDescriptionContractLabel($scope) {
+		var $root = $scope && $scope.length ? $scope : $form();
+		$root.find('textarea[name="description"]').each(function () {
+			var $ta = $(this);
+			var $value = $ta.closest('td.fieldValue');
+			var $labelTd = $value.prev('td.fieldLabel');
+			if ($labelTd.length) {
+				var $lab = $labelTd.find('label').first();
+				if ($lab.length) {
+					$lab.text(DESC_LABEL);
+				} else {
+					$labelTd.text(DESC_LABEL);
+				}
+			}
+			// Stacked rail labels (label above field)
+			$value
+				.prevAll()
+				.add($value.parent().children('.fieldLabel, label').first())
+				.filter('td.fieldLabel, label, .muted')
+				.each(function () {
+					var $el = $(this);
+					var t = $.trim($el.text() || '').replace(/\*/g, '');
+					if (!t || /^ghi\s*chú$/i.test(t) || /description/i.test(t) || t === DESC_LABEL) {
+						if ($el.is('label') || $el.hasClass('muted')) {
+							$el.text(DESC_LABEL);
+						} else {
+							$el.find('label').text(DESC_LABEL);
+							if (!$el.find('label').length) {
+								$el.contents().filter(function () {
+									return this.nodeType === 3;
+								}).remove();
+								$el.prepend(document.createTextNode(DESC_LABEL));
+							}
+						}
+					}
+				});
+		});
+		// Direct text nodes that still say Ghi chú next to description preview
+		$root.find('.mk-so-desc-preview').each(function () {
+			var $preview = $(this);
+			var $row = $preview.closest('tr');
+			$row.find('td.fieldLabel label').text(DESC_LABEL);
+		});
+	}
+
 	function pinAddProductToLineHeader() {
 		var $editForm = $form();
 		var $lineBlock = $editForm.find('#lineItemTab').closest('.fieldBlockContainer');
 		if (!$lineBlock.length) {
-			return;
+			return false;
 		}
 		var $tabs = $lineBlock.find('.mk-inv-odoo-tabs').first();
 		var $addBtn = $editForm.find('#addProductsServices').first();
 		if (!$tabs.length || !$addBtn.length) {
-			return;
+			return false;
 		}
 		var $actions = $tabs.find('.mk-inv-line-header-actions, .mk-qt-line-actions').first();
 		if (!$actions.length) {
@@ -1396,6 +1548,44 @@
 		$addBtn.addClass('mk-inv-add-line-btn--hidden').attr('aria-hidden', 'true');
 		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.initQuickProductSearch === 'function') {
 			window.MkInventoryOdooEdit.initQuickProductSearch($editForm);
+		}
+		// Prefer sticky header at top of line block (tabs + tìm hàng)
+		$tabs.addClass('mk-so-line-tabs--sticky');
+		return true;
+	}
+
+	function schedulePinAddProductRetries() {
+		if ($form().data('mkSoPinRetriesScheduled')) {
+			return;
+		}
+		$form().data('mkSoPinRetriesScheduled', true);
+		var attempts = [0, 400, 1200];
+		attempts.forEach(function (ms) {
+			setTimeout(function () {
+				pinAddProductToLineHeader();
+			}, ms);
+		});
+		// Re-pin if inventory rebuilds the line tabs after AJAX product pickers.
+		var $editForm = $form();
+		if ($editForm.length && !$editForm.data('mkSoPinAddObserver')) {
+			$editForm.data('mkSoPinAddObserver', true);
+			var $lineBlock = $editForm.find('#lineItemTab').closest('.fieldBlockContainer');
+			if ($lineBlock.length && typeof MutationObserver !== 'undefined') {
+				var obs = new MutationObserver(function () {
+					if (pinObserverTimer) {
+						clearTimeout(pinObserverTimer);
+					}
+					pinObserverTimer = setTimeout(function () {
+						pinObserverTimer = null;
+						if (!$lineBlock.find('.mk-inv-quick-search').length ||
+							!$lineBlock.find('#addProductsServices').closest('.mk-inv-line-header-actions, .mk-qt-line-actions').length) {
+							pinAddProductToLineHeader();
+						}
+					}, 180);
+				});
+				// Only watch direct children moves, not full subtree (subtree storms during typing).
+				obs.observe($lineBlock[0], { childList: true, subtree: false });
+			}
 		}
 	}
 
@@ -1689,10 +1879,36 @@
 		});
 	}
 
-	function runEnhancements() {
+	function lightPolishEnhancements() {
 		if (!isScoped()) {
 			return;
 		}
+		polishQuoteReferenceField();
+		lockAssignedAndMoveSoInfoToRail();
+		pinTotalsBelowOrderDetails();
+		pinAddProductToLineHeader();
+		forceDescriptionContractLabel();
+		fixFormDisplayEncoding();
+		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.restyleLineItemRows === 'function') {
+			window.MkInventoryOdooEdit.restyleLineItemRows($form());
+		}
+		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
+			window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($form());
+		} else if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.relocateCommerceToRail === 'function') {
+			window.MkInventoryOdooEdit.relocateCommerceToRail($form());
+		}
+	}
+
+	function runEnhancements(forceFull) {
+		if (!isScoped()) {
+			return;
+		}
+		// Full pipeline once only — re-running init/editors on every AJAX was the SO Edit lag source.
+		if (enhanceFullDone && !forceFull) {
+			lightPolishEnhancements();
+			return;
+		}
+		enhanceFullDone = true;
 		hideLegacyChrome();
 		styleFieldBlocks();
 		initOdooInventoryUi();
@@ -1704,6 +1920,7 @@
 		lockAssignedAndMoveSoInfoToRail();
 		pinTotalsBelowOrderDetails();
 		pinAddProductToLineHeader();
+		schedulePinAddProductRetries();
 		initTermsRichEditor();
 		initDescriptionRichEditor();
 		requireQuoteBeforeSave();
@@ -1715,26 +1932,13 @@
 		revealPage();
 		setTimeout(function () {
 			simplifySalesOrderForm();
-			polishQuoteReferenceField();
-			lockAssignedAndMoveSoInfoToRail();
-			pinTotalsBelowOrderDetails();
+			lightPolishEnhancements();
 			initDescriptionRichEditor();
-			if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
-				window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($form());
-			} else if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.relocateCommerceToRail === 'function') {
-				window.MkInventoryOdooEdit.relocateCommerceToRail($form());
-			}
-			fixFormDisplayEncoding();
-		}, 300);
+		}, 280);
 		setTimeout(function () {
-			lockAssignedAndMoveSoInfoToRail();
-			pinTotalsBelowOrderDetails();
-			if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
-				window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($form());
-			} else if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.relocateCommerceToRail === 'function') {
-				window.MkInventoryOdooEdit.relocateCommerceToRail($form());
-			}
-		}, 1200);
+			lightPolishEnhancements();
+			forceDescriptionContractLabel();
+		}, 900);
 	}
 
 	function bindWarehouseInterceptOnly() {
@@ -1766,14 +1970,26 @@
 		if (!isScoped()) {
 			return;
 		}
-		runEnhancements();
-		setTimeout(runEnhancements, 150);
-		setTimeout(runEnhancements, 600);
+		runEnhancements(true);
 
+		// Debounced light refresh after AJAX (do NOT re-run full enhancements).
 		$(document).ajaxComplete(function () {
-			if (isScoped()) {
-				setTimeout(runEnhancements, 80);
+			if (!isScoped()) {
+				return;
 			}
+			if (lightRefreshTimer) {
+				clearTimeout(lightRefreshTimer);
+			}
+			lightRefreshTimer = setTimeout(function () {
+				lightRefreshTimer = null;
+				if (isScoped()) {
+					// Pin / quote polish only — avoid full row restyle on every request.
+					polishQuoteReferenceField();
+					pinAddProductToLineHeader();
+					pinTotalsBelowOrderDetails();
+					forceDescriptionContractLabel();
+				}
+			}, 220);
 		});
 	}
 

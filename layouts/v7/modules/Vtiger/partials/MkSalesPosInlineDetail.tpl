@@ -80,7 +80,7 @@
 	</div>
 	{/if}
 
-	{if $MODULE eq 'Leads' || $MODULE eq 'ServiceContracts'}
+	{if $MODULE eq 'Leads' || $MODULE eq 'ServiceContracts' || $MODULE eq 'Potentials' || $MODULE eq 'Contacts'}
 		{assign var=LT value=$INLINE_LAST_TOUCH|default:[]}
 		{assign var=LT_CAN_ADD value=true}
 		{if isset($LT.can_add) && empty($LT.can_add)}{assign var=LT_CAN_ADD value=false}{/if}
@@ -95,6 +95,7 @@
 		<div class="mk-so-inline-detail__last-touch"
 			data-role="last-touch"
 			data-record-id="{$RECORD->getId()|escape}"
+			data-lt-module="{$MODULE|escape}"
 			data-lt-next="{$LT_NEXT|escape}"
 			data-lt-hint="{$LT_HINT|escape}"
 			data-lt-count="{$LT_COUNT|escape}"
@@ -109,6 +110,7 @@
 				<button type="button"
 					class="mk-so-inline-detail__action mk-so-inline-detail__action--call mk-so-inline-detail__call-btn{if empty($LT_CAN_ADD)} is-locked{/if}"
 					data-record-id="{$RECORD->getId()|escape}"
+					data-lt-module="{$MODULE|escape}"
 					data-lt-next="{$LT_NEXT|escape}"
 					data-lt-hint="{$LT_HINT|escape}"
 					{if !empty($LT.reminder_at_label)} data-lt-reminder="{$LT.reminder_at_label|escape}"{/if}
@@ -118,7 +120,7 @@
 					<span>{if empty($LT_CAN_ADD)}Đã đủ gọi{else}Ghi cuộc gọi{/if}</span>
 				</button>
 			</div>
-			<p class="mk-so-inline-detail__last-touch-hint" data-role="lt-hint" title="{if $LT_HINT neq ''}{$LT_HINT|escape}{/if}">{if $LT_HINT neq '' && ($LT_COUNT gt 0 || empty($LT_CAN_ADD))}{$LT_HINT|escape}{elseif $MODULE eq 'ServiceContracts'}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → Liên hệ Đã gửi tư vấn.{else}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → Opp.{/if}</p>
+			<p class="mk-so-inline-detail__last-touch-hint" data-role="lt-hint" title="{if $LT_HINT neq ''}{$LT_HINT|escape}{/if}">{if $LT_HINT neq '' && ($LT_COUNT gt 0 || empty($LT_CAN_ADD))}{$LT_HINT|escape}{elseif $MODULE eq 'ServiceContracts'}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → Liên hệ Đã gửi tư vấn.{elseif $MODULE eq 'Leads'}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → Opp.{else}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → dừng chuỗi gọi.{/if}</p>
 			<ul class="mk-so-inline-detail__last-touch-list" data-role="lt-list">
 				{if $LT_CALLS|@count gt 0}
 					{foreach from=$LT_CALLS item=CALL}

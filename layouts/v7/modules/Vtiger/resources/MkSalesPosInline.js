@@ -165,17 +165,117 @@
 
 	function closeInlinePrintPreview() {
 		var $modal = $('#mk-crm-inline-print-preview');
+		var blobUrl = $modal.data('mkPreviewBlobUrl');
+		if (blobUrl) {
+			try {
+				URL.revokeObjectURL(blobUrl);
+			} catch (e) { /* ignore */ }
+			$modal.removeData('mkPreviewBlobUrl');
+		}
 		$modal.removeClass('is-open').attr('aria-hidden', 'true').removeData('mkFranchiseMode');
 		// Restore iframe for non-franchise reuses
 		var $body = $modal.find('.mk-so-inline-print-preview__body');
-		if ($body.length && !$body.find('iframe').length) {
-			$body.empty().append(
-				$('<iframe class="mk-so-inline-print-preview__frame" title="Xem trước hợp đồng"></iframe>')
-			);
-		} else {
-			$modal.find('iframe').attr('src', 'about:blank');
-		}
+		$body.empty().append(
+			$('<iframe class="mk-so-inline-print-preview__frame" title="Xem trước hợp đồng"></iframe>')
+		);
 		$('body').removeClass('mk-so-inline-print-open');
+	}
+
+	function franchiseLibBase() {
+		return 'layouts/v7/lib/docx-preview/';
+	}
+
+	function ensureFranchiseDocxStyles() {
+		if (document.getElementById('mk-docx-preview-host-css')) {
+			return;
+		}
+		var link = document.createElement('link');
+		link.id = 'mk-docx-preview-host-css';
+		link.rel = 'stylesheet';
+		link.href = franchiseLibBase() + 'docx-preview-host.css';
+		document.head.appendChild(link);
+	}
+
+	function loadScriptOnce(src, globalCheck) {
+		return new Promise(function (resolve, reject) {
+			if (globalCheck && globalCheck()) {
+				resolve();
+				return;
+			}
+			var existing = document.querySelector('script[data-mk-src="' + src + '"]');
+			if (existing) {
+				existing.addEventListener('load', function () {
+					resolve();
+				});
+				existing.addEventListener('error', function () {
+					reject(new Error('Load failed: ' + src));
+				});
+				return;
+			}
+			var s = document.createElement('script');
+			s.src = src;
+			s.async = true;
+			s.setAttribute('data-mk-src', src);
+			s.onload = function () {
+				resolve();
+			};
+			s.onerror = function () {
+				reject(new Error('Load failed: ' + src));
+			};
+			document.head.appendChild(s);
+		});
+	}
+
+	function ensureDocxPreviewLibs() {
+		ensureFranchiseDocxStyles();
+		var base = franchiseLibBase();
+		return loadScriptOnce(base + 'jszip.min.js', function () {
+			return typeof JSZip !== 'undefined';
+		}).then(function () {
+			return loadScriptOnce(base + 'docx-preview.min.js', function () {
+				return !!(window.docx && window.docx.renderAsync);
+			});
+		});
+	}
+
+	function setFranchisePreviewLoading($body, text) {
+		$body.empty().append(
+			$('<div class="mk-docx-preview-loading"/>').text(text || 'Đang tải bản xem trước…')
+		);
+	}
+
+	function renderDocxPreviewInBody($body, arrayBuffer) {
+		return ensureDocxPreviewLibs().then(function () {
+			var host = document.createElement('div');
+			host.className = 'mk-docx-preview-host';
+			var styleHost = document.createElement('div');
+			styleHost.style.display = 'none';
+			$body.empty().append(styleHost).append(host);
+			return window.docx.renderAsync(arrayBuffer, host, styleHost, {
+				className: 'docx',
+				inWrapper: true,
+				ignoreWidth: false,
+				ignoreHeight: false,
+				breakPages: true,
+				useBase64URL: true,
+			});
+		});
+	}
+
+	function showPdfBlobInBody($modal, $body, blob) {
+		var prev = $modal.data('mkPreviewBlobUrl');
+		if (prev) {
+			try {
+				URL.revokeObjectURL(prev);
+			} catch (e) { /* ignore */ }
+		}
+		var url = URL.createObjectURL(blob);
+		$modal.data('mkPreviewBlobUrl', url);
+		$body.empty().append(
+			$(
+				'<iframe class="mk-so-inline-print-preview__frame" title="Xem trước hợp đồng PDF"></iframe>'
+			).attr('src', url)
+		);
 	}
 
 	function ensureInlinePrintPreviewModal() {
@@ -304,8 +404,10 @@
 	}
 
 	/**
-	 * Franchise «Xem trước»: modal iframe PDF (LibreOffice từ cùng DOCX đã điền).
-	 * Không auto-download. In chuẩn: Tải / in Word.
+	 * Franchise «Xem trước» dual-path:
+	 * - PDF when server has LibreOffice (fetch → blob iframe)
+	 * - DOCX + docx-preview when no LO (X-Mk-Preview: docx)
+	 * Print truth: Tải / in Word.
 	 * @param {string|number} recordId
 	 * @param {object} [opts] previewUrl, wordUrl, $panel
 	 */
@@ -320,29 +422,16 @@
 		var previewUrl = resolveFranchisePreviewUrl($panel, recordId, opts);
 
 		var $modal = ensureInlinePrintPreviewModal();
-		// Ensure iframe body (not message placeholder)
 		var $body = $modal.find('.mk-so-inline-print-preview__body');
-		if (!$body.find('iframe').length) {
-			$body.empty().append(
-				$(
-					'<iframe class="mk-so-inline-print-preview__frame" title="Xem trước hợp đồng PDF"></iframe>'
-				)
-			);
-		} else {
-			// loading state
-			$modal.find('iframe').attr('src', 'about:blank');
-		}
 
 		$modal.data('mkPrintPanel', $panel);
 		$modal.data('mkPrintRecordId', recordId);
 		$modal.data('mkWordUrl', wordUrl);
 		$modal.data('mkFranchiseMode', true);
-		$modal.find('#mk-crm-inline-print-title').text('Xem trước hợp đồng (PDF)');
+		$modal.find('#mk-crm-inline-print-title').text('Xem trước hợp đồng');
 		$modal
 			.find('.mk-so-inline-print-preview__hint')
-			.text(
-				'PDF chuyển từ file Word đã điền (LibreOffice). In chuẩn: Tải / in Word → Microsoft Word.'
-			)
+			.text('Đang tải… In chuẩn: Tải / in Word → Microsoft Word.')
 			.show();
 		$modal.find('.mk-so-inline-print-preview__print').hide();
 		$modal.find('.mk-so-inline-print-preview__download').hide();
@@ -350,10 +439,77 @@
 			.find('.mk-so-inline-print-preview__download-word')
 			.show()
 			.html('<i class="fa fa-file-word-o" aria-hidden="true"></i> Tải / in Word');
-		// Load PDF — no DOCX download
-		$modal.find('iframe').attr('src', previewUrl);
+		setFranchisePreviewLoading($body, 'Đang tải bản xem trước…');
 		$modal.addClass('is-open').attr('aria-hidden', 'false');
 		$('body').addClass('mk-so-inline-print-open');
+
+		fetch(previewUrl, { credentials: 'same-origin', cache: 'no-store' })
+			.then(function (res) {
+				if (!res.ok) {
+					throw new Error('HTTP ' + res.status);
+				}
+				var mode = String(res.headers.get('X-Mk-Preview') || '').toLowerCase();
+				var ct = String(res.headers.get('Content-Type') || '').toLowerCase();
+				var isPdf = mode === 'pdf' || ct.indexOf('application/pdf') >= 0;
+				var isDocx =
+					mode === 'docx' ||
+					ct.indexOf('wordprocessingml') >= 0 ||
+					ct.indexOf('application/octet-stream') >= 0;
+
+				if (isPdf) {
+					return res.blob().then(function (blob) {
+						if (blob.size < 32) {
+							throw new Error('PDF rỗng');
+						}
+						$modal.find('#mk-crm-inline-print-title').text('Xem trước hợp đồng (PDF)');
+						$modal
+							.find('.mk-so-inline-print-preview__hint')
+							.text(
+								'PDF từ file Word đã điền (LibreOffice). In chuẩn: Tải / in Word → Microsoft Word.'
+							);
+						showPdfBlobInBody($modal, $body, blob);
+					});
+				}
+
+				if (isDocx) {
+					return res.arrayBuffer().then(function (buf) {
+						if (!buf || buf.byteLength < 32) {
+							throw new Error('DOCX rỗng');
+						}
+						$modal.find('#mk-crm-inline-print-title').text('Xem trước hợp đồng');
+						$modal
+							.find('.mk-so-inline-print-preview__hint')
+							.text(
+								'Bản xem trong CRM (không có LibreOffice). In chuẩn: Tải / in Word → Microsoft Word.'
+							);
+						setFranchisePreviewLoading($body, 'Đang hiển thị tài liệu…');
+						return renderDocxPreviewInBody($body, buf);
+					});
+				}
+
+				// Unexpected HTML / error page
+				return res.text().then(function (html) {
+					$body.empty().append(
+						$('<div class="mk-docx-preview-loading"/>').html(
+							html && html.indexOf('<') >= 0
+								? html
+								: 'Không tạo được bản xem trước. Dùng Tải / in Word.'
+						)
+					);
+				});
+			})
+			.catch(function (err) {
+				var msg =
+					(err && err.message) ||
+					'Không tải được bản xem trước. Dùng Tải / in Word.';
+				$body.empty().append(
+					$('<div class="mk-docx-preview-loading"/>').text(msg)
+				);
+				$modal
+					.find('.mk-so-inline-print-preview__hint')
+					.text('In chuẩn: Tải / in Word → Microsoft Word.')
+					.show();
+			});
 	}
 
 	/**

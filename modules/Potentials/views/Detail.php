@@ -175,6 +175,22 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 			$nextAction = '';
 		}
 
+		$lastTouch = array(
+			'can_add' => true,
+			'next_n' => 1,
+			'count' => 0,
+			'max_calls' => 3,
+			'hint' => '',
+			'reminder_at_label' => '',
+			'calls' => array(),
+		);
+		try {
+			require_once 'modules/Potentials/models/LastTouchCallService.php';
+			$lastTouch = Potentials_LastTouchCallService::getSummary($recordId);
+		} catch (Exception $e) {
+			// keep defaults
+		}
+
 		$viewer = $this->getViewer($request);
 		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, 'SALES', $infoFields, $title, $subtitle);
 		$viewer->assign('INLINE_SHOW_NEXT_ACTION', true);
@@ -183,6 +199,7 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('INLINE_NEXT_ACTION_TIMEFRAME', $nextActionTimeframe);
 		$viewer->assign('INLINE_NEXT_ACTION_OVERDUE', $nextActionOverdue);
 		$viewer->assign('INLINE_NEXT_ACTION_ALERT_DAYS', $nextActionAlertDays);
+		$viewer->assign('INLINE_LAST_TOUCH', $lastTouch);
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 

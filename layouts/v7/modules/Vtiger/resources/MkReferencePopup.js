@@ -180,7 +180,17 @@
 			/* ignore */
 		}
 		$div.removeClass('mCustomScrollbar _mCS_1 mCS_no_scrollbar');
-		$div.css({ height: '', maxHeight: '', overflow: '' });
+		// Keep native horizontal / vertical scroll after destroying mCustomScrollbar
+		$div.css({
+			height: '',
+			maxHeight: 'min(62vh, 580px)',
+			overflowX: 'auto',
+			overflowY: 'auto',
+			webkitOverflowScrolling: 'touch'
+		});
+		getPageContainer()
+			.find('.popupEntriesTableContainer')
+			.css({ overflowX: 'auto', overflowY: 'visible' });
 	}
 
 	function markBodyOpen(open) {
