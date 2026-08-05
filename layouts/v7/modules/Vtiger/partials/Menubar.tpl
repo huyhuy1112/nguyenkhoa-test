@@ -52,6 +52,7 @@
 					{elseif $moduleName eq 'Plans'}{assign var=MK_MOD_FA value='fa-calendar-o'}
 					{elseif $moduleName eq 'Potentials'}{assign var=MK_MOD_FA value='fa-dollar'}
 					{elseif $moduleName eq 'Quotes'}{assign var=MK_MOD_FA value='fa-file-text-o'}
+					{elseif $moduleName eq 'Invoice'}{assign var=MK_MOD_FA value='fa-file-text-o'}
 					{elseif $moduleName eq 'SalesOrder'}{assign var=MK_MOD_FA value='fa-shopping-cart'}
 					{elseif $moduleName eq 'ProductsServices'}{assign var=MK_MOD_FA value='fa-cubes'}
 					{elseif $moduleName eq 'Contacts'}{assign var=MK_MOD_FA value='fa-user'}
