@@ -1,7 +1,7 @@
 {* Invoice Detail (TOOLS / SUPPORT): primary tabs + collapsible related icon row. *}
 {strip}
 {assign var=MK_INV_MK_DETAIL value=false}
-{if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SUPPORT' || $SELECTED_MENU_CATEGORY eq 'TOOLS')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SUPPORT' || $smarty.get.app eq 'TOOLS')) || (isset($smarty.request.app) && ($smarty.request.app eq 'SUPPORT' || $smarty.request.app eq 'TOOLS'))}
+{if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SUPPORT' || $SELECTED_MENU_CATEGORY eq 'TOOLS' || $SELECTED_MENU_CATEGORY eq 'SALES')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SUPPORT' || $smarty.get.app eq 'TOOLS' || $smarty.get.app eq 'SALES')) || (isset($smarty.request.app) && ($smarty.request.app eq 'SUPPORT' || $smarty.request.app eq 'TOOLS' || $smarty.request.app eq 'SALES'))}
 	{assign var=MK_INV_MK_DETAIL value=true}
 {/if}
 	<div class='related-tabs row{if $MK_INV_MK_DETAIL} mk-inv-detail-related-tabs{/if}'>

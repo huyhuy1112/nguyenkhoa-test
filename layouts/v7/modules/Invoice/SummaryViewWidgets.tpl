@@ -3,15 +3,13 @@
 {foreach item=DETAIL_VIEW_WIDGET from=$DETAILVIEW_LINKS['DETAILVIEWWIDGET']}
 	{if ($DETAIL_VIEW_WIDGET->getLabel() eq 'Documents') }
 		{assign var=DOCUMENT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
-	{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'ModComments')}
-		{assign var=COMMENTS_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 	{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'LBL_UPDATES')}
 		{assign var=UPDATES_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 	{/if}
 {/foreach}
 
 {assign var=MK_INV_MK_DETAIL value=false}
-{if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SUPPORT' || $SELECTED_MENU_CATEGORY eq 'TOOLS')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SUPPORT' || $smarty.get.app eq 'TOOLS')) || (isset($smarty.request.app) && ($smarty.request.app eq 'SUPPORT' || $smarty.request.app eq 'TOOLS'))}
+{if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SUPPORT' || $SELECTED_MENU_CATEGORY eq 'TOOLS' || $SELECTED_MENU_CATEGORY eq 'SALES')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SUPPORT' || $smarty.get.app eq 'TOOLS' || $smarty.get.app eq 'SALES')) || (isset($smarty.request.app) && ($smarty.request.app eq 'SUPPORT' || $smarty.request.app eq 'TOOLS' || $smarty.request.app eq 'SALES'))}
 	{assign var=MK_INV_MK_DETAIL value=true}
 {/if}
 {if $MK_INV_MK_DETAIL}
@@ -83,19 +81,7 @@
 		</section>
 		{/if}
 
-		{if $COMMENTS_WIDGET_MODEL}
-		<section class="mk-inv-detail-card mk-inv-detail-card--comments mk-inv-detail-summary-grid__comments" aria-labelledby="mk-inv-detail-comments-title">
-			<div class="summaryWidgetContainer mk-inv-detail-widget-host">
-				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header mk-inv-detail-card__head">
-						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-						<h2 id="mk-inv-detail-comments-title" class="mk-inv-detail-card__title"><span class="mk-inv-detail-heading-svg mk-inv-detail-heading-svg--comment" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
-					</div>
-					<div class="widget_contents"></div>
-				</div>
-			</div>
-		</section>
-		{/if}
+		
 	</div>
 {else}
 <div class="left-block col-lg-5">
@@ -118,17 +104,7 @@
 </div>
 <div class="middle-block col-lg-7">
 	<div id="relatedActivities">{$RELATED_ACTIVITIES}</div>
-	{if $COMMENTS_WIDGET_MODEL}
-	<div class="summaryWidgetContainer">
-		<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-			<div class="widget_header">
-				<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-				<h3 class="display-inline-block">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h3>
-			</div>
-			<div class="widget_contents"></div>
-		</div>
-	</div>
-	{/if}
+	
 </div>
 {/if}
 {/strip}
