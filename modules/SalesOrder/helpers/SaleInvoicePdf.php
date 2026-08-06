@@ -222,6 +222,7 @@ class SalesOrder_SaleInvoicePdf_Helper {
 					? (string) (int) $line['qty']
 					: rtrim(rtrim(number_format((float) $line['qty'], 3, ',', ''), '0'), ',');
 				$code = trim((string) ($line['code'] ?? ''));
+				$note = trim((string) ($line['note'] ?? $line['comment'] ?? ''));
 				$rows .= '<tr>'
 					. '<td class="c">' . $stt . '</td>'
 					. '<td>' . $h($code !== '' ? $code : '—') . '</td>'
@@ -229,7 +230,7 @@ class SalesOrder_SaleInvoicePdf_Helper {
 					. '<td class="c">' . $h($qty) . '</td>'
 					. '<td class="r">' . $h($money($line['price'])) . '</td>'
 					. '<td class="r">' . $h($money($line['total'])) . '</td>'
-					. '<td></td>'
+					. '<td>' . $h($note) . '</td>'
 					. '</tr>';
 			}
 		}
@@ -262,15 +263,16 @@ body{margin:0;padding:16px;font:13px/1.45 "DejaVu Sans",Arial,Helvetica,sans-ser
 .info{display:flex;gap:24px;margin-bottom:12px}
 .info-col{flex:1;min-width:0}
 .info-row{margin:0 0 4px}
-.info-row b{display:inline-block;min-width:88px;font-weight:700}
-.info-row--notes{text-align:center}
-.info-row--notes b{display:block;min-width:0;margin-bottom:4px}
-table{width:100%;border-collapse:collapse;margin:8px 0 12px}
+.info-row b{display:inline-block;min-width:88px;font-weight:700;vertical-align:top}
+.info-row--notes{text-align:left}
+.info-row--notes b{display:inline-block;min-width:88px;margin-bottom:0;vertical-align:top}
+table{width:100%;border-collapse:collapse;margin:8px 0 2px}
 th,td{border:1px solid #222;padding:6px 8px;vertical-align:top}
 th{background:#f3f3f3;font-size:12px;font-weight:700}
 td.c,th.c{text-align:center}
 td.r,th.r{text-align:right}
-.summary{display:block;margin-top:8px;width:100%}
+.summary{display:block;margin-top:2px;width:100%}
+.vat-between{margin:2px 0 4px;font-size:12px;font-style:normal;font-weight:700;color:#111;text-align:left}
 .totals{width:100%;margin:0}
 .totals-row{display:grid;grid-template-columns:7% 14% 30% 8% 14% 15% 12%;align-items:baseline;margin:3px 0;font-size:13px;width:100%}
 .totals-row .t-label{grid-column:1 / 6;font-weight:700;text-align:left}
@@ -297,7 +299,7 @@ td.r,th.r{text-align:right}
 			. '<p class="info-row"><b>Khách Hàng:</b> ' . $h($data['customer']) . '</p>'
 			. '<p class="info-row"><b>SĐT:</b> ' . $h($data['customer_phone']) . '</p>'
 			. '<p class="info-row"><b>Địa chỉ:</b> ' . $h($data['customer_address']) . '</p>'
-			. '<p class="info-row info-row--notes"><b>Ghi chú:</b> ' . $h($data['notes']) . '</p>'
+			. '<p class="info-row info-row--notes"><b>Ghi chú:</b> ' . $h($data['notes'] !== '' ? $data['notes'] : '—') . '</p>'
 			. '</div><div class="info-col">'
 			. '<p class="info-row"><b>Chi nhánh:</b> ' . $h($data['branch']) . '</p>'
 			. '<p class="info-row"><b>NVBH:</b> ' . $h($data['sales_name']) . '</p>'
@@ -308,6 +310,7 @@ td.r,th.r{text-align:right}
 			. '<th class="c" style="width:8%">SL</th><th class="r" style="width:14%">Đơn Giá</th>'
 			. '<th class="r" style="width:15%">Thành Tiền</th><th style="width:12%">Ghi Chú</th>'
 			. '</tr></thead><tbody>' . $rows . '</tbody></table>'
+			. '<p class="vat-between"><strong>Đơn giá này đã bao gồm VAT</strong></p>'
 			. '<div class="summary"><div class="totals">'
 			. '<div class="totals-row"><span class="t-label">Tổng Cộng:</span><span class="t-value is-bold">' . $h($money($data['sub_total'])) . '</span></div>'
 			. '<div class="totals-row"><span class="t-label">Chiết Khấu:</span><span class="t-value">' . $h($money($data['discount'])) . '</span></div>'
@@ -447,7 +450,7 @@ td.r,th.r{text-align:right}
 		self::writeLabelValue($pdf, $pageW, 'Khách hàng:', $customer !== '' ? $customer : '—');
 		self::writeLabelValue($pdf, $pageW, 'SĐT:', $customerPhone !== '' ? $customerPhone : '—');
 		self::writeLabelValue($pdf, $pageW, 'Địa chỉ:', $customerAddress !== '' ? $customerAddress : '—');
-		self::writeCenteredNote($pdf, $pageW, 'Ghi chú:', $notes !== '' ? $notes : '—');
+		self::writeLabelValue($pdf, $pageW, 'Ghi chú:', $notes !== '' ? $notes : '—');
 		$pdf->Ln(3);
 
 		$colItem = $pageW * 0.62;
@@ -687,7 +690,7 @@ td.r,th.r{text-align:right}
 					: rtrim(rtrim(number_format((float) $line['qty'], 3, ',', ''), '0'), ',');
 				$priceText = Quotes_QuoteExcelExport_Helper::formatMoneyVnPublic($line['price']);
 				$totalText = Quotes_QuoteExcelExport_Helper::formatMoneyVnPublic($line['total']);
-				$noteText = '';
+				$noteText = trim((string) ($line['note'] ?? $line['comment'] ?? ''));
 
 				$rowH = max(7, self::estimateWrappedHeight($pdf, $cols[2]['w'], $name, 4.2));
 				$cells = array(
@@ -709,7 +712,10 @@ td.r,th.r{text-align:right}
 			}
 		}
 
-		$pdf->Ln(2);
+		$pdf->Ln(0.5);
+		$pdf->SetFont(self::FONT, 'B', 9);
+		$pdf->MultiCell($pageW, 4.5, self::utf('Đơn giá này đã bao gồm VAT'), 0, 'L', false, 1);
+		$pdf->Ln(0.5);
 
 		// —— Totals: chữ trái, số căn cột Thành Tiền ——
 		// boldValue: true = số Tổng Cộng đậm; false = số thường (Tổng Thanh Toán không đậm)
@@ -971,6 +977,10 @@ td.r,th.r{text-align:right}
 				$total = $totalAfterDiscount;
 			}
 
+			$lineComment = '';
+			if (!empty($productLineItem['comment' . $index])) {
+				$lineComment = decode_html($productLineItem['comment' . $index]);
+			}
 			$lines[] = array(
 				'name' => $productName,
 				'code' => trim((string) $productCode),
@@ -978,6 +988,7 @@ td.r,th.r{text-align:right}
 				'qty' => $quantity,
 				'price' => $listPrice,
 				'total' => $total,
+				'note' => trim((string) $lineComment),
 			);
 		}
 
@@ -990,6 +1001,7 @@ td.r,th.r{text-align:right}
 					'qty' => (float) ($line['qty'] ?? 1),
 					'price' => (float) ($line['price'] ?? 0),
 					'total' => (float) ($line['total'] ?? 0),
+					'note' => (string) ($line['note'] ?? $line['comment'] ?? ''),
 				);
 			}
 		}

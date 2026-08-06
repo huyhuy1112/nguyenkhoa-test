@@ -261,6 +261,12 @@
 				<i class="fa fa-external-link" aria-hidden="true"></i>
 				<span>Sửa</span>
 			</button>
+			{if $MODULE eq 'ServiceContracts'}
+			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__create-quote-btn" href="index.php?module=Quotes&amp;view=Edit&amp;app=SALES&amp;servicecontract_id={$RECORD->getId()}" title="Tạo báo giá cho khách chuyển nhượng">
+				<i class="fa fa-file-text-o" aria-hidden="true"></i>
+				<span>Báo giá</span>
+			</a>
+			{/if}
 			{if $MODULE eq 'Leads'}
 				{assign var=INLINE_CAN_CONVERT value=$INLINE_CAN_CONVERT|default:true}
 				<button type="button"

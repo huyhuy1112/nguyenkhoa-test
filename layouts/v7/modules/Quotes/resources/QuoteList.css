@@ -469,16 +469,17 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent 
 	pointer-events: auto !important;
 }
 
-/* ---- Native table layout: full-width table inside scrollport; no max-content (breaks floatThead / cols) ---- */
+/* ---- Native table layout: full-width fixed cols (laptop fit; no min 1230) ---- */
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-qt-table,
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent #listview-table {
 	margin-bottom: 0;
-	width: 100%;
-	min-width: 1230px;
+	width: 100% !important;
+	min-width: 0 !important;
+	max-width: 100%;
 	box-sizing: border-box;
 	border-collapse: collapse;
 	border-spacing: 0;
-	table-layout: auto;
+	table-layout: fixed;
 	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
@@ -1429,7 +1430,9 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-e
 	border-collapse: separate;
 	border-spacing: 0;
 	table-layout: fixed;
-	min-width: 1232px;
+	width: 100% !important;
+	min-width: 0 !important;
+	max-width: 100%;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th,
@@ -1449,9 +1452,19 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-e
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	border-bottom: 1px solid #dbe4f0 !important;
-	padding: 10px 12px !important;
+	padding: 10px 10px !important;
 	vertical-align: middle !important;
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader th .mk-so-pos-th-label {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader th a .fa-sort,
@@ -1785,12 +1798,14 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] button.mk-so-inli
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines-wrap {
 	overflow-x: auto;
-	margin-bottom: 14px;
+	-webkit-overflow-scrolling: touch;
+	margin-bottom: 10px;
+	max-width: 100%;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines {
 	width: 100%;
-	min-width: 760px;
+	min-width: 640px;
 	border-collapse: collapse;
 }
 
@@ -1929,6 +1944,113 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 	font-size: 13px;
 }
 
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines th.is-note,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-note {
+	min-width: 120px;
+	max-width: 200px;
+	text-align: left;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines .is-disc {
+	white-space: nowrap;
+	color: #64748b;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__line-note {
+	width: 100%;
+	min-width: 100px;
+	padding: 5px 8px;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	font-size: 12px;
+	color: #334155;
+	background: #fff;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__line-note:focus {
+	border-color: #08a045;
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(8, 160, 69, 0.15);
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__vat-note {
+	margin: 4px 0 2px;
+	padding: 0 2px;
+	font-size: 12px;
+	font-style: normal;
+	font-weight: 700;
+	color: #0f172a;
+	line-height: 1.35;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__vat-note strong {
+	font-weight: 700;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input {
+	width: 100%;
+	max-width: 180px;
+	padding: 6px 8px;
+	border: 1px solid #bbf7d0;
+	border-radius: 8px;
+	background: #fff;
+	color: #08a045 !important;
+	font-weight: 700;
+	font-size: 14px !important;
+	font-variant-numeric: tabular-nums;
+	font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input:focus {
+	border-color: #08a045;
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(8, 160, 69, 0.18);
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-search-empty__cell {
+	padding: 36px 20px !important;
+	border: none !important;
+	background: transparent !important;
+	text-align: center;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-search-empty__box {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	max-width: 360px;
+	padding: 28px 32px;
+	border: 1px dashed #cbd5e1;
+	border-radius: 16px;
+	background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-search-empty__icon {
+	width: 48px;
+	height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: #e2e8f0;
+	color: #64748b;
+	font-size: 18px;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-search-empty__title {
+	font-size: 15px;
+	font-weight: 700;
+	color: #0f172a;
+	letter-spacing: -0.01em;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-search-empty__hint {
+	font-size: 13px;
+	line-height: 1.45;
+	color: #64748b;
+}
+
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions {
 	display: flex;
 	align-items: center;
@@ -1999,12 +2121,52 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__fields {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__totals {
+		min-width: 0;
+	}
 }
 
 @media (max-width: 900px) {
 	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__fields,
 	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__bottom {
 		grid-template-columns: 1fr;
+	}
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions-left,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions-right {
+		width: 100%;
+		justify-content: flex-start;
+	}
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__action {
+		flex: 0 1 auto;
+	}
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input {
+		max-width: 100%;
+	}
+}
+
+@media (max-width: 640px) {
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__fields {
+		grid-template-columns: 1fr;
+	}
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail {
+		padding: 12px;
+	}
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines {
+		min-width: 560px;
+	}
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines thead th,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines tbody td {
+		padding: 8px 10px;
+		font-size: 12px;
+	}
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__action {
+		height: 36px;
+		padding: 0 10px;
+		font-size: 12px;
 	}
 }
 
@@ -2683,4 +2845,184 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .bootbox.mk-quote
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__confirm-order-btn.is-hidden {
 	display: none !important;
+}
+
+/* ===== Quotes list: fluid column budget (laptop-first) ===== */
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-pos-control-th,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-pos-control-td,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-star,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.listViewRecordActions {
+	width: 64px;
+	min-width: 56px !important;
+	max-width: 72px;
+	padding-left: 8px !important;
+	padding-right: 6px !important;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-order-no,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-order-no {
+	width: 9%;
+	min-width: 0;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-customer,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-customer {
+	width: 14%;
+	min-width: 0;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-assigned,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-assigned {
+	width: 13%;
+	min-width: 0;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-due,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-due {
+	width: 12%;
+	min-width: 0;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-status,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-status {
+	width: 11%;
+	min-width: 96px;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.listViewEntryValue .value,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-customer .value,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-assigned .value {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-assigned .mk-qt-has-creator,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-assigned .value.mk-qt-has-creator {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	max-width: 100%;
+	min-width: 0;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-assigned .mk-qt-avatar__label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] th.mk-qt-col-phone,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] td.mk-qt-col-phone,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] th.mk-so-col-phone,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] td.mk-so-col-phone {
+	width: 11%;
+	min-width: 0;
+	max-width: none;
+	white-space: nowrap;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] th.mk-qt-col-email,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] td.mk-qt-col-email,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] th.mk-so-col-email,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] td.mk-so-col-email {
+	width: 13%;
+	min-width: 0;
+	max-width: none;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] td.mk-qt-col-email .value,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] td.mk-so-col-email .value {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
+	font-size: 12.5px;
+	color: #334155;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] td.mk-qt-col-phone .value,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] td.mk-so-col-phone .value {
+	font-variant-numeric: tabular-nums;
+	font-size: 12.5px;
+	color: #334155;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-summary-cell--due .mk-so-summary-value {
+	display: inline-block;
+	text-align: left;
+	font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	font-size: 14px;
+	font-weight: 700;
+	color: #0f172a;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+/* ---- Laptop breakpoints (sidebar + content ~10–14") ---- */
+@media (max-width: 1440px) {
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader th,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.listViewEntries td {
+		padding-left: 8px !important;
+		padding-right: 8px !important;
+	}
+
+	/* Hide Email on typical laptop so status + sale fit */
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-qt-col-email,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-qt-col-email,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-email,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-email,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-qt-col-email,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-email {
+		display: none !important;
+	}
+
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-customer,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-customer {
+		width: 18%;
+	}
+
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-status,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-status {
+		width: 12%;
+		min-width: 108px;
+	}
+}
+
+@media (max-width: 1280px) {
+	/* Also hide phone — keeps SỐ / KH / Sale / Tổng / Trạng thái clean */
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-qt-col-phone,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-qt-col-phone,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-phone,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-phone,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-qt-col-phone,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-phone {
+		display: none !important;
+	}
+
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-customer,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-customer {
+		width: 22%;
+	}
+
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.listViewEntries td {
+		font-size: 13px;
+	}
+}
+
+@media (max-width: 1100px) {
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-col-assigned,
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-col-assigned {
+		width: 12%;
+	}
+
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-assigned .mk-qt-avatar__label {
+		max-width: 7em;
+	}
 }

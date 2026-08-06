@@ -159,13 +159,14 @@
 				<table class="table table-bordered" id="lineItemTab">
 					{if !empty($MK_MODERN_QUOTE_CREATE) || !empty($MK_MODERN_SALES_ORDER_CREATE)}
 					<colgroup class="mk-inv-colgroup">
-						<col style="width:52px" />
-						<col style="width:24%" />
-						<col style="width:92px" />
-						<col style="width:132px" />
-						<col style="width:104px" />
-						<col style="width:148px" />
-						<col style="width:156px" />
+						<col style="width:48px" />
+						<col style="width:22%" />
+						<col style="width:72px" />
+						<col style="width:96px" />
+						<col style="width:120px" />
+						<col style="width:110px" />
+						<col style="width:128px" />
+						<col style="width:150px" />
 					</colgroup>
 					<tr class="mk-inv-header-row">
 						<td class="mk-inv-col-drag"></td>
@@ -178,14 +179,17 @@
 						<td class="mk-inv-col-unit-head mk-inv-col-unit">
 							<span class="mk-inv-th-label">Đơn vị tính</span>
 						</td>
-						<td class="mk-inv-col-tax-head mk-inv-col-tax">
-							<span class="mk-inv-th-label">Thuế</span>
-						</td>
 						<td class="mk-inv-col-price">
-							<span class="mk-inv-th-label">Bảng giá</span>
+							<span class="mk-inv-th-label">Đơn giá</span>
+						</td>
+						<td class="mk-inv-col-tax-head mk-inv-col-tax mk-inv-col-discount">
+							<span class="mk-inv-th-label">Chiết khấu (%)</span>
 						</td>
 						<td class="mk-inv-col-amount">
-							<span class="mk-inv-th-label">Tổng giá trị</span>
+							<span class="mk-inv-th-label">Thành tiền</span>
+						</td>
+						<td class="mk-inv-col-note">
+							<span class="mk-inv-th-label">Ghi chú</span>
 						</td>
 					</tr>
 					{else}

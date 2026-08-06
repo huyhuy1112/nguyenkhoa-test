@@ -1,7 +1,7 @@
 {* KiotViet-style inline quote detail (expanded under list row) *}
 {strip}
 {assign var=FINAL_DETAILS value=$RELATED_PRODUCTS.1.final_details}
-<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="Quotes" data-quote-stage="{$INLINE_QUOTE_STAGE|default:''|escape}" data-can-confirm-order="{if !empty($INLINE_CAN_CONFIRM_ORDER)}1{else}0{/if}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-edit-url="{$INLINE_EDIT_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=Quotes&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$FINAL_DETAILS.amount_in_words|default:''|escape}" data-created-date="{$RECORD->getDisplayValue('createdtime')|escape}">
+<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="Quotes" data-quote-stage="{$INLINE_QUOTE_STAGE|default:''|escape}" data-can-confirm-order="{if !empty($INLINE_CAN_CONFIRM_ORDER)}1{else}0{/if}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-edit-url="{$INLINE_EDIT_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=Quotes&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$FINAL_DETAILS.amount_in_words|default:''|escape}" data-created-date="{$RECORD->getDisplayValue('createdtime')|escape}" data-subtotal-raw="{$FINAL_DETAILS.hdnSubTotal|default:'0'|escape}">
 	<div class="mk-so-inline-detail__tabs" role="tablist">
 		<button type="button" class="mk-so-inline-detail__tab is-active" role="tab" aria-selected="true">Thông tin</button>
 	</div>
@@ -55,8 +55,9 @@
 					<th>Tên hàng</th>
 					<th class="is-num">Số lượng</th>
 					<th class="is-num">Đơn giá</th>
-					<th class="is-num">Thuế</th>
+					<th class="is-num">Chiết khấu</th>
 					<th class="is-num">Thành tiền</th>
+					<th class="is-note">Ghi chú</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -64,7 +65,10 @@
 				{foreach from=$RELATED_PRODUCTS key=IDX item=LINE}
 					{if $IDX > 0 && $LINE["hdnProductId$IDX"]|default:'' neq ''}
 						{assign var=HAS_LINE_ITEMS value=true}
-						<tr data-qty="{$LINE["qty$IDX"]|default:'1'|escape}" data-price="{$LINE["listPrice$IDX"]|default:$LINE["unitPrice$IDX"]|default:'0'|escape}" data-total="{$LINE["netPrice$IDX"]|default:$LINE["productTotal$IDX"]|default:'0'|escape}" data-unit="{$LINE["usageunit$IDX"]|default:''|escape}">
+						{assign var=LINE_COMMENT value=$LINE["comment$IDX"]|default:''}
+						{assign var=DISC_PCT value=$LINE["discount_percent$IDX"]|default:0}
+						{assign var=DISC_TOTAL value=$LINE["discountTotal$IDX"]|default:0}
+						<tr data-qty="{$LINE["qty$IDX"]|default:'1'|escape}" data-price="{$LINE["listPrice$IDX"]|default:$LINE["unitPrice$IDX"]|default:'0'|escape}" data-total="{$LINE["netPrice$IDX"]|default:$LINE["productTotal$IDX"]|default:'0'|escape}" data-unit="{$LINE["usageunit$IDX"]|default:''|escape}" data-sequence="{$IDX|escape}">
 							<td class="is-code">
 								{if $LINE["hdnProductId$IDX"]|default:'' neq ''}
 									<a href="index.php?module={$LINE["entityType$IDX"]|default:'Products'}&view=Detail&record={$LINE["hdnProductId$IDX"]}" target="_blank" rel="noopener">
@@ -77,37 +81,45 @@
 							<td class="is-name">{$LINE["productName$IDX"]|default:'--'}</td>
 							<td class="is-num">{$LINE["qty$IDX"]|default:'0'}</td>
 							<td class="is-num">{$LINE["listPrice$IDX"]|default:'0'}</td>
-							<td class="is-num">{$LINE["taxTotal$IDX"]|default:'0'}</td>
+							<td class="is-num is-disc">
+								{if $DISC_PCT neq '' && $DISC_PCT neq 0}
+									{$DISC_PCT}%
+								{elseif $DISC_TOTAL neq '' && $DISC_TOTAL neq 0}
+									{$DISC_TOTAL}
+								{else}
+									0%
+								{/if}
+							</td>
 							<td class="is-num is-total">{$LINE["netPrice$IDX"]|default:$LINE["productTotal$IDX"]|default:'0'}</td>
+							<td class="is-note">
+								<input type="text" class="mk-so-inline-detail__line-note inputElement" name="line_comment_{$IDX|escape}" data-sequence="{$IDX|escape}" value="{$LINE_COMMENT|escape}" placeholder="Ghi chú dòng" maxlength="500" autocomplete="off" />
+							</td>
 						</tr>
 					{/if}
 				{/foreach}
 				{if !$HAS_LINE_ITEMS}
 					<tr>
-						<td colspan="6" class="mk-so-inline-detail__empty-lines">Chưa có hàng hóa trong báo giá.</td>
+						<td colspan="7" class="mk-so-inline-detail__empty-lines">Chưa có hàng hóa trong báo giá.</td>
 					</tr>
 				{/if}
 			</tbody>
 		</table>
+		<p class="mk-so-inline-detail__vat-note" role="note"><strong>Đơn giá này đã bao gồm VAT</strong></p>
 	</div>
 
 	<div class="mk-so-inline-detail__bottom">
 		<div class="mk-so-inline-detail__notes">
 			<label class="mk-so-inline-detail__notes-label" for="mk-qt-inline-note-{$RECORD->getId()}">Ghi chú</label>
-			<textarea id="mk-qt-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="description" rows="4" readonly>{$INLINE_NOTES|escape}</textarea>
+			<textarea id="mk-qt-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="description" rows="4">{$INLINE_NOTES|escape}</textarea>
 		</div>
 		<div class="mk-so-inline-detail__totals">
 			<div class="mk-so-inline-detail__total-row">
 				<span class="mk-so-inline-detail__total-label">Tổng tiền hàng</span>
-				<strong class="mk-so-inline-detail__total-value">{$FINAL_DETAILS.hdnSubTotal|default:'0'}</strong>
-			</div>
-			<div class="mk-so-inline-detail__total-row">
-				<span class="mk-so-inline-detail__total-label">Thuế</span>
-				<strong class="mk-so-inline-detail__total-value">{$FINAL_DETAILS.tax_totalamount|default:'0'}</strong>
+				<strong class="mk-so-inline-detail__total-value mk-so-inline-detail__subtotal-value">{$FINAL_DETAILS.hdnSubTotal|default:'0'}</strong>
 			</div>
 			<div class="mk-so-inline-detail__total-row mk-so-inline-detail__total-row--grand">
 				<span class="mk-so-inline-detail__total-label">Tổng cộng</span>
-				<strong class="mk-so-inline-detail__total-value">{$FINAL_DETAILS.grandTotal|default:'0'}</strong>
+				<input type="text" class="mk-so-inline-detail__total-value mk-so-inline-detail__grand-input inputElement" name="hdnGrandTotal_manual" value="{$FINAL_DETAILS.grandTotal|default:'0'|escape}" inputmode="numeric" autocomplete="off" title="Có thể sửa tay tổng cộng" aria-label="Tổng cộng" />
 			</div>
 		</div>
 	</div>

@@ -7,7 +7,7 @@
   var ref = window.ServiceContractsLovableRef;
   var store = window.ServiceContractsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 13;
+  var COL_COUNT = 14;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -131,6 +131,35 @@
       "index.php?module=ServiceContracts&view=Detail&record=" +
       encodeURIComponent(id) +
       "&app=SALES"
+    );
+  }
+
+  function createQuoteUrl(c) {
+    var id = c && (c.crmid || c.id);
+    if (!id) {
+      return "#";
+    }
+    return (
+      "index.php?module=Quotes&view=Edit&app=SALES&servicecontract_id=" +
+      encodeURIComponent(id)
+    );
+  }
+
+  function rowActionsHtml(c) {
+    return (
+      '<td class="mk-leads-td mk-sc-td--actions">' +
+      '<div class="dropdown mk-sc-row-actions">' +
+      '<button type="button" class="mk-sc-row-actions__btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Thao tác">' +
+      '<i class="fa fa-ellipsis-v" aria-hidden="true"></i>' +
+      "</button>" +
+      '<ul class="dropdown-menu dropdown-menu-right mk-sc-row-actions__menu" role="menu">' +
+      '<li role="presentation"><a role="menuitem" href="' +
+      createQuoteUrl(c) +
+      '"><i class="fa fa-file-text-o"></i> Tạo báo giá</a></li>' +
+      '<li role="presentation"><a role="menuitem" href="' +
+      detailUrl(c.crmid || c.id) +
+      '"><i class="fa fa-eye"></i> Chi tiết</a></li>' +
+      "</ul></div></td>"
     );
   }
 
@@ -970,7 +999,9 @@
             "</td>" +
             '<td class="mk-leads-td mk-sc-td--notes">' +
             interactionNoteCell("interaction_materials", c.interaction_materials, rowId) +
-            "</td></tr>"
+            "</td>" +
+            rowActionsHtml(c) +
+            "</tr>"
           );
         })
         .join("");

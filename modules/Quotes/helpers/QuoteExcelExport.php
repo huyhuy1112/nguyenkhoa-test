@@ -794,6 +794,13 @@ class Quotes_QuoteExcelExport_Helper {
 		$sheet->getStyle('H' . $totalRow . ':H' . $grandRow)->getFont()->setBold(true)->setName(self::FONT);
 		$row++;
 
+		// BA: unit prices include VAT
+		$sheet->mergeCells('B' . $row . ':H' . $row);
+		$sheet->setCellValue('B' . $row, 'Đơn giá này đã bao gồm VAT.');
+		$sheet->getStyle('B' . $row)->getFont()->setItalic(true)->setName(self::FONT)->setSize(10);
+		$sheet->getStyle('B' . $row)->getFont()->getColor()->setRGB('0B6E4F');
+		$row++;
+
 		// Amount in words: left side, below tổng thanh toán (match preview).
 		$amountWords = trim((string) ($ctx['amount_words'] ?? ''));
 		if ($amountWords === '' && $grandTotal > 0) {

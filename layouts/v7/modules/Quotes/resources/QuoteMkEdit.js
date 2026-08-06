@@ -626,7 +626,12 @@
 			var $row = $(
 				'<tr class="mk-qt-customer-row mk-qt-contact-injected">' +
 					'<td class="fieldLabel alignMiddle">' +
-						'<label class="muted">Khách hàng <span class="redColor">*</span></label>' +
+						'<label class="muted mk-qt-customer-label">' +
+							'Khách hàng <span class="redColor">*</span>' +
+							'<button type="button" class="mk-qt-customer-info hide" title="Thông tin khách hàng" aria-label="Thông tin khách hàng">' +
+								'<i class="fa fa-info-circle" aria-hidden="true"></i> Thông tin' +
+							'</button>' +
+						'</label>' +
 					'</td>' +
 					'<td class="fieldValue mk-qt-customer-field" colspan="3"></td>' +
 				'</tr>'
@@ -671,6 +676,25 @@
 			}).remove();
 		}
 
+		// Ensure Info control next to "Khách hàng" label
+		var $label = $existingRow.find('td.fieldLabel').first();
+		if ($label.length && !$label.find('.mk-qt-customer-info').length) {
+			var $lbl = $label.find('label').first();
+			if (!$lbl.length) {
+				$lbl = $('<label class="muted mk-qt-customer-label"></label>');
+				$label.prepend($lbl);
+			}
+			$lbl.addClass('mk-qt-customer-label');
+			if (!$lbl.find('.redColor').length && !/khách hàng/i.test($lbl.html() || '')) {
+				$lbl.prepend('Khách hàng <span class="redColor">*</span> ');
+			}
+			$lbl.append(
+				'<button type="button" class="mk-qt-customer-info hide" title="Thông tin khách hàng" aria-label="Thông tin khách hàng">' +
+					'<i class="fa fa-info-circle" aria-hidden="true"></i> Thông tin' +
+				'</button>'
+			);
+		}
+
 		// Hide any other stock contact cells outside our row (avoid duplicates).
 		$f.find('[name="contact_id"], [name="contact_id_display"]').each(function () {
 			var $cell = $(this).closest('td.fieldValue');
@@ -704,6 +728,8 @@
 		}
 
 		registerUnifiedCustomerPicker();
+		registerCustomerInfoButton();
+		syncCustomerInfoButtonVisibility();
 		ensureTierDropdownVisible($f);
 		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
 			setTimeout(function () {
@@ -733,6 +759,262 @@
 		$f.find('[name="subject"]').val('');
 		$f.find('.mk-qt-customer-ref .clearReferenceSelection').addClass('hide');
 		$f.find('.mk-qt-customer-ref').removeClass('selected');
+		closeCustomerInfoPopover();
+		syncCustomerInfoButtonVisibility();
+	}
+
+	function resolveSelectedCustomerRef() {
+		var $f = $form();
+		var $display = $f.find('[name="contact_id_display"]').first();
+		var mod = ($display.data('mkCustomerModule') || '').toString();
+		var contactId = parseInt($f.find('[name="contact_id"]').val(), 10) || 0;
+		var potentialId = parseInt($f.find('[name="potential_id"]').val(), 10) || 0;
+		var leadId = parseInt($display.data('mkLeadId'), 10) || 0;
+		var label = $.trim($display.val() || '');
+
+		if (mod === 'Leads' && leadId > 0) {
+			return { module: 'Leads', record: leadId, label: label };
+		}
+		if (mod === 'Potentials' && potentialId > 0) {
+			return { module: 'Potentials', record: potentialId, label: label, contactId: contactId };
+		}
+		if (contactId > 0) {
+			return { module: 'Contacts', record: contactId, label: label };
+		}
+		if (potentialId > 0) {
+			return { module: 'Potentials', record: potentialId, label: label, contactId: contactId };
+		}
+		if (leadId > 0) {
+			return { module: 'Leads', record: leadId, label: label };
+		}
+		// Edit load: only display text + contact without module tag
+		if (label && contactId > 0) {
+			return { module: 'Contacts', record: contactId, label: label };
+		}
+		return null;
+	}
+
+	function syncCustomerInfoButtonVisibility() {
+		var $btn = $form().find('.mk-qt-customer-info');
+		if (!$btn.length) {
+			return;
+		}
+		var ref = resolveSelectedCustomerRef();
+		var hasDisplay = $.trim($form().find('[name="contact_id_display"]').val() || '') !== '';
+		if (ref || hasDisplay) {
+			// Prefer real id; if only display (legacy) still show when we can guess Contacts from empty
+			if (ref) {
+				$btn.removeClass('hide');
+			} else {
+				$btn.addClass('hide');
+			}
+		} else {
+			$btn.addClass('hide');
+		}
+	}
+
+	function closeCustomerInfoPopover() {
+		$('#mk-qt-customer-info-pop').remove();
+		$(document).off('mousedown.mkQtCustomerInfo');
+	}
+
+	function fetchRecordDetailsSimple(module, recordId) {
+		var d = $.Deferred();
+		recordId = parseInt(recordId, 10) || 0;
+		if (!module || recordId <= 0) {
+			d.resolve({});
+			return d.promise();
+		}
+		$.getJSON('index.php', {
+			module: 'Vtiger',
+			action: 'GetData',
+			source_module: module,
+			record: recordId
+		})
+			.done(function (res) {
+				var data =
+					(res && res.result && res.result.data) ||
+					(res && res.data) ||
+					{};
+				d.resolve(data || {});
+			})
+			.fail(function () {
+				d.resolve({});
+			});
+		return d.promise();
+	}
+
+	function buildCustomerInfoRows(rows) {
+		var html = '';
+		(rows || []).forEach(function (row) {
+			if (!row || !row.label) {
+				return;
+			}
+			var val = $.trim(row.value || '');
+			if (!val) {
+				val = '—';
+			}
+			html +=
+				'<div class="mk-qt-customer-info-pop__row">' +
+					'<div class="mk-qt-customer-info-pop__k">' +
+					escHtml(row.label) +
+					'</div>' +
+					'<div class="mk-qt-customer-info-pop__v">' +
+					escHtml(val) +
+					'</div>' +
+				'</div>';
+		});
+		return html;
+	}
+
+	function openCustomerInfoPopover($btn) {
+		var ref = resolveSelectedCustomerRef();
+		if (!ref || !ref.record) {
+			return;
+		}
+		closeCustomerInfoPopover();
+		var $pop = $(
+			'<div id="mk-qt-customer-info-pop" class="mk-qt-customer-info-pop" role="dialog" aria-label="Thông tin khách hàng">' +
+				'<div class="mk-qt-customer-info-pop__hd">' +
+					'<span class="mk-qt-customer-info-pop__title">Thông tin khách hàng</span>' +
+					'<button type="button" class="mk-qt-customer-info-pop__close" title="Đóng" aria-label="Đóng">&times;</button>' +
+				'</div>' +
+				'<div class="mk-qt-customer-info-pop__body">' +
+					'<div class="mk-qt-customer-info-pop__loading">Đang tải...</div>' +
+				'</div>' +
+				'<div class="mk-qt-customer-info-pop__ft">' +
+					'<a class="mk-qt-customer-info-pop__link" href="#" target="_blank" rel="noopener">Mở chi tiết</a>' +
+				'</div>' +
+			'</div>'
+		);
+		$('body').append($pop);
+
+		var place = function () {
+			var rect = $btn[0].getBoundingClientRect();
+			var top = rect.bottom + window.scrollY + 6;
+			var left = rect.left + window.scrollX;
+			var w = $pop.outerWidth() || 300;
+			if (left + w > window.scrollX + window.innerWidth - 12) {
+				left = Math.max(8, window.scrollX + window.innerWidth - w - 12);
+			}
+			$pop.css({ top: top + 'px', left: left + 'px' });
+		};
+		place();
+
+		$pop.find('.mk-qt-customer-info-pop__close').on('click', function (e) {
+			e.preventDefault();
+			closeCustomerInfoPopover();
+		});
+
+		var detailUrl =
+			'index.php?module=' +
+			encodeURIComponent(ref.module) +
+			'&view=Detail&record=' +
+			encodeURIComponent(ref.record);
+		$pop.find('.mk-qt-customer-info-pop__link').attr('href', detailUrl);
+
+		var fillFromData = function (primary, extra) {
+			extra = extra || {};
+			primary = primary || {};
+			var name = $.trim(ref.label || '');
+			if (!name) {
+				name = $.trim((primary.firstname || '') + ' ' + (primary.lastname || ''));
+			}
+			if (!name) {
+				name = $.trim(
+					primary.potentialname || primary.company || primary.accountname || ''
+				);
+			}
+			var phone =
+				primary.mobile ||
+				primary.phone ||
+				extra.mobile ||
+				extra.phone ||
+				'';
+			if (phone && window.MkPhoneFormat && typeof window.MkPhoneFormat.format === 'function') {
+				phone = window.MkPhoneFormat.format(phone) || phone;
+			}
+			var email = primary.email || primary.email1 || extra.email || extra.email1 || '';
+			var company = primary.company || extra.accountname || primary.accountname || '';
+			var address =
+				primary.mailingstreet ||
+				primary.bill_street ||
+				primary.lane ||
+				extra.mailingstreet ||
+				extra.bill_street ||
+				'';
+			var city = primary.mailingcity || primary.bill_city || extra.mailingcity || '';
+			if (city && address) {
+				address = address + ', ' + city;
+			} else if (city) {
+				address = city;
+			}
+			var rows = [
+				{ label: 'Tên', value: name },
+				{
+					label: 'Loại',
+					value:
+						ref.module === 'Contacts'
+							? 'Người liên hệ'
+							: ref.module === 'Potentials'
+								? 'Cơ hội'
+								: 'KH tiềm năng'
+				},
+				{ label: 'SĐT', value: phone },
+				{ label: 'Email', value: email },
+				{ label: 'Công ty', value: company },
+				{ label: 'Địa chỉ', value: address }
+			];
+			$pop.find('.mk-qt-customer-info-pop__body').html(buildCustomerInfoRows(rows));
+			place();
+		};
+
+		if (ref.module === 'Potentials') {
+			fetchRecordDetailsSimple('Potentials', ref.record).then(function (pot) {
+				var contactId = parseInt(ref.contactId || pot.contact_id, 10) || 0;
+				var accountId = parseInt(pot.related_to, 10) || 0;
+				$.when(
+					contactId ? fetchRecordDetailsSimple('Contacts', contactId) : $.Deferred().resolve({}).promise(),
+					accountId ? fetchRecordDetailsSimple('Accounts', accountId) : $.Deferred().resolve({}).promise()
+				).done(function (contact, account) {
+					var mergedExtra = $.extend({}, account || {}, contact || {});
+					fillFromData(pot || {}, mergedExtra);
+				});
+			});
+		} else {
+			fetchRecordDetailsSimple(ref.module, ref.record).then(function (data) {
+				// Contacts may link to account
+				var accountId = parseInt(data.account_id, 10) || 0;
+				if (accountId > 0 && ref.module === 'Contacts') {
+					fetchRecordDetailsSimple('Accounts', accountId).then(function (acc) {
+						fillFromData(data, acc);
+					});
+				} else {
+					fillFromData(data, {});
+				}
+			});
+		}
+
+		setTimeout(function () {
+			$(document).on('mousedown.mkQtCustomerInfo', function (e) {
+				if (!$(e.target).closest('#mk-qt-customer-info-pop, .mk-qt-customer-info').length) {
+					closeCustomerInfoPopover();
+				}
+			});
+		}, 0);
+	}
+
+	function registerCustomerInfoButton() {
+		var $f = $form();
+		if (!$f.length || $f.data('mkCustomerInfoBound')) {
+			return;
+		}
+		$f.data('mkCustomerInfoBound', 1);
+		$f.on('click.mkQtCustomerInfo', '.mk-qt-customer-info', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			openCustomerInfoPopover($(this));
+		});
 	}
 
 	function normalizeTierQuoteRow($tierRow) {
@@ -896,6 +1178,7 @@
 		$f.find('.mk-qt-customer-ref .clearReferenceSelection').removeClass('hide');
 		$f.find('.mk-qt-customer-ref').addClass('selected');
 		closeCustomerSearchUi();
+		syncCustomerInfoButtonVisibility();
 	}
 
 	function searchQuoteCustomers(q, scope) {
@@ -1199,7 +1482,9 @@
 				$f.find('[name="subject"]').val(label).trigger('change');
 				$f.find('.mk-qt-customer-ref .clearReferenceSelection').removeClass('hide');
 				$f.find('.mk-qt-customer-ref').addClass('selected');
+				$f.find('[name="contact_id_display"]').data('mkCustomerModule', 'Contacts');
 			}
+			syncCustomerInfoButtonVisibility();
 		});
 
 		$(document).on('mousedown.mkQtCustomerOutside', function (e) {
@@ -2708,6 +2993,46 @@
 		}
 	}
 
+	function applyServiceContractPrefill() {
+		var prefill = window.MK_SC_PREFILL;
+		if (!prefill || !prefill.name) {
+			return;
+		}
+		var $f = $form();
+		if (!$f.length || $f.data('mkScPrefillApplied')) {
+			return;
+		}
+		$f.data('mkScPrefillApplied', 1);
+		var name = $.trim(prefill.name || '');
+		var phone = $.trim(prefill.phone || '');
+		var email = $.trim(prefill.email || '');
+		if (name) {
+			$f.find('[name="subject"]').val(name);
+			var $disp = $f.find('[name="contact_id_display"]').first();
+			if ($disp.length && !$.trim($disp.val() || '')) {
+				$disp.val(name).data('mkCustomerModule', 'Contacts');
+				$f.find('.mk-qt-customer-ref .clearReferenceSelection').removeClass('hide');
+				$f.find('.mk-qt-customer-ref').addClass('selected');
+			}
+		}
+		if (phone && $f.find('[name="mk_customer_phone"]').length) {
+			var formatted =
+				window.MkPhoneFormat && typeof window.MkPhoneFormat.format === 'function'
+					? window.MkPhoneFormat.format(phone)
+					: phone;
+			$f.find('[name="mk_customer_phone"]').val(formatted || phone);
+		}
+		if (email && $f.find('[name="mk_customer_email"]').length) {
+			$f.find('[name="mk_customer_email"]').val(email);
+		}
+		if (prefill.account_id && $f.find('[name="account_id"]').length) {
+			$f.find('[name="account_id"]').val(prefill.account_id);
+		}
+		if (typeof syncCustomerInfoButtonVisibility === 'function') {
+			syncCustomerInfoButtonVisibility();
+		}
+	}
+
 	function runEnhancements() {
 		if (!isScoped()) {
 			return;
@@ -2736,6 +3061,7 @@
 		// Customer row last so it stays at top of Chi tiết báo giá (above Ghi chú).
 		if (!isSalesOrder()) {
 			layoutQuoteHeaderFields();
+			applyServiceContractPrefill();
 		}
 		forceRenameTermsToNotes();
 		fixFormDisplayEncoding();
@@ -2750,6 +3076,7 @@
 			fixFormDisplayEncoding();
 			if (!isSalesOrder()) {
 				layoutQuoteHeaderFields();
+				applyServiceContractPrefill();
 				lockAssignedAndMoveQuoteInfoToRail();
 				pinTotalsBelowOrderDetails();
 				compactQuoteInfoRail(

@@ -94,9 +94,10 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 		list($where, $params) = $this->buildLikeClause($adb, $q, array(
 			'cd.firstname', 'cd.lastname',
 			"CONCAT(IFNULL(cd.firstname,''),' ',IFNULL(cd.lastname,''))",
-			'cd.phone', 'cd.mobile', 'acc.accountname',
+			'cd.phone', 'cd.mobile', 'cd.email', 'cd.secondaryemail',
+			'acc.accountname',
 		));
-		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.phone, cd.mobile, acc.accountname
+		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.phone, cd.mobile, cd.email, cd.secondaryemail, acc.accountname
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = cd.accountid
@@ -117,8 +118,12 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			if ($phone === '') {
 				$phone = decode_html((string) $adb->query_result($res, $i, 'mobile'));
 			}
+			$email = decode_html((string) $adb->query_result($res, $i, 'email'));
+			if ($email === '') {
+				$email = decode_html((string) $adb->query_result($res, $i, 'secondaryemail'));
+			}
 			$account = decode_html((string) $adb->query_result($res, $i, 'accountname'));
-			$parts = array_filter(array($phone, $account));
+			$parts = array_filter(array($phone, $email, $account));
 			$rows[] = array(
 				'id' => $id,
 				'module' => 'Contacts',
@@ -126,6 +131,7 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 				'label' => $name !== '' ? $name : ('#' . $id),
 				'subtitle' => implode(' · ', $parts),
 				'phone' => $phone,
+				'email' => $email,
 				'extra' => $account,
 				'contact_id' => $id,
 				'potential_id' => 0,
@@ -144,9 +150,12 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			'p.potentialname', 'acc.accountname',
 			'cd.firstname', 'cd.lastname',
 			"CONCAT(IFNULL(cd.firstname,''),' ',IFNULL(cd.lastname,''))",
+			'cd.phone', 'cd.mobile', 'cd.email',
+			'acc.phone', 'acc.email1',
 		));
 		$sql = "SELECT p.potentialid, p.potentialname, p.contact_id, p.related_to, acc.accountname,
-				cd.firstname, cd.lastname
+				acc.phone AS acc_phone, acc.email1 AS acc_email,
+				cd.firstname, cd.lastname, cd.phone AS contact_phone, cd.mobile AS contact_mobile, cd.email AS contact_email
 			FROM vtiger_potential p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = p.related_to
@@ -166,6 +175,17 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			$account = decode_html((string) $adb->query_result($res, $i, 'accountname'));
 			$customer = $cname !== '' ? $cname : $account;
 			$label = $customer !== '' ? $customer : $pname;
+			$phone = decode_html((string) $adb->query_result($res, $i, 'contact_mobile'));
+			if ($phone === '') {
+				$phone = decode_html((string) $adb->query_result($res, $i, 'contact_phone'));
+			}
+			if ($phone === '') {
+				$phone = decode_html((string) $adb->query_result($res, $i, 'acc_phone'));
+			}
+			$email = decode_html((string) $adb->query_result($res, $i, 'contact_email'));
+			if ($email === '') {
+				$email = decode_html((string) $adb->query_result($res, $i, 'acc_email'));
+			}
 			$subtitleParts = array();
 			if ($pname !== '' && $pname !== $label) {
 				$subtitleParts[] = $pname;
@@ -173,13 +193,20 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			if ($account !== '' && $account !== $label) {
 				$subtitleParts[] = $account;
 			}
+			if ($phone !== '') {
+				$subtitleParts[] = $phone;
+			}
+			if ($email !== '') {
+				$subtitleParts[] = $email;
+			}
 			$rows[] = array(
 				'id' => $id,
 				'module' => 'Potentials',
 				'module_label' => 'Cơ hội',
 				'label' => $label !== '' ? $label : ('#' . $id),
 				'subtitle' => implode(' · ', $subtitleParts),
-				'phone' => '',
+				'phone' => $phone,
+				'email' => $email,
 				'extra' => $pname,
 				'contact_id' => $contactId,
 				'potential_id' => $id,

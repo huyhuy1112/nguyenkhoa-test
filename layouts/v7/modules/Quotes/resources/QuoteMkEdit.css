@@ -2200,3 +2200,146 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-form-h
 	border-radius: 10px;
 	border: 1px dashed var(--mk-qt-border);
 }
+
+/* ===== Customer Info button + popover (Khách hàng) ===== */
+.mk-qt-customer-label {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0;
+}
+
+button.mk-qt-customer-info {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	margin: 0;
+	padding: 2px 9px;
+	border: 1px solid #b7e4c7;
+	border-radius: 999px;
+	background: #ecfdf5;
+	color: #0b6e4f;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.3;
+	cursor: pointer;
+	box-shadow: none;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+button.mk-qt-customer-info:hover,
+button.mk-qt-customer-info:focus {
+	background: #d1fae5;
+	border-color: #08a045;
+	color: #065f46;
+	outline: none;
+}
+
+button.mk-qt-customer-info.hide {
+	display: none !important;
+}
+
+button.mk-qt-customer-info .fa {
+	font-size: 12px;
+}
+
+.mk-qt-customer-info-pop {
+	position: absolute;
+	z-index: 10050;
+	width: min(320px, calc(100vw - 24px));
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	box-shadow: 0 8px 28px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.04);
+	overflow: hidden;
+	font-size: 13px;
+	color: #0f172a;
+}
+
+.mk-qt-customer-info-pop__hd {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 10px 12px;
+	background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+	border-bottom: 1px solid #f1f5f9;
+}
+
+.mk-qt-customer-info-pop__title {
+	font-weight: 700;
+	font-size: 13px;
+	color: #0f172a;
+}
+
+.mk-qt-customer-info-pop__close {
+	border: 0;
+	background: transparent;
+	color: #64748b;
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+	padding: 0 4px;
+}
+
+.mk-qt-customer-info-pop__close:hover {
+	color: #0f172a;
+}
+
+.mk-qt-customer-info-pop__body {
+	padding: 10px 12px 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.mk-qt-customer-info-pop__loading {
+	color: #64748b;
+	font-size: 12px;
+	padding: 6px 0;
+}
+
+.mk-qt-customer-info-pop__row {
+	display: grid;
+	grid-template-columns: 72px 1fr;
+	gap: 8px;
+	align-items: start;
+}
+
+.mk-qt-customer-info-pop__k {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	color: #94a3b8;
+	padding-top: 1px;
+}
+
+.mk-qt-customer-info-pop__v {
+	font-size: 13px;
+	font-weight: 500;
+	color: #0f172a;
+	word-break: break-word;
+	line-height: 1.35;
+}
+
+.mk-qt-customer-info-pop__ft {
+	padding: 8px 12px 12px;
+	border-top: 1px solid #f1f5f9;
+}
+
+.mk-qt-customer-info-pop__link {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #0b6e4f;
+	text-decoration: none;
+}
+
+.mk-qt-customer-info-pop__link:hover {
+	color: #08a045;
+	text-decoration: underline;
+}

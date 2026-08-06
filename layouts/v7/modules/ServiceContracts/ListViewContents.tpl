@@ -54,6 +54,7 @@
 							<th class="mk-leads-th mk-sc-th--group-b" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_2', $MODULE)}</th>
 							<th class="mk-leads-th mk-sc-th--group-b" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_3', $MODULE)}</th>
 							<th class="mk-leads-th mk-sc-th--group-c" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_MATERIALS', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--actions" scope="col" style="width:56px;"><span class="sr-only">Thao tác</span></th>
 						</tr>
 					</thead>
 					<tbody id="mk-sc-tbody"></tbody>

@@ -151,4 +151,7 @@
 		</aside>
 	</div>
 </div>
+{if !empty($MK_SC_PREFILL_JSON)}
+<script type="text/javascript">window.MK_SC_PREFILL = {$MK_SC_PREFILL_JSON};</script>
+{/if}
 {/strip}

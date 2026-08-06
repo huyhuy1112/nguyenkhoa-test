@@ -631,8 +631,9 @@
       "Tên hàng",
       "Số lượng",
       "Đơn giá",
-      "Thuế",
+      "Chiết khấu",
       "Thành tiền",
+      "Ghi chú",
     ]);
     $panel.find(".mk-so-inline-detail__lines tbody tr").each(function () {
       var $cells = $(this).find("td");
@@ -648,16 +649,31 @@
         $.trim($cells.eq(2).text()),
         $.trim($cells.eq(3).text()),
         $.trim($cells.eq(4).text()),
-        $.trim($cells.eq(5).text()),
+        $.trim($cells.filter(".is-total").text() || $cells.eq(5).text()),
+        $.trim(
+          $cells.find(".mk-so-inline-detail__line-note").val() ||
+            $cells.eq(6).text(),
+        ),
       ]);
     });
     rows.push([]);
     $panel.find(".mk-so-inline-detail__total-row").each(function () {
       var $row = $(this);
-      rows.push([
-        $.trim($row.find("span").first().text()),
-        $.trim($row.find("strong").text()),
-      ]);
+      var label = $.trim(
+        $row
+          .find(
+            ".mk-so-inline-detail__total-label, span",
+          )
+          .first()
+          .text(),
+      );
+      var value = $.trim(
+        $row.find(".mk-so-inline-detail__grand-input").val() ||
+          $row.find("strong, .mk-so-inline-detail__total-value").first().text() ||
+          $row.find("input").val() ||
+          "",
+      );
+      rows.push([label, value]);
     });
     rows.push([
       "Ghi chú",
@@ -724,7 +740,7 @@
       var $row = $(this);
       var $cells = $row.find("td");
       if (
-        $cells.length < 7 ||
+        $cells.length < 6 ||
         $cells.first().hasClass("mk-so-inline-detail__empty-lines")
       ) {
         return;
@@ -734,17 +750,15 @@
         $.trim($cells.filter(".is-num").eq(0).text()) ||
         $.trim($cells.eq(2).text());
       var listPriceText = $row.attr("data-price") || $.trim($cells.eq(3).text());
-      var salePriceText = $.trim($cells.eq(5).text());
       var totalText =
         $row.attr("data-total") ||
         $.trim($cells.filter(".is-total").text()) ||
-        $.trim($cells.eq(6).text());
+        $.trim($cells.eq(5).text());
       var qtyNum = parseInlineMoney(qtyText);
       if (qtyNum <= 0) {
         qtyNum = 1;
       }
-      var priceNum =
-        parseInlineMoney(listPriceText) || parseInlineMoney(salePriceText);
+      var priceNum = parseInlineMoney(listPriceText);
       var totalNum = parseInlineMoney(totalText);
       if (totalNum <= 0 && priceNum > 0) {
         totalNum = priceNum * qtyNum;
@@ -1108,10 +1122,16 @@
     var snapshot = {
       fields: {},
       description: $panel.find(".mk-so-inline-detail__notes-input").val() || "",
+      grand: $panel.find(".mk-so-inline-detail__grand-input").val() || "",
+      lineNotes: {},
     };
     $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
       var name = $(this).attr("name");
       if (name) snapshot.fields[name] = $(this).val();
+    });
+    $panel.find(".mk-so-inline-detail__line-note").each(function () {
+      var seq = $(this).attr("data-sequence");
+      if (seq) snapshot.lineNotes[seq] = $(this).val() || "";
     });
 
     function isAlwaysEdit() {
@@ -1128,6 +1148,8 @@
         .find(".mk-so-inline-detail__edit-toggle")
         .attr("aria-pressed", isEdit ? "true" : "false");
       $panel.find(".mk-so-inline-detail__notes-input").prop("readonly", !isEdit);
+      $panel.find(".mk-so-inline-detail__line-note").prop("readonly", !isEdit);
+      $panel.find(".mk-so-inline-detail__grand-input").prop("readonly", !isEdit);
       if (
         isEdit &&
         typeof vtUtils !== "undefined" &&
@@ -1161,6 +1183,12 @@
       $panel
         .find(".mk-so-inline-detail__notes-input")
         .val(snapshot.description || "");
+      $panel.find(".mk-so-inline-detail__grand-input").val(snapshot.grand || "");
+      $.each(snapshot.lineNotes || {}, function (seq, value) {
+        $panel
+          .find('.mk-so-inline-detail__line-note[data-sequence="' + seq + '"]')
+          .val(value);
+      });
     }
 
     function updateViewValues() {
@@ -1211,6 +1239,19 @@
         var name = $(this).attr("name");
         if (name) postData[name] = $(this).val();
       });
+      // Line notes + editable grand total
+      var lineComments = {};
+      $panel.find(".mk-so-inline-detail__line-note").each(function () {
+        var seq = $(this).attr("data-sequence") || $(this).data("sequence");
+        if (!seq) return;
+        lineComments[String(seq)] = $(this).val() || "";
+      });
+      postData.line_comments_json = JSON.stringify(lineComments);
+      var grandRaw = $panel.find(".mk-so-inline-detail__grand-input").val();
+      if (grandRaw != null && String(grandRaw).length) {
+        postData.hdnGrandTotal_manual = grandRaw;
+        postData.grand_total = grandRaw;
+      }
       app.request.post({ data: postData }).then(function (err, response) {
         $saveBtn.prop("disabled", false);
         if (err) {
@@ -1241,16 +1282,45 @@
               .find(".mk-so-inline-detail__notes-input")
               .val(response.description.value);
           }
+          if (response.hdnGrandTotal && response.hdnGrandTotal.display_value != null) {
+            $panel
+              .find(".mk-so-inline-detail__grand-input")
+              .val(response.hdnGrandTotal.display_value);
+            // Cập nhật cột tổng trên list row
+            var $listRow = $panel
+              .closest("tr.mk-so-inline-detail-row")
+              .prevAll("tr.listViewEntries")
+              .first();
+            if ($listRow.length) {
+              $listRow
+                .find(
+                  'td[data-name="hdnGrandTotal"] .value, td[data-name="total"] .value',
+                )
+                .first()
+                .text(response.hdnGrandTotal.display_value);
+              $listRow
+                .find('td[data-name="hdnGrandTotal"], td[data-name="total"]')
+                .first()
+                .attr("data-rawvalue", response.hdnGrandTotal.value);
+              injectSummaryRow($("#listViewContent #listview-table"));
+            }
+          }
         } else {
           updateViewValues();
         }
         snapshot = {
           fields: {},
           description: $panel.find(".mk-so-inline-detail__notes-input").val() || "",
+          grand: $panel.find(".mk-so-inline-detail__grand-input").val() || "",
+          lineNotes: {},
         };
         $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
           var name = $(this).attr("name");
           if (name) snapshot.fields[name] = $(this).val();
+        });
+        $panel.find(".mk-so-inline-detail__line-note").each(function () {
+          var seq = $(this).attr("data-sequence");
+          if (seq) snapshot.lineNotes[seq] = $(this).val() || "";
         });
         setEditMode(true);
         syncQuoteConfirmOrderButton($panel);
@@ -1584,13 +1654,15 @@
 
   function applyQuotesClientSearch(query) {
     var q = String(query || "").toLowerCase().trim();
-    var $tbody = $("#listview-table tbody");
+    var $table = $("#listViewContent #listview-table");
+    var $tbody = $table.find("tbody");
     if (!$tbody.length) return;
     var $rows = $tbody.find("tr.listViewEntries");
     $tbody.find("tr.mk-qt-search-empty").remove();
     if (!q) {
       $rows.show();
       $tbody.find("tr.mk-so-inline-detail-row").show();
+      injectSummaryRow($table);
       return;
     }
     var visibleCount = 0;
@@ -1607,13 +1679,23 @@
       }
       if (ok) visibleCount += 1;
     });
+    injectSummaryRow($table);
     if (!visibleCount) {
       var colCount =
-        $("#listview-table thead tr.listViewContentHeader th").length || 1;
+        $("#listview-table thead tr.listViewContentHeader th").length ||
+        $rows.first().children("td").length ||
+        1;
       $tbody.append(
         '<tr class="mk-qt-search-empty"><td colspan="' +
           colCount +
-          '" class="mk-leads-empty">Không có báo giá phù hợp từ khóa.</td></tr>',
+          '" class="mk-qt-search-empty__cell">' +
+          '<div class="mk-qt-search-empty__box">' +
+          '<div class="mk-qt-search-empty__icon" aria-hidden="true"><i class="fa fa-search"></i></div>' +
+          '<div class="mk-qt-search-empty__title">Không tìm thấy báo giá</div>' +
+          '<div class="mk-qt-search-empty__hint">Không có kết quả cho “' +
+          $("<div/>").text(query).html() +
+          '”. Thử từ khóa khác hoặc xóa tìm kiếm.</div>' +
+          "</div></td></tr>",
       );
     }
   }
@@ -2041,11 +2123,13 @@
     if (window.MkCurrency && typeof MkCurrency.format === "function") {
       return MkCurrency.format(n, { decimals: 0 });
     }
+    var num;
     try {
-      return Math.round(n).toLocaleString("vi-VN");
+      num = Math.round(n).toLocaleString("vi-VN");
     } catch (e) {
-      return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      num = String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
+    return "₫\u2009" + num;
   }
 
   function injectSummaryRow($table) {
@@ -2054,8 +2138,16 @@
     if (!$headerRow.length) return;
     // Xóa bản tổng cũ (thead hoặc tbody)
     $table.find("tr.mk-so-summary-row").remove();
-    var $rows = $table.find("tbody tr.listViewEntries");
-    if (!$rows.length) return;
+    var $allRows = $table.find("tbody tr.listViewEntries");
+    if (!$allRows.length) return;
+
+    // Chỉ tính các dòng đang hiển thị (search realtime)
+    var $rows = $allRows.filter(function () {
+      return $(this).css("display") !== "none";
+    });
+    if (!$rows.length) {
+      return;
+    }
 
     var $sample = $rows.first();
     // Ưu tiên cột data-name khớp body (đúng vị trí cột sau khi reorder)
@@ -2109,6 +2201,26 @@
       var cls = "mk-so-summary-cell";
       var content = "";
       var $hdr = $headerRow.children("th").eq(i);
+      // Mirror header col classes so responsive hide (email/phone) still aligns
+      if ($hdr.length) {
+        [
+          "mk-so-pos-control-th",
+          "mk-so-col-star",
+          "mk-so-col-order-no",
+          "mk-so-col-customer",
+          "mk-so-col-phone",
+          "mk-qt-col-phone",
+          "mk-so-col-email",
+          "mk-qt-col-email",
+          "mk-so-col-assigned",
+          "mk-so-col-due",
+          "mk-so-col-status",
+        ].forEach(function (c) {
+          if ($hdr.hasClass(c)) {
+            cls += " " + c;
+          }
+        });
+      }
       if (i === 0 || ($hdr.length && $hdr.hasClass("mk-so-pos-control-th"))) {
         if (i === 0) {
           cls += " mk-so-summary-cell--label";
@@ -2127,7 +2239,13 @@
     html += "</tr>";
     var $tbody = $table.find("tbody").first();
     if ($tbody.length) {
-      $tbody.append(html);
+      // Summary trước empty-state (nếu có)
+      var $empty = $tbody.find("tr.mk-qt-search-empty").first();
+      if ($empty.length) {
+        $empty.before(html);
+      } else {
+        $tbody.prepend(html);
+      }
     } else {
       $headerRow.after(html);
     }
@@ -2138,12 +2256,81 @@
     if (!isPosListEnabled()) return;
     bindInlineDetailCapture();
     patchInlineDetailRowClick();
+    var $table = $("#listViewContent #listview-table");
+    if ($table.length) {
+      applyQuotePosColumnWidths($table);
+    }
     if (qtLiveSearchQuery) {
       $("#mk-qt-pos-search").val(qtLiveSearchQuery);
       $("#mk-qt-pos-search-clear").prop("hidden", !qtLiveSearchQuery);
       runPosQuickSearch(qtLiveSearchQuery);
     }
     injectSummaryRow($("#listViewContent #listview-table"));
+  }
+
+  /**
+   * Laptop-friendly col widths (match SalesOrder POS pattern).
+   * Quotas rows: control | SỐ | KH | SĐT | Email | Sale | Tổng | Trạng thái
+   */
+  function applyQuotePosColumnWidths($table) {
+    if (!$table || !$table.length) {
+      return;
+    }
+    $table.addClass("mk-so-table mk-so-table-layout mk-qt-table-layout");
+    $table.find("colgroup.mk-qt-pos-cols").remove();
+    var $headers = $table.find("thead tr.listViewContentHeader th");
+    if (!$headers.length) {
+      return;
+    }
+    var widthByClass = {
+      "mk-so-pos-control-th": "64px",
+      "mk-so-col-star": "64px",
+      "mk-so-col-order-no": "9%",
+      "mk-so-col-subject": "12%",
+      "mk-so-col-time": "10%",
+      "mk-so-col-customer": "14%",
+      "mk-so-col-phone": "11%",
+      "mk-qt-col-phone": "11%",
+      "mk-so-col-email": "13%",
+      "mk-qt-col-email": "13%",
+      "mk-so-col-assigned": "13%",
+      "mk-so-col-due": "12%",
+      "mk-so-col-status": "11%",
+    };
+    // Prefer email over phone if both claim same string lookup order is class list order on element
+    var html = '<colgroup class="mk-qt-pos-cols">';
+    $headers.each(function () {
+      var $th = $(this);
+      var width = "auto";
+      var matchedCls = "";
+      var cls;
+      for (cls in widthByClass) {
+        if (!widthByClass.hasOwnProperty(cls)) continue;
+        if ($th.hasClass(cls)) {
+          width = widthByClass[cls];
+          matchedCls = cls;
+          break;
+        }
+      }
+      // data-name fallback for phone/email virtual headers without linked class race
+      if (!matchedCls) {
+        if ($th.hasClass("mk-qt-col-phone") || $th.hasClass("mk-so-col-phone")) {
+          width = "11%";
+          matchedCls = "mk-qt-col-phone";
+        } else if ($th.hasClass("mk-qt-col-email") || $th.hasClass("mk-so-col-email")) {
+          width = "13%";
+          matchedCls = "mk-qt-col-email";
+        }
+      }
+      html +=
+        '<col class="' +
+        (matchedCls ? matchedCls + " " : "") +
+        'mk-qt-pos-col" style="width:' +
+        width +
+        '">';
+    });
+    html += "</colgroup>";
+    $table.prepend(html);
   }
 
   function destroyPerfectScrollbar($tc) {

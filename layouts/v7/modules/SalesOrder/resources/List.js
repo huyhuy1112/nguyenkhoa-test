@@ -385,9 +385,10 @@
       "Tên hàng",
       "Số lượng",
       "Đơn giá",
-      "Thuế",
+      "Chiết khấu",
       "Giá bán",
       "Thành tiền",
+      "Ghi chú",
     ]);
     $panel.find(".mk-so-inline-detail__lines tbody tr").each(function () {
       var $cells = $(this).find("td");
@@ -404,16 +405,30 @@
         $.trim($cells.eq(3).text()),
         $.trim($cells.eq(4).text()),
         $.trim($cells.eq(5).text()),
-        $.trim($cells.eq(6).text()),
+        $.trim($cells.filter(".is-total").text() || $cells.eq(6).text()),
+        $.trim(
+          $cells.find(".mk-so-inline-detail__line-note").val() ||
+            $cells.eq(7).text(),
+        ),
       ]);
     });
     rows.push([]);
     $panel.find(".mk-so-inline-detail__total-row").each(function () {
       var $row = $(this);
-      rows.push([
-        $.trim($row.find("span").first().text()),
-        $.trim($row.find("strong").text()),
-      ]);
+      var label = $.trim(
+        $row
+          .find(".mk-so-inline-detail__total-label, span")
+          .first()
+          .text(),
+      );
+      var value = $.trim(
+        $row.find(".mk-so-inline-detail__grand-input").val() ||
+          $row.find(".mk-so-inline-detail__paid-input").val() ||
+          $row.find("strong").text() ||
+          $row.find("input").val() ||
+          "",
+      );
+      rows.push([label, value]);
     });
     rows.push([
       "Ghi chú",
@@ -1229,7 +1244,14 @@
   }
 
   function captureInlineDetailSnapshot($panel) {
-    var snapshot = { fields: {}, description: "", mk_list_note: "", paid: "" };
+    var snapshot = {
+      fields: {},
+      description: "",
+      mk_list_note: "",
+      paid: "",
+      grand: "",
+      lineNotes: {},
+    };
     $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
       var name = $(this).attr("name");
       if (name) {
@@ -1240,6 +1262,11 @@
       $panel.find(".mk-so-inline-detail__notes-input").val() || "";
     snapshot.description = snapshot.mk_list_note;
     snapshot.paid = $panel.find(".mk-so-inline-detail__paid-input").val() || "";
+    snapshot.grand = $panel.find(".mk-so-inline-detail__grand-input").val() || "";
+    $panel.find(".mk-so-inline-detail__line-note").each(function () {
+      var seq = $(this).attr("data-sequence");
+      if (seq) snapshot.lineNotes[seq] = $(this).val() || "";
+    });
     return snapshot;
   }
 
@@ -1255,6 +1282,14 @@
     $panel
       .find(".mk-so-inline-detail__notes-input")
       .val(snapshot.mk_list_note || snapshot.description || "");
+    if (snapshot.grand !== undefined) {
+      $panel.find(".mk-so-inline-detail__grand-input").val(snapshot.grand || "");
+    }
+    $.each(snapshot.lineNotes || {}, function (seq, value) {
+      $panel
+        .find('.mk-so-inline-detail__line-note[data-sequence="' + seq + '"]')
+        .val(value);
+    });
     if (snapshot.paid !== undefined) {
       $panel.find(".mk-so-inline-detail__paid-input").val(snapshot.paid);
       $panel.find(".mk-so-inline-detail__paid-view").text(snapshot.paid || "0");
@@ -1286,6 +1321,13 @@
   }
 
   function getInlineGrandRaw($panel) {
+    var $grandInput = $panel.find(".mk-so-inline-detail__grand-input");
+    if ($grandInput.length) {
+      var fromInput = parseInlineMoney($grandInput.val());
+      if (fromInput > 0 || String($grandInput.val() || "").trim() === "0") {
+        return fromInput;
+      }
+    }
     var raw =
       $panel.attr("data-grand-raw") ||
       $panel
@@ -1293,24 +1335,32 @@
         .attr("data-grand-raw") ||
       "0";
     var n = parseFloat(raw);
+    if (isNaN(n)) {
+      n = parseInlineMoney(raw);
+    }
     return isNaN(n) ? 0 : n;
   }
 
   function recalcInlinePaidRemaining($panel) {
     var grandRaw = getInlineGrandRaw($panel);
+    $panel.attr("data-grand-raw", grandRaw);
+    $panel
+      .find(".mk-so-inline-detail__total-row--grand")
+      .attr("data-grand-raw", grandRaw);
+    var $grandInput = $panel.find(".mk-so-inline-detail__grand-input");
+    if ($grandInput.length && document.activeElement !== $grandInput[0]) {
+      // leave display of grand input as typed; only update data attr
+    }
     var paidRaw = parseInlineMoney(
       $panel.find(".mk-so-inline-detail__paid-input").val(),
     );
     if (paidRaw < 0) {
       paidRaw = 0;
     }
-    var remaining = grandRaw - paidRaw;
-    if (remaining < 0) {
-      remaining = 0;
-    }
+    // Remaining no longer replaces grand total display (editable grand owns that slot)
     $panel
       .find(".mk-so-inline-detail__grand-value")
-      .text(formatInlineMoney(remaining));
+      .text(formatInlineMoney(grandRaw));
   }
 
   function collectInlineDetailSaveData($panel, recordId) {
@@ -1335,6 +1385,18 @@
     }
     data.mk_list_note =
       $panel.find(".mk-so-inline-detail__notes-input").val() || "";
+    var lineComments = {};
+    $panel.find(".mk-so-inline-detail__line-note").each(function () {
+      var seq = $(this).attr("data-sequence") || $(this).data("sequence");
+      if (!seq) return;
+      lineComments[String(seq)] = $(this).val() || "";
+    });
+    data.line_comments_json = JSON.stringify(lineComments);
+    var grandRaw = $panel.find(".mk-so-inline-detail__grand-input").val();
+    if (grandRaw != null && String(grandRaw).length) {
+      data.hdnGrandTotal_manual = grandRaw;
+      data.grand_total = grandRaw;
+    }
     return data;
   }
 
@@ -1353,6 +1415,8 @@
       .attr("aria-pressed", isEdit ? "true" : "false");
     $panel.find(".mk-so-inline-detail__notes-input").prop("readonly", !isEdit);
     $panel.find(".mk-so-inline-detail__paid-input").prop("readonly", !isEdit);
+    $panel.find(".mk-so-inline-detail__line-note").prop("readonly", !isEdit);
+    $panel.find(".mk-so-inline-detail__grand-input").prop("readonly", !isEdit);
     if (
       isEdit &&
       typeof vtUtils !== "undefined" &&
@@ -1467,6 +1531,31 @@
           $panel.find(".mk-so-inline-detail__paid-view").text(localPaid);
           syncPaidCellInList(recordId, localPaid);
         }
+        if (response.hdnGrandTotal && response.hdnGrandTotal.display_value != null) {
+          $panel
+            .find(".mk-so-inline-detail__grand-input")
+            .val(response.hdnGrandTotal.display_value);
+          $panel.attr("data-grand-raw", response.hdnGrandTotal.value);
+          $panel
+            .find(".mk-so-inline-detail__total-row--grand")
+            .attr("data-grand-raw", response.hdnGrandTotal.value);
+          var $listRow = $panel
+            .closest("tr.mk-so-inline-detail-row")
+            .prevAll("tr.listViewEntries")
+            .first();
+          if ($listRow.length) {
+            $listRow
+              .find(
+                'td[data-name="hdnGrandTotal"] .value, td[data-name="total"] .value',
+              )
+              .first()
+              .text(response.hdnGrandTotal.display_value);
+            $listRow
+              .find('td[data-name="hdnGrandTotal"], td[data-name="total"]')
+              .first()
+              .attr("data-rawvalue", response.hdnGrandTotal.value);
+          }
+        }
         recalcInlinePaidRemaining($panel);
       } else {
         updateInlineDetailViewValues($panel);
@@ -1530,6 +1619,18 @@
           )
           .val(val);
         recalcInlinePaidRemaining($panel);
+      },
+    );
+
+    $panel.on(
+      "input change",
+      ".mk-so-inline-detail__grand-input",
+      function () {
+        var n = parseInlineMoney($(this).val());
+        $panel.attr("data-grand-raw", n);
+        $panel
+          .find(".mk-so-inline-detail__total-row--grand")
+          .attr("data-grand-raw", n);
       },
     );
 

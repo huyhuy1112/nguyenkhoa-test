@@ -101,6 +101,14 @@
 									<a href="#" class="removeSorting"><i class="fa fa-remove"></i></a>
 								{/if}
 							</th>
+							{if $LIST_HEADER_NAME eq 'account_id'}
+								<th class="mk-so-col-phone mk-qt-col-phone" nowrap="nowrap">
+									<span class="mk-so-pos-th-label">SĐT</span>
+								</th>
+								<th class="mk-so-col-email mk-qt-col-email" nowrap="nowrap">
+									<span class="mk-so-pos-th-label">Email</span>
+								</th>
+							{/if}
 						{/foreach}
 					</tr>
 				</thead>
@@ -146,12 +154,20 @@
 										</span>
 									</span>
 								</td>
+								{if $LISTVIEW_HEADERNAME eq 'account_id'}
+									<td class="listViewEntryValue mk-so-col-phone mk-qt-col-phone" data-name="mk_list_phone" data-field-type="phone" title="{$LISTVIEW_ENTRY->get('mk_list_phone')|default:'—'|escape}">
+										<span class="fieldValue"><span class="value">{$LISTVIEW_ENTRY->get('mk_list_phone')|default:'—'|escape}</span></span>
+									</td>
+									<td class="listViewEntryValue mk-so-col-email mk-qt-col-email" data-name="mk_list_email" data-field-type="email" title="{$LISTVIEW_ENTRY->get('mk_list_email')|default:'—'|escape}">
+										<span class="fieldValue"><span class="value">{$LISTVIEW_ENTRY->get('mk_list_email')|default:'—'|escape}</span></span>
+									</td>
+								{/if}
 							{/foreach}
 						</tr>
 					{/foreach}
 					{if isset($LISTVIEW_ENTRIES_COUNT) && $LISTVIEW_ENTRIES_COUNT eq '0'}
 						<tr class="emptyRecordsDiv">
-							{assign var=COLSPAN_WIDTH value={php7_count($LISTVIEW_HEADERS)}+1}
+							{assign var=COLSPAN_WIDTH value={php7_count($LISTVIEW_HEADERS)}+3}
 							<td colspan="{$COLSPAN_WIDTH}">
 								<div class="emptyRecordsContent">
 									{vtranslate('LBL_NO')} {vtranslate($MODULE, $MODULE)} {vtranslate('LBL_FOUND')}.

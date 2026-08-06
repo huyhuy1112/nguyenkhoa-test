@@ -2337,12 +2337,14 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] button.mk-so-
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines-wrap {
 	overflow-x: auto;
-	margin-bottom: 14px;
+	-webkit-overflow-scrolling: touch;
+	margin-bottom: 10px;
+	max-width: 100%;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines {
 	width: 100%;
-	min-width: 760px;
+	min-width: 720px;
 	border-collapse: collapse;
 }
 
@@ -2479,6 +2481,86 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__paid-input {
 	display: inline-block;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines th.is-note,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-note {
+	min-width: 120px;
+	max-width: 200px;
+	text-align: left;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines .is-disc {
+	white-space: nowrap;
+	color: #64748b;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__line-note {
+	width: 100%;
+	min-width: 100px;
+	padding: 5px 8px;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	font-size: 12px;
+	color: #334155;
+	background: #fff;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__line-note:focus {
+	border-color: #08a045;
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(8, 160, 69, 0.15);
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__vat-note {
+	margin: 4px 0 2px;
+	padding: 0 2px;
+	font-size: 12px;
+	font-style: normal;
+	font-weight: 700;
+	color: #0f172a;
+	line-height: 1.35;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-label {
+	text-align: left;
+	white-space: nowrap;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #64748b;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input {
+	width: 100%;
+	max-width: 180px;
+	padding: 6px 8px;
+	border: 1px solid #bbf7d0;
+	border-radius: 8px;
+	background: #fff;
+	color: #08a045 !important;
+	font-weight: 700;
+	font-size: 14px !important;
+	font-variant-numeric: tabular-nums;
+	font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input:focus {
+	border-color: #08a045;
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(8, 160, 69, 0.18);
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-row {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-row--paid {
+	align-items: flex-start;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions {

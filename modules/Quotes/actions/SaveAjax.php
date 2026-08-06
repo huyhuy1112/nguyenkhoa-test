@@ -1,20 +1,18 @@
 <?php
 /*+***********************************************************************************
- * SalesOrder SaveAjax: paid/balance + optional line comments + manual grand total.
+ * Quotes SaveAjax: header fields + optional line comments + manual grand total.
  *************************************************************************************/
 
-class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
+class Quotes_SaveAjax_Action extends Inventory_SaveAjax_Action {
 
 	public function process(Vtiger_Request $request) {
+		$fieldToBeSaved = $request->get('field');
 		$response = new Vtiger_Response();
 		try {
 			vglobal('VTIGER_TIMESTAMP_NO_CHANGE_MODE', $request->get('_timeStampNoChangeMode', false));
 			$recordModel = $this->saveRecord($request);
 			$this->saveInlineLineExtras($request, $recordModel);
 			vglobal('VTIGER_TIMESTAMP_NO_CHANGE_MODE', false);
-
-			// Refresh for response display
-			$recordModel = Inventory_Record_Model::getInstanceById($recordModel->getId(), 'SalesOrder');
 
 			$fieldModelList = $recordModel->getModule()->getFields();
 			$result = array();
@@ -70,68 +68,7 @@ class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
 	}
 
 	/**
-	 * Function to get the record model based on the request parameters
-	 * @param Vtiger_Request $request
-	 * @return Vtiger_Record_Model or Module specific Record Model instance
-	 */
-	public function getRecordModelFromRequest(Vtiger_Request $request) {
-		$recordModel = parent::getRecordModelFromRequest($request);
-		$this->syncReceivedBalance($recordModel, $request);
-		return $recordModel;
-	}
-
-	/**
-	 * Keep balance = total - received when customer paid amount is updated inline.
-	 */
-	protected function syncReceivedBalance(Vtiger_Record_Model $recordModel, Vtiger_Request $request) {
-		$paidField = '';
-		foreach (array('received', 'paid_amount', 'amount_paid', 'paid', 'mk_customer_paid') as $candidate) {
-			if ($request->has($candidate)) {
-				$paidField = $candidate;
-				break;
-			}
-		}
-		if ($paidField === '') {
-			return;
-		}
-
-		$paidRaw = $request->get($paidField);
-		if (class_exists('CurrencyField')) {
-			$paidAmount = (float) CurrencyField::convertToDBFormat($paidRaw, null, true);
-		} else {
-			$paidAmount = $this->parseMoney($paidRaw);
-		}
-		if ($paidAmount < 0) {
-			$paidAmount = 0;
-		}
-		$recordModel->set($paidField, $paidAmount);
-
-		$total = (float) $recordModel->get('total');
-		if ($request->has('hdnGrandTotal_manual') || $request->has('grand_total')) {
-			$manual = $this->parseMoney($request->get('hdnGrandTotal_manual'));
-			if ($manual <= 0 && $request->has('grand_total')) {
-				$manual = $this->parseMoney($request->get('grand_total'));
-			}
-			if ($manual >= 0) {
-				$total = $manual;
-				$recordModel->set('total', $manual);
-			}
-		}
-		if ($total <= 0 && $recordModel->get('hdnGrandTotal') !== null && $recordModel->get('hdnGrandTotal') !== '') {
-			$total = (float) $recordModel->get('hdnGrandTotal');
-		}
-		$balance = $total - $paidAmount;
-		if ($balance < 0) {
-			$balance = 0;
-		}
-		$balanceField = $recordModel->getModule()->getField('balance');
-		if ($balanceField) {
-			$recordModel->set('balance', $balance);
-		}
-	}
-
-	/**
-	 * Persist per-line comments + manual grand total (via adjustment) without rewriting line items.
+	 * Persist per-line comments + manual grand total (via adjustment) without reloading inventory lines.
 	 */
 	protected function saveInlineLineExtras(Vtiger_Request $request, Vtiger_Record_Model $recordModel) {
 		$recordId = (int) $recordModel->getId();
@@ -142,6 +79,7 @@ class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
 
 		$comments = $request->get('line_comments');
 		if (!is_array($comments) || empty($comments)) {
+			// jQuery may send line_comments[1]=... or JSON blob
 			$rawJson = $request->get('line_comments_json');
 			if (is_string($rawJson) && $rawJson !== '') {
 				$decoded = json_decode($rawJson, true);
@@ -151,11 +89,12 @@ class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
 			}
 		}
 		if (!is_array($comments)) {
+			// Parse flat keys line_comments_1 etc.
 			$comments = array();
-			foreach ($_REQUEST as $key => $val) {
+			$rawAll = $_REQUEST;
+			foreach ($rawAll as $key => $val) {
 				if (preg_match('/^line_comments\[(\d+)\]$/', (string) $key, $m)
-					|| preg_match('/^line_comments_(\d+)$/', (string) $key, $m)
-					|| preg_match('/^line_comment_(\d+)$/', (string) $key, $m)) {
+					|| preg_match('/^line_comments_(\d+)$/', (string) $key, $m)) {
 					$comments[(int) $m[1]] = $val;
 				}
 			}
@@ -191,7 +130,7 @@ class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
 
 		$rs = $db->pquery(
 			'SELECT subtotal, total, adjustment, discount_amount, discount_percent, s_h_amount
-			 FROM vtiger_salesorder WHERE salesorderid = ?',
+			 FROM vtiger_quotes WHERE quoteid = ?',
 			array($recordId)
 		);
 		if (!$rs || !$db->num_rows($rs)) {
@@ -205,35 +144,14 @@ class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
 		if ($discount <= 0 && $discountPercent > 0 && $subtotal > 0) {
 			$discount = $subtotal * $discountPercent / 100.0;
 		}
+		// VAT-included flow: tax not re-added; adjustment = grand − (subtotal − discount + shipping)
 		$base = $subtotal - $discount + $shipping;
 		$adjustment = $grand - $base;
 
-		// Recompute balance if paid exists
-		$paidAmount = 0.0;
-		foreach (array('received', 'paid_amount', 'amount_paid', 'paid', 'mk_customer_paid') as $candidate) {
-			if ($request->has($candidate)) {
-				$paidAmount = $this->parseMoney($request->get($candidate));
-				break;
-			}
-		}
-		$balance = $grand - $paidAmount;
-		if ($balance < 0) {
-			$balance = 0;
-		}
-
 		$db->pquery(
-			'UPDATE vtiger_salesorder SET total = ?, adjustment = ?, pre_tax_total = ? WHERE salesorderid = ?',
+			'UPDATE vtiger_quotes SET total = ?, adjustment = ?, pre_tax_total = ? WHERE quoteid = ?',
 			array($grand, $adjustment, $subtotal, $recordId)
 		);
-		// balance column may exist
-		try {
-			$db->pquery(
-				'UPDATE vtiger_salesorder SET balance = ? WHERE salesorderid = ?',
-				array($balance, $recordId)
-			);
-		} catch (Exception $e) {
-			/* ignore if no balance column */
-		}
 	}
 
 	protected function parseMoney($value) {
@@ -244,6 +162,7 @@ class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
 		if ($s === '') {
 			return 0.0;
 		}
+		// "7.568.640" or "7,568,640.50"
 		if (preg_match('/^\d{1,3}(\.\d{3})+(,\d+)?$/', $s)) {
 			$s = str_replace('.', '', $s);
 			$s = str_replace(',', '.', $s);

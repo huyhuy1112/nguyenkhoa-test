@@ -103,6 +103,13 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 			if ($moduleName === 'SalesOrder' && $request->get('quote_id')) {
 				$recordModel->set('quote_id', $referenceId);
 			}
+			// Create Quote from Sales Order: draft stage, drop SO-only refs
+			if ($moduleName === 'Quotes' && $request->get('salesorder_id')) {
+				if ($recordModel->getModule()->getField('quotestage')) {
+					$recordModel->set('quotestage', 'Created');
+				}
+				$recordModel->set('subject', trim((string) $parentRecordModel->get('subject')));
+			}
 		} else {
 			$taxes = Inventory_Module_Model::getAllProductTaxes();
 			$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
@@ -133,6 +140,12 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 			} elseif ($sourceRecord && in_array($sourceModule, array('HelpDesk', 'Leads'))) {
 				$parentRecordModel = Vtiger_Record_Model::getInstanceById($sourceRecord, $sourceModule);
 				$relatedProducts = $recordModel->getParentRecordRelatedLineItems($parentRecordModel);
+			}
+
+			// Prefill Quote from ServiceContracts (Tuibao — Khách hàng nhượng quyền)
+			$scId = (int) $request->get('servicecontract_id');
+			if ($scId > 0 && $moduleName === 'Quotes' && empty($record)) {
+				$this->applyServiceContractPrefillToQuote($recordModel, $scId, $viewer);
 			}
 		}
 
@@ -259,6 +272,69 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 		$jsFileNames[] = $modulePopUpFile;
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 		return $jsScriptInstances;
+	}
+
+	/**
+	 * Prefill Quote create form from ServiceContracts (Tuibao franchise customer).
+	 *
+	 * @param Vtiger_Record_Model $recordModel
+	 * @param int $serviceContractId
+	 * @param Vtiger_Viewer $viewer
+	 */
+		/**
+	 * Prefill Quote create form from ServiceContracts (Tuibao franchise customer).
+	 *
+	 * @param Vtiger_Record_Model $recordModel
+	 * @param int $serviceContractId
+	 * @param Vtiger_Viewer $viewer
+	 */
+	protected function applyServiceContractPrefillToQuote($recordModel, $serviceContractId, $viewer) {
+		$serviceContractId = (int) $serviceContractId;
+		if ($serviceContractId <= 0 || !$recordModel) {
+			return;
+		}
+		$db = PearDatabase::getInstance();
+		$rs = $db->pquery(
+			"SELECT sc.servicecontractsid, sc.subject, sc.sc_related_to,
+			        p.phone, p.email
+			 FROM vtiger_servicecontracts sc
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
+			 LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid
+			 WHERE sc.servicecontractsid = ?
+			 LIMIT 1",
+			array($serviceContractId)
+		);
+		if (!$rs || $db->num_rows($rs) === 0) {
+			return;
+		}
+		$name = decode_html((string) $db->query_result($rs, 0, 'subject'));
+		$accountId = (int) $db->query_result($rs, 0, 'sc_related_to');
+		$phone = decode_html((string) $db->query_result($rs, 0, 'phone'));
+		$email = decode_html((string) $db->query_result($rs, 0, 'email'));
+
+		if ($name !== '') {
+			$recordModel->set('subject', $name);
+		}
+		if ($accountId > 0 && $recordModel->getModule()->getField('account_id')) {
+			$recordModel->set('account_id', $accountId);
+		}
+		if ($phone !== '' && $recordModel->getModule()->getField('mk_customer_phone')) {
+			$recordModel->set('mk_customer_phone', preg_replace('/\D+/', '', $phone));
+		}
+		if ($email !== '' && $recordModel->getModule()->getField('mk_customer_email')) {
+			$recordModel->set('mk_customer_email', $email);
+		}
+		if ($viewer) {
+			$prefill = array(
+				'id' => $serviceContractId,
+				'name' => $name,
+				'phone' => $phone,
+				'email' => $email,
+				'account_id' => $accountId,
+			);
+			$viewer->assign('MK_SC_PREFILL', $prefill);
+			$viewer->assign('MK_SC_PREFILL_JSON', Zend_Json::encode($prefill));
+		}
 	}
 
 }
