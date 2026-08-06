@@ -48,11 +48,8 @@ class ProductsServices_Detail_View extends Vtiger_Detail_View {
 			array('item_type', 'Loại'),
 			array('price', 'Giá'),
 			array('wholesale_price', 'Giá sỉ'),
-			array('price_lt_1m', 'Giá < 1 triệu'),
-			array('price_gte_1m', 'Giá ≥ 1 triệu'),
-			array('price_gte_3m', 'Giá ≥ 3 triệu'),
-			array('price_gte_5m', 'Giá ≥ 5 triệu'),
-			array('price_gte_7m', 'Giá ≥ 7 triệu'),
+			array('needs_qc', 'Cần QC'),
+			array('unit', 'Đơn vị'),
 			array('specification', 'Diễn giải'),
 			array('assigned_user_id', 'Phụ trách'),
 			array('createdtime', 'Ngày tạo'),
@@ -68,6 +65,9 @@ class ProductsServices_Detail_View extends Vtiger_Detail_View {
 			$title,
 			$subtitle
 		);
+		// Products have no care-tags / last-touch workflow — keep panel lean (Leads-like layout).
+		$viewer->assign('INLINE_HIDE_TAGS', true);
+		$viewer->assign('INLINE_SHOW_NEXT_ACTION', false);
 
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}

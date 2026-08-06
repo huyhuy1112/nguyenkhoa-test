@@ -2549,15 +2549,21 @@ html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .
 
 html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-form-host .mk-ps-block .fieldBlockHeader,
 html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-form-host .mk-ps-block .mk-ps-block__header {
-	background: transparent !important;
-	color: #64748b !important;
-	font-size: 11px !important;
-	font-weight: 700 !important;
-	letter-spacing: 0.1em !important;
-	text-transform: uppercase !important;
-	margin: 0 0 10px 0 !important;
-	padding: 0 0 8px 4px !important;
-	border-bottom: 1px solid #f1f5f9 !important;
+	margin: 0 0 8px 0 !important;
+	padding: 0 0 8px 0 !important;
+	min-height: 0 !important;
+}
+
+/* Only hide tables after successful pack — never kill un-packed fields */
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-form-host .mk-ps-block > table.mk-ps-fields-packed,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-form-host .mk-ps-block > table.mk-ps-hide-legacy {
+	display: none !important;
+	height: 0 !important;
+	max-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	overflow: hidden !important;
 }
 
 html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-compact-grid {
@@ -2878,13 +2884,16 @@ html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .
 	letter-spacing: -0.02em !important;
 	text-transform: none !important;
 	color: var(--mk-ps-v4-ink) !important;
-	margin: 0 0 16px 0 !important;
-	padding: 0 0 12px 0 !important;
+	margin: 0 0 8px 0 !important;
+	padding: 0 0 8px 0 !important;
 	border-bottom: 1px solid #eef2f0 !important;
 	background: transparent !important;
+	min-height: 0 !important;
+	line-height: 1.25 !important;
 }
 
-html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-block__num {
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-block__num,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-block__num {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -2899,11 +2908,33 @@ html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .
 	flex: 0 0 28px;
 }
 
+/* Kill leftover table ONLY after pack marked it */
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-form-host .mk-ps-block > table.mk-ps-fields-packed,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-form-host .mk-ps-block > table.mk-ps-hide-legacy {
+	display: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	visibility: hidden !important;
+	overflow: hidden !important;
+}
+
+/* Hide relocated / unused field remnants, not whole block children */
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-form-host .mk-ps-block tr.mk-ps-hide-legacy,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-form-host .mk-ps-block td.mk-ps-hide-legacy,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-form-host .mk-ps-block .mk-ps-compact-field.mk-ps-hide-legacy,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-form-host .mk-ps-block > hr.mk-ps-hide-legacy {
+	display: none !important;
+}
+
 html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-grid {
 	display: grid !important;
 	grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 	column-gap: 16px !important;
-	row-gap: 12px !important;
+	row-gap: 10px !important;
+	margin: 0 !important;
+	padding: 0 !important;
 }
 
 html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-field--full,
@@ -2962,6 +2993,115 @@ html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .
 	border: 1px solid #dce5df !important;
 	background: #fbfcfb !important;
 	overflow: hidden;
+}
+
+/* Cần QC — dedicated switch row (full width in primary block) */
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-field--qc {
+	grid-column: 1 / -1 !important;
+	max-width: 100% !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-field--qc .mk-ps-compact-label {
+	display: none !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch {
+	display: flex !important;
+	align-items: center !important;
+	gap: 14px !important;
+	width: 100% !important;
+	margin: 0 !important;
+	padding: 12px 16px !important;
+	border-radius: 14px !important;
+	border: 1px solid #d9ebe0 !important;
+	background: linear-gradient(180deg, #f8fcf9, #f3faf6) !important;
+	cursor: pointer !important;
+	user-select: none !important;
+	transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch.is-on {
+	border-color: #08a045 !important;
+	background: linear-gradient(180deg, #ecfdf3, #e8f8ee) !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.1);
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch__input {
+	position: absolute !important;
+	opacity: 0 !important;
+	width: 1px !important;
+	height: 1px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	clip: rect(0, 0, 0, 0) !important;
+	pointer-events: none !important;
+	-webkit-appearance: none !important;
+	appearance: none !important;
+}
+
+/* Kill any native checkbox chrome (TODC draws empty square) next to switch */
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch__input::before,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch__input::after,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch__input:checked::before,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch__input:checked::after,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-compact-field--qc input[type="checkbox"]:not(.mk-ps-qc-switch__input) {
+	display: none !important;
+	content: none !important;
+	width: 0 !important;
+	height: 0 !important;
+	border: 0 !important;
+	background: none !important;
+	box-shadow: none !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch__track {
+	position: relative !important;
+	flex: 0 0 46px !important;
+	width: 46px !important;
+	height: 26px !important;
+	border-radius: 999px !important;
+	background: #cbd5e1 !important;
+	transition: background 0.15s ease;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch.is-on .mk-ps-qc-switch__track {
+	background: #08a045 !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch__knob {
+	position: absolute !important;
+	top: 3px !important;
+	left: 3px !important;
+	width: 20px !important;
+	height: 20px !important;
+	border-radius: 50% !important;
+	background: #fff !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+	transition: transform 0.15s ease;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch.is-on .mk-ps-qc-switch__knob {
+	transform: translateX(20px);
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch__copy {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 2px !important;
+	min-width: 0 !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch__title {
+	font-size: 14px !important;
+	font-weight: 700 !important;
+	color: #0f172a !important;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-qc-switch__hint {
+	font-size: 12px !important;
+	font-weight: 500 !important;
+	color: #64748b !important;
 }
 
 html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-type-box__option {

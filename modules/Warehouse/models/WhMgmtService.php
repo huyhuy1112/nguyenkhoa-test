@@ -12,6 +12,7 @@ class Warehouse_WhMgmtService {
 		$db = PearDatabase::getInstance();
 		Warehouse_WorkflowSetup_Helper::runAll();
 		self::ensureProductSkuField();
+		self::ensureProductNeedsQcField();
 		if (!Warehouse_WorkflowSetup_Helper::isInstalled($db)) {
 			self::seedAll($db);
 		}
@@ -75,6 +76,89 @@ class Warehouse_WhMgmtService {
 		$field->columntype = 'VARCHAR(100)';
 		$field->typeofdata = 'V~O';
 		$block->addField($field);
+	}
+
+	/**
+	 * Ensure product-level "Cần QC" checkbox exists for inbound routing.
+	 */
+	public static function ensureProductNeedsQcField() {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		require_once 'vtlib/Vtiger/Module.php';
+		$module = Vtiger_Module::getInstance('ProductsServices');
+		if (!$module) {
+			return;
+		}
+		if (Vtiger_Field::getInstance('needs_qc', $module)) {
+			return;
+		}
+		$block = Vtiger_Block::getInstance('LBL_PRODUCT_INFORMATION', $module);
+		if (!$block) {
+			$block = Vtiger_Block::getInstance('LBL_PRODUCTS_SERVICES_INFORMATION', $module);
+		}
+		if (!$block) {
+			return;
+		}
+		$field = new Vtiger_Field();
+		$field->name = 'needs_qc';
+		$field->label = 'Needs QC';
+		$field->uitype = 56;
+		$field->column = 'needs_qc';
+		$field->columntype = 'TINYINT(1) DEFAULT 0';
+		$field->typeofdata = 'C~O';
+		$field->defaultvalue = '0';
+		$block->addField($field);
+		// Clear column cache so subsequent catalog/routing sees the new column.
+		self::resetNeedsQcColumnCache();
+	}
+
+	/**
+	 * Whether catalog column needs_qc is available on vtiger_productsservices.
+	 */
+	protected static function resetNeedsQcColumnCache() {
+		// Uses static $has in hasNeedsQcColumn via re-query when null; force recheck by sentinel.
+		self::$needsQcColumnExists = null;
+	}
+
+	/** @var bool|null */
+	protected static $needsQcColumnExists = null;
+
+	protected static function hasNeedsQcColumn(PearDatabase $db = null) {
+		if (self::$needsQcColumnExists !== null) {
+			return self::$needsQcColumnExists;
+		}
+		if ($db === null) {
+			$db = PearDatabase::getInstance();
+		}
+		try {
+			$rs = $db->pquery('SHOW COLUMNS FROM vtiger_productsservices LIKE ?', array('needs_qc'));
+			self::$needsQcColumnExists = ($rs && $db->num_rows($rs) > 0);
+		} catch (Exception $e) {
+			self::$needsQcColumnExists = false;
+		}
+		return self::$needsQcColumnExists;
+	}
+
+	/**
+	 * Read product-level Cần QC flag (false when missing product / column / value).
+	 */
+	public static function productNeedsQc(PearDatabase $db, $productId) {
+		$productId = (int) $productId;
+		if ($productId <= 0 || !self::hasNeedsQcColumn($db)) {
+			return false;
+		}
+		$rs = $db->pquery(
+			'SELECT needs_qc FROM vtiger_productsservices WHERE productsservicesid = ? LIMIT 1',
+			array($productId)
+		);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			return false;
+		}
+		$raw = $db->query_result($rs, 0, 'needs_qc');
+		return ($raw === 1 || $raw === '1' || $raw === true || $raw === 'on');
 	}
 
 	public static function seedAll(PearDatabase $db = null) {
@@ -671,7 +755,7 @@ class Warehouse_WhMgmtService {
 
 	protected static function loadReceiptItemsRaw(PearDatabase $db, $receiptId) {
 		$rs = $db->pquery(
-			'SELECT productid, product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location
+			'SELECT itemid, productid, product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location
 			 FROM vtiger_goodsreceipt_items
 			 WHERE receiptid = ?
 			 ORDER BY itemid ASC',
@@ -853,7 +937,28 @@ class Warehouse_WhMgmtService {
 		} else if ($actionKey === 'store') {
 			$newStatus = 'stored';
 			$items = self::loadReceiptItemsRaw($db, $receiptId);
+			$stockedItemIds = array();
+			if (isset($meta['stockedItemIds']) && is_array($meta['stockedItemIds'])) {
+				foreach ($meta['stockedItemIds'] as $sid => $flag) {
+					if ($flag) {
+						$stockedItemIds[(string) $sid] = 1;
+					}
+				}
+			}
+			// Legacy receipts (no stockedItemIds): if previously full-store or create-without-qc flags.
+			$hasStockedSnapshot = isset($meta['stockedItemIds']) && is_array($meta['stockedItemIds']);
+			$legacyAlreadyStored = !empty($meta['stockStored']);
+
 			foreach ($items as $it) {
+				$itemId = (string) (isset($it['itemid']) ? $it['itemid'] : '');
+				if ($itemId !== '' && isset($stockedItemIds[$itemId])) {
+					continue; // already stocked at create (non-QC lines)
+				}
+				// Legacy: if whole receipt was already marked stockStored without per-line map, skip all.
+				if (!$hasStockedSnapshot && $legacyAlreadyStored) {
+					continue;
+				}
+				// If no meta snapshot and not marked stocked yet, apply all lines (old pure-QC path).
 				$name = (string) (isset($it['product_name']) ? $it['product_name'] : '');
 				$lot = (string) (isset($it['serial_number']) ? $it['serial_number'] : '');
 				$sku = (string) (isset($it['line_note']) ? $it['line_note'] : '');
@@ -886,8 +991,12 @@ class Warehouse_WhMgmtService {
 					'price' => $price,
 					'location' => $location,
 				), $userId);
+				if ($itemId !== '') {
+					$stockedItemIds[$itemId] = 1;
+				}
 			}
 			$locationNote = self::formatReceiptLocationNote($items);
+			$meta['stockedItemIds'] = $stockedItemIds;
 			$meta['stockStored'] = true;
 			self::pushTimeline($meta, 'Đã nhập kho', $role, $locationNote);
 		} else if ($actionKey === 'receipt-revert') {
@@ -1999,8 +2108,10 @@ class Warehouse_WhMgmtService {
 		if ($db === null) {
 			$db = PearDatabase::getInstance();
 		}
+		self::ensureProductNeedsQcField();
+		$needsQcSelect = self::hasNeedsQcColumn($db) ? ', ps.needs_qc' : '';
 		$rs = $db->pquery(
-			'SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku, ps.unit
+			'SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku, ps.unit' . $needsQcSelect . '
 			 FROM vtiger_productsservices ps
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 			 ORDER BY ps.productsservicesname ASC
@@ -2020,6 +2131,8 @@ class Warehouse_WhMgmtService {
 			}
 			$sku = self::formatDisplaySku(trim((string) (isset($row['sku']) ? $row['sku'] : '')));
 			$unit = self::decodeDisplayTextDeep(trim((string) (isset($row['unit']) ? $row['unit'] : '')));
+			$needsQcRaw = isset($row['needs_qc']) ? $row['needs_qc'] : 0;
+			$needsQc = ($needsQcRaw === 1 || $needsQcRaw === '1' || $needsQcRaw === true || $needsQcRaw === 'on');
 			$out[] = array(
 				'id' => $id,
 				'name' => $name,
@@ -2027,6 +2140,7 @@ class Warehouse_WhMgmtService {
 				'type' => (string) (isset($row['item_type']) ? $row['item_type'] : ''),
 				'sku' => $sku,
 				'unit' => $unit,
+				'needsQc' => $needsQc,
 			);
 		}
 		return $out;
@@ -2085,9 +2199,13 @@ class Warehouse_WhMgmtService {
 	}
 
 	/**
-	 * Persist inbound receipt + optional stock (when not sent to QC).
+	 * Persist inbound receipt; QC routing is product-level (needs_qc on Hàng hoá).
 	 *
-	 * @param array $payload supplier, poRef, sendQc, lines[{product_id,sku,name,lot,qty,mfg,expiry}]
+	 * Lines with needs_qc go to pending_qc (no stock yet).
+	 * Lines without needs_qc apply stock immediately.
+	 * Mixed: receipt stays pending_qc until QC lines complete; store must not double-stock.
+	 *
+	 * @param array $payload supplier, poRef, lines[{product_id,sku,name,lot,qty,mfg,expiry}]
 	 */
 	public static function saveInboundReceipt($warehouseCode, array $payload, $userId = 0) {
 		$db = PearDatabase::getInstance();
@@ -2104,7 +2222,6 @@ class Warehouse_WhMgmtService {
 
 		$supplier = trim((string) (isset($payload['supplier']) ? $payload['supplier'] : ''));
 		$poRef = trim((string) (isset($payload['poRef']) ? $payload['poRef'] : ''));
-		$sendQc = !empty($payload['sendQc']);
 		$lines = isset($payload['lines']) && is_array($payload['lines']) ? $payload['lines'] : array();
 
 		if ($supplier === '' || $poRef === '' || empty($lines)) {
@@ -2113,44 +2230,11 @@ class Warehouse_WhMgmtService {
 
 		$now = date('Y-m-d H:i:s');
 		$code = self::nextGrnCode($db);
-		$status = $sendQc ? 'pending_qc' : 'stored';
-		$timeline = array(
-			array('at' => gmdate('c'), 'by' => 'Thủ kho', 'role' => 'keeper', 'action' => 'Tạo phiếu nhập'),
-		);
-		if ($sendQc) {
-			$timeline[] = array('at' => gmdate('c'), 'by' => 'Thủ kho', 'role' => 'keeper', 'action' => 'Gửi QC kiểm tra');
-		} else {
-			$timeline[] = array('at' => gmdate('c'), 'by' => 'Thủ kho', 'role' => 'keeper', 'action' => 'Nhập thẳng tồn kho');
-		}
 
-		$meta = json_encode(array(
-			'poRef' => $poRef,
-			'createdBy' => 'Thủ kho',
-			'timeline' => $timeline,
-		), JSON_UNESCAPED_UNICODE);
-
-		$receiptId = (int) $db->getUniqueID('vtiger_goodsreceipt');
-		$db->pquery(
-			'INSERT INTO vtiger_goodsreceipt
-			 (receiptid, code, subject, source_name, received_date, status, warehouse_id, mk_meta_json,
-			  createdby, updatedby, createdtime, updatedtime, deleted)
-			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0)',
-			array(
-				$receiptId,
-				$code,
-				'Phiếu nhập ' . $code,
-				$supplier,
-				substr($now, 0, 10),
-				$status,
-				$warehouseCode,
-				$meta,
-				$userId,
-				$userId,
-				$now,
-				$now,
-			)
-		);
-
+		// Pre-resolve lines + product QC flags before insert (skip invalids).
+		$resolved = array();
+		$qcLineCount = 0;
+		$directLineCount = 0;
 		foreach ($lines as $line) {
 			$productId = (int) (isset($line['product_id']) ? $line['product_id'] : 0);
 			$name = trim((string) (isset($line['name']) ? $line['name'] : ''));
@@ -2175,29 +2259,141 @@ class Warehouse_WhMgmtService {
 			if ($productId > 0 && $sku === '') {
 				throw new Exception('Sản phẩm "' . $name . '" chưa có SKU. Hãy cập nhật SKU trong Products & Services trước khi nhập kho.');
 			}
+			$lineNeedsQc = self::productNeedsQc($db, $productId);
+			if ($lineNeedsQc) {
+				$qcLineCount++;
+			} else {
+				$directLineCount++;
+			}
+			$resolved[] = array(
+				'product_id' => $productId,
+				'name' => $name,
+				'sku' => $sku,
+				'lot' => $lot,
+				'qty' => $qty,
+				'location' => $location,
+				'expiry' => $expiry,
+				'mfg' => $mfg,
+				'price' => isset($line['price']) ? (float) $line['price'] : 0,
+				'needs_qc' => $lineNeedsQc,
+			);
+		}
+		if (empty($resolved)) {
+			throw new Exception('Thiếu thông tin phiếu nhập.');
+		}
 
+		$anyQc = $qcLineCount > 0;
+		$status = $anyQc ? 'pending_qc' : 'stored';
+		$timeline = array(
+			array('at' => gmdate('c'), 'by' => 'Thủ kho', 'role' => 'keeper', 'action' => 'Tạo phiếu nhập'),
+		);
+		if ($anyQc) {
+			$note = $directLineCount > 0
+				? ($qcLineCount . ' dòng QC / ' . $directLineCount . ' dòng nhập thẳng')
+				: ($qcLineCount . ' dòng QC theo hàng hoá');
+			$timeline[] = array(
+				'at' => gmdate('c'),
+				'by' => 'Thủ kho',
+				'role' => 'keeper',
+				'action' => 'Gửi QC (theo hàng hoá)',
+				'note' => $note,
+			);
+			if ($directLineCount > 0) {
+				$timeline[] = array(
+					'at' => gmdate('c'),
+					'by' => 'Thủ kho',
+					'role' => 'keeper',
+					'action' => 'Nhập thẳng tồn kho (dòng không QC)',
+					'note' => $directLineCount . ' dòng',
+				);
+			}
+		} else {
+			$timeline[] = array(
+				'at' => gmdate('c'),
+				'by' => 'Thủ kho',
+				'role' => 'keeper',
+				'action' => 'Nhập thẳng tồn kho',
+			);
+		}
+
+		$lineNeedsQcMeta = array();
+		$stockedItemIds = array();
+
+		$receiptId = (int) $db->getUniqueID('vtiger_goodsreceipt');
+		$db->pquery(
+			'INSERT INTO vtiger_goodsreceipt
+			 (receiptid, code, subject, source_name, received_date, status, warehouse_id, mk_meta_json,
+			  createdby, updatedby, createdtime, updatedtime, deleted)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0)',
+			array(
+				$receiptId,
+				$code,
+				'Phiếu nhập ' . $code,
+				$supplier,
+				substr($now, 0, 10),
+				$status,
+				$warehouseCode,
+				'{}',
+				$userId,
+				$userId,
+				$now,
+				$now,
+			)
+		);
+
+		foreach ($resolved as $line) {
 			$itemId = (int) $db->getUniqueID('vtiger_goodsreceipt_items');
+			$lineNeedsQc = !empty($line['needs_qc']);
+			$lineNeedsQcMeta[(string) $itemId] = $lineNeedsQc ? 1 : 0;
+
 			$db->pquery(
 				'INSERT INTO vtiger_goodsreceipt_items
 				 (itemid, receiptid, productid, product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location)
 				 VALUES (?,?,?,?,?,?,?,?,?,?)',
-				array($itemId, $receiptId, $productId, $name, $qty, $lot, $expiry, $mfg, $sku, $location !== '' ? $location : null)
+				array(
+					$itemId,
+					$receiptId,
+					$line['product_id'],
+					$line['name'],
+					$line['qty'],
+					$line['lot'],
+					$line['expiry'],
+					$line['mfg'],
+					$line['sku'],
+					$line['location'] !== '' ? $line['location'] : null,
+				)
 			);
 
-			if (!$sendQc) {
+			if (!$lineNeedsQc) {
 				self::applyInboundStockLine($db, $warehouseCode, $whName, array(
-					'product_id' => $productId,
-					'sku' => $sku,
-					'name' => $name,
-					'lot' => $lot,
-					'qty' => $qty,
-					'mfg' => $mfg,
-					'expiry' => $expiry,
-					'price' => isset($line['price']) ? (float) $line['price'] : 0,
-					'location' => $location,
+					'product_id' => $line['product_id'],
+					'sku' => $line['sku'],
+					'name' => $line['name'],
+					'lot' => $line['lot'],
+					'qty' => $line['qty'],
+					'mfg' => $line['mfg'],
+					'expiry' => $line['expiry'],
+					'price' => $line['price'],
+					'location' => $line['location'],
 				), $userId);
+				$stockedItemIds[(string) $itemId] = 1;
 			}
 		}
+
+		$metaArr = array(
+			'poRef' => $poRef,
+			'createdBy' => 'Thủ kho',
+			'timeline' => $timeline,
+			'lineNeedsQc' => $lineNeedsQcMeta,
+			'stockedItemIds' => $stockedItemIds,
+		);
+		if (!$anyQc) {
+			$metaArr['stockStored'] = true;
+		}
+		$db->pquery(
+			'UPDATE vtiger_goodsreceipt SET mk_meta_json = ?, updatedtime = ? WHERE receiptid = ?',
+			array(json_encode($metaArr, JSON_UNESCAPED_UNICODE), $now, $receiptId)
+		);
 
 		return array(
 			'code' => $code,

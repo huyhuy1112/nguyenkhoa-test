@@ -23,6 +23,7 @@ class ProductsServices_FormLayout_Helper {
 		'productsservicesname',
 		'item_type',
 		'unit',
+		'needs_qc',
 		'price',
 		'wholesale_price',
 		'price_lt_1m',
@@ -37,7 +38,7 @@ class ProductsServices_FormLayout_Helper {
 	public static function apply(array $values) {
 		// Promote key fields into the main details block with Name.
 		$moved = array();
-		$promoteNames = array('sku', 'specification', 'unit', 'price', 'wholesale_price');
+		$promoteNames = array('sku', 'specification', 'unit', 'needs_qc', 'price', 'wholesale_price');
 		foreach ($values as $blockLabel => $blockFields) {
 			if (!is_array($blockFields)) {
 				continue;

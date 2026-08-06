@@ -197,13 +197,19 @@
 	</div>
 </div>
 
-{* Prototype-style modal: Tạo phiếu nhập (multi-line) *}
+{* Prototype-style modal: Tạo phiếu nhập / xuất (workspace-size) *}
 <div class="mk-wh-proto-modal" id="mkWhProtoModal" aria-hidden="true">
 	<div class="mk-wh-proto-modal__backdrop" data-mk-close="1"></div>
 	<div class="mk-wh-proto-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mkWhProtoModalTitle">
 		<header class="mk-wh-proto-modal__head">
-			<h3 class="mk-wh-proto-modal__title" id="mkWhProtoModalTitle">Tạo phiếu</h3>
-			<button type="button" class="mk-wh-proto-modal__close" data-mk-close="1" aria-label="Đóng">×</button>
+			<div class="mk-wh-proto-modal__head-main">
+				<span class="mk-wh-proto-modal__eyebrow" id="mkWhProtoModalEyebrow">Kho</span>
+				<h3 class="mk-wh-proto-modal__title" id="mkWhProtoModalTitle">Tạo phiếu</h3>
+				<p class="mk-wh-proto-modal__sub" id="mkWhProtoModalSub" hidden></p>
+			</div>
+			<button type="button" class="mk-wh-proto-modal__close" data-mk-close="1" aria-label="Đóng">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+			</button>
 		</header>
 		<form class="mk-wh-proto-modal__body" id="mkWhProtoModalForm">
 			<div class="mk-wh-proto-form-grid" id="mkWhProtoFormFields"></div>

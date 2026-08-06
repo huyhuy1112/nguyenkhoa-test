@@ -1228,6 +1228,83 @@ body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [d
 	display: none;
 }
 
+/* Cần QC toggle + clean money inputs on product inline panel */
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__bool {
+	display: flex !important;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	padding: 8px 12px;
+	border: 1px solid #d9ebe0;
+	border-radius: 12px;
+	background: linear-gradient(180deg, #f8fcf9, #f3faf6);
+	cursor: pointer;
+	user-select: none;
+	min-height: 42px;
+	box-sizing: border-box;
+}
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__bool.is-on {
+	border-color: #08a045;
+	background: linear-gradient(180deg, #ecfdf3, #e8f8ee);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.1);
+}
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__bool-input {
+	position: absolute !important;
+	opacity: 0 !important;
+	width: 1px !important;
+	height: 1px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	clip: rect(0, 0, 0, 0) !important;
+	-webkit-appearance: none !important;
+	appearance: none !important;
+}
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__bool-input::before,
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__bool-input::after {
+	content: none !important;
+	display: none !important;
+}
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__bool-track {
+	position: relative;
+	flex: 0 0 42px;
+	width: 42px;
+	height: 24px;
+	border-radius: 999px;
+	background: #cbd5e1;
+	transition: background 0.15s ease;
+}
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__bool.is-on .mk-so-inline-detail__bool-track {
+	background: #08a045;
+}
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__bool-knob {
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+	transition: transform 0.15s ease;
+}
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__bool.is-on .mk-so-inline-detail__bool-knob {
+	transform: translateX(18px);
+}
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__bool-text {
+	font-size: 12px;
+	font-weight: 600;
+	color: #334155;
+	line-height: 1.3;
+}
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__input--money {
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+}
+body[data-module="ProductsServices"][data-view="List"]:is([data-app="SALES"], [data-app="INVENTORY"]) .mk-so-inline-detail__field[data-field-name="needs_qc"] .mk-so-inline-detail__field-label {
+	margin-bottom: 4px;
+}
+
 /* v2: checkboxes visible (circular tick styled in ProductsServicesListTable.css) */
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table > thead,
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table > thead {

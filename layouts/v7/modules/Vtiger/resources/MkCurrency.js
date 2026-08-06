@@ -333,7 +333,160 @@
 		applyToDom();
 		patchCurrencyFieldJs();
 		patchInventoryEdit();
+		bindGlobalGroupedInputs();
 	}
+
+	/**
+	 * While typing: 300000 → 300.000 (VN thousand dots).
+	 * Keeps caret stable enough for successive digit entry.
+	 */
+	function bindGroupedInput(el, options) {
+		if (!el || el.nodeType !== 1) {
+			return;
+		}
+		var $el = $(el);
+		if ($el.data('mkGroupedBound')) {
+			return;
+		}
+		// Skip non-text inputs
+		var type = String($el.attr('type') || 'text').toLowerCase();
+		if (type && type !== 'text' && type !== 'search' && type !== 'tel') {
+			return;
+		}
+		options = options || {};
+		var decimals = options.decimals;
+		if (decimals === undefined || decimals === null) {
+			decimals = 0;
+		}
+		$el.data('mkGroupedBound', true);
+		$el.attr('inputmode', 'decimal');
+		$el.addClass('mk-currency-grouped-input');
+
+		$el.on('input.mkCurrencyGroup', function () {
+			var input = this;
+			var raw = String(input.value || '');
+			// Allow empty / intermediate decimal
+			if (raw === '' || raw === '-' || raw === DECIMAL_SEPARATOR) {
+				return;
+			}
+			// Only group pure-ish digit strings (and dots already from us)
+			var digitsOnly = raw.replace(/[^\d]/g, '');
+			if (!digitsOnly) {
+				return;
+			}
+			// Cap length for safety
+			if (digitsOnly.length > 15) {
+				digitsOnly = digitsOnly.slice(0, 15);
+			}
+			var n = parseInt(digitsOnly, 10);
+			if (!isFinite(n)) {
+				return;
+			}
+			var formatted = format(n, { decimals: decimals, truncateZeros: true });
+			if (formatted === raw) {
+				return;
+			}
+			// Caret at end is stable for sequential typing
+			input.value = formatted;
+			try {
+				var end = formatted.length;
+				input.setSelectionRange(end, end);
+			} catch (ignore) { /* ignore */ }
+		});
+
+		$el.on('blur.mkCurrencyGroup', function () {
+			var raw = String(this.value || '').trim();
+			if (!raw) {
+				return;
+			}
+			var n = parse(raw);
+			if (!isFinite(n)) {
+				return;
+			}
+			this.value = format(n, { decimals: decimals, truncateZeros: true });
+		});
+	}
+
+	function isLikelyAmountField(el) {
+		if (!el || !el.getAttribute) {
+			return false;
+		}
+		var $el = $(el);
+		if ($el.is(':disabled, [readonly], [type="hidden"], [type="checkbox"], [type="radio"], [type="file"], [type="date"], [type="password"]')) {
+			return false;
+		}
+		if ($el.hasClass('mk-currency-grouped-input') || $el.data('mkGroupedBound')) {
+			return true;
+		}
+		if ($el.attr('data-mk-vn-number') === '1' || $el.hasClass('mk-number') || $el.hasClass('currencyField')) {
+			return true;
+		}
+		// List search row currency / price columns
+		if ($el.hasClass('listSearchContributor')) {
+			var name = String($el.attr('name') || $el.attr('data-fieldname') || $el.attr('data-field-name') || '').toLowerCase();
+			if (/(price|amount|total|value|cost|grand|hdnGrandTotal|subtotal|discount|tax|qty_price|unit_price)/.test(name)) {
+				return true;
+			}
+			var $th = $el.closest('th, td');
+			var col = String($th.attr('data-fieldname') || $th.attr('data-columnname') || $th.find('[data-fieldname]').attr('data-fieldname') || '').toLowerCase();
+			if (/(price|amount|total|value|cost|grand)/.test(col)) {
+				return true;
+			}
+			// uitype currency often has adjacent symbol addon
+			if ($el.closest('.input-group').find('.input-group-addon, .currencySymbol').length) {
+				return true;
+			}
+		}
+		// Edit/create money fields
+		if ($el.closest('.mk-ps-compact-field--money, .currencyField, [data-field-type="currency"], .fieldValue.currency').length) {
+			return true;
+		}
+		if ($el.is('input.listPrice, input.discount_amount, input.discountVal, input.purchaseCost, input.taxPercentage')) {
+			return true;
+		}
+		var fname = String($el.attr('name') || '').toLowerCase();
+		if (/^(price|wholesale_price|retail_price|bulk_price|amount|expectedrevenue|hdngrandtotal)/.test(fname)) {
+			return true;
+		}
+		if (/price_lt_|price_gte_/.test(fname)) {
+			return true;
+		}
+		return false;
+	}
+
+	function bindGlobalGroupedInputs(root) {
+		var $scope = root ? $(root) : $(document);
+		$scope.find('input').each(function () {
+			if (isLikelyAmountField(this)) {
+				bindGroupedInput(this, { decimals: 0 });
+			}
+		});
+	}
+
+	// Capture-phase for dynamic search rows after ajax
+	$(document).on('focusin.mkCurrencyGroup', 'input', function () {
+		if (isLikelyAmountField(this) && !$(this).data('mkGroupedBound')) {
+			bindGroupedInput(this, { decimals: 0 });
+		}
+	});
+
+	// Before list search submit: strip grouping so params are pure numbers
+	$(document).on('click.mkCurrencyGroup', '.listSearchSubmitButton, button[data-trigger="listSearch"]', function () {
+		$('.listSearchContributor').each(function () {
+			if (!isLikelyAmountField(this) && !$(this).data('mkGroupedBound')) {
+				return;
+			}
+			var v = String(this.value || '').trim();
+			if (!v) {
+				return;
+			}
+			var n = parse(v);
+			if (isFinite(n)) {
+				// Keep formatted display; also store raw on data for consumers that parse via MkCurrency
+				$(this).attr('data-mk-raw-value', String(n));
+			}
+		});
+	});
 
 	$(function () {
 		init();
@@ -354,6 +507,8 @@
 		normalize: normalizeSymbol,
 		parse: parse,
 		format: format,
-		applyToDom: applyToDom
+		applyToDom: applyToDom,
+		bindGroupedInput: bindGroupedInput,
+		bindGlobalGroupedInputs: bindGlobalGroupedInputs
 	};
 })(jQuery);

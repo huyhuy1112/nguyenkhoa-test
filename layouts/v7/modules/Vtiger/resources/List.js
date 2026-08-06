@@ -668,6 +668,21 @@ Vtiger.Class("Vtiger_List_Js", {
 				//continue
 				return true;
 			}
+			// VN grouping in filters: 300.000 → raw for currency/number compare
+			if (fieldInfo && (fieldInfo.type == 'currency' || fieldInfo.type == 'double'
+					|| fieldInfo.type == 'integer' || fieldInfo.type == 'number' || fieldInfo.type == 'percentage')) {
+				if (typeof window.MkCurrency !== 'undefined' && typeof window.MkCurrency.parse === 'function') {
+					var rawNum = window.MkCurrency.parse(searchValue);
+					if (isFinite(rawNum)) {
+						searchValue = String(rawNum);
+					}
+				} else {
+					// Fallback: strip thousand dots when pattern matches 1.000 / 300.000
+					if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(searchValue)) {
+						searchValue = searchValue.replace(/\./g, '').replace(',', '.');
+					}
+				}
+			}
 			var searchOperator = 'c';
 			if (fieldInfo.type == "date" || fieldInfo.type == "datetime") {
 				searchOperator = 'bw';

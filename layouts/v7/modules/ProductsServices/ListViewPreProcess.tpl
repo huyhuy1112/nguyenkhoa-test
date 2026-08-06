@@ -17,7 +17,7 @@ setTimeout(function () {
 }, 2200);
 </script>
 {* Critical CSS first — hide until ready; lock column grid so old CSS cannot flash *}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesListTable.css')}?mk_v=20260715_ps_list_v8" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesListTable.css')}?mk_v=20260806_ps_row_sel_only1" />
 <style type="text/css">
 html.mk-ps-list-v2:not(.mk-ps-list-ready) #listViewContent,
 html.mk-ps-list-sales:not(.mk-ps-list-ready) #listViewContent {
@@ -57,9 +57,9 @@ html.mk-ps-list-v2 #listview-table > tbody > tr.listViewEntries > td {
 html.mk-ps-list-v2 #listview-table > thead > tr.listViewContentHeader > th:first-child,
 html.mk-ps-list-v2 #listview-table > tbody > tr.listViewEntries > td.listViewRecordActions {
 	display: table-cell !important;
-	width: 48px !important;
-	min-width: 48px !important;
-	max-width: 48px !important;
+	width: 52px !important;
+	min-width: 52px !important;
+	max-width: 56px !important;
 	box-sizing: border-box !important;
 }
 html.mk-ps-list-v2 #listview-table tr.searchRow {
@@ -68,13 +68,25 @@ html.mk-ps-list-v2 #listview-table tr.searchRow {
 </style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260607_sales_footer1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260715_ps_list_v8" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260715_ps_list_v8" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260806_ps_row_sel_only1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260806_ps_row_sel_only1" />
 {* Re-assert v2 table last so it beats MkSalesListTable / List.css *}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesListTable.css')}?mk_v=20260727_sku_col2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesListTable.css')}?mk_v=20260806_ps_row_sel_only1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260806_ps_row_sel_only1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260727_sku_col2"></script>
+<script type="text/javascript">
+window.__mkSalesPosInlineConfig = {
+	module: 'ProductsServices',
+	loadingText: 'Đang tải chi tiết hàng hoá...',
+	errorText: 'Không tải được chi tiết hàng hoá.',
+	enabledSelector: '[data-mk-ps-list]',
+	tableSelector: '#listViewContent #listview-table',
+	rowSelector: 'tr.listViewEntries'
+};
+</script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260806_ps_row_sel_only1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260806_ps_row_sel_only1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-ps-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

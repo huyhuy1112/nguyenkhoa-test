@@ -108,7 +108,13 @@
 		};
 		$panel.find('.mk-so-inline-detail__field-edit :input').each(function () {
 			var name = $(this).attr('name');
-			if (name) snapshot.fields[name] = $(this).val();
+			if (!name) return;
+			var $el = $(this);
+			if ($el.is(':checkbox')) {
+				snapshot.fields[name] = $el.is(':checked') ? '1' : '0';
+			} else {
+				snapshot.fields[name] = $el.val();
+			}
 		});
 		return snapshot;
 	}
@@ -116,7 +122,13 @@
 	function restoreSnapshot($panel, snapshot) {
 		if (!snapshot) return;
 		$.each(snapshot.fields || {}, function (name, value) {
-			$panel.find('.mk-so-inline-detail__field-edit :input[name="' + name + '"]').val(value);
+			var $input = $panel.find('.mk-so-inline-detail__field-edit :input[name="' + name + '"]');
+			if ($input.is(':checkbox')) {
+				$input.prop('checked', value === '1' || value === 1 || value === true);
+				$input.closest('.mk-so-inline-detail__bool').toggleClass('is-on', $input.is(':checked'));
+			} else {
+				$input.val(value);
+			}
 		});
 		$panel.find('.mk-so-inline-detail__notes-input[name="description"]').val(snapshot.description || '');
 		$panel.find('.mk-so-inline-detail__next-action-input').val(snapshot.next_action || '');
@@ -128,8 +140,19 @@
 			var $input = $field.find('.mk-so-inline-detail__field-edit :input').first();
 			var $view = $field.find('.mk-so-inline-detail__field-view');
 			if (!$input.length || !$view.length) return;
-			if ($input.is('select')) {
+			if ($input.is(':checkbox')) {
+				var on = $input.is(':checked');
+				$view.text(on ? 'Có' : 'Không');
+				$input.closest('.mk-so-inline-detail__bool').toggleClass('is-on', on);
+			} else if ($input.is('select')) {
 				$view.text($input.find('option:selected').text() || '—');
+			} else if ($field.attr('data-field-type') === 'currency' || $input.hasClass('mk-so-inline-detail__input--money')) {
+				var n = parseFloat(String($input.val() || '').replace(/[^\d.\-]/g, ''));
+				if (isFinite(n)) {
+					$view.text('₫' + Math.round(n).toLocaleString('vi-VN'));
+				} else {
+					$view.text($input.val() || '—');
+				}
 			} else {
 				$view.text($input.val() || '—');
 			}
@@ -709,6 +732,18 @@
 		setEditMode($panel, true);
 		initLeadTagPicker($panel);
 
+		// Boolean toggles (e.g. Cần QC)
+		$panel.on('change', '.mk-so-inline-detail__bool-input', function () {
+			var $cb = $(this);
+			$cb.closest('.mk-so-inline-detail__bool').toggleClass('is-on', $cb.is(':checked'));
+		});
+		// Group currency inputs for edit
+		if (window.MkCurrency && typeof window.MkCurrency.bindGroupedInput === 'function') {
+			$panel.find('.mk-so-inline-detail__input--money').each(function () {
+				window.MkCurrency.bindGroupedInput(this, { decimals: 0 });
+			});
+		}
+
 		$panel.on('click', '.mk-so-inline-detail__view-full-btn', function (e) {
 			e.preventDefault();
 			var url = $panel.attr('data-detail-url');
@@ -913,7 +948,15 @@
 			$panel.find('.mk-so-inline-detail__field-edit :input').each(function () {
 				var name = $(this).attr('name');
 				if (!name || name.indexOf('mk_') === 0) return;
-				if (name) postData[name] = $(this).val();
+				var $el = $(this);
+				if ($el.is(':checkbox')) {
+					postData[name] = $el.is(':checked') ? '1' : '0';
+				} else if ($el.hasClass('mk-so-inline-detail__input--money')) {
+					var raw = String($el.val() || '').replace(/\./g, '').replace(/,/g, '');
+					postData[name] = raw.replace(/[^\d.\-]/g, '');
+				} else {
+					postData[name] = $el.val();
+				}
 			});
 			function postRequest(data) {
 				return (typeof app !== 'undefined' && app.request && app.request.post)
@@ -1568,8 +1611,18 @@
 	}
 
 	function isInteraction(target) {
-		return !!(target.closest && target.closest(
-			'.mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-control-td, .mk-leads-td--check, .mk-leads-inline-edit, .mk-leads-inline-input, .mk-leads-region-select, .mk-leads-tags-edit, #mk-leads-tag-popover, a, button, input, select, textarea, .dropdown-menu, label.mk-leads-check'
+		if (!target || !target.closest) {
+			return true;
+		}
+		// Name / cell links expand the panel (Leads / products style) instead of navigating away.
+		if (
+			target.closest('#listview-table td.listViewEntryValue a, #listview-table a.listViewEntryValue') &&
+			!target.closest('.listViewRecordActions, .table-actions, .dropdown-menu, .more, .mk-list-row-actions')
+		) {
+			return false;
+		}
+		return !!(target.closest(
+			'.mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-control-td, .mk-leads-td--check, .mk-leads-inline-edit, .mk-leads-inline-input, .mk-leads-region-select, .mk-leads-tags-edit, #mk-leads-tag-popover, a, button, input, select, textarea, .dropdown-menu, label.mk-leads-check, label.mk-ps-check, .mk-ps-check, .listViewRecordActions, .table-actions, .mk-list-row-actions, .js-mk-ps-needs-qc, .mk-ps-qc-chip'
 		));
 	}
 

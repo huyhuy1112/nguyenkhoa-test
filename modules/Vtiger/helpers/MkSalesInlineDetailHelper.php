@@ -107,13 +107,34 @@ class Vtiger_MkSalesInlineDetailHelper {
 		if (!$fieldModel || !$fieldModel->isViewable()) {
 			return null;
 		}
+		$dataType = $fieldModel->getFieldDataType();
+		$rawValue = $recordModel->get($fieldName);
 		$value = self::decodeText($recordModel->getDisplayValue($fieldName));
+		$editValue = $rawValue;
+
+		// Currency: clean display ₫300.000 and edit value without float junk.
+		if ($dataType === 'currency' || in_array($fieldName, array('price', 'wholesale_price', 'unit_price'), true)
+			|| preg_match('/^price_/', $fieldName)) {
+			$num = is_numeric($rawValue) ? (float) $rawValue : (float) preg_replace('/[^\d.\-]/', '', (string) $rawValue);
+			if (is_finite($num)) {
+				$rounded = round($num, 0);
+				$value = '₫' . number_format($rounded, 0, ',', '.');
+				$editValue = (string) (int) $rounded;
+			}
+		}
+
+		// Boolean / checkbox (uitype 56): readable label + 0/1 for edit.
+		if ($dataType === 'boolean' || (int) $fieldModel->get('uitype') === 56) {
+			$on = ($rawValue === 1 || $rawValue === '1' || $rawValue === 'on' || $rawValue === true
+				|| $rawValue === 'yes' || strcasecmp((string) $rawValue, 'yes') === 0);
+			$value = $on ? 'Có' : 'Không';
+			$editValue = $on ? '1' : '0';
+			$dataType = 'boolean';
+		}
+
 		if ($value === '') {
 			$value = '—';
 		}
-		$dataType = $fieldModel->getFieldDataType();
-		$rawValue = $recordModel->get($fieldName);
-		$editValue = $rawValue;
 		if ($dataType === 'date' || $dataType === 'datetime') {
 			$editValue = $fieldModel->getUITypeModel()->getDisplayValue($rawValue);
 		}

@@ -142,7 +142,7 @@
 			var field = fieldFromHeaderTh($th);
 			var $col = $('<col>');
 			if ($th.hasClass('mk-col-control') || $th.find('.listViewEntriesMainCheckBox, .mk-ps-check').length) {
-				$col.css({ width: '48px' });
+				$col.css({ width: '52px' });
 			} else if (field === 'sku' || $th.hasClass('mk-col-ps-sku')) {
 				$col.css({ width: '12%' });
 			} else if (field === 'item_type' || $th.hasClass('mk-col-ps-type')) {
@@ -172,7 +172,7 @@
 			var field = fieldFromHeaderTh($th);
 			var w;
 			if ($th.hasClass('mk-col-control') || $th.find('.listViewEntriesMainCheckBox, .mk-ps-check').length) {
-				w = '48px';
+				w = '52px';
 			} else if (field === 'sku' || $th.hasClass('mk-col-ps-sku')) {
 				w = '12%';
 			} else if (field === 'item_type' || $th.hasClass('mk-col-ps-type')) {
@@ -184,13 +184,13 @@
 			} else if (field === 'unit' || $th.hasClass('mk-col-ps-unit')) {
 				w = '10%';
 			} else if (field === 'productsservicesname' || $th.hasClass('mk-col-ps-name')) {
-				w = '30%';
+				w = '28%';
 			} else {
 				w = '';
 			}
 			widths[i] = w;
 			if (w) {
-				$th.css({ width: w, minWidth: w === '48px' ? '48px' : '', maxWidth: w === '48px' ? '48px' : '' });
+				$th.css({ width: w, minWidth: w === '52px' ? '52px' : '', maxWidth: w === '52px' ? '52px' : '' });
 			}
 		});
 		$table.find('tbody tr.listViewEntries').each(function () {
@@ -200,8 +200,8 @@
 					if (widths[i]) {
 						$(this).css({
 							width: widths[i],
-							minWidth: widths[i] === '48px' ? '48px' : '',
-							maxWidth: widths[i] === '48px' ? '48px' : ''
+							minWidth: widths[i] === '52px' ? '52px' : '',
+							maxWidth: widths[i] === '52px' ? '52px' : ''
 						});
 					}
 				});
@@ -219,7 +219,8 @@
 	function stripRowActionChrome() {
 		$('#listViewContent #listview-table tbody td.listViewRecordActions').each(function () {
 			var $td = $(this);
-			$td.find('.quickView, .markStar, .more, .inline-save').remove();
+			// Select checkbox only (hình 2) — no QC chip / ⋮ next to select
+			$td.find('.quickView, .markStar, .inline-save, .more, .dropdown-menu, .mk-ps-qc-chip, .js-mk-ps-needs-qc').remove();
 		});
 		$('#listViewContent #listview-table thead .listColumnFilter').closest('div').css({
 			display: 'none'
@@ -628,6 +629,66 @@
 		document.documentElement.classList.add('mk-ps-ui-ready', 'mk-ps-list-ready', 'mk-ps-list-v2');
 	}
 
+	function bindNeedsQcToggle() {
+		if (typeof jQuery === 'undefined') {
+			return;
+		}
+		var $ = jQuery;
+		$(document)
+			.off('click.mkPsNeedsQc', '.js-mk-ps-needs-qc')
+			.on('click.mkPsNeedsQc', '.js-mk-ps-needs-qc', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var $btn = $(this);
+				if ($btn.data('mkSaving')) {
+					return;
+				}
+				var recordId = parseInt($btn.attr('data-id'), 10) || 0;
+				if (!recordId) {
+					return;
+				}
+				var current = $btn.attr('data-needs-qc') === '1' ? 1 : 0;
+				var next = current ? 0 : 1;
+				var labelOn = 'Đang bật: Cần QC';
+				var labelOff = 'Cần QC';
+				$btn.data('mkSaving', true);
+				var finishUi = function (on) {
+					$btn.attr('data-needs-qc', on ? '1' : '0');
+					$btn.attr('aria-pressed', on ? 'true' : 'false');
+					$btn.toggleClass('is-on', !!on);
+					$btn.find('.js-mk-ps-needs-qc-label').text(on ? labelOn : labelOff);
+					$btn.data('mkSaving', false);
+				};
+				var params = {
+					module: 'ProductsServices',
+					action: 'SaveAjax',
+					record: recordId,
+					field: 'needs_qc',
+					value: next
+				};
+				if (typeof app !== 'undefined' && app.request && app.request.post) {
+					app.request.post({ data: params }).then(function (err) {
+						if (err) {
+							$btn.data('mkSaving', false);
+							if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
+								app.helper.showErrorNotification({ message: err.message || String(err) });
+							}
+							return;
+						}
+						finishUi(!!next);
+					});
+					return;
+				}
+				$.post('index.php', params)
+					.done(function () {
+						finishUi(!!next);
+					})
+					.fail(function () {
+						$btn.data('mkSaving', false);
+					});
+			});
+	}
+
 	function afterListLayout() {
 		if (!isPsSalesList()) {
 			return;
@@ -642,6 +703,7 @@
 			injectGlobalQuickSearch();
 			bindGlobalQuickSearchEvents();
 			bindBulkSelectionEvents();
+			bindNeedsQcToggle();
 			relocatePagination();
 			$('#listViewContent #listview-table').addClass('mk-ps-table mk-ps-table-v2');
 			assignColumnClasses();

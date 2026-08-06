@@ -92,14 +92,14 @@ body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"][data-app="I
 	display: table-cell !important;
 	visibility: visible !important;
 	opacity: 1 !important;
-	width: 44px !important;
-	min-width: 44px !important;
-	max-width: 44px !important;
-	padding: 10px 8px !important;
+	width: 52px !important;
+	min-width: 52px !important;
+	max-width: 56px !important;
+	padding: 10px 6px !important;
 	text-align: center !important;
 	vertical-align: middle !important;
-	border-right: 1px solid #e4eee7 !important;
-	background: #f9fcfa !important;
+	border-right: 1px solid #e8edf2 !important;
+	background: #fbfcfd !important;
 	overflow: visible !important;
 }
 
@@ -114,17 +114,27 @@ body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewCo
 	margin: 0 !important;
 	padding: 0 !important;
 	gap: 0 !important;
+	overflow: visible !important;
+	flex-wrap: nowrap !important;
+	position: relative !important;
 }
 
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.listViewRecordActions .quickView,
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.listViewRecordActions .markStar,
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.listViewRecordActions .more,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.listViewRecordActions .mk-ps-qc-chip,
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead th .listColumnFilter,
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead th .dropdown-toggle:not(.input),
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.listViewRecordActions .quickView,
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.listViewRecordActions .markStar,
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.listViewRecordActions .more,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.listViewRecordActions .mk-ps-qc-chip,
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead th .listColumnFilter {
+	display: none !important;
+}
+
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.listViewRecordActions .dropdown-menu,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.listViewRecordActions .dropdown-menu {
 	display: none !important;
 }
 

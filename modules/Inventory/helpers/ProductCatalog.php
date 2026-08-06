@@ -13,7 +13,9 @@ class Inventory_ProductCatalog_Helper {
 		$limit = max(1, min(10000, (int) $limit));
 
 		$hasUnit = self::columnExists($db, 'vtiger_productsservices', 'unit');
+		$hasNeedsQc = self::columnExists($db, 'vtiger_productsservices', 'needs_qc');
 		$unitCol = $hasUnit ? ', ps.unit' : '';
+		$needsQcCol = $hasNeedsQc ? ', ps.needs_qc' : '';
 		$tierCols = array();
 		foreach (array('price_lt_1m', 'price_gte_1m', 'price_gte_3m', 'price_gte_5m', 'price_gte_7m') as $col) {
 			if (self::columnExists($db, 'vtiger_productsservices', $col)) {
@@ -23,7 +25,7 @@ class Inventory_ProductCatalog_Helper {
 		$tierSelect = $tierCols ? (', ' . implode(', ', $tierCols)) : '';
 
 		$rs = $db->pquery(
-			"SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku{$unitCol}{$tierSelect}
+			"SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku{$unitCol}{$needsQcCol}{$tierSelect}
 			 FROM vtiger_productsservices ps
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 			 ORDER BY ps.productsservicesname ASC
@@ -49,6 +51,8 @@ class Inventory_ProductCatalog_Helper {
 				$unit = Warehouse_Stock_Helper::decodeDisplayText($unit);
 			}
 			$ids[] = $id;
+			$needsQcRaw = isset($row['needs_qc']) ? $row['needs_qc'] : 0;
+			$needsQc = ($needsQcRaw === 1 || $needsQcRaw === '1' || $needsQcRaw === true || $needsQcRaw === 'on');
 			$item = array(
 				'id' => $id,
 				'name' => $name,
@@ -56,6 +60,7 @@ class Inventory_ProductCatalog_Helper {
 				'type' => (string) (isset($row['item_type']) ? $row['item_type'] : ''),
 				'sku' => $sku,
 				'unit' => $unit,
+				'needsQc' => $needsQc,
 				'stock' => 0.0,
 				'qty_po' => 0.0,
 				'qty_so' => 0.0,

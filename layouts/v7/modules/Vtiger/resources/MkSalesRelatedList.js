@@ -12,7 +12,9 @@
 		var b = document.body;
 		return !!(b
 			&& b.getAttribute('data-view') === 'Detail'
-			&& (b.getAttribute('data-app') === 'SALES' || b.getAttribute('data-app') === 'MARKETING'));
+			&& (b.getAttribute('data-app') === 'SALES'
+				|| b.getAttribute('data-app') === 'MARKETING'
+				|| b.getAttribute('data-app') === 'INVENTORY'));
 	}
 
 	function initSalesRelatedTabsToggle() {
@@ -60,7 +62,7 @@
 			return false;
 		}
 		var appName = b.getAttribute('data-app');
-		if (appName === 'SALES') {
+		if (appName === 'SALES' || appName === 'INVENTORY') {
 			return true;
 		}
 		if (appName === 'MANAGEMENT' && b.getAttribute('data-module') === 'Project') {

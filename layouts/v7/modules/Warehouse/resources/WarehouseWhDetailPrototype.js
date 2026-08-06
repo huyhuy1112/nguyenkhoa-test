@@ -1752,14 +1752,6 @@
 					{ name: 'supplier', label: 'Nhà cung cấp', required: true, placeholder: 'VD: CTY Dược Hậu Giang' },
 					{ name: 'po', label: 'Mã PO', required: true, placeholder: 'VD: PO-2026-0155' },
 					{ type: 'lines', label: 'Danh sách hàng nhập', full: true },
-					{
-						type: 'checkbox',
-						name: 'sendQc',
-						label: 'Gửi QC',
-						checked: true,
-						full: true,
-						hint: 'Bỏ chọn nếu hàng không cần QC — nhập thẳng tồn kho',
-					},
 				],
 			};
 		}
@@ -1821,10 +1813,18 @@
 				var isOutboundLines = f.mode === 'outbound';
 				var linesCls = 'mk-wh-proto-lines mk-wh-proto-lines--catalog' + (isOutboundLines ? ' mk-wh-proto-lines--outbound' : '');
 				var locTh = isOutboundLines ? '' : '<th class="mk-wh-proto-col-loc">Vị trí</th>';
-				return '<div class="mk-wh-proto-field mk-wh-proto-field--full"><label>' + escapeHtml(f.label || 'Danh sách hàng') + '</label>' +
+				var linesTitle = f.label || 'Danh sách hàng';
+				return '<div class="mk-wh-proto-field mk-wh-proto-field--full mk-wh-proto-field--lines">' +
+					'<div class="mk-wh-proto-lines-section">' +
+					'<div class="mk-wh-proto-lines-section__head">' +
+					'<div class="mk-wh-proto-lines-section__titles">' +
+					'<span class="mk-wh-proto-lines-section__label">' + escapeHtml(linesTitle) + '</span>' +
+					'<span class="mk-wh-proto-lines-section__hint">Tìm và thêm hàng từ danh mục — nhập lô / SL / NSX / HSD trên từng dòng</span>' +
+					'</div>' +
+					'</div>' +
 					'<div class="' + linesCls + '" data-mk-lines="1" data-mk-lines-mode="' + (isOutboundLines ? 'outbound' : 'inbound') + '">' +
 					'<div class="mk-wh-proto-lines__quick" role="search">' +
-					'<label class="mk-wh-proto-lines__quick-label" for="mkWhLinesQuickSearch">Tìm hàng hoá</label>' +
+					'<label class="mk-wh-proto-lines__quick-label" for="mkWhLinesQuickSearch">Tìm hàng hoá / SKU</label>' +
 					'<select id="mkWhLinesQuickSearch" class="mk-wh-proto-lines-quick-select" data-mk-lines-quick="1" title="Tìm và thêm hàng hoá"></select>' +
 					'</div>' +
 					'<div class="mk-wh-proto-lines__tableWrap"><table class="mk-wh-proto-lines__table" role="table"><thead><tr>' +
@@ -1832,8 +1832,8 @@
 					'<th class="mk-wh-proto-col-unit">Đơn vị</th>' +
 					'<th class="mk-wh-proto-col-lot">Lô *</th><th class="mk-wh-proto-col-qty">SL *</th>' +
 					'<th class="mk-wh-proto-col-date">NSX</th><th class="mk-wh-proto-col-date">HSD</th>' +
-					locTh + '<th style="width:44px;"></th>' +
-					'</tr></thead><tbody data-mk-lines-body="1"></tbody></table></div></div></div>';
+					locTh + '<th class="mk-wh-proto-col-act"></th>' +
+					'</tr></thead><tbody data-mk-lines-body="1"></tbody></table></div></div></div></div>';
 			}
 			if (f.type === 'checkbox') {
 				return '<div class="mk-wh-proto-field mk-wh-proto-field--check' + full + '"><label class="mk-wh-proto-check">' +
@@ -2001,10 +2001,12 @@
 			var name = decodeEntities(p.name || '');
 			var sku = decodeEntities(p.sku || '');
 			var unit = decodeEntities(p.unit || '');
-			var label = name + (sku ? ' · ' + sku : ' (chưa có mã hàng)');
+			var needsQc = !!(p.needsQc || p.needs_qc);
+			var label = name + (sku ? ' · ' + sku : ' (chưa có mã hàng)') + (needsQc ? ' · QC' : '');
 			html += '<option value="' + escapeHtml(id) + '" data-sku="' + escapeHtml(sku) +
 				'" data-name="' + escapeHtml(name) + '" data-price="' + escapeHtml(String(p.price || 0)) +
-				'" data-unit="' + escapeHtml(unit) + '">' + escapeHtml(label) + '</option>';
+				'" data-unit="' + escapeHtml(unit) + '" data-needs-qc="' + (needsQc ? '1' : '0') + '">' +
+				escapeHtml(label) + '</option>';
 		});
 		selectEl.innerHTML = html;
 	}
@@ -2087,6 +2089,7 @@
 					name: decodeEntities($opt.attr('data-name') || ''),
 					unit: decodeEntities($opt.attr('data-unit') || ''),
 					price: parseFloat($opt.attr('data-price') || '0') || 0,
+					needsQc: $opt.attr('data-needs-qc') === '1',
 					qty: 1
 				});
 			}
@@ -2152,12 +2155,17 @@
 			var unitVal = p.unit || '';
 			var nameVal = p.name || '';
 			var priceVal = p.price != null ? p.price : '';
+			var needsQc = !!(p.needsQc || p.needs_qc);
 			bodyEl.insertAdjacentHTML('beforeend',
-				'<tr class="mk-wh-proto-lines__row" data-mk-line="1">' +
+				'<tr class="mk-wh-proto-lines__row" data-mk-line="1"' + (needsQc ? ' data-needs-qc="1"' : '') + '>' +
 				'<td>' +
 				'<input type="hidden" data-mk-line-product-id="1" value="' + escapeHtml(productId) + '" />' +
 				'<input type="hidden" data-mk-line-price="1" value="' + escapeHtml(String(priceVal)) + '" />' +
+				'<input type="hidden" data-mk-line-needs-qc="1" value="' + (needsQc ? '1' : '0') + '" />' +
+				'<div class="mk-wh-proto-line-name">' +
 				'<input type="text" data-mk-line-name="1" value="' + escapeHtml(nameVal) + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" />' +
+				(needsQc ? '<span class="mk-wh-proto-qc-badge" title="Cần QC — qua QC trước khi vào tồn">QC</span>' : '') +
+				'</div>' +
 				'</td>' +
 				'<td class="mk-wh-proto-col-sku"><input type="text" data-mk-line-sku="1" value="' + escapeHtml(skuVal) + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" placeholder="SKU" /></td>' +
 				'<td class="mk-wh-proto-col-unit"><input type="text" data-mk-line-unit="1" value="' + escapeHtml(unitVal) + '" readonly tabindex="-1" class="mk-wh-proto-sku-readonly" placeholder="—" /></td>' +
@@ -2330,15 +2338,46 @@
 		var form = qs('#mkWhProtoModalForm');
 		if (!modal || !title || !fields || !form) return;
 
+		var isDocModal = opts.tabKey === 'inbound' || opts.tabKey === 'outbound-type' || opts.tabKey === 'outbound';
+		var isWideDoc = opts.tabKey === 'inbound' || opts.tabKey === 'outbound';
 		var dialog = modal.querySelector('.mk-wh-proto-modal__dialog');
 		if (dialog) {
-			dialog.classList.toggle('mk-wh-proto-modal__dialog--compact',
-				opts.tabKey === 'inbound' || opts.tabKey === 'outbound-type' || opts.tabKey === 'outbound');
-			dialog.classList.toggle('mk-wh-proto-modal__dialog--lux',
-				opts.tabKey === 'inbound' || opts.tabKey === 'outbound-type' || opts.tabKey === 'outbound');
+			dialog.classList.toggle('mk-wh-proto-modal__dialog--compact', isDocModal);
+			dialog.classList.toggle('mk-wh-proto-modal__dialog--lux', isDocModal);
+			dialog.classList.toggle('mk-wh-proto-modal__dialog--workspace', isWideDoc);
+			dialog.classList.toggle('mk-wh-proto-modal__dialog--inbound', opts.tabKey === 'inbound');
+			dialog.classList.toggle('mk-wh-proto-modal__dialog--outbound', opts.tabKey === 'outbound' || opts.tabKey === 'outbound-type');
 		}
 
 		title.textContent = opts.title || 'Tạo phiếu';
+		var eyebrow = qs('#mkWhProtoModalEyebrow');
+		var sub = qs('#mkWhProtoModalSub');
+		if (eyebrow) {
+			if (opts.tabKey === 'inbound') {
+				eyebrow.textContent = 'Nhập kho';
+			} else if (opts.tabKey === 'outbound' || opts.tabKey === 'outbound-type') {
+				eyebrow.textContent = 'Xuất kho';
+			} else {
+				eyebrow.textContent = 'Kho';
+			}
+		}
+		if (sub) {
+			var subText = opts.subtitle || '';
+			if (!subText && opts.tabKey === 'inbound') {
+				subText = 'Tạo phiếu nhập từ nhà cung cấp — thêm nhiều dòng hàng, lô và hạn dùng trong một lần.';
+			} else if (!subText && opts.tabKey === 'outbound') {
+				subText = 'Chọn hàng từ tồn kho, kiểm tra lô / số lượng khả dụng trước khi tạo phiếu xuất.';
+			} else if (!subText && opts.tabKey === 'outbound-type') {
+				subText = 'Chọn loại xuất kho để mở form chi tiết phù hợp.';
+			}
+			if (subText) {
+				sub.textContent = subText;
+				sub.hidden = false;
+			} else {
+				sub.textContent = '';
+				sub.hidden = true;
+			}
+		}
 		if (submit) submit.textContent = opts.submitLabel || 'Tạo phiếu';
 		fields.innerHTML = renderModalFields(opts.fields || []);
 
@@ -2346,16 +2385,6 @@
 			bindInboundLineRows(form);
 		} else if (opts.tabKey === 'outbound') {
 			bindOutboundLineRows(form);
-		}
-
-		var sendQcCheckbox = form.querySelector('[name="sendQc"]');
-		function syncInboundSubmitLabel() {
-			if (!submit || !sendQcCheckbox || opts.tabKey !== 'inbound') return;
-			submit.textContent = sendQcCheckbox.checked ? (opts.submitLabel || 'Tạo phiếu') : 'Tạo & nhập kho';
-		}
-		if (sendQcCheckbox) {
-			sendQcCheckbox.addEventListener('change', syncInboundSubmitLabel);
-			syncInboundSubmitLabel();
 		}
 
 		form.onsubmit = function (e) {
@@ -2511,7 +2540,6 @@
 
 			var supplier = String(fd.get('supplier') || '').trim();
 			var poRef = String(fd.get('po') || '').trim();
-			var sendQc = fd.has('sendQc');
 			if (!supplier || !poRef) {
 				showError('Vui lòng nhập đầy đủ Nhà cung cấp và Mã PO.');
 				return;
@@ -2535,6 +2563,8 @@
 				var mfg = row.querySelector('[data-mk-line-mfg="1"]') ? row.querySelector('[data-mk-line-mfg="1"]').value : '';
 				var expiry = row.querySelector('[data-mk-line-exp="1"]') ? row.querySelector('[data-mk-line-exp="1"]').value : '';
 				var location = row.querySelector('[data-mk-line-location="1"]') ? row.querySelector('[data-mk-line-location="1"]').value.trim() : '';
+				var needsQcEl = row.querySelector('[data-mk-line-needs-qc="1"]');
+				var needsQc = needsQcEl ? needsQcEl.value === '1' : false;
 				if (!unit && row.querySelector('[data-mk-line-unit="1"]')) {
 					unit = row.querySelector('[data-mk-line-unit="1"]').value.trim();
 				}
@@ -2544,7 +2574,7 @@
 					missingSku = true;
 					return;
 				}
-				lines.push({ product_id: productId, sku: sku, name: name, lot: lot, mfg: mfg || '', expiry: expiry || '—', qty: qty, price: price, unit: unit, location: location });
+				lines.push({ product_id: productId, sku: sku, name: name, lot: lot, mfg: mfg || '', expiry: expiry || '—', qty: qty, price: price, unit: unit, location: location, needsQc: needsQc });
 			});
 			if (missingSku) {
 				showError('Một hoặc nhiều sản phẩm chưa có SKU. Hãy cập nhật SKU trong Products & Services trước khi nhập kho.');
@@ -2558,7 +2588,6 @@
 			var receiptPayload = {
 				supplier: supplier,
 				poRef: poRef,
-				sendQc: sendQc,
 				lines: lines,
 			};
 
@@ -2581,26 +2610,38 @@
 				return;
 			}
 
+			var anyQc = lines.some(function (l) { return !!l.needsQc; });
+			var directLines = lines.filter(function (l) { return !l.needsQc; });
 			var nowIn = S.nowISO();
 			var rid = nextId('GRN', d.receipts || []);
+			var linesTagged = lines.map(function (l) {
+				return Object.assign({}, l, { stocked: !l.needsQc });
+			});
 			var receipt = {
 				id: rid,
 				supplier: supplier,
 				poRef: poRef,
 				createdAt: nowIn,
 				createdBy: (getAccess().userName || 'User'),
-				status: sendQc ? 'pending_qc' : 'stored',
-				lines: lines,
+				status: anyQc ? 'pending_qc' : 'stored',
+				lines: linesTagged,
 				timeline: [],
+				stockStored: !anyQc,
 			};
 			addTimeline(receipt.timeline, 'Tạo phiếu nhập', 'manager');
-			if (sendQc) addTimeline(receipt.timeline, 'Gửi QC kiểm tra', 'manager');
-			else addTimeline(receipt.timeline, 'Nhập thẳng tồn kho', 'manager', 'Không gửi QC — cộng tồn ngay');
+			if (anyQc) {
+				addTimeline(receipt.timeline, 'Gửi QC (theo hàng hoá)', 'manager');
+				if (directLines.length) {
+					addTimeline(receipt.timeline, 'Nhập thẳng tồn kho (dòng không QC)', 'manager', directLines.length + ' dòng');
+				}
+			} else {
+				addTimeline(receipt.timeline, 'Nhập thẳng tồn kho', 'manager');
+			}
 
 			var receipts = (d.receipts || []).slice();
 			receipts.unshift(receipt);
 			S.warehouseDataActions.setReceipts(whId, receipts);
-			if (!sendQc) addStockFromReceiptLines(whId, lines);
+			if (directLines.length) addStockFromReceiptLines(whId, directLines);
 
 			closeModal();
 			var rDlg = receiptDialog(receipt);
@@ -2875,7 +2916,17 @@
 						r.status = 'approved';
 						addTimeline(r.timeline, 'Duyệt phiếu', role);
 					} else if (action === 'store') {
-						addStockFromReceiptLines(whId, r.lines || []);
+						var storeLines = (r.lines || []).filter(function (l) {
+							return !l.stocked && (l.needsQc || l.qc !== 'skip');
+						});
+						// Fallback legacy: if no stocked flags, store all once.
+						if (!storeLines.length && !(r.lines || []).some(function (l) { return l.stocked; }) && !r.stockStored) {
+							storeLines = r.lines || [];
+						}
+						addStockFromReceiptLines(whId, storeLines);
+						r.lines = (r.lines || []).map(function (l) {
+							return Object.assign({}, l, { stocked: true });
+						});
 						r.stockStored = true;
 						r.status = 'stored';
 						addTimeline(r.timeline, 'Đã nhập kho', role, formatLocationNote(r.lines));

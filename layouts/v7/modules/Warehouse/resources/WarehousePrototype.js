@@ -836,16 +836,6 @@
 			);
 		}
 
-		var sendQcCheckbox = form.querySelector('[name="sendQc"]');
-		function syncInboundSubmitLabel() {
-			if (!submit || !sendQcCheckbox || opts.tabKey !== 'inbound') return;
-			submit.textContent = sendQcCheckbox.checked ? opts.submitLabel || 'Tạo phiếu' : 'Tạo & nhập kho';
-		}
-		if (sendQcCheckbox) {
-			sendQcCheckbox.addEventListener('change', syncInboundSubmitLabel);
-			syncInboundSubmitLabel();
-		}
-
 		form.onsubmit = function (e) {
 			e.preventDefault();
 			var fd = new FormData(form);
@@ -918,8 +908,6 @@
 			var code = 'GRN-' + String(seq);
 			var supplier = fd.get('supplier') || 'NCC';
 			var po = fd.get('po') || 'PO';
-			var sendQc = fd.has('sendQc');
-			var skipQc = !sendQc;
 			var now = fmtNow();
 			var items = [];
 			var rows = Array.prototype.slice.call(form.querySelectorAll('[data-mk-line="1"]'));
@@ -927,9 +915,11 @@
 				var productSel = row.querySelector('[data-mk-line-product="1"]');
 				var skuIn = productSel ? String(productSel.value || '').trim() : '';
 				var nameIn = '';
+				var needsQc = false;
 				if (productSel && productSel.selectedIndex > 0) {
 					var opt = productSel.options[productSel.selectedIndex];
 					nameIn = (opt && opt.getAttribute('data-name')) || '';
+					needsQc = !!(opt && opt.getAttribute('data-needs-qc') === '1');
 				}
 				var lotIn = row.querySelector('[data-mk-line-lot="1"]') ? row.querySelector('[data-mk-line-lot="1"]').value.trim() : '';
 				var qtyIn = row.querySelector('[data-mk-line-qty="1"]') ? Number(row.querySelector('[data-mk-line-qty="1"]').value || 0) || 0 : 0;
@@ -943,39 +933,39 @@
 					mfg: String(mfg || ''),
 					exp: String(exp || ''),
 					qty: qtyIn,
-					qc: skipQc ? 'skip' : 'none',
-					needsQc: sendQc,
+					qc: needsQc ? 'none' : 'skip',
+					needsQc: needsQc,
 				});
 			});
 			if (!items.length) return;
+			var anyQc = items.some(function (it) { return !!it.needsQc; });
+			var directItems = items.filter(function (it) { return !it.needsQc; });
 			var receipt = {
 				code: code,
 				supplier: String(supplier),
 				po: String(po),
 				createdAt: now,
-				needsQc: sendQc,
-				status: skipQc ? 'stored' : 'pending_qc',
+				needsQc: anyQc,
+				status: anyQc ? 'pending_qc' : 'stored',
 				items: items,
-				timeline: skipQc
+				timeline: anyQc
 					? [
 							{ at: now, by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu nhập' },
-							{
-								at: now,
-								by: 'Thủ kho Hà',
-								role: 'keeper',
-								action: 'Nhập thẳng tồn kho',
-								note: 'Không gửi QC — cộng tồn ngay',
-							},
-						]
+							{ at: now, by: 'Thủ kho Hà', role: 'keeper', action: 'Gửi QC (theo hàng hoá)' },
+						].concat(
+							directItems.length
+								? [{ at: now, by: 'Thủ kho Hà', role: 'keeper', action: 'Nhập thẳng tồn kho (dòng không QC)', note: directItems.length + ' dòng' }]
+								: []
+						)
 					: [
 							{ at: now, by: 'Thủ kho Hà', role: 'keeper', action: 'Tạo phiếu nhập' },
-							{ at: now, by: 'Thủ kho Hà', role: 'keeper', action: 'Gửi QC kiểm tra' },
+							{ at: now, by: 'Thủ kho Hà', role: 'keeper', action: 'Nhập thẳng tồn kho' },
 						],
 			};
 
 			st.receipts.unshift(receipt);
-			if (skipQc) {
-				addStockFromReceipt(receipt);
+			if (directItems.length) {
+				addStockFromReceipt({ code: code, items: directItems });
 			}
 			renderAll();
 			closeModal();
@@ -1327,14 +1317,6 @@
 					{ name: 'supplier', label: 'Nhà cung cấp', required: true, placeholder: '' },
 					{ name: 'po', label: 'Mã PO', required: true, placeholder: '' },
 					{ type: 'lines', name: 'lines', label: 'Danh sách hàng nhập', full: true },
-					{
-						type: 'checkbox',
-						name: 'sendQc',
-						label: 'Gửi QC',
-						checked: true,
-						full: true,
-						hint: 'Bỏ chọn nếu hàng không cần QC — nhập thẳng tồn kho',
-					},
 				],
 			};
 		}
@@ -1548,7 +1530,16 @@
 						recStore.status = 'stored';
 						recStore.timeline = recStore.timeline || [];
 						recStore.timeline.push({ at: fmtNow(), by: 'Thủ kho Hà', role: 'keeper', action: 'Đã nhập kho', note: 'Vị trí: A1-02' });
-						addStockFromReceipt(recStore);
+						// Only stock QC lines (non-QC already applied at create).
+						addStockFromReceipt({
+							code: recStore.code,
+							items: (recStore.items || []).filter(function (it) {
+								return it.qc !== 'skip' && !it.stocked;
+							}),
+						});
+						(recStore.items || []).forEach(function (it) {
+							it.stocked = true;
+						});
 					}
 					renderAll();
 					openDialog(inboundDialog(codeStore));

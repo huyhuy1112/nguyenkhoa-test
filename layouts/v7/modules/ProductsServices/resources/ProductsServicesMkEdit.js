@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260715_ps_create_v5';
+	var MK_BUILD = '20260806_ps_create_fix3';
 	var UNIT_PRESETS = ['cái', 'hộp', 'set', 'bộ'];
 	var UNIT_STORAGE_KEY = 'mk_ps_custom_units_v1';
 	/* Only fields previously agreed to remove — keep brand/model/stock/etc. */
@@ -60,20 +60,36 @@
 		var $f = $form();
 		$f.find('.fieldBlockContainer.mk-ps-block').each(function () {
 			var $block = $(this);
-			if ($block.hasClass('mk-ps-hide-legacy') || $block.data('mkPsPacked')) {
+			if ($block.hasClass('mk-ps-hide-legacy')) {
 				return;
 			}
-			var $table = $block.find('> table').first();
+			// Re-pack if previous pack left an empty shell (AJAX re-inject or FOUC hide broken it).
+			var $existingGrid = $block.find('> .mk-ps-compact-grid').first();
+			var $table = $block.find('> table, table.table-borderless, table.detailview-table, table.table').first();
+			if ($block.data('mkPsPacked') && $existingGrid.length && $existingGrid.find('.mk-ps-compact-field').length) {
+				return;
+			}
+			if ($existingGrid.length && (!$table.length || !$table.find('td.fieldValue').length)) {
+				return;
+			}
+			if ($existingGrid.length) {
+				$existingGrid.remove();
+				$block.removeData('mkPsPacked');
+			}
 			if (!$table.length) return;
 
 			var pairs = [];
-			$table.find('> tbody > tr').each(function () {
+			$table.find('> tbody > tr, tbody > tr').each(function () {
 				var $tr = $(this);
-				if ($tr.hasClass('mk-ps-hide-legacy') || !$tr.is(':visible')) {
+				// Never use :visible — create-ready CSS may hide tables during re-pack.
+				if ($tr.hasClass('mk-ps-hide-legacy')) {
 					return;
 				}
 				var $labels = $tr.children('td.fieldLabel');
 				var $values = $tr.children('td.fieldValue');
+				if (!$labels.length && !$values.length) {
+					return;
+				}
 				$labels.each(function (idx) {
 					var $lab = $(this);
 					var $val = $values.eq(idx);
@@ -112,8 +128,14 @@
 				$grid.append($cell);
 			});
 
-			$table.addClass('mk-ps-hide-legacy').hide();
-			$block.append($grid);
+			var $head = $block.find('.mk-ps-block__header, .fieldBlockHeader').first();
+			if ($head.length) {
+				$head.after($grid);
+			} else {
+				$block.prepend($grid);
+			}
+			$table.addClass('mk-ps-hide-legacy mk-ps-fields-packed').attr('aria-hidden', 'true').hide();
+			$block.find('> hr').addClass('mk-ps-hide-legacy').hide();
 			$block.data('mkPsPacked', true);
 		});
 	}
@@ -451,10 +473,56 @@
 				|| fname === 'price_gte_3m' || fname === 'price_gte_5m'
 				|| fname === 'price_gte_7m') {
 				$field.addClass('mk-ps-compact-field--money');
+				// Live VN grouping while typing (300000 → 300.000)
+				if (window.MkCurrency && typeof window.MkCurrency.bindGroupedInput === 'function') {
+					$field.find('input.inputElement, input[type="text"]').each(function () {
+						window.MkCurrency.bindGroupedInput(this, { decimals: 0 });
+					});
+				}
+			}
+			if (fname === 'needs_qc') {
+				$field.addClass('mk-ps-compact-field--qc');
+				enhanceNeedsQcField($field);
 			}
 			if (fname === 'specification' || fname === 'description') {
 				$field.addClass('mk-ps-compact-field--full mk-ps-compact-field--note');
 			}
+		});
+	}
+
+	function enhanceNeedsQcField($field) {
+		if (!$field || !$field.length || $field.data('mkQcEnhanced')) {
+			return;
+		}
+		var $val = $field.find('.mk-ps-compact-value').first();
+		var $input = $val.find('input[type="checkbox"]').first();
+		if (!$input.length) {
+			$input = $field.find('input[type="checkbox"]').first();
+		}
+		if (!$input.length) {
+			return;
+		}
+		$field.data('mkQcEnhanced', true);
+		// Hide bare stock label clutter; keep checkbox as switch UI
+		$val.find('label').not('.mk-ps-qc-switch').css('display', 'none');
+		if ($input.closest('.mk-ps-qc-switch').length) {
+			return;
+		}
+		var on = $input.is(':checked');
+		var $switch = $(
+			'<label class="mk-ps-qc-switch">' +
+				'<span class="mk-ps-qc-switch__track" aria-hidden="true"><span class="mk-ps-qc-switch__knob"></span></span>' +
+				'<span class="mk-ps-qc-switch__copy">' +
+					'<span class="mk-ps-qc-switch__title">Cần QC</span>' +
+					'<span class="mk-ps-qc-switch__hint">Hàng cần QC trước khi nhập tồn</span>' +
+				'</span>' +
+			'</label>'
+		);
+		$input.addClass('mk-ps-qc-switch__input').prependTo($switch);
+		$val.empty().append($switch);
+		$switch.toggleClass('is-on', on);
+		$input.on('change.mkPsQc', function () {
+			$switch.toggleClass('is-on', $input.is(':checked'));
 		});
 	}
 

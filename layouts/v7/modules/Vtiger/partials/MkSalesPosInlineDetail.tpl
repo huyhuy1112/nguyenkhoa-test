@@ -41,6 +41,15 @@
 								</select>
 							{elseif $INFO_FIELD.data_type eq 'date' || $INFO_FIELD.data_type eq 'datetime'}
 								<input type="text" class="mk-so-inline-detail__input inputElement dateField" name="{$INFO_FIELD.name|escape}" value="{$INFO_FIELD.raw_value|escape}" data-date-format="{$USER_MODEL->get('date_format')|escape}" />
+							{elseif $INFO_FIELD.data_type eq 'boolean'}
+								{assign var=MK_BOOL_ON value=($INFO_FIELD.raw_value eq 1 || $INFO_FIELD.raw_value eq '1')}
+								<label class="mk-so-inline-detail__bool{if $MK_BOOL_ON} is-on{/if}">
+									<input type="checkbox" class="mk-so-inline-detail__bool-input" name="{$INFO_FIELD.name|escape}" value="1"{if $MK_BOOL_ON} checked="checked"{/if} />
+									<span class="mk-so-inline-detail__bool-track" aria-hidden="true"><span class="mk-so-inline-detail__bool-knob"></span></span>
+									<span class="mk-so-inline-detail__bool-text">{if $INFO_FIELD.name eq 'needs_qc'}Cần QC trước khi nhập tồn{else}Bật{/if}</span>
+								</label>
+							{elseif $INFO_FIELD.data_type eq 'currency'}
+								<input type="text" class="mk-so-inline-detail__input inputElement mk-so-inline-detail__input--money" name="{$INFO_FIELD.name|escape}" value="{$INFO_FIELD.raw_value|escape}" inputmode="numeric" />
 							{elseif $INFO_FIELD.data_type eq 'text'}
 								<textarea class="mk-so-inline-detail__input mk-so-inline-detail__textarea inputElement" name="{$INFO_FIELD.name|escape}" rows="{if $INFO_FIELD.name eq 'business_note'}2{else}2{/if}">{$INFO_FIELD.raw_value|escape}</textarea>
 							{else}
