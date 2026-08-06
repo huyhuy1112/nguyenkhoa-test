@@ -1,20 +1,36 @@
 {strip}
 {if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'INVENTORY')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'INVENTORY'))}
-	<div class="mk-ps-detail-hero__left">
+	{assign var=MK_HAS_PS_IMAGE value=false}
+	{assign var=IMAGE_DETAILS value=$RECORD->getImageDetails()}
+	{foreach key=ITER item=IMAGE_INFO from=$IMAGE_DETAILS}
+		{if !empty($IMAGE_INFO.url)}{assign var=MK_HAS_PS_IMAGE value=true}{/if}
+	{/foreach}
+	{assign var=MK_SKU value=$RECORD->get('sku')}
+	{assign var=MK_QC_RAW value=$RECORD->get('needs_qc')}
+	{if $MK_QC_RAW eq 1 || $MK_QC_RAW eq '1' || $MK_QC_RAW eq 'on' || $MK_QC_RAW eq vtranslate('LBL_YES', $MODULE)}
+		{assign var=MK_QC_ON value=true}
+	{else}
+		{assign var=MK_QC_ON value=false}
+	{/if}
+	{assign var=MK_PRICE_RAW value=$RECORD->get('price')}
+	{assign var=MK_PRICE_DISP value=$RECORD->getDisplayValue('price')}
+	{assign var=MK_PRICE_LABEL value=$MK_PRICE_DISP|replace:'$':'₫'|replace:'USD':'₫'|replace:'US$':'₫'|replace:'€':'₫'|replace:'&nbsp;':' '|regex_replace:'/\s+/':' '|trim}
+	{if $MK_PRICE_LABEL neq '' && $MK_PRICE_LABEL|strstr:'₫' eq false}
+		{assign var=MK_PRICE_LABEL value="₫ `$MK_PRICE_LABEL`"}
+	{/if}
+
+	<div class="mk-ps-detail-hero__left mk-ps-v2-hero">
 		<div class="mk-ps-detail-hero__identity">
 			<div class="mk-ps-detail-hero__icon recordImage bgproductsservices app-{(isset($SELECTED_MENU_CATEGORY)) ? $SELECTED_MENU_CATEGORY : ''}">
-				{assign var=IMAGE_DETAILS value=$RECORD->getImageDetails()}
 				{foreach key=ITER item=IMAGE_INFO from=$IMAGE_DETAILS}
 					{if !empty($IMAGE_INFO.url)}
 						<img src="{$IMAGE_INFO.url}" alt="{$IMAGE_INFO.orgname|escape:'html'}" title="{$IMAGE_INFO.orgname|escape:'html'}">
 					{/if}
 				{/foreach}
-				{assign var=MK_HAS_PS_IMAGE value=false}
-				{foreach key=ITER item=IMAGE_INFO from=$IMAGE_DETAILS}
-					{if !empty($IMAGE_INFO.url)}{assign var=MK_HAS_PS_IMAGE value=true}{/if}
-				{/foreach}
 				{if !$MK_HAS_PS_IMAGE}
-					<span class="mk-ps-detail-hero__icon-svg" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6V2z"/><path d="M14 2v4h4"/><path d="M9 12h6M9 16h4"/></svg></span>
+					<span class="mk-ps-detail-hero__icon-svg" aria-hidden="true">
+						<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+					</span>
 				{/if}
 			</div>
 			<div class="mk-ps-detail-hero__text mk-ps-detail-hero__content recordBasicInfo">
@@ -28,46 +44,23 @@
 						{/foreach}
 					</span>
 				</h1>
-				<div class="mk-ps-detail-hero__meta">
+				{if $MK_SKU ne ''}
+					<div class="mk-ps-v2-hero__sku">SKU · <strong>{$MK_SKU|escape:'html'}</strong></div>
+				{/if}
+				<div class="mk-ps-detail-hero__meta mk-ps-v2-hero__meta">
 					{assign var=TYPE_FIELD value=$MODULE_MODEL->getField('item_type')}
 					{if $TYPE_FIELD && $TYPE_FIELD->getPermissions() && $RECORD->get('item_type')}
 						{assign var=MK_TYPE_VAL value=$RECORD->get('item_type')}
 						{assign var=MK_TYPE_KEY value='other'}
 						{if $MK_TYPE_VAL eq 'Service'}{assign var=MK_TYPE_KEY value='service'}{/if}
 						{if $MK_TYPE_VAL eq 'Product'}{assign var=MK_TYPE_KEY value='product'}{/if}
-						<span class="mk-ps-detail-hero__meta-item mk-ps-detail-hero__meta-item--type">
-							<span class="mk-ps-detail-type-pill mk-ps-detail-type-pill--{$MK_TYPE_KEY}">{$RECORD->getDisplayValue('item_type')}</span>
-						</span>
+						<span class="mk-ps-detail-type-pill mk-ps-detail-type-pill--{$MK_TYPE_KEY}">{$RECORD->getDisplayValue('item_type')}</span>
 					{/if}
-					{assign var=PRICE_FIELD value=$MODULE_MODEL->getField('price')}
-					{if $PRICE_FIELD && $PRICE_FIELD->getPermissions() && $RECORD->get('price') ne ''}
-						{assign var=MK_PRICE_DISP value=$RECORD->getDisplayValue('price')}
-						{assign var=MK_PRICE_LABEL value=$MK_PRICE_DISP|replace:'$':'₫'|replace:'USD':'₫'|replace:'US$':'₫'|replace:'&nbsp;':' '|regex_replace:'/\s+/':' '}
-						<span class="mk-ps-detail-hero__meta-item mk-ps-detail-hero__meta-item--price">
-							<span class="mk-ps-meta-svg" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
-							<span class="mk-ps-detail-hero__meta-text mk-ps-detail-hero__meta-text--price">{$MK_PRICE_LABEL}</span>
-						</span>
+					{if $MK_PRICE_LABEL ne ''}
+						<span class="mk-ps-v2-hero__price">{$MK_PRICE_LABEL}</span>
 					{/if}
-					{assign var=ASSIGNED_FIELD value=$MODULE_MODEL->getField('assigned_user_id')}
-					{if $ASSIGNED_FIELD && $ASSIGNED_FIELD->getPermissions()}
-						{assign var=MK_ASSIGNED_ID value=$RECORD->get('assigned_user_id')}
-						{assign var=MK_ASSIGNED_NAME value=''}
-						{if !empty($MK_ASSIGNED_ID)}
-							{assign var=MK_ASSIGNED_NAME value=getUserFullName($MK_ASSIGNED_ID)}
-						{/if}
-						{if $MK_ASSIGNED_NAME ne ''}
-							<span class="mk-ps-detail-hero__meta-item mk-ps-detail-hero__meta-item--user">
-								<span class="mk-ps-detail-user-chip" aria-hidden="true">
-									{assign var=MK_ASSIGNED_PARTS value=' '|explode:$MK_ASSIGNED_NAME}
-									{if $MK_ASSIGNED_PARTS|@count gt 1}
-										{$MK_ASSIGNED_PARTS[0]|substr:0:1|upper}{$MK_ASSIGNED_PARTS[$MK_ASSIGNED_PARTS|@count-1]|substr:0:1|upper}
-									{else}
-										{$MK_ASSIGNED_NAME|substr:0:2|upper}
-									{/if}
-								</span>
-								<span class="mk-ps-detail-hero__meta-text">{$RECORD->getDisplayValue('assigned_user_id')}</span>
-							</span>
-						{/if}
+					{if $MK_QC_ON}
+						<span class="mk-ps-v2-hero__qc is-on" title="{vtranslate('LBL_NEEDS_QC_HINT', $MODULE)}">Cần QC</span>
 					{/if}
 				</div>
 			</div>

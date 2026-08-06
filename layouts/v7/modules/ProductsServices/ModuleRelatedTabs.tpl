@@ -24,6 +24,9 @@
 							{assign var=MK_PS_TAB_TEXT value='Chi tiết'}
 						{else}
 							{assign var=MK_PS_TAB_TEXT value=vtranslate($RELATEDLINK_LABEL, $MODULE_NAME)}
+							{if $MK_PS_TAB_TEXT eq 'Thu gọn' || $MK_PS_TAB_TEXT eq 'Collapse' || $MK_PS_TAB_TEXT eq 'Summary' || $MK_PS_TAB_TEXT eq 'Tóm Tắt'}
+								{assign var=MK_PS_TAB_TEXT value='Tóm tắt'}
+							{/if}
 						{/if}
 						<li class="tab-item {if $RELATED_TAB_LABEL==$SELECTED_TAB_LABEL}active{/if}" data-url="{$RELATEDLINK_URL}&tab_label={$RELATED_TAB_LABEL}&app={$SELECTED_MENU_CATEGORY}" data-label-key="{$RELATEDLINK_LABEL}" data-link-key="{$RELATED_LINK->get('linkKey')}" >
 							<a href="{$RELATEDLINK_URL}&tab_label={$RELATEDLINK_LABEL}&app={$SELECTED_MENU_CATEGORY}" class="{if !$MK_PS_SALES_APP}textOverflowEllipsis{/if} mk-sales-primary-tab-link">
