@@ -79,8 +79,9 @@
 
 	function applyStockFilters(rows) {
 		var filters = getStockFilterState();
+		// Keep zero / negative stock lines visible (oversell → tồn âm).
 		var list = (rows || []).filter(function (s) {
-			return (Number(s.qty) || 0) > 0 && matchesHsdFilter(s.expiry, filters.hsd);
+			return matchesHsdFilter(s.expiry, filters.hsd);
 		});
 
 		list.sort(function (a, b) {
@@ -299,7 +300,10 @@
 	function deductStockFromIssue(issue) {
 		(issue.items || []).forEach(function (line) {
 			var lot = findStockLot(line.sku, line.lot);
-			if (lot) lot.qty = Math.max(0, (Number(lot.qty) || 0) - (Number(line.qty) || 0));
+			if (lot) {
+				// Allow negative when issue exceeds on-hand (keep product row).
+				lot.qty = (Number(lot.qty) || 0) - (Number(line.qty) || 0);
+			}
 		});
 	}
 
@@ -474,9 +478,8 @@
 		var st = getState();
 		var tbody = qs('#mkWhProtoStockTbody');
 		if (!tbody) return;
-		var inStock = (st.stock || []).filter(function (s) {
-			return (Number(s.qty) || 0) > 0;
-		});
+		// Keep zero / negative lines (oversell still lists the product).
+		var inStock = (st.stock || []).slice();
 		var result = applyStockFilters(inStock);
 		var rows = result.rows;
 		var summary = qs('#mkWhProtoFilterSummary');
@@ -499,9 +502,10 @@
 				} else if (days < 90) {
 					hsdCls += ' mk-wh-proto-hsd--soon';
 				}
-				var qtyCls = (Number(s.qty) || 0) < 50 ? ' mk-wh-proto-qty--low' : '';
+				var nQty = Number(s.qty) || 0;
+				var qtyCls = nQty < 0 ? ' mk-wh-proto-qty--neg' : (nQty > 0 && nQty < 50 ? ' mk-wh-proto-qty--low' : '');
 				return (
-					'<tr>' +
+					'<tr' + (nQty < 0 ? ' class="mk-wh-proto-stock-row--neg"' : '') + '>' +
 					'<td><strong>' +
 					escapeHtml(s.sku) +
 					'</strong></td>' +

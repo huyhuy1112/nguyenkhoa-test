@@ -251,6 +251,74 @@
 	}
 
 	/* ========== DASHBOARD PAGE ========== */
+	function getCsrfToken() {
+		if (typeof jQuery !== 'undefined' && jQuery('[name="__vtrftk"]').length) {
+			return jQuery('[name="__vtrftk"]').val() || '';
+		}
+		if (typeof csrfMagicToken !== 'undefined') {
+			return csrfMagicToken;
+		}
+		return '';
+	}
+
+	function whApi(mode, extra) {
+		var data = Object.assign({ module: 'Warehouse', action: 'WhMgmtApi', mode: mode }, extra || {});
+		var csrf = getCsrfToken();
+		if (csrf) {
+			data.__vtrftk = csrf;
+		}
+		return jQuery.ajax({
+			url: 'index.php',
+			type: 'POST',
+			dataType: 'json',
+			data: data,
+		}).then(function (resp) {
+			if (resp && resp.success === true && resp.result) {
+				return resp.result;
+			}
+			if (resp && resp.result && resp.result.success) {
+				return resp.result;
+			}
+			var err = (resp && (resp.error || resp.message)) || 'Lỗi API';
+			if (typeof err === 'object' && err.message) {
+				err = err.message;
+			}
+			return jQuery.Deferred().reject(err).promise();
+		});
+	}
+
+	function bindDashboardSettings() {
+		var $cb = jQuery('#mkWhAllowNegativeStock');
+		var $st = jQuery('#mkWhSettingsStatus');
+		if (!$cb.length) {
+			return;
+		}
+		whApi('get_settings').done(function (result) {
+			var settings = (result && result.settings) || {};
+			$cb.prop('checked', Number(settings.wh_allow_negative_stock) === 1);
+		}).fail(function () {
+			$st.text('Không tải được cấu hình.');
+		});
+
+		$cb.off('change.mkWhNeg').on('change.mkWhNeg', function () {
+			var enabled = $cb.is(':checked') ? 1 : 0;
+			$st.text('Đang lưu...');
+			$cb.prop('disabled', true);
+			whApi('set_settings', {
+				payload: JSON.stringify({ wh_allow_negative_stock: enabled }),
+			}).done(function (result) {
+				var settings = (result && result.settings) || {};
+				$cb.prop('checked', Number(settings.wh_allow_negative_stock) === 1);
+				$st.text('Đã lưu.');
+			}).fail(function (err) {
+				$cb.prop('checked', !enabled);
+				$st.text(String(err || 'Không lưu được.'));
+			}).always(function () {
+				$cb.prop('disabled', false);
+			});
+		});
+	}
+
 	function renderDashboard() {
 		var kpiEl = qs('#mkWhDashKpis');
 		var tbody = qs('#mkWhDashTableBody');
@@ -302,12 +370,12 @@
 
 	var ISSUE_STATUS = {
 		draft: { label: 'Nháp', cls: 'mk-wh-proto-pill' },
-		waiting_print: { label: 'Chờ in phiếu', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
+		waiting_print: { label: 'Chờ soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
 		picking: { label: 'Đang soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-pick' },
 		packed: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 		shipped: { label: 'Đã giao', cls: 'mk-wh-proto-pill mk-wh-proto-pill--ok' },
 		rejected: { label: 'Từ chối', cls: 'mk-wh-proto-pill mk-wh-proto-pill--danger' },
-		pending_approval: { label: 'Chờ in phiếu', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
+		pending_approval: { label: 'Chờ soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
 		approved: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 	};
 
@@ -499,8 +567,8 @@
 			var hsd = qs('#mkWhProtoFilterHsd') ? qs('#mkWhProtoFilterHsd').value : 'all';
 			var name = qs('#mkWhProtoFilterName') ? qs('#mkWhProtoFilterName').value : 'az';
 			var list = (d.stock || []).slice();
+			// Show zero / negative rows (oversell) — do not strip from Tồn kho.
 			list = list.filter(function (s) {
-				if ((Number(s.qty) || 0) <= 0) return false;
 				var days = daysUntil(s.expiry);
 				if (hsd === 'soon') return days >= 0 && days < 90;
 				if (hsd === 'valid') return days >= 0;
@@ -520,8 +588,9 @@
 				var days = daysUntil(s.expiry);
 				var expLabel = days < 0 ? 'Quá hạn' : ('Còn ' + days + ' ngày');
 				var hsdCls = 'mk-wh-proto-hsd' + (days < 0 ? ' mk-wh-proto-hsd--expired' : (days < 90 ? ' mk-wh-proto-hsd--soon' : ''));
-				var qtyCls = (Number(s.qty) || 0) < 50 ? ' mk-wh-proto-qty--low' : '';
-				return '<tr>' +
+				var nQty = Number(s.qty) || 0;
+				var qtyCls = nQty < 0 ? ' mk-wh-proto-qty--neg' : (nQty > 0 && nQty < 50 ? ' mk-wh-proto-qty--low' : '');
+				return '<tr' + (nQty < 0 ? ' class="mk-wh-proto-stock-row--neg"' : '') + '>' +
 					'<td><strong>' + escapeHtml(s.sku) + '</strong></td>' +
 					'<td>' + escapeHtml(s.name) + '</td>' +
 					'<td>' + escapeHtml(s.lot) + '</td>' +
@@ -908,7 +977,9 @@
 					var stock = (d.stock || []).slice();
 					i.lines.forEach(function (l) {
 						var idx = stock.findIndex(function (s) { return s.sku === l.sku && s.lot === l.lot; });
-						if (idx >= 0) stock[idx] = Object.assign({}, stock[idx], { qty: Math.max(0, stock[idx].qty - l.qty) });
+						if (idx >= 0) {
+							stock[idx] = Object.assign({}, stock[idx], { qty: (Number(stock[idx].qty) || 0) - (Number(l.qty) || 0) });
+						}
 					});
 					S.warehouseDataActions.setStock(w.id, stock);
 					i.status = 'shipped';
@@ -1096,6 +1167,7 @@
 			S.subscribe(renderList);
 		} else if (view === 'WhDashboard') {
 			renderDashboard();
+			bindDashboardSettings();
 			S.subscribe(renderDashboard);
 		} else if (view === 'WhDetail') {
 			bindDetailEvents();

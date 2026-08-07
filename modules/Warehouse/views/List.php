@@ -114,7 +114,7 @@ class Warehouse_List_View extends Vtiger_Index_View {
 				COALESCE(ws.shrinkage_qty, 0) AS shrinkage_qty, ws.last_price, ws.storage_location, ws.expired_date,
 				ws.warehouse_note, ws.inbound_note, ws.updatedtime, ws.createdtime,
 				COALESCE(NULLIF(ws.product_type, ''), ps.item_type) AS raw_item_type,
-				GREATEST(ws.quantity - COALESCE(ws.shrinkage_qty, 0), 0) AS available_qty
+				(ws.quantity - COALESCE(ws.shrinkage_qty, 0)) AS available_qty
 			FROM vtiger_warehouse_stock ws
 			LEFT JOIN vtiger_productsservices ps ON ps.productsservicesid = ws.productid AND ws.productid > 0
 			WHERE " . implode(' AND ', $where) . "
@@ -135,6 +135,7 @@ class Warehouse_List_View extends Vtiger_Index_View {
 			$row['type_label'] = Warehouse_Stock_Helper::formatProductTypeLabel($row['raw_item_type']);
 			$row['product_key_display'] = Warehouse_Stock_Helper::formatProductKeyDisplay($row);
 			$row['quantity_display'] = Warehouse_Stock_Helper::formatNumber($row['quantity'], 2);
+			$row['available_qty'] = Warehouse_Stock_Helper::availableQty($row['quantity'], $row['shrinkage_qty']);
 			$row['available_display'] = Warehouse_Stock_Helper::formatNumber($row['available_qty'], 2);
 			$row['last_price_display'] = Warehouse_Stock_Helper::formatNumber($row['last_price'], 0);
 			$row['updatedtime_display'] = Warehouse_Stock_Helper::formatDateTimeDisplay($row['updatedtime']);

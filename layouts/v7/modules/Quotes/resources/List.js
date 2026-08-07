@@ -1244,8 +1244,12 @@
       $panel.find(".mk-so-inline-detail__line-note").each(function () {
         var seq = $(this).attr("data-sequence") || $(this).data("sequence");
         if (!seq) return;
-        lineComments[String(seq)] = $(this).val() || "";
+        var text = $(this).val() || "";
+        lineComments[String(seq)] = text;
+        postData["line_comment_" + seq] = text;
+        postData["line_comments_" + seq] = text;
       });
+      postData.line_comments = lineComments;
       postData.line_comments_json = JSON.stringify(lineComments);
       var grandRaw = $panel.find(".mk-so-inline-detail__grand-input").val();
       if (grandRaw != null && String(grandRaw).length) {
@@ -1264,9 +1268,52 @@
         }
         if (response) {
           $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
-            var name = $(this).attr("name");
+            var $input = $(this);
+            var name = $input.attr("name");
             if (!name || !response[name]) return;
-            var displayValue = response[name].display_value;
+            var fieldData = response[name];
+            // Sync select/input to server value so dropdown reflects what was saved
+            if (fieldData.value !== undefined && fieldData.value !== null) {
+              var rawVal = fieldData.value;
+              if ($input.is("select")) {
+                var $opt = $input.find(
+                  'option[value="' +
+                    String(rawVal).replace(/"/g, '\\"') +
+                    '"]',
+                );
+                if ($opt.length) {
+                  $input.val(String(rawVal));
+                } else {
+                  // try match by option text (label)
+                  var label = fieldData.display_value
+                    ? String(fieldData.display_value)
+                        .replace(/<[^>]+>/g, "")
+                        .trim()
+                    : "";
+                  if (label) {
+                    $input.find("option").each(function () {
+                      if (
+                        $.trim($(this).text()) === label ||
+                        $.trim($(this).text()) === $.trim(String(rawVal))
+                      ) {
+                        $input.val($(this).val());
+                        return false;
+                      }
+                    });
+                  }
+                }
+                if ($input.data("select2") || $input.hasClass("select2")) {
+                  try {
+                    $input.trigger("change");
+                  } catch (e) {
+                    /* ignore */
+                  }
+                }
+              } else if (!$input.is(":checkbox, :radio")) {
+                $input.val(rawVal);
+              }
+            }
+            var displayValue = fieldData.display_value;
             if (displayValue !== undefined && displayValue !== null) {
               $panel
                 .find(
@@ -1292,19 +1339,40 @@
               .prevAll("tr.listViewEntries")
               .first();
             if ($listRow.length) {
+              var displayGrand = response.hdnGrandTotal.display_value;
+              var grandText =
+                displayGrand && String(displayGrand).indexOf("₫") === -1
+                  ? "₫ " + displayGrand
+                  : displayGrand;
               $listRow
                 .find(
                   'td[data-name="hdnGrandTotal"] .value, td[data-name="total"] .value',
                 )
                 .first()
-                .text(response.hdnGrandTotal.display_value);
+                .text(grandText || displayGrand);
               $listRow
                 .find('td[data-name="hdnGrandTotal"], td[data-name="total"]')
                 .first()
                 .attr("data-rawvalue", response.hdnGrandTotal.value);
+              // Also update any badge/price chip on the list row
+              $listRow
+                .find(
+                  ".listViewEntryValue[data-name='hdnGrandTotal'], .listViewEntryValue[data-name='total']",
+                )
+                .each(function () {
+                  var $cell = $(this);
+                  var $val = $cell.find(".value").first();
+                  if ($val.length) {
+                    $val.text(grandText || displayGrand);
+                  } else {
+                    $cell.text(grandText || displayGrand);
+                  }
+                });
               injectSummaryRow($("#listViewContent #listview-table"));
             }
           }
+          // Always re-sync visible labels from the (updated) inputs
+          updateViewValues();
         } else {
           updateViewValues();
         }
@@ -1632,7 +1700,181 @@
       /* ignore */
     }
     var params = $.extend({}, getPersistedSortParams(), extraParams || {});
+    if (!params.mk_quote_scope) {
+      params.mk_quote_scope = resolveQuoteListScope();
+    }
+    if (!params.app) {
+      params.app = "SALES";
+    }
     listInstance.loadListViewRecords(params);
+  }
+
+  /**
+   * Tab switch must reload list from server with mk_quote_scope (same path as a full page load).
+   * Soft navigation is used deliberately: stock List PJAX/shell swap keeps stale rows / empty list.
+   */
+  function loadQuoteListByScope(scope) {
+    scope = scope === "franchise" ? "franchise" : "all";
+    window.__mkQuoteListScope = scope;
+    window.__mkQuoteListScopePending = scope;
+
+    try {
+      if (typeof app !== "undefined" && app.helper && app.helper.showProgress) {
+        app.helper.showProgress();
+      }
+    } catch (eProg) {
+      /* ignore */
+    }
+
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.set("module", "Quotes");
+      u.searchParams.set("view", "List");
+      u.searchParams.set("app", "SALES");
+      u.searchParams.set("page", "1");
+      u.searchParams.set("nolistcache", "1");
+      // Clear leftover search so an empty filter cannot hide all rows after a previous tab.
+      u.searchParams.set("search_params", "[]");
+      u.searchParams.delete("search_key");
+      u.searchParams.delete("search_value");
+      if (scope === "franchise") {
+        u.searchParams.set("mk_quote_scope", "franchise");
+      } else {
+        u.searchParams.delete("mk_quote_scope");
+      }
+      var cv =
+        $("#listViewContent [name='cvid']").val() ||
+        $("#listViewContent [name='viewname']").val() ||
+        "";
+      if (cv) {
+        u.searchParams.set("viewname", cv);
+      }
+      // Drop opaque list_headers from previous AJAX — PHP POS defaults re-apply on full load.
+      u.searchParams.delete("list_headers");
+      window.location.assign(u.toString());
+    } catch (eNav) {
+      var q =
+        "index.php?module=Quotes&view=List&app=SALES&page=1&nolistcache=1&search_params=%5B%5D";
+      if (scope === "franchise") {
+        q += "&mk_quote_scope=franchise";
+      }
+      window.location.href = q;
+    }
+  }
+
+  /** List scope: all | franchise (Báo giá KH nhượng quyền). */
+  function resolveQuoteListScope() {
+    try {
+      var params = new URLSearchParams(window.location.search || "");
+      var s = (params.get("mk_quote_scope") || "").toLowerCase();
+      if (s === "franchise" || s === "nq" || s === "nhuong_quyen") {
+        return "franchise";
+      }
+      if (s === "all") {
+        return "all";
+      }
+    } catch (e0) {
+      /* ignore */
+    }
+    if (
+      window.__mkQuoteListScope === "franchise" ||
+      window.__mkQuoteListScope === "all"
+    ) {
+      return window.__mkQuoteListScope;
+    }
+    var fromHidden = $.trim($("#mk-quote-scope").val() || "").toLowerCase();
+    if (fromHidden === "franchise" || fromHidden === "all") {
+      return fromHidden;
+    }
+    var fromRoot = (
+      $(".mk-qt-page").attr("data-mk-quote-scope") || ""
+    ).toLowerCase();
+    if (fromRoot === "franchise") {
+      return "franchise";
+    }
+    return "all";
+  }
+
+  function syncQuoteScopeTabs(scope) {
+    scope = scope === "franchise" ? "franchise" : "all";
+    $(".mk-qt-scope-tab").each(function () {
+      var tabScope =
+        $(this).attr("data-mk-quote-scope") === "franchise"
+          ? "franchise"
+          : "all";
+      var active = tabScope === scope;
+      $(this).toggleClass("is-active", active);
+      $(this).attr("aria-selected", active ? "true" : "false");
+    });
+  }
+
+  function setQuoteListScope(scope) {
+    scope = scope === "franchise" ? "franchise" : "all";
+    window.__mkQuoteListScope = scope;
+    var $hidden = $("#mk-quote-scope");
+    if ($hidden.length) {
+      $hidden.val(scope);
+    }
+    $(".mk-qt-page").attr("data-mk-quote-scope", scope);
+    syncQuoteScopeTabs(scope);
+  }
+
+  function patchQuoteScopeListParams() {
+    if (
+      typeof Vtiger_List_Js === "undefined" ||
+      Vtiger_List_Js.prototype._mkQtScopeParamsPatched
+    ) {
+      return;
+    }
+    Vtiger_List_Js.prototype._mkQtScopeParamsPatched = true;
+    var origParams = Vtiger_List_Js.prototype.getDefaultParams;
+    if (typeof origParams === "function") {
+      Vtiger_List_Js.prototype.getDefaultParams = function () {
+        var params = origParams.apply(this, arguments);
+        if (isQuotesSalesList()) {
+          params.mk_quote_scope = resolveQuoteListScope();
+          if (!params.app || String(params.app).toUpperCase() === "") {
+            params.app = "SALES";
+          }
+        }
+        return params;
+      };
+    }
+  }
+
+  function bindQuoteScopeTabs() {
+    if (document.documentElement.getAttribute("data-mk-qt-scope-tabs-bound")) {
+      return;
+    }
+    document.documentElement.setAttribute("data-mk-qt-scope-tabs-bound", "1");
+    $(document).on("click.mkQtScopeTabs", ".mk-qt-scope-tab", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isQuotesSalesList()) {
+        return;
+      }
+      var scope =
+        $(this).attr("data-mk-quote-scope") === "franchise"
+          ? "franchise"
+          : "all";
+      // Skip only if already on this scope AND URL already matches (avoid reload loop).
+      try {
+        var urlScope = new URLSearchParams(window.location.search || "")
+          .get("mk_quote_scope");
+        urlScope =
+          urlScope === "franchise" ||
+          urlScope === "nq" ||
+          urlScope === "nhuong_quyen"
+            ? "franchise"
+            : "all";
+        if (scope === urlScope && scope === resolveQuoteListScope()) {
+          return;
+        }
+      } catch (eSkip) {
+        /* always reload */
+      }
+      loadQuoteListByScope(scope);
+    });
   }
 
   function resolvePosSearchField(fieldName) {
@@ -2696,6 +2938,10 @@
     if (typeof window.mkSalesListAfterAjax === "function") {
       window.mkSalesListAfterAjax();
     }
+    // Sync tabs from server/URL scope (authoritative after full load).
+    var scope = resolveQuoteListScope();
+    window.__mkQuoteListScope = scope;
+    setQuoteListScope(scope);
     var $table = $("#listViewContent #listview-table");
     collapseInlineDetail($table);
     relocatePagination();
@@ -2761,6 +3007,9 @@
       return;
     }
     document.body.classList.add("mk-quotes-list-ui-loading");
+    patchQuoteScopeListParams();
+    bindQuoteScopeTabs();
+    setQuoteListScope(resolveQuoteListScope());
     ensureQtMassActionButtons();
     bindMassActionButtons();
     bindInlineDuplicateButton();
@@ -2836,6 +3085,8 @@
     massDuplicateQuotes: massDuplicateQuotes,
     massDeleteQuotes: massDeleteQuotes,
     syncQtMassActionButtons: syncQtMassActionButtons,
+    resolveQuoteListScope: resolveQuoteListScope,
+    setQuoteListScope: setQuoteListScope,
   };
   window.mkQtMassDuplicateQuotes = massDuplicateQuotes;
   window.mkQtMassDeleteQuotes = massDeleteQuotes;
@@ -2852,6 +3103,19 @@ if (typeof Inventory_List_Js === "function") {
     "Quotes_List_Js",
     {},
     {
+      getDefaultParams: function () {
+        var params = this._super();
+        if (
+          window.__mkQuotesListUi &&
+          typeof window.__mkQuotesListUi.resolveQuoteListScope === "function"
+        ) {
+          params.mk_quote_scope =
+            window.__mkQuotesListUi.resolveQuoteListScope();
+        } else if (window.__mkQuoteListScope) {
+          params.mk_quote_scope = window.__mkQuoteListScope;
+        }
+        return params;
+      },
       postLoadListViewRecords: function () {
         this._super();
         if (window.__mkQuotesListUi && window.__mkQuotesListUi.afterListLayout) {

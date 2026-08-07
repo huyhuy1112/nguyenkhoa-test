@@ -73,6 +73,9 @@
 					{if $IDX > 0 && $LINE["hdnProductId$IDX"]|default:'' neq ''}
 						{assign var=HAS_LINE_ITEMS value=true}
 						{assign var=LINE_COMMENT value=$LINE["comment$IDX"]|default:''}
+						{if $LINE_COMMENT}
+							{assign var=LINE_COMMENT value=decode_html($LINE_COMMENT)}
+						{/if}
 						{assign var=DISC_PCT value=$LINE["discount_percent$IDX"]|default:0}
 						{assign var=DISC_TOTAL value=$LINE["discountTotal$IDX"]|default:0}
 						<tr data-qty="{$LINE["qty$IDX"]|default:'1'|escape}" data-price="{$LINE["listPrice$IDX"]|default:$LINE["unitPrice$IDX"]|default:'0'|escape}" data-total="{$LINE["productTotal$IDX"]|default:'0'|escape}" data-unit="{$LINE["usageunit$IDX"]|default:''|escape}" data-sequence="{$IDX|escape}">
@@ -112,13 +115,12 @@
 				{/if}
 			</tbody>
 		</table>
-		<p class="mk-so-inline-detail__vat-note" role="note"><strong>Đơn giá này đã bao gồm VAT</strong></p>
 	</div>
 
 	<div class="mk-so-inline-detail__bottom">
 		<div class="mk-so-inline-detail__notes">
 			<label class="mk-so-inline-detail__notes-label" for="mk-so-inline-note-{$RECORD->getId()}">Ghi chú</label>
-			<textarea id="mk-so-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="mk_list_note" rows="4">{decode_html($RECORD->get('mk_list_note'))|escape}</textarea>
+			<textarea id="mk-so-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="mk_list_note" rows="4">{if $RECORD->get('mk_list_note')}{decode_html($RECORD->get('mk_list_note'))|escape}{/if}</textarea>
 		</div>
 		<div class="mk-so-inline-detail__totals">
 			<div class="mk-so-inline-detail__total-row">
@@ -154,8 +156,13 @@
 				|| $INLINE_SOSTATUS eq 'waiting_print' || $INLINE_SOSTATUS eq 'picking' || $INLINE_SOSTATUS eq 'packed'
 				|| $INLINE_SOSTATUS eq 'shipped' || $INLINE_SOSTATUS eq 'rejected'
 				|| $INLINE_SOSTATUS eq 'Delivered' || $INLINE_SOSTATUS eq 'Đã giao' || $INLINE_SOSTATUS eq 'Hoàn thành'
-				|| $INLINE_SOSTATUS eq 'Chờ in phiếu' || $INLINE_SOSTATUS eq 'Đang soạn' || $INLINE_SOSTATUS eq 'Đã soạn'
+				|| $INLINE_SOSTATUS eq 'Chờ soạn' || $INLINE_SOSTATUS eq 'Đang soạn' || $INLINE_SOSTATUS eq 'Đã soạn'
 				|| $INLINE_SOSTATUS eq 'Từ chối'
+			)}
+			{assign var=SO_CAN_CANCEL value=(
+				$INLINE_SOSTATUS neq 'shipped' && $INLINE_SOSTATUS neq 'Delivered' && $INLINE_SOSTATUS neq 'Đã giao'
+				&& $INLINE_SOSTATUS neq 'Hoàn thành' && $INLINE_SOSTATUS neq 'Cancelled' && $INLINE_SOSTATUS neq 'Đã hủy'
+				&& $INLINE_SOSTATUS neq 'Đã huỷ'
 			)}
 			<div class="mk-so-inline-detail__confirm-split btn-group">
 				{if !$SO_ALREADY_CONFIRMED}
@@ -182,6 +189,12 @@
 					</li>
 				</ul>
 			</div>
+			{if $SO_CAN_CANCEL}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__cancel-order-btn" title="Huỷ đơn và hoàn kho (nếu đã trừ tồn)">
+				<i class="fa fa-ban" aria-hidden="true"></i>
+				<span>Huỷ đơn</span>
+			</button>
+			{/if}
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__process-btn" title="Mở form chỉnh sửa">
 				<i class="fa fa-pencil" aria-hidden="true"></i>
 				<span>Sửa đơn</span>

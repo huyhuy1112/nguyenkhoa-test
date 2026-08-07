@@ -27,8 +27,11 @@ class GoodsIssue_SyncSalesOrderStatus_Helper {
 		if (in_array($s, array('shipped', 'completed'), true)) {
 			return 'shipped';
 		}
-		if (in_array($s, array('rejected', 'cancelled', 'canceled'), true)) {
+		if (in_array($s, array('rejected'), true)) {
 			return 'rejected';
+		}
+		if (in_array($s, array('cancelled', 'canceled'), true)) {
+			return 'Cancelled';
 		}
 		return $s;
 	}

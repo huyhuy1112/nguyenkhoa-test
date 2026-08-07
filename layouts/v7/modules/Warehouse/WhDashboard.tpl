@@ -18,6 +18,25 @@
 
 		<section class="mk-wh-mgmt-kpis" aria-label="KPI đa kho" id="mkWhDashKpis"></section>
 
+		<div class="mk-wh-mgmt-panel mk-wh-settings-panel" aria-label="Cài đặt kho" id="mkWhSettingsPanel">
+			<div class="mk-wh-mgmt-panel__head">
+				<h2 class="mk-wh-mgmt-panel__title">Cài đặt kho</h2>
+			</div>
+			<div class="mk-wh-settings-row" style="padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+				<label class="mk-wh-settings-toggle" style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0;">
+					<input type="checkbox" id="mkWhAllowNegativeStock" />
+					<span>
+						<strong>Cho phép tồn kho âm</strong>
+						<span style="display:block;opacity:.75;font-size:12px;">
+							Khi bật: xác nhận đơn / xuất kho được trừ quá tồn hiện có
+							(vd. tồn 10, đặt 11 → tồn −1). Tắt: chặn khi thiếu hàng.
+						</span>
+					</span>
+				</label>
+				<span id="mkWhSettingsStatus" class="mk-wh-settings-status" style="font-size:12px;opacity:.8;" aria-live="polite"></span>
+			</div>
+		</div>
+
 		<div class="mk-wh-mgmt-panel" aria-label="Phân tích theo kho">
 			<div class="mk-wh-mgmt-panel__head">
 				<h2 class="mk-wh-mgmt-panel__title">Phân tích theo kho</h2>

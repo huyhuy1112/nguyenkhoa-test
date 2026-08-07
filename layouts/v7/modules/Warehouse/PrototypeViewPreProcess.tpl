@@ -7,9 +7,9 @@
 <script type="text/javascript">document.documentElement.classList.add('mk-wh-proto-ready');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryListShared.css')}?mk_v=20260602_inv_proto6" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.css')}?mk_v=20260806_product_qc1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.css')}?mk_v=20260807_neg_stock_ui1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.js')}?mk_v=20260806_product_qc1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.js')}?mk_v=20260807_neg_stock_ui1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-warehouse-prototype="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

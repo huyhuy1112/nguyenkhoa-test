@@ -458,14 +458,14 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-price,
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines td.mk-inv-col-price {
-	min-width: 118px;
-	width: 132px;
+	min-width: 148px;
+	width: 160px;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-amount,
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines td.mk-inv-col-amount {
-	min-width: 124px;
-	width: 140px;
+	min-width: 160px;
+	width: 176px;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines .mk-inv-col-tax,
@@ -2751,14 +2751,20 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 	display: table-cell !important;
 	visibility: visible !important;
 	opacity: 1 !important;
-	min-width: 128px;
+	min-width: 160px;
 	vertical-align: top !important;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow > td.mk-inv-col-amount .productTotal {
 	display: inline-block !important;
 	visibility: visible !important;
-	min-width: 80px;
+	min-width: 0;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -0.02em;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines tr.lineItemRow > td.mk-inv-col-price .listPrice,

@@ -218,20 +218,20 @@
 
 	var ISSUE_STATUS = {
 		draft: { label: 'Nháp', cls: 'mk-wh-proto-pill mk-wh-proto-pill--draft' },
-		waiting_print: { label: 'Chờ in phiếu', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
+		waiting_print: { label: 'Chờ soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
 		picking: { label: 'Đang soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-pick' },
 		packed: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 		shipped: { label: 'Đã giao', cls: 'mk-wh-proto-pill mk-wh-proto-pill--ok' },
 		rejected: { label: 'Từ chối', cls: 'mk-wh-proto-pill mk-wh-proto-pill--warn' },
 		cancelled: { label: 'Đã huỷ', cls: 'mk-wh-proto-pill mk-wh-proto-pill--warn' },
 		// legacy aliases
-		pending_approval: { label: 'Chờ in phiếu', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
+		pending_approval: { label: 'Chờ soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-wait' },
 		approved: { label: 'Đã soạn', cls: 'mk-wh-proto-pill mk-wh-proto-pill--issue-packed' },
 	};
 
 	/** Happy-path steps shown on status chevron (xuất). */
 	var ISSUE_PATH = [
-		{ key: 'waiting_print', label: 'Chờ in phiếu' },
+		{ key: 'waiting_print', label: 'Chờ soạn' },
 		{ key: 'picking', label: 'Đang soạn' },
 		{ key: 'packed', label: 'Đã soạn' },
 		{ key: 'shipped', label: 'Đã giao' },
@@ -464,8 +464,11 @@
 			return i.status === 'waiting_print' || i.status === 'pending_approval' || i.status === 'picking' || i.status === 'packed' || i.status === 'approved';
 		}).length;
 		var skuSet = {};
-		(d.stock || []).forEach(function (s) { if ((Number(s.qty) || 0) > 0) skuSet[s.sku] = true; });
-		var expiring = (d.stock || []).filter(function (s) { return (Number(s.qty) || 0) > 0 && daysUntil(s.expiry) < 90; }).length;
+		// Count SKUs still on the stock list (including negative oversell), exclude pure zero rows.
+		(d.stock || []).forEach(function (s) {
+			if ((Number(s.qty) || 0) !== 0) skuSet[s.sku] = true;
+		});
+		var expiring = (d.stock || []).filter(function (s) { return (Number(s.qty) || 0) !== 0 && daysUntil(s.expiry) < 90; }).length;
 		var k1 = qs('#mkWhKpiPendingQc');
 		var k2 = qs('#mkWhKpiPendingApprove');
 		var k3 = qs('#mkWhKpiSku');
@@ -954,8 +957,8 @@
 			name: nameEl ? nameEl.value : 'az',
 			price: priceEl ? priceEl.value : 'all',
 		};
+		// Keep zero and negative stock lines visible (oversell → tồn âm).
 		var list = (rows || []).filter(function (s) {
-			if ((Number(s.qty) || 0) <= 0) return false;
 			var days = daysUntil(s.expiry);
 			if (filters.hsd === 'soon') return days >= 0 && days < 90;
 			if (filters.hsd === 'valid') return days >= 0;
@@ -974,6 +977,32 @@
 			return filters.name === 'za' ? -cmp : cmp;
 		});
 		return { rows: list, filters: filters };
+	}
+
+	function stockQtyClass(qty) {
+		var n = Number(qty);
+		if (!isFinite(n)) {
+			n = 0;
+		}
+		if (n < 0) {
+			return ' mk-wh-proto-qty--neg';
+		}
+		if (n > 0 && n < 50) {
+			return ' mk-wh-proto-qty--low';
+		}
+		return '';
+	}
+
+	function formatStockQty(qty) {
+		var n = Number(qty);
+		if (!isFinite(n)) {
+			return '0';
+		}
+		// Show integers without decimals; keep fraction if present.
+		if (Math.abs(n - Math.round(n)) < 0.0000001) {
+			return String(Math.round(n));
+		}
+		return String(n);
 	}
 
 	function renderStock() {
@@ -998,15 +1027,16 @@
 			var days = daysUntil(s.expiry);
 			var expLabel = days < 0 ? 'Quá hạn' : 'Còn ' + days + ' ngày';
 			var hsdCls = 'mk-wh-proto-hsd' + (days < 0 ? ' mk-wh-proto-hsd--expired' : (days < 90 ? ' mk-wh-proto-hsd--soon' : ''));
-			var qtyCls = (Number(s.qty) || 0) < 50 ? ' mk-wh-proto-qty--low' : '';
-			return '<tr>' +
+			var qtyCls = stockQtyClass(s.qty);
+			var qtyTitle = (Number(s.qty) || 0) < 0 ? 'Tồn kho âm (đã xuất vượt tồn)' : '';
+			return '<tr' + ((Number(s.qty) || 0) < 0 ? ' class="mk-wh-proto-stock-row--neg"' : '') + '>' +
 				'<td><strong>' + escText(formatSkuLabel(s.sku)) + '</strong></td>' +
 				'<td>' + escText(s.name) + '</td>' +
 				'<td>' + escText(s.lot) + '</td>' +
 				'<td class="' + hsdCls + '">' + escText(s.expiry || '—') + ' <span class="mk-wh-proto-muted">(' + escText(expLabel) + ')</span></td>' +
 				'<td class="mk-wh-proto-td-right">' + escText(fmtPrice(s.price)) + '</td>' +
 				'<td class="mk-wh-proto-td-right">' + escText(s.location || '—') + '</td>' +
-				'<td class="mk-wh-proto-td-right' + qtyCls + '"><strong>' + escText(s.qty) + '</strong></td>' +
+				'<td class="mk-wh-proto-td-right' + qtyCls + '"' + (qtyTitle ? ' title="' + escText(qtyTitle) + '"' : '') + '><strong>' + escText(formatStockQty(s.qty)) + '</strong></td>' +
 			'</tr>';
 		}).join('');
 	}
@@ -1291,7 +1321,7 @@
 		var actions = '';
 		if (issue.status === 'draft' && isWarehouseOps(role)) {
 			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
-				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-submit" data-id="' + escapeHtml(issue.id) + '">Chờ in phiếu</button>' +
+				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="issue-submit" data-id="' + escapeHtml(issue.id) + '">Chờ soạn</button>' +
 				'</div>';
 		}
 		if ((issue.status === 'waiting_print' || issue.status === 'pending_approval') && isWarehouseOps(role)) {
@@ -1661,17 +1691,32 @@
 			var sku = String(l.sku || '');
 			var name = String(l.name || '');
 			var candidates = stock.map(function (s, idx) { return { s: s, idx: idx }; }).filter(function (row) {
-				if ((Number(row.s.qty) || 0) <= 0) return false;
 				if (sku && lot) return row.s.sku === sku && row.s.lot === lot;
 				if (sku) return row.s.sku === sku;
 				if (name) return String(row.s.name || '') === name;
 				return false;
 			});
-			candidates.forEach(function (row) {
+			if (!candidates.length) {
+				// Oversell with no existing row: create negative stock line (keep product visible).
+				stock.push({
+					sku: sku || 'UNK',
+					name: name || sku || '—',
+					lot: lot || '—',
+					qty: -qtyLeft,
+					expiry: l.expiry || '—',
+					mfg: l.mfg || '',
+					price: l.price || 0,
+					location: l.location || '',
+				});
+				return;
+			}
+			// Deduct across lots; allow last lot to go negative so product stays listed.
+			candidates.forEach(function (row, i) {
 				if (qtyLeft <= 0) return;
 				var avail = Number(row.s.qty) || 0;
-				var deduct = Math.min(avail, qtyLeft);
-				if (deduct <= 0) return;
+				var isLast = i === candidates.length - 1;
+				var deduct = isLast ? qtyLeft : Math.min(Math.max(avail, 0), qtyLeft);
+				if (!isLast && deduct <= 0) return;
 				stock[row.idx] = Object.assign({}, stock[row.idx], { qty: avail - deduct });
 				qtyLeft -= deduct;
 			});
@@ -2796,7 +2841,7 @@
 				}
 				var cancelIssue = (d.issues || []).find(function (x) { return x.id === id; });
 				if (!cancelIssue || !canCancelOutboundIssue(cancelIssue.status)) {
-					showError('Chỉ huỷ được phiếu ở trạng thái Chờ in phiếu, Đang soạn hoặc Đã soạn.');
+					showError('Chỉ huỷ được phiếu ở trạng thái Chờ soạn, Đang soạn hoặc Đã soạn.');
 					return;
 				}
 				if (!window.confirm('Huỷ phiếu xuất ' + id + '?\nTồn kho đã trừ (nếu có) sẽ được hoàn lại.')) {
@@ -3006,7 +3051,7 @@
 				patchIssue(id, function (i) {
 					if (action === 'issue-submit') {
 						i.status = 'waiting_print';
-						addTimeline(i.timeline, 'Chờ in phiếu', role2);
+						addTimeline(i.timeline, 'Chờ soạn', role2);
 					} else if (action === 'issue-start-pick' || action === 'issue-approve') {
 						i.status = 'picking';
 						addTimeline(i.timeline, 'Bắt đầu soạn hàng', role2);

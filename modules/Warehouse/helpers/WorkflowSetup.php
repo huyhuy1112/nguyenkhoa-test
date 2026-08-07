@@ -57,6 +57,9 @@ class Warehouse_WorkflowSetup_Helper {
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8",
 			array()
 		);
+
+		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		Warehouse_Settings_Helper::ensureTable($db);
 	}
 
 	protected static function ensureColumn(PearDatabase $db, $table, $col, $definition) {

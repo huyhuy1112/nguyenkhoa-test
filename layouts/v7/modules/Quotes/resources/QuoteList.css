@@ -250,6 +250,67 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-table-card
 	margin: 0 !important;
 }
 
+/* ---- Scope tabs: Tất cả | Nhượng quyền ---- */
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tabs {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin: 0 0 12px;
+	padding: 4px;
+	width: fit-content;
+	max-width: 100%;
+	box-sizing: border-box;
+	background: #eceef0;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab {
+	appearance: none;
+	-webkit-appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 34px;
+	padding: 6px 16px;
+	margin: 0;
+	border: 1px solid transparent;
+	border-radius: 8px;
+	background: transparent;
+	color: #504533;
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab:hover {
+	background: rgba(255, 255, 255, 0.65);
+	color: #191c1e;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab.is-active {
+	background: #ffffff;
+	border-color: #c4b49a;
+	color: #0b6e4f;
+	box-shadow: 0 1px 3px rgba(25, 28, 30, 0.06);
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab.is-active .mk-qt-scope-tab__label {
+	box-shadow: inset 0 -2px 0 #08a045;
+	padding-bottom: 1px;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab:focus {
+	outline: none;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab:focus-visible {
+	box-shadow: 0 0 0 2px rgba(8, 160, 69, 0.35);
+}
+
 /* ---- Filter row ---- */
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row,
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent #listview-actions.listview-actions-container.mk-qt-filter-row {
@@ -847,10 +908,22 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent 
 	font-variant-numeric: tabular-nums;
 	font-feature-settings: "tnum" 1;
 	font-weight: 700;
-	font-size: 15px;
-	letter-spacing: normal;
+	font-size: 14px;
+	letter-spacing: -0.01em;
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	display: inline-block;
 	color: #191c1e;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="quote_no"] .value,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="subject"] .value {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
 }
 
 /* ---- Toolbar: list / grid toggle (enabled via List.js) ---- */
@@ -1831,6 +1904,10 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines .is-num {
 	text-align: right;
 	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+	max-width: 160px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines .is-code a {
@@ -1841,6 +1918,7 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines .is-total {
 	font-weight: 700;
+	max-width: 180px;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__empty-lines {
@@ -1886,11 +1964,14 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	min-width: 300px;
+	min-width: 280px;
+	max-width: 100%;
 	padding: 12px 14px;
 	border: 1px solid #e2e8f0;
 	border-radius: 10px;
 	background: #f8fafc;
+	overflow: hidden;
+	box-sizing: border-box;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-row {
@@ -1901,6 +1982,8 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 	font-size: 13px;
 	line-height: 1.35;
 	color: #475569;
+	min-width: 0;
+	width: 100%;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-label {
@@ -1916,15 +1999,20 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-value,
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-row strong {
 	display: block;
-	width: auto;
+	width: 100%;
+	max-width: 100%;
 	text-align: left;
 	color: #0f172a;
 	font-variant-numeric: tabular-nums;
-	font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+	font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	font-size: 14px;
 	font-weight: 700;
-	letter-spacing: 0;
+	letter-spacing: -0.01em;
 	line-height: 1.35;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	box-sizing: border-box;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-row--grand {
@@ -1989,7 +2077,8 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input {
 	width: 100%;
-	max-width: 180px;
+	max-width: 100%;
+	min-width: 0;
 	padding: 6px 8px;
 	border: 1px solid #bbf7d0;
 	border-radius: 8px;
@@ -1998,7 +2087,10 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 	font-weight: 700;
 	font-size: 14px !important;
 	font-variant-numeric: tabular-nums;
-	font-family: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+	font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	box-sizing: border-box;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input:focus {

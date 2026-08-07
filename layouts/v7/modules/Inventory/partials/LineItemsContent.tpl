@@ -172,6 +172,40 @@
 		<td class="mk-inv-col-price">
 			<input id="{$listPrice}" name="{$listPrice}" value="{if !empty($data.$listPrice)}{$data.$listPrice}{else}0{/if}" type="text"
 				   data-rule-required=true data-rule-positive=true class="listPrice smallInputBox inputElement" data-is-price-changed="{if $RECORD_ID && $row_no neq 0}true{else}false{/if}" list-info='{if isset($data.$listPrice)}{Zend_Json::encode($listPriceValues)}{/if}' data-base-currency-id="{getProductBaseCurrency($productId, {$entityType})}" />
+			{* Hidden discount fields: BA UI uses Chiết khấu dropdown; without this, Edit loses saved %. *}
+			{if $ITEM_DISCOUNT_AMOUNT_EDITABLE || $ITEM_DISCOUNT_PERCENT_EDITABLE}
+				{assign var="DISCOUNT_TYPE_MOD" value="zero"}
+				{if !empty($data.$discount_type)}
+					{assign var="DISCOUNT_TYPE_MOD" value=$data.$discount_type}
+				{/if}
+				<div class="discountUI validCheck hide" id="discount_div{$row_no}">
+					<input type="hidden" id="discount_type{$row_no}" name="discount_type{$row_no}" value="{$DISCOUNT_TYPE_MOD}" class="discount_type" />
+					<table class="hide" aria-hidden="true">
+						<tr>
+							<td>
+								<input type="radio" name="discount{$row_no}" class="discounts" data-discount-type="zero" {if $DISCOUNT_TYPE_MOD eq 'zero' || empty($data.$discount_type)}checked{/if} />
+								<input type="hidden" class="discountVal" value="0" />
+							</td>
+						</tr>
+						{if $ITEM_DISCOUNT_PERCENT_EDITABLE}
+							<tr>
+								<td>
+									<input type="radio" name="discount{$row_no}" class="discounts" data-discount-type="percentage" {if $DISCOUNT_TYPE_MOD eq 'percentage'}checked{/if} {(isset($data.$checked_discount_percent)) ? $data.$checked_discount_percent : ""} />
+									<input type="text" id="discount_percentage{$row_no}" name="discount_percentage{$row_no}" value="{(isset($data.$discount_percent)) ? $data.$discount_percent : '0'}" class="discount_percentage discountVal" />
+								</td>
+							</tr>
+						{/if}
+						{if $ITEM_DISCOUNT_AMOUNT_EDITABLE}
+							<tr>
+								<td>
+									<input type="radio" name="discount{$row_no}" class="discounts" data-discount-type="amount" {if $DISCOUNT_TYPE_MOD eq 'amount'}checked{/if} {(isset($data.$checked_discount_amount)) ? $data.$checked_discount_amount : ""} />
+									<input type="text" id="discount_amount{$row_no}" name="discount_amount{$row_no}" value="{(isset($data.$discount_amount)) ? $data.$discount_amount : ''}" class="discount_amount discountVal" />
+								</td>
+							</tr>
+						{/if}
+					</table>
+				</div>
+			{/if}
 		</td>
 	{elseif $LIST_PRICE_EDITABLE}
 		<td>

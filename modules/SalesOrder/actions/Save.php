@@ -195,9 +195,12 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 			return;
 		}
 		$lines = GoodsIssue_CreateFromSalesOrder_Helper::loadSalesOrderLines($salesOrderId);
-		$errors = GoodsIssue_CreateFromSalesOrder_Helper::validateWarehouseStock($lines, $warehouse['name']);
-		if (!empty($errors)) {
-			throw new Exception(implode("\n", $errors));
+		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		if (!Warehouse_Settings_Helper::allowNegativeStock()) {
+			$errors = GoodsIssue_CreateFromSalesOrder_Helper::validateWarehouseStock($lines, $warehouse['name']);
+			if (!empty($errors)) {
+				throw new Exception(implode("\n", $errors));
+			}
 		}
 		try {
 			$userId = (int) Users_Record_Model::getCurrentUserModel()->getId();
@@ -205,7 +208,8 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 				$salesOrderId,
 				$warehouse['id'],
 				$warehouse['name'],
-				$userId
+				$userId,
+				!Warehouse_Settings_Helper::allowNegativeStock()
 			);
 		} catch (Exception $e) {
 			global $log;

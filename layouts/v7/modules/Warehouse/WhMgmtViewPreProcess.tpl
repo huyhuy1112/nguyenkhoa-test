@@ -22,7 +22,7 @@
 {/if}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryListShared.css')}?mk_v=20260612_wh_mgmt7" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.css')}?mk_v=20260806_inb_date_full1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.css')}?mk_v=20260807_neg_stock_ui1" />
 {if $VIEW eq 'WhDetail'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailOverrides.css')}?mk_v=20260806_inb_date_full1" />
 {else}
@@ -31,9 +31,9 @@
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseLocalStore.js')}?mk_v=20260806_inb_date_full1"></script>
 {if $VIEW eq 'WhDetail'}
-	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailPrototype.js')}?mk_v=20260806_inb_date_full1"></script>
+	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailPrototype.js')}?mk_v=20260807_neg_stock_ui1"></script>
 {else}
-	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.js')}?mk_v=20260711_wh_roles2"></script>
+	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.js')}?mk_v=20260807_neg_stock_ui1"></script>
 {/if}
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-warehouse-mgmt="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

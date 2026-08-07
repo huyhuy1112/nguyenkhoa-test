@@ -68,6 +68,33 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		if ($this->isMkModernQuoteCreate($request)) {
 			$this->assignModernContext($request);
 		}
+
+		// Carry existing SC link into form when editing (or URL create param).
+		$viewer = $this->getViewer($request);
+		$recordId = (int) $request->get('record');
+		$scId = 0;
+		if ($recordId > 0) {
+			require_once 'modules/Quotes/helpers/QuoteBaService.php';
+			Quotes_QuoteBaService_Helper::ensureServiceContractLinkColumn();
+			$db = PearDatabase::getInstance();
+			$rs = $db->pquery(
+				'SELECT mk_servicecontract_id FROM vtiger_quotes WHERE quoteid = ?',
+				array($recordId)
+			);
+			if ($rs && $db->num_rows($rs)) {
+				$scId = (int) $db->query_result($rs, 0, 'mk_servicecontract_id');
+			}
+		}
+		if ($scId <= 0) {
+			$scId = (int) $request->get('servicecontract_id');
+			if ($scId <= 0) {
+				$scId = (int) $request->get('mk_servicecontract_id');
+			}
+		}
+		if ($scId > 0) {
+			$viewer->assign('MK_SERVICECONTRACT_ID', $scId);
+		}
+
 		parent::process($request);
 	}
 

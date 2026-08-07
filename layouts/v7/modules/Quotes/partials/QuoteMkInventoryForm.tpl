@@ -20,6 +20,17 @@
 			<input type="hidden" name="defaultOtherEventDuration" value="{$USER_MODEL->get('othereventduration')}" />
 			<input type="hidden" name="returnToList" value="1" />
 			<input type="hidden" name="appName" value="&app={$SELECTED_MENU_CATEGORY}" />
+			{* Link quote to ServiceContracts when created from Khách hàng nhượng quyền *}
+			{assign var=MK_SC_ID value=0}
+			{if isset($MK_SERVICECONTRACT_ID) && $MK_SERVICECONTRACT_ID}
+				{assign var=MK_SC_ID value=$MK_SERVICECONTRACT_ID}
+			{elseif isset($MK_SC_PREFILL) && is_array($MK_SC_PREFILL) && !empty($MK_SC_PREFILL.id)}
+				{assign var=MK_SC_ID value=$MK_SC_PREFILL.id}
+			{elseif isset($RECORD) && $RECORD && method_exists($RECORD, 'get')}
+				{assign var=MK_SC_ID value=$RECORD->get('mk_servicecontract_id')}
+			{/if}
+			<input type="hidden" name="mk_servicecontract_id" id="mk_servicecontract_id" value="{if $MK_SC_ID}{$MK_SC_ID|escape}{/if}" />
+			<input type="hidden" name="servicecontract_id" id="servicecontract_id" value="{if $MK_SC_ID}{$MK_SC_ID|escape}{/if}" />
 			{if $IS_RELATION_OPERATION }
 				<input type="hidden" name="sourceModule" value="{$SOURCE_MODULE}" />
 				<input type="hidden" name="sourceRecord" value="{$SOURCE_RECORD}" />

@@ -116,7 +116,23 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 		require_once 'include/utils/MkEntityNumbering.php';
 		MkEntityNumbering::ensureModuleSequence('Quotes');
 
-		return parent::saveRecord($request);
+		$recordModel = parent::saveRecord($request);
+
+		// Tag quotes created from ServiceContracts (Khách hàng nhượng quyền).
+		if ($recordModel) {
+			$scId = Quotes_QuoteBaService_Helper::resolveServiceContractIdFromRequest($request);
+			if ($scId <= 0
+				&& $request->get('relationOperation')
+				&& strcasecmp((string) $request->get('sourceModule'), 'ServiceContracts') === 0
+			) {
+				$scId = (int) $request->get('sourceRecord');
+			}
+			if ($scId > 0) {
+				Quotes_QuoteBaService_Helper::persistServiceContractLink((int) $recordModel->getId(), $scId);
+			}
+		}
+
+		return $recordModel;
 	}
 
 	public function process(Vtiger_Request $request) {

@@ -11,7 +11,15 @@
 class Quotes_List_View extends Inventory_List_View {
 
 	protected function isSalesListContext(Vtiger_Request $request) {
-		return strtoupper((string) $request->get('app')) === 'SALES';
+		$app = strtoupper(trim((string) $request->get('app')));
+		if ($app === 'SALES') {
+			return true;
+		}
+		// AJAX/PJAX reload sometimes omits app; Quotes list is SALES POS in this product.
+		if ($app === '' && $request->getModule() === 'Quotes') {
+			return true;
+		}
+		return false;
 	}
 
 	protected function isSalesListFieldAvailable(Vtiger_Module_Model $moduleModel, $fieldName) {
@@ -95,6 +103,64 @@ class Quotes_List_View extends Inventory_List_View {
 		$_REQUEST['list_headers'] = $resolvedHeaders;
 	}
 
+	public function initializeListViewContents(Vtiger_Request $request, Vtiger_Viewer $viewer) {
+		// Normalize app so POS + franchise filter always apply on AJAX reloads.
+		if (strtoupper(trim((string) $request->get('app'))) === '') {
+			$request->set('app', 'SALES');
+			$_REQUEST['app'] = 'SALES';
+		}
+
+		$scope = $this->resolveQuoteListScope($request);
+		if ($this->isSalesListContext($request)) {
+			$this->applyQuotesListPosDefaults($request);
+		}
+
+		// Scope must land on the ListView model BEFORE parent runs getQuery/count.
+		if (!$this->listViewModel) {
+			$moduleName = $request->getModule();
+			$cvId = $this->viewName;
+			if (empty($cvId)) {
+				$customView = new CustomView();
+				$cvId = $customView->getViewId($moduleName);
+				$this->viewName = $cvId;
+			}
+			$listHeaders = $request->get('list_headers', array());
+			$this->listViewModel = Vtiger_ListView_Model::getInstance($moduleName, $cvId, $listHeaders);
+		}
+		$this->listViewModel->set('mk_quote_scope', $scope);
+		$viewer->assign('MK_QUOTE_SCOPE', $scope);
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
+
+		parent::initializeListViewContents($request, $viewer);
+
+		// Parent may rebuild listViewModel in edge paths — re-assert scope for subsequent uses.
+		$scope = $this->resolveQuoteListScope($request);
+		$viewer->assign('MK_QUOTE_SCOPE', $scope);
+		if ($this->listViewModel) {
+			$this->listViewModel->set('mk_quote_scope', $scope);
+		}
+	}
+
+	/**
+	 * @return string all|franchise
+	 */
+	protected function resolveQuoteListScope(Vtiger_Request $request) {
+		$raw = strtolower(trim((string) $request->get('mk_quote_scope')));
+		if ($raw === '' && isset($_REQUEST['mk_quote_scope'])) {
+			$raw = strtolower(trim((string) $_REQUEST['mk_quote_scope']));
+		}
+		if ($raw === '' && isset($_GET['mk_quote_scope'])) {
+			$raw = strtolower(trim((string) $_GET['mk_quote_scope']));
+		}
+		if ($raw === '' && isset($_POST['mk_quote_scope'])) {
+			$raw = strtolower(trim((string) $_POST['mk_quote_scope']));
+		}
+		if ($raw === 'franchise' || $raw === 'nhuong_quyen' || $raw === 'nq') {
+			return 'franchise';
+		}
+		return 'all';
+	}
+
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		if ($this->isSalesListContext($request)) {
 			$this->applyQuotesListPosDefaults($request);
@@ -103,16 +169,14 @@ class Quotes_List_View extends Inventory_List_View {
 	}
 
 	public function process(Vtiger_Request $request) {
+		// AJAX skips preProcess — ensure defaults + scope path still run via initialize.
+		if (strtoupper(trim((string) $request->get('app'))) === '') {
+			$request->set('app', 'SALES');
+			$_REQUEST['app'] = 'SALES';
+		}
 		if ($this->isSalesListContext($request)) {
 			$this->applyQuotesListPosDefaults($request);
 		}
 		parent::process($request);
-	}
-
-	public function initializeListViewContents(Vtiger_Request $request, Vtiger_Viewer $viewer) {
-		if ($this->isSalesListContext($request)) {
-			$this->applyQuotesListPosDefaults($request);
-		}
-		parent::initializeListViewContents($request, $viewer);
 	}
 }

@@ -128,23 +128,78 @@
   }
 
   function decodeHtmlEntities(text) {
-    var value = String(text || "");
+    var value = String(text == null ? "" : text);
     if (!value) {
       return "";
     }
+    // Common vtiger / AJAX corruption: entities shown as plain text (&ecirc; → ê)
     var el = document.createElement("textarea");
     var prev = null;
     var guard = 0;
-    while (value !== prev && guard < 6) {
+    while (value !== prev && guard < 8) {
       prev = value;
-      if (!/&(?:#x?[0-9a-f]+|[a-z]+);/i.test(value)) {
+      if (!/&(?:#x?[0-9a-f]+|[a-z][a-z0-9]+);/i.test(value)) {
         break;
       }
       el.innerHTML = value;
       value = el.value;
       guard += 1;
     }
+    // Also strip accidental entity wrappers from double-escape without &amp;
+    if (typeof app !== "undefined" && app.htmlDecode) {
+      try {
+        var once = app.htmlDecode(value);
+        if (once && once !== value) {
+          value = once;
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    }
     return value;
+  }
+
+  function normalizeUnicodeText(text) {
+    var value = decodeHtmlEntities(text);
+    // NFC so Vietnamese diacritics combine correctly across browsers
+    try {
+      if (value && typeof value.normalize === "function") {
+        value = value.normalize("NFC");
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return value;
+  }
+
+  function decodeInlineNoteFields($panel) {
+    if (!$panel || !$panel.length) {
+      return;
+    }
+    $panel.find(".mk-so-inline-detail__notes-input, .mk-so-inline-detail__line-note").each(function () {
+      var $el = $(this);
+      var raw = $el.val();
+      var decoded = normalizeUnicodeText(raw);
+      if (decoded !== raw) {
+        $el.val(decoded);
+      }
+    });
+    // Field views may also carry entity leftovers
+    $panel.find(".mk-so-inline-detail__field-view, .mk-so-inline-detail__customer-name").each(function () {
+      var $el = $(this);
+      if ($el.data("mkDecoded")) {
+        return;
+      }
+      var raw = $.trim($el.text());
+      if (!raw || !/&(?:#x?[0-9a-f]+|[a-z][a-z0-9]+);/i.test(raw)) {
+        return;
+      }
+      var decoded = normalizeUnicodeText(raw);
+      if (decoded !== raw) {
+        $el.text(decoded);
+        $el.data("mkDecoded", 1);
+      }
+    });
   }
 
   var TEXT_DECODE_FIELDS = [
@@ -193,12 +248,12 @@
     Paid: "Đã thanh toán",
     Sent: "Đã gửi",
     Rejected: "Từ chối",
-    waiting_print: "Chờ in phiếu",
+    waiting_print: "Chờ soạn",
     picking: "Đang soạn",
     packed: "Đã soạn",
     shipped: "Đã giao",
     rejected: "Từ chối",
-    "Chờ in phiếu": "Chờ in phiếu",
+    "Chờ soạn": "Chờ soạn",
     "Đang soạn": "Đang soạn",
     "Đã soạn": "Đã soạn",
     "Đã giao": "Đã giao",
@@ -984,7 +1039,7 @@
         '<div class="modal-content">' +
         '<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
         '<h4 class="modal-title">Xác nhận đơn hàng</h4></div>' +
-        '<div class="modal-body"><p class="mk-so-wh-modal__lead">Chọn kho để tạo phiếu xuất ở trạng thái <strong>Chờ in phiếu</strong>. Đơn hàng sẽ chuyển sang cùng trạng thái <strong>Chờ in phiếu</strong>.</p>' +
+        '<div class="modal-body"><p class="mk-so-wh-modal__lead">Chọn kho để tạo phiếu xuất ở trạng thái <strong>Chờ soạn</strong>. Đơn hàng sẽ chuyển sang cùng trạng thái <strong>Chờ soạn</strong>.</p>' +
         '<div class="mk-so-wh-modal__list" id="mkSoConfirmWarehouseList"></div>' +
         '<div class="mk-so-wh-modal__error hide" id="mkSoConfirmWarehouseError"></div></div>' +
         '<div class="modal-footer">' +
@@ -1383,14 +1438,28 @@
         "received";
       data[paidName] = $paidInput.val() || "0";
     }
-    data.mk_list_note =
-      $panel.find(".mk-so-inline-detail__notes-input").val() || "";
+    data.mk_list_note = normalizeUnicodeText(
+      $panel.find(".mk-so-inline-detail__notes-input").val() || "",
+    );
+    // Also map description if field is wired as description (legacy)
+    if (!data.description) {
+      data.description =
+        $panel.find('.mk-so-inline-detail__notes-input[name="description"]').val() ||
+        data.mk_list_note;
+      data.description = normalizeUnicodeText(data.description || "");
+    }
     var lineComments = {};
     $panel.find(".mk-so-inline-detail__line-note").each(function () {
       var seq = $(this).attr("data-sequence") || $(this).data("sequence");
       if (!seq) return;
-      lineComments[String(seq)] = $(this).val() || "";
+      var text = normalizeUnicodeText($(this).val() || "");
+      lineComments[String(seq)] = text;
+      // Flat keys: survive Request JSON auto-decode quirks + easier debugging
+      data["line_comment_" + seq] = text;
+      data["line_comments_" + seq] = text;
     });
+    // Send as real object (jQuery posts line_comments[1]=...) AND JSON backup
+    data.line_comments = lineComments;
     data.line_comments_json = JSON.stringify(lineComments);
     var grandRaw = $panel.find(".mk-so-inline-detail__grand-input").val();
     if (grandRaw != null && String(grandRaw).length) {
@@ -1508,7 +1577,7 @@
           if (noteValue !== undefined) {
             $panel
               .find(".mk-so-inline-detail__notes-input")
-              .val(decodeHtmlEntities(noteValue));
+              .val(normalizeUnicodeText(noteValue));
           }
         }
         var paidName =
@@ -1588,10 +1657,11 @@
     $panel.data("mkSoInlineInit", true);
 
     var recordId = String($panel.data("record-id") || "");
+    decodeInlineNoteFields($panel);
     var snapshot = captureInlineDetailSnapshot($panel);
     var $notes = $panel.find(".mk-so-inline-detail__notes-input");
     if ($notes.length) {
-      $notes.val(decodeHtmlEntities($notes.val()));
+      $notes.val(normalizeUnicodeText($notes.val()));
     }
 
     // Always editable — no pencil toggle needed.
@@ -2363,6 +2433,27 @@
       );
 
     $(document)
+      .off("click.mkSoCancelOrder", ".mk-so-inline-detail__cancel-order-btn")
+      .on(
+        "click.mkSoCancelOrder",
+        ".mk-so-inline-detail__cancel-order-btn",
+        function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var $btn = $(this);
+          if ($btn.data("mkBusy")) {
+            return;
+          }
+          var $panel = $btn.closest(".mk-so-inline-detail");
+          var recordId = String($panel.data("record-id") || "");
+          if (!recordId) {
+            return;
+          }
+          cancelSalesOrder($panel, recordId, $btn);
+        },
+      );
+
+    $(document)
       .off("click.mkSoMisa", ".mk-so-inline-detail__misa-btn")
       .on("click.mkSoMisa", ".mk-so-inline-detail__misa-btn", function (e) {
         e.preventDefault();
@@ -2377,6 +2468,137 @@
         }
         transferSalesOrderToMisa(recordId, $link);
       });
+  }
+
+  function cancelSalesOrder($panel, recordId, $btn) {
+    recordId = String(recordId || "");
+    if (!recordId) {
+      return;
+    }
+    var message =
+      "Huỷ đơn sẽ hoàn kho nếu đã trừ tồn. Tiếp tục?";
+    var run = function () {
+      if ($btn && $btn.length) {
+        $btn.data("mkBusy", 1).prop("disabled", true).addClass("is-busy");
+      }
+      var postData = {
+        module: "SalesOrder",
+        action: "CancelOrder",
+        record: recordId,
+        app: "SALES",
+      };
+      var csrf = getCsrfToken();
+      if (csrf) {
+        postData.__vtrftk = csrf;
+      }
+      if (app.helper && app.helper.showProgress) {
+        app.helper.showProgress();
+      }
+      var finish = function () {
+        if (app.helper && app.helper.hideProgress) {
+          app.helper.hideProgress();
+        }
+        if ($btn && $btn.length) {
+          $btn.data("mkBusy", 0).prop("disabled", false).removeClass("is-busy");
+        }
+      };
+      var onOk = function (result) {
+        finish();
+        var payload =
+          result && result.result && typeof result.result === "object"
+            ? result.result
+            : result;
+        if (!payload || payload.success === false) {
+          var errMsg =
+            (payload && payload.message) || "Không huỷ được đơn hàng.";
+          if (app.helper && app.helper.showErrorNotification) {
+            app.helper.showErrorNotification({ message: errMsg });
+          } else {
+            window.alert(errMsg);
+          }
+          return;
+        }
+        var okMsg = payload.message || "Đã huỷ đơn hàng.";
+        if (app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({ message: okMsg });
+        }
+        // Refresh list / close panel.
+        try {
+          if ($panel && $panel.length) {
+            var $status = $panel.find(
+              ".mk-so-inline-detail__status, [data-field-name='sostatus']",
+            );
+            if ($status.length) {
+              $status.text("Đã hủy");
+            }
+            $panel
+              .find(".mk-so-inline-detail__cancel-order-btn")
+              .prop("disabled", true)
+              .addClass("is-disabled");
+          }
+          if (
+            typeof Vtiger_List_Js !== "undefined" &&
+            Vtiger_List_Js.getInstance
+          ) {
+            var listInstance = Vtiger_List_Js.getInstance();
+            if (listInstance && listInstance.getListViewRecords) {
+              listInstance.getListViewRecords();
+            }
+          }
+        } catch (ignore) {
+          /* best effort */
+        }
+        window.setTimeout(function () {
+          if (typeof window.location !== "undefined") {
+            window.location.reload();
+          }
+        }, 600);
+      };
+      var onFail = function (err) {
+        finish();
+        var msg =
+          (err && err.message) ||
+          (typeof err === "string" ? err : "") ||
+          "Không huỷ được đơn hàng.";
+        if (app.helper && app.helper.showErrorNotification) {
+          app.helper.showErrorNotification({ message: msg });
+        } else {
+          window.alert(msg);
+        }
+      };
+      if (app.request && app.request.post) {
+        app.request.post({ data: postData }).then(function (err, res) {
+          if (err) {
+            onFail(err);
+            return;
+          }
+          onOk(res);
+        });
+      } else {
+        $.ajax({
+          url: "index.php",
+          method: "POST",
+          dataType: "json",
+          data: postData,
+        })
+          .done(onOk)
+          .fail(function (xhr) {
+            onFail(
+              (xhr && xhr.responseJSON && xhr.responseJSON.error) ||
+                (xhr && xhr.statusText),
+            );
+          });
+      }
+    };
+    if (app.helper && app.helper.showConfirmationBox) {
+      app.helper
+        .showConfirmationBox({ message: message })
+        .then(function () {
+          run();
+        });
+    } else if (window.confirm(message)) {
+      run();
+    }
   }
 
   function transferSalesOrderToMisa(recordId, $trigger) {

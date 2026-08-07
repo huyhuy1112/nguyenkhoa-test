@@ -1,6 +1,7 @@
 <?php
 /*+***********************************************************************************
- * Confirm Sales Order (Phiếu tạm → Đã xác nhận) and create warehouse outbound slip.
+ * Confirm Sales Order (Phiếu tạm → Chờ soạn) and create warehouse outbound slip.
+ * Stock is deducted at waiting_print (Chờ soạn).
  *************************************************************************************/
 
 class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
@@ -41,7 +42,7 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 			$outboundStatuses = array(
 				'Approved', 'Đã xác nhận', 'Đã duyệt',
 				'waiting_print', 'picking', 'packed', 'shipped', 'rejected',
-				'Delivered', 'Đã giao', 'Hoàn thành', 'Chờ in phiếu', 'Đang soạn', 'Đã soạn', 'Từ chối',
+				'Delivered', 'Đã giao', 'Hoàn thành', 'Chờ soạn', 'Chờ in phiếu', 'Đang soạn', 'Đã soạn', 'Từ chối',
 			);
 			$alreadyConfirmed = in_array($status, $outboundStatuses, true);
 
@@ -82,10 +83,14 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				throw new Exception('Đơn hàng chưa có hàng hóa để xuất kho.');
 			}
 
-			// Soft stock warning only — waiting_print does not deduct stock yet.
+			require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+			$allowNegative = Warehouse_Settings_Helper::allowNegativeStock();
 			$stockWarnings = GoodsIssue_CreateFromSalesOrder_Helper::validateWarehouseStock($lines, $warehouse['name']);
+			if (!$allowNegative && !empty($stockWarnings)) {
+				throw new Exception('Không đủ tồn kho để xác nhận đơn. ' . implode(' ', $stockWarnings));
+			}
 
-			// Match GI initial status: Chờ in phiếu.
+			// Match GI initial status: Chờ soạn (waiting_print).
 			$db = PearDatabase::getInstance();
 			$db->pquery(
 				'UPDATE vtiger_salesorder SET sostatus = ? WHERE salesorderid = ?',
@@ -101,19 +106,25 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 					$warehouse['id'],
 					$warehouse['name'],
 					$userId,
-					false
+					!$allowNegative
 				);
 
 			if ($goodsIssueId <= 0) {
 				throw new Exception('Không tạo được phiếu xuất kho.');
 			}
 
+			// Existing GI from older flow may lack stock deduction — ensure deducted once.
+			if ($existingGi > 0) {
+				require_once 'modules/Warehouse/models/WhMgmtService.php';
+				Warehouse_WhMgmtService::deductStockForGoodsIssue($goodsIssueId, $warehouse['id'], $userId);
+			}
+
 			require_once 'modules/GoodsIssue/helpers/SyncSalesOrderStatus.php';
 			GoodsIssue_SyncSalesOrderStatus_Helper::syncFromIssueId($goodsIssueId, 'waiting_print');
 
-			$message = 'Đã xác nhận đơn hàng và tạo phiếu xuất kho (Chờ in phiếu).';
-			if (!empty($stockWarnings)) {
-				$message .= ' Lưu ý tồn kho: ' . implode(' ', $stockWarnings);
+			$message = 'Đã xác nhận đơn hàng và tạo phiếu xuất kho (Chờ soạn). Tồn kho đã được trừ.';
+			if ($allowNegative && !empty($stockWarnings)) {
+				$message .= ' Lưu ý tồn kho (cho phép âm): ' . implode(' ', $stockWarnings);
 			}
 
 			// If SO came from a quote, soft-delete that quote so it leaves the Quotes list.
@@ -128,7 +139,7 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				'warehouse_id' => $warehouse['id'],
 				'warehouse_name' => $warehouse['name'],
 				'already_confirmed' => false,
-				'stock_warnings' => $stockWarnings,
+				'stock_warnings' => $allowNegative ? $stockWarnings : array(),
 				'message' => $message,
 				'list_url' => 'index.php?module=SalesOrder&view=List&app=SALES',
 				'detail_url' => $soModel->getDetailViewUrl() . '&app=SALES',

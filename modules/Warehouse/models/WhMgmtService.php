@@ -1067,6 +1067,77 @@ class Warehouse_WhMgmtService {
 			);
 		}
 		$meta['stockDeducted'] = true;
+		$meta['stockDeductedAt'] = gmdate('c');
+	}
+
+	/**
+	 * Public: deduct stock for a goods issue (idempotent via mk_meta_json.stockDeducted).
+	 * Used when SO confirms → GI waiting_print (Chờ soạn).
+	 *
+	 * @param int $issueId
+	 * @param string $warehouseCode
+	 * @param int $userId
+	 * @return bool true when deduction ran (or already deducted)
+	 */
+	public static function deductStockForGoodsIssue($issueId, $warehouseCode, $userId = 0) {
+		$issueId = (int) $issueId;
+		$warehouseCode = trim((string) $warehouseCode);
+		if ($issueId <= 0 || $warehouseCode === '') {
+			return false;
+		}
+		self::ensureInstalled();
+		$db = PearDatabase::getInstance();
+		$rs = $db->pquery(
+			'SELECT mk_meta_json FROM vtiger_goodsissue WHERE issueid = ? AND deleted = 0 LIMIT 1',
+			array($issueId)
+		);
+		if (!$rs || $db->num_rows($rs) <= 0) {
+			return false;
+		}
+		$meta = self::decodeMeta($db->query_result($rs, 0, 'mk_meta_json'));
+		if (empty($userId)) {
+			$user = Users_Record_Model::getCurrentUserModel();
+			$userId = $user ? (int) $user->getId() : 0;
+		}
+		self::deductStockForIssue($db, $warehouseCode, $issueId, (int) $userId, $meta);
+		$db->pquery(
+			'UPDATE vtiger_goodsissue SET mk_meta_json = ?, updatedby = ?, updatedtime = ? WHERE issueid = ?',
+			array(json_encode($meta, JSON_UNESCAPED_UNICODE), (int) $userId, self::nowSql(), $issueId)
+		);
+		return true;
+	}
+
+	/**
+	 * Public cancel helper for SalesOrder / external callers.
+	 *
+	 * @param string $warehouseCode
+	 * @param string $issueCode
+	 * @param int $userId
+	 * @param string $note
+	 * @return array
+	 */
+	public static function cancelIssueByCode($warehouseCode, $issueCode, $userId = 0, $note = '') {
+		if (empty($userId)) {
+			$user = Users_Record_Model::getCurrentUserModel();
+			$userId = $user ? (int) $user->getId() : 0;
+		}
+		$role = 'manager';
+		try {
+			$userModel = Users_Record_Model::getCurrentUserModel();
+			if ($userModel) {
+				$role = 'manager';
+			}
+		} catch (Exception $e) {
+			/* keep default */
+		}
+		return self::applyIssueAction(
+			$warehouseCode,
+			$issueCode,
+			'issue-cancel',
+			$role,
+			$note !== '' ? $note : 'Huỷ đơn từ Sales Order',
+			(int) $userId
+		);
 	}
 
 	/**
@@ -1085,6 +1156,9 @@ class Warehouse_WhMgmtService {
 		$now,
 		$doUpdate
 	) {
+		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		$allowNegative = Warehouse_Settings_Helper::allowNegativeStock();
+
 		$qtyNeeded = (float) $qtyNeeded;
 		$sku = trim((string) $sku);
 		$lot = trim((string) $lot);
@@ -1092,7 +1166,15 @@ class Warehouse_WhMgmtService {
 		$productId = (int) $productId;
 		$virtualQty = array();
 
-		$takeFromRow = function ($stockId, $current) use (&$qtyNeeded, &$virtualQty, $doUpdate, $db, $userId, $now) {
+		$takeFromRow = function ($stockId, $current, $forceFull = false) use (
+			&$qtyNeeded,
+			&$virtualQty,
+			$doUpdate,
+			$db,
+			$userId,
+			$now,
+			$allowNegative
+		) {
 			$stockId = (int) $stockId;
 			if (!$doUpdate) {
 				if (!array_key_exists($stockId, $virtualQty)) {
@@ -1100,17 +1182,32 @@ class Warehouse_WhMgmtService {
 				}
 				$current = $virtualQty[$stockId];
 			}
-			$deduct = min((float) $current, $qtyNeeded);
+			if ($allowNegative && $forceFull) {
+				$deduct = (float) $qtyNeeded;
+			} else {
+				$deduct = min((float) $current, $qtyNeeded);
+				if ($deduct <= 0 && !$allowNegative) {
+					return;
+				}
+				if ($deduct <= 0 && $allowNegative) {
+					// Stock row exists but non-positive — allow full remaining when negative OK.
+					$deduct = (float) $qtyNeeded;
+				}
+			}
 			if ($deduct <= 0) {
 				return;
+			}
+			$newQty = (float) $current - $deduct;
+			if (!$allowNegative) {
+				$newQty = max(0, $newQty);
 			}
 			if ($doUpdate) {
 				$db->pquery(
 					'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
-					array(max(0, (float) $current - $deduct), (int) $userId, $now, $stockId)
+					array($newQty, (int) $userId, $now, $stockId)
 				);
 			} else {
-				$virtualQty[$stockId] = max(0, (float) $current - $deduct);
+				$virtualQty[$stockId] = $newQty;
 			}
 			$qtyNeeded -= $deduct;
 		};
@@ -1124,7 +1221,8 @@ class Warehouse_WhMgmtService {
 			if ($rs && $db->num_rows($rs) > 0) {
 				$takeFromRow(
 					(int) $db->query_result($rs, 0, 'stockid'),
-					(float) $db->query_result($rs, 0, 'quantity')
+					(float) $db->query_result($rs, 0, 'quantity'),
+					$allowNegative
 				);
 			}
 		}
@@ -1132,10 +1230,11 @@ class Warehouse_WhMgmtService {
 			return 0;
 		}
 
+		$qtyFilter = $allowNegative ? '1=1' : 'quantity > 0';
 		$rs = $db->pquery(
-			'SELECT stockid, quantity, product_key, productid, product_name FROM vtiger_warehouse_stock
-			 WHERE warehouse_id = ? AND quantity > 0
-			 ORDER BY expired_date ASC, stockid ASC',
+			"SELECT stockid, quantity, product_key, productid, product_name FROM vtiger_warehouse_stock
+			 WHERE warehouse_id = ? AND {$qtyFilter}
+			 ORDER BY expired_date ASC, stockid ASC",
 			array($warehouseCode)
 		);
 		while ($rs && ($row = $db->fetchByAssoc($rs))) {
@@ -1158,10 +1257,16 @@ class Warehouse_WhMgmtService {
 			if (!$match) {
 				continue;
 			}
-			$takeFromRow((int) $row['stockid'], (float) $row['quantity']);
+			$takeFromRow((int) $row['stockid'], (float) $row['quantity'], $allowNegative);
 		}
 
-		if ($doUpdate && $qtyNeeded > 0.00000001) {
+		// Allow-negative fallback: create a stock row with negative qty when no match.
+		if ($doUpdate && $allowNegative && $qtyNeeded > 0.00000001) {
+			self::createNegativeStockRow($db, $warehouseCode, $sku, $lot, $name, $productId, $qtyNeeded, $userId, $now);
+			$qtyNeeded = 0;
+		}
+
+		if ($doUpdate && !$allowNegative && $qtyNeeded > 0.00000001) {
 			$label = $name !== '' ? $name : ($sku !== '' ? $sku : 'hàng');
 			if ($lot !== '') {
 				$label .= ' · Lô ' . $lot;
@@ -1171,7 +1276,76 @@ class Warehouse_WhMgmtService {
 		return max(0, $qtyNeeded);
 	}
 
+	/**
+	 * Create / update a stock identity to hold a negative quantity (allow-negative mode).
+	 */
+	protected static function createNegativeStockRow(
+		PearDatabase $db,
+		$warehouseCode,
+		$sku,
+		$lot,
+		$name,
+		$productId,
+		$qtyNeeded,
+		$userId,
+		$now
+	) {
+		$sku = trim((string) $sku);
+		$lot = trim((string) $lot);
+		if ($lot === '') {
+			$lot = '—';
+		}
+		if ($sku === '' && $productId > 0) {
+			$sku = self::resolveProductSku($db, $productId);
+		}
+		if ($sku === '') {
+			$sku = $name !== '' ? self::guessSkuFromName($name) : 'UNK';
+		}
+		$wh = self::findWarehouseRowByCode($db, $warehouseCode);
+		$whName = $wh ? self::decodeDisplayTextDeep((string) $wh['name']) : $warehouseCode;
+		$key = self::stockProductKey($warehouseCode, $sku, $lot);
+		$rs = $db->pquery(
+			'SELECT stockid, quantity FROM vtiger_warehouse_stock WHERE product_key = ? LIMIT 1',
+			array($key)
+		);
+		if ($rs && $db->num_rows($rs) > 0) {
+			$stockId = (int) $db->query_result($rs, 0, 'stockid');
+			$current = (float) $db->query_result($rs, 0, 'quantity');
+			$db->pquery(
+				'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
+				array($current - (float) $qtyNeeded, (int) $userId, $now, $stockId)
+			);
+			return;
+		}
+		$stockId = (int) $db->getUniqueID('vtiger_warehouse_stock');
+		$db->pquery(
+			'INSERT INTO vtiger_warehouse_stock(
+				stockid, product_key, productid, product_name, warehouse_id, warehouse_name,
+				quantity, shrinkage_qty, last_price, createdby, updatedby, createdtime, updatedtime
+			) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+			array(
+				$stockId,
+				$key,
+				$productId > 0 ? $productId : null,
+				$name !== '' ? $name : $sku,
+				$warehouseCode,
+				$whName,
+				0 - (float) $qtyNeeded,
+				0,
+				0,
+				(int) $userId,
+				(int) $userId,
+				$now,
+				$now,
+			)
+		);
+	}
+
 	protected static function assertOutboundStockAvailable(PearDatabase $db, $warehouseCode, array $lines) {
+		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		if (Warehouse_Settings_Helper::allowNegativeStock()) {
+			return;
+		}
 		foreach ($lines as $line) {
 			$qty = (float) (isset($line['qty']) ? $line['qty'] : 0);
 			if ($qty <= 0) {
@@ -1353,7 +1527,7 @@ class Warehouse_WhMgmtService {
 
 	protected static function issuePathLabel($status) {
 		$map = array(
-			'waiting_print' => 'Chờ in phiếu',
+			'waiting_print' => 'Chờ soạn',
 			'picking' => 'Đang soạn',
 			'packed' => 'Đã soạn',
 			'shipped' => 'Đã giao',
@@ -1564,7 +1738,7 @@ class Warehouse_WhMgmtService {
 
 		if ($actionKey === 'issue-start-pick') {
 			if (!in_array($dbStatus, array('waiting_print', 'draft', 'pending_approval'), true)) {
-				throw new Exception('Phiếu không ở trạng thái chờ in.');
+				throw new Exception('Phiếu không ở trạng thái chờ soạn.');
 			}
 			$newDbStatus = 'picking';
 			self::pushTimeline($meta, 'Bắt đầu soạn hàng', $role, '');
@@ -1573,7 +1747,11 @@ class Warehouse_WhMgmtService {
 				throw new Exception('Phiếu không ở trạng thái đang soạn.');
 			}
 			$newDbStatus = 'packed';
-			self::deductStockForIssue($db, $warehouseCode, $issueId, $userId, $meta);
+			// Deduct only if not already deducted at waiting_print (Chờ soạn).
+			// Legacy slips created before this change still deduct here.
+			if (empty($meta['stockDeducted'])) {
+				self::deductStockForIssue($db, $warehouseCode, $issueId, $userId, $meta);
+			}
 			$ot = trim((string) (isset($meta['outboundType']) ? $meta['outboundType'] : ''));
 			$toId = trim((string) (isset($meta['toWarehouseId']) ? $meta['toWarehouseId'] : ''));
 			if ($ot === 'transfer' && $toId !== '') {
@@ -1588,7 +1766,7 @@ class Warehouse_WhMgmtService {
 			self::pushTimeline($meta, 'Đã giao hàng', $role, '');
 		} else if ($actionKey === 'issue-submit') {
 			$newDbStatus = 'waiting_print';
-			self::pushTimeline($meta, 'Chờ in phiếu', $role, '');
+			self::pushTimeline($meta, 'Chờ soạn', $role, '');
 		} else if ($actionKey === 'issue-approve') {
 			$newDbStatus = 'picking';
 			self::pushTimeline($meta, 'Bắt đầu soạn hàng', $role, '');
@@ -1598,7 +1776,7 @@ class Warehouse_WhMgmtService {
 		} else if ($actionKey === 'issue-cancel') {
 			$cancellable = array('waiting_print', 'draft', 'pending_approval', 'picking', 'packed', 'approved');
 			if (!in_array($dbStatus, $cancellable, true)) {
-				throw new Exception('Chỉ huỷ được phiếu ở trạng thái Chờ in phiếu, Đang soạn hoặc Đã soạn.');
+				throw new Exception('Chỉ huỷ được phiếu ở trạng thái Chờ soạn, Đang soạn hoặc Đã soạn.');
 			}
 			self::restoreStockForCancelledIssue($db, $warehouseCode, $issueId, $userId, $meta);
 			$newDbStatus = 'cancelled';

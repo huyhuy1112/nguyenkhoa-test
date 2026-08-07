@@ -48,17 +48,24 @@ class Warehouse_Stock_Helper {
 			LEFT JOIN vtiger_productsservices ps ON ps.productsservicesid = ws.productid AND ws.productid > 0
 			WHERE ' . implode(' AND ', $where);
 
+		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		$allowNegative = Warehouse_Settings_Helper::allowNegativeStock();
+		// when negative allowed, use raw on-hand; otherwise floor at 0
+		$av = $allowNegative
+			? '(ws.quantity - COALESCE(ws.shrinkage_qty, 0))'
+			: 'GREATEST(ws.quantity - COALESCE(ws.shrinkage_qty, 0), 0)';
+
 		$threshold = (float) self::LOW_STOCK_THRESHOLD;
-		$aggSql = 'SELECT
-			COUNT(CASE WHEN GREATEST(ws.quantity - COALESCE(ws.shrinkage_qty, 0), 0) > 0 THEN 1 END) AS sku_in_stock,
+		$aggSql = "SELECT
+			COUNT(CASE WHEN {$av} != 0 THEN 1 END) AS sku_in_stock,
 			COALESCE(SUM(
-				GREATEST(ws.quantity - COALESCE(ws.shrinkage_qty, 0), 0) * COALESCE(ws.last_price, 0)
+				{$av} * COALESCE(ws.last_price, 0)
 			), 0) AS inventory_value,
 			COUNT(CASE
-				WHEN GREATEST(ws.quantity - COALESCE(ws.shrinkage_qty, 0), 0) > 0
-					AND GREATEST(ws.quantity - COALESCE(ws.shrinkage_qty, 0), 0) < ?
+				WHEN {$av} > 0
+					AND {$av} < ?
 				THEN 1 END) AS low_stock_count
-			' . $fromWhere;
+			" . $fromWhere;
 
 		$aggParams = array_merge(array($threshold), $params);
 		$rs = $db->pquery($aggSql, $aggParams);
@@ -121,6 +128,11 @@ class Warehouse_Stock_Helper {
 		$q = (float) $quantity;
 		$s = (float) $shrinkage;
 		$a = $q - $s;
+		// When negative stock is allowed, show real on-hand (can be negative).
+		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		if (Warehouse_Settings_Helper::allowNegativeStock()) {
+			return $a;
+		}
 		return $a > 0 ? $a : 0.0;
 	}
 

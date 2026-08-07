@@ -68,6 +68,60 @@ class Quotes_SaveAjax_Action extends Inventory_SaveAjax_Action {
 	}
 
 	/**
+	 * Collect line comments. Vtiger_Request auto-decodes JSON objects into arrays —
+	 * so line_comments_json may already be an array (not a string).
+	 *
+	 * @return array
+	 */
+	protected function extractInlineLineComments(Vtiger_Request $request) {
+		$comments = array();
+
+		$fromReq = $request->get('line_comments');
+		if (is_array($fromReq) && !empty($fromReq)) {
+			$comments = $fromReq;
+		}
+
+		if (empty($comments)) {
+			$rawJson = $request->get('line_comments_json');
+			if (is_array($rawJson)) {
+				$comments = $rawJson;
+			} elseif (is_string($rawJson) && $rawJson !== '') {
+				$decoded = json_decode($rawJson, true);
+				if (is_array($decoded)) {
+					$comments = $decoded;
+				}
+			}
+		}
+
+		if (empty($comments) && !empty($_REQUEST['line_comments_json'])) {
+			$raw = $_REQUEST['line_comments_json'];
+			if (is_array($raw)) {
+				$comments = $raw;
+			} elseif (is_string($raw) && $raw !== '') {
+				$decoded = json_decode(html_entity_decode($raw, ENT_QUOTES, 'UTF-8'), true);
+				if (is_array($decoded)) {
+					$comments = $decoded;
+				}
+			}
+		}
+
+		foreach (array($_REQUEST, isset($_POST) ? $_POST : array()) as $bucket) {
+			if (!is_array($bucket)) {
+				continue;
+			}
+			foreach ($bucket as $key => $val) {
+				if (preg_match('/^line_comments\[(\d+)\]$/', (string) $key, $m)
+					|| preg_match('/^line_comments_(\d+)$/', (string) $key, $m)
+					|| preg_match('/^line_comment_(\d+)$/', (string) $key, $m)) {
+					$comments[(int) $m[1]] = $val;
+				}
+			}
+		}
+
+		return is_array($comments) ? $comments : array();
+	}
+
+	/**
 	 * Persist per-line comments + manual grand total (via adjustment) without reloading inventory lines.
 	 */
 	protected function saveInlineLineExtras(Vtiger_Request $request, Vtiger_Record_Model $recordModel) {
@@ -77,37 +131,36 @@ class Quotes_SaveAjax_Action extends Inventory_SaveAjax_Action {
 		}
 		$db = PearDatabase::getInstance();
 
-		$comments = $request->get('line_comments');
-		if (!is_array($comments) || empty($comments)) {
-			// jQuery may send line_comments[1]=... or JSON blob
-			$rawJson = $request->get('line_comments_json');
-			if (is_string($rawJson) && $rawJson !== '') {
-				$decoded = json_decode($rawJson, true);
-				if (is_array($decoded)) {
-					$comments = $decoded;
+		$comments = $this->extractInlineLineComments($request);
+		if (!empty($comments)) {
+			// Map 1-based UI index → sequence_no when needed
+			$sequences = array();
+			$rs = $db->pquery(
+				'SELECT sequence_no FROM vtiger_inventoryproductrel WHERE id = ? ORDER BY sequence_no ASC',
+				array($recordId)
+			);
+			if ($rs) {
+				$n = $db->num_rows($rs);
+				for ($i = 0; $i < $n; $i++) {
+					$sequences[] = (int) $db->query_result($rs, $i, 'sequence_no');
 				}
 			}
-		}
-		if (!is_array($comments)) {
-			// Parse flat keys line_comments_1 etc.
-			$comments = array();
-			$rawAll = $_REQUEST;
-			foreach ($rawAll as $key => $val) {
-				if (preg_match('/^line_comments\[(\d+)\]$/', (string) $key, $m)
-					|| preg_match('/^line_comments_(\d+)$/', (string) $key, $m)) {
-					$comments[(int) $m[1]] = $val;
-				}
-			}
-		}
-		if (is_array($comments)) {
+			$seqSet = array_flip($sequences);
 			foreach ($comments as $seq => $text) {
-				$seqNo = (int) $seq;
-				if ($seqNo <= 0) {
+				$k = (int) $seq;
+				if ($k <= 0) {
 					continue;
 				}
 				$comment = is_string($text) ? $text : (string) $text;
 				if (function_exists('decode_html')) {
 					$comment = decode_html($comment);
+				}
+				if (isset($seqSet[$k])) {
+					$seqNo = $k;
+				} elseif (isset($sequences[$k - 1])) {
+					$seqNo = $sequences[$k - 1];
+				} else {
+					$seqNo = $k;
 				}
 				$db->pquery(
 					'UPDATE vtiger_inventoryproductrel SET comment = ? WHERE id = ? AND sequence_no = ?',

@@ -129,107 +129,134 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 	}
 
 	/**
-	 * Header totals can be out of scale vs line items (e.g. 7.35 vs 7,000,000).
 	 * Rebuild display totals from line amounts so separators/zeros match the product table.
+	 * BA quotes: unit prices include VAT — tổng theo thành tiền sau chiết khấu (không cộng VAT thêm).
 	 */
 	protected function normalizeInlineMoneyTotals(array $displayProducts, array $rawProducts, Vtiger_Record_Model $recordModel) {
 		if (empty($rawProducts[1]['final_details']) || empty($displayProducts[1]['final_details'])) {
 			return $displayProducts;
 		}
 
-		$lineSubTotal = 0.0;
+		$lineGrossTotal = 0.0; // qty × đơn giá (trước CK)
+		$lineNetTotal = 0.0;   // thành tiền sau chiết khấu
 		$productsCount = php7_count($rawProducts);
 		for ($i = 1; $i <= $productsCount; $i++) {
-			if (!isset($rawProducts[$i])) {
+			if (!isset($rawProducts[$i]) || empty($rawProducts[$i]['hdnProductId' . $i])) {
 				continue;
 			}
-			$lineSubTotal += (float) $rawProducts[$i]['productTotal' . $i];
+			$productTotal = (float) ($rawProducts[$i]['productTotal' . $i] ?? 0);
+			$discountTotal = (float) ($rawProducts[$i]['discountTotal' . $i] ?? 0);
+			$afterDisc = (float) ($rawProducts[$i]['totalAfterDiscount' . $i] ?? 0);
+			$netPrice = (float) ($rawProducts[$i]['netPrice' . $i] ?? 0);
+
+			if ($productTotal <= 0) {
+				$qty = (float) ($rawProducts[$i]['qty' . $i] ?? 0);
+				$price = (float) ($rawProducts[$i]['listPrice' . $i] ?? 0);
+				$productTotal = $qty * $price;
+			}
+			if ($afterDisc <= 0 && $productTotal > 0) {
+				$afterDisc = max(0.0, $productTotal - $discountTotal);
+			}
+			// Prefer net after discount (and tax if any); for VAT-included BA tax is 0
+			$lineNet = $afterDisc > 0 ? $afterDisc : ($netPrice > 0 ? $netPrice : $productTotal);
+			// If netPrice still includes tax > afterDisc, prefer afterDisc
+			if ($afterDisc > 0 && $netPrice > $afterDisc * 1.001) {
+				$lineNet = $afterDisc;
+			}
+
+			$lineGrossTotal += $productTotal;
+			$lineNetTotal += $lineNet;
 		}
 
 		$rawFinal = $rawProducts[1]['final_details'];
-		$headerSubTotal = (float) $rawFinal['hdnSubTotal'];
-		$discount = (float) $rawFinal['discountTotal_final'];
-		$tax = (float) $rawFinal['tax_totalamount'];
-		$shipping = (float) $rawFinal['shipping_handling_charge'];
-		$adjustment = (float) $rawFinal['adjustment'];
-		$grand = (float) $rawFinal['grandTotal'];
-
-		$scale = 1.0;
-		if ($lineSubTotal > 0 && $headerSubTotal > 0 && $lineSubTotal > ($headerSubTotal * 50)) {
-			$scale = $lineSubTotal / $headerSubTotal;
-		}
-
-		$subTotal = $lineSubTotal > 0 ? $lineSubTotal : ($headerSubTotal * $scale);
-		$discount *= $scale;
-		$tax *= $scale;
-		$shipping *= $scale;
-		$adjustment *= $scale;
-		$discountAmountFinal = ((float) $rawFinal['discount_amount_final']) * $scale;
-
-		$mkVatAmount = (float) $recordModel->get('mk_vat_amount');
-		$mkVatPercent = (float) $recordModel->get('mk_vat_percent');
-		$headerPreTax = (float) $recordModel->get('pre_tax_total');
+		$headerSubTotal = (float) ($rawFinal['hdnSubTotal'] ?? 0);
+		$headerDiscountFinal = (float) ($rawFinal['discountTotal_final'] ?? 0);
+		$shipping = (float) ($rawFinal['shipping_handling_charge'] ?? 0);
+		$adjustment = (float) ($rawFinal['adjustment'] ?? 0);
+		$headerGrand = (float) ($rawFinal['grandTotal'] ?? 0);
 		$headerTotal = (float) $recordModel->get('total');
-
-		if ($mkVatPercent <= 0 || $mkVatPercent > 100) {
-			$mkVatPercent = 8.0;
+		if ($headerTotal <= 0) {
+			$headerTotal = $headerGrand;
 		}
 
-		if ($mkVatAmount > 0) {
-			if ($scale > 1 && $mkVatAmount < ($subTotal * 0.001)) {
-				$tax = $mkVatAmount * $scale;
-			} else {
-				$tax = $mkVatAmount;
-			}
+		// Scale repair only when header is clearly wrong magnitude vs lines
+		$scale = 1.0;
+		$ref = $lineNetTotal > 0 ? $lineNetTotal : $lineGrossTotal;
+		if ($ref > 0 && $headerSubTotal > 0 && $ref > ($headerSubTotal * 50)) {
+			$scale = $ref / $headerSubTotal;
+			$shipping *= $scale;
+			$adjustment *= $scale;
+			$headerTotal *= $scale;
+			$headerGrand *= $scale;
+			$headerDiscountFinal *= $scale;
 		}
 
-		if ($tax <= 0 && $headerPreTax > 0 && $headerTotal > $headerPreTax) {
-			$derived = ($headerTotal - $headerPreTax) * $scale;
-			// Ignore absurd gaps (bad saved totals); prefer % calculation.
-			if ($subTotal <= 0 || $derived <= ($subTotal * 0.5)) {
-				$tax = $derived;
-			}
+		// TỔNG TIỀN HÀNG = sum of line net (after CK), not productTotal
+		$subTotal = $lineNetTotal > 0 ? $lineNetTotal : max(0.0, $headerSubTotal * $scale - $headerDiscountFinal);
+
+		// VAT included in unit price → do not re-add tax for display
+		$tax = 0.0;
+
+		// Auto grand from lines
+		$autoGrand = $subTotal + $shipping;
+
+		// Keep explicit manual total only when it does not look like legacy mistakes:
+		//  (a) productTotal sum * 1.08  (old +8% VAT on pre-discount)
+		//  (b) stale header while lines already have line discounts
+		$grand = $autoGrand;
+		$tol = max(2.0, $subTotal * 0.001);
+		$looksLikeVatOnGross = (
+			$lineGrossTotal > 0
+			&& abs($headerTotal - $lineGrossTotal * 1.08) <= max(2.0, $lineGrossTotal * 0.002)
+		);
+		$looksLikePreDiscountHeader = (
+			$lineNetTotal > 0
+			&& $lineGrossTotal > $lineNetTotal + $tol
+			&& (
+				abs($headerTotal - $lineGrossTotal) <= $tol
+				|| abs($headerTotal - $lineGrossTotal * 1.08) <= max(2.0, $lineGrossTotal * 0.002)
+				|| abs($headerSubTotal - $lineGrossTotal) <= $tol
+			)
+		);
+		$manualDelta = abs($headerTotal - $autoGrand);
+		$hasRealManual = (
+			$headerTotal > 0
+			&& $manualDelta > $tol
+			&& !$looksLikeVatOnGross
+			&& !$looksLikePreDiscountHeader
+			// manual only if reasonably close to line net (user tweak), not 8%+ ghost
+			&& $headerTotal <= ($subTotal * 1.15 + $shipping + abs($adjustment) + 1)
+			&& $headerTotal >= ($subTotal * 0.5)
+		);
+
+		if ($hasRealManual) {
+			$grand = $headerTotal;
+		} else {
+			$grand = $autoGrand;
+			// Clear ghost adjustment for display consistency
+			$adjustment = 0.0;
 		}
 
-		if ($tax <= 0 && $subTotal > 0) {
-			$tax = round(($subTotal - $discount) * $mkVatPercent / 100);
+		$discountDisplay = max(0.0, $lineGrossTotal - $lineNetTotal);
+		if ($discountDisplay <= 0 && $headerDiscountFinal > 0) {
+			$discountDisplay = $headerDiscountFinal * $scale;
 		}
-
-		// Reject absurd tax relative to goods (e.g. 693M tax on 7M goods).
-		if ($subTotal > 0 && $tax > ($subTotal * 0.5)) {
-			$tax = round(($subTotal - $discount) * $mkVatPercent / 100);
-		}
-
-		$base = $subTotal - $discount + $shipping + $adjustment;
-		if ($grand > 0) {
-			$grand *= $scale;
-		}
-		if ($grand <= 0 || ($subTotal > 0 && $grand > ($subTotal * 2))) {
-			$grand = $base + $tax;
-		}
-
-		if ($tax <= 0 && $grand > $base && ($grand - $base) <= ($subTotal * 0.5)) {
-			$tax = $grand - $base;
-		}
-		if ($tax < 0) {
-			$tax = 0;
-		}
-		$grand = $base + $tax;
 
 		$formatMoney = function ($value) {
 			return Vtiger_Currency_UIType::transformDisplayValue($value, null, true);
 		};
 
 		$displayProducts[1]['final_details']['hdnSubTotal'] = $formatMoney($subTotal);
-		$displayProducts[1]['final_details']['discountTotal_final'] = $formatMoney($discount);
-		$displayProducts[1]['final_details']['discount_amount_final'] = $formatMoney($discountAmountFinal);
+		$displayProducts[1]['final_details']['discountTotal_final'] = $formatMoney($discountDisplay);
+		$displayProducts[1]['final_details']['discount_amount_final'] = $formatMoney($discountDisplay);
 		$displayProducts[1]['final_details']['tax_totalamount'] = $formatMoney($tax);
 		$displayProducts[1]['final_details']['shipping_handling_charge'] = $formatMoney($shipping);
 		$displayProducts[1]['final_details']['adjustment'] = $formatMoney($adjustment);
 		$displayProducts[1]['final_details']['grandTotal'] = $formatMoney($grand);
+		$displayProducts[1]['final_details']['grandTotal_raw'] = $grand;
 		$displayProducts[1]['final_details']['amount_in_words'] = Quotes_QuoteBaService_Helper::amountInWordsVi($grand);
 
-		$displayProducts = $this->enrichInlineLineTax($displayProducts, $rawProducts, $subTotal, $discount, $tax, $recordModel, $formatMoney);
+		$displayProducts = $this->enrichInlineLineTax($displayProducts, $rawProducts, $subTotal, 0, $tax, $recordModel, $formatMoney);
 
 		return $displayProducts;
 	}

@@ -1,6 +1,6 @@
 <?php
 /**
- * Create outbound slip (phiếu xuất) from Sales Order — status "waiting_print", no stock movement.
+ * Create outbound slip (phiếu xuất) from Sales Order — status "waiting_print" (Chờ soạn), deduct stock.
  */
 class GoodsIssue_CreateFromSalesOrder_Helper {
 
@@ -92,10 +92,10 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 	}
 
 	/**
-	 * @param bool $requireStock When false (default for waiting_print), skip stock gate —
-	 *                           stock is only reserved/deducted when the slip is printed/confirmed.
+	 * @param bool $requireStock When true, block if insufficient stock (unless allow-negative is on).
+	 *                           Default true — stock is deducted at waiting_print (Chờ soạn).
 	 */
-	public static function createFromSalesOrder($salesOrderId, $warehouseId, $warehouseName, $userId, $requireStock = false) {
+	public static function createFromSalesOrder($salesOrderId, $warehouseId, $warehouseName, $userId, $requireStock = true) {
 		$salesOrderId = (int) $salesOrderId;
 		$userId = (int) $userId;
 		if ($salesOrderId <= 0) {
@@ -115,7 +115,9 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 			return 0;
 		}
 
-		if ($requireStock) {
+		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		$allowNegative = Warehouse_Settings_Helper::allowNegativeStock();
+		if ($requireStock && !$allowNegative) {
 			$stockErrors = self::validateWarehouseStock($lines, $warehouseName);
 			if (!empty($stockErrors)) {
 				throw new Exception(implode(' ', $stockErrors));
@@ -197,7 +199,7 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 				array(
 					'at' => gmdate('c'),
 					'by' => $issuedBy,
-					'action' => 'Chờ in phiếu',
+					'action' => 'Chờ soạn',
 					'note' => $note,
 				),
 			),
@@ -252,6 +254,13 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 					'',
 				)
 			);
+		}
+
+		// Deduct stock at Chờ soạn (waiting_print); finish-pick skips if already deducted.
+		require_once 'modules/Warehouse/models/WhMgmtService.php';
+		$warehouseCode = trim((string) $warehouseId);
+		if ($warehouseCode !== '') {
+			Warehouse_WhMgmtService::deductStockForGoodsIssue($issueId, $warehouseCode, $userId);
 		}
 
 		return $issueId;

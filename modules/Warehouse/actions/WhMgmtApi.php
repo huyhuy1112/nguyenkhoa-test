@@ -22,7 +22,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action'), true)) {
+		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action', 'set_settings'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -161,6 +161,41 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					$targetStatus = trim((string) $request->get('targetStatus'));
 					$result = Warehouse_WhMgmtService::applyIssueAction($whId, $code, $action, $role, $note, $userId, $targetStatus);
 					$response->setResult(array_merge(array('success' => true), $result));
+					break;
+
+				case 'get_settings':
+					require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+					$response->setResult(array(
+						'success' => true,
+						'settings' => array(
+							'wh_allow_negative_stock' => Warehouse_Settings_Helper::allowNegativeStock() ? 1 : 0,
+						),
+					));
+					break;
+
+				case 'set_settings':
+					require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$payload = $this->decodePayload($request);
+					$allow = null;
+					if (array_key_exists('wh_allow_negative_stock', $payload)) {
+						$allow = $payload['wh_allow_negative_stock'];
+					} else if ($request->has('wh_allow_negative_stock')) {
+						$allow = $request->get('wh_allow_negative_stock');
+					}
+					if ($allow === null) {
+						throw new Exception('Thiếu cấu hình wh_allow_negative_stock.');
+					}
+					$enabled = in_array(strtolower(trim((string) $allow)), array('1', 'true', 'yes', 'on'), true)
+						|| $allow === 1 || $allow === true;
+					Warehouse_Settings_Helper::setAllowNegativeStock($enabled, $userId);
+					$response->setResult(array(
+						'success' => true,
+						'settings' => array(
+							'wh_allow_negative_stock' => Warehouse_Settings_Helper::allowNegativeStock() ? 1 : 0,
+						),
+					));
 					break;
 
 				default:

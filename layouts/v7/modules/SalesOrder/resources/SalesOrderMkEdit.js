@@ -265,7 +265,7 @@
 				'<div class="modal-content">' +
 				'<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>' +
 				'<h4 class="modal-title">Chọn kho xuất hàng</h4></div>' +
-				'<div class="modal-body"><p class="mk-so-wh-modal__lead">Chọn kho để tạo phiếu xuất ở trạng thái <strong>Chờ in phiếu</strong>.</p>' +
+				'<div class="modal-body"><p class="mk-so-wh-modal__lead">Chọn kho để tạo phiếu xuất ở trạng thái <strong>Chờ soạn</strong>.</p>' +
 				'<div class="mk-so-wh-modal__list" id="mkSoWarehouseList"></div>' +
 				'<div class="mk-so-wh-modal__error hide" id="mkSoWarehouseError"></div></div>' +
 				'<div class="modal-footer">' +

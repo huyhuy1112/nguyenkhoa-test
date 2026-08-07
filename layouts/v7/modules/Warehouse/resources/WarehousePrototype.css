@@ -1343,6 +1343,17 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	font-weight: 700;
 }
 
+/* Negative stock (oversell) — same alert red as expired HSD / KPI "Lô sắp hết hạn" */
+.mk-wh-proto-qty--neg,
+.mk-wh-proto-qty--neg strong {
+	color: #dc2626;
+	font-weight: 800;
+}
+
+.mk-wh-proto-stock-row--neg {
+	background: rgba(220, 38, 38, 0.04);
+}
+
 .mk-wh-proto-mini-btn {
 	display: inline-flex;
 	align-items: center;

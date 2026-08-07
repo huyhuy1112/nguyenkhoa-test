@@ -96,6 +96,101 @@ class Quotes_QuoteBaService_Helper {
 		}
 	}
 
+	/**
+	 * Column linking quote ↔ ServiceContracts (created from Khách hàng nhượng quyền).
+	 * DB-only: list filter + save update; no UI field required.
+	 */
+	public static function ensureServiceContractLinkColumn() {
+		static $done = false;
+		if ($done) {
+			return true;
+		}
+		$db = PearDatabase::getInstance();
+		try {
+			$rs = $db->pquery('SHOW COLUMNS FROM vtiger_quotes LIKE ?', array('mk_servicecontract_id'));
+			if (!$rs || !$db->num_rows($rs)) {
+				$db->pquery(
+					'ALTER TABLE vtiger_quotes ADD COLUMN mk_servicecontract_id INT(19) DEFAULT NULL',
+					array()
+				);
+				try {
+					$db->pquery(
+						'ALTER TABLE vtiger_quotes ADD INDEX mk_quotes_sc_id (mk_servicecontract_id)',
+						array()
+					);
+				} catch (Exception $eIdx) {
+					// Index may already exist or fail on some engines — non-fatal.
+				}
+			}
+			$done = true;
+			return true;
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Read SC id from create URL/form (`servicecontract_id` or `mk_servicecontract_id`).
+	 */
+	public static function resolveServiceContractIdFromRequest(Vtiger_Request $request) {
+		$scId = (int) $request->get('mk_servicecontract_id');
+		if ($scId <= 0) {
+			$scId = (int) $request->get('servicecontract_id');
+		}
+		return $scId > 0 ? $scId : 0;
+	}
+
+	/**
+	 * Persist SC link after quote save. Only updates when $scId > 0 (does not clear on normal edit).
+	 *
+	 * @param int $quoteId
+	 * @param int $scId
+	 * @return bool
+	 */
+	public static function persistServiceContractLink($quoteId, $scId) {
+		$quoteId = (int) $quoteId;
+		$scId = (int) $scId;
+		if ($quoteId <= 0 || $scId <= 0) {
+			return false;
+		}
+		if (!self::ensureServiceContractLinkColumn()) {
+			return false;
+		}
+		$db = PearDatabase::getInstance();
+		$live = $db->pquery(
+			'SELECT 1 FROM vtiger_servicecontracts sc
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
+			 WHERE sc.servicecontractsid = ? LIMIT 1',
+			array($scId)
+		);
+		if (!$live || !$db->num_rows($live)) {
+			return false;
+		}
+		$db->pquery(
+			'UPDATE vtiger_quotes SET mk_servicecontract_id = ? WHERE quoteid = ?',
+			array($scId, $quoteId)
+		);
+
+		// Related list both ways when missing.
+		try {
+			$rel = $db->pquery(
+				'SELECT 1 FROM vtiger_crmentityrel
+				 WHERE (crmid = ? AND relcrmid = ?) OR (crmid = ? AND relcrmid = ?)
+				 LIMIT 1',
+				array($scId, $quoteId, $quoteId, $scId)
+			);
+			if (!$rel || !$db->num_rows($rel)) {
+				$db->pquery(
+					'INSERT INTO vtiger_crmentityrel (crmid, module, relcrmid, relmodule) VALUES (?, ?, ?, ?)',
+					array($scId, 'ServiceContracts', $quoteId, 'Quotes')
+				);
+			}
+		} catch (Exception $e) {
+			// Relation table shape may differ — ignore.
+		}
+		return true;
+	}
+
 	public static function getCompanyProfile() {
 		self::ensureOrganizationBankColumns();
 		$db = PearDatabase::getInstance();
@@ -185,12 +280,44 @@ class Quotes_QuoteBaService_Helper {
 		if ($value === null || $value === '') {
 			return 0.0;
 		}
-		if (is_numeric($value)) {
+		if (is_numeric($value) && !is_string($value)) {
 			return (float) $value;
 		}
-		$normalized = preg_replace('/[^\d.,-]/', '', (string) $value);
-		$normalized = str_replace(array('.', ','), array('', '.'), preg_replace('/\.(?=.*\.)/', '', $normalized));
-		return (float) $normalized;
+		// Reuse inventory VN money parser when available.
+		if (function_exists('mk_inventory_parse_money')) {
+			return mk_inventory_parse_money($value);
+		}
+		$s = trim((string) $value);
+		if ($s === '') {
+			return 0.0;
+		}
+		if (preg_match('/^-?\d{1,3}(\.\d{3})+(,\d+)?$/', $s)) {
+			$s = str_replace('.', '', $s);
+			$s = str_replace(',', '.', $s);
+			return (float) $s;
+		}
+		if (preg_match('/^-?\d{1,3}(,\d{3})+(\.\d+)?$/', $s)) {
+			return (float) str_replace(',', '', $s);
+		}
+		$normalized = preg_replace('/[^\d.,-]/', '', $s);
+		if (strpos($normalized, ',') !== false && strpos($normalized, '.') !== false) {
+			if (strrpos($normalized, ',') > strrpos($normalized, '.')) {
+				$normalized = str_replace('.', '', $normalized);
+				$normalized = str_replace(',', '.', $normalized);
+			} else {
+				$normalized = str_replace(',', '', $normalized);
+			}
+		} elseif (strpos($normalized, ',') !== false) {
+			$parts = explode(',', $normalized);
+			if (count($parts) === 2 && strlen($parts[1]) <= 2) {
+				$normalized = $parts[0] . '.' . $parts[1];
+			} else {
+				$normalized = str_replace(',', '', $normalized);
+			}
+		} elseif (preg_match('/^\d{1,3}(\.\d{3})+$/', $normalized)) {
+			$normalized = str_replace('.', '', $normalized);
+		}
+		return is_numeric($normalized) ? (float) $normalized : 0.0;
 	}
 
 	public static function amountInWordsVi($amount) {

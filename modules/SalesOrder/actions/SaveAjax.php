@@ -77,6 +77,13 @@ class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
 	public function getRecordModelFromRequest(Vtiger_Request $request) {
 		$recordModel = parent::getRecordModelFromRequest($request);
 		$this->syncReceivedBalance($recordModel, $request);
+		// Store notes as plain UTF-8 (never as entities like &ecirc;)
+		if ($request->has('mk_list_note')) {
+			$recordModel->set('mk_list_note', $this->cleanPlainText($request->get('mk_list_note')));
+		}
+		if ($request->has('description') && !$request->has('mk_list_note')) {
+			// only if description is used as list note slot
+		}
 		return $recordModel;
 	}
 
@@ -131,6 +138,161 @@ class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
 	}
 
 	/**
+	 * Collect line comments from SaveAjax payload.
+	 * Note: Vtiger_Request::get() auto-decodes JSON strings that start with "{" / "["
+	 * into PHP arrays — callers that only check is_string() will drop the notes.
+	 *
+	 * @return array<int|string,string> map of sequence/index => comment text
+	 */
+	protected function extractInlineLineComments(Vtiger_Request $request) {
+		$comments = array();
+
+		$fromReq = $request->get('line_comments');
+		if (is_array($fromReq) && !empty($fromReq)) {
+			$comments = $fromReq;
+		}
+
+		// Prefer line_comments_json (array after Request auto-decode, or raw string)
+		if (empty($comments)) {
+			$rawJson = $request->get('line_comments_json');
+			if (is_array($rawJson)) {
+				$comments = $rawJson;
+			} elseif (is_string($rawJson) && $rawJson !== '') {
+				$decoded = json_decode($rawJson, true);
+				if (!is_array($decoded) && function_exists('Zend_Json')) {
+					try {
+						$decoded = Zend_Json::decode($rawJson);
+					} catch (Exception $e) {
+						$decoded = null;
+					}
+				}
+				if (is_array($decoded)) {
+					$comments = $decoded;
+				}
+			}
+		}
+
+		// Bypass Request if it stripped payload: read raw REQUEST / POST
+		if (empty($comments)) {
+			$rawSources = array($_REQUEST, isset($_POST) ? $_POST : array());
+			foreach ($rawSources as $bucket) {
+				if (!is_array($bucket) || empty($bucket['line_comments_json'])) {
+					continue;
+				}
+				$raw = $bucket['line_comments_json'];
+				if (is_array($raw)) {
+					$comments = $raw;
+					break;
+				}
+				if (is_string($raw) && $raw !== '') {
+					$decoded = json_decode(html_entity_decode($raw, ENT_QUOTES, 'UTF-8'), true);
+					if (is_array($decoded)) {
+						$comments = $decoded;
+						break;
+					}
+				}
+			}
+		}
+
+		// Flat keys: line_comment_1, line_comments_1, line_comments[1]
+		foreach (array($_REQUEST, isset($_POST) ? $_POST : array()) as $bucket) {
+			if (!is_array($bucket)) {
+				continue;
+			}
+			foreach ($bucket as $key => $val) {
+				if (preg_match('/^line_comments\[(\d+)\]$/', (string) $key, $m)
+					|| preg_match('/^line_comments_(\d+)$/', (string) $key, $m)
+					|| preg_match('/^line_comment_(\d+)$/', (string) $key, $m)) {
+					$comments[(int) $m[1]] = $val;
+				}
+			}
+		}
+
+		return is_array($comments) ? $comments : array();
+	}
+
+	/**
+	 * Decode HTML entities (even double-encoded) so notes are stored as plain UTF-8.
+	 * Fixes display like "&ecirc; cu" instead of "ê cu" / "ghi chú".
+	 */
+	protected function cleanPlainText($text) {
+		$comment = is_string($text) ? $text : (string) $text;
+		if ($comment === '') {
+			return '';
+		}
+		$charset = 'UTF-8';
+		if (!empty($GLOBALS['default_charset'])) {
+			$charset = $GLOBALS['default_charset'];
+		}
+		$flags = ENT_QUOTES;
+		if (defined('ENT_HTML5')) {
+			$flags = $flags | ENT_HTML5;
+		}
+		for ($i = 0; $i < 6; $i++) {
+			$prev = $comment;
+			$comment = html_entity_decode($comment, $flags, $charset);
+			if ($comment === $prev) {
+				break;
+			}
+		}
+		if (function_exists('decode_html')) {
+			$comment = decode_html($comment);
+		}
+		if (class_exists('Normalizer') && method_exists('Normalizer', 'normalize')) {
+			$normalized = Normalizer::normalize($comment, Normalizer::FORM_C);
+			if (is_string($normalized) && $normalized !== '') {
+				$comment = $normalized;
+			}
+		}
+		return $comment;
+	}
+
+	/**
+	 * Map UI 1-based line index → real sequence_no from inventory lines.
+	 * When key already matches a sequence_no, keep it.
+	 *
+	 * @param array $comments
+	 * @param int $recordId
+	 * @return array<int,string> sequence_no => comment
+	 */
+	protected function mapCommentsToSequenceNos(array $comments, $recordId) {
+		$db = PearDatabase::getInstance();
+		$mapped = array();
+		$sequences = array();
+		$rs = $db->pquery(
+			'SELECT sequence_no FROM vtiger_inventoryproductrel WHERE id = ? ORDER BY sequence_no ASC',
+			array((int) $recordId)
+		);
+		if ($rs) {
+			$n = $db->num_rows($rs);
+			for ($i = 0; $i < $n; $i++) {
+				$sequences[] = (int) $db->query_result($rs, $i, 'sequence_no');
+			}
+		}
+		$seqSet = array_flip($sequences);
+
+		foreach ($comments as $key => $text) {
+			$k = (int) $key;
+			if ($k <= 0) {
+				continue;
+			}
+			$comment = $this->cleanPlainText($text);
+			// Prefer exact sequence_no match, else 1-based row index in ordered list
+			if (isset($seqSet[$k])) {
+				$seqNo = $k;
+			} elseif (isset($sequences[$k - 1])) {
+				$seqNo = $sequences[$k - 1];
+			} else {
+				$seqNo = $k;
+			}
+			if ($seqNo > 0) {
+				$mapped[$seqNo] = $comment;
+			}
+		}
+		return $mapped;
+	}
+
+	/**
 	 * Persist per-line comments + manual grand total (via adjustment) without rewriting line items.
 	 */
 	protected function saveInlineLineExtras(Vtiger_Request $request, Vtiger_Record_Model $recordModel) {
@@ -140,39 +302,13 @@ class SalesOrder_SaveAjax_Action extends Inventory_SaveAjax_Action {
 		}
 		$db = PearDatabase::getInstance();
 
-		$comments = $request->get('line_comments');
-		if (!is_array($comments) || empty($comments)) {
-			$rawJson = $request->get('line_comments_json');
-			if (is_string($rawJson) && $rawJson !== '') {
-				$decoded = json_decode($rawJson, true);
-				if (is_array($decoded)) {
-					$comments = $decoded;
-				}
-			}
-		}
-		if (!is_array($comments)) {
-			$comments = array();
-			foreach ($_REQUEST as $key => $val) {
-				if (preg_match('/^line_comments\[(\d+)\]$/', (string) $key, $m)
-					|| preg_match('/^line_comments_(\d+)$/', (string) $key, $m)
-					|| preg_match('/^line_comment_(\d+)$/', (string) $key, $m)) {
-					$comments[(int) $m[1]] = $val;
-				}
-			}
-		}
-		if (is_array($comments)) {
-			foreach ($comments as $seq => $text) {
-				$seqNo = (int) $seq;
-				if ($seqNo <= 0) {
-					continue;
-				}
-				$comment = is_string($text) ? $text : (string) $text;
-				if (function_exists('decode_html')) {
-					$comment = decode_html($comment);
-				}
+		$comments = $this->extractInlineLineComments($request);
+		if (!empty($comments)) {
+			$bySequence = $this->mapCommentsToSequenceNos($comments, $recordId);
+			foreach ($bySequence as $seqNo => $comment) {
 				$db->pquery(
 					'UPDATE vtiger_inventoryproductrel SET comment = ? WHERE id = ? AND sequence_no = ?',
-					array($comment, $recordId, $seqNo)
+					array($comment, $recordId, (int) $seqNo)
 				);
 			}
 		}

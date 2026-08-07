@@ -700,6 +700,61 @@
     return n.toLocaleString("vi-VN");
   }
 
+  /**
+   * Format unit price for display (4.000.000). Skip while the input is focused.
+   */
+  function formatListPriceInput($input) {
+    if (!$input || !$input.length) {
+      return;
+    }
+    if (document.activeElement === $input[0]) {
+      return;
+    }
+    var n = Math.round(parseMoney($input.val()));
+    if (!isFinite(n)) {
+      n = 0;
+    }
+    var formatted = formatVndNumber(n);
+    if (String($input.val()) !== formatted) {
+      $input.val(formatted);
+    }
+  }
+
+  function setListPriceValue($input, value, opts) {
+    opts = opts || {};
+    if (!$input || !$input.length) {
+      return;
+    }
+    var n = Math.round(parseMoney(value));
+    if (!isFinite(n)) {
+      n = 0;
+    }
+    if (opts.raw || document.activeElement === $input[0]) {
+      $input.val(n ? String(n) : "0");
+    } else {
+      $input.val(formatVndNumber(n));
+    }
+  }
+
+  function bindListPriceFormatting($form) {
+    if (!$form || !$form.length || $form.data("mkInvPriceFmtBound")) {
+      return;
+    }
+    $form.data("mkInvPriceFmtBound", true);
+    $form.on("focus.mkInvPriceFmt", "input.listPrice", function () {
+      var $el = $(this);
+      var n = Math.round(parseMoney($el.val()));
+      $el.val(n ? String(n) : "");
+    });
+    $form.on(
+      "focusout.mkInvPriceFmt change.mkInvPriceFmt",
+      "input.listPrice",
+      function () {
+        formatListPriceInput($(this));
+      },
+    );
+  }
+
   function sumLinePreTax($form) {
     var sum = 0;
     $form.find("tr.lineItemRow").each(function () {
@@ -794,17 +849,42 @@
     if (!rowHasSelectedProduct($row)) {
       return false;
     }
-    var price = resolveInvoiceTierPrice(getProductMetaForRow($row), tierKey);
     var $listPrice = $row.find("input.listPrice").first();
     if (!$listPrice.length) {
       return false;
     }
-    // Keep user-typed unit price unless forced (tier dropdown / product pick).
+    // Keep user-typed / already-saved unit price unless forced (tier dropdown / product pick).
     if (!opts.force && String($listPrice.attr("data-mk-price-manual") || "") === "1") {
       return false;
     }
-    $listPrice.val(price).attr("data-mk-invoice-tier", tierKey);
-    if (opts.force) {
+    var existingPrice = parseMoney($listPrice.val());
+    // Soft re-apply must never clobber an existing unit price (catalog restyle after edit load).
+    if (!opts.force && existingPrice > 0) {
+      return false;
+    }
+    // Even force: preserve saved/manual prices unless this is an explicit product/tier re-pick
+    // (opts.productPick === true). Force alone is used too aggressively during form integrate.
+    if (
+      opts.force &&
+      !opts.productPick &&
+      existingPrice > 0 &&
+      String($listPrice.attr("data-mk-price-manual") || "") === "1"
+    ) {
+      return false;
+    }
+    if (opts.force && !opts.productPick && existingPrice > 0) {
+      // First paint on Edit: keep DB price, mark as protected.
+      $listPrice.attr("data-mk-price-manual", "1");
+      return false;
+    }
+    var price = resolveInvoiceTierPrice(getProductMetaForRow($row), tierKey);
+    // Don't wipe a good price with a zero catalog/tier default.
+    if (price <= 0 && existingPrice > 0) {
+      return false;
+    }
+    setListPriceValue($listPrice, price);
+    $listPrice.attr("data-mk-invoice-tier", tierKey);
+    if (opts.force && opts.productPick) {
       $listPrice.removeAttr("data-mk-price-manual");
     }
     syncRowAmounts($row, $form);
@@ -1247,7 +1327,7 @@
       $hiddenId.val("");
       $nameInput.val("").removeAttr("disabled");
       if ($listPrice.length) {
-        $listPrice.val(0);
+        setListPriceValue($listPrice, 0);
       }
       $row.removeData("mkAvailableStock mkStockCacheKey mkStockCachedHtml");
       $row.find(".mk-inv-stock-hint").remove();
@@ -1279,7 +1359,8 @@
     }
 
     if ($listPrice.length && fallbackPrice > 0) {
-      $listPrice.val(fallbackPrice).removeAttr("data-mk-price-manual");
+      setListPriceValue($listPrice, fallbackPrice);
+      $listPrice.removeAttr("data-mk-price-manual");
     }
     var previewTier = getInvoiceTierSelection($form);
     applyInvoiceTierPriceToRow(
@@ -1288,7 +1369,7 @@
       previewTier === "auto"
         ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
         : previewTier,
-      { force: true },
+      { force: true, productPick: true },
     );
     // Đảm bảo có SL > 0 để Tổng giá trị / Số tiền trước thuế hiện ra.
     var $qty = $row.find("input.qty, .qty").first();
@@ -1334,7 +1415,7 @@
           responseTier === "auto"
             ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
             : responseTier,
-          { force: true },
+          { force: true, productPick: true },
         );
         syncRowUnitFromProduct($row);
         syncRowTaxPill($row, $form);
@@ -1354,7 +1435,9 @@
       $hiddenId.val(productId);
       $nameInput.val(fallbackName).attr("disabled", "disabled");
       if ($listPrice.length) {
-        $listPrice.val(fallbackPrice > 0 ? fallbackPrice : $listPrice.val());
+        if (fallbackPrice > 0) {
+          setListPriceValue($listPrice, fallbackPrice);
+        }
       }
       var fallbackTier = getInvoiceTierSelection($form);
       applyInvoiceTierPriceToRow(
@@ -1363,7 +1446,7 @@
         fallbackTier === "auto"
           ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
           : fallbackTier,
-        { force: true },
+        { force: true, productPick: true },
       );
       syncRowUnitFromProduct($row);
       enforceQtyAgainstStock($row, $form);
@@ -2187,58 +2270,145 @@
     }
   }
 
-  function applyLineDiscountFields($row, pct) {
-    pct = clampDiscountPercent(pct);
-    $row.data("mkDiscountPct", pct);
-    var rowNo = getRowNumberValue($row) || "";
-    var $type = $row.find(
-      "#discount_type" + rowNo + ', input.discount_type, input[name="discount_type' + rowNo + '"]',
+  /**
+   * Recover discount % from line totals when hidden discount fields are missing.
+   */
+  function readDiscountFromLineTotals($row) {
+    if (!$row || !$row.length) {
+      return 0;
+    }
+    var $discEl = $row.find(".discountTotal").first();
+    var discTotal = parseMoney(
+      $discEl.length
+        ? $discEl.attr("data-mk-raw") ||
+            $discEl.data("mkRawAmount") ||
+            $discEl.text() ||
+            $discEl.val()
+        : 0,
     );
-    if ($type.length) {
-      $type.val(pct > 0 ? "percentage" : "zero");
-    }
-    var $pct = $row.find(
-      "#discount_percentage" +
-        rowNo +
-        ", .discount_percentage, input[name='discount_percentage" +
-        rowNo +
-        "']",
+    var $pt = $row.find(".productTotal").first();
+    var productTotal = parseMoney(
+      $pt.length
+        ? $pt.attr("data-mk-raw") ||
+            $pt.data("mkRawAmount") ||
+            $pt.text() ||
+            $pt.val()
+        : 0,
     );
-    if ($pct.length) {
-      $pct.val(pct > 0 ? pct : "").removeClass("hide");
+    if (productTotal <= 0 && discTotal <= 0) {
+      return 0;
     }
-    var $zeroRadio = $row.find(
-      'input[name="discount' + rowNo + '"][data-discount-type="zero"]',
+    if (productTotal > 0 && discTotal > 0) {
+      return clampDiscountPercent((discTotal / productTotal) * 100);
+    }
+    // Sometimes netPrice is after discount and productTotal is gross
+    var tad = parseMoney(
+      $row.find(".totalAfterDiscount").first().text() ||
+        $row.find(".totalAfterDiscount").first().val() ||
+        0,
     );
-    var $pctRadio = $row.find(
-      'input[name="discount' + rowNo + '"][data-discount-type="percentage"]',
-    );
-    if ($pctRadio.length || $zeroRadio.length) {
-      if (pct > 0) {
-        $pctRadio.prop("checked", true);
-        $zeroRadio.prop("checked", false);
-      } else {
-        $zeroRadio.prop("checked", true);
-        $pctRadio.prop("checked", false);
-      }
+    if (productTotal > 0 && tad > 0 && tad < productTotal) {
+      return clampDiscountPercent(
+        ((productTotal - tad) / productTotal) * 100,
+      );
     }
-    var qty = parseMoney($row.find(".qty").val());
-    var price = parseMoney($row.find(".listPrice").val());
-    var base = qty * price;
-    var discAmt = Math.round((base * pct) / 100);
-    var after = base - discAmt;
-    var $discTotal = $row.find(".discountTotal");
-    if ($discTotal.length) {
-      $discTotal.text(discAmt);
-    }
-    var $tad = $row.find(".totalAfterDiscount");
-    if ($tad.length) {
-      writeAmountDisplay($tad, after);
-    }
-    return after;
+    return 0;
   }
 
-  function getRowDiscountPercent($row) {
+  /**
+   * Read discount % from Vtiger hidden fields / radios (source of truth from DB on load).
+   */
+  function readLegacyDiscountPercent($row) {
+    if (!$row || !$row.length) {
+      return 0;
+    }
+    var rowNo = getRowNumberValue($row) || "";
+    var $discUI = $row.find("div.discountUI").first();
+    var $scope = $discUI.length ? $discUI : $row;
+    var $type = $scope
+      .find(
+        "#discount_type" +
+          rowNo +
+          ', input.discount_type, input[name="discount_type' +
+          rowNo +
+          '"]',
+      )
+      .first();
+    if (!$type.length) {
+      $type = $row
+        .find(
+          "#discount_type" +
+            rowNo +
+            ', input.discount_type, input[name="discount_type' +
+            rowNo +
+            '"]',
+        )
+        .first();
+    }
+    var type = String(($type.val() || "")).toLowerCase();
+    var $pct = $scope
+      .find(
+        "#discount_percentage" +
+          rowNo +
+          ", .discount_percentage, input[name='discount_percentage" +
+          rowNo +
+          "']",
+      )
+      .first();
+    if (!$pct.length) {
+      $pct = $row
+        .find(
+          "#discount_percentage" +
+            rowNo +
+            ", .discount_percentage, input[name='discount_percentage" +
+            rowNo +
+            "']",
+        )
+        .first();
+    }
+    var pct = clampDiscountPercent($pct.val());
+    if (type === "percentage" || type === "percent") {
+      return pct > 0 ? pct : readDiscountFromLineTotals($row);
+    }
+    if (type === "amount") {
+      var amount = parseMoney(
+        $scope
+          .find("#discount_amount" + rowNo + ", .discount_amount")
+          .add($row.find("#discount_amount" + rowNo + ", .discount_amount"))
+          .first()
+          .val(),
+      );
+      var base =
+        parseMoney($row.find(".qty").val()) *
+        parseMoney($row.find(".listPrice").val());
+      if (base > 0 && amount > 0) {
+        return clampDiscountPercent((amount / base) * 100);
+      }
+      return readDiscountFromLineTotals($row);
+    }
+    // type zero/blank — still honour a stored percentage value if present
+    if (pct > 0) {
+      return pct;
+    }
+    var $checked = $scope.find("input.discounts").filter(":checked").first();
+    if (!$checked.length) {
+      $checked = $row.find("input.discounts").filter(":checked").first();
+    }
+    if ($checked.length) {
+      var dType = String(
+        $checked.attr("data-discount-type") ||
+          $checked.data("discountType") ||
+          "",
+      ).toLowerCase();
+      if (dType === "percentage" || dType === "percent") {
+        return pct > 0 ? pct : readDiscountFromLineTotals($row);
+      }
+    }
+    // Modern layout formerly omitted discountUI — recover from line totals.
+    return readDiscountFromLineTotals($row);
+  }
+
+  function readDiscountFromUiControls($row) {
     if (!$row || !$row.length) {
       return 0;
     }
@@ -2260,22 +2430,179 @@
         return clampDiscountPercent(sv);
       }
     }
-    var cached = $row.data("mkDiscountPct");
-    if (cached != null && cached !== "") {
-      return clampDiscountPercent(cached);
-    }
     var $inp = $row.find(".mk-inv-discount-custom, .mk-inv-discount-pct").first();
     if ($inp.length && $inp.val() !== "" && $inp.val() != null) {
       return clampDiscountPercent($inp.val());
     }
-    var rowNo = getRowNumberValue($row) || "";
-    var $pct = $row.find(
-      "#discount_percentage" + rowNo + ", .discount_percentage",
-    );
-    if ($pct.length) {
-      return clampDiscountPercent($pct.val());
-    }
     return 0;
+  }
+
+  /**
+   * Write % into Vtiger fields the save path expects (discount_type / discount_percentage).
+   * Scopes into discountUI so Inventory recalculate cannot leave radios out of sync.
+   */
+  function applyLineDiscountFields($row, pct) {
+    pct = clampDiscountPercent(pct);
+    $row.data("mkDiscountPct", pct);
+    var rowNo = getRowNumberValue($row) || "";
+    var $discUI = $row.find("div.discountUI").first();
+    var $scope = $discUI.length ? $discUI : $row;
+    var typeVal = pct > 0 ? "percentage" : "zero";
+
+    var $type = $scope
+      .find(
+        "#discount_type" +
+          rowNo +
+          ', input.discount_type, input[name="discount_type' +
+          rowNo +
+          '"]',
+      )
+      .first();
+    if (!$type.length) {
+      $type = $row
+        .find(
+          "#discount_type" +
+            rowNo +
+            ', input.discount_type, input[name="discount_type' +
+            rowNo +
+            '"]',
+        )
+        .first();
+    }
+    if ($type.length) {
+      $type.val(typeVal).prop("disabled", false).removeAttr("disabled");
+    } else if (rowNo) {
+      $type = $(
+        '<input type="hidden" class="discount_type" />',
+      )
+        .attr("id", "discount_type" + rowNo)
+        .attr("name", "discount_type" + rowNo)
+        .val(typeVal);
+      ($discUI.length ? $discUI : $row).append($type);
+    }
+
+    var $pct = $scope
+      .find(
+        "#discount_percentage" +
+          rowNo +
+          ", .discount_percentage, input[name='discount_percentage" +
+          rowNo +
+          "']",
+      )
+      .first();
+    if (!$pct.length) {
+      $pct = $row
+        .find(
+          "#discount_percentage" +
+            rowNo +
+            ", .discount_percentage, input[name='discount_percentage" +
+            rowNo +
+            "']",
+        )
+        .first();
+    }
+    if ($pct.length) {
+      // Always send a numeric value so PHP/DB persist is reliable
+      $pct
+        .val(pct > 0 ? pct : "0")
+        .removeClass("hide")
+        .prop("disabled", false)
+        .removeAttr("disabled");
+    } else if (rowNo) {
+      $pct = $(
+        '<input type="hidden" class="discount_percentage discountVal" />',
+      )
+        .attr("id", "discount_percentage" + rowNo)
+        .attr("name", "discount_percentage" + rowNo)
+        .val(pct > 0 ? pct : "0");
+      ($discUI.length ? $discUI : $row).append($pct);
+    }
+
+    // Clear amount mode so save path does not prefer a stale amount
+    var $amt = $scope
+      .find("#discount_amount" + rowNo + ", .discount_amount")
+      .add($row.find("#discount_amount" + rowNo + ", .discount_amount"));
+    if ($amt.length && pct > 0) {
+      $amt.val("").addClass("hide");
+    }
+
+    // Radios must match — Inventory_Edit_Js.calculateDiscountForLineItem reads the checked one
+    var $radios = $scope.find("input.discounts");
+    if (rowNo && $radios.length) {
+      $radios.attr("name", "discount" + rowNo);
+    }
+    var $zeroRadio = $scope.find(
+      'input.discounts[data-discount-type="zero"]',
+    );
+    var $pctRadio = $scope.find(
+      'input.discounts[data-discount-type="percentage"]',
+    );
+    var $amtRadio = $scope.find(
+      'input.discounts[data-discount-type="amount"]',
+    );
+    if (pct > 0) {
+      $pctRadio.prop("checked", true);
+      $zeroRadio.prop("checked", false);
+      $amtRadio.prop("checked", false);
+    } else {
+      $zeroRadio.prop("checked", true);
+      $pctRadio.prop("checked", false);
+      $amtRadio.prop("checked", false);
+    }
+
+    var qty = parseMoney($row.find(".qty").val());
+    var price = parseMoney($row.find(".listPrice").val());
+    var base = qty * price;
+    var discAmt = Math.round((base * pct) / 100);
+    var after = base - discAmt;
+    var $discTotal = $row.find(".discountTotal");
+    if ($discTotal.length) {
+      $discTotal.text(discAmt);
+    }
+    var $tad = $row.find(".totalAfterDiscount");
+    if ($tad.length) {
+      writeAmountDisplay($tad, after);
+    }
+    return after;
+  }
+
+  function getRowDiscountPercent($row) {
+    if (!$row || !$row.length) {
+      return 0;
+    }
+    // User changed the dropdown/custom input — trust UI controls first
+    if ($row.data("mkDiscUserSet")) {
+      var fromUi = readDiscountFromUiControls($row);
+      var cachedUser = $row.data("mkDiscountPct");
+      if (fromUi > 0 || fromUi === 0) {
+        // Prefer controls; fall back to cache if select is mid-init empty
+        if (
+          $row.find(".mk-inv-discount-select").length &&
+          $row.find(".mk-inv-discount-select").first().val() != null
+        ) {
+          return fromUi;
+        }
+      }
+      if (cachedUser != null && cachedUser !== "") {
+        return clampDiscountPercent(cachedUser);
+      }
+      return fromUi;
+    }
+    // Load / restyle: prefer DB-backed legacy fields so a default "0%" select
+    // cannot wipe a saved discount before paint.
+    var legacy = readLegacyDiscountPercent($row);
+    if (legacy > 0) {
+      return legacy;
+    }
+    var cached = $row.data("mkDiscountPct");
+    if (cached != null && cached !== "") {
+      return clampDiscountPercent(cached);
+    }
+    var fromControls = readDiscountFromUiControls($row);
+    if (fromControls > 0) {
+      return fromControls;
+    }
+    return legacy || fromControls || 0;
   }
 
   function paintDiscountUi($row, pct) {
@@ -2287,8 +2614,8 @@
       return;
     }
     var useCustom = !isDiscountPresetValue(pct);
-    // Keep "Tự nhập" mode whenever the select is already on custom
-    if ($sel.val() === "custom") {
+    // Keep "Tự nhập" only after user explicitly chose custom (or value is non-preset)
+    if ($row.data("mkDiscUserSet") && $sel.val() === "custom") {
       useCustom = true;
     }
     if (useCustom) {
@@ -2307,7 +2634,22 @@
         Math.abs(pct - Math.round(pct)) < 0.001
           ? String(Math.round(pct))
           : String(pct);
-      $sel.val(key);
+      // ensure option exists for edge values (e.g. 7.5 already custom)
+      if ($sel.find('option[value="' + key + '"]').length) {
+        $sel.val(key);
+      } else if (pct === 0) {
+        $sel.val("0");
+      } else {
+        $sel.val("custom");
+        $custom
+          .removeClass("mk-inv-hide-legacy hide")
+          .css({ display: "", visibility: "" })
+          .prop("disabled", false)
+          .val(String(pct));
+        $suffix.css({ display: "", visibility: "" });
+        $row.addClass("mk-inv-discount--custom");
+        return;
+      }
       $custom
         .addClass("hide")
         .css({ display: "none", visibility: "hidden" })
@@ -2319,6 +2661,7 @@
 
   function commitRowDiscount($row, $form, pct) {
     pct = clampDiscountPercent(pct);
+    $row.data("mkDiscUserSet", true);
     clearManualGrandTotal($form);
     applyLineDiscountFields($row, pct);
     applyLineTaxZero($row, $form);
@@ -2410,13 +2753,8 @@
 
     applyLineTaxZero($row, $form);
 
+    // Prefer server/legacy % on (re)paint so restyle cannot zero a saved discount
     var currentPct = getRowDiscountPercent($row);
-    if (
-      currentPct === 0 &&
-      ($row.data("mkDiscountPct") == null || $row.data("mkDiscountPct") === "")
-    ) {
-      currentPct = 0;
-    }
 
     var $existingSel = $taxTd.find(".mk-inv-discount-select").first();
     if ($existingSel.length) {
@@ -2432,6 +2770,19 @@
         .not(".mk-inv-discount-wrap")
         .addClass("mk-inv-hide-legacy")
         .css({ display: "none", visibility: "hidden" });
+      // Re-read after skipping UI priority if user hasn't touched control
+      if (!$row.data("mkDiscUserSet")) {
+        currentPct = readLegacyDiscountPercent($row);
+        if (
+          currentPct <= 0 &&
+          $row.data("mkDiscountPct") != null &&
+          $row.data("mkDiscountPct") !== ""
+        ) {
+          currentPct = clampDiscountPercent($row.data("mkDiscountPct"));
+        }
+      } else {
+        currentPct = getRowDiscountPercent($row);
+      }
       paintDiscountUi($row, currentPct);
       applyLineDiscountFields($row, currentPct);
       return;
@@ -2455,6 +2806,18 @@
     });
     var $custom = $wrap.find(".mk-inv-discount-custom");
 
+    // Seed from DB before DOM select defaults to 0%
+    if (!$row.data("mkDiscUserSet")) {
+      currentPct = readLegacyDiscountPercent($row);
+      if (
+        currentPct <= 0 &&
+        $row.data("mkDiscountPct") != null &&
+        $row.data("mkDiscountPct") !== ""
+      ) {
+        currentPct = clampDiscountPercent($row.data("mkDiscountPct"));
+      }
+    }
+
     applyLineDiscountFields($row, currentPct);
     $sel.on("change.mkInvDisc mousedown.mkInvDisc", function (e) {
       if (e.type === "mousedown") {
@@ -2462,6 +2825,7 @@
         return;
       }
       $sel.data("mkTaxOpen", false);
+      $row.data("mkDiscUserSet", true);
       var v = $sel.val();
       if (v === "custom") {
         $row.addClass("mk-inv-discount--custom");
@@ -2491,6 +2855,7 @@
     $custom.on(
       "input.mkInvDisc change.mkInvDisc focusout.mkInvDisc",
       function () {
+        $row.data("mkDiscUserSet", true);
         if ($sel.val() !== "custom") {
           $sel.val("custom");
         }
@@ -2520,6 +2885,7 @@
     $taxTd.prepend($wrap);
     // repaint now that DOM is under $row
     paintDiscountUi($row, currentPct);
+    applyLineDiscountFields($row, currentPct);
   }
 
   function injectNoteColumn($row, $form) {
@@ -2994,7 +3360,9 @@
   }
 
   function enhanceMoneyCells($row) {
-    wrapMoneyInput($row.find("input.listPrice").first());
+    var $lp = $row.find("input.listPrice").first();
+    wrapMoneyInput($lp);
+    formatListPriceInput($lp);
     var $total = $row.find(".productTotal").first();
     if ($total.length && !$total.closest(".mk-inv-money-wrap").length) {
       var $wrap = $(
@@ -3638,7 +4006,21 @@
     }
     $table.addClass("mk-inv-odoo-lines-table mk-inv-luxury-lines");
     $table.find("tr.lineItemRow").each(function () {
-      refreshLineItemRow($(this), $form);
+      var $row = $(this);
+      var $lp = $row.find("input.listPrice").first();
+      // Protect prices loaded from DB so catalog/tier integrate cannot zero them.
+      if ($lp.length && parseMoney($lp.val()) > 0) {
+        $lp.attr("data-mk-price-manual", "1");
+      }
+      // Seed discount cache from DB/totals before UI inject paints "0%"
+      if (!$row.data("mkDiscUserSet")) {
+        var seeded = readLegacyDiscountPercent($row);
+        if (seeded > 0) {
+          $row.data("mkDiscountPct", seeded);
+        }
+      }
+      refreshLineItemRow($row, $form);
+      formatListPriceInput($row.find("input.listPrice").first());
     });
     ensureOdooHeaderColumns($table);
     applyLineItemColgroup($table);
@@ -5343,7 +5725,7 @@
     $container.prepend($wrap);
 
     $select.on("change.mkInvPriceTier", function () {
-      applyInvoiceTierPricing($form, { force: true });
+      applyInvoiceTierPricing($form, { force: true, productPick: true });
     });
 
     var resolved =
@@ -5765,6 +6147,34 @@
     }
     ensureGroupTaxMode($form);
 
+    // Normalize VN-formatted unit prices (100.000 → 100000) before POST.
+    // MySQL DECIMAL treats "100.000" as one hundred if left with thousand dots.
+    $form.find("tr.lineItemRow").not(".lineItemCloneCopy, .hide").each(function () {
+      var $r = $(this);
+      var deleted =
+        $r.find('input[name^="deleted"]').filter(function () {
+          return String($(this).val()) === "1";
+        }).length > 0;
+      if (deleted) {
+        return;
+      }
+      var $price = $r.find("input.listPrice").first();
+      if ($price.length) {
+        var rawPrice = Math.round(parseMoney($price.val()));
+        $price.val(String(isFinite(rawPrice) ? rawPrice : 0));
+      }
+      var $qty = $r.find("input.qty, .qty").first();
+      if ($qty.length) {
+        var rawQty = parseMoney($qty.val());
+        if (isFinite(rawQty)) {
+          $qty.val(String(rawQty));
+        }
+      }
+      var pct = getRowDiscountPercent($r);
+      applyLineDiscountFields($r, pct);
+      applyLineTaxZero($r, $form);
+    });
+
     var preTax = sumLinePreTax($form);
     if (preTax <= 0) {
       preTax = readAmountRaw(
@@ -5773,28 +6183,48 @@
       );
     }
 
-    var taxPct = clampTaxPercent(getPrimaryTaxPercent($form));
+    // BA: unit prices already include VAT — never re-add group tax on submit.
+    // (Previously taxPct default / leftover values inflated total back to old “+8%”.)
+    var taxPct = 0;
     var taxAmt = 0;
-    $form.find("tr.lineItemRow").each(function () {
-      var $r = $(this);
-      var qty = parseMoney($r.find(".qty").val());
-      var price = parseMoney($r.find(".listPrice").val());
-      var rowPct = clampTaxPercent(getRowTaxPercent($r, $form));
-      taxAmt += Math.round((qty * price * rowPct) / 100);
-    });
-    if (taxAmt <= 0 && preTax > 0 && taxPct > 0) {
-      taxAmt = Math.round((preTax * taxPct) / 100);
-    }
-    // Sanity: tax must not exceed the goods amount.
-    if (preTax > 0 && taxAmt > preTax) {
-      taxAmt = Math.round((preTax * Math.min(taxPct, 100)) / 100);
-      if (taxAmt > preTax) {
-        taxAmt = Math.round(preTax * 0.08);
-        taxPct = 8;
+    if (!MK_BA_VAT_INCLUDED) {
+      taxPct = clampTaxPercent(getPrimaryTaxPercent($form));
+      $form.find("tr.lineItemRow").each(function () {
+        var $r = $(this);
+        var qty = parseMoney($r.find(".qty").val());
+        var price = parseMoney($r.find(".listPrice").val());
+        var rowPct = clampTaxPercent(getRowTaxPercent($r, $form));
+        taxAmt += Math.round((qty * price * rowPct) / 100);
+      });
+      if (taxAmt <= 0 && preTax > 0 && taxPct > 0) {
+        taxAmt = Math.round((preTax * taxPct) / 100);
+      }
+      if (preTax > 0 && taxAmt > preTax) {
+        taxAmt = Math.round((preTax * Math.min(taxPct, 100)) / 100);
+        if (taxAmt > preTax) {
+          taxAmt = Math.round(preTax * 0.08);
+          taxPct = 8;
+        }
       }
     }
 
     var grand = preTax + taxAmt;
+    // Honour manual grand total via adjustment when user edited TỔNG CỘNG
+    if (isManualGrandTotal($form)) {
+      var manualGrand = parseMoney(
+        $form.find(".mk-inv-grand-manual-input").val() ||
+          $form.find('#total, input[name="total"]').val(),
+      );
+      if (manualGrand > 0 || String($form.find(".mk-inv-grand-manual-input").val() || "") === "0") {
+        grand = manualGrand;
+        var $adj = $form.find("#adjustment, input[name='adjustment']");
+        if ($adj.length) {
+          $adj.val(grand - preTax);
+        }
+      }
+    } else {
+      $form.find("#adjustment, input[name='adjustment']").val(0);
+    }
     $form.find('#subtotal, input[name="subtotal"]').val(preTax);
     $form.find('#pre_tax_total, input[name="pre_tax_total"]').val(preTax);
     $form.find('#total, input[name="total"]').val(grand);
@@ -5821,6 +6251,10 @@
       writeAmountDisplay($result.find("#tax_final"), taxAmt);
       writeAmountDisplay($result.find("#grandTotal, .grandTotal"), grand);
       $result.find("#tax_final").attr("data-raw", taxAmt);
+      var $manual = $result.find(".mk-inv-grand-manual-input");
+      if ($manual.length && document.activeElement !== $manual[0] && !isManualGrandTotal($form)) {
+        $manual.val(formatVndNumber(grand));
+      }
     }
   }
 
@@ -5927,6 +6361,29 @@
         return origSavePreTaxTotalValue.call(this);
       }
     };
+
+    // Keep radio + discount_type in sync before Vtiger re-reads them for net price
+    var origCalcDisc = proto.calculateDiscountForLineItem;
+    if (origCalcDisc && !proto.__mkOdooDiscCalcPatched) {
+      proto.__mkOdooDiscCalcPatched = true;
+      proto.calculateDiscountForLineItem = function (lineItemRow) {
+        var $row = jQuery(lineItemRow);
+        var $odooForm = $row.closest("form.mk-inv-form-odoo");
+        if (!$odooForm.length) {
+          $odooForm = jQuery("form.mk-inv-form-odoo").first();
+        }
+        if ($odooForm.length && $row.length) {
+          try {
+            applyLineDiscountFields($row, getRowDiscountPercent($row));
+          } catch (e) {
+            /* ignore */
+          }
+        }
+        if (origCalcDisc) {
+          return origCalcDisc.call(this, lineItemRow);
+        }
+      };
+    }
   }
 
   function bindSubmitTotalsGuard($form) {
@@ -6106,6 +6563,7 @@
         .addClass("mk-inv-hide-legacy");
       $lineBlock.find("> br").addClass("mk-inv-hide-legacy");
 
+      bindListPriceFormatting($form);
       initOdooTabs($lineBlock);
       initInvoicePriceTier($form);
       initPaymentTerms($form);

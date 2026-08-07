@@ -281,13 +281,6 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 	 * @param int $serviceContractId
 	 * @param Vtiger_Viewer $viewer
 	 */
-		/**
-	 * Prefill Quote create form from ServiceContracts (Tuibao franchise customer).
-	 *
-	 * @param Vtiger_Record_Model $recordModel
-	 * @param int $serviceContractId
-	 * @param Vtiger_Viewer $viewer
-	 */
 	protected function applyServiceContractPrefillToQuote($recordModel, $serviceContractId, $viewer) {
 		$serviceContractId = (int) $serviceContractId;
 		if ($serviceContractId <= 0 || !$recordModel) {
@@ -334,6 +327,7 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 			);
 			$viewer->assign('MK_SC_PREFILL', $prefill);
 			$viewer->assign('MK_SC_PREFILL_JSON', Zend_Json::encode($prefill));
+			$viewer->assign('MK_SERVICECONTRACT_ID', $serviceContractId);
 		}
 	}
 

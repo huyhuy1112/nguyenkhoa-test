@@ -2203,11 +2203,8 @@
 						confirmSaveRequested = false;
 						return;
 					}
-					if (mode === 'confirm') {
-						window.location.href = 'index.php?module=Quotes&view=List&app=SALES';
-						return;
-					}
-					confirmSaveRequested = false;
+					// After Lưu / xác nhận: luôn về list (không mở detail).
+					window.location.href = 'index.php?module=Quotes&view=List&app=SALES';
 				})
 				.fail(function () {
 					confirmSaveRequested = false;
@@ -2995,11 +2992,45 @@
 
 	function applyServiceContractPrefill() {
 		var prefill = window.MK_SC_PREFILL;
+		var $f = $form();
+		if (!$f.length) {
+			return;
+		}
+
+		// Always keep SC link fields when present (create from Khách hàng nhượng quyền).
+		var scId = 0;
+		if (prefill && prefill.id) {
+			scId = parseInt(prefill.id, 10) || 0;
+		}
+		if (!scId) {
+			try {
+				var qs = new URLSearchParams(window.location.search || "");
+				scId =
+					parseInt(qs.get("servicecontract_id") || qs.get("mk_servicecontract_id") || "0", 10) ||
+					0;
+			} catch (eSc) {
+				scId = 0;
+			}
+		}
+		if (scId > 0) {
+			var $scField = $f.find('[name="mk_servicecontract_id"]');
+			if (!$scField.length) {
+				$scField = $('<input type="hidden" name="mk_servicecontract_id" id="mk_servicecontract_id" />');
+				$f.prepend($scField);
+			}
+			$scField.val(String(scId));
+			var $scAlt = $f.find('[name="servicecontract_id"]');
+			if (!$scAlt.length) {
+				$scAlt = $('<input type="hidden" name="servicecontract_id" id="servicecontract_id" />');
+				$f.prepend($scAlt);
+			}
+			$scAlt.val(String(scId));
+		}
+
 		if (!prefill || !prefill.name) {
 			return;
 		}
-		var $f = $form();
-		if (!$f.length || $f.data('mkScPrefillApplied')) {
+		if ($f.data('mkScPrefillApplied')) {
 			return;
 		}
 		$f.data('mkScPrefillApplied', 1);

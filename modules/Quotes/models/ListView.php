@@ -313,4 +313,60 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 
 		return null;
 	}
+
+	/**
+	 * List scope: all | franchise (Báo giá khách hàng nhượng quyền).
+	 */
+	public function getQuery() {
+		$listQuery = parent::getQuery();
+		$scope = strtolower(trim((string) $this->get('mk_quote_scope')));
+		if ($scope === 'franchise' || $scope === 'nhuong_quyen') {
+			$listQuery = $this->appendFranchiseQuoteFilter($listQuery);
+		}
+		return $listQuery;
+	}
+
+	/**
+	 * Only quotes created from module Khách hàng nhượng quyền (ServiceContracts):
+	 * mk_servicecontract_id > 0 and source SC still active.
+	 *
+	 * @param string $listQuery
+	 * @return string
+	 */
+	protected function appendFranchiseQuoteFilter($listQuery) {
+		$listQuery = (string) $listQuery;
+		if ($listQuery === '' || stripos($listQuery, 'mk_qt_franchise_filter') !== false) {
+			return $listQuery;
+		}
+
+		require_once 'modules/Quotes/helpers/QuoteBaService.php';
+		if (!Quotes_QuoteBaService_Helper::ensureServiceContractLinkColumn()) {
+			// Column missing — show empty franchise list rather than leaking other quotes.
+			$fragment = ' AND 1=0 /* mk_qt_franchise_filter:no_column */ ';
+		} else {
+			$fragment = ' AND (
+			/* mk_qt_franchise_filter */
+			vtiger_quotes.mk_servicecontract_id IS NOT NULL
+			AND vtiger_quotes.mk_servicecontract_id > 0
+			AND EXISTS (
+				SELECT 1
+				FROM vtiger_servicecontracts sc
+				INNER JOIN vtiger_crmentity sce
+					ON sce.crmid = sc.servicecontractsid AND sce.deleted = 0
+				WHERE sc.servicecontractsid = vtiger_quotes.mk_servicecontract_id
+			)
+		) ';
+		}
+
+		if (preg_match('/\sORDER\s+BY\s/i', $listQuery)) {
+			return preg_replace('/\sORDER\s+BY\s/i', $fragment . ' ORDER BY ', $listQuery, 1);
+		}
+		if (preg_match('/\sGROUP\s+BY\s/i', $listQuery)) {
+			return preg_replace('/\sGROUP\s+BY\s/i', $fragment . ' GROUP BY ', $listQuery, 1);
+		}
+		if (preg_match('/\sLIMIT\s+/i', $listQuery)) {
+			return preg_replace('/\sLIMIT\s+/i', $fragment . ' LIMIT ', $listQuery, 1);
+		}
+		return $listQuery . $fragment;
+	}
 }
