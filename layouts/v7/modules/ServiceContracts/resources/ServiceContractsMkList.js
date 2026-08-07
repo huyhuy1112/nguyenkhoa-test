@@ -28,7 +28,7 @@
     "Đang chăm sóc",
     "Chuyển sang Nguyên Khoa",
   ];
-  var DATA_SOURCE_OPTS = ["Facebook", "TikTok", "Website", "Zalo", "Khác"];
+  var DATA_SOURCE_OPTS = ["Được giới thiệu"];
   var CONTACT_STATUS_OPTS = ["Chưa gọi", "Đã gửi tư vấn", "Thuê bao", "Ko nghe Máy Lần 1"];
 
   function getPresetSegments() {
@@ -359,10 +359,9 @@
       return "mk-sc-pill mk-sc-pill--slate";
     }
     if (kind === "data_source") {
-      if (v.indexOf("facebook") >= 0 || v.indexOf("fb") >= 0) return "mk-sc-pill mk-sc-pill--fb";
-      if (v.indexOf("tiktok") >= 0) return "mk-sc-pill mk-sc-pill--tiktok";
-      if (v.indexOf("website") >= 0) return "mk-sc-pill mk-sc-pill--web";
-      if (v.indexOf("zalo") >= 0) return "mk-sc-pill mk-sc-pill--zalo";
+      if (v.indexOf("giới thiệu") >= 0 || v.indexOf("gioi thieu") >= 0 || v.indexOf("affiliate") >= 0) {
+        return "mk-sc-pill mk-sc-pill--green";
+      }
       return "mk-sc-pill mk-sc-pill--slate";
     }
     if (kind === "contact_status") {

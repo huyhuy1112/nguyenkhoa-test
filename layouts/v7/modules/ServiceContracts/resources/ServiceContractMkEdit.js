@@ -5,7 +5,7 @@
 (function ($) {
 	"use strict";
 
-	var MK_BUILD = "20260730_sc_dup_ui1";
+	var MK_BUILD = "20260807_sc_src_aff1";
 	var DEFAULT_PICKLISTS = {
 		franchise_status: [
 			"Quan Tâm/Tham Khảo",
@@ -14,7 +14,8 @@
 			"Đang chăm sóc",
 			"Chuyển sang Nguyên Khoa",
 		],
-		data_source: ["Facebook", "TikTok", "Website", "Zalo", "Khác"],
+		// BA: Nguồn data = Được giới thiệu (Affiliate) hoặc trống
+		data_source: ["Được giới thiệu"],
 		contact_status: ["Chưa gọi", "Đã gửi tư vấn", "Thuê bao", "Ko nghe Máy Lần 1", "Ko nghe Máy Lần 2", "Ko nghe Máy Lần 3"],
 	};
 	var PAYMENT_OPTIONS = ["Chuyển khoản", "Tiền mặt", "Thẻ", "Ví"];
@@ -370,6 +371,11 @@
 		var name = $opt.attr("data-name") || "";
 		$("#mkScReferralCode").val(code);
 		$("#mkScReferrer").val(name || code);
+		// BA: có mã AFF giới thiệu → Nguồn data = "Được giới thiệu"; không → trống ("-")
+		var $ds = $("#mkScDataSource");
+		if ($ds.length) {
+			$ds.val(code ? "Được giới thiệu" : "");
+		}
 		if (!code) {
 			clearRewardOnly();
 			lastRetentionDays = DEFAULT_RETENTION_DAYS;

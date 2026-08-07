@@ -28,11 +28,8 @@ class ServiceContracts_ModernService {
 				'Chuyển sang Nguyên Khoa',
 			),
 			'data_source' => array(
-				'Facebook',
-				'TikTok',
-				'Website',
-				'Zalo',
-				'Khác',
+				// BA: nguồn = phát sinh từ Affiliate (giới thiệu) hoặc trống
+				'Được giới thiệu',
 			),
 			'contact_status' => array(
 				'Chưa gọi',
@@ -255,7 +252,7 @@ class ServiceContracts_ModernService {
 				p.affiliate_code, p.phone, p.email, p.cccd, p.segment, p.district, p.address_line, p.area,
 				p.sc_value, p.last_touch, p.next_action, p.customer_type,
 				p.received_date, p.business_note, p.franchise_status, p.fanpage, p.data_source, p.referrer,
-				p.contact_status, p.interaction_1, p.interaction_2, p.interaction_3, p.interaction_materials,
+				p.referral_code, p.contact_status, p.interaction_1, p.interaction_2, p.interaction_3, p.interaction_materials,
 				ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname
 			FROM vtiger_servicecontracts sc
@@ -413,6 +410,7 @@ class ServiceContracts_ModernService {
 			'franchise_status' => self::decodeText(isset($row['franchise_status']) ? $row['franchise_status'] : ''),
 			'data_source' => self::resolveDataSourceDisplay($row),
 			'referrer' => self::decodeText(isset($row['referrer']) ? $row['referrer'] : ''),
+			'referral_code' => self::decodeText(isset($row['referral_code']) ? $row['referral_code'] : ''),
 			'contact_status' => self::decodeText(isset($row['contact_status']) ? $row['contact_status'] : ''),
 			'interaction_1' => self::decodeText(isset($row['interaction_1']) ? $row['interaction_1'] : ''),
 			'interaction_2' => self::decodeText(isset($row['interaction_2']) ? $row['interaction_2'] : ''),
@@ -438,28 +436,74 @@ class ServiceContracts_ModernService {
 	}
 
 	/**
-	 * Nguồn data replaces Fanpage. Prefer data_source; fall back to legacy fanpage mapping.
+	 * True when customer was introduced via Affiliate (mã GT / người giới thiệu).
 	 */
-	protected static function resolveDataSourceDisplay(array $row) {
+	protected static function hasAffiliateIntroduction(array $row) {
+		$referralCode = self::decodeText(isset($row['referral_code']) ? $row['referral_code'] : '');
+		if ($referralCode !== '' && $referralCode !== '—') {
+			return true;
+		}
+		$referrer = self::decodeText(isset($row['referrer']) ? $row['referrer'] : '');
+		if ($referrer !== '' && $referrer !== '—' && $referrer !== '-') {
+			return true;
+		}
 		$dataSource = self::decodeText(isset($row['data_source']) ? $row['data_source'] : '');
 		if ($dataSource !== '') {
-			return $dataSource;
+			$dsLower = function_exists('mb_strtolower')
+				? mb_strtolower($dataSource, 'UTF-8')
+				: strtolower($dataSource);
+			if (
+				strpos($dsLower, 'giới thiệu') !== false
+				|| strpos($dsLower, 'gioi thieu') !== false
+				|| strpos($dsLower, 'affiliate') !== false
+			) {
+				return true;
+			}
 		}
+		// Legacy fanpage labels for referrals
 		$fanpage = self::decodeText(isset($row['fanpage']) ? $row['fanpage'] : '');
-		if ($fanpage === '') {
-			return '';
+		if ($fanpage !== '') {
+			$fpLower = function_exists('mb_strtolower')
+				? mb_strtolower($fanpage, 'UTF-8')
+				: strtolower($fanpage);
+			if (strpos($fpLower, 'giới thiệu') !== false || strpos($fpLower, 'gioi thieu') !== false) {
+				return true;
+			}
 		}
-		$map = array(
-			'FB Nhượng quyền TaiRao' => 'Facebook',
-			'FB Nhượng quyền TaiBao' => 'Facebook',
-			'Hotline' => 'Khác',
-			'Nguyên Khoa F&B' => 'Website',
-			'Chủ quán giới thiệu' => 'Khác',
-			'Ads Nhượng Quyền' => 'Facebook',
-			'Lớp Học Miễn Phí' => 'Khác',
-			'FCTH' => 'Khác',
-		);
-		return isset($map[$fanpage]) ? $map[$fanpage] : $fanpage;
+		return false;
+	}
+
+	/**
+	 * Nguồn data (BA): từ Affiliate → "Được giới thiệu"; không giới thiệu → trống (UI: "-").
+	 */
+	protected static function resolveDataSourceDisplay(array $row) {
+		return self::hasAffiliateIntroduction($row) ? 'Được giới thiệu' : '';
+	}
+
+	/**
+	 * Persist data_source from referral / explicit picklist (BA).
+	 */
+	protected static function resolveDataSourceForSave($referralCode, $referrer, $picked) {
+		$referralCode = strtoupper(trim((string) $referralCode));
+		$referrer = trim((string) $referrer);
+		$picked = trim((string) $picked);
+		if ($referralCode !== '' || ($referrer !== '' && $referrer !== '—' && $referrer !== '-')) {
+			return 'Được giới thiệu';
+		}
+		$pickedLower = function_exists('mb_strtolower')
+			? mb_strtolower($picked, 'UTF-8')
+			: strtolower($picked);
+		if (
+			$picked !== ''
+			&& (
+				strpos($pickedLower, 'giới thiệu') !== false
+				|| strpos($pickedLower, 'gioi thieu') !== false
+				|| $picked === 'Được giới thiệu'
+			)
+		) {
+			return 'Được giới thiệu';
+		}
+		return '';
 	}
 
 	protected static function resolveRuleNextActionMeta(array $tags, $lastTouchRaw, $manualNextAction) {
@@ -651,10 +695,6 @@ class ServiceContracts_ModernService {
 			isset($payload['franchise_status']) ? $payload['franchise_status'] : '',
 			$picklists['franchise_status']
 		);
-		$dataSource = self::normalizePick(
-			isset($payload['data_source']) ? $payload['data_source'] : '',
-			$picklists['data_source']
-		);
 		// Fanpage retired — keep column cleared; Nguồn data is the channel field.
 		$fanpage = '';
 		$contactStatus = self::normalizePick(
@@ -680,6 +720,12 @@ class ServiceContracts_ModernService {
 		$email = trim(self::decodeText(isset($payload['email']) ? $payload['email'] : ''));
 
 		$referralCode = strtoupper(trim(self::decodeText(isset($payload['referral_code']) ? $payload['referral_code'] : '')));
+		// Nguồn data: có giới thiệu Affiliate → "Được giới thiệu"; không → trống ("-")
+		$dataSource = self::resolveDataSourceForSave(
+			$referralCode,
+			$referrer,
+			isset($payload['data_source']) ? $payload['data_source'] : ''
+		);
 		$affiliateTierPrefix = strtoupper(trim(self::decodeText(
 			isset($payload['affiliate_tier_prefix']) ? $payload['affiliate_tier_prefix'] : 'D'
 		)));
