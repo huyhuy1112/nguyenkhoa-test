@@ -624,6 +624,20 @@ class ServiceContracts_ModernService {
 		$ownTier = self::resolveTierByPrefix($ownTierPrefix);
 		$referralCode = self::decodeText(isset($row['referral_code']) ? $row['referral_code'] : '');
 		$affiliateCode = self::decodeText(isset($row['affiliate_code']) ? $row['affiliate_code'] : '');
+		$lastTouchCalls = array(
+			'calls' => array(),
+			'count' => 0,
+			'next_n' => 1,
+			'can_add' => true,
+			'max_calls' => 3,
+			'hint' => '',
+		);
+		try {
+			require_once 'modules/ServiceContracts/models/LastTouchCallService.php';
+			$lastTouchCalls = ServiceContracts_LastTouchCallService::getSummary($contractId);
+		} catch (Exception $e) {
+			// keep defaults
+		}
 		return array(
 			'id' => (string) $contractId,
 			'crmid' => $contractId,
@@ -661,6 +675,7 @@ class ServiceContracts_ModernService {
 			'notes' => self::decodeText(isset($row['description']) ? $row['description'] : ''),
 			'description' => self::decodeText(isset($row['description']) ? $row['description'] : ''),
 			'tags' => array_values($tags),
+			'lastTouchCalls' => $lastTouchCalls,
 			'picklists' => self::franchisePicklists(),
 		);
 	}

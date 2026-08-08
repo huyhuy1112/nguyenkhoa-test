@@ -596,7 +596,7 @@
 			'<option value="Nghe máy">Nghe máy</option></select>' +
 			'<label class="mk-lead-lt-modal__label" for="mk-sc-edit-lt-note">Ghi chú</label>' +
 			'<textarea id="mk-sc-edit-lt-note" class="mk-lead-lt-modal__note inputElement" rows="6" placeholder="Ví dụ: Khách quan tâm mặt bằng"></textarea>' +
-			'<p class="mk-lead-lt-modal__tip">Chọn <strong>Nghe máy</strong> → Liên hệ = Đã gửi tư vấn (không sang Opp). Ghi chú Call #N hiện ở Tương tác lần N. <strong>Không nghe máy</strong> → nhắc sau khoảng 5 giờ.</p>' +
+			'<p class="mk-lead-lt-modal__tip">Chọn <strong>Nghe máy</strong> → Liên hệ = Đã gửi tư vấn (không sang Opp). Ghi chú hiện ở <strong>Tương tác gần đây</strong> (Last Touch Call). <strong>Không nghe máy</strong> → nhắc sau khoảng 5 giờ.</p>' +
 			"</div>" +
 			'<div class="mk-lead-lt-modal__foot">' +
 			'<button type="button" class="btn btn-default" data-mk-sc-edit-lt-close="1">Hủy</button>' +
@@ -622,7 +622,7 @@
 				.then(function () {
 					wrap.hidden = true;
 					refreshLastTouchPanel(rid);
-					// Reload form fields so Liên hệ + Tương tác lần N cập nhật
+					// Reload so Liên hệ + bảng Tương tác gần đây (Last Touch) cập nhật
 					apiRequest("get_franchise", { record: rid, id: rid }).then(function (res) {
 						if (res && res.contract) {
 							fillForm($.extend({}, res.contract, { picklists: res.picklists }));

@@ -110,29 +110,41 @@
 				.join("")
 		);
 
-		var ix = [
-			["Tương tác lần 1", data.interaction_1],
-			["Tương tác lần 2", data.interaction_2],
-			["Tương tác lần 3", data.interaction_3],
-			["TƯƠNG TÁC TỰ MỞ NGUYÊN LIỆU MÁY MÓC", data.interaction_materials],
-		];
-		$("#mkScMkInteractions").html(
-			"<h3>Tương tác</h3>" +
-				ix
-					.map(function (item) {
+		var lt = data.lastTouchCalls || {};
+		var calls = lt.calls || [];
+		var callLogHtml = calls.length
+			? calls
+					.map(function (call) {
+						var line =
+							call.label ||
+							(call.called_at_label || "") +
+								" Call #" +
+								(call.n || "") +
+								" Kết quả: " +
+								(call.result || "");
+						if (call.note && String(line).indexOf("Ghi chú:") < 0) {
+							line += " Ghi chú: " + call.note;
+						}
 						return (
-							'<div class="mk-sc-mk-detail__ix' +
-							(item[0].indexOf("NGUYÊN LIỆU") >= 0 ? " is-materials" : "") +
-							'">' +
-							'<span class="mk-sc-mk-detail__label">' +
-							escapeHtml(item[0]) +
-							"</span>" +
-							'<div class="mk-sc-mk-detail__ix-body">' +
-							escapeHtml(item[1] || "—") +
-							"</div></div>"
+							'<div class="mk-sc-mk-detail__ix-body mk-sc-mk-detail__call-line">' +
+							escapeHtml(line) +
+							"</div>"
 						);
 					})
 					.join("")
+			: '<div class="mk-sc-mk-detail__ix-body">Chưa có cuộc gọi</div>';
+		var materials = data.interaction_materials || "";
+		$("#mkScMkInteractions").html(
+			"<h3>Tương tác gần đây</h3>" +
+				'<div class="mk-sc-mk-detail__ix">' +
+				'<span class="mk-sc-mk-detail__label">Last Touch Call</span>' +
+				callLogHtml +
+				"</div>" +
+				'<div class="mk-sc-mk-detail__ix is-materials">' +
+				'<span class="mk-sc-mk-detail__label">TƯƠNG TÁC TỰ MỞ NGUYÊN LIỆU MÁY MÓC</span>' +
+				'<div class="mk-sc-mk-detail__ix-body">' +
+				escapeHtml(materials || "—") +
+				"</div></div>"
 		);
 
 		function hideStock() {

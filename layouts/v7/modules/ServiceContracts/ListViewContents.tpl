@@ -50,9 +50,7 @@
 							<th class="mk-leads-th mk-sc-th--group-a" scope="col">{vtranslate('LBL_MK_SC_DATA_SOURCE', $MODULE)}</th>
 							<th class="mk-leads-th mk-sc-th--group-a" scope="col">{vtranslate('LBL_MK_SC_REFERRER', $MODULE)}</th>
 							<th class="mk-leads-th mk-sc-th--group-b" scope="col">{vtranslate('LBL_MK_SC_CONTACT_STATUS', $MODULE)}</th>
-							<th class="mk-leads-th mk-sc-th--group-b" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_1', $MODULE)}</th>
-							<th class="mk-leads-th mk-sc-th--group-b" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_2', $MODULE)}</th>
-							<th class="mk-leads-th mk-sc-th--group-b" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_3', $MODULE)}</th>
+							<th class="mk-leads-th mk-sc-th--group-b mk-leads-th--sort" scope="col" data-sort="last_touch"><span class="mk-leads-th__inner">{vtranslate('LBL_MK_SC_RECENT_TOUCH', $MODULE)}<span class="mk-leads-sort-ic" aria-hidden="true"></span></span></th>
 							<th class="mk-leads-th mk-sc-th--group-c" scope="col">{vtranslate('LBL_MK_SC_INTERACTION_MATERIALS', $MODULE)}</th>
 							<th class="mk-leads-th mk-sc-th--actions" scope="col" style="width:56px;"><span class="sr-only">Thao tác</span></th>
 						</tr>

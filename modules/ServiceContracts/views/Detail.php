@@ -64,9 +64,6 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 		$ds = isset($franchise['data_source']) ? (string) $franchise['data_source'] : '';
 		$phone = isset($franchise['phone']) ? (string) $franchise['phone'] : '';
 		$biz = isset($franchise['business_note']) ? (string) $franchise['business_note'] : '';
-		$i1 = isset($franchise['interaction_1']) ? (string) $franchise['interaction_1'] : '';
-		$i2 = isset($franchise['interaction_2']) ? (string) $franchise['interaction_2'] : '';
-		$i3 = isset($franchise['interaction_3']) ? (string) $franchise['interaction_3'] : '';
 		$im = isset($franchise['interaction_materials']) ? (string) $franchise['interaction_materials'] : '';
 		$infoFields = array(
 			array(
@@ -115,35 +112,7 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 				'picklist_values' => $contactOpts,
 			),
 		);
-		$interactionFields = array(
-			array(
-				'name' => 'interaction_1',
-				'label' => 'Tương tác lần 1',
-				'value' => $i1 !== '' ? $i1 : '—',
-				'raw_value' => $i1,
-				'data_type' => 'text',
-				'editable' => true,
-				'picklist_values' => array(),
-			),
-			array(
-				'name' => 'interaction_2',
-				'label' => 'Tương tác lần 2',
-				'value' => $i2 !== '' ? $i2 : '—',
-				'raw_value' => $i2,
-				'data_type' => 'text',
-				'editable' => true,
-				'picklist_values' => array(),
-			),
-			array(
-				'name' => 'interaction_3',
-				'label' => 'Tương tác lần 3',
-				'value' => $i3 !== '' ? $i3 : '—',
-				'raw_value' => $i3,
-				'data_type' => 'text',
-				'editable' => true,
-				'picklist_values' => array(),
-			),
-		);
+		// BA: interactions 1/2/3 merged into Last Touch Call (Tương tác gần đây).
 		$materialsField = array(
 			'name' => 'interaction_materials',
 			'label' => 'TƯƠNG TÁC TỰ MỞ NGUYÊN LIỆU MÁY MÓC',
@@ -179,7 +148,8 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, 'SALES', $infoFields, $title, $subtitle);
 		$viewer->assign('INLINE_HIDE_TAGS', true);
 		$viewer->assign('INLINE_LAST_TOUCH', $lastTouch);
-		$viewer->assign('INLINE_SC_INTERACTIONS', $interactionFields);
+		// BA: gộp Tương tác lần 1/2/3 → chỉ hiện Last Touch Call (Tương tác gần đây).
+		$viewer->assign('INLINE_SC_INTERACTIONS', array());
 		$viewer->assign('INLINE_SC_MATERIALS', $materialsField);
 		$viewer->assign('INLINE_SC_OWNER', $ownerField ? $ownerField : null);
 

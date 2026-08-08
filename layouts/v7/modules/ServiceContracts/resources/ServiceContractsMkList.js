@@ -7,7 +7,7 @@
   var ref = window.ServiceContractsLovableRef;
   var store = window.ServiceContractsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 14;
+  var COL_COUNT = 12;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -407,25 +407,11 @@
   function lastTouchCallCell(c) {
     var lt = (c && c.lastTouchCalls) || {};
     var calls = lt.calls || [];
-    var count = typeof lt.count === "number" ? lt.count : calls.length;
-    var max = lt.max_calls || 3;
     if (!calls.length) {
-      return (
-        '<div class="mk-sc-lt-cell">' +
-        '<span class="mk-sc-lt-badge is-open">' +
-        esc(String(count) + "/" + String(max)) +
-        "</span>" +
-        '<span class="mk-leads-muted">Chưa có cuộc gọi</span></div>'
-      );
+      return '<span class="mk-leads-muted">Chưa có cuộc gọi</span>';
     }
     return (
-      '<div class="mk-sc-lt-cell">' +
-      '<span class="mk-sc-lt-badge ' +
-      (lt.can_add === false ? "is-done" : "is-open") +
-      '">' +
-      esc(String(count) + "/" + String(max)) +
-      "</span>" +
-      '<div class="mk-sc-lt-log">' +
+      '<div class="mk-leads-call-log mk-sc-call-log">' +
       calls
         .map(function (call) {
           var line =
@@ -435,11 +421,38 @@
               (call.n || "") +
               " Kết quả: " +
               (call.result || "");
-          return '<div class="mk-sc-lt-log__item" title="' + esc(line) + '">' + esc(line) + "</div>";
+          if (call.note && String(line).indexOf("Ghi chú:") < 0) {
+            line += " Ghi chú: " + call.note;
+          }
+          return (
+            '<div class="mk-leads-call-log__item" title="' +
+            esc(line) +
+            '">' +
+            esc(line) +
+            "</div>"
+          );
         })
         .join("") +
-      "</div></div>"
+      "</div>"
     );
+  }
+
+  function lastTouchCallText(c) {
+    var lt = (c && c.lastTouchCalls) || {};
+    var calls = lt.calls || [];
+    if (!calls.length) return "";
+    return calls
+      .map(function (call) {
+        return (
+          call.label ||
+          (call.called_at_label || "") +
+            " Call #" +
+            (call.n || "") +
+            " Kết quả: " +
+            (call.result || "")
+        );
+      })
+      .join(" | ");
   }
 
   function saveInteractionField(recordId, field, value) {
@@ -987,14 +1000,8 @@
             '<td class="mk-leads-td">' +
             pillCell("contact_status", c.contact_status) +
             "</td>" +
-            '<td class="mk-leads-td">' +
-            interactionNoteCell("interaction_1", c.interaction_1, rowId) +
-            "</td>" +
-            '<td class="mk-leads-td">' +
-            interactionNoteCell("interaction_2", c.interaction_2, rowId) +
-            "</td>" +
-            '<td class="mk-leads-td">' +
-            interactionNoteCell("interaction_3", c.interaction_3, rowId) +
+            '<td class="mk-leads-td mk-sc-td--recent-touch" data-col="recent_touch">' +
+            lastTouchCallCell(c) +
             "</td>" +
             '<td class="mk-leads-td mk-sc-td--notes">' +
             interactionNoteCell("interaction_materials", c.interaction_materials, rowId) +
@@ -1082,7 +1089,7 @@
 
   function exportCsv(rows) {
     var lines = [
-      "NgayTiepNhan,HoTen,SDT,DiaChiKinhDoanh,TrangThai,NguonData,NguoiGioiThieu,LienHe,TuongTac1,TuongTac2,TuongTac3,TuongTacMayMoc",
+      "NgayTiepNhan,HoTen,SDT,DiaChiKinhDoanh,TrangThai,NguonData,NguoiGioiThieu,LienHe,TuongTacGanDay,TuongTacMayMoc",
     ];
     rows.forEach(function (c) {
       var phone =
@@ -1099,9 +1106,7 @@
           c.data_source || "",
           c.referrer || "",
           c.contact_status || "",
-          c.interaction_1 || "",
-          c.interaction_2 || "",
-          c.interaction_3 || "",
+          lastTouchCallText(c),
           c.interaction_materials || "",
         ]
           .map(function (v) {
@@ -1199,7 +1204,7 @@
       "</select>" +
       '<label class="mk-lead-lt-modal__label" for="mk-sc-lt-note">Ghi chú</label>' +
       '<textarea id="mk-sc-lt-note" class="mk-lead-lt-modal__note inputElement" rows="6" placeholder="Ví dụ: Khách quan tâm mặt bằng / cần tư vấn thêm"></textarea>' +
-      '<p class="mk-lead-lt-modal__tip">Chọn <strong>Nghe máy</strong> → Liên hệ = Đã gửi tư vấn (không sang Opp). Ghi chú Call #N hiện ở Tương tác lần N. <strong>Không nghe máy</strong> → nhắc sau khoảng 5 giờ.</p>' +
+      '<p class="mk-lead-lt-modal__tip">Chọn <strong>Nghe máy</strong> → Liên hệ = Đã gửi tư vấn (không sang Opp). Ghi chú hiện ở <strong>Tương tác gần đây</strong> (Last Touch Call). <strong>Không nghe máy</strong> → nhắc sau khoảng 5 giờ.</p>' +
       "</div>" +
       '<div class="mk-lead-lt-modal__foot">' +
       '<button type="button" class="btn btn-default" data-mk-sc-lt-close="1">Hủy</button>' +
@@ -1409,9 +1414,6 @@
         if (res.contract) {
           patch.contact_status = res.contract.contact_status || "";
           patch.last_touch = res.contract.last_touch || "";
-          patch.interaction_1 = res.contract.interaction_1;
-          patch.interaction_2 = res.contract.interaction_2;
-          patch.interaction_3 = res.contract.interaction_3;
           patch.interaction_materials = res.contract.interaction_materials;
         }
         store.patchContract(String(recordId), patch);
@@ -1433,9 +1435,6 @@
           if (input) input.value = val || "";
         }
         patchField("contact_status", c.contact_status);
-        patchField("interaction_1", c.interaction_1);
-        patchField("interaction_2", c.interaction_2);
-        patchField("interaction_3", c.interaction_3);
       }
       closeScLastTouchModal();
       renderTable();

@@ -113,7 +113,7 @@
 			{if empty($LT_CAN_ADD)} data-lt-locked="1"{/if}>
 			<div class="mk-so-inline-detail__last-touch-head">
 				<div class="mk-so-inline-detail__last-touch-title-wrap">
-					<strong class="mk-so-inline-detail__last-touch-title">Last Touch (Call)</strong>
+					<strong class="mk-so-inline-detail__last-touch-title">{if $MODULE eq 'ServiceContracts' || $MODULE eq 'Leads' || $MODULE eq 'Potentials'}Tương tác gần đây{else}Last Touch (Call){/if}</strong>
 					<span class="mk-so-inline-detail__last-touch-badge{if empty($LT_CAN_ADD)} is-done{else} is-open{/if}" data-role="lt-badge">{$LT_COUNT|escape}/{$LT_MAX|escape}</span>
 				</div>
 				<button type="button"
@@ -143,22 +143,7 @@
 				{/if}
 			</ul>
 		</div>
-		{if $MODULE eq 'ServiceContracts' && isset($INLINE_SC_INTERACTIONS) && $INLINE_SC_INTERACTIONS|@count gt 0}
-			<div class="mk-so-inline-detail__sc-ix">
-				{foreach from=$INLINE_SC_INTERACTIONS item=INFO_FIELD}
-					<div class="mk-so-inline-detail__field mk-so-inline-detail__field--ix" data-field-name="{$INFO_FIELD.name|escape}" data-field-type="text" data-editable="{if !empty($INFO_FIELD.editable)}1{else}0{/if}">
-						<label class="mk-so-inline-detail__field-label">{$INFO_FIELD.label|escape}</label>
-						<div class="mk-so-inline-detail__field-view">{$INFO_FIELD.value|escape|nl2br}</div>
-						{if !empty($INFO_FIELD.editable)}
-							<div class="mk-so-inline-detail__field-edit">
-								<textarea class="mk-so-inline-detail__input mk-so-inline-detail__textarea inputElement" name="{$INFO_FIELD.name|escape}" rows="2">{$INFO_FIELD.raw_value|escape}</textarea>
-							</div>
-						{/if}
-					</div>
-				{/foreach}
-			</div>
-			</div>
-		{elseif $MODULE eq 'ServiceContracts'}
+		{if $MODULE eq 'ServiceContracts'}
 			</div>
 		{/if}
 	{/if}
