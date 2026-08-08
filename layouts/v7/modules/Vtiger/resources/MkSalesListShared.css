@@ -190,24 +190,173 @@ body[data-view="List"][data-app="SALES"] .mk-so-table-card > .col-xs-12 > .mk-so
 body[data-view="List"][data-app="SALES"] .mk-so-pagination {
 	display: flex;
 	justify-content: center;
+	align-items: center;
 	width: 100%;
 }
 
+body[data-view="List"][data-app="SALES"] .mk-so-pagination__btns {
+	display: inline-flex;
+	align-items: center;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-pager {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px;
+	margin: 0;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	background: #ffffff;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
 	min-width: 40px;
 	height: 40px;
+	padding: 0 14px !important;
 	border-radius: 10px !important;
-	border: 1px solid #d4c4ad !important;
+	border: 1px solid #e2e8f0 !important;
 	background: #fff !important;
-	color: #191c1e;
-	margin: 0 2px;
+	color: #0f172a !important;
+	margin: 0 !important;
 	font-weight: 600;
+	font-size: 13px;
+	line-height: 1;
+	box-shadow: none !important;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn .fa {
+	font-size: 16px;
+	line-height: 1;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--nav {
+	min-width: 96px;
+	color: #334155 !important;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--current {
+	min-width: 124px;
+	padding: 0 12px !important;
+	background: #0f172a !important;
+	border-color: #0f172a !important;
+	color: #ffffff !important;
+	gap: 8px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 4px;
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__label {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	opacity: 0.72;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__num {
+	font-size: 14px;
+	font-weight: 700;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__sep,
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__total {
+	font-size: 13px;
+	font-weight: 600;
+	opacity: 0.88;
+}
+
+/* Placeholder while page count is still loading (must stay empty for Vtiger pageJump) */
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__total:empty::before,
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-pagejump-total:empty::before {
+	content: '…';
+	opacity: 0.75;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn__caret {
+	font-size: 12px !important;
+	opacity: 0.75;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
-	background: #08A045 !important;
-	border-color: #0B6E4F !important;
+	background: #f1f5f9 !important;
+	border-color: #cbd5e1 !important;
+	color: #0f172a !important;
+	outline: none;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--current:hover:not(:disabled),
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--current:focus:not(:disabled) {
+	background: #1e293b !important;
+	border-color: #1e293b !important;
+	color: #ffffff !important;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:disabled {
+	opacity: 0.42;
+	cursor: default;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown.mk-so-pagejump-menu,
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown {
+	min-width: 240px;
+	padding: 12px 14px 14px;
+	border-radius: 12px;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagenum {
+	margin-bottom: 10px;
+	font-size: 13px;
+	color: #64748b;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump input {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 36px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 0 10px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump .btn {
+	height: 36px;
+	border-radius: 8px;
+	padding: 0 14px;
+	font-weight: 700;
+}
+
+@media (max-width: 640px) {
+	body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn__label {
+		display: none;
+	}
+	body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--nav {
+		min-width: 40px;
+		padding: 0 10px !important;
+	}
+	body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__label {
+		display: none;
+	}
 }
 
 /* Footer pagination: menu opens upward / floats above overflow containers */

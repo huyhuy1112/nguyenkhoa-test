@@ -39,6 +39,25 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('IS_DUPLICATE', $this->isDuplicateRequest($request));
 		require_once 'modules/Inventory/helpers/ProductCatalog.php';
 		Inventory_ProductCatalog_Helper::assignToViewer($viewer);
+
+		$priceChannel = 'retail';
+		$recordId = (int) $request->get('record');
+		$accountId = 0;
+		if ($recordId > 0) {
+			try {
+				$rec = Vtiger_Record_Model::getInstanceById($recordId, 'SalesOrder');
+				$accountId = (int) $rec->get('account_id');
+			} catch (Exception $e) {
+				$accountId = 0;
+			}
+		}
+		if ($accountId > 0 && is_file('modules/ProductsServices/models/PricingEngine.php')) {
+			require_once 'modules/ProductsServices/models/PricingEngine.php';
+			if (ProductsServices_PricingEngine_Model::isTuibaoAccount($accountId)) {
+				$priceChannel = 'tuibao';
+			}
+		}
+		$viewer->assign('MK_PRICE_CHANNEL', $priceChannel);
 	}
 
 	protected function redirectInventoryToSales(Vtiger_Request $request) {

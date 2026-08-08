@@ -753,14 +753,59 @@
 	function clearQuoteCustomerFields() {
 		var $f = $form();
 		$f.find('[name="contact_id"]').val('');
-		$f.find('[name="contact_id_display"]').val('').removeData('mkCustomerModule').removeData('mkLeadId');
+		$f.find('[name="contact_id_display"]').val('').removeData('mkCustomerModule').removeData('mkLeadId').removeData('mkServiceContractId');
 		$f.find('[name="potential_id"]').val('');
 		$f.find('[name="potential_id_display"]').val('');
 		$f.find('[name="subject"]').val('');
 		$f.find('.mk-qt-customer-ref .clearReferenceSelection').addClass('hide');
 		$f.find('.mk-qt-customer-ref').removeClass('selected');
+		ensureServiceContractLinkFields($f, 0);
+		applyQuotePriceChannel('retail', { clearSc: true });
 		closeCustomerInfoPopover();
 		syncCustomerInfoButtonVisibility();
+	}
+
+	function ensureServiceContractLinkFields($f, scId) {
+		$f = $f || $form();
+		scId = parseInt(scId, 10) || 0;
+		var $scField = $f.find('[name="mk_servicecontract_id"]');
+		if (!$scField.length) {
+			$scField = $('<input type="hidden" name="mk_servicecontract_id" id="mk_servicecontract_id" />');
+			$f.prepend($scField);
+		}
+		$scField.val(scId > 0 ? String(scId) : '');
+		var $scAlt = $f.find('[name="servicecontract_id"]');
+		if (!$scAlt.length) {
+			$scAlt = $('<input type="hidden" name="servicecontract_id" id="servicecontract_id" />');
+			$f.prepend($scAlt);
+		}
+		$scAlt.val(scId > 0 ? String(scId) : '');
+		return scId;
+	}
+
+	/**
+	 * retail = Opp / Leads / Khách hàng (bảng giá lẻ theo bậc HĐ)
+	 * tuibao = Nhượng quyền / ServiceContracts
+	 */
+	function applyQuotePriceChannel(channel, opts) {
+		opts = opts || {};
+		var inv = window.MkInventoryOdooEdit;
+		if (inv && typeof inv.setPriceChannel === 'function') {
+			inv.setPriceChannel(channel, {
+				scPrefill: opts.scPrefill || null,
+				clearScPrefill: opts.clearSc !== false
+			});
+		} else {
+			window.MK_PRICE_CHANNEL = channel === 'tuibao' ? 'tuibao' : 'retail';
+			if (channel !== 'tuibao') {
+				window.MK_SC_PREFILL = null;
+			} else if (opts.scPrefill) {
+				window.MK_SC_PREFILL = opts.scPrefill;
+			}
+		}
+		if (inv && typeof inv.applyInvoiceTierPricing === 'function') {
+			inv.applyInvoiceTierPricing($form(), { force: true });
+		}
 	}
 
 	function resolveSelectedCustomerRef() {
@@ -770,8 +815,16 @@
 		var contactId = parseInt($f.find('[name="contact_id"]').val(), 10) || 0;
 		var potentialId = parseInt($f.find('[name="potential_id"]').val(), 10) || 0;
 		var leadId = parseInt($display.data('mkLeadId'), 10) || 0;
+		var scId =
+			parseInt($display.data('mkServiceContractId'), 10) ||
+			parseInt($f.find('[name="mk_servicecontract_id"]').val(), 10) ||
+			parseInt($f.find('[name="servicecontract_id"]').val(), 10) ||
+			0;
 		var label = $.trim($display.val() || '');
 
+		if ((mod === 'ServiceContracts' || mod === 'Franchise') && scId > 0) {
+			return { module: 'ServiceContracts', record: scId, label: label };
+		}
 		if (mod === 'Leads' && leadId > 0) {
 			return { module: 'Leads', record: leadId, label: label };
 		}
@@ -786,6 +839,9 @@
 		}
 		if (leadId > 0) {
 			return { module: 'Leads', record: leadId, label: label };
+		}
+		if (scId > 0) {
+			return { module: 'ServiceContracts', record: scId, label: label };
 		}
 		// Edit load: only display text + contact without module tag
 		if (label && contactId > 0) {
@@ -1152,11 +1208,48 @@
 		} else {
 			$display.removeData('mkLeadId');
 		}
+		$display.removeData('mkServiceContractId');
 
-		if (item.module === 'Contacts') {
+		if (item.module === 'ServiceContracts' || item.module === 'Franchise') {
+			var scId = parseInt(item.servicecontract_id || item.id, 10) || 0;
+			var accountId = parseInt(item.account_id, 10) || 0;
+			setHiddenRef($f, 'potential_id', 0, '');
+			setHiddenRef($f, 'contact_id', 0, '');
+			$display.val(label).data('mkCustomerModule', 'ServiceContracts').data('mkServiceContractId', scId);
+			$f.find('[name="subject"]').val(label).trigger('change');
+			ensureServiceContractLinkFields($f, scId);
+			if (accountId > 0 && $f.find('[name="account_id"]').length) {
+				$f.find('[name="account_id"]').val(String(accountId));
+				var $accDisp = $f.find('[name="account_id_display"]');
+				if ($accDisp.length) {
+					$accDisp.val($.trim(item.extra || label));
+				}
+			}
+			if (item.phone && $f.find('[name="mk_customer_phone"]').length) {
+				var phone = item.phone;
+				if (window.MkPhoneFormat && typeof window.MkPhoneFormat.format === 'function') {
+					phone = window.MkPhoneFormat.format(phone) || phone;
+				}
+				$f.find('[name="mk_customer_phone"]').val(phone);
+			}
+			if (item.email && $f.find('[name="mk_customer_email"]').length) {
+				$f.find('[name="mk_customer_email"]').val(item.email);
+			}
+			applyQuotePriceChannel('tuibao', {
+				scPrefill: {
+					id: scId,
+					name: label,
+					phone: item.phone || '',
+					email: item.email || '',
+					account_id: accountId
+				}
+			});
+		} else if (item.module === 'Contacts') {
 			setHiddenRef($f, 'contact_id', item.contact_id || item.id, label);
 			setHiddenRef($f, 'potential_id', 0, '');
+			ensureServiceContractLinkFields($f, 0);
 			$f.find('[name="subject"]').val(label).trigger('change');
+			applyQuotePriceChannel('retail', { clearSc: true });
 		} else if (item.module === 'Potentials') {
 			setHiddenRef($f, 'potential_id', item.potential_id || item.id, label);
 			if (item.contact_id) {
@@ -1166,13 +1259,17 @@
 				// Keep display label even without contact_id (subject carries the name).
 				$display.val(label);
 			}
+			ensureServiceContractLinkFields($f, 0);
 			$f.find('[name="subject"]').val(label).trigger('change');
 			$f.find('[name="potential_id"]').trigger('change');
+			applyQuotePriceChannel('retail', { clearSc: true });
 		} else if (item.module === 'Leads') {
 			setHiddenRef($f, 'potential_id', 0, '');
 			setHiddenRef($f, 'contact_id', 0, '');
+			ensureServiceContractLinkFields($f, 0);
 			$display.val(label);
 			$f.find('[name="subject"]').val(label).trigger('change');
+			applyQuotePriceChannel('retail', { clearSc: true });
 		}
 
 		$f.find('.mk-qt-customer-ref .clearReferenceSelection').removeClass('hide');
@@ -1201,7 +1298,11 @@
 			})
 			.then(function (err, res) {
 				if (err || !res || res.success === false) {
-					deferred.resolve({ results: [], grouped: { Contacts: [], Potentials: [], Leads: [] }, counts: {} });
+					deferred.resolve({
+						results: [],
+						grouped: { Contacts: [], Potentials: [], Leads: [], ServiceContracts: [] },
+						counts: {}
+					});
 					return;
 				}
 				deferred.resolve({
@@ -1209,7 +1310,8 @@
 					grouped: res.grouped || (res.result && res.result.grouped) || {
 						Contacts: [],
 						Potentials: [],
-						Leads: []
+						Leads: [],
+						ServiceContracts: []
 					},
 					counts: res.counts || (res.result && res.result.counts) || {}
 				});
@@ -1227,20 +1329,32 @@
 		return $('<div/>').text(s == null ? '' : String(s)).html();
 	}
 
+	function customerItemTone(moduleName) {
+		if (moduleName === 'Potentials') {
+			return 'opp';
+		}
+		if (moduleName === 'Leads') {
+			return 'lead';
+		}
+		if (moduleName === 'ServiceContracts' || moduleName === 'Franchise') {
+			return 'franchise';
+		}
+		return 'contact';
+	}
+
 	function renderCustomerResultList(items) {
 		if (!items || !items.length) {
 			return (
 				'<div class="mk-qt-customer-empty">' +
 				'<span class="mk-qt-customer-empty__ico" aria-hidden="true">⌕</span>' +
 				'<strong>Không có kết quả</strong>' +
-				'<p>Thử từ khóa khác hoặc đổi tab Opp / Leads / Khách hàng</p>' +
+				'<p>Thử từ khóa khác hoặc đổi tab Opp / Leads / Khách hàng / Nhượng quyền</p>' +
 				'</div>'
 			);
 		}
 		return items
 			.map(function (it, idx) {
-				var tone =
-					it.module === 'Potentials' ? 'opp' : it.module === 'Leads' ? 'lead' : 'contact';
+				var tone = customerItemTone(it.module);
 				return (
 					'<button type="button" class="mk-qt-customer-item mk-qt-customer-item--' +
 					tone +
@@ -1301,8 +1415,8 @@
 		var state = {
 			tab: 'Potentials',
 			q: $.trim(initialQ || ''),
-			grouped: { Contacts: [], Potentials: [], Leads: [] },
-			counts: { Contacts: 0, Potentials: 0, Leads: 0 },
+			grouped: { Contacts: [], Potentials: [], Leads: [], ServiceContracts: [] },
+			counts: { Contacts: 0, Potentials: 0, Leads: 0, ServiceContracts: 0 },
 			visible: []
 		};
 
@@ -1319,7 +1433,7 @@
 				'</header>' +
 				'<div class="mk-qt-customer-modal__search">' +
 				'<span class="mk-qt-customer-modal__search-ico" aria-hidden="true">⌕</span>' +
-				'<input type="search" class="mk-qt-customer-modal__input" placeholder="Tìm tên, SĐT, công ty… (áp dụng cả 3 tab)" autocomplete="off" />' +
+				'<input type="search" class="mk-qt-customer-modal__input" placeholder="Tìm tên, SĐT, công ty… (áp dụng cả 4 tab)" autocomplete="off" />' +
 				'</div>' +
 				'<div class="mk-qt-customer-modal__tabs" role="tablist">' +
 				'<button type="button" class="mk-qt-customer-tab is-on" data-tab="Potentials" role="tab">' +
@@ -1331,6 +1445,12 @@
 				'<button type="button" class="mk-qt-customer-tab" data-tab="Contacts" role="tab">' +
 				'<span class="mk-qt-customer-tab__dot mk-qt-customer-tab__dot--contact"></span>Khách hàng' +
 				'<em class="mk-qt-customer-tab__count" data-count="Contacts">0</em></button>' +
+				'<button type="button" class="mk-qt-customer-tab" data-tab="ServiceContracts" role="tab" title="Khách nhượng quyền · giá Tuibao">' +
+				'<span class="mk-qt-customer-tab__dot mk-qt-customer-tab__dot--franchise"></span>Nhượng quyền' +
+				'<em class="mk-qt-customer-tab__count" data-count="ServiceContracts">0</em></button>' +
+				'</div>' +
+				'<div class="mk-qt-customer-modal__price-hint" id="mk-qt-customer-price-hint">' +
+				'Opp / Leads / Khách hàng → <strong>giá lẻ</strong> · Nhượng quyền → <strong>giá Tuibao</strong>' +
 				'</div>' +
 				'<div class="mk-qt-customer-modal__body">' +
 				'<div class="mk-qt-customer-modal__list"></div>' +
@@ -1350,7 +1470,7 @@
 		}, 80);
 
 		function updateCounts() {
-			['Contacts', 'Potentials', 'Leads'].forEach(function (key) {
+			['Contacts', 'Potentials', 'Leads', 'ServiceContracts'].forEach(function (key) {
 				var n = (state.grouped[key] || []).length;
 				state.counts[key] = n;
 				$modal.find('[data-count="' + key + '"]').text(String(n));
@@ -1363,13 +1483,24 @@
 			$modal.find('.mk-qt-customer-tab').each(function () {
 				$(this).toggleClass('is-on', $(this).attr('data-tab') === state.tab);
 			});
+			var $hint = $modal.find('#mk-qt-customer-price-hint');
+			if (state.tab === 'ServiceContracts') {
+				$hint.html('Nguồn <strong>Nhượng quyền</strong> → hàng hoá áp <strong>giá Tuibao</strong>');
+			} else {
+				$hint.html('Opp / Leads / Khách hàng → <strong>giá lẻ</strong> · Nhượng quyền → <strong>giá Tuibao</strong>');
+			}
 		}
 
 		function runSearch(q) {
 			state.q = $.trim(q || '');
 			$list.html('<div class="mk-qt-customer-empty mk-qt-customer-empty--loading">Đang tải...</div>');
 			searchQuoteCustomers(state.q, 'all').then(function (payload) {
-				state.grouped = payload.grouped || { Contacts: [], Potentials: [], Leads: [] };
+				state.grouped = payload.grouped || {
+					Contacts: [],
+					Potentials: [],
+					Leads: [],
+					ServiceContracts: []
+				};
 				updateCounts();
 				renderActiveTab();
 			});
@@ -1483,6 +1614,8 @@
 				$f.find('.mk-qt-customer-ref .clearReferenceSelection').removeClass('hide');
 				$f.find('.mk-qt-customer-ref').addClass('selected');
 				$f.find('[name="contact_id_display"]').data('mkCustomerModule', 'Contacts');
+				ensureServiceContractLinkFields($f, 0);
+				applyQuotePriceChannel('retail', { clearSc: true });
 			}
 			syncCustomerInfoButtonVisibility();
 		});
@@ -3025,6 +3158,13 @@
 				$f.prepend($scAlt);
 			}
 			$scAlt.val(String(scId));
+			if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.setPriceChannel === 'function') {
+				window.MkInventoryOdooEdit.setPriceChannel('tuibao', {
+					scPrefill: prefill || { id: scId }
+				});
+			} else {
+				window.MK_PRICE_CHANNEL = 'tuibao';
+			}
 		}
 
 		if (!prefill || !prefill.name) {
@@ -3041,7 +3181,10 @@
 			$f.find('[name="subject"]').val(name);
 			var $disp = $f.find('[name="contact_id_display"]').first();
 			if ($disp.length && !$.trim($disp.val() || '')) {
-				$disp.val(name).data('mkCustomerModule', 'Contacts');
+				$disp
+					.val(name)
+					.data('mkCustomerModule', 'ServiceContracts')
+					.data('mkServiceContractId', scId);
 				$f.find('.mk-qt-customer-ref .clearReferenceSelection').removeClass('hide');
 				$f.find('.mk-qt-customer-ref').addClass('selected');
 			}
@@ -3058,6 +3201,9 @@
 		}
 		if (prefill.account_id && $f.find('[name="account_id"]').length) {
 			$f.find('[name="account_id"]').val(prefill.account_id);
+		}
+		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.applyInvoiceTierPricing === 'function') {
+			window.MkInventoryOdooEdit.applyInvoiceTierPricing($f, { force: true });
 		}
 		if (typeof syncCustomerInfoButtonVisibility === 'function') {
 			syncCustomerInfoButtonVisibility();

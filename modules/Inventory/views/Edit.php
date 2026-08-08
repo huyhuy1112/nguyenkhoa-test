@@ -214,6 +214,25 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('CURRENCIES', $currencies);
 		$viewer->assign('TERMSANDCONDITIONS', $termsAndConditions);
 
+		// Price channel: Tuibao franchise vs retail invoice tiers
+		$priceChannel = 'retail';
+		$scPrefillId = (int) $request->get('servicecontract_id');
+		if ($scPrefillId > 0) {
+			$priceChannel = 'tuibao';
+		} else {
+			$accountId = 0;
+			if ($recordModel) {
+				$accountId = (int) $recordModel->get('account_id');
+			}
+			if ($accountId > 0 && is_file('modules/ProductsServices/models/PricingEngine.php')) {
+				require_once 'modules/ProductsServices/models/PricingEngine.php';
+				if (ProductsServices_PricingEngine_Model::isTuibaoAccount($accountId)) {
+					$priceChannel = 'tuibao';
+				}
+			}
+		}
+		$viewer->assign('MK_PRICE_CHANNEL', $priceChannel);
+
 		$productModuleModel = Vtiger_Module_Model::getInstance('Products');
 		$viewer->assign('PRODUCT_ACTIVE', $productModuleModel->isActive());
 

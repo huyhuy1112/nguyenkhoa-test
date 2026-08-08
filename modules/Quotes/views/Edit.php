@@ -33,6 +33,51 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('MK_QUOTE_NEXT_NO', MkEntityNumbering::previewNextNumber('Quotes'));
 		require_once 'modules/Inventory/helpers/ProductCatalog.php';
 		Inventory_ProductCatalog_Helper::assignToViewer($viewer);
+
+		// Resolve price channel early (PreProcess injects window.MK_PRICE_CHANNEL).
+		$priceChannel = 'retail';
+		$scId = (int) $request->get('servicecontract_id');
+		if ($scId <= 0) {
+			$scId = (int) $request->get('mk_servicecontract_id');
+		}
+		$recordId = (int) $request->get('record');
+		if ($scId <= 0 && $recordId > 0) {
+			try {
+				require_once 'modules/Quotes/helpers/QuoteBaService.php';
+				Quotes_QuoteBaService_Helper::ensureServiceContractLinkColumn();
+				$db = PearDatabase::getInstance();
+				$rs = $db->pquery(
+					'SELECT mk_servicecontract_id FROM vtiger_quotes WHERE quoteid = ?',
+					array($recordId)
+				);
+				if ($rs && $db->num_rows($rs)) {
+					$scId = (int) $db->query_result($rs, 0, 'mk_servicecontract_id');
+				}
+			} catch (Exception $e) {
+				$scId = 0;
+			}
+		}
+		if ($scId > 0) {
+			$priceChannel = 'tuibao';
+			$viewer->assign('MK_SERVICECONTRACT_ID', $scId);
+		} else {
+			$accountId = 0;
+			if ($recordId > 0) {
+				try {
+					$rec = Vtiger_Record_Model::getInstanceById($recordId, 'Quotes');
+					$accountId = (int) $rec->get('account_id');
+				} catch (Exception $e) {
+					$accountId = 0;
+				}
+			}
+			if ($accountId > 0 && is_file('modules/ProductsServices/models/PricingEngine.php')) {
+				require_once 'modules/ProductsServices/models/PricingEngine.php';
+				if (ProductsServices_PricingEngine_Model::isTuibaoAccount($accountId)) {
+					$priceChannel = 'tuibao';
+				}
+			}
+		}
+		$viewer->assign('MK_PRICE_CHANNEL', $priceChannel);
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
@@ -93,6 +138,8 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		}
 		if ($scId > 0) {
 			$viewer->assign('MK_SERVICECONTRACT_ID', $scId);
+			// Inventory_Edit_View::process reads servicecontract_id for MK_PRICE_CHANNEL.
+			$request->set('servicecontract_id', $scId);
 		}
 
 		parent::process($request);

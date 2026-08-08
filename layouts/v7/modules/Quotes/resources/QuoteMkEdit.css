@@ -1486,7 +1486,7 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-m
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-modal__panel {
 	position: relative;
-	width: min(560px, 100%);
+	width: min(620px, 100%);
 	overflow: hidden;
 	border-radius: 22px;
 	background:
@@ -1600,8 +1600,8 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-m
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-modal__tabs {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 8px;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 6px;
 	margin: 14px 18px 0;
 	padding: 6px;
 	border-radius: 16px;
@@ -1609,21 +1609,43 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-m
 	border: 1px solid #e2e8f0;
 }
 
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-modal__price-hint {
+	margin: 10px 18px 0;
+	padding: 8px 12px;
+	border-radius: 10px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	color: #64748b;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-modal__price-hint strong {
+	color: #0f172a;
+	font-weight: 700;
+}
+
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-tab {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 6px;
+	gap: 5px;
 	min-height: 40px;
-	padding: 8px 10px;
+	padding: 8px 6px;
 	border: 0;
 	border-radius: 12px;
 	background: transparent;
 	color: #64748b;
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 650;
 	cursor: pointer;
 	transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+}
+
+@media (max-width: 560px) {
+	body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-modal__tabs {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-tab:hover {
@@ -1654,6 +1676,13 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-t
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-tab__dot--opp { background: #f59e0b; }
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-tab__dot--lead { background: #0ea5e9; }
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-tab__dot--contact { background: #10b981; }
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-tab__dot--franchise { background: #7c3aed; }
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-tab[data-tab="ServiceContracts"].is-on {
+	color: #3b0764;
+	background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 40%, #fbbf24 130%);
+	box-shadow: 0 8px 20px rgba(124, 58, 237, 0.24);
+}
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-tab__count {
 	min-width: 20px;
@@ -1723,6 +1752,11 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-i
 	border-color: rgba(14, 165, 233, 0.4);
 }
 
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-item--franchise:hover {
+	background: #f5f3ff;
+	border-color: rgba(124, 58, 237, 0.35);
+}
+
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-item__avatar {
 	display: inline-flex;
 	align-items: center;
@@ -1747,6 +1781,12 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-i
 	color: #0c4a6e;
 	background: linear-gradient(145deg, #7dd3fc, #0ea5e9);
 	box-shadow: 0 6px 14px rgba(14, 165, 233, 0.25);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-item--franchise .mk-qt-customer-item__avatar {
+	color: #3b0764;
+	background: linear-gradient(145deg, #ddd6fe, #8b5cf6);
+	box-shadow: 0 6px 14px rgba(124, 58, 237, 0.22);
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-item__main {
@@ -1796,6 +1836,12 @@ body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-i
 	color: #0369a1;
 	background: rgba(14, 165, 233, 0.12);
 	border-color: rgba(14, 165, 233, 0.28);
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-item--franchise .mk-qt-customer-item__badge {
+	color: #6d28d9;
+	background: rgba(124, 58, 237, 0.12);
+	border-color: rgba(124, 58, 237, 0.28);
 }
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-customer-empty {

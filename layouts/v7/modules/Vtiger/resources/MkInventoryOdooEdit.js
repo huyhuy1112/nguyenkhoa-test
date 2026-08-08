@@ -37,6 +37,35 @@
     gte_7m: "price_gte_7m",
   };
 
+  function getPriceChannel() {
+    var ch = String(window.MK_PRICE_CHANNEL || "retail").toLowerCase().trim();
+    if (ch === "tuibao" || ch === "franchise" || ch === "chain") {
+      return "tuibao";
+    }
+    // Prefill from ServiceContracts implies franchise channel
+    if (window.MK_SC_PREFILL && (window.MK_SC_PREFILL.id || window.MK_SC_PREFILL.account_id)) {
+      return "tuibao";
+    }
+    return "retail";
+  }
+
+  function setPriceChannel(channel, opts) {
+    opts = opts || {};
+    var next = channel === "tuibao" || channel === "franchise" || channel === "chain"
+      ? "tuibao"
+      : "retail";
+    window.MK_PRICE_CHANNEL = next;
+    if (next === "tuibao" && opts.scPrefill) {
+      window.MK_SC_PREFILL = opts.scPrefill;
+    }
+    if (next === "retail" && opts.clearScPrefill !== false) {
+      // Leaving franchise source → retail prices (Opp / Leads / Contacts).
+      try {
+        window.MK_SC_PREFILL = null;
+      } catch (e) {}
+    }
+  }
+
   var CREDIT_TERMS_OPTIONS = [
     { value: "Thanh toán ngay", label: "Thanh toán ngay" },
     { value: "15 ngày", label: "15 ngày" },
@@ -837,6 +866,12 @@
 
   function resolveInvoiceTierPrice(meta, tierKey) {
     meta = meta || {};
+    if (getPriceChannel() === "tuibao") {
+      if (meta.price_tuibao !== undefined && meta.price_tuibao !== null && meta.price_tuibao !== "") {
+        return parseMoney(meta.price_tuibao);
+      }
+      return parseMoney(meta.price || 0);
+    }
     var field = INVOICE_TIER_FIELDS[tierKey];
     if (field && meta[field] !== undefined && meta[field] !== null && meta[field] !== "") {
       return parseMoney(meta[field]);
@@ -896,6 +931,35 @@
     var $select = $form
       .find("#mkInvInvoicePriceTierSelect, [name='mk_invoice_price_tier']")
       .first();
+    var isTuibao = getPriceChannel() === "tuibao";
+    if (isTuibao) {
+      if ($select.length) {
+        $select.prop("disabled", true);
+      }
+      if ($wrap.length) {
+        $wrap
+          .addClass("is-tuibao")
+          .find(".mk-inv-price-tier__label")
+          .text("Bảng giá: Tuibao");
+        $wrap
+          .find(".mk-inv-price-tier__hint")
+          .text("Đơn giá theo giá Tuibao (khách nhượng quyền / chuỗi)");
+        $wrap.find(".mk-inv-price-tier__status").text("Đang áp dụng: Giá Tuibao");
+      } else if ($select.length) {
+        $select.attr("title", "Bảng giá Tuibao");
+      }
+      return;
+    }
+    if ($select.length) {
+      $select.prop("disabled", false);
+    }
+    if ($wrap.length) {
+      $wrap.removeClass("is-tuibao");
+      $wrap.find(".mk-inv-price-tier__label").text("Bảng giá");
+      $wrap
+        .find(".mk-inv-price-tier__hint")
+        .text("Đơn giá lấy từ Hàng hoá và cập nhật khi tổng đơn thay đổi");
+    }
     if ($select.length && String($select.val() || "") !== String(selectedValue || "")) {
       $select.val(selectedValue);
     }
@@ -920,6 +984,9 @@
       selectedValue === "auto"
         ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
         : selectedValue;
+    if (getPriceChannel() === "tuibao") {
+      resolvedTier = "tuibao";
+    }
     var changed = false;
     $form.data("mkInvApplyingTier", true);
     try {
@@ -1924,6 +1991,8 @@
           .attr("data-price-gte-3m", p.price_gte_3m)
           .attr("data-price-gte-5m", p.price_gte_5m)
           .attr("data-price-gte-7m", p.price_gte_7m)
+          .attr("data-price-tuibao", p.price_tuibao)
+          .attr("data-product-group", p.product_group || "")
           .attr("data-sku", p.sku || "")
           .attr("data-unit", p.unit || "")
           .attr("data-type", p.type || "")
@@ -4947,6 +5016,8 @@
         .attr("data-price-gte-3m", meta.price_gte_3m)
         .attr("data-price-gte-5m", meta.price_gte_5m)
         .attr("data-price-gte-7m", meta.price_gte_7m)
+        .attr("data-price-tuibao", meta.price_tuibao)
+        .attr("data-product-group", meta.product_group || "")
         .attr("data-sku", meta.sku || "")
         .attr("data-unit", meta.unit || "")
         .attr("data-type", meta.type || "")
@@ -4988,6 +5059,16 @@
           meta.price_gte_7m != null
             ? meta.price_gte_7m
             : $opt.attr("data-price-gte-7m"),
+        )
+        .attr(
+          "data-price-tuibao",
+          meta.price_tuibao != null
+            ? meta.price_tuibao
+            : $opt.attr("data-price-tuibao"),
+        )
+        .attr(
+          "data-product-group",
+          meta.product_group || $opt.attr("data-product-group") || "",
         )
         .attr("data-sku", meta.sku || $opt.attr("data-sku") || "")
         .attr("data-unit", meta.unit || $opt.attr("data-unit") || "")
@@ -5117,6 +5198,8 @@
       price_gte_3m: $opt.attr("data-price-gte-3m"),
       price_gte_5m: $opt.attr("data-price-gte-5m"),
       price_gte_7m: $opt.attr("data-price-gte-7m"),
+      price_tuibao: $opt.attr("data-price-tuibao"),
+      product_group: $opt.attr("data-product-group") || "",
       sku: $opt.attr("data-sku") || "",
       unit: $opt.attr("data-unit") || "",
       type: $opt.attr("data-type") || "",
@@ -6639,6 +6722,9 @@
     syncTotalsDisplay: syncTotalsDisplay,
     relocateCommerceToRail: relocateCommerceToRail,
     integrateCommerceIntoQuoteInfo: integrateCommerceIntoQuoteInfo,
+    getPriceChannel: getPriceChannel,
+    setPriceChannel: setPriceChannel,
+    applyInvoiceTierPricing: applyInvoiceTierPricing,
     refreshTotals: function ($form) {
       initTotalsOdoo($form);
       syncTotalsDisplay($form);

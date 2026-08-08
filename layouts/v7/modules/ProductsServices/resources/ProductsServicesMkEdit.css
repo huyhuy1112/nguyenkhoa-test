@@ -3127,6 +3127,17 @@ html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .
 	border: none !important;
 }
 
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-group-box__add,
+body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-group-box__add {
+	width: auto !important;
+	min-width: 108px !important;
+	flex: 0 0 auto !important;
+	padding: 0 12px !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	white-space: nowrap !important;
+}
+
 @media (max-width: 900px) {
 	html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-block-mosaic,
 	html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-grid {

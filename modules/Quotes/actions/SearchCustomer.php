@@ -1,6 +1,7 @@
 <?php
 /*+***********************************************************************************
- * Quote create: search customer across Contacts / Potentials / Leads.
+ * Quote create: search customer across Contacts / Potentials / Leads / ServiceContracts
+ * (Nhượng quyền → Giá Tuibao).
  *************************************************************************************/
 
 class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
@@ -23,7 +24,10 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			$limit = 30;
 		}
 		$scope = strtolower(trim((string) $request->get('scope')));
-		if (!in_array($scope, array('all', 'contacts', 'potentials', 'leads'), true)) {
+		if (!in_array($scope, array(
+			'all', 'contacts', 'potentials', 'leads',
+			'franchise', 'servicecontracts', 'nhuong_quyen',
+		), true)) {
 			$scope = 'all';
 		}
 		try {
@@ -41,6 +45,7 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 					'Contacts' => count($grouped['Contacts']),
 					'Potentials' => count($grouped['Potentials']),
 					'Leads' => count($grouped['Leads']),
+					'ServiceContracts' => count($grouped['ServiceContracts']),
 				),
 			));
 		} catch (Exception $e) {
@@ -50,7 +55,7 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 	}
 
 	/**
-	 * @return array{Contacts:array,Potentials:array,Leads:array}
+	 * @return array{Contacts:array,Potentials:array,Leads:array,ServiceContracts:array}
 	 */
 	protected function searchGrouped($q, $limit, $scope) {
 		$per = max(8, (int) $limit);
@@ -58,7 +63,9 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			'Contacts' => array(),
 			'Potentials' => array(),
 			'Leads' => array(),
+			'ServiceContracts' => array(),
 		);
+		$wantFranchise = in_array($scope, array('all', 'franchise', 'servicecontracts', 'nhuong_quyen'), true);
 		if ($scope === 'all' || $scope === 'contacts') {
 			$out['Contacts'] = $this->searchContacts($q, $per);
 		}
@@ -68,7 +75,85 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 		if ($scope === 'all' || $scope === 'leads') {
 			$out['Leads'] = $this->searchLeads($q, $per);
 		}
+		if ($wantFranchise) {
+			$out['ServiceContracts'] = $this->searchServiceContracts($q, $per);
+		}
 		return $out;
+	}
+
+	protected function hasBaceScProfile($adb) {
+		static $ok = null;
+		if ($ok !== null) {
+			return $ok;
+		}
+		$rs = $adb->pquery('SHOW TABLES LIKE ?', array('bace_sc_profile'));
+		$ok = $rs && $adb->num_rows($rs) > 0;
+		return $ok;
+	}
+
+	/**
+	 * Khách hàng nhượng quyền (ServiceContracts) → Giá Tuibao.
+	 */
+	protected function searchServiceContracts($q, $limit) {
+		if (!Users_Privileges_Model::isPermitted('ServiceContracts', 'DetailView')) {
+			return array();
+		}
+		$adb = PearDatabase::getInstance();
+		$hasProfile = $this->hasBaceScProfile($adb);
+		$columns = array('sc.subject', 'sc.contract_no', 'acc.accountname');
+		if ($hasProfile) {
+			$columns = array_merge($columns, array('p.phone', 'p.email', 'p.affiliate_code'));
+		}
+		list($where, $params) = $this->buildLikeClause($adb, $q, $columns);
+		$profileJoin = $hasProfile
+			? 'LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid'
+			: '';
+		$profileSelect = $hasProfile
+			? ', p.phone, p.email, p.affiliate_code'
+			: ', NULL AS phone, NULL AS email, NULL AS affiliate_code';
+		$sql = "SELECT sc.servicecontractsid, sc.subject, sc.contract_no, sc.sc_related_to,
+				acc.accountname{$profileSelect}
+			FROM vtiger_servicecontracts sc
+			INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
+			LEFT JOIN vtiger_account acc ON acc.accountid = sc.sc_related_to
+			{$profileJoin}
+			WHERE {$where}
+			ORDER BY ce.modifiedtime DESC
+			LIMIT " . (int) $limit;
+		$res = $adb->pquery($sql, $params);
+		$rows = array();
+		if (!$res) {
+			return $rows;
+		}
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			$id = (int) $adb->query_result($res, $i, 'servicecontractsid');
+			$subject = decode_html((string) $adb->query_result($res, $i, 'subject'));
+			$contractNo = decode_html((string) $adb->query_result($res, $i, 'contract_no'));
+			$accountId = (int) $adb->query_result($res, $i, 'sc_related_to');
+			$account = decode_html((string) $adb->query_result($res, $i, 'accountname'));
+			$phone = decode_html((string) $adb->query_result($res, $i, 'phone'));
+			$email = decode_html((string) $adb->query_result($res, $i, 'email'));
+			$code = decode_html((string) $adb->query_result($res, $i, 'affiliate_code'));
+			$label = $subject !== '' ? $subject : ($account !== '' ? $account : ('#' . $id));
+			$parts = array_filter(array($code, $contractNo, $account, $phone, $email));
+			$rows[] = array(
+				'id' => $id,
+				'module' => 'ServiceContracts',
+				'module_label' => 'Nhượng quyền',
+				'label' => $label,
+				'subtitle' => implode(' · ', $parts),
+				'phone' => $phone,
+				'email' => $email,
+				'extra' => $account,
+				'contact_id' => 0,
+				'potential_id' => 0,
+				'lead_id' => 0,
+				'servicecontract_id' => $id,
+				'account_id' => $accountId,
+				'price_channel' => 'tuibao',
+			);
+		}
+		return $rows;
 	}
 
 	protected function buildLikeClause($adb, $q, $columns) {

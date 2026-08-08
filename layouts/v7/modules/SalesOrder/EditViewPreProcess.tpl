@@ -12,6 +12,7 @@ document.documentElement.classList.add('mk-inv-odoo-active', 'mk-so-create-guard
 })();
 {/literal}</script>
 <script type="text/javascript">window.MK_PRODUCT_CATALOG = {$MK_PRODUCT_CATALOG_JSON|default:'[]' nofilter};</script>
+<script type="text/javascript">window.MK_PRICE_CHANNEL = "{$MK_PRICE_CHANNEL|default:'retail'|escape:'javascript'}";</script>
 <style type="text/css">
 	/* Hide noisy field pairs early (label + value). Do not hide whole <tr> — Vtiger packs 2 fields/row. */
 	html.mk-so-create-guard #mkSoFormHost .fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"],
@@ -118,7 +119,7 @@ document.documentElement.classList.add('mk-inv-odoo-active', 'mk-so-create-guard
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260805_so_perf1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.css')}&mk_v=20260805_so_perf1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260807_quote_fmt2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260808_tuibao_price1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}&mk_v=20260728_quote_addr_merge1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderMkEdit.js')}&mk_v=20260805_so_perf1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-sales-order-create="1">

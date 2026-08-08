@@ -4,7 +4,7 @@
 (function ($) {
 	'use strict';
 
-	var CANONICAL_HEADERS = ['productsservicesname', 'sku', 'item_type', 'price', 'supplier', 'unit'];
+	var CANONICAL_HEADERS = ['productsservicesname', 'sku', 'product_group', 'item_type', 'price', 'price_tuibao', 'unit'];
 	var GLOBAL_SEARCH_FIELDS = ['productsservicesname', 'sku'];
 	var GLOBAL_SEARCH_DEBOUNCE_MS = 600;
 	var globalSearchTimer = null;
@@ -17,14 +17,15 @@
 	var COL_CLASS_BY_FIELD = {
 		productsservicesname: 'mk-col-ps-name',
 		sku: 'mk-col-ps-sku',
+		product_group: 'mk-col-ps-group',
 		item_type: 'mk-col-ps-type',
 		price: 'mk-col-ps-price',
-		supplier: 'mk-col-ps-supplier',
+		price_tuibao: 'mk-col-ps-tuibao',
 		unit: 'mk-col-ps-unit'
 	};
 
 	var MK_COL_CLASS_NAMES =
-		'mk-col-control mk-col-ps-name mk-col-ps-sku mk-col-ps-type mk-col-ps-price mk-col-ps-supplier mk-col-ps-unit';
+		'mk-col-control mk-col-ps-name mk-col-ps-sku mk-col-ps-group mk-col-ps-type mk-col-ps-price mk-col-ps-tuibao mk-col-ps-unit';
 
 	function isPsSalesList() {
 		var b = document.body;
@@ -210,9 +211,11 @@
 
 	var HEADER_LABELS = {
 		productsservicesname: 'Tên sản phẩm',
+		sku: 'SKU',
+		product_group: 'Nhóm',
 		item_type: 'Loại',
 		price: 'Giá',
-		supplier: 'Nhà cung cấp',
+		price_tuibao: 'Giá Tuibao',
 		unit: 'Đơn vị'
 	};
 
@@ -407,6 +410,67 @@
 	function localizeToolbar() {
 		$('.mk-ps-page-numbers__prefix, .mk-so-page-numbers__prefix').text('Hiển thị ');
 		$('.mk-ps-page-numbers__suffix, .mk-so-page-numbers__suffix').text(' mặt hàng');
+	}
+
+	function enhancePaginationChrome() {
+		var $scope = $('#listViewContent');
+		if (!$scope.length) {
+			$scope = $(document);
+		}
+		$scope.find('.mk-so-page-btn--prev .mk-so-page-btn__label').text('Trước');
+		$scope.find('.mk-so-page-btn--next .mk-so-page-btn__label').text('Sau');
+		$scope.find('.mk-so-page-current__label').text('Trang');
+		$scope.find('#PreviousPageButton').attr({ title: 'Trang trước', 'aria-label': 'Trang trước' });
+		$scope.find('#NextPageButton').attr({ title: 'Trang sau', 'aria-label': 'Trang sau' });
+		$scope.find('#PageJump').attr({ title: 'Nhảy tới trang', 'aria-label': 'Nhảy tới trang' });
+
+		var pageNum = $.trim($scope.find('#pageNumber').val() || $scope.find('.mk-so-page-current__num').first().text() || '1');
+		$scope.find('.mk-so-page-current__num').text(pageNum);
+		$scope.find('.mk-so-pagejump-cur').text(pageNum);
+
+		var totalText = $.trim($scope.find('#totalPageCount').first().text());
+		if (totalText) {
+			$scope.find('.mk-so-pagejump-total').text(totalText);
+		}
+	}
+
+	/** Keep dropdown total label in sync when Vtiger fills #totalPageCount. */
+	function watchPageCountSync() {
+		if (watchPageCountSync.bound) {
+			return;
+		}
+		watchPageCountSync.bound = true;
+		var sync = function () {
+			var $total = $('#listViewContent #totalPageCount').first();
+			if (!$total.length) {
+				return;
+			}
+			var t = $.trim($total.text());
+			if (t) {
+				$('#listViewContent .mk-so-pagejump-total').text(t);
+			}
+		};
+		$(document)
+			.on('DOMSubtreeModified.mkPsPager', '#listViewContent #totalPageCount', sync)
+			.on('click.mkPsPagerJump', '#PageJump', function () {
+				setTimeout(sync, 50);
+				setTimeout(sync, 400);
+			});
+		// MutationObserver is preferred over DOMSubtreeModified where available
+		if (typeof MutationObserver === 'function') {
+			$(document).off('DOMSubtreeModified.mkPsPager');
+			var start = function () {
+				var el = document.querySelector('#listViewContent #totalPageCount');
+				if (!el || el.__mkPsPagerObs) {
+					return;
+				}
+				el.__mkPsPagerObs = true;
+				new MutationObserver(sync).observe(el, { characterData: true, childList: true, subtree: true });
+			};
+			start();
+			setTimeout(start, 500);
+			setTimeout(start, 1500);
+		}
 	}
 
 	function injectGlobalQuickSearch() {
@@ -616,11 +680,32 @@
 	}
 
 	function relocatePagination() {
-		var $footer = $('#listview-actions .mk-ps-filter-row__footer, #listview-actions .mk-so-filter-row__footer').first();
-		var $table = $('#listViewContent #listview-table');
-		if ($footer.length && $table.length && $table.next('.mk-ps-filter-row__footer, .mk-so-filter-row__footer').length === 0) {
-			$table.after($footer.clone(true, true));
+		var $scope = $('#listViewContent');
+		if (!$scope.length) {
+			return;
 		}
+		var $footers = $scope.find('.mk-ps-filter-row__footer, .mk-so-filter-row__footer');
+		if (!$footers.length) {
+			return;
+		}
+		// Prefer the live controls inside toolbar, then move once below the table.
+		var $footer = $scope.find('#listview-actions .mk-ps-filter-row__footer, #listview-actions .mk-so-filter-row__footer').first();
+		if (!$footer.length) {
+			$footer = $footers.first();
+		}
+		$footers.not($footer).remove();
+
+		var $anchor = $scope.find('#table-content').first();
+		if (!$anchor.length) {
+			$anchor = $scope.find('#listview-table').first();
+		}
+		if (!$anchor.length) {
+			return;
+		}
+		if ($anchor.next('.mk-ps-filter-row__footer, .mk-so-filter-row__footer')[0] === $footer[0]) {
+			return;
+		}
+		$footer.detach().insertAfter($anchor);
 	}
 
 	function setReadyState() {
@@ -705,6 +790,8 @@
 			bindBulkSelectionEvents();
 			bindNeedsQcToggle();
 			relocatePagination();
+			enhancePaginationChrome();
+			watchPageCountSync();
 			$('#listViewContent #listview-table').addClass('mk-ps-table mk-ps-table-v2');
 			assignColumnClasses();
 			stripRowActionChrome();
@@ -715,6 +802,9 @@
 			enhanceUnitCells(document);
 			fixListScrollContainer();
 			autoLoadTotalCount();
+			/* After total-count AJAX fills #totalPageCount */
+			setTimeout(enhancePaginationChrome, 600);
+			setTimeout(enhancePaginationChrome, 1600);
 			renderBulkBar();
 		} catch (err) {
 			if (window.console && console.warn) {

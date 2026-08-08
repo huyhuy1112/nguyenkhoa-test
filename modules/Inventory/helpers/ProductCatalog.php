@@ -17,7 +17,10 @@ class Inventory_ProductCatalog_Helper {
 		$unitCol = $hasUnit ? ', ps.unit' : '';
 		$needsQcCol = $hasNeedsQc ? ', ps.needs_qc' : '';
 		$tierCols = array();
-		foreach (array('price_lt_1m', 'price_gte_1m', 'price_gte_3m', 'price_gte_5m', 'price_gte_7m') as $col) {
+		foreach (array(
+			'price_lt_1m', 'price_gte_1m', 'price_gte_3m', 'price_gte_5m', 'price_gte_7m',
+			'price_tuibao', 'product_group',
+		) as $col) {
 			if (self::columnExists($db, 'vtiger_productsservices', $col)) {
 				$tierCols[] = 'ps.' . $col;
 			}
@@ -53,6 +56,11 @@ class Inventory_ProductCatalog_Helper {
 			$ids[] = $id;
 			$needsQcRaw = isset($row['needs_qc']) ? $row['needs_qc'] : 0;
 			$needsQc = ($needsQcRaw === 1 || $needsQcRaw === '1' || $needsQcRaw === true || $needsQcRaw === 'on');
+			$group = isset($row['product_group']) ? trim((string) $row['product_group']) : '';
+			if ($group !== '' && is_file('modules/Warehouse/helpers/StockHelper.php')) {
+				require_once 'modules/Warehouse/helpers/StockHelper.php';
+				$group = Warehouse_Stock_Helper::decodeDisplayText($group);
+			}
 			$item = array(
 				'id' => $id,
 				'name' => $name,
@@ -60,15 +68,23 @@ class Inventory_ProductCatalog_Helper {
 				'type' => (string) (isset($row['item_type']) ? $row['item_type'] : ''),
 				'sku' => $sku,
 				'unit' => $unit,
+				'product_group' => $group,
 				'needsQc' => $needsQc,
 				'stock' => 0.0,
 				'qty_po' => 0.0,
 				'qty_so' => 0.0,
-				'price_lt_1m' => isset($row['price_lt_1m']) ? (float) $row['price_lt_1m'] : null,
-				'price_gte_1m' => isset($row['price_gte_1m']) ? (float) $row['price_gte_1m'] : null,
-				'price_gte_3m' => isset($row['price_gte_3m']) ? (float) $row['price_gte_3m'] : null,
-				'price_gte_5m' => isset($row['price_gte_5m']) ? (float) $row['price_gte_5m'] : null,
-				'price_gte_7m' => isset($row['price_gte_7m']) ? (float) $row['price_gte_7m'] : null,
+				'price_lt_1m' => isset($row['price_lt_1m']) && $row['price_lt_1m'] !== null && $row['price_lt_1m'] !== ''
+					? (float) $row['price_lt_1m'] : null,
+				'price_gte_1m' => isset($row['price_gte_1m']) && $row['price_gte_1m'] !== null && $row['price_gte_1m'] !== ''
+					? (float) $row['price_gte_1m'] : null,
+				'price_gte_3m' => isset($row['price_gte_3m']) && $row['price_gte_3m'] !== null && $row['price_gte_3m'] !== ''
+					? (float) $row['price_gte_3m'] : null,
+				'price_gte_5m' => isset($row['price_gte_5m']) && $row['price_gte_5m'] !== null && $row['price_gte_5m'] !== ''
+					? (float) $row['price_gte_5m'] : null,
+				'price_gte_7m' => isset($row['price_gte_7m']) && $row['price_gte_7m'] !== null && $row['price_gte_7m'] !== ''
+					? (float) $row['price_gte_7m'] : null,
+				'price_tuibao' => isset($row['price_tuibao']) && $row['price_tuibao'] !== null && $row['price_tuibao'] !== ''
+					? (float) $row['price_tuibao'] : null,
 			);
 			$out[] = $item;
 		}

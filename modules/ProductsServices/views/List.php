@@ -12,9 +12,10 @@ class ProductsServices_List_View extends Vtiger_List_View {
 		return array(
 			self::NAME_FIELD,
 			'sku',
+			'product_group',
 			'item_type',
 			'price',
-			'supplier',
+			'price_tuibao',
 			'unit',
 		);
 	}
@@ -23,9 +24,10 @@ class ProductsServices_List_View extends Vtiger_List_View {
 		return array(
 			'productsservicesname' => 'Tên sản phẩm',
 			'sku' => 'SKU',
+			'product_group' => 'Nhóm',
 			'item_type' => 'Loại',
 			'price' => 'Giá',
-			'supplier' => 'Nhà cung cấp',
+			'price_tuibao' => 'Giá Tuibao',
 			'unit' => 'Đơn vị',
 		);
 	}

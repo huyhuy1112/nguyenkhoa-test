@@ -49,6 +49,89 @@ class ProductsServices_PricingEngine_Model {
 	}
 
 	/**
+	 * Channel: "tuibao" uses flat price_tuibao; "retail" (default) uses invoice-tier columns.
+	 *
+	 * @param string $channel tuibao|retail
+	 * @param string $tierKey invoice tier when retail
+	 * @param array $prices field values (price, price_tuibao, price_*)
+	 * @return float|null
+	 */
+	public static function resolveUnitPrice($channel, $tierKey, array $prices) {
+		$channel = strtolower(trim((string) $channel));
+		if ($channel === 'tuibao') {
+			if (isset($prices['price_tuibao']) && $prices['price_tuibao'] !== '' && $prices['price_tuibao'] !== null) {
+				return (float) $prices['price_tuibao'];
+			}
+			if (isset($prices['price']) && $prices['price'] !== '' && $prices['price'] !== null) {
+				return (float) $prices['price'];
+			}
+			$fallback = self::getPriceByInvoiceTier('gte_7m', $prices);
+			return $fallback;
+		}
+		$tierPrice = self::getPriceByInvoiceTier($tierKey, $prices);
+		if ($tierPrice !== null) {
+			return $tierPrice;
+		}
+		if (isset($prices['price']) && $prices['price'] !== '' && $prices['price'] !== null) {
+			return (float) $prices['price'];
+		}
+		return null;
+	}
+
+	/**
+	 * True when account is a Tuibao franchise customer (Accounts tb_* contract fields).
+	 *
+	 * @param int $accountId
+	 * @return bool
+	 */
+	public static function isTuibaoAccount($accountId) {
+		$accountId = (int) $accountId;
+		if ($accountId <= 0) {
+			return false;
+		}
+		$db = PearDatabase::getInstance();
+		// Prefer customfields table if franchise cols live there
+		$tables = array('vtiger_accountscf', 'vtiger_account');
+		$markers = array('tb_contract_no', 'tb_sc_customer_id', 'tb_party_b_name', 'tb_store_address');
+		foreach ($tables as $table) {
+			$exists = $db->pquery('SHOW TABLES LIKE ?', array($table));
+			if (!$exists || $db->num_rows($exists) <= 0) {
+				continue;
+			}
+			$cols = array();
+			foreach ($markers as $col) {
+				$c = $db->pquery("SHOW COLUMNS FROM `$table` LIKE ?", array($col));
+				if ($c && $db->num_rows($c) > 0) {
+					$cols[] = $col;
+				}
+			}
+			if (!$cols) {
+				continue;
+			}
+			$parts = array();
+			foreach ($cols as $col) {
+				$parts[] = "($col IS NOT NULL AND TRIM($col) <> '')";
+			}
+			$pk = $table === 'vtiger_account' ? 'accountid' : 'accountid';
+			$sql = "SELECT $pk FROM `$table` WHERE $pk = ? AND (" . implode(' OR ', $parts) . ") LIMIT 1";
+			$rs = $db->pquery($sql, array($accountId));
+			if ($rs && $db->num_rows($rs) > 0) {
+				return true;
+			}
+		}
+		// Related ServiceContracts → franchise customer
+		$sc = $db->pquery(
+			"SELECT sc.servicecontractsid
+			 FROM vtiger_servicecontracts sc
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
+			 WHERE sc.sc_related_to = ?
+			 LIMIT 1",
+			array($accountId)
+		);
+		return $sc && $db->num_rows($sc) > 0;
+	}
+
+	/**
 	 * Infer tier from invoice/order total (auto mode).
 	 * Thresholds in VND: 1M / 3M / 5M / 7M.
 	 *

@@ -83,13 +83,14 @@ setTimeout(function(){document.documentElement.classList.add('mk-inv-ui-ready','
 <script type="text/javascript">window.__MK_QUOTE_NEXT_NO = "{$MK_QUOTE_NEXT_NO|escape:'javascript'}";</script>
 {/if}
 <script type="text/javascript">window.MK_PRODUCT_CATALOG = {$MK_PRODUCT_CATALOG_JSON|default:'[]' nofilter};</script>
+<script type="text/javascript">window.MK_PRICE_CHANNEL = "{$MK_PRICE_CHANNEL|default:'retail'|escape:'javascript'}";</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260603_no_dup_footer" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260807_quote_fmt2" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260806_ba_quote1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260808_tuibao_price2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260808_franchise_tab1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260807_quote_fmt2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260808_tuibao_price2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}&mk_v=20260728_quote_addr_merge1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}&mk_v=20260807_quote_fmt2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}&mk_v=20260808_franchise_tab1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-quote-create="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

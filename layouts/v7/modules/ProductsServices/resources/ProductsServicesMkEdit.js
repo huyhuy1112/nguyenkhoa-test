@@ -4,9 +4,10 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260806_ps_create_fix3';
+	var MK_BUILD = '20260808_ps_group_pick1';
 	var UNIT_PRESETS = ['cái', 'hộp', 'set', 'bộ'];
 	var UNIT_STORAGE_KEY = 'mk_ps_custom_units_v1';
+	var GROUP_STORAGE_KEY = 'mk_ps_custom_groups_v1';
 	/* Only fields previously agreed to remove — keep brand/model/stock/etc. */
 	var HIDE_FIELD_NAMES = [
 		'warranty',
@@ -326,6 +327,173 @@
 		});
 	}
 
+	function loadCustomGroups() {
+		try {
+			var raw = window.localStorage.getItem(GROUP_STORAGE_KEY);
+			var arr = raw ? JSON.parse(raw) : [];
+			return Array.isArray(arr) ? arr.filter(Boolean) : [];
+		} catch (e) {
+			return [];
+		}
+	}
+
+	function saveCustomGroups(list) {
+		try {
+			window.localStorage.setItem(GROUP_STORAGE_KEY, JSON.stringify(list || []));
+		} catch (e) {
+			/* ignore */
+		}
+	}
+
+	function persistNewGroup(label, done) {
+		var payload = {
+			module: 'ProductsServices',
+			action: 'AddProductGroup',
+			group: label
+		};
+		function finish(ok) {
+			if (typeof done === 'function') done(!!ok);
+		}
+		if (window.app && app.request && app.request.post) {
+			app.request.post({ data: payload }).then(function (err, res) {
+				finish(!err && res && res.success !== false);
+			});
+			return;
+		}
+		fetch('index.php', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: Object.keys(payload)
+				.map(function (k) {
+					return encodeURIComponent(k) + '=' + encodeURIComponent(payload[k]);
+				})
+				.join('&'),
+			credentials: 'same-origin'
+		})
+			.then(function (r) {
+				return r.json();
+			})
+			.then(function () {
+				finish(true);
+			})
+			.catch(function () {
+				finish(false);
+			});
+	}
+
+	/**
+	 * Nhóm: dropdown + nút "Thêm nhóm" (giống đơn vị tính).
+	 */
+	function enhanceGroupField() {
+		var $field =
+			$form().find('select[name="product_group"], input[name="product_group"]').first();
+		if (!$field.length) {
+			return;
+		}
+		var $cell = $field.closest('.mk-ps-compact-value, td.fieldValue');
+		if ($field.data('mkPsGroupReady') || $cell.find('.mk-ps-group-box').length) {
+			if ($field.is('select')) {
+				hideNativePicklistUi($field);
+			} else {
+				$field.addClass('mk-ps-hide-legacy').hide();
+			}
+			return;
+		}
+		$field.data('mkPsGroupReady', true);
+
+		var current = String($field.val() || '').trim();
+		var groups = [];
+		if ($field.is('select')) {
+			$field.find('option').each(function () {
+				var v = String($(this).attr('value') || '').trim();
+				if (v && groups.indexOf(v) < 0) groups.push(v);
+			});
+		}
+		loadCustomGroups().forEach(function (g) {
+			if (g && groups.indexOf(g) < 0) groups.push(g);
+		});
+		if (current && groups.indexOf(current) < 0) {
+			groups.push(current);
+		}
+		groups.sort(function (a, b) {
+			return String(a).localeCompare(String(b), 'vi');
+		});
+
+		var $wrap = $(
+			'<div class="mk-ps-unit-box mk-ps-group-box">' +
+				'<div class="mk-ps-unit-box__row">' +
+					'<select class="mk-ps-unit-box__select mk-ps-group-box__select inputElement" aria-label="Nhóm"></select>' +
+					'<button type="button" class="mk-ps-unit-box__add mk-ps-group-box__add" title="Thêm nhóm">Thêm nhóm</button>' +
+				'</div>' +
+			'</div>'
+		);
+		var $uiSelect = $wrap.find('.mk-ps-group-box__select');
+		$uiSelect.append($('<option></option>').attr('value', '').text('— Chọn nhóm —'));
+		groups.forEach(function (g) {
+			$uiSelect.append($('<option></option>').attr('value', g).text(g));
+		});
+		if (current) {
+			$uiSelect.val(current);
+		}
+
+		function syncHidden(val) {
+			val = String(val || '').trim();
+			if ($field.is('select')) {
+				if (val) {
+					var exists = false;
+					$field.find('option').each(function () {
+						if ($(this).attr('value') === val) exists = true;
+					});
+					if (!exists) {
+						$field.append($('<option></option>').attr('value', val).text(val));
+					}
+				}
+				$field.val(val).trigger('change');
+			} else {
+				$field.val(val).trigger('change');
+			}
+		}
+
+		syncHidden($uiSelect.val() || current || '');
+
+		if ($field.is('select')) {
+			hideNativePicklistUi($field);
+		} else {
+			$field.addClass('mk-ps-hide-legacy').css({ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 });
+		}
+		var $host = $field.closest('.mk-ps-compact-value, td.fieldValue');
+		$host.append($wrap);
+
+		$uiSelect.on('change', function () {
+			syncHidden($(this).val());
+		});
+
+		$wrap.find('.mk-ps-group-box__add').on('click', function (e) {
+			e.preventDefault();
+			var next = window.prompt('Tên nhóm mới:', '');
+			if (next === null) return;
+			next = String(next).trim();
+			if (!next) return;
+			var customs = loadCustomGroups();
+			if (customs.indexOf(next) < 0) {
+				customs.push(next);
+				saveCustomGroups(customs);
+			}
+			if (!$uiSelect.find('option').filter(function () { return $(this).val() === next; }).length) {
+				$uiSelect.append($('<option></option>').attr('value', next).text(next));
+			}
+			$uiSelect.val(next);
+			syncHidden(next);
+			persistNewGroup(next, function (ok) {
+				if (window.app && app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({
+						message: ok ? 'Đã thêm nhóm: ' + next : 'Đã thêm nhóm trên form (có thể cần lưu SP để dùng lại).'
+					});
+				}
+			});
+		});
+	}
+
 	function enhanceTypeField() {
 		var $select = $form().find('select[name="item_type"]').first();
 		if (!$select.length) {
@@ -544,6 +712,7 @@
 		packCompactTwoColumn();
 		relabelTypeField();
 		enhanceUnitField();
+		enhanceGroupField();
 		enhanceTypeField();
 		decorateCreateLayout();
 		if (window.MkCurrency) {
