@@ -386,9 +386,71 @@
 		/* Append last inside card column — after #scroller_wrapper (top:-19px in custom.css overlaps footer if placed before it) */
 		if ($inner.length && ($inner.is('.col-sm-12') || $inner.is('.col-xs-12'))) {
 			$inner.append($footer);
+		} else {
+			$table.after($footer);
+		}
+		syncFooterPageInfo($scope, $footer);
+	}
+
+	/** Leads-style footer: single clean "Hiển thị 1–N / total" on the left, pager on the right. */
+	function syncFooterPageInfo($scope, $footer) {
+		$scope = $scope && $scope.length ? $scope : getListViewContainer();
+		$footer = $footer && $footer.length ? $footer : $scope.find('.mk-so-filter-row__footer').first();
+		if (!$scope.length || !$footer.length) {
 			return;
 		}
-		$table.after($footer);
+		// VN labels on stock buttons (Leads-style)
+		$footer.find('.mk-so-page-btn--prev .mk-so-page-btn__label').text('Trước');
+		$footer.find('.mk-so-page-btn--next .mk-so-page-btn__label').text('Sau');
+		$footer.find('.mk-so-page-current__label').text('');
+
+		var pageStart = String(jQuery('#pageStartRange', $scope).val() || '').trim();
+		var pageEnd = String(jQuery('#pageEndRange', $scope).val() || '').trim();
+		var totalCount = String(jQuery('#totalCount', $scope).val() || '').trim();
+		var entries = parseInt(jQuery('#noOfEntries', $scope).val(), 10) || 0;
+
+		// Prefer toolbar numbers if range inputs empty (AJAX mid-state)
+		var $src = $scope.find('#listview-actions .mk-so-page-numbers').first();
+		if (!$src.length) {
+			$src = $scope.find('.mk-so-page-numbers').not('.mk-so-page-numbers--footer').first();
+		}
+		if ((!pageStart || !pageEnd) && $src.length) {
+			var rawRange = jQuery.trim($src.find('.pageNumbersText').text() || '');
+			var m = rawRange.match(/(\d+)\s*(?:[\u2013\-]|to|đến)\s*(\d+)/i);
+			if (m) {
+				pageStart = m[1];
+				pageEnd = m[2];
+			}
+			if (!totalCount || totalCount === '0') {
+				var rawTotal = jQuery.trim(
+					$src.find('.mk-so-total-count').text() ||
+					$src.find('.totalNumberOfRecords').text().replace(/[^\d]/g, '') ||
+					''
+				);
+				if (rawTotal) {
+					totalCount = rawTotal;
+				}
+			}
+		}
+
+		var infoText = '';
+		if (entries && pageStart && pageEnd) {
+			infoText = 'Hiển thị ' + pageStart + '\u2013' + pageEnd;
+			if (totalCount && totalCount !== '0') {
+				infoText += ' / ' + totalCount;
+			}
+		} else if (entries === 0) {
+			infoText = 'Hiển thị 0 / 0';
+		}
+
+		var $existing = $footer.find('.mk-so-page-numbers--footer').first();
+		if (!$existing.length) {
+			$existing = jQuery(
+				'<span class="pageNumbers mk-so-page-numbers mk-so-page-numbers--footer" aria-live="polite"></span>'
+			);
+			$footer.prepend($existing);
+		}
+		$existing.empty().text(infoText);
 	}
 
 	/** Update toolbar counts + pagination controls without replacing #listview-actions (Potentials). */
@@ -941,6 +1003,7 @@
 			dedupePaginationFooters($card);
 		}
 		relocatePaginationFooter();
+		syncFooterPageInfo();
 		autoLoadTotalRecordCount();
 		if (supportsLayoutToggle()) {
 			applyLayoutMode(getSavedLayoutMode());
@@ -967,23 +1030,30 @@
 			var pageEndRange = jQuery('#pageEndRange', listViewContainer).val();
 			var totalCount = jQuery('#totalCount', listViewContainer).val();
 			var listViewEntriesCount = parseInt(jQuery('#noOfEntries', listViewContainer).val(), 10);
-			var $totalSpan = listViewContainer.find('.mk-so-page-numbers .totalNumberOfRecords').first();
+			var $totalSpans = listViewContainer.find('.mk-so-page-numbers .totalNumberOfRecords');
 
 			if (listViewEntriesCount) {
-				listViewContainer.find('.pageNumbersText').html(
-					pageStartRange + ' ' + app.vtranslate('to') + ' ' + pageEndRange
-				);
+				// Use en-dash like Leads "1–15 / 17"
+				var rangeText =
+					pageStartRange + '\u2013' + pageEndRange;
+				listViewContainer.find('.pageNumbersText').html(rangeText);
 				if (totalCount && String(totalCount).trim() !== '' && String(totalCount) !== '0') {
-					$totalSpan.removeClass('hide').html(
-						'&nbsp;' + app.vtranslate('of') + ' <span class="mk-so-total-count">' +
+					$totalSpans.removeClass('hide').html(
+						' / <span class="mk-so-total-count">' +
 						app.helper.purifyContent(totalCount) + '</span>'
 					);
 				} else {
-					$totalSpan.removeClass('hide');
+					$totalSpans.removeClass('hide');
 				}
 			} else {
 				listViewContainer.find('.pageNumbersText').html('<span>&nbsp;</span>');
-				$totalSpan.addClass('hide');
+				$totalSpans.addClass('hide');
+			}
+			// Keep Leads-style footer mirror in sync
+			try {
+				syncFooterPageInfo(listViewContainer);
+			} catch (e) {
+				/* ignore */
 			}
 		};
 	}

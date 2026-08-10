@@ -1910,3 +1910,25 @@ body:is([data-view="List"], [data-view="Detail"]):is([data-app="SALES"], [data-a
 	border-color: #1d4ed8;
 	color: #1d4ed8;
 }
+
+/* SC: create AFF + referral lock */
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__aff-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border-radius: 999px;
+	background: #ecfdf5;
+	border: 1px solid #86efac;
+	color: #047857;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__field-edit.is-locked .mk-so-inline-detail__input {
+	background: #f8fafc;
+	color: #0f172a;
+	cursor: not-allowed;
+}
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__input--upper {
+	text-transform: uppercase;
+}

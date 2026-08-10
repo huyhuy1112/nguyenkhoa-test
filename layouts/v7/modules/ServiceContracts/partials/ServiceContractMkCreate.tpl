@@ -44,7 +44,12 @@
 			<section class="mk-sc-franchise-card">
 				<div class="mk-sc-franchise-card__head">
 					<h2>{vtranslate('LBL_MK_SC_FRANCHISE_INFO', $MODULE)}</h2>
-					<span class="mk-sc-franchise-aff" id="mkScAffiliateBadge" hidden></span>
+					<div class="mk-sc-franchise-aff-slot">
+						<span class="mk-sc-franchise-aff" id="mkScAffiliateBadge" hidden></span>
+						<button type="button" class="mk-sc-btn mk-sc-btn--primary mk-sc-btn--sm" id="mkScCreateAffBtn" hidden>
+							Tạo mã AFF
+						</button>
+					</div>
 				</div>
 				<div class="mk-sc-franchise-grid">
 					<label class="mk-sc-field">
@@ -76,15 +81,15 @@
 							<option value="">—</option>
 						</select>
 					</label>
-					<label class="mk-sc-field">
+					<label class="mk-sc-field mk-sc-field--hidden-source" hidden aria-hidden="true">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_DATA_SOURCE', $MODULE)}</span>
-						<select class="mk-sc-input mk-sc-select" name="data_source" id="mkScDataSource">
+						<select class="mk-sc-input mk-sc-select mk-sc-input--readonly" name="data_source" id="mkScDataSource" disabled aria-disabled="true" tabindex="-1">
 							<option value="">—</option>
 						</select>
 					</label>
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_REFERRER', $MODULE)}</span>
-						<select class="mk-sc-input mk-sc-select" name="referrer_aff" id="mkScReferrerAff">
+						<select class="mk-sc-input mk-sc-select mk-sc-input--readonly" name="referrer_aff" id="mkScReferrerAff" disabled aria-disabled="true" tabindex="-1">
 							<option value="">— Chọn mã AFF người giới thiệu —</option>
 						</select>
 						<input type="hidden" name="referrer" id="mkScReferrer" value="" />
@@ -98,7 +103,7 @@
 
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_REFERRAL_CODE', $MODULE)}</span>
-						<input type="text" class="mk-sc-input mk-sc-input--readonly" name="referral_code" id="mkScReferralCode" maxlength="64" readonly tabindex="-1" autocomplete="off" style="text-transform:uppercase" placeholder="AFF-######" />
+						<input type="text" class="mk-sc-input" name="referral_code" id="mkScReferralCode" maxlength="64" autocomplete="off" style="text-transform:uppercase" placeholder="AFF-######" />
 					</label>
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_REFERRAL_REWARD', $MODULE)}</span>

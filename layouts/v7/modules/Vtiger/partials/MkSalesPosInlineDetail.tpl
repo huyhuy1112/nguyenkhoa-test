@@ -1,6 +1,6 @@
 {* Lightweight POS inline detail dropdown (Accounts / Leads / Opp / Contacts) *}
 {strip}
-<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="{$MODULE|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-edit-url="{$INLINE_EDIT_URL|escape}">
+<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="{$MODULE|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-edit-url="{$INLINE_EDIT_URL|escape}"{if $MODULE eq 'ServiceContracts'} data-affiliate-code="{$INLINE_SC_AFFILIATE_CODE|default:''|escape}" data-can-create-aff="{if !empty($INLINE_SC_CAN_CREATE_AFF)}1{else}0{/if}"{/if}>
 	<div class="mk-so-inline-detail__tabs" role="tablist">
 		<button type="button" class="mk-so-inline-detail__tab is-active" role="tab" aria-selected="true">Thông tin</button>
 	</div>
@@ -53,8 +53,12 @@
 							{elseif $INFO_FIELD.data_type eq 'text'}
 								<textarea class="mk-so-inline-detail__input mk-so-inline-detail__textarea inputElement" name="{$INFO_FIELD.name|escape}" rows="{if $INFO_FIELD.name eq 'business_note'}2{else}2{/if}">{$INFO_FIELD.raw_value|escape}</textarea>
 							{else}
-								<input type="text" class="mk-so-inline-detail__input inputElement" name="{$INFO_FIELD.name|escape}" value="{$INFO_FIELD.raw_value|escape}"{if $INFO_FIELD.name eq 'mk_address' || $INFO_FIELD.name eq 'address'} placeholder="Nhập địa chỉ"{elseif $INFO_FIELD.name eq 'phone'} placeholder="Nhập SĐT"{/if} />
+								<input type="text" class="mk-so-inline-detail__input inputElement{if $INFO_FIELD.name eq 'referral_code'} mk-so-inline-detail__input--upper{/if}" name="{$INFO_FIELD.name|escape}" value="{$INFO_FIELD.raw_value|escape}"{if $INFO_FIELD.name eq 'mk_address' || $INFO_FIELD.name eq 'address'} placeholder="Nhập địa chỉ"{elseif $INFO_FIELD.name eq 'phone'} placeholder="Nhập SĐT"{elseif !empty($INFO_FIELD.placeholder)} placeholder="{$INFO_FIELD.placeholder|escape}"{/if}{if $INFO_FIELD.name eq 'referral_code'} autocomplete="off" style="text-transform:uppercase"{/if} />
 							{/if}
+						</div>
+					{elseif $MODULE eq 'ServiceContracts' && $INFO_FIELD.name eq 'referral_code' && !empty($INFO_FIELD.readonly_locked)}
+						<div class="mk-so-inline-detail__field-edit is-locked">
+							<input type="text" class="mk-so-inline-detail__input inputElement" name="referral_code" value="{$INFO_FIELD.raw_value|escape}" readonly="readonly" tabindex="-1" style="text-transform:uppercase" />
 						</div>
 					{/if}
 				</div>
@@ -251,6 +255,14 @@
 				<i class="fa fa-file-text-o" aria-hidden="true"></i>
 				<span>Báo giá</span>
 			</a>
+			{if !empty($INLINE_SC_CAN_CREATE_AFF)}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__create-aff-btn" data-record-id="{$RECORD->getId()|escape}" title="Tạo mã AFF cho khách này">
+				<i class="fa fa-qrcode" aria-hidden="true"></i>
+				<span>Tạo mã AFF</span>
+			</button>
+			{elseif !empty($INLINE_SC_AFFILIATE_CODE)}
+			<span class="mk-so-inline-detail__aff-pill" title="Mã AFF đã tạo">{$INLINE_SC_AFFILIATE_CODE|escape}</span>
+			{/if}
 			{/if}
 			{if $MODULE eq 'Leads'}
 				{assign var=INLINE_CAN_CONVERT value=$INLINE_CAN_CONVERT|default:true}

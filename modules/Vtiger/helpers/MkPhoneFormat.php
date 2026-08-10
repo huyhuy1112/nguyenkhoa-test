@@ -54,8 +54,19 @@ class Vtiger_MkPhoneFormat_Helper {
 		if (strlen($digits) === 9) {
 			return substr($digits, 0, 3) . ' ' . substr($digits, 3, 3) . ' ' . substr($digits, 6, 3);
 		}
+		if (strlen($digits) === 8) {
+			return substr($digits, 0, 4) . ' ' . substr($digits, 4);
+		}
+		if (strlen($digits) > 10) {
+			$base = substr($digits, 0, 4) . ' ' . substr($digits, 4, 3) . ' ' . substr($digits, 7, 3);
+			$rest = substr($digits, 10);
+			return $rest !== '' ? $base . ' ' . $rest : $base;
+		}
+		if (strlen($digits) >= 4) {
+			return substr($digits, 0, 4) . (strlen($digits) > 4 ? ' ' . substr($digits, 4) : '');
+		}
 
-		// Other lengths: return digits without inventing spacing for long strings
+		// Short residual lengths
 		return $digits;
 	}
 }

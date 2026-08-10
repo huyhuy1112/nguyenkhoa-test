@@ -55,16 +55,18 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 		foreach ($pick['contact_status'] as $opt) {
 			$contactOpts[$opt] = $opt;
 		}
-		$sourceOpts = array('' => '—');
-		foreach ($pick['data_source'] as $opt) {
-			$sourceOpts[$opt] = $opt;
-		}
 		$fs = isset($franchise['franchise_status']) ? (string) $franchise['franchise_status'] : '';
 		$cs = isset($franchise['contact_status']) ? (string) $franchise['contact_status'] : '';
-		$ds = isset($franchise['data_source']) ? (string) $franchise['data_source'] : '';
 		$phone = isset($franchise['phone']) ? (string) $franchise['phone'] : '';
 		$biz = isset($franchise['business_note']) ? (string) $franchise['business_note'] : '';
 		$im = isset($franchise['interaction_materials']) ? (string) $franchise['interaction_materials'] : '';
+		$affCode = isset($franchise['affiliate_code']) ? trim((string) $franchise['affiliate_code']) : '';
+		$refCode = isset($franchise['referral_code']) ? strtoupper(trim((string) $franchise['referral_code'])) : '';
+		$referrer = isset($franchise['referrer']) ? trim((string) $franchise['referrer']) : '';
+
+		// BA: bỏ "Nguồn data" khỏi panel (auto set khi nhập mã GT).
+		// Khi chưa có mã GT → cho nhập; đã có → khóa cứng + hiện thông tin người GT.
+		$refLocked = ($refCode !== '');
 		$infoFields = array(
 			array(
 				'name' => 'franchise_status',
@@ -74,15 +76,6 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 				'data_type' => 'picklist',
 				'editable' => true,
 				'picklist_values' => $statusOpts,
-			),
-			array(
-				'name' => 'data_source',
-				'label' => 'Nguồn data',
-				'value' => $ds !== '' ? $ds : '—',
-				'raw_value' => $ds,
-				'data_type' => 'picklist',
-				'editable' => true,
-				'picklist_values' => $sourceOpts,
 			),
 			array(
 				'name' => 'phone',
@@ -100,6 +93,26 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 				'raw_value' => $biz,
 				'data_type' => 'text',
 				'editable' => true,
+				'picklist_values' => array(),
+			),
+			array(
+				'name' => 'referral_code',
+				'label' => 'Mã người giới thiệu',
+				'value' => $refCode !== '' ? $refCode : '—',
+				'raw_value' => $refCode,
+				'data_type' => 'string',
+				'editable' => !$refLocked,
+				'readonly_locked' => $refLocked,
+				'placeholder' => 'AFF-######',
+				'picklist_values' => array(),
+			),
+			array(
+				'name' => 'referrer',
+				'label' => 'Thông tin người giới thiệu',
+				'value' => $referrer !== '' ? $referrer : ($refCode !== '' ? $refCode : '—'),
+				'raw_value' => $referrer,
+				'data_type' => 'string',
+				'editable' => false,
 				'picklist_values' => array(),
 			),
 			array(
@@ -152,6 +165,8 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('INLINE_SC_INTERACTIONS', array());
 		$viewer->assign('INLINE_SC_MATERIALS', $materialsField);
 		$viewer->assign('INLINE_SC_OWNER', $ownerField ? $ownerField : null);
+		$viewer->assign('INLINE_SC_AFFILIATE_CODE', $affCode);
+		$viewer->assign('INLINE_SC_CAN_CREATE_AFF', $affCode === '');
 
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}

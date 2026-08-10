@@ -100,9 +100,9 @@ class ServiceContractsHandler extends VTEventHandler {
 				}
 				try {
 					require_once 'modules/ServiceContracts/models/ModernService.php';
-					ServiceContracts_ModernService::ensureAffiliateCode((int) $contractId);
+					ServiceContracts_ModernService::ensureProfileRow((int) $contractId);
 				} catch (Exception $e) {
-					// affiliate generation is best-effort
+					// profile row is best-effort (AFF created on demand)
 				}
 			}
 		}

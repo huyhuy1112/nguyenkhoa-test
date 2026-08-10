@@ -10,7 +10,7 @@
 			{$smarty.capture.mk_ps_list_lv}
 			<script type="text/javascript">
 			(function () {
-				var canonical = ['productsservicesname', 'sku', 'item_type', 'price', 'supplier', 'unit'];
+				var canonical = ['productsservicesname', 'sku', 'product_group', 'item_type', 'price', 'price_tuibao', 'unit'];
 				var input = document.querySelector('#listViewContent input[name="list_headers"]');
 				if (input) {
 					input.value = JSON.stringify(canonical);

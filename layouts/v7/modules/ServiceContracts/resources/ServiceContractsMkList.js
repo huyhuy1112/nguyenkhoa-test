@@ -146,6 +146,15 @@
   }
 
   function rowActionsHtml(c) {
+    var hasAff = !!(c.affiliate_code && String(c.affiliate_code).trim());
+    var affItem = hasAff
+      ? '<li role="presentation" class="disabled"><a role="menuitem" href="javascript:void(0)" class="mk-sc-aff-menu-item is-done" title="Đã có mã AFF">' +
+        '<i class="fa fa-check-circle"></i> ' +
+        esc(String(c.affiliate_code).trim()) +
+        "</a></li>"
+      : '<li role="presentation"><a role="menuitem" href="javascript:void(0)" class="mk-sc-create-aff-btn" data-sc-create-aff="' +
+        esc(c.crmid || c.id) +
+        '"><i class="fa fa-qrcode"></i> Tạo mã AFF</a></li>';
     return (
       '<td class="mk-leads-td mk-sc-td--actions">' +
       '<div class="dropdown mk-sc-row-actions">' +
@@ -156,11 +165,92 @@
       '<li role="presentation"><a role="menuitem" href="' +
       createQuoteUrl(c) +
       '"><i class="fa fa-file-text-o"></i> Tạo báo giá</a></li>' +
+      affItem +
       '<li role="presentation"><a role="menuitem" href="' +
       detailUrl(c.crmid || c.id) +
       '"><i class="fa fa-eye"></i> Chi tiết</a></li>' +
       "</ul></div></td>"
     );
+  }
+
+  function createAffiliateForRow(recordId, triggerEl) {
+    var id = String(recordId || "").trim();
+    if (!id) return;
+    if (triggerEl) {
+      triggerEl.classList.add("is-busy");
+      triggerEl.setAttribute("aria-disabled", "true");
+      triggerEl.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang tạo…';
+    }
+    var postData = {
+      module: "ServiceContracts",
+      action: "ModernApi",
+      mode: "generate_affiliate",
+      record: id,
+      id: id,
+    };
+    function done(err, res) {
+      if (triggerEl) {
+        triggerEl.classList.remove("is-busy");
+        triggerEl.removeAttribute("aria-disabled");
+      }
+      if (err || !res || res.success === false) {
+        var msg =
+          (err && err.message) ||
+          (res && (res.error || res.message)) ||
+          "Không tạo được mã AFF.";
+        if (window.app && app.helper && app.helper.showErrorNotification) {
+          app.helper.showErrorNotification({ message: String(msg) });
+        } else {
+          window.alert(String(msg));
+        }
+        renderTable();
+        return;
+      }
+      var code =
+        (res && res.affiliate_code) ||
+        (res && res.contract && res.contract.affiliate_code) ||
+        "";
+      if (store && typeof store.patchContract === "function") {
+        store.patchContract(String(id), { affiliate_code: code });
+      } else {
+        getContracts().forEach(function (c) {
+          if (String(c.id) === id || String(c.crmid) === id) {
+            c.affiliate_code = code;
+          }
+        });
+      }
+      renderTable();
+      if (window.app && app.helper && app.helper.showSuccessNotification) {
+        app.helper.showSuccessNotification({
+          message: res.already_existed
+            ? "Khách đã có mã " + code
+            : "Đã tạo mã " + code,
+        });
+      }
+    }
+    if (window.app && app.request && app.request.post) {
+      app.request.post({ data: postData }).then(done);
+    } else {
+      fetch("index.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: Object.keys(postData)
+          .map(function (k) {
+            return encodeURIComponent(k) + "=" + encodeURIComponent(postData[k]);
+          })
+          .join("&"),
+        credentials: "same-origin",
+      })
+        .then(function (r) {
+          return r.json();
+        })
+        .then(function (r) {
+          done(null, r && r.result ? r.result : r);
+        })
+        .catch(function (e) {
+          done(e || new Error("fail"), null);
+        });
+    }
   }
 
   function ownerInitials(name) {
@@ -331,10 +421,33 @@
     if (!phone) {
       return '<span class="mk-leads-muted">—</span>';
     }
-    var display =
-      window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function"
-        ? window.MkPhoneFormat.format(phone)
-        : phone;
+    var display = phone;
+    if (window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function") {
+      display = window.MkPhoneFormat.format(phone) || phone;
+    } else {
+      // Local fallback: XX… → xxxx xxx xxx (VN-ish) when MkPhoneFormat not loaded yet
+      var digits = phone.replace(/\D+/g, "");
+      if (digits.length === 11 && digits.indexOf("84") === 0) {
+        digits = "0" + digits.slice(2);
+      }
+      if (digits.length === 10) {
+        display = digits.slice(0, 4) + " " + digits.slice(4, 7) + " " + digits.slice(7);
+      } else if (digits.length > 10) {
+        display =
+          digits.slice(0, 4) +
+          " " +
+          digits.slice(4, 7) +
+          " " +
+          digits.slice(7, 10) +
+          (digits.length > 10 ? " " + digits.slice(10) : "");
+      } else if (digits.length === 9) {
+        display = digits.slice(0, 3) + " " + digits.slice(3, 6) + " " + digits.slice(6);
+      } else if (digits.length >= 4) {
+        display = digits.slice(0, 4) + (digits.length > 4 ? " " + digits.slice(4) : "");
+      } else if (digits) {
+        display = digits;
+      }
+    }
     return '<span class="mk-leads-phone">' + esc(display || phone) + "</span>";
   }
 
@@ -346,6 +459,100 @@
     var max = opts && opts.max ? opts.max : 80;
     var short = n.length > max ? n.slice(0, max) + "…" : n;
     return '<span class="mk-sc-cell-text" title="' + esc(n) + '">' + esc(short) + "</span>";
+  }
+
+  /** Leads-style click-to-edit cell (phone / business_note) — no need to open inline dropdown. */
+  function editableCellHtml(field, value, recordId, placeholder) {
+    var shown = value;
+    if (field === "phone" && value && window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function") {
+      shown = window.MkPhoneFormat.format(value) || value;
+    }
+    var display = shown
+      ? esc(shown)
+      : '<span class="mk-leads-muted">' + esc(placeholder || "—") + "</span>";
+    return (
+      '<button type="button" class="mk-leads-inline-edit mk-sc-inline-edit" data-field="' +
+      esc(field) +
+      '" data-sc-id="' +
+      esc(recordId) +
+      '" title="Nhấn để sửa">' +
+      display +
+      "</button>"
+    );
+  }
+
+  function beginInlineEdit(btn) {
+    if (!btn || !btn.getAttribute) return;
+    var field = btn.getAttribute("data-field");
+    var scId = btn.getAttribute("data-sc-id");
+    if (!field || !scId) return;
+    var placeholder =
+      field === "phone" ? "SĐT" : field === "business_note" ? "Địa chỉ / note" : "";
+    var current = btn.textContent.trim();
+    if (current === "—" || (placeholder && current === placeholder)) current = "";
+    var input = document.createElement(field === "business_note" ? "textarea" : "input");
+    if (field !== "business_note") {
+      input.type = field === "phone" ? "tel" : "text";
+    } else {
+      input.rows = 2;
+    }
+    input.className = "mk-leads-inline-input mk-sc-inline-input";
+    input.value = current;
+    if (placeholder) input.setAttribute("placeholder", placeholder);
+    input.setAttribute("data-field", field);
+    input.setAttribute("data-sc-id", scId);
+    if (field === "phone") {
+      input.setAttribute("inputmode", "numeric");
+      input.setAttribute("maxlength", "12");
+      input.addEventListener("input", function () {
+        var next =
+          window.MkPhoneFormat && typeof window.MkPhoneFormat.formatInput === "function"
+            ? window.MkPhoneFormat.formatInput(input.value)
+            : String(input.value || "").replace(/\D+/g, "").slice(0, 10);
+        if (next !== input.value) input.value = next;
+      });
+    }
+    btn.replaceWith(input);
+    input.focus();
+    if (current && input.select) input.select();
+  }
+
+  function commitInlineEdit(input) {
+    if (!input || !input.getAttribute) return;
+    var field = input.getAttribute("data-field");
+    var scId = input.getAttribute("data-sc-id");
+    if (!field || !scId || !store || typeof store.updateFields !== "function") {
+      renderTable();
+      return;
+    }
+    var val = String(input.value || "").trim();
+    if (field === "phone") {
+      val =
+        window.MkPhoneFormat && typeof window.MkPhoneFormat.digitsOnly === "function"
+          ? window.MkPhoneFormat.digitsOnly(val)
+          : val.replace(/\D+/g, "");
+      val = val.slice(0, 10);
+      if (val && val.length !== 10) {
+        window.alert("Số điện thoại phải đủ 10 số.");
+        renderTable();
+        return;
+      }
+    }
+    var patch = {};
+    patch[field] = val;
+    input.disabled = true;
+    store
+      .updateFields(scId, patch)
+      .then(function () {
+        renderTable();
+      })
+      .catch(function (err) {
+        console.error("SC inline save failed", err);
+        window.alert(
+          (err && err.message) || "Không lưu được " + (field === "phone" ? "SĐT" : "ghi chú") + "."
+        );
+        renderTable();
+      });
   }
 
   function pillClassFor(kind, value) {
@@ -983,10 +1190,10 @@
               : "") +
             "</span></span></td>" +
             '<td class="mk-leads-td mk-leads-td--phone">' +
-            phoneCell(c.phone) +
+            editableCellHtml("phone", c.phone, rowId, "SĐT") +
             "</td>" +
             '<td class="mk-leads-td">' +
-            textCell(c.business_note || c.address, { max: 70 }) +
+            editableCellHtml("business_note", c.business_note || c.address || "", rowId, "Địa chỉ / note") +
             "</td>" +
             '<td class="mk-leads-td">' +
             pillCell("franchise_status", c.franchise_status) +
@@ -1129,24 +1336,38 @@
   function renderPagination(total, totalPages) {
     var host = $("mk-sc-pagination");
     if (!host) return;
-    if (totalPages <= 1) {
-      host.innerHTML = "";
-      return;
-    }
+    var pages = Math.max(1, totalPages || 1);
+    var pageSize = PAGE_SIZE;
+    var start = total ? (state.page - 1) * pageSize : 0;
+    var from = total ? start + 1 : 0;
+    var to = Math.min(start + pageSize, total);
+    // Mirror Leads: "Hiển thị 1–N / total" + Trước | page / pages | Sau
     host.innerHTML =
+      '<span class="mk-leads-pagination__info">' +
+      esc(t("JS_MK_SHOWING", "Hiển thị")) +
+      " " +
+      from +
+      "\u2013" +
+      to +
+      " / " +
+      total +
+      "</span>" +
+      '<div class="mk-leads-pagination__btns">' +
       '<button type="button" class="mk-leads-page-btn" data-page="prev"' +
       (state.page <= 1 ? " disabled" : "") +
-      ">‹</button>" +
-      '<span class="mk-leads-page-info">' +
-      esc(t("JS_MK_PAGE", "Trang")) +
-      " " +
+      ">" +
+      esc(t("JS_MK_PREV", "Trước")) +
+      "</button>" +
+      '<span class="mk-leads-page-num">' +
       state.page +
       " / " +
-      totalPages +
+      pages +
       "</span>" +
       '<button type="button" class="mk-leads-page-btn" data-page="next"' +
-      (state.page >= totalPages ? " disabled" : "") +
-      ">›</button>";
+      (state.page >= pages ? " disabled" : "") +
+      ">" +
+      esc(t("JS_MK_NEXT", "Sau")) +
+      "</button></div>";
   }
 
   function applySegment(segId) {
@@ -1613,6 +1834,24 @@
         return;
       }
 
+      var affBtn = e.target.closest && e.target.closest("[data-sc-create-aff]");
+      if (affBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (affBtn.getAttribute("aria-disabled") === "true") return;
+        var affId = affBtn.getAttribute("data-sc-create-aff");
+        createAffiliateForRow(affId, affBtn);
+        return;
+      }
+
+      var editBtn = e.target.closest && e.target.closest(".mk-sc-inline-edit");
+      if (editBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        beginInlineEdit(editBtn);
+        return;
+      }
+
       if (!e.target.closest || !e.target.closest("#mk-sc-tag-popover")) {
         closeTagPopover();
       }
@@ -1665,6 +1904,38 @@
         renderTable();
       });
     }
+
+    document.addEventListener(
+      "focusout",
+      function (e) {
+        if (
+          e.target &&
+          e.target.classList &&
+          e.target.classList.contains("mk-sc-inline-input")
+        ) {
+          commitInlineEdit(e.target);
+        }
+      },
+      true
+    );
+
+    document.addEventListener("keydown", function (e) {
+      if (
+        !e.target ||
+        !e.target.classList ||
+        !e.target.classList.contains("mk-sc-inline-input")
+      ) {
+        return;
+      }
+      if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        commitInlineEdit(e.target);
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        renderTable();
+      }
+    });
 
     var reset = $("mk-sc-reset");
     if (reset) {

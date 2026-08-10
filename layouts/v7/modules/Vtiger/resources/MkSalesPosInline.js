@@ -754,6 +754,128 @@
 			var url = $panel.attr('data-edit-url');
 			if (url) window.location.href = url;
 		});
+
+		function scApiPost(data) {
+			return (typeof app !== 'undefined' && app.request && app.request.post)
+				? app.request.post({ data: data })
+				: $.Deferred(function (d) {
+					$.ajax({ url: 'index.php', type: 'POST', dataType: 'json', data: data })
+						.done(function (r) { d.resolve(null, r && r.result ? r.result : r); })
+						.fail(function () { d.resolve({ message: 'Request failed' }, null); });
+				}).promise();
+		}
+
+		// SC: create affiliate code once (belongs to this customer)
+		$panel.on('click', '.mk-so-inline-detail__create-aff-btn', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!recordId || mod !== 'ServiceContracts') return;
+			var $btn = $(this);
+			if ($btn.prop('disabled') || $btn.data('busy')) return;
+			$btn.data('busy', true).prop('disabled', true);
+			var label = $btn.find('span').first();
+			var prev = label.text();
+			label.text('Đang tạo…');
+			scApiPost({
+				module: 'ServiceContracts',
+				action: 'ModernApi',
+				mode: 'generate_affiliate',
+				record: recordId
+			}).then(function (err, res) {
+				$btn.data('busy', false);
+				if (err || !res || res.success === false) {
+					$btn.prop('disabled', false);
+					label.text(prev || 'Tạo mã AFF');
+					var msg = (res && (res.error || res.message)) || (err && err.message) || 'Không tạo được mã AFF.';
+					if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
+						app.helper.showErrorNotification({ message: msg });
+					} else {
+						window.alert(msg);
+					}
+					return;
+				}
+				var code =
+					(res && res.affiliate_code) ||
+					(res && res.contract && res.contract.affiliate_code) ||
+					'';
+				$panel.attr('data-affiliate-code', code).attr('data-can-create-aff', '0');
+				$btn.replaceWith(
+					$('<span class="mk-so-inline-detail__aff-pill"></span>').text(code).attr('title', 'Mã AFF đã tạo')
+				);
+				var $sub = $panel.find('.mk-so-inline-detail__order-no');
+				if ($sub.length) {
+					$sub.text(code);
+				} else {
+					$panel.find('.mk-so-inline-detail__customer').after(
+						$('<div class="mk-so-inline-detail__order-no"></div>').text(code)
+					);
+				}
+				try {
+					document.dispatchEvent(new CustomEvent('mk-sc-inline-saved', {
+						detail: {
+							id: String(recordId),
+							contract: (res && res.contract) || { affiliate_code: code, id: recordId }
+						}
+					}));
+				} catch (ev2) { /* ignore */ }
+				if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({
+						message: res.already_existed ? ('Khách đã có mã ' + code) : ('Đã tạo mã ' + code)
+					});
+				}
+			});
+		});
+
+		// SC: resolve referral code → show referrer info
+		function syncScReferrerView($p, name) {
+			var display = name || '—';
+			$p.find('.mk-so-inline-detail__field[data-field-name="referrer"] .mk-so-inline-detail__field-view')
+				.text(display);
+			var $hidden = $p.find('.mk-so-inline-detail__field[data-field-name="referrer"] :input[name="referrer"]');
+			if ($hidden.length) {
+				$hidden.val(name || '');
+			} else if (name) {
+				$p.find('.mk-so-inline-detail__field[data-field-name="referrer"]').append(
+					$('<input type="hidden" name="referrer" />').val(name)
+				);
+			}
+		}
+		function resolveScReferral($input) {
+			if (!$input || !$input.length || mod !== 'ServiceContracts') return;
+			if ($input.prop('readonly')) return;
+			var code = String($input.val() || '').trim().toUpperCase().replace(/\s+/g, '');
+			$input.val(code);
+			if (!code) {
+				syncScReferrerView($panel, '');
+				return;
+			}
+			scApiPost({
+				module: 'ServiceContracts',
+				action: 'ModernApi',
+				mode: 'resolve_referral',
+				code: code
+			}).then(function (err, res) {
+				if (err || !res || res.success === false) return;
+				var tier = (res && res.tier) || null;
+				if (tier && tier.referrer_name) {
+					syncScReferrerView($panel, tier.referrer_name);
+					$input.prop('readonly', true).attr('tabindex', '-1')
+						.closest('.mk-so-inline-detail__field-edit').addClass('is-locked');
+					$input.closest('.mk-so-inline-detail__field')
+						.attr('data-editable', '0')
+						.find('.mk-so-inline-detail__field-view').text(code);
+				}
+			});
+		}
+		$panel.on('blur', ':input[name="referral_code"]', function () {
+			resolveScReferral($(this));
+		});
+		$panel.on('input', ':input[name="referral_code"]', function () {
+			var el = this;
+			var next = String(el.value || '').toUpperCase().replace(/\s+/g, '');
+			if (next !== el.value) el.value = next;
+		});
+
 		$panel.on('click', '.mk-so-inline-detail__print-btn', function (e) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -980,9 +1102,10 @@
 				var inlinePayload = {
 					franchise_status: postData.franchise_status || '',
 					contact_status: postData.contact_status || '',
-					data_source: postData.data_source || '',
 					phone: postData.phone || '',
 					business_note: postData.business_note || '',
+					referral_code: postData.referral_code || '',
+					referrer: postData.referrer || '',
 					interaction_1: postData.interaction_1 || '',
 					interaction_2: postData.interaction_2 || '',
 					interaction_3: postData.interaction_3 || '',
@@ -1013,22 +1136,32 @@
 					}
 					syncView('franchise_status', c.franchise_status);
 					syncView('contact_status', c.contact_status);
-					syncView('data_source', c.data_source);
 					syncView('phone', c.phone);
 					syncView('business_note', c.business_note);
+					syncView('referral_code', c.referral_code);
+					syncView('referrer', c.referrer);
 					syncView('interaction_1', c.interaction_1);
 					syncView('interaction_2', c.interaction_2);
 					syncView('interaction_3', c.interaction_3);
 					syncView('interaction_materials', c.interaction_materials);
 					syncInput('franchise_status', c.franchise_status);
 					syncInput('contact_status', c.contact_status);
-					syncInput('data_source', c.data_source);
 					syncInput('phone', c.phone);
 					syncInput('business_note', c.business_note);
+					syncInput('referral_code', c.referral_code);
+					syncInput('referrer', c.referrer);
 					syncInput('interaction_1', c.interaction_1);
 					syncInput('interaction_2', c.interaction_2);
 					syncInput('interaction_3', c.interaction_3);
 					syncInput('interaction_materials', c.interaction_materials);
+					// Lock referral after first successful save with a code
+					if (c.referral_code) {
+						var $refField = $panel.find('.mk-so-inline-detail__field[data-field-name="referral_code"]');
+						$refField.attr('data-editable', '0');
+						var $refIn = $refField.find(':input[name="referral_code"]');
+						$refIn.prop('readonly', true).attr('tabindex', '-1')
+							.closest('.mk-so-inline-detail__field-edit').addClass('is-locked');
+					}
 					try {
 						document.dispatchEvent(new CustomEvent('mk-sc-inline-saved', {
 							detail: { id: String(recordId), contract: c }

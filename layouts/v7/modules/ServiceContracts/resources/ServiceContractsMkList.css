@@ -267,15 +267,20 @@ body[data-view="List"][data-app="SALES"] .mk-lead-lt-modal .mk-lead-lt-modal__se
 	overflow: visible;
 }
 
-/* Row ⋮ actions: Tạo báo giá */
+/* Row ⋮ actions: Tạo báo giá / Tạo mã AFF */
 .mk-sc-td--actions {
   width: 52px;
   text-align: center;
   vertical-align: middle !important;
+  overflow: visible !important;
 }
 .mk-sc-row-actions {
   position: relative;
   display: inline-block;
+  z-index: 2;
+}
+.mk-sc-row-actions.open {
+  z-index: 40;
 }
 .mk-sc-row-actions__btn {
   border: 1px solid #e2e8f0;
@@ -293,10 +298,11 @@ body[data-view="List"][data-app="SALES"] .mk-lead-lt-modal .mk-lead-lt-modal__se
   border-color: #a7f3d0;
 }
 .mk-sc-row-actions__menu {
-  min-width: 160px;
+  min-width: 180px;
   padding: 6px 0;
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  z-index: 50 !important;
 }
 .mk-sc-row-actions__menu a {
   display: flex;
@@ -309,4 +315,46 @@ body[data-view="List"][data-app="SALES"] .mk-lead-lt-modal .mk-lead-lt-modal__se
 .mk-sc-row-actions__menu a:hover {
   background: #ecfdf5;
   color: #0b6e4f;
+}
+.mk-sc-row-actions__menu a.is-done,
+.mk-sc-row-actions__menu .disabled a {
+  color: #0b6e4f;
+  font-weight: 600;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Click-to-edit like Leads (phone / note) */
+.mk-sc-inline-edit.mk-leads-inline-edit {
+  display: inline;
+  width: 100%;
+  max-width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px dashed transparent;
+  border-radius: 6px;
+  padding: 2px 4px;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  cursor: text;
+  white-space: normal;
+  word-break: break-word;
+}
+.mk-sc-inline-edit.mk-leads-inline-edit:hover,
+.mk-sc-inline-edit.mk-leads-inline-edit:focus-visible {
+  border-color: #86efac;
+  background: #f0fdf4;
+  outline: none;
+}
+.mk-sc-inline-input.mk-leads-inline-input {
+  width: 100%;
+  min-width: 120px;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #0b6e4f;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: inherit;
+  background: #fff;
 }

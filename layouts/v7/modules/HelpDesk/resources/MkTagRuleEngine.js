@@ -613,7 +613,7 @@
 				+ '      <p class="mk-tre-section__sub">Tag cha quyết định card trên form tạo Lead. Xoá tag con không tự xoá tag cha — dùng nút xoá ở đây để gỡ card khỏi Lead.</p>'
 				+ '    </div>'
 				+ '    <div class="mk-tre-section__actions">'
-				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--ghost mk-tre-btn--lg js-tre-group-create">' + ICONS.plus + ' Tạo tag cha</button>'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-group-create">' + ICONS.plus + ' Tạo tag cha</button>'
 				+ '    </div>'
 				+ '  </div>'
 				+ '  <div class="mk-tre-section__body">'

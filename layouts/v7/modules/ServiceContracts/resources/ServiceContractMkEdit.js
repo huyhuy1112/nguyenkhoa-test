@@ -5,7 +5,7 @@
 (function ($) {
 	"use strict";
 
-	var MK_BUILD = "20260807_sc_src_aff1";
+	var MK_BUILD = "20260810_sc_aff_btn1";
 	var DEFAULT_PICKLISTS = {
 		franchise_status: [
 			"Quan Tâm/Tham Khảo",
@@ -260,14 +260,64 @@
 	function setAffiliateBadge(code) {
 		var $badge = $("#mkScAffiliateBadge");
 		var $hint = $("#mkScAffiliateHint");
-		if (!code) {
-			$badge.prop("hidden", true).text("");
+		var $btn = $("#mkScCreateAffBtn");
+		var id = recordId();
+		var hasCode = !!(code && String(code).trim());
+
+		if (hasCode) {
+			$badge.prop("hidden", false).text(String(code).trim().toUpperCase());
+			if ($hint.length && id) {
+				$hint.text(String(code).trim().toUpperCase());
+			}
+			$btn.prop("hidden", true).prop("disabled", true);
 			return;
 		}
-		$badge.prop("hidden", false).text(code);
-		if ($hint.length && recordId()) {
-			$hint.text(code);
+
+		$badge.prop("hidden", true).text("");
+		// Show "Tạo mã" only after customer is saved (has record id)
+		if (id) {
+			$btn.prop("hidden", false).prop("disabled", false).text("Tạo mã AFF");
+		} else {
+			// Still visible on create empty form but disabled until saved
+			$btn
+				.prop("hidden", false)
+				.prop("disabled", true)
+				.attr("title", "Lưu khách hàng trước khi tạo mã")
+				.text("Tạo mã AFF");
 		}
+	}
+
+	function createAffiliateCode() {
+		var id = recordId();
+		if (!id) {
+			showError("Vui lòng lưu khách hàng trước, rồi tạo mã AFF.");
+			return Promise.resolve(null);
+		}
+		var $btn = $("#mkScCreateAffBtn");
+		if ($btn.prop("disabled")) return Promise.resolve(null);
+		$btn.prop("disabled", true).text("Đang tạo…");
+		return apiRequest("generate_affiliate", { record: id })
+			.then(function (res) {
+				var code =
+					(res && res.affiliate_code) ||
+					(res && res.contract && res.contract.affiliate_code) ||
+					"";
+				if (!code) {
+					throw new Error("Không nhận được mã AFF.");
+				}
+				setAffiliateBadge(code);
+				showError("");
+				if (res && res.already_existed) {
+					// already minted earlier — just show it
+					return code;
+				}
+				return code;
+			})
+			.catch(function (err) {
+				setAffiliateBadge("");
+				showError((err && err.message) || "Không tạo được mã AFF.");
+				return null;
+			});
 	}
 
 	function formatMoneyVnd(n) {
@@ -295,10 +345,10 @@
 	}
 
 	/**
-	 * Dropdown mã AFF người giới thiệu (= mã giới thiệu).
+	 * Dropdown mã AFF người giới thiệu — locked (chỉ set từ mã giới thiệu).
 	 */
 	function fillReferrerAffSelect(selectedCode) {
-		var html = '<option value="">— Chọn mã AFF người giới thiệu —</option>';
+		var html = '<option value="">— Nhập mã giới thiệu để tự điền —</option>';
 		var sel = String(selectedCode || "").toUpperCase();
 		(referrerOptions || []).forEach(function (r) {
 			var code = String(r.affiliate_code || "").toUpperCase();
@@ -320,10 +370,42 @@
 				escapeHtml(label) +
 				"</option>";
 		});
-		$("#mkScReferrerAff").html(html);
-		enhanceSearchableSelect($("#mkScReferrerAff"), {
-			placeholder: "— Tìm / chọn mã AFF người giới thiệu —",
-		});
+		var $sel = $("#mkScReferrerAff");
+		try {
+			if ($sel.data("select2")) {
+				$sel.select2("destroy");
+			}
+		} catch (e) {}
+		$sel.html(html).prop("disabled", true).attr("aria-disabled", "true").addClass("mk-sc-input--readonly");
+	}
+
+	function lockAutoFields() {
+		$("#mkScDataSource")
+			.prop("disabled", true)
+			.attr("aria-disabled", "true")
+			.addClass("mk-sc-input--readonly");
+		$("#mkScReferrerAff")
+			.prop("disabled", true)
+			.attr("aria-disabled", "true")
+			.addClass("mk-sc-input--readonly");
+		$("#mkScReferralCode").prop("readonly", false).removeAttr("tabindex").removeClass("mk-sc-input--readonly");
+	}
+
+	function setDataSourceValue(value) {
+		var $ds = $("#mkScDataSource");
+		if (!$ds.length) return;
+		var v = String(value || "").trim();
+		if (v && !$ds.find('option').filter(function () {
+			return String($(this).val() || "") === v;
+		}).length) {
+			$ds.append(
+				$("<option></option>").attr("value", v).text(v)
+			);
+		}
+		$ds.val(v);
+		if (!$ds.prop("disabled")) {
+			$ds.prop("disabled", true).attr("aria-disabled", "true").addClass("mk-sc-input--readonly");
+		}
 	}
 
 	function fillOwnTierSelect(selectedPrefix) {
@@ -372,10 +454,7 @@
 		$("#mkScReferralCode").val(code);
 		$("#mkScReferrer").val(name || code);
 		// BA: có mã AFF giới thiệu → Nguồn data = "Được giới thiệu"; không → trống ("-")
-		var $ds = $("#mkScDataSource");
-		if ($ds.length) {
-			$ds.val(code ? "Được giới thiệu" : "");
-		}
+		setDataSourceValue(code ? "Được giới thiệu" : "");
 		if (!code) {
 			clearRewardOnly();
 			lastRetentionDays = DEFAULT_RETENTION_DAYS;
@@ -392,6 +471,82 @@
 			return Promise.resolve({ reward_amount: Number(reward), retention_days: retention });
 		}
 		return resolveReferralCode();
+	}
+
+	/**
+	 * User types referral code → sync locked referrer + data source when valid.
+	 */
+	function applyReferralCodeFromInput(forceResolve) {
+		var code = String($("#mkScReferralCode").val() || "")
+			.trim()
+			.toUpperCase();
+		$("#mkScReferralCode").val(code);
+		if (!code) {
+			fillReferrerAffSelect("");
+			$("#mkScReferrer").val("");
+			setDataSourceValue("");
+			clearRewardOnly();
+			lastRetentionDays = DEFAULT_RETENTION_DAYS;
+			recomputeRetentionExpiry();
+			return Promise.resolve(null);
+		}
+
+		var match = null;
+		(referrerOptions || []).forEach(function (r) {
+			if (String(r.affiliate_code || "").toUpperCase() === code) {
+				match = r;
+			}
+		});
+
+		if (match) {
+			fillReferrerAffSelect(code);
+			$("#mkScReferrer").val(match.full_name || code);
+			setDataSourceValue("Được giới thiệu");
+			if (match.reward_amount != null && match.reward_amount !== "") {
+				lastRetentionDays = parseInt(match.retention_days, 10) || DEFAULT_RETENTION_DAYS;
+				$("#mkScReferralRewardAmount").val(String(match.reward_amount));
+				$("#mkScReferralReward").val(formatMoneyVnd(match.reward_amount));
+				recomputeRetentionExpiry();
+				return Promise.resolve(match);
+			}
+			return resolveReferralCode();
+		}
+
+		// Not in local list — ask server (AFF-###### must map to a real customer)
+		return resolveReferralCode().then(function (tier) {
+			var name = tier && tier.referrer_name ? String(tier.referrer_name) : "";
+			if (tier && name) {
+				var $sel = $("#mkScReferrerAff");
+				var hasOpt = $sel.find("option").filter(function () {
+					return String($(this).val() || "").toUpperCase() === code;
+				}).length > 0;
+				if (!hasOpt) {
+					$sel.append(
+						$("<option></option>")
+							.attr("value", code)
+							.attr("data-name", name)
+							.attr(
+								"data-reward",
+								tier.reward_amount != null ? String(tier.reward_amount) : ""
+							)
+							.attr(
+								"data-retention",
+								String(tier.retention_days || DEFAULT_RETENTION_DAYS)
+							)
+							.text(code + " — " + name)
+					);
+				}
+				$sel.val(code);
+				$("#mkScReferrer").val(name);
+				setDataSourceValue("Được giới thiệu");
+			} else if (forceResolve) {
+				// Invalid code: clear auto fields but keep typed code for user to fix
+				fillReferrerAffSelect("");
+				$("#mkScReferrer").val("");
+				setDataSourceValue("");
+			}
+			return tier;
+		});
 	}
 
 	function clearRewardOnly() {
@@ -674,6 +829,7 @@
 		$("#mkScPaymentDate").val(data.payment_date || "");
 
 		applyPicklists(data.picklists || DEFAULT_PICKLISTS, data);
+		lockAutoFields();
 		fillUserSelect(data.sale_owner_id || "", data.sale_owner || "");
 		setAffiliateBadge(data.affiliate_code || "");
 
@@ -681,7 +837,7 @@
 		if (!$("#mkScRetentionExpires").val()) recomputeRetentionExpiry();
 
 		if (data.referral_code) {
-			resolveReferralCode();
+			applyReferralCodeFromInput(true);
 		}
 	}
 
@@ -695,16 +851,23 @@
 		syncSaleOwnerLabel();
 		ensureRegistrationDate();
 		recomputeRetentionExpiry();
-		var affCode = String($("#mkScReferrerAff").val() || $("#mkScReferralCode").val() || "")
+		var affCode = String($("#mkScReferralCode").val() || "")
 			.trim()
 			.toUpperCase();
 		$("#mkScReferralCode").val(affCode);
+		// Prefer hidden referrer filled by lookup; fall back to locked select option
 		var $affOpt = $("#mkScReferrerAff option:selected");
 		var referrerName =
 			String($("#mkScReferrer").val() || "").trim() ||
 			String($affOpt.attr("data-name") || "").trim() ||
 			affCode;
 		$("#mkScReferrer").val(referrerName);
+		// Disabled selects still readable via jQuery .val()
+		var dataSource = String($("#mkScDataSource").val() || "").trim();
+		if (affCode && !dataSource) {
+			dataSource = "Được giới thiệu";
+			setDataSourceValue(dataSource);
+		}
 		return {
 			id: recordId(),
 			full_name: String($("#mkScFullName").val() || "").trim(),
@@ -713,7 +876,7 @@
 			received_date: String($("#mkScReceivedDate").val() || "").trim(),
 			business_note: String($("#mkScBusinessNote").val() || "").trim(),
 			franchise_status: String($("#mkScFranchiseStatus").val() || "").trim(),
-			data_source: String($("#mkScDataSource").val() || "").trim(),
+			data_source: dataSource,
 			referrer: referrerName,
 			contact_status: String($("#mkScContactStatus").val() || "").trim(),
 			referral_code: affCode,
@@ -831,8 +994,10 @@
 	function loadForEdit() {
 		var id = recordId();
 		loadMetaThen(function () {
+			lockAutoFields();
 			if (!id) {
 				$("#mkScPaymentCondition").val("Chuyển khoản");
+				setDataSourceValue("");
 				ensureRegistrationDate();
 				recomputeRetentionExpiry();
 				return;
@@ -865,10 +1030,32 @@
 				saveForm();
 			});
 
-		$("#mkScReferrerAff")
-			.off("change.mkScRef")
-			.on("change.mkScRef", function () {
-				applyReferrerAffSelection();
+		// Nguồn data + Người GT locked — referral code drives them
+		$("#mkScReferrerAff").off("change.mkScRef");
+
+		$("#mkScCreateAffBtn")
+			.off("click.mkScAff")
+			.on("click.mkScAff", function (e) {
+				e.preventDefault();
+				createAffiliateCode();
+			});
+
+		var referralTimer = null;
+		$("#mkScReferralCode")
+			.off("input.mkScRefCode blur.mkScRefCode")
+			.on("input.mkScRefCode", function () {
+				var raw = String(this.value || "").toUpperCase().replace(/\s+/g, "");
+				if (raw !== this.value) {
+					this.value = raw;
+				}
+				clearTimeout(referralTimer);
+				referralTimer = setTimeout(function () {
+					applyReferralCodeFromInput(false);
+				}, 400);
+			})
+			.on("blur.mkScRefCode", function () {
+				clearTimeout(referralTimer);
+				applyReferralCodeFromInput(true);
 			});
 
 		$("#mkScOwnTier")
@@ -880,7 +1067,7 @@
 			.on("change.mkScReg", function () {
 				recomputeRetentionExpiry();
 				if (String($("#mkScReferralCode").val() || "").trim()) {
-					resolveReferralCode();
+					applyReferralCodeFromInput(true);
 				}
 			});
 
@@ -929,6 +1116,8 @@
 		window.__MK_SC_FRANCHISE_BUILD__ = MK_BUILD;
 		hideLegacyChrome();
 		bindActions();
+		// Default UI for create (no record): show disabled create AFF button
+		setAffiliateBadge("");
 		loadForEdit();
 	}
 

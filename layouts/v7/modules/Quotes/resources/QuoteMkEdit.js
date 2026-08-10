@@ -804,7 +804,7 @@
 			}
 		}
 		if (inv && typeof inv.applyInvoiceTierPricing === 'function') {
-			inv.applyInvoiceTierPricing($form(), { force: true });
+			inv.applyInvoiceTierPricing($form(), { force: true, productPick: true, tierChange: true });
 		}
 	}
 
@@ -1141,9 +1141,11 @@
 			} else if ($existingSelect.closest('td.fieldValue').length === 0) {
 				$tierTd.empty().append($existingSelect.detach());
 			}
+			bindQuoteTierSelectChange($f, $existingSelect);
 			return;
 		}
 		if ($tierTd.find('select[name="mk_invoice_price_tier"]').length) {
+			bindQuoteTierSelectChange($f, $tierTd.find('select[name="mk_invoice_price_tier"]').first());
 			return;
 		}
 
@@ -1174,14 +1176,27 @@
 		html += '</select>';
 		var $select = $(html);
 		$tierTd.empty().append($select);
+		bindQuoteTierSelectChange($f, $select);
+	}
 
-		$select.on('change.mkQtTierFallback', function () {
+	function bindQuoteTierSelectChange($f, $select) {
+		if (!$select || !$select.length) {
+			return;
+		}
+		$select.off('change.mkQtTierFallback').on('change.mkQtTierFallback', function () {
 			var value = $.trim($(this).val() || '') || 'lt_1m';
 			$f.find('input[name="mk_invoice_price_tier"]').val(value);
-			if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo === 'function') {
-				window.MkInventoryOdooEdit.integrateCommerceIntoQuoteInfo($f);
+			if (window.MkInventoryOdooEdit) {
+				if (typeof window.MkInventoryOdooEdit.onInvoicePriceTierUserChange === 'function') {
+					window.MkInventoryOdooEdit.onInvoicePriceTierUserChange($f);
+				} else if (typeof window.MkInventoryOdooEdit.applyInvoiceTierPricing === 'function') {
+					window.MkInventoryOdooEdit.applyInvoiceTierPricing($f, {
+						force: true,
+						productPick: true,
+						tierChange: true
+					});
+				}
 			}
-			$(this).trigger('input').trigger('change');
 		});
 	}
 
@@ -3203,7 +3218,11 @@
 			$f.find('[name="account_id"]').val(prefill.account_id);
 		}
 		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.applyInvoiceTierPricing === 'function') {
-			window.MkInventoryOdooEdit.applyInvoiceTierPricing($f, { force: true });
+			window.MkInventoryOdooEdit.applyInvoiceTierPricing($f, {
+				force: true,
+				productPick: true,
+				tierChange: true
+			});
 		}
 		if (typeof syncCustomerInfoButtonVisibility === 'function') {
 			syncCustomerInfoButtonVisibility();

@@ -721,23 +721,39 @@
 
   function formatVnd(value) {
     var n = Math.round(parseMoney(value));
-    return "đ " + n.toLocaleString("vi-VN");
-  }
-
-  function formatVndNumber(value) {
-    var n = Math.round(parseMoney(value));
-    return n.toLocaleString("vi-VN");
+    return "đ " + formatVndNumber(n);
   }
 
   /**
-   * Format unit price for display (4.000.000). Skip while the input is focused.
+   * Always thousand-sep with '.' (45.000 / 100.000.000), no trailing decimals for VND.
+   * Avoid locale quirks / non-breaking spaces from toLocaleString.
    */
-  function formatListPriceInput($input) {
+  function formatVndNumber(value) {
+    var n = Math.round(parseMoney(value));
+    if (!isFinite(n)) {
+      n = 0;
+    }
+    var neg = n < 0;
+    var abs = Math.abs(n);
+    var s = String(abs);
+    // integer only — insert dots every 3 digits from right
+    s = s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return neg ? "-" + s : s;
+  }
+
+  /**
+   * Format unit price for display (4.000.000). Skip while the input is focused and being typed.
+   */
+  function formatListPriceInput($input, force) {
     if (!$input || !$input.length) {
       return;
     }
-    if (document.activeElement === $input[0]) {
+    if (!force && document.activeElement === $input[0] && $input.data("mkPriceTyping")) {
       return;
+    }
+    if (!force && document.activeElement === $input[0]) {
+      // Still format when focused but idle (after tab-in) so dots never stay stripped.
+      // Only skip when user is mid-keystroke (mkPriceTyping).
     }
     var n = Math.round(parseMoney($input.val()));
     if (!isFinite(n)) {
@@ -747,6 +763,16 @@
     if (String($input.val()) !== formatted) {
       $input.val(formatted);
     }
+    $input.attr("data-mk-raw-price", String(n));
+  }
+
+  function formatAllListPrices($form, force) {
+    if (!$form || !$form.length) {
+      return;
+    }
+    $form.find("tr.lineItemRow input.listPrice").each(function () {
+      formatListPriceInput($(this), !!force);
+    });
   }
 
   function setListPriceValue($input, value, opts) {
@@ -758,11 +784,17 @@
     if (!isFinite(n)) {
       n = 0;
     }
-    if (opts.raw || document.activeElement === $input[0]) {
+    $input.attr("data-mk-raw-price", String(n));
+    // Always show dotted VND unless caller explicitly wants raw AND input is focused for submit.
+    if (opts.raw === true && opts.forSubmit) {
       $input.val(n ? String(n) : "0");
-    } else {
-      $input.val(formatVndNumber(n));
+      return;
     }
+    if (document.activeElement === $input[0] && $input.data("mkPriceTyping")) {
+      // keep current keystrokes during typing; raw stored in data attr
+      return;
+    }
+    $input.val(formatVndNumber(n));
   }
 
   function bindListPriceFormatting($form) {
@@ -770,18 +802,66 @@
       return;
     }
     $form.data("mkInvPriceFmtBound", true);
+
+    // Do NOT strip thousand separators on focus — keep 45.000 visible always.
     $form.on("focus.mkInvPriceFmt", "input.listPrice", function () {
       var $el = $(this);
-      var n = Math.round(parseMoney($el.val()));
-      $el.val(n ? String(n) : "");
+      formatListPriceInput($el, true);
+      try {
+        this.select();
+      } catch (eSel) {
+        /* ignore */
+      }
     });
+
+    $form.on("keydown.mkInvPriceFmt", "input.listPrice", function () {
+      $(this).data("mkPriceTyping", 1);
+    });
+
+    $form.on(
+      "input.mkInvPriceFmt",
+      "input.listPrice",
+      function () {
+        var $el = $(this);
+        $el.data("mkPriceTyping", 1);
+        var n = Math.round(parseMoney($el.val()));
+        $el.attr("data-mk-raw-price", String(isFinite(n) ? n : 0));
+        // Soft live-group digits when value looks complete (no trailing incomplete parts)
+        var rawTxt = String($el.val() || "").replace(/[^\d]/g, "");
+        if (rawTxt.length >= 4 && document.activeElement === $el[0]) {
+          // Optional: keep raw while typing long numbers is fine; reformat on blur.
+        }
+      },
+    );
+
     $form.on(
       "focusout.mkInvPriceFmt change.mkInvPriceFmt",
       "input.listPrice",
       function () {
-        formatListPriceInput($(this));
+        var $el = $(this);
+        $el.removeData("mkPriceTyping");
+        formatListPriceInput($el, true);
       },
     );
+
+    // Re-apply dots if Inventory_Edit or tier code writes plain "45000" after paint.
+    if (!$form.data("mkInvPriceWatch")) {
+      $form.data("mkInvPriceWatch", true);
+      var watchTimer = null;
+      var watch = function () {
+        if (!$form.closest("body").length) {
+          return;
+        }
+        formatAllListPrices($form, false);
+        watchTimer = setTimeout(watch, 800);
+      };
+      watchTimer = setTimeout(watch, 400);
+      $form.on("remove.mkInvPriceWatch destroy.mkInvPriceWatch", function () {
+        if (watchTimer) {
+          clearTimeout(watchTimer);
+        }
+      });
+    }
   }
 
   function sumLinePreTax($form) {
@@ -888,27 +968,19 @@
     if (!$listPrice.length) {
       return false;
     }
+    var tierChanged = !!opts.tierChange || !!opts.productPick;
     // Keep user-typed / already-saved unit price unless forced (tier dropdown / product pick).
-    if (!opts.force && String($listPrice.attr("data-mk-price-manual") || "") === "1") {
+    if (!opts.force && !tierChanged && String($listPrice.attr("data-mk-price-manual") || "") === "1") {
       return false;
     }
     var existingPrice = parseMoney($listPrice.val());
     // Soft re-apply must never clobber an existing unit price (catalog restyle after edit load).
-    if (!opts.force && existingPrice > 0) {
+    if (!opts.force && !tierChanged && existingPrice > 0) {
       return false;
     }
-    // Even force: preserve saved/manual prices unless this is an explicit product/tier re-pick
-    // (opts.productPick === true). Force alone is used too aggressively during form integrate.
-    if (
-      opts.force &&
-      !opts.productPick &&
-      existingPrice > 0 &&
-      String($listPrice.attr("data-mk-price-manual") || "") === "1"
-    ) {
-      return false;
-    }
-    if (opts.force && !opts.productPick && existingPrice > 0) {
-      // First paint on Edit: keep DB price, mark as protected.
+    // First paint on Edit only: keep DB price when not an explicit product/tier change.
+    // (Previously force-without-productPick blocked Bảng giá change handlers.)
+    if (opts.force && !tierChanged && existingPrice > 0) {
       $listPrice.attr("data-mk-price-manual", "1");
       return false;
     }
@@ -919,11 +991,16 @@
     }
     setListPriceValue($listPrice, price);
     $listPrice.attr("data-mk-invoice-tier", tierKey);
-    if (opts.force && opts.productPick) {
+    if (opts.force && tierChanged) {
       $listPrice.removeAttr("data-mk-price-manual");
     }
     syncRowAmounts($row, $form);
     return true;
+  }
+
+  /** User changed Bảng giá — always reprice line items from catalog tiers. */
+  function onInvoicePriceTierUserChange($form) {
+    applyInvoiceTierPricing($form, { force: true, productPick: true, tierChange: true });
   }
 
   function syncInvoiceTierUi($form, selectedValue, resolvedTier) {
@@ -1009,6 +1086,7 @@
       }
     } finally {
       $form.data("mkInvApplyingTier", false);
+      formatAllListPrices($form, true);
     }
   }
 
@@ -4089,7 +4167,7 @@
         }
       }
       refreshLineItemRow($row, $form);
-      formatListPriceInput($row.find("input.listPrice").first());
+      formatListPriceInput($row.find("input.listPrice").first(), true);
     });
     ensureOdooHeaderColumns($table);
     applyLineItemColgroup($table);
@@ -4099,6 +4177,7 @@
     syncLineDeleteVisibility($form);
     syncCreditTermsVisibility($form);
     syncAllProductSelectDisplays($form);
+    formatAllListPrices($form, true);
     markInventoryUiReady();
   }
 
@@ -5807,8 +5886,8 @@
     $wrap.find(".mk-inv-price-tier__control").append($select);
     $container.prepend($wrap);
 
-    $select.on("change.mkInvPriceTier", function () {
-      applyInvoiceTierPricing($form, { force: true, productPick: true });
+    $select.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
+      onInvoicePriceTierUserChange($form);
     });
 
     var resolved =
@@ -6088,12 +6167,12 @@
           .removeClass("mk-inv-price-tier__select");
         $tierPlaceholderTd.empty().append($detachedTier);
         $detachedTier.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
-          applyInvoiceTierPricing($form, { force: true });
+          onInvoicePriceTierUserChange($form);
         });
       } else {
         insertAfter(buildQuoteInfoSelectRow("mk_invoice_price_tier", "Bảng giá", $tierSelect.detach()));
         $tierSelect.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
-          applyInvoiceTierPricing($form, { force: true });
+          onInvoicePriceTierUserChange($form);
         });
       }
     }
@@ -6115,10 +6194,9 @@
         );
         rebuildInvoiceTierSelect($fallbackTier, currentTier);
         $fallbackTier.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
-          applyInvoiceTierPricing($form, { force: true });
+          onInvoicePriceTierUserChange($form);
         });
         $tierPlaceholderTd.empty().append($fallbackTier);
-        applyInvoiceTierPricing($form, { force: true });
       }
     }
     if ($creditSelect.length && !$tbody.find("tr.mk-inv-credit-row").length) {
@@ -6171,7 +6249,7 @@
               .removeClass("mk-inv-price-tier__select");
             $tierPlaceholderTdAttempt.empty().append($detachedTier);
             $detachedTier.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
-              applyInvoiceTierPricing($form, { force: true });
+              onInvoicePriceTierUserChange($form);
             });
           } else {
             var $detachedTier = $tierSelectNow.detach();
@@ -6182,11 +6260,10 @@
             );
             $methodRow.after($tierRow);
             $detachedTier.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
-              applyInvoiceTierPricing($form, { force: true });
+              onInvoicePriceTierUserChange($form);
             });
           }
 
-          applyInvoiceTierPricing($form, { force: true });
           clearInterval(timer);
           $tbody.removeData("mkInvTierRowRetrying");
         }
@@ -6202,10 +6279,9 @@
           );
           rebuildInvoiceTierSelect($fallbackTierRetry, currentTierRetry);
           $fallbackTierRetry.off("change.mkInvPriceTier").on("change.mkInvPriceTier", function () {
-            applyInvoiceTierPricing($form, { force: true });
+            onInvoicePriceTierUserChange($form);
           });
           $tierPlaceholderTdAttempt.empty().append($fallbackTierRetry);
-          applyInvoiceTierPricing($form, { force: true });
           clearInterval(timer);
           $tbody.removeData("mkInvTierRowRetrying");
         }
@@ -6244,7 +6320,11 @@
       var $price = $r.find("input.listPrice").first();
       if ($price.length) {
         var rawPrice = Math.round(parseMoney($price.val()));
-        $price.val(String(isFinite(rawPrice) ? rawPrice : 0));
+        if (!isFinite(rawPrice)) {
+          rawPrice = 0;
+        }
+        // forSubmit: plain integer for DB (restore UI after is handled on fail paths by watch)
+        setListPriceValue($price, rawPrice, { raw: true, forSubmit: true });
       }
       var $qty = $r.find("input.qty, .qty").first();
       if ($qty.length) {
@@ -6465,6 +6545,85 @@
         if (origCalcDisc) {
           return origCalcDisc.call(this, lineItemRow);
         }
+      };
+    }
+
+    // Unit price: read VN dots correctly; write always as 45.000
+    var origGetListPrice = proto.getListPriceValue;
+    proto.getListPriceValue = function (lineItemRow) {
+      var $lp = jQuery(lineItemRow).find("input.listPrice").first();
+      if ($lp.length) {
+        var fromData = $lp.attr("data-mk-raw-price");
+        if (fromData !== undefined && fromData !== null && fromData !== "") {
+          var dn = parseMoney(fromData);
+          if (isFinite(dn)) {
+            return dn;
+          }
+        }
+        return parseMoney($lp.val());
+      }
+      return origGetListPrice ? origGetListPrice.call(this, lineItemRow) : 0;
+    };
+
+    var origSetListPrice = proto.setListPriceValue;
+    proto.setListPriceValue = function (lineItemRow, listPriceValue) {
+      var $lp = jQuery(lineItemRow).find("input.listPrice").first();
+      if ($lp.length) {
+        setListPriceValue($lp, listPriceValue);
+        return this;
+      }
+      if (origSetListPrice) {
+        return origSetListPrice.call(this, lineItemRow, listPriceValue);
+      }
+      return this;
+    };
+
+    var origFormatListPrice = proto.formatListPrice;
+    proto.formatListPrice = function (lineItemRow, listPriceValue) {
+      var $lp = jQuery(lineItemRow).find("input.listPrice").first();
+      if ($lp.length) {
+        setListPriceValue($lp, listPriceValue);
+        return this;
+      }
+      if (origFormatListPrice) {
+        return origFormatListPrice.call(this, lineItemRow, listPriceValue);
+      }
+      return this;
+    };
+
+    // After stock line calculations, re-apply VN thousand separators on unit price.
+    var origLineItemRowCalculations = proto.lineItemRowCalculations;
+    if (origLineItemRowCalculations && !proto.__mkOdooLineCalcFmt) {
+      proto.__mkOdooLineCalcFmt = true;
+      proto.lineItemRowCalculations = function (lineItemRow) {
+        var result = origLineItemRowCalculations.call(this, lineItemRow);
+        try {
+          var $lp = jQuery(lineItemRow).find("input.listPrice").first();
+          if ($lp.length) {
+            formatListPriceInput($lp, true);
+          }
+        } catch (eFmt) {
+          /* ignore */
+        }
+        return result;
+      };
+    }
+
+    // mapResultsToFields writes raw unitPrice — reformat after product load.
+    var origMapResults = proto.mapResultsToFields;
+    if (origMapResults && !proto.__mkOdooMapFmt) {
+      proto.__mkOdooMapFmt = true;
+      proto.mapResultsToFields = function (parentRow, responseData) {
+        var result = origMapResults.call(this, parentRow, responseData);
+        try {
+          var $lp = jQuery(parentRow).find("input.listPrice").first();
+          if ($lp.length) {
+            formatListPriceInput($lp, true);
+          }
+        } catch (eMap) {
+          /* ignore */
+        }
+        return result;
       };
     }
   }
@@ -6688,6 +6847,23 @@
       return;
     }
     options = options || {};
+    // Global: Bảng giá change always reprices (covers detaches / QuoteMk UI builds).
+    if (!window.__mkInvPriceTierUserBound) {
+      window.__mkInvPriceTierUserBound = true;
+      jQuery(document)
+        .off("change.mkInvPriceTierUser")
+        .on(
+          "change.mkInvPriceTierUser",
+          "#mkInvInvoicePriceTierSelect, select[name='mk_invoice_price_tier']",
+          function () {
+            var $f = jQuery(this).closest("form#EditView, form[name='EditView']");
+            if (!$f.length) {
+              $f = jQuery(this).closest("form");
+            }
+            onInvoicePriceTierUserChange($f);
+          },
+        );
+    }
     $form.addClass("mk-inv-form-odoo");
     if (typeof document !== "undefined" && document.documentElement) {
       document.documentElement.classList.add("mk-inv-odoo-active");
@@ -6725,6 +6901,7 @@
     getPriceChannel: getPriceChannel,
     setPriceChannel: setPriceChannel,
     applyInvoiceTierPricing: applyInvoiceTierPricing,
+    onInvoicePriceTierUserChange: onInvoicePriceTierUserChange,
     refreshTotals: function ($form) {
       initTotalsOdoo($form);
       syncTotalsDisplay($form);

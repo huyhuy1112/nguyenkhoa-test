@@ -35,7 +35,7 @@ $languageStrings = array(
 	'LBL_MK_COL_NOTES' => 'Notes',
 	// Blocks
 	'LBL_SERVICE_CONTRACT_INFORMATION' => 'Service Contract Details',
-	'LBL_MK_SC_FRANCHISE_FORM_SUB' => 'Franchise customer form — AFF code is generated on save',
+	'LBL_MK_SC_FRANCHISE_FORM_SUB' => 'Franchise customer form — create AFF code with the button when ready',
 	'LBL_MK_SC_FRANCHISE_INFO' => 'Franchise customer info',
 	'LBL_MK_SC_INTERACTIONS' => 'Recent interaction',
 	'LBL_MK_SC_RECEIVED_DATE' => 'Date received',

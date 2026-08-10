@@ -35,7 +35,7 @@ $languageStrings = array(
 	'LBL_MK_COL_NOTES' => 'Ghi chú',
 	// Blocks
 	'LBL_SERVICE_CONTRACT_INFORMATION' => 'Chi tiết khách chuyển nhượng',
-	'LBL_MK_SC_FRANCHISE_FORM_SUB' => 'Nhập theo bảng DATA KHÁCH HÀNG NHƯỢNG QUYỀN — mã AFF tự sinh khi lưu',
+	'LBL_MK_SC_FRANCHISE_FORM_SUB' => 'Nhập theo bảng DATA KHÁCH HÀNG NHƯỢNG QUYỀN — mã AFF tạo bằng nút khi cần',
 	'LBL_MK_SC_FRANCHISE_INFO' => 'Thông tin khách nhượng quyền',
 	'LBL_MK_SC_INTERACTIONS' => 'Tương tác gần đây',
 	'LBL_MK_SC_RECEIVED_DATE' => 'Ngày tiếp nhận Thông tin KH',

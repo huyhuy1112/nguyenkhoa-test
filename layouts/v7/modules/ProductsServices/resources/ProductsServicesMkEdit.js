@@ -5,7 +5,25 @@
 	'use strict';
 
 	var MK_BUILD = '20260808_ps_group_pick1';
-	var UNIT_PRESETS = ['cái', 'hộp', 'set', 'bộ'];
+	var UNIT_PRESETS = [
+		'Cái',
+		'Bịch',
+		'Bao',
+		'Lon',
+		'Hộp',
+		'Hũ',
+		'Gói',
+		'Can',
+		'Thùng',
+		'Bình',
+		'Chai',
+		'Cuộn',
+		'Con',
+		'Kg',
+		'Bộ',
+		'Set',
+		'Lít'
+	];
 	var UNIT_STORAGE_KEY = 'mk_ps_custom_units_v1';
 	var GROUP_STORAGE_KEY = 'mk_ps_custom_groups_v1';
 	/* Only fields previously agreed to remove — keep brand/model/stock/etc. */

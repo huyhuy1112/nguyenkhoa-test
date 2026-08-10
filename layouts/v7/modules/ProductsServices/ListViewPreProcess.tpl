@@ -66,14 +66,14 @@ html.mk-ps-list-v2 #listview-table tr.searchRow {
 	display: none !important;
 }
 </style>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260808_pager_v2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260810_list_pager_leads1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260808_pager_v2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260808_pager_v2" />
 {* Re-assert v2 table last so it beats MkSalesListTable / List.css *}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesListTable.css')}?mk_v=20260806_ps_row_sel_only1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260806_ps_row_sel_only1" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260810_list_pager_leads1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
@@ -86,7 +86,7 @@ window.__mkSalesPosInlineConfig = {
 };
 </script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260806_ps_row_sel_only1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260808_pager_v2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260810_ps_search_fix1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-ps-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

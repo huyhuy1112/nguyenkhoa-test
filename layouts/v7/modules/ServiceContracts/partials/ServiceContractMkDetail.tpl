@@ -4,7 +4,12 @@
 	<section class="mk-sc-mk-detail__card">
 		<header class="mk-sc-mk-detail__head">
 			<h2>Chi tiết khách chuyển nhượng</h2>
-			<span class="mk-sc-mk-detail__aff" id="mkScMkAff" hidden></span>
+			<div class="mk-sc-mk-detail__aff-slot">
+				<span class="mk-sc-mk-detail__aff" id="mkScMkAff" hidden></span>
+				<button type="button" class="mk-sc-btn mk-sc-btn--primary mk-sc-btn--sm" id="mkScMkCreateAffBtn" hidden>
+					Tạo mã AFF
+				</button>
+			</div>
 		</header>
 		<div class="mk-sc-mk-detail__grid" id="mkScMkFields"></div>
 		<div class="mk-sc-mk-detail__interactions" id="mkScMkInteractions"></div>

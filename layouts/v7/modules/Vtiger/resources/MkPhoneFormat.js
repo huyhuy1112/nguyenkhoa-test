@@ -1,6 +1,7 @@
 /**
- * Global phone display: digits stored raw, shown as "xxxx xxx xxx" (10-digit VN).
+ * Global phone display: digits stored raw, shown as "xxxx xxx xxx" (VN preferred).
  * e.g. 0906345551 → 0906 345 551
+ * 11-digit strings like 09042242511 → 0904 224 2511 (group 4-3-rest, never leave stuck).
  */
 (function (global) {
 	"use strict";
@@ -11,7 +12,7 @@
 
 	/**
 	 * Format for display. Prefer 10-digit VN: 4-3-3.
-	 * Other lengths get light grouping without inventing digits.
+	 * Longer numbers stay grouped 4-3-rest so they never render as a single blob.
 	 */
 	function formatPhoneDisplay(value) {
 		var raw = String(value == null ? "" : value).trim();
@@ -27,12 +28,32 @@
 			digits = "0" + digits.slice(2);
 		} else if (digits.length === 12 && digits.indexOf("840") === 0) {
 			digits = "0" + digits.slice(3);
+		} else if (digits.length === 12 && digits.indexOf("84") === 0) {
+			digits = "0" + digits.slice(2);
 		}
 		if (digits.length === 10) {
 			return digits.slice(0, 4) + " " + digits.slice(4, 7) + " " + digits.slice(7);
 		}
 		if (digits.length === 9) {
 			return digits.slice(0, 3) + " " + digits.slice(3, 6) + " " + digits.slice(6);
+		}
+		if (digits.length === 8) {
+			return digits.slice(0, 4) + " " + digits.slice(4);
+		}
+		// 11+ (or other): keep first 10 as 4-3-3, append remaining digits after a space
+		if (digits.length > 10) {
+			return (
+				digits.slice(0, 4) +
+				" " +
+				digits.slice(4, 7) +
+				" " +
+				digits.slice(7, 10) +
+				(digits.length > 10 ? " " + digits.slice(10) : "")
+			);
+		}
+		// 1–7 digits: light grouping
+		if (digits.length >= 4) {
+			return digits.slice(0, 4) + (digits.length > 4 ? " " + digits.slice(4) : "");
 		}
 		return digits;
 	}
@@ -42,6 +63,7 @@
 		if (digits.length > 10 && digits.indexOf("84") === 0) {
 			digits = "0" + digits.slice(2);
 		}
+		// Input caps at 10 local digits for entry fields; list display can still format longer
 		digits = digits.slice(0, 10);
 		return formatPhoneDisplay(digits);
 	}

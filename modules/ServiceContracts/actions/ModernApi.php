@@ -24,6 +24,7 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 		$mode = strtolower((string) $request->get('mode'));
 		if (in_array($mode, array(
 			'delete', 'save_tags', 'save_next_action', 'save', 'save_franchise', 'save_inline', 'last_touch_call_log',
+			'generate_affiliate', 'create_affiliate',
 		), true)) {
 			$request->validateWriteAccess();
 		}
@@ -186,6 +187,22 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 						$asOf ? (string) $asOf : null
 					);
 					$response->setResult(array('success' => true, 'tier' => $tier));
+					break;
+				case 'generate_affiliate':
+				case 'create_affiliate':
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$before = ServiceContracts_ModernService::getAffiliateCode($recordId);
+					$code = ServiceContracts_ModernService::generateAffiliateCode($recordId);
+					$contract = ServiceContracts_ModernService::getFranchise($recordId);
+					$response->setResult(array(
+						'success' => true,
+						'affiliate_code' => $code,
+						'already_existed' => ($before !== ''),
+						'contract' => $contract,
+					));
 					break;
 				case 'check_duplicate':
 					$phone = (string) $request->get('phone');

@@ -12,7 +12,9 @@
 	var liveGlobalSearchQuery = '';
 	var globalSearchBound = false;
 	var postLoadPatched = false;
+	var showPagingPatched = false;
 	var eventsBound = false;
+	var globalSearchUrlInitialized = false;
 
 	var COL_CLASS_BY_FIELD = {
 		productsservicesname: 'mk-col-ps-name',
@@ -62,6 +64,13 @@
 				if (isPsSalesList()) {
 					ensureListHeadersInput();
 					params.list_headers = JSON.stringify(CANONICAL_HEADERS);
+					// Keep quick-search active across pagination / sort / refresh.
+					if (liveGlobalSearchQuery) {
+						params.search_params = JSON.stringify(buildGlobalSearchParams(liveGlobalSearchQuery));
+						params.nolistcache = 1;
+					} else if (params.search_params === undefined || params.search_params === null) {
+						params.search_params = '[]';
+					}
 				}
 				return params;
 			};
@@ -72,6 +81,10 @@
 				if (isPsSalesList()) {
 					urlParams = urlParams || {};
 					urlParams.list_headers = JSON.stringify(CANONICAL_HEADERS);
+					if (typeof urlParams.search_params === 'undefined' && liveGlobalSearchQuery) {
+						urlParams.search_params = JSON.stringify(buildGlobalSearchParams(liveGlobalSearchQuery));
+						urlParams.nolistcache = '1';
+					}
 				}
 				return origLoad.call(this, urlParams);
 			};
@@ -327,16 +340,90 @@
 		}
 	}
 
+	/**
+	 * Stock Vtiger showPagingInfo appends " of TOTAL" onto .pageNumbersText which already
+	 * has that text after the first total-count AJAX — causes "of 215 of 215…".
+	 * Keep range in .pageNumbersText and total in .totalNumberOfRecords.
+	 */
+	function patchShowPagingInfo() {
+		if (showPagingPatched || typeof Vtiger_List_Js === 'undefined') {
+			return;
+		}
+		showPagingPatched = true;
+		var originalShowPagingInfo = Vtiger_List_Js.prototype.showPagingInfo;
+		Vtiger_List_Js.prototype.showPagingInfo = function () {
+			if (!isPsSalesList()) {
+				return originalShowPagingInfo.apply(this, arguments);
+			}
+			var listViewContainer = this.getListViewContainer();
+			var pageStartRange = jQuery('#pageStartRange', listViewContainer).val();
+			var pageEndRange = jQuery('#pageEndRange', listViewContainer).val();
+			var totalCount = jQuery('#totalCount', listViewContainer).val();
+			var listViewEntriesCount = parseInt(jQuery('#noOfEntries', listViewContainer).val(), 10);
+			var $totalSpan = listViewContainer
+				.find('.mk-so-page-numbers .totalNumberOfRecords, .mk-ps-page-numbers .totalNumberOfRecords')
+				.first();
+			if (!$totalSpan.length) {
+				$totalSpan = listViewContainer.find('.totalNumberOfRecords').first();
+			}
+
+			if (listViewEntriesCount) {
+				listViewContainer.find('.pageNumbersText').html(
+					pageStartRange + ' ' + app.vtranslate('to') + ' ' + pageEndRange
+				);
+				if (totalCount && String(totalCount).trim() !== '' && String(totalCount) !== '0') {
+					$totalSpan.removeClass('hide').html(
+						'&nbsp;' +
+							app.vtranslate('of') +
+							' <span class="mk-ps-total-count mk-so-total-count">' +
+							app.helper.purifyContent(totalCount) +
+							'</span>'
+					);
+				} else {
+					$totalSpan.removeClass('hide');
+					if (!$totalSpan.find('.showTotalCountIcon').length && !$totalSpan.find('.mk-ps-total-count').length) {
+						$totalSpan.html(
+							'&nbsp;' + app.vtranslate('of') + ' <i class="fa fa-question showTotalCountIcon"></i>'
+						);
+					}
+				}
+			} else {
+				listViewContainer.find('.pageNumbersText').html('<span>&nbsp;</span>');
+				$totalSpan.addClass('hide');
+			}
+		};
+	}
+
 	function autoLoadTotalCount() {
 		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
 		if (!listInstance || typeof listInstance.totalNumOfRecords !== 'function') {
 			return;
 		}
 		var $total = $('#listViewContent .totalNumberOfRecords').first();
-		if (!$total.length || $total.find('.mk-so-total-count, .mk-ps-total-count').length) {
+		if (!$total.length) {
+			return;
+		}
+		// Already resolved — do not re-run stock path that re-appends "of TOTAL".
+		if ($total.find('.mk-so-total-count, .mk-ps-total-count').length) {
+			return;
+		}
+		if (!$total.find('.showTotalCountIcon').length) {
 			return;
 		}
 		listInstance.totalNumOfRecords($total);
+	}
+
+	function resetListSearchState() {
+		var $lv = $('#listViewContent');
+		if (!$lv.length) {
+			return;
+		}
+		$lv.find('#currentSearchParams').val('');
+		$lv.find('#totalCount').val('0');
+		$lv.find('#pageNumber').val('1');
+		$lv.find('#pageStartRange').val('');
+		$lv.find('#pageEndRange').val('');
+		$lv.find('#totalPageCount').text('');
 	}
 
 	function normalizeTypeKey(text) {
@@ -485,21 +572,103 @@
 				'<button type="button" id="mk-ps-global-search-clear" aria-label="Xóa" hidden><i class="fa fa-times"></i></button>' +
 			'</div>'
 		);
+		restoreGlobalSearchInput();
 	}
 
 	function buildGlobalSearchParams(query) {
+		query = query != null ? String(query).trim() : '';
+		if (!query.length) {
+			return [];
+		}
 		var conditions = [];
 		var i;
 		for (i = 0; i < GLOBAL_SEARCH_FIELDS.length; i++) {
 			conditions.push([GLOBAL_SEARCH_FIELDS[i], 'c', query]);
 		}
-		return conditions.length === 1 ? [conditions] : [[], conditions];
+		if (!conditions.length) {
+			return [];
+		}
+		// Group index 0 = AND, group index 1 = OR (Vtiger glueOrder).
+		// Empty first group + fields in group 1 → OR across name/SKU.
+		if (conditions.length === 1) {
+			return [conditions];
+		}
+		return [[], conditions];
+	}
+
+	function readGlobalSearchValueFromParams(parsed) {
+		var val = '';
+		var i;
+		var j;
+		if (!parsed || !parsed.length) {
+			return val;
+		}
+		for (i = 0; i < parsed.length; i++) {
+			var group = parsed[i];
+			if (!group || !group.length) {
+				continue;
+			}
+			for (j = 0; j < group.length; j++) {
+				if (group[j] && group[j][2]) {
+					val = group[j][2];
+					break;
+				}
+			}
+			if (val) {
+				break;
+			}
+		}
+		return val;
+	}
+
+	function initGlobalSearchFromUrlOnce() {
+		if (globalSearchUrlInitialized || liveGlobalSearchQuery) {
+			return;
+		}
+		globalSearchUrlInitialized = true;
+		try {
+			var params = new URLSearchParams(window.location.search || '');
+			var sp = params.get('search_params');
+			if (sp) {
+				liveGlobalSearchQuery = readGlobalSearchValueFromParams(JSON.parse(sp));
+			}
+		} catch (parseErr) {
+			/* ignore */
+		}
+	}
+
+	function restoreGlobalSearchInput() {
+		var $bar = $('#mk-ps-global-search');
+		if (!$bar.length) {
+			return;
+		}
+		$bar.val(liveGlobalSearchQuery || '');
+		$('#mk-ps-global-search-clear').prop('hidden', !liveGlobalSearchQuery);
+	}
+
+	function syncUrlSearchParams(searchParams) {
+		try {
+			if (!window.history || !window.history.replaceState) {
+				return;
+			}
+			var url = new URL(window.location.href);
+			if (!searchParams || !searchParams.length) {
+				url.searchParams.delete('search_params');
+			} else {
+				url.searchParams.set('search_params', JSON.stringify(searchParams));
+			}
+			url.searchParams.set('page', '1');
+			window.history.replaceState({}, '', url.toString());
+		} catch (urlErr) {
+			/* ignore */
+		}
 	}
 
 	function runGlobalQuickSearch(query) {
 		query = query != null ? String(query).trim() : liveGlobalSearchQuery;
 		liveGlobalSearchQuery = query;
-		var payload = JSON.stringify(buildGlobalSearchParams(query));
+		var searchParams = buildGlobalSearchParams(query);
+		var payload = JSON.stringify(searchParams);
 		if (payload === lastGlobalSearchPayload) {
 			return;
 		}
@@ -509,7 +678,18 @@
 			return;
 		}
 		listInstance.filterClick = false;
-		listInstance.loadListViewRecords({ page: '1', search_params: payload, nolistcache: '1' });
+		resetListSearchState();
+		syncUrlSearchParams(searchParams);
+		listInstance
+			.loadListViewRecords({
+				page: '1',
+				search_params: payload,
+				nolistcache: '1',
+				totalCount: 0
+			})
+			.then(function () {
+				restoreGlobalSearchInput();
+			});
 	}
 
 	function bindGlobalQuickSearchEvents() {
@@ -527,6 +707,16 @@
 				globalSearchTimer = setTimeout(function () {
 					runGlobalQuickSearch();
 				}, GLOBAL_SEARCH_DEBOUNCE_MS);
+			})
+			.on('keydown.mkPsGlobalSearch', '#mk-ps-global-search', function (e) {
+				if (e.key === 'Enter' || e.which === 13) {
+					e.preventDefault();
+					if (globalSearchTimer) {
+						clearTimeout(globalSearchTimer);
+						globalSearchTimer = null;
+					}
+					runGlobalQuickSearch($.trim($(this).val()));
+				}
 			})
 			.on('click.mkPsGlobalSearchClear', '#mk-ps-global-search-clear', function (e) {
 				e.preventDefault();
@@ -785,11 +975,22 @@
 			destroyFloatTheadArtifacts();
 			mirrorToolbarClasses();
 			localizeToolbar();
+			initGlobalSearchFromUrlOnce();
 			injectGlobalQuickSearch();
+			restoreGlobalSearchInput();
 			bindGlobalQuickSearchEvents();
 			bindBulkSelectionEvents();
 			bindNeedsQcToggle();
 			relocatePagination();
+			// Rebuild range + of-total without stock append loop.
+			var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+			if (listInstance && typeof listInstance.showPagingInfo === 'function') {
+				try {
+					listInstance.showPagingInfo();
+				} catch (pageErr) {
+					/* ignore */
+				}
+			}
 			enhancePaginationChrome();
 			watchPageCountSync();
 			$('#listViewContent #listview-table').addClass('mk-ps-table mk-ps-table-v2');
@@ -822,8 +1023,10 @@
 		document.body.classList.add('mk-ps-ui-loading', 'mk-ps-list-v2');
 		document.documentElement.classList.add('mk-ps-list-v2');
 		patchDisableFloatThead();
+		patchShowPagingInfo();
 		patchListAjaxParams();
 		patchPostLoadListViewRecords();
+		initGlobalSearchFromUrlOnce();
 		ensureListHeadersInput();
 
 		if (!eventsBound && typeof app !== 'undefined' && app.event && app.event.on) {

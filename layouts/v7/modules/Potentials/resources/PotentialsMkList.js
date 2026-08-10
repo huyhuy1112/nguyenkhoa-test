@@ -1107,20 +1107,38 @@
   function renderPagination(total, totalPages) {
     var host = $("mk-opps-pagination");
     if (!host) return;
-    if (totalPages <= 1) {
-      host.innerHTML = "";
-      return;
-    }
+    var pages = Math.max(1, totalPages || 1);
+    var pageSize = PAGE_SIZE;
+    var start = total ? (state.page - 1) * pageSize : 0;
+    var from = total ? start + 1 : 0;
+    var to = Math.min(start + pageSize, total);
+    // Always show Leads-style footer (even when 1 page)
     host.innerHTML =
-      '<button type="button" class="mk-leads-page-btn" data-page="prev"' + (state.page <= 1 ? " disabled" : "") + ">‹</button>" +
-      '<span class="mk-leads-page-info">' +
-      esc(t("JS_MK_PAGE", "Trang")) +
+      '<span class="mk-leads-pagination__info">' +
+      esc(t("JS_MK_SHOWING", "Hiển thị")) +
       " " +
+      from +
+      "\u2013" +
+      to +
+      " / " +
+      total +
+      "</span>" +
+      '<div class="mk-leads-pagination__btns">' +
+      '<button type="button" class="mk-leads-page-btn" data-page="prev"' +
+      (state.page <= 1 ? " disabled" : "") +
+      ">" +
+      esc(t("JS_MK_PREV", "Trước")) +
+      "</button>" +
+      '<span class="mk-leads-page-num">' +
       state.page +
       " / " +
-      totalPages +
+      pages +
       "</span>" +
-      '<button type="button" class="mk-leads-page-btn" data-page="next"' + (state.page >= totalPages ? " disabled" : "") + ">›</button>";
+      '<button type="button" class="mk-leads-page-btn" data-page="next"' +
+      (state.page >= pages ? " disabled" : "") +
+      ">" +
+      esc(t("JS_MK_NEXT", "Sau")) +
+      "</button></div>";
   }
 
   function applySegment(segId) {

@@ -88,6 +88,30 @@
       }
       return null;
     },
+    /**
+     * Inline field update via ModernApi save_inline (phone / business_note / …).
+     */
+    updateFields: function (id, fields) {
+      var oid = String(id || "");
+      return apiRequest("save_inline", {
+        record: oid,
+        payload: JSON.stringify(fields || {}),
+      }).then(function (res) {
+        var c = (res && res.contract) || {};
+        var patch = Object.assign({}, fields || {}, {
+          phone: c.phone != null ? c.phone : fields.phone,
+          business_note: c.business_note != null ? c.business_note : fields.business_note,
+          data_source: c.data_source,
+          referrer: c.referrer,
+          referral_code: c.referral_code,
+          franchise_status: c.franchise_status,
+          contact_status: c.contact_status,
+          affiliate_code: c.affiliate_code,
+        });
+        root.ServiceContractsLocalStore.patchContract(oid, patch);
+        return c;
+      });
+    },
     saveTags: function (id, tags) {
       var oid = String(id || "");
       return apiRequest("save_tags", {

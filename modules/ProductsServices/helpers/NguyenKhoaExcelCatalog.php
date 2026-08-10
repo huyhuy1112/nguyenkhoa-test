@@ -111,7 +111,7 @@ class ProductsServices_NguyenKhoaExcelCatalog_Helper {
 				'source' => 'nl',
 				'sku' => $sku,
 				'name' => $name,
-				'unit' => $unit,
+				'unit' => self::normalizeUnit($unit !== '' ? $unit : self::inferUnitFromName($name, $lastGroup)),
 				'product_group' => $lastGroup,
 				'item_type' => 'Product',
 				'price' => $base !== null ? $base : 0,
@@ -156,7 +156,7 @@ class ProductsServices_NguyenKhoaExcelCatalog_Helper {
 				'source' => 'ccdc',
 				'sku' => $sku,
 				'name' => $name,
-				'unit' => '',
+				'unit' => self::normalizeUnit(self::inferUnitFromName($name, $group !== '' ? $group : 'CCDC')),
 				'product_group' => $group !== '' ? $group : 'CCDC',
 				'item_type' => 'Product',
 				'price' => $price,
@@ -169,6 +169,160 @@ class ProductsServices_NguyenKhoaExcelCatalog_Helper {
 			);
 		}
 		return $products;
+	}
+
+	/**
+	 * Canonical unit labels used in catalog + picklist.
+	 *
+	 * @param string $raw
+	 * @return string
+	 */
+	public static function normalizeUnit($raw) {
+		$u = trim((string) $raw);
+		if ($u === '' || $u === '-' || $u === '--') {
+			return '';
+		}
+		// Strip packing notes like "2kg/bịch" left in unit cells occasionally
+		if (preg_match('/\d+\s*kg/iu', $u) && stripos($u, '/') !== false) {
+			$parts = preg_split('~[/\s]+~u', $u);
+			$u = trim(end($parts));
+		}
+		$map = array(
+			'cai' => 'Cái',
+			'cái' => 'Cái',
+			'cái.' => 'Cái',
+			'pcs' => 'Cái',
+			'piece' => 'Cái',
+			'pc' => 'Cái',
+			'bịch' => 'Bịch',
+			'bich' => 'Bịch',
+			'bao' => 'Bao',
+			'lon' => 'Lon',
+			'hộp' => 'Hộp',
+			'hop' => 'Hộp',
+			'box' => 'Hộp',
+			'hũ' => 'Hũ',
+			'hu' => 'Hũ',
+			'gói' => 'Gói',
+			'goi' => 'Gói',
+			'can' => 'Can',
+			'thùng' => 'Thùng',
+			'thung' => 'Thùng',
+			'bình' => 'Bình',
+			'binh' => 'Bình',
+			'chai' => 'Chai',
+			'cuộn' => 'Cuộn',
+			'cuon' => 'Cuộn',
+			'con' => 'Con',
+			'kg' => 'Kg',
+			'kilogram' => 'Kg',
+			'bộ' => 'Bộ',
+			'bo' => 'Bộ',
+			'set' => 'Set',
+			'lít' => 'Lít',
+			'lit' => 'Lít',
+			'liter' => 'Lít',
+		);
+		$key = mb_strtolower($u, 'UTF-8');
+		if (isset($map[$key])) {
+			return $map[$key];
+		}
+		// Title-case first letter keep rest (Vietnamese)
+		return mb_strtoupper(mb_substr($u, 0, 1, 'UTF-8'), 'UTF-8')
+			. mb_substr($u, 1, null, 'UTF-8');
+	}
+
+	/**
+	 * Infer unit when Excel left it blank (mostly CCDC tools / bags / machines).
+	 *
+	 * @param string $name
+	 * @param string $group
+	 * @return string
+	 */
+	public static function inferUnitFromName($name, $group = '') {
+		$n = mb_strtolower(trim((string) $name), 'UTF-8');
+		$g = mb_strtolower(trim((string) $group), 'UTF-8');
+
+		// From packing in name: (2kg/bịch), /thùng, /lon …
+		if (preg_match('~/\s*(bịch|bao|lon|hộp|hop|thùng|thung|chai|bình|binh|gói|goi|cái|cai|kg|can|cuộn|cuon)\b~iu', $name, $m)) {
+			return self::normalizeUnit($m[1]);
+		}
+		if (preg_match('~\b(\d+(?:[.,]\d+)?)\s*kg\b~iu', $n) && (strpos($n, 'trân') !== false || strpos($n, 'thạch') !== false || strpos($n, 'bột') !== false)) {
+			return 'Bịch';
+		}
+
+		// Explicit token in product name
+		$hintMap = array(
+			'cuộn' => 'Cuộn',
+			'thùng' => 'Thùng',
+			' bịch' => 'Bịch',
+			'bịch ' => 'Bịch',
+			'lon ' => 'Lon',
+			' lon' => 'Lon',
+			'hộp ' => 'Hộp',
+			' hộp' => 'Hộp',
+			'chai ' => 'Chai',
+			'bình ' => 'Bình',
+			'can ' => 'Can',
+			'kg ' => 'Kg',
+			'/kg' => 'Kg',
+		);
+		foreach ($hintMap as $needle => $unit) {
+			if (mb_strpos($n, $needle, 0, 'UTF-8') !== false) {
+				return $unit;
+			}
+		}
+
+		// Group / SKU patterns
+		if ($g !== '' && (strpos($g, 'máy') !== false || $g === 'may' || strpos($g, 'may') === 0)) {
+			return 'Cái';
+		}
+		if (strpos($n, 'máy ') !== false || strpos($n, 'máy') === 0) {
+			return 'Cái';
+		}
+		// Bags / filter bags / plastic bags → Cái (retail count)
+		if (
+			strpos($n, 'túi') !== false
+			|| strpos($n, 'tui ') !== false
+			|| strpos($g, 'tui') !== false
+			|| strpos($g, 'túi') !== false
+		) {
+			return 'Cái';
+		}
+		// Bar mats, spoons, ladles, lids, cups, straws, pumps, rings → Cái
+		if (
+			strpos($n, 'vá ') === 0 || strpos($n, 'vá') === 0
+			|| strpos($n, 'muỗng') !== false
+			|| strpos($n, 'nắp') !== false
+			|| strpos($n, 'ống') !== false
+			|| strpos($n, 'ly ') !== false
+			|| strpos($n, 'vòng') !== false
+			|| strpos($n, 'vòi') !== false
+			|| strpos($n, 'thảm') !== false
+			|| strpos($n, 'khuôn') !== false
+			|| strpos($n, 'dao ') !== false
+			|| strpos($n, 'kẹp') !== false
+			|| strpos($n, 'giá ') !== false
+			|| strpos($n, 'khay') !== false
+			|| strpos($n, 'khăn') !== false
+		) {
+			return 'Cái';
+		}
+
+		// Default merchandise / tools
+		return 'Cái';
+	}
+
+	/**
+	 * Full picklist value set used after catalog import.
+	 *
+	 * @return string[]
+	 */
+	public static function preferredUnitPicklist() {
+		return array(
+			'Cái', 'Bịch', 'Bao', 'Lon', 'Hộp', 'Hũ', 'Gói', 'Can', 'Thùng',
+			'Bình', 'Chai', 'Cuộn', 'Con', 'Kg', 'Bộ', 'Set', 'Lít',
+		);
 	}
 
 	/**

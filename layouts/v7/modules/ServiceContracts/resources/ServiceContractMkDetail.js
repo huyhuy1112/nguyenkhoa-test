@@ -72,9 +72,16 @@
 		$root.prop("hidden", false);
 
 		var aff = data.affiliate_code || "";
+		var recordId = String($root.attr("data-record") || data.id || data.crmid || "").trim();
 		var $aff = $("#mkScMkAff");
-		if (aff) $aff.prop("hidden", false).text(aff);
-		else $aff.prop("hidden", true).text("");
+		var $btn = $("#mkScMkCreateAffBtn");
+		if (aff) {
+			$aff.prop("hidden", false).text(aff);
+			$btn.prop("hidden", true).prop("disabled", true);
+		} else {
+			$aff.prop("hidden", true).text("");
+			$btn.prop("hidden", false).prop("disabled", false).text("Tạo mã AFF");
+		}
 
 		var rows = [
 			["Ngày tiếp nhận", data.received_date],
@@ -85,7 +92,7 @@
 			["Nguồn data", data.data_source],
 			["Người giới thiệu", data.referrer],
 			["Liên hệ", data.contact_status],
-			["Mã AFF (mã giới thiệu của khách)", data.affiliate_code],
+			["Mã AFF (mã giới thiệu của khách)", aff || "— Chưa tạo"],
 			[
 				"Hạng mã AFF",
 				(data.affiliate_tier_prefix || "") +
@@ -155,6 +162,40 @@
 		hideStock();
 		window.setTimeout(hideStock, 400);
 		window.setTimeout(hideStock, 1200);
+
+		$btn.off("click.mkScAff").on("click.mkScAff", function (e) {
+			e.preventDefault();
+			if (!recordId || $btn.prop("disabled")) return;
+			$btn.prop("disabled", true).text("Đang tạo…");
+			if (!window.app || !app.request || !app.request.post) {
+				$btn.prop("disabled", false).text("Tạo mã AFF");
+				return;
+			}
+			app.request
+				.post({
+					data: {
+						module: "ServiceContracts",
+						action: "ModernApi",
+						mode: "generate_affiliate",
+						record: recordId,
+					},
+				})
+				.then(function (err, res) {
+					if (err || !res || res.success === false) {
+						$btn.prop("disabled", false).text("Tạo mã AFF");
+						window.alert(
+							(res && (res.error || res.message)) ||
+								(err && err.message) ||
+								"Không tạo được mã AFF."
+						);
+						return;
+					}
+					// Reload full franchise so badge + fields persist cleanly
+					apiGet(recordId).then(render).catch(function () {
+						render((res.contract) || { affiliate_code: res.affiliate_code || "" });
+					});
+				});
+		});
 	}
 
 	function boot() {

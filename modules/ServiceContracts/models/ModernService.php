@@ -158,45 +158,115 @@ class ServiceContracts_ModernService {
 	}
 
 	/**
-	 * Ensure profile row + unique AFF-xxxxxx for a contract.
-	 * @return string affiliate code
+	 * Ensure profile row exists WITHOUT auto-generating affiliate code.
+	 * AFF code is created only via generateAffiliateCode() (explicit button).
 	 */
-	public static function ensureAffiliateCode($contractId) {
+	public static function ensureProfileRow($contractId) {
+		$contractId = (int) $contractId;
+		if ($contractId <= 0) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+
+		$res = $adb->pquery(
+			'SELECT servicecontractsid FROM bace_sc_profile WHERE servicecontractsid = ?',
+			array($contractId)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			return true;
+		}
+
+		$now = date('Y-m-d H:i:s');
+		$adb->pquery(
+			'INSERT INTO bace_sc_profile (servicecontractsid, affiliate_code, affiliate_tier_prefix, last_touch, is_modern, created_at, modified_at)
+			 VALUES (?, NULL, ?, ?, 1, ?, ?)',
+			array($contractId, 'D', $now, $now, $now)
+		);
+		return true;
+	}
+
+	/**
+	 * Read existing affiliate code (empty if not created yet). Does NOT auto-generate.
+	 * @return string
+	 */
+	public static function getAffiliateCode($contractId) {
 		$contractId = (int) $contractId;
 		if ($contractId <= 0) {
 			return '';
 		}
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
-
 		$res = $adb->pquery(
 			'SELECT affiliate_code FROM bace_sc_profile WHERE servicecontractsid = ?',
 			array($contractId)
 		);
 		if ($res && $adb->num_rows($res) > 0) {
-			$code = trim((string) $adb->query_result($res, 0, 'affiliate_code'));
-			if ($code !== '') {
-				return $code;
-			}
-			$code = self::nextAffiliateCode($adb);
-			$adb->pquery(
-				'UPDATE bace_sc_profile SET affiliate_code = ?, modified_at = ? WHERE servicecontractsid = ?',
-				array($code, date('Y-m-d H:i:s'), $contractId)
-			);
-			return $code;
+			return trim((string) $adb->query_result($res, 0, 'affiliate_code'));
 		}
-
-		$code = self::nextAffiliateCode($adb);
-		$now = date('Y-m-d H:i:s');
-		$adb->pquery(
-			'INSERT INTO bace_sc_profile (servicecontractsid, affiliate_code, affiliate_tier_prefix, last_touch, is_modern, created_at, modified_at)
-			 VALUES (?, ?, ?, ?, 1, ?, ?)',
-			array($contractId, $code, 'D', $now, $now, $now)
-		);
-		return $code;
+		return '';
 	}
 
-	protected static function nextAffiliateCode(PearDatabase $adb) {
+	/**
+	 * Explicitly generate AFF-###### for this customer once.
+	 * If code already exists, returns it (no second code).
+	 * @return string affiliate code
+	 */
+	public static function generateAffiliateCode($contractId) {
+		$contractId = (int) $contractId;
+		if ($contractId <= 0) {
+			throw new Exception('Record not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contractId)
+			&& !Users_Privileges_Model::isPermitted(self::MODULE, 'CreateView')) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		// DetailView alone is not enough to mint codes
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contractId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		self::ensureProfileRow($contractId);
+
+		$existing = self::getAffiliateCode($contractId);
+		if ($existing !== '') {
+			return $existing;
+		}
+
+		// Retry next code a few times in case of unique collisions
+		for ($attempt = 0; $attempt < 8; $attempt++) {
+			$code = self::nextAffiliateCode($adb, $attempt);
+			$now = date('Y-m-d H:i:s');
+			$adb->pquery(
+				'UPDATE bace_sc_profile SET affiliate_code = ?, modified_at = ?
+				 WHERE servicecontractsid = ? AND (affiliate_code IS NULL OR affiliate_code = \'\')',
+				array($code, $now, $contractId)
+			);
+			$after = self::getAffiliateCode($contractId);
+			if ($after !== '') {
+				return $after;
+			}
+		}
+		throw new Exception('Không tạo được mã AFF. Vui lòng thử lại.');
+	}
+
+	/**
+	 * @deprecated Prefer ensureProfileRow + generateAffiliateCode.
+	 * Kept for safety: only creates profile row, never auto-mints AFF codes.
+	 * @return string existing code or empty
+	 */
+	public static function ensureAffiliateCode($contractId) {
+		self::ensureProfileRow($contractId);
+		return self::getAffiliateCode($contractId);
+	}
+
+	/**
+	 * @param PearDatabase $adb
+	 * @param int $offset skip codes already claimed in this run
+	 */
+	protected static function nextAffiliateCode(PearDatabase $adb, $offset = 0) {
 		$max = 0;
 		$res = $adb->pquery(
 			"SELECT affiliate_code FROM bace_sc_profile WHERE affiliate_code LIKE 'AFF-%'",
@@ -214,10 +284,11 @@ class ServiceContracts_ModernService {
 				}
 			}
 		}
-		return 'AFF-' . str_pad((string) ($max + 1), 6, '0', STR_PAD_LEFT);
+		$next = $max + 1 + max(0, (int) $offset);
+		return 'AFF-' . str_pad((string) $next, 6, '0', STR_PAD_LEFT);
 	}
 
-	/** Backfill profiles for all alive ServiceContracts missing a row. */
+	/** Backfill empty profile rows for alive ServiceContracts (no AFF auto-mint). */
 	public static function ensureProfilesForAlive() {
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
@@ -226,7 +297,7 @@ class ServiceContracts_ModernService {
 			 FROM vtiger_servicecontracts sc
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
 			 LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid
-			 WHERE p.servicecontractsid IS NULL OR p.affiliate_code IS NULL OR p.affiliate_code = ''",
+			 WHERE p.servicecontractsid IS NULL",
 			array()
 		);
 		if (!$res) {
@@ -234,7 +305,7 @@ class ServiceContracts_ModernService {
 		}
 		$n = $adb->num_rows($res);
 		for ($i = 0; $i < $n; $i++) {
-			self::ensureAffiliateCode((int) $adb->query_result($res, $i, 'servicecontractsid'));
+			self::ensureProfileRow((int) $adb->query_result($res, $i, 'servicecontractsid'));
 		}
 	}
 
@@ -567,7 +638,7 @@ class ServiceContracts_ModernService {
 		}
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
-		self::ensureAffiliateCode($contractId);
+		self::ensureProfileRow($contractId);
 
 		$res = $adb->pquery(
 			"SELECT sc.subject, p.affiliate_code, p.affiliate_tier_prefix, p.phone, p.email, p.received_date, p.business_note,
@@ -827,7 +898,7 @@ class ServiceContracts_ModernService {
 			throw new Exception('Không lưu được khách chuyển nhượng.');
 		}
 
-		self::ensureAffiliateCode($contractId);
+		self::ensureProfileRow($contractId);
 		$now = date('Y-m-d H:i:s');
 		$receivedSql = $receivedDate !== '' ? $receivedDate : null;
 		$regSql = $registrationDate !== '' ? $registrationDate : null;
@@ -1039,7 +1110,7 @@ class ServiceContracts_ModernService {
 		}
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
-		self::ensureAffiliateCode($contractId);
+		self::ensureProfileRow($contractId);
 
 		$franchise = self::getFranchise($contractId);
 		$picklists = self::franchisePicklists();
@@ -1049,9 +1120,30 @@ class ServiceContracts_ModernService {
 		$contactStatus = array_key_exists('contact_status', $payload)
 			? self::normalizePick($payload['contact_status'], $picklists['contact_status'])
 			: $franchise['contact_status'];
-		$dataSource = array_key_exists('data_source', $payload)
-			? self::normalizePick($payload['data_source'], $picklists['data_source'])
-			: $franchise['data_source'];
+
+		// Referral code (one-time when source empty): set data_source + referrer from AFF
+		$existingReferral = isset($franchise['referral_code'])
+			? strtoupper(trim((string) $franchise['referral_code']))
+			: '';
+		$referralCode = $existingReferral;
+		if (array_key_exists('referral_code', $payload) && $existingReferral === '') {
+			$referralCode = strtoupper(trim(self::decodeText($payload['referral_code'])));
+		}
+		$referrer = isset($franchise['referrer']) ? trim((string) $franchise['referrer']) : '';
+		$dataSource = isset($franchise['data_source']) ? trim((string) $franchise['data_source']) : '';
+		if ($referralCode !== '' && $existingReferral === '') {
+			$resolved = self::resolveReferralTier($referralCode);
+			if ($resolved && !empty($resolved['referrer_name'])) {
+				$referrer = trim((string) $resolved['referrer_name']);
+				$dataSource = 'Được giới thiệu';
+			} else {
+				// Invalid / unknown AFF code — do not save fake referral
+				$referralCode = $existingReferral;
+			}
+		} elseif ($existingReferral !== '') {
+			$dataSource = self::resolveDataSourceForSave($existingReferral, $referrer, $dataSource);
+		}
+
 		$phone = array_key_exists('phone', $payload)
 			? trim(self::decodeText($payload['phone']))
 			: $franchise['phone'];
@@ -1079,6 +1171,7 @@ class ServiceContracts_ModernService {
 		$adb->pquery(
 			'UPDATE bace_sc_profile SET franchise_status = ?, contact_status = ?, data_source = ?,
 				phone = ?, business_note = ?, address_line = ?,
+				referral_code = ?, referrer = ?,
 				interaction_1 = ?, interaction_2 = ?, interaction_3 = ?, interaction_materials = ?,
 				customer_status = ?, modified_at = ? WHERE servicecontractsid = ?',
 			array(
@@ -1088,6 +1181,8 @@ class ServiceContracts_ModernService {
 				$phone !== '' ? $phone : null,
 				$businessNote !== '' ? $businessNote : null,
 				$businessNote !== '' ? $businessNote : null,
+				$referralCode !== '' ? $referralCode : null,
+				$referrer !== '' ? $referrer : null,
 				$interaction1 !== '' ? $interaction1 : null,
 				$interaction2 !== '' ? $interaction2 : null,
 				$interaction3 !== '' ? $interaction3 : null,
@@ -1262,7 +1357,7 @@ class ServiceContracts_ModernService {
 		}
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
-		self::ensureAffiliateCode($contractId);
+		self::ensureProfileRow($contractId);
 		$text = trim(decode_html((string) $nextAction));
 		$now = date('Y-m-d H:i:s');
 		$adb->pquery(

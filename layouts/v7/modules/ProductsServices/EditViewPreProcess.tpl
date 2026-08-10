@@ -39,7 +39,7 @@ html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .
 {* Re-assert MkEdit after shell/theme so create UI always wins on reload *}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesMkEdit.css')}&mk_v=20260808_ps_group_pick1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesMkEdit.js')}&mk_v=20260808_ps_group_pick1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesMkEdit.js')}&mk_v=20260810_ps_units1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-ps-create="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

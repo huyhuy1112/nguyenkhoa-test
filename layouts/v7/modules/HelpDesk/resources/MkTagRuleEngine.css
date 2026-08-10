@@ -255,7 +255,8 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 }
 
 .mk-tre-col-lead {
-	width: 120px;
+	width: 22%;
+	min-width: 140px;
 }
 
 .mk-tre-section {
@@ -531,6 +532,12 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 
 .mk-tre-group-toggle__name {
 	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	word-break: keep-all;
+	overflow-wrap: normal;
+	hyphens: none;
 }
 
 .mk-tre-group-count {
@@ -734,15 +741,27 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	table-layout: fixed;
 }
 
-.mk-tre-col-name { width: 18%; }
+.mk-tre-col-name { width: 36%; min-width: 160px; }
 .mk-tre-col-tags { width: 32%; }
 .mk-tre-col-pri { width: 10%; }
 .mk-tre-col-active { width: 10%; }
-.mk-tre-col-act { width: 10%; }
+.mk-tre-col-act { width: 10%; min-width: 88px; }
 .mk-tre-col-group { width: 14%; }
 .mk-tre-col-scope { width: 22%; min-width: 168px; }
 .mk-tre-col-desc { width: 18%; }
-.mk-tre-col-used { width: 8%; }
+.mk-tre-col-used { width: 10%; min-width: 72px; }
+.mk-tre-col-lead { width: 22%; min-width: 140px; }
+
+/* Parent tag name cells — avoid mid-word wrap on narrow laptop widths */
+.mk-tre-section--groups .mk-tre-table th:first-child,
+.mk-tre-section--groups .mk-tre-table td:first-child,
+.mk-tre-section--groups .mk-tre-table .mk-tre-strong {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	word-break: keep-all;
+	overflow-wrap: normal;
+}
 
 .mk-tre-td-scope,
 .mk-tre-scope {

@@ -99,9 +99,14 @@ class ProductsServices_List_View extends Vtiger_List_View {
 
 		parent::preProcess($request, false);
 
+		// parent::preProcess already ran initializeListViewContents and may have locked
+		// pagingModel/page range. Clear fully so the forced re-init picks up page=1 + search_params.
 		$this->listViewHeaders = false;
 		$this->listViewEntries = false;
 		$this->noOfEntries = false;
+		$this->listViewCount = false;
+		$this->listViewLinks = false;
+		$this->pagingModel = false;
 		$this->listviewinitcalled = false;
 		$viewer = $this->getViewer($request);
 		$this->initializeListViewContents($request, $viewer);
@@ -117,6 +122,9 @@ class ProductsServices_List_View extends Vtiger_List_View {
 		$this->listViewHeaders = false;
 		$this->listViewEntries = false;
 		$this->noOfEntries = false;
+		$this->listViewCount = false;
+		$this->listViewLinks = false;
+		$this->pagingModel = false;
 		$this->listviewinitcalled = false;
 
 		parent::process($request);

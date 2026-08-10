@@ -145,16 +145,15 @@ if (!$fG) {
 	}
 }
 
-// Ensure unit picklist extras
+// Ensure unit picklist extras (catalog units from Nguyen Khoa Excel)
 $unitField = Vtiger_Field::getInstance('unit', $module);
 if ($unitField) {
 	try {
-		$unitField->setPicklistValues(array(
-			'pcs', 'set', 'kg', 'box',
-			'cái', 'hộp', 'bộ',
-			'Bịch', 'Bao', 'Lon', 'Hộp', 'Hũ', 'Gói', 'Can', 'Thùng', 'Cái', 'Bộ',
-		));
-		echo "  unit picklist expanded\n";
+		require_once 'modules/ProductsServices/helpers/NguyenKhoaExcelCatalog.php';
+		$unitField->setPicklistValues(
+			ProductsServices_NguyenKhoaExcelCatalog_Helper::preferredUnitPicklist()
+		);
+		echo "  unit picklist expanded (Cái, Bịch, Lon, Hộp, …)\n";
 	} catch (Exception $e) {
 		echo "  unit picklist: " . $e->getMessage() . "\n";
 	}

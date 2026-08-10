@@ -1696,6 +1696,13 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	color: #0f172a;
 }
 
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__aff-slot {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__aff {
 	display: inline-flex;
 	padding: 4px 10px;
@@ -1705,6 +1712,29 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	color: #047857;
 	font-size: 12px;
 	font-weight: 700;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #mkScMkCreateAffBtn {
+	appearance: none;
+	border: none;
+	border-radius: 10px;
+	min-height: 34px;
+	padding: 6px 14px;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+	background: linear-gradient(135deg, #08a045 0%, #0b6e4f 100%);
+	color: #fff;
+	box-shadow: 0 2px 8px rgba(8, 160, 69, 0.28);
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #mkScMkCreateAffBtn:hover:not(:disabled) {
+	filter: brightness(1.04);
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #mkScMkCreateAffBtn:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__grid {

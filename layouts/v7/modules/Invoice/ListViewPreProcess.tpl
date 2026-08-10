@@ -14,18 +14,18 @@
 {include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
 <script type="text/javascript">document.documentElement.classList.add('mk-invoice-list-sales');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceSalesList.css')}?mk_v=20260804_empty3" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260711_so_gi_sync1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260810_list_pager_leads1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosList.css')}?mk_v=20260710_pos4" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260730_or_search1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260810_list_pager_leads1"></script>
 {else}
 <script type="text/javascript">document.documentElement.classList.add('mk-invoice-list-support', 'mk-opportunity-list-sales');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceListContent.css')}?mk_v=20260803_inv_pad1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceSupportList.css')}?mk_v=20260803_inv_pad1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260607_sales_footer1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260810_list_pager_leads1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_search2" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260703_global_search3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260810_list_pager_leads1"></script>
 {/if}
 {assign var=mk_inv_mod value=Vtiger_Module_Model::getInstance($MODULE)}
 {assign var=mk_inv_status_fm value=Vtiger_Field_Model::getInstance('invoicestatus', $mk_inv_mod)}
