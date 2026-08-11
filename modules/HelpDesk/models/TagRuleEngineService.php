@@ -1740,7 +1740,11 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	protected function leadExcludedFromCskh(array $slugSet) {
-		$blocked = array('ngung_cham_soc', 'khong_xac_nhan_tham_gia');
+		$blocked = array(
+			'ngung_cham_soc',
+			'dung_cham_soc',
+			'khong_xac_nhan_tham_gia',
+		);
 		foreach ($blocked as $slug) {
 			if (isset($slugSet[$slug])) {
 				return true;
@@ -1750,21 +1754,29 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	protected function buildAlertRow($lid, array $lead, array $labels, array $slugs, array $rule, $days) {
-		$firstname = decode_html($lead['firstname']);
-		$lastname = decode_html($lead['lastname']);
-		$name = trim($firstname . ' ' . $lastname);
+		$firstname = decode_html(isset($lead['firstname']) ? $lead['firstname'] : '');
+		$lastname = decode_html(isset($lead['lastname']) ? $lead['lastname'] : '');
+		// CRM often stores full VN name as lastname + firstname
+		$name = trim($lastname . ' ' . $firstname);
 		if ($name === '') {
-			$name = decode_html($lead['company']) ?: ('Lead #' . $lid);
+			$name = decode_html(isset($lead['company']) ? $lead['company'] : '') ?: ('Lead #' . $lid);
+		}
+		$phone = '';
+		if (!empty($lead['phone'])) {
+			$phone = decode_html($lead['phone']);
+		} elseif (!empty($lead['mobile'])) {
+			$phone = decode_html($lead['mobile']);
 		}
 		$row = array(
 			'lead_id' => (int)$lid,
 			'name' => $name,
-			'phone' => decode_html($lead['phone']),
+			'phone' => $phone,
 			'tags' => $labels,
 			'tag_slugs' => $slugs,
 			'rule' => $rule,
 			'days_idle' => (int)$days,
-			'next_action' => $rule['next_action'],
+			'next_action' => isset($rule['next_action']) ? $rule['next_action'] : '',
+			'detail_url' => 'index.php?module=Leads&view=Detail&record=' . (int)$lid . '&app=SALES',
 		);
 		if (!empty($rule['alert_type'])) {
 			$row['alert_type'] = $rule['alert_type'];
@@ -1790,28 +1802,33 @@ class HelpDesk_TagRuleEngineService {
 			'SELECT lead_id, rule_id, snooze_until
 			 FROM mk_tag_rule_dismissals
 			 WHERE user_id = ?
-			   AND (snooze_until IS NULL OR snooze_until = \'\' OR snooze_until > NOW())',
+			   AND (
+			     snooze_until IS NULL OR snooze_until = \'\'
+			     OR snooze_until > NOW()
+			   )',
 			array($userId)
 		);
 		if ($dres) {
 			while ($drow = $this->db->fetchByAssoc($dres)) {
+				// "Done" (snooze_until NULL) = hide forever; future date = snooze until then.
+				// Past dates already filtered by SQL (only NULL or future).
 				$key = (int)$drow['lead_id'] . ':' . $drow['rule_id'];
 				$dismissMap[$key] = true;
 			}
 		}
 
+		// Phone lives on vtiger_leadaddress (not leaddetails).
+		// Avoid NULLIF(... '0000-00-00') — MySQL 8 strict mode rejects zero-dates.
 		$leadRes = $this->db->pquery(
-			"SELECT ld.leadid, ld.firstname, ld.lastname, ld.company, ld.phone,
+			"SELECT ld.leadid, ld.firstname, ld.lastname, ld.company,
+			        la.phone AS phone, la.mobile AS mobile,
 			        DATEDIFF(
 			          NOW(),
-			          COALESCE(
-			            NULLIF(p.last_touch, '0000-00-00 00:00:00'),
-			            NULLIF(ce.modifiedtime, '0000-00-00 00:00:00'),
-			            ce.createdtime
-			          )
+			          COALESCE(p.last_touch, ce.modifiedtime, ce.createdtime)
 			        ) AS days_idle
 			 FROM vtiger_leaddetails ld
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0 AND ce.setype = 'Leads'
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = ld.leadid
 			 LEFT JOIN bace_lead_profile p ON p.leadid = ld.leadid
 			 ORDER BY days_idle DESC, ce.modifiedtime DESC
 			 LIMIT 500",
@@ -1822,6 +1839,9 @@ class HelpDesk_TagRuleEngineService {
 		if ($leadRes) {
 			while ($row = $this->db->fetchByAssoc($leadRes)) {
 				$lid = (int)$row['leadid'];
+				if ($lid <= 0) {
+					continue;
+				}
 				$leadIds[] = $lid;
 				$leads[$lid] = $row;
 			}

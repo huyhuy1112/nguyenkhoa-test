@@ -2281,6 +2281,17 @@ html.mk-tre-ui-ready body[data-module="HelpDesk"][data-view="Rules"] #listViewCo
 	color: #0f172a;
 }
 
+.mk-tre-alert-card__name-link {
+	color: inherit;
+	text-decoration: none;
+	border-bottom: 1px solid transparent;
+}
+
+.mk-tre-alert-card__name-link:hover {
+	color: #1d4ed8;
+	border-bottom-color: #93c5fd;
+}
+
 .mk-tre-alert-card__meta {
 	margin-top: 4px;
 	font-size: 12px;

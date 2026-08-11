@@ -9,6 +9,10 @@
     initialized: false,
     isFirstLoad: true, // Track first load to prevent sound on page reload
     selectedIds: {},
+    soundEnabled: true,
+    soundVolume: 0.7,
+    lastListSignature: "",
+    forceNextRender: false,
 
     init: function () {
       if (this.initialized) {
@@ -48,7 +52,7 @@
         .on("click.modernNotificationsPanel", function (e) {
           if (
             jQuery(e.target).closest(
-              "button, a, input, label, .modern-notification-checkbox-wrap"
+              "button, a, input, label, .modern-notification-checkbox-wrap, .modern-notifications-sound-toggle"
             ).length
           ) {
             return;
@@ -62,7 +66,7 @@
     bindActionHandlers: function () {
       var self = this;
       var $actions = jQuery(
-        "#modern-notifications-mark-all-read, #modern-notifications-delete-selected, #modern-notifications-delete-all"
+        "#modern-notifications-mark-all-read, #modern-notifications-delete-selected, #modern-notifications-delete-all, #modern-notifications-sound-toggle"
       );
       if (!$actions.length) {
         return;
@@ -80,8 +84,88 @@
             self.deleteSelectedNotifications();
           } else if (id === "modern-notifications-delete-all") {
             self.deleteAllNotifications();
+          } else if (id === "modern-notifications-sound-toggle") {
+            self.toggleSoundPref();
           }
         });
+    },
+
+    applySoundPrefUI: function () {
+      var btn = document.getElementById("modern-notifications-sound-toggle");
+      var bell = document.getElementById("modern-notifications-bell");
+      var on = !!this.soundEnabled;
+
+      if (btn) {
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+        btn.classList.toggle("is-muted", !on);
+        btn.title = on ? "Tắt âm thanh thông báo" : "Bật âm thanh thông báo";
+        var ic = btn.querySelector(".modern-notifications-sound-ic");
+        if (ic) {
+          ic.className =
+            "fa modern-notifications-sound-ic " +
+            (on ? "fa-volume-up" : "fa-volume-off");
+        }
+      }
+
+      // Bell icon in navbar shows muted state too.
+      if (bell) {
+        bell.classList.toggle("is-sound-muted", !on);
+        bell.setAttribute("data-sound", on ? "on" : "off");
+        var baseTitle =
+          bell.getAttribute("data-title-base") ||
+          bell.getAttribute("title") ||
+          "Thông báo";
+        if (!bell.getAttribute("data-title-base")) {
+          // Strip previous mute suffix if reloading
+          baseTitle = String(baseTitle).replace(/\s*\(đã tắt âm\)\s*$/i, "");
+          bell.setAttribute("data-title-base", baseTitle);
+        }
+        var base = bell.getAttribute("data-title-base") || "Thông báo";
+        bell.setAttribute(
+          "title",
+          on ? base : base + " (đã tắt âm)"
+        );
+        if (bell.getAttribute("aria-label")) {
+          bell.setAttribute(
+            "aria-label",
+            on ? base : base + " — đã tắt âm thanh"
+          );
+        }
+      }
+
+      if (this.sound) {
+        try {
+          this.sound.volume = Math.max(
+            0,
+            Math.min(1, Number(this.soundVolume) || 0.7)
+          );
+        } catch (e) {}
+      }
+    },
+
+    toggleSoundPref: function () {
+      var self = this;
+      var next = !this.soundEnabled;
+      jQuery.ajax({
+        url: "index.php?module=Vtiger&action=Notifications&mode=setSoundPref",
+        type: "POST",
+        dataType: "json",
+        cache: false,
+        xhrFields: { withCredentials: true },
+        data: {
+          sound_enabled: next ? "1" : "0",
+          volume: self.soundVolume,
+        },
+        success: function (response) {
+          if (response && response.success) {
+            self.soundEnabled = !!response.sound_enabled;
+            if (typeof response.volume !== "undefined") {
+              self.soundVolume = Number(response.volume) || 0.7;
+            }
+            self.applySoundPrefUI();
+          }
+        },
+      });
     },
 
     checkUnreadCountOnly: function () {
@@ -380,6 +464,13 @@
         },
         success: function (response) {
           if (response && response.success) {
+            if (typeof response.sound_enabled !== "undefined") {
+              self.soundEnabled = !!response.sound_enabled;
+            }
+            if (typeof response.volume !== "undefined") {
+              self.soundVolume = Number(response.volume) || 0.7;
+            }
+            self.applySoundPrefUI();
             self.updateAllUI(response);
             var unreadList = (response.list || []).filter(function (n) {
               return String(n.is_read) === "0";
@@ -389,7 +480,7 @@
               } else {
               if (unreadList.length > 0) {
                 for (var i = 0; i < unreadList.length; i++) {
-                  self.previousIds.push(unreadList[i].id);
+                  self.previousIds.push(String(unreadList[i].id));
                   }
                 }
                 self.isFirstLoad = false;
@@ -443,6 +534,23 @@
       }
     },
 
+    buildListSignature: function (list, unreadCount) {
+      var parts = [String(unreadCount || 0)];
+      for (var i = 0; i < (list || []).length; i++) {
+        var n = list[i] || {};
+        parts.push(
+          String(n.id) +
+            ":" +
+            String(n.is_read) +
+            ":" +
+            String(n.notif_type || "") +
+            ":" +
+            String(n.message || "").slice(0, 80)
+        );
+      }
+      return parts.join("|");
+    },
+
     updateAllUI: function (response) {
       var list = response.list || [];
       var itemsContainer = jQuery("#modern-notifications-items");
@@ -453,6 +561,14 @@
       // single list: use unread empty as the only empty state
       readEmpty.hide();
       this.updateNotificationBadge(response.unreadCount || 0);
+
+      // Skip full re-paint when poll returns identical list — fixes flicker.
+      var signature = this.buildListSignature(list, response.unreadCount);
+      if (!this.forceNextRender && signature === this.lastListSignature) {
+        return;
+      }
+      this.forceNextRender = false;
+      this.lastListSignature = signature;
 
       itemsContainer.empty();
       if (list.length === 0) {
@@ -531,6 +647,30 @@
       return result;
     },
 
+    resolveNotifType: function (notif, message) {
+      if (notif && notif.notif_type) {
+        return String(notif.notif_type);
+      }
+      var m = message || "";
+      if (String(notif && notif.id).indexOf("cskh:") === 0) return "cskh";
+      if (/đã nhắc đến bạn/i.test(m)) return "mention";
+      if (/được assign|được giao|assigned/i.test(m)) return "assign";
+      if (/Cần CSKH|Cần chăm sóc|sắp đến hạn|sắp hết hạn/i.test(m))
+        return "cskh";
+      return "other";
+    },
+
+    typeMeta: function (type) {
+      var map = {
+        cskh: { label: "CSKH", icon: "fa-heartbeat", cls: "type-cskh" },
+        mention: { label: "Mention", icon: "fa-at", cls: "type-mention" },
+        assign: { label: "Assign", icon: "fa-user-plus", cls: "type-assign" },
+        reminder: { label: "Nhắc", icon: "fa-clock-o", cls: "type-reminder" },
+        other: { label: "TB", icon: "fa-bell-o", cls: "type-other" },
+      };
+      return map[type] || map.other;
+    },
+
     renderNotificationItem: function (notif, container, isRead) {
       var self = this;
       var module = notif.module || "Vtiger";
@@ -538,33 +678,40 @@
       var message = notif.message || "";
       var createdAt = notif.created_at || "";
       var notificationId = notif.id || "";
-      var detailUrl = "";
+      var detailUrl = notif.detail_url || "";
 
       // Decode HTML entities in message and highlight keywords
       message = this.decodeHtmlEntities(message);
+      var notifType = this.resolveNotifType(notif, message);
+      var typeMeta = this.typeMeta(notifType);
       var splitMsg = this.splitMessageForDisplay(message);
       var titleHtml = this.highlightKeywords(splitMsg.title);
       var bodyHtml = splitMsg.body
         ? this.highlightKeywords(splitMsg.body)
         : "";
 
-      if (recordId) {
+      if (!detailUrl && recordId) {
         detailUrl =
           "index.php?module=" + module + "&view=Detail&record=" + recordId;
       }
 
       var li = document.createElement("li");
-      li.className = "modern-notification-item";
-      // Add read-notification class only if isRead is true
+      li.className =
+        "modern-notification-item modern-notification-item--" + notifType;
       if (isRead) {
         li.classList.add("read-notification");
       }
       li.setAttribute("data-notification-id", notificationId);
+      li.setAttribute("data-notif-type", notifType);
 
-      // Check if this is a deadline reminder notification
-      var isDeadlineReminder =
+      if (
         message.indexOf("sắp đến hạn") !== -1 ||
-        message.indexOf("sắp hết hạn") !== -1;
+        message.indexOf("sắp hết hạn") !== -1 ||
+        notifType === "cskh"
+      ) {
+        li.classList.add("deadline-notification");
+      }
+
       // Checkbox is ONLY for delete-selection (NOT read-state)
       var checkboxWrap = document.createElement("span");
       checkboxWrap.className = "modern-notification-checkbox-wrap";
@@ -572,7 +719,6 @@
       checkbox.type = "checkbox";
       checkbox.className = "modern-notification-checkbox";
       checkbox.value = notificationId;
-      // Always default to unchecked unless user selected it (persist across polling)
       checkbox.checked = !!self.selectedIds[String(notificationId)];
       checkbox.addEventListener("click", function (e) {
         e.stopPropagation();
@@ -586,14 +732,15 @@
       checkboxWrap.appendChild(checkbox);
       li.appendChild(checkboxWrap);
 
-      if (isDeadlineReminder) {
-        li.classList.add("deadline-notification");
-        var deadlineFlag = document.createElement("span");
-        deadlineFlag.className = "modern-notification-deadline-flag";
-        deadlineFlag.setAttribute("aria-hidden", "true");
-        deadlineFlag.textContent = "⚠";
-        li.appendChild(deadlineFlag);
-      }
+      var typeBadge = document.createElement("span");
+      typeBadge.className =
+        "modern-notification-type " + typeMeta.cls;
+      typeBadge.setAttribute("aria-label", typeMeta.label);
+      typeBadge.innerHTML =
+        '<span class="fa ' +
+        typeMeta.icon +
+        '" aria-hidden="true"></span>';
+      li.appendChild(typeBadge);
 
       var contentWrapper = document.createElement("div");
       contentWrapper.className = "modern-notification-content";
@@ -606,6 +753,10 @@
 
       var textBlock = document.createElement("div");
       textBlock.className = "modern-notification-text-block";
+
+      var typeLabel = document.createElement("span");
+      typeLabel.className = "modern-notification-type-label " + typeMeta.cls;
+      typeLabel.textContent = typeMeta.label;
 
       var titleDiv = document.createElement("div");
       titleDiv.className = "modern-notification-title";
@@ -625,12 +776,11 @@
         dateDiv.textContent = this.formatDate(createdAt);
       }
 
-      // Create link first if needed
-      var link = null;
       if (detailUrl) {
-        link = document.createElement("a");
+        var link = document.createElement("a");
         link.href = detailUrl;
         link.className = "modern-notification-record-link";
+        link.appendChild(typeLabel);
         link.appendChild(titleDiv);
         if (bodyDiv) {
           link.appendChild(bodyDiv);
@@ -640,6 +790,7 @@
         }
         textBlock.appendChild(link);
       } else {
+        textBlock.appendChild(typeLabel);
         textBlock.appendChild(titleDiv);
         if (bodyDiv) {
           textBlock.appendChild(bodyDiv);
@@ -651,7 +802,7 @@
 
       mainRow.appendChild(textBlock);
 
-        if (!isRead) {
+      if (!isRead) {
         var unreadDot = document.createElement("span");
         unreadDot.className = "modern-notification-unread-dot";
         unreadDot.setAttribute("aria-hidden", "true");
@@ -661,9 +812,11 @@
       inner.appendChild(mainRow);
       contentWrapper.appendChild(inner);
 
-      // Clicking the item marks as read (if unread) - checkbox click is ignored above
       li.addEventListener("click", function (e) {
-        if (e.target && (e.target.tagName === "INPUT" || e.target.closest("input"))) {
+        if (
+          e.target &&
+          (e.target.tagName === "INPUT" || e.target.closest("input"))
+        ) {
           return;
         }
         if (!isRead) {
@@ -702,14 +855,21 @@
           ) {
             var unreadCount = Number(response.unreadCount) || 0;
             self.updateNotificationBadge(unreadCount);
-            if (checkboxEl) {
-              checkboxEl.checked = true;
-              checkboxEl.disabled = true;
+            // CSKH virtual items disappear after dismiss
+            self.forceNextRender = true;
+            if (String(notificationId).indexOf("cskh:") === 0 && element) {
+              jQuery(element).remove();
+              self.loadAllNotifications();
+            } else if (checkboxEl) {
+              checkboxEl.checked = false;
             }
 
-            var index = self.previousIds.indexOf(parseInt(notificationId));
+            var index = self.previousIds.indexOf(String(notificationId));
             if (index > -1) {
               self.previousIds.splice(index, 1);
+            }
+            if (element) {
+              element.classList.add("read-notification");
             }
           } else {
             if (element) {
@@ -760,11 +920,13 @@
             var unreadCount = Number(response.unreadCount) || 0;
             self.updateNotificationBadge(unreadCount);
 
+            self.forceNextRender = true;
             // Reload combined list to reflect new read-state
             self.loadAllNotifications();
 
             self.previousIds = [];
             self.lastRenderedNotificationId = 0;
+            self.lastListSignature = "";
           } else {
             itemsContainer.css("opacity", "1");
           }
@@ -784,15 +946,15 @@
 
     checkForNewNotifications: function (newList) {
       if (!newList || newList.length === 0) {
+        this.previousIds = [];
         return;
       }
 
       var newIds = [];
       for (var i = 0; i < newList.length; i++) {
-        newIds.push(newList[i].id);
+        newIds.push(String(newList[i].id));
       }
 
-      // Check if there are any truly NEW notifications (not in previousIds)
       var hasNew = false;
       for (var j = 0; j < newIds.length; j++) {
         if (this.previousIds.indexOf(newIds[j]) === -1) {
@@ -801,18 +963,11 @@
         }
       }
 
-      // Only play sound and shake bell if there are NEW notifications
-      // This prevents sound from playing when:
-      // - Page reloads (isFirstLoad handled separately)
-      // - User marks notifications as read (count decreases, but no new IDs)
-      // - Opening notification list (no new notifications)
       if (hasNew) {
-          this.playSound();
-          // Add shake animation to bell icon
-          this.shakeBell();
+        this.playSound();
+        this.shakeBell();
       }
 
-      // Update previousIds to current list (for next comparison)
       this.previousIds = newIds;
     },
 
@@ -836,6 +991,9 @@
     },
 
     playSound: function () {
+      if (!this.soundEnabled) {
+        return;
+      }
       if (!this.sound) {
         console.warn(
           "[NotificationSound] ❌ Cannot play: Audio object not initialized"
@@ -844,6 +1002,10 @@
       }
 
       try {
+        this.sound.volume = Math.max(
+          0,
+          Math.min(1, Number(this.soundVolume) || 0.7)
+        );
         // Check if sound is ready
         if (this.sound.readyState < 2) {
           console.warn(
@@ -990,25 +1152,43 @@
     },
 
     updateDeleteButtonState: function () {
-      var checkedBoxes = jQuery(".modern-notification-checkbox:checked");
+      var checkedBoxes = jQuery(
+        "#modern-notifications-items .modern-notification-checkbox:checked"
+      );
       var deleteSelectedBtn = jQuery("#modern-notifications-delete-selected");
-      if (checkedBoxes.length > 0) {
+      var n = checkedBoxes.length;
+      if (n > 0) {
         deleteSelectedBtn.addClass("is-visible").removeAttr("style");
+        var label = deleteSelectedBtn.find(
+          ".modern-notifications-action-label"
+        );
+        if (label.length) {
+          var base = label.attr("data-base-label") || "Xóa";
+          label.text(base + " (" + n + ")");
+        }
       } else {
         deleteSelectedBtn.removeClass("is-visible").removeAttr("style");
+        var labelOff = deleteSelectedBtn.find(
+          ".modern-notifications-action-label"
+        );
+        if (labelOff.length) {
+          labelOff.text(labelOff.attr("data-base-label") || "Xóa");
+        }
       }
     },
 
     deleteSelectedNotifications: function () {
       var self = this;
-      var checkedBoxes = jQuery(".modern-notification-checkbox:checked");
+      var checkedBoxes = jQuery(
+        "#modern-notifications-items .modern-notification-checkbox:checked"
+      );
       if (checkedBoxes.length === 0) {
         return;
       }
 
       var notificationIds = [];
       checkedBoxes.each(function () {
-        notificationIds.push(parseInt(this.value));
+        notificationIds.push(String(this.value));
       });
 
       var url = "index.php?module=Vtiger&action=DeleteNotification";
@@ -1030,6 +1210,8 @@
             for (var i = 0; i < notificationIds.length; i++) {
               delete self.selectedIds[String(notificationIds[i])];
             }
+            self.forceNextRender = true;
+            self.lastListSignature = "";
             // Reload combined list
             self.loadAllNotifications();
             self.updateDeleteButtonState();
@@ -1068,6 +1250,8 @@
         success: function (response) {
           if (response && response.success) {
             self.selectedIds = {};
+            self.forceNextRender = true;
+            self.lastListSignature = "";
             // Reload combined list
             self.loadAllNotifications();
             self.updateDeleteButtonState();
@@ -1099,6 +1283,8 @@
       this.previousIds = [];
       this.selectedIds = {};
       this.isFirstLoad = true;
+      this.lastListSignature = "";
+      this.forceNextRender = false;
     },
   };
 

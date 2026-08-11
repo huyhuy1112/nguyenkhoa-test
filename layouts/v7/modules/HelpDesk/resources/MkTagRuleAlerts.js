@@ -89,9 +89,9 @@
 
 			var cards = alerts.map(function (a) {
 				var isCskh = a.alert_type === 'cskh' || (a.rule && a.rule.id === 'rule-cskh');
-				var overdue = Math.max(0, (a.days_idle || 0) - (a.rule.alert_days || 0));
+				var overdue = Math.max(0, (a.days_idle || 0) - ((a.rule && a.rule.alert_days) || 0));
 				var severe = isCskh ? (a.days_idle || 0) >= (cskhDays + 7) : overdue >= 7;
-				var tagHtml = (a.rule.tag_ids || []).map(function (tid) {
+				var tagHtml = ((a.rule && a.rule.tag_ids) || []).map(function (tid) {
 					return chip(tagById[tid] ? tagById[tid].name : tid);
 				}).join('');
 				if (!tagHtml && a.tags && a.tags.length) {
@@ -100,12 +100,16 @@
 				var badgeLabel = isCskh
 					? 'Cần CSKH'
 					: ('Trễ ' + overdue + ' ngày');
+				var detailUrl = a.detail_url
+					? a.detail_url
+					: ('index.php?module=Leads&view=Detail&record=' + encodeURIComponent(a.lead_id) + '&app=SALES');
+				var nameHtml = '<a class="mk-tre-alert-card__name-link" href="' + esc(detailUrl) + '">' + esc(a.name) + '</a>';
 				return ''
 					+ '<article class="mk-tre-alert-card' + (isCskh ? ' mk-tre-alert-card--cskh' : (severe ? ' mk-tre-alert-card--severe' : ' mk-tre-alert-card--warn')) + '">'
 					+ '  <div class="mk-tre-alert-card__top">'
 					+ '    <div class="mk-tre-alert-card__who">'
 					+ '      <div class="mk-tre-alert-card__name-row">'
-					+ '        <strong class="mk-tre-alert-card__name">' + esc(a.name) + '</strong>'
+					+ '        <strong class="mk-tre-alert-card__name">' + nameHtml + '</strong>'
 					+ '        <span class="mk-tre-chip">Lead #' + esc(a.lead_id) + '</span>'
 					+ (isCskh ? ' <span class="mk-tre-chip mk-tre-chip--cskh">Cần CSKH</span>' : '')
 					+ '      </div>'
@@ -116,20 +120,21 @@
 					+ '    <span class="mk-tre-alert-badge' + (isCskh ? ' mk-tre-alert-badge--cskh' : (severe ? ' mk-tre-alert-badge--severe' : '')) + '">' + esc(badgeLabel) + '</span>'
 					+ '  </div>'
 					+ '  <div class="mk-tre-alert-card__body">'
-					+ '    <div class="mk-tre-alert-card__status">→ ' + esc(a.rule.status_label) + '</div>'
-					+ (a.rule.next_action || a.next_action
+					+ '    <div class="mk-tre-alert-card__status">→ ' + esc((a.rule && a.rule.status_label) || '') + '</div>'
+					+ (a.rule && (a.rule.next_action || a.next_action)
 						? '<div class="mk-tre-alert-card__action"><span class="mk-tre-muted">Thì → </span>' + esc(a.rule.next_action || a.next_action) + '</div>'
 						: '')
-					+ (a.rule.require_note
+					+ (a.rule && a.rule.require_note
 						? '<div class="mk-tre-alert-card__action"><span class="mk-tre-chip mk-tre-chip--warn">Bắt buộc ghi chú lý do</span></div>'
 						: '')
 					+ (tagHtml ? '    <div class="mk-tre-chips">' + tagHtml + '</div>' : '')
 					+ '  </div>'
 					+ '  <div class="mk-tre-alert-card__actions">'
-					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-alert-done" data-lid="' + esc(a.lead_id) + '" data-rid="' + esc(a.rule.id) + '">Đã xử lý</button>'
-					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-alert-snooze" data-lid="' + esc(a.lead_id) + '" data-rid="' + esc(a.rule.id) + '" data-days="1">Hoãn 1 ngày</button>'
-					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-alert-snooze" data-lid="' + esc(a.lead_id) + '" data-rid="' + esc(a.rule.id) + '" data-days="3">Hoãn 3 ngày</button>'
-					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-alert-snooze" data-lid="' + esc(a.lead_id) + '" data-rid="' + esc(a.rule.id) + '" data-days="7">Hoãn 7 ngày</button>'
+					+ '    <a class="mk-tre-btn mk-tre-btn--ghost" href="' + esc(detailUrl) + '">Mở lead</a>'
+					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-alert-done" data-lid="' + esc(a.lead_id) + '" data-rid="' + esc(a.rule && a.rule.id) + '">Đã xử lý</button>'
+					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-alert-snooze" data-lid="' + esc(a.lead_id) + '" data-rid="' + esc(a.rule && a.rule.id) + '" data-days="1">Hoãn 1 ngày</button>'
+					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-alert-snooze" data-lid="' + esc(a.lead_id) + '" data-rid="' + esc(a.rule && a.rule.id) + '" data-days="3">Hoãn 3 ngày</button>'
+					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-alert-snooze" data-lid="' + esc(a.lead_id) + '" data-rid="' + esc(a.rule && a.rule.id) + '" data-days="7">Hoãn 7 ngày</button>'
 					+ '  </div>'
 					+ '</article>';
 			}).join('');
@@ -140,7 +145,7 @@
 					+ '  <p><strong>Chưa có cảnh báo.</strong></p>'
 					+ '  <p class="mk-tre-muted">Hiện khi: (1) lead khớp rule và idle ≥ <em>alert_days</em> của rule; '
 					+ 'hoặc (2) <strong>Cần CSKH</strong> — không tương tác ≥ <strong>' + cskhDays + ' ngày</strong> '
-					+ '(trừ tag Ngừng chăm sóc / Không tham gia). Lead vừa tạo hôm nay chưa xuất hiện.</p>'
+					+ '(trừ tag Ngừng chăm sóc / Dừng chăm sóc / Không tham gia). Lead vừa tạo hôm nay chưa xuất hiện.</p>'
 					+ (this.loadError ? '<p class="mk-tre-muted">Lỗi tải: ' + esc(this.loadError) + '</p>' : '')
 					+ '</div>';
 			}

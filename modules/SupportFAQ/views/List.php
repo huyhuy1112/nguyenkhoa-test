@@ -43,8 +43,8 @@ class SupportFAQ_List_View extends Vtiger_Index_View {
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js?mk_v=20260714_cskh_alerts1',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleAlerts.js?mk_v=20260714_cskh_alerts1',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js?mk_v=20260811_alerts_fix1',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleAlerts.js?mk_v=20260811_alerts_fix1',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 		return array_merge($headerScriptInstances, $jsScriptInstances);
@@ -54,7 +54,7 @@ class SupportFAQ_List_View extends Vtiger_Index_View {
 		$headerCssInstances = parent::getHeaderCss($request);
 		$cssFileNames = array(
 			'~layouts/v7/modules/SupportFAQ/resources/SupportFAQList.css',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css?mk_v=20260714_cskh_alerts1',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css?mk_v=20260811_alerts_fix1',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 		return array_merge($headerCssInstances, $cssInstances);
