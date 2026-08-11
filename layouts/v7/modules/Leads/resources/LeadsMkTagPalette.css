@@ -319,6 +319,10 @@
 .mk-td-tag-pill[data-tag="tiem_nang"],
 .tag[data-tag="tiem_nang"],
 .mk-lead-detail-tag-chip[data-tag="tiem_nang"],
+.mk-tag[data-tag="sieu_tiem_nang"],
+.mk-td-tag-pill[data-tag="sieu_tiem_nang"],
+.tag[data-tag="sieu_tiem_nang"],
+.mk-lead-detail-tag-chip[data-tag="sieu_tiem_nang"],
 .mk-tag[data-tag="moi_quen"],
 .mk-td-tag-pill[data-tag="moi_quen"],
 .tag[data-tag="moi_quen"],
@@ -329,6 +333,13 @@
 .mk-lead-detail-tag-chip[data-tag="goi_lan_1"] {
     border: 1px solid transparent;
     background: #dbeafe; border-color: #93c5fd; color: #1d4ed8;
+}
+
+.mk-tag[data-tag="sieu_tiem_nang"],
+.mk-td-tag-pill[data-tag="sieu_tiem_nang"],
+.tag[data-tag="sieu_tiem_nang"],
+.mk-lead-detail-tag-chip[data-tag="sieu_tiem_nang"] {
+    background: #fef3c7; border-color: #fcd34d; color: #b45309;
 }
 
 .mk-tag[data-tag="khong_nghe_may"],

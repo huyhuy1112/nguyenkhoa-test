@@ -120,6 +120,7 @@
   TAG_META_RAW["nguyen_lieu_chuoi"] = { vi: "NL chuỗi", en: "Chain supply", cat: "program", cls: "mk-tag--nguyen-lieu-chuoi" };
   TAG_META_RAW["mua_on_dinh"] = { vi: "Mua ổn định", en: "Stable buyer", cat: "purchase", cls: "mk-tag--mua-on-dinh" };
   TAG_META_RAW["tiem_nang"] = { vi: "Tiềm năng", en: "Potential", cat: "other", cls: "mk-tag--tiem-nang" };
+  TAG_META_RAW["sieu_tiem_nang"] = { vi: "Siêu tiềm năng", en: "Super potential", cat: "other", cls: "mk-tag--sieu-tiem-nang" };
   TAG_META_RAW["dang_cham_soc"] = { vi: "Đang chăm sóc", en: "In care", cat: "other", cls: "mk-tag--dang-cham-soc" };
   TAG_META_RAW["dang_tu_van"] = { vi: "Đang tư vấn", en: "Consulting", cat: "other", cls: "mk-tag--dang-tu-van" };
   TAG_META_RAW["kh_can_nhac"] = { vi: "KH cân nhắc", en: "Considering", cat: "other", cls: "mk-tag--kh-can-nhac" };
@@ -234,6 +235,7 @@
     { id: "chain", nameVi: "Khách chuỗi (PCTH)", nameEn: "Chain (PCTH)", filters: { program: "pcth" } },
     { id: "franchise", nameVi: "Khách nhượng quyền", nameEn: "Franchise", filters: { program: "nhuong_quyen" } },
     { id: "cskh", nameVi: "Khách cần CSKH", nameEn: "Needs care", filters: { staleOnly: true } },
+    { id: "phone_dup", nameVi: "Trùng SĐT", nameEn: "Duplicate phone", filters: { phoneDupOnly: true } },
   ];
 
   var SEGMENT_LABELS_RAW = {

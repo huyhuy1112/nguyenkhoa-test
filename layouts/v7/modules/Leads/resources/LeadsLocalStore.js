@@ -59,6 +59,12 @@
         notes: "",
         companyName: "",
         segment: "",
+        screening_result: "",
+        screening_label: "",
+        sheet_source: 0,
+        phone_dup: false,
+        phone_dup_count: 1,
+        qa_raw: null,
       },
       lead,
     );
@@ -98,26 +104,8 @@
       _bootstrapped = true;
       return _memLeads;
     }).then(function () {
-      var dedupeKey = "mk_leads_deduped_v3";
-      if (read(dedupeKey, false)) {
-        return _memLeads;
-      }
-      return apiRequest("dedupe_leads", { apply: 1 }).then(function (dedupeRes) {
-        write(dedupeKey, true);
-        if (dedupeRes && dedupeRes.deleted > 0) {
-          return apiRequest("list").then(function (res2) {
-            _memLeads = dedupeLeadsByCrmid((res2.leads || []).map(normalizeLead));
-            if (Array.isArray(res2.assignable_users)) {
-              _assignableUsers = res2.assignable_users.slice();
-            }
-            return _memLeads;
-          });
-        }
-        return _memLeads;
-      }).catch(function () {
-        write(dedupeKey, true);
-        return _memLeads;
-      });
+      // Auto phone-dedupe disabled: Sheet import may create intentional duplicates.
+      return _memLeads;
     }).then(function () {
       return apiRequest("segments_list").then(function (segRes) {
         _memSegments = segRes.segments || [];
@@ -419,6 +407,73 @@
     return Promise.resolve();
   }
 
+  function listTrash() {
+    if (!useApi()) return Promise.resolve([]);
+    return apiRequest("list_trash").then(function (res) {
+      return (res.leads || []).map(normalizeLead);
+    });
+  }
+
+  function restoreLead(id) {
+    if (!useApi()) return Promise.resolve(null);
+    return apiRequest("restore_lead", { id: id }).then(function (res) {
+      if (res.lead) upsertMemLead(res.lead);
+      return res.lead ? normalizeLead(res.lead) : null;
+    });
+  }
+
+  function purgeLead(id) {
+    if (!useApi()) return Promise.resolve();
+    return apiRequest("purge_lead", { id: id });
+  }
+
+  function mergeLeads(keeperId, discardId) {
+    if (!useApi()) return Promise.resolve(null);
+    return apiRequest("merge_leads", {
+      payload: JSON.stringify({ keeper_id: keeperId, discard_id: discardId }),
+    }).then(function (res) {
+      if (_memLeads) {
+        _memLeads = _memLeads.filter(function (l) {
+          return !matchLeadId(l, discardId);
+        });
+      }
+      if (res.lead) upsertMemLead(res.lead);
+      return res.lead ? normalizeLead(res.lead) : null;
+    }).then(function (lead) {
+      return refreshLeadsList().then(function () {
+        return lead;
+      });
+    });
+  }
+
+  function getSheetSettings() {
+    if (!useApi()) return Promise.resolve(null);
+    return apiRequest("sheet_settings_get").then(function (res) {
+      return res.settings || null;
+    });
+  }
+
+  function saveSheetSettings(settings) {
+    if (!useApi()) return Promise.resolve(null);
+    return apiRequest("sheet_settings_save", {
+      payload: JSON.stringify(settings || {}),
+    }).then(function (res) {
+      return res.settings || null;
+    });
+  }
+
+  function pollSheetNow() {
+    if (!useApi()) return Promise.resolve({});
+    return apiRequest("sheet_poll_now").then(function (res) {
+      return res;
+    });
+  }
+
+  function sheetPollStatus() {
+    if (!useApi()) return Promise.resolve({});
+    return apiRequest("sheet_poll_status");
+  }
+
   function getSegments() {
     if (useApi()) {
       return _memSegments ? _memSegments.slice() : [];
@@ -487,6 +542,14 @@
     update: update,
     syncCalendarTasks: syncCalendarTasks,
     remove: remove,
+    listTrash: listTrash,
+    restoreLead: restoreLead,
+    purgeLead: purgeLead,
+    mergeLeads: mergeLeads,
+    getSheetSettings: getSheetSettings,
+    saveSheetSettings: saveSheetSettings,
+    pollSheetNow: pollSheetNow,
+    sheetPollStatus: sheetPollStatus,
     getSegments: getSegments,
     saveSegments: saveSegments,
     resetDemo: resetDemo,

@@ -26,7 +26,12 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string)$request->get('mode'));
-		if (in_array($mode, array('save', 'save_next_action', 'save_inline_category_tags', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner', 'dedupe_leads', 'last_touch_call_log'), true)) {
+		if (in_array($mode, array(
+			'save', 'save_next_action', 'save_inline_category_tags', 'delete', 'segments_save', 'seed',
+			'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner',
+			'dedupe_leads', 'last_touch_call_log',
+			'sheet_settings_save', 'sheet_poll_now', 'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
+		), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -197,8 +202,117 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					if ($id === null || $id === '') {
 						$id = $request->get('record');
 					}
-					Leads_ModernService::deleteLead($id);
+					$purge = (bool)$request->get('purge');
+					if ($purge) {
+						Leads_ModernService::purgeLead($id);
+					} else {
+						Leads_ModernService::softDeleteLead($id);
+					}
 					$response->setResult(array('success' => true));
+					break;
+
+				case 'soft_delete':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					Leads_ModernService::softDeleteLead($id);
+					$response->setResult(array('success' => true));
+					break;
+
+				case 'restore_lead':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					Leads_ModernService::restoreLead($id);
+					$response->setResult(array(
+						'success' => true,
+						'lead' => Leads_ModernService::getLead($id, $userId),
+					));
+					break;
+
+				case 'purge_lead':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					Leads_ModernService::purgeLead($id);
+					$response->setResult(array('success' => true));
+					break;
+
+				case 'list_trash':
+					$response->setResult(array(
+						'success' => true,
+						'leads' => Leads_ModernService::listTrashLeads($userId),
+					));
+					break;
+
+				case 'merge_leads':
+					$payload = $this->decodePayload($request);
+					$keeper = isset($payload['keeper_id']) ? $payload['keeper_id'] : $request->get('keeper_id');
+					$discard = isset($payload['discard_id']) ? $payload['discard_id'] : $request->get('discard_id');
+					$lead = Leads_ModernService::mergeLeads($keeper, $discard, $userId);
+					$response->setResult(array('success' => true, 'lead' => $lead));
+					break;
+
+				case 'sheet_settings_get':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					if (!is_admin($current_user)) {
+						throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+					}
+					// Never return private_key / full SA JSON to browser
+					$settings = Leads_SheetImportService::getSettingsForAdmin();
+					$response->setResult(array('success' => true, 'settings' => $settings));
+					break;
+
+				case 'sheet_settings_save':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					if (!is_admin($current_user)) {
+						throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+					}
+					$payload = $this->decodePayload($request);
+					Leads_SheetImportService::saveSettings($payload, $userId);
+					Leads_SheetImportService::registerCron();
+					$response->setResult(array(
+						'success' => true,
+						'settings' => Leads_SheetImportService::getSettingsForAdmin(),
+					));
+					break;
+
+				case 'sheet_poll_now':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					if (!is_admin($current_user)) {
+						throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+					}
+					$result = Leads_SheetImportService::pollOnce();
+					$response->setResult(array('success' => !empty($result['success'])) + $result);
+					break;
+
+				case 'sheet_poll_status':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					$settings = Leads_SheetImportService::getSettings();
+					$importCount = 0;
+					try {
+						$adb = PearDatabase::getInstance();
+						$cntRes = $adb->pquery(
+							'SELECT COUNT(*) AS c FROM ' . Leads_SheetImportService::TABLE_IMPORT,
+							array()
+						);
+						if ($cntRes && $adb->num_rows($cntRes) > 0) {
+							$importCount = (int) $adb->query_result($cntRes, 0, 'c');
+						}
+					} catch (Exception $e) {
+						$importCount = 0;
+					}
+					$response->setResult(array(
+						'success' => true,
+						'enabled' => !empty($settings['enabled']),
+						'last_poll_at' => $settings['last_poll_at'],
+						'last_error' => $settings['last_error'],
+						'last_result' => $settings['last_result'],
+						'import_count' => $importCount,
+					));
 					break;
 
 				case 'segments_list':

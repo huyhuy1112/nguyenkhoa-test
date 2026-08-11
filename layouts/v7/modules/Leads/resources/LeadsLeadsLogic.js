@@ -73,7 +73,11 @@
   }
 
   var CSKH_ALERT_DAYS = 7;
-  var CSKH_EXCLUDED_TAGS = ["ngung_cham_soc", "khong_xac_nhan_tham_gia"];
+  var CSKH_EXCLUDED_TAGS = [
+    "ngung_cham_soc",
+    "dung_cham_soc",
+    "khong_xac_nhan_tham_gia",
+  ];
 
   function leadExcludedFromCskh(tags) {
     for (var i = 0; i < CSKH_EXCLUDED_TAGS.length; i++) {
