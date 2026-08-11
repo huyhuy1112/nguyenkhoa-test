@@ -464,36 +464,55 @@ body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listVi
 	pointer-events: auto !important;
 }
 
-/* ---- Native table layout: full-width table inside scrollport; no max-content (breaks floatThead / cols) ---- */
+/* ---- Table: fit viewport, less horizontal drag ---- */
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-sc-table,
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table {
 	margin-bottom: 0;
 	width: 100%;
-	min-width: 1230px;
+	min-width: 0;
+	max-width: 100%;
 	box-sizing: border-box;
 	border-collapse: collapse;
 	border-spacing: 0;
-	table-layout: auto;
+	table-layout: fixed;
 	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-}
-
-body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader {
-	background: #f7f9fb !important;
 }
 
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th {
 	box-sizing: border-box;
-	height: 48px;
-	padding: 0 10px;
+	height: 40px;
+	padding: 0 6px;
 	vertical-align: middle;
 	border-bottom: 1px solid #d4c4ad;
 	font-family: 'Space Grotesk', system-ui, sans-serif;
-	font-size: 14px;
+	font-size: 11px;
 	font-weight: 500;
-	letter-spacing: 0.04em;
+	letter-spacing: 0.03em;
 	text-transform: uppercase;
 	color: #40627e !important;
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td {
+	box-sizing: border-box;
+	height: 52px;
+	min-height: 52px;
+	padding: 0 6px;
+	vertical-align: middle;
+	border-bottom: 1px solid #eceef0;
+	font-size: 13px;
+	font-weight: 400;
+	line-height: 1.3;
+	color: #191c1e;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader {
+	background: #f7f9fb !important;
 }
 
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
@@ -502,21 +521,24 @@ body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listVi
 	font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 
-body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td {
-	box-sizing: border-box;
-	height: 64px;
-	min-height: 64px;
-	padding: 0 10px;
-	vertical-align: middle;
-	border-bottom: 1px solid #eceef0;
-	font-size: 15px;
-	font-weight: 400;
-	line-height: 1.35;
-	color: #191c1e;
-}
-
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
 	background: #f0fdf4;
+}
+
+/* Expanded inline row: allow multipanel cell to wrap, not force min table width */
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td .mk-so-inline-detail {
+	max-width: min(780px, 100%);
+	white-space: normal;
+}
+
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td .value,
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td a {
+	display: inline-block;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	vertical-align: middle;
 }
 
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th {
@@ -708,29 +730,36 @@ body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-
 	display: none !important;
 }
 
-/* Row actions column — prevent overlap */
+/* Row actions column — compact */
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr td:first-child,
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr th:first-child {
-	width: 120px;
-	min-width: 120px;
-	max-width: 120px;
+	width: 72px;
+	min-width: 72px;
+	max-width: 72px;
 }
 
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .table-actions {
-	width: 88px;
-	min-width: 88px;
+	width: 64px;
+	min-width: 64px;
 	margin-left: 0;
 }
 
-/* Search row inputs */
+/* Search row inputs — compact filters */
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th {
+	padding: 4px 4px !important;
+}
+
 body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow input.listSearchContributor,
-body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow input[type="text"] {
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow input[type="text"],
+body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow select {
 	width: 100%;
-	min-height: 36px;
-	padding: 6px 10px;
+	max-width: 100%;
+	min-height: 28px;
+	height: 28px;
+	padding: 2px 6px;
 	border: 1px solid #d4c4ad;
-	border-radius: 8px;
-	font-size: 13px;
+	border-radius: 6px;
+	font-size: 12px;
 	box-sizing: border-box;
 	background: #fff;
 }

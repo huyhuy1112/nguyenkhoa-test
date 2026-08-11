@@ -1080,6 +1080,11 @@
 					postData[name] = $el.val();
 				}
 			});
+			// SC materials (notes-style textarea outside field-edit)
+			var $mat = $panel.find(':input[name="interaction_materials"]').first();
+			if ($mat.length) {
+				postData.interaction_materials = $mat.val() || '';
+			}
 			function postRequest(data) {
 				return (typeof app !== 'undefined' && app.request && app.request.post)
 					? app.request.post({ data: data })
@@ -1132,7 +1137,11 @@
 						$view.empty().text(text);
 					}
 					function syncInput(name, val) {
-						$panel.find('.mk-so-inline-detail__field[data-field-name="' + name + '"] :input[name="' + name + '"]').val(val || '');
+						var $in = $panel.find('.mk-so-inline-detail__field[data-field-name="' + name + '"] :input[name="' + name + '"]');
+						if (!$in.length) {
+							$in = $panel.find(':input[name="' + name + '"]');
+						}
+						$in.val(val || '');
 					}
 					syncView('franchise_status', c.franchise_status);
 					syncView('contact_status', c.contact_status);

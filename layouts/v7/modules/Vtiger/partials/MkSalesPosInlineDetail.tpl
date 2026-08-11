@@ -20,9 +20,9 @@
 	</div>
 
 	{if isset($INLINE_INFO_FIELDS) && $INLINE_INFO_FIELDS|@count gt 0}
-		<div class="mk-so-inline-detail__fields{if $MODULE eq 'ServiceContracts'} mk-so-inline-detail__fields--sc-top{/if}">
+		<div class="mk-so-inline-detail__fields">
 			{foreach from=$INLINE_INFO_FIELDS item=INFO_FIELD}
-				<div class="mk-so-inline-detail__field{if $INFO_FIELD.name eq 'business_note'} mk-so-inline-detail__field--wide{/if}" data-field-name="{$INFO_FIELD.name|escape}" data-field-type="{$INFO_FIELD.data_type|default:'string'|escape}" data-editable="{if !empty($INFO_FIELD.editable)}1{else}0{/if}">
+				<div class="mk-so-inline-detail__field" data-field-name="{$INFO_FIELD.name|escape}" data-field-type="{$INFO_FIELD.data_type|default:'string'|escape}" data-editable="{if !empty($INFO_FIELD.editable)}1{else}0{/if}">
 					<label class="mk-so-inline-detail__field-label">{$INFO_FIELD.label|escape}</label>
 					<div class="mk-so-inline-detail__field-view">{$INFO_FIELD.value|escape|nl2br}</div>
 					{if !empty($INFO_FIELD.editable)}
@@ -102,9 +102,6 @@
 		{assign var=LT_MAX value=$LT.max_calls|default:3}
 		{assign var=LT_HINT value=$LT.hint|default:''}
 		{assign var=LT_CALLS value=$LT.calls|default:[]}
-		{if $MODULE eq 'ServiceContracts'}
-			<div class="mk-so-inline-detail__sc-mid">
-		{/if}
 		<div class="mk-so-inline-detail__last-touch"
 			data-role="last-touch"
 			data-record-id="{$RECORD->getId()|escape}"
@@ -147,12 +144,9 @@
 				{/if}
 			</ul>
 		</div>
-		{if $MODULE eq 'ServiceContracts'}
-			</div>
-		{/if}
 	{/if}
 
-	<div class="mk-so-inline-detail__bottom{if $MODULE eq 'ServiceContracts'} mk-so-inline-detail__bottom--sc{elseif !empty($INLINE_SHOW_NEXT_ACTION) || !empty($INLINE_SHOW_CLASS_REG)} mk-so-inline-detail__bottom--split{/if}">
+	<div class="mk-so-inline-detail__bottom{if $MODULE eq 'ServiceContracts' || !empty($INLINE_SHOW_NEXT_ACTION) || !empty($INLINE_SHOW_CLASS_REG)} mk-so-inline-detail__bottom--split{/if}">
 		{if !empty($INLINE_SHOW_CLASS_REG)}
 			{assign var=CLASS_REG value=$INLINE_CLASS_REG|default:[]}
 			<div class="mk-so-inline-detail__notes mk-so-inline-detail__class-reg" data-class-reg="1">
@@ -212,19 +206,17 @@
 		{/if}
 		{if $MODULE eq 'ServiceContracts' && isset($INLINE_SC_MATERIALS) && $INLINE_SC_MATERIALS.name}
 			{assign var=MAT value=$INLINE_SC_MATERIALS}
-			<div class="mk-so-inline-detail__field mk-so-inline-detail__field--materials" data-field-name="{$MAT.name|escape}" data-field-type="text" data-editable="{if !empty($MAT.editable)}1{else}0{/if}">
-				<label class="mk-so-inline-detail__field-label">{$MAT.label|escape}</label>
-				<div class="mk-so-inline-detail__field-view">{$MAT.value|escape|nl2br}</div>
+			<div class="mk-so-inline-detail__notes mk-so-inline-detail__notes--materials" data-field-name="{$MAT.name|escape}" data-field-type="text" data-editable="{if !empty($MAT.editable)}1{else}0{/if}">
+				<label class="mk-so-inline-detail__notes-label" for="mk-crm-inline-mat-{$RECORD->getId()}">{$MAT.label|escape}</label>
+				<div class="mk-so-inline-detail__field-view"{if !empty($MAT.editable)} style="display:none"{/if}>{$MAT.value|escape|nl2br}</div>
 				{if !empty($MAT.editable)}
-					<div class="mk-so-inline-detail__field-edit">
-						<textarea class="mk-so-inline-detail__input mk-so-inline-detail__textarea mk-so-inline-detail__textarea--xl inputElement" name="{$MAT.name|escape}" rows="2">{$MAT.raw_value|escape}</textarea>
-					</div>
+					<textarea id="mk-crm-inline-mat-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input mk-so-inline-detail__input mk-so-inline-detail__textarea inputElement" name="{$MAT.name|escape}" rows="2">{$MAT.raw_value|escape}</textarea>
 				{/if}
 			</div>
 		{/if}
 		<div class="mk-so-inline-detail__notes"{if empty($INLINE_SHOW_NEXT_ACTION) && empty($INLINE_SHOW_CLASS_REG) && $MODULE neq 'ServiceContracts'} style="grid-column: 1 / -1; width: 100%;"{/if}>
 			<label class="mk-so-inline-detail__notes-label" for="mk-crm-inline-note-{$RECORD->getId()}">Ghi chú</label>
-			<textarea id="mk-crm-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="description" rows="{if $MODULE eq 'ServiceContracts'}2{else}2{/if}">{$INLINE_NOTES|escape}</textarea>
+			<textarea id="mk-crm-inline-note-{$RECORD->getId()}" class="mk-so-inline-detail__notes-input inputElement" name="description" rows="2">{$INLINE_NOTES|escape}</textarea>
 		</div>
 	</div>
 
