@@ -235,6 +235,24 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 
 		foreach ($lines as $line) {
 			$itemId = (int) $db->getUniqueID('vtiger_goodsissue_items');
+			$productId = (int) $line['productid'] > 0 ? (int) $line['productid'] : 0;
+			$sku = '';
+			if (!empty($line['sku'])) {
+				$sku = trim((string) $line['sku']);
+			}
+			if ($sku === '' && $productId > 0) {
+				try {
+					$srs = $db->pquery(
+						'SELECT sku FROM vtiger_productsservices WHERE productsservicesid = ? LIMIT 1',
+						array($productId)
+					);
+					if ($srs && $db->num_rows($srs) > 0) {
+						$sku = trim((string) $db->query_result($srs, 0, 'sku'));
+					}
+				} catch (Exception $e) {
+					$sku = '';
+				}
+			}
 			$db->pquery(
 				'INSERT INTO vtiger_goodsissue_items(
 					itemid, issueid, productid, product_name, product_type, quantity, unit_price,
@@ -243,7 +261,7 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 				array(
 					$itemId,
 					$issueId,
-					(int) $line['productid'] > 0 ? (int) $line['productid'] : null,
+					$productId > 0 ? $productId : null,
 					(string) $line['product_name'],
 					'Other',
 					(float) $line['quantity'],
@@ -251,7 +269,8 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 					0,
 					'',
 					(string) $line['comment'],
-					'',
+					// line_note stores SKU so cancel-restore matches deduct keys
+					$sku,
 				)
 			);
 		}

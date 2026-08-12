@@ -554,12 +554,12 @@ body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	padding: 6px;
+	padding: 0;
 	margin: 0;
-	border: 1px solid #e2e8f0;
-	border-radius: 14px;
-	background: #ffffff;
-	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+	border: none;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn,
@@ -570,23 +570,29 @@ body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk
 	align-items: center;
 	justify-content: center;
 	gap: 6px;
-	min-width: 40px;
-	height: 40px;
-	padding: 0 14px !important;
-	border-radius: 10px !important;
+	min-width: 0;
+	height: auto;
+	padding: 6px 12px !important;
+	border-radius: 8px !important;
 	border: 1px solid #e2e8f0 !important;
 	background: #fff !important;
-	color: #0f172a !important;
+	color: #334155 !important;
 	margin: 0 !important;
 	font-weight: 600;
-	font-size: 13px;
+	font-size: 12px;
+	line-height: 1.2;
 	box-shadow: none !important;
 	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
+body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn .fa,
+body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn .fa {
+	display: none !important;
+}
+
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--nav,
 body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn--nav {
-	min-width: 96px;
+	min-width: 72px;
 	color: #334155 !important;
 }
 
@@ -594,60 +600,26 @@ body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-
 body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn--current,
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination #PageJump,
 body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination #PageJump {
-	min-width: 128px;
-	background: #0f172a !important;
-	border-color: #0f172a !important;
-	color: #fff !important;
+	min-width: 0;
+	padding: 0 8px !important;
+	background: transparent !important;
+	border-color: transparent !important;
+	color: #64748b !important;
 	box-shadow: none !important;
-}
-
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-current {
-	display: inline-flex;
-	align-items: baseline;
-	gap: 4px;
-	font-variant-numeric: tabular-nums;
+	pointer-events: none;
+	cursor: default;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__label,
 body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-current__label {
-	font-size: 11px;
-	font-weight: 600;
-	letter-spacing: 0.02em;
-	text-transform: uppercase;
-	opacity: 0.72;
-}
-
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__total:empty::before,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-current__total:empty::before,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-pagejump-total:empty::before,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-so-pagejump-total:empty::before {
-	content: '…';
-	opacity: 0.75;
-}
-
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:hover:not(:disabled),
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination .mk-ps-page-btn:hover:not(:disabled) {
-	background: #f1f5f9 !important;
-	border-color: #cbd5e1 !important;
-	color: #0f172a !important;
+	display: none !important;
 }
 
 body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--current:hover:not(:disabled),
 body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn--current:hover:not(:disabled) {
-	background: #1e293b !important;
-	border-color: #1e293b !important;
-	color: #fff !important;
-}
-
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:disabled,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn:disabled,
-body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-pagination .mk-ps-page-btn:disabled,
-body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-pagination .mk-ps-page-btn:disabled {
-	opacity: 0.42;
-	cursor: default;
+	background: transparent !important;
+	border-color: transparent !important;
+	color: #64748b !important;
 }
 
 /* ---- Table block: ONE native horizontal scroll on #table-content (see AccountsList.js removes perfectScrollbar) ---- */
@@ -1037,40 +1009,39 @@ body[data-module="ProductsServices"][data-view="List"] #listViewContent:not(.mk-
 	display: none !important;
 }
 
-/* Global quick search bar */
-body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search,
-body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search {
+/* Global quick search bar — Leads-like */
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-search {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
+	gap: 10px;
 	height: 42px;
 	min-height: 42px;
-	padding: 0 14px;
-	border: 1px solid rgba(99, 102, 241, 0.22);
-	border-radius: 12px;
+	padding: 0 12px;
+	border: 1px solid rgba(148, 163, 184, 0.35);
+	border-radius: 10px;
 	background: #ffffff;
 	box-sizing: border-box;
-	box-shadow: 0 2px 8px rgba(67, 56, 202, 0.06);
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 	transition: border-color 0.2s ease, box-shadow 0.2s ease;
-	flex: 1 1 240px;
-	max-width: 420px;
-	min-width: 200px;
+	flex: 0 1 360px;
+	max-width: 360px;
+	min-width: 220px;
+	position: relative;
 }
 
-body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search:focus-within,
-body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search:focus-within {
-	border-color: rgba(8, 160, 69, 0.45);
-	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-search:focus-within {
+	border-color: rgba(8, 160, 69, 0.55);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.14);
 }
 
-body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search__ic,
-body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search__ic {
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-search__ic {
 	color: #64748b;
 	font-size: 14px;
+	flex: 0 0 auto;
 }
 
-body[data-module="ProductsServices"][data-view="List"] #listview-actions input.mk-ps-global-search__input,
-body[data-module="ProductsServices"][data-view="List"] #listview-actions input.mk-so-global-search__input {
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-search__input,
+body[data-module="ProductsServices"][data-view="List"] #listview-actions input#mk-ps-search {
 	width: 100%;
 	border: none !important;
 	outline: none !important;
@@ -1080,35 +1051,104 @@ body[data-module="ProductsServices"][data-view="List"] #listview-actions input.m
 	min-height: 40px !important;
 	font-size: 14px !important;
 	font-family: inherit !important;
-	color: #1e293b !important;
+	color: #0f172a !important;
 	background: transparent !important;
+	flex: 1 1 auto;
+	min-width: 0;
 }
 
-body[data-module="ProductsServices"][data-view="List"] #listview-actions input.mk-ps-global-search__input::placeholder,
-body[data-module="ProductsServices"][data-view="List"] #listview-actions input.mk-so-global-search__input::placeholder {
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-search__input::placeholder {
 	color: #94a3b8;
 }
 
-body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search__clear,
-body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search__clear {
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-search__clear {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 28px;
-	height: 28px;
-	border: none;
+	width: 22px;
+	height: 22px;
+	border: 0;
+	border-radius: 6px;
 	background: transparent;
-	color: #64748b;
-	border-radius: 8px;
-	padding: 0;
+	color: #94a3b8;
 	cursor: pointer;
-	transition: background 0.15s ease, color 0.15s ease;
+	flex: 0 0 auto;
+	padding: 0;
 }
 
-body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-global-search__clear:hover,
-body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-so-global-search__clear:hover {
-	background: #ecfdf3;
-	color: #0b6e4f;
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-search__clear:hover {
+	color: #0f172a;
+	background: #f1f5f9;
+}
+
+body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-search__clear[hidden] {
+	display: none !important;
+}
+
+/* Hide stock Vtiger paging — client pagination owns this */
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-vtiger-paging-hidden {
+	display: none !important;
+}
+
+/* Leads-like client pagination */
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-client-pagination {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px 16px;
+	border-top: 1px solid #e2e8f0;
+	background: #f8fafc;
+	font-size: 12px;
+	color: #64748b;
+	border-radius: 0 0 12px 12px;
+}
+
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-client-pagination__info {
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-client-pagination__btns {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-page-btn {
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	border-radius: 8px;
+	padding: 6px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	color: #0f172a;
+}
+
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-page-btn:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-page-num {
+	padding: 0 8px;
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+	color: #334155;
+}
+
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-empty-cell {
+	text-align: center;
+	padding: 28px 16px !important;
+	color: #64748b;
+	font-size: 14px;
+}
+
+/* hide shared sales search on ProductsServices — List.js owns #mk-ps-search */
+body[data-module="ProductsServices"][data-view="List"] #mk-so-global-search,
+body[data-module="ProductsServices"][data-view="List"] .mk-so-global-search,
+body[data-module="ProductsServices"][data-view="List"] .mk-ps-global-search {
+	display: none !important;
 }
 
 /* Pagination lives below table only (relocated by List.js) */
@@ -1119,7 +1159,7 @@ body[data-module="ProductsServices"][data-view="List"] #listview-actions .mk-ps-
 
 body[data-module="ProductsServices"][data-view="List"] #table-content + .mk-so-filter-row__footer,
 body[data-module="ProductsServices"][data-view="List"] #table-content + .mk-ps-filter-row__footer {
-	display: flex !important;
+	display: none !important; /* client pagination replaces this */
 }
 
 /* Hide layout toggles + noisy mass-action chrome (Leads keeps search only) */
@@ -1433,4 +1473,45 @@ html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listV
 	z-index: 2;
 	-webkit-appearance: none !important;
 	appearance: none !important;
+}
+
+/* Long product name: marquee on hover */
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td[data-name="productsservicesname"] .value,
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td.mk-col-ps-name .value {
+	overflow: hidden !important;
+	max-width: 100%;
+}
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table .mk-marquee {
+	display: inline-block;
+	max-width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	vertical-align: bottom;
+}
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td:hover .mk-marquee,
+body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table .mk-marquee:hover {
+	text-overflow: clip;
+	animation: mk-ps-marquee 7s linear infinite;
+	padding-right: 1.5em;
+}
+@keyframes mk-ps-marquee {
+	0% { transform: translateX(0); }
+	20% { transform: translateX(0); }
+	80% { transform: translateX(calc(-100% + 12ch)); }
+	100% { transform: translateX(calc(-100% + 12ch)); }
+}
+@media (prefers-reduced-motion: reduce) {
+	body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table td:hover .mk-marquee {
+		animation: none;
+		text-overflow: ellipsis;
+	}
+}
+
+
+/* hide shared sales search on ProductsServices — List.js owns #mk-ps-search */
+body[data-module="ProductsServices"] #mk-so-global-search,
+body[data-module="ProductsServices"] .mk-so-global-search,
+body[data-module="ProductsServices"] .mk-so-filter-row__search {
+	display: none !important;
 }

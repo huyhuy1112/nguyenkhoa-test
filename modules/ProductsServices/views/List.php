@@ -134,6 +134,26 @@ class ProductsServices_List_View extends Vtiger_List_View {
 	}
 
 	public function initializeListViewContents(Vtiger_Request $request, Vtiger_Viewer $viewer) {
+		// Never restore session column-search for ProductsServices (conflicts with Leads-style client search).
+		$moduleName = $request->getModule();
+		$cvId = $this->viewName;
+		if (!$cvId) {
+			$customView = new CustomView();
+			$cvId = $customView->getViewId($moduleName);
+			$this->viewName = $cvId;
+		}
+		$listViewSessionKey = $moduleName . '_' . $cvId;
+		if ($this->listViewModel) {
+			$orderParams = $this->listViewModel->getSortParamsSession($listViewSessionKey);
+			if (is_array($orderParams)) {
+				$orderParams['search_params'] = '';
+				$orderParams['search_key'] = '';
+				$orderParams['search_value'] = '';
+				$this->listViewModel->setSortParamsSession($listViewSessionKey, $orderParams);
+			}
+		}
+		$request->set('search_params', array());
+
 		if ($this->listViewModel && method_exists($this->listViewModel, 'forceProductNameColumn')) {
 			$this->listViewModel->forceProductNameColumn();
 		}

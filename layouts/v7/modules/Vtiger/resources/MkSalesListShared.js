@@ -2170,7 +2170,13 @@
 	function shouldUseGlobalQuickSearch() {
 		// Leads list is a bespoke UI (LeadsMkList.js) — don't inject here.
 		var mod = (document.body && document.body.getAttribute('data-module')) || '';
-		if (String(mod).toLowerCase() === 'leads') {
+		var modLc = String(mod).toLowerCase();
+		if (modLc === 'leads') {
+			return false;
+		}
+		// ProductsServices owns its own #mk-ps-global-search (name+SKU). Shared inject
+		// would send empty [] and wipe the filter.
+		if (modLc === 'productsservices') {
 			return false;
 		}
 		if (isSalesOrderSalesPosList()) {

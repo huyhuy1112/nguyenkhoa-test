@@ -1250,13 +1250,18 @@
 			if (item.email && $f.find('[name="mk_customer_email"]').length) {
 				$f.find('[name="mk_customer_email"]').val(item.email);
 			}
+			var scAddr = $.trim(item.address || item.business_note || '');
+			if (scAddr) {
+				applyScAddressToQuoteForm($f, scAddr);
+			}
 			applyQuotePriceChannel('tuibao', {
 				scPrefill: {
 					id: scId,
 					name: label,
 					phone: item.phone || '',
 					email: item.email || '',
-					account_id: accountId
+					account_id: accountId,
+					address: scAddr
 				}
 			});
 		} else if (item.module === 'Contacts') {
@@ -3138,6 +3143,22 @@
 		}
 	}
 
+	function applyScAddressToQuoteForm($f, address) {
+		address = $.trim(address || '');
+		if (!address || !$f || !$f.length) {
+			return;
+		}
+		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.setFormAddresses === 'function') {
+			window.MkInventoryOdooEdit.setFormAddresses($f, address, address, null, null, { force: true });
+		} else {
+			$f.find('[name="bill_street"]').val(address).trigger('change');
+			$f.find('[name="ship_street"]').val(address).trigger('change');
+		}
+		if (window.MkQuoteBa && typeof window.MkQuoteBa.syncAddressRailFromForm === 'function') {
+			window.MkQuoteBa.syncAddressRailFromForm($f);
+		}
+	}
+
 	function applyServiceContractPrefill() {
 		var prefill = window.MK_SC_PREFILL;
 		var $f = $form();
@@ -3216,6 +3237,10 @@
 		}
 		if (prefill.account_id && $f.find('[name="account_id"]').length) {
 			$f.find('[name="account_id"]').val(prefill.account_id);
+		}
+		var scAddress = $.trim(prefill.address || prefill.business_note || '');
+		if (scAddress) {
+			applyScAddressToQuoteForm($f, scAddress);
 		}
 		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.applyInvoiceTierPricing === 'function') {
 			window.MkInventoryOdooEdit.applyInvoiceTierPricing($f, {

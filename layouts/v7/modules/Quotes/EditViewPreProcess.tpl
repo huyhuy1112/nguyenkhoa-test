@@ -5,14 +5,15 @@
 <script type="text/javascript">{literal}
 document.documentElement.classList.add('mk-quote-create-ready', 'mk-inv-odoo-active');
 (function(){var b=document.body;if(b&&!b.getAttribute('data-app')){b.setAttribute('data-app','SALES');}})();
-setTimeout(function(){document.documentElement.classList.add('mk-inv-ui-ready','mk-quote-create-enhanced');}, 1800);
+setTimeout(function(){document.documentElement.classList.add('mk-inv-ui-ready','mk-quote-create-enhanced');}, 220);
 {/literal}</script>
 <style type="text/css">
-	/* Anti-FOUC: hide legacy vtiger form chrome before JS enhances */
-	html.mk-quote-create-ready body[data-module="Quotes"][data-view="Edit"] #mk-dash-split-root,
-	html.mk-quote-create-ready body[data-module="Quotes"][data-view="Edit"] .editViewPageDiv,
-	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) body[data-module="Quotes"][data-view="Edit"] #mk-dash-split-root,
-	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) body[data-module="Quotes"][data-view="Edit"] .editViewPageDiv {
+	/* Anti-FOUC: hide form shell until Odoo enhancer paints (no body attr required) */
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) #mk-dash-split-root,
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) .editViewPageDiv,
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) #mk-dash-split-root,
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) .editViewPageDiv,
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) #mkQtFormHost {
 		opacity: 0 !important;
 		visibility: hidden !important;
 		pointer-events: none !important;
@@ -85,12 +86,12 @@ setTimeout(function(){document.documentElement.classList.add('mk-inv-ui-ready','
 <script type="text/javascript">window.MK_PRODUCT_CATALOG = {$MK_PRODUCT_CATALOG_JSON|default:'[]' nofilter};</script>
 <script type="text/javascript">window.MK_PRICE_CHANNEL = "{$MK_PRICE_CHANNEL|default:'retail'|escape:'javascript'}";</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260603_no_dup_footer" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260810_vnd_price1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260812_addr_money1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260808_franchise_tab1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260810_tier_reprice1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260812_addr_money1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}&mk_v=20260728_quote_addr_merge1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}&mk_v=20260810_tier_reprice1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}&mk_v=20260812_addr_money1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-quote-create="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

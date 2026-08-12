@@ -83,9 +83,9 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 	}
 
 	/**
-	 * List "Tổng cộng" must match inline panel bottom:
-	 * (tiền hàng − CK + thuế + ship + điều chỉnh) − khách đã trả.
-	 * After copy, DB total often equals subtotal (missing tax) — recompute like Detail view.
+	 * List "Tổng cộng" for SALES BA:
+	 * Unit prices already include VAT — do NOT invent +8% tax (that caused 1tr → 1.08tr after quote confirm).
+	 * Prefer DB header total; fall back to line sum − discount + ship + adjustment − paid.
 	 */
 	protected function resolveDisplayGrandTotal(Vtiger_Record_Model $recordModel) {
 		$recordId = (int) $recordModel->getId();
@@ -106,7 +106,6 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 
 		$headerSubTotal = (float) $db->query_result($headerResult, 0, 'subtotal');
 		$headerTotal = (float) $db->query_result($headerResult, 0, 'total');
-		$preTax = (float) $db->query_result($headerResult, 0, 'pre_tax_total');
 		$discount = (float) $db->query_result($headerResult, 0, 'discount_amount');
 		$discountPct = (float) $db->query_result($headerResult, 0, 'discount_percent');
 		$shipping = (float) $db->query_result($headerResult, 0, 's_h_amount');
@@ -122,64 +121,56 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 		);
 		$lineSubTotal = (float) $db->query_result($lineResult, 0, 'line_subtotal');
 
-		$subTotal = $headerSubTotal;
+		$subTotal = $headerSubTotal > 0 ? $headerSubTotal : $lineSubTotal;
 		if ($lineSubTotal > 0) {
 			if ($headerSubTotal <= 0) {
 				$subTotal = $lineSubTotal;
-			} elseif ($lineSubTotal > ($headerSubTotal * 50)) {
-				// Corrupted duplicate lines — keep header.
-				$subTotal = $headerSubTotal;
-			} elseif ($headerSubTotal > ($lineSubTotal * 50)) {
-				$subTotal = $lineSubTotal;
+			} elseif ($lineSubTotal > ($headerSubTotal * 50) || $headerSubTotal > ($lineSubTotal * 50)) {
+				// Prefer the more coherent of the two
+				$subTotal = min($headerSubTotal, $lineSubTotal);
+				if ($subTotal <= 0) {
+					$subTotal = max($headerSubTotal, $lineSubTotal);
+				}
 			} else {
+				// Line sum is BA source of truth for goods value
 				$subTotal = $lineSubTotal;
 			}
 		}
 
-		if ($subTotal <= 0) {
-			if ($headerTotal > 0) {
-				$remaining = $headerTotal - $paid;
-				return $remaining < 0 ? 0.0 : $remaining;
-			}
-			return null;
-		}
-
-		if ($discount <= 0 && $discountPct > 0) {
+		if ($discount <= 0 && $discountPct > 0 && $subTotal > 0) {
 			$discount = $subTotal * $discountPct / 100;
 		}
 
-		$vatPercent = 8.0;
-		$mkVat = (float) $recordModel->get('mk_vat_percent');
-		if ($mkVat > 0 && $mkVat <= 100) {
-			$vatPercent = $mkVat;
-		}
+		$netFromLines = max(0.0, $subTotal - $discount + $shipping + $adjustment);
 
-		$base = $subTotal - $discount + $shipping + $adjustment;
-		$tax = 0.0;
-		if ($preTax > 0 && $headerTotal > $preTax) {
-			$derived = $headerTotal - $preTax;
-			if ($derived <= ($subTotal * 0.5)) {
-				$tax = $derived;
+		// Prefer stored header total (quote→SO writes total after chiết khấu).
+		// Do NOT force grand back to full line sum when header already reflects discount.
+		$grand = $netFromLines;
+		if ($headerTotal > 0) {
+			// Infer %/amount discount missing on old rows: header < goods
+			if ($discount <= 0 && $discountPct <= 0 && $subTotal > 0 && $headerTotal + 0.5 < $subTotal) {
+				$discount = max(0.0, $subTotal + $shipping + $adjustment - $headerTotal);
+				$netFromLines = max(0.0, $subTotal - $discount + $shipping + $adjustment);
+			}
+			$ratio = $headerTotal / max($netFromLines > 0 ? $netFromLines : $subTotal, 1);
+			// Strip invented ~8% VAT on header
+			if ($ratio > 1.05 && $ratio < 1.12 && abs($headerTotal - $netFromLines * 1.08) < max(100, $netFromLines * 0.02)) {
+				$grand = $netFromLines;
+			} elseif ($headerTotal > 0 && ($subTotal <= 0 || $headerTotal <= $subTotal * 1.05 + max(100, $subTotal * 0.02))) {
+				// Accept discounted header even when ratio < 0.85 (e.g. 30% chiết khấu)
+				$grand = $headerTotal;
+			} elseif ($netFromLines > 0) {
+				$grand = $netFromLines;
+			} else {
+				$grand = $headerTotal;
 			}
 		}
-		if ($tax <= 0 && $headerTotal > $base) {
-			$derived = $headerTotal - $base;
-			if ($derived <= ($subTotal * 0.5)) {
-				$tax = $derived;
-			}
-		}
-		// Copy / bad save often stores total == subtotal (no tax). Match inline panel VAT.
-		if ($tax <= 0) {
-			$tax = round(($subTotal - $discount) * $vatPercent / 100);
-		}
-		if ($tax > ($subTotal * 0.5)) {
-			$tax = round(($subTotal - $discount) * $vatPercent / 100);
-		}
 
-		$grand = $base + $tax;
-		// Prefer a sensible stored grand total when it already includes tax.
-		if ($headerTotal > ($subTotal + 1) && $headerTotal <= ($subTotal * 2)) {
+		if ($grand <= 0 && $headerTotal > 0) {
 			$grand = $headerTotal;
+		}
+		if ($grand <= 0) {
+			return null;
 		}
 
 		$remaining = $grand - $paid;

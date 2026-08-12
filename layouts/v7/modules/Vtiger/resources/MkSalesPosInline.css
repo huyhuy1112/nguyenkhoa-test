@@ -238,7 +238,8 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines {
 	width: 100%;
-	min-width: 760px;
+	min-width: 980px;
+	table-layout: fixed;
 	border-collapse: collapse;
 }
 
@@ -259,11 +260,75 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 	font-size: 13px;
 	color: #1e293b;
 	vertical-align: middle;
+	overflow: hidden;
 }
 
+/* Column budget: SKU gets real room; name/note share leftover; money cols stay compact */
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines th:nth-child(1),
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-code {
+	width: 22%;
+	min-width: 168px;
+	max-width: none;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines th:nth-child(2),
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-name {
+	width: 24%;
+	min-width: 140px;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines th:nth-child(3),
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-num:nth-child(3) {
+	width: 8%;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines th:nth-child(4),
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-num:nth-child(4) {
+	width: 11%;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines th:nth-child(5),
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-num:nth-child(5),
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-disc {
+	width: 9%;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines th:nth-child(6),
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-total {
+	width: 12%;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines th.is-note,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-note {
+	width: 14%;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-code,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-code a {
+	display: block;
+	max-width: 100%;
+	overflow: hidden;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	white-space: normal;
+	line-height: 1.35;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines td.is-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Long money values: keep right-aligned tabular nums, no wrap-jank */
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines .is-num {
 	text-align: right;
 	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines .is-total {
+	font-weight: 700;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines .is-code a {
@@ -272,8 +337,13 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 	text-decoration: none;
 }
 
-body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__lines .is-total {
-	font-weight: 700;
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__totals .mk-so-inline-detail__total-value,
+body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__totals .mk-so-inline-detail__grand-input {
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+	min-width: 120px;
+	max-width: 100%;
+	box-sizing: border-box;
 }
 
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__empty-lines {

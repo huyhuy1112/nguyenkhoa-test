@@ -171,6 +171,13 @@ class Quotes_QuoteBaService_Helper {
 			array($scId, $quoteId)
 		);
 
+		// Enrich customer fields so list/display keep the franchise name + phone.
+		try {
+			self::syncQuoteCustomerFromServiceContract($quoteId, $scId);
+		} catch (Exception $e) {
+			// non-fatal
+		}
+
 		// Related list both ways when missing.
 		try {
 			$rel = $db->pquery(
@@ -189,6 +196,90 @@ class Quotes_QuoteBaService_Helper {
 			// Relation table shape may differ — ignore.
 		}
 		return true;
+	}
+
+	/**
+	 * Fill subject / account / phone / email from franchise SC when quote lacks contact.
+	 *
+	 * @param int $quoteId
+	 * @param int $scId
+	 * @return void
+	 */
+	public static function syncQuoteCustomerFromServiceContract($quoteId, $scId) {
+		$quoteId = (int) $quoteId;
+		$scId = (int) $scId;
+		if ($quoteId <= 0 || $scId <= 0) {
+			return;
+		}
+		$db = PearDatabase::getInstance();
+		$scRes = $db->pquery(
+			'SELECT sc.subject, sc.sc_related_to, acc.accountname
+			 FROM vtiger_servicecontracts sc
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
+			 LEFT JOIN vtiger_account acc ON acc.accountid = sc.sc_related_to
+			 WHERE sc.servicecontractsid = ?',
+			array($scId)
+		);
+		if (!$scRes || !$db->num_rows($scRes)) {
+			return;
+		}
+		$subject = trim(html_entity_decode((string) $db->query_result($scRes, 0, 'subject'), ENT_QUOTES, 'UTF-8'));
+		$accountId = (int) $db->query_result($scRes, 0, 'sc_related_to');
+		$accountName = trim(html_entity_decode((string) $db->query_result($scRes, 0, 'accountname'), ENT_QUOTES, 'UTF-8'));
+		$label = $subject !== '' ? $subject : $accountName;
+
+		$phone = '';
+		$email = '';
+		try {
+			$pRes = $db->pquery(
+				'SELECT phone, email FROM bace_sc_profile WHERE servicecontractsid = ?',
+				array($scId)
+			);
+			if ($pRes && $db->num_rows($pRes) > 0) {
+				$phone = trim(html_entity_decode((string) $db->query_result($pRes, 0, 'phone'), ENT_QUOTES, 'UTF-8'));
+				$email = trim(html_entity_decode((string) $db->query_result($pRes, 0, 'email'), ENT_QUOTES, 'UTF-8'));
+			}
+		} catch (Exception $e) {
+			// profile table optional
+		}
+
+		$qRes = $db->pquery(
+			'SELECT subject, accountid FROM vtiger_quotes WHERE quoteid = ?',
+			array($quoteId)
+		);
+		if (!$qRes || !$db->num_rows($qRes)) {
+			return;
+		}
+		$curSubject = trim(html_entity_decode((string) $db->query_result($qRes, 0, 'subject'), ENT_QUOTES, 'UTF-8'));
+		$curAccount = (int) $db->query_result($qRes, 0, 'accountid');
+
+		if (($curSubject === '' || preg_match('/^\.+$/', $curSubject)) && $label !== '') {
+			$db->pquery('UPDATE vtiger_quotes SET subject = ? WHERE quoteid = ?', array($label, $quoteId));
+		}
+		if ($curAccount <= 0 && $accountId > 0) {
+			$db->pquery('UPDATE vtiger_quotes SET accountid = ? WHERE quoteid = ? AND (accountid IS NULL OR accountid = 0)', array($accountId, $quoteId));
+		}
+
+		// Optional BA phone/email columns
+		foreach (array(
+			'mk_customer_phone' => $phone,
+			'mk_customer_email' => $email,
+		) as $col => $val) {
+			if ($val === '') {
+				continue;
+			}
+			try {
+				$chk = $db->pquery('SHOW COLUMNS FROM vtiger_quotes LIKE ?', array($col));
+				if ($chk && $db->num_rows($chk) > 0) {
+					$db->pquery(
+						'UPDATE vtiger_quotes SET `' . $col . '` = ? WHERE quoteid = ? AND (`' . $col . '` IS NULL OR `' . $col . '` = \'\')',
+						array($val, $quoteId)
+					);
+				}
+			} catch (Exception $e) {
+				// ignore
+			}
+		}
 	}
 
 	public static function getCompanyProfile() {

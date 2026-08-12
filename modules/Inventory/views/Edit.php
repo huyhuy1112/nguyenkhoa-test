@@ -308,7 +308,7 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 		$db = PearDatabase::getInstance();
 		$rs = $db->pquery(
 			"SELECT sc.servicecontractsid, sc.subject, sc.sc_related_to,
-			        p.phone, p.email
+			        p.phone, p.email, p.business_note, p.address_line
 			 FROM vtiger_servicecontracts sc
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
 			 LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid
@@ -323,6 +323,10 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 		$accountId = (int) $db->query_result($rs, 0, 'sc_related_to');
 		$phone = decode_html((string) $db->query_result($rs, 0, 'phone'));
 		$email = decode_html((string) $db->query_result($rs, 0, 'email'));
+		$businessNote = trim(decode_html((string) $db->query_result($rs, 0, 'business_note')));
+		$addressLine = trim(decode_html((string) $db->query_result($rs, 0, 'address_line')));
+		// Địa chỉ kinh doanh (business_note) — fallback address_line.
+		$address = $businessNote !== '' ? $businessNote : $addressLine;
 
 		if ($name !== '') {
 			$recordModel->set('subject', $name);
@@ -336,6 +340,14 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 		if ($email !== '' && $recordModel->getModule()->getField('mk_customer_email')) {
 			$recordModel->set('mk_customer_email', $email);
 		}
+		if ($address !== '') {
+			if ($recordModel->getModule()->getField('bill_street')) {
+				$recordModel->set('bill_street', $address);
+			}
+			if ($recordModel->getModule()->getField('ship_street')) {
+				$recordModel->set('ship_street', $address);
+			}
+		}
 		if ($viewer) {
 			$prefill = array(
 				'id' => $serviceContractId,
@@ -343,6 +355,8 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 				'phone' => $phone,
 				'email' => $email,
 				'account_id' => $accountId,
+				'address' => $address,
+				'business_note' => $businessNote,
 			);
 			$viewer->assign('MK_SC_PREFILL', $prefill);
 			$viewer->assign('MK_SC_PREFILL_JSON', Zend_Json::encode($prefill));

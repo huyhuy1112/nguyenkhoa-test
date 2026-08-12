@@ -2352,7 +2352,8 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines {
 	width: 100%;
-	min-width: 720px;
+	min-width: 980px;
+	table-layout: fixed;
 	border-collapse: collapse;
 }
 
@@ -2373,11 +2374,38 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 	font-size: 13px;
 	color: #1e293b;
 	vertical-align: middle;
+	overflow: hidden;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines th:nth-child(1),
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-code {
+	width: 22%;
+	min-width: 168px;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines th:nth-child(2),
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-name {
+	width: 24%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-code,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-code a {
+	display: block;
+	max-width: 100%;
+	overflow: hidden;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	white-space: normal;
+	line-height: 1.35;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines .is-num {
 	text-align: right;
 	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines .is-code a {

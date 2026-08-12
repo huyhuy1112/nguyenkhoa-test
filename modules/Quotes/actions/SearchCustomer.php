@@ -102,15 +102,15 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 		$hasProfile = $this->hasBaceScProfile($adb);
 		$columns = array('sc.subject', 'sc.contract_no', 'acc.accountname');
 		if ($hasProfile) {
-			$columns = array_merge($columns, array('p.phone', 'p.email', 'p.affiliate_code'));
+			$columns = array_merge($columns, array('p.phone', 'p.email', 'p.affiliate_code', 'p.business_note', 'p.address_line'));
 		}
 		list($where, $params) = $this->buildLikeClause($adb, $q, $columns);
 		$profileJoin = $hasProfile
 			? 'LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid'
 			: '';
 		$profileSelect = $hasProfile
-			? ', p.phone, p.email, p.affiliate_code'
-			: ', NULL AS phone, NULL AS email, NULL AS affiliate_code';
+			? ', p.phone, p.email, p.affiliate_code, p.business_note, p.address_line'
+			: ', NULL AS phone, NULL AS email, NULL AS affiliate_code, NULL AS business_note, NULL AS address_line';
 		$sql = "SELECT sc.servicecontractsid, sc.subject, sc.contract_no, sc.sc_related_to,
 				acc.accountname{$profileSelect}
 			FROM vtiger_servicecontracts sc
@@ -134,6 +134,9 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			$phone = decode_html((string) $adb->query_result($res, $i, 'phone'));
 			$email = decode_html((string) $adb->query_result($res, $i, 'email'));
 			$code = decode_html((string) $adb->query_result($res, $i, 'affiliate_code'));
+			$businessNote = trim(decode_html((string) $adb->query_result($res, $i, 'business_note')));
+			$addressLine = trim(decode_html((string) $adb->query_result($res, $i, 'address_line')));
+			$address = $businessNote !== '' ? $businessNote : $addressLine;
 			$label = $subject !== '' ? $subject : ($account !== '' ? $account : ('#' . $id));
 			$parts = array_filter(array($code, $contractNo, $account, $phone, $email));
 			$rows[] = array(
@@ -145,6 +148,8 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 				'phone' => $phone,
 				'email' => $email,
 				'extra' => $account,
+				'address' => $address,
+				'business_note' => $businessNote,
 				'contact_id' => 0,
 				'potential_id' => 0,
 				'lead_id' => 0,

@@ -32,7 +32,6 @@ class ProductsServices_ListView_Model extends Vtiger_ListView_Model {
 			return false;
 		}
 		$fields = self::CANONICAL_HEADERS;
-		// Load needs_qc for row-action toggle (not displayed as a list column).
 		$module = $this->getModule();
 		if ($module && Vtiger_Field_Model::getInstance('needs_qc', $module)) {
 			if (!in_array('needs_qc', $fields, true)) {
@@ -95,5 +94,10 @@ class ProductsServices_ListView_Model extends Vtiger_ListView_Model {
 	public function getListViewEntries($pagingModel) {
 		$this->forceProductNameColumn();
 		return parent::getListViewEntries($pagingModel);
+	}
+
+	public function getListViewCount() {
+		$this->forceProductNameColumn();
+		return parent::getListViewCount();
 	}
 }

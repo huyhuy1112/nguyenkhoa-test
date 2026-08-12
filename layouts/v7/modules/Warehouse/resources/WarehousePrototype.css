@@ -1255,7 +1255,7 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	font-weight: 800;
 }
 
-/* Bộ lọc tồn kho — BA: HSD, tên SP (A-Z/Z-A), giá */
+/* Bộ lọc tồn kho — HSD, search (Leads-style), giá */
 .mk-wh-proto-filters {
 	margin: 0 0 12px;
 	padding: 12px 14px;
@@ -1280,6 +1280,12 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	max-width: 220px;
 }
 
+.mk-wh-proto-filter--search {
+	flex: 1 1 280px;
+	max-width: min(360px, 100%);
+	min-width: 220px;
+}
+
 .mk-wh-proto-filter__label {
 	font-size: 11px;
 	font-weight: 700;
@@ -1298,6 +1304,67 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	color: #0f172a;
 	background: #fff;
 	box-sizing: border-box;
+}
+
+/* Leads-style search bar */
+.mk-wh-stock-search {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 9px 12px;
+	width: 100%;
+	border: 1px solid rgba(148, 163, 184, 0.35);
+	background: #ffffff;
+	border-radius: 10px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	box-sizing: border-box;
+}
+
+.mk-wh-stock-search:focus-within {
+	border-color: rgba(59, 130, 246, 0.55);
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.mk-wh-stock-search__ic {
+	color: #64748b;
+	display: inline-flex;
+	flex: 0 0 auto;
+	font-size: 13px;
+}
+
+.mk-wh-stock-search__input {
+	border: none;
+	outline: none;
+	width: 100%;
+	min-width: 0;
+	font-size: 14px;
+	font-weight: 500;
+	color: #0f172a;
+	background: transparent;
+}
+
+.mk-wh-stock-search__input::placeholder {
+	color: #94a3b8;
+	font-weight: 500;
+}
+
+.mk-wh-stock-search__clear {
+	flex: 0 0 auto;
+	border: none;
+	background: transparent;
+	color: #94a3b8;
+	cursor: pointer;
+	font-size: 18px;
+	line-height: 1;
+	padding: 0 2px;
+}
+
+.mk-wh-stock-search__clear:hover {
+	color: #475569;
+}
+
+.mk-wh-stock-search__clear[hidden] {
+	display: none !important;
 }
 
 .mk-wh-proto-filter-reset {

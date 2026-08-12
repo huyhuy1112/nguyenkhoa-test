@@ -35,7 +35,8 @@ class Vtiger_MkSalesCustomerName_Helper {
 	}
 
 	/**
-	 * List view uses account_id column slot for customer — show contact name only.
+	 * List view uses account_id column slot for customer.
+	 * Prefer contact name; fall back to quote subject / Account / SC (franchise).
 	 *
 	 * @param Vtiger_Record_Model $recordModel
 	 * @return Vtiger_Record_Model
@@ -43,6 +44,9 @@ class Vtiger_MkSalesCustomerName_Helper {
 	public static function applyListCustomerColumn(Vtiger_Record_Model $recordModel) {
 		$beforeContactId = self::extractRawId($recordModel, array('contact_id', 'contactid'));
 		$name = self::resolveContactDisplayName($recordModel);
+		if ($name === '') {
+			$name = self::resolveAlternateCustomerName($recordModel);
+		}
 		$display = $name !== '' ? $name : '--';
 		// Plain text for list cell (strip any previous reference HTML).
 		$recordModel->set('account_id', $display);
@@ -56,6 +60,183 @@ class Vtiger_MkSalesCustomerName_Helper {
 		}
 
 		return $recordModel;
+	}
+
+	/**
+	 * Franchise / empty-contact quotes: subject, Account, or linked ServiceContract name.
+	 *
+	 * @param Vtiger_Record_Model $recordModel
+	 * @return string
+	 */
+	public static function resolveAlternateCustomerName(Vtiger_Record_Model $recordModel) {
+		// Prefer real customer entities (SC / Account) over free-text subject.
+		$scCandidates = array();
+		$accountCandidates = array();
+		$subjectCandidates = array();
+
+		$subject = self::cleanDisplayLabel($recordModel->get('subject'));
+		if ($subject !== '') {
+			$subjectCandidates[] = $subject;
+		}
+
+		// Raw fields from DB when list layer already transformed values.
+		$recordId = (int) $recordModel->getId();
+		$moduleName = method_exists($recordModel, 'getModuleName') ? (string) $recordModel->getModuleName() : '';
+		if ($recordId > 0 && ($moduleName === 'Quotes' || $moduleName === 'SalesOrder')) {
+			try {
+				$db = PearDatabase::getInstance();
+				if ($moduleName === 'Quotes') {
+					$scIdEarly = self::loadQuoteServiceContractId($recordId);
+					if ($scIdEarly > 0) {
+						$scName = self::readServiceContractCustomerLabel($scIdEarly);
+						if ($scName !== '') {
+							$scCandidates[] = $scName;
+						}
+					}
+					$rs = $db->pquery(
+						'SELECT q.subject, q.accountid FROM vtiger_quotes q WHERE q.quoteid = ?',
+						array($recordId)
+					);
+				} else {
+					$rs = $db->pquery(
+						'SELECT so.subject, so.accountid FROM vtiger_salesorder so WHERE so.salesorderid = ?',
+						array($recordId)
+					);
+				}
+				if ($rs && $db->num_rows($rs) > 0) {
+					$dbSubject = self::cleanDisplayLabel($db->query_result($rs, 0, 'subject'));
+					if ($dbSubject !== '') {
+						$subjectCandidates[] = $dbSubject;
+					}
+					$accountId = (int) $db->query_result($rs, 0, 'accountid');
+					if ($accountId > 0) {
+						$accName = self::readAccountNameById($accountId);
+						if ($accName !== '') {
+							$accountCandidates[] = $accName;
+						}
+					}
+				}
+			} catch (Exception $e) {
+				// ignore
+			}
+		}
+
+		$refs = self::resolveRecordRefs($recordModel);
+		if (!empty($refs['account_id'])) {
+			$accName = self::readAccountNameById((int) $refs['account_id']);
+			if ($accName !== '') {
+				$accountCandidates[] = $accName;
+			}
+		}
+
+		foreach (array_merge($scCandidates, $accountCandidates, $subjectCandidates) as $c) {
+			if ($c !== '' && $c !== '--' && $c !== '—') {
+				return $c;
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * @param int $accountId
+	 * @return string
+	 */
+	public static function readAccountNameById($accountId) {
+		$accountId = (int) $accountId;
+		if ($accountId <= 0) {
+			return '';
+		}
+		try {
+			$db = PearDatabase::getInstance();
+			$rs = $db->pquery(
+				'SELECT a.accountname FROM vtiger_account a
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.accountid AND ce.deleted = 0
+				 WHERE a.accountid = ?',
+				array($accountId)
+			);
+			if ($rs && $db->num_rows($rs) > 0) {
+				return self::cleanDisplayLabel($db->query_result($rs, 0, 'accountname'));
+			}
+		} catch (Exception $e) {
+			return '';
+		}
+		return '';
+	}
+
+	/**
+	 * @param int $scId
+	 * @return string
+	 */
+	public static function readServiceContractCustomerLabel($scId) {
+		$scId = (int) $scId;
+		if ($scId <= 0) {
+			return '';
+		}
+		try {
+			$db = PearDatabase::getInstance();
+			$rs = $db->pquery(
+				'SELECT sc.subject, acc.accountname
+				 FROM vtiger_servicecontracts sc
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
+				 LEFT JOIN vtiger_account acc ON acc.accountid = sc.sc_related_to
+				 WHERE sc.servicecontractsid = ?',
+				array($scId)
+			);
+			if ($rs && $db->num_rows($rs) > 0) {
+				$subject = self::cleanDisplayLabel($db->query_result($rs, 0, 'subject'));
+				if ($subject !== '') {
+					return $subject;
+				}
+				return self::cleanDisplayLabel($db->query_result($rs, 0, 'accountname'));
+			}
+		} catch (Exception $e) {
+			return '';
+		}
+		return '';
+	}
+
+	/**
+	 * @param int $quoteId
+	 * @return int
+	 */
+	protected static function loadQuoteServiceContractId($quoteId) {
+		$quoteId = (int) $quoteId;
+		if ($quoteId <= 0) {
+			return 0;
+		}
+		try {
+			$db = PearDatabase::getInstance();
+			$chk = $db->pquery('SHOW COLUMNS FROM vtiger_quotes LIKE ?', array('mk_servicecontract_id'));
+			if (!$chk || !$db->num_rows($chk)) {
+				return 0;
+			}
+			$rs = $db->pquery(
+				'SELECT mk_servicecontract_id FROM vtiger_quotes WHERE quoteid = ?',
+				array($quoteId)
+			);
+			if ($rs && $db->num_rows($rs) > 0) {
+				return (int) $db->query_result($rs, 0, 'mk_servicecontract_id');
+			}
+		} catch (Exception $e) {
+			return 0;
+		}
+		return 0;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return string
+	 */
+	protected static function cleanDisplayLabel($value) {
+		$text = self::normalizePersonName($value);
+		if ($text === '' || $text === '--' || $text === '—') {
+			return '';
+		}
+		// Reject pure placeholder noise
+		if (preg_match('/^\.+$/', $text)) {
+			return '';
+		}
+		return $text;
 	}
 
 	/**

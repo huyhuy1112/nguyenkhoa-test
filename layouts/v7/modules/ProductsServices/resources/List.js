@@ -1,20 +1,23 @@
 /**
- * ProductsServices list v2 — aligned checkbox + tên + loại + giá + NCC + đơn vị
+ * ProductsServices list — Leads-style client search (no Vtiger search_params / URL churn).
  */
 (function ($) {
 	'use strict';
 
 	var CANONICAL_HEADERS = ['productsservicesname', 'sku', 'product_group', 'item_type', 'price', 'price_tuibao', 'unit'];
-	var GLOBAL_SEARCH_FIELDS = ['productsservicesname', 'sku'];
-	var GLOBAL_SEARCH_DEBOUNCE_MS = 600;
-	var globalSearchTimer = null;
-	var lastGlobalSearchPayload = '';
-	var liveGlobalSearchQuery = '';
-	var globalSearchBound = false;
+	var PAGE_SIZE = 20;
+	var SEARCH_DEBOUNCE_MS = 180;
+
+	var catalogItems = [];
+	var catalogLoaded = false;
+	var catalogLoading = false;
+	var searchQuery = '';
+	var searchTimer = null;
+	var searchEventsBound = false;
+	var pageIndex = 1;
 	var postLoadPatched = false;
-	var showPagingPatched = false;
 	var eventsBound = false;
-	var globalSearchUrlInitialized = false;
+	var bulkEventsBound = false;
 
 	var COL_CLASS_BY_FIELD = {
 		productsservicesname: 'mk-col-ps-name',
@@ -28,6 +31,16 @@
 
 	var MK_COL_CLASS_NAMES =
 		'mk-col-control mk-col-ps-name mk-col-ps-sku mk-col-ps-group mk-col-ps-type mk-col-ps-price mk-col-ps-tuibao mk-col-ps-unit';
+
+	var HEADER_LABELS = {
+		productsservicesname: 'Tên sản phẩm',
+		sku: 'SKU',
+		product_group: 'Nhóm',
+		item_type: 'Loại',
+		price: 'Giá',
+		price_tuibao: 'Giá Tuibao',
+		unit: 'Đơn vị'
+	};
 
 	function isPsSalesList() {
 		var b = document.body;
@@ -45,6 +58,19 @@
 		return params.get('module') === 'ProductsServices' && params.get('view') === 'List';
 	}
 
+	function getPsAppName() {
+		var b = document.body;
+		var appName = (b && b.getAttribute('data-app')) || '';
+		if (!appName) {
+			try {
+				appName = new URLSearchParams(window.location.search || '').get('app') || 'INVENTORY';
+			} catch (e) {
+				appName = 'INVENTORY';
+			}
+		}
+		return appName || 'INVENTORY';
+	}
+
 	function ensureListHeadersInput() {
 		var $input = $('#listViewContent input[name="list_headers"]').first();
 		if ($input.length) {
@@ -52,58 +78,408 @@
 		}
 	}
 
-	function patchListAjaxParams() {
-		if (typeof Vtiger_List_Js === 'undefined' || Vtiger_List_Js.prototype.__mkPsListV2Patched) {
-			return;
-		}
-		Vtiger_List_Js.prototype.__mkPsListV2Patched = true;
-		var origParams = Vtiger_List_Js.prototype.getDefaultParams;
-		if (typeof origParams === 'function') {
-			Vtiger_List_Js.prototype.getDefaultParams = function () {
-				var params = origParams.apply(this, arguments);
-				if (isPsSalesList()) {
-					ensureListHeadersInput();
-					params.list_headers = JSON.stringify(CANONICAL_HEADERS);
-					// Keep quick-search active across pagination / sort / refresh.
-					if (liveGlobalSearchQuery) {
-						params.search_params = JSON.stringify(buildGlobalSearchParams(liveGlobalSearchQuery));
-						params.nolistcache = 1;
-					} else if (params.search_params === undefined || params.search_params === null) {
-						params.search_params = '[]';
-					}
-				}
-				return params;
-			};
-		}
-		var origLoad = Vtiger_List_Js.prototype.loadListViewRecords;
-		if (typeof origLoad === 'function') {
-			Vtiger_List_Js.prototype.loadListViewRecords = function (urlParams) {
-				if (isPsSalesList()) {
-					urlParams = urlParams || {};
-					urlParams.list_headers = JSON.stringify(CANONICAL_HEADERS);
-					if (typeof urlParams.search_params === 'undefined' && liveGlobalSearchQuery) {
-						urlParams.search_params = JSON.stringify(buildGlobalSearchParams(liveGlobalSearchQuery));
-						urlParams.nolistcache = '1';
-					}
-				}
-				return origLoad.call(this, urlParams);
-			};
-		}
+	function esc(s) {
+		return String(s == null ? '' : s)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
 	}
 
-	function patchPostLoadListViewRecords() {
-		if (postLoadPatched || typeof Vtiger_List_Js === 'undefined') {
+	function formatMoney(n) {
+		n = Math.round(Number(n) || 0);
+		var neg = n < 0;
+		var abs = Math.abs(n);
+		var body = String(abs).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+		return (neg ? '-' : '') + 'đ' + body;
+	}
+
+	function typeLabel(raw) {
+		var t = String(raw || '').toLowerCase();
+		if (t.indexOf('service') >= 0 || t.indexOf('dịch vụ') >= 0) {
+			return { key: 'service', text: 'Dịch vụ' };
+		}
+		if (t.indexOf('product') >= 0 || t.indexOf('sản phẩm') >= 0 || t === '') {
+			return { key: 'product', text: 'Sản phẩm' };
+		}
+		return { key: 'other', text: String(raw || '—') };
+	}
+
+	/* ------------------------------------------------------------------ */
+	/* Catalog (Leads-style)                                              */
+	/* ------------------------------------------------------------------ */
+
+	function withCsrf(params) {
+		params = params || {};
+		try {
+			if (typeof window.csrfMagicToken !== 'undefined' && window.csrfMagicName) {
+				params[window.csrfMagicName] = window.csrfMagicToken;
+			}
+		} catch (e) {
+			/* ignore */
+		}
+		return params;
+	}
+
+	function fetchCatalog() {
+		if (catalogLoaded || catalogLoading) {
+			return $.Deferred().resolve(catalogItems).promise();
+		}
+		catalogLoading = true;
+		var deferred = $.Deferred();
+		var params = withCsrf({
+			module: 'ProductsServices',
+			action: 'GetCatalog'
+		});
+		var done = function (payload) {
+			catalogLoading = false;
+			var items = [];
+			if (payload && payload.items && $.isArray(payload.items)) {
+				items = payload.items;
+			} else if (payload && payload.result && payload.result.items) {
+				items = payload.result.items;
+			}
+			catalogItems = items || [];
+			catalogLoaded = true;
+			deferred.resolve(catalogItems);
+		};
+		var fail = function () {
+			catalogLoading = false;
+			deferred.reject();
+		};
+		if (typeof app !== 'undefined' && app.request && app.request.get) {
+			app.request.get({ data: params }).then(function (err, res) {
+				if (err) {
+					fail();
+					return;
+				}
+				done(res);
+			});
+		} else {
+			$.ajax({ url: 'index.php', type: 'GET', data: params, dataType: 'json' })
+				.done(function (res) {
+					if (res && res.success === false) {
+						fail();
+						return;
+					}
+					done(res && res.result ? res.result : res);
+				})
+				.fail(fail);
+		}
+		return deferred.promise();
+	}
+
+	function filteredItems() {
+		var q = String(searchQuery || '')
+			.trim()
+			.toLowerCase();
+		if (!q) {
+			return catalogItems.slice();
+		}
+		return catalogItems.filter(function (it) {
+			var name = String(it.name || '').toLowerCase();
+			var sku = String(it.sku || '').toLowerCase();
+			var group = String(it.product_group || '').toLowerCase();
+			return name.indexOf(q) >= 0 || sku.indexOf(q) >= 0 || group.indexOf(q) >= 0;
+		});
+	}
+
+	function detailUrl(id) {
+		return (
+			'index.php?module=ProductsServices&view=Detail&record=' +
+			encodeURIComponent(id) +
+			'&app=' +
+			encodeURIComponent(getPsAppName())
+		);
+	}
+
+	function buildRowHtml(it) {
+		var id = it.id;
+		var typ = typeLabel(it.item_type);
+		var typeCls = 'mk-ps-type-pill';
+		if (typ.key === 'product') {
+			typeCls += ' mk-ps-type-pill--product';
+		} else if (typ.key === 'service') {
+			typeCls += ' mk-ps-type-pill--service';
+		}
+		var unit = String(it.unit || '').trim();
+		var unitHtml = unit
+			? '<span class="mk-ps-unit-chip">' + esc(unit) + '</span>'
+			: '—';
+		var name = String(it.name || '').trim() || '—';
+		return (
+			'<tr class="listViewEntries mk-ps-client-row" data-id="' +
+			esc(id) +
+			'" data-recordurl="' +
+			esc(detailUrl(id)) +
+			'">' +
+			'<td class="listViewRecordActions mk-col-control">' +
+			'<label class="mk-ps-check">' +
+			'<input type="checkbox" class="listViewEntriesCheckBox mk-ps-check__input" value="' +
+			esc(id) +
+			'" />' +
+			'<span class="mk-ps-check__ui" aria-hidden="true">' +
+			'<svg class="mk-ps-check__tick" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+			'<path d="M1.75 5.2L4.05 7.35L8.25 2.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>' +
+			'</svg></span></label></td>' +
+			'<td class="listViewEntryValue mk-col-ps-name" data-name="productsservicesname" data-field-type="string">' +
+			'<span class="fieldValue"><span class="value"><span class="mk-marquee" title="' +
+			esc(name) +
+			'">' +
+			esc(name) +
+			'</span></span></span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-sku" data-name="sku"><span class="fieldValue"><span class="value">' +
+			esc(it.sku || '—') +
+			'</span></span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-group" data-name="product_group"><span class="fieldValue"><span class="value">' +
+			esc(it.product_group || '—') +
+			'</span></span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-type" data-name="item_type"><span class="fieldValue"><span class="value">' +
+			'<span class="' +
+			typeCls +
+			'">' +
+			esc(typ.text) +
+			'</span></span></span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-price" data-name="price"><span class="fieldValue"><span class="value">' +
+			esc(formatMoney(it.price)) +
+			'</span></span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-tuibao" data-name="price_tuibao"><span class="fieldValue"><span class="value">' +
+			esc(formatMoney(it.price_tuibao)) +
+			'</span></span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-unit" data-name="unit"><span class="fieldValue"><span class="value">' +
+			unitHtml +
+			'</span></span></td>' +
+			'</tr>'
+		);
+	}
+
+	function hideVtigerPaging() {
+		var $scope = $('#listViewContent');
+		$scope
+			.find(
+				'.mk-ps-filter-row__footer, .mk-so-filter-row__footer, #listViewPageJumpDropDown, ' +
+					'#PreviousPageButton, #NextPageButton, #PageJump, .pageNumbers, .mk-ps-page-numbers, .mk-so-page-numbers'
+			)
+			.addClass('mk-ps-vtiger-paging-hidden');
+		$scope.find('#listview-actions .mk-so-filter-row__right, #listview-actions .mk-ps-filter-row__right').addClass('mk-ps-vtiger-paging-hidden');
+	}
+
+	function ensureClientPaginationHost() {
+		var $card = $('.mk-ps-table-card').first();
+		if (!$card.length) {
+			$card = $('#listViewContent').first();
+		}
+		var $pag = $('#mk-ps-client-pagination');
+		if (!$pag.length) {
+			$card.append('<div id="mk-ps-client-pagination" class="mk-ps-client-pagination" role="navigation" aria-label="Phân trang"></div>');
+			$pag = $('#mk-ps-client-pagination');
+		}
+		return $pag;
+	}
+
+	function renderClientPagination(filteredCount) {
+		var $pag = ensureClientPaginationHost();
+		var totalPages = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE) || 1);
+		if (pageIndex > totalPages) {
+			pageIndex = totalPages;
+		}
+		if (pageIndex < 1) {
+			pageIndex = 1;
+		}
+		var from = filteredCount ? (pageIndex - 1) * PAGE_SIZE + 1 : 0;
+		var to = Math.min(pageIndex * PAGE_SIZE, filteredCount);
+		$pag.html(
+			'<span class="mk-ps-client-pagination__info">Hiển thị ' +
+				from +
+				'–' +
+				to +
+				' / ' +
+				filteredCount +
+				' mặt hàng</span>' +
+				'<div class="mk-ps-client-pagination__btns">' +
+				'<button type="button" class="mk-ps-page-btn" id="mk-ps-prev"' +
+				(pageIndex <= 1 ? ' disabled' : '') +
+				'>Trước</button>' +
+				'<span class="mk-ps-page-num">' +
+				pageIndex +
+				' / ' +
+				totalPages +
+				'</span>' +
+				'<button type="button" class="mk-ps-page-btn" id="mk-ps-next"' +
+				(pageIndex >= totalPages ? ' disabled' : '') +
+				'>Sau</button></div>'
+		);
+	}
+
+	function renderCatalogPage() {
+		var $table = $('#listViewContent #listview-table');
+		if (!$table.length) {
 			return;
 		}
-		postLoadPatched = true;
-		var originalPostLoad = Vtiger_List_Js.prototype.postLoadListViewRecords;
-		Vtiger_List_Js.prototype.postLoadListViewRecords = function (res) {
-			originalPostLoad.call(this, res);
-			if (isPsSalesList()) {
-				setTimeout(afterListLayout, 0);
-			}
-		};
+		var rows = filteredItems();
+		var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE) || 1);
+		if (pageIndex > totalPages) {
+			pageIndex = totalPages;
+		}
+		var start = (pageIndex - 1) * PAGE_SIZE;
+		var pageRows = rows.slice(start, start + PAGE_SIZE);
+		var $tbody = $table.find('tbody').first();
+		if (!$tbody.length) {
+			$table.append('<tbody></tbody>');
+			$tbody = $table.find('tbody').first();
+		}
+		// Drop Vtiger search row clones that may linger in tbody
+		$tbody.find('tr.searchRow').remove();
+		if (!pageRows.length) {
+			$tbody.html(
+				'<tr class="mk-ps-empty-row"><td colspan="8" class="mk-ps-empty-cell">Không tìm thấy mặt hàng phù hợp.</td></tr>'
+			);
+		} else {
+			$tbody.html(pageRows.map(buildRowHtml).join(''));
+		}
+		hideVtigerPaging();
+		renderClientPagination(rows.length);
+		assignColumnClasses();
+		applyAlignedColgroup();
+		enhanceCircularChecks();
+		renderBulkBar();
 	}
+
+	function applySearch(query) {
+		searchQuery = String(query || '').trim();
+		pageIndex = 1;
+		$('#mk-ps-search-clear').prop('hidden', !searchQuery);
+		if (!catalogLoaded) {
+			fetchCatalog().done(function () {
+				renderCatalogPage();
+			});
+			return;
+		}
+		renderCatalogPage();
+	}
+
+	function ensureSearchBar() {
+		// Strip Shared / Vtiger search widgets
+		$('#listview-actions')
+			.find(
+				'#mk-so-global-search, .mk-so-global-search, .mk-so-filter-row__search, ' +
+					'.mk-ps-global-search, #mk-ps-global-search'
+			)
+			.each(function () {
+				var $w = $(this).closest('.mk-so-global-search, .mk-so-filter-row__search, .mk-ps-global-search, div');
+				if ($w.length) {
+					$w.remove();
+				} else {
+					$(this).remove();
+				}
+			});
+
+		var $start = $('#listview-actions .mk-ps-filter-row__start, #listview-actions .mk-so-filter-row__start').first();
+		if (!$start.length) {
+			$start = $('#listview-actions').first();
+		}
+		if (!$start.length) {
+			return;
+		}
+		if ($('#mk-ps-search').length) {
+			if (!$start.find('#mk-ps-search').length) {
+				var $bar = $('#mk-ps-search').closest('.mk-ps-search');
+				if ($bar.length) {
+					$start.prepend($bar);
+				}
+			}
+			$('#mk-ps-search').val(searchQuery);
+			$('#mk-ps-search-clear').prop('hidden', !searchQuery);
+			return;
+		}
+		$start.prepend(
+			'<div class="mk-ps-search" role="search">' +
+				'<span class="mk-ps-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>' +
+				'<input id="mk-ps-search" class="mk-ps-search__input" type="search" ' +
+				'placeholder="Tìm theo tên hoặc SKU…" autocomplete="off" spellcheck="false" />' +
+				'<button type="button" class="mk-ps-search__clear" id="mk-ps-search-clear" aria-label="Xóa tìm kiếm" hidden>' +
+				'<i class="fa fa-times" aria-hidden="true"></i>' +
+				'</button></div>'
+		);
+	}
+
+	function bindSearchEvents() {
+		if (searchEventsBound) {
+			return;
+		}
+		searchEventsBound = true;
+		$(document)
+			.on('input.mkPsClientSearch', '#mk-ps-search', function () {
+				var q = $.trim($(this).val());
+				$('#mk-ps-search-clear').prop('hidden', !q);
+				if (searchTimer) {
+					clearTimeout(searchTimer);
+				}
+				searchTimer = setTimeout(function () {
+					applySearch(q);
+				}, SEARCH_DEBOUNCE_MS);
+			})
+			.on('keydown.mkPsClientSearch', '#mk-ps-search', function (e) {
+				if (e.key === 'Enter' || e.which === 13) {
+					e.preventDefault();
+					if (searchTimer) {
+						clearTimeout(searchTimer);
+						searchTimer = null;
+					}
+					applySearch($.trim($(this).val()));
+				}
+			})
+			.on('click.mkPsClientSearchClear', '#mk-ps-search-clear', function (e) {
+				e.preventDefault();
+				$('#mk-ps-search').val('');
+				applySearch('');
+				$('#mk-ps-search').focus();
+			})
+			.on('click.mkPsClientPrev', '#mk-ps-prev', function (e) {
+				e.preventDefault();
+				if (pageIndex > 1) {
+					pageIndex -= 1;
+					renderCatalogPage();
+				}
+			})
+			.on('click.mkPsClientNext', '#mk-ps-next', function (e) {
+				e.preventDefault();
+				var totalPages = Math.max(1, Math.ceil(filteredItems().length / PAGE_SIZE) || 1);
+				if (pageIndex < totalPages) {
+					pageIndex += 1;
+					renderCatalogPage();
+				}
+			})
+			.on('click.mkPsClientRow', '#listViewContent #listview-table tbody tr.listViewEntries td:not(.listViewRecordActions)', function (e) {
+				if ($(e.target).closest('a,button,input,label,.mk-ps-check').length) {
+					return;
+				}
+				var url = $(this).closest('tr').attr('data-recordurl');
+				if (url) {
+					window.location.href = url;
+				}
+			});
+	}
+
+	function bootClientCatalog() {
+		ensureSearchBar();
+		bindSearchEvents();
+		hideVtigerPaging();
+		fetchCatalog()
+			.done(function () {
+				renderCatalogPage();
+			})
+			.fail(function () {
+				ensureClientPaginationHost().html(
+					'<span class="mk-ps-client-pagination__info">Không tải được danh mục hàng hoá.</span>'
+				);
+			});
+	}
+
+	/* ------------------------------------------------------------------ */
+	/* Layout helpers (existing table chrome)                             */
+	/* ------------------------------------------------------------------ */
 
 	function fieldFromHeaderTh($th) {
 		var $a = $th.find('a.listViewContentHeaderValues').first();
@@ -163,84 +539,26 @@
 				$col.css({ width: '12%' });
 			} else if (field === 'price' || $th.hasClass('mk-col-ps-price')) {
 				$col.css({ width: '14%' });
-			} else if (field === 'supplier' || $th.hasClass('mk-col-ps-supplier')) {
-				$col.css({ width: '16%' });
 			} else if (field === 'unit' || $th.hasClass('mk-col-ps-unit')) {
 				$col.css({ width: '10%' });
 			} else if (field === 'productsservicesname' || $th.hasClass('mk-col-ps-name')) {
-				$col.css({ width: '30%' });
+				$col.css({ width: '28%' });
 			} else {
 				$col.css({ width: 'auto' });
 			}
 			$colgroup.append($col);
 		});
 		$table.prepend($colgroup);
-		/* Force matching inline widths on th + first row td so browser cannot desync */
-		syncHeaderBodyWidths($table, $headerCells);
 	}
-
-	function syncHeaderBodyWidths($table, $headerCells) {
-		var widths = [];
-		$headerCells.each(function (i) {
-			var $th = $(this);
-			var field = fieldFromHeaderTh($th);
-			var w;
-			if ($th.hasClass('mk-col-control') || $th.find('.listViewEntriesMainCheckBox, .mk-ps-check').length) {
-				w = '52px';
-			} else if (field === 'sku' || $th.hasClass('mk-col-ps-sku')) {
-				w = '12%';
-			} else if (field === 'item_type' || $th.hasClass('mk-col-ps-type')) {
-				w = '12%';
-			} else if (field === 'price' || $th.hasClass('mk-col-ps-price')) {
-				w = '14%';
-			} else if (field === 'supplier' || $th.hasClass('mk-col-ps-supplier')) {
-				w = '16%';
-			} else if (field === 'unit' || $th.hasClass('mk-col-ps-unit')) {
-				w = '10%';
-			} else if (field === 'productsservicesname' || $th.hasClass('mk-col-ps-name')) {
-				w = '28%';
-			} else {
-				w = '';
-			}
-			widths[i] = w;
-			if (w) {
-				$th.css({ width: w, minWidth: w === '52px' ? '52px' : '', maxWidth: w === '52px' ? '52px' : '' });
-			}
-		});
-		$table.find('tbody tr.listViewEntries').each(function () {
-			$(this)
-				.children('td')
-				.each(function (i) {
-					if (widths[i]) {
-						$(this).css({
-							width: widths[i],
-							minWidth: widths[i] === '52px' ? '52px' : '',
-							maxWidth: widths[i] === '52px' ? '52px' : ''
-						});
-					}
-				});
-		});
-	}
-
-	var HEADER_LABELS = {
-		productsservicesname: 'Tên sản phẩm',
-		sku: 'SKU',
-		product_group: 'Nhóm',
-		item_type: 'Loại',
-		price: 'Giá',
-		price_tuibao: 'Giá Tuibao',
-		unit: 'Đơn vị'
-	};
 
 	function stripRowActionChrome() {
 		$('#listViewContent #listview-table tbody td.listViewRecordActions').each(function () {
-			var $td = $(this);
-			// Select checkbox only (hình 2) — no QC chip / ⋮ next to select
-			$td.find('.quickView, .markStar, .inline-save, .more, .dropdown-menu, .mk-ps-qc-chip, .js-mk-ps-needs-qc').remove();
+			$(this)
+				.find('.quickView, .markStar, .inline-save, .more, .dropdown-menu, .mk-ps-qc-chip, .js-mk-ps-needs-qc')
+				.remove();
 		});
-		$('#listViewContent #listview-table thead .listColumnFilter').closest('div').css({
-			display: 'none'
-		});
+		$('#listViewContent #listview-table thead .listColumnFilter').closest('div').css({ display: 'none' });
+		$('#listViewContent tr.searchRow.listViewSearchContainer').hide();
 	}
 
 	function enhanceCircularChecks() {
@@ -256,8 +574,7 @@
 					'<span class="mk-ps-check__ui" aria-hidden="true">' +
 						'<svg class="mk-ps-check__tick" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">' +
 						'<path d="M1.75 5.2L4.05 7.35L8.25 2.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>' +
-						'</svg>' +
-					'</span>'
+						'</svg></span>'
 				);
 				$input.after($ui);
 				$input.add($ui).wrapAll('<label class="mk-ps-check"></label>');
@@ -306,13 +623,6 @@
 				/* ignore */
 			}
 		}
-		$table.find('> thead, thead tr.listViewContentHeader, thead tr.listViewContentHeader th').css({
-			display: '',
-			visibility: '',
-			height: '',
-			opacity: '',
-			position: ''
-		});
 	}
 
 	function patchDisableFloatThead() {
@@ -340,395 +650,54 @@
 		}
 	}
 
-	/**
-	 * Stock Vtiger showPagingInfo appends " of TOTAL" onto .pageNumbersText which already
-	 * has that text after the first total-count AJAX — causes "of 215 of 215…".
-	 * Keep range in .pageNumbersText and total in .totalNumberOfRecords.
-	 */
-	function patchShowPagingInfo() {
-		if (showPagingPatched || typeof Vtiger_List_Js === 'undefined') {
+	function patchListHeadersOnly() {
+		if (typeof Vtiger_List_Js === 'undefined' || Vtiger_List_Js.prototype.__mkPsListV2Patched) {
 			return;
 		}
-		showPagingPatched = true;
-		var originalShowPagingInfo = Vtiger_List_Js.prototype.showPagingInfo;
-		Vtiger_List_Js.prototype.showPagingInfo = function () {
-			if (!isPsSalesList()) {
-				return originalShowPagingInfo.apply(this, arguments);
-			}
-			var listViewContainer = this.getListViewContainer();
-			var pageStartRange = jQuery('#pageStartRange', listViewContainer).val();
-			var pageEndRange = jQuery('#pageEndRange', listViewContainer).val();
-			var totalCount = jQuery('#totalCount', listViewContainer).val();
-			var listViewEntriesCount = parseInt(jQuery('#noOfEntries', listViewContainer).val(), 10);
-			var $totalSpan = listViewContainer
-				.find('.mk-so-page-numbers .totalNumberOfRecords, .mk-ps-page-numbers .totalNumberOfRecords')
-				.first();
-			if (!$totalSpan.length) {
-				$totalSpan = listViewContainer.find('.totalNumberOfRecords').first();
-			}
-
-			if (listViewEntriesCount) {
-				listViewContainer.find('.pageNumbersText').html(
-					pageStartRange + ' ' + app.vtranslate('to') + ' ' + pageEndRange
-				);
-				if (totalCount && String(totalCount).trim() !== '' && String(totalCount) !== '0') {
-					$totalSpan.removeClass('hide').html(
-						'&nbsp;' +
-							app.vtranslate('of') +
-							' <span class="mk-ps-total-count mk-so-total-count">' +
-							app.helper.purifyContent(totalCount) +
-							'</span>'
-					);
-				} else {
-					$totalSpan.removeClass('hide');
-					if (!$totalSpan.find('.showTotalCountIcon').length && !$totalSpan.find('.mk-ps-total-count').length) {
-						$totalSpan.html(
-							'&nbsp;' + app.vtranslate('of') + ' <i class="fa fa-question showTotalCountIcon"></i>'
-						);
-					}
+		Vtiger_List_Js.prototype.__mkPsListV2Patched = true;
+		var origParams = Vtiger_List_Js.prototype.getDefaultParams;
+		if (typeof origParams === 'function') {
+			Vtiger_List_Js.prototype.getDefaultParams = function () {
+				var params = origParams.apply(this, arguments);
+				if (isPsSalesList()) {
+					ensureListHeadersInput();
+					params.list_headers = JSON.stringify(CANONICAL_HEADERS);
+					delete params.search_params;
 				}
-			} else {
-				listViewContainer.find('.pageNumbersText').html('<span>&nbsp;</span>');
-				$totalSpan.addClass('hide');
-			}
-		};
-	}
-
-	function autoLoadTotalCount() {
-		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
-		if (!listInstance || typeof listInstance.totalNumOfRecords !== 'function') {
-			return;
-		}
-		var $total = $('#listViewContent .totalNumberOfRecords').first();
-		if (!$total.length) {
-			return;
-		}
-		// Already resolved — do not re-run stock path that re-appends "of TOTAL".
-		if ($total.find('.mk-so-total-count, .mk-ps-total-count').length) {
-			return;
-		}
-		if (!$total.find('.showTotalCountIcon').length) {
-			return;
-		}
-		listInstance.totalNumOfRecords($total);
-	}
-
-	function resetListSearchState() {
-		var $lv = $('#listViewContent');
-		if (!$lv.length) {
-			return;
-		}
-		$lv.find('#currentSearchParams').val('');
-		$lv.find('#totalCount').val('0');
-		$lv.find('#pageNumber').val('1');
-		$lv.find('#pageStartRange').val('');
-		$lv.find('#pageEndRange').val('');
-		$lv.find('#totalPageCount').text('');
-	}
-
-	function normalizeTypeKey(text) {
-		var t = String(text || '').toLowerCase();
-		if (t.indexOf('service') >= 0 || t.indexOf('dịch vụ') >= 0) {
-			return 'service';
-		}
-		if (t.indexOf('product') >= 0 || t.indexOf('sản phẩm') >= 0) {
-			return 'product';
-		}
-		return 'other';
-	}
-
-	function enhanceTypePills(context) {
-		$(context)
-			.find('td[data-name="item_type"] .value')
-			.each(function () {
-				var $value = $(this);
-				if ($value.find('.mk-ps-type-pill').length) {
-					return;
-				}
-				var text = $.trim($value.text());
-				if (!text) {
-					return;
-				}
-				var key = normalizeTypeKey(text);
-				var cls = 'mk-ps-type-pill';
-				if (key === 'product') {
-					cls += ' mk-ps-type-pill--product';
-					if (text.toLowerCase() === 'product') {
-						text = 'Sản phẩm';
-					}
-				} else if (key === 'service') {
-					cls += ' mk-ps-type-pill--service';
-					if (text.toLowerCase() === 'service') {
-						text = 'Dịch vụ';
-					}
-				}
-				$value.empty().append($('<span>', { class: cls, text: text }));
-			});
-	}
-
-	function enhanceUnitCells(context) {
-		$(context)
-			.find('td[data-name="unit"] .value')
-			.each(function () {
-				var $value = $(this);
-				if ($value.find('.mk-ps-unit-chip').length) {
-					return;
-				}
-				var text = $.trim($value.text());
-				if (!text || text === '-') {
-					return;
-				}
-				$value.empty().append($('<span>', { class: 'mk-ps-unit-chip', text: text }));
-			});
-	}
-
-	function fixListScrollContainer() {
-		var $tc = $('#listViewContent #table-content');
-		if (!$tc.length) {
-			return;
-		}
-		$tc.css({ width: '100%', overflowX: 'auto', overflowY: 'auto', height: 'auto', maxHeight: '' });
-	}
-
-	function mirrorToolbarClasses() {
-		$('#listview-actions').addClass('mk-ps-filter-row');
-	}
-
-	function localizeToolbar() {
-		$('.mk-ps-page-numbers__prefix, .mk-so-page-numbers__prefix').text('Hiển thị ');
-		$('.mk-ps-page-numbers__suffix, .mk-so-page-numbers__suffix').text(' mặt hàng');
-	}
-
-	function enhancePaginationChrome() {
-		var $scope = $('#listViewContent');
-		if (!$scope.length) {
-			$scope = $(document);
-		}
-		$scope.find('.mk-so-page-btn--prev .mk-so-page-btn__label').text('Trước');
-		$scope.find('.mk-so-page-btn--next .mk-so-page-btn__label').text('Sau');
-		$scope.find('.mk-so-page-current__label').text('Trang');
-		$scope.find('#PreviousPageButton').attr({ title: 'Trang trước', 'aria-label': 'Trang trước' });
-		$scope.find('#NextPageButton').attr({ title: 'Trang sau', 'aria-label': 'Trang sau' });
-		$scope.find('#PageJump').attr({ title: 'Nhảy tới trang', 'aria-label': 'Nhảy tới trang' });
-
-		var pageNum = $.trim($scope.find('#pageNumber').val() || $scope.find('.mk-so-page-current__num').first().text() || '1');
-		$scope.find('.mk-so-page-current__num').text(pageNum);
-		$scope.find('.mk-so-pagejump-cur').text(pageNum);
-
-		var totalText = $.trim($scope.find('#totalPageCount').first().text());
-		if (totalText) {
-			$scope.find('.mk-so-pagejump-total').text(totalText);
-		}
-	}
-
-	/** Keep dropdown total label in sync when Vtiger fills #totalPageCount. */
-	function watchPageCountSync() {
-		if (watchPageCountSync.bound) {
-			return;
-		}
-		watchPageCountSync.bound = true;
-		var sync = function () {
-			var $total = $('#listViewContent #totalPageCount').first();
-			if (!$total.length) {
-				return;
-			}
-			var t = $.trim($total.text());
-			if (t) {
-				$('#listViewContent .mk-so-pagejump-total').text(t);
-			}
-		};
-		$(document)
-			.on('DOMSubtreeModified.mkPsPager', '#listViewContent #totalPageCount', sync)
-			.on('click.mkPsPagerJump', '#PageJump', function () {
-				setTimeout(sync, 50);
-				setTimeout(sync, 400);
-			});
-		// MutationObserver is preferred over DOMSubtreeModified where available
-		if (typeof MutationObserver === 'function') {
-			$(document).off('DOMSubtreeModified.mkPsPager');
-			var start = function () {
-				var el = document.querySelector('#listViewContent #totalPageCount');
-				if (!el || el.__mkPsPagerObs) {
-					return;
-				}
-				el.__mkPsPagerObs = true;
-				new MutationObserver(sync).observe(el, { characterData: true, childList: true, subtree: true });
+				return params;
 			};
-			start();
-			setTimeout(start, 500);
-			setTimeout(start, 1500);
 		}
-	}
-
-	function injectGlobalQuickSearch() {
-		var $start = $('#listview-actions .mk-ps-filter-row__start, #listview-actions .mk-so-filter-row__start').first();
-		if (!$start.length || $start.find('#mk-ps-global-search').length) {
-			return;
-		}
-		$start.prepend(
-			'<div class="mk-ps-global-search" role="search">' +
-				'<span class="mk-ps-global-search__ic"><i class="fa fa-search"></i></span>' +
-				'<input id="mk-ps-global-search" type="search" placeholder="Tìm tên hàng, SKU…" autocomplete="off" />' +
-				'<button type="button" id="mk-ps-global-search-clear" aria-label="Xóa" hidden><i class="fa fa-times"></i></button>' +
-			'</div>'
-		);
-		restoreGlobalSearchInput();
-	}
-
-	function buildGlobalSearchParams(query) {
-		query = query != null ? String(query).trim() : '';
-		if (!query.length) {
-			return [];
-		}
-		var conditions = [];
-		var i;
-		for (i = 0; i < GLOBAL_SEARCH_FIELDS.length; i++) {
-			conditions.push([GLOBAL_SEARCH_FIELDS[i], 'c', query]);
-		}
-		if (!conditions.length) {
-			return [];
-		}
-		// Group index 0 = AND, group index 1 = OR (Vtiger glueOrder).
-		// Empty first group + fields in group 1 → OR across name/SKU.
-		if (conditions.length === 1) {
-			return [conditions];
-		}
-		return [[], conditions];
-	}
-
-	function readGlobalSearchValueFromParams(parsed) {
-		var val = '';
-		var i;
-		var j;
-		if (!parsed || !parsed.length) {
-			return val;
-		}
-		for (i = 0; i < parsed.length; i++) {
-			var group = parsed[i];
-			if (!group || !group.length) {
-				continue;
-			}
-			for (j = 0; j < group.length; j++) {
-				if (group[j] && group[j][2]) {
-					val = group[j][2];
-					break;
+		// Block stock list reload from wiping client catalog (Next/Prev/searchVtiger)
+		var origLoad = Vtiger_List_Js.prototype.loadListViewRecords;
+		if (typeof origLoad === 'function') {
+			Vtiger_List_Js.prototype.loadListViewRecords = function () {
+				if (isPsSalesList() && catalogLoaded) {
+					renderCatalogPage();
+					return $.Deferred().resolve('').promise();
 				}
-			}
-			if (val) {
-				break;
-			}
-		}
-		return val;
-	}
-
-	function initGlobalSearchFromUrlOnce() {
-		if (globalSearchUrlInitialized || liveGlobalSearchQuery) {
-			return;
-		}
-		globalSearchUrlInitialized = true;
-		try {
-			var params = new URLSearchParams(window.location.search || '');
-			var sp = params.get('search_params');
-			if (sp) {
-				liveGlobalSearchQuery = readGlobalSearchValueFromParams(JSON.parse(sp));
-			}
-		} catch (parseErr) {
-			/* ignore */
+				return origLoad.apply(this, arguments);
+			};
 		}
 	}
 
-	function restoreGlobalSearchInput() {
-		var $bar = $('#mk-ps-global-search');
-		if (!$bar.length) {
+	function patchPostLoadListViewRecords() {
+		if (postLoadPatched || typeof Vtiger_List_Js === 'undefined') {
 			return;
 		}
-		$bar.val(liveGlobalSearchQuery || '');
-		$('#mk-ps-global-search-clear').prop('hidden', !liveGlobalSearchQuery);
-	}
-
-	function syncUrlSearchParams(searchParams) {
-		try {
-			if (!window.history || !window.history.replaceState) {
-				return;
-			}
-			var url = new URL(window.location.href);
-			if (!searchParams || !searchParams.length) {
-				url.searchParams.delete('search_params');
-			} else {
-				url.searchParams.set('search_params', JSON.stringify(searchParams));
-			}
-			url.searchParams.set('page', '1');
-			window.history.replaceState({}, '', url.toString());
-		} catch (urlErr) {
-			/* ignore */
-		}
-	}
-
-	function runGlobalQuickSearch(query) {
-		query = query != null ? String(query).trim() : liveGlobalSearchQuery;
-		liveGlobalSearchQuery = query;
-		var searchParams = buildGlobalSearchParams(query);
-		var payload = JSON.stringify(searchParams);
-		if (payload === lastGlobalSearchPayload) {
-			return;
-		}
-		lastGlobalSearchPayload = payload;
-		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
-		if (!listInstance || !listInstance.loadListViewRecords) {
-			return;
-		}
-		listInstance.filterClick = false;
-		resetListSearchState();
-		syncUrlSearchParams(searchParams);
-		listInstance
-			.loadListViewRecords({
-				page: '1',
-				search_params: payload,
-				nolistcache: '1',
-				totalCount: 0
-			})
-			.then(function () {
-				restoreGlobalSearchInput();
-			});
-	}
-
-	function bindGlobalQuickSearchEvents() {
-		if (globalSearchBound) {
-			return;
-		}
-		globalSearchBound = true;
-		$(document)
-			.on('input.mkPsGlobalSearch', '#mk-ps-global-search', function () {
-				liveGlobalSearchQuery = $.trim($(this).val());
-				$('#mk-ps-global-search-clear').prop('hidden', !liveGlobalSearchQuery);
-				if (globalSearchTimer) {
-					clearTimeout(globalSearchTimer);
-				}
-				globalSearchTimer = setTimeout(function () {
-					runGlobalQuickSearch();
-				}, GLOBAL_SEARCH_DEBOUNCE_MS);
-			})
-			.on('keydown.mkPsGlobalSearch', '#mk-ps-global-search', function (e) {
-				if (e.key === 'Enter' || e.which === 13) {
-					e.preventDefault();
-					if (globalSearchTimer) {
-						clearTimeout(globalSearchTimer);
-						globalSearchTimer = null;
+		postLoadPatched = true;
+		var originalPostLoad = Vtiger_List_Js.prototype.postLoadListViewRecords;
+		Vtiger_List_Js.prototype.postLoadListViewRecords = function (res) {
+			originalPostLoad.call(this, res);
+			if (isPsSalesList()) {
+				setTimeout(function () {
+					afterListLayout();
+					if (catalogLoaded) {
+						renderCatalogPage();
 					}
-					runGlobalQuickSearch($.trim($(this).val()));
-				}
-			})
-			.on('click.mkPsGlobalSearchClear', '#mk-ps-global-search-clear', function (e) {
-				e.preventDefault();
-				liveGlobalSearchQuery = '';
-				lastGlobalSearchPayload = '';
-				$('#mk-ps-global-search').val('');
-				$('#mk-ps-global-search-clear').prop('hidden', true);
-				runGlobalQuickSearch('');
-			});
+				}, 0);
+			}
+		};
 	}
-
-	var bulkEventsBound = false;
 
 	function selectedCheckboxCount() {
 		return $('#listViewContent #listview-table tbody input.listViewEntriesCheckBox:checked').length;
@@ -738,22 +707,13 @@
 		var $table = $('#listViewContent #listview-table');
 		$table.find('input.listViewEntriesCheckBox, input.listViewEntriesMainCheckBox').prop('checked', false);
 		$table.find('tbody tr.listViewEntries').removeClass('mk-ps-row-selected');
-		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
-		if (listInstance && listInstance.clearList) {
-			try {
-				listInstance.clearList();
-			} catch (e) {
-				/* ignore */
-			}
-		}
 		renderBulkBar();
 	}
 
 	function syncSelectedRowState() {
 		$('#listViewContent #listview-table tbody tr.listViewEntries').each(function () {
 			var $row = $(this);
-			var on = $row.find('input.listViewEntriesCheckBox').is(':checked');
-			$row.toggleClass('mk-ps-row-selected', on);
+			$row.toggleClass('mk-ps-row-selected', $row.find('input.listViewEntriesCheckBox').is(':checked'));
 		});
 	}
 
@@ -783,52 +743,27 @@
 		$bar.removeAttr('hidden').html(
 			'<div class="mk-ps-bulk-bar__inner">' +
 				'<div class="mk-ps-bulk-bar__left">' +
-					'<span class="mk-ps-bulk-badge" aria-hidden="true">' +
-						'<svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-							'<path d="M2 5.2L4.1 7.2L8 2.8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' +
-						'</svg>' +
-					'</span>' +
-					'<span class="mk-ps-bulk-bar__count"><strong>' + n + '</strong> selected</span>' +
-				'</div>' +
+				'<span class="mk-ps-bulk-badge" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.2L4.1 7.2L8 2.8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
+				'<span class="mk-ps-bulk-bar__count"><strong>' +
+				n +
+				'</strong> selected</span></div>' +
 				'<div class="mk-ps-bulk-bar__actions">' +
-					'<button type="button" class="mk-ps-bulk-btn" data-ps-bulk="export">' +
-						'<span class="mk-ps-bulk-btn__ic" aria-hidden="true">' +
-							'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-								'<path d="M12 3v12m0 0l4-4m-4 4l-4-4M5 21h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
-							'</svg>' +
-						'</span><span>Export</span>' +
-					'</button>' +
-					'<button type="button" class="mk-ps-bulk-btn mk-ps-bulk-btn--danger" data-ps-bulk="delete">' +
-						'<span class="mk-ps-bulk-btn__ic" aria-hidden="true">' +
-							'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-								'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
-							'</svg>' +
-						'</span><span>Xóa</span>' +
-					'</button>' +
+				'<button type="button" class="mk-ps-bulk-btn" data-ps-bulk="export"><span>Export</span></button>' +
+				'<button type="button" class="mk-ps-bulk-btn mk-ps-bulk-btn--danger" data-ps-bulk="delete"><span>Xóa</span></button>' +
 				'</div>' +
-				'<button type="button" class="mk-ps-bulk-clear" data-ps-bulk="clear">Clear</button>' +
-			'</div>'
+				'<button type="button" class="mk-ps-bulk-clear" data-ps-bulk="clear">Clear</button></div>'
 		);
 	}
 
 	function runBulkExport() {
-		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
-		if (!listInstance) {
-			return;
-		}
 		var exportUrl = 'index.php?module=ProductsServices&view=Export';
-		if (typeof Vtiger_List_Js.triggerExportAction === 'function') {
+		if (typeof Vtiger_List_Js !== 'undefined' && typeof Vtiger_List_Js.triggerExportAction === 'function') {
 			Vtiger_List_Js.triggerExportAction(exportUrl);
-			return;
-		}
-		if (typeof listInstance.performExportAction === 'function') {
-			listInstance.performExportAction(exportUrl);
 		}
 	}
 
 	function runBulkDelete() {
-		var n = selectedCheckboxCount();
-		if (!n) {
+		if (!selectedCheckboxCount()) {
 			return;
 		}
 		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
@@ -837,7 +772,7 @@
 			listInstance.performMassDeleteRecords(deleteUrl);
 			return;
 		}
-		if (typeof Vtiger_List_Js.massDeleteRecords === 'function') {
+		if (typeof Vtiger_List_Js !== 'undefined' && typeof Vtiger_List_Js.massDeleteRecords === 'function') {
 			Vtiger_List_Js.massDeleteRecords(deleteUrl);
 		}
 	}
@@ -850,14 +785,18 @@
 		$(document)
 			.on(
 				'change.mkPsBulk',
-				'#listViewContent #listview-table input.listViewEntriesCheckBox, #listViewContent #listview-table input.listViewEntriesMainCheckBox',
+				'#listViewContent #listview-table input.listViewEntriesCheckBox',
 				function () {
 					setTimeout(renderBulkBar, 0);
 				}
 			)
+			.on('change.mkPsBulkMain', '#listViewContent #listview-table input.listViewEntriesMainCheckBox', function () {
+				var on = $(this).is(':checked');
+				$('#listViewContent #listview-table tbody input.listViewEntriesCheckBox').prop('checked', on);
+				setTimeout(renderBulkBar, 0);
+			})
 			.on('click.mkPsBulkBtn', '#mk-ps-bulk [data-ps-bulk]', function (e) {
 				e.preventDefault();
-				e.stopPropagation();
 				var action = $(this).attr('data-ps-bulk');
 				if (action === 'clear') {
 					clearBulkSelection();
@@ -869,99 +808,10 @@
 			});
 	}
 
-	function relocatePagination() {
-		var $scope = $('#listViewContent');
-		if (!$scope.length) {
-			return;
-		}
-		var $footers = $scope.find('.mk-ps-filter-row__footer, .mk-so-filter-row__footer');
-		if (!$footers.length) {
-			return;
-		}
-		// Prefer the live controls inside toolbar, then move once below the table.
-		var $footer = $scope.find('#listview-actions .mk-ps-filter-row__footer, #listview-actions .mk-so-filter-row__footer').first();
-		if (!$footer.length) {
-			$footer = $footers.first();
-		}
-		$footers.not($footer).remove();
-
-		var $anchor = $scope.find('#table-content').first();
-		if (!$anchor.length) {
-			$anchor = $scope.find('#listview-table').first();
-		}
-		if (!$anchor.length) {
-			return;
-		}
-		if ($anchor.next('.mk-ps-filter-row__footer, .mk-so-filter-row__footer')[0] === $footer[0]) {
-			return;
-		}
-		$footer.detach().insertAfter($anchor);
-	}
-
 	function setReadyState() {
 		document.body.classList.remove('mk-ps-ui-loading');
 		document.body.classList.add('mk-ps-ui-ready', 'mk-ps-list-v2');
 		document.documentElement.classList.add('mk-ps-ui-ready', 'mk-ps-list-ready', 'mk-ps-list-v2');
-	}
-
-	function bindNeedsQcToggle() {
-		if (typeof jQuery === 'undefined') {
-			return;
-		}
-		var $ = jQuery;
-		$(document)
-			.off('click.mkPsNeedsQc', '.js-mk-ps-needs-qc')
-			.on('click.mkPsNeedsQc', '.js-mk-ps-needs-qc', function (e) {
-				e.preventDefault();
-				e.stopPropagation();
-				var $btn = $(this);
-				if ($btn.data('mkSaving')) {
-					return;
-				}
-				var recordId = parseInt($btn.attr('data-id'), 10) || 0;
-				if (!recordId) {
-					return;
-				}
-				var current = $btn.attr('data-needs-qc') === '1' ? 1 : 0;
-				var next = current ? 0 : 1;
-				var labelOn = 'Đang bật: Cần QC';
-				var labelOff = 'Cần QC';
-				$btn.data('mkSaving', true);
-				var finishUi = function (on) {
-					$btn.attr('data-needs-qc', on ? '1' : '0');
-					$btn.attr('aria-pressed', on ? 'true' : 'false');
-					$btn.toggleClass('is-on', !!on);
-					$btn.find('.js-mk-ps-needs-qc-label').text(on ? labelOn : labelOff);
-					$btn.data('mkSaving', false);
-				};
-				var params = {
-					module: 'ProductsServices',
-					action: 'SaveAjax',
-					record: recordId,
-					field: 'needs_qc',
-					value: next
-				};
-				if (typeof app !== 'undefined' && app.request && app.request.post) {
-					app.request.post({ data: params }).then(function (err) {
-						if (err) {
-							$btn.data('mkSaving', false);
-							if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
-								app.helper.showErrorNotification({ message: err.message || String(err) });
-							}
-							return;
-						}
-						finishUi(!!next);
-					});
-					return;
-				}
-				$.post('index.php', params)
-					.done(function () {
-						finishUi(!!next);
-					})
-					.fail(function () {
-						$btn.data('mkSaving', false);
-					});
-			});
 	}
 
 	function afterListLayout() {
@@ -971,41 +821,18 @@
 		try {
 			document.body.classList.add('mk-ps-list-v2');
 			document.documentElement.classList.add('mk-ps-list-v2');
-			ensureListHeadersInput();
 			destroyFloatTheadArtifacts();
 			mirrorToolbarClasses();
-			localizeToolbar();
-			initGlobalSearchFromUrlOnce();
-			injectGlobalQuickSearch();
-			restoreGlobalSearchInput();
-			bindGlobalQuickSearchEvents();
+			ensureSearchBar();
+			bindSearchEvents();
 			bindBulkSelectionEvents();
-			bindNeedsQcToggle();
-			relocatePagination();
-			// Rebuild range + of-total without stock append loop.
-			var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
-			if (listInstance && typeof listInstance.showPagingInfo === 'function') {
-				try {
-					listInstance.showPagingInfo();
-				} catch (pageErr) {
-					/* ignore */
-				}
-			}
-			enhancePaginationChrome();
-			watchPageCountSync();
 			$('#listViewContent #listview-table').addClass('mk-ps-table mk-ps-table-v2');
 			assignColumnClasses();
 			stripRowActionChrome();
 			enhanceCircularChecks();
 			ensureHeaderTitles();
 			applyAlignedColgroup();
-			enhanceTypePills(document);
-			enhanceUnitCells(document);
-			fixListScrollContainer();
-			autoLoadTotalCount();
-			/* After total-count AJAX fills #totalPageCount */
-			setTimeout(enhancePaginationChrome, 600);
-			setTimeout(enhancePaginationChrome, 1600);
+			hideVtigerPaging();
 			renderBulkBar();
 		} catch (err) {
 			if (window.console && console.warn) {
@@ -1016,6 +843,10 @@
 		}
 	}
 
+	function mirrorToolbarClasses() {
+		$('#listview-actions').addClass('mk-ps-filter-row');
+	}
+
 	function init() {
 		if (!isPsSalesList()) {
 			return;
@@ -1023,10 +854,8 @@
 		document.body.classList.add('mk-ps-ui-loading', 'mk-ps-list-v2');
 		document.documentElement.classList.add('mk-ps-list-v2');
 		patchDisableFloatThead();
-		patchShowPagingInfo();
-		patchListAjaxParams();
+		patchListHeadersOnly();
 		patchPostLoadListViewRecords();
-		initGlobalSearchFromUrlOnce();
 		ensureListHeadersInput();
 
 		if (!eventsBound && typeof app !== 'undefined' && app.event && app.event.on) {
@@ -1034,20 +863,17 @@
 			app.event.on('post.listViewFilter.click', function () {
 				setTimeout(afterListLayout, 80);
 			});
-			app.event.on('post.listViewSort.click', function () {
-				setTimeout(afterListLayout, 80);
-			});
 		}
 
-		var runLayout = function () {
+		var run = function () {
 			afterListLayout();
+			bootClientCatalog();
 		};
 		if (window.requestAnimationFrame) {
-			requestAnimationFrame(runLayout);
+			requestAnimationFrame(run);
 		} else {
-			setTimeout(runLayout, 0);
+			setTimeout(run, 0);
 		}
-		/* Safety: never leave list hidden if a prior step threw */
 		setTimeout(setReadyState, 1800);
 	}
 

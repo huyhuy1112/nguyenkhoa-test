@@ -233,50 +233,77 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$adjustment *= $scale;
 		$discountAmountFinal = ((float) $rawFinal['discount_amount_final']) * $scale;
 
-		$computedGrand = $subTotal - $discount + $tax + $shipping + $adjustment;
-		$headerPreTax = (float) $recordModel->get('pre_tax_total');
-		$headerTotal = (float) $recordModel->get('total');
-		$mkVatPercent = 8.0;
-		if (method_exists($recordModel, 'get')) {
-			$candidatePct = (float) $recordModel->get('mk_vat_percent');
-			if ($candidatePct > 0 && $candidatePct <= 100) {
-				$mkVatPercent = $candidatePct;
+		// BA unit prices already include VAT — never invent +8% tax on display/totals.
+		// If header tax is ~8% of goods (and prices are VAT-included), treat tax as 0.
+		$base = max(0.0, $subTotal - $discount + $shipping + $adjustment);
+		if ($tax > 0 && $base > 0) {
+			$taxRatio = $tax / max($base, 1);
+			// Classic mis-calc: tax ≈ 8% of pre-tax goods.
+			if ($taxRatio > 0.05 && $taxRatio < 0.12 && abs($tax - $base * 0.08) < max(100, $base * 0.02)) {
+				$tax = 0;
+			}
+			// Or grand already inflated header
+			if ($tax > ($subTotal * 0.5)) {
+				$tax = 0;
 			}
 		}
-
-		if ($tax <= 0 && $headerPreTax > 0 && $headerTotal > $headerPreTax) {
-			$derived = ($headerTotal - $headerPreTax) * $scale;
-			if ($subTotal <= 0 || $derived <= ($subTotal * 0.5)) {
-				$tax = $derived;
-				$computedGrand = $subTotal - $discount + $tax + $shipping + $adjustment;
-			}
-		}
-
-		if ($tax <= 0 && $subTotal > 0) {
-			$tax = round(($subTotal - $discount) * $mkVatPercent / 100);
-			$computedGrand = $subTotal - $discount + $tax + $shipping + $adjustment;
-		}
-
-		// Reject absurd tax/grand from bad saved header totals (e.g. 693M tax on 7M goods).
-		if ($subTotal > 0 && $tax > ($subTotal * 0.5)) {
-			$tax = round(($subTotal - $discount) * $mkVatPercent / 100);
-			$computedGrand = $subTotal - $discount + $tax + $shipping + $adjustment;
-		}
-
-		if ($grand > 0) {
-			$grand *= $scale;
-		}
-		if ($grand <= 0 || ($subTotal > 0 && ($grand < ($subTotal * 0.5) || $grand > ($subTotal * 2)))) {
-			$grand = $computedGrand;
-		}
-		$base = $subTotal - $discount + $shipping + $adjustment;
-		if ($tax <= 0 && $grand > $base && ($grand - $base) <= ($subTotal * 0.5)) {
-			$tax = $grand - $base;
-		}
+		// Do NOT invent tax when tax fields are empty — prices are VAT-inclusive.
 		if ($tax < 0) {
 			$tax = 0;
 		}
-		$grand = $base + $tax;
+
+		$headerTotal = (float) $recordModel->get('total');
+		if ($grand > 0) {
+			$grand *= $scale;
+		}
+
+		// Base with discount fields as stored on SO.
+		$base = max(0.0, $subTotal - $discount + $shipping + $adjustment);
+
+		// Prefer header total (quote convert writes post-discount total, e.g. 850k with 15% off 1M).
+		// Never re-inflate back to subTotal just because abs(diff) > 5% of gross.
+		$headerScaled = $headerTotal > 0 ? ($headerTotal * $scale) : 0.0;
+		if ($headerScaled > 0 && $subTotal > 0) {
+			$hr = $headerScaled / max($subTotal, 1);
+			// Strip accidental ~8% VAT on header only
+			if ($hr > 1.05 && $hr < 1.12 && abs($headerScaled - $subTotal * 1.08) < max(100, $subTotal * 0.02)) {
+				$headerScaled = $subTotal;
+			}
+		}
+		// Infer discount from header when discount fields empty but total < goods total.
+		if ($discount <= 0 && $headerScaled > 0 && $subTotal > 0 && $headerScaled + 0.5 < $subTotal) {
+			$discount = max(0.0, $subTotal + $shipping + $adjustment - $headerScaled);
+			$base = max(0.0, $subTotal - $discount + $shipping + $adjustment);
+		}
+
+		// Source of truth priority:
+		// 1) header total after discount / strip tax
+		// 2) recomputed base (goods − discount + charges)
+		// 3) display grand stripped of 8% VAT
+		if ($headerScaled > 0) {
+			// Accept header when it is not wildly higher than goods (tax invent) and not zero junk.
+			if ($subTotal <= 0 || $headerScaled <= ($subTotal * 1.05 + max(100, $subTotal * 0.02))) {
+				$grand = $headerScaled;
+			} else {
+				$grand = $base;
+			}
+		} elseif ($grand > 0 && $base > 0) {
+			$gr = $grand / max($base, 1);
+			if ($gr > 1.05 && $gr < 1.12 && abs($grand - $base * 1.08) < max(100, $base * 0.02)) {
+				$grand = $base;
+			} elseif ($grand > ($subTotal * 1.05) && $subTotal > 0) {
+				$grand = $base;
+			}
+			// Keep legitimate discounted grand below base without forcing back to full subTotal.
+		} else {
+			$grand = $base;
+		}
+		if ($grand <= 0 && $base > 0) {
+			$grand = $base;
+		}
+
+		// Final: BA grand is VAT-included unit prices; do not add tax column.
+		$tax = 0;
 
 		$formatMoney = function ($value) {
 			return Vtiger_Currency_UIType::transformDisplayValue($value, null, true);
@@ -291,7 +318,7 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$displayProducts[1]['final_details']['grandTotal'] = $formatMoney($grand);
 		$displayProducts[1]['final_details']['grandTotal_raw'] = $grand;
 
-		// Repair line unit price / thành tiền only when saved as 0 but header totals exist.
+		// Repair line unit price / thành tiền; always map Giá bán = listPrice when unitPrice is catalog 0.
 		$lineCount = 0;
 		for ($i = 1; $i <= $productsCount; $i++) {
 			if (!isset($rawProducts[$i]) || empty($rawProducts[$i]['hdnProductId' . $i])) {
@@ -311,12 +338,9 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 				}
 				$lineTotal = (float) ($rawProducts[$i]['productTotal' . $i] ?? 0);
 				$listPrice = (float) ($rawProducts[$i]['listPrice' . $i] ?? 0);
+				$unitPriceCatalog = (float) ($rawProducts[$i]['unitPrice' . $i] ?? 0);
 				if ($lineTotal <= 0) {
 					$lineTotal = (float) ($rawProducts[$i]['totalAfterDiscount' . $i] ?? 0);
-				}
-				// Only backfill missing line money — never overwrite valid amounts.
-				if ($lineTotal > 0 && $listPrice > 0) {
-					continue;
 				}
 				if ($lineTotal <= 0) {
 					$lineTotal = $share;
@@ -324,9 +348,11 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 				if ($listPrice <= 0) {
 					$listPrice = $lineTotal / $qty;
 				}
+				// Selling price for list view = listPrice (after discount unit); never show catalog 0.
+				$sellPrice = $listPrice > 0 ? $listPrice : $unitPriceCatalog;
 				$displayProducts[$i]['qty' . $i] = $qty;
 				$displayProducts[$i]['listPrice' . $i] = $formatMoney($listPrice);
-				$displayProducts[$i]['unitPrice' . $i] = $formatMoney($listPrice);
+				$displayProducts[$i]['unitPrice' . $i] = $formatMoney($sellPrice);
 				$displayProducts[$i]['productTotal' . $i] = $formatMoney($lineTotal);
 			}
 		}
@@ -344,40 +370,17 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 	}
 
 	/**
-	 * Group-tax orders do not populate per-line taxTotal in core inventory; distribute for inline list.
+	 * BA: unit prices already include VAT — force per-line tax display to 0.
+	 * Do not invent 8% tax for the list inline view.
 	 */
 	protected function enrichInlineLineTax(array $displayProducts, array $rawProducts, $subTotal, $discount, $tax, Vtiger_Record_Model $recordModel, callable $formatMoney) {
-		$taxableBase = max(0, (float) $subTotal - (float) $discount);
-		$mkVatPercent = 8.0;
-		$candidatePct = (float) $recordModel->get('mk_vat_percent');
-		if ($candidatePct > 0 && $candidatePct <= 100) {
-			$mkVatPercent = $candidatePct;
-		}
-
 		$productsCount = php7_count($rawProducts);
+		$zero = $formatMoney(0);
 		for ($i = 1; $i <= $productsCount; $i++) {
 			if (!isset($displayProducts[$i]) || empty($rawProducts[$i]['hdnProductId' . $i])) {
 				continue;
 			}
-			$existingTax = (float) ($rawProducts[$i]['taxTotal' . $i] ?? 0);
-			if ($existingTax > 0) {
-				$displayProducts[$i]['taxTotal' . $i] = $formatMoney($existingTax);
-				continue;
-			}
-
-			$lineTotal = (float) ($rawProducts[$i]['productTotal' . $i] ?? 0);
-			if ($lineTotal <= 0) {
-				$lineTotal = (float) ($rawProducts[$i]['totalAfterDiscount' . $i] ?? 0);
-			}
-			$lineTax = 0.0;
-			if ($lineTotal > 0) {
-				if ($taxableBase > 0 && $tax > 0) {
-					$lineTax = round(((float) $tax) * $lineTotal / $taxableBase);
-				} elseif ($mkVatPercent > 0) {
-					$lineTax = round($lineTotal * $mkVatPercent / 100);
-				}
-			}
-			$displayProducts[$i]['taxTotal' . $i] = $formatMoney($lineTax);
+			$displayProducts[$i]['taxTotal' . $i] = $zero;
 		}
 
 		return $displayProducts;

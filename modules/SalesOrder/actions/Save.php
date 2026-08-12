@@ -276,6 +276,19 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 			throw $e;
 		}
 
+		// After create/edit in SALES: always return to list (not detail).
+		if (!$this->isToolsOrdersContext($request)) {
+			$request->set('returnToList', 1);
+			$appName = (string) $request->get('appName');
+			if ($appName === '') {
+				$app = strtoupper((string) $request->get('app'));
+				if ($app === '') {
+					$app = 'SALES';
+				}
+				$request->set('appName', '&app=' . $app);
+			}
+		}
+
 		parent::process($request);
 	}
 

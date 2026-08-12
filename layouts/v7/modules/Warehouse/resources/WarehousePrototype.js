@@ -49,24 +49,37 @@
 		return v.toLocaleString('vi-VN') + ' ₫';
 	}
 
+	function syncStockSearchClear() {
+		var searchEl = qs('#mkWhProtoStockSearch');
+		var clearEl = qs('#mkWhProtoStockSearchClear');
+		if (!clearEl) return;
+		var q = searchEl ? String(searchEl.value || '').trim() : '';
+		if (q) {
+			clearEl.removeAttribute('hidden');
+		} else {
+			clearEl.setAttribute('hidden', 'hidden');
+		}
+	}
+
 	function getStockFilterState() {
 		var hsdEl = qs('#mkWhProtoFilterHsd');
-		var nameEl = qs('#mkWhProtoFilterName');
+		var searchEl = qs('#mkWhProtoStockSearch');
 		var priceEl = qs('#mkWhProtoFilterPrice');
 		return {
 			hsd: hsdEl ? hsdEl.value : 'all',
-			name: nameEl ? nameEl.value : 'az',
+			search: searchEl ? String(searchEl.value || '').trim().toLowerCase() : '',
 			price: priceEl ? priceEl.value : 'all',
 		};
 	}
 
 	function resetStockFilters() {
 		var hsdEl = qs('#mkWhProtoFilterHsd');
-		var nameEl = qs('#mkWhProtoFilterName');
+		var searchEl = qs('#mkWhProtoStockSearch');
 		var priceEl = qs('#mkWhProtoFilterPrice');
 		if (hsdEl) hsdEl.value = 'all';
-		if (nameEl) nameEl.value = 'az';
+		if (searchEl) searchEl.value = '';
 		if (priceEl) priceEl.value = 'all';
+		syncStockSearchClear();
 	}
 
 	function matchesHsdFilter(expiry, hsdFilter) {
@@ -81,7 +94,12 @@
 		var filters = getStockFilterState();
 		// Keep zero / negative stock lines visible (oversell → tồn âm).
 		var list = (rows || []).filter(function (s) {
-			return matchesHsdFilter(s.expiry, filters.hsd);
+			if (!matchesHsdFilter(s.expiry, filters.hsd)) return false;
+			if (filters.search) {
+				var hay = [s.name, s.sku, s.lot, s.location].join(' ').toLowerCase();
+				if (hay.indexOf(filters.search) < 0) return false;
+			}
+			return true;
 		});
 
 		list.sort(function (a, b) {
@@ -92,8 +110,7 @@
 			}
 			var na = String(a.name || '').toLocaleLowerCase('vi');
 			var nb = String(b.name || '').toLocaleLowerCase('vi');
-			var cmp = na.localeCompare(nb, 'vi');
-			return filters.name === 'za' ? -cmp : cmp;
+			return na.localeCompare(nb, 'vi');
 		});
 
 		return { rows: list, filters: filters };
@@ -541,11 +558,37 @@
 	}
 
 	function bindStockFilters() {
-		['#mkWhProtoFilterHsd', '#mkWhProtoFilterName', '#mkWhProtoFilterPrice'].forEach(function (sel) {
+		['#mkWhProtoFilterHsd', '#mkWhProtoFilterPrice'].forEach(function (sel) {
 			var el = qs(sel);
 			if (!el) return;
 			el.addEventListener('change', renderStock);
 		});
+		var searchEl = qs('#mkWhProtoStockSearch');
+		var searchTimer = null;
+		if (searchEl) {
+			searchEl.addEventListener('input', function () {
+				syncStockSearchClear();
+				if (searchTimer) clearTimeout(searchTimer);
+				searchTimer = setTimeout(renderStock, 120);
+			});
+			searchEl.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape') {
+					searchEl.value = '';
+					syncStockSearchClear();
+					if (searchTimer) clearTimeout(searchTimer);
+					renderStock();
+				}
+			});
+		}
+		var clearEl = qs('#mkWhProtoStockSearchClear');
+		if (clearEl) {
+			clearEl.addEventListener('click', function () {
+				if (searchEl) searchEl.value = '';
+				syncStockSearchClear();
+				if (searchEl) searchEl.focus();
+				renderStock();
+			});
+		}
 		var resetBtn = qs('#mkWhProtoFilterReset');
 		if (resetBtn) {
 			resetBtn.addEventListener('click', function () {
@@ -553,6 +596,7 @@
 				renderStock();
 			});
 		}
+		syncStockSearchClear();
 	}
 
 	function renderAll() {

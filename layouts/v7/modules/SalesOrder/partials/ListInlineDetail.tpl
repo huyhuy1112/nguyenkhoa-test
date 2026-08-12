@@ -100,7 +100,7 @@
 									0%
 								{/if}
 							</td>
-							<td class="is-num">{$LINE["unitPrice$IDX"]|default:$LINE["listPrice$IDX"]|default:'0'}</td>
+							<td class="is-num">{$LINE["listPrice$IDX"]|default:$LINE["unitPrice$IDX"]|default:'0'}</td>
 							<td class="is-num is-total">{$LINE["productTotal$IDX"]|default:'0'}</td>
 							<td class="is-note">
 								<input type="text" class="mk-so-inline-detail__line-note inputElement" name="line_comment_{$IDX|escape}" data-sequence="{$IDX|escape}" value="{$LINE_COMMENT|escape}" placeholder="Ghi chú dòng" maxlength="500" autocomplete="off" />

@@ -101,9 +101,9 @@
     "22%",
     "72px",
     "96px",
-    "120px",
+    "148px",
     "110px",
-    "128px",
+    "156px",
     "150px",
   ];
 
@@ -706,10 +706,11 @@
       }
     } else if (hasDot) {
       var dotParts = text.split(".");
-      if (
-        dotParts.length > 2 ||
-        (dotParts.length === 2 && dotParts[1].length === 3)
-      ) {
+      // Vietnamese thousand-sep: 1.000 / 1.000.000 / 10.000.000
+      // Only treat as decimal when exactly one dot and 1–2 fraction digits (e.g. 1.5, 10.25).
+      if (dotParts.length === 2 && dotParts[1].length > 0 && dotParts[1].length <= 2 && !/^\d{3}$/.test(dotParts[1])) {
+        // keep as decimal: 12.5
+      } else {
         text = text.replace(/\./g, "");
       }
     }
@@ -844,24 +845,30 @@
       },
     );
 
-    // Re-apply dots if Inventory_Edit or tier code writes plain "45000" after paint.
-    if (!$form.data("mkInvPriceWatch")) {
-      $form.data("mkInvPriceWatch", true);
-      var watchTimer = null;
-      var watch = function () {
-        if (!$form.closest("body").length) {
-          return;
-        }
-        formatAllListPrices($form, false);
-        watchTimer = setTimeout(watch, 800);
-      };
-      watchTimer = setTimeout(watch, 400);
-      $form.on("remove.mkInvPriceWatch destroy.mkInvPriceWatch", function () {
-        if (watchTimer) {
-          clearTimeout(watchTimer);
-        }
-      });
-    }
+      // Re-apply dots only when fields are idle (avoid flicker while focused / typing ≥1.000.000).
+      if (!$form.data("mkInvPriceWatch")) {
+        $form.data("mkInvPriceWatch", true);
+        var watchTimer = null;
+        var watch = function () {
+          if (!$form.closest("body").length) {
+            return;
+          }
+          $form.find("tr.lineItemRow input.listPrice").each(function () {
+            var $el = $(this);
+            if (document.activeElement === $el[0] || $el.data("mkPriceTyping")) {
+              return;
+            }
+            formatListPriceInput($el, false);
+          });
+          watchTimer = setTimeout(watch, 1200);
+        };
+        watchTimer = setTimeout(watch, 600);
+        $form.on("remove.mkInvPriceWatch destroy.mkInvPriceWatch", function () {
+          if (watchTimer) {
+            clearTimeout(watchTimer);
+          }
+        });
+      }
   }
 
   function sumLinePreTax($form) {
@@ -2367,7 +2374,7 @@
     { value: "0", label: "0%" },
   ];
 
-  /** Preset chiết khấu % + option tự nhập số tùy ý */
+  /** Preset chiết khấu % — custom = click the number field to type */
   var DISCOUNT_RATE_OPTIONS = [
     { value: "0", label: "0%" },
     { value: "5", label: "5%" },
@@ -2375,7 +2382,6 @@
     { value: "10", label: "10%" },
     { value: "15", label: "15%" },
     { value: "20", label: "20%" },
-    { value: "custom", label: "Tự nhập" },
   ];
 
   function clampDiscountPercent(v) {
@@ -2757,52 +2763,28 @@
     var $sel = $row.find(".mk-inv-discount-select").first();
     var $custom = $row.find(".mk-inv-discount-custom").first();
     var $suffix = $row.find(".mk-inv-discount-suffix").first();
-    if (!$sel.length) {
+    if (!$custom.length && !$sel.length) {
       return;
     }
-    var useCustom = !isDiscountPresetValue(pct);
-    // Keep "Tự nhập" only after user explicitly chose custom (or value is non-preset)
-    if ($row.data("mkDiscUserSet") && $sel.val() === "custom") {
-      useCustom = true;
+    $custom
+      .removeClass("mk-inv-hide-legacy hide")
+      .css({ display: "", visibility: "" })
+      .prop("disabled", false)
+      .prop("readonly", false);
+    $suffix.css({ display: "", visibility: "" });
+    if (document.activeElement !== $custom[0]) {
+      $custom.val(String(pct));
     }
-    if (useCustom) {
-      $sel.val("custom");
-      $custom
-        .removeClass("mk-inv-hide-legacy hide")
-        .css({ display: "", visibility: "" })
-        .prop("disabled", false);
-      if (document.activeElement !== $custom[0]) {
-        $custom.val(String(pct));
-      }
-      $suffix.css({ display: "", visibility: "" });
+    var key =
+      Math.abs(pct - Math.round(pct)) < 0.001
+        ? String(Math.round(pct))
+        : String(pct);
+    if ($sel.length && $sel.find('option[value="' + key + '"]').length) {
+      $sel.val(key);
+    }
+    $row.removeClass("mk-inv-discount--custom");
+    if (!isDiscountPresetValue(pct)) {
       $row.addClass("mk-inv-discount--custom");
-    } else {
-      var key =
-        Math.abs(pct - Math.round(pct)) < 0.001
-          ? String(Math.round(pct))
-          : String(pct);
-      // ensure option exists for edge values (e.g. 7.5 already custom)
-      if ($sel.find('option[value="' + key + '"]').length) {
-        $sel.val(key);
-      } else if (pct === 0) {
-        $sel.val("0");
-      } else {
-        $sel.val("custom");
-        $custom
-          .removeClass("mk-inv-hide-legacy hide")
-          .css({ display: "", visibility: "" })
-          .prop("disabled", false)
-          .val(String(pct));
-        $suffix.css({ display: "", visibility: "" });
-        $row.addClass("mk-inv-discount--custom");
-        return;
-      }
-      $custom
-        .addClass("hide")
-        .css({ display: "none", visibility: "hidden" })
-        .val(String(pct));
-      $suffix.css({ display: "none", visibility: "hidden" });
-      $row.removeClass("mk-inv-discount--custom");
     }
   }
 
@@ -2903,7 +2885,13 @@
     // Prefer server/legacy % on (re)paint so restyle cannot zero a saved discount
     var currentPct = getRowDiscountPercent($row);
 
+    var $existingWrap = $taxTd.find(".mk-inv-discount-wrap").first();
     var $existingSel = $taxTd.find(".mk-inv-discount-select").first();
+    // Rebuild if still using old split UI (two boxes).
+    if ($existingWrap.length && !$existingWrap.hasClass("mk-inv-discount-wrap--combo")) {
+      $existingWrap.remove();
+      $existingSel = $();
+    }
     if ($existingSel.length) {
       if (
         document.activeElement === $existingSel[0] ||
@@ -2917,7 +2905,6 @@
         .not(".mk-inv-discount-wrap")
         .addClass("mk-inv-hide-legacy")
         .css({ display: "none", visibility: "hidden" });
-      // Re-read after skipping UI priority if user hasn't touched control
       if (!$row.data("mkDiscUserSet")) {
         currentPct = readLegacyDiscountPercent($row);
         if (
@@ -2935,14 +2922,16 @@
       return;
     }
 
-    // Upgrade legacy free-number discount input → dropdown
+    // Single combobox: type % freely + open menu for presets (no 2 side-by-side boxes).
     $taxTd.find(".mk-inv-discount-wrap").remove();
 
     var $wrap = $(
-      '<div class="mk-inv-discount-wrap">' +
-        '<select class="mk-inv-discount-select inputElement" title="Chiết khấu (%)"></select>' +
-        '<input type="number" min="0" max="100" step="0.01" class="mk-inv-discount-custom mk-inv-discount-pct inputElement hide" title="Chiết khấu tùy chỉnh (%)" inputmode="decimal" />' +
-        '<span class="mk-inv-discount-suffix" style="display:none">%</span>' +
+      '<div class="mk-inv-discount-wrap mk-inv-discount-wrap--combo">' +
+        '<input type="text" inputmode="decimal" class="mk-inv-discount-custom mk-inv-discount-pct inputElement" title="Nhập % chiết khấu hoặc chọn từ menu" placeholder="0" autocomplete="off" />' +
+        '<button type="button" class="mk-inv-discount-caret" tabindex="-1" title="Chọn % nhanh" aria-label="Chọn % nhanh">' +
+        '<i class="fa fa-caret-down" aria-hidden="true"></i></button>' +
+        '<select class="mk-inv-discount-select inputElement mk-inv-hide-legacy" title="Chọn % chiết khấu" tabindex="-1" aria-hidden="true"></select>' +
+        '<span class="mk-inv-discount-suffix">%</span>' +
         "</div>",
     );
     var $sel = $wrap.find(".mk-inv-discount-select");
@@ -2952,8 +2941,9 @@
       );
     });
     var $custom = $wrap.find(".mk-inv-discount-custom");
+    var $caret = $wrap.find(".mk-inv-discount-caret");
 
-    // Seed from DB before DOM select defaults to 0%
+    // Seed from DB before DOM defaults to 0%
     if (!$row.data("mkDiscUserSet")) {
       currentPct = readLegacyDiscountPercent($row);
       if (
@@ -2966,49 +2956,77 @@
     }
 
     applyLineDiscountFields($row, currentPct);
-    $sel.on("change.mkInvDisc mousedown.mkInvDisc", function (e) {
-      if (e.type === "mousedown") {
-        $sel.data("mkTaxOpen", true);
-        return;
+
+    function openDiscountSelectMenu() {
+      try {
+        // Native select: focus + keyboard/space to open on some browsers.
+        $sel.css({
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: "100%",
+          height: "100%",
+          opacity: 0.01,
+          "z-index": 5,
+          display: "block",
+          "pointer-events": "auto",
+        });
+        $sel.focus();
+        if (typeof $sel[0].showPicker === "function") {
+          $sel[0].showPicker();
+        }
+      } catch (eOpen) {
+        /* ignore */
       }
+    }
+
+    $caret.on("mousedown.mkInvDisc click.mkInvDisc", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openDiscountSelectMenu();
+    });
+    $custom.on("keydown.mkInvDisc", function (e) {
+      if (e.key === "ArrowDown" || e.which === 40) {
+        e.preventDefault();
+        openDiscountSelectMenu();
+      }
+    });
+    $sel.on("change.mkInvDisc", function () {
       $sel.data("mkTaxOpen", false);
       $row.data("mkDiscUserSet", true);
       var v = $sel.val();
-      if (v === "custom") {
-        $row.addClass("mk-inv-discount--custom");
-        $custom
-          .removeClass("hide mk-inv-hide-legacy")
-          .css({ display: "", visibility: "" })
-          .prop("disabled", false);
-        $wrap.find(".mk-inv-discount-suffix").css({
-          display: "",
-          visibility: "",
-        });
-        if ($custom.val() === "" || $custom.val() == null) {
-          $custom.val(String(getRowDiscountPercent($row) || 0));
-        }
-        setTimeout(function () {
-          $custom.trigger("focus").select();
-        }, 0);
-        commitRowDiscount($row, $form, $custom.val());
+      if (v === "" || v == null) {
         return;
       }
       commitRowDiscount($row, $form, v);
+      $sel.css({ opacity: 0, "pointer-events": "none", "z-index": 0 });
     });
     $sel.on("blur.mkInvDisc", function () {
       $sel.data("mkTaxOpen", false);
+      $sel.css({ opacity: 0, "pointer-events": "none", "z-index": 0 });
     });
 
+    $custom.on("focus.mkInvDisc", function () {
+      try {
+        this.select();
+      } catch (e0) {
+        /* ignore */
+      }
+    });
     $custom.on(
       "input.mkInvDisc change.mkInvDisc focusout.mkInvDisc",
       function () {
         $row.data("mkDiscUserSet", true);
-        if ($sel.val() !== "custom") {
-          $sel.val("custom");
-        }
         var pct = clampDiscountPercent($custom.val());
         if (document.activeElement !== $custom[0]) {
           $custom.val(String(pct));
+        }
+        if (isDiscountPresetValue(pct)) {
+          var key =
+            Math.abs(pct - Math.round(pct)) < 0.001
+              ? String(Math.round(pct))
+              : String(pct);
+          $sel.val(key);
         }
         applyLineDiscountFields($row, pct);
         applyLineTaxZero($row, $form);
@@ -4325,9 +4343,11 @@
     autoBootstrapInventoryOdooUi();
     scheduleLineItemsRestyle(
       detectInventoryEditForm(),
-      [80, 250, 600, 1200, 2000, 3200],
+      [0, 60, 180, 360],
     );
-    setTimeout(markInventoryUiReady, 2000);
+    // Reveal early; restyle continues after show so first paint isn't blank 2–3s.
+    setTimeout(markInventoryUiReady, 180);
+    setTimeout(markInventoryUiReady, 600);
     if (!window.__mkInvAddLineDocBound) {
       window.__mkInvAddLineDocBound = true;
       $(document).on(
@@ -6891,6 +6911,7 @@
     autoBootstrap: autoBootstrapInventoryOdooUi,
     fillAddressFromPotential: fillAddressFromPotential,
     fillAddressFromAccount: fillAddressFromAccount,
+    setFormAddresses: setFormAddresses,
     restyleLineItemRows: restyleLineItemRows,
     scheduleLineItemsRestyle: scheduleLineItemsRestyle,
     initQuickProductSearch: initQuickProductSearch,

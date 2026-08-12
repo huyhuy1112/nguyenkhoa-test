@@ -208,47 +208,114 @@ class Warehouse_WhMgmtService {
 		require_once 'modules/GoodsReceipt/helpers/WorkflowSetup.php';
 		GoodsReceipt_WorkflowSetup_Helper::runAll();
 
-		foreach (Warehouse_WhMgmtSeedData::stockByWarehouse() as $whCode => $rows) {
-			$wh = self::findWarehouseRowByCode($db, $whCode);
-			if (!$wh) {
-				continue;
-			}
-			$whName = (string) $wh['name'];
-			foreach ($rows as $item) {
-				$key = self::stockProductKey($whCode, $item['sku'], $item['lot']);
-				$exists = $db->pquery(
-					'SELECT stockid FROM vtiger_warehouse_stock WHERE product_key = ? LIMIT 1',
-					array($key)
-				);
-				if ($exists && $db->num_rows($exists) > 0) {
-					continue;
-				}
-				$stockId = (int) $db->getUniqueID('vtiger_warehouse_stock');
-				$code = 'STK-' . str_pad((string) $stockId, 4, '0', STR_PAD_LEFT);
-				$now = date('Y-m-d H:i:s');
-				$db->pquery(
-					'INSERT INTO vtiger_warehouse_stock
-					 (stockid, code, product_key, productid, product_name, quantity, last_price,
-					  warehouse_id, warehouse_name, expired_date, mfg_date, createdtime, updatedtime)
-					 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
-					array(
-						$stockId,
-						$code,
-						$key,
-						0,
-						$item['name'],
-						(float) $item['qty'],
-						(float) (isset($item['price']) ? $item['price'] : 0),
-						$whCode,
-						$whName,
-						isset($item['expiry']) ? $item['expiry'] : null,
-						isset($item['mfg']) ? $item['mfg'] : null,
-						$now,
-						$now,
-					)
-				);
-			}
+		$rs = $db->pquery('SELECT COUNT(*) AS c FROM vtiger_warehouse_stock', array());
+		$existing = ($rs && $db->num_rows($rs) > 0) ? (int) $db->query_result($rs, 0, 'c') : 0;
+		if ($existing > 0) {
+			return;
 		}
+		self::resetStockFromCatalog($db, 'WH-001', 10, false);
+	}
+
+	/**
+	 * Wipe warehouse stock and reseed from live ProductsServices catalog.
+	 * SKU + price from catalog; lot / NSX / HSD are demo-friendly defaults; qty fixed per item.
+	 *
+	 * @param bool $wipeAll when true, DELETE all rows first (full reset)
+	 * @return array{deleted:int,inserted:int,warehouse:string,qty:float}
+	 */
+	public static function resetStockFromCatalog(
+		PearDatabase $db = null,
+		$warehouseCode = 'WH-001',
+		$qtyPerItem = 10,
+		$wipeAll = true
+	) {
+		if ($db === null) {
+			$db = PearDatabase::getInstance();
+		}
+		require_once 'modules/GoodsReceipt/helpers/WorkflowSetup.php';
+		GoodsReceipt_WorkflowSetup_Helper::runAll();
+		Warehouse_WorkflowSetup_Helper::runAll();
+		self::seedWarehouses($db);
+
+		$warehouseCode = trim((string) $warehouseCode);
+		if ($warehouseCode === '') {
+			$warehouseCode = 'WH-001';
+		}
+		$qtyPerItem = (float) $qtyPerItem;
+		if ($qtyPerItem < 0) {
+			$qtyPerItem = 0;
+		}
+
+		$deleted = 0;
+		if ($wipeAll) {
+			$cntRs = $db->pquery('SELECT COUNT(*) AS c FROM vtiger_warehouse_stock', array());
+			$deleted = ($cntRs && $db->num_rows($cntRs) > 0) ? (int) $db->query_result($cntRs, 0, 'c') : 0;
+			$db->pquery('DELETE FROM vtiger_warehouse_stock', array());
+		}
+
+		$wh = self::findWarehouseRowByCode($db, $warehouseCode);
+		$whName = $wh ? (string) $wh['name'] : $warehouseCode;
+
+		$rs = $db->pquery(
+			'SELECT ps.productsservicesid AS id, ps.productsservicesname AS name,
+			        IFNULL(ps.sku, \'\') AS sku, IFNULL(ps.price, 0) AS price
+			 FROM vtiger_productsservices ps
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
+			 ORDER BY ps.productsservicesname ASC, ps.productsservicesid ASC',
+			array()
+		);
+
+		$inserted = 0;
+		$now = date('Y-m-d H:i:s');
+		$mfg = '2026-01-15';
+		$expiry = '2027-12-31';
+		$idx = 0;
+		while ($rs && ($row = $db->fetchByAssoc($rs))) {
+			$idx++;
+			$productId = (int) $row['id'];
+			$name = decode_html(trim((string) $row['name']));
+			$sku = trim(decode_html((string) $row['sku']));
+			$price = (float) $row['price'];
+			$lot = 'LOT-TEST-' . str_pad((string) $idx, 3, '0', STR_PAD_LEFT);
+			// Lot is unique per row so blank catalog SKU still yields a unique product_key.
+			$key = self::stockProductKey($warehouseCode, $sku, $lot);
+
+			$stockId = (int) $db->getUniqueID('vtiger_warehouse_stock');
+			$code = 'STK-' . str_pad((string) $stockId, 4, '0', STR_PAD_LEFT);
+			$loc = 'A' . ((($idx - 1) % 9) + 1) . '-' . str_pad((string) ((($idx - 1) % 20) + 1), 2, '0', STR_PAD_LEFT);
+
+			$db->pquery(
+				'INSERT INTO vtiger_warehouse_stock
+				 (stockid, code, product_key, productid, product_name, quantity, last_price,
+				  warehouse_id, warehouse_name, storage_location, expired_date, mfg_date,
+				  shrinkage_qty, createdtime, updatedtime)
+				 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,?,?)',
+				array(
+					$stockId,
+					$code,
+					$key,
+					$productId,
+					$name !== '' ? $name : ($sku !== '' ? $sku : ('PS-' . $productId)),
+					$qtyPerItem,
+					$price,
+					$warehouseCode,
+					$whName,
+					$loc,
+					$expiry,
+					$mfg,
+					$now,
+					$now,
+				)
+			);
+			$inserted++;
+		}
+
+		return array(
+			'deleted' => $deleted,
+			'inserted' => $inserted,
+			'warehouse' => $warehouseCode,
+			'qty' => $qtyPerItem,
+		);
 	}
 
 	protected static function seedDemoDocuments(PearDatabase $db) {
@@ -490,7 +557,39 @@ class Warehouse_WhMgmtService {
 	}
 
 	protected static function isAutoSku($sku) {
-		return (bool) preg_match('/^PS-\d+$/i', trim((string) $sku));
+		$sku = trim((string) $sku);
+		if ($sku === '' || strcasecmp($sku, 'UNK') === 0) {
+			return true;
+		}
+		// PS-123 catalog placeholder, invents from name (SKU-xxxxxx hex), PID- fallback
+		return (bool) preg_match('/^(PS-\d+|SKU-[0-9a-f]{4,12}|PID-\d+)$/i', $sku);
+	}
+
+	protected static function strLowerUtf8($value) {
+		$value = (string) $value;
+		if (function_exists('mb_strtolower')) {
+			return mb_strtolower($value, 'UTF-8');
+		}
+		return strtolower($value);
+	}
+
+	/**
+	 * Raw WH|sku|lot parse — does NOT invent SKU-md5 from product name.
+	 * @return array{0:string,1:string} [sku, lot]
+	 */
+	protected static function skuLotFromProductKey($key) {
+		$key = trim((string) $key);
+		$sku = '';
+		$lot = '';
+		if ($key !== '' && strpos($key, '|') !== false) {
+			$parts = explode('|', $key);
+			$sku = isset($parts[1]) ? trim((string) $parts[1]) : '';
+			$lot = isset($parts[2]) ? trim((string) $parts[2]) : '';
+		}
+		if (self::isAutoSku($sku)) {
+			$sku = '';
+		}
+		return array($sku, $lot);
 	}
 
 	protected static function formatDisplaySku($sku) {
@@ -1164,6 +1263,21 @@ class Warehouse_WhMgmtService {
 		$lot = trim((string) $lot);
 		$name = trim((string) $name);
 		$productId = (int) $productId;
+		if (self::isAutoSku($sku)) {
+			$sku = '';
+		}
+		if ($productId <= 0 && $name !== '') {
+			$productId = self::resolveProductIdByName($db, $name);
+		}
+		if ($sku === '' && $productId > 0) {
+			$sku = self::resolveProductSku($db, $productId);
+			if (self::isAutoSku($sku)) {
+				$sku = '';
+			}
+		}
+		// Normalize display names like "Áo (Cái)" so FEFO match works.
+		$nameCore = self::normalizeStockProductName($name);
+
 		$virtualQty = array();
 
 		$takeFromRow = function ($stockId, $current, $forceFull = false) use (
@@ -1190,7 +1304,6 @@ class Warehouse_WhMgmtService {
 					return;
 				}
 				if ($deduct <= 0 && $allowNegative) {
-					// Stock row exists but non-positive — allow full remaining when negative OK.
 					$deduct = (float) $qtyNeeded;
 				}
 			}
@@ -1212,55 +1325,164 @@ class Warehouse_WhMgmtService {
 			$qtyNeeded -= $deduct;
 		};
 
-		if ($sku !== '' && $lot !== '') {
-			$key = self::stockProductKey($warehouseCode, $sku, $lot);
-			$rs = $db->pquery(
-				'SELECT stockid, quantity FROM vtiger_warehouse_stock WHERE product_key = ? LIMIT 1',
-				array($key)
+		$scanTake = function ($sql, $params, $forceFullAll = false) use (
+			$db,
+			&$qtyNeeded,
+			$takeFromRow,
+			$allowNegative,
+			$lot
+		) {
+			if ($qtyNeeded <= 0.00000001) {
+				return;
+			}
+			$rs = $db->pquery($sql, $params);
+			while ($rs && ($row = $db->fetchByAssoc($rs))) {
+				if ($qtyNeeded <= 0.00000001) {
+					break;
+				}
+				// Optional lot filter when caller passed a concrete lot.
+				if ($lot !== '' && $lot !== '—') {
+					$parsed = self::parseStockIdentity($db, $row);
+					$rowLot = (string) (isset($parsed['lot']) ? $parsed['lot'] : '');
+					if ($rowLot !== '' && strcasecmp($rowLot, $lot) !== 0) {
+						continue;
+					}
+				}
+				// Prefer depleting positive rows fully first; force remaining only on last pass.
+				$force = $forceFullAll && $allowNegative;
+				$takeFromRow((int) $row['stockid'], (float) $row['quantity'], $force);
+			}
+		};
+
+		// 1) productid — real catalog lines (highest priority)
+		if ($productId > 0) {
+			$scanTake(
+				'SELECT stockid, quantity, product_key FROM vtiger_warehouse_stock
+				 WHERE warehouse_id = ? AND productid = ?
+				 ORDER BY (quantity > 0) DESC, expired_date ASC, stockid ASC',
+				array($warehouseCode, $productId),
+				false
 			);
-			if ($rs && $db->num_rows($rs) > 0) {
-				$takeFromRow(
-					(int) $db->query_result($rs, 0, 'stockid'),
-					(float) $db->query_result($rs, 0, 'quantity'),
-					$allowNegative
+			// Remaining under allow-negative: go fully negative on best productid row.
+			if ($qtyNeeded > 0.00000001 && $allowNegative) {
+				$scanTake(
+					'SELECT stockid, quantity, product_key FROM vtiger_warehouse_stock
+					 WHERE warehouse_id = ? AND productid = ?
+					 ORDER BY (quantity < 0) ASC, stockid ASC
+					 LIMIT 1',
+					array($warehouseCode, $productId),
+					true
 				);
 			}
 		}
-		if ($qtyNeeded <= 0.00000001) {
-			return 0;
+
+		// 2) SKU — all lots (do not require lot to match first key)
+		if ($qtyNeeded > 0.00000001 && $sku !== '') {
+			// Exact key first when lot known
+			if ($lot !== '' && $lot !== '—') {
+				$key = self::stockProductKey($warehouseCode, $sku, $lot);
+				$rs = $db->pquery(
+					'SELECT stockid, quantity FROM vtiger_warehouse_stock WHERE product_key = ? LIMIT 1',
+					array($key)
+				);
+				if ($rs && $db->num_rows($rs) > 0) {
+					$takeFromRow(
+						(int) $db->query_result($rs, 0, 'stockid'),
+						(float) $db->query_result($rs, 0, 'quantity'),
+						$allowNegative
+					);
+				}
+			}
+			if ($qtyNeeded > 0.00000001) {
+				$scanTake(
+					'SELECT stockid, quantity, product_key FROM vtiger_warehouse_stock
+					 WHERE warehouse_id = ? AND (
+						product_key LIKE ? OR product_key LIKE ? OR product_key = ?
+					 )
+					 ORDER BY (quantity > 0) DESC, expired_date ASC, stockid ASC',
+					array(
+						$warehouseCode,
+						'%|' . $sku . '|%',
+						$warehouseCode . '|' . $sku . '|%',
+						self::stockProductKey($warehouseCode, $sku, $lot !== '' ? $lot : '—'),
+					),
+					false
+				);
+			}
+			// Parse sku from product_key columns when LIKE unreliable (never invent SKU-md5)
+			if ($qtyNeeded > 0.00000001) {
+				$rs = $db->pquery(
+					'SELECT stockid, quantity, product_key FROM vtiger_warehouse_stock
+					 WHERE warehouse_id = ?
+					 ORDER BY (quantity > 0) DESC, expired_date ASC, stockid ASC',
+					array($warehouseCode)
+				);
+				while ($rs && ($row = $db->fetchByAssoc($rs))) {
+					if ($qtyNeeded <= 0.00000001) {
+						break;
+					}
+					list($rowSku) = self::skuLotFromProductKey(isset($row['product_key']) ? $row['product_key'] : '');
+					if ($rowSku === '' || strcasecmp($rowSku, $sku) !== 0) {
+						continue;
+					}
+					$takeFromRow((int) $row['stockid'], (float) $row['quantity'], false);
+				}
+			}
+			if ($qtyNeeded > 0.00000001 && $allowNegative) {
+				// Push remainder into first SKU-matching row (or create key with real SKU).
+				$rs = $db->pquery(
+					'SELECT stockid, quantity, product_key FROM vtiger_warehouse_stock WHERE warehouse_id = ?',
+					array($warehouseCode)
+				);
+				$hit = null;
+				while ($rs && ($row = $db->fetchByAssoc($rs))) {
+					list($rowSku) = self::skuLotFromProductKey(isset($row['product_key']) ? $row['product_key'] : '');
+					if ($rowSku !== '' && strcasecmp($rowSku, $sku) === 0) {
+						$hit = $row;
+						break;
+					}
+				}
+				if ($hit) {
+					$takeFromRow((int) $hit['stockid'], (float) $hit['quantity'], true);
+				}
+			}
 		}
 
-		$qtyFilter = $allowNegative ? '1=1' : 'quantity > 0';
-		$rs = $db->pquery(
-			"SELECT stockid, quantity, product_key, productid, product_name FROM vtiger_warehouse_stock
-			 WHERE warehouse_id = ? AND {$qtyFilter}
-			 ORDER BY expired_date ASC, stockid ASC",
-			array($warehouseCode)
-		);
-		while ($rs && ($row = $db->fetchByAssoc($rs))) {
-			if ($qtyNeeded <= 0.00000001) {
-				break;
+		// 3) Name match (normalized / fuzzy — prevents ghost SKU-md5 rows)
+		if ($qtyNeeded > 0.00000001 && $nameCore !== '') {
+			$rs = $db->pquery(
+				'SELECT stockid, quantity, product_key, productid, product_name FROM vtiger_warehouse_stock
+				 WHERE warehouse_id = ?
+				 ORDER BY (quantity > 0) DESC, expired_date ASC, stockid ASC',
+				array($warehouseCode)
+			);
+			while ($rs && ($row = $db->fetchByAssoc($rs))) {
+				if ($qtyNeeded <= 0.00000001) {
+					break;
+				}
+				$rowName = self::decodeDisplayTextDeep(isset($row['product_name']) ? $row['product_name'] : '');
+				if (!self::stockNamesMatch($nameCore, $rowName)) {
+					continue;
+				}
+				$takeFromRow((int) $row['stockid'], (float) $row['quantity'], false);
 			}
-			$parsed = self::parseStockIdentity($db, $row);
-			$rowSku = (string) (isset($parsed['sku']) ? $parsed['sku'] : '');
-			$rowLot = (string) (isset($parsed['lot']) ? $parsed['lot'] : '');
-			$rowName = (string) (isset($parsed['name']) ? $parsed['name'] : '');
-			$rowPid = (int) (isset($row['productid']) ? $row['productid'] : 0);
-			$match = false;
-			if ($sku !== '' && $lot !== '' && strcasecmp($rowSku, $sku) === 0 && strcasecmp($rowLot, $lot) === 0) {
-				$match = true;
-			} elseif ($productId > 0 && $rowPid === $productId && ($lot === '' || strcasecmp($rowLot, $lot) === 0)) {
-				$match = true;
-			} elseif ($name !== '' && mb_strtolower($rowName) === mb_strtolower($name) && ($lot === '' || strcasecmp($rowLot, $lot) === 0)) {
-				$match = true;
+			if ($qtyNeeded > 0.00000001 && $allowNegative) {
+				// Re-scan for force full on same name
+				$rs = $db->pquery(
+					'SELECT stockid, quantity, product_name FROM vtiger_warehouse_stock WHERE warehouse_id = ?',
+					array($warehouseCode)
+				);
+				while ($rs && ($row = $db->fetchByAssoc($rs))) {
+					$rowName = self::decodeDisplayTextDeep(isset($row['product_name']) ? $row['product_name'] : '');
+					if (self::stockNamesMatch($nameCore, $rowName)) {
+						$takeFromRow((int) $row['stockid'], (float) $row['quantity'], true);
+						break;
+					}
+				}
 			}
-			if (!$match) {
-				continue;
-			}
-			$takeFromRow((int) $row['stockid'], (float) $row['quantity'], $allowNegative);
 		}
 
-		// Allow-negative fallback: create a stock row with negative qty when no match.
+		// 4) Last resort: create/update negative on REAL sku — never invent SKU-md5 when productid/sku known
 		if ($doUpdate && $allowNegative && $qtyNeeded > 0.00000001) {
 			self::createNegativeStockRow($db, $warehouseCode, $sku, $lot, $name, $productId, $qtyNeeded, $userId, $now);
 			$qtyNeeded = 0;
@@ -1277,7 +1499,85 @@ class Warehouse_WhMgmtService {
 	}
 
 	/**
+	 * Strip unit suffixes / noise so "Áo Thun (Cái)" matches stock "Áo Thun (Cái)".
+	 */
+	protected static function normalizeStockProductName($name) {
+		$name = self::decodeDisplayTextDeep($name);
+		$name = preg_replace('/\s+/u', ' ', trim((string) $name));
+		// Drop trailing unit markers: (Cái), (Bao), ...
+		$name = preg_replace('/\s*\([^)]{0,40}\)\s*$/u', '', $name);
+		$name = preg_replace('/\s+/u', ' ', trim((string) $name));
+		return $name;
+	}
+
+	/**
+	 * Flexible product name equality for stock lines vs issue lines.
+	 */
+	protected static function stockNamesMatch($a, $b) {
+		$a = self::normalizeStockProductName($a);
+		$b = self::normalizeStockProductName($b);
+		if ($a === '' || $b === '') {
+			return false;
+		}
+		$la = self::strLowerUtf8($a);
+		$lb = self::strLowerUtf8($b);
+		if ($la === $lb) {
+			return true;
+		}
+		// Containment when both reasonably long (e.g. line omit "Tuibao size XL")
+		$lenA = function_exists('mb_strlen') ? mb_strlen($la, 'UTF-8') : strlen($la);
+		$lenB = function_exists('mb_strlen') ? mb_strlen($lb, 'UTF-8') : strlen($lb);
+		if ($lenA >= 8 && $lenB >= 8) {
+			if (strpos($la, $lb) !== false || strpos($lb, $la) !== false) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Resolve ProductsServices id by name when outbound line has missing/wrong productid.
+	 */
+	protected static function resolveProductIdByName(PearDatabase $db, $name) {
+		$name = self::normalizeStockProductName($name);
+		if ($name === '') {
+			return 0;
+		}
+		try {
+			$rs = $db->pquery(
+				'SELECT productsservicesid FROM vtiger_productsservices
+				 WHERE productsservicesname = ? OR productsservicesname LIKE ?
+				 ORDER BY (productsservicesname = ?) DESC, productsservicesid ASC
+				 LIMIT 2',
+				array($name, $name . ' (%', $name)
+			);
+			if ($rs && $db->num_rows($rs) === 1) {
+				return (int) $db->query_result($rs, 0, 'productsservicesid');
+			}
+			if ($rs && $db->num_rows($rs) > 1) {
+				// Prefer exact
+				return (int) $db->query_result($rs, 0, 'productsservicesid');
+			}
+			$like = '%' . $name . '%';
+			$rs2 = $db->pquery(
+				'SELECT productsservicesid FROM vtiger_productsservices
+				 WHERE productsservicesname LIKE ?
+				 ORDER BY CHAR_LENGTH(productsservicesname) ASC
+				 LIMIT 2',
+				array($like)
+			);
+			if ($rs2 && $db->num_rows($rs2) === 1) {
+				return (int) $db->query_result($rs2, 0, 'productsservicesid');
+			}
+		} catch (Exception $e) {
+			return 0;
+		}
+		return 0;
+	}
+
+	/**
 	 * Create / update a stock identity to hold a negative quantity (allow-negative mode).
+	 * Never invent SKU-md5 when we know productid/catalog SKU — merge into existing rows first.
 	 */
 	protected static function createNegativeStockRow(
 		PearDatabase $db,
@@ -1292,15 +1592,96 @@ class Warehouse_WhMgmtService {
 	) {
 		$sku = trim((string) $sku);
 		$lot = trim((string) $lot);
+		$name = trim((string) $name);
+		$productId = (int) $productId;
+		$qtyNeeded = (float) $qtyNeeded;
 		if ($lot === '') {
 			$lot = '—';
 		}
+		if (self::isAutoSku($sku)) {
+			$sku = '';
+		}
+		if ($productId <= 0 && $name !== '') {
+			$productId = self::resolveProductIdByName($db, $name);
+		}
 		if ($sku === '' && $productId > 0) {
 			$sku = self::resolveProductSku($db, $productId);
+			if (self::isAutoSku($sku)) {
+				$sku = '';
+			}
 		}
+
+		// A) Merge into any existing productid row
+		if ($productId > 0) {
+			$rs = $db->pquery(
+				'SELECT stockid, quantity FROM vtiger_warehouse_stock
+				 WHERE warehouse_id = ? AND productid = ?
+				 ORDER BY (quantity > 0) DESC, stockid ASC LIMIT 1',
+				array($warehouseCode, $productId)
+			);
+			if ($rs && $db->num_rows($rs) > 0) {
+				$stockId = (int) $db->query_result($rs, 0, 'stockid');
+				$current = (float) $db->query_result($rs, 0, 'quantity');
+				$db->pquery(
+					'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
+					array($current - $qtyNeeded, (int) $userId, $now, $stockId)
+				);
+				return;
+			}
+		}
+
+		// B) Merge into any row with matching SKU (raw product_key only)
+		if ($sku !== '') {
+			$rs = $db->pquery(
+				'SELECT stockid, quantity, product_key FROM vtiger_warehouse_stock WHERE warehouse_id = ?',
+				array($warehouseCode)
+			);
+			while ($rs && ($row = $db->fetchByAssoc($rs))) {
+				list($rowSku) = self::skuLotFromProductKey(isset($row['product_key']) ? $row['product_key'] : '');
+				if ($rowSku !== '' && strcasecmp($rowSku, $sku) === 0) {
+					$stockId = (int) $row['stockid'];
+					$current = (float) $row['quantity'];
+					$db->pquery(
+						'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
+						array($current - $qtyNeeded, (int) $userId, $now, $stockId)
+					);
+					return;
+				}
+			}
+		}
+
+		// B2) Merge by product name (stops creating twin "SKU-md5" ghost rows)
+		if ($name !== '') {
+			$rs = $db->pquery(
+				'SELECT stockid, quantity, product_name FROM vtiger_warehouse_stock WHERE warehouse_id = ?
+				 ORDER BY (quantity > 0) DESC, stockid ASC',
+				array($warehouseCode)
+			);
+			while ($rs && ($row = $db->fetchByAssoc($rs))) {
+				$rowName = self::decodeDisplayTextDeep(isset($row['product_name']) ? $row['product_name'] : '');
+				if (!self::stockNamesMatch($name, $rowName)) {
+					continue;
+				}
+				$stockId = (int) $row['stockid'];
+				$current = (float) $row['quantity'];
+				$db->pquery(
+					'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
+					array($current - $qtyNeeded, (int) $userId, $now, $stockId)
+				);
+				return;
+			}
+		}
+
+		// C) Prefer real catalog identity — avoid inventing SKU-md5 when we know pid
 		if ($sku === '') {
-			$sku = $name !== '' ? self::guessSkuFromName($name) : 'UNK';
+			if ($productId > 0) {
+				$sku = 'PID-' . $productId;
+			} else {
+				// Absolute last resort only
+				$sku = $name !== '' ? self::guessSkuFromName($name) : 'UNK';
+			}
 		}
+
 		$wh = self::findWarehouseRowByCode($db, $warehouseCode);
 		$whName = $wh ? self::decodeDisplayTextDeep((string) $wh['name']) : $warehouseCode;
 		$key = self::stockProductKey($warehouseCode, $sku, $lot);
@@ -1313,7 +1694,7 @@ class Warehouse_WhMgmtService {
 			$current = (float) $db->query_result($rs, 0, 'quantity');
 			$db->pquery(
 				'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
-				array($current - (float) $qtyNeeded, (int) $userId, $now, $stockId)
+				array($current - $qtyNeeded, (int) $userId, $now, $stockId)
 			);
 			return;
 		}
@@ -1330,7 +1711,7 @@ class Warehouse_WhMgmtService {
 				$name !== '' ? $name : $sku,
 				$warehouseCode,
 				$whName,
-				0 - (float) $qtyNeeded,
+				0 - $qtyNeeded,
 				0,
 				0,
 				(int) $userId,
@@ -1438,6 +1819,7 @@ class Warehouse_WhMgmtService {
 
 	/**
 	 * Hoàn tồn khi huỷ phiếu xuất (đã trừ nguồn / đã cộng đích chuyển kho).
+	 * Mirror deduct keys: productid first, then resolveProductSku — never invent SKU-only keys.
 	 */
 	protected static function restoreStockForCancelledIssue(PearDatabase $db, $warehouseCode, $issueId, $userId, array &$meta) {
 		$wh = self::findWarehouseRowByCode($db, $warehouseCode);
@@ -1457,6 +1839,9 @@ class Warehouse_WhMgmtService {
 				$lot = self::decodeDisplayTextDeep(isset($it['serial_number']) ? $it['serial_number'] : '');
 				$name = self::decodeDisplayTextDeep(isset($it['product_name']) ? $it['product_name'] : '');
 				$productId = (int) (isset($it['productid']) ? $it['productid'] : 0);
+				if ($sku === '' && $productId > 0) {
+					$sku = self::resolveProductSku($db, $productId);
+				}
 				self::deductQtyFromWarehouseStock(
 					$db,
 					$creditedTo,
@@ -1473,38 +1858,156 @@ class Warehouse_WhMgmtService {
 			$meta['stockCreditedTo'] = '';
 		}
 
-		if (empty($meta['stockDeducted'])) {
+		// Only restore when stock was actually deducted (flag or timestamp).
+		if (empty($meta['stockDeducted']) && empty($meta['stockDeductedAt'])) {
 			return;
 		}
+
 		$raw = self::loadIssueItemsRaw($db, $issueId);
 		foreach ($raw as $it) {
 			$qty = (float) (isset($it['quantity']) ? $it['quantity'] : 0);
 			if ($qty <= 0) {
 				continue;
 			}
-			$line = array(
-				'sku' => self::decodeDisplayTextDeep(isset($it['line_note']) ? $it['line_note'] : ''),
-				'name' => self::decodeDisplayTextDeep(isset($it['product_name']) ? $it['product_name'] : ''),
-				'lot' => self::decodeDisplayTextDeep(isset($it['serial_number']) ? $it['serial_number'] : ''),
-				'qty' => $qty,
-				'product_id' => (int) (isset($it['productid']) ? $it['productid'] : 0),
+			$productId = (int) (isset($it['productid']) ? $it['productid'] : 0);
+			$sku = self::decodeDisplayTextDeep(isset($it['line_note']) ? $it['line_note'] : '');
+			$name = self::decodeDisplayTextDeep(isset($it['product_name']) ? $it['product_name'] : '');
+			$lot = self::decodeDisplayTextDeep(isset($it['serial_number']) ? $it['serial_number'] : '');
+			if ($sku === '' && $productId > 0) {
+				$sku = self::resolveProductSku($db, $productId);
+			}
+			if ($name === '' && $productId > 0) {
+				try {
+					$nrs = $db->pquery(
+						'SELECT productsservicesname FROM vtiger_productsservices WHERE productsservicesid = ? LIMIT 1',
+						array($productId)
+					);
+					if ($nrs && $db->num_rows($nrs) > 0) {
+						$name = self::decodeDisplayTextDeep($db->query_result($nrs, 0, 'productsservicesname'));
+					}
+				} catch (Exception $e) {
+					// optional
+				}
+			}
+			if ($productId > 0) {
+				self::restoreQtyToWarehouseStockByProduct(
+					$db,
+					$warehouseCode,
+					$whName,
+					$qty,
+					$productId,
+					$sku,
+					$lot,
+					$name,
+					$userId
+				);
+				continue;
+			}
+			if ($name === '' && $sku === '') {
+				continue;
+			}
+			if ($sku === '' && $name !== '') {
+				$sku = self::guessSkuFromName($name);
+			}
+			if ($lot === '') {
+				$lot = '—';
+			}
+			self::applyInboundStockLine(
+				$db,
+				$warehouseCode,
+				$whName,
+				array(
+					'sku' => $sku,
+					'name' => $name !== '' ? $name : $sku,
+					'lot' => $lot,
+					'qty' => $qty,
+					'product_id' => 0,
+					'price' => 0,
+					'mfg' => '',
+					'expiry' => '',
+					'location' => '',
+				),
+				$userId
+			);
+		}
+		$meta['stockDeducted'] = false;
+		unset($meta['stockDeductedAt']);
+	}
+
+	/**
+	 * Add qty back to existing warehouse stock row(s) matched by productid (same as deduct).
+	 */
+	protected static function restoreQtyToWarehouseStockByProduct(
+		PearDatabase $db,
+		$warehouseCode,
+		$whName,
+		$qty,
+		$productId,
+		$sku,
+		$lot,
+		$name,
+		$userId
+	) {
+		$qty = (float) $qty;
+		$productId = (int) $productId;
+		if ($qty <= 0 || $productId <= 0) {
+			return;
+		}
+		$remaining = $qty;
+		$now = self::nowSql();
+		$lot = trim((string) $lot);
+
+		$rs = $db->pquery(
+			'SELECT stockid, quantity FROM vtiger_warehouse_stock
+			 WHERE warehouse_id = ? AND productid = ?
+			 ORDER BY (quantity < 0) DESC, stockid ASC',
+			array($warehouseCode, $productId)
+		);
+		while ($rs && ($row = $db->fetchByAssoc($rs))) {
+			if ($remaining <= 0.00000001) {
+				break;
+			}
+			$stockId = (int) $row['stockid'];
+			$current = (float) $row['quantity'];
+			$add = $remaining;
+			$db->pquery(
+				'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
+				array($current + $add, (int) $userId, $now, $stockId)
+			);
+			$remaining -= $add;
+		}
+		if ($remaining <= 0.00000001) {
+			return;
+		}
+		if ($sku === '') {
+			$sku = self::resolveProductSku($db, $productId);
+		}
+		if ($sku === '' && $name !== '') {
+			$sku = self::guessSkuFromName($name);
+		}
+		if ($sku === '') {
+			$sku = 'PID-' . $productId;
+		}
+		if ($lot === '') {
+			$lot = '—';
+		}
+		self::applyInboundStockLine(
+			$db,
+			$warehouseCode,
+			$whName,
+			array(
+				'sku' => $sku,
+				'name' => $name !== '' ? $name : $sku,
+				'lot' => $lot,
+				'qty' => $remaining,
+				'product_id' => $productId,
 				'price' => 0,
 				'mfg' => '',
 				'expiry' => '',
 				'location' => '',
-			);
-			if ($line['name'] === '') {
-				continue;
-			}
-			if ($line['sku'] === '') {
-				$line['sku'] = self::guessSkuFromName($line['name']);
-			}
-			if ($line['lot'] === '') {
-				$line['lot'] = '—';
-			}
-			self::applyInboundStockLine($db, $warehouseCode, $whName, $line, $userId);
-		}
-		$meta['stockDeducted'] = false;
+			),
+			$userId
+		);
 	}
 
 	/**
@@ -2059,7 +2562,7 @@ class Warehouse_WhMgmtService {
 	protected static function lookupInboundLotDates(PearDatabase $db, $productId, $productName, $lot) {
 		static $haveMfg = null;
 		$productId = (int) $productId;
-		$nameKey = mb_strtolower(trim(self::decodeDisplayTextDeep($productName)));
+		$nameKey = self::strLowerUtf8(trim(self::decodeDisplayTextDeep($productName)));
 		$lot = trim(self::decodeDisplayTextDeep($lot));
 		$out = array('mfg' => '', 'expiry' => '');
 
@@ -2067,7 +2570,7 @@ class Warehouse_WhMgmtService {
 		$where = array('1=1');
 		if ($lot !== '') {
 			$where[] = 'TRIM(gri.serial_number) <> \'\' AND LOWER(TRIM(gri.serial_number)) = ?';
-			$params[] = mb_strtolower($lot);
+			$params[] = self::strLowerUtf8($lot);
 		}
 		if ($productId > 0) {
 			$where[] = 'gri.productid = ?';
@@ -2143,7 +2646,7 @@ class Warehouse_WhMgmtService {
 		if ($name === '') {
 			return 'SKU';
 		}
-		return 'SKU-' . substr(md5(mb_strtolower($name)), 0, 6);
+		return 'SKU-' . substr(md5(self::strLowerUtf8($name)), 0, 6);
 	}
 
 	protected static function listTransfers(PearDatabase $db) {

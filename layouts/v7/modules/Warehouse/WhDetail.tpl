@@ -137,13 +137,16 @@
 									<option value="expired">Quá hạn</option>
 								</select>
 							</label>
-							<label class="mk-wh-proto-filter">
-								<span class="mk-wh-proto-filter__label">Tên sản phẩm</span>
-								<select class="mk-wh-proto-filter__control" id="mkWhProtoFilterName">
-									<option value="az">A → Z</option>
-									<option value="za">Z → A</option>
-								</select>
-							</label>
+							<div class="mk-wh-proto-filter mk-wh-proto-filter--search" role="search">
+								<span class="mk-wh-proto-filter__label">Tìm kiếm</span>
+								<div class="mk-wh-stock-search">
+									<span class="mk-wh-stock-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>
+									<input class="mk-wh-stock-search__input" id="mkWhProtoStockSearch" type="search"
+										placeholder="Tìm theo tên, SKU hoặc lô…" autocomplete="off" />
+									<button type="button" class="mk-wh-stock-search__clear" id="mkWhProtoStockSearchClear"
+										aria-label="Xóa tìm kiếm" hidden>&times;</button>
+								</div>
+							</div>
 							<label class="mk-wh-proto-filter">
 								<span class="mk-wh-proto-filter__label">Giá</span>
 								<select class="mk-wh-proto-filter__control" id="mkWhProtoFilterPrice">

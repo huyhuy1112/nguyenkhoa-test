@@ -208,6 +208,57 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 			}
 		}
 
+		// Service contract profile phone/email for franchise quotes missing contact/account.
+		$scIds = array();
+		$qidToSc = array();
+		try {
+			if ($this->quotesTableHasColumn($db, 'mk_servicecontract_id')) {
+				$scRs = $db->pquery(
+					"SELECT quoteid, mk_servicecontract_id FROM vtiger_quotes
+					 WHERE quoteid IN ({$placeholders}) AND mk_servicecontract_id IS NOT NULL AND mk_servicecontract_id > 0",
+					$ids
+				);
+				if ($scRs) {
+					while ($srow = $db->fetchByAssoc($scRs)) {
+						$qid = (int) (isset($srow['quoteid']) ? $srow['quoteid'] : 0);
+						$scId = (int) (isset($srow['mk_servicecontract_id']) ? $srow['mk_servicecontract_id'] : 0);
+						if ($qid > 0 && $scId > 0) {
+							$qidToSc[$qid] = $scId;
+							$scIds[] = $scId;
+						}
+					}
+				}
+			}
+		} catch (Exception $e) {
+			$qidToSc = array();
+			$scIds = array();
+		}
+		$scPhoneMap = array();
+		$scIds = array_values(array_unique(array_filter($scIds)));
+		if (!empty($scIds)) {
+			try {
+				$prs = $db->pquery(
+					'SELECT servicecontractsid, phone, email FROM bace_sc_profile
+					 WHERE servicecontractsid IN (' . generateQuestionMarks($scIds) . ')',
+					$scIds
+				);
+				if ($prs) {
+					while ($prow = $db->fetchByAssoc($prs)) {
+						$sid = (int) (isset($prow['servicecontractsid']) ? $prow['servicecontractsid'] : 0);
+						if ($sid <= 0) {
+							continue;
+						}
+						$scPhoneMap[$sid] = array(
+							'phone' => trim(decode_html((string) (isset($prow['phone']) ? $prow['phone'] : ''))),
+							'email' => trim(decode_html((string) (isset($prow['email']) ? $prow['email'] : ''))),
+						);
+					}
+				}
+			} catch (Exception $e) {
+				$scPhoneMap = array();
+			}
+		}
+
 		foreach ($listViewRecordModels as $recordId => $recordModel) {
 			$qid = (int) $recordId;
 			$meta = isset($quoteMeta[$qid]) ? $quoteMeta[$qid] : array(
@@ -235,6 +286,17 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 			}
 			if ($email === '' && $aid > 0 && isset($accountMap[$aid])) {
 				$email = $accountMap[$aid]['email'];
+			}
+			if (($phone === '' || $email === '') && isset($qidToSc[$qid])) {
+				$scMeta = isset($scPhoneMap[$qidToSc[$qid]]) ? $scPhoneMap[$qidToSc[$qid]] : null;
+				if ($scMeta) {
+					if ($phone === '' && $scMeta['phone'] !== '') {
+						$phone = $scMeta['phone'];
+					}
+					if ($email === '' && $scMeta['email'] !== '') {
+						$email = $scMeta['email'];
+					}
+				}
 			}
 
 			require_once 'modules/Vtiger/helpers/MkPhoneFormat.php';

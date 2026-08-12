@@ -426,6 +426,149 @@ class Quotes_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 		$adjustment = $db->query_result($rs, 0, 'adjustment');
 		$preTaxTotal = $db->query_result($rs, 0, 'pre_tax_total');
 
+		// BA: prefer quote grand total (already after line discounts, VAT-included).
+		// Do NOT invent old Vtiger 8% tax. Do not recompute from gross lines and lose chiết khấu.
+		$subtotal = (float) $subtotal;
+		$quoteTotal = (float) $total;
+		$discountAmount = (float) $discountAmount;
+		$discountPercent = (float) $discountPercent;
+		$shAmount = (float) $shAmount;
+		$adjustment = (float) $adjustment;
+
+		$lineSumGross = 0.0;
+		$lineSumNet = 0.0;
+		try {
+			$lineSumRs = $db->pquery(
+				'SELECT
+					COALESCE(SUM(quantity * listprice), 0) AS gross,
+					COALESCE(SUM(
+						(quantity * listprice)
+						* (1 - IFNULL(discount_percent, 0) / 100)
+						- IFNULL(discount_amount, 0)
+					), 0) AS net
+				 FROM vtiger_inventoryproductrel WHERE id = ?',
+				array($salesOrderId)
+			);
+			if ($lineSumRs && $db->num_rows($lineSumRs) > 0) {
+				$lineSumGross = (float) $db->query_result($lineSumRs, 0, 'gross');
+				$lineSumNet = (float) $db->query_result($lineSumRs, 0, 'net');
+			}
+		} catch (Exception $e) {
+			$lineSumRs = $db->pquery(
+				'SELECT COALESCE(SUM(quantity * listprice), 0) AS gross FROM vtiger_inventoryproductrel WHERE id = ?',
+				array($salesOrderId)
+			);
+			$lineSumGross = $lineSumRs ? (float) $db->query_result($lineSumRs, 0, 'gross') : 0.0;
+			$lineSumNet = $lineSumGross;
+		}
+		if ($lineSumGross <= 0) {
+			$lineSumQ = $db->pquery(
+				'SELECT COALESCE(SUM(quantity * listprice), 0) AS s FROM vtiger_inventoryproductrel WHERE id = ?',
+				array($quoteId)
+			);
+			$lineSumGross = $lineSumQ ? (float) $db->query_result($lineSumQ, 0, 's') : 0.0;
+			$lineSumNet = $lineSumGross;
+		}
+		if ($lineSumNet <= 0) {
+			$lineSumNet = $lineSumGross;
+		}
+		if ($lineSumGross > 0) {
+			$subtotal = $lineSumGross;
+		}
+
+		// Strip accidental ~8% VAT on quote header total (prices already include VAT).
+		$stripBaTax = function ($amount, $base) {
+			$amount = (float) $amount;
+			$base = (float) $base;
+			if ($amount <= 0) {
+				return $amount;
+			}
+			if ($base > 0) {
+				$ratio = $amount / max($base, 1);
+				if ($ratio > 1.05 && $ratio < 1.12 && abs($amount - $base * 1.08) < max(100, $base * 0.02)) {
+					return $base;
+				}
+			}
+			return $amount;
+		};
+
+		// Discount from quote header when not already in line net.
+		$headerDisc = $discountAmount;
+		if ($headerDisc <= 0 && $discountPercent > 0 && $subtotal > 0) {
+			$headerDisc = $subtotal * $discountPercent / 100;
+		}
+		$lineDiscTotal = max(0.0, $lineSumGross - $lineSumNet);
+		if ($headerDisc > 0 && $lineDiscTotal > 0 && abs($headerDisc - $lineDiscTotal) < max(1, $lineDiscTotal * 0.02)) {
+			// already reflected in lines
+		}
+
+		$netFromLines = max(0.0, $lineSumNet - (
+			($headerDisc > 0 && $lineDiscTotal <= 0) ? $headerDisc : 0
+		) + $shAmount + $adjustment);
+
+		// ★ Source of truth: quote header total after discount (e.g. 1.000.000 → 850.000 @ 15%).
+		if ($quoteTotal > 0) {
+			$total = $stripBaTax($quoteTotal, $subtotal > 0 ? $subtotal : $netFromLines);
+			// If DB total still equals gross while header % or amount discount exists, apply discount.
+			$looksLikeGross = ($subtotal > 0 && abs($total - $subtotal) < 1);
+			if ($looksLikeGross && ($discountPercent > 0 || $discountAmount > 0 || $lineDiscTotal > 0 || $headerDisc > 0)) {
+				if ($discountPercent > 0) {
+					$total = max(0.0, $subtotal * (1 - $discountPercent / 100) + $shAmount + $adjustment);
+				} elseif ($headerDisc > 0) {
+					$total = max(0.0, $subtotal - $headerDisc + $shAmount + $adjustment);
+				} elseif ($lineDiscTotal > 0) {
+					$total = max(0.0, $subtotal - $lineDiscTotal + $shAmount + $adjustment);
+				} elseif ($netFromLines > 0) {
+					$total = $netFromLines;
+				}
+			}
+		} elseif ($netFromLines > 0) {
+			$total = $netFromLines;
+		} elseif ($subtotal > 0) {
+			$total = $subtotal;
+		}
+
+		// Backfill discount fields so SO list/detail show same chiết khấu as quote.
+		if ($discountAmount <= 0 && $discountPercent <= 0 && $subtotal > 0 && $total > 0 && $total < $subtotal) {
+			$implied = $subtotal - $total + $shAmount + $adjustment;
+			if ($implied > 0) {
+				$discountAmount = $implied;
+				// Prefer percent when clean
+				$pct = round(($implied / $subtotal) * 100, 2);
+				if (abs($pct - round($pct)) < 0.01) {
+					$discountPercent = (float) round($pct);
+					// keep amount too for inventory engines
+				}
+			}
+		}
+
+		$preTaxTotal = $subtotal;
+		$taxtype = 'individual';
+
+		// Zero inventory tax columns — BA unit prices already include VAT.
+		try {
+			$colsRs = $db->pquery('SHOW COLUMNS FROM vtiger_inventoryproductrel', array());
+			$taxLike = array();
+			while ($col = $db->fetch_array($colsRs)) {
+				$name = $this->resolveColumnFieldName($col);
+				if ($name === '') {
+					continue;
+				}
+				$ln = strtolower($name);
+				if (strpos($ln, 'tax') !== false || $ln === 'tax1' || $ln === 'tax2' || $ln === 'tax3') {
+					$taxLike[] = '`' . $name . '` = 0';
+				}
+			}
+			if (!empty($taxLike)) {
+				$db->pquery(
+					'UPDATE vtiger_inventoryproductrel SET ' . implode(', ', $taxLike) . ' WHERE id = ?',
+					array($salesOrderId)
+				);
+			}
+		} catch (Exception $e) {
+			// optional
+		}
+
 		$db->pquery(
 			'UPDATE vtiger_salesorder SET
 				quoteid = ?,
@@ -452,7 +595,7 @@ class Quotes_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				($conversionRate !== null && $conversionRate !== '') ? $conversionRate : 1,
 				$subtotal,
 				$total,
-				$taxtype ?: 'group',
+				$taxtype,
 				$discountPercent,
 				$discountAmount,
 				$shAmount,
