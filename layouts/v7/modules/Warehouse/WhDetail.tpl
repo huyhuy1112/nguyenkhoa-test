@@ -236,9 +236,20 @@
 			<button type="button" class="mk-wh-proto-dialog__close" data-mk-dialog-close="1" aria-label="Đóng">×</button>
 		</header>
 		<div class="mk-wh-proto-dialog__body" id="mkWhProtoDialogBody"></div>
-		<footer class="mk-wh-proto-dialog__foot">
+		<footer class="mk-wh-proto-dialog__foot" id="mkWhProtoDialogFoot">
 			<button type="button" class="mk-wh-proto-mini-btn" data-mk-dialog-close="1">Đóng</button>
 		</footer>
+	</div>
+</div>
+
+<div class="mk-wh-qc-lightbox" id="mkWhQcLightbox" aria-hidden="true">
+	<div class="mk-wh-qc-lightbox__backdrop" data-mk-action="qc-lightbox-close"></div>
+	<div class="mk-wh-qc-lightbox__panel" role="dialog" aria-modal="true" aria-label="Xem ảnh QC">
+		<button type="button" class="mk-wh-qc-lightbox__close" data-mk-action="qc-lightbox-close" aria-label="Đóng">&times;</button>
+		<button type="button" class="mk-wh-qc-lightbox__nav mk-wh-qc-lightbox__nav--prev" data-mk-action="qc-lightbox-prev" aria-label="Ảnh trước">&#8249;</button>
+		<img class="mk-wh-qc-lightbox__img" alt="" />
+		<button type="button" class="mk-wh-qc-lightbox__nav mk-wh-qc-lightbox__nav--next" data-mk-action="qc-lightbox-next" aria-label="Ảnh sau">&#8250;</button>
+		<div class="mk-wh-qc-lightbox__caption"></div>
 	</div>
 </div>
 

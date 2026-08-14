@@ -103,6 +103,215 @@
 		noteEl.addEventListener('change', sync);
 	}
 
+	var QC_MAX_IMAGES = 10;
+
+	function getQcImages(r) {
+		var qc = (r && r.qc) || {};
+		if (Array.isArray(qc.images) && qc.images.length) {
+			return qc.images.slice();
+		}
+		var fromTimeline = [];
+		(r.timeline || []).forEach(function (ev) {
+			if (ev && ev.role === 'qc' && Array.isArray(ev.images) && ev.images.length) {
+				fromTimeline = ev.images.slice();
+			}
+		});
+		return fromTimeline;
+	}
+
+	function renderQcImagePreviewBtn(img, extraClass) {
+		var url = (img && img.url) || '';
+		var name = (img && img.name) || 'Ảnh QC';
+		return '<button type="button" class="mk-wh-qc-preview-trigger' + (extraClass ? ' ' + extraClass : '') + '" data-mk-action="qc-image-preview" data-url="' + escapeHtml(url) + '" data-name="' + escapeHtml(name) + '">' +
+			'<img src="' + escapeHtml(url) + '" alt="' + escapeHtml(name) + '" loading="lazy" /></button>';
+	}
+
+	function renderQcImagesGallery(receiptId, images, editable) {
+		images = images || [];
+		var count = images.length;
+		var canUpload = editable && S.useDb && S.useDb();
+		var html = '<div class="mk-wh-qc-attach" data-mk-qc-receipt-id="' + escapeHtml(receiptId) + '">';
+		html += '<div class="mk-wh-qc-attach__head"><span class="mk-wh-qc-attach__title">Hình ảnh đính kèm</span>';
+		html += '<span class="mk-wh-proto-muted mk-wh-qc-attach__count">' + count + '/' + QC_MAX_IMAGES + '</span></div>';
+		html += '<div class="mk-wh-qc-attach__grid" data-mk-qc-attach-grid="1" data-mk-qc-images="' + escapeHtml(serializeQcImagesAttr(images)) + '">';
+		images.forEach(function (img) {
+			var url = img.url || '';
+			var name = img.name || 'Ảnh QC';
+			html += '<figure class="mk-wh-qc-attach__item" data-mk-qc-image-id="' + escapeHtml(img.id || '') + '">';
+			html += renderQcImagePreviewBtn(img, 'mk-wh-qc-attach__link');
+			if (canUpload) {
+				html += '<button type="button" class="mk-wh-qc-attach__remove" data-mk-action="qc-image-delete" data-id="' + escapeHtml(receiptId) + '" data-image-id="' + escapeHtml(img.id || '') + '" title="Xóa ảnh">&times;</button>';
+			}
+			html += '</figure>';
+		});
+		html += '</div>';
+		if (canUpload && count < QC_MAX_IMAGES) {
+			html += '<label class="mk-wh-qc-attach__add"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple data-mk-qc-file-input="1" hidden />';
+			html += '<span>+ Thêm ảnh</span></label>';
+		}
+		if (editable && !(S.useDb && S.useDb())) {
+			html += '<div class="mk-wh-proto-muted mk-wh-qc-attach__hint">Tải ảnh lên cần chế độ lưu database.</div>';
+		}
+		html += '</div>';
+		return html;
+	}
+
+	function serializeQcImagesAttr(images) {
+		try {
+			return JSON.stringify((images || []).map(function (img) {
+				return { url: (img && img.url) || '', name: (img && img.name) || 'Ảnh QC' };
+			}));
+		} catch (e) {
+			return '[]';
+		}
+	}
+
+	function parseQcImagesAttr(raw) {
+		if (!raw) return [];
+		try {
+			var list = JSON.parse(raw);
+			return Array.isArray(list) ? list : [];
+		} catch (e) {
+			return [];
+		}
+	}
+
+	function renderTimelineImagesBlock(images) {
+		if (!images || !images.length) return '';
+		var attr = escapeHtml(serializeQcImagesAttr(images));
+		var thumbs = images.slice(0, 4).map(function (img) {
+			return renderQcImagePreviewBtn(img, 'mk-wh-qc-timeline-thumb');
+		}).join('');
+		var more = '';
+		if (images.length > 4) {
+			more = '<button type="button" class="mk-wh-qc-timeline-more-btn" data-mk-action="qc-image-preview" data-url="' + escapeHtml(images[4].url || '') + '" data-name="' + escapeHtml(images[4].name || 'Ảnh QC') + '">+' + (images.length - 4) + '</button>';
+		}
+		return '<div class="mk-wh-qc-timeline-images" data-mk-qc-images="' + attr + '" title="' + images.length + ' ảnh đính kèm">' + thumbs + more + '</div>';
+	}
+
+	var qcLightboxImages = [];
+	var qcLightboxIndex = 0;
+
+	function updateQcLightboxView() {
+		var lb = qs('#mkWhQcLightbox');
+		if (!lb) return;
+		var imgEl = lb.querySelector('.mk-wh-qc-lightbox__img');
+		var capEl = lb.querySelector('.mk-wh-qc-lightbox__caption');
+		var prevBtn = lb.querySelector('[data-mk-action="qc-lightbox-prev"]');
+		var nextBtn = lb.querySelector('[data-mk-action="qc-lightbox-next"]');
+		var total = qcLightboxImages.length;
+		if (!total || !imgEl) return;
+		if (qcLightboxIndex < 0) qcLightboxIndex = 0;
+		if (qcLightboxIndex >= total) qcLightboxIndex = total - 1;
+		var cur = qcLightboxImages[qcLightboxIndex] || {};
+		imgEl.src = cur.url || '';
+		imgEl.alt = cur.name || 'Ảnh QC';
+		if (capEl) {
+			capEl.textContent = (cur.name || 'Ảnh QC') + (total > 1 ? ' (' + (qcLightboxIndex + 1) + '/' + total + ')' : '');
+		}
+		if (prevBtn) prevBtn.disabled = total <= 1;
+		if (nextBtn) nextBtn.disabled = total <= 1;
+	}
+
+	function openQcLightbox(images, startIndex) {
+		qcLightboxImages = (images || []).filter(function (img) { return img && img.url; });
+		if (!qcLightboxImages.length) return;
+		qcLightboxIndex = typeof startIndex === 'number' ? startIndex : 0;
+		var lb = qs('#mkWhQcLightbox');
+		if (!lb) return;
+		updateQcLightboxView();
+		lb.classList.add('is-open');
+		lb.setAttribute('aria-hidden', 'false');
+	}
+
+	function closeQcLightbox() {
+		var lb = qs('#mkWhQcLightbox');
+		if (!lb) return;
+		lb.classList.remove('is-open');
+		lb.setAttribute('aria-hidden', 'true');
+		var imgEl = lb.querySelector('.mk-wh-qc-lightbox__img');
+		if (imgEl) imgEl.removeAttribute('src');
+	}
+
+	function collectQcPreviewImagesFromContainer(container, clickedEl) {
+		if (!container) return { images: [], index: 0 };
+		var attrImages = parseQcImagesAttr(container.getAttribute('data-mk-qc-images'));
+		if (attrImages.length) {
+			var url = clickedEl ? (clickedEl.getAttribute('data-url') || '') : '';
+			var index = 0;
+			if (url) {
+				for (var i = 0; i < attrImages.length; i++) {
+					if (attrImages[i].url === url) {
+						index = i;
+						break;
+					}
+				}
+			}
+			return { images: attrImages, index: index };
+		}
+		var triggers = container.querySelectorAll('[data-mk-action="qc-image-preview"]');
+		var images = [];
+		var index = 0;
+		Array.prototype.forEach.call(triggers, function (el) {
+			var u = el.getAttribute('data-url') || '';
+			if (!u) return;
+			images.push({
+				url: u,
+				name: el.getAttribute('data-name') || 'Ảnh QC',
+			});
+			if (el === clickedEl) index = images.length - 1;
+		});
+		return { images: images, index: index };
+	}
+
+	function defaultDialogFootHtml() {
+		return '<button type="button" class="mk-wh-proto-mini-btn" data-mk-dialog-close="1">Đóng</button>';
+	}
+
+	function bindQcAttachmentHandlers(root) {
+		if (!root) return;
+		var attachRoot = root.querySelector('[data-mk-qc-receipt-id]');
+		var receiptId = attachRoot ? attachRoot.getAttribute('data-mk-qc-receipt-id') : '';
+		var fileInput = root.querySelector('[data-mk-qc-file-input="1"]');
+		if (!fileInput || fileInput.getAttribute('data-mk-qc-file-bound') === '1') return;
+		fileInput.setAttribute('data-mk-qc-file-bound', '1');
+		fileInput.addEventListener('change', function () {
+			if (!(S.useDb && S.useDb()) || !S.warehouseDataActions || typeof S.warehouseDataActions.uploadQcImage !== 'function') {
+				showError('Tải ảnh lên cần chế độ lưu database.');
+				fileInput.value = '';
+				return;
+			}
+			var files = fileInput.files;
+			if (!files || !files.length || !receiptId) return;
+			var whId = getWhId();
+			var role = getRole();
+			var currentCount = attachRoot ? attachRoot.querySelectorAll('.mk-wh-qc-attach__item').length : 0;
+			var queue = Array.prototype.slice.call(files);
+			if (currentCount + queue.length > QC_MAX_IMAGES) {
+				showError('Tối đa ' + QC_MAX_IMAGES + ' ảnh đính kèm.');
+				fileInput.value = '';
+				return;
+			}
+			var uploadNext = function () {
+				if (!queue.length) {
+					fileInput.value = '';
+					return;
+				}
+				var file = queue.shift();
+				S.warehouseDataActions.uploadQcImage(whId, receiptId, file, role)
+					.then(function (res) {
+						reopenReceiptDialog(whId, receiptId, res);
+						uploadNext();
+					})
+					.fail(function (err) {
+						showError((err && err.message) || 'Không upload được ảnh.');
+						fileInput.value = '';
+					});
+			};
+			uploadNext();
+		});
+	}
+
 	function daysUntil(exp) {
 		if (!exp) return 999999;
 		try {
@@ -1105,7 +1314,7 @@
 		var issue = (d.issues || []).find(function (x) { return x.id === issueId; });
 		if (!issue) return;
 		var dlg = issueDialog(issue);
-		openDialog(dlg.title, dlg.meta, dlg.body);
+		openDialog(dlg.title, dlg.meta, dlg.body, dlg.foot);
 	}
 
 	function reopenReceiptDialog(whId, receiptId, res) {
@@ -1113,23 +1322,29 @@
 		var receipt = (d.receipts || []).find(function (x) { return x.id === receiptId; });
 		if (!receipt) return;
 		var dlg = receiptDialog(receipt);
-		openDialog(dlg.title, dlg.meta, dlg.body);
+		openDialog(dlg.title, dlg.meta, dlg.body, dlg.foot);
 	}
 
 	/* ===== Dialog (timeline) ===== */
-	function openDialog(titleText, metaHtml, bodyHtml) {
+	function openDialog(titleText, metaHtml, bodyHtml, footHtml) {
 		var dialog = qs('#mkWhProtoDialog');
 		var title = qs('#mkWhProtoDialogTitle');
 		var meta = qs('#mkWhProtoDialogMeta');
 		var body = qs('#mkWhProtoDialogBody');
+		var foot = qs('#mkWhProtoDialogFoot');
 		if (!dialog || !title || !meta || !body) return;
 		title.textContent = titleText || 'Phiếu';
 		meta.innerHTML = metaHtml || '';
 		body.innerHTML = bodyHtml || '';
+		if (foot) {
+			foot.innerHTML = footHtml || defaultDialogFootHtml();
+		}
 		dialog.removeAttribute('data-mk-qc-note-cache');
 		bindQcNoteInput(dialog);
+		bindQcAttachmentHandlers(dialog);
 		dialog.classList.add('is-open');
 		dialog.setAttribute('aria-hidden', 'false');
+		document.body.classList.add('mk-wh-dialog-open');
 	}
 
 	function closeDialog() {
@@ -1137,6 +1352,8 @@
 		if (!dialog) return;
 		dialog.classList.remove('is-open');
 		dialog.setAttribute('aria-hidden', 'true');
+		document.body.classList.remove('mk-wh-dialog-open');
+		closeQcLightbox();
 	}
 
 	function roleBadge(roleKey) {
@@ -1176,22 +1393,28 @@
 			if (r.status === 'qc_passed') result = 'pass';
 			if (r.status === 'qc_failed') result = 'fail';
 		}
-		return { result: result, note: note, by: by, at: at };
+		return { result: result, note: note, by: by, at: at, images: getQcImages(r) };
 	}
 
-	function renderQcResultPanel(qcInfo) {
-		if (!qcInfo || !qcInfo.result) {
+	function renderQcResultPanel(qcInfo, receiptId, opts) {
+		opts = opts || {};
+		if (opts.hidePanel || !qcInfo || !qcInfo.result) {
 			return '';
 		}
 		var label = qcInfo.result === 'pass' ? 'Đạt' : 'Không đạt';
 		var cls = qcInfo.result === 'pass' ? 'mk-wh-proto-pill--ok' : 'mk-wh-proto-pill--warn';
+		var images = qcInfo.images || [];
+		var galleryHtml = (!opts.hideGallery && images.length) ? renderQcImagesGallery(receiptId || '', images, false) : '';
 		return '<div class="mk-wh-proto-qc-result" style="margin-bottom:14px;padding:12px 14px;border:1px solid rgba(15,23,42,0.08);border-radius:12px;background:#f8fafc;">' +
 			'<div class="mk-wh-proto-dialog-section-title" style="margin-bottom:8px;">Kết quả QC</div>' +
-			'<div style="margin-bottom:8px;"><span class="mk-wh-proto-pill ' + escapeHtml(cls) + '">' + escapeHtml(label) + '</span></div>' +
+			'<div style="margin-bottom:8px;"><span class="mk-wh-proto-pill ' + escapeHtml(cls) + '">' + escapeHtml(label) + '</span>' +
+			(images.length ? ' <span class="mk-wh-proto-muted">📷 ' + images.length + ' ảnh</span>' : '') +
+			'</div>' +
 			(qcInfo.note
 				? ('<div class="mk-wh-proto-muted" style="margin-bottom:4px;">Ghi nhận của QC:</div>' +
 					'<div class="mk-wh-proto-quote">"' + escText(qcInfo.note) + '"</div>')
 				: '<div class="mk-wh-proto-muted">QC chưa ghi nhận chi tiết.</div>') +
+			(galleryHtml ? '<div style="margin-top:10px;">' + galleryHtml + '</div>' : '') +
 			((qcInfo.by || qcInfo.at)
 				? ('<div class="mk-wh-proto-muted" style="margin-top:8px;">' +
 					escText(qcInfo.by || 'QC') +
@@ -1224,16 +1447,20 @@
 		var timelineHtml =
 			'<div class="mk-wh-proto-timeline">' +
 			((r.timeline || []).map(function (ev) {
+				var evImages = (ev && ev.role === 'qc' && Array.isArray(ev.images)) ? ev.images : [];
 				return '<div class="mk-wh-proto-timeline-item">' +
 					'<strong>' + escText(ev.action || '—') + '</strong>' +
 					roleBadge(ev.role) +
+					(evImages.length ? ' <span class="mk-wh-proto-muted">📷 ' + evImages.length + ' ảnh</span>' : '') +
 					'<div class="mk-wh-proto-muted">' + escText((ev.by || '—') + ' · ' + fmtDateTime(ev.at)) + '</div>' +
 					(ev.note ? '<div class="mk-wh-proto-quote">"' + escText(ev.note) + '"</div>' : '') +
+					renderTimelineImagesBlock(evImages) +
 				'</div>';
 			}).join('')) +
 			'</div>';
 
 		var role = getRole();
+		var qcEditable = (r.status === 'qc_passed' || r.status === 'qc_failed') && canDoQc();
 		var onPath =
 			r.status !== 'cancelled' &&
 			(RECEIPT_PATH.some(function (s) {
@@ -1260,38 +1487,51 @@
 		if (r.status === 'pending_qc' && canDoQc()) {
 			actions = '<div class="mk-wh-proto-dialog-section-title" style="margin-top:12px;">Ghi nhận kết quả QC</div>' +
 				'<textarea class="mk-wh-proto-textarea" data-mk-qc-note="1" placeholder="Ghi chú kiểm tra (cảm quan, chứng từ, bao bì...)"></textarea>' +
+				renderQcImagesGallery(r.id, getQcImages(r), true) +
 				'<div class="mk-wh-proto-cta-row">' +
 				'<button class="mk-wh-proto-cta mk-wh-proto-cta--pass" type="button" data-mk-action="qc-pass" data-id="' + escapeHtml(r.id) + '"><span>✔</span> Đạt</button>' +
 				'<button class="mk-wh-proto-cta mk-wh-proto-cta--fail" type="button" data-mk-action="qc-fail" data-id="' + escapeHtml(r.id) + '"><span>✕</span> Không đạt</button>' +
 				'</div>';
 		}
+		if ((r.status === 'qc_passed' || r.status === 'qc_failed') && canDoQc()) {
+			actions += '<div class="mk-wh-proto-dialog-section-title" style="margin-top:12px;">Cập nhật ghi nhận QC</div>' +
+				'<textarea class="mk-wh-proto-textarea" data-mk-qc-note="1" placeholder="Ghi chú kiểm tra (cảm quan, chứng từ, bao bì...)">' + escText(qcInfo.note || '') + '</textarea>' +
+				renderQcImagesGallery(r.id, getQcImages(r), true);
+		}
 		if (r.status === 'qc_passed' && isWarehouseOps(role)) {
-			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
+			actions += '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="mgr-approve" data-id="' + escapeHtml(r.id) + '">Duyệt phiếu</button>' +
 				'</div>';
 		}
 		if (r.status === 'approved' && isWarehouseOps(role)) {
-			actions = '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
+			actions += '<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">' +
 				'<button class="mk-wh-proto-mini-btn" type="button" data-mk-action="store" data-id="' + escapeHtml(r.id) + '">Nhập kho</button>' +
 				'</div>';
+		}
+
+		var footHtml = defaultDialogFootHtml();
+		if (qcEditable) {
+			footHtml = '<button type="button" class="mk-wh-proto-mini-btn" data-mk-dialog-close="1">Đóng</button>' +
+				'<button type="button" class="mk-wh-proto-mini-btn mk-wh-qc-save-btn" data-mk-action="qc-update" data-id="' + escapeHtml(r.id) + '">Lưu ghi nhận</button>';
 		}
 
 		return {
 			title: 'Phiếu nhập ' + r.id,
 			meta: 'NCC: ' + escText(r.supplier) + ' · PO: ' + escText(r.poRef),
+			foot: footHtml,
 			body:
 				'<div style="margin-bottom:10px;"><span class="' + escapeHtml(st.cls || 'mk-wh-proto-pill') + '">' + escapeHtml(st.label) + '</span></div>' +
 				pathHtml +
-				renderQcResultPanel(qcInfo) +
+				renderQcResultPanel(qcInfo, r.id, { hidePanel: qcEditable }) +
 				'<div class="mk-wh-proto-dialog-grid">' +
-					'<div>' +
+					'<div class="mk-wh-proto-dialog-main-col">' +
 						'<div class="mk-wh-proto-dialog-section-title">Chi tiết hàng hóa</div>' +
 						'<table class="mk-wh-proto-dialog-table"><thead><tr><th>SKU</th><th>Lô / HSD</th><th>SL</th><th>Vị trí</th><th>QC</th></tr></thead><tbody>' +
 						linesHtml +
 						'</tbody></table>' +
 						actions +
 					'</div>' +
-					'<div>' +
+					'<div class="mk-wh-proto-dialog-timeline-col">' +
 						'<div class="mk-wh-proto-dialog-section-title">Timeline trạng thái</div>' +
 						timelineHtml +
 					'</div>' +
@@ -2659,7 +2899,7 @@
 					var saved = res && res.data && res.data.receipts && res.data.receipts[0];
 					if (saved) {
 						var rDlg = receiptDialog(saved);
-						openDialog(rDlg.title, rDlg.meta, rDlg.body);
+						openDialog(rDlg.title, rDlg.meta, rDlg.body, rDlg.foot);
 					}
 				}).fail(function (err) {
 					var msg = typeof err === 'string' ? err : (err && err.message) || (err && err.error && err.error.message) || (err && err.error) || 'Không lưu được phiếu nhập. Vui lòng thử lại.';
@@ -2705,7 +2945,7 @@
 
 			closeModal();
 			var rDlg = receiptDialog(receipt);
-			openDialog(rDlg.title, rDlg.meta, rDlg.body);
+			openDialog(rDlg.title, rDlg.meta, rDlg.body, rDlg.foot);
 		};
 
 		form.onclick = function (e) {
@@ -2761,8 +3001,19 @@
 		}
 
 		document.addEventListener('keydown', function (e) {
-			if (e.key === 'Escape' && document.body.classList.contains('mk-wh-audit-open')) {
+			if (e.key !== 'Escape') return;
+			if (document.body.classList.contains('mk-wh-audit-open')) {
 				closeAuditHistoryModal();
+				return;
+			}
+			var lb = qs('#mkWhQcLightbox');
+			if (lb && lb.classList.contains('is-open')) {
+				closeQcLightbox();
+				return;
+			}
+			var dlg = qs('#mkWhProtoDialog');
+			if (dlg && dlg.classList.contains('is-open')) {
+				closeDialog();
 			}
 		});
 
@@ -2859,14 +3110,14 @@
 						var r0 = (d0.receipts || []).find(function (x) { return x.id === id; });
 						if (!r0) return;
 						var dialog0 = receiptDialog(r0);
-						openDialog(dialog0.title, dialog0.meta, dialog0.body);
+						openDialog(dialog0.title, dialog0.meta, dialog0.body, dialog0.foot);
 					});
 					return;
 				}
 				var r = (d.receipts || []).find(function (x) { return x.id === id; });
 				if (!r) return;
 				var dialog = receiptDialog(r);
-				openDialog(dialog.title, dialog.meta, dialog.body);
+				openDialog(dialog.title, dialog.meta, dialog.body, dialog.foot);
 				return;
 			}
 			if (action === 'inbound-print' && id) {
@@ -2925,14 +3176,14 @@
 						var r1 = (d1.receipts || []).find(function (x) { return x.id === id; });
 						if (!r1) return;
 						var dialog1 = receiptDialog(r1);
-						openDialog(dialog1.title, dialog1.meta, dialog1.body);
+						openDialog(dialog1.title, dialog1.meta, dialog1.body, dialog1.foot);
 					});
 					return;
 				}
 				var r2 = (d.receipts || []).find(function (x) { return x.id === id; });
 				if (!r2) return;
 				var dialog2 = receiptDialog(r2);
-				openDialog(dialog2.title, dialog2.meta, dialog2.body);
+				openDialog(dialog2.title, dialog2.meta, dialog2.body, dialog2.foot);
 				return;
 			}
 			if (action === 'outbound-detail' && id) {
@@ -2950,6 +3201,71 @@
 				if (!issue) return;
 				var dlg = issueDialog(issue);
 				openDialog(dlg.title, dlg.meta, dlg.body);
+				return;
+			}
+
+			if (action === 'qc-image-preview') {
+				e.preventDefault();
+				var previewRoot = actionEl.closest('[data-mk-qc-images], .mk-wh-qc-attach__grid, .mk-wh-qc-timeline-images, .mk-wh-proto-qc-result');
+				var pack = collectQcPreviewImagesFromContainer(previewRoot, actionEl);
+				if (pack.images.length) {
+					openQcLightbox(pack.images, pack.index);
+				}
+				return;
+			}
+			if (action === 'qc-lightbox-close') {
+				closeQcLightbox();
+				return;
+			}
+			if (action === 'qc-lightbox-prev') {
+				qcLightboxIndex -= 1;
+				if (qcLightboxIndex < 0) qcLightboxIndex = qcLightboxImages.length - 1;
+				updateQcLightboxView();
+				return;
+			}
+			if (action === 'qc-lightbox-next') {
+				qcLightboxIndex += 1;
+				if (qcLightboxIndex >= qcLightboxImages.length) qcLightboxIndex = 0;
+				updateQcLightboxView();
+				return;
+			}
+
+			if (id && action === 'qc-image-delete') {
+				if (!(S.useDb && S.useDb())) {
+					showError('Xóa ảnh cần chế độ lưu database.');
+					return;
+				}
+				var imageId = actionEl.getAttribute('data-image-id') || '';
+				if (!imageId) return;
+				if (!window.confirm('Xóa ảnh này?')) return;
+				S.warehouseDataActions
+					.deleteQcImage(whId, id, imageId)
+					.then(function (res) {
+						reopenReceiptDialog(whId, id, res);
+					})
+					.fail(function (err) {
+						showError((err && err.message) || 'Không xóa được ảnh.');
+					});
+				return;
+			}
+			if (id && action === 'qc-update') {
+				if (!canDoQc()) {
+					showError('Bạn không có quyền cập nhật ghi nhận QC.');
+					return;
+				}
+				if (!(S.useDb && S.useDb())) {
+					showError('Cập nhật ghi nhận cần chế độ lưu database.');
+					return;
+				}
+				var qcNote = readQcNoteFromDialog(actionEl);
+				S.warehouseDataActions
+					.updateQcRecord(whId, id, getRole(), qcNote)
+					.then(function (res) {
+						reopenReceiptDialog(whId, id, res);
+					})
+					.fail(function (err) {
+						showError((err && err.message) || 'Không cập nhật được ghi nhận QC.');
+					});
 				return;
 			}
 

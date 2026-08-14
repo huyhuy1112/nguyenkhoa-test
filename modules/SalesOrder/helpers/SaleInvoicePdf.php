@@ -141,8 +141,8 @@ class SalesOrder_SaleInvoicePdf_Helper {
 			$payable = $grandTotal;
 		}
 
-		$amountWords = trim((string) ($ctx['amount_words'] ?? ''));
-		if ($amountWords === '' && $payable > 0) {
+		$amountWords = '';
+		if ($payable > 0) {
 			$amountWords = Quotes_QuoteBaService_Helper::amountInWordsVi($payable);
 		}
 		if ($amountWords !== '' && !preg_match('/\.\/\.?\s*$/u', $amountWords)) {
@@ -214,18 +214,16 @@ class SalesOrder_SaleInvoicePdf_Helper {
 		$rows = '';
 		$stt = 0;
 		if (empty($data['lines'])) {
-			$rows = '<tr><td colspan="7" style="text-align:center;padding:12px;">Chưa có hàng hóa trong đơn hàng.</td></tr>';
+			$rows = '<tr><td colspan="6" style="text-align:center;padding:12px;">Chưa có hàng hóa trong đơn hàng.</td></tr>';
 		} else {
 			foreach ($data['lines'] as $line) {
 				++$stt;
 				$qty = ((float) $line['qty'] == (int) $line['qty'])
 					? (string) (int) $line['qty']
 					: rtrim(rtrim(number_format((float) $line['qty'], 3, ',', ''), '0'), ',');
-				$code = trim((string) ($line['code'] ?? ''));
 				$note = trim((string) ($line['note'] ?? $line['comment'] ?? ''));
 				$rows .= '<tr>'
 					. '<td class="c">' . $stt . '</td>'
-					. '<td>' . $h($code !== '' ? $code : '—') . '</td>'
 					. '<td>' . $h($line['name']) . '</td>'
 					. '<td class="c">' . $h($qty) . '</td>'
 					. '<td class="r">' . $h($money($line['price'])) . '</td>'
@@ -274,9 +272,9 @@ td.r,th.r{text-align:right}
 .summary{display:block;margin-top:2px;width:100%}
 .vat-between{margin:2px 0 4px;font-size:12px;font-style:normal;font-weight:700;color:#111;text-align:left}
 .totals{width:100%;margin:0}
-.totals-row{display:grid;grid-template-columns:7% 14% 30% 8% 14% 15% 12%;align-items:baseline;margin:3px 0;font-size:13px;width:100%}
-.totals-row .t-label{grid-column:1 / 6;font-weight:700;text-align:left}
-.totals-row .t-value{grid-column:6;font-weight:400;text-align:right}
+.totals-row{display:grid;grid-template-columns:7% 44% 8% 14% 15% 12%;align-items:baseline;margin:3px 0;font-size:13px;width:100%}
+.totals-row .t-label{grid-column:1 / 5;font-weight:700;text-align:left}
+.totals-row .t-value{grid-column:5;font-weight:400;text-align:right}
 .totals-row .t-value.is-bold{font-weight:700}
 .words{font-style:italic;font-weight:700;margin:10px 0 10px}
 .signs{display:flex;gap:8px;margin:18px 0 0;align-items:flex-start}
@@ -306,7 +304,7 @@ td.r,th.r{text-align:right}
 			. '<p class="info-row"><b>SĐT:</b> ' . $h($data['sales_phone']) . '</p>'
 			. '</div></div>'
 			. '<table><thead><tr>'
-			. '<th class="c" style="width:7%">STT</th><th style="width:14%">Mã đơn hàng</th><th style="width:30%">Tên Hàng</th>'
+			. '<th class="c" style="width:7%">STT</th><th style="width:44%">Tên Hàng</th>'
 			. '<th class="c" style="width:8%">SL</th><th class="r" style="width:14%">Đơn Giá</th>'
 			. '<th class="r" style="width:15%">Thành Tiền</th><th style="width:12%">Ghi Chú</th>'
 			. '</tr></thead><tbody>' . $rows . '</tbody></table>'
@@ -646,8 +644,7 @@ td.r,th.r{text-align:right}
 		// —— Items table ——
 		$cols = array(
 			array('w' => $pageW * 0.07, 'label' => 'STT', 'align' => 'C'),
-			array('w' => $pageW * 0.14, 'label' => 'Mã đơn hàng', 'align' => 'L'),
-			array('w' => $pageW * 0.30, 'label' => 'Tên Hàng', 'align' => 'L'),
+			array('w' => $pageW * 0.44, 'label' => 'Tên Hàng', 'align' => 'L'),
 			array('w' => $pageW * 0.08, 'label' => 'SL', 'align' => 'C'),
 			array('w' => $pageW * 0.14, 'label' => 'Đơn Giá', 'align' => 'R'),
 			array('w' => $pageW * 0.15, 'label' => 'Thành Tiền', 'align' => 'R'),
@@ -658,7 +655,7 @@ td.r,th.r{text-align:right}
 			$sumW += $c['w'];
 		}
 		if (abs($sumW - $pageW) > 0.2) {
-			$cols[2]['w'] += ($pageW - $sumW);
+			$cols[1]['w'] += ($pageW - $sumW);
 		}
 
 		$pdf->SetFont(self::FONT, 'B', 9);
@@ -684,7 +681,6 @@ td.r,th.r{text-align:right}
 				}
 
 				$name = $line['name'];
-				$code = trim((string) ($line['code'] ?? ''));
 				$qtyText = ((float) $line['qty'] == (int) $line['qty'])
 					? (string) (int) $line['qty']
 					: rtrim(rtrim(number_format((float) $line['qty'], 3, ',', ''), '0'), ',');
@@ -692,10 +688,9 @@ td.r,th.r{text-align:right}
 				$totalText = Quotes_QuoteExcelExport_Helper::formatMoneyVnPublic($line['total']);
 				$noteText = trim((string) ($line['note'] ?? $line['comment'] ?? ''));
 
-				$rowH = max(7, self::estimateWrappedHeight($pdf, $cols[2]['w'], $name, 4.2));
+				$rowH = max(7, self::estimateWrappedHeight($pdf, $cols[1]['w'], $name, 4.2));
 				$cells = array(
 					(string) $stt,
-					$code !== '' ? $code : '—',
 					$name,
 					$qtyText,
 					$priceText,
@@ -720,10 +715,10 @@ td.r,th.r{text-align:right}
 		// —— Totals: chữ trái, số căn cột Thành Tiền ——
 		// boldValue: true = số Tổng Cộng đậm; false = số thường (Tổng Thanh Toán không đậm)
 		$thanhTienX = $x;
-		for ($ci = 0; $ci < 5; $ci++) {
+		for ($ci = 0; $ci < 4; $ci++) {
 			$thanhTienX += $cols[$ci]['w'];
 		}
-		$thanhTienW = $cols[5]['w'];
+		$thanhTienW = $cols[4]['w'];
 		$labelW = $thanhTienX - $x;
 		$totals = array(
 			array('Tổng Cộng:', $subTotal, true),

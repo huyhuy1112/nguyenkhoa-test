@@ -142,7 +142,7 @@ class Quotes_List_View extends Inventory_List_View {
 	}
 
 	/**
-	 * @return string all|franchise
+	 * @return string all|franchise|retail
 	 */
 	protected function resolveQuoteListScope(Vtiger_Request $request) {
 		$raw = strtolower(trim((string) $request->get('mk_quote_scope')));
@@ -157,6 +157,9 @@ class Quotes_List_View extends Inventory_List_View {
 		}
 		if ($raw === 'franchise' || $raw === 'nhuong_quyen' || $raw === 'nq') {
 			return 'franchise';
+		}
+		if ($raw === 'retail' || $raw === 'ban_le') {
+			return 'retail';
 		}
 		return 'all';
 	}

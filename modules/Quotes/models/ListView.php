@@ -377,13 +377,15 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 	}
 
 	/**
-	 * List scope: all | franchise (Báo giá khách hàng nhượng quyền).
+	 * List scope: all | franchise | retail (Báo giá khách hàng nhượng quyền / bán lẻ).
 	 */
 	public function getQuery() {
 		$listQuery = parent::getQuery();
 		$scope = strtolower(trim((string) $this->get('mk_quote_scope')));
 		if ($scope === 'franchise' || $scope === 'nhuong_quyen') {
 			$listQuery = $this->appendFranchiseQuoteFilter($listQuery);
+		} elseif ($scope === 'retail' || $scope === 'ban_le') {
+			$listQuery = $this->appendRetailQuoteFilter($listQuery);
 		}
 		return $listQuery;
 	}
@@ -419,6 +421,49 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 			)
 		) ';
 		}
+
+		if (preg_match('/\sORDER\s+BY\s/i', $listQuery)) {
+			return preg_replace('/\sORDER\s+BY\s/i', $fragment . ' ORDER BY ', $listQuery, 1);
+		}
+		if (preg_match('/\sGROUP\s+BY\s/i', $listQuery)) {
+			return preg_replace('/\sGROUP\s+BY\s/i', $fragment . ' GROUP BY ', $listQuery, 1);
+		}
+		if (preg_match('/\sLIMIT\s+/i', $listQuery)) {
+			return preg_replace('/\sLIMIT\s+/i', $fragment . ' LIMIT ', $listQuery, 1);
+		}
+		return $listQuery . $fragment;
+	}
+
+	/**
+	 * Retail quotes: NOT linked to an active franchise ServiceContract.
+	 *
+	 * @param string $listQuery
+	 * @return string
+	 */
+	protected function appendRetailQuoteFilter($listQuery) {
+		$listQuery = (string) $listQuery;
+		if ($listQuery === '' || stripos($listQuery, 'mk_qt_retail_filter') !== false) {
+			return $listQuery;
+		}
+
+		require_once 'modules/Quotes/helpers/QuoteBaService.php';
+		if (!Quotes_QuoteBaService_Helper::ensureServiceContractLinkColumn()) {
+			// Column missing — all quotes are treated as retail.
+			return $listQuery;
+		}
+
+		$fragment = ' AND (
+			/* mk_qt_retail_filter */
+			vtiger_quotes.mk_servicecontract_id IS NULL
+			OR vtiger_quotes.mk_servicecontract_id = 0
+			OR NOT EXISTS (
+				SELECT 1
+				FROM vtiger_servicecontracts sc
+				INNER JOIN vtiger_crmentity sce
+					ON sce.crmid = sc.servicecontractsid AND sce.deleted = 0
+				WHERE sc.servicecontractsid = vtiger_quotes.mk_servicecontract_id
+			)
+		) ';
 
 		if (preg_match('/\sORDER\s+BY\s/i', $listQuery)) {
 			return preg_replace('/\sORDER\s+BY\s/i', $fragment . ' ORDER BY ', $listQuery, 1);

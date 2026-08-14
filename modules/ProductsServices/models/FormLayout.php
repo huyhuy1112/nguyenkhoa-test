@@ -11,6 +11,8 @@ class ProductsServices_FormLayout_Helper {
 		'used_projects',
 		'retail_price',
 		'bulk_price',
+		'price',
+		'wholesale_price',
 	);
 
 	public static $hiddenBlocks = array(
@@ -25,9 +27,7 @@ class ProductsServices_FormLayout_Helper {
 		'product_group',
 		'unit',
 		'needs_qc',
-		'price',
 		'price_tuibao',
-		'wholesale_price',
 		'price_lt_1m',
 		'price_gte_1m',
 		'price_gte_3m',
@@ -41,8 +41,9 @@ class ProductsServices_FormLayout_Helper {
 		// Promote key fields into the main details block with Name.
 		$moved = array();
 		$promoteNames = array(
-			'sku', 'specification', 'unit', 'needs_qc', 'price', 'wholesale_price',
+			'sku', 'specification', 'unit', 'needs_qc',
 			'product_group', 'price_tuibao',
+			'price_lt_1m', 'price_gte_1m', 'price_gte_3m', 'price_gte_5m', 'price_gte_7m',
 		);
 		foreach ($values as $blockLabel => $blockFields) {
 			if (!is_array($blockFields)) {

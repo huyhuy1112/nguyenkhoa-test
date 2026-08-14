@@ -115,13 +115,27 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=SalesOrder&view=Print&record=' . (int) $recordId . '&app=SALES');
 		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=SalesOrder&action=ExportPDF&record=' . (int) $recordId);
 		$viewer->assign('INLINE_CREATED_DATE', $this->formatInlineCreatedDateDmY($recordModel));
+		$payableRaw = 0.0;
+		if (!empty($relatedProducts[1]['final_details']['grandTotal_raw'])) {
+			$payableRaw = (float) $relatedProducts[1]['final_details']['grandTotal_raw'];
+		} else {
+			require_once 'modules/Quotes/helpers/QuoteBaService.php';
+			$subRaw = Quotes_QuoteBaService_Helper::parseMoneyNumber(
+				$relatedProducts[1]['final_details']['hdnSubTotal'] ?? $recordModel->get('hdnSubTotal')
+			);
+			$discRaw = Quotes_QuoteBaService_Helper::parseMoneyNumber(
+				$relatedProducts[1]['final_details']['discountTotal_final'] ?? $recordModel->get('hdnDiscountAmount')
+			);
+			$payableRaw = max(0.0, $subRaw - $discRaw);
+		}
+		if ($payableRaw <= 0) {
+			$payableRaw = $grandRaw;
+		}
 		$amountWords = '';
-		if (!empty($relatedProducts[1]['final_details']['amount_in_words'])) {
-			$amountWords = (string) $relatedProducts[1]['final_details']['amount_in_words'];
-		} elseif ($grandRaw > 0 && file_exists('modules/Quotes/helpers/QuoteBaService.php')) {
+		if ($payableRaw > 0 && file_exists('modules/Quotes/helpers/QuoteBaService.php')) {
 			require_once 'modules/Quotes/helpers/QuoteBaService.php';
 			if (class_exists('Quotes_QuoteBaService_Helper')) {
-				$amountWords = Quotes_QuoteBaService_Helper::amountInWordsVi($grandRaw);
+				$amountWords = Quotes_QuoteBaService_Helper::amountInWordsVi($payableRaw);
 			}
 		}
 		$viewer->assign('INLINE_AMOUNT_WORDS', $amountWords);

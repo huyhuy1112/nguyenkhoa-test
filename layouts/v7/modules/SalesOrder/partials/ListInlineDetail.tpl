@@ -57,7 +57,6 @@
 		<table class="mk-so-inline-detail__lines">
 			<thead>
 				<tr>
-					<th>Mã đơn hàng</th>
 					<th>Tên hàng</th>
 					<th class="is-num">Số lượng</th>
 					<th class="is-num">Đơn giá</th>
@@ -79,15 +78,6 @@
 						{assign var=DISC_PCT value=$LINE["discount_percent$IDX"]|default:0}
 						{assign var=DISC_TOTAL value=$LINE["discountTotal$IDX"]|default:0}
 						<tr data-qty="{$LINE["qty$IDX"]|default:'1'|escape}" data-price="{$LINE["listPrice$IDX"]|default:$LINE["unitPrice$IDX"]|default:'0'|escape}" data-total="{$LINE["productTotal$IDX"]|default:'0'|escape}" data-unit="{$LINE["usageunit$IDX"]|default:''|escape}" data-sequence="{$IDX|escape}">
-							<td class="is-code">
-								{if $LINE["hdnProductId$IDX"]|default:'' neq ''}
-									<a href="index.php?module={$LINE["entityType$IDX"]|default:'Products'}&view=Detail&record={$LINE["hdnProductId$IDX"]}" target="_blank" rel="noopener">
-										{$LINE["lineSku$IDX"]|default:$LINE["hdnProductcode$IDX"]|default:'--'}
-									</a>
-								{else}
-									{$LINE["lineSku$IDX"]|default:$LINE["hdnProductcode$IDX"]|default:'--'}
-								{/if}
-							</td>
 							<td class="is-name">{$LINE["productName$IDX"]|default:'--'}</td>
 							<td class="is-num">{$LINE["qty$IDX"]|default:'0'}</td>
 							<td class="is-num">{$LINE["listPrice$IDX"]|default:'0'}</td>
@@ -110,7 +100,7 @@
 				{/foreach}
 				{if !$HAS_LINE_ITEMS}
 					<tr>
-						<td colspan="8" class="mk-so-inline-detail__empty-lines">Chưa có hàng hóa trong đơn.</td>
+						<td colspan="7" class="mk-so-inline-detail__empty-lines">Chưa có hàng hóa trong đơn.</td>
 					</tr>
 				{/if}
 			</tbody>

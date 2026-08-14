@@ -22,7 +22,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action', 'set_settings'), true)) {
+		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -196,6 +196,49 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 							'wh_allow_negative_stock' => Warehouse_Settings_Helper::allowNegativeStock() ? 1 : 0,
 						),
 					));
+					break;
+
+				case 'qc_upload_image':
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$code = trim((string) $request->get('code'));
+					$role = trim((string) $request->get('role'));
+					if (!isset($_FILES['qcImage']) || !is_array($_FILES['qcImage'])) {
+						throw new Exception('Không có file ảnh.');
+					}
+					$result = Warehouse_WhMgmtService::uploadQcImage($whId, $code, $_FILES['qcImage'], $userId, $role);
+					$response->setResult(array_merge(array('success' => true), $result));
+					break;
+
+				case 'qc_delete_image':
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$code = trim((string) $request->get('code'));
+					$imageId = trim((string) $request->get('imageId'));
+					$result = Warehouse_WhMgmtService::deleteQcImage($whId, $code, $imageId, $userId);
+					$response->setResult(array_merge(array('success' => true), $result));
+					break;
+
+				case 'qc_update':
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$code = trim((string) $request->get('code'));
+					$role = trim((string) $request->get('role'));
+					$note = $this->readActionNote($request);
+					$result = Warehouse_WhMgmtService::updateQcRecord($whId, $code, $note, $userId, $role);
+					$response->setResult(array_merge(array('success' => true), $result));
 					break;
 
 				default:

@@ -393,6 +393,81 @@
 			}).fail(function (err) { def.reject(err); });
 			return def.promise();
 		},
+		uploadQcImage: function (whId, code, file, role) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			var fd = new FormData();
+			fd.append('module', 'Warehouse');
+			fd.append('action', 'WhMgmtApi');
+			fd.append('mode', 'qc_upload_image');
+			fd.append('whId', whId);
+			fd.append('code', code);
+			fd.append('role', role || '');
+			fd.append('qcImage', file);
+			$.ajax({
+				url: 'index.php',
+				method: 'POST',
+				data: fd,
+				processData: false,
+				contentType: false,
+				dataType: 'json',
+			}).done(function (res) {
+				var out = unwrapApiResponse(res);
+				if (!out || out.success === false || out.error) {
+					def.reject({ message: String((out && out.error) || 'Upload thất bại') });
+					return;
+				}
+				if (out.data) {
+					patchData(whId, function () { return out.data; });
+				}
+				def.resolve(out);
+			}).fail(function (xhr) {
+				var msg = (xhr && xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Upload thất bại';
+				def.reject({ message: String(msg) });
+			});
+			return def.promise();
+		},
+		deleteQcImage: function (whId, code, imageId) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			apiPost({
+				mode: 'qc_delete_image',
+				whId: whId,
+				code: code,
+				imageId: imageId,
+			}).then(function (res) {
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) { def.reject(err); });
+			return def.promise();
+		},
+		updateQcRecord: function (whId, code, role, note) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			apiPost({
+				mode: 'qc_update',
+				whId: whId,
+				code: code,
+				role: role || '',
+				qcNote: note || '',
+				note: note || '',
+				payload: JSON.stringify({ qcNote: note || '' }),
+			}).then(function (res) {
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) { def.reject(err); });
+			return def.promise();
+		},
 	};
 
 	function computeSummary() {

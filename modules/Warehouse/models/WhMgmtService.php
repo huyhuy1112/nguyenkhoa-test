@@ -732,6 +732,9 @@ class Warehouse_WhMgmtService {
 			if ($note !== '' && trim((string) (isset($ev['note']) ? $ev['note'] : '')) === '') {
 				$ev['note'] = $note;
 			}
+			if (isset($qc['images']) && is_array($qc['images']) && empty($ev['images'])) {
+				$ev['images'] = self::normalizeQcImagesList($qc['images']);
+			}
 			if (trim((string) (isset($ev['action']) ? $ev['action'] : '')) === '') {
 				$ev['action'] = $action;
 			}
@@ -751,6 +754,9 @@ class Warehouse_WhMgmtService {
 			'action' => $action,
 			'note' => $note,
 		);
+		if (isset($qc['images']) && is_array($qc['images']) && count($qc['images']) > 0) {
+			self::syncQcImagesToLatestTimeline($meta);
+		}
 	}
 
 	protected static function syncQcMetaFromStorage(array &$meta, $status, $goodsReceiptNote = '') {
@@ -897,6 +903,7 @@ class Warehouse_WhMgmtService {
 			$dbStatus = (string) (isset($row['status']) ? $row['status'] : 'stored');
 			self::syncQcMetaFromStorage($meta, $dbStatus, isset($row['note']) ? $row['note'] : '');
 			self::normalizeReceiptTimeline($meta, $created, $dbStatus);
+			self::hydrateQcImageUrls($meta, $warehouseCode, (string) $row['code']);
 			$items = self::loadReceiptItems($db, (int) $row['receiptid'], $meta);
 			$out[] = array(
 				'id' => (string) $row['code'],
@@ -1011,24 +1018,32 @@ class Warehouse_WhMgmtService {
 		} else if ($actionKey === 'qc-pass') {
 			$newStatus = 'qc_passed';
 			$note = trim((string) $note);
+			self::ensureQcMetaBucket($meta);
+			$existingImages = self::normalizeQcImagesList(isset($meta['qc']['images']) ? $meta['qc']['images'] : array());
 			$meta['qc'] = array(
 				'result' => 'pass',
 				'note' => $note,
 				'at' => self::nowIso(),
 				'by' => self::roleDisplayName($role),
+				'images' => $existingImages,
 			);
 			self::pushTimeline($meta, 'QC đạt', 'qc', $note);
+			self::syncQcImagesToLatestTimeline($meta);
 			$goodsReceiptNote = $note;
 		} else if ($actionKey === 'qc-fail') {
 			$newStatus = 'qc_failed';
 			$note = trim((string) $note);
+			self::ensureQcMetaBucket($meta);
+			$existingImages = self::normalizeQcImagesList(isset($meta['qc']['images']) ? $meta['qc']['images'] : array());
 			$meta['qc'] = array(
 				'result' => 'fail',
 				'note' => $note,
 				'at' => self::nowIso(),
 				'by' => self::roleDisplayName($role),
+				'images' => $existingImages,
 			);
 			self::pushTimeline($meta, 'QC không đạt', 'qc', $note);
+			self::syncQcImagesToLatestTimeline($meta);
 			$goodsReceiptNote = $note;
 		} else if ($actionKey === 'mgr-approve') {
 			$newStatus = 'approved';
@@ -3755,6 +3770,359 @@ class Warehouse_WhMgmtService {
 			'company' => $company,
 			'companyAddress' => $companyAddress,
 			'companyPhone' => $companyPhone,
+		);
+	}
+
+	const QC_MAX_IMAGES = 10;
+	const QC_MAX_IMAGE_BYTES = 5242880;
+	const QC_ALLOWED_IMAGE_EXT = array('jpg', 'jpeg', 'png', 'webp', 'gif');
+
+	public static function buildQcImagePublicUrl($warehouseCode, $receiptCode, $imageId) {
+		return 'index.php?module=Warehouse&action=WhQcImage&whId=' . rawurlencode((string) $warehouseCode)
+			. '&code=' . rawurlencode((string) $receiptCode)
+			. '&imageId=' . rawurlencode((string) $imageId);
+	}
+
+	protected static function qcImagesBaseDir($warehouseCode, $receiptCode) {
+		$safeWh = preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $warehouseCode);
+		$safeCode = preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $receiptCode);
+		return 'storage/mk_qc/' . $safeWh . '/' . $safeCode . '/';
+	}
+
+	protected static function normalizeQcImagesList(array $images) {
+		$out = array();
+		foreach ($images as $img) {
+			if (!is_array($img)) {
+				continue;
+			}
+			$id = trim((string) (isset($img['id']) ? $img['id'] : ''));
+			if ($id === '') {
+				continue;
+			}
+			$out[] = array(
+				'id' => $id,
+				'name' => (string) (isset($img['name']) ? $img['name'] : ''),
+				'url' => (string) (isset($img['url']) ? $img['url'] : ''),
+				'mime' => (string) (isset($img['mime']) ? $img['mime'] : ''),
+				'size' => (int) (isset($img['size']) ? $img['size'] : 0),
+				'at' => (string) (isset($img['at']) ? $img['at'] : ''),
+				'by' => (string) (isset($img['by']) ? $img['by'] : ''),
+			);
+		}
+		return $out;
+	}
+
+	protected static function ensureQcMetaBucket(array &$meta) {
+		if (!isset($meta['qc']) || !is_array($meta['qc'])) {
+			$meta['qc'] = array();
+		}
+		if (!isset($meta['qc']['images']) || !is_array($meta['qc']['images'])) {
+			$meta['qc']['images'] = array();
+		}
+	}
+
+	protected static function syncQcImagesToLatestTimeline(array &$meta) {
+		self::ensureQcMetaBucket($meta);
+		$images = self::normalizeQcImagesList($meta['qc']['images']);
+		if (!isset($meta['timeline']) || !is_array($meta['timeline'])) {
+			return;
+		}
+		for ($i = count($meta['timeline']) - 1; $i >= 0; $i--) {
+			if (!is_array($meta['timeline'][$i])) {
+				continue;
+			}
+			if ((isset($meta['timeline'][$i]['role']) ? $meta['timeline'][$i]['role'] : '') !== 'qc') {
+				continue;
+			}
+			$meta['timeline'][$i]['images'] = $images;
+			return;
+		}
+	}
+
+	protected static function syncQcNoteToLatestTimeline(array &$meta, $note) {
+		$note = trim((string) $note);
+		if ($note === '' || !isset($meta['timeline']) || !is_array($meta['timeline'])) {
+			return;
+		}
+		for ($i = count($meta['timeline']) - 1; $i >= 0; $i--) {
+			if (!is_array($meta['timeline'][$i])) {
+				continue;
+			}
+			if ((isset($meta['timeline'][$i]['role']) ? $meta['timeline'][$i]['role'] : '') !== 'qc') {
+				continue;
+			}
+			$meta['timeline'][$i]['note'] = $note;
+			return;
+		}
+	}
+
+	protected static function assertReceiptQcEditable($status) {
+		$status = strtolower(trim((string) $status));
+		if (!in_array($status, array('pending_qc', 'qc_passed', 'qc_failed'), true)) {
+			throw new Exception('Phiếu nhập không ở trạng thái cho phép ghi nhận QC.');
+		}
+	}
+
+	protected static function currentUserDisplayName() {
+		global $current_user;
+		if (!empty($current_user) && !empty($current_user->user_name)) {
+			$first = trim((string) ($current_user->first_name ?? ''));
+			$last = trim((string) ($current_user->last_name ?? ''));
+			$full = trim($first . ' ' . $last);
+			if ($full !== '') {
+				return $full;
+			}
+			return (string) $current_user->user_name;
+		}
+		return 'QC';
+	}
+
+	protected static function hydrateQcImageUrls(array &$meta, $warehouseCode, $receiptCode) {
+		self::ensureQcMetaBucket($meta);
+		$list = array();
+		foreach ($meta['qc']['images'] as $img) {
+			if (!is_array($img)) {
+				continue;
+			}
+			$id = trim((string) (isset($img['id']) ? $img['id'] : ''));
+			if ($id === '') {
+				continue;
+			}
+			if (empty($img['url'])) {
+				$img['url'] = self::buildQcImagePublicUrl($warehouseCode, $receiptCode, $id);
+			}
+			$list[] = $img;
+		}
+		$meta['qc']['images'] = self::normalizeQcImagesList($list);
+	}
+
+	public static function resolveQcImageFile($warehouseCode, $receiptCode, $imageId) {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$warehouseCode = trim((string) $warehouseCode);
+		$receiptCode = trim((string) $receiptCode);
+		$imageId = trim((string) $imageId);
+		if ($warehouseCode === '' || $receiptCode === '' || $imageId === '') {
+			return null;
+		}
+		if (!preg_match('/^[a-f0-9]{16,64}$/i', $imageId)) {
+			return null;
+		}
+		$row = self::findReceiptRowByCode($db, $receiptCode, $warehouseCode);
+		if (!$row) {
+			return null;
+		}
+		$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
+		self::ensureQcMetaBucket($meta);
+		$found = null;
+		foreach ($meta['qc']['images'] as $img) {
+			if (!is_array($img)) {
+				continue;
+			}
+			if ((isset($img['id']) ? (string) $img['id'] : '') === $imageId) {
+				$found = $img;
+				break;
+			}
+		}
+		if (!$found) {
+			return null;
+		}
+		$base = self::qcImagesBaseDir($warehouseCode, $receiptCode);
+		$ext = strtolower(pathinfo((string) (isset($found['name']) ? $found['name'] : ''), PATHINFO_EXTENSION));
+		if ($ext === '' || !in_array($ext, self::QC_ALLOWED_IMAGE_EXT, true)) {
+			$ext = 'jpg';
+		}
+		$path = $base . $imageId . '.' . $ext;
+		if (!is_readable($path)) {
+			foreach (self::QC_ALLOWED_IMAGE_EXT as $tryExt) {
+				$try = $base . $imageId . '.' . $tryExt;
+				if (is_readable($try)) {
+					$path = $try;
+					break;
+				}
+			}
+		}
+		return array(
+			'path' => $path,
+			'mime' => (string) (isset($found['mime']) ? $found['mime'] : 'image/jpeg'),
+		);
+	}
+
+	public static function uploadQcImage($warehouseCode, $receiptCode, array $fileInfo, $userId = 0, $role = 'qc') {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$warehouseCode = trim((string) $warehouseCode);
+		$receiptCode = trim((string) $receiptCode);
+		if ($warehouseCode === '' || $receiptCode === '') {
+			throw new Exception('Thiếu thông tin phiếu nhập.');
+		}
+		$row = self::findReceiptRowByCode($db, $receiptCode, $warehouseCode);
+		if (!$row) {
+			throw new Exception('Không tìm thấy phiếu nhập.');
+		}
+		$status = (string) (isset($row['status']) ? $row['status'] : '');
+		self::assertReceiptQcEditable($status);
+
+		$origName = trim((string) (isset($fileInfo['name']) ? $fileInfo['name'] : ''));
+		$tmpPath = trim((string) (isset($fileInfo['tmp_name']) ? $fileInfo['tmp_name'] : ''));
+		$errorCode = (int) (isset($fileInfo['error']) ? $fileInfo['error'] : UPLOAD_ERR_NO_FILE);
+		$fileSize = (int) (isset($fileInfo['size']) ? $fileInfo['size'] : 0);
+		$fileType = trim((string) (isset($fileInfo['type']) ? $fileInfo['type'] : ''));
+
+		if ($origName === '' || $errorCode === UPLOAD_ERR_NO_FILE) {
+			throw new Exception('Không có file ảnh.');
+		}
+		if ($errorCode !== UPLOAD_ERR_OK || !is_uploaded_file($tmpPath)) {
+			throw new Exception('Upload ảnh thất bại.');
+		}
+		if ($fileSize <= 0 || $fileSize > self::QC_MAX_IMAGE_BYTES) {
+			throw new Exception('Ảnh vượt quá 5MB hoặc file rỗng.');
+		}
+
+		$ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+		if (!in_array($ext, self::QC_ALLOWED_IMAGE_EXT, true)) {
+			throw new Exception('Chỉ hỗ trợ ảnh JPG, PNG, WEBP, GIF.');
+		}
+
+		$receiptId = (int) $row['receiptid'];
+		$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
+		self::ensureQcMetaBucket($meta);
+		$images = self::normalizeQcImagesList($meta['qc']['images']);
+		if (count($images) >= self::QC_MAX_IMAGES) {
+			throw new Exception('Đã đạt tối đa ' . self::QC_MAX_IMAGES . ' ảnh cho phiếu này.');
+		}
+
+		$imageId = bin2hex(random_bytes(12));
+		$baseDir = self::qcImagesBaseDir($warehouseCode, $receiptCode);
+		if (!is_dir($baseDir)) {
+			@mkdir($baseDir, 0775, true);
+		}
+		$targetPath = $baseDir . $imageId . '.' . $ext;
+		if (!@move_uploaded_file($tmpPath, $targetPath)) {
+			throw new Exception('Không lưu được ảnh lên máy chủ.');
+		}
+
+		$by = self::currentUserDisplayName();
+		if ($role !== '') {
+			$roleName = self::roleDisplayName($role);
+			if ($roleName !== 'QL Tuấn') {
+				$by = $roleName;
+			}
+		}
+		$entry = array(
+			'id' => $imageId,
+			'name' => $origName,
+			'url' => self::buildQcImagePublicUrl($warehouseCode, $receiptCode, $imageId),
+			'mime' => $fileType !== '' ? $fileType : 'image/' . ($ext === 'jpg' ? 'jpeg' : $ext),
+			'size' => $fileSize,
+			'at' => self::nowIso(),
+			'by' => $by,
+		);
+		$images[] = $entry;
+		$meta['qc']['images'] = $images;
+		self::syncQcImagesToLatestTimeline($meta);
+
+		$db->pquery(
+			'UPDATE vtiger_goodsreceipt SET mk_meta_json = ?, updatedby = ?, updatedtime = ? WHERE receiptid = ?',
+			array(self::encodeMeta($meta), (int) $userId, self::nowSql(), $receiptId)
+		);
+
+		return array(
+			'image' => $entry,
+			'code' => $receiptCode,
+			'warehouse' => $warehouseCode,
+			'data' => self::getWarehouseData($db, $warehouseCode),
+		);
+	}
+
+	public static function deleteQcImage($warehouseCode, $receiptCode, $imageId, $userId = 0) {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$warehouseCode = trim((string) $warehouseCode);
+		$receiptCode = trim((string) $receiptCode);
+		$imageId = trim((string) $imageId);
+		if ($warehouseCode === '' || $receiptCode === '' || $imageId === '') {
+			throw new Exception('Thiếu thông tin xóa ảnh.');
+		}
+		$row = self::findReceiptRowByCode($db, $receiptCode, $warehouseCode);
+		if (!$row) {
+			throw new Exception('Không tìm thấy phiếu nhập.');
+		}
+		self::assertReceiptQcEditable((string) (isset($row['status']) ? $row['status'] : ''));
+
+		$receiptId = (int) $row['receiptid'];
+		$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
+		self::ensureQcMetaBucket($meta);
+		$images = self::normalizeQcImagesList($meta['qc']['images']);
+		$kept = array();
+		$removed = null;
+		foreach ($images as $img) {
+			if ($img['id'] === $imageId) {
+				$removed = $img;
+				continue;
+			}
+			$kept[] = $img;
+		}
+		if (!$removed) {
+			throw new Exception('Không tìm thấy ảnh.');
+		}
+		$fileInfo = self::resolveQcImageFile($warehouseCode, $receiptCode, $imageId);
+		if ($fileInfo && !empty($fileInfo['path']) && is_file($fileInfo['path'])) {
+			@unlink($fileInfo['path']);
+		}
+
+		$meta['qc']['images'] = $kept;
+		self::syncQcImagesToLatestTimeline($meta);
+		$db->pquery(
+			'UPDATE vtiger_goodsreceipt SET mk_meta_json = ?, updatedby = ?, updatedtime = ? WHERE receiptid = ?',
+			array(self::encodeMeta($meta), (int) $userId, self::nowSql(), $receiptId)
+		);
+
+		return array(
+			'code' => $receiptCode,
+			'warehouse' => $warehouseCode,
+			'data' => self::getWarehouseData($db, $warehouseCode),
+		);
+	}
+
+	public static function updateQcRecord($warehouseCode, $receiptCode, $note, $userId = 0, $role = 'qc') {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$warehouseCode = trim((string) $warehouseCode);
+		$receiptCode = trim((string) $receiptCode);
+		$note = trim((string) $note);
+		if ($warehouseCode === '' || $receiptCode === '') {
+			throw new Exception('Thiếu thông tin phiếu nhập.');
+		}
+		$row = self::findReceiptRowByCode($db, $receiptCode, $warehouseCode);
+		if (!$row) {
+			throw new Exception('Không tìm thấy phiếu nhập.');
+		}
+		$status = (string) (isset($row['status']) ? $row['status'] : '');
+		self::assertReceiptQcEditable($status);
+
+		$receiptId = (int) $row['receiptid'];
+		$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
+		self::ensureQcMetaBucket($meta);
+		if (!empty($meta['qc']['result'])) {
+			$meta['qc']['note'] = $note;
+		} else {
+			$meta['qc']['note'] = $note;
+		}
+		$meta['qc']['updatedAt'] = self::nowIso();
+		$meta['qc']['updatedBy'] = self::currentUserDisplayName();
+		self::syncQcNoteToLatestTimeline($meta, $note);
+		self::syncQcImagesToLatestTimeline($meta);
+
+		$db->pquery(
+			'UPDATE vtiger_goodsreceipt SET mk_meta_json = ?, note = ?, updatedby = ?, updatedtime = ? WHERE receiptid = ?',
+			array(self::encodeMeta($meta), $note, (int) $userId, self::nowSql(), $receiptId)
+		);
+
+		return array(
+			'code' => $receiptCode,
+			'warehouse' => $warehouseCode,
+			'data' => self::getWarehouseData($db, $warehouseCode),
 		);
 	}
 }

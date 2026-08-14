@@ -32,7 +32,9 @@
 		'related_projects',
 		'used_projects',
 		'retail_price',
-		'bulk_price'
+		'bulk_price',
+		'price',
+		'wholesale_price'
 	];
 	var FULL_WIDTH_FIELDS = {
 		specification: true,

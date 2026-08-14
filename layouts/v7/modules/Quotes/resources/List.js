@@ -1709,12 +1709,24 @@
     listInstance.loadListViewRecords(params);
   }
 
+  /** Normalize list scope token: all | franchise | retail */
+  function normalizeQuoteListScope(raw) {
+    var s = String(raw || "").toLowerCase().trim();
+    if (s === "franchise" || s === "nq" || s === "nhuong_quyen") {
+      return "franchise";
+    }
+    if (s === "retail" || s === "ban_le") {
+      return "retail";
+    }
+    return "all";
+  }
+
   /**
    * Tab switch must reload list from server with mk_quote_scope (same path as a full page load).
    * Soft navigation is used deliberately: stock List PJAX/shell swap keeps stale rows / empty list.
    */
   function loadQuoteListByScope(scope) {
-    scope = scope === "franchise" ? "franchise" : "all";
+    scope = normalizeQuoteListScope(scope);
     window.__mkQuoteListScope = scope;
     window.__mkQuoteListScopePending = scope;
 
@@ -1737,8 +1749,8 @@
       u.searchParams.set("search_params", "[]");
       u.searchParams.delete("search_key");
       u.searchParams.delete("search_value");
-      if (scope === "franchise") {
-        u.searchParams.set("mk_quote_scope", "franchise");
+      if (scope === "franchise" || scope === "retail") {
+        u.searchParams.set("mk_quote_scope", scope);
       } else {
         u.searchParams.delete("mk_quote_scope");
       }
@@ -1757,51 +1769,50 @@
         "index.php?module=Quotes&view=List&app=SALES&page=1&nolistcache=1&search_params=%5B%5D";
       if (scope === "franchise") {
         q += "&mk_quote_scope=franchise";
+      } else if (scope === "retail") {
+        q += "&mk_quote_scope=retail";
       }
       window.location.href = q;
     }
   }
 
-  /** List scope: all | franchise (Báo giá KH nhượng quyền). */
+  /** List scope: all | franchise | retail (Báo giá KH nhượng quyền / bán lẻ). */
   function resolveQuoteListScope() {
     try {
       var params = new URLSearchParams(window.location.search || "");
-      var s = (params.get("mk_quote_scope") || "").toLowerCase();
-      if (s === "franchise" || s === "nq" || s === "nhuong_quyen") {
-        return "franchise";
-      }
-      if (s === "all") {
-        return "all";
+      var urlRaw = params.get("mk_quote_scope");
+      if (urlRaw !== null && urlRaw !== "") {
+        return normalizeQuoteListScope(urlRaw);
       }
     } catch (e0) {
       /* ignore */
     }
     if (
       window.__mkQuoteListScope === "franchise" ||
+      window.__mkQuoteListScope === "retail" ||
       window.__mkQuoteListScope === "all"
     ) {
       return window.__mkQuoteListScope;
     }
-    var fromHidden = $.trim($("#mk-quote-scope").val() || "").toLowerCase();
-    if (fromHidden === "franchise" || fromHidden === "all") {
+    var fromHidden = normalizeQuoteListScope($("#mk-quote-scope").val() || "");
+    if ($.trim($("#mk-quote-scope").val() || "") !== "") {
       return fromHidden;
     }
-    var fromRoot = (
+    var fromRoot = normalizeQuoteListScope(
       $(".mk-qt-page").attr("data-mk-quote-scope") || ""
-    ).toLowerCase();
-    if (fromRoot === "franchise") {
-      return "franchise";
+    );
+    if ($.trim($(".mk-qt-page").attr("data-mk-quote-scope") || "") !== "") {
+      return fromRoot;
     }
     return "all";
   }
 
   function syncQuoteScopeTabs(scope) {
-    scope = scope === "franchise" ? "franchise" : "all";
+    scope = normalizeQuoteListScope(scope);
     $(".mk-qt-scope-tab").each(function () {
-      var tabScope =
-        $(this).attr("data-mk-quote-scope") === "franchise"
-          ? "franchise"
-          : "all";
+      var tabScope = normalizeQuoteListScope(
+        $(this).attr("data-mk-quote-scope")
+      );
       var active = tabScope === scope;
       $(this).toggleClass("is-active", active);
       $(this).attr("aria-selected", active ? "true" : "false");
@@ -1809,7 +1820,7 @@
   }
 
   function setQuoteListScope(scope) {
-    scope = scope === "franchise" ? "franchise" : "all";
+    scope = normalizeQuoteListScope(scope);
     window.__mkQuoteListScope = scope;
     var $hidden = $("#mk-quote-scope");
     if ($hidden.length) {
@@ -1853,20 +1864,14 @@
       if (!isQuotesSalesList()) {
         return;
       }
-      var scope =
-        $(this).attr("data-mk-quote-scope") === "franchise"
-          ? "franchise"
-          : "all";
+      var scope = normalizeQuoteListScope(
+        $(this).attr("data-mk-quote-scope")
+      );
       // Skip only if already on this scope AND URL already matches (avoid reload loop).
       try {
-        var urlScope = new URLSearchParams(window.location.search || "")
-          .get("mk_quote_scope");
-        urlScope =
-          urlScope === "franchise" ||
-          urlScope === "nq" ||
-          urlScope === "nhuong_quyen"
-            ? "franchise"
-            : "all";
+        var urlScope = normalizeQuoteListScope(
+          new URLSearchParams(window.location.search || "").get("mk_quote_scope")
+        );
         if (scope === urlScope && scope === resolveQuoteListScope()) {
           return;
         }
