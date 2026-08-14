@@ -319,6 +319,35 @@ class Leads_SheetImportService {
 	}
 
 	/**
+	 * Connectivity check (no lead import). Used by Settings → Tích hợp hệ thống.
+	 * @return array
+	 */
+	public static function testConnection() {
+		$settings = self::getSettings();
+		if ($settings['spreadsheet_id'] === '') {
+			return array('success' => false, 'error' => 'Thiếu Spreadsheet ID / link.');
+		}
+		if (trim((string) $settings['service_account_json']) === '') {
+			return array('success' => false, 'error' => 'Chưa có Service Account JSON.');
+		}
+		try {
+			$rows = self::fetchSheetValues(
+				$settings['spreadsheet_id'],
+				$settings['sheet_range'],
+				$settings['service_account_json']
+			);
+			$n = is_array($rows) ? count($rows) : 0;
+			return array(
+				'success' => true,
+				'message' => 'Kết nối Google Sheet thành công. Đọc được ' . $n . ' dòng (gồm header).',
+				'rows' => $n,
+			);
+		} catch (Exception $e) {
+			return array('success' => false, 'error' => $e->getMessage());
+		}
+	}
+
+	/**
 	 * Poll sheet once; only new rows create leads.
 	 * @return array
 	 */

@@ -194,7 +194,10 @@ class Settings_Vtiger_Module_Model extends Vtiger_Base_Model {
 	}
 
 	public function getSettingsActiveBlock($viewName) {
-		$blocksList = array('OutgoingServerEdit' => array('block' => 'LBL_CONFIGURATION', 'menu' => 'LBL_MAIL_SERVER_SETTINGS'));
+		$blocksList = array(
+			'OutgoingServerEdit' => array('block' => 'LBL_CONFIGURATION', 'menu' => 'LBL_MAIL_SERVER_SETTINGS'),
+			'Integrations' => array('block' => 'LBL_OTHER_SETTINGS', 'menu' => 'LBL_NK_SYSTEM_INTEGRATIONS'),
+		);
 		return isset($blocksList[$viewName]) ? $blocksList[$viewName] : null;
 	}
 

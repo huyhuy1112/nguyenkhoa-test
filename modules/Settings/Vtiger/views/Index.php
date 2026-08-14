@@ -30,6 +30,13 @@ class Settings_Vtiger_Index_View extends Vtiger_Basic_View {
 
 	public function preProcessSettings (Vtiger_Request $request ,$display=true) {
 
+		try {
+			require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+			NkApiConnection::ensureInstalled();
+		} catch (Exception $e) {
+			/* ignore — menu may already exist */
+		}
+
 		$viewer = $this->getViewer($request);
 
 		$moduleName = $request->getModule();
