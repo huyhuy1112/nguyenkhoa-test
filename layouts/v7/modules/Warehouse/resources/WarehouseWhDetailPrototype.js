@@ -191,9 +191,95 @@
 
 	var qcLightboxImages = [];
 	var qcLightboxIndex = 0;
+	var qcLightboxZoom = 1;
+	var qcLightboxPan = { x: 0, y: 0 };
+	var qcLightboxDrag = null;
+	var qcLightboxLastPointer = null;
+
+	function qcLightboxMarkup() {
+		return '' +
+			'<div class="mk-wh-qc-lightbox__backdrop" data-mk-action="qc-lightbox-close"></div>' +
+			'<div class="mk-wh-qc-lightbox__panel" role="dialog" aria-modal="true" aria-label="Xem ảnh QC">' +
+				'<div class="mk-wh-qc-lightbox__tools">' +
+					'<div class="mk-wh-qc-lightbox__zoom-group" title="Kính lúp">' +
+						'<button type="button" class="mk-wh-qc-lightbox__zoom-btn" data-mk-action="qc-lightbox-zoom-out" title="Thu nhỏ">−</button>' +
+						'<span class="mk-wh-qc-lightbox__zoom-label" data-mk-action="qc-lightbox-zoom-reset" data-mk-qc-zoom-label="1" title="Về 100%">100%</span>' +
+						'<button type="button" class="mk-wh-qc-lightbox__zoom-btn" data-mk-action="qc-lightbox-zoom-in" title="Phóng to">+</button>' +
+					'</div>' +
+					'<button type="button" class="mk-wh-qc-lightbox__close" data-mk-action="qc-lightbox-close" aria-label="Đóng">&times;</button>' +
+				'</div>' +
+				'<button type="button" class="mk-wh-qc-lightbox__nav mk-wh-qc-lightbox__nav--prev" data-mk-action="qc-lightbox-prev" aria-label="Ảnh trước">&#8249;</button>' +
+				'<div class="mk-wh-qc-lightbox__stage" data-mk-qc-lightbox-stage="1">' +
+					'<img class="mk-wh-qc-lightbox__img" alt="" />' +
+				'</div>' +
+				'<button type="button" class="mk-wh-qc-lightbox__nav mk-wh-qc-lightbox__nav--next" data-mk-action="qc-lightbox-next" aria-label="Ảnh sau">&#8250;</button>' +
+				'<div class="mk-wh-qc-lightbox__caption"></div>' +
+			'</div>';
+	}
+
+	function resetQcLightboxZoom() {
+		qcLightboxZoom = 1;
+		qcLightboxPan = { x: 0, y: 0 };
+		qcLightboxDrag = null;
+		applyQcLightboxTransform();
+	}
+
+	function applyQcLightboxTransform() {
+		var lb = qs('#mkWhQcLightbox');
+		if (!lb) return;
+		var stage = lb.querySelector('[data-mk-qc-lightbox-stage="1"]');
+		var imgEl = lb.querySelector('.mk-wh-qc-lightbox__img');
+		var label = lb.querySelector('[data-mk-qc-zoom-label="1"]');
+		if (label) label.textContent = Math.round(qcLightboxZoom * 100) + '%';
+		if (stage) {
+			stage.classList.toggle('is-zoomed', qcLightboxZoom > 1.01);
+			stage.classList.toggle('is-dragging', !!(qcLightboxDrag && qcLightboxDrag.active));
+		}
+		if (imgEl) {
+			imgEl.style.transform = 'translate(' + qcLightboxPan.x + 'px,' + qcLightboxPan.y + 'px) scale(' + qcLightboxZoom + ')';
+		}
+	}
+
+	function setQcLightboxZoomAt(next, clientX, clientY) {
+		var lb = qs('#mkWhQcLightbox');
+		var stage = lb ? lb.querySelector('[data-mk-qc-lightbox-stage="1"]') : null;
+		var oldZ = qcLightboxZoom || 1;
+		var newZ = Math.max(1, Math.min(5, Number(next) || 1));
+		newZ = Math.round(newZ * 100) / 100;
+		if (Math.abs(newZ - oldZ) < 0.001) {
+			applyQcLightboxTransform();
+			return;
+		}
+		if (stage) {
+			var rect = stage.getBoundingClientRect();
+			var ax = (typeof clientX === 'number' && isFinite(clientX)) ? (clientX - rect.left) : (rect.width / 2);
+			var ay = (typeof clientY === 'number' && isFinite(clientY)) ? (clientY - rect.top) : (rect.height / 2);
+			var sx = ax - rect.width / 2;
+			var sy = ay - rect.height / 2;
+			qcLightboxPan = {
+				x: sx - (sx - qcLightboxPan.x) * (newZ / oldZ),
+				y: sy - (sy - qcLightboxPan.y) * (newZ / oldZ),
+			};
+		}
+		qcLightboxZoom = newZ;
+		if (qcLightboxZoom <= 1.01) {
+			qcLightboxZoom = 1;
+			qcLightboxPan = { x: 0, y: 0 };
+		}
+		applyQcLightboxTransform();
+	}
+
+	function setQcLightboxZoom(next) {
+		var pt = qcLightboxLastPointer;
+		if (pt) {
+			setQcLightboxZoomAt(next, pt.x, pt.y);
+		} else {
+			setQcLightboxZoomAt(next);
+		}
+	}
 
 	function updateQcLightboxView() {
-		var lb = qs('#mkWhQcLightbox');
+		var lb = ensureQcLightboxEl();
 		if (!lb) return;
 		var imgEl = lb.querySelector('.mk-wh-qc-lightbox__img');
 		var capEl = lb.querySelector('.mk-wh-qc-lightbox__caption');
@@ -204,6 +290,7 @@
 		if (qcLightboxIndex < 0) qcLightboxIndex = 0;
 		if (qcLightboxIndex >= total) qcLightboxIndex = total - 1;
 		var cur = qcLightboxImages[qcLightboxIndex] || {};
+		resetQcLightboxZoom();
 		imgEl.src = cur.url || '';
 		imgEl.alt = cur.name || 'Ảnh QC';
 		if (capEl) {
@@ -213,11 +300,109 @@
 		if (nextBtn) nextBtn.disabled = total <= 1;
 	}
 
+	function ensureQcLightboxEl() {
+		var lb = qs('#mkWhQcLightbox');
+		if (lb) {
+			if (!lb.querySelector('.mk-wh-qc-lightbox__zoom-group')) {
+				lb.innerHTML = qcLightboxMarkup();
+				lb.removeAttribute('data-mk-qc-lb-bound');
+				bindQcLightboxInteractions(lb);
+			} else if (lb.getAttribute('data-mk-qc-lb-bound') !== '1') {
+				bindQcLightboxInteractions(lb);
+			}
+			return lb;
+		}
+		lb = document.createElement('div');
+		lb.id = 'mkWhQcLightbox';
+		lb.className = 'mk-wh-qc-lightbox';
+		lb.setAttribute('aria-hidden', 'true');
+		lb.innerHTML = qcLightboxMarkup();
+		document.body.appendChild(lb);
+		bindQcLightboxInteractions(lb);
+		return lb;
+	}
+
+	function bindQcLightboxInteractions(lb) {
+		if (!lb || lb.getAttribute('data-mk-qc-lb-bound') === '1') return;
+		lb.setAttribute('data-mk-qc-lb-bound', '1');
+		var stage = lb.querySelector('[data-mk-qc-lightbox-stage="1"]');
+		if (!stage) return;
+
+		stage.addEventListener('pointermove', function (e) {
+			qcLightboxLastPointer = { x: e.clientX, y: e.clientY };
+			if (!qcLightboxDrag || !qcLightboxDrag.active) return;
+			qcLightboxPan = {
+				x: qcLightboxDrag.origX + (e.clientX - qcLightboxDrag.startX),
+				y: qcLightboxDrag.origY + (e.clientY - qcLightboxDrag.startY),
+			};
+			applyQcLightboxTransform();
+		});
+
+		stage.addEventListener('wheel', function (e) {
+			if (!lb.classList.contains('is-open')) return;
+			e.preventDefault();
+			qcLightboxLastPointer = { x: e.clientX, y: e.clientY };
+			var delta = e.deltaY > 0 ? -0.2 : 0.2;
+			setQcLightboxZoomAt(qcLightboxZoom + delta, e.clientX, e.clientY);
+		}, { passive: false });
+
+		stage.addEventListener('dblclick', function (e) {
+			e.preventDefault();
+			qcLightboxLastPointer = { x: e.clientX, y: e.clientY };
+			if (qcLightboxZoom > 1.01) {
+				setQcLightboxZoomAt(1, e.clientX, e.clientY);
+			} else {
+				setQcLightboxZoomAt(2, e.clientX, e.clientY);
+			}
+		});
+
+		stage.addEventListener('click', function (e) {
+			if (qcLightboxDrag && qcLightboxDrag.moved) return;
+			if (qcLightboxZoom > 1.01) return;
+			e.preventDefault();
+			qcLightboxLastPointer = { x: e.clientX, y: e.clientY };
+			setQcLightboxZoomAt(Math.min(qcLightboxZoom + 0.5, 3), e.clientX, e.clientY);
+		});
+
+		stage.addEventListener('pointerdown', function (e) {
+			if (e.button !== 0) return;
+			qcLightboxLastPointer = { x: e.clientX, y: e.clientY };
+			if (qcLightboxZoom <= 1.01) return;
+			qcLightboxDrag = {
+				active: true,
+				moved: false,
+				startX: e.clientX,
+				startY: e.clientY,
+				origX: qcLightboxPan.x,
+				origY: qcLightboxPan.y,
+			};
+			stage.classList.add('is-dragging');
+			if (stage.setPointerCapture) {
+				try { stage.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+			}
+		});
+
+		var endDrag = function (e) {
+			if (!qcLightboxDrag) return;
+			if (e && typeof e.clientX === 'number') {
+				var dx = Math.abs(e.clientX - qcLightboxDrag.startX);
+				var dy = Math.abs(e.clientY - qcLightboxDrag.startY);
+				if (dx > 4 || dy > 4) qcLightboxDrag.moved = true;
+			}
+			qcLightboxDrag.active = false;
+			var moved = qcLightboxDrag.moved;
+			setTimeout(function () { qcLightboxDrag = moved ? { moved: true } : null; }, 0);
+			stage.classList.remove('is-dragging');
+		};
+		stage.addEventListener('pointerup', endDrag);
+		stage.addEventListener('pointercancel', endDrag);
+	}
+
 	function openQcLightbox(images, startIndex) {
 		qcLightboxImages = (images || []).filter(function (img) { return img && img.url; });
 		if (!qcLightboxImages.length) return;
 		qcLightboxIndex = typeof startIndex === 'number' ? startIndex : 0;
-		var lb = qs('#mkWhQcLightbox');
+		var lb = ensureQcLightboxEl();
 		if (!lb) return;
 		updateQcLightboxView();
 		lb.classList.add('is-open');
@@ -229,19 +414,37 @@
 		if (!lb) return;
 		lb.classList.remove('is-open');
 		lb.setAttribute('aria-hidden', 'true');
+		resetQcLightboxZoom();
 		var imgEl = lb.querySelector('.mk-wh-qc-lightbox__img');
 		if (imgEl) imgEl.removeAttribute('src');
 	}
 
+	function resolveQcPreviewUrl(el) {
+		if (!el) return '';
+		if (el.getAttribute) {
+			var dataUrl = el.getAttribute('data-url') || '';
+			if (dataUrl) return dataUrl;
+		}
+		if (el.tagName === 'IMG' && el.getAttribute) {
+			return el.getAttribute('src') || '';
+		}
+		if (el.tagName === 'A' && el.getAttribute) {
+			return el.getAttribute('href') || '';
+		}
+		var img = el.querySelector ? el.querySelector('img') : null;
+		if (img && img.getAttribute) return img.getAttribute('src') || '';
+		return '';
+	}
+
 	function collectQcPreviewImagesFromContainer(container, clickedEl) {
 		if (!container) return { images: [], index: 0 };
+		var clickedUrl = resolveQcPreviewUrl(clickedEl);
 		var attrImages = parseQcImagesAttr(container.getAttribute('data-mk-qc-images'));
 		if (attrImages.length) {
-			var url = clickedEl ? (clickedEl.getAttribute('data-url') || '') : '';
 			var index = 0;
-			if (url) {
+			if (clickedUrl) {
 				for (var i = 0; i < attrImages.length; i++) {
-					if (attrImages[i].url === url) {
+					if (attrImages[i].url === clickedUrl) {
 						index = i;
 						break;
 					}
@@ -249,19 +452,76 @@
 			}
 			return { images: attrImages, index: index };
 		}
-		var triggers = container.querySelectorAll('[data-mk-action="qc-image-preview"]');
 		var images = [];
 		var index = 0;
-		Array.prototype.forEach.call(triggers, function (el) {
-			var u = el.getAttribute('data-url') || '';
-			if (!u) return;
+		var nodes = container.querySelectorAll('[data-mk-action="qc-image-preview"], a.mk-wh-qc-timeline-thumb, a.mk-wh-qc-attach__link, .mk-wh-qc-timeline-thumb img, .mk-wh-qc-attach__item img');
+		var seen = {};
+		Array.prototype.forEach.call(nodes, function (el) {
+			var u = resolveQcPreviewUrl(el);
+			if (!u || seen[u]) return;
+			seen[u] = true;
 			images.push({
 				url: u,
-				name: el.getAttribute('data-name') || 'Ảnh QC',
+				name: (el.getAttribute && el.getAttribute('data-name')) || (el.getAttribute && el.getAttribute('alt')) || 'Ảnh QC',
 			});
-			if (el === clickedEl) index = images.length - 1;
+			if (el === clickedEl || (clickedUrl && u === clickedUrl)) index = images.length - 1;
 		});
+		if (!images.length && clickedUrl) {
+			images = [{ url: clickedUrl, name: 'Ảnh QC' }];
+			index = 0;
+		}
 		return { images: images, index: index };
+	}
+
+	function tryOpenQcImageFromEvent(e) {
+		var t = e.target;
+		if (!t || !t.closest) return false;
+
+		var lightboxActionEl = t.closest('[data-mk-action="qc-lightbox-close"], [data-mk-action="qc-lightbox-prev"], [data-mk-action="qc-lightbox-next"], [data-mk-action="qc-lightbox-zoom-in"], [data-mk-action="qc-lightbox-zoom-out"], [data-mk-action="qc-lightbox-zoom-reset"]');
+		if (lightboxActionEl) {
+			e.preventDefault();
+			e.stopPropagation();
+			var lbAction = lightboxActionEl.getAttribute('data-mk-action');
+			if (lbAction === 'qc-lightbox-close') {
+				closeQcLightbox();
+			} else if (lbAction === 'qc-lightbox-prev') {
+				qcLightboxIndex -= 1;
+				if (qcLightboxIndex < 0) qcLightboxIndex = Math.max(qcLightboxImages.length - 1, 0);
+				updateQcLightboxView();
+			} else if (lbAction === 'qc-lightbox-next') {
+				qcLightboxIndex += 1;
+				if (qcLightboxIndex >= qcLightboxImages.length) qcLightboxIndex = 0;
+				updateQcLightboxView();
+			} else if (lbAction === 'qc-lightbox-zoom-in') {
+				setQcLightboxZoom(qcLightboxZoom + 0.25);
+			} else if (lbAction === 'qc-lightbox-zoom-out') {
+				setQcLightboxZoom(qcLightboxZoom - 0.25);
+			} else if (lbAction === 'qc-lightbox-zoom-reset') {
+				setQcLightboxZoomAt(1);
+			}
+			return true;
+		}
+
+		// Don't treat lightbox image clicks as "open another preview".
+		if (t.closest && t.closest('#mkWhQcLightbox')) {
+			return false;
+		}
+
+		var previewEl = t.closest('[data-mk-action="qc-image-preview"], .mk-wh-qc-timeline-thumb, .mk-wh-qc-attach__link, .mk-wh-qc-timeline-images a, .mk-wh-qc-attach a, .mk-wh-qc-attach__item img, .mk-wh-qc-timeline-images img');
+		if (!previewEl) return false;
+
+		var previewRoot = previewEl.closest('[data-mk-qc-images], .mk-wh-qc-attach__grid, .mk-wh-qc-timeline-images, .mk-wh-qc-attach, .mk-wh-proto-qc-result') || previewEl.parentElement;
+		var pack = collectQcPreviewImagesFromContainer(previewRoot, previewEl);
+		if (!pack.images.length) {
+			var fallbackUrl = resolveQcPreviewUrl(previewEl);
+			if (!fallbackUrl) return false;
+			pack = { images: [{ url: fallbackUrl, name: 'Ảnh QC' }], index: 0 };
+		}
+		e.preventDefault();
+		e.stopPropagation();
+		if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+		openQcLightbox(pack.images, pack.index);
+		return true;
 	}
 
 	function defaultDialogFootHtml() {
@@ -1449,9 +1709,11 @@
 			((r.timeline || []).map(function (ev) {
 				var evImages = (ev && ev.role === 'qc' && Array.isArray(ev.images)) ? ev.images : [];
 				return '<div class="mk-wh-proto-timeline-item">' +
-					'<strong>' + escText(ev.action || '—') + '</strong>' +
-					roleBadge(ev.role) +
-					(evImages.length ? ' <span class="mk-wh-proto-muted">📷 ' + evImages.length + ' ảnh</span>' : '') +
+					'<div class="mk-wh-proto-timeline-item__head">' +
+						'<strong class="mk-wh-proto-timeline-item__action">' + escText(ev.action || '—') + '</strong>' +
+						roleBadge(ev.role) +
+						(evImages.length ? '<span class="mk-wh-proto-muted mk-wh-proto-timeline-item__photos">📷 ' + evImages.length + ' ảnh</span>' : '') +
+					'</div>' +
 					'<div class="mk-wh-proto-muted">' + escText((ev.by || '—') + ' · ' + fmtDateTime(ev.at)) + '</div>' +
 					(ev.note ? '<div class="mk-wh-proto-quote">"' + escText(ev.note) + '"</div>' : '') +
 					renderTimelineImagesBlock(evImages) +
@@ -1526,9 +1788,11 @@
 				'<div class="mk-wh-proto-dialog-grid">' +
 					'<div class="mk-wh-proto-dialog-main-col">' +
 						'<div class="mk-wh-proto-dialog-section-title">Chi tiết hàng hóa</div>' +
+						'<div class="mk-wh-proto-dialog-table-wrap">' +
 						'<table class="mk-wh-proto-dialog-table"><thead><tr><th>SKU</th><th>Lô / HSD</th><th>SL</th><th>Vị trí</th><th>QC</th></tr></thead><tbody>' +
 						linesHtml +
 						'</tbody></table>' +
+						'</div>' +
 						actions +
 					'</div>' +
 					'<div class="mk-wh-proto-dialog-timeline-col">' +
@@ -1549,8 +1813,10 @@
 			'<div class="mk-wh-proto-timeline">' +
 			((issue.timeline || []).map(function (ev) {
 				return '<div class="mk-wh-proto-timeline-item">' +
-					'<strong>' + escText(ev.action || '—') + '</strong>' +
-					roleBadge(ev.role) +
+					'<div class="mk-wh-proto-timeline-item__head">' +
+						'<strong class="mk-wh-proto-timeline-item__action">' + escText(ev.action || '—') + '</strong>' +
+						roleBadge(ev.role) +
+					'</div>' +
 					'<div class="mk-wh-proto-muted">' + escText((ev.by || '—') + ' · ' + fmtDateTime(ev.at)) + '</div>' +
 					(ev.note ? '<div class="mk-wh-proto-quote">"' + escText(ev.note) + '"</div>' : '') +
 				'</div>';
@@ -3083,6 +3349,11 @@
 			});
 		}
 
+		// Capture phase: block <a href="WhQcImage..."> navigation before default kicks in.
+		document.addEventListener('click', function (e) {
+			if (tryOpenQcImageFromEvent(e)) return;
+		}, true);
+
 		document.addEventListener('click', function (e) {
 			var t = e.target;
 			if (!t) return;
@@ -3098,6 +3369,18 @@
 			var action = actionEl.getAttribute('data-mk-action');
 			var id = actionEl.getAttribute('data-id');
 			if (!action) return;
+			// Already handled in capture listener.
+			if (
+				action === 'qc-image-preview' ||
+				action === 'qc-lightbox-close' ||
+				action === 'qc-lightbox-prev' ||
+				action === 'qc-lightbox-next' ||
+				action === 'qc-lightbox-zoom-in' ||
+				action === 'qc-lightbox-zoom-out' ||
+				action === 'qc-lightbox-zoom-reset'
+			) {
+				return;
+			}
 
 			var whId = getWhId();
 			if (!whId) return;
@@ -3201,32 +3484,6 @@
 				if (!issue) return;
 				var dlg = issueDialog(issue);
 				openDialog(dlg.title, dlg.meta, dlg.body);
-				return;
-			}
-
-			if (action === 'qc-image-preview') {
-				e.preventDefault();
-				var previewRoot = actionEl.closest('[data-mk-qc-images], .mk-wh-qc-attach__grid, .mk-wh-qc-timeline-images, .mk-wh-proto-qc-result');
-				var pack = collectQcPreviewImagesFromContainer(previewRoot, actionEl);
-				if (pack.images.length) {
-					openQcLightbox(pack.images, pack.index);
-				}
-				return;
-			}
-			if (action === 'qc-lightbox-close') {
-				closeQcLightbox();
-				return;
-			}
-			if (action === 'qc-lightbox-prev') {
-				qcLightboxIndex -= 1;
-				if (qcLightboxIndex < 0) qcLightboxIndex = qcLightboxImages.length - 1;
-				updateQcLightboxView();
-				return;
-			}
-			if (action === 'qc-lightbox-next') {
-				qcLightboxIndex += 1;
-				if (qcLightboxIndex >= qcLightboxImages.length) qcLightboxIndex = 0;
-				updateQcLightboxView();
 				return;
 			}
 
@@ -3484,6 +3741,7 @@
 		var initialTab = readPersistedWhTab();
 		setActiveTab(initialTab);
 		renderAll();
+		ensureQcLightboxEl();
 	}
 
 	if (document.readyState === 'loading') {

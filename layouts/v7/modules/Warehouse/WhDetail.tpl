@@ -245,9 +245,18 @@
 <div class="mk-wh-qc-lightbox" id="mkWhQcLightbox" aria-hidden="true">
 	<div class="mk-wh-qc-lightbox__backdrop" data-mk-action="qc-lightbox-close"></div>
 	<div class="mk-wh-qc-lightbox__panel" role="dialog" aria-modal="true" aria-label="Xem ảnh QC">
-		<button type="button" class="mk-wh-qc-lightbox__close" data-mk-action="qc-lightbox-close" aria-label="Đóng">&times;</button>
+		<div class="mk-wh-qc-lightbox__tools">
+			<div class="mk-wh-qc-lightbox__zoom-group" title="Kính lúp">
+				<button type="button" class="mk-wh-qc-lightbox__zoom-btn" data-mk-action="qc-lightbox-zoom-out" title="Thu nhỏ">−</button>
+				<span class="mk-wh-qc-lightbox__zoom-label" data-mk-action="qc-lightbox-zoom-reset" data-mk-qc-zoom-label="1" title="Về 100%">100%</span>
+				<button type="button" class="mk-wh-qc-lightbox__zoom-btn" data-mk-action="qc-lightbox-zoom-in" title="Phóng to">+</button>
+			</div>
+			<button type="button" class="mk-wh-qc-lightbox__close" data-mk-action="qc-lightbox-close" aria-label="Đóng">&times;</button>
+		</div>
 		<button type="button" class="mk-wh-qc-lightbox__nav mk-wh-qc-lightbox__nav--prev" data-mk-action="qc-lightbox-prev" aria-label="Ảnh trước">&#8249;</button>
-		<img class="mk-wh-qc-lightbox__img" alt="" />
+		<div class="mk-wh-qc-lightbox__stage" data-mk-qc-lightbox-stage="1">
+			<img class="mk-wh-qc-lightbox__img" alt="" />
+		</div>
 		<button type="button" class="mk-wh-qc-lightbox__nav mk-wh-qc-lightbox__nav--next" data-mk-action="qc-lightbox-next" aria-label="Ảnh sau">&#8250;</button>
 		<div class="mk-wh-qc-lightbox__caption"></div>
 	</div>
