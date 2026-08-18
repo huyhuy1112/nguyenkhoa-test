@@ -2026,8 +2026,8 @@
     var skipConfirm = !!options.skipConfirm;
     var message =
       ids.length === 1
-        ? "Nhân bản đơn hàng đã chọn?"
-        : "Nhân bản " + ids.length + " đơn hàng đã chọn?";
+        ? "Tạo Báo giá từ đơn hàng đã chọn?"
+        : "Tạo Báo giá từ " + ids.length + " đơn hàng đã chọn?";
     var run = function () {
       var postData = {
         module: "SalesOrder",
@@ -2063,12 +2063,18 @@
         }
         if (app.helper && app.helper.showSuccessNotification) {
           app.helper.showSuccessNotification({
-            message: result.message || "Đã nhân bản đơn hàng.",
+            message: result.message || "Đã tạo Báo giá.",
           });
         }
-        // Stay on list — show duplicated rows without opening Detail.
-        collapsePosInlineDetail(getPrimaryTable());
-        refreshSalesOrdersListQuiet({ page: "1" });
+        var createdIds = result.created || [];
+        if (createdIds.length === 1) {
+          window.location.href = "index.php?module=Quotes&view=Detail&record=" + createdIds[0];
+        } else if (createdIds.length > 1) {
+          window.location.href = "index.php?module=Quotes&view=List";
+        } else {
+          collapsePosInlineDetail(getPrimaryTable());
+          refreshSalesOrdersListQuiet({ page: "1" });
+        }
       });
     };
     if (skipConfirm) {

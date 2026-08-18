@@ -70,17 +70,19 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			'success' => count($created) > 0,
 			'created' => $created,
 			'created_count' => count($created),
+			'target_module' => 'Quotes',
 			'errors' => $errors,
 			'message' => count($created) > 0
-				? ('Đã nhân bản ' . count($created) . ' đơn hàng.')
-				: 'Không nhân bản được đơn hàng nào.',
+				? ('Đã tạo ' . count($created) . ' Báo giá từ Đơn hàng.')
+				: 'Không tạo được Báo giá nào.',
 		));
 		$response->emit();
 	}
 
 	/**
+	 * Create a new Quote from this Sales Order (independent copy).
 	 * @param int $sourceId
-	 * @return int
+	 * @return int new Quote crmid
 	 */
 	protected function duplicateSalesOrder($sourceId) {
 		$sourceId = (int) $sourceId;
@@ -89,13 +91,16 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			throw new Exception('Không tìm thấy đơn hàng #' . $sourceId);
 		}
 
+		if (!Users_Privileges_Model::isPermitted('Quotes', 'CreateView')) {
+			throw new Exception('Không có quyền tạo Báo giá.');
+		}
+
 		$sourceSubject = trim((string) $source->get('subject'));
 
-		$newModel = Vtiger_Record_Model::getCleanInstance('SalesOrder');
-		// Avoid setRecordFieldValues for money/rate — those go through currency parse on save.
+		$newModel = Vtiger_Record_Model::getCleanInstance('Quotes');
 		$copyFields = array(
-			'subject', 'account_id', 'contact_id', 'potential_id', 'quote_id', 'currency_id',
-			'description', 'terms_conditions', 'duedate', 'customerno', 'enable_recurring',
+			'subject', 'account_id', 'contact_id', 'potential_id', 'currency_id',
+			'description', 'terms_conditions',
 			'bill_street', 'bill_city', 'bill_state', 'bill_code', 'bill_country', 'bill_pobox',
 			'ship_street', 'ship_city', 'ship_state', 'ship_code', 'ship_country', 'ship_pobox',
 			'assigned_user_id', 'taxtype',
@@ -110,23 +115,20 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 		$newModel->set('mode', '');
 		$newModel->set('id', '');
 		$newModel->set('record', '');
-		$newModel->set('salesorder_no', '');
-		$newModel->set('sostatus', 'Created');
-		$newModel->set('received', 0);
-		$newModel->set('balance', 0);
+		$newModel->set('quote_no', '');
+		$newModel->set('quotestage', 'Created');
+		$newModel->set('validtill', date('Y-m-d', strtotime('+30 days')));
 
 		$rate = $this->sanitizeConversionRate($source->get('conversion_rate'));
 		$newModel->set('conversion_rate', $rate);
-		// Do not write money via model save (uitype 72 + VN separators). SQL copy after save.
 		foreach (array(
 			'hdnGrandTotal', 'hdnSubTotal', 'total', 'subtotal', 'pre_tax_total',
 			'discount_amount', 'discount_percent', 's_h_amount', 'adjustment',
-			'received', 'balance', 'txtAdjustment', 'shipping_handling_charge',
+			'txtAdjustment', 'shipping_handling_charge',
 		) as $moneyField) {
 			$newModel->set($moneyField, 0);
 		}
 
-		// Keep a clean subject (strip any legacy "(copy)" from older duplicates).
 		if ($sourceSubject !== '') {
 			$cleanSubject = trim(preg_replace('/\s*\(copy(?:\s+\d+)?\)\s*$/i', '', $sourceSubject));
 			if ($cleanSubject !== '') {
@@ -138,21 +140,14 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 		if ($newModel->get('assigned_user_id') === '' || $newModel->get('assigned_user_id') === null) {
 			$newModel->set('assigned_user_id', $currentUser->getId());
 		}
-		if ((int) $newModel->get('contact_id') <= 0 && (int) $newModel->get('potential_id') > 0) {
-			require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
-			$contactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId((int) $newModel->get('potential_id'));
-			if ($contactId > 0) {
-				$newModel->set('contact_id', $contactId);
-			}
-		}
 
 		$entity = method_exists($newModel, 'getEntity') ? $newModel->getEntity() : null;
 		if ($entity) {
 			$entity->isLineItemUpdate = false;
 			if (isset($entity->column_fields) && is_array($entity->column_fields)) {
 				$entity->column_fields['conversion_rate'] = $rate;
-				foreach (array('total', 'subtotal', 'pre_tax_total', 'discount_amount', 's_h_amount', 'adjustment', 'salesorder_no') as $fieldName) {
-					if ($fieldName === 'salesorder_no') {
+				foreach (array('total', 'subtotal', 'pre_tax_total', 'discount_amount', 's_h_amount', 'adjustment', 'quote_no') as $fieldName) {
+					if ($fieldName === 'quote_no') {
 						$entity->column_fields[$fieldName] = '';
 					} else {
 						$entity->column_fields[$fieldName] = 0;
@@ -160,10 +155,9 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 				}
 			}
 		}
-		// SaveAjax path skips inventory line rewrite; also clear any leftover line request keys.
 		$_REQUEST['totalProductCount'] = 0;
 		$_REQUEST['action'] = 'SaveAjax';
-		$_REQUEST['module'] = 'SalesOrder';
+		$_REQUEST['module'] = 'Quotes';
 		foreach (array_keys($_REQUEST) as $reqKey) {
 			if (preg_match('/^(listPrice|qty|hdnProductId|productName|comment|purchaseCost|margin|discount)\d+$/', $reqKey)) {
 				unset($_REQUEST[$reqKey]);
@@ -173,7 +167,7 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 		$newModel->save();
 		$newId = (int) $newModel->getId();
 		if ($newId <= 0) {
-			throw new Exception('Không lưu được bản nhân bản.');
+			throw new Exception('Không lưu được Báo giá.');
 		}
 
 		$this->copyInventoryLines($sourceId, $newId);

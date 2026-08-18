@@ -1409,6 +1409,33 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-so-block--totals 
 	box-shadow: none !important;
 }
 
+/* —— "Sau CK" column —— */
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-col-afterck {
+	text-align: right;
+	vertical-align: middle;
+	min-width: 110px;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-afterck-input {
+	width: 100%;
+	text-align: right;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	padding: 6px 8px;
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+	background: #fff;
+}
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-afterck-input:focus {
+	border-color: #6366f1;
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
+}
+
+body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-totals-odoo #lineItemResult tr.mk-inv-totals-row--discount td {
+	border-bottom: 1px solid rgba(148, 163, 184, 0.28) !important;
+	padding-bottom: 14px !important;
+}
+
 /* —— v5 line items card polish —— */
 body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-lineitems-odoo {
 	background: #fff;

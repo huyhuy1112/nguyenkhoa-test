@@ -84,7 +84,7 @@
   ];
   var DEFAULT_CREDIT_TERM = "Thanh toán ngay";
 
-  // BA: Đơn giá → Chiết khấu % → Thành tiền → Ghi chú (VAT-included prices)
+  // BA: Đơn giá → Chiết khấu % → Thành tiền → Sau CK → Ghi chú (VAT-included prices)
   var MODERN_LINE_HEADER_COLUMNS = [
     { className: "mk-inv-col-drag", label: "" },
     { className: "mk-inv-col-product", label: "Tên mục", required: true },
@@ -93,18 +93,20 @@
     { className: "mk-inv-col-price", label: "Đơn giá" },
     { className: "mk-inv-col-tax-head mk-inv-col-tax mk-inv-col-discount", label: "Chiết khấu (%)" },
     { className: "mk-inv-col-amount", label: "Thành tiền" },
+    { className: "mk-inv-col-afterck", label: "Sau CK" },
     { className: "mk-inv-col-note", label: "Ghi chú" },
   ];
 
   var MODERN_LINE_COLGROUP_WIDTHS = [
     "48px",
-    "22%",
-    "72px",
-    "96px",
-    "148px",
-    "110px",
-    "156px",
-    "150px",
+    "18%",
+    "68px",
+    "88px",
+    "120px",
+    "100px",
+    "120px",
+    "120px",
+    "140px",
   ];
 
   /** BA mode: unit prices include VAT; line tax column is discount % instead. */
@@ -872,6 +874,14 @@
   }
 
   function sumLinePreTax($form) {
+    var sum = 0;
+    $form.find("tr.lineItemRow").each(function () {
+      sum += getRowAfterCk($(this), $form);
+    });
+    return sum;
+  }
+
+  function sumLineGrossTotal($form) {
     var sum = 0;
     $form.find("tr.lineItemRow").each(function () {
       sum += calcLineRowTotal($(this), $form);
@@ -2565,27 +2575,27 @@
     if (!$row || !$row.length) {
       return 0;
     }
+    // Typed % in the combo field wins over the hidden preset <select> (which may still be "0").
+    var $inp = $row.find(".mk-inv-discount-custom, .mk-inv-discount-pct").first();
+    if ($inp.length) {
+      var raw = $inp.val();
+      if (raw !== "" && raw != null) {
+        return clampDiscountPercent(raw);
+      }
+    }
     var $sel = $row.find(".mk-inv-discount-select").first();
     if ($sel.length) {
       var sv = $sel.val();
       if (sv === "custom") {
-        var customVal = $row.find(".mk-inv-discount-custom").first().val();
-        if (customVal === "" || customVal == null) {
-          var cachedCustom = $row.data("mkDiscountPct");
-          if (cachedCustom != null && cachedCustom !== "") {
-            return clampDiscountPercent(cachedCustom);
-          }
-          return 0;
+        var cachedCustom = $row.data("mkDiscountPct");
+        if (cachedCustom != null && cachedCustom !== "") {
+          return clampDiscountPercent(cachedCustom);
         }
-        return clampDiscountPercent(customVal);
+        return 0;
       }
       if (sv != null && sv !== "") {
         return clampDiscountPercent(sv);
       }
-    }
-    var $inp = $row.find(".mk-inv-discount-custom, .mk-inv-discount-pct").first();
-    if ($inp.length && $inp.val() !== "" && $inp.val() != null) {
-      return clampDiscountPercent($inp.val());
     }
     return 0;
   }
@@ -2727,14 +2737,12 @@
     if ($row.data("mkDiscUserSet")) {
       var fromUi = readDiscountFromUiControls($row);
       var cachedUser = $row.data("mkDiscountPct");
-      if (fromUi > 0 || fromUi === 0) {
-        // Prefer controls; fall back to cache if select is mid-init empty
-        if (
-          $row.find(".mk-inv-discount-select").length &&
-          $row.find(".mk-inv-discount-select").first().val() != null
-        ) {
-          return fromUi;
-        }
+      if (fromUi > 0) {
+        return fromUi;
+      }
+      var $custom = $row.find(".mk-inv-discount-custom, .mk-inv-discount-pct").first();
+      if ($custom.length && String($custom.val() || "").trim() !== "") {
+        return fromUi;
       }
       if (cachedUser != null && cachedUser !== "") {
         return clampDiscountPercent(cachedUser);
@@ -2791,6 +2799,7 @@
   function commitRowDiscount($row, $form, pct) {
     pct = clampDiscountPercent(pct);
     $row.data("mkDiscUserSet", true);
+    $row.removeData("mkAfterCkManual");
     clearManualGrandTotal($form);
     applyLineDiscountFields($row, pct);
     applyLineTaxZero($row, $form);
@@ -3016,7 +3025,6 @@
     $custom.on(
       "input.mkInvDisc change.mkInvDisc focusout.mkInvDisc",
       function () {
-        $row.data("mkDiscUserSet", true);
         var pct = clampDiscountPercent($custom.val());
         if (document.activeElement !== $custom[0]) {
           $custom.val(String(pct));
@@ -3028,17 +3036,7 @@
               : String(pct);
           $sel.val(key);
         }
-        applyLineDiscountFields($row, pct);
-        applyLineTaxZero($row, $form);
-        clearManualGrandTotal($form);
-        setTimeout(function () {
-          syncRowAmounts($row, $form);
-          syncTotalsDisplay($form);
-          var fn = $form.data("mkScheduleRealtimeSync");
-          if (fn) {
-            fn();
-          }
-        }, 20);
+        commitRowDiscount($row, $form, pct);
       },
     );
 
@@ -3124,8 +3122,12 @@
   function calcLineRowTotal($row, $form) {
     var qty = parseMoney($row.find(".qty").val());
     var price = parseMoney($row.find(".listPrice").val());
+    return qty * price;
+  }
+
+  function calcLineAfterDiscount($row, $form) {
+    var base = calcLineRowTotal($row, $form);
     var disc = getRowDiscountPercent($row);
-    var base = qty * price;
     var after = base - Math.round((base * disc) / 100);
     return after < 0 ? 0 : after;
   }
@@ -3228,6 +3230,57 @@
         ".productTotal, .mk-inv-money-wrap, .mk-inv-line-del, .mk-inv-amount-wrap",
       )
       .addClass("mk-inv-hide-legacy");
+
+    ensureAfterCkCell($row, $form);
+  }
+
+  function ensureAfterCkCell($row, $form) {
+    var $amountTd = $row.find("> td.mk-inv-col-amount").first();
+    var $noteTd = $row.find("> td.mk-inv-col-note").first();
+    var $ckTd = $row.find("> td.mk-inv-col-afterck").first();
+    if (!$ckTd.length) {
+      $ckTd = $('<td class="mk-inv-col-afterck"></td>');
+      if ($noteTd.length) {
+        $ckTd.insertBefore($noteTd);
+      } else if ($amountTd.length) {
+        $ckTd.insertAfter($amountTd);
+      } else {
+        $row.append($ckTd);
+      }
+    }
+    var afterCk = calcLineAfterDiscount($row, $form);
+    var $inp = $ckTd.find(".mk-inv-afterck-input");
+    if (!$inp.length) {
+      $inp = $('<input type="text" class="mk-inv-afterck-input inputElement" inputmode="numeric" />');
+      $ckTd.empty().append(
+        $('<div class="mk-inv-money-wrap"></div>')
+          .append('<span class="mk-inv-currency-prefix">đ</span>')
+          .append($inp)
+      );
+      $inp.on("change blur", function () {
+        var typed = parseMoney($(this).val());
+        if (typed >= 0) {
+          $row.data("mkAfterCkManual", typed);
+        }
+        syncTotalsDisplay($form || $row.closest("form"));
+      });
+    }
+    if (document.activeElement !== $inp[0]) {
+      var manual = $row.data("mkAfterCkManual");
+      if (manual != null && manual !== "") {
+        $inp.val(formatVndNumber(parseMoney(manual)));
+      } else {
+        $inp.val(formatVndNumber(afterCk));
+      }
+    }
+  }
+
+  function getRowAfterCk($row, $form) {
+    var manual = $row.data("mkAfterCkManual");
+    if (manual != null && manual !== "") {
+      return parseMoney(manual);
+    }
+    return calcLineAfterDiscount($row, $form);
   }
 
   function syncAllRowAmounts($form) {
@@ -4609,47 +4662,26 @@
     ensureEditableGrandTotal($form, $result);
     ensureGroupTaxMode($form);
 
-    var preTax = sumLinePreTax($form);
+    var grossTotal = sumLineGrossTotal($form);
+    var afterCkTotal = sumLinePreTax($form);
+    var discountTotal = grossTotal - afterCkTotal;
+    var grand = afterCkTotal;
 
-    // BA: prices include VAT — tax amount always 0 on form
-    var taxAmt = 0;
-    var grand = preTax;
-    if (isManualGrandTotal($form)) {
-      grand = readAmountRaw(
-        $result.find("#grandTotal, .grandTotal"),
-        $form.find("#total"),
-      );
-      var $manualInput = $result.find(".mk-inv-grand-manual-input");
-      if ($manualInput.length) {
-        var typed = parseMoney($manualInput.val());
-        if (typed > 0 || $manualInput.val() === "0") {
-          grand = typed;
-        }
-      }
-      var adj = grand - preTax;
-      $form.find("#adjustment, input[name='adjustment']").val(adj);
-    } else {
-      $form.find("#adjustment, input[name='adjustment']").val(0);
-    }
+    $form.find("#adjustment, input[name='adjustment']").val(0);
 
-    writeAmountDisplay($result.find("#preTaxTotal"), preTax);
-    writeAmountDisplay($result.find("#tax_final"), taxAmt);
+    // Tổng Cộng (SL × Đơn giá)
+    writeAmountDisplay($result.find("#preTaxTotal"), grossTotal);
+    // Chiết Khấu
+    writeAmountDisplay($result.find("#mk_discount_total_display"), discountTotal);
+    writeAmountDisplay($result.find("#tax_final"), 0);
+    // Tổng Thanh Toán
     writeAmountDisplay($result.find("#grandTotal, .grandTotal"), grand);
 
-    $result.find("#pre_tax_total").val(preTax);
+    $result.find("#pre_tax_total").val(grossTotal);
     $form.find('#total, input[name="total"]').val(grand);
-    $form.find('#subtotal, input[name="subtotal"]').val(preTax);
+    $form.find('#subtotal, input[name="subtotal"]').val(grossTotal);
     $form.find(".groupTaxTotal").first().val(0);
     $result.find("#tax_final").attr("data-raw", 0);
-
-    if (!isManualGrandTotal($form)) {
-      var $manualInput2 = $result.find(".mk-inv-grand-manual-input");
-      if ($manualInput2.length && document.activeElement !== $manualInput2[0]) {
-        $manualInput2.val(formatVndNumber(grand));
-      }
-    }
-
-    ensureTaxTotalsRowVisible($result, 0);
 
     $form.data("mkInvSyncingTotals", false);
   }
@@ -6737,7 +6769,7 @@
     return $new;
   }
 
-  /** BA VAT-included: chỉ hiện Tổng cộng (có thể sửa tay). */
+  /** BA: Tổng Cộng (SL×ĐG, readonly) / Chiết Khấu / Tổng Thanh Toán */
   function revealCoreTotalsRows($result) {
     if (!$result || !$result.length) {
       return;
@@ -6750,13 +6782,39 @@
     if ($net.length) {
       $net.addClass("mk-inv-totals-hide").hide();
     }
+
+    // "Số tiền trước thuế" row → repurpose as "Tổng Cộng" (gross, readonly)
     if ($sub.length) {
-      // Hide "trước thuế" — prices already VAT-included
-      $sub.addClass("mk-inv-totals-hide hide").hide();
+      $sub
+        .removeClass("mk-inv-totals-hide hide")
+        .addClass("mk-inv-totals-row mk-inv-totals-row--sub")
+        .show()
+        .css({ display: "table-row", visibility: "visible" });
+      $sub.find(".mk-inv-totals-label").first().text("Tổng Cộng");
+      $sub.find(".mk-inv-vat-included-hint").remove();
     }
+
+    // Tax row → repurpose as "Chiết Khấu"
     if ($taxRow.length) {
-      $taxRow.addClass("hide mk-inv-totals-hide").hide();
+      $taxRow
+        .removeClass("hide mk-inv-totals-hide")
+        .addClass("mk-inv-totals-row mk-inv-totals-row--discount")
+        .attr("data-mk-totals-row", "discount")
+        .show()
+        .css({ display: "table-row", visibility: "visible" });
+      if (!$taxRow.find(".mk-inv-totals-label").length) {
+        $taxRow.find("td:first").html('<div class="mk-inv-totals-label">Chiết Khấu</div>');
+      } else {
+        $taxRow.find(".mk-inv-totals-label").first().text("Chiết Khấu");
+      }
+      $taxRow.find(".taxPercentage, .individualTax, .taxDivContainer, .groupTaxTotal, .mk-inv-tax-select, .mk-inv-hide-legacy")
+        .addClass("mk-inv-hide-legacy").hide();
+      if (!$taxRow.find("#mk_discount_total_display").length) {
+        $taxRow.find("td:last").append('<span class="pull-right mk-inv-vnd-amount" id="mk_discount_total_display">0</span>');
+      }
     }
+
+    // Grand total → "Tổng Thanh Toán" (readonly)
     if ($grand.length) {
       $grand
         .removeClass("mk-inv-totals-hide hide")
@@ -6766,17 +6824,13 @@
       if (!$grand.find(".mk-inv-totals-label").length) {
         $grand
           .find("td:first")
-          .html('<div class="mk-inv-totals-label">Tổng cộng</div>');
+          .html('<div class="mk-inv-totals-label">Tổng Thanh Toán</div>');
+      } else {
+        $grand.find(".mk-inv-totals-label").first().text("Tổng Thanh Toán");
       }
       $grand.find("#grandTotal, .grandTotal").addClass("mk-inv-vnd-amount");
-      var $hint = $grand.find(".mk-inv-vat-included-hint");
-      if (!$hint.length) {
-        $grand
-          .find("td:first")
-          .append(
-            '<div class="mk-inv-vat-included-hint">Đơn giá đã bao gồm VAT · có thể sửa tay tổng</div>',
-          );
-      }
+      $grand.find(".mk-inv-vat-included-hint").remove();
+      $grand.find(".mk-inv-grand-manual-input").remove();
     }
   }
 

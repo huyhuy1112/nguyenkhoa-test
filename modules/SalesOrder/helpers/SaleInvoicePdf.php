@@ -9,7 +9,7 @@ include_once 'vtlib/Vtiger/PDF/PDFGenerator.php';
 
 class SalesOrder_SaleInvoicePdf_Helper {
 
-	const FONT = 'dejavusans';
+	const FONT = 'times';
 	const GREEN = array(8, 160, 69);
 	const ACCENT = array(196, 74, 28);
 
@@ -33,9 +33,6 @@ class SalesOrder_SaleInvoicePdf_Helper {
 	 * @param bool $autoPrint
 	 */
 	public static function outputHtml(CRMEntity $focus, $moduleName = 'SalesOrder', $autoPrint = false) {
-		if ($moduleName !== 'SalesOrder') {
-			throw new AppException('HTML print is only supported for Sales Order');
-		}
 		while (ob_get_level() > 0) {
 			@ob_end_clean();
 		}
@@ -249,13 +246,14 @@ class SalesOrder_SaleInvoicePdf_Helper {
 			. '<style>
 @page{size:A4;margin:12mm}
 *{box-sizing:border-box}
-body{margin:0;padding:16px;font:13px/1.45 "DejaVu Sans",Arial,Helvetica,sans-serif;color:#111;background:#fff}
+body{margin:0;padding:16px;font:13px/1.45 "Times New Roman",Times,serif;color:#111;background:#fff}
 .sheet{max-width:900px;margin:0 auto;display:flex;flex-direction:column;min-height:740px}
 .head{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
 .mk-ph-logo{width:170px;height:auto;object-fit:contain;flex:0 0 auto}
 .head-main{flex:1;min-width:0}
 .company{font-size:16px;font-weight:700;margin:0 0 4px}
-.meta{color:#c44a1c;font-size:12px;margin:0}
+.meta{color:#111;font-size:12px;margin:0}
+.meta-label{color:#c44a1c;font-weight:700}
 .title{text-align:center;margin:14px 0 4px;font-size:22px;font-weight:800;letter-spacing:.02em}
 .docno{text-align:center;font-size:14px;font-weight:400;margin:0 0 14px}
 .info{display:flex;gap:24px;margin-bottom:12px}
@@ -289,8 +287,8 @@ td.r,th.r{text-align:right}
 </style></head><body><div class="sheet">'
 			. '<div class="head">' . $logo
 			. '<div class="head-main"><p class="company">' . $h($data['company_name']) . '</p>'
-			. '<p class="meta">Địa chỉ: ' . $h($data['company_address']) . '</p>'
-			. '<p class="meta">Điện thoại: ' . $h($data['company_phone']) . '</p></div></div>'
+			. '<p class="meta"><span class="meta-label">Địa chỉ:</span> ' . $h($data['company_address']) . '</p>'
+			. '<p class="meta"><span class="meta-label">Điện thoại:</span> ' . $h($data['company_phone']) . '</p></div></div>'
 			. '<h1 class="title">' . $h($data['doc_title']) . '</h1>'
 			. '<p class="docno">' . $h($data['doc_no_label'] . $data['doc_no']) . '</p>'
 			. '<div class="info"><div class="info-col">'
@@ -334,9 +332,6 @@ td.r,th.r{text-align:right}
 	 * @return Vtiger_PDF_TCPDF
 	 */
 	public static function build(CRMEntity $focus, $moduleName = 'SalesOrder') {
-		if ($moduleName === 'Quotes') {
-			return self::buildLegacyInvoice($focus, $moduleName);
-		}
 		return self::buildPhieuDatHangPdf($focus, $moduleName);
 	}
 

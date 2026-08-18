@@ -160,13 +160,14 @@
 					{if !empty($MK_MODERN_QUOTE_CREATE) || !empty($MK_MODERN_SALES_ORDER_CREATE)}
 					<colgroup class="mk-inv-colgroup">
 						<col style="width:48px" />
-						<col style="width:22%" />
-						<col style="width:72px" />
-						<col style="width:96px" />
+						<col style="width:18%" />
+						<col style="width:68px" />
+						<col style="width:88px" />
 						<col style="width:120px" />
-						<col style="width:110px" />
-						<col style="width:128px" />
-						<col style="width:150px" />
+						<col style="width:100px" />
+						<col style="width:120px" />
+						<col style="width:120px" />
+						<col style="width:140px" />
 					</colgroup>
 					<tr class="mk-inv-header-row">
 						<td class="mk-inv-col-drag"></td>
@@ -187,6 +188,9 @@
 						</td>
 						<td class="mk-inv-col-amount">
 							<span class="mk-inv-th-label">Thành tiền</span>
+						</td>
+						<td class="mk-inv-col-afterck">
+							<span class="mk-inv-th-label">Sau CK</span>
 						</td>
 						<td class="mk-inv-col-note">
 							<span class="mk-inv-th-label">Ghi chú</span>
