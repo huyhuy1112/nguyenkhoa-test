@@ -9,13 +9,8 @@
 				<header class="nk-integ-card__head">
 					<div class="nk-integ-card__brand">
 						<span class="nk-integ-card__icon" aria-hidden="true">
-							{if $CONN.code eq 'misa'}
-								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 7h6M9 11h6M9 15h4"/><rect x="4" y="3" width="16" height="18" rx="2"/></svg>
-							{elseif $CONN.code eq 'google_sheet'}
-								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
-							{else}
-								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/><path d="M3 4h2l2.2 11.4a1 1 0 0 0 1 .8h7.6a1 1 0 0 0 1-.76L19 7H6"/></svg>
-							{/if}
+							{assign var=ICON value=$CONN.icon|default:$CONN.code}
+							<img src="layouts/v7/modules/Settings/Vtiger/resources/logos/{$ICON|escape:'url'}.svg" width="24" height="24" alt="" loading="lazy" />
 						</span>
 						<div class="nk-integ-card__titles">
 							<h2 class="nk-integ-card__name">{$CONN.label|escape:'html'}</h2>

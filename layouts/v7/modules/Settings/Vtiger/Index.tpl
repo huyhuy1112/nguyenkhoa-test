@@ -1,6 +1,6 @@
 {* Settings Index — Figma-aligned summary + shortcuts *}
 {strip}
-<div class="mk-settings-index">
+<div class="mk-settings-index nk-set-page">
 	<nav class="mk-settings-breadcrumb" aria-label="Breadcrumb">
 		<ol class="mk-settings-breadcrumb__list">
 			<li class="mk-settings-breadcrumb__item">
@@ -17,18 +17,20 @@
 		<h1 class="mk-settings-index-header__title">{vtranslate('LBL_SETTINGS', 'Vtiger')}</h1>
 	</header>
 
+	<p class="mk-settings-index__intro nk-set-page__intro">{vtranslate('LBL_SETTINGS_INDEX_INTRO', $MODULE)}</p>
+
 	<section class="mk-settings-summary" aria-labelledby="mk-settings-summary-title">
 		<h2 id="mk-settings-summary-title" class="mk-settings-section-title">{vtranslate('LBL_SUMMARY', $MODULE)}</h2>
 		<div class="mk-settings-summary-grid">
-			<a class="mk-settings-stat-card" href="index.php?module=Users&amp;parent=Settings&amp;view=List">
+			<a class="mk-settings-stat-card nk-set-card" href="index.php?module=Users&amp;parent=Settings&amp;view=List" style="--nk-set-delay: 0ms">
 				<div class="mk-settings-stat-card__value">{$USERS_COUNT}</div>
 				<div class="mk-settings-stat-card__label">{vtranslate('LBL_ACTIVE_USERS', $MODULE)}</div>
 			</a>
-			<a class="mk-settings-stat-card" href="index.php?module=Workflows&amp;parent=Settings&amp;view=List&amp;parentblock=LBL_AUTOMATION">
+			<a class="mk-settings-stat-card nk-set-card" href="index.php?module=Workflows&amp;parent=Settings&amp;view=List&amp;parentblock=LBL_AUTOMATION" style="--nk-set-delay: 60ms">
 				<div class="mk-settings-stat-card__value">{$ACTIVE_WORKFLOWS}</div>
 				<div class="mk-settings-stat-card__label">{vtranslate('LBL_WORKFLOWS_ACTIVE', $MODULE)}</div>
 			</a>
-			<a class="mk-settings-stat-card" href="index.php?module=ModuleManager&amp;parent=Settings&amp;view=List">
+			<a class="mk-settings-stat-card nk-set-card" href="index.php?module=ModuleManager&amp;parent=Settings&amp;view=List" style="--nk-set-delay: 120ms">
 				<div class="mk-settings-stat-card__value">{$ACTIVE_MODULES}</div>
 				<div class="mk-settings-stat-card__label">{vtranslate('LBL_MODULES', $MODULE)}</div>
 			</a>

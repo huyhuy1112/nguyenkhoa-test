@@ -44,6 +44,7 @@ abstract class NkApi_Adapter {
 			'code' => $this->code(),
 			'label' => $this->label(),
 			'description' => $this->description(),
+			'icon' => $this->icon(),
 			'implemented' => $this->isImplemented(),
 			'enabled' => !empty($row['enabled']),
 			'base_url' => isset($row['base_url']) ? (string) $row['base_url'] : '',
@@ -61,6 +62,10 @@ abstract class NkApi_Adapter {
 
 	public function hint() {
 		return '';
+	}
+
+	public function icon() {
+		return $this->code();
 	}
 
 	/**

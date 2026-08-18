@@ -7,7 +7,8 @@
 	max-width: 18px;
 	max-height: 18px;
 }
-.nk-integ-card__icon svg {
+.nk-integ-card__icon svg,
+.nk-integ-card__icon img {
 	width: 24px !important;
 	height: 24px !important;
 	max-width: 24px;
@@ -142,14 +143,21 @@ body[data-parent="Settings"] .nk-integ-card--misa .nk-integ-card__icon {
 	color: #2563eb;
 }
 
+body[data-parent="Settings"] .nk-integ-card.is-target {
+	box-shadow: 0 0 0 3px rgba(31, 107, 58, 0.25), 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
 body[data-parent="Settings"] .nk-integ-card--ecommerce .nk-integ-card__icon {
 	background: linear-gradient(145deg, rgba(168, 85, 247, 0.14), rgba(168, 85, 247, 0.04));
 	color: #9333ea;
 }
 
-body[data-parent="Settings"] .nk-integ-card__icon svg {
+body[data-parent="Settings"] .nk-integ-card__icon svg,
+body[data-parent="Settings"] .nk-integ-card__icon img {
+	display: block;
 	width: 24px;
 	height: 24px;
+	object-fit: contain;
 }
 
 body[data-parent="Settings"] .nk-integ-card__name {

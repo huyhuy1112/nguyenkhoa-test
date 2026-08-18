@@ -28,6 +28,26 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 			var form = root.find('.nk-integ-form[data-code="' + code + '"]');
 			self.testConnection(form, btn);
 		});
+		self.scrollToHashTarget(root);
+	},
+
+	scrollToHashTarget: function (root) {
+		var hash = String(window.location.hash || "").replace(/^#/, "");
+		if (!hash || hash.indexOf("code=") !== 0) {
+			return;
+		}
+		var code = decodeURIComponent(hash.slice(5));
+		var card = root.find('.nk-integ-card[data-code="' + code + '"]');
+		if (!card.length) {
+			return;
+		}
+		window.setTimeout(function () {
+			card[0].scrollIntoView({ behavior: "smooth", block: "start" });
+			card.addClass("is-target");
+			window.setTimeout(function () {
+				card.removeClass("is-target");
+			}, 2200);
+		}, 120);
 	},
 
 	collectPayload: function (form) {

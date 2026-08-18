@@ -21,6 +21,10 @@ class NkApi_Ecommerce_Adapter extends NkApi_Adapter {
 		return 'Đồng bộ đơn / tồn kho với website thương mại điện tử.';
 	}
 
+	public function icon() {
+		return 'website';
+	}
+
 	public function hint() {
 		return 'Chưa có API. Lưu URL + credential tại đây; senior implement NkApi_Ecommerce_Adapter.';
 	}

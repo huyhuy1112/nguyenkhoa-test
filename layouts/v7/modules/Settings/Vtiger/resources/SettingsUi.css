@@ -232,7 +232,7 @@ body[data-parent="Settings"] .mk-dashboard-sidebar .mk-settings-subnav .list-gro
 .mk-settings-subnav-input:focus {
 	outline: none;
 	border-color: #08A045;
-	box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15);
 }
 
 .mk-settings-subnav-groups {
@@ -586,8 +586,15 @@ body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus-vis
 .mk-settings-shortcuts-grid {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 12px;
+	gap: 14px;
 	min-height: 0;
+}
+
+@media (min-width: 1100px) {
+	.mk-settings-summary-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 14px;
+	}
 }
 
 .mk-settings-shortcut-card {
@@ -673,7 +680,8 @@ body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus-vis
 
 .mk-settings-subpage,
 .mk-settings-subpage-shell {
-	max-width: 1200px;
+	max-width: none;
+	width: 100%;
 	margin-bottom: 4px;
 }
 
@@ -695,7 +703,7 @@ body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus-vis
 
 .mk-settings-subpage-header__title {
 	margin: 0 0 6px;
-	font-size: 28px;
+	font-size: 26px;
 	font-weight: 800;
 	color: var(--mk-settings-text);
 	letter-spacing: -0.02em;
@@ -767,7 +775,7 @@ body[data-parent="Settings"] .mk-settings-subpage .contents.tabbable,
 body[data-parent="Settings"] .mk-settings-subpage .layoutContent {
 	background: var(--mk-settings-card);
 	border: 1px solid rgba(15, 23, 42, 0.08);
-	border-radius: 20px;
+	border-radius: 18px;
 	padding: 28px 28px 32px;
 	box-shadow:
 		0 1px 2px rgba(15, 23, 42, 0.04),

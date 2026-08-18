@@ -29,7 +29,7 @@ class Settings_Vtiger_Integrations_View extends Settings_Vtiger_Index_View {
 			'~layouts/v7/modules/Settings/Vtiger/resources/Integrations.js',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
-		self::appendAssetCacheVer($jsScriptInstances, 'src', '20260814_integ_ui4');
+		self::appendAssetCacheVer($jsScriptInstances, 'src', '20260818_integ_ui5');
 		return array_merge($headerScriptInstances, $jsScriptInstances);
 	}
 
@@ -39,27 +39,7 @@ class Settings_Vtiger_Integrations_View extends Settings_Vtiger_Index_View {
 			'~layouts/v7/modules/Settings/Vtiger/resources/Integrations.css',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
-		self::appendAssetCacheVer($cssInstances, 'href', '20260814_integ_ui4');
+		self::appendAssetCacheVer($cssInstances, 'href', '20260818_integ_ui5');
 		return array_merge($headerCssInstances, $cssInstances);
-	}
-
-	/**
-	 * Vtiger file_exists() uses the full path; ?mk_v= in the path breaks loading.
-	 * @param array $assets Vtiger_CssScript_Model[]|Vtiger_JsScript_Model[]
-	 * @param string $key href|src
-	 * @param string $ver
-	 */
-	protected static function appendAssetCacheVer(array $assets, $key, $ver) {
-		foreach ($assets as $asset) {
-			if (!$asset || !method_exists($asset, 'get')) {
-				continue;
-			}
-			$url = $asset->get($key);
-			if ($url === '' || $url === null) {
-				continue;
-			}
-			$sep = (strpos($url, '?') !== false) ? '&' : '?';
-			$asset->set($key, $url . $sep . 'mk_v=' . rawurlencode($ver));
-		}
 	}
 }
